@@ -7,6 +7,16 @@ code = """
 """
 
 
+def test_basics():
+    """Test the basics"""
+    assert {
+        "function": "fn",
+        "args": [
+            "one"
+        ]
+    } == HYExpression(["fn", "one"]).get_invocation()
+
+
 def test_fn_split():
     """Test if we can get a statement something right."""
     one, two = tokenize(code)

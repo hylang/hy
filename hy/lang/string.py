@@ -1,3 +1,3 @@
 class HYString(str):
     def __init__(self, string):
-        self = string
+        self = string  # NOQA
