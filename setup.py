@@ -10,7 +10,7 @@ setup(**{
     "name": appname,
     "version": version,
     "packages": [
-        'monomoy'
+        'hy'
     ],
     "author": "Paul Tagliamonte",
     "author_email": "paultag@debian.org",
