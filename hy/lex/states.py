@@ -1,4 +1,5 @@
 from hy.lang.expression import HYExpression
+from hy.lex.errors import LexException
 from hy.lex.machine import Machine
 
 
@@ -69,10 +70,44 @@ class Expression(State):
             return
 
         if x == "\"":
-            return String
+            self.sub_machine = Machine(String)
+            return
 
         if x == "(":
             self.sub_machine = Machine(Expression)
             return
 
         self.bulk += x
+
+
+class String(State):
+    magic = {
+        "n": "\n",
+        "t": "\t",
+        "\\": "\\",
+        "\"": "\""
+    }
+
+    def enter(self):
+        self.buf = ""
+        self.esc = False
+
+    def exit(self):
+        self.machine.nodes.append(self.buf)
+
+    def p(self, x):
+        if x == "\\":
+            self.esc = True
+            return
+
+        if x == "\"" and not self.esc:
+            return Idle
+
+        if self.esc and x not in self.magic:
+            raise LexException("Unknown escape: \\%s" % (x))
+        elif self.esc:
+            x = self.magic[x]
+
+        self.esc = False
+
+        self.buf += x
