@@ -19,7 +19,7 @@ class State(object):
             self.sub_machine.process(x)
             idle = type(self.sub_machine.state) == Idle
             if idle:
-                self.nodes.append(self.sub_machine.nodes)
+                self.nodes += self.sub_machine.nodes
                 self.sub_machine = None
             return
 
