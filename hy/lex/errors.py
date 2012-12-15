@@ -1,0 +1,2 @@
+class LexException(Exception):
+    pass
