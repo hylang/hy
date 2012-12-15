@@ -1,6 +1,7 @@
 from hy.lang.expression import HYExpression
 from hy.lex.errors import LexException
 from hy.lex.machine import Machine
+from hy.lang.list import HYList
 
 
 class State(object):
@@ -13,6 +14,9 @@ class State(object):
 
     def exit(self):
         pass
+
+    def sub(self, machine):
+        self.sub_machine = Machine(machine)
 
     def process(self, x):
         if self.sub_machine:
@@ -48,7 +52,6 @@ class Expression(State):
     def enter(self):
         self.nodes = HYExpression([])
         self.bulk = ""
-        self.sub_machine = None
 
     def exit(self):
         if self.bulk:
@@ -64,19 +67,51 @@ class Expression(State):
     def p(self, x):
         if x == ")":
             return Idle
-
         if x == " ":
             self.commit()
             return
-
         if x == "\"":
-            self.sub_machine = Machine(String)
+            self.sub(String)
             return
-
         if x == "(":
-            self.sub_machine = Machine(Expression)
+            self.sub(Expression)
             return
+        if x == "[":
+            self.sub(List)
+            return
+        self.bulk += x
 
+
+class List(State):
+    def enter(self):
+        self.nodes = HYList([])
+        self.bulk = ""
+
+    def exit(self):
+        if self.bulk:
+            self.nodes.append(self.bulk)
+        self.machine.nodes.append(self.nodes)
+
+    def commit(self):
+        if self.bulk.strip() != "":
+            self.nodes.append(self.bulk)
+            self.bulk = ""
+
+    def p(self, x):
+        if x == "]":
+            return Idle
+        if x == " ":
+            self.commit()
+            return
+        if x == "\"":
+            self.sub(String)
+            return
+        if x == "[":
+            self.sub(List)
+            return
+        if x == "(":
+            self.sub(Expression)
+            return
         self.bulk += x
 
 
