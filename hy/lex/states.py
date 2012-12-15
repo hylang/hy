@@ -4,6 +4,9 @@ from hy.lex.machine import Machine
 from hy.lang.list import HYList
 
 
+WHITESPACE = [" ", "\t", "\n", "\r"]
+
+
 class State(object):
     def __init__(self, machine):
         self.machine = machine
@@ -38,12 +41,9 @@ class Comment(State):
 
 class Idle(State):
     def p(self, x):
-        if x == ";":
-            return Comment
-        if x == "(":
-            return Expression
-        if x in [" ", "\t", "\n", "\r"]:
-            return
+        if x == ";": return Comment
+        if x == "(": return Expression
+        if x in WHITESPACE: return
 
         raise LexException("Unknown char: %s" % (x))
 
@@ -65,20 +65,12 @@ class Expression(State):
             self.bulk = ""
 
     def p(self, x):
-        if x == ")":
-            return Idle
-        if x == " ":
-            self.commit()
-            return
-        if x == "\"":
-            self.sub(String)
-            return
-        if x == "(":
-            self.sub(Expression)
-            return
-        if x == "[":
-            self.sub(List)
-            return
+        if x == ")": return Idle
+        if x in WHITESPACE: self.commit(); return
+        if x == "\"": self.sub(String); return
+        if x == "(": self.sub(Expression); return
+        if x == "[": self.sub(List); return
+        if x == ";": self.sub(Comment); return
         self.bulk += x
 
 
@@ -98,30 +90,17 @@ class List(State):
             self.bulk = ""
 
     def p(self, x):
-        if x == "]":
-            return Idle
-        if x == " ":
-            self.commit()
-            return
-        if x == "\"":
-            self.sub(String)
-            return
-        if x == "[":
-            self.sub(List)
-            return
-        if x == "(":
-            self.sub(Expression)
-            return
+        if x == "]": return Idle
+        if x in WHITESPACE: self.commit(); return
+        if x == "\"": self.sub(String); return
+        if x == "[": self.sub(List); return
+        if x == "(": self.sub(Expression); return
+        if x == ";": self.sub(Comment); return
         self.bulk += x
 
 
 class String(State):
-    magic = {
-        "n": "\n",
-        "t": "\t",
-        "\\": "\\",
-        "\"": "\""
-    }
+    magic = { "n": "\n", "t": "\t", "\\": "\\", "\"": "\"" }
 
     def enter(self):
         self.buf = ""
@@ -140,6 +119,7 @@ class String(State):
 
         if self.esc and x not in self.magic:
             raise LexException("Unknown escape: \\%s" % (x))
+
         elif self.esc:
             x = self.magic[x]
 

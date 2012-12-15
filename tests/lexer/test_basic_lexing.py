@@ -38,6 +38,21 @@ def test_mid_recurse():
     ] == tokenize("(fn one (fn two)(fn three))")
 
 
+def test_mid_recurse_comment():
+    """ Test some crazy recursion with a comment """
+
+    assert [
+        ['fn',
+            'one',
+            ['fn', 'two'],
+            ['fn', 'three'],
+        ]
+    ] == tokenize("""
+(fn one ; this is a test
+    (fn two)(fn three)) ; and so is this
+""")
+
+
 def test_full_recurse():
     """ Test something we could see for real """
     assert [
