@@ -6,4 +6,6 @@ class HYSymbol(unicode, HYObject):
         self += string
 
     def eval(self, *args, **kwargs):
+        if self.isdigit():
+            return float(self)
         return self.namespace[self]

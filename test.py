@@ -1,10 +1,4 @@
-from hy.compiler.modfaker import forge_module
-from hy.lex.tokenize import tokenize
+from hy.lang.importer import _hy_import_file
+import sys
 
-
-m = forge_module(
-    'test',
-    'test.hy',
-    tokenize('(def two (fn [x] (print x)))(two "Hello")')
-)
-
+mod = _hy_import_file('test', sys.argv[1])

@@ -7,15 +7,40 @@ def _add_native_methods(mod):
         def _print(*args, **kwargs):
             print " ".join([str(x) for x in args])
 
+
         def _plus(*args):
             ret = 0
             for x in args:
-                ret += int(x)
+                ret += x
+            return ret
+
+
+        def _subtract(*args):
+            ret = 0
+            for x in args:
+                ret -= x
+            return ret
+
+
+        def _mult(*args):
+            ret = 1
+            for x in args:
+                ret *= x
+            return ret
+
+
+        def _divide(*args):
+            ret = 1
+            for x in args:
+                ret /= x
             return ret
 
         natives = {
             "print": _print,
-            "+": _plus
+            "+": _plus,
+            "-": _subtract,
+            "*": _mult,
+            "/": _divide
         }
 
         for native in natives:
