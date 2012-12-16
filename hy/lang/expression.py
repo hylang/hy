@@ -1,4 +1,5 @@
 from hy.lang.hyobj import HYObject
+from hy.lang.builtins import builtins
 
 
 class HYExpression(list, HYObject):
@@ -21,9 +22,16 @@ class HYExpression(list, HYObject):
             "args": args
         }
 
-    def __call__(self, *args, **kwargs):
+    def peek(self):
+        return self.get_invocation()['function']
+
+    def eval(self, *args, **kwargs):
+        fn = self.peek()
+        if fn in builtins:
+            # special-case builtin handling.
+            return builtins[fn](self)
+
         things = []
-        fn = self.get_invocation()['function']
         for child in self.get_children():
             things.append(child())
 

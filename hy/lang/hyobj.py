@@ -7,5 +7,8 @@ class HYObject(object):
     def get_children(self):
         return []
 
-    def __call__(self, *args, **kwargs):
+    def eval(self, *args, **kwargs):
         return self
+
+    def __call__(self, *args, **kwargs):
+        return self.eval(*args, **kwargs)
