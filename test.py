@@ -5,10 +5,6 @@ from hy.lex.tokenize import tokenize
 m = forge_module(
     'test',
     'test.hy',
-    tokenize('(def two (fn [] (print (+ 1 1))))(def x 1)')
+    tokenize('(def two (fn [x] (print x)))(two "Hello")')
 )
 
-print m.two
-m.two()
-
-print m.x

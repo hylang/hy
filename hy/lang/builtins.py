@@ -14,7 +14,11 @@ def _fn(obj):
     meth = args[1]
 
     def _(*args, **kwargs):
-        # meth validation
+        for i in range(0, len(sig)):
+            name = sig[i]
+            value = args[i]
+            obj.namespace[name] = value
+
         return meth(*args, **kwargs)
     return _
 

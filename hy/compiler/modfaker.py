@@ -23,6 +23,7 @@ def _add_native_methods(mod):
 
     eval(shim.__code__, mod.__dict__)
 
+
 def forge_module(name, fpath, forest):
     mod = imp.new_module(name)
     mod.__file__ = fpath

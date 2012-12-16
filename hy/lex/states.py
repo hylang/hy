@@ -1,6 +1,7 @@
 from hy.lang.expression import HYExpression
 from hy.lex.errors import LexException
 from hy.lang.string import HYString
+from hy.lang.symbol import HYSymbol
 from hy.lex.machine import Machine
 from hy.lang.list import HYList
 
@@ -56,13 +57,13 @@ class Expression(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(HYString(self.bulk))
+            self.nodes.append(HYSymbol(self.bulk))
 
         self.machine.nodes.append(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(HYString(self.bulk))
+            self.nodes.append(HYSymbol(self.bulk))
             self.bulk = ""
 
     def p(self, x):
@@ -82,12 +83,12 @@ class List(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(HYString(self.bulk))
+            self.nodes.append(HYSymbol(self.bulk))
         self.machine.nodes.append(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(HYString(self.bulk))
+            self.nodes.append(HYSymbol(self.bulk))
             self.bulk = ""
 
     def p(self, x):
