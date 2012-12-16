@@ -35,4 +35,4 @@ class HYExpression(list, HYObject):
         for child in self.get_children():
             things.append(child())
 
-        return self.namespace[fn](*things)
+        return self.lookup(fn)(*things)

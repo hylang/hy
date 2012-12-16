@@ -23,7 +23,19 @@ def _fn(obj):
     return _
 
 
+def _import(obj):
+    ns = obj.namespace
+    fd = obj.get_invocation()
+    args = fd['args']
+    mods = args[0]
+
+    for module in mods:
+        mod = __import__(module)
+        obj.namespace[module] = mod
+
+
 builtins = {
     "def": _define,
     "fn": _fn,
+    "import": _import
 }

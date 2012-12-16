@@ -1,5 +1,5 @@
-import imp
 from hy.lex.tokenize import tokenize
+import imp
 
 
 def _add_native_methods(mod):
@@ -35,12 +35,13 @@ def _add_native_methods(mod):
                 ret /= x
             return ret
 
+
         natives = {
             "print": _print,
             "+": _plus,
             "-": _subtract,
             "*": _mult,
-            "/": _divide
+            "/": _divide,
         }
 
         for native in natives:

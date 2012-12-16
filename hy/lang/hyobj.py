@@ -12,3 +12,19 @@ class HYObject(object):
 
     def __call__(self, *args, **kwargs):
         return self.eval(*args, **kwargs)
+
+    def lookup(self, fn):
+        callee = None
+
+        if fn in self.namespace:
+            callee = self.namespace[fn]
+
+        if "." in fn:
+            lon, short = fn.rsplit(".", 1)
+            holder = self.lookup(lon)
+            callee = getattr(holder, short)
+
+        if callee:
+            return callee
+
+        raise Exception
