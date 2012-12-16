@@ -20,3 +20,11 @@ class HYExpression(list, HYObject):
             "function": fn,
             "args": args
         }
+
+    def __call__(self, *args, **kwargs):
+        things = []
+        fn = self.get_invocation()['function']
+        for child in self.get_children():
+            things.append(child())
+
+        return self.namespace[fn](*things)
