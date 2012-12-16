@@ -1,5 +1,6 @@
 from hy.lang.expression import HYExpression
 from hy.lex.errors import LexException
+from hy.lang.string import HYString
 from hy.lex.machine import Machine
 from hy.lang.list import HYList
 
@@ -107,7 +108,7 @@ class String(State):
         self.esc = False
 
     def exit(self):
-        self.machine.nodes.append(self.buf)
+        self.machine.nodes.append(HYString(self.buf))
 
     def p(self, x):
         if x == "\\":
