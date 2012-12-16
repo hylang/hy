@@ -1,6 +1,10 @@
-class HYExpression(list):
+from hy.lang.hyobj import HYObject
+
+
+class HYExpression(list, HYObject):
     def __init__(self, nodes):
         self += nodes
+        self.namespace = globals()
 
     def get_children(self):
         ret = []

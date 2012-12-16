@@ -56,13 +56,13 @@ class Expression(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(self.bulk)
+            self.nodes.append(HYString(self.bulk))
 
         self.machine.nodes.append(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(self.bulk)
+            self.nodes.append(HYString(self.bulk))
             self.bulk = ""
 
     def p(self, x):
@@ -82,12 +82,12 @@ class List(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(self.bulk)
+            self.nodes.append(HYString(self.bulk))
         self.machine.nodes.append(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(self.bulk)
+            self.nodes.append(HYString(self.bulk))
             self.bulk = ""
 
     def p(self, x):
