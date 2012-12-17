@@ -59,10 +59,14 @@ def forge_module(name, fpath, forest):
     _add_native_methods(mod)
 
     def shim():
+        ns = globals()
         for tree in _hy_forest:
-            tree.set_namespace(globals())
+            tree.set_namespace(ns)
+
+        for tree in _hy_forest:
             tree()
 
+    mod.__dict__['_hy_self'] = mod
     eval(shim.__code__, mod.__dict__)
 
     return mod

@@ -1,9 +1,9 @@
 ; vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2 filetype=lisp
 
-(import ["sys"])
+(import ["sys"
+         "os.path"])
 
 (def square (fn [x]
      (* x x)))
 
-(print (square 2))
-(print sys.argv)
+(print os.path)

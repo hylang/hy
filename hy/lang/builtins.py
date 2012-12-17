@@ -1,4 +1,5 @@
 #
+import sys
 
 
 def _define(obj):
@@ -30,8 +31,10 @@ def _import(obj):
     mods = args[0]
 
     for module in mods:
+        basename = module.split(".", 1)[0]
         mod = __import__(module)
-        obj.namespace[module] = mod
+        sys.modules[module] = mod
+        ns[basename] = mod
 
 
 builtins = {
