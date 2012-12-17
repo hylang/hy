@@ -1,7 +1,7 @@
-from hy.lang.hyobj import HYObject
+from hy.lang.string import HYString
 
 
-class HYSymbol(unicode, HYObject):
+class HYSymbol(HYString):
     def __init__(self, string):
         self += string
 
