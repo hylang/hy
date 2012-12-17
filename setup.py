@@ -4,7 +4,7 @@ from setuptools import setup
 
 long_description = open('README.md', 'r').read()
 appname = "hy"
-version = "0.0.1"
+version = "0.6.0"
 
 setup(**{
     "name": appname,
@@ -16,10 +16,10 @@ setup(**{
         'hy.compiler'
     ],
     "author": "Paul Tagliamonte",
-    "author_email": "paultag@debian.org",
+    "author_email": "tag@pault.ag",
     "long_description": long_description,
-    "description": 'does some stuff with things & stuff',
+    "description": 'lisp and python love eachother',
     "license": "Expat",
-    "url": "",
+    "url": "http://hy.pault.ag/",
     "platforms": ['any']
 })
