@@ -42,6 +42,8 @@ def _add_native_methods(mod):
             "-": _subtract,
             "*": _mult,
             "/": _divide,
+            "true": True,
+            "false": False
         }
 
         for native in natives:

@@ -4,6 +4,7 @@ from hy.lang.string import HYString
 from hy.lang.symbol import HYSymbol
 from hy.lex.machine import Machine
 from hy.lang.list import HYList
+from hy.lang.map import HYMap
 
 
 WHITESPACE = [" ", "\t", "\n", "\r"]
@@ -72,6 +73,7 @@ class Expression(State):
         if x == "\"": self.sub(String); return
         if x == "(": self.sub(Expression); return
         if x == "[": self.sub(List); return
+        if x == "{": self.sub(Map); return
         if x == ";": self.sub(Comment); return
         self.bulk += x
 
@@ -96,6 +98,42 @@ class List(State):
         if x in WHITESPACE: self.commit(); return
         if x == "\"": self.sub(String); return
         if x == "[": self.sub(List); return
+        if x == "(": self.sub(Expression); return
+        if x == "{": self.sub(Map); return
+        if x == ";": self.sub(Comment); return
+        self.bulk += x
+
+
+class Map(State):
+    def enter(self):
+        self.nodes = []
+        self.bulk = ""
+
+    def exit(self):
+        if self.bulk:
+            self.nodes.append(HYSymbol(self.bulk))
+
+        if (len(self.nodes) % 2) != 0:
+            raise Exception("Hash map is fucked")
+
+        ret = HYMap({})
+        i = iter(self.nodes)
+        hmap = zip(i, i)
+        for key, val in hmap:
+            ret[key] = val
+        self.machine.nodes.append(ret)
+
+    def commit(self):
+        if self.bulk.strip() != "":
+            self.nodes.append(HYSymbol(self.bulk))
+            self.bulk = ""
+
+    def p(self, x):
+        if x == "}": return Idle
+        if x in WHITESPACE: self.commit(); return
+        if x == "\"": self.sub(String); return
+        if x == "[": self.sub(List); return
+        if x == "{": self.sub(Map); return
         if x == "(": self.sub(Expression); return
         if x == ";": self.sub(Comment); return
         self.bulk += x
