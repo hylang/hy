@@ -9,28 +9,32 @@ def _add_native_methods(mod):
 
 
         def _plus(*args):
-            ret = 0
+            ret = args[0]
+            args = args[1:]
             for x in args:
                 ret += x
             return ret
 
 
         def _subtract(*args):
-            ret = 0
+            ret = args[0]
+            args = args[1:]
             for x in args:
                 ret -= x
             return ret
 
 
         def _mult(*args):
-            ret = 1
+            ret = args[0]
+            args = args[1:]
             for x in args:
                 ret *= x
             return ret
 
 
         def _divide(*args):
-            ret = 1
+            ret = args[0]
+            args = args[1:]
             for x in args:
                 ret /= x
             return ret
