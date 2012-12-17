@@ -7,9 +7,6 @@ class HYObject(object):
     def get_children(self):
         return []
 
-    def eval(self, *args, **kwargs):
-        return self
-
     def __call__(self, *args, **kwargs):
         return self.eval(*args, **kwargs)
 
@@ -27,4 +24,9 @@ class HYObject(object):
         if callee:
             return callee
 
-        raise Exception
+        raise Exception("No such symbol: `%s`" % (fn))
+
+    def eval(self, *args, **kwargs):
+        for node in self.get_children():
+            node.eval(*args, **kwargs)
+        return self

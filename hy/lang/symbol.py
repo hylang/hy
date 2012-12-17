@@ -7,5 +7,5 @@ class HYSymbol(unicode, HYObject):
 
     def eval(self, *args, **kwargs):
         if self.isdigit():
-            return float(self)
+            return int(self)
         return self.lookup(self)
