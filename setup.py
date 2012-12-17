@@ -10,7 +10,10 @@ setup(**{
     "name": appname,
     "version": version,
     "packages": [
-        'hy'
+        'hy',
+        'hy.lang',
+        'hy.lex',
+        'hy.compiler'
     ],
     "author": "Paul Tagliamonte",
     "author_email": "paultag@debian.org",
