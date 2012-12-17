@@ -2,12 +2,19 @@ from hy.lang.expression import HYExpression
 from hy.lex.errors import LexException
 from hy.lang.string import HYString
 from hy.lang.symbol import HYSymbol
+from hy.lang.number import HYNumber
 from hy.lex.machine import Machine
 from hy.lang.list import HYList
 from hy.lang.map import HYMap
 
 
 WHITESPACE = [" ", "\t", "\n", "\r"]
+
+
+def _resolve_atom(value):
+    if value.isdigit():
+        return HYNumber(value)
+    return HYSymbol(value)
 
 
 class State(object):
@@ -58,13 +65,13 @@ class Expression(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(HYSymbol(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk))
 
         self.machine.nodes.append(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(HYSymbol(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk))
             self.bulk = ""
 
     def p(self, x):
@@ -85,12 +92,12 @@ class List(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(HYSymbol(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk))
         self.machine.nodes.append(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(HYSymbol(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk))
             self.bulk = ""
 
     def p(self, x):
@@ -111,7 +118,7 @@ class Map(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(HYSymbol(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk))
 
         if (len(self.nodes) % 2) != 0:
             raise Exception("Hash map is fucked")
@@ -125,7 +132,7 @@ class Map(State):
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(HYSymbol(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk))
             self.bulk = ""
 
     def p(self, x):

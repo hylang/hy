@@ -4,15 +4,15 @@ from hy.lex.tokenize import tokenize
 def test_simple_tokenize():
     """Checking we can still handle something simple."""
 
-    assert [["+", "1", "1"]] == tokenize("(+ 1 1)")
+    assert [["+", 1, 1]] == tokenize("(+ 1 1)")
 
 
 def test_double_tokenize():
     """Checking if we can lex two things at once."""
 
     assert [
-        ["+", "1", "2"],
-        ["-", "1", "1"]
+        ["+", 1, 2],
+        ["-", 1, 1]
     ] == tokenize("(+ 1 2) (- 1 1)")
 
 
@@ -59,15 +59,15 @@ def test_full_recurse():
         ['fn',
             'el',
             ['+',
-                '1',
-                '2',
+                1,
+                2,
                 ['==',
-                    '1',
-                    '20'
+                    1,
+                    20
                 ],
                 ['-',
-                    '1',
-                    '1'
+                    1,
+                    1
                 ],
             ]
         ],

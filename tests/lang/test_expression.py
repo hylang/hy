@@ -23,7 +23,7 @@ def test_fn_split():
     assert one.get_invocation() == {
         "function": "+",
         "args": [
-            "1", "1"
+            1, 1
         ]
     }
     assert two.get_invocation() == {
