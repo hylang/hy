@@ -6,4 +6,5 @@ class HYSymbol(HYString):
         self += string
 
     def eval(self, *args, **kwargs):
-        return self.lookup(self)
+        obj = self.lookup(self)
+        return obj

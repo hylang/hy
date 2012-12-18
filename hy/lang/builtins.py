@@ -18,10 +18,16 @@ def _fn(obj):
         for i in range(0, len(sig)):
             name = sig[i]
             value = args[i]
-            obj.namespace[name] = value
+            obj.local_namespace[name] = value
 
         return meth(*args, **kwargs)
     return _
+
+
+def _kwapply(obj):
+    fd = obj.get_invocation()
+    subshell, kwargs = fd['args']
+    return subshell.eval(**kwargs)
 
 
 def _import(obj):
@@ -37,8 +43,19 @@ def _import(obj):
         ns[basename] = mod
 
 
+def _if(obj):
+    fd = obj.get_invocation()
+    args = fd['args']
+    if args[0].eval():
+        return args[1].eval()
+    else:
+        return args[2].eval()
+
+
 builtins = {
     "def": _define,
     "fn": _fn,
-    "import": _import
+    "import": _import,
+    "kwapply": _kwapply,
+    "if": _if,
 }

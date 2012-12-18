@@ -2,7 +2,10 @@
 
 from setuptools import setup
 
-long_description = open('README.md', 'r').read()
+long_description = """This thing does stuff and
+things with other things until things looks like other
+things.  """
+
 appname = "hy"
 version = "0.6.0"
 

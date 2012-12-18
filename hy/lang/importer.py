@@ -5,9 +5,7 @@ import imp
 import os
 
 
-def _hy_import_file(fd):
-    name = 'hython file'
-
+def _hy_import_file(fd, name):
     m = forge_module(
         name,
         fd,
@@ -34,8 +32,11 @@ class MetaImporter(object):
     def load_module(self, name):
         if name not in sys.modules:
             sys.modules[name] = None
-            sys.modules[name] = _hy_import_file(self.path)
-            sys.modules[name].__loader__ = self
+            mod = _hy_import_file(self.path, name)
+            mod.__file__ = self.path
+            mod.__name__ = name
+            mod.__loader__ = self
+            sys.modules[name] = mod
 
         return sys.modules[name]
 

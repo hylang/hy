@@ -1,11 +1,13 @@
+from __future__ import print_function
 from hy.lex.tokenize import tokenize
 import imp
 
 
 def _add_native_methods(mod):
     def shim():
+        from hy.lang.bool import HYBool
         def _print(*args, **kwargs):
-            print " ".join([str(x) for x in args])
+            print(" ".join([str(x) for x in args]))
 
 
         def _plus(*args):
@@ -40,14 +42,67 @@ def _add_native_methods(mod):
             return ret
 
 
+        def _eq(*args):
+            car, cdr = args[0], args[1:]
+            for arg in cdr:
+                if arg != car:
+                    return False
+            return True
+
+
+        def _ne(*args):
+            seen = set()
+            for arg in args:
+                if arg in seen:
+                    return False
+                seen.add(arg)
+            return True
+
+
+        def _gt(*args):
+            arg = args[0]
+            for i in range(1, len(args)):
+                if not (args[i - 1] > args[i]):
+                    return False
+            return True
+
+
+        def _ge(*args):
+            arg = args[0]
+            for i in range(1, len(args)):
+                if not (args[i - 1] >= args[i]):
+                    return False
+            return True
+
+
+        def _le(*args):
+            arg = args[0]
+            for i in range(1, len(args)):
+                if not (args[i - 1] <= args[i]):
+                    return False
+            return True
+
+
+        def _lt(*args):
+            arg = args[0]
+            for i in range(1, len(args)):
+                if not (args[i - 1] < args[i]):
+                    return False
+            return True
+
+
         natives = {
-            "print": _print,
+            "puts": _print,
             "+": _plus,
             "-": _subtract,
             "*": _mult,
             "/": _divide,
-            "true": True,
-            "false": False
+            "==": _eq,
+            ">": _gt,
+            ">=": _ge,
+            "<": _lt,
+            "<=": _le,
+            "!=": _ne
         }
 
         for native in natives:
@@ -65,7 +120,7 @@ def forge_module(name, fpath, forest):
     def shim():
         ns = globals()
         for tree in _hy_forest:
-            tree.set_namespace(ns)
+            tree.set_namespace(ns, {})
 
         for tree in _hy_forest:
             tree()

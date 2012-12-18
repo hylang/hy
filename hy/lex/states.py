@@ -5,6 +5,7 @@ from hy.lang.symbol import HYSymbol
 from hy.lang.number import HYNumber
 from hy.lex.machine import Machine
 from hy.lang.list import HYList
+from hy.lang.bool import HYBool
 from hy.lang.map import HYMap
 
 
@@ -12,6 +13,11 @@ WHITESPACE = [" ", "\t", "\n", "\r"]
 
 
 def _resolve_atom(value):
+    if value == "true":
+        return HYBool(True)
+    elif value == "false":
+        return HYBool(False)
+
     if value.isdigit():
         return HYNumber(value)
     return HYSymbol(value)

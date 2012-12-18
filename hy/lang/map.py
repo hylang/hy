@@ -7,4 +7,9 @@ class HYMap(dict, HYObject):
             self[node] = nodes[node]
 
     def get_children(self):
-        return self.keys() + self.values()
+        ret = []
+        for v in self.keys():
+            ret.append(v)
+        for v in self.values():
+            ret.append(v)
+        return ret

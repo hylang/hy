@@ -5,7 +5,6 @@ from hy.lang.builtins import builtins
 class HYExpression(list, HYObject):
     def __init__(self, nodes):
         self += nodes
-        self.namespace = globals()
 
     def get_children(self):
         ret = []
@@ -27,6 +26,7 @@ class HYExpression(list, HYObject):
 
     def eval(self, *args, **kwargs):
         fn = self.peek()
+
         if fn in builtins:
             # special-case builtin handling.
             return builtins[fn](self)
@@ -35,4 +35,5 @@ class HYExpression(list, HYObject):
         for child in self.get_children():
             things.append(child())
 
-        return self.lookup(fn)(*things)
+        ret = self.lookup(fn)(*things, **kwargs)
+        return ret

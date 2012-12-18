@@ -1,8 +1,13 @@
+from hy.lang.internals import HYNamespaceCOW
+
 class HYObject(object):
-    def set_namespace(self, ns):
+    def set_namespace(self, ns, ls):
         self.namespace = ns
+        nns = HYNamespaceCOW(ls)
+        self.local_namespace = nns
+
         for c in self.get_children():
-            c.set_namespace(ns)
+            c.set_namespace(ns, ls=nns)
 
     def get_children(self):
         return []
@@ -12,16 +17,18 @@ class HYObject(object):
 
     def lookup(self, fn):
         callee = None
+        if fn in self.local_namespace:
+            callee = self.local_namespace[fn]
 
-        if fn in self.namespace:
+        if callee is None and fn in self.namespace:
             callee = self.namespace[fn]
 
-        if "." in fn:
+        if callee is None and "." in fn:
             lon, short = fn.rsplit(".", 1)
             holder = self.lookup(lon)
             callee = getattr(holder, short)
 
-        if callee:
+        if callee is not None:
             return callee
 
         raise Exception("No such symbol: `%s`" % (fn))
