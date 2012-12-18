@@ -1,12 +1,12 @@
 from hy.lang.hyobj import HYObject
 
 
-class HYNumber(int, HYObject):
-    def __init__(self, number):
+class HYNumber(HYObject, int):
+    def __new__(cls, number, *args, **kwargs):
         if isinstance(number, HYObject):
             number = number.eval()
         number = int(number)
-        self = number
+        return super(HYNumber, cls).__new__(cls, number)
 
     def eval(self, *args, **kwargs):
         return int(self)

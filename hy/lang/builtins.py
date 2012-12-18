@@ -18,9 +18,10 @@ def _fn(obj):
         for i in range(0, len(sig)):
             name = sig[i]
             value = args[i]
-            obj.local_namespace[name] = value
+            meth.local_namespace[name] = value
 
-        return meth(*args, **kwargs)
+        ret = meth(*args, **kwargs)
+        return ret
     return _
 
 

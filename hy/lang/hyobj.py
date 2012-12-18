@@ -7,7 +7,7 @@ class HYObject(object):
         self.local_namespace = nns
 
         for c in self.get_children():
-            c.set_namespace(ns, ls=nns)
+            c.set_namespace(ns, nns)
 
     def get_children(self):
         return []
@@ -19,11 +19,12 @@ class HYObject(object):
         callee = None
         if fn in self.local_namespace:
             callee = self.local_namespace[fn]
+            print "%s = %s (ls %s)" % (fn, callee, id(self.local_namespace))
 
-        if callee is None and fn in self.namespace:
+        elif callee is None and fn in self.namespace:
             callee = self.namespace[fn]
 
-        if callee is None and "." in fn:
+        elif callee is None and "." in fn:
             lon, short = fn.rsplit(".", 1)
             holder = self.lookup(lon)
             callee = getattr(holder, short)
@@ -37,3 +38,8 @@ class HYObject(object):
         for node in self.get_children():
             node.eval(*args, **kwargs)
         return self
+
+    def copy(self):
+        new = type(self)(self)
+        new.set_namespace(self.namespace, self.local_namespace)
+        return new
