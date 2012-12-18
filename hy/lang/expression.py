@@ -35,7 +35,6 @@ class HYExpression(list, HYObject):
         for child in self.get_children():
             c = child.copy()
             things.append(c())
-            print c, things
 
         ret = self.lookup(fn)(*things, **kwargs)
         return ret

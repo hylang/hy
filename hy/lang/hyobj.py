@@ -19,7 +19,6 @@ class HYObject(object):
         callee = None
         if fn in self.local_namespace:
             callee = self.local_namespace[fn]
-            print "%s = %s (ls %s)" % (fn, callee, id(self.local_namespace))
 
         elif callee is None and fn in self.namespace:
             callee = self.namespace[fn]
