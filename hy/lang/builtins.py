@@ -9,6 +9,14 @@ def _define(obj, lns):
     obj.namespace[args[0]] = args[1]()
 
 
+def _loop(obj, lns):
+    fd = obj.get_invocation()
+    args = fd['args']
+    while True:
+        for arg in args:
+            arg.eval(lns.clone())
+
+
 def _fn(obj, lns):
     fd = obj.get_invocation()
     args = fd['args']
@@ -62,4 +70,5 @@ builtins = {
     "import": _import,
     "kwapply": _kwapply,
     "if": _if,
+    "loop": _loop
 }

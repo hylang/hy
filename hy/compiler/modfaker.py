@@ -15,6 +15,10 @@ def _add_native_methods(mod):
             sys.stdout.flush()
 
 
+        def _read(*args):
+            return sys.stdin.readline()
+
+
         def _lex(*args):
             ret = []
             for thing in args:
@@ -124,7 +128,8 @@ def _add_native_methods(mod):
             "<=": _le,
             "!=": _ne,
             "eval": _eval,
-            "lex": _lex
+            "lex": _lex,
+            "read": _read,
         }
 
         for native in natives:
