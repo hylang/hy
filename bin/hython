@@ -1,6 +1,22 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from hy.lang.importer import _hy_import_file
+
+from code import InteractiveConsole
 import sys
 
-mod = _hy_import_file(sys.argv[1], '<stdin>')
+if len(sys.argv) > 1:
+    mod = _hy_import_file(sys.argv[1], '<stdin>')
+    sys.exit(0)
+
+
+InteractiveConsole().interact(banner="""
+             "Really, if the lower orders don’t set us a good example, what on
+             earth is the use of them?"
+
+              -- Oscar Wilde (The Importance of Being Earnest)
+
+
+ The hython bits have been loaded -- magically, .hy
+ files are importable!""")

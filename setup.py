@@ -24,5 +24,8 @@ setup(**{
     "description": 'lisp and python love eachother',
     "license": "Expat",
     "url": "http://hy.pault.ag/",
-    "platforms": ['any']
+    "platforms": ['any'],
+    "scripts": [
+        "bin/hython"
+    ]
 })
