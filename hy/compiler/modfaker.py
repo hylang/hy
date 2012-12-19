@@ -27,10 +27,12 @@ def _add_native_methods(mod):
 
 
         def _eval(*args):
+            ret = []
             for node in _lex(*args):
                 for tree in node:
                     tree.set_namespace(globals())
-                    tree()
+                    ret.append(tree())
+            return ret
 
 
         def _plus(*args):
