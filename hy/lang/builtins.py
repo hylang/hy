@@ -55,6 +55,15 @@ def _import(obj, lns):
         ns[basename] = mod
 
 
+def _progn(obj, lns):
+    fd = obj.get_invocation()
+    args = fd['args']
+    ret = []
+    for arg in args:
+        ret.append(arg.eval(lns.clone()))
+    return ret
+
+
 def _if(obj, lns):
     fd = obj.get_invocation()
     args = fd['args']
@@ -70,5 +79,6 @@ builtins = {
     "import": _import,
     "kwapply": _kwapply,
     "if": _if,
-    "loop": _loop
+    "loop": _loop,
+    "progn": _progn
 }
