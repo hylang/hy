@@ -7,7 +7,8 @@ from code import InteractiveConsole
 import sys
 
 if len(sys.argv) > 1:
-    mod = _hy_import_file(sys.argv[1], '__main__')
+    sys.argv = sys.argv[1:]
+    mod = _hy_import_file(sys.argv[0], '__main__')
     sys.exit(0)
 
 

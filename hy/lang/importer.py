@@ -36,6 +36,7 @@ class MetaImporter(object):
             mod.__file__ = self.path
             mod.__name__ = name
             mod.__loader__ = self
+            mod.__package__ = name.rpartition('.')[0]
             sys.modules[name] = mod
 
         return sys.modules[name]
