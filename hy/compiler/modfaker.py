@@ -6,8 +6,27 @@ import imp
 def _add_native_methods(mod):
     def shim():
         from hy.lang.bool import HYBool
+        from hy.lex.tokenize import tokenize as _hy_tok
+        import sys
+
+
         def _print(*args, **kwargs):
-            print(" ".join([str(x) for x in args]))
+            sys.stdout.write(" ".join([str(x) for x in args]) + "\n")
+            sys.stdout.flush()
+
+
+        def _lex(*args):
+            ret = []
+            for thing in args:
+                ret.append(_hy_tok(thing))
+            return ret
+
+
+        def _eval(*args):
+            for node in _lex(*args):
+                for tree in node:
+                    tree.set_namespace(globals())
+                    tree()
 
 
         def _plus(*args):
@@ -92,6 +111,7 @@ def _add_native_methods(mod):
 
 
         natives = {
+            "print": _print,
             "puts": _print,
             "+": _plus,
             "-": _subtract,
@@ -102,7 +122,9 @@ def _add_native_methods(mod):
             ">=": _ge,
             "<": _lt,
             "<=": _le,
-            "!=": _ne
+            "!=": _ne,
+            "eval": _eval,
+            "lex": _lex
         }
 
         for native in natives:
