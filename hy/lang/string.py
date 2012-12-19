@@ -8,6 +8,9 @@ else:
     _str_type = unicode
 
 
-class HYString(_str_type, HYObject):
+class HYString(HYObject, _str_type):
     def __init__(self, string):
         self += string
+
+    def eval(self, ln, *args, **kwargs):
+        return str(self)

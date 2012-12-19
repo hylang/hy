@@ -1,7 +1,7 @@
 from hy.lang.hyobj import HYObject
 
 
-class HYMap(dict, HYObject):
+class HYMap(HYObject, dict):
     def __init__(self, nodes):
         for node in nodes:
             self[node] = nodes[node]
