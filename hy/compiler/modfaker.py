@@ -26,6 +26,22 @@ def _add_native_methods(mod):
             return ret
 
 
+        def _foreach(*args):
+            a = args[0]
+            for arg in a:
+                args[1](arg)
+
+        def _get(*args):
+            m = args[0]
+            k = args[1]
+            if k in m:
+                return m[k]
+            else:
+                if len(args) > 2:
+                    return args[2]
+                raise KeyError("No such key `%s` in map." % (k))
+
+
         def _eval(*args):
             ret = []
             for node in _lex(*args):
@@ -132,6 +148,8 @@ def _add_native_methods(mod):
             "eval": _eval,
             "lex": _lex,
             "read": _read,
+            "foreach": _foreach,
+            "get": _get
         }
 
         for native in natives:
