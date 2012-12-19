@@ -5,6 +5,6 @@ class HYSymbol(HYString):
     def __init__(self, string):
         self += string
 
-    def eval(self, *args, **kwargs):
-        obj = self.lookup(self)
+    def eval(self, lns, *args, **kwargs):
+        obj = self.lookup(lns, self)
         return obj

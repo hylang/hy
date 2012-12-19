@@ -2,7 +2,7 @@ from hy.lang.hyobj import HYObject
 from hy.lang.builtins import builtins
 
 
-class HYExpression(list, HYObject):
+class HYExpression(HYObject, list):
     def __init__(self, nodes):
         self += nodes
 
@@ -24,17 +24,17 @@ class HYExpression(list, HYObject):
     def peek(self):
         return self.get_invocation()['function']
 
-    def eval(self, *args, **kwargs):
+    def eval(self, lns, *args, **kwargs):
         fn = self.peek()
 
         if fn in builtins:
             # special-case builtin handling.
-            return builtins[fn](self)
+            return builtins[fn](self, lns)
 
         things = []
         for child in self.get_children():
             c = child.copy()
-            things.append(c())
+            things.append(c.eval(lns.clone()))
 
-        ret = self.lookup(fn)(*things, **kwargs)
+        ret = self.lookup(lns, fn)(*things, **kwargs)
         return ret

@@ -120,7 +120,7 @@ def forge_module(name, fpath, forest):
     def shim():
         ns = globals()
         for tree in _hy_forest:
-            tree.set_namespace(ns, {})
+            tree.set_namespace(ns)
 
         for tree in _hy_forest:
             tree()

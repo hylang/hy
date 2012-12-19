@@ -1,7 +1,7 @@
 from hy.lang.hyobj import HYObject
 
 
-class HYList(list, HYObject):
+class HYList(HYObject, list):
     def __init__(self, nodes):
         self += nodes
 

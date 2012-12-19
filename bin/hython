@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+from hy.lang.importer import _hy_import_file
+import sys
+
+mod = _hy_import_file(sys.argv[1], '<stdin>')

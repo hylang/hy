@@ -1,37 +1,40 @@
 #
 import sys
+from hy.lang.internals import HYNamespaceCOW
 
 
-def _define(obj):
+def _define(obj, lns):
     fd = obj.get_invocation()
     args = fd['args']
     obj.namespace[args[0]] = args[1]()
 
 
-def _fn(obj):
+def _fn(obj, lns):
     fd = obj.get_invocation()
     args = fd['args']
     sig = args[0]
     meth = args[1]
 
     def _(*args, **kwargs):
+        l = lns.clone()
+        m = meth.copy()
         for i in range(0, len(sig)):
             name = sig[i]
             value = args[i]
-            meth.local_namespace[name] = value
+            l[name] = value
 
-        ret = meth(*args, **kwargs)
+        ret = m.eval(l, *args, **kwargs)
         return ret
     return _
 
 
-def _kwapply(obj):
+def _kwapply(obj, lns):
     fd = obj.get_invocation()
     subshell, kwargs = fd['args']
-    return subshell.eval(**kwargs)
+    return subshell.eval(lns.clone(), **kwargs)
 
 
-def _import(obj):
+def _import(obj, lns):
     ns = obj.namespace
     fd = obj.get_invocation()
     args = fd['args']
@@ -44,13 +47,13 @@ def _import(obj):
         ns[basename] = mod
 
 
-def _if(obj):
+def _if(obj, lns):
     fd = obj.get_invocation()
     args = fd['args']
-    if args[0].eval():
-        return args[1].eval()
+    if args[0].eval(lns.clone()):
+        return args[1].eval(lns.clone())
     else:
-        return args[2].eval()
+        return args[2].eval(lns.clone())
 
 
 builtins = {

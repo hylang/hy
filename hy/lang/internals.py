@@ -18,3 +18,6 @@ class HYNamespaceCOW(object):
 
     def __setitem__(self, key, value):
         self._mute[key] = value
+
+    def clone(self):
+        return HYNamespaceCOW(self)
