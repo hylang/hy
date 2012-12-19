@@ -7,3 +7,9 @@ class HYList(HYObject, list):
 
     def get_children(self):
         return self
+
+    def eval(self, ln, *args, **kwargs):
+        ret = []
+        for node in self.get_children():
+            ret.append(node.eval(ln, *args, **kwargs))
+        return ret
