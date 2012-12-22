@@ -136,10 +136,8 @@ class AST27Converter(object):
 
     def render_bool(self, node):
         """ Render a boolean to AST """
-        if node:
-            return ast.Name(id='True', ctx=ast.Load())
-        else:
-            return ast.Name(id='False', ctx=ast.Load())
+        thing = "True" if node else "False"
+        return ast.Name(id=thing, ctx=ast.Load())
 
     def render_symbol(self, node):
         """ Render a symbol to AST """
