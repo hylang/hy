@@ -38,6 +38,28 @@ def _ast_binop(node, children, obj):
     return calc
 
 
+def _ast_cmp(node, children, obj):
+    # Compare(left=Num(n=1), ops=[LtE()], comparators=[Num(n=2)])
+    # Compare(left=Num(n=1), ops=[Gt(), Gt()],
+    #         comparators=[Num(n=2), Num(n=3)])
+
+    # opscmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
+    inv = node.get_invocation()
+    ops = {
+        "==": ast.Eq,
+        "<=": ast.LtE,
+        ">=": ast.GtE,
+        ">": ast.Gt,
+        "<": ast.Lt,
+        "!=": ast.NotEq
+    }
+    op = ops[inv['function']]
+    left = children.pop(0)
+
+    cop = [op()] * len(children)
+    return ast.Compare(left=left, ops=cop, comparators=children)
+
+
 def _ast_if(node, children, obj):
     cond = children.pop(0)
     true = children.pop(0)
@@ -51,13 +73,27 @@ def _ast_if(node, children, obj):
     return ret
 
 
+def _ast_return(node, children, obj):
+    return ast.Return(value=children[-1])
+
+
 special_cases = {
     "print": _ast_print,
+
     "+": _ast_binop,
     "/": _ast_binop,
     "-": _ast_binop,
     "*": _ast_binop,
-    "if": _ast_if
+
+    "==": _ast_cmp,
+    "<=": _ast_cmp,
+    ">=": _ast_cmp,
+    "<": _ast_cmp,
+    ">": _ast_cmp,
+    "!=": _ast_cmp,
+
+    "if": _ast_if,
+    "return": _ast_return,
 }
 
 
@@ -112,10 +148,7 @@ class AST27Converter(object):
         body = [c[-1]]
         if doc:
             #  Shim in docstrings
-            body.insert(
-                0,
-                ast.Expr(value=ast.Str(s=str(doc)))
-            )
+            body.insert(0, ast.Expr(value=ast.Str(s=str(doc))))
 
         ret = ast.FunctionDef(
             name=str(name),
