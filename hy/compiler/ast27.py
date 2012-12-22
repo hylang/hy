@@ -25,10 +25,18 @@ def _ast_print(node, children):
 
 
 def _ast_binop(node, children):
+    # operator = Add | Sub | Mult | Div | Mod | Pow | LShift
+    #             | RShift | BitOr | BitXor | BitAnd | FloorDiv
+    # XXX: Add these folks in
+
     inv = node.get_invocation()
     ops = {
-        "+": ast.Add
+        "+": ast.Add,
+        "/": ast.Div,
+        "*": ast.Mult,
+        "-": ast.Sub
     }
+
     op = ops[inv['function']]
 
     left = children.pop(0)
@@ -42,7 +50,10 @@ def _ast_binop(node, children):
 
 special_cases = {
     "print": _ast_print,
-    "+": _ast_binop
+    "+": _ast_binop,
+    "/": _ast_binop,
+    "-": _ast_binop,
+    "*": _ast_binop
 }
 
 
