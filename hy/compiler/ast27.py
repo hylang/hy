@@ -1,7 +1,7 @@
 # output ast for cpython 2.7
 
 from hy.lang.builtins import builtins
-# check compiler/modfaker for other crap
+from hy.lang.natives import natives
 
 offset = 0
 def _new_fn_name():
