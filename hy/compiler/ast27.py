@@ -51,7 +51,11 @@ def _ast_cmp(node, children, obj):
         ">=": ast.GtE,
         ">": ast.Gt,
         "<": ast.Lt,
-        "!=": ast.NotEq
+        "!=": ast.NotEq,
+        "in": ast.In,
+        "not-in": ast.NotIn,
+        "is": ast.Is,
+        "is-not": ast.IsNot
     }
     op = ops[inv['function']]
     left = children.pop(0)
@@ -91,6 +95,10 @@ special_cases = {
     "<": _ast_cmp,
     ">": _ast_cmp,
     "!=": _ast_cmp,
+    "in": _ast_cmp,
+    "not-in": _ast_cmp,
+    "is": _ast_cmp,
+    "is-not": _ast_cmp,
 
     "if": _ast_if,
     "return": _ast_return,
