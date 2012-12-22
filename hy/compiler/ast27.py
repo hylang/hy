@@ -6,19 +6,14 @@ from hy.lang.number import HYNumber
 from hy.lang.string import HYString
 from hy.lang.symbol import HYSymbol
 from hy.lang.list import HYList
+from hy.lang.bool import HYBool
 
 from hy.lang.builtins import builtins
 from hy.lang.natives import natives
 
 
-offset = 0
-def _new_fn_name():
-    global offset
-    offset += 1
-    return "_hy_fn_%s" % (offset)
-
-
 def _ast_print(node, children):
+    """ Handle `print' statements """
     return ast.Print(
         dest=None,
         values=children,
@@ -27,6 +22,7 @@ def _ast_print(node, children):
 
 
 def _ast_binop(node, children):
+    """ Handle basic Binary ops """
     # operator = Add | Sub | Mult | Div | Mod | Pow | LShift
     #             | RShift | BitOr | BitXor | BitAnd | FloorDiv
     # XXX: Add these folks in
@@ -47,28 +43,32 @@ special_cases = {
     "+": _ast_binop,
     "/": _ast_binop,
     "-": _ast_binop,
-    "*": _ast_binop
+    "*": _ast_binop,
 }
 
 
 class AST27Converter(object):
+    """ Convert a lexed Hy tree into a Python AST for cpython 2.7 """
+
     def __init__(self):
         self.table = {
             HYString: self.render_string,
             HYExpression: self.render_expression,
             HYNumber: self.render_number,
             HYSymbol: self.render_symbol,
+            HYBool: self.render_bool,
         }
+
         self.native_cases = {
             "defn": self._defn,
             "def": self._def,
         }
 
     def _def(self, node):
+        """ For the `def` operator """
         inv = node.get_invocation()
         args = inv['args']
         name = args.pop(0)
-        # assert args == 1
         blob = self.render(args[0])
 
         ret = ast.Assign(
@@ -79,6 +79,7 @@ class AST27Converter(object):
         return ret
 
     def _defn(self, node):
+        """ For the defn operator """
         inv = node.get_invocation()
         args = inv['args']
         name = args.pop(0)
@@ -107,17 +108,29 @@ class AST27Converter(object):
         return ret
 
     def render_string(self, node):
+        """ Render a string to AST """
         return ast.Str(s=str(node))
 
+    def render_bool(self, node):
+        """ Render a boolean to AST """
+        if node:
+            return ast.Name(id='True', ctx=ast.Load())
+        else:
+            return ast.Name(id='False', ctx=ast.Load())
+
     def render_symbol(self, node):
+        """ Render a symbol to AST """
         # the only time we have a bare symbol is if we
         # deref it.
         return ast.Name(id=str(node), ctx=ast.Load())
 
     def render_number(self, node):
+        """ Render a number to AST """
         return ast.Num(n=node)
 
     def render_expression(self, node):
+        """ Render an expression (function) to AST """
+
         inv = node.get_invocation()
 
         if inv['function'] in self.native_cases:
@@ -140,6 +153,7 @@ class AST27Converter(object):
         return ret
 
     def render(self, tree):
+        """ Entry point """
         t = type(tree)
         handler = self.table[t]
         ret = handler(tree)
@@ -147,6 +161,7 @@ class AST27Converter(object):
 
 
 def forge_ast(name, forest):
+    """ Make an AST for hacking with """
     conv = AST27Converter()
 
     statements = []
