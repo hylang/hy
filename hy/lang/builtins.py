@@ -1,6 +1,7 @@
 #
 import sys
 from hy.lang.internals import HYNamespaceCOW
+from hy.lang.string import HYString
 
 
 def _define(obj, lns):
@@ -17,10 +18,15 @@ def _loop(obj, lns):
             arg.eval(lns.clone())
 
 
-def _fn(obj, lns):
+def _fn(obj, lns, name=None):
     fd = obj.get_invocation()
     args = fd['args']
     sig = args[0]
+
+    docstring = None
+    if isinstance(args[1], HYString):
+        docstring = args.pop(1)
+
     meth = args[1]
 
     def _(*args, **kwargs):
@@ -33,6 +39,12 @@ def _fn(obj, lns):
 
         ret = m.eval(l, *args, **kwargs)
         return ret
+
+    _.__name__ = "hyfn"
+    if name:
+        _.__name__ = name
+
+    _.__doc__ = docstring
     return _
 
 

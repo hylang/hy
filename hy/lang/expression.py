@@ -18,7 +18,7 @@ class HYExpression(HYObject, list):
 
         return {
             "function": fn,
-            "args": args
+            "args": args,
         }
 
     def peek(self):
