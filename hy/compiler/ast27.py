@@ -12,7 +12,7 @@ from hy.lang.builtins import builtins
 from hy.lang.natives import natives
 
 
-def _ast_print(node, children):
+def _ast_print(node, children, obj):
     """ Handle `print' statements """
     return ast.Print(
         dest=None,
@@ -21,7 +21,7 @@ def _ast_print(node, children):
     )
 
 
-def _ast_binop(node, children):
+def _ast_binop(node, children, obj):
     """ Handle basic Binary ops """
     # operator = Add | Sub | Mult | Div | Mod | Pow | LShift
     #             | RShift | BitOr | BitXor | BitAnd | FloorDiv
@@ -38,12 +38,26 @@ def _ast_binop(node, children):
     return calc
 
 
+def _ast_if(node, children, obj):
+    cond = children.pop(0)
+    true = children.pop(0)
+    flse = children.pop(0)
+
+    ret = ast.If(
+        test=cond,
+        body=[true],
+        orelse=[flse]
+    )
+    return ret
+
+
 special_cases = {
     "print": _ast_print,
     "+": _ast_binop,
     "/": _ast_binop,
     "-": _ast_binop,
     "*": _ast_binop,
+    "if": _ast_if
 }
 
 
@@ -75,7 +89,8 @@ class AST27Converter(object):
             targets=[
                 ast.Name(id=str(name), ctx=ast.Store())
             ],
-            value=blob)
+            value=blob
+        )
         return ret
 
     def _defn(self, node):
@@ -94,7 +109,7 @@ class AST27Converter(object):
         for child in args:
             c.append(self.render(child))
 
-        body = [ast.Return(value=c[-1])]
+        body = [c[-1]]
         if doc:
             #  Shim in docstrings
             body.insert(
@@ -149,7 +164,7 @@ class AST27Converter(object):
             c.append(self.render(child))
 
         if inv['function'] in special_cases:
-            return special_cases[inv['function']](node, c)
+            return special_cases[inv['function']](node, c, self)
 
         ret = value=ast.Call(
                 func=ast.Name(id=str(inv['function']), ctx=ast.Load()),
