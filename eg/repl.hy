@@ -2,6 +2,5 @@
 ; Copyright (c) Paul Tagliamonte, in sofar as any of this is at all
 ;  copyrightable.
 
-
 (loop (print (eval (read))))
 ; Yes folks, this is where REPL comes from.

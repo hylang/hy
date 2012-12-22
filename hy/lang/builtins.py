@@ -25,13 +25,12 @@ def _fn(obj, lns):
 
     def _(*args, **kwargs):
         l = lns.clone()
-        m = meth.copy()
         for i in range(0, len(sig)):
             name = sig[i]
             value = args[i]
             l[name] = value
 
-        ret = m.eval(l, *args, **kwargs)
+        ret = meth.eval(l, *args, **kwargs)
         return ret
     return _
 
@@ -80,5 +79,5 @@ builtins = {
     "kwapply": _kwapply,
     "if": _if,
     "loop": _loop,
-    "progn": _progn
+    "progn": _progn,
 }

@@ -3,3 +3,5 @@
 *hy*egg*
 .tox
 *pycache*
+dist
+.coverage
