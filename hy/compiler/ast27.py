@@ -94,6 +94,14 @@ class AST27Converter(object):
         for child in args:
             c.append(self.render(child))
 
+        body = [ast.Return(value=c[-1])]
+        if doc:
+            #  Shim in docstrings
+            body.insert(
+                0,
+                ast.Expr(value=ast.Str(s=str(doc)))
+            )
+
         ret = ast.FunctionDef(
             name=str(name),
             args=ast.arguments(
@@ -102,7 +110,7 @@ class AST27Converter(object):
                 kwarg=None,
                 defaults=[]
             ),
-            body=[ast.Return(value=c[0])],
+            body=body,
             decorator_list=[]
         )
         return ret
