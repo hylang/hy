@@ -18,8 +18,11 @@ def _resolve_atom(value):
     elif value == "false":
         return HYBool(False)
 
-    if value.isdigit():
+    try:
         return HYNumber(value)
+    except ValueError:
+        pass
+
     return HYSymbol(value)
 
 
