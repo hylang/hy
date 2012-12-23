@@ -232,9 +232,17 @@ class AST27Converter(object):
         ret = ast.FunctionDef(
             name=str(name),
             args=ast.arguments(
-                args=[ast.Name(id=str(x), ctx=ast.Param()) for x in sig],
+                args=[
+                    ast.Name(
+                        arg=str(x),
+                        id=str(x),
+                        ctx=ast.Param()
+                    ) for x in sig
+                ],
                 vararg=None,
                 kwarg=None,
+                kwonlyargs=[],
+                kw_defaults=[],
                 defaults=[]
             ),
             body=body,
