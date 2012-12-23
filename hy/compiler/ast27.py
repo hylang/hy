@@ -123,6 +123,7 @@ class AST27Converter(object):
 
             "doseq": self._ast_for,
             "for": self._ast_for,
+            "kwapply": self._ast_kwapply,
         }
 
     def _def(self, node):
@@ -136,6 +137,20 @@ class AST27Converter(object):
             targets=[ast.Name(id=str(name), ctx=ast.Store())],
             value=blob
         )
+        return ret
+
+    def _ast_kwapply(self, node):
+        i = node.get_invocation()
+        args = i['args']
+        fn = args.pop(0)
+        kwargs = args.pop(0)
+        ret = self.render(fn)
+        ret.keywords = [
+            ast.keyword(
+                arg=str(x),
+                value=self.render(kwargs[x])
+            ) for x in kwargs
+        ]
         return ret
 
     def _ast_while(self, node):

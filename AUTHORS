@@ -7,4 +7,5 @@ I'd also like to thank the following people:
  - Kragen Sitaker:
     Major thanks goes to Kragen on helping me work through some of the
     namespacing crap. I think the majority of the approach taken now
-    with expressions' eval bits is his doing in one way or another.
+    with expressions' eval bits for modfaker is his doing in one
+    way or another. Thank you!

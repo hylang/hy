@@ -2,13 +2,8 @@
 ; Copyright (c) Paul Tagliamonte, in sofar as any of this is at all
 ;  copyrightable.
 
-(import ["sunlight"])
+(import "sunlight")
 
 
-(foreach
-  (kwapply (sunlight.openstates.legislators) {"state" "ma"})
-  (fn [x] (print [
-    (get x "first_name")
-    (get x "last_name")
-    (get x "party")
-  ])))
+(for [x (kwapply (sunlight.openstates.legislators) {"state" "ma"})]
+  (print x))
