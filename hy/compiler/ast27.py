@@ -7,6 +7,7 @@ from hy.lang.string import HYString
 from hy.lang.symbol import HYSymbol
 from hy.lang.list import HYList
 from hy.lang.bool import HYBool
+from hy.lang.map import HYMap
 
 from hy.lang.builtins import builtins
 from hy.lang.natives import natives
@@ -112,6 +113,8 @@ class AST27Converter(object):
             HYNumber: self.render_number,
             HYSymbol: self.render_symbol,
             HYBool: self.render_bool,
+            HYList: self.render_list,
+            HYMap: self.render_map,
         }
 
         self.native_cases = {
@@ -172,6 +175,20 @@ class AST27Converter(object):
     def render_string(self, node):
         """ Render a string to AST """
         return ast.Str(s=str(node))
+
+    def render_list(self, node):
+        ret = []
+        for c in node.get_children():
+            ret.append(self.render(c))
+        return ast.List(elts=ret, ctx=ast.Load())
+
+    def render_map(self, node):
+        keys = []
+        values = []
+        for key in node:
+            keys.append(self.render(key))
+            values.append(self.render(node[key]))
+        return ast.Dict(keys=keys, values=values)
 
     def render_bool(self, node):
         """ Render a boolean to AST """
