@@ -84,6 +84,7 @@ def _ast_return(node, children, obj):
     return ast.Return(value=children[-1])
 
 
+
 special_cases = {
     "print": _ast_print,
 
@@ -121,6 +122,8 @@ class AST27Converter(object):
             "defn": self._defn,
             "def": self._def,
             "import": _ast_import,
+
+            "doseq": self._ast_for, "for": self._ast_for,
         }
 
     def _def(self, node):
@@ -135,6 +138,23 @@ class AST27Converter(object):
             value=blob
         )
         return ret
+
+    def _ast_for(self, node):
+        i = node.get_invocation()
+        args = i['args']
+        sig = args.pop(0)
+        body = args.pop(0)
+        aname, seq = sig
+
+        body = self.render(body)
+        body = body if isinstance(body, list) else [body]
+
+        return ast.For(
+            target=ast.Name(id=str(aname), ctx=ast.Store()),
+            iter=self.render(seq),
+            body=body,
+            orelse=[]
+        )
 
     def _defn(self, node):
         """ For the defn operator """
