@@ -1,5 +1,6 @@
 # output ast for cpython 2.7
 import ast
+import imp
 
 from hy.lang.expression import HYExpression
 from hy.lang.number import HYNumber
@@ -40,11 +41,6 @@ def _ast_binop(node, children, obj):
 
 
 def _ast_cmp(node, children, obj):
-    # Compare(left=Num(n=1), ops=[LtE()], comparators=[Num(n=2)])
-    # Compare(left=Num(n=1), ops=[Gt(), Gt()],
-    #         comparators=[Num(n=2), Num(n=3)])
-
-    # opscmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
     inv = node.get_invocation()
     ops = {
         "==": ast.Eq, "<=": ast.LtE, ">=": ast.GtE, ">": ast.Gt, "<": ast.Lt,
@@ -297,3 +293,11 @@ def forge_ast(name, forest):
         statements.append(ret)
 
     return ast.fix_missing_locations(ast.Module(body=statements))
+
+
+def forge_module(name, fpath, forest):
+    mod = imp.new_module(name)
+    mod.__file__ = fpath
+    ast = forge_ast(name, forest)
+    eval(compile(ast, fpath, "exec"), mod.__dict__)
+    return mod

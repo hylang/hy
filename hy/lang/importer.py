@@ -1,4 +1,6 @@
-from hy.compiler.modfaker import forge_module
+# from hy.compiler.modfaker import forge_module
+from hy.compiler.ast27 import forge_module
+
 from hy.lex.tokenize import tokenize
 import sys
 import imp
