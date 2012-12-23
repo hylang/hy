@@ -64,6 +64,14 @@ def _ast_cmp(node, children, obj):
     return ast.Compare(left=left, ops=cop, comparators=children)
 
 
+def _ast_import(tree):
+    i = tree.get_invocation()
+    c = i['args']
+    return ast.Import(
+        names=[ast.alias(name=str(x), asname=None) for x in c]
+    )
+
+
 def _ast_if(node, children, obj):
     cond = children.pop(0)
     true = children.pop(0)
@@ -128,6 +136,7 @@ class AST27Converter(object):
         self.native_cases = {
             "defn": self._defn,
             "def": self._def,
+            "import": _ast_import,
         }
 
     def _def(self, node):
@@ -194,6 +203,15 @@ class AST27Converter(object):
         """ Render a symbol to AST """
         # the only time we have a bare symbol is if we
         # deref it.
+        if "." in node:
+            glob, local = node.rsplit(".", 1)
+            ret = ast.Attribute(
+                value=self.render_symbol(glob),
+                attr=str(local),
+                ctx=ast.Load()
+            )
+            return ret
+
         return ast.Name(id=str(node), ctx=ast.Load())
 
     def render_number(self, node):
