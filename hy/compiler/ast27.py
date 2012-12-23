@@ -68,6 +68,9 @@ def _ast_if(node, children, obj):
     true = true if isinstance(true, list) else [true]
     flse = flse if isinstance(flse, list) else [flse]
 
+    true = _adjust_body(true)
+    flse = _adjust_body(flse)
+
     ret = ast.If(test=cond, body=true, orelse=flse)
     return ret
 
@@ -161,11 +164,15 @@ class AST27Converter(object):
         body = args.pop(0)
         body = self.render(body)
         body = body if isinstance(body, list) else [body]
+        orel = []
+
+        body = _adjust_body(body)
+        orel = _adjust_body(orel)
 
         return ast.While(
             test=test,
             body=body,
-            orelse=[]
+            orelse=orel,
         )
 
 
@@ -178,12 +185,16 @@ class AST27Converter(object):
 
         body = self.render(body)
         body = body if isinstance(body, list) else [body]
+        orel = []
+
+        body = _adjust_body(body)
+        orel = _adjust_body(orel)
 
         return ast.For(
             target=ast.Name(id=str(aname), ctx=ast.Store()),
             iter=self.render(seq),
             body=body,
-            orelse=[]
+            orelse=orel,
         )
 
     def _defn(self, node):
@@ -208,6 +219,8 @@ class AST27Converter(object):
         if doc:
             #  Shim in docstrings
             body.insert(0, ast.Expr(value=ast.Str(s=str(doc))))
+
+        body = _adjust_body(body)
 
         ret = ast.FunctionDef(
             name=str(name),
@@ -309,6 +322,34 @@ class AST27Converter(object):
         return ret
 
 
+def _adjust_body(at, do_ret=True):
+    ret = []
+
+    first = True
+    at.reverse()
+
+    for el in at:
+        if not isinstance(el, ast.stmt):
+            if first and do_ret:
+                ret.append(ast.Return(
+                    value=el,
+                    lineno=el.lineno,
+                    col_offset=el.col_offset
+                ))
+            else:
+                ret.append(ast.Expr(
+                    value=el,
+                    lineno=el.lineno,
+                    col_offset=el.col_offset
+                ))
+        else:
+            ret.append(el)
+        first = False
+
+    ret.reverse()
+    return ret
+
+
 def forge_ast(name, forest):
     """ Make an AST for hacking with """
     conv = AST27Converter()
@@ -316,13 +357,9 @@ def forge_ast(name, forest):
     statements = []
     for tree in forest:
         ret = conv.render(tree)
-        if not isinstance(ret, ast.stmt):
-            ret = ast.Expr(
-                value=ret,
-                lineno=ret.lineno,
-                col_offset=ret.col_offset
-            )
         statements.append(ret)
+
+    statements = _adjust_body(statements, do_ret=False)
 
     return ast.Module(body=statements)
     #return ast.fix_missing_locations(ast.Module(body=statements))
