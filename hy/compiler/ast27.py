@@ -77,6 +77,10 @@ def _ast_if(node, children, obj):
     return ret
 
 
+def _ast_do(node, children, obj):
+    return children
+
+
 def _ast_return(node, children, obj):
     return ast.Return(value=children[-1])
 
@@ -102,6 +106,7 @@ special_cases = {
 
     "if": _ast_if,
     "return": _ast_return,
+    "do": _ast_do,
 }
 
 
@@ -153,7 +158,9 @@ class AST27Converter(object):
         for child in args:
             c.append(self.render(child))
 
-        body = [c[-1]]
+        cont = c[-1]  # XXX: Wrong...
+        body = cont if isinstance(cont, list) else [cont]
+
         if doc:
             #  Shim in docstrings
             body.insert(0, ast.Expr(value=ast.Str(s=str(doc))))
