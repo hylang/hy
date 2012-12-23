@@ -123,7 +123,10 @@ class AST27Converter(object):
             "def": self._def,
             "import": _ast_import,
 
-            "doseq": self._ast_for, "for": self._ast_for,
+            "while": self._ast_while,
+
+            "doseq": self._ast_for,
+            "for": self._ast_for,
         }
 
     def _def(self, node):
@@ -138,6 +141,22 @@ class AST27Converter(object):
             value=blob
         )
         return ret
+
+    def _ast_while(self, node):
+        i = node.get_invocation()
+        args = i['args']
+        test = args.pop(0)
+        test = self.render(test)
+        body = args.pop(0)
+        body = self.render(body)
+        body = body if isinstance(body, list) else [body]
+
+        return ast.While(
+            test=test,
+            body=body,
+            orelse=[]
+        )
+
 
     def _ast_for(self, node):
         i = node.get_invocation()
