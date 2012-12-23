@@ -63,13 +63,15 @@ def _ast_import(tree):
 def _ast_if(node, children, obj):
     cond = children.pop(0)
     true = children.pop(0)
-    flse = children.pop(0)
+    flse = []
+    if children != []:
+        flse = children.pop(0)
 
     true = true if isinstance(true, list) else [true]
     flse = flse if isinstance(flse, list) else [flse]
 
-    true = _adjust_body(true)
-    flse = _adjust_body(flse)
+    true = _adjust_body(true, do_ret=obj.in_fn)
+    flse = _adjust_body(flse, do_ret=obj.in_fn)
 
     ret = ast.If(test=cond, body=true, orelse=flse)
     return ret
@@ -97,7 +99,6 @@ special_cases = {
     "is": _ast_cmp, "is-not": _ast_cmp,
 
     "if": _ast_if,
-    "return": _ast_return,
     "do": _ast_do,
     "raise": _ast_raise,
 }
@@ -128,6 +129,7 @@ class AST27Converter(object):
             "for": self._ast_for,
             "kwapply": self._ast_kwapply,
         }
+        self.in_fn = False
 
     def _def(self, node):
         """ For the `def` operator """
@@ -166,8 +168,8 @@ class AST27Converter(object):
         body = body if isinstance(body, list) else [body]
         orel = []
 
-        body = _adjust_body(body)
-        orel = _adjust_body(orel)
+        body = _adjust_body(body, do_ret=self.in_fn)
+        orel = _adjust_body(orel, do_ret=self.in_fn)
 
         return ast.While(
             test=test,
@@ -187,8 +189,8 @@ class AST27Converter(object):
         body = body if isinstance(body, list) else [body]
         orel = []
 
-        body = _adjust_body(body)
-        orel = _adjust_body(orel)
+        body = _adjust_body(body, do_ret=self.in_fn)
+        orel = _adjust_body(orel, do_ret=self.in_fn)
 
         return ast.For(
             target=ast.Name(id=str(aname), ctx=ast.Store()),
@@ -210,8 +212,13 @@ class AST27Converter(object):
 
         # verify child count...
         c = []
+        _pop_fn = self.in_fn
+
+        self.in_fn = True
         for child in args:
             c.append(self.render(child))
+
+        self.in_fn = _pop_fn
 
         cont = c[-1]  # XXX: Wrong...
         body = cont if isinstance(cont, list) else [cont]
@@ -220,7 +227,7 @@ class AST27Converter(object):
             #  Shim in docstrings
             body.insert(0, ast.Expr(value=ast.Str(s=str(doc))))
 
-        body = _adjust_body(body)
+        body = _adjust_body(body, do_ret=True)
 
         ret = ast.FunctionDef(
             name=str(name),

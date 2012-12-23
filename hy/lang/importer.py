@@ -20,6 +20,7 @@ class HyFinder(object):
     def is_package(self, fullname):
         dirpath = "/".join(fullname.split("."))
         for pth in sys.path:
+            pth = os.path.abspath(pth)
             composed_path = "%s/%s/__init__.hy" % (pth, dirpath)
             if os.path.exists(composed_path):
                 return True
@@ -30,6 +31,7 @@ class HyFinder(object):
         dirpath = "/".join(fullname.split("."))
 
         for pth in sys.path:
+            pth = os.path.abspath(pth)
             for fp in fls:
                 composed_path = fp % ("%s/%s" % (pth, dirpath))
                 if os.path.exists(composed_path):
