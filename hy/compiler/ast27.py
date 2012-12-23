@@ -294,9 +294,17 @@ class AST27Converter(object):
         handler = self.table[t]
         ret = handler(tree)
 
-        for node in ast.walk(ret):
-            node.lineno = tree.line
-            node.col_offset = tree.column
+        def _correct_tree(_ast, tree):
+            for node in ast.walk(_ast):
+                node.lineno = tree.line
+                node.col_offset = tree.column
+
+
+        if isinstance(ret, list):
+            for r in ret:
+                _correct_tree(r, tree)
+        else:
+            _correct_tree(ret, tree)
 
         return ret
 
