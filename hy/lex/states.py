@@ -12,18 +12,23 @@ from hy.lang.map import HYMap
 WHITESPACE = [" ", "\t", "\n", "\r"]
 
 
-def _resolve_atom(value):
+def _resolve_atom(value, self):
+    def _mangle(obj):
+        obj.line = self.machine.line
+        obj.column = self.machine.column
+        return obj
+
     if value == "true":
-        return HYBool(True)
+        return _mangle(HYBool(True))
     elif value == "false":
-        return HYBool(False)
+        return _mangle(HYBool(False))
 
     try:
-        return HYNumber(value)
+        return _mangle(HYNumber(value))
     except ValueError:
         pass
 
-    return HYSymbol(value)
+    return _mangle(HYSymbol(value))
 
 
 class State(object):
@@ -74,13 +79,13 @@ class Expression(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(_resolve_atom(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk, self))
 
-        self.machine.nodes.append(self.nodes)
+        self.machine.add_node(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(_resolve_atom(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk, self))
             self.bulk = ""
 
     def p(self, x):
@@ -101,12 +106,12 @@ class List(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(_resolve_atom(self.bulk))
-        self.machine.nodes.append(self.nodes)
+            self.nodes.append(_resolve_atom(self.bulk, self))
+        self.machine.add_node(self.nodes)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(_resolve_atom(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk, self))
             self.bulk = ""
 
     def p(self, x):
@@ -127,7 +132,7 @@ class Map(State):
 
     def exit(self):
         if self.bulk:
-            self.nodes.append(_resolve_atom(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk, self))
 
         if (len(self.nodes) % 2) != 0:
             raise Exception("Hash map is fucked")
@@ -137,11 +142,11 @@ class Map(State):
         hmap = zip(i, i)
         for key, val in hmap:
             ret[key] = val
-        self.machine.nodes.append(ret)
+        self.machine.add_node(ret)
 
     def commit(self):
         if self.bulk.strip() != "":
-            self.nodes.append(_resolve_atom(self.bulk))
+            self.nodes.append(_resolve_atom(self.bulk, self))
             self.bulk = ""
 
     def p(self, x):
@@ -163,7 +168,7 @@ class String(State):
         self.esc = False
 
     def exit(self):
-        self.machine.nodes.append(HYString(self.buf))
+        self.machine.add_node(HYString(self.buf))
 
     def p(self, x):
         if x == "\\":

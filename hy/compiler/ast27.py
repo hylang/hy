@@ -293,6 +293,11 @@ class AST27Converter(object):
         t = type(tree)
         handler = self.table[t]
         ret = handler(tree)
+
+        for node in ast.walk(ret):
+            node.lineno = tree.line
+            node.col_offset = tree.column
+
         return ret
 
 
@@ -304,10 +309,15 @@ def forge_ast(name, forest):
     for tree in forest:
         ret = conv.render(tree)
         if not isinstance(ret, ast.stmt):
-            ret = ast.Expr(value=ret)
+            ret = ast.Expr(
+                value=ret,
+                lineno=ret.lineno,
+                col_offset=ret.col_offset
+            )
         statements.append(ret)
 
-    return ast.fix_missing_locations(ast.Module(body=statements))
+    return ast.Module(body=statements)
+    #return ast.fix_missing_locations(ast.Module(body=statements))
 
 
 def forge_module(name, fpath, forest):
