@@ -14,11 +14,7 @@ from hy.lang.natives import natives
 
 def _ast_print(node, children, obj):
     """ Handle `print' statements """
-    return ast.Print(
-        dest=None,
-        values=children,
-        nl=True
-    )
+    return ast.Print(dest=None, values=children, nl=True)
 
 
 def _ast_binop(node, children, obj):
@@ -46,15 +42,8 @@ def _ast_cmp(node, children, obj):
     # opscmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
     inv = node.get_invocation()
     ops = {
-        "==": ast.Eq,
-        "<=": ast.LtE,
-        ">=": ast.GtE,
-        ">": ast.Gt,
-        "<": ast.Lt,
-        "!=": ast.NotEq,
-        "in": ast.In,
-        "not-in": ast.NotIn,
-        "is": ast.Is,
+        "==": ast.Eq, "<=": ast.LtE, ">=": ast.GtE, ">": ast.Gt, "<": ast.Lt,
+        "!=": ast.NotEq, "in": ast.In, "not-in": ast.NotIn, "is": ast.Is,
         "is-not": ast.IsNot
     }
     op = ops[inv['function']]
@@ -67,9 +56,7 @@ def _ast_cmp(node, children, obj):
 def _ast_import(tree):
     i = tree.get_invocation()
     c = i['args']
-    return ast.Import(
-        names=[ast.alias(name=str(x), asname=None) for x in c]
-    )
+    return ast.Import(names=[ast.alias(name=str(x), asname=None) for x in c])
 
 
 def _ast_if(node, children, obj):
@@ -80,11 +67,7 @@ def _ast_if(node, children, obj):
     true = true if isinstance(true, list) else [true]
     flse = flse if isinstance(flse, list) else [flse]
 
-    ret = ast.If(
-        test=cond,
-        body=true,
-        orelse=flse,
-    )
+    ret = ast.If(test=cond, body=true, orelse=flse)
     return ret
 
 
@@ -99,21 +82,14 @@ def _ast_return(node, children, obj):
 special_cases = {
     "print": _ast_print,
 
-    "+": _ast_binop,
-    "/": _ast_binop,
-    "-": _ast_binop,
-    "*": _ast_binop,
+    "+": _ast_binop, "/": _ast_binop,
+    "-": _ast_binop, "*": _ast_binop,
 
-    "==": _ast_cmp,
-    "<=": _ast_cmp,
-    ">=": _ast_cmp,
-    "<": _ast_cmp,
-    ">": _ast_cmp,
-    "!=": _ast_cmp,
-    "in": _ast_cmp,
-    "not-in": _ast_cmp,
-    "is": _ast_cmp,
-    "is-not": _ast_cmp,
+    "==": _ast_cmp, "<=": _ast_cmp,
+    ">=": _ast_cmp, "<": _ast_cmp,
+    ">": _ast_cmp, "!=": _ast_cmp,
+    "in": _ast_cmp, "not-in": _ast_cmp,
+    "is": _ast_cmp, "is-not": _ast_cmp,
 
     "if": _ast_if,
     "return": _ast_return,
@@ -147,9 +123,7 @@ class AST27Converter(object):
         blob = self.render(args[0])
 
         ret = ast.Assign(
-            targets=[
-                ast.Name(id=str(name), ctx=ast.Store())
-            ],
+            targets=[ast.Name(id=str(name), ctx=ast.Store())],
             value=blob
         )
         return ret
@@ -234,12 +208,12 @@ class AST27Converter(object):
             return special_cases[inv['function']](node, c, self)
 
         ret = value=ast.Call(
-                func=ast.Name(id=str(inv['function']), ctx=ast.Load()),
+                func=self.render_symbol(inv['function']),
                 args=c,
                 keywords=[],
                 starargs=None,
                 kwargs=None
-            )
+        )
         return ret
 
     def render(self, tree):
@@ -256,6 +230,9 @@ def forge_ast(name, forest):
 
     statements = []
     for tree in forest:
-        statements.append(conv.render(tree))
+        ret = conv.render(tree)
+        if not isinstance(ret, ast.stmt):
+            ret = ast.Expr(value=ret)
+        statements.append(ret)
 
     return ast.fix_missing_locations(ast.Module(body=statements))
