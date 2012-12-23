@@ -3,8 +3,7 @@
 (import "tests.lang.test_kwargs")
 
 (defn kiwi []
-  (return (kwapply (tests.lang.test_kwargs.shim "one" "two") {
+  (kwapply (tests.lang.test_kwargs.shim "one" "two") {
     "three" "three"
     "four" "four"
   }))
-)
