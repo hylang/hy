@@ -17,6 +17,10 @@ def _ast_print(node, children, obj):
     return ast.Print(dest=None, values=children, nl=True)
 
 
+def _ast_raise(node, children, obj):
+    return ast.Raise(type=children[0])
+
+
 def _ast_binop(node, children, obj):
     """ Handle basic Binary ops """
     # operator = Add | Sub | Mult | Div | Mod | Pow | LShift
@@ -94,6 +98,7 @@ special_cases = {
     "if": _ast_if,
     "return": _ast_return,
     "do": _ast_do,
+    "raise": _ast_raise,
 }
 
 
