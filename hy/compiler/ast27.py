@@ -69,10 +69,13 @@ def _ast_if(node, children, obj):
     true = children.pop(0)
     flse = children.pop(0)
 
+    true = true if isinstance(true, list) else [true]
+    flse = flse if isinstance(flse, list) else [flse]
+
     ret = ast.If(
         test=cond,
-        body=[true],
-        orelse=[flse]
+        body=true,
+        orelse=flse,
     )
     return ret
 
