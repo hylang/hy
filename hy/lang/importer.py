@@ -16,35 +16,59 @@ def _hy_import_file(fd, name):
     return m
 
 
-
-class MetaImporter(object):
-    def find_module(self, fullname, path=None):
-        lastname = fullname.rsplit(".", 1)[-1]
-        for d in path or sys.path:
-            hy = os.path.join(d, lastname + ".hy")
-            pkg = os.path.join(d, lastname, "__init__.py")
-            pkgc = getattr(imp, "cache_from_source",
-                           lambda path: path + "c")(pkg)
-            if (os.path.exists(hy) and
-                not (os.path.exists(pkg) or os.path.exists(pkgc))):
-                self.path = hy
-                return self
-        return None
-
-    def load_module(self, name):
-        if name not in sys.modules:
-            sys.modules[name] = None
-            mod = _hy_import_file(self.path, name)
-            mod.__file__ = self.path
-            mod.__name__ = name
-            mod.__loader__ = self
-            mod.__package__ = name.rpartition('.')[0]
-            sys.modules[name] = mod
-
-        return sys.modules[name]
-
-    def is_package(self, name):
+class HyFinder(object):
+    def is_package(self, fullname):
+        dirpath = "/".join(fullname.split("."))
+        for pth in sys.path:
+            composed_path = "%s/%s/__init__.hy" % (pth, dirpath)
+            if os.path.exists(composed_path):
+                return True
         return False
+
+    def find_on_path(self, fullname):
+        fls = ["%s/__init__.hy", "%s.hy"]
+        dirpath = "/".join(fullname.split("."))
+
+        for pth in sys.path:
+            for fp in fls:
+                composed_path = fp % ("%s/%s" % (pth, dirpath))
+                if os.path.exists(composed_path):
+                    return composed_path
+
+
+class MetaLoader(HyFinder):
+    def load_module(self, fullname):
+        if fullname in sys.modules:
+            return sys.modules[fullname]
+
+        pth = self.find_on_path(fullname)
+        if pth is None:
+            return
+
+        sys.modules[fullname] = None
+        mod = _hy_import_file(pth, fullname)
+
+        ispkg = self.is_package(fullname)
+
+        mod.__file__ = "<%s>" % self.__class__.__name__
+        mod.__loader__ = self
+
+        if ispkg:
+            mod.__path__ = []
+            mod.__package__ = fullname
+        else:
+            mod.__package__ = fullname.rpartition('.')[0]
+
+        sys.modules[fullname] = mod
+        return mod
+
+
+class MetaImporter(HyFinder):
+    def find_module(self, fullname, path=None):
+        pth = self.find_on_path(fullname)
+        if pth is None:
+            return
+        return MetaLoader()
 
 
 sys.meta_path.append(MetaImporter())
