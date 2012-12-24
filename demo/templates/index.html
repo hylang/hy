@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Hy!</title>
+<script type="text/javascript" src="/static/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#repl-input").keyup(function(e) {
+        var input = $("#repl-input").val();
+        console.log("Input: " + input);
+        $('#repl-output').load(
+            '/translate',
+            {"code": input}
+        );
+    });
+});
+</script>
+<style>
+html, body {
+    height:   90%;
+    padding:  0px;
+    margin:   0px;
+}
+.repl {
+    width:    100%;
+    height:   100%;
+}
+#repl-input {
+    float:    left;
+    width:    49%;
+    border:   0px solid #000000;
+    resize:   none;
+    height:   100%;
+}
+#repl-output {
+    float:    right;
+    width:    49%;
+    height:   100%;
+}
+</style>
+    </head>
+    <body>
+        <div class = 'repl' >
+            <textarea id = 'repl-input' >; LISP input</textarea>
+            <pre id = 'repl-output' ></pre>
+        </div>
+    </body>
+</html>
