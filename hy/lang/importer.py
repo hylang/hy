@@ -52,7 +52,7 @@ class MetaLoader(HyFinder):
 
         ispkg = self.is_package(fullname)
 
-        mod.__file__ = "<%s>" % self.__class__.__name__
+        mod.__file__ = pth
         mod.__loader__ = self
 
         if ispkg:
