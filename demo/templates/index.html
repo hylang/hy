@@ -4,15 +4,20 @@
         <title>Hy!</title>
 <script type="text/javascript" src="/static/jquery.min.js"></script>
 <script type="text/javascript">
+function reload() {
+    var input = $("#repl-input").val();
+    console.log("Input: " + input);
+    $('#repl-output').load(
+        '/translate',
+        {"code": input}
+    );
+}
+
 $(document).ready(function() {
     $("#repl-input").keyup(function(e) {
-        var input = $("#repl-input").val();
-        console.log("Input: " + input);
-        $('#repl-output').load(
-            '/translate',
-            {"code": input}
-        );
+        reload();
     });
+    reload();
 });
 </script>
 <style>
@@ -41,7 +46,11 @@ html, body {
     </head>
     <body>
         <div class = 'repl' >
-            <textarea id = 'repl-input' >; LISP input</textarea>
+            <textarea id = 'repl-input' >; LISP input
+(import "sunlight")
+
+(for [x (kwapply (sunlight.openstates.legislators) {"state" "ma"})]
+  (print x)) </textarea>
             <pre id = 'repl-output' ></pre>
         </div>
     </body>
