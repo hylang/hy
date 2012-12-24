@@ -49,6 +49,12 @@ html, body {
             <textarea id = 'repl-input' >; LISP input
 (import "sunlight")
 
+
+(defn square [x]
+  "This squares a function"
+  (* x x))
+
+
 (for [x (kwapply (sunlight.openstates.legislators) {"state" "ma"})]
   (print x)) </textarea>
             <pre id = 'repl-output' ></pre>
