@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}{% endblock %} | hy</title>
+        <link rel="stylesheet" href = "{{ url_for('static', filename='css/debuild.css') }}" ></link>
+    </head>
+    <body>
+        <div class = 'headblock' >
+            <div class = 'spacer' ></div>
+        </div>
+        <div class = 'headblock' >
+            <div class = 'banner' >
+                <ul>
+                    <li><a href = '/' >Home</a></li>
+                    <li><a href = '/packages' >Try it</a></li>
+                    <li><a href = '/about' >Source</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class = 'content' >
+            <div class = 'main-container' ><div class = 'shim' >
+{% block content %}
+{% endblock %}
+            </div></div>
+        </div>
+        <div class = 'footer' >
+            <div class = 'container' ><div class = 'shim' >
+                <div class = 'fifth' >
+                    <h1><i class="icon-sitemap"></i> Links</h1>
+                    <ul>
+                    </ul>
+                </div>
+                <div class = 'fifth' >
+                    <h1><i class="icon-link"></i> Examples</h1>
+                    <ul>
+                    </ul>
+                </div>
+                <div class = 'fifth' >
+                    <h1><i class="icon-group"></i> About</h1>
+                    <ul>
+                        <li><a href = 'http://pault.ag/' >Paul's Homepage</a></li>
+                    </ul>
+                </div>
+                <div class = 'fifth' >
+                    <h1><i class="icon-info-sign"></i> Help</h1>
+                    <ul>
+                    </ul>
+                </div>
+                <div class = 'fifth' >
+                    <h1><i class="icon-github"></i> Source Code</i></h1>
+                    <ul>
+
+                    </ul>
+                </div>
+            </div></div>
+        </div>
+    </body>
+</html>

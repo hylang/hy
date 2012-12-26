@@ -1,0 +1,196 @@
+.noshim {
+    padding:                   0px;
+    margin:                    0px;
+}
+
+html, body {
+    background-color:          @background-color;
+    height:                    100%;
+    .noshim;
+    .cantarell;
+}
+
+pre {
+    border-radius:             5px;
+    background-color:          #FFFFFF;
+    padding:                   10px;
+    border:                    1px solid darken(@background-color, 1%);
+}
+
+.spacer {
+    min-height:                30px;
+}
+
+a {
+    color:                     @link-color;
+}
+
+ul {
+    .noshim;
+    list-style-type: none;
+}
+
+table {
+    width:                     100%;
+    .noshim;
+    border-spacing:            0px;
+    border-collapse:           collapse;
+    border:                    1px solid darken(@background-color, 1%);
+    tr {
+        .noshim;
+        td {
+            .noshim;
+            padding:           5px;
+        }
+        border-bottom:         1px solid darken(@background-color, 1%);
+    }
+    margin-top:                10px;
+    margin-bottom:             10px;
+}
+
+table.zebra {
+    tr:nth-child(2n) {
+        background-color:      @table-zebra;
+    }
+}
+
+.profile {
+    background-color:          #FFFFFF;
+    border-radius:             5px;
+    padding:                   10px;
+    width:                     50%;
+    margin-left:               auto;
+    margin-right:              auto;
+    border:                    1px solid darken(@background-color, 1%);
+    .picture {
+        border:                1px solid darken(@background-color, 5%);
+        float:                 left;
+        border-radius:         5px;
+    }
+    .name {
+        float:                 right;
+    }
+}
+
+.headblock {
+    background-color:           #F8F8F8;
+}
+
+.banner {
+    .damion;
+    padding-left:               10px;
+    padding-right:              10px;
+    width:                      750px;
+    line-height:                30px;
+    vertical-align:             middle;
+    background-image: -moz-linear-gradient(
+                          bottom,
+                          @nav-from 10%,
+                          @nav-to 100%
+    );
+    background-image: -webkit-linear-gradient(
+                          bottom,
+                          @nav-from 10%,
+                          @nav-to 100%
+    );
+    background-image: linear-gradient(
+                          bottom,
+                          @nav-from 10%,
+                          @nav-to 100%
+    );
+    border:                     1px solid #444444;
+    border-radius:              5px;
+    height:                     30px;
+    margin-left:                auto;
+    margin-right:               auto;
+    ul {
+        list-style-type:        none;
+        .noshim;
+        li {
+            display:            inline;
+            padding-right:      10px;
+        }
+    }
+}
+
+.content {
+    background-color:           #F8F8F8;
+    min-height:                 70%;
+    border-bottom:              1px solid #888888;
+    padding-top:                30px;
+}
+
+.container {
+    margin-left:                auto;
+    margin-right:               auto;
+    width:                      700px;
+}
+
+.main-container {
+    .container;
+    padding-bottom:             50px;
+}
+
+.shim {
+    padding:                    5px;
+}
+
+.header {
+    .color {
+        width:                  12.5%;
+        height:                 10px;
+        float:                  left;
+    }
+}
+
+.footer {
+    font-size:                  0.8em;
+    min-height:                 200px;
+    color:                      #EEEEEE;
+    margin-top:                 20px;
+    .container .fifth {
+        width:                  20%;
+        float:                  left;
+    }
+}
+
+.fifth {
+    color:                      #333333;
+    .damion;
+
+    img {
+        height:                 200px;
+    }
+
+    ul {
+        list-style-type:        none;
+        font-size:              0.9em;
+        color:                  #AEAEAE;
+        .noshim;
+    }
+
+    li {
+        .noshim;
+    }
+
+    a {
+        color:                  #333333;
+    }
+
+    h1 {
+        font-size:              1.2em;
+        border-bottom:          1px solid #333333;
+        width:                  90%;
+        .noshim;
+    }
+}
+
+.label {
+    border-radius:              5px;
+    padding:                    0px 8px 0px 8px;
+    font-size:                  0.7em;
+}
+
+.clear {
+    clear:                      both;
+}
