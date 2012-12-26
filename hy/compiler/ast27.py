@@ -85,6 +85,11 @@ def _ast_return(node, children, obj):
     return ast.Return(value=children[-1])
 
 
+def _ast_yield(node, chile, obj):
+    val = chile.pop(0)
+    # XXX: Check to make sure chile is now []
+    return ast.Yield(value=val)
+
 
 special_cases = {
     "print": _ast_print,
@@ -101,6 +106,7 @@ special_cases = {
     "if": _ast_if,
     "do": _ast_do,
     "raise": _ast_raise,
+    "yield": _ast_yield
 }
 
 
