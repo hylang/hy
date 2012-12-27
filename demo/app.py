@@ -12,6 +12,11 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/popup')
+def popup():
+    return render_template('popover.html')
+
+
 @app.route('/translate', methods=['POST'])
 def translate():
     lines = request.form['code']
