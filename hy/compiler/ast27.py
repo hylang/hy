@@ -135,10 +135,6 @@ class AST27Converter(object):
             "for": self._ast_for,
             "kwapply": self._ast_kwapply,
         }
-
-        self.starts_with = {
-            ".": self._ast_dot_fnc
-        }
         self.in_fn = False
 
     def _def(self, node):
@@ -153,30 +149,6 @@ class AST27Converter(object):
             value=blob
         )
         return ret
-
-    def _ast_dot_fnc(self, node):
-        i = node.get_invocation()
-        fn = i['function'][1:]
-        args = i['args']
-        attr = args.pop(0)
-        val = self.render(attr)
-
-        a = []
-        for arg in args:
-            a.append(self.render(arg))
-
-        return ast.Call(
-            func=ast.Attribute(
-                value=val,
-                attr=fn,
-                ctx=ast.Load()
-            ),
-            args=a,
-            keywords=[],
-            starargs=None,
-            kwargs=None
-        )
-
 
     def _ast_kwapply(self, node):
         i = node.get_invocation()
@@ -202,8 +174,8 @@ class AST27Converter(object):
         body = body if isinstance(body, list) else [body]
         orel = []
 
-        body = _adjust_body(body, do_ret=False)
-        orel = _adjust_body(orel, do_ret=False)
+        body = _adjust_body(body, do_ret=self.in_fn)
+        orel = _adjust_body(orel, do_ret=self.in_fn)
 
         return ast.While(
             test=test,
@@ -333,10 +305,6 @@ class AST27Converter(object):
 
         if inv['function'] in self.native_cases:
             return self.native_cases[inv['function']](node)
-
-        for flag in self.starts_with:
-            if inv['function'].startswith(flag):
-                return self.starts_with[flag](node)
 
         c = []
         for child in node.get_children():
