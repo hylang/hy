@@ -5,18 +5,76 @@
         <link rel = "stylesheet" href = "{{ url_for('static', filename='css/debuild.css') }}" ></link>
         <script src = '{{ url_for('static', filename='jquery.min.js') }}' ></script>
         <script type="text/javascript">
+function reload() {
+    var input = $("#repl-input").val();
+    console.log("Input: " + input);
+    $('#repl-output').load(
+        '/translate',
+        {"code": input}
+    );
+}
+
+$(document).ready(function() {
+    $("#repl-input").keyup(function(e) {
+        reload();
+    });
+    reload();
+    $(document).keyup(function(e) {
+        if (e.keyCode == 27) {
+            $('#popshim').css({"visibility": "hidden"});
+        }
+    });
+});
+        </script>
+        <script type="text/javascript">
 $(document).ready(function() {
     $("#try").click(function() {
-        $('#popshim').load(
-            '/popup'
-        );
+        $('#popshim').css({"visibility": "visible"});
         return false;
     });
 });
         </script>
     </head>
     <body>
-        <div id = 'popshim' ></div>
+        <div id = 'popshim' >
+        <div class = 'popover' >
+            <div class = 'focus' >
+                <div class = 'repl' >
+                    <textarea id = 'repl-input' class = 'repl-left repl-pane' >
+(import "os")
+
+(print (os.path.abspath "."))
+; something like /home/tag
+
+
+(defn square [x]
+  (* x x))
+
+
+(defn factorial (n)
+  (if (&lt;= n 1)
+    1
+    (* n (factorial (- n 1)))))
+
+
+(defn fib (n)
+  (if (&lt; n 2)
+    n
+    (+ (fib (- n 1)) (fib (- n 2)))))
+
+
+(print (fib 2))
+; 1
+
+
+(print "4! =" (factorial 4))
+; 4! = 24
+</textarea>
+                    <pre id = 'repl-output' class = 'repl-right repl-pane' ></pre>
+                </div>
+            </div>
+        </div>
+        </div>
         <div class = 'headblock' >
             <div class = 'spacer' ></div>
         </div>
@@ -33,37 +91,6 @@ $(document).ready(function() {
             <div class = 'main-container' ><div class = 'shim' >
 {% block content %}
 {% endblock %}
-            </div></div>
-        </div>
-        <div class = 'footer' >
-            <div class = 'container' ><div class = 'shim' >
-                <div class = 'fifth' >
-                    <h1><i class="icon-sitemap"></i> Links</h1>
-                    <ul>
-                    </ul>
-                </div>
-                <div class = 'fifth' >
-                    <h1><i class="icon-link"></i> Examples</h1>
-                    <ul>
-                    </ul>
-                </div>
-                <div class = 'fifth' >
-                    <h1><i class="icon-group"></i> About</h1>
-                    <ul>
-                        <li><a href = 'http://pault.ag/' >Paul's Homepage</a></li>
-                    </ul>
-                </div>
-                <div class = 'fifth' >
-                    <h1><i class="icon-info-sign"></i> Help</h1>
-                    <ul>
-                    </ul>
-                </div>
-                <div class = 'fifth' >
-                    <h1><i class="icon-github"></i> Source Code</i></h1>
-                    <ul>
-
-                    </ul>
-                </div>
             </div></div>
         </div>
     </body>
