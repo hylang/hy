@@ -7,5 +7,5 @@ def tokenize(buff):
     m = Machine(Idle)
     m.process(buff)
     if type(m.state) != Idle:
-        raise LexException("End of file.")
+        raise LexException("Reached end of file before we were done parsing")
     return m.nodes

@@ -135,7 +135,7 @@ class Map(State):
             self.nodes.append(_resolve_atom(self.bulk, self))
 
         if (len(self.nodes) % 2) != 0:
-            raise Exception("Hash map is fucked")
+            raise LexException("Hash map is screwed up")
 
         ret = HYMap({})
         i = iter(self.nodes)
