@@ -15,8 +15,22 @@ function reload() {
 }
 
 $(document).ready(function() {
+    var count = 0;
     $("#repl-input").keyup(function(e) {
-        reload();
+        var curcount;
+        count = count + 1;
+        curcount = count;
+
+        window.setTimeout(
+            function() {
+                if ( curcount == count ) {
+                    reload();
+                } else {
+                    /* Pass. User is still typing */
+                }
+            },
+            500
+        );
     });
     reload();
 });
