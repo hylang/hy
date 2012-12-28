@@ -19,19 +19,6 @@ $(document).ready(function() {
         reload();
     });
     reload();
-    $(document).keyup(function(e) {
-        if (e.keyCode == 27) {
-            $('#popshim').css({"visibility": "hidden"});
-        }
-    });
-});
-        </script>
-        <script type="text/javascript">
-$(document).ready(function() {
-    $("#try").click(function() {
-        $('#popshim').css({"visibility": "visible"});
-        return false;
-    });
 });
         </script>
     </head>
@@ -40,58 +27,24 @@ $(document).ready(function() {
         <div class = 'popover' >
             <div class = 'focus' >
                 <div class = 'repl' >
-                    <textarea id = 'repl-input' class = 'repl-left repl-pane' >
-(import "os")
-
-(print (os.path.abspath "."))
-; something like /home/tag
-
-
+                    <textarea id = 'repl-input' class = 'repl-pane repl-left' >
 (defn square [x]
   (* x x))
 
-
-(defn factorial (n)
-  (if (&lt;= n 1)
-    1
-    (* n (factorial (- n 1)))))
-
-
-(defn fib (n)
-  (if (&lt; n 2)
-    n
-    (+ (fib (- n 1)) (fib (- n 2)))))
-
-
-(print (fib 2))
-; 1
-
-
-(print "4! =" (factorial 4))
-; 4! = 24
+(print (square 4))
 </textarea>
-                    <pre id = 'repl-output' class = 'repl-right repl-pane' ></pre>
+                    <pre
+                        id = 'repl-output'
+                        class = 'repl-pane repl-right'
+                    ></pre>
                 </div>
             </div>
         </div>
         </div>
-        <div class = 'headblock' >
-            <div class = 'spacer' ></div>
-        </div>
-        <div class = 'headblock' >
-            <div class = 'banner' >
-                <ul>
-                    <li><a href = '#' >Home</a></li>
-                    <li><a id = 'try' href = '#' >Try it</a></li>
-                    <li><a href = '#' >Source</a></li>
-                </ul>
+            <div class = 'logo' >
+                <img src = '{{ url_for('static', filename='imgs/logo.png') }}' alt = 'hython' />
             </div>
-        </div>
-        <div class = 'content' >
-            <div class = 'main-container' ><div class = 'shim' >
 {% block content %}
 {% endblock %}
-            </div></div>
-        </div>
     </body>
 </html>
