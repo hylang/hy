@@ -149,7 +149,7 @@ class AST27Converter(object):
 
         return ast.Call(
             func=ast.Attribute(
-                value=ast.Str(s=str(target)),
+                value=self.render(target),
                 attr=str(attr),
                 ctx=ast.Load()
             ),
