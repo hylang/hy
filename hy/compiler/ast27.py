@@ -124,6 +124,10 @@ class AST27Converter(object):
             HYMap: self.render_map,
         }
 
+        self.startswith = {
+            ".": self._ast_dot
+        }
+
         self.native_cases = {
             "defn": self._defn,
             "def": self._def,
@@ -136,6 +140,25 @@ class AST27Converter(object):
             "kwapply": self._ast_kwapply,
         }
         self.in_fn = False
+
+    def _ast_dot(self, node):
+        inv = node.get_invocation()
+        args = inv['args']
+        target = args.pop(0)
+        attr = inv['function'][1:]
+
+        return ast.Call(
+            func=ast.Attribute(
+                value=ast.Str(s=str(target)),
+                attr=str(attr),
+                ctx=ast.Load()
+            ),
+            args=[self.render(x) for x in args],
+            keywords=[],
+            starargs=None,
+            kwargs=None
+        )
+
 
     def _def(self, node):
         """ For the `def` operator """
@@ -262,7 +285,7 @@ class AST27Converter(object):
 
     def render_list(self, node):
         ret = []
-        for c in node.get_children():
+        for c in node:
             ret.append(self.render(c))
         return ast.List(elts=ret, ctx=ast.Load())
 
@@ -305,6 +328,10 @@ class AST27Converter(object):
 
         if inv['function'] in self.native_cases:
             return self.native_cases[inv['function']](node)
+
+        for key in self.startswith:
+            if inv['function'].startswith(key):
+                return self.startswith[key](node)
 
         c = []
         for child in node.get_children():
