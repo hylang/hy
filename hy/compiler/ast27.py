@@ -195,8 +195,8 @@ class AST27Converter(object):
         body = body if isinstance(body, list) else [body]
         orel = []
 
-        body = _adjust_body(body, do_ret=self.in_fn)
-        orel = _adjust_body(orel, do_ret=self.in_fn)
+        body = _adjust_body(body, do_ret=False)
+        orel = _adjust_body(orel, do_ret=False)
 
         return ast.For(
             target=ast.Name(id=str(aname), ctx=ast.Store()),
