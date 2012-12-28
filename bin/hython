@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 from hy.lang.importer import _hy_import_file
 
 from code import InteractiveConsole
 import sys
+try:
+    import readline
+except ImportError:
+    pass
 
 if len(sys.argv) > 1:
     sys.argv = sys.argv[1:]
