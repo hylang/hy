@@ -1,6 +1,8 @@
 import os
 import imp
 import marshall
+import struct
+import time
 
 
 MAGIC = imp.get_magic()
@@ -13,7 +15,17 @@ def _write_long(fp, int_):
     fp.write(chr((int_ >> 24) & 0xff))
 
 
-def write_pyc(filename, cfile=None, dfile='source'):
+def get_mtime(fp):
+    '''Get the last modified date from the 4-byte timestamp in the pyc file.
+    '''
+    with open(filename, 'rb') as f:
+        f.seed(4)
+        moddate = f.read(4)
+        modtime = time.asctime(time.localtime(struct.unpack('L', moddate)[0]))
+        return modtime
+
+
+def write_pyc(filename, codeobject, cfile=None, dfile='source'):
     """Byte-compile one Python source file to Python bytecode.
 
     Arguments:
@@ -32,8 +44,6 @@ def write_pyc(filename, cfile=None, dfile='source'):
         except AttributeError:
             timestamp = long(os.stat(filename).st_mtime)
         codestring = f.read()
-
-    codeobject = compile(codestring, dfile or self.filename,'exec')
 
     # Add on the .pyc (or .pyo) filename extension.
     if cfile is None:
