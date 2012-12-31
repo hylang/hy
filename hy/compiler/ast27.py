@@ -60,6 +60,22 @@ def _ast_import(tree):
     return ast.Import(names=[ast.alias(name=str(x), asname=None) for x in c])
 
 
+def _ast_import_from(tree):
+    i = tree.get_invocation()
+    c = i['args']
+    mod = c.pop(0)
+    return ast.ImportFrom(
+        module=str(mod),
+        names=[
+            ast.alias(
+                name=str(x),
+                asname=None
+            ) for x in c
+        ],
+        level=0
+    )
+
+
 def _ast_if(node, children, obj):
     cond = children.pop(0)
     true = children.pop(0)
@@ -132,6 +148,7 @@ class AST27Converter(object):
             "defn": self._defn,
             "def": self._def,
             "import": _ast_import,
+            "import_from": _ast_import_from,  # Remember, "-" --> "_"
 
             "while": self._ast_while,
 
