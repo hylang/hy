@@ -28,6 +28,9 @@ def _resolve_atom(value, self):
     except ValueError:
         pass
 
+    # LISP Variants have a tendency to use "-" in symbols n' shit.
+    value = value.replace("-", "_")
+
     return _mangle(HYSymbol(value))
 
 
