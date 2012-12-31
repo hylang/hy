@@ -68,11 +68,19 @@ class Comment(State):
 
 class Idle(State):
     def p(self, x):
+        if x == "#": return HashExpression
         if x == ";": return Comment
         if x == "(": return Expression
         if x in WHITESPACE: return
 
         raise LexException("Unknown char: %s" % (x))
+
+
+class HashExpression(State):
+    def p(self, x):
+        if x == "!": return Comment
+
+        raise LexException("Unknwon Hash modifier - %s" % (x))
 
 
 class Expression(State):
