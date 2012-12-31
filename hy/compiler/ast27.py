@@ -148,7 +148,9 @@ class AST27Converter(object):
             "defn": self._defn,
             "def": self._def,
             "import": _ast_import,
+
             "import_from": _ast_import_from,  # Remember, "-" --> "_"
+            "decorate_with": self._ast_decorate,
 
             "while": self._ast_while,
 
@@ -176,6 +178,15 @@ class AST27Converter(object):
             kwargs=None
         )
 
+    def _ast_decorate(self, node):
+        i = node.get_invocation()
+        c = i['args']
+        meth = c.pop(-1)
+        fn = self.render(meth)
+        for chile in c:
+            fn.decorator_list.append(self.render(chile))
+
+        return fn
 
     def _def(self, node):
         """ For the `def` operator """
