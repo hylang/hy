@@ -170,9 +170,10 @@ class AST27Converter(object):
         c = i['args']
         val = c.pop(0)
         tar = c.pop(0)
+
         return _meta_ast_subscript(
             self.render(val),
-            self.render(tar),
+            ast.Index(value=self.render(tar), ctx=ast.Load()),
             ast.Load())
 
     def _ast_dot(self, node):

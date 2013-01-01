@@ -13,12 +13,12 @@ except ImportError:
 
 if len(sys.argv) > 1:
     sys.argv = sys.argv[1:]
-    try:
-        mod = _hy_import_file(sys.argv[0], '__main__')
-    except Exception as e:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        ntb = exc_traceback.tb_next.tb_next.tb_next  # YUCK.
-        raise type(e), None, ntb
+#    try:
+    mod = _hy_import_file(sys.argv[0], '__main__')
+#    except Exception as e:
+#        exc_type, exc_value, exc_traceback = sys.exc_info()
+#        ntb = exc_traceback.tb_next.tb_next.tb_next  # YUCK.
+#        raise type(e), None, ntb
     sys.exit(0)
 
 
