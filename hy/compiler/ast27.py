@@ -126,6 +126,10 @@ special_cases = {
 }
 
 
+def _meta_ast_subscript(val, sl, ctx):
+    return ast.Subscript(value=val, slice=sl, ctx=ctx)
+
+
 class AST27Converter(object):
     """ Convert a lexed Hy tree into a Python AST for cpython 2.7 """
 
@@ -152,6 +156,7 @@ class AST27Converter(object):
             "import_from": _ast_import_from,  # Remember, "-" --> "_"
             "decorate_with": self._ast_decorate,
 
+            "index": self._ast_index,
             "while": self._ast_while,
 
             "doseq": self._ast_for,
@@ -159,6 +164,16 @@ class AST27Converter(object):
             "kwapply": self._ast_kwapply,
         }
         self.in_fn = False
+
+    def _ast_index(self, node):
+        i = node.get_invocation()
+        c = i['args']
+        val = c.pop(0)
+        tar = c.pop(0)
+        return _meta_ast_subscript(
+            self.render(val),
+            self.render(tar),
+            ast.Load())
 
     def _ast_dot(self, node):
         inv = node.get_invocation()
