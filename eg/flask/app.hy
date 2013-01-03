@@ -1,6 +1,8 @@
-; Copyright (c) Paul R. Tagliamonte <tag@pault.ag>, 2013
+; Copyright (c) Paul R. Tagliamonte <tag@pault.ag>, 2013 under the terms of
+; hy.
 
-(import-from flask Flask render-template)
+(import-from flask
+             Flask render-template)
 
 
 (def app (Flask "__main__"))
