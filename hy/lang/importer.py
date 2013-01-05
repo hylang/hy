@@ -54,6 +54,7 @@ class MetaLoader(HyFinder):
 
         mod.__file__ = pth
         mod.__loader__ = self
+        mod.__name__ = fullname
 
         if ispkg:
             mod.__path__ = []

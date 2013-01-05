@@ -29,7 +29,8 @@ def _resolve_atom(value, self):
         pass
 
     # LISP Variants have a tendency to use "-" in symbols n' shit.
-    value = value.replace("-", "_")
+    if value != "-":  # we need subtraction
+        value = value.replace("-", "_")
 
     return _mangle(HYSymbol(value))
 
