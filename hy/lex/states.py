@@ -28,6 +28,11 @@ def _resolve_atom(value, self):
     except ValueError:
         pass
 
+    # LISP Variants tend to use *foo* for constants. Let's make it
+    # the more pythonic "FOO"
+    if value.startswith("*") and value.endswith("*") and len(value) > 1:
+        value = value.upper()[1:-1]
+
     # LISP Variants have a tendency to use "-" in symbols n' shit.
     if value != "-":  # we need subtraction
         value = value.replace("-", "_")
