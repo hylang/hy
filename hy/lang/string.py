@@ -9,8 +9,9 @@ else:
 
 
 class HYString(HYObject, _str_type):
-    def __init__(self, string):
-        self += string
+    def __new__(cls, value):
+        obj = _str_type.__new__(cls, value)
+        return obj
 
     def eval(self, ln, *args, **kwargs):
         return str(self)
