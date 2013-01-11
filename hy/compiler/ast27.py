@@ -163,6 +163,10 @@ class AST27Converter(object):
             "for": self._ast_for,
             "kwapply": self._ast_kwapply,
         }
+        self.special_types = {
+            HYMap: self._ast_fn_index,
+            HYList: self._ast_fn_index,
+        }
         self.in_fn = False
 
     def _ast_index(self, node):
@@ -175,6 +179,13 @@ class AST27Converter(object):
             self.render(val),
             ast.Index(value=self.render(tar), ctx=ast.Load()),
             ast.Load())
+
+    def _ast_fn_index(self, node):
+        i = node.get_invocation()
+        cmd = ["index"]
+        cmd.append(i['function'])
+        cmd.extend(i['args'])
+        return self.render_expression(HYExpression(cmd))
 
     def _ast_dot(self, node):
         inv = node.get_invocation()
@@ -370,6 +381,9 @@ class AST27Converter(object):
 
         inv = node.get_invocation()
 
+        if type(inv['function']) in self.special_types:
+            return self.special_types[type(inv['function'])](node)
+        
         if inv['function'] in self.native_cases:
             return self.native_cases[inv['function']](node)
 
