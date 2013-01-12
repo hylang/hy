@@ -383,7 +383,7 @@ class AST27Converter(object):
 
         if type(inv['function']) in self.special_types:
             return self.special_types[type(inv['function'])](node)
-        
+
         if inv['function'] in self.native_cases:
             return self.native_cases[inv['function']](node)
 
