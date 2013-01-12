@@ -6,4 +6,4 @@ class HYBool(HYObject):
         self._val = val
 
     def eval(self, lns, *args, **kwargs):
-        return self._val == True
+        return self._val is True

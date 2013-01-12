@@ -10,9 +10,6 @@ from hy.lang.list import HYList
 from hy.lang.bool import HYBool
 from hy.lang.map import HYMap
 
-from hy.lang.builtins import builtins
-from hy.lang.natives import natives
-
 
 def _ast_print(node, children, obj):
     """ Handle `print' statements """
@@ -30,7 +27,7 @@ def _ast_binop(node, children, obj):
     # XXX: Add these folks in
 
     inv = node.get_invocation()
-    ops = { "+": ast.Add, "/": ast.Div, "*": ast.Mult, "-": ast.Sub }
+    ops = {"+": ast.Add, "/": ast.Div, "*": ast.Mult, "-": ast.Sub}
     op = ops[inv['function']]
     left = children.pop(0)
     calc = None
@@ -261,7 +258,6 @@ class AST27Converter(object):
             orelse=orel,
         )
 
-
     def _ast_for(self, node):
         i = node.get_invocation()
         args = i['args']
@@ -398,12 +394,12 @@ class AST27Converter(object):
         if inv['function'] in special_cases:
             return special_cases[inv['function']](node, c, self)
 
-        ret = value=ast.Call(
-                func=self.render_symbol(inv['function']),
-                args=c,
-                keywords=[],
-                starargs=None,
-                kwargs=None
+        ret = ast.Call(
+            func=self.render_symbol(inv['function']),
+            args=c,
+            keywords=[],
+            starargs=None,
+            kwargs=None
         )
         return ret
 
@@ -417,7 +413,6 @@ class AST27Converter(object):
             for node in ast.walk(_ast):
                 node.lineno = tree.line
                 node.col_offset = tree.column
-
 
         if isinstance(ret, list):
             for r in ret:

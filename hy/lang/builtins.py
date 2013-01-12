@@ -1,6 +1,5 @@
 #
 import sys
-from hy.lang.internals import HYNamespaceCOW
 from hy.lang.string import HYString
 
 
