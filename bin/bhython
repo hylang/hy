@@ -1,0 +1,9 @@
+#!/bin/sh
+"""":
+exec /usr/bin/env bpython -i $0 $@
+"""
+
+import hy.lang.importer
+import sys
+
+print "Hython is now importable!"

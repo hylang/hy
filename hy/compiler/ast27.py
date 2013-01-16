@@ -157,6 +157,7 @@ class AST27Converter(object):
             "decorate_with": self._ast_decorate,
 
             "index": self._ast_index,
+            "set_index": self._ast_set_index,
             "while": self._ast_while,
 
             "doseq": self._ast_for,
@@ -164,6 +165,23 @@ class AST27Converter(object):
             "kwapply": self._ast_kwapply,
         }
         self.in_fn = False
+
+    def _ast_set_index(self, node):
+        i = node.get_invocation()
+        c = i['args']
+        val = c.pop(0)
+        sl = c.pop(0)
+        tar = c.pop(0)
+
+        return ast.Assign(
+            targets=[
+                _meta_ast_subscript(
+                    self.render(val),
+                    ast.Index(value=self.render(sl)),
+                    ast.Store())
+            ],
+            value=self.render(tar)
+        )
 
     def _ast_index(self, node):
         i = node.get_invocation()

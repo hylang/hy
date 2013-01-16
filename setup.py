@@ -26,6 +26,7 @@ setup(**{
     "url": "http://hy.pault.ag/",
     "platforms": ['any'],
     "scripts": [
-        "bin/hython"
+        "bin/hython",
+        "bin/bhython"
     ]
 })
