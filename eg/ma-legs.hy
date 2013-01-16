@@ -6,4 +6,4 @@
 
 
 (for [x (kwapply (sunlight.openstates.legislators) {"state" "ma"})]
-  (print x))
+  (print (index x "first_name")))
