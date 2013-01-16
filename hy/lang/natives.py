@@ -1,4 +1,3 @@
-from hy.lang.bool import HYBool
 from hy.lex.tokenize import tokenize as _hy_tok
 import sys
 
@@ -23,6 +22,7 @@ def _foreach(*args):
     a = args[0]
     for arg in a:
         args[1](arg)
+
 
 def _get(*args):
     m = args[0]
@@ -85,7 +85,6 @@ def _ne(*args):
 
 
 def _gt(*args):
-    arg = args[0]
     for i in range(1, len(args)):
         if not (args[i - 1] > args[i]):
             return False
@@ -93,7 +92,6 @@ def _gt(*args):
 
 
 def _ge(*args):
-    arg = args[0]
     for i in range(1, len(args)):
         if not (args[i - 1] >= args[i]):
             return False
@@ -101,7 +99,6 @@ def _ge(*args):
 
 
 def _le(*args):
-    arg = args[0]
     for i in range(1, len(args)):
         if not (args[i - 1] <= args[i]):
             return False
@@ -109,7 +106,6 @@ def _le(*args):
 
 
 def _lt(*args):
-    arg = args[0]
     for i in range(1, len(args)):
         if not (args[i - 1] < args[i]):
             return False

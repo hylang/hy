@@ -3,7 +3,6 @@ from hy.compiler.ast27 import forge_module
 
 from hy.lex.tokenize import tokenize
 import sys
-import imp
 import os
 
 

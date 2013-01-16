@@ -74,17 +74,22 @@ class Comment(State):
 
 class Idle(State):
     def p(self, x):
-        if x == "#": return HashExpression
-        if x == ";": return Comment
-        if x == "(": return Expression
-        if x in WHITESPACE: return
+        if x == "#":
+            return HashExpression
+        if x == ";":
+            return Comment
+        if x == "(":
+            return Expression
+        if x in WHITESPACE:
+            return
 
         raise LexException("Unknown char: %s" % (x))
 
 
 class HashExpression(State):
     def p(self, x):
-        if x == "!": return Comment
+        if x == "!":
+            return Comment
 
         raise LexException("Unknwon Hash modifier - %s" % (x))
 
@@ -106,13 +111,26 @@ class Expression(State):
             self.bulk = ""
 
     def p(self, x):
-        if x == ")": return Idle
-        if x in WHITESPACE: self.commit(); return
-        if x == "\"": self.sub(String); return
-        if x == "(": self.sub(Expression); return
-        if x == "[": self.sub(List); return
-        if x == "{": self.sub(Map); return
-        if x == ";": self.sub(Comment); return
+        if x == ")":
+            return Idle
+        if x in WHITESPACE:
+            self.commit()
+            return
+        if x == "\"":
+            self.sub(String)
+            return
+        if x == "(":
+            self.sub(Expression)
+            return
+        if x == "[":
+            self.sub(List)
+            return
+        if x == "{":
+            self.sub(Map)
+            return
+        if x == ";":
+            self.sub(Comment)
+            return
         self.bulk += x
 
 
@@ -132,13 +150,26 @@ class List(State):
             self.bulk = ""
 
     def p(self, x):
-        if x == "]": return Idle
-        if x in WHITESPACE: self.commit(); return
-        if x == "\"": self.sub(String); return
-        if x == "[": self.sub(List); return
-        if x == "(": self.sub(Expression); return
-        if x == "{": self.sub(Map); return
-        if x == ";": self.sub(Comment); return
+        if x == "]":
+            return Idle
+        if x in WHITESPACE:
+            self.commit()
+            return
+        if x == "\"":
+            self.sub(String)
+            return
+        if x == "[":
+            self.sub(List)
+            return
+        if x == "(":
+            self.sub(Expression)
+            return
+        if x == "{":
+            self.sub(Map)
+            return
+        if x == ";":
+            self.sub(Comment)
+            return
         self.bulk += x
 
 
@@ -167,18 +198,31 @@ class Map(State):
             self.bulk = ""
 
     def p(self, x):
-        if x == "}": return Idle
-        if x in WHITESPACE: self.commit(); return
-        if x == "\"": self.sub(String); return
-        if x == "[": self.sub(List); return
-        if x == "{": self.sub(Map); return
-        if x == "(": self.sub(Expression); return
-        if x == ";": self.sub(Comment); return
+        if x == "}":
+            return Idle
+        if x in WHITESPACE:
+            self.commit()
+            return
+        if x == "\"":
+            self.sub(String)
+            return
+        if x == "[":
+            self.sub(List)
+            return
+        if x == "{":
+            self.sub(Map)
+            return
+        if x == "(":
+            self.sub(Expression)
+            return
+        if x == ";":
+            self.sub(Comment)
+            return
         self.bulk += x
 
 
 class String(State):
-    magic = { "n": "\n", "t": "\t", "\\": "\\", "\"": "\"" }
+    magic = {"n": "\n", "t": "\t", "\\": "\\", "\"": "\""}
 
     def enter(self):
         self.buf = ""
