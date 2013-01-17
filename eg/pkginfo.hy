@@ -17,7 +17,10 @@
           (do (def kv (.split x ":" 1))
             (def key (.strip (index kv 0)))
             (set-index keys key (.strip (index kv 1))))
-          (set-index keys key (+ (index keys key) "\n" (.strip x))))))
+          (do
+            (if (== x " .")
+              (def x ""))
+            (set-index keys key (+ (index keys key) "\n" (.strip x)))))))
     (dict keys)))
 
 
