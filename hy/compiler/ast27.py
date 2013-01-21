@@ -147,6 +147,7 @@ class AST27Converter(object):
 
         self.native_cases = {
             "defn": self._defn,
+            "fn": self._defn,
             "def": self._def,
             "import": _ast_import,
 
