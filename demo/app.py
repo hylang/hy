@@ -1,7 +1,6 @@
 from hy.compiler.ast27 import forge_ast
 from hy.lex.tokenize import tokenize
 import codegen
-import sys
 
 from flask import Flask, render_template, request
 app = Flask(__name__)
