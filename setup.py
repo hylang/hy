@@ -7,7 +7,7 @@ things with other things until things looks like other
 things.  """
 
 appname = "hy"
-version = "0.8.0"
+version = "0.8.1"
 
 setup(**{
     "name": appname,
