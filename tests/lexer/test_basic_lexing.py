@@ -73,3 +73,8 @@ def test_full_recurse():
         ],
         ['fn1', 'foo', 'bar']
     ] == tokenize("(fn el (+ 1 2 (== 1 20) (- 1 1)))(fn1 foo bar)")
+
+    
+def test_string():
+    """ Lex a lone string """
+    assert ['"a string"'] == tokenize('"a string"')
