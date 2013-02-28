@@ -1,4 +1,0 @@
-
-  overhaul state stuff, machine stuff, revise to be smart
-
-  generate ast in a better way; use "prims" & macros to compile hy
