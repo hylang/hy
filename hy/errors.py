@@ -1,0 +1,4 @@
+
+
+class HyError(Exception):
+    pass
