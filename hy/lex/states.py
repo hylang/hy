@@ -1,10 +1,17 @@
+from hy.models.expression import HyExpression
+from hy.models.symbol import HySymbol
 from hy.errors import HyError
+
 
 WHITESPACE = [" ", "\t", "\n", "\r"]
 
 
 class LexException(HyError):
     pass
+
+
+def _resolve_atom(obj):
+    return HySymbol(obj)
 
 
 class State(object):
@@ -26,12 +33,12 @@ class Expression(State):
         self.buf = ""
 
     def commit(self):
-        self.nodes.append(self.buf)
+        self.nodes.append(_resolve_atom(self.buf))
         self.buf = ""
 
     def exit(self):
         self.commit()
-        self.machine.nodes.append(self.nodes)
+        self.machine.nodes.append(HyExpression(self.nodes))
 
     def process(self, char):
         if char == ")":

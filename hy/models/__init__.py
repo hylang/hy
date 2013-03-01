@@ -1,0 +1,4 @@
+
+
+class HyObject(object):
+    pass
