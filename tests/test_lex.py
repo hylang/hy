@@ -5,4 +5,5 @@ from hy.models.symbol import HySymbol
 
 def test_lex_expression():
     objs = tokenize("(foo bar)")
+    print objs
     assert objs == [HyExpression([HySymbol("foo"), HySymbol("bar")])]

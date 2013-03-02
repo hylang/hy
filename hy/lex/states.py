@@ -15,21 +15,32 @@ def _resolve_atom(obj):
 
 
 class State(object):
-    __slots__ = ("machine",)
+    __slots__ = ("nodes", "machine")
 
     def __init__(self, machine):
         self.machine = machine
 
+    def _enter(self):
+        self.result = None
+        self.nodes = []
+        self.enter()
+
+    def _exit(self):
+        self.exit()
+
     def enter(self):
-        pass
+        pass  # ABC
 
     def exit(self):
-        pass
+        pass  # ABC
+
+    def process(self, char):
+        pass  # ABC
 
 
 class Expression(State):
+
     def enter(self):
-        self.nodes = []
         self.buf = ""
 
     def commit(self):
@@ -38,14 +49,14 @@ class Expression(State):
 
     def exit(self):
         self.commit()
-        self.machine.nodes.append(HyExpression(self.nodes))
+        self.result = HyExpression(self.nodes)
 
     def process(self, char):
+        if char == "(":
+            return self.machine.sub(Expression)
+
         if char == ")":
             return Idle
-
-        if char == "(":
-            return Expression
 
         if char in WHITESPACE:
             self.commit()
@@ -56,14 +67,7 @@ class Expression(State):
 
 class Idle(State):
     def process(self, char):
-        table = {
-            "(": Expression
-        }
+        if char == "(":
+            return Expression
 
-        if char in table:
-            return table[char]
-
-        if char in WHITESPACE:
-            return
-
-        raise LexException("Unknown char: %s" % (char))
+        raise LexException("Unknown char (Idle state): `%s`" % (char))
