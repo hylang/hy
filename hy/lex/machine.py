@@ -18,7 +18,7 @@ class Machine(object):
         if self.state:
             self.state._exit()
 
-        self.accept_result()
+        self.accept_result(self.state)
 
         self.state = state(self)
         self.state._enter()
@@ -29,18 +29,21 @@ class Machine(object):
     def sub(self, state):
         self.submachine = Machine(state, self.line, self.column)
 
-    def accept_result(self):
-        if self.state and self.state.result:
-            self.nodes.append(self.state.result)
+    def accept_result(self, state):
+        if state and state.result:
+            self.nodes.append(state.result)
 
     def process(self, buf):
         for char in buf:
             if self.submachine:
                 self.submachine.process([char])
                 if type(self.submachine.state) == Idle:
-                    if self.submachine.state.result:
-                        self.state.nodes.append(self.submachine.state.result)
+                    if len(self.submachine.nodes) != 1:
+                        raise LexException("Funky Submachine stuff")
+                    result = self.submachine.nodes[0]
                     self.submachine = None
+                    if result:
+                        self.state.nodes.append(result)
                 continue
 
             new = self.state.process(char)

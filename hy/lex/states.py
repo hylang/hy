@@ -1,5 +1,6 @@
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
+from hy.models.string import HyString
 from hy.errors import HyError
 
 
@@ -44,7 +45,8 @@ class Expression(State):
         self.buf = ""
 
     def commit(self):
-        self.nodes.append(_resolve_atom(self.buf))
+        if self.buf != "":
+            self.nodes.append(_resolve_atom(self.buf))
         self.buf = ""
 
     def exit(self):
@@ -53,7 +55,12 @@ class Expression(State):
 
     def process(self, char):
         if char == "(":
-            return self.machine.sub(Expression)
+            self.machine.sub(Expression)
+            return
+
+        if char == "\"":
+            self.machine.sub(String)
+            return
 
         if char == ")":
             return Idle
@@ -63,6 +70,17 @@ class Expression(State):
             return
 
         self.buf += char
+
+
+class String(State):
+    def exit(self):
+        self.result = HyString("".join(self.nodes))
+
+    def process(self, char):
+        if char == "\"":
+            return Idle
+
+        self.nodes.append(char)
 
 
 class Idle(State):
