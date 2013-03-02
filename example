@@ -1,8 +1,0 @@
-
-# (print ((fn [x] (* x x)) 2))
-
-
-def __hy_anon_fn_00001(x):
-    return x * x
-
-print __hy_anon_fn_00001(2)
