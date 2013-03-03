@@ -38,6 +38,7 @@ _compile_table = {}
 def builds(_type):
     def _dec(fn):
         _compile_table[_type] = fn
+
         def shim(*args, **kwargs):
             return fn(*args, **kwargs)
         return shim
@@ -63,7 +64,6 @@ class HyASTCompiler(HyCompiler):
                         keywords=[],
                         starargs=None,
                         kwargs=None)
-
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
