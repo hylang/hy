@@ -20,9 +20,23 @@
 
 from hy.compilers.ast import HyASTCompiler
 from hy.lex import tokenize
+import ast
 
 
 def test_ast_expression_basics():
-    """ Ensure basic AST conversion works. """
+    """ Ensure basic AST expression conversion works. """
     compiler = HyASTCompiler()
-    code = compiler.compile(tokenize("(foo bar)"))
+    code = compiler.compile(tokenize("(foo bar)"))[0]
+    tree = ast.Call(
+            func=ast.Name(
+                id="foo",
+                ctx=ast.Load(),
+            ),
+            args=[
+                ast.Name(id="bar", ctx=ast.Load())
+            ],
+            keywords=[],
+            starargs=None,
+            kwargs=None,
+        )
+    assert code == tree

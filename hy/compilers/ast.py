@@ -20,6 +20,9 @@
 
 from hy.compilers import HyCompiler
 
+from hy.models.expression import HyExpression
+from hy.modesl.symbol import HySymbol
+
 
 class HyASTCompiler(HyCompiler):
 
