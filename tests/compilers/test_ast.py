@@ -18,7 +18,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers.pyast import HyASTCompiler, HyCompileError
+from hy.compilers.pyast import HyCompileError
+from hy.compiler import compile
 from hy.lex import tokenize
 import ast
 
@@ -33,9 +34,8 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def test_ast_bad_type():
-    compiler = HyASTCompiler()
     try:
-        compiler.compile("foo")
+        compile("foo")
         assert True == False
     except HyCompileError:
         pass
@@ -43,8 +43,7 @@ def test_ast_bad_type():
 
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
-    compiler = HyASTCompiler()
-    code = compiler.compile(tokenize("(foo bar)"))[0]
+    code = compile(tokenize("(foo bar)"))[0]
     tree = ast.Call(
             func=ast.Name(
                 id="foo",
