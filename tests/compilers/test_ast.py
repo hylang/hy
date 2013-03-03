@@ -18,7 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers.pyast import HyASTCompiler
+from hy.compilers.pyast import HyASTCompiler, HyCompileError
 from hy.lex import tokenize
 import ast
 
@@ -30,6 +30,15 @@ def _ast_spotcheck(arg, root, secondary):
                               getattr(root, local),
                               getattr(secondary, local))
     assert getattr(root, arg) == getattr(secondary, arg)
+
+
+def test_ast_bad_type():
+    compiler = HyASTCompiler()
+    try:
+        compiler.compile("foo")
+        assert True == False
+    except HyCompileError:
+        pass
 
 
 def test_ast_expression_basics():
