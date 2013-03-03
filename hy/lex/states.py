@@ -178,4 +178,7 @@ class Idle(State):
         if char == "(":
             return Expression
 
+        if char in WHITESPACE:
+            return
+
         raise LexException("Unknown char (Idle state): `%s`" % (char))

@@ -36,6 +36,12 @@ def test_lex_exception():
     except LexException:
         pass
 
+    try:
+        objs = tokenize("&foo&")
+        assert True == False
+    except LexException:
+        pass
+
 
 def test_lex_expression_symbols():
     """ Make sure that expressions produce symbols """
@@ -71,3 +77,26 @@ def test_lex_line_counting():
 
     assert entry.end_line == 1
     assert entry.end_column == 14
+
+
+def test_lex_line_counting_multi():
+    """ Make sure we can do multi-line tokenization """
+    entries = tokenize("""
+(foo (one two))
+(foo bar)
+""")
+
+    entry = entries[0]
+
+    assert entry.start_line == 2
+    assert entry.start_column == 1
+
+    assert entry.end_line == 2
+    assert entry.end_column == 15
+
+    entry = entries[1]
+    assert entry.start_line == 3
+    assert entry.start_column == 1
+
+    assert entry.end_line == 3
+    assert entry.end_column == 9
