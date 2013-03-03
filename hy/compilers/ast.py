@@ -22,4 +22,6 @@ from hy.compilers import HyCompiler
 
 
 class HyASTCompiler(HyCompiler):
-    pass
+
+    def compile(self, tree):
+        pass
