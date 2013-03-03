@@ -30,6 +30,9 @@ long_description = open('README.md', 'r').read()
 setup(
     name=__appname__,
     version=__version__,
+    scripts=[
+        'bin/hytest'
+    ],
     packages=[
         'hy',
         'hy.lex',
