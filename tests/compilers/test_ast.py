@@ -22,7 +22,7 @@ from hy.compilers.ast import HyASTCompiler
 from hy.lex import tokenize
 
 
-def test_ast_expression():
-    """ Test AST --> Expression conversion """
+def test_ast_expression_basics():
+    """ Ensure basic AST conversion works. """
     compiler = HyASTCompiler()
     code = compiler.compile(tokenize("(foo bar)"))
