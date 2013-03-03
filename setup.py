@@ -31,7 +31,6 @@ setup(
     name=__appname__,
     version=__version__,
     scripts=[
-        'bin/hytest'
     ],
     packages=[
         'hy',

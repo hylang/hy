@@ -1,7 +1,0 @@
-#!/usr/bin/env python
-
-from nose.core import TestProgram
-import sys
-import hy
-
-sys.exit(TestProgram())
