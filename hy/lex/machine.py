@@ -31,10 +31,21 @@ class Machine(object):
 
     def accept_result(self, state):
         if state and state.result:
-            self.nodes.append(state.result)
+            result = state.result
+
+            result.start_line, result.end_line = (self.start_line, self.line)
+            result.start_column, result.end_column = (self.start_column,
+                                                      self.column)
+            self.nodes.append(result)
 
     def process(self, buf):
         for char in buf:
+
+            self.column += 1
+            if char == "\n":
+                self.line += 1
+                self.column = 0
+
             if self.submachine:
                 self.submachine.process([char])
                 if type(self.submachine.state) == Idle:

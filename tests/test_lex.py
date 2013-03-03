@@ -10,10 +10,23 @@ def test_lex_expression_symbols():
     objs = tokenize("(foo bar)")
     assert objs == [HyExpression([HySymbol("foo"), HySymbol("bar")])]
 
+
 def test_lex_expression_strings():
     objs = tokenize("(foo \"bar\")")
     assert objs == [HyExpression([HySymbol("foo"), HyString("bar")])]
 
+
 def test_lex_expression_integer():
     objs = tokenize("(foo 2)")
     assert objs == [HyExpression([HySymbol("foo"), HyInteger(2)])]
+
+
+def test_lex_line_counting():
+    objs = tokenize("(foo 2)")
+    entry = objs[0]
+
+    assert entry.start_line == 1
+    assert entry.start_column == 1
+
+    assert entry.end_line == 1
+    assert entry.end_column == 7
