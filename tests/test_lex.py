@@ -22,8 +22,7 @@ def test_lex_expression_integer():
 
 
 def test_lex_line_counting():
-    objs = tokenize("(foo 2)")
-    entry = objs[0]
+    entry = tokenize("(foo 2)")[0]
 
     assert entry.start_line == 1
     assert entry.start_column == 1
