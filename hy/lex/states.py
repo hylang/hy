@@ -25,6 +25,8 @@ from hy.models.string import HyString
 
 from hy.errors import HyError
 
+from abc import ABCMeta, abstractmethod
+
 
 WHITESPACE = [" ", "\t", "\n", "\r"]
 
@@ -57,6 +59,7 @@ class State(object):
     """
 
     __slots__ = ("nodes", "machine")
+    __metaclass__ = ABCMeta
 
     def __init__(self, machine):
         self.machine = machine
@@ -75,14 +78,15 @@ class State(object):
         """
         Overridable ``enter`` routines. Subclasses may implement this.
         """
-        pass  # ABC
+        pass
 
     def exit(self):
         """
         Overridable ``exit`` routines. Subclasses may implement this.
         """
-        pass  # ABC
+        pass
 
+    @abstractmethod
     def process(self, char):
         """
         Overridable ``process`` routines. Subclasses must implement this to be
