@@ -109,7 +109,13 @@ class Expression(State):
 
     def commit(self):
         if self.buf != "":
-            self.nodes.append(_resolve_atom(self.buf))
+            ret = _resolve_atom(self.buf)
+            ret.start_line = self._start_line
+            ret.start_column = self._start_column
+            ret.end_line = self.machine.line
+            ret.end_column = (self.machine.column - 1)
+
+            self.nodes.append(ret)
         self.buf = ""
 
     def exit(self):
@@ -138,6 +144,10 @@ class Expression(State):
         if char in WHITESPACE:
             self.commit()
             return
+
+        if self.buf == "":
+            self._start_line = self.machine.line
+            self._start_column = self.machine.column
 
         self.buf += char
 

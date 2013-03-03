@@ -19,11 +19,10 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.compilers import HyCompiler
+from hy.errors import HyError
 
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
-
-from hy.errors import HyError
 
 import ast
 
@@ -63,8 +62,12 @@ class HyASTCompiler(HyCompiler):
                         args=[self.compile(x) for x in expression[1:]],
                         keywords=[],
                         starargs=None,
-                        kwargs=None)
+                        kwargs=None,
+                        lineno=expression.start_line,
+                        col_offset=expression.start_column)
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
-        return ast.Name(id=str(symbol), ctx=ast.Load())
+        return ast.Name(id=str(symbol), ctx=ast.Load(),
+                        lineno=symbol.start_line,
+                        col_offset=symbol.start_column)

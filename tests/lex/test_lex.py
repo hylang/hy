@@ -100,3 +100,18 @@ def test_lex_line_counting_multi():
 
     assert entry.end_line == 3
     assert entry.end_column == 9
+
+
+def test_lex_line_counting_multi_inner():
+    """ Make sure we can do multi-line tokenization (inner) """
+    entry = tokenize("""(foo
+    bar)""")[0]
+    inner = entry[0]
+
+    assert inner.start_line == 1
+    assert inner.start_column == 2
+
+    inner = entry[1]
+
+    assert inner.start_line == 2
+    assert inner.start_column == 5
