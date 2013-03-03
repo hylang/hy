@@ -18,9 +18,18 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers.ast import HyASTCompiler
+from hy.compilers.pyast import HyASTCompiler
 from hy.lex import tokenize
 import ast
+
+
+def _ast_spotcheck(arg, root, secondary):
+    if "." in arg:
+        local, full = arg.split(".", 1)
+        return _ast_spotcheck(full,
+                              getattr(root, local),
+                              getattr(secondary, local))
+    assert getattr(root, arg) == getattr(secondary, arg)
 
 
 def test_ast_expression_basics():
@@ -39,4 +48,5 @@ def test_ast_expression_basics():
             starargs=None,
             kwargs=None,
         )
-    assert code == tree
+    _ast_spotcheck("func.id", code, tree)
+    _ast_spotcheck("id", code.args[0], tree.args[0])

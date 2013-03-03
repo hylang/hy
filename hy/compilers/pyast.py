@@ -25,6 +25,8 @@ from hy.models.symbol import HySymbol
 
 from hy.errors import HyError
 
+import ast
+
 
 class HyCompileError(HyError):
     pass
@@ -56,8 +58,13 @@ class HyASTCompiler(HyCompiler):
 
     @builds(HyExpression)
     def compile_expression(self, expression):
-        pass
+        return ast.Call(func=self.compile_symbol(expression[0]),
+                        args=[self.compile(x) for x in expression[1:]],
+                        keywords=[],
+                        starargs=None,
+                        kwargs=None)
+
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
-        pass
+        return ast.Name(id=str(symbol), ctx=ast.Load())
