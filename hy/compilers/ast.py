@@ -21,10 +21,43 @@
 from hy.compilers import HyCompiler
 
 from hy.models.expression import HyExpression
-from hy.modesl.symbol import HySymbol
+from hy.models.symbol import HySymbol
+
+from hy.errors import HyError
+
+
+class HyCompileError(HyError):
+    pass
+
+
+_compile_table = {}
+
+
+def builds(_type):
+    def _dec(fn):
+        _compile_table[_type] = fn
+        def shim(*args, **kwargs):
+            return fn(*args, **kwargs)
+        return shim
+    return _dec
 
 
 class HyASTCompiler(HyCompiler):
-
     def compile(self, tree):
+        for _type in _compile_table:
+            if type(tree) == _type:
+                return _compile_table[_type](self, tree)
+
+        raise HyCompileError("Unknown type.")
+
+    @builds(list)
+    def compile_raw_list(self, entries):
+        return [self.compile(x) for x in entries]
+
+    @builds(HyExpression)
+    def compile_expression(self, expression):
+        pass
+
+    @builds(HySymbol)
+    def compile_symbol(self, symbol):
         pass
