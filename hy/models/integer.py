@@ -22,6 +22,11 @@ from hy.models import HyObject
 
 
 class HyInteger(HyObject, int):
+    """
+    Internal represntation of a Hy Integer. May raise a ValueError as if
+    int(foo) was caled, given HyInteger(foo).
+    """
+
     def __new__(cls, number, *args, **kwargs):
         number = int(number)
         return super(HyInteger, cls).__new__(cls, number)

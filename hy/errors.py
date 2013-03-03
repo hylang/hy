@@ -20,4 +20,8 @@
 
 
 class HyError(Exception):
+    """
+    Generic Hy error. All interal Exceptions will be subclassed from this
+    Exception.
+    """
     pass

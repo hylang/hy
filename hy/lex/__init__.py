@@ -23,6 +23,9 @@ from hy.lex.states import Idle, LexException
 
 
 def tokenize(buf):
+    """
+    Tokenize a Lisp file or string buffer into internal Hy objects.
+    """
     machine = Machine(Idle, 1, 0)
     machine.process(buf)
     if type(machine.state) != Idle:

@@ -22,4 +22,7 @@ from hy.models import HyObject
 
 
 class HyExpression(HyObject, list):
+    """
+    Hy S-Expression. Basically just a list.
+    """
     pass

@@ -20,4 +20,8 @@
 
 
 class HyObject(object):
+    """
+    Generic Hy Object model. This is helpful to inject things into all the
+    Hy lexing Objects at once.
+    """
     pass

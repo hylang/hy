@@ -22,6 +22,11 @@ from hy.lex.states import Idle, LexException
 
 
 class Machine(object):
+    """
+    Hy State Machine. This controls all the state hopping we need to do
+    to properly parse Hy source.
+    """
+
     __slots__ = ("submachine", "nodes", "state", "line", "column",
                  "start_line", "start_column")
 
@@ -33,8 +38,12 @@ class Machine(object):
         self.state = None
         self.set_state(state)
 
-
     def set_state(self, state):
+        """
+        Set the new internal machine state. This helps keep line annotations
+        correct, and make sure that we properly call enter and exit.
+        """
+
         if self.state:
             self.state._exit()
 
@@ -47,9 +56,15 @@ class Machine(object):
         self.start_column = self.column
 
     def sub(self, state):
+        """
+        Set up a submachine for this machine.
+        """
         self.submachine = Machine(state, self.line, self.column)
 
     def accept_result(self, state):
+        """
+        Accept and annotate the result.
+        """
         if state and state.result:
             result = state.result
 
@@ -59,6 +74,9 @@ class Machine(object):
             self.nodes.append(result)
 
     def process(self, buf):
+        """
+        process an iterable of chars into Hy internal models of the Source.
+        """
         for char in buf:
 
             self.column += 1

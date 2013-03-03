@@ -30,10 +30,19 @@ WHITESPACE = [" ", "\t", "\n", "\r"]
 
 
 class LexException(HyError):
+    """
+    Error during the Lexing of a Hython expression.
+    """
     pass
 
 
 def _resolve_atom(obj):
+    """
+    Resolve a bare atom into one of the following (in order):
+
+        - Integer
+        - Symbol
+    """
     try:
         return HyInteger(obj)
     except ValueError:
@@ -43,30 +52,53 @@ def _resolve_atom(obj):
 
 
 class State(object):
+    """
+    Generic State model.
+    """
+
     __slots__ = ("nodes", "machine")
 
     def __init__(self, machine):
         self.machine = machine
 
     def _enter(self):
+        """ Internal shim for running global ``enter`` code """
         self.result = None
         self.nodes = []
         self.enter()
 
     def _exit(self):
+        """ Internal shim for running global ``exit`` code """
         self.exit()
 
     def enter(self):
+        """
+        Overridable ``enter`` routines. Subclasses may implement this.
+        """
         pass  # ABC
 
     def exit(self):
+        """
+        Overridable ``exit`` routines. Subclasses may implement this.
+        """
         pass  # ABC
 
     def process(self, char):
+        """
+        Overridable ``process`` routines. Subclasses must implement this to be
+        useful.
+        """
         pass  # ABC
 
 
 class Expression(State):
+    """
+    Expression state. This will handle stuff like:
+
+        (...... (....))
+                ^^^^^^  -- expression
+        ^^^^^^^^^^^^^^^ -- expression
+    """
 
     def enter(self):
         self.buf = ""
@@ -81,6 +113,13 @@ class Expression(State):
         self.result = HyExpression(self.nodes)
 
     def process(self, char):
+        """
+        State transitions:
+
+            - ( - sub Expression
+            - " - sub String
+            - (whitespace) - Idle
+        """
         if char == "(":
             self.machine.sub(Expression)
             return
@@ -100,10 +139,22 @@ class Expression(State):
 
 
 class String(State):
+    """
+    String state. This will handle stuff like:
+
+        (println "foobar")
+                 ^^^^^^^^  -- String
+    """
+
     def exit(self):
         self.result = HyString("".join(self.nodes))
 
     def process(self, char):
+        """
+        State transitions:
+
+            - " - Idle
+        """
         if char == "\"":
             return Idle
 
@@ -111,7 +162,19 @@ class String(State):
 
 
 class Idle(State):
+    """
+    Idle state. This is the first (and last) thing that we should
+    be in.
+    """
+
     def process(self, char):
+        """
+        State transitions:
+
+            - ( - Expression
+            - (default) - Error
+        """
+
         if char == "(":
             return Expression
 
