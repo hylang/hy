@@ -1,6 +1,8 @@
 from hy.models.expression import HyExpression
+from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
+
 from hy.errors import HyError
 
 
@@ -12,6 +14,11 @@ class LexException(HyError):
 
 
 def _resolve_atom(obj):
+    try:
+        return HyInteger(obj)
+    except ValueError:
+        pass
+
     return HySymbol(obj)
 
 
