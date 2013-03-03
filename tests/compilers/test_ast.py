@@ -18,8 +18,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers import HyCompiler
+from hy.compilers.ast import HyASTCompiler
+from hy.lex import tokenize
 
 
-class HyASTCompiler(HyCompiler):
-    pass
+def test_ast_expression():
+    """ Test AST --> Expression conversion """
+    compiler = HyASTCompiler()
+    code = compiler.compile(tokenize("(foo bar)"))

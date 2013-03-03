@@ -18,7 +18,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from abc import ABCMeta, abstractmethod
+
 
 class HyCompiler(object):
+    __metaclass__ = ABCMeta
+
     def __init__(self):
+        pass
+
+    @abstractmethod
+    def compile(self, tree):
         pass

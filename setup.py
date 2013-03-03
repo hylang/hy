@@ -37,6 +37,7 @@ setup(
         'hy',
         'hy.lex',
         'hy.models',
+        'hy.compilers',
     ],
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
