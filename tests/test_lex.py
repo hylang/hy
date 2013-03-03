@@ -57,10 +57,17 @@ def test_lex_expression_integer():
 
 def test_lex_line_counting():
     """ Make sure we can count lines / columns """
-    entry = tokenize("(foo 2)")[0]
+    entry = tokenize("(foo (one two))")[0]
 
     assert entry.start_line == 1
     assert entry.start_column == 1
 
     assert entry.end_line == 1
-    assert entry.end_column == 7
+    assert entry.end_column == 15
+
+    entry = entry[1]
+    assert entry.start_line == 1
+    assert entry.start_column == 6
+
+    assert entry.end_line == 1
+    assert entry.end_column == 14
