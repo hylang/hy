@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.compilers.pyast import HyCompileError
-from hy.compiler import compile
+from hy.compiler import hy_compile
 from hy.lex import tokenize
 import ast
 
@@ -35,7 +35,7 @@ def _ast_spotcheck(arg, root, secondary):
 
 def test_ast_bad_type():
     try:
-        compile("foo")
+        hy_compile("foo")
         assert True == False
     except HyCompileError:
         pass
@@ -43,7 +43,7 @@ def test_ast_bad_type():
 
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
-    code = compile(tokenize("(foo bar)"))[0]
+    code = hy_compile(tokenize("(foo bar)")).body[0]
     tree = ast.Call(
             func=ast.Name(
                 id="foo",

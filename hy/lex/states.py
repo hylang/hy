@@ -192,7 +192,27 @@ class Idle(State):
         if char == "(":
             return Expression
 
+        if char == ";":
+            return Comment
+
         if char in WHITESPACE:
             return
 
         raise LexException("Unknown char (Idle state): `%s`" % (char))
+
+
+class Comment(State):
+    """
+    Comment state.
+    """
+
+    def process(self, char):
+        """
+        State transitions:
+
+            - \n - Idle
+            - (default) - disregard.
+        """
+
+        if char == "\n":
+            return Idle

@@ -23,6 +23,7 @@ from hy.errors import HyError
 
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
+from hy.models.string import HyString
 
 import ast
 
@@ -46,11 +47,11 @@ def builds(_type):
 
 class HyASTCompiler(HyCompiler):
     def compile(self, tree):
-        for _type in _compile_table:
+      for _type in _compile_table:
             if type(tree) == _type:
                 return _compile_table[_type](self, tree)
 
-        raise HyCompileError("Unknown type.")
+      raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
 
     @builds(list)
     def compile_raw_list(self, entries):
@@ -71,3 +72,16 @@ class HyASTCompiler(HyCompiler):
         return ast.Name(id=str(symbol), ctx=ast.Load(),
                         lineno=symbol.start_line,
                         col_offset=symbol.start_column)
+
+    @builds(HyString)
+    def compile_string(self, string):
+        return ast.Str(s=string)
+
+
+compiler = HyASTCompiler()
+
+
+def hy_compile(tree):
+    " Compile a HyObject tree into a Python AST tree. "
+    ret = ast.Module(body=compiler.compile(tree))
+    return ret

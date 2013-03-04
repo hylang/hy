@@ -18,12 +18,4 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers.pyast import HyASTCompiler
-
-
-compiler = HyASTCompiler()
-
-
-def compile(tree):
-    " Compile a HyObject tree into a Python AST tree. "
-    return compiler.compile(tree)
+from hy.compilers.pyast import hy_compile
