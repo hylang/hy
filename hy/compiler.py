@@ -67,12 +67,10 @@ class HyASTCompiler(object):
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
-        ret += [
-            ast.Expr(value=el,
-                     lineno=el.lineno,
-                     col_offset=el.col_offset)
-            if not isinstance(el, ast.stmt) else el for el in tree  # NOQA
-        ]  # for some stupid reason, flake8 thinks i'm redefining.    ^^^^
+        ret += [ast.Expr(value=el,
+                         lineno=el.lineno,
+                         col_offset=el.col_offset)
+                if not isinstance(el, ast.stmt) else el for el in tree]  # NOQA
 
         ret.reverse()
         return ret
@@ -95,19 +93,40 @@ class HyASTCompiler(object):
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
 
+    @builds("def")
+    def compile_def_expression(self, expression):
+        expression.pop(0)  # "def"
+        name = expression.pop(0)
+
+        what = self.compile(expression.pop(0))
+
+        if type(what) == ast.FunctionDef:
+            # We special case a FunctionDef, since we can define by setting
+            # FunctionDef's .name attribute, rather then foo == anon_fn. This
+            # helps keep things clean.
+            what.name = str(name)
+            return what
+
+        name = self.compile(name)
+        name.ctx = ast.Store()
+
+        return ast.Assign(
+            lineno=expression.start_line,
+            col_offset=expression.start_column,
+            targets=[name], value=what)
+
     @builds("fn")
     def compile_fn_expression(self, expression):
+        expression.pop(0)  # fn
+
         ret_status = self.returnable
         self.returnable = True
-
-        expression.pop(0)  # fn
 
         self.anon_fn_count += 1
         name = "_hy_anon_fn_%d" % (self.anon_fn_count)
         sig = expression.pop(0)
 
-        ret = ast.FunctionDef(name=name, vararg=None, kwarg=None,
-                              kwonlyargs=[], kw_defaults=[], defaults=[],
+        ret = ast.FunctionDef(name=name,
                               lineno=expression.start_line,
                               col_offset=expression.start_column,
                               args=ast.arguments(args=[
@@ -115,7 +134,12 @@ class HyASTCompiler(object):
                                            ctx=ast.Param(),
                                            lineno=x.start_line,
                                            col_offset=x.start_column)
-                                  for x in sig]),
+                                  for x in sig],
+                                  vararg=None,
+                                  kwarg=None,
+                                  kwonlyargs=[],
+                                  kw_defaults=[],
+                                  defaults=[]),
                               body=self._mangle_branch([
                                   self.compile(x) for x in expression]),
                               decorator_list=[])

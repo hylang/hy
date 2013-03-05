@@ -25,4 +25,4 @@ d: clear dev
 diff:
 	git diff --color | less -r
 
-review: d diff
+r: d diff

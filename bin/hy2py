@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+from hy.compiler import hy_compile
+from hy.lex import tokenize
+import codegen
+import sys
+
+
+ast = hy_compile(tokenize(open(sys.argv[1], 'r').read()))
+print codegen.to_source(ast)
