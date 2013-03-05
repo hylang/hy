@@ -16,3 +16,8 @@ test:
 
 flake:
 	flake8 hy
+
+clear:
+	clear
+
+d: clear dev

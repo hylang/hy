@@ -46,12 +46,34 @@ def builds(_type):
 
 
 class HyASTCompiler(HyCompiler):
+
+    def __init__(self):
+        self.returnable = False
+
     def compile(self, tree):
-      for _type in _compile_table:
+        for _type in _compile_table:
             if type(tree) == _type:
                 return _compile_table[_type](self, tree)
 
-      raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
+        raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
+
+    def _mangle_branch(self, tree):
+        ret = []
+        tree.reverse()
+
+        if self.returnable:
+            el = tree.pop()
+            if not isinstance(el, ast.stmt):
+                ret.append(ast.Return(value=el,
+                                      lineno=el.lineno,
+                                      col_offset=el.col_offset))
+        ret += [ast.Expr(value=el,
+                         lineno=el.lineno,
+                         col_offset=el.col_offset
+                ) if not isinstance(el, ast.stmt) else el for el in tree]
+
+        ret.reverse()
+        return ret
 
     @builds(list)
     def compile_raw_list(self, entries):
@@ -75,13 +97,12 @@ class HyASTCompiler(HyCompiler):
 
     @builds(HyString)
     def compile_string(self, string):
-        return ast.Str(s=string)
-
-
-compiler = HyASTCompiler()
+        return ast.Str(s=str(string), lineno=string.start_line,
+                       col_offset=string.start_column)
 
 
 def hy_compile(tree):
     " Compile a HyObject tree into a Python AST tree. "
-    ret = ast.Module(body=compiler.compile(tree))
+    compiler = HyASTCompiler()
+    ret = ast.Module(body=compiler._mangle_branch(compiler.compile(tree)))
     return ret

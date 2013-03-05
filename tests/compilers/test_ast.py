@@ -44,7 +44,7 @@ def test_ast_bad_type():
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = hy_compile(tokenize("(foo bar)")).body[0]
-    tree = ast.Call(
+    tree = ast.Expr(value=ast.Call(
             func=ast.Name(
                 id="foo",
                 ctx=ast.Load(),
@@ -55,6 +55,6 @@ def test_ast_expression_basics():
             keywords=[],
             starargs=None,
             kwargs=None,
-        )
-    _ast_spotcheck("func.id", code, tree)
-    _ast_spotcheck("id", code.args[0], tree.args[0])
+        ))
+
+    _ast_spotcheck("value.func.id", code, tree)

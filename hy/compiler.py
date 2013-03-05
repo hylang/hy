@@ -18,4 +18,5 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers.pyast import hy_compile
+
+from hy.compilers.pyast import hy_compile  # NOQA
