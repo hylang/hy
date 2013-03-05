@@ -57,3 +57,9 @@ def test_ast_expression_basics():
         ))
 
     _ast_spotcheck("value.func.id", code, tree)
+
+
+def test_ast_anon_fns_basics():
+    """ Ensure anon fns work. """
+    code = hy_compile(tokenize("(fn (x) (* x x))")).body[0]
+    assert type(code) == ast.FunctionDef

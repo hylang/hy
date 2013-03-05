@@ -106,33 +106,22 @@ class HyASTCompiler(object):
         name = "_hy_anon_fn_%d" % (self.anon_fn_count)
         sig = expression.pop(0)
 
-        ret = ast.FunctionDef(
-            name=name,
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
-            args=ast.arguments(
-                args=[
-                    ast.Name(
-                        arg=str(x),
-                        id=str(x),
-                        ctx=ast.Param(),
-                        lineno=x.start_line,
-                        col_offset=x.start_column
-                    ) for x in sig
-                ],
-                vararg=None,
-                kwarg=None,
-                kwonlyargs=[],
-                kw_defaults=[],
-                defaults=[]
-            ),
-            body=self._mangle_branch([self.compile(x) for x in expression]),
-            decorator_list=[]
-        )
+        ret = ast.FunctionDef(name=name, vararg=None, kwarg=None,
+                              kwonlyargs=[], kw_defaults=[], defaults=[],
+                              lineno=expression.start_line,
+                              col_offset=expression.start_column,
+                              args=ast.arguments(args=[
+                                  ast.Name(arg=str(x), id=str(x),
+                                           ctx=ast.Param(),
+                                           lineno=x.start_line,
+                                           col_offset=x.start_column)
+                                  for x in sig]),
+                              body=self._mangle_branch([
+                                  self.compile(x) for x in expression]),
+                              decorator_list=[])
 
         self.returnable = ret_status
         return ret
-
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
