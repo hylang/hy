@@ -67,10 +67,12 @@ class HyASTCompiler(HyCompiler):
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
-        ret += [ast.Expr(value=el,
-                         lineno=el.lineno,
-                         col_offset=el.col_offset
-                ) if not isinstance(el, ast.stmt) else el for el in tree]
+        ret += [
+            ast.Expr(value=el,
+                     lineno=el.lineno,
+                     col_offset=el.col_offset)
+            if not isinstance(el, ast.stmt) else el for el in tree  # NOQA
+        ]  # for some stupid reason, flake8 thinks i'm redefining.    ^^^^
 
         ret.reverse()
         return ret
