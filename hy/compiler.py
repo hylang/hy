@@ -48,6 +48,7 @@ class HyASTCompiler(object):
 
     def __init__(self):
         self.returnable = False
+        self.anon_fn_count = 0
 
     def compile(self, tree):
         for _type in _compile_table:
@@ -82,13 +83,56 @@ class HyASTCompiler(object):
 
     @builds(HyExpression)
     def compile_expression(self, expression):
-        return ast.Call(func=self.compile_symbol(expression[0]),
+        fn = expression[0]
+        if fn in _compile_table:
+            return _compile_table[fn](self, expression)
+
+        return ast.Call(func=self.compile_symbol(fn),
                         args=[self.compile(x) for x in expression[1:]],
                         keywords=[],
                         starargs=None,
                         kwargs=None,
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
+
+    @builds("fn")
+    def compile_fn_expression(self, expression):
+        ret_status = self.returnable
+        self.returnable = True
+
+        expression.pop(0)  # fn
+
+        self.anon_fn_count += 1
+        name = "_hy_anon_fn_%d" % (self.anon_fn_count)
+        sig = expression.pop(0)
+
+        ret = ast.FunctionDef(
+            name=name,
+            lineno=expression.start_line,
+            col_offset=expression.start_column,
+            args=ast.arguments(
+                args=[
+                    ast.Name(
+                        arg=str(x),
+                        id=str(x),
+                        ctx=ast.Param(),
+                        lineno=x.start_line,
+                        col_offset=x.start_column
+                    ) for x in sig
+                ],
+                vararg=None,
+                kwarg=None,
+                kwonlyargs=[],
+                kw_defaults=[],
+                defaults=[]
+            ),
+            body=self._mangle_branch([self.compile(x) for x in expression]),
+            decorator_list=[]
+        )
+
+        self.returnable = ret_status
+        return ret
+
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
