@@ -87,12 +87,14 @@ class Machine(object):
             if self.submachine:
                 self.submachine.process([char])
                 if type(self.submachine.state) == Idle:
-                    if len(self.submachine.nodes) != 1:
+                    if len(self.submachine.nodes) > 1:
                         raise LexException("Funky Submachine stuff")
-                    result = self.submachine.nodes[0]
+
+                    nodes = self.submachine.nodes
                     self.submachine = None
-                    if result:
-                        self.state.nodes.append(result)
+
+                    if len(nodes) > 0:
+                        self.state.nodes.append(nodes[0])
                 continue
 
             new = self.state.process(char)

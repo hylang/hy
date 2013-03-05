@@ -120,7 +120,10 @@ class Expression(State):
 
     def exit(self):
         self.commit()
-        self.result = HyExpression(self.nodes)
+        if self.nodes != []:
+            self.result = HyExpression(self.nodes)
+        else:
+            self.result = None
 
     def process(self, char):
         """

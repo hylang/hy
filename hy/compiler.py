@@ -22,6 +22,7 @@ from hy.errors import HyError
 
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
+from hy.models.integer import HyInteger
 from hy.models.string import HyString
 
 import ast
@@ -84,7 +85,7 @@ class HyASTCompiler(object):
     @builds("/")
     @builds("*")
     def compile_maths_expression(self, expression):
-        # operator = Mod | Pow | LShift | RShift | BitOr | 
+        # operator = Mod | Pow | LShift | RShift | BitOr |
         #            BitXor | BitAnd | FloorDiv
         # (to implement list) XXX
 
@@ -174,6 +175,12 @@ class HyASTCompiler(object):
 
         self.returnable = ret_status
         return ret
+
+    @builds(HyInteger)
+    def compile_number(self, number):
+        return ast.Num(n=number,
+                       lineno=number.start_line,
+                       col_offset=number.start_column)
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
