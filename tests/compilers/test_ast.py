@@ -18,8 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compilers.pyast import HyCompileError
-from hy.compiler import hy_compile
+from hy.compiler import hy_compile, HyCompileError
 from hy.lex import tokenize
 import ast
 
