@@ -79,6 +79,34 @@ class HyASTCompiler(object):
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
 
+    @builds("+")
+    @builds("-")
+    @builds("/")
+    @builds("*")
+    def compile_maths_expression(self, expression):
+        # operator = Mod | Pow | LShift | RShift | BitOr | 
+        #            BitXor | BitAnd | FloorDiv
+        # (to implement list) XXX
+
+        ops = {"+": ast.Add,
+               "/": ast.Div,
+               "*": ast.Mult,
+               "-": ast.Sub}
+
+        inv = expression.pop(0)
+        op = ops[inv]
+
+        left = self.compile(expression.pop(0))
+        calc = None
+        for child in expression:
+            calc = ast.BinOp(left=left,
+                             op=op(),
+                             right=self.compile(child),
+                             lineno=child.start_line,
+                             col_offset=child.start_column)
+            left = calc
+        return calc
+
     @builds(HyExpression)
     def compile_expression(self, expression):
         fn = expression[0]

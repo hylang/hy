@@ -1,3 +1,4 @@
 nose
 coverage
 flake8
+tox
