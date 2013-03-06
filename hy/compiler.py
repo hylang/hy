@@ -21,9 +21,10 @@
 from hy.errors import HyError
 
 from hy.models.expression import HyExpression
-from hy.models.symbol import HySymbol
 from hy.models.integer import HyInteger
 from hy.models.string import HyString
+from hy.models.symbol import HySymbol
+from hy.models.list import HyList
 
 import ast
 
@@ -168,6 +169,14 @@ class HyASTCompiler(object):
             lineno=expression.start_line,
             col_offset=expression.start_column,
             targets=[name], value=what)
+
+    @builds(HyList)
+    def compile_list(self, expr):
+        return ast.List(
+            elts=[self.compile(x) for x in expr],
+            ctx=ast.Load(),
+            lineno=expr.start_line,
+            col_offset=expr.start_column)
 
     @builds("fn")
     def compile_fn_expression(self, expression):
