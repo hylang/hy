@@ -63,8 +63,9 @@ class HyASTCompiler(object):
         tree.reverse()
 
         if self.returnable and len(tree) > 0:
-            el = tree.pop()
+            el = tree[0]
             if not isinstance(el, ast.stmt):
+                el = tree.pop()
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
@@ -79,6 +80,30 @@ class HyASTCompiler(object):
     @builds(list)
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
+
+    @builds("assert")
+    def compile_assert_expression(self, expr):
+        expr.pop(0)  # assert
+        e = expr.pop(0)
+        return ast.Assert(test=self.compile(e),
+                          msg=None,
+                          lineno=e.start_line,
+                          col_offset=e.start_column)
+
+    @builds("=")
+    def compile_compare_op_expression(self, expression):
+        ops = {"=": ast.Eq}
+
+        inv = expression.pop(0)
+        op = ops[inv]
+        ops = [op() for x in range(1, len(expression))]
+        e = expression.pop(0)
+
+        return ast.Compare(left=self.compile(e),
+                           ops=ops,
+                           comparators=[self.compile(x) for x in expression],
+                           lineno=e.start_line,
+                           col_offset=e.start_column)
 
     @builds("+")
     @builds("-")

@@ -4,7 +4,10 @@ from hy.compiler import hy_compile
 from hy.lex import tokenize
 import codegen
 import sys
+import ast
 
-
-ast = hy_compile(tokenize(open(sys.argv[1], 'r').read()))
-print codegen.to_source(ast)
+tokens = tokenize(open(sys.argv[1], 'r').read())
+print tokens
+_ast = hy_compile(tokens)
+print ast.dump(_ast)
+print codegen.to_source(_ast)
