@@ -96,7 +96,7 @@ class State(object):
         pass  # ABC
 
 
-class List(State):
+class ListeyThing(State):
 
     def enter(self):
         self.buf = ""
@@ -114,7 +114,7 @@ class List(State):
 
     def exit(self):
         self.commit()
-        self.result = HyList(self.nodes)
+        self.result = self.result_type(self.nodes)
 
     def process(self, char):
         if char == "(":
@@ -129,7 +129,7 @@ class List(State):
             self.machine.sub(String)
             return
 
-        if char == "]":
+        if char == self.end_char:
             return Idle
 
         if char in WHITESPACE:
@@ -143,54 +143,26 @@ class List(State):
         self.buf += char
 
 
-class Expression(List):
+class List(ListeyThing):
     """
-    Expression state. This will handle stuff like:
+    This state parses a Hy list (like a Clojure vector) for use in native
+    Python interop.
 
-        (...... (....))
-                ^^^^^^  -- expression
-        ^^^^^^^^^^^^^^^ -- expression
+    [foo 1 2 3 4] is a good example.
     """
 
-    def exit(self):
-        self.commit()
-        if self.nodes != []:
-            self.result = HyExpression(self.nodes)
-        else:
-            self.result = HyList([])
+    result_type = HyList
+    end_char = "]"
 
-    def process(self, char):
-        """
-        State transitions:
 
-            - ( - sub Expression
-            - " - sub String
-            - (whitespace) - Idle
-        """
-        if char == "(":
-            self.machine.sub(Expression)
-            return
+class Expression(ListeyThing):
+    """
+    This state parses a Hy expression (statement, to be evaluated at runtime)
+    for running things & stuff.
+    """
 
-        if char == "[":
-            self.machine.sub(List)
-            return
-
-        if char == "\"":
-            self.machine.sub(String)
-            return
-
-        if char == ")":
-            return Idle
-
-        if char in WHITESPACE:
-            self.commit()
-            return
-
-        if self.buf == "":
-            self._start_line = self.machine.line
-            self._start_column = self.machine.column
-
-        self.buf += char
+    result_type = HyExpression
+    end_char = ")"
 
 
 class String(State):
