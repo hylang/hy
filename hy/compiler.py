@@ -203,7 +203,7 @@ class HyASTCompiler(object):
 
     @builds(HyInteger)
     def compile_number(self, number):
-        return ast.Num(n=number,
+        return ast.Num(n=int(number),  # See HyInteger above.
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
