@@ -6,6 +6,9 @@ all:
 	@echo "   - dev (test & flake)"
 	@echo "   - flake"
 	@echo "   - test"
+	@echo "   - diff"
+	@echo "   - d"
+	@echo "   - r"
 	@echo ""
 
 
