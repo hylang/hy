@@ -62,7 +62,7 @@ class HyASTCompiler(object):
         ret = []
         tree.reverse()
 
-        if self.returnable:
+        if self.returnable and len(tree) > 0:
             el = tree.pop()
             if not isinstance(el, ast.stmt):
                 ret.append(ast.Return(value=el,

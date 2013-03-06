@@ -19,9 +19,10 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.models import HyObject
+from hy.models.list import HyList
 
 
-class HyExpression(HyObject, list):
+class HyExpression(HyList):
     """
     Hy S-Expression. Basically just a list.
     """

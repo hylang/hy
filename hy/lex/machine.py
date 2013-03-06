@@ -65,7 +65,7 @@ class Machine(object):
         """
         Accept and annotate the result.
         """
-        if state and state.result:
+        if state and not state.result is None:
             result = state.result
 
             result.start_line, result.end_line = (self.start_line, self.line)
@@ -87,14 +87,12 @@ class Machine(object):
             if self.submachine:
                 self.submachine.process([char])
                 if type(self.submachine.state) == Idle:
-                    if len(self.submachine.nodes) > 1:
+                    if len(self.submachine.nodes) != 1:
                         raise LexException("Funky Submachine stuff")
 
                     nodes = self.submachine.nodes
                     self.submachine = None
-
-                    if len(nodes) > 0:
-                        self.state.nodes.append(nodes[0])
+                    self.state.nodes.append(nodes[0])
                 continue
 
             new = self.state.process(char)

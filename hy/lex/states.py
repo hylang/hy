@@ -22,6 +22,7 @@ from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
+from hy.models.list import HyList
 
 from hy.errors import HyError
 
@@ -95,14 +96,7 @@ class State(object):
         pass  # ABC
 
 
-class Expression(State):
-    """
-    Expression state. This will handle stuff like:
-
-        (...... (....))
-                ^^^^^^  -- expression
-        ^^^^^^^^^^^^^^^ -- expression
-    """
+class List(State):
 
     def enter(self):
         self.buf = ""
@@ -120,10 +114,50 @@ class Expression(State):
 
     def exit(self):
         self.commit()
+        self.result = HyList(self.nodes)
+
+    def process(self, char):
+        if char == "(":
+            self.machine.sub(Expression)
+            return
+
+        if char == "[":
+            self.machine.sub(List)
+            return
+
+        if char == "\"":
+            self.machine.sub(String)
+            return
+
+        if char == "]":
+            return Idle
+
+        if char in WHITESPACE:
+            self.commit()
+            return
+
+        if self.buf == "":
+            self._start_line = self.machine.line
+            self._start_column = self.machine.column
+
+        self.buf += char
+
+
+class Expression(List):
+    """
+    Expression state. This will handle stuff like:
+
+        (...... (....))
+                ^^^^^^  -- expression
+        ^^^^^^^^^^^^^^^ -- expression
+    """
+
+    def exit(self):
+        self.commit()
         if self.nodes != []:
             self.result = HyExpression(self.nodes)
         else:
-            self.result = None
+            self.result = HyList([])
 
     def process(self, char):
         """
@@ -135,6 +169,10 @@ class Expression(State):
         """
         if char == "(":
             self.machine.sub(Expression)
+            return
+
+        if char == "[":
+            self.machine.sub(List)
             return
 
         if char == "\"":

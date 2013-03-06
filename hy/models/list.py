@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2012 Paul Tagliamonte <paultag@debian.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,32 +18,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-
-from hy import __appname__, __version__
-from setuptools import setup
+from hy.models import HyObject
 
 
-long_description = """Hy is a Python <--> Lisp layer. It helps
-make things work nicer, and lets Python and the Hy lisp variant play
-nice together. """
-
-
-setup(
-    name=__appname__,
-    version=__version__,
-    scripts=[
-        "bin/hy",
-    ],
-    packages=[
-        'hy',
-        'hy.lex',
-        'hy.models',
-    ],
-    author="Paul Tagliamonte",
-    author_email="tag@pault.ag",
-    long_description=long_description,
-    description='Lisp and Python love each other.',
-    license="Expat",
-    url="http://hy.pault.ag/",
-    platforms=['any']
-)
+class HyList(HyObject, list):
+    """
+    Hy List. Basically just a list.
+    """
+    pass
