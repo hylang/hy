@@ -33,6 +33,7 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def test_ast_bad_type():
+    "Make sure AST breakage can happen"
     try:
         hy_compile("foo")
         assert True == False
