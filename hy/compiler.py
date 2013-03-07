@@ -172,18 +172,27 @@ class HyASTCompiler(object):
 
     @builds("for")
     def compile_for_expression(self, expression):
+        ret_status = self.returnable
+        self.returnable = False
+
         expression.pop(0)  # for
         name, iterable = expression.pop(0)
         target = self.compile_symbol(name)
         target.ctx = ast.Store()
+        # support stuff like:
+        # (for [x [1 2 3 4]
+        #       y [a b c d]] ...)
 
-        return ast.For(
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
-            target=target,
-            iter=self.compile(iterable),
-            body=self._mangle_branch([self.compile(x) for x in expression]),
-            orelse=[])
+        ret = ast.For(lineno=expression.start_line,
+                      col_offset=expression.start_column,
+                      target=target,
+                      iter=self.compile(iterable),
+                      body=self._mangle_branch([
+                          self.compile(x) for x in expression]),
+                      orelse=[])
+
+        self.returnable = ret_status
+        return ret
 
     @builds(HyList)
     def compile_list(self, expr):
