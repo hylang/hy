@@ -5,3 +5,4 @@
 *pycache*
 dist
 .coverage
+build/
