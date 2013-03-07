@@ -22,6 +22,7 @@ from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
+from hy.models.dict import HyDict
 
 from hy.lex.states import LexException
 
@@ -115,3 +116,12 @@ def test_lex_line_counting_multi_inner():
 
     assert inner.start_line == 2
     assert inner.start_column == 5
+
+
+def tgest_dicts():
+    """ Ensure that we can tokenize a dict. """
+    objs = tokenize("{foo bar bar baz}")
+    assert objs == [HyDict({
+        "foo": "bar",
+        "bar": "baz"
+    })]

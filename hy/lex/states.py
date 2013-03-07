@@ -22,6 +22,7 @@ from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
+from hy.models.dict import HyDict
 from hy.models.list import HyList
 
 from hy.errors import HyError
@@ -121,6 +122,10 @@ class ListeyThing(State):
             self.machine.sub(Expression)
             return
 
+        if char == "{":
+            self.machine.sub(Dict)
+            return
+
         if char == "[":
             self.machine.sub(List)
             return
@@ -165,6 +170,20 @@ class Expression(ListeyThing):
     end_char = ")"
 
 
+class Dict(ListeyThing):
+    """
+    This state parses a Hy dict for things.
+    """
+
+    def exit(self):
+        self.commit()
+        it = iter(self.nodes)
+        result = dict(zip(it, it))
+        self.result = HyDict(result)
+
+    end_char = "}"
+
+
 class String(State):
     """
     String state. This will handle stuff like:
@@ -204,6 +223,9 @@ class Idle(State):
 
         if char == "(":
             return Expression
+
+        if char == "{":
+            return Dict
 
         if char == ";":
             return Comment

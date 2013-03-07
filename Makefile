@@ -13,7 +13,7 @@ all:
 	@echo ""
 
 
-dev: test flake tox
+dev: test flake
 
 test:
 	nosetests -sv
@@ -32,4 +32,4 @@ d: clear dev
 diff:
 	git diff --color | less -r
 
-r: d diff
+r: d tox diff
