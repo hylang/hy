@@ -66,7 +66,7 @@ class HyASTCompiler(object):
         if self.returnable and len(tree) > 0:
             el = tree[0]
             if not isinstance(el, ast.stmt):
-                el = tree.pop()
+                el = tree.pop(0)
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
@@ -169,6 +169,21 @@ class HyASTCompiler(object):
             lineno=expression.start_line,
             col_offset=expression.start_column,
             targets=[name], value=what)
+
+    @builds("for")
+    def compile_for_expression(self, expression):
+        expression.pop(0)  # for
+        name, iterable = expression.pop(0)
+        target = self.compile_symbol(name)
+        target.ctx = ast.Store()
+
+        return ast.For(
+            lineno=expression.start_line,
+            col_offset=expression.start_column,
+            target=target,
+            iter=self.compile(iterable),
+            body=self._mangle_branch([self.compile(x) for x in expression]),
+            orelse=[])
 
     @builds(HyList)
     def compile_list(self, expr):
