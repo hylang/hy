@@ -4,7 +4,7 @@ from hy.lex import tokenize
 from hy.macros import process
 from hy.compiler import hy_compile
 
-import hy.core.bootstrap  # language bits.
+import hy.core.bootstrap  # NOQA
 
 
 import imp

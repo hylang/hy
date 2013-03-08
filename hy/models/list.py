@@ -25,4 +25,9 @@ class HyList(HyObject, list):
     """
     Hy List. Basically just a list.
     """
-    pass
+
+    def replace(self, other):
+        for x in self:
+            x.replace(other)
+
+        HyObject.replace(self, other)

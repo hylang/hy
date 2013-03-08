@@ -25,4 +25,3 @@ class HyExpression(HyList):
     """
     Hy S-Expression. Basically just a list.
     """
-    pass
