@@ -204,8 +204,6 @@ class HyASTCompiler(object):
 
     @builds("fn")
     def compile_fn_expression(self, expression):
-        print expression, type(expression), expression.start_line
-
         expression.pop(0)  # fn
 
         ret_status = self.returnable

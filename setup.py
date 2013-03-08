@@ -38,6 +38,7 @@ setup(
     packages=[
         'hy',
         'hy.lex',
+        'hy.core',
         'hy.models',
     ],
     author="Paul Tagliamonte",
