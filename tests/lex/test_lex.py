@@ -126,6 +126,11 @@ def test_dicts():
         "bar": "baz"
     })]
 
+    objs = tokenize("(bar {foo bar bar baz})")
+    assert objs == [HyExpression([HySymbol("bar"),
+                                  HyDict({"foo": "bar",
+                                          "bar": "baz"})])]
+
 
 def test_nospace():
     """ Ensure we can tokenize without spaces if we have to """
