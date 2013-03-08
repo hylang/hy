@@ -37,7 +37,7 @@ def macro(name):
 def process(tree):
     if isinstance(tree, HyExpression):
         it = iter(tree)
-        fn = it.next()
+        fn = next(it)
 
         body = [process(x) for x in it]
 
