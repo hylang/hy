@@ -27,10 +27,7 @@ _hy_macros = {}
 def macro(name):
     def _(fn):
         _hy_macros[name] = fn
-
-        def __(*args, **kwargs):
-            return fn(*args, **kwargs)
-        return __
+        return fn
     return _
 
 

@@ -31,3 +31,6 @@ def test_preprocessor_expression():
     assert type(obj[0]) == HyList
 
     assert obj[0] == HyList([HyString("one"), HyString("two")])
+
+    obj = HyList([HyString("one"), HyString("two")])
+    assert obj == process(obj)
