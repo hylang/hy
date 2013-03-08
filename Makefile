@@ -12,13 +12,20 @@ all:
 	@echo "   - r"
 	@echo ""
 
+venv:
+ifeq (,$(findstring hy,$(VIRTUAL_ENV)))
+	@echo "You're not in a Hy virtualenv. FOR SHAME"
+	exit 1
+else
+	@echo "We're properly in a virtualenv. Going ahead."
+endif
 
 dev: test flake
 
-test:
+test: venv
 	nosetests -sv
 
-tox:
+tox: venv
 	tox
 
 flake:

@@ -118,10 +118,28 @@ def test_lex_line_counting_multi_inner():
     assert inner.start_column == 5
 
 
-def tgest_dicts():
+def test_dicts():
     """ Ensure that we can tokenize a dict. """
     objs = tokenize("{foo bar bar baz}")
     assert objs == [HyDict({
         "foo": "bar",
         "bar": "baz"
     })]
+
+
+def test_nospace():
+    """ Ensure we can tokenize without spaces if we have to """
+    entry = tokenize("(foo(one two))")[0]
+
+    assert entry.start_line == 1
+    assert entry.start_column == 1
+
+    assert entry.end_line == 1
+    assert entry.end_column == 14
+
+    entry = entry[1]
+    assert entry.start_line == 1
+    assert entry.start_column == 5
+
+    assert entry.end_line == 1
+    assert entry.end_column == 13

@@ -119,18 +119,22 @@ class ListeyThing(State):
 
     def process(self, char):
         if char == "(":
+            self.commit()
             self.machine.sub(Expression)
             return
 
         if char == "{":
+            self.commit()
             self.machine.sub(Dict)
             return
 
         if char == "[":
+            self.commit()
             self.machine.sub(List)
             return
 
         if char == "\"":
+            self.commit()
             self.machine.sub(String)
             return
 
