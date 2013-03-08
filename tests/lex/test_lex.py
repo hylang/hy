@@ -22,7 +22,6 @@ from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
-from hy.models.quote import HyQuote
 from hy.models.dict import HyDict
 
 from hy.lex.states import LexException
@@ -144,9 +143,3 @@ def test_nospace():
 
     assert entry.end_line == 1
     assert entry.end_column == 13
-
-
-def test_lex_quoted_form():
-    objs = tokenize("`(foo 2)")
-    assert type(objs[0]) == HyQuote
-    assert type(objs[0].obj) == HyExpression
