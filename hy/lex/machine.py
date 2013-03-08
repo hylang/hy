@@ -19,6 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.lex.states import Idle, LexException
+from hy.models.quote import HyQuote
 
 
 class Machine(object):
@@ -28,12 +29,17 @@ class Machine(object):
     """
 
     __slots__ = ("submachine", "nodes", "state", "line", "column",
-                 "start_line", "start_column")
+                 "start_line", "start_column", "modifier")
+
+    modifiers = {
+        "`": HyQuote
+    }
 
     def __init__(self, state, line, column):
         self.nodes = []
         self.line = line
         self.column = column
+        self.modifier = None
         self.submachine = None
         self.state = None
         self.set_state(state)
@@ -71,6 +77,10 @@ class Machine(object):
             result.start_line, result.end_line = (self.start_line, self.line)
             result.start_column, result.end_column = (self.start_column,
                                                       self.column)
+            if self.modifier is not None:
+                result = self.modifier(result)
+                self.modifier = None
+
             self.nodes.append(result)
 
     def process(self, buf):
@@ -93,6 +103,10 @@ class Machine(object):
                     nodes = self.submachine.nodes
                     self.submachine = None
                     self.state.nodes.append(nodes[0])
+                continue
+
+            if char in self.modifiers:
+                self.modifier = self.modifiers[char]
                 continue
 
             new = self.state.process(char)
