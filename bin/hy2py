@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 
-from hy.compiler import hy_compile
-from hy.lex import tokenize
+from hy.importer import (import_file_to_ast, import_file_to_module,
+                         import_file_to_hst)
 import codegen
 import sys
 import ast
 
-tokens = tokenize(open(sys.argv[1], 'r').read())
-print tokens
-_ast = hy_compile(tokens)
+
+hst = import_file_to_hst(sys.argv[1])
+print hst
+print ""
+print ""
+_ast = import_file_to_ast(sys.argv[1])
+print ""
+print ""
 print ast.dump(_ast)
+print ""
+print ""
 print codegen.to_source(_ast)

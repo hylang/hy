@@ -20,6 +20,7 @@
 
 from hy.models.expression import HyExpression
 from hy.models.list import HyList
+from hy.models import HyObject
 
 _hy_macros = {}
 
@@ -31,20 +32,6 @@ def macro(name):
     return _
 
 
+
 def process(tree):
-    if isinstance(tree, HyExpression):
-        it = iter(tree)
-        fn = next(it)
-
-        body = [process(x) for x in it]
-
-        if fn in _hy_macros:
-            m = _hy_macros[fn]
-            return m(HyExpression([fn] + body))
-
-        return [fn] + body
-
-    if isinstance(tree, HyList):
-        return HyList([process(x) for x in tree])
-
     return tree

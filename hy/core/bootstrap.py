@@ -20,8 +20,13 @@
 
 
 from hy.macros import macro
+from hy.models.expression import HyExpression
+from hy.models.symbol import HySymbol
 
 
-@macro("noop")
-def noop_macro(tree):
-    return tree
+@macro("defn")
+def defn_macro(tree):
+    # (defn foo [x] ...)
+    # (def foo (fn [x] ...))
+    return HyExpression([HySymbol("def"),
+                         tree[1], HyExpression([HySymbol("fn")] + tree[2:])])

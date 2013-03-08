@@ -25,3 +25,12 @@ class HyObject(object):
     Hy lexing Objects at once.
     """
     pass
+
+    def replace(self, other):
+        if isinstance(other, HyObject):
+            self.start_line = other.start_line
+            self.end_line = other.end_line
+            self.start_column = other.start_column
+            self.end_column = other.end_column
+        else:
+            raise TypeError("Can't replace a non Hy object with a Hy object")

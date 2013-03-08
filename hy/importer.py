@@ -1,15 +1,31 @@
 #
 
 from hy.lex import tokenize
+from hy.macros import process
 from hy.compiler import hy_compile
+
+import hy.core.bootstrap  # language bits.
+
 
 import imp
 import sys
 import os
 
 
+def import_file_to_hst(fpath):
+    tree = tokenize(open(fpath, 'r').read())
+    tree = process(tree)
+    return tree
+
+
+def import_file_to_ast(fpath):
+    tree = import_file_to_hst(fpath)
+    ast = hy_compile(tree)
+    return ast
+
+
 def import_file_to_module(name, fpath):
-    ast = hy_compile(tokenize(open(fpath, 'r').read()))
+    ast = import_file_to_ast(fpath)
     mod = imp.new_module(name)
     mod.__file__ = fpath
     eval(compile(ast, fpath, "exec"), mod.__dict__)
