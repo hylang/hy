@@ -18,12 +18,19 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy.macros import process as mprocess
+
 import importlib
 
 
 MACROS = [
     "hy.core.bootstrap",  # defn, cond
 ]
+
+
+def process(tree):
+    load_macros()
+    return mprocess(tree)
 
 
 def load_macros():

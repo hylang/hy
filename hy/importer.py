@@ -1,8 +1,7 @@
 #
 
 from hy.lex import tokenize
-from hy.macros import process
-from hy.core import load_macros
+from hy.core import process
 from hy.compiler import hy_compile
 
 
@@ -13,7 +12,6 @@ import os
 
 def import_file_to_hst(fpath):
     tree = tokenize(open(fpath, 'r').read())
-    load_macros()
     tree = process(tree)
     return tree
 
