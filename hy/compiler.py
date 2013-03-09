@@ -82,6 +82,10 @@ class HyASTCompiler(object):
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
 
+    #@builds("do")
+    #def compile_do_expression(self, expr):
+    #    return [self.compile(x) for x in expr[1:]]
+
     @builds("assert")
     def compile_assert_expression(self, expr):
         expr.pop(0)  # assert

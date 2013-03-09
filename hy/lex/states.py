@@ -52,6 +52,14 @@ def _resolve_atom(obj):
     except ValueError:
         pass
 
+    table = {
+        "true": "True",
+        "false": "False",
+        "null": "None",
+    }
+    if obj in table:
+        return HySymbol(table[obj])
+
     return HySymbol(obj)
 
 
