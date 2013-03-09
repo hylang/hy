@@ -50,3 +50,10 @@
       (assert (= 1 1))
       (assert (= 1 1))
       (assert (= 1 1)))))
+
+
+(defn test_cond []
+  "NATIVE: test if cond sorta works."
+  (cond
+    (= 1 2) (assert (= true false))
+    (is null null) (assert (= true true))))
