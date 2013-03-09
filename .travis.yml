@@ -12,3 +12,10 @@ script: nosetests
 notifications:
   email:
     - paultag@gmail.com
+  irc:
+    channels:
+      - "irc.freenode.org#woo-city-commits"
+    on_success: always
+    on_failure: always
+    use_notice: true
+    skip_join: true
