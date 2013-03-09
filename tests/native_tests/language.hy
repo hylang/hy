@@ -20,6 +20,11 @@
   (assert (not-in "f" ["a" "b" "c" "d"])))
 
 
+(defn test_noteq []
+  "NATIVE: not eq"
+  (assert (!= 2 3)))
+
+
 (defn test_numops []
   "NATIVE: test numpos"
   (assert (> 5 4 3 2 1))

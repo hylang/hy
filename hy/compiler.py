@@ -152,6 +152,7 @@ class HyASTCompiler(object):
             ctx=ast.Load())
 
     @builds("=")
+    @builds("!=")
     @builds("<")
     @builds("<=")
     @builds(">")
@@ -161,8 +162,8 @@ class HyASTCompiler(object):
     @builds("is-not")
     @builds("not-in")
     def compile_compare_op_expression(self, expression):
-        # NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
         ops = {"=": ast.Eq,
+               "!=": ast.NotEq,
                "<": ast.Lt,
                "<=": ast.LtE,
                ">": ast.Gt,
