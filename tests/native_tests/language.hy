@@ -28,9 +28,25 @@
   (assert (>= 5 5 5 5 )))
 
 
-; implement null
-;(defn test_is []
-;  "NATIVE: test is"
-;  (def a null)
-;  (assert (is a null))
-;  (assert (is-not a "b")))
+(defn test_is []
+  "NATIVE: test is can deal with None"
+  (def a null)
+  (assert (is a null))
+  (assert (is-not a "b")))
+
+
+(defn test_branching []
+  "NATIVE: test if branching"
+  (if true
+    (assert (= 1 1))
+    (assert (= 2 1))))
+
+
+(defn test_branching_with_do []
+  "NATIVE: test if branching (multiline)"
+  (if false
+    (assert (= 2 1))
+    (do
+      (assert (= 1 1))
+      (assert (= 1 1))
+      (assert (= 1 1)))))
