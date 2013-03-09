@@ -94,10 +94,15 @@ class HyASTCompiler(object):
     @builds("if")
     def compile_if_expression(self, expr):
         expr.pop(0)
+        test = self.compile(expr.pop(0))
+        body = self._code_branch(self.compile(expr.pop(0)))
+        orel = []
+        if len(expr) > 0:
+            orel = self._code_branch(self.compile(expr.pop(0)))
 
-        return ast.If(test=self.compile(expr.pop(0)),
-                      body=self._code_branch(self.compile(expr.pop(0))),
-                      orelse=self._code_branch(self.compile(expr.pop(0))),
+        return ast.If(test=test,
+                      body=body,
+                      orelse=orel,
                       lineno=expr.start_line,
                       col_offset=expr.start_column)
 

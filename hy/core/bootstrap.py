@@ -28,3 +28,20 @@ from hy.models.symbol import HySymbol
 def defn_macro(tree):
     return HyExpression([HySymbol("def"),
                          tree[1], HyExpression([HySymbol("fn")] + tree[2:])])
+
+
+@macro("cond")
+def cond_macro(tree):
+    tree.pop(0)  # cond flag
+    it = iter(tree)
+    conds = iter(zip(it, it))
+    test, branch = next(conds)
+
+    root = HyExpression([HySymbol("if"), test, branch])
+    ret = root
+    for (test, branch) in conds:
+        n = HyExpression([HySymbol("if"), test, branch])
+        ret.append(n)
+        ret = n
+
+    return root
