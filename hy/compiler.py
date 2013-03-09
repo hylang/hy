@@ -92,8 +92,25 @@ class HyASTCompiler(object):
                           col_offset=e.start_column)
 
     @builds("=")
+    @builds("<")
+    @builds("<=")
+    @builds(">")
+    @builds(">=")
+    @builds("is")
+    @builds("in")
+    @builds("is-not")
+    @builds("not-in")
     def compile_compare_op_expression(self, expression):
-        ops = {"=": ast.Eq}
+        # NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
+        ops = {"=": ast.Eq,
+               "<": ast.Lt,
+               "<=": ast.LtE,
+               ">": ast.Gt,
+               ">=": ast.GtE,
+               "is": ast.Is,
+               "is-not": ast.IsNot,
+               "in": ast.In,
+               "not-in": ast.NotIn}
 
         inv = expression.pop(0)
         op = ops[inv]
