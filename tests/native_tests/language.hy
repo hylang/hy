@@ -61,4 +61,5 @@
 
 (defn test_index []
   "NATIVE: Test that dict access works"
-  (assert (get {"one" "two"} "one") "two"))
+  (assert (get {"one" "two"} "one") "two")
+  (assert (= (get [1 2 3 4 5] 1) 2)))
