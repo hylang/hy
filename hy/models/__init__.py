@@ -28,9 +28,9 @@ class HyObject(object):
 
     def replace(self, other):
         if isinstance(other, HyObject):
-            self.start_line = other.start_line
-            self.end_line = other.end_line
-            self.start_column = other.start_column
-            self.end_column = other.end_column
+            for attr in ["start_line", "end_line",
+                         "start_column", "end_column"]:
+                if not hasattr(self, attr):
+                    setattr(self, attr, getattr(other, attr))
         else:
             raise TypeError("Can't replace a non Hy object with a Hy object")
