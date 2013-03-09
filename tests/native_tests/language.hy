@@ -63,3 +63,9 @@
   "NATIVE: Test that dict access works"
   (assert (get {"one" "two"} "one") "two")
   (assert (= (get [1 2 3 4 5] 1) 2)))
+
+
+(defn test_lambda []
+  "NATIVE: test lambda operator"
+  (def square (lambda [x] (* x x)))
+  (assert (= 4 (square 2))))

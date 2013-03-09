@@ -116,6 +116,28 @@ class HyASTCompiler(object):
                           lineno=e.start_line,
                           col_offset=e.start_column)
 
+    @builds("lambda")
+    def compile_lambda_expression(self, expr):
+        expr.pop(0)
+        sig = expr.pop(0)
+        body = expr.pop(0)
+        # assert expr is empty
+        return ast.Lambda(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            args=ast.arguments(args=[
+                ast.Name(arg=str(x), id=str(x),
+                         ctx=ast.Param(),
+                         lineno=x.start_line,
+                         col_offset=x.start_column)
+                for x in sig],
+                vararg=None,
+                kwarg=None,
+                defaults=[],
+                kwonlyargs=[],
+                kw_defaults=[]),
+            body=self.compile(body))
+
     @builds("get")
     def compile_index_expression(self, expr):
         expr.pop(0)  # index
