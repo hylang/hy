@@ -57,3 +57,8 @@
   (cond
     (= 1 2) (assert (= true false))
     (is null null) (assert (= true true))))
+
+
+(defn test_index []
+  "NATIVE: Test that dict access works"
+  (assert (get {"one" "two"} "one") "two"))

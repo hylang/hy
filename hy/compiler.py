@@ -25,6 +25,7 @@ from hy.models.integer import HyInteger
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
+from hy.models.dict import HyDict
 
 import ast
 
@@ -114,6 +115,19 @@ class HyASTCompiler(object):
                           msg=None,
                           lineno=e.start_line,
                           col_offset=e.start_column)
+
+    @builds("get")
+    def compile_index_expression(self, expr):
+        expr.pop(0)  # index
+        val = self.compile(expr.pop(0))  # target
+        sli = self.compile(expr.pop(0))  # slice
+
+        return ast.Subscript(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            value=val,
+            slice=ast.Index(value=sli),
+            ctx=ast.Load())
 
     @builds("=")
     @builds("<")
@@ -291,6 +305,20 @@ class HyASTCompiler(object):
     def compile_string(self, string):
         return ast.Str(s=str(string), lineno=string.start_line,
                        col_offset=string.start_column)
+
+    @builds(HyDict)
+    def compile_dict(self, m):
+        keys = []
+        vals = []
+        for entry in m:
+            keys.append(self.compile(entry))
+            vals.append(self.compile(m[entry]))
+
+        return ast.Dict(
+            lineno=m.start_line,
+            col_offset=m.start_column,
+            keys=keys,
+            values=vals)
 
 
 def hy_compile(tree):
