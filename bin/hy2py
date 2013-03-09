@@ -18,3 +18,5 @@ print ast.dump(_ast)
 print ""
 print ""
 print codegen.to_source(_ast)
+
+import_file_to_module("<STDIN>", sys.argv[1])

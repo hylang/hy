@@ -82,9 +82,21 @@ class HyASTCompiler(object):
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
 
-    #@builds("do")
-    #def compile_do_expression(self, expr):
-    #    return [self.compile(x) for x in expr[1:]]
+    @builds("do")
+    def compile_do_expression(self, expr):
+        return [self.compile(x) for x in expr[1:]]
+
+    @builds("if")
+    def compile_if_expression(self, expr):
+        expr.pop(0)
+        lw = lambda w: (self._mangle_branch(w)
+                        if isinstance(w, list) else self._mangle_branch([w]))
+
+        return ast.If(test=self.compile(expr.pop(0)),
+                      body=lw(self.compile(expr.pop(0))),
+                      orelse=lw(self.compile(expr.pop(0))),
+                      lineno=expr.start_line,
+                      col_offset=expr.start_column)
 
     @builds("assert")
     def compile_assert_expression(self, expr):
