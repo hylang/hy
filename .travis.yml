@@ -14,7 +14,7 @@ notifications:
     - paultag@gmail.com
   irc:
     channels:
-      - "irc.freenode.org#woo-city-commits"
+      - "irc.freenode.net#woo-city-commits"
     on_success: always
     on_failure: always
     use_notice: true
