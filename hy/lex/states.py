@@ -60,6 +60,9 @@ def _resolve_atom(obj):
     if obj in table:
         return HySymbol(table[obj])
 
+    if "-" in obj and obj != "-":
+        obj = obj.replace("-", "_")
+
     return HySymbol(obj)
 
 

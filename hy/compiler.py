@@ -159,8 +159,8 @@ class HyASTCompiler(object):
     @builds(">=")
     @builds("is")
     @builds("in")
-    @builds("is-not")
-    @builds("not-in")
+    @builds("is_not")
+    @builds("not_in")
     def compile_compare_op_expression(self, expression):
         ops = {"=": ast.Eq,
                "!=": ast.NotEq,
@@ -169,9 +169,9 @@ class HyASTCompiler(object):
                ">": ast.Gt,
                ">=": ast.GtE,
                "is": ast.Is,
-               "is-not": ast.IsNot,
+               "is_not": ast.IsNot,
                "in": ast.In,
-               "not-in": ast.NotIn}
+               "not_in": ast.NotIn}
 
         inv = expression.pop(0)
         op = ops[inv]
