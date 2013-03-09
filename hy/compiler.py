@@ -214,10 +214,11 @@ class HyASTCompiler(object):
     @builds(HyExpression)
     def compile_expression(self, expression):
         fn = expression[0]
-        if fn in _compile_table:
-            return _compile_table[fn](self, expression)
+        if isinstance(fn, HyString):
+            if fn in _compile_table:
+                return _compile_table[fn](self, expression)
 
-        return ast.Call(func=self.compile_symbol(fn),
+        return ast.Call(func=self.compile(fn),
                         args=[self.compile(x) for x in expression[1:]],
                         keywords=[],
                         starargs=None,
