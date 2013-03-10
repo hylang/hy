@@ -5,19 +5,24 @@
              Flask render-template request)
 
 (import-from pygments highlight)
-(import-from pygments.lexers PythonLexer ClojureLexer)
 (import-from pygments.formatters HtmlFormatter)
+(import-from pygments.lexers PythonLexer
+                             ClojureLexer)
 
+(import-from pygments-extension PygmentsExtension)
 (import-from hy.importer import_string_to_ast)
-
 (import codegen)
+
+
+(def app (Flask "__main__"))  ; long story, needed hack
+(.add_extension app.jinja_env PygmentsExtension)
+
 
 ; pygments bits.
 (def lexers {"python" (PythonLexer)
              "lisp"   (ClojureLexer)})
 
 
-; internal use fns
 (defn colorize-python [x]
   (highlight x (get lexers "python") (HtmlFormatter)))
 
@@ -27,17 +32,15 @@
     (import-string-to-ast hython)))
 
 
-(def app (Flask "__main__"))  ; long story, needed hack
-
-
 ; view routes
-
 (route "/" [] (render-template "index.html"))
 
 
 (post-route "/format/<language>" [language]
     (highlight
-      (get request.form "code") (get lexers language) (HtmlFormatter)))
+      (get request.form "code")
+      (get lexers language)
+      (HtmlFormatter)))
 
 
 (post-route "/hy2py" [] (hy-to-py (get request.form "code")))

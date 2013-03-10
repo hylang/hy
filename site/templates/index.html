@@ -3,5 +3,9 @@
 {% block title %}Welcome!{% endblock %}
 
 {% block content %}
-Hello, World
+
+{% autoescape off %}{% code "clojure" %}
+(print "foo bar")
+{% endcode %}{% endautoescape %}
+
 {% endblock %}

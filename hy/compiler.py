@@ -169,6 +169,26 @@ class HyASTCompiler(object):
             slice=ast.Index(value=sli),
             ctx=ast.Load())
 
+    @builds("assoc")
+    def compile_index_expression(self, expr):
+        expr.pop(0)  # assoc
+        # (assoc foo bar baz)  => foo[bar] = baz
+        target = expr.pop(0)
+        key = expr.pop(0)
+        val = expr.pop(0)
+
+        return ast.Assign(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            targets=[
+                ast.Subscript(
+                    lineno=expr.start_line,
+                    col_offset=expr.start_column,
+                    value=self.compile(target),
+                    slice=ast.Index(value=self.compile(key)),
+                    ctx=ast.Store())],
+            value=self.compile(val))
+
     @builds("decorate_with")
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # decorate-with
