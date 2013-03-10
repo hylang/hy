@@ -187,11 +187,8 @@ class HyASTCompiler(object):
         if type(call) != ast.Call:
             raise TypeError("kwapplying a non-call")
 
-        call.keywords = [
-            ast.keyword(
-                arg=str(x),
-                value=self.compile(kwargs[x])
-            ) for x in kwargs]
+        call.keywords = [ast.keyword(arg=str(x),
+                         value=self.compile(kwargs[x])) for x in kwargs]
 
         return call
 

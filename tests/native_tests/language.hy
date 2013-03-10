@@ -102,8 +102,10 @@
 
 
 (defn test-decorators []
+  "NATIVE: test decorators."
   (assert (= (tfunction) 2)))
 
 
 (defn test-kwargs []
+  "NATIVE: test kwargs things."
   (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"})))
