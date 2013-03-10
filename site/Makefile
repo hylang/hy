@@ -1,5 +1,3 @@
-LESSC = lessc
-LESSCFLAGS = -x
 STATIC = static
 STATIC_CSS = $(STATIC)/css
 STATIC_JS = $(STATIC)/js
