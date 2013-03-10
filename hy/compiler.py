@@ -107,6 +107,14 @@ class HyASTCompiler(object):
                       lineno=expr.start_line,
                       col_offset=expr.start_column)
 
+    @builds("print")
+    def compile_print_expression(self, expr):
+        expr.pop(0)  # print
+        return ast.Print(
+            dest=None,
+            values=[self.compile(x) for x in expr],
+            nl=True)
+
     @builds("assert")
     def compile_assert_expression(self, expr):
         expr.pop(0)  # assert
@@ -170,7 +178,7 @@ class HyASTCompiler(object):
             ctx=ast.Load())
 
     @builds("assoc")
-    def compile_index_expression(self, expr):
+    def compile_assoc_expression(self, expr):
         expr.pop(0)  # assoc
         # (assoc foo bar baz)  => foo[bar] = baz
         target = expr.pop(0)

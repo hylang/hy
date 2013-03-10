@@ -66,7 +66,7 @@ class PygmentsExtension(Extension):
         body = parser.parse_statements(['name:endcode'], drop_needle=True)
 
         return nodes.CallBlock(self.call_method('_pygmentize', args),
-                                [], [], body).set_lineno(lineno)
+                               [], [], body).set_lineno(lineno)
 
     def _pygmentize(self, lang_type, caller):
         lexer = None
