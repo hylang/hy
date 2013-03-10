@@ -30,6 +30,7 @@ tox: venv
 
 flake:
 	flake8 hy
+	flake8 site
 
 clear:
 	clear
