@@ -25,5 +25,7 @@ coffee:
 clean:
 	rm -f $(STATIC_CSS)/hy.css
 
+devel:
+	@./devel.sh
 
-.PHONY: build clean less coffee
+.PHONY: build clean less coffee devel

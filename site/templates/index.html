@@ -8,6 +8,9 @@
 (print "foo bar")
 {% endcode %}{% endautoescape %} #}
 
+        <div id = 'popshim' >
+        <div class = 'popover' >
+            <div class = 'focus' >
                 <div class = 'repl' >
                     <textarea id = 'repl-input' class = 'repl-pane repl-left' >
 (defn square [x]
@@ -15,10 +18,9 @@
 
 (print (square 4))
 </textarea>
-                    <pre
-                        id = 'repl-output'
-                        class = 'repl-pane repl-right'
-                    ></pre>
-                </div>
+            <pre id = 'repl-output' class = 'repl-pane repl-right' ></pre>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
