@@ -3,8 +3,11 @@ STATIC_CSS = $(STATIC)/css
 STATIC_JS = $(STATIC)/js
 
 
-all: build
-	@echo "Nice."
+all: hello build
+
+
+hello:
+	@cowsay 'Welcome to Hy!'
 
 
 build: clean less coffee
