@@ -297,8 +297,8 @@ class HyASTCompiler(object):
             if fn in _compile_table:
                 return _compile_table[fn](self, expression)
 
-        if expression[0].startswith("."):
-            return self.compile_dotted_expression(expression)
+            if expression[0].startswith("."):
+                return self.compile_dotted_expression(expression)
 
         return ast.Call(func=self.compile(fn),
                         args=[self.compile(x) for x in expression[1:]],
