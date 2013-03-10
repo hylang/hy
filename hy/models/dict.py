@@ -25,4 +25,10 @@ class HyDict(HyObject, dict):
     """
     HyDict (just a dict)
     """
-    pass
+
+    def replace(self, other):
+        for x in self:
+            self[x].replace(other)
+            x.replace(other)
+
+        HyObject.replace(self, other)

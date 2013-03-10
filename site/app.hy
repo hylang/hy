@@ -11,3 +11,5 @@
 
 
 (route "/" [] (render-template "index.html"))
+
+(post-route "/test" [] (render-template "index.html"))

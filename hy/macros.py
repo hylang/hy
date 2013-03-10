@@ -20,6 +20,7 @@
 
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
+from hy.models.dict import HyDict
 from hy.models.list import HyList
 
 _hy_macros = {}
@@ -46,6 +47,11 @@ def process(tree):
 
         ntree.replace(tree)
         return ntree
+
+    if isinstance(tree, HyDict):
+        obj = HyDict({process(x): process(tree[x]) for x in tree})
+        obj.replace(tree)
+        return obj
 
     if isinstance(tree, HyList):
         obj = HyList([process(x) for x in tree])
