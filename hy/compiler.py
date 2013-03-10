@@ -169,6 +169,15 @@ class HyASTCompiler(object):
             slice=ast.Index(value=sli),
             ctx=ast.Load())
 
+    @builds("decorate_with")
+    def compile_decorate_expression(self, expr):
+        expr.pop(0)  # decorate-with
+        fn = self.compile(expr.pop(-1))
+        if type(fn) != ast.FunctionDef:
+            raise TypeError("Decorated a non-function")
+        fn.decorator_list = [self.compile(x) for x in expr]
+        return fn
+
     @builds("=")
     @builds("!=")
     @builds("<")
@@ -180,16 +189,11 @@ class HyASTCompiler(object):
     @builds("is_not")
     @builds("not_in")
     def compile_compare_op_expression(self, expression):
-        ops = {"=": ast.Eq,
-               "!=": ast.NotEq,
-               "<": ast.Lt,
-               "<=": ast.LtE,
-               ">": ast.Gt,
-               ">=": ast.GtE,
-               "is": ast.Is,
-               "is_not": ast.IsNot,
-               "in": ast.In,
-               "not_in": ast.NotIn}
+        ops = {"=": ast.Eq, "!=": ast.NotEq,
+               "<": ast.Lt, "<=": ast.LtE,
+               ">": ast.Gt, ">=": ast.GtE,
+               "is": ast.Is, "is_not": ast.IsNot,
+               "in": ast.In, "not_in": ast.NotIn}
 
         inv = expression.pop(0)
         op = ops[inv]

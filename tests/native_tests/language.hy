@@ -1,5 +1,6 @@
 ;
 
+
 (import sys)
 (import-from os.path exists isdir isfile)
 
@@ -7,6 +8,7 @@
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
   (assert (isinstance sys.argv list)))
+
 
 (defn test-lists []
   "NATIVE: test lists work right"
@@ -88,3 +90,16 @@
   (assert (is (exists ".") true))
   (assert (is (isdir ".") true))
   (assert (is (isfile ".") false)))
+
+
+(defn foodec [func]
+  (lambda [] (+ 1 1)))
+
+
+(decorate-with foodec
+  (defn tfunction []
+    (* 2 2)))
+
+
+(defn test-decorators []
+  (assert (= (tfunction) 2)))
