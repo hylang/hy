@@ -1,9 +1,8 @@
-#
-
 LESSC = lessc
 LESSCFLAGS = -x
 STATIC = static
 STATIC_CSS = $(STATIC)/css
+STATIC_JS = $(STATIC)/js
 
 
 all: build
@@ -12,11 +11,15 @@ all: build
 
 build: clean less coffee
 
+
 less:
-	$(LESSC) $(LESSCFLAGS) less/hy.less > $(STATIC_CSS)/hy.css
+	make -C less
+	mv less/*css $(STATIC_CSS)
+
 
 coffee:
-	coffee -o static/js -c ./coffee/*
+	make -C coffee
+	mv coffee/*js $(STATIC_JS)
 
 clean:
 	rm -f $(STATIC_CSS)/hy.css

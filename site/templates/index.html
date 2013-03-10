@@ -4,8 +4,21 @@
 
 {% block content %}
 
-{% autoescape off %}{% code "clojure" %}
+{# {% autoescape off %}{% code "clojure" %}
 (print "foo bar")
-{% endcode %}{% endautoescape %}
+{% endcode %}{% endautoescape %} #}
+
+                <div class = 'repl' >
+                    <textarea id = 'repl-input' class = 'repl-pane repl-left' >
+(defn square [x]
+  (* x x))
+
+(print (square 4))
+</textarea>
+                    <pre
+                        id = 'repl-output'
+                        class = 'repl-pane repl-right'
+                    ></pre>
+                </div>
 
 {% endblock %}
