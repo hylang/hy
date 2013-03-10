@@ -47,5 +47,20 @@ setup(
     description='Lisp and Python love each other.',
     license="Expat",
     url="http://hy.pault.ag/",
-    platforms=['any']
+    platforms=['any'],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: DFSG approved",
+        "License :: OSI Approved :: MIT License",  # Really "Expat". Ugh.
+        "Operating System :: OS Independent",
+        "Programming Language :: Lisp",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+        "Topic :: Software Development :: Code Generators",
+        "Topic :: Software Development :: Compilers",
+        "Topic :: Software Development :: Libraries",
+    ]
 )
