@@ -109,3 +109,8 @@
 (defn test-kwargs []
   "NATIVE: test kwargs things."
   (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"})))
+
+
+(defn test-dotted []
+  "NATIVE: test dotted invocation"
+  (assert (= (.join " " ["one" "two"]) "one two")))

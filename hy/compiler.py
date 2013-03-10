@@ -248,12 +248,37 @@ class HyASTCompiler(object):
             left = calc
         return calc
 
+    def compile_dotted_expression(self, expr):
+        ofn = expr.pop(0)  # .join
+
+        fn = HySymbol(ofn[1:])
+        fn.replace(ofn)
+
+        obj = expr.pop(0)  # [1 2 3 4]
+
+        return ast.Call(
+            func=ast.Attribute(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                value=self.compile(obj),
+                attr=str(fn),
+                ctx=ast.Load()),
+            args=[self.compile(x) for x in expr],
+            keywords=[],
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            starargs=None,
+            kwargs=None)
+
     @builds(HyExpression)
     def compile_expression(self, expression):
         fn = expression[0]
         if isinstance(fn, HyString):
             if fn in _compile_table:
                 return _compile_table[fn](self, expression)
+
+        if expression[0].startswith("."):
+            return self.compile_dotted_expression(expression)
 
         return ast.Call(func=self.compile(fn),
                         args=[self.compile(x) for x in expression[1:]],
