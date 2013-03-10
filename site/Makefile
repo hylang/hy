@@ -15,7 +15,7 @@ build: clean
 
 
 clean:
-	rm $(STATIC_CSS)/hy.css
+	rm -f $(STATIC_CSS)/hy.css
 
 
 .PHONY: build clean
