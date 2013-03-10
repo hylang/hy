@@ -10,8 +10,13 @@ hello:
 	@cowsay 'Welcome to Hy!'
 
 
-build: clean less coffee
+build: clean css js
 
+css: less
+	cp css/* $(STATIC_CSS)
+
+js: coffee
+	cp js/* $(STATIC_JS)
 
 less:
 	make -C less
