@@ -2,6 +2,9 @@
 <html>
     <head>
         <title>{% block title %}{% endblock %}</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for("static", filename="css/pygments.css") }}" ></link>
     </head>
     <body>
 {% block content %}
