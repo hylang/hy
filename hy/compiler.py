@@ -138,6 +138,24 @@ class HyASTCompiler(object):
                 kw_defaults=[]),
             body=self.compile(body))
 
+    @builds("import")
+    def compile_import_expression(self, expr):
+        expr.pop(0)  # index
+        return ast.Import(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            names=[ast.alias(name=str(x), asname=None) for x in expr])
+
+    @builds("import_from")
+    def compile_import_from_expression(self, expr):
+        expr.pop(0)  # index
+        return ast.ImportFrom(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            module=str(expr.pop(0)),
+            names=[ast.alias(name=str(x), asname=None) for x in expr],
+            level=0)
+
     @builds("get")
     def compile_index_expression(self, expr):
         expr.pop(0)  # index
@@ -321,6 +339,19 @@ class HyASTCompiler(object):
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
+        if "." in symbol:
+            glob, local = symbol.rsplit(".", 1)
+            glob = HySymbol(glob)
+            glob.replace(symbol)
+
+            return ast.Attribute(
+                lineno=symbol.start_line,
+                col_offset=symbol.start_column,
+                value=self.compile_symbol(glob),
+                attr=str(local),
+                ctx=ast.Load()
+            )
+
         return ast.Name(id=str(symbol), ctx=ast.Load(),
                         lineno=symbol.start_line,
                         col_offset=symbol.start_column)

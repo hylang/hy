@@ -1,5 +1,12 @@
 ;
 
+(import sys)
+(import-from os.path exists isdir isfile)
+
+
+(defn test-sys-argv []
+  "NATIVE: test sys.argv"
+  (assert (isinstance sys.argv list)))
 
 (defn test-lists []
   "NATIVE: test lists work right"
@@ -74,3 +81,10 @@
   "NATIVE: test lambda operator"
   (def square (lambda [x] (* x x)))
   (assert (= 4 (square 2))))
+
+
+(defn test-imported-bits []
+  "NATIVE: test the imports work"
+  (assert (is (exists ".") true))
+  (assert (is (isdir ".") true))
+  (assert (is (isfile ".") false)))

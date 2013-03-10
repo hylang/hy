@@ -57,6 +57,7 @@ def _resolve_atom(obj):
         "false": "False",
         "null": "None",
     }
+
     if obj in table:
         return HySymbol(table[obj])
 
