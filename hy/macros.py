@@ -54,7 +54,8 @@ def process(tree):
         return obj
 
     if isinstance(tree, HyList):
-        obj = HyList([process(x) for x in tree])
+        obj = HyList([process(x) for x in tree])  # NOQA
+        # flake8 thinks we're redefining from 52.
         obj.replace(tree)
         return obj
 

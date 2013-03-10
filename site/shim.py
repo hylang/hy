@@ -36,7 +36,7 @@ def route_macro(tree):
 
 
 @macro("post_route")
-def route_macro(tree):
+def post_route_macro(tree):
     return router(tree, rkwargs=HyList([HyString("POST")]))
 
 
