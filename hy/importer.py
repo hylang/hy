@@ -1,8 +1,8 @@
 #
 
+from hy.compiler import hy_compile
 from hy.lex import tokenize
 from hy.core import process
-from hy.compiler import hy_compile
 
 
 import imp
@@ -10,14 +10,30 @@ import sys
 import os
 
 
-def import_file_to_hst(fpath):
-    tree = tokenize(open(fpath, 'r').read())
+if sys.version_info[0] >= 3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
+
+def import_buffer_to_hst(fd):
+    tree = tokenize(fd.read())
     tree = process(tree)
     return tree
 
 
+def import_file_to_hst(fpath):
+    return import_buffer_to_hst(open(fpath, 'r'))
+
+
 def import_file_to_ast(fpath):
     tree = import_file_to_hst(fpath)
+    ast = hy_compile(tree)
+    return ast
+
+
+def import_string_to_ast(buff):
+    tree = import_buffer_to_hst(StringIO(buff))
     ast = hy_compile(tree)
     return ast
 
