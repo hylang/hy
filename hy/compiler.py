@@ -178,6 +178,23 @@ class HyASTCompiler(object):
         fn.decorator_list = [self.compile(x) for x in expr]
         return fn
 
+    @builds("kwapply")
+    def compile_kwapply_expression(self, expr):
+        expr.pop(0)  # kwapply
+        call = self.compile(expr.pop(0))
+        kwargs = expr.pop(0)
+
+        if type(call) != ast.Call:
+            raise TypeError("kwapplying a non-call")
+
+        call.keywords = [
+            ast.keyword(
+                arg=str(x),
+                value=self.compile(kwargs[x])
+            ) for x in kwargs]
+
+        return call
+
     @builds("=")
     @builds("!=")
     @builds("<")

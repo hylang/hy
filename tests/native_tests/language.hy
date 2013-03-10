@@ -1,8 +1,8 @@
 ;
 
-
-(import sys)
+(import-from tests.resources kwtest)
 (import-from os.path exists isdir isfile)
+(import sys)
 
 
 (defn test-sys-argv []
@@ -103,3 +103,7 @@
 
 (defn test-decorators []
   (assert (= (tfunction) 2)))
+
+
+(defn test-kwargs []
+  (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"})))
