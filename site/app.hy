@@ -2,15 +2,14 @@
 ; hy.
 
 (import-from flask
-             Flask render-template request)
-
-(import-from pygments highlight)
-(import-from pygments.formatters HtmlFormatter)
-(import-from pygments.lexers PythonLexer
-                             ClojureLexer)
+             Flask render-template request make-response)
 
 (import-from pygments-extension PygmentsExtension)
+
+(import-from hy.errors HyError)
+(import-from hy.lex LexException)
 (import-from hy.importer import_string_to_ast)
+
 (import codegen)
 
 
@@ -18,33 +17,15 @@
 (.add_extension app.jinja_env PygmentsExtension)
 
 
-; pygments bits.
-(def lexers {"python" (PythonLexer)
-             "lisp"   (ClojureLexer)})
-
-
-(defn colorize-python [x]
-  (highlight x (get lexers "python") (HtmlFormatter)))
-
-
-(defn hy-to-py [hython]
-  (.to_source codegen
-    (import-string-to-ast hython)))
+(defn hy-to-py [hython] (.to_source codegen (import-string-to-ast hython)))
+(defn err [msg] (make-response msg 500))
 
 
 ; view routes
 (route "/" [] (render-template "index.html"))
 
-
-(post-route "/format/<language>" [language]
-  (highlight
-    (get request.form "code")
-    (get lexers language)
-    (HtmlFormatter)))
-
-
-(post-route "/hy2py" [] (hy-to-py (get request.form "code")))
-
-
-(post-route "/hy2pycol" []
-  (colorize-python (hy-to-py (get request.form "code"))))
+(post-route "/hy2py" []
+  (try (hy-to-py (get request.form "code"))
+    (catch LexException (err "Incomplete Code."))
+    (catch HyError (err "Generic error during processing."))
+    (catch Exception (err "Erm, you broke something."))))

@@ -87,6 +87,36 @@ class HyASTCompiler(object):
     def compile_do_expression(self, expr):
         return [self.compile(x) for x in expr[1:]]
 
+    @builds("throw")
+    def compile_throw_expression(self, expr):
+        expr.pop(0)
+        return ast.Raise(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            type=self.compile(expr.pop(0)),
+            inst=None,
+            tback=None)
+
+    @builds("try")
+    def compile_try_expression(self, expr):
+        expr.pop(0)  # try
+        return ast.TryExcept(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            body=self._code_branch(self.compile(expr.pop(0))),
+            handlers=[self.compile(s) for s in expr],
+            orelse=[])
+
+    @builds("catch")
+    def compile_catch_expression(self, expr):
+        expr.pop(0)  # catch
+        return ast.ExceptHandler(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            type=self.compile(expr.pop(0)),
+            name=None,
+            body=self._code_branch(self.compile(expr.pop(0))))
+
     def _code_branch(self, branch):
         if isinstance(branch, list):
             return self._mangle_branch(branch)

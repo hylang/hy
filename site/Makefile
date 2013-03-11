@@ -14,21 +14,21 @@ build: clean css js
 
 
 css: less
-	cp css/* $(STATIC_CSS)
+	cp -rv css/* $(STATIC_CSS)
 
 
 js: coffee
-	cp js/* $(STATIC_JS)
+	cp -rv js/* $(STATIC_JS)
 
 
 less:
 	make -C less
-	mv less/*css $(STATIC_CSS)
+	mv -v less/*css $(STATIC_CSS)
 
 
 coffee:
 	make -C coffee
-	mv coffee/*js $(STATIC_JS)
+	mv -v coffee/*js $(STATIC_JS)
 
 
 clean:

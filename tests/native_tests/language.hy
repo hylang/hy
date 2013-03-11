@@ -114,3 +114,13 @@
 (defn test-dotted []
   "NATIVE: test dotted invocation"
   (assert (= (.join " " ["one" "two"]) "one two")))
+
+
+(defn test-exceptions []
+  "NATIVE: test Exceptions"
+  (try
+    (throw KeyError)
+    (catch IOError  (assert (= 2 1)))
+    (catch KeyError (do
+                      (+ 1 1)
+                      (assert (= 1 1))))))

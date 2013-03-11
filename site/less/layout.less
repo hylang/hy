@@ -1,44 +1,35 @@
-.shadow {
-    box-shadow:                 5px 5px rgba(15,15,15,0.05);
+body, html {
+    height:             100%;
+    padding:            0px;
+    margin:             0px;
+    font-size:          1.1em;
 }
 
-
-.popover {
-    position:                   fixed;
-    height:                     100%;
-    width:                      100%;
-    .focus {
-        .shadow;
-        border:                 1px solid #CCCCCC;
-        background-color:       #FFFFFF;
-        border-radius:          5px;
-        width:                  90%;
-        height:                 85%;
-        margin-left:            auto;
-        margin-right:           auto;
-        margin-top:             3%;
-    }
-}
-
-#repl-input {
-    border-right:               1px solid #DDDDDD;
-}
 
 .repl {
-    height:                     100%;
-    padding:                    3px;
-    .repl-left {
-        float:                  left;
-    }
-    .repl-right {
-        float:                  right;
-    }
-    .repl-pane {
-        padding:                0px;
-        margin:                 0px;
-        border:                 0px solid #000000;
-        resize:                 none;
-        width:                  48%;
-        height:                 99%;
-    }
+    width:                  49.9%;
+    height:                 90%;
+}
+
+#python-repl {
+    .repl;
+    float:                  right;
+}
+
+#hython-repl {
+    .repl;
+    float:                  left;
+    border-left:            1px solid #DCDCDC;
+}
+
+.clear {
+    clear:                  both;
+}
+
+#build-msgs {
+    border-top:             1px solid #DCDCDC;
+    height:                 10%;
+    background-color:       #141414;
+    color:                  #DCDCDC;
+    font-family:            monospace;
 }

@@ -2,25 +2,42 @@
 
 {% block title %}Welcome!{% endblock %}
 
-{% block content %}
+{% block head %}
+    <script src="{{url_for("static", filename="js/codemirror.js")}}"></script>
+    <link rel="stylesheet" href="{{url_for("static", filename="css/codemirror.css")}}">
+    <link rel="stylesheet" href="{{url_for("static", filename="css/themes/twilight.css")}}">
+    <script src="{{url_for("static", filename="js/mode/clojure/clojure.js")}}"></script>
+    <script src="{{url_for("static", filename="js/mode/python/python.js")}}"></script>
+{% endblock %}
 
-{# {% autoescape off %}{% code "clojure" %}
-(print "foo bar")
-{% endcode %}{% endautoescape %} #}
+{% block tail %}
+    <script src="{{url_for("static", filename="js/main.js")}}"></script>
+{% endblock %}
 
-        <div id = 'popshim' >
-        <div class = 'popover' >
-            <div class = 'focus' >
-                <div class = 'repl' >
-<textarea id = 'repl-input' class = 'repl-pane repl-left' >
-(defn hello-world [who] (print (.join ", " ["Hello" who])))
+{% block content %}{#{% autoescape off %}{% code "clojure" %} (print "foo bar") {% endcode %}{% endautoescape %}#}
+<div class='repl' id='hython-repl'>
+<textarea id="hython-target">
+;;;; This is Hy. Hy is a Lisp variant that "compiles" to Python ASTs.
+;;;; This pane is the Hy lisp variant, and the left side is what the output
+;;;; AST looks like using the `codegen` module.
 
-(hello-world "Paul")
-; Hello, Paul!
+(defn square [x]
+  "This function will square a number"
+  (* x x))
+
+(print (square 2))
+
+
+;; we even do some minor mangling:
+;;  (dashes turn to underscores)
+
+;(defn add-two-numbers [x y]
+;  (+ x y))
+;(print (add-two-numbers 1 2))
+
 </textarea>
-            <pre id = 'repl-output' class = 'repl-pane repl-right' ></pre>
-        </div>
-    </div>
 </div>
-
+<div class='repl' id='python-repl'></div>
+<div class='clear'></div>
+<div class='msgs' id='build-msgs'></div>
 {% endblock %}
