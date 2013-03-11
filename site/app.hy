@@ -37,10 +37,10 @@
 
 
 (post-route "/format/<language>" [language]
-    (highlight
-      (get request.form "code")
-      (get lexers language)
-      (HtmlFormatter)))
+  (highlight
+    (get request.form "code")
+    (get lexers language)
+    (HtmlFormatter)))
 
 
 (post-route "/hy2py" [] (hy-to-py (get request.form "code")))

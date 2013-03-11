@@ -111,6 +111,8 @@ class HyASTCompiler(object):
     def compile_print_expression(self, expr):
         expr.pop(0)  # print
         return ast.Print(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
             dest=None,
             values=[self.compile(x) for x in expr],
             nl=True)
