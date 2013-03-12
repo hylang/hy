@@ -26,9 +26,7 @@
 
 
 ; view routes
-(route "/" [] (render-template "index.html"))
-
-(route "/repl" [] (render-template "repl.html"))
+(route "/" [] (render-template "repl.html"))
 
 (post-route "/hy2py" []
   (try (hy-to-py (get request.form "code"))
