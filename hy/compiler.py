@@ -28,6 +28,7 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 
 import ast
+import sys
 
 
 class HyCompileError(HyError):
@@ -90,21 +91,30 @@ class HyASTCompiler(object):
     @builds("throw")
     def compile_throw_expression(self, expr):
         expr.pop(0)
+        exc = self.compile(expr.pop(0))
         return ast.Raise(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            type=self.compile(expr.pop(0)),
+            type=exc,
+            exc=exc,
             inst=None,
             tback=None)
 
     @builds("try")
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
-        return ast.TryExcept(
+
+        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+            Try = ast.Try
+        else:
+            Try = ast.TryExcept
+
+        return Try(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             body=self._code_branch(self.compile(expr.pop(0))),
             handlers=[self.compile(s) for s in expr],
+            finalbody=[],
             orelse=[])
 
     @builds("catch")

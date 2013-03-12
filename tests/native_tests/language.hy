@@ -119,7 +119,7 @@
 (defn test-exceptions []
   "NATIVE: test Exceptions"
   (try
-    (throw KeyError)
+    (throw (KeyError))
     (catch IOError  (assert (= 2 1)))
     (catch KeyError (do
                       (+ 1 1)
