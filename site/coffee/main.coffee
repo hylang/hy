@@ -19,7 +19,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 HyCodeMirror = CodeMirror.fromTextArea($('#hython-target')[0], {
-    value: "(print \"hello, world\")",
     mode:  "clojure",
     theme: "twilight",
     autofocus: true,
