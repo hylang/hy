@@ -49,7 +49,7 @@ def process(tree):
         return ntree
 
     if isinstance(tree, HyDict):
-        obj = HyDict({process(x): process(tree[x]) for x in tree})
+        obj = HyDict(dict((process(x), process(tree[x])) for x in tree))
         obj.replace(tree)
         return obj
 
