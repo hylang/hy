@@ -61,6 +61,9 @@ def _resolve_atom(obj):
     if obj in table:
         return HySymbol(table[obj])
 
+    if obj.startswith("*") and obj.endswith("*") and obj != "*":
+        obj = obj[1:-1].upper()
+
     if "-" in obj and obj != "-":
         obj = obj.replace("-", "_")
 

@@ -124,3 +124,10 @@
     (catch KeyError (do
                       (+ 1 1)
                       (assert (= 1 1))))))
+
+(defn test-earmuffs []
+  "NATIVE: Test earmuffs"
+  (def *foo* "2")
+  (def foo "3")
+  (assert (= *foo* FOO))
+  (assert (!= *foo* foo)))
