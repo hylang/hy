@@ -29,6 +29,7 @@ from hy.errors import HyError
 
 from abc import ABCMeta, abstractmethod
 
+import re
 
 WHITESPACE = [" ", "\t", "\n", "\r"]
 
@@ -60,6 +61,9 @@ def _resolve_atom(obj):
 
     if obj in table:
         return HySymbol(table[obj])
+
+    if "*" in obj and obj != "*":
+        obj = re.sub(r'\*([a-zA-Z\-]+)\*', lambda match: match.group(1).upper(), obj)
 
     if "-" in obj and obj != "-":
         obj = obj.replace("-", "_")

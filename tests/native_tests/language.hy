@@ -124,3 +124,6 @@
     (catch KeyError (do
                       (+ 1 1)
                       (assert (= 1 1))))))
+
+(def *foo* "2")
+(assert (= *foo* FOO))
