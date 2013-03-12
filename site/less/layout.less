@@ -1,13 +1,29 @@
-body, html {
-    height:             100%;
-    padding:            0px;
-    margin:             0px;
+.reset {
+    padding:                0px;
+    margin:                 0px;
 }
 
+body, html {
+    height:                 100%;
+    background-color:       #141414;
+    color:                  #DCDCDC;
+    font-family:            monospace;
+    .reset;
+}
+
+a {
+    color:                  #DCDCDC;
+}
+
+h1 {
+    text-align:             center;
+    .reset;
+}
 
 .repl {
     width:                  49.9%;
     height:                 90%;
+    .reset;
 }
 
 #python-repl {
@@ -21,6 +37,10 @@ body, html {
     border-left:            1px solid #DCDCDC;
 }
 
+#hython-target {
+    display:                none;
+}
+
 .clear {
     clear:                  both;
 }
@@ -28,7 +48,4 @@ body, html {
 #build-msgs {
     border-top:             1px solid #DCDCDC;
     height:                 10%;
-    background-color:       #141414;
-    color:                  #DCDCDC;
-    font-family:            monospace;
 }
