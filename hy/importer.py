@@ -17,7 +17,7 @@ else:
 
 
 def import_buffer_to_hst(fd):
-    tree = tokenize(fd.read())
+    tree = tokenize(fd.read() + "\n")
     tree = process(tree)
     return tree
 
