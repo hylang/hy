@@ -10,6 +10,7 @@
 (import-from hy.lex LexException)
 (import-from hy.importer import_string_to_ast)
 
+(import autopep8)
 (import codegen)
 
 
@@ -17,7 +18,9 @@
 (.add_extension app.jinja_env PygmentsExtension)
 
 
-(defn hy-to-py [hython] (.to_source codegen (import-string-to-ast hython)))
+(defn hy-to-py [hython]
+  (.fix-string autopep8 (.to_source codegen (import-string-to-ast hython))))
+
 (defn err [msg] (make-response msg 500))
 
 

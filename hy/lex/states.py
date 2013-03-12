@@ -208,6 +208,9 @@ class String(State):
                  ^^^^^^^^  -- String
     """
 
+    def enter(self):
+        self.escaped = False
+
     def exit(self):
         self.result = HyString("".join(self.nodes))
 
@@ -217,8 +220,19 @@ class String(State):
 
             - " - Idle
         """
+        if self.escaped:
+            self.escaped = False
+            if char == "n":
+                self.nodes.append("\n")
+                return
+            raise LexException("Unknown modifier")
+
         if char == "\"":
             return Idle
+
+        if char == "\\":
+            self.escaped = True
+            return
 
         self.nodes.append(char)
 
