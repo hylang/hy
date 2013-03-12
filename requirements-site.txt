@@ -1,4 +1,4 @@
 flask
+astor
 pygments
-codegen
 autopep8

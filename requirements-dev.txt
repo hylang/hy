@@ -1,5 +1,5 @@
 tox
 nose
+astor
 flake8
-codegen
 coverage

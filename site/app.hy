@@ -11,7 +11,7 @@
 (import-from hy.importer import_string_to_ast)
 
 (import autopep8)
-(import codegen)
+(import astor.codegen)
 
 
 (def app (Flask "__main__"))  ; long story, needed hack
@@ -19,7 +19,8 @@
 
 
 (defn hy-to-py [hython]
-  (.fix-string autopep8 (.to_source codegen (import-string-to-ast hython))))
+  (.fix-string autopep8
+               (.to_source astor.codegen (import-string-to-ast hython))))
 
 (defn err [msg] (make-response msg 500))
 
