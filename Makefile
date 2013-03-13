@@ -3,6 +3,10 @@ all:
 	@echo ""
 	@echo " Other targets:"
 	@echo ""
+	@echo "   - docs"
+	@echo "   - site"
+	@echo "   - full"
+	@echo ""
 	@echo "   - dev (test & flake)"
 	@echo "   - flake"
 	@echo "   - test"
@@ -11,6 +15,14 @@ all:
 	@echo "   - d"
 	@echo "   - r"
 	@echo ""
+
+site:
+	make -C site
+
+docs:
+	make -C docs html
+
+full: d tox site docs
 
 venv:
 ifeq (,$(findstring hy,$(VIRTUAL_ENV)))
@@ -41,3 +53,6 @@ diff:
 	git diff --color | less -r
 
 r: d tox diff
+
+
+.PHONY: site docs
