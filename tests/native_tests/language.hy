@@ -139,6 +139,12 @@
              ["X" "B" "C" "D"])))
 
 
+(defn test-threading-two []
+  "NATIVE: test threading macro"
+  (assert (= (-> "a b c d" .upper (.replace "A" "X") .split)
+             ["X" "B" "C" "D"])))
+
+
 (defn test-assoc []
   "NATIVE: test assoc"
   (def vals {"one" "two"})

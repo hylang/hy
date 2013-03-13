@@ -49,11 +49,13 @@ def cond_macro(tree):
 
 @macro("_>")
 def threading_macro(tree):
-    tree.pop(0)  # ->
-    tree.reverse()
+    tree.pop(0)
     ret = tree.pop(0)
-    root = ret
     for node in tree:
-        ret.insert(1, node)
+        if not isinstance(node, HyExpression):
+            nnode = HyExpression([node])
+            nnode.replace(node)
+            node = nnode
+        node.insert(1, ret)
         ret = node
-    return root
+    return ret
