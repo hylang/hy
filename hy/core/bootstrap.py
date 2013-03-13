@@ -45,3 +45,15 @@ def cond_macro(tree):
         ret = n
 
     return root
+
+
+@macro("_>")
+def threading_macro(tree):
+    tree.pop(0)  # ->
+    tree.reverse()
+    ret = tree.pop(0)
+    root = ret
+    for node in tree:
+        ret.insert(1, node)
+        ret = node
+    return root
