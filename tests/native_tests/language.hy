@@ -132,7 +132,15 @@
   (assert (= *foo* FOO))
   (assert (!= *foo* foo)))
 
+
 (defn test-threading []
   "NATIVE: test threading macro"
   (assert (= (-> (.upper "a b c d") (.replace "A" "X") (.split))
              ["X" "B" "C" "D"])))
+
+
+(defn test-assoc []
+  "NATIVE: test assoc"
+  (def vals {"one" "two"})
+  (assoc vals "two" "three")
+  (assert (= (get vals "two") "three")))
