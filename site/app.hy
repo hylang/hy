@@ -4,8 +4,6 @@
 (import-from flask
              Flask render-template request make-response)
 
-(import-from pygments-extension PygmentsExtension)
-
 (import-from hy.errors HyError)
 (import-from hy.lex LexException)
 (import-from hy.importer import_string_to_ast)
@@ -15,7 +13,6 @@
 
 
 (def app (Flask "__main__"))  ; long story, needed hack
-(.add_extension app.jinja_env PygmentsExtension)
 
 
 (defn hy-to-py [hython]

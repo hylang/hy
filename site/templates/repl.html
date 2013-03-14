@@ -14,7 +14,7 @@
     <script src="{{url_for("static", filename="js/main.js")}}"></script>
 {% endblock %}
 
-{% block content %}{#{% autoescape off %}{% code "clojure" %} (print "foo bar") {% endcode %}{% endautoescape %}#}
+{% block content %}
 <div class='repl' id='hython-repl'>
 <textarea id="hython-target">
 ;;;; This is Hy. Hy is a Lisp variant that "compiles" to Python ASTs.
