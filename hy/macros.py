@@ -37,6 +37,7 @@ def process(tree):
     if isinstance(tree, HyExpression):
         fn = tree[0]
         ntree = HyExpression([fn] + [process(x) for x in tree[1:]])
+        ntree.replace(tree)
 
         if isinstance(fn, HyString):
             if fn in _hy_macros:

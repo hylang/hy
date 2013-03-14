@@ -380,7 +380,7 @@ class HyASTCompiler(object):
             col_offset=expression.start_column,
             targets=[name], value=what)
 
-    @builds("for")
+    @builds("foreach")
     def compile_for_expression(self, expression):
         ret_status = self.returnable
         self.returnable = False

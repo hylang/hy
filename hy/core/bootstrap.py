@@ -22,6 +22,7 @@
 from hy.macros import macro
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
+from hy.models.list import HyList
 
 
 @macro("defn")
@@ -44,6 +45,37 @@ def cond_macro(tree):
         ret.append(n)
         ret = n
 
+    return root
+
+
+@macro("for")
+def for_macro(tree):
+    tree.pop(0)
+    ret = None
+    # for [x iter y iter] ...
+    # ->
+    # foreach x iter
+    #   foreach y iter
+    #     ...
+
+    it = iter(tree.pop(0))
+    blocks = list(zip(it, it))  # List for Python 3.x degenerating.
+
+    key, val = blocks.pop(0)
+    ret = HyExpression([HySymbol("foreach"),
+                        HyList([key, val])])
+    root = ret
+    ret.replace(tree)
+
+    for key, val in blocks:
+        # x, [1, 2, 3,  4]
+        nret = HyExpression([HySymbol("foreach"),
+                             HyList([key, val])])
+        nret.replace(key)
+        ret.append(nret)
+        ret = nret
+
+    [ret.append(x) for x in tree]  # we really need ~@
     return root
 
 
