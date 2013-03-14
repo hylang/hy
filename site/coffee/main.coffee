@@ -18,15 +18,17 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+theme = "elegant"
+
 HyCodeMirror = CodeMirror.fromTextArea($('#hython-target')[0], {
     mode:  "clojure",
-    theme: "twilight",
+    theme: theme,
     autofocus: true,
 })
 
 PyCodeMirror = CodeMirror($('#python-repl')[0], {
     mode:  "python",
-    theme: "twilight",
+    theme: theme,
     readOnly: true,
 })
 

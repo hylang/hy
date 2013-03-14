@@ -5,8 +5,7 @@
 
 body, html {
     height:                 100%;
-    background-color:       #141414;
-    color:                  #DCDCDC;
+    color:                  #000000;
     font-family:            monospace;
     .reset;
 }
@@ -26,6 +25,24 @@ h1 {
     .reset;
 }
 
+.blueshade {
+    border-color:       rgba(82, 168, 236, 0.8);
+    outline:            0;
+    outline:            thin dotted \9;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+    -moz-box-shadow:    inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+    box-shadow:         inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+.repl-root {
+    margin-top:             2%;
+    width:                  90%;
+    height:                 90%;
+    margin-left:            auto;
+    margin-right:           auto;
+    .blueshade;
+}
+
 #python-repl {
     .repl;
     float:                  right;
@@ -34,7 +51,7 @@ h1 {
 #hython-repl {
     .repl;
     float:                  left;
-    border-right:           1px solid #DCDCDC;
+    border-right:           1px solid rgba(82, 168, 236, 0.2);
 }
 
 #hython-target {
@@ -46,6 +63,8 @@ h1 {
 }
 
 #build-msgs {
-    border-top:             1px solid #DCDCDC;
+    border-top:             1px solid rgba(82, 168, 236, 0.2);
     height:                 10%;
+    padding:                5px;
+    color:                  #777777;
 }

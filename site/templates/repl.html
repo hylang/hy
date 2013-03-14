@@ -5,7 +5,7 @@
 {% block head %}
     <script src="{{url_for("static", filename="js/codemirror.js")}}"></script>
     <link rel="stylesheet" href="{{url_for("static", filename="css/codemirror.css")}}">
-    <link rel="stylesheet" href="{{url_for("static", filename="css/themes/twilight.css")}}">
+    <link rel="stylesheet" href="{{url_for("static", filename="css/themes/elegant.css")}}">
     <script src="{{url_for("static", filename="js/mode/clojure/clojure.js")}}"></script>
     <script src="{{url_for("static", filename="js/mode/python/python.js")}}"></script>
 {% endblock %}
@@ -15,11 +15,19 @@
 {% endblock %}
 
 {% block content %}
+<div class='repl-root' >
 <div class='repl' id='hython-repl'>
 <textarea id="hython-target">
-;;;; This is Hy. Hy is a Lisp variant that "compiles" to Python ASTs.
-;;;; This pane is the Hy lisp variant, and the left side is what the output
+;;;; This is Hy. Hy is a Lisp variant that
+;;;; "compiles" to Python ASTs.
+;;;;
+;;;; This pane is the Hy lisp variant,
+;;;; and the left side is what the output
 ;;;; AST looks like using the `codegen` module.
+;;;;
+;;;;    star the repo @ http://git.io/hy
+;;;;
+
 
 (defn square [x]
   "This function will square a number"
@@ -28,16 +36,16 @@
 (print (square 2))
 
 
-;; we even do some minor mangling:
+(defn add-two-numbers [x y]
+  (+ x y))
+
 ;;  (dashes turn to underscores)
 
-;(defn add-two-numbers [x y]
-;  (+ x y))
-;(print (add-two-numbers 1 2))
-
+(print (add-two-numbers 1 2))
 </textarea>
 </div>
 <div class='repl' id='python-repl'></div>
 <div class='clear'></div>
 <div class='msgs' id='build-msgs'></div>
+</div>
 {% endblock %}
