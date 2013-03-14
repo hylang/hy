@@ -123,10 +123,8 @@
   "NATIVE: test Exceptions"
   (try
     (throw (KeyError))
-    (catch IOError  (assert (= 2 1)))
-    (catch KeyError (do
-                      (+ 1 1)
-                      (assert (= 1 1))))))
+  (catch IOError  e (assert (= 2 1)))
+  (catch KeyError e (+ 1 1) (assert (= 1 1)))))
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"

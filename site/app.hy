@@ -28,6 +28,6 @@
 (post-route "/hy2py" []
   (try
     (hy-to-py (get request.form "code"))
-  (catch LexException (err "Incomplete Code."))
-  (catch HyError (err "Generic error during processing."))
-  (catch Exception (err "Erm, you broke something."))))
+  (catch LexException e (err "Incomplete Code."))
+  (catch HyError e (err "Generic error during processing."))
+  (catch Exception e (err "Erm, you broke something."))))

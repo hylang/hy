@@ -105,6 +105,7 @@ class HyASTCompiler(object):
         expr.pop(0)  # try
 
         if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+            # Python 3.3 features a rename of TryExcept to Try.
             Try = ast.Try
         else:
             Try = ast.TryExcept
@@ -120,12 +121,27 @@ class HyASTCompiler(object):
     @builds("catch")
     def compile_catch_expression(self, expr):
         expr.pop(0)  # catch
+        _type = self.compile(expr.pop(0))
+        name = expr.pop(0)
+
+        if sys.version_info[0] >= 3:
+            # Python3 features a change where the Exception handler
+            # moved the name from a Name() to a pure Python String type.
+            #
+            # We'll just make sure it's a pure "string", and let it work
+            # it's magic.
+            name = str(name)
+        else:
+            # Python2 requires an ast.Name, set to ctx Store.
+            name = self.compile(name)
+            name.ctx = ast.Store()
+
         return ast.ExceptHandler(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            type=self.compile(expr.pop(0)),
-            name=None,
-            body=self._code_branch(self.compile(expr.pop(0))))
+            type=_type,
+            name=name,
+            body=self._code_branch([self.compile(x) for x in expr]))
 
     def _code_branch(self, branch):
         if isinstance(branch, list):
@@ -465,7 +481,9 @@ class HyASTCompiler(object):
                 ctx=ast.Load()
             )
 
-        return ast.Name(id=str(symbol), ctx=ast.Load(),
+        return ast.Name(id=str(symbol),
+                        arg=str(symbol),
+                        ctx=ast.Load(),
                         lineno=symbol.start_line,
                         col_offset=symbol.start_column)
 
