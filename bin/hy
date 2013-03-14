@@ -1,6 +1,46 @@
 #!/usr/bin/env python
 
-from hy.importer import import_file_to_module
 import sys
+import ast
+import code
+import readline
+from hy.lex.states import Idle, LexException
+from hy.lex.machine import Machine
+from hy.compiler import hy_compile
+from hy.core import process
 
-import_file_to_module("<STDIN>", sys.argv[1])
+_machine = Machine(Idle, 1, 0)
+
+
+class HyREPL(code.InteractiveConsole):
+    def runsource(self, source, filename='<input>', symbol='single'):
+        global _machine
+
+        try:
+            _machine.process(source + "\n")
+        except LexException as e:
+            _machine = Machine(Idle, 1, 0)
+            self.showsyntaxerror(filename)
+            return False
+
+        if type(_machine.state) != Idle:
+            _machine = Machine(Idle, 1, 0)
+            return True
+
+        tokens = process(_machine.nodes)
+
+        _machine = Machine(Idle, 1, 0)
+        _ast = hy_compile(tokens, root=ast.Interactive)
+        code = compile(_ast, filename, symbol)
+
+        self.runcode(code)
+        return False
+
+sys.ps1 = "=> "
+sys.ps2 = "... "
+
+hr = HyREPL()
+hr.interact("""
+    Hi! Welcome to Hy!
+
+""")

@@ -507,8 +507,11 @@ class HyASTCompiler(object):
             values=vals)
 
 
-def hy_compile(tree):
+def hy_compile(tree, root=None):
     " Compile a HyObject tree into a Python AST tree. "
     compiler = HyASTCompiler()
-    ret = ast.Module(body=compiler._mangle_branch(compiler.compile(tree)))
+    tlo = root
+    if root is None:
+        tlo = ast.Module
+    ret = tlo(body=compiler._mangle_branch(compiler.compile(tree)))
     return ret

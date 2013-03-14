@@ -9,31 +9,36 @@
 
    + Use (def) to imply global foo
 
-  - New Builtins:
+ - New Builtins:
    + While
 
-  - New macros:
+   + Pass
+
+ - New macros:
    + loop
 
-  - nREPL type thing:
+ - nREPL type thing:
    + SocketIO endpoint
    + Socket endpoint
    + hyde (hy-dee-e - thanks arno)
 
-  - Builtin type checking (@params(HyExpression, HyList, HyExpression))
+ - Builtin type checking (@params(HyExpression, HyList, HyExpression))
 
-  - Better Exception handling
+ - Better Exception handling
    + linenos in the dump
    + except IOError as E: # <-- implement
 
-  - Tuples
+ - Tuples
 
-  - List / Dict comprehensions
+ - List / Dict comprehensions
 
-  - var-arity [x y & z]
+ - var-arity [x y & z]
 
-  - car / cdr / first / rest
+ - car / cdr / first / rest
 
-  - hyrepl
+ - hyrepl
 
-  - pyc compiler
+ - pyc compiler
+
+ - core tests (odd? even? true? false?) which
+   build out to a lambda / function / expr
