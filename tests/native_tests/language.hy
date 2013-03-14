@@ -7,6 +7,9 @@
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
+  ;
+  ; BTW, this also tests inline comments. Which suck to implement.
+  ;
   (assert (isinstance sys.argv list)))
 
 
