@@ -29,3 +29,11 @@
   - Tuples
 
   - List / Dict comprehensions
+
+  - var-arity [x y & z]
+
+  - car / cdr / first / rest
+
+  - hyrepl
+
+  - pyc compiler
