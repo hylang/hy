@@ -1,0 +1,31 @@
+
+
+ - Tree mangle routines
+   + (fn []) displacement to top of relevent scope, replace with
+     nameref.
+
+   + Manage imports on the fly (for stuff like literal HyExpressions) or
+     a (-> read eval print loop)
+
+   + Use (def) to imply global foo
+
+  - New Builtins:
+   + While
+
+  - New macros:
+   + loop
+
+  - nREPL type thing:
+   + SocketIO endpoint
+   + Socket endpoint
+   + hyde (hy-dee-e - thanks arno)
+
+  - Builtin type checking (@params(HyExpression, HyList, HyExpression))
+
+  - Better Exception handling
+   + linenos in the dump
+   + except IOError as E: # <-- implement
+
+  - Tuples
+
+  - List / Dict comprehensions
