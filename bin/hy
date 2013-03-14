@@ -4,6 +4,8 @@ import sys
 import ast
 import code
 import readline
+
+import hy
 from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
@@ -40,7 +42,7 @@ sys.ps1 = "=> "
 sys.ps2 = "... "
 
 hr = HyREPL()
-hr.interact("""
-    Hi! Welcome to Hy!
-
-""")
+hr.interact("{appname} {version}".format(
+    appname=hy.__appname__,
+    version=hy.__version__
+))

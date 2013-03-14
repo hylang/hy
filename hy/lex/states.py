@@ -262,6 +262,9 @@ class Idle(State):
         if char == "(":
             return Expression
 
+        if char == "[":
+            return List
+
         if char == "{":
             return Dict
 
