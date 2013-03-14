@@ -45,10 +45,14 @@ reload = ->
         PyCodeMirror.setValue(result)
         now = new Date().getTime();
         $("#build-msgs").text(now + " Updated.")
+        $("#repl-root").removeClass("error")
+        $("#repl-root").addClass("ok")
       statusCode: {
         500: (response) ->
           now = new Date().getTime();
           $("#build-msgs").text(now + " " + response.responseText)
+          $("#repl-root").removeClass("ok")
+          $("#repl-root").addClass("error")
       }
   });
 
