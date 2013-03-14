@@ -153,6 +153,11 @@ class ListeyThing(State):
             self.machine.sub(String)
             return
 
+        if char == ";":
+            self.commit()
+            self.machine.sub(Comment)
+            return
+
         if char == self.end_char:
             return Idle
 
