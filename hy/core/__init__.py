@@ -20,8 +20,6 @@
 
 from hy.macros import process as mprocess
 
-import importlib
-
 
 MACROS = [
     "hy.core.bootstrap",  # defn, cond
@@ -35,4 +33,4 @@ def process(tree):
 
 def load_macros():
     for module in MACROS:
-        importlib.import_module(module)
+        __import__(module)
