@@ -387,6 +387,7 @@ class HyASTCompiler(object):
                         col_offset=expression.start_column)
 
     @builds("def")
+    @builds("set")
     def compile_def_expression(self, expression):
         expression.pop(0)  # "def"
         name = expression.pop(0)
