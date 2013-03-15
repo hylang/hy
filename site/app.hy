@@ -8,8 +8,8 @@
 (import-from hy.lex LexException)
 (import-from hy.importer import_string_to_ast)
 
-(import autopep8)
 (import astor.codegen)
+(import autopep8)
 
 
 (def app (Flask "__main__"))  ; long story, needed hack
