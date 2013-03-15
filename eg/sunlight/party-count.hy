@@ -15,7 +15,7 @@
 
 (defn get-party-breakdown [state]
   (Counter (map
-             (lambda [x](get x "party"))
+             (lambda [x] (get x "party"))
              (get-legislators state))))
 
 
