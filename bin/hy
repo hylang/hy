@@ -3,6 +3,7 @@
 import hy
 import sys
 
+
 if len(sys.argv) > 1:
     from hy.importer import import_file_to_module
     import_file_to_module("__main__", sys.argv[1])
@@ -17,6 +18,7 @@ from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
 from hy.core import process
+
 
 _machine = Machine(Idle, 1, 0)
 
@@ -45,8 +47,10 @@ class HyREPL(code.InteractiveConsole):
         self.runcode(code)
         return False
 
+
 sys.ps1 = "=> "
 sys.ps2 = "... "
+
 
 hr = HyREPL()
 hr.interact("{appname} {version}".format(
