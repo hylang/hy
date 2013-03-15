@@ -151,3 +151,17 @@
   (def vals {"one" "two"})
   (assoc vals "two" "three")
   (assert (= (get vals "two") "three")))
+
+
+(defn test-pass []
+  "NATIVE: Test pass worksish"
+  (if true (pass) (pass))
+  (assert (= 1 1)))
+
+
+(defn test-yield []
+  "NATIVE: test yielding"
+  (defn gen [] (for [x [1 2 3 4]] (yield x)))
+  (def ret 0)
+  (for [y (gen)] (def ret (+ ret y)))
+  (assert (= ret 10)))

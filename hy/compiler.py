@@ -204,6 +204,18 @@ class HyASTCompiler(object):
                 kw_defaults=[]),
             body=self.compile(body))
 
+    @builds("pass")
+    def compile_pass_expression(self, expr):
+        return ast.Pass(lineno=expr.start_line, col_offset=expr.start_column)
+
+    @builds("yield")
+    def compile_yield_expression(self, expr):
+        expr.pop(0)
+        return ast.Yield(
+            value=self.compile(expr.pop(0)),
+            lineno=expr.start_line,
+            col_offset=expr.start_column)
+
     @builds("import")
     def compile_import_expression(self, expr):
         expr.pop(0)  # index
