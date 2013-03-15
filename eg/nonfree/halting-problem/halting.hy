@@ -1,5 +1,8 @@
+#!/usr/bin/env hy
+
 ; Very much a knockoff (straight port) of Dan Gulotta's 2013 MIT Mystery Hunt
-; puzzle "The Halting Problem".
+; puzzle "The Halting Problem". His Copyright terms are unclear, so presume
+; that this is distributable, but not free.
 
 
 (defn evaluate [f] ((f (lambda [x] (+ x 1))) 0))

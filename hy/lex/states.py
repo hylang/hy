@@ -271,6 +271,9 @@ class Idle(State):
         if char == ";":
             return Comment
 
+        if char == "#":
+            return Hash
+
         if char in WHITESPACE:
             return
 
@@ -292,3 +295,21 @@ class Comment(State):
 
         if char == "\n":
             return Idle
+
+
+class Hash(State):
+    """
+    Hash state
+    """
+
+    def process(self, char):
+        """
+        State transitions:
+
+            - ! - Comment
+        """
+
+        if char == "!":
+            return Comment
+
+        raise LexException("Unknown char (Hash state): `%s`" % (char))

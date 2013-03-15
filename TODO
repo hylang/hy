@@ -12,8 +12,6 @@
  - New Builtins:
    + While
 
-   + Pass
-
  - New macros:
    + loop
 
@@ -26,7 +24,6 @@
 
  - Better Exception handling
    + linenos in the dump
-   + except IOError as E: # <-- implement
 
  - Tuples
 
@@ -35,8 +32,6 @@
  - var-arity [x y & z]
 
  - car / cdr / first / rest
-
- - hyrepl
 
  - pyc compiler
 

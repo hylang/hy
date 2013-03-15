@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
+import hy
 import sys
+
+if len(sys.argv) > 1:
+    from hy.importer import import_file_to_module
+    import_file_to_module("__main__", sys.argv[1])
+    sys.exit(0)  # right?
+
+
 import ast
 import code
 import readline
 
-import hy
 from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
