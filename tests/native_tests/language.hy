@@ -28,7 +28,7 @@
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
     (def count (+ count x y)))
-  (assert (= count 140)))
+  (assert (= count 150)))
 
 
 (defn test-in []
