@@ -31,8 +31,6 @@
 
  - var-arity [x y & z]
 
- - cdr / rest
-
  - pyc compiler
 
  - core tests (odd? even? true? false?) which
