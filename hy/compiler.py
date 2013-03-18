@@ -247,6 +247,28 @@ class HyASTCompiler(object):
             slice=ast.Index(value=sli),
             ctx=ast.Load())
 
+    @builds("slice")
+    def compile_slice_expression(self, expr):
+        expr.pop(0)  # index
+        val = self.compile(expr.pop(0))  # target
+
+        low = None
+        if expr != []:
+            low = self.compile(expr.pop(0))
+
+        high = None
+        if expr != []:
+            high = self.compile(expr.pop(0))
+
+        return ast.Subscript(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            value=val,
+            slice=ast.Slice(lower=low,
+                            upper=high,
+                            step=None),
+            ctx=ast.Load())
+
     @builds("assoc")
     def compile_assoc_expression(self, expr):
         expr.pop(0)  # assoc
