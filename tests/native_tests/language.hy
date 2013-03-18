@@ -183,3 +183,8 @@
   (assert (= (slice [1 2 3 4 5] 1) [2 3 4 5]))
   (assert (= (slice [1 2 3 4 5] 1 3) [2 3]))
   (assert (= (slice [1 2 3 4 5]) [1 2 3 4 5])))
+
+
+(defn test-rest []
+  "NATIVE: test rest"
+  (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))

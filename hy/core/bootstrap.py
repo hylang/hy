@@ -103,3 +103,14 @@ def first_macro(tree):
     return HyExpression([HySymbol('get'),
                          ret,
                          HyInteger(0)])
+
+
+@macro("cdr")
+@macro("rest")
+def rest_macro(tree):
+    tree.pop(0)  # "first"
+    ret = tree.pop(0)  # the list
+    # assert tree is empty
+    return HyExpression([HySymbol('slice'),
+                         ret,
+                         HyInteger(1)])
