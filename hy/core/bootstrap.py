@@ -21,6 +21,7 @@
 
 from hy.macros import macro
 from hy.models.expression import HyExpression
+from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 
@@ -91,3 +92,14 @@ def threading_macro(tree):
         node.insert(1, ret)
         ret = node
     return ret
+
+
+@macro("car")
+@macro("first")
+def first_macro(tree):
+    tree.pop(0)  # "first"
+    ret = tree.pop(0)  # the list
+    # assert tree is empty
+    return HyExpression([HySymbol('get'),
+                         ret,
+                         HyInteger(0)])

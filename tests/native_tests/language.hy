@@ -170,3 +170,9 @@
   (def ret 0)
   (for [y (gen)] (def ret (+ ret y)))
   (assert (= ret 10)))
+
+
+(defn test-first []
+  "NATIVE: test firsty things"
+  (assert (= (first [1 2 3 4 5]) 1))
+  (assert (= (car [1 2 3 4 5]) 1)))
