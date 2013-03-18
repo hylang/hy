@@ -31,7 +31,7 @@
 
  - var-arity [x y & z]
 
- - car / cdr / first / rest
+ - cdr / rest
 
  - pyc compiler
 
