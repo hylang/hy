@@ -224,6 +224,16 @@ class HyASTCompiler(object):
             col_offset=expr.start_column,
             names=[ast.alias(name=str(x), asname=None) for x in expr])
 
+    @builds("import_as")
+    def compile_import_as_expression(self, expr):
+        expr.pop(0)  # index
+        modlist = [expr[i:i+2] for i in range(0, len(expr), 2)]
+        return ast.Import(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            module=str(expr.pop(0)),
+            names=[ast.alias(name=str(x[0]), asname=str(x[1])) for x in modlist])
+
     @builds("import_from")
     def compile_import_from_expression(self, expr):
         expr.pop(0)  # index
