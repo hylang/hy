@@ -3,6 +3,7 @@
 (import-from tests.resources kwtest)
 (import-from os.path exists isdir isfile)
 (import sys)
+(import-as sys systest)
 
 
 (defn test-sys-argv []
@@ -188,3 +189,8 @@
 (defn test-rest []
   "NATIVE: test rest"
   (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))
+
+
+(defn test-importas []
+  "NATIVE: test import as"
+  (assert (!= (len systest.path) 0)))
