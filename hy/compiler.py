@@ -341,6 +341,7 @@ class HyASTCompiler(object):
                            col_offset=e.start_column)
 
     @builds("+")
+    @builds("%")
     @builds("-")
     @builds("/")
     @builds("*")
@@ -352,7 +353,8 @@ class HyASTCompiler(object):
         ops = {"+": ast.Add,
                "/": ast.Div,
                "*": ast.Mult,
-               "-": ast.Sub}
+               "-": ast.Sub,
+               "%": ast.Mod}
 
         inv = expression.pop(0)
         op = ops[inv]

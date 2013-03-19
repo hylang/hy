@@ -28,3 +28,7 @@
 (def test_div (fn []
   "NATIVE: Test division"
   (assert (= 25 (/ 100 2 2)))))
+
+(defn test-modulo []
+  "NATIVE: test mod"
+  (assert (= (% 10 2) 0)))
