@@ -6,7 +6,7 @@
 
 (import-from hy.errors HyError)
 (import-from hy.lex LexException)
-(import-from hy.importer import_string_to_ast)
+(import-from hy.importer import-string-to-ast)
 
 (import astor.codegen)
 (import autopep8)
