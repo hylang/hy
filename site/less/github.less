@@ -1,0 +1,52 @@
+@gh-text-color:          #FFFFFF;
+@gh-background:          #ef7600;
+@gh-border:              #ef9f4c;
+@gh-text-shadow:         #522600;
+
+@gh-text-color:          #FFFFFF;
+@gh-background:          #356c96;
+@gh-border:              #5083A9;
+@gh-text-shadow:         #52a8ec;
+
+
+#github {
+    display:             block;
+    position:            absolute;
+    z-index:             1001;
+    top:                 40px;
+    right:               -70px;
+    width:               250px;
+    padding:             3px 0;
+    border-top:          2px solid @gh-border;
+    border-bottom:       2px solid @gh-border;
+    background:          @gh-background;
+    color:               @gh-text-color;
+    text-align:          center;
+    text-decoration:     none;
+    font-size:           13px;
+    font-weight:         bold;
+    line-height:         19px;
+    letter-spacing:      -1px;
+    text-shadow:         0 0 10px @gh-text-shadow;
+    pointer-events:      auto;
+    -webkit-transform:   rotate(45deg);
+    -moz-transform:      rotate(45deg);
+    -ms-transform:       rotate(45deg);
+    -o-transform:        rotate(45deg);
+    transform:           rotate(45deg);
+    -webkit-box-shadow:  rgba(0,0,0,0.5) 1px 1px 10px,rgba(0,0,0,0.07) 0 0 3px 1px inset;
+    -moz-box-shadow:     rgba(0,0,0,0.5) 1px 1px 10px,rgba(0,0,0,0.07) 0 0 3px 1px inset;
+    box-shadow:          rgba(0,0,0,0.5) 1px 1px 10px,rgba(0,0,0,0.07) 0 0 3px 1px inset;
+}
+
+
+#github-wrapper {
+    position:            absolute;
+    z-index:             1001;
+    top:                 0px;
+    right:               0px;
+    width:               135px;
+    height:              135px;
+    overflow:            hidden;
+    pointer-events:      none;
+}
