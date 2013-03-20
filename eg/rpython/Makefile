@@ -8,7 +8,7 @@ clear:
 	@clear
 
 clean:
-	@echo "fixme"
+	rm -f target-c
 
 build:
 	$(RPY_WRAP) $(RPY) $(RPY_FLAGS) target.py
