@@ -21,8 +21,10 @@
 from hy.compiler import hy_compile
 from hy.lex import tokenize
 from hy.core import process
+from py_compile import wr_long, MAGIC
 
 
+import marshal
 import imp
 import sys
 import os
@@ -31,7 +33,7 @@ import os
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
-    from StringIO import StringIO
+    from StringIO import StringIO  # NOQA
 
 
 def import_buffer_to_hst(fd):
@@ -62,6 +64,26 @@ def import_file_to_module(name, fpath):
     mod.__file__ = fpath
     eval(compile(ast, fpath, "exec"), mod.__dict__)
     return mod
+
+
+def write_hy_as_pyc(fname):
+    with open(fname, 'U') as f:
+        try:
+            timestamp = long(os.fstat(f.fileno()).st_mtime)
+        except AttributeError:
+            timestamp = long(os.stat(fname).st_mtime)
+
+    _ast = import_file_to_ast(fname)
+    code = compile(_ast, fname, "exec")
+    cfile = "%s.pyc" % fname[:-len(".hy")]
+
+    with open(cfile, 'wb') as fc:
+        fc.write('\0\0\0\0')
+        wr_long(fc, timestamp)
+        marshal.dump(code, fc)
+        fc.flush()
+        fc.seek(0, 0)
+        fc.write(MAGIC)
 
 
 class HyFinder(object):

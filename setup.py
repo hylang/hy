@@ -34,6 +34,7 @@ setup(
     version=__version__,
     scripts=[
         "bin/hy",
+        "bin/hyc",
     ],
     packages=[
         'hy',

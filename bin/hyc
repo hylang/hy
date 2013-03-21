@@ -1,0 +1,6 @@
+#!/usr/bin/env hy
+
+(import sys)
+(import-from hy.importer write-hy-as-pyc)
+
+(write-hy-as-pyc (get sys.argv 1))

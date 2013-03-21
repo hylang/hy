@@ -37,20 +37,21 @@ HyCodeMirror.setSize("100%", "100%")
 
 reload = ->
   input = HyCodeMirror.getValue()
+  format = "h:mm:ss"
   $.ajax({
       url: "/hy2py",
       type: "POST",
       data: {'code': input},
       success: (result) ->
         PyCodeMirror.setValue(result)
-        now = new Date().getTime()
-        $("#build-msgs").text(now + " Updated.")
+        now = Date.parse("now").toString(format)
+        $("#build-msgs").prepend(now + " updated.<br />")
         $("#repl-root").removeClass("error")
         $("#repl-root").addClass("ok")
       statusCode: {
         500: (response) ->
-          now = new Date().getTime()
-          $("#build-msgs").text(now + " " + response.responseText)
+          now = Date.parse("now").toString(format)
+          $("#build-msgs").prepend(now + " " + response.responseText + "<br />")
           $("#repl-root").removeClass("ok")
           $("#repl-root").addClass("error")
       }
