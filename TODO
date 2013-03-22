@@ -31,7 +31,5 @@
 
  - var-arity [x y & z]
 
- - pyc compiler
-
  - core tests (odd? even? true? false?) which
    build out to a lambda / function / expr
