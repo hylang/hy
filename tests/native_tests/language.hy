@@ -194,3 +194,11 @@
 (defn test-importas []
   "NATIVE: test import as"
   (assert (!= (len systest.path) 0)))
+
+
+(defn test-context []
+  "NATIVE: test with"
+  (with (open "README.md" "r")
+        (pass))
+  (with-as (open "README.md" "r") fd
+           (pass)))

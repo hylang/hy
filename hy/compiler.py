@@ -309,6 +309,33 @@ class HyASTCompiler(object):
         fn.decorator_list = [self.compile(x) for x in expr]
         return fn
 
+    @builds("with")
+    def compile_with_expression(self, expr):
+        expr.pop(0)  # with
+        return ast.With(context_expr=self.compile(expr.pop(0)),
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column,
+                        optional_vars=None,
+                        body=self._mangle_branch([
+                            self.compile(x) for x in expr]))
+
+    @builds("with_as")
+    def compile_with_as_expression(self, expr):
+        expr.pop(0)  # with-as
+        ctx = self.compile(expr.pop(0))
+        thing = self.compile(expr.pop(0))
+        thing.ctx = ast.Store()
+
+        # Module(body=[With(items=[withitem(context_expr=Name(id='foo', ctx=Load()), optional_vars=Name(id='e', ctx=Store()))], body=[Pass()])])
+        # Module(body=[With(context_expr=Name(id='foo', ctx=Load()), optional_vars=Name(id='e', ctx=Store()), body=[Pass()])])
+
+        return ast.With(context_expr=ctx,
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column,
+                        optional_vars=thing,
+                        body=self._mangle_branch([
+                            self.compile(x) for x in expr]))
+
     @builds("kwapply")
     def compile_kwapply_expression(self, expr):
         expr.pop(0)  # kwapply
