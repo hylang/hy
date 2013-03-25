@@ -1,0 +1,12 @@
+2013-03-25  Paul Tagliamonte  <paultag@debian.org>
+
+* bin/hy (global): Added readline support to the hy REPL. History should
+now be stored in ~/.hy-history
+(global): added paren-matching bits, hacked in hard. Better solution?
+
+2013-03-24  Paul Tagliamonte  <paultag@debian.org>
+
+* The release before this was version 0.9.2.
+
+* Initial ChangeLog entry. There've been a lot of changes, but I won't bother
+to fake history here.
