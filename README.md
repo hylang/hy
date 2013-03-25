@@ -23,7 +23,7 @@ languge in a *core* way, but we never use them.
 
 Why?
 
-Well, I wrote Hy to help people relize one thing about Python:
+Well, I wrote Hy to help people realize one thing about Python:
 
 It's really goddamn awesome.
 
