@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import hy
+import os
 import sys
 
 
@@ -52,9 +53,17 @@ class HyREPL(code.InteractiveConsole):
 sys.ps1 = "=> "
 sys.ps2 = "... "
 
+history = os.path.expanduser("~/.hy-history")
+readline.parse_and_bind("set blink-matching-paren on")
+
+try:
+    readline.read_history_file(history)
+except IOError:
+    open(history, 'wa').close()
 
 hr = HyREPL()
 hr.interact("{appname} {version}".format(
     appname=hy.__appname__,
     version=hy.__version__
 ))
+readline.write_history_file(history)
