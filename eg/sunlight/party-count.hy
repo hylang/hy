@@ -1,5 +1,7 @@
 #!/usr/bin/env hy
-; let's check out the party breakdown for a state
+; Copyright (c) Paul R. Tagliamonte <paultag@debian.org>, 2013 under the terms
+; of the Expat license, a copy of which you have should have recieved with
+; the source.
 
 (import sys)
 (import-from sunlight openstates)
