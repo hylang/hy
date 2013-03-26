@@ -13,7 +13,6 @@ if len(sys.argv) > 1:
     sys.exit(0)  # right?
 
 
-import rlcompleter
 import readline
 import code
 import ast
