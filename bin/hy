@@ -13,6 +13,7 @@ if len(sys.argv) > 1:
     sys.exit(0)  # right?
 
 
+import rlcompleter
 import readline
 import code
 import ast
@@ -120,6 +121,8 @@ try:
 except IOError:
     open(history, 'wa').close()
 
+# Enable tab completion.
+readline.parse_and_bind("tab: complete")
 
 hr = HyREPL()
 hr.interact("{appname} {version}".format(
