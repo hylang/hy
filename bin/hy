@@ -81,6 +81,40 @@ def koan_macro(tree):
 """)])
 
 
+@macro("ideas")
+def koan_macro(tree):
+    return HyExpression([HySymbol('print'),
+                         HyString("""
+
+    => (import-from sh figlet)
+    => (figlet "Hi, Hy!")
+     _   _ _     _   _       _
+    | | | (_)   | | | |_   _| |
+    | |_| | |   | |_| | | | | |
+    |  _  | |_  |  _  | |_| |_|
+    |_| |_|_( ) |_| |_|\__, (_)
+            |/         |___/
+
+
+;;; string things
+(.join ", " ["what" "the" "heck"])
+
+
+;;; this one plays with command line bits
+(import-from sh cat grep)
+(-> (cat "/usr/share/dict/words") (grep "-E" "bro$"))
+
+
+;;; filtering a list w/ a lambda
+(filter (lambda [x] (= (% x 2) 0)) (range 0 10))
+
+
+;;; swaggin' functional bits (Python rulez)
+(max (map (lambda [x] (len x)) ["hi" "my" "name" "is" "paul"]))
+
+""")])
+
+
 try:
     readline.read_history_file(history)
 except IOError:
