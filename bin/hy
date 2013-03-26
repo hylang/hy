@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import hy
-import os
+
 import sys
+import os
 
 
 if len(sys.argv) > 1:
@@ -12,14 +13,19 @@ if len(sys.argv) > 1:
     sys.exit(0)  # right?
 
 
-import ast
-import code
 import readline
+import code
+import ast
 
 from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
 from hy.core import process
+
+from hy.macros import macro
+from hy.models.expression import HyExpression
+from hy.models.string import HyString
+from hy.models.symbol import HySymbol
 
 
 _machine = Machine(Idle, 1, 0)
@@ -56,10 +62,30 @@ sys.ps2 = "... "
 history = os.path.expanduser("~/.hy-history")
 readline.parse_and_bind("set blink-matching-paren on")
 
+
+@macro("koan")
+def koan_macro(tree):
+    return HyExpression([HySymbol('print'),
+                         HyString("""
+  Ummon asked the head monk, "What sutra are you lecturing on?"
+  "The Nirvana Sutra."
+  "The Nirvana Sutra has the Four Virtues, hasn't it?"
+  "It has."
+  Ummon asked, picking up a cup, "How many virtues has this?"
+  "None at all, " said the monk.
+  "But ancient people said it had, didn't they?" said Ummon.
+  "Whatdo you think of what they said?"
+  Ummon struck the cup and asked, "You understand?"
+  "No," said the monk.
+  "Then," said Ummon, "You'd better go on with your lectures on the sutra."
+""")])
+
+
 try:
     readline.read_history_file(history)
 except IOError:
     open(history, 'wa').close()
+
 
 hr = HyREPL()
 hr.interact("{appname} {version}".format(
