@@ -314,6 +314,10 @@ class HyASTCompiler(object):
         expr.pop(0)  # with-as
         ctx = self.compile(expr.pop(0))
         thing = self.compile(expr.pop(0))
+        if isinstance(thing, ast.Tuple):
+            for x in thing.elts:
+                x.ctx = ast.Store()
+
         thing.ctx = ast.Store()
 
         ret = ast.With(context_expr=ctx,
@@ -327,6 +331,14 @@ class HyASTCompiler(object):
             ret.items = [ast.withitem(context_expr=ctx, optional_vars=thing)]
 
         return ret
+
+    @builds(",")
+    def compile_tuple(self, expr):
+        expr.pop(0)
+        return ast.Tuple(elts=[self.compile(x) for x in expr],
+                         lineno=expr.start_line,
+                         col_offset=expr.start_column,
+                         ctx=ast.Load())
 
     @builds("kwapply")
     def compile_kwapply_expression(self, expr):
@@ -456,6 +468,10 @@ class HyASTCompiler(object):
             return what
 
         name = self.compile(name)
+        if isinstance(name, ast.Tuple):
+            for x in name.elts:
+                x.ctx = ast.Store()
+
         name.ctx = ast.Store()
 
         return ast.Assign(
@@ -471,6 +487,11 @@ class HyASTCompiler(object):
         expression.pop(0)  # for
         name, iterable = expression.pop(0)
         target = self.compile_symbol(name)
+
+        if isinstance(target, ast.Tuple):
+            for x in target.elts:
+                x.ctx = ast.Store()
+
         target.ctx = ast.Store()
         # support stuff like:
         # (for [x [1 2 3 4]
