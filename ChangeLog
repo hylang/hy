@@ -1,3 +1,10 @@
+2013-03-27  Paul Tagliamonte  <paultag@debian.org>
+
+* hy/compiler.py (compile_tuple): Add routines for tuples.
+(compile_def_expression): add Tuple checking
+(compile_for_expression): same
+(compile_with_as_expression): same
+
 2013-03-25  Paul Tagliamonte  <paultag@debian.org>
 
 * bin/hy (global): Added readline support to the hy REPL. History should
