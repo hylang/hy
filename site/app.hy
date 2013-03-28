@@ -23,9 +23,9 @@
 
 
 ; view routes
-(route "/" [] (render-template "repl.html"))
+(route index "/" [] (render-template "repl.html"))
 
-(post-route "/hy2py" []
+(post-route hy2py "/hy2py" []
   (try
     (hy-to-py (get request.form "code"))
   (catch LexException e (err "Incomplete Code."))
