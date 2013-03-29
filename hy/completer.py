@@ -8,9 +8,10 @@ PATH = [hy.compiler._compile_table, hy.macros._hy_macros, __builtin__.__dict__]
 
 
 class Completer:
-    def __init__(self, namespace = None):
+    def __init__(self, namespace=None):
         if namespace and not isinstance(namespace, dict):
-            raise TypeError,'namespace must be a dictionary'
+            raise TypeError('namespace must be a dictionary')
+
         self.namespace = namespace
 
     def complete(self, text, state):
