@@ -38,4 +38,4 @@ except ImportError:
     pass
 else:
     readline.set_completer(Completer().complete)
-    readline.set_completer_delims("()[]{}")
+    readline.set_completer_delims("()[]{} ")
