@@ -1,3 +1,7 @@
+2013-03-29  Paul Tagliamonte  <paultag@debian.org>
+
+* New release, 0.9.3.
+
 2013-03-27  Paul Tagliamonte  <paultag@debian.org>
 
 * hy/compiler.py (compile_tuple): Add routines for tuples.
