@@ -269,6 +269,9 @@ The equivalent in hy would be::
   (for [i (range 10)]
      (print (+ "'i' is now at " (str i))))
 
+TODO: explain the extra power of hy's for, the list comprehensions
+aspect ;)
+
 You can also import and make use of various python libraries.  For
 example::
 
