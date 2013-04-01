@@ -8,8 +8,8 @@ Meet our mascot, the cute and adorable Hy "Cuddlefish"::
   LET'S CUDDLEFISH
              ______
       _.----'#'  # '
-    ,'  #'    ,#  '
-   ('   (w)  _,-' |
+    ,'  #'    ,#  ;
+   ('   (w)  _,-'_/
   // // /'.____.'
   \|\||/
 
