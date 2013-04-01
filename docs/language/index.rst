@@ -198,6 +198,10 @@ What about conditionals?::
     (print "this is if true")
     (print "this is if false"))
 
+As you can tell above, the first argument to if is a truth test, the
+second argument is a body if true, and the third argument (optional!)
+is if false (ie, "else"!).
+
 If you need to do more complex conditionals, you'll find that you
 don't have elif available in hy.  Instead, you should use something
 called "cond".  In python, you might do something like::
@@ -226,6 +230,27 @@ then a bit of code to execute if it turns out to be true.  You'll also
 notice that the "else" is implemented at the end simply by checking
 for "true"... that's because true will always be true, so if we get
 this far, we'll always run that one!
+
+You might notice above that if you have code like::
+
+  (if some-condition
+    (body-if-true)
+    (body-if-false))
+
+But wait!  What if you want to execute more than one statment in the
+body of one of these?
+
+You can do the following::
+
+  (if (try-some-thing)
+    (do
+      (print "this is if true")
+      (print "and why not, let's keep talking about how true it is!))
+    (print "this one's still simply just false"))
+
+You can see that we used "do" to wrap multiple statments.  If you're
+familiar with other lisps, this is the equivalent of "progn"
+elsewhere.
 
 You can also import and make use of various python libraries.  For
 example::
