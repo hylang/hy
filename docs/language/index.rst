@@ -3,6 +3,20 @@ Language Spec
 
 This bit covers a bit about Hy's lovable quirks and eccentricities.
 
+In a nutshell, Hy is a lisp dialect, but one that converts its
+structure into Python (literally a conversion into Python's abstract
+syntax tree!).  This is pretty cool because it means Hy is several
+things:
+
+ - A lisp that feels very pythonic
+ - For lispers, a great way to use lisp's crazy powers but in the wide
+   world of Python's libraries (why yes, you now can write a Django
+   application in lisp!)
+ - For pythonistas, a great way to start exploring lisp, from the
+   comfort of python!
+ - For everyone: a fun and comfortable language that just has a lot of
+   neat ideas!
+
 
 Basic intro to lisp for pythonistas
 -----------------------------------
