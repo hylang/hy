@@ -266,7 +266,7 @@ we might do::
 
 The equivalent in hy would be::
 
-  (for [i (range 10)]
+  (for (i (range 10))
      (print (+ "'i' is now at " (str i))))
 
 TODO: explain the extra power of hy's for, the list comprehensions
