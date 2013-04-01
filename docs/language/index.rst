@@ -138,6 +138,8 @@ Now let's look at the equivalent hy program:
       (print (+ "Hello " name "!  I see you are "
                  age " years old.")))
 
+   (simple-conversation)
+
 If you look at the above program, as long as you remember that the
 first element in each list of the program is the function (or
 macro... we'll get to those later) being called and that the rest are
