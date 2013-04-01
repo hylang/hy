@@ -64,3 +64,12 @@ def test_ast_anon_fns_basics():
     """ Ensure anon fns work. """
     code = hy_compile(tokenize("(fn (x) (* x x))")).body[0]
     assert type(code) == ast.FunctionDef
+
+
+def test_ast_non_decoratable():
+    """ Ensure decorating garbage breaks """
+    try:
+        hy_compile(tokenize("(decorate-with (foo) (* x x))"))
+        assert True == False
+    except TypeError:
+        pass
