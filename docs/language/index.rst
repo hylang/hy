@@ -237,7 +237,7 @@ Comments start with semicolons::
 
   (print "this will run")
   ; (print "but this will not")
-  (+ 1 2 3)  ; we won't execute this either
+  (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
 
 TODO
