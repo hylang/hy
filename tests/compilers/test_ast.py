@@ -84,3 +84,9 @@ def test_ast_print():
         assert type(code.value) == ast.Call
         return
     assert type(code) == ast.Print
+
+
+def test_ast_print():
+    """ Ensure print doesn't suck. """
+    code = hy_compile(tokenize("(, 1 2 3)")).body[0].value
+    assert type(code) == ast.Tuple
