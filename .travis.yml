@@ -15,6 +15,7 @@ notifications:
   irc:
     channels:
       - "irc.freenode.net#woo-city-commits"
+      - "irc.freenode.net#hy"
     on_success: always
     on_failure: always
     use_notice: true
