@@ -11,7 +11,7 @@ Meet our mascot, "Cuddles"::
       _.----'#'  # '
     ,'  #'    ,#  ;
    ('   (w)  _,-'_/
-  // // /'.____.'
+  /// / /'.____.'
   \|\||/
 
 Read more about Hy in these docs!  Or, if you'd like, try the
