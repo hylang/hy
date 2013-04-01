@@ -252,6 +252,23 @@ You can see that we used "do" to wrap multiple statments.  If you're
 familiar with other lisps, this is the equivalent of "progn"
 elsewhere.
 
+Comments start with semicolons::
+
+  (print "this will run")
+  ; (print "but this will not")
+  (+ 1 2 3)  ; we'll execute the addition, but not this comment!
+
+Looping is not hard but has a kind of special structure.  In python,
+we might do::
+
+  for i in range(10):
+      print "'i' is now at " + str(i)
+
+The equivalent in hy would be::
+
+  (for [i (range 10)]
+     (print (+ "'i' is now at " (str i))))
+
 You can also import and make use of various python libraries.  For
 example::
 
@@ -261,11 +278,6 @@ example::
     (os.mkdir "/tmp/somedir/anotherdir")
     (print "Hey, that path isn't there!"))
 
-Comments start with semicolons::
-
-  (print "this will run")
-  ; (print "but this will not")
-  (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
 
 TODO
