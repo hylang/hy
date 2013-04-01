@@ -14,7 +14,7 @@ A "hello world" in hy is actually super simple.  Let's try it::
   (print "hello world")
 
 See?  Easy!  As you may have guessed, this is the same as the python
-version of:
+version of::
 
   print "hello world"
 
@@ -66,11 +66,11 @@ exercise first in python::
 Now let's try the same thing in hy::
 
   (def result (- (/ (+ 1 3 88) 2) 8))
-  # simplified to...
+  ; simplified to...
   (def result (- (/ 92 2) 8))
-  # simplified to...
+  ; simplified to...
   (def result (- 46 8))
-  # simplified to...
+  ; simplified to...
   (def result 38)
 
 As you probably guessed, this last expression with "def" means to
@@ -145,7 +145,7 @@ Hy is python flavored lisp (or vice versa?)
 -------------------------------------------
 
 Hy converts to python's own abstract syntax tree, so you'll soon start
-to find that all the familiar power of
+to find that all the familiar power of python is at your fingertips.
 
 You have full access to python's data types and standard library in
 hy.  Let's experiment with this in the hy interpreter::
@@ -174,19 +174,42 @@ What's this?  Yes indeed, this is precisely the same as::
   " fooooo   ".strip()
 
 That's right... lisp with dot notation!  If we have this string
-assigned as a variable, we can also do the following:
+assigned as a variable, we can also do the following::
 
   (def this-string " fooooo   ")
   (this-string.strip)
 
-What about conditionals?
+What about conditionals?::
 
   (if (try-some-thing)
     (print "this is if true")
     (print "this is if false"))
 
-Unfortunately there is no elif or cond that I can find yet.  Hopefully
-we'll get such a macro soon :)
+If you need to do more complex conditionals, you'll find that you
+don't have elif available in hy.  Instead, you should use something
+called "cond".  In python, you might do something like::
+
+  somevar = 33
+  if somevar > 50:
+      print "That variable is too big!"
+  elif somevar < 10:
+      print "That variable is too small!"
+  else:
+      print "That variable is jussssst right!"
+
+In hy, you would do::
+
+  (cond
+   (> somevar 50) (print "That variable is too big!")
+   (< somevar 10) (print "That variable is too small!")
+   true (print "That variable is jussssst right!"))
+
+What you'll notice is that cond switches off between a some statement
+that is executed and checked conditionally for true or falseness, and
+then a bit of code to execute if it turns out to be true.  You'll also
+notice that the "else" is implemented at the end simply by checking
+for "true"... that's because true will always be true, so if we get
+this far, we'll always run that one!
 
 You can also import and make use of various python libraries.  For
 example::
