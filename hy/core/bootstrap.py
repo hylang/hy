@@ -27,6 +27,7 @@ from hy.models.list import HyList
 
 
 @macro("defn")
+@macro("defun")
 def defn_macro(tree):
     return HyExpression([HySymbol("def"),
                          tree[1], HyExpression([HySymbol("fn")] + tree[2:])])
