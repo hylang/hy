@@ -3,7 +3,7 @@ Welcome to Hy's documentation!
 
 Welcome to Hy!  Hy is a wonderful dialect of lisp that's embedded in python.
 
-Meet our mascot, the cute and adorable Hy "Cuddlefish"::
+Meet our mascot, "Cuddles"::
 
   LET'S CUDDLEFISH
              ______
