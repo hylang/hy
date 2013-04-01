@@ -36,12 +36,11 @@ def defn_macro(tree):
 def cond_macro(tree):
     tree.pop(0)  # cond flag
     it = iter(tree)
-    conds = iter(zip(it, it))
-    test, branch = next(conds)
+    test, branch = next(it)
 
     root = HyExpression([HySymbol("if"), test, branch])
     ret = root
-    for (test, branch) in conds:
+    for (test, branch) in it:
         n = HyExpression([HySymbol("if"), test, branch])
         ret.append(n)
         ret = n

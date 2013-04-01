@@ -78,8 +78,8 @@
 (defn test-cond []
   "NATIVE: test if cond sorta works."
   (cond
-    (= 1 2) (assert (= true false))
-    (is null null) (assert (= true true))))
+    ((= 1 2) (assert (= true false)))
+    ((is null null) (assert (= true true)))))
 
 
 (defn test-index []
