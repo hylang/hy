@@ -14,7 +14,7 @@ A "hello world" in hy is actually super simple.  Let's try it::
   (print "hello world")
 
 See?  Easy!  As you may have guessed, this is the same as the python
-version of:
+version of::
 
   print "hello world"
 
@@ -145,7 +145,7 @@ Hy is python flavored lisp (or vice versa?)
 -------------------------------------------
 
 Hy converts to python's own abstract syntax tree, so you'll soon start
-to find that all the familiar power of
+to find that all the familiar power of python is at your fingertips.
 
 You have full access to python's data types and standard library in
 hy.  Let's experiment with this in the hy interpreter::
@@ -174,19 +174,20 @@ What's this?  Yes indeed, this is precisely the same as::
   " fooooo   ".strip()
 
 That's right... lisp with dot notation!  If we have this string
-assigned as a variable, we can also do the following:
+assigned as a variable, we can also do the following::
 
   (def this-string " fooooo   ")
   (this-string.strip)
 
-What about conditionals?
+What about conditionals?::
 
   (if (try-some-thing)
     (print "this is if true")
     (print "this is if false"))
 
-Unfortunately there is no elif or cond that I can find yet.  Hopefully
-we'll get such a macro soon :)
+If you need to do more complex conditionals, you'll find that you
+don't have elif available in hy.  Instead, you should use something
+called "cond".  In python, you might do something like::
 
 You can also import and make use of various python libraries.  For
 example::
