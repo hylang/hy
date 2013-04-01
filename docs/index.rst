@@ -2,7 +2,10 @@ Welcome to Hy's documentation!
 ==============================
 
 Welcome to `Hy <https://github.com/paultag/hy>`_!
-Hy is a wonderful dialect of lisp that's embedded in python.
+Hy is a wonderful dialect of Lisp that's embedded in Python.
+Since Hy transforms its lisp code into the python Abstract Syntax
+Tree, you have the whole beautiful world of python at your fingertips,
+in lisp form!
 
 Meet our mascot, "Cuddles"::
 
