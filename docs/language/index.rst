@@ -14,8 +14,7 @@ things:
    application in lisp!)
  - For pythonistas, a great way to start exploring lisp, from the
    comfort of python!
- - For everyone: a fun and comfortable language that just has a lot of
-   neat ideas!
+ - For everyone: a pleasant language that has a lot of neat ideas!
 
 
 Basic intro to lisp for pythonistas
