@@ -7,5 +7,5 @@
   (.close socket))
 
 
-(def server (StreamServer (, "127.0.0.1" 5000) handle))
+(setv server (StreamServer (, "127.0.0.1" 5000) handle))
 (.serve-forever server)

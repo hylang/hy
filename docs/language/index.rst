@@ -66,7 +66,7 @@ the hy interpreter:
 
 .. code-block:: clj
 
-   (def result (- (/ (+ 1 3 88) 2) 8))
+   (setv result (- (/ (+ 1 3 88) 2) 8))
 
 This would return 37.  But why?  Well, we could look at the equivalent
 expression in python::
@@ -90,15 +90,15 @@ Now let's try the same thing in hy:
 
 .. code-block:: clj
 
-   (def result (- (/ (+ 1 3 88) 2) 8))
+   (setv result (- (/ (+ 1 3 88) 2) 8))
    ; simplified to...
-   (def result (- (/ 92 2) 8))
+   (setv result (- (/ 92 2) 8))
    ; simplified to...
-   (def result (- 46 8))
+   (setv result (- 46 8))
    ; simplified to...
-   (def result 38)
+   (setv result 38)
 
-As you probably guessed, this last expression with "def" means to
+As you probably guessed, this last expression with "setv" means to
 assign the variable "result" to 38.
 
 See?  Not too hard!
@@ -133,8 +133,8 @@ Now let's look at the equivalent hy program:
 
    (defn simple-conversation []
       (print "Hello!  I'd like to get to know you.  Tell me about yourself!")
-      (def name (raw_input "What is your name? "))
-      (def age (raw_input "What is your age? "))
+      (setv name (raw_input "What is your name? "))
+      (setv age (raw_input "What is your age? "))
       (print (+ "Hello " name "!  I see you are "
                  age " years old.")))
 
@@ -207,7 +207,7 @@ assigned as a variable, we can also do the following:
 
 .. code-block:: clj
 
-   (def this-string " fooooo   ")
+   (setv this-string " fooooo   ")
    (this-string.strip)
 
 What about conditionals?:

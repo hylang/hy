@@ -18,7 +18,7 @@
 
 (defn subtract [m n] ((m predecessor) n))
 
-(def two (plus one one))
-(def three (plus two one))
+(setv two (plus one one))
+(setv three (plus two one))
 
 (print (evaluate (exponent three three)))

@@ -15,13 +15,13 @@
 
 (defn parse-rfc822-stream [fd]
   "Parse an RFC822 stream"
-  (def bits {})
-  (def key null)
+  (setv bits {})
+  (setv key null)
   (for [line fd]
     (if (in ":" line)
-      (do (def line (.split line ":" 1))
-        (def key (.strip (get line 0)))
-        (def val (.strip (get line 1)))
+      (do (setv line (.split line ":" 1))
+        (setv key (.strip (get line 0)))
+        (setv val (.strip (get line 1)))
         (assoc bits key val))
       (do
         (if (= (.strip line) ".")
@@ -30,11 +30,11 @@
   bits)
 
 
-(def block (parse-rfc822-file (get sys.argv 1)))
-(def source (get block "Source"))
+(setv block (parse-rfc822-file (get sys.argv 1)))
+(setv source (get block "Source"))
 (print source "is a(n)" (get block "Description"))
 
 
 (import-from sh apt-cache)
-(def archive-block (parse-rfc822-stream (.show apt-cache source)))
+(setv archive-block (parse-rfc822-stream (.show apt-cache source)))
 (print "The archive has version" (get archive-block "Version") "of" source)

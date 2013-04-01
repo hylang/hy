@@ -21,14 +21,14 @@
 
 (defn test-for-loop []
   "NATIVE: test for loops?"
-  (def count 0)
+  (setv count 0)
   (for [x [1 2 3 4 5]]
-    (def count (+ count x)))
+    (setv count (+ count x)))
   (assert (= count 15))
-  (def count 0)
+  (setv count 0)
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
-    (def count (+ count x y)))
+    (setv count (+ count x y)))
   (assert (= count 150)))
 
 
@@ -53,7 +53,7 @@
 
 (defn test-is []
   "NATIVE: test is can deal with None"
-  (def a null)
+  (setv a null)
   (assert (is a null))
   (assert (is-not a "b")))
 
@@ -90,7 +90,7 @@
 
 (defn test-lambda []
   "NATIVE: test lambda operator"
-  (def square (lambda [x] (* x x)))
+  (setv square (lambda [x] (* x x)))
   (assert (= 4 (square 2))))
 
 
@@ -134,8 +134,8 @@
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"
-  (def *foo* "2")
-  (def foo "3")
+  (setv *foo* "2")
+  (setv foo "3")
   (assert (= *foo* FOO))
   (assert (!= *foo* foo)))
 
@@ -154,7 +154,7 @@
 
 (defn test-assoc []
   "NATIVE: test assoc"
-  (def vals {"one" "two"})
+  (setv vals {"one" "two"})
   (assoc vals "two" "three")
   (assert (= (get vals "two") "three")))
 
@@ -168,8 +168,8 @@
 (defn test-yield []
   "NATIVE: test yielding"
   (defn gen [] (for [x [1 2 3 4]] (yield x)))
-  (def ret 0)
-  (for [y (gen)] (def ret (+ ret y)))
+  (setv ret 0)
+  (for [y (gen)] (setv ret (+ ret y)))
   (assert (= ret 10)))
 
 
