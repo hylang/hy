@@ -278,7 +278,9 @@ You can see that we used "do" to wrap multiple statments.  If you're
 familiar with other lisps, this is the equivalent of "progn"
 elsewhere.
 
-Comments start with semicolons::
+Comments start with semicolons:
+
+.. code-block:: clj
 
   (print "this will run")
   ; (print "but this will not")
@@ -290,7 +292,9 @@ we might do::
   for i in range(10):
       print "'i' is now at " + str(i)
 
-The equivalent in hy would be::
+The equivalent in hy would be:
+
+.. code-block:: clj
 
   (for (i (range 10))
      (print (+ "'i' is now at " (str i))))
