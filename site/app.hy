@@ -12,7 +12,7 @@
 (import autopep8)
 
 
-(def app (Flask "__main__"))  ; long story, needed hack
+(setv app (Flask "__main__"))  ; long story, needed hack
 
 
 (defn hy-to-py [hython]
