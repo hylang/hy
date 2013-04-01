@@ -20,7 +20,9 @@
 
 from hy.compiler import hy_compile, HyCompileError
 from hy.lex import tokenize
+
 import ast
+import sys
 
 
 def _ast_spotcheck(arg, root, secondary):
@@ -73,3 +75,12 @@ def test_ast_non_decoratable():
         assert True == False
     except TypeError:
         pass
+
+
+def test_ast_print():
+    """ Ensure print doesn't suck. """
+    code = hy_compile(tokenize("(print \"foo\")")).body[0]
+    if sys.version_info[0] >= 3:
+        assert type(code.value) == ast.Call
+        return
+    assert type(code) == ast.Print
