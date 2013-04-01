@@ -189,6 +189,28 @@ If you need to do more complex conditionals, you'll find that you
 don't have elif available in hy.  Instead, you should use something
 called "cond".  In python, you might do something like::
 
+  somevar = 33
+  if somevar > 50:
+      print "That variable is too big!"
+  elif somevar < 10:
+      print "That variable is too small!"
+  else:
+      print "That variable is jussssst right!"
+
+In hy, you would do::
+
+  (cond
+   (> somevar 50) (print "That variable is too big!")
+   (< somevar 10) (print "That variable is too small!")
+   true (print "That variable is jussssst right!"))
+
+What you'll notice is that cond switches off between a some statement
+that is executed and checked conditionally for true or falseness, and
+then a bit of code to execute if it turns out to be true.  You'll also
+notice that the "else" is implemented at the end simply by checking
+for "true"... that's because true will always be true, so if we get
+this far, we'll always run that one!
+
 You can also import and make use of various python libraries.  For
 example::
 
