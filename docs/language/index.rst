@@ -22,29 +22,37 @@ Basic intro to lisp for pythonistas
 
 Okay, maybe you've never used lisp before, but you've used python!
 
-A "hello world" in hy is actually super simple.  Let's try it::
+A "hello world" in hy is actually super simple.  Let's try it:
 
-  (print "hello world")
+.. code-block:: clj
+
+   (print "hello world")
 
 See?  Easy!  As you may have guessed, this is the same as the python
 version of::
 
   print "hello world"
 
-To add up some super simple math, we could do::
+To add up some super simple math, we could do:
 
-  (+ 1 3)
+.. code-block:: clj
 
-Which would return 4 and would be the equivalent of::
+   (+ 1 3)
 
-  1 + 3
+Which would return 4 and would be the equivalent of:
+
+.. code-block:: clj
+
+   1 + 3
 
 What you'll notice is that the first item in the list is the function
 being called and the rest of the arguments are the arguments being
 passed in.  In fact, in hy (as with most lisps) we can pass in
-multiple arguments to the plus operator::
+multiple arguments to the plus operator:
 
-  (+ 1 3 55)
+.. code-block:: clj
+
+   (+ 1 3 55)
 
 Which would return 59.
 
@@ -54,9 +62,11 @@ is a great way to start learning lisp.  The main thing that's obvious
 about lisp is that there's a lot of parentheses.  This might seem
 confusing at first, but it isn't so hard.  Let's look at some simple
 math that's wrapped in a bunch of parentheses that we could enter into
-the hy interpreter::
+the hy interpreter:
 
-  (def result (- (/ (+ 1 3 88) 2) 8))
+.. code-block:: clj
+
+   (def result (- (/ (+ 1 3 88) 2) 8))
 
 This would return 37.  But why?  Well, we could look at the equivalent
 expression in python::
@@ -76,15 +86,17 @@ exercise first in python::
   # simplified to...
   result = 38
 
-Now let's try the same thing in hy::
+Now let's try the same thing in hy:
 
-  (def result (- (/ (+ 1 3 88) 2) 8))
-  ; simplified to...
-  (def result (- (/ 92 2) 8))
-  ; simplified to...
-  (def result (- 46 8))
-  ; simplified to...
-  (def result 38)
+.. code-block:: clj
+
+   (def result (- (/ (+ 1 3 88) 2) 8))
+   ; simplified to...
+   (def result (- (/ 92 2) 8))
+   ; simplified to...
+   (def result (- 46 8))
+   ; simplified to...
+   (def result 38)
 
 As you probably guessed, this last expression with "def" means to
 assign the variable "result" to 38.
@@ -115,14 +127,16 @@ If we ran this program, it might go like::
   What is your age? 38
   Hello Gary!  I see you are 38 years old.
 
-Now let's look at the equivalent hy program::
+Now let's look at the equivalent hy program:
 
-  (defn simple-conversation []
-     (print "Hello!  I'd like to get to know you.  Tell me about yourself!")
-     (def name (raw_input "What is your name? "))
-     (def age (raw_input "What is your age? "))
-     (print (+ "Hello " name "!  I see you are "
-                age " years old.")))
+.. code-block:: clj
+
+   (defn simple-conversation []
+      (print "Hello!  I'd like to get to know you.  Tell me about yourself!")
+      (def name (raw_input "What is your name? "))
+      (def age (raw_input "What is your age? "))
+      (print (+ "Hello " name "!  I see you are "
+                 age " years old.")))
 
 If you look at the above program, as long as you remember that the
 first element in each list of the program is the function (or
@@ -171,9 +185,11 @@ hy.  Let's experiment with this in the hy interpreter::
   {'dog': 'bark', 'cat': 'meow'}
 
 (You may notice that at present, the common lisp method of quoting
-things like so::
+things like so:
 
-  '(1 2 3)
+.. code-block:: clj
+
+   '(1 2 3)
 
 does not work.  Instead, use angle brackets as above.)
 
@@ -187,16 +203,20 @@ What's this?  Yes indeed, this is precisely the same as::
   " fooooo   ".strip()
 
 That's right... lisp with dot notation!  If we have this string
-assigned as a variable, we can also do the following::
+assigned as a variable, we can also do the following:
 
-  (def this-string " fooooo   ")
-  (this-string.strip)
+.. code-block:: clj
 
-What about conditionals?::
+   (def this-string " fooooo   ")
+   (this-string.strip)
 
-  (if (try-some-thing)
-    (print "this is if true")
-    (print "this is if false"))
+What about conditionals?:
+
+.. code-block:: clj
+
+   (if (try-some-thing)
+     (print "this is if true")
+     (print "this is if false"))
 
 As you can tell above, the first argument to if is a truth test, the
 second argument is a body if true, and the third argument (optional!)
@@ -214,15 +234,17 @@ called "cond".  In python, you might do something like::
   else:
       print "That variable is jussssst right!"
 
-In hy, you would do::
+In hy, you would do:
 
-  (cond
-   ((> somevar 50)
-    (print "That variable is too big!"))
-   ((< somevar 10)
-    (print "That variable is too small!"))
-   (true
-    (print "That variable is jussssst right!")))
+.. code-block:: clj
+
+   (cond
+    ((> somevar 50)
+     (print "That variable is too big!"))
+    ((< somevar 10)
+     (print "That variable is too small!"))
+    (true
+     (print "That variable is jussssst right!")))
 
 What you'll notice is that cond switches off between a some statement
 that is executed and checked conditionally for true or falseness, and
@@ -231,22 +253,26 @@ notice that the "else" is implemented at the end simply by checking
 for "true"... that's because true will always be true, so if we get
 this far, we'll always run that one!
 
-You might notice above that if you have code like::
+You might notice above that if you have code like:
 
-  (if some-condition
-    (body-if-true)
-    (body-if-false))
+.. code-block:: clj
+
+   (if some-condition
+     (body-if-true)
+     (body-if-false))
 
 But wait!  What if you want to execute more than one statment in the
 body of one of these?
 
-You can do the following::
+You can do the following:
 
-  (if (try-some-thing)
-    (do
-      (print "this is if true")
-      (print "and why not, let's keep talking about how true it is!))
-    (print "this one's still simply just false"))
+.. code-block:: clj
+
+   (if (try-some-thing)
+     (do
+       (print "this is if true")
+       (print "and why not, let's keep talking about how true it is!))
+     (print "this one's still simply just false"))
 
 You can see that we used "do" to wrap multiple statments.  If you're
 familiar with other lisps, this is the equivalent of "progn"
@@ -273,14 +299,23 @@ TODO: explain the extra power of hy's for, the list comprehensions
 aspect ;)
 
 You can also import and make use of various python libraries.  For
-example::
+example:
 
-  (import os)
+.. code-block:: clj
+
+   (import os)
   
-  (if (os.path.isdir "/tmp/somedir")
-    (os.mkdir "/tmp/somedir/anotherdir")
-    (print "Hey, that path isn't there!"))
+   (if (os.path.isdir "/tmp/somedir")
+     (os.mkdir "/tmp/somedir/anotherdir")
+     (print "Hey, that path isn't there!"))
 
+Comments start with semicolons:
+
+.. code-block:: clj
+
+   (print "this will run")
+   ; (print "but this will not")
+   (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
 
 TODO
