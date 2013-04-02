@@ -324,6 +324,48 @@ Comments start with semicolons:
    (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
 
+Protips!
+--------
+
+Hy also features something known as the "threading macro", a really neat
+feature of Clojure's. The "threading macro" (written as "->"), is used
+to avoid deep nesting of expressions.
+
+The threading macro inserts each expression into the next expression's first
+argument place.
+
+Let's take the classic:
+
+.. code-block:: clj
+
+    (loop (print (eval (read))))
+
+Rather then write it like that, we can write it as follows:
+
+.. code-block:: clj
+
+    (-> (read) (eval) (print) (loop))
+
+Now, using `python-sh <http://amoffat.github.com/sh/>`_, we can show
+how the threading macro (because of python-sh's setup) can be used like
+a pipe:
+
+.. code-block:: clj
+
+    => (import-from sh cat grep wc)
+    => (-> (cat "/usr/share/dict/words") (grep "-E" "^hy") (wc "-l"))
+    210
+
+Which, of course, expands out to:
+
+.. code-block:: clj
+
+    (wc (grep (cat "/usr/share/dict/words") "-E" "^hy") "-l")
+
+Much more readable, no! Use the threading macro!
+
+
+
 TODO
 ----
 
