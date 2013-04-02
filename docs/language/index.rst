@@ -193,7 +193,7 @@ things like so:
 
    '(1 2 3)
 
-does not work.  Instead, use angle brackets as above.)
+does not work.  Instead, use square brackets as above.)
 
 You also have access to all the builtin types' nice methods::
 
