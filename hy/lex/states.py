@@ -233,7 +233,11 @@ class String(State):
             if char == "n":
                 self.nodes.append("\n")
                 return
-            raise LexException("Unknown modifier")
+            if char == "\\":
+                self.nodes.append("\\")
+                return
+
+            raise LexException("Unknown modifier: `%s'" % (char))
 
         if char == "\"":
             return Idle

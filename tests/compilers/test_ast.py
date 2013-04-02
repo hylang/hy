@@ -89,15 +89,15 @@ def test_ast_non_kwapplyable():
 
 
 def test_ast_print():
-    """ Ensure print doesn't suck. """
     code = hy_compile(tokenize("(print \"foo\")")).body[0]
+
     if sys.version_info[0] >= 3:
         assert type(code.value) == ast.Call
         return
     assert type(code) == ast.Print
 
 
-def test_ast_print():
-    """ Ensure print doesn't suck. """
+def test_ast_tuple():
+    """ Ensure tuples work. """
     code = hy_compile(tokenize("(, 1 2 3)")).body[0].value
     assert type(code) == ast.Tuple

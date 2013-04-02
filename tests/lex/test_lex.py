@@ -148,3 +148,21 @@ def test_nospace():
 
     assert entry.end_line == 1
     assert entry.end_column == 13
+
+
+def test_escapes():
+    """ Ensure we can escape things """
+    entry = tokenize("(foo \"foo\\n\")")[0]
+    assert entry[1] == "foo\n"
+
+    try:
+        entry = tokenize("(foo \"foo\s\")")[0]
+        assert True is False
+    except LexException:
+        pass
+
+
+def test_hashbang():
+    """ Ensure we can escape things """
+    entry = tokenize("#!this is a comment\n")
+    assert entry == []
