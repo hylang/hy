@@ -120,7 +120,7 @@ def koan_macro(tree):
 try:
     readline.read_history_file(history)
 except IOError:
-    open(history, 'wa').close()
+    open(history, 'a').close()
 
 readline.parse_and_bind("tab: complete")
 

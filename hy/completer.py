@@ -20,7 +20,11 @@
 
 import hy.macros
 import hy.compiler
-import __builtin__
+
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__ # Py 3.3
 
 
 PATH = [hy.compiler._compile_table,
@@ -28,7 +32,7 @@ PATH = [hy.compiler._compile_table,
         __builtin__.__dict__]
 
 
-class Completer:
+class Completer(object):
     def __init__(self, namespace=None):
         if namespace and not isinstance(namespace, dict):
             raise TypeError('namespace must be a dictionary')
