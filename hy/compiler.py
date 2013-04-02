@@ -349,6 +349,32 @@ class HyASTCompiler(object):
                          col_offset=expr.start_column,
                          ctx=ast.Load())
 
+    @builds("list_comp")
+    def compile_list_comprehension(self, expr):
+        # (list-comp expr (target iter))
+        expr.pop(0)
+        thing = self.compile(expr.pop(0))
+        ident, gen = expr.pop(0)
+
+        ident = self.compile(ident)
+        gen = self.compile(gen)
+
+        if isinstance(ident, ast.Tuple):
+            for x in ident.elts:
+                x.ctx = ast.Store()
+        ident.ctx = ast.Store()
+
+        return ast.ListComp(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            elt=thing,
+            generators=[
+                ast.comprehension(
+                    target=ident,
+                    iter=gen,
+                    ifs=[self.compile(x) for x in expr])
+            ])
+
     @builds("kwapply")
     def compile_kwapply_expression(self, expr):
         expr.pop(0)  # kwapply
