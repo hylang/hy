@@ -4,6 +4,8 @@
 an ast.Print in Python 3.x, it's since become an ast.Call.
 * Cleaned up the tests a bit, and added some coverage to some uncovered
 modules
+* hy/compiler.py (compile_do_expression): Add progn as an alias
+(compile_def_expression): Add setf / setv as an alias for simple assignment
 
 2013-03-29  Paul Tagliamonte  <paultag@debian.org>
 
