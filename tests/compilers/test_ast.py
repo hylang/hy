@@ -38,7 +38,7 @@ def test_ast_bad_type():
     "Make sure AST breakage can happen"
     try:
         hy_compile("foo")
-        assert True == False
+        assert True is False
     except HyCompileError:
         pass
 
@@ -72,7 +72,18 @@ def test_ast_non_decoratable():
     """ Ensure decorating garbage breaks """
     try:
         hy_compile(tokenize("(decorate-with (foo) (* x x))"))
-        assert True == False
+        assert True is False
+    except TypeError:
+        pass
+
+
+def test_ast_non_kwapplyable():
+    """ Ensure kwapply breaks """
+    code = tokenize("(kwapply foo bar)")
+    code[0][2] = None
+    try:
+        hy_compile(code)
+        assert True is False
     except TypeError:
         pass
 
