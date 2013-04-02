@@ -1,3 +1,10 @@
+2013-04-01  Paul Tagliamonte  <paultag@debian.org>
+
+* hy/compiler.py (compile_print_expression): Add routines for not creating
+an ast.Print in Python 3.x, it's since become an ast.Call.
+* Cleaned up the tests a bit, and added some coverage to some uncovered
+modules
+
 2013-03-29  Paul Tagliamonte  <paultag@debian.org>
 
 * New release, 0.9.3.
