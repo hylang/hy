@@ -166,11 +166,13 @@ class HyASTCompiler(object):
 
     @builds("print")
     def compile_print_expression(self, expr):
-        expr.pop(0)  # print
+        call = expr.pop(0)  # print
         if sys.version_info[0] >= 3:
+            call = self.compile(call)
             # AST changed with Python 3, we now just call it.
             return ast.Call(
-                func=ast.Name(id='print', ctx=ast.Load()),
+                keywords=[],
+                func=call,
                 args=[self.compile(x) for x in expr],
                 lineno=expr.start_line,
                 col_offset=expr.start_column)

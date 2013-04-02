@@ -206,4 +206,5 @@
   "NATIVE: test list comprehensions"
   (assert (= (list-comp (* x 2) (x (range 2))) [0 2]))
   (assert (= (list-comp (* x 2) (x (range 4)) (% x 2)) [2 6]))
-  (assert (= (list-comp (* y 2) ((, x y) (.iteritems {"1" 1 "2" 2}))) [2 4])))
+  (assert (= (sorted (list-comp (* y 2) ((, x y) (.items {"1" 1 "2" 2}))))
+             [2 4])))
