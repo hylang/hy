@@ -24,7 +24,7 @@ import hy.compiler
 try:
     import __builtin__
 except ImportError:
-    import builtins as __builtin__ # Py 3.3
+    import builtins as __builtin__  # NOQA
 
 
 PATH = [hy.compiler._compile_table,
