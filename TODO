@@ -9,9 +9,6 @@
 
    + Use (def) to imply global foo
 
- - New Builtins:
-   + While
-
  - New macros:
    + loop
 

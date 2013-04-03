@@ -545,6 +545,26 @@ class HyASTCompiler(object):
         self.returnable = ret_status
         return ret
 
+    @builds("while")
+    def compile_while_expression(self, expr):
+        expr.pop(0)  # "while"
+
+        try:
+            test = expr.pop(0)
+        except IndexError:
+            raise TypeError("while expects at least 2 arguments, got 0")
+        test = self.compile(test)
+
+        if not expr:
+            raise TypeError("while expects a body")
+
+        return ast.While(test=test,
+                         body=self._mangle_branch([
+                             self.compile(x) for x in expr]),
+                         orelse=[],
+                         lineno=expr.start_line,
+                         col_offset=expr.start_column)
+
     @builds(HyList)
     def compile_list(self, expr):
         return ast.List(
