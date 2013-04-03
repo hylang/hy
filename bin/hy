@@ -51,8 +51,12 @@ class HyREPL(code.InteractiveConsole):
         tokens = process(_machine.nodes)
 
         _machine = Machine(Idle, 1, 0)
-        _ast = hy_compile(tokens, root=ast.Interactive)
-        code = compile(_ast, filename, symbol)
+        try:
+            _ast = hy_compile(tokens, root=ast.Interactive)
+            code = compile(_ast, filename, symbol)
+        except Exception:
+            self.showtraceback()
+            return False
 
         self.runcode(code)
         return False
