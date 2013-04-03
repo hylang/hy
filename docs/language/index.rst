@@ -334,7 +334,6 @@ In hy, you could do these like:
 
 .. code-block:: clj
 
-  ; and a little more complex
   (setv odds-squared
     (list-comp
       (pow num 2)
