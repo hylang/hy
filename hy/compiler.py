@@ -22,6 +22,7 @@ from hy.errors import HyError
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
@@ -79,6 +80,10 @@ class HyASTCompiler(object):
 
         ret.reverse()
         return ret
+
+    def _parse_lambda_list(self, exprs):
+        """ Return args, keywords, starargs, kwargs from exprs."""
+        return [self.compile(expr) for expr in exprs], [], None, None
 
     @builds(list)
     def compile_raw_list(self, entries):
@@ -481,11 +486,13 @@ class HyASTCompiler(object):
             if expression[0].startswith("."):
                 return self.compile_dotted_expression(expression)
 
+        args, keywords, starargs, kwargs = self._parse_lambda_list(expression[1:])
+
         return ast.Call(func=self.compile(fn),
-                        args=[self.compile(x) for x in expression[1:]],
-                        keywords=[],
-                        starargs=None,
-                        kwargs=None,
+                        args=args,
+                        keywords=keywords,
+                        starargs=starargs,
+                        kwargs=kwargs,
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
 

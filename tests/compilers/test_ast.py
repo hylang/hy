@@ -101,3 +101,8 @@ def test_ast_tuple():
     """ Ensure tuples work. """
     code = hy_compile(tokenize("(, 1 2 3)")).body[0].value
     assert type(code) == ast.Tuple
+
+
+def test_lambda_list_keywords_rest():
+    code = hy_compile(tokenize("(defun foo (x &rest xs))"))
+    assert False == True
