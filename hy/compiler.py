@@ -152,8 +152,16 @@ class HyASTCompiler(object):
     @builds("if")
     def compile_if_expression(self, expr):
         expr.pop(0)
-        test = self.compile(expr.pop(0))
-        body = self._code_branch(self.compile(expr.pop(0)))
+        try:
+            test = expr.pop(0)
+        except IndexError:
+            raise TypeError("if expects at least 2 arguments, got 0")
+        test = self.compile(test)
+        try:
+            body = expr.pop(0)
+        except IndexError:
+            raise TypeError("if expects at least 2 arguments, got 1")
+        body = self._code_branch(self.compile(body))
         orel = []
         if len(expr) > 0:
             orel = self._code_branch(self.compile(expr.pop(0)))
