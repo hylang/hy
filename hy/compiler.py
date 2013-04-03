@@ -134,8 +134,7 @@ class HyASTCompiler(object):
             name = str(name)
         else:
             # Python2 requires an ast.Name, set to ctx Store.
-            name = self.compile(name)
-            name.ctx = ast.Store()
+            name = self._storeize(self.compile(name))
 
         return ast.ExceptHandler(
             lineno=expr.start_line,
@@ -324,12 +323,7 @@ class HyASTCompiler(object):
     def compile_with_as_expression(self, expr):
         expr.pop(0)  # with-as
         ctx = self.compile(expr.pop(0))
-        thing = self.compile(expr.pop(0))
-        if isinstance(thing, ast.Tuple):
-            for x in thing.elts:
-                x.ctx = ast.Store()
-
-        thing.ctx = ast.Store()
+        thing = self._storeize(self.compile(expr.pop(0)))
 
         ret = ast.With(context_expr=ctx,
                        lineno=expr.start_line,
@@ -353,29 +347,40 @@ class HyASTCompiler(object):
 
     @builds("list_comp")
     def compile_list_comprehension(self, expr):
-        # (list-comp expr (target iter))
+        # (list-comp expr (target iter) cond?)
         expr.pop(0)
-        thing = self.compile(expr.pop(0))
-        ident, gen = expr.pop(0)
+        expression = expr.pop(0)
+        tar_it = iter(expr.pop(0))
+        targets = zip(tar_it, tar_it)
 
-        ident = self.compile(ident)
-        gen = self.compile(gen)
+        cond = None
+        if expr != []:
+            cond = self.compile(expr.pop(0))
 
-        if isinstance(ident, ast.Tuple):
-            for x in ident.elts:
-                x.ctx = ast.Store()
-        ident.ctx = ast.Store()
-
-        return ast.ListComp(
+        lcmp = None
+        ret = ast.ListComp(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            elt=thing,
-            generators=[
-                ast.comprehension(
-                    target=ident,
-                    iter=gen,
-                    ifs=[self.compile(x) for x in expr])
-            ])
+            elt=self.compile(expression),
+            generators=[])
+
+        for target, iterable in targets:
+            ret.generators.append(ast.comprehension(
+                target=self._storeize(self.compile(target)),
+                iter=self.compile(iterable),
+                ifs=[]))
+
+        if cond:
+            ret.generators[-1].ifs.append(cond)
+
+        return ret
+
+    def _storeize(self, name):
+        if isinstance(name, ast.Tuple):
+            for x in name.elts:
+                x.ctx = ast.Store()
+        name.ctx = ast.Store()
+        return name
 
     @builds("kwapply")
     def compile_kwapply_expression(self, expr):
@@ -505,12 +510,7 @@ class HyASTCompiler(object):
             what.name = str(name)
             return what
 
-        name = self.compile(name)
-        if isinstance(name, ast.Tuple):
-            for x in name.elts:
-                x.ctx = ast.Store()
-
-        name.ctx = ast.Store()
+        name = self._storeize(self.compile(name))
 
         return ast.Assign(
             lineno=expression.start_line,
@@ -524,13 +524,7 @@ class HyASTCompiler(object):
 
         expression.pop(0)  # for
         name, iterable = expression.pop(0)
-        target = self.compile_symbol(name)
-
-        if isinstance(target, ast.Tuple):
-            for x in target.elts:
-                x.ctx = ast.Store()
-
-        target.ctx = ast.Store()
+        target = self._storeize(self.compile_symbol(name))
         # support stuff like:
         # (for [x [1 2 3 4]
         #       y [a b c d]] ...)
