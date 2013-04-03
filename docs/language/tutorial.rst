@@ -1,8 +1,7 @@
 Tutorial
 ========
 
-
-This bit covers a bit about Hy's lovable quirks and eccentricities.
+Welcome to the Hy tutorial!
 
 In a nutshell, Hy is a lisp dialect, but one that converts its
 structure into Python... literally a conversion into Python's abstract
