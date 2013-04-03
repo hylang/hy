@@ -303,8 +303,6 @@ The equivalent in hy would be:
   (for (i (range 10))
      (print (+ "'i' is now at " (str i))))
 
-TODO: explain the extra power of hy's for, the list comprehensions
-aspect ;)
 
 You can also import and make use of various python libraries.  For
 example:
@@ -324,6 +322,24 @@ Comments start with semicolons:
    (print "this will run")
    ; (print "but this will not")
    (+ 1 2 3)  ; we'll execute the addition, but not this comment!
+
+And yes, we do have lisp comprehensions!  In Python you might do::
+
+  odds_squared = [
+    pow(num, 2)
+    for num in range(100)
+    if num % 2 == 1]
+
+In hy, you could do these like:
+
+.. code-block:: clj
+
+  ; and a little more complex
+  (setv odds-squared
+    (list-comp
+      (pow num 2)
+      (num (range 100))
+      (= (% num 2) 1))
 
 
 Protips!
