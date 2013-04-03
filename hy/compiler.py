@@ -357,7 +357,6 @@ class HyASTCompiler(object):
         if expr != []:
             cond = self.compile(expr.pop(0))
 
-        lcmp = None
         ret = ast.ListComp(
             lineno=expr.start_line,
             col_offset=expr.start_column,
