@@ -43,6 +43,29 @@ def test_ast_bad_type():
         pass
 
 
+def test_ast_bad_if_0_arg():
+    "Make sure AST can't compile invalid if"
+    try:
+        hy_compile(tokenize("(if)"))
+        assert False
+    except TypeError:
+        pass
+
+
+def test_ast_bad_if_1_arg():
+    "Make sure AST can't compile invalid if"
+    try:
+        hy_compile(tokenize("(if foobar)"))
+        assert False
+    except TypeError:
+        pass
+
+
+def test_ast_valid_if():
+    "Make sure AST can't compile invalid if"
+    hy_compile(tokenize("(if foo bar)"))
+
+
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = hy_compile(tokenize("(foo bar)")).body[0]
