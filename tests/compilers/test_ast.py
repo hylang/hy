@@ -66,6 +66,29 @@ def test_ast_valid_if():
     hy_compile(tokenize("(if foo bar)"))
 
 
+def test_ast_bad_while_0_arg():
+    "Make sure AST can't compile invalid while"
+    try:
+        hy_compile(tokenize("(while)"))
+        assert False
+    except TypeError:
+        pass
+
+
+def test_ast_bad_while_1_arg():
+    "Make sure AST can't compile invalid while"
+    try:
+        hy_compile(tokenize("(while (true))"))
+        assert False
+    except TypeError:
+        pass
+
+
+def test_ast_valid_while():
+    "Make sure AST can't compile invalid while"
+    hy_compile(tokenize("(while foo bar)"))
+
+
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = hy_compile(tokenize("(foo bar)")).body[0]
