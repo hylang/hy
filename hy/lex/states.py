@@ -20,6 +20,7 @@
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
@@ -45,12 +46,16 @@ def _resolve_atom(obj):
     Resolve a bare atom into one of the following (in order):
 
         - Integer
+        - LambdaListKeyword
         - Symbol
     """
     try:
         return HyInteger(obj)
     except ValueError:
         pass
+
+    if obj.startswith("&"):
+        return HyLambdaListKeyword(obj)
 
     table = {
         "true": "True",

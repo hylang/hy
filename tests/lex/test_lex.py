@@ -20,6 +20,7 @@
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
@@ -60,6 +61,14 @@ def test_lex_expression_integer():
     """ Make sure expressions can produce integers """
     objs = tokenize("(foo 2)")
     assert objs == [HyExpression([HySymbol("foo"), HyInteger(2)])]
+
+
+def test_lex_lambda_list_keyword():
+    """ Make sure expressions can produce lambda list keywords """
+    objs = tokenize("(x &rest xs)")
+    assert objs == [HyExpression([HySymbol("x"),
+                                  HyLambdaListKeyword("&rest"),
+                                  HySymbol("xs")])]
 
 
 def test_lex_line_counting():
