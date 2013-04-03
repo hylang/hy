@@ -36,5 +36,5 @@ Contents:
 .. toctree::
    :maxdepth: 3
 
-   language/index
+   language/tutorial
 ..   library/index
