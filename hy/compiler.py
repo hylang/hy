@@ -353,9 +353,7 @@ class HyASTCompiler(object):
         tar_it = iter(expr.pop(0))
         targets = zip(tar_it, tar_it)
 
-        cond = None
-        if expr != []:
-            cond = self.compile(expr.pop(0))
+        cond = self.compile(expr.pop(0)) if expr != [] else None
 
         ret = ast.ListComp(
             lineno=expr.start_line,
