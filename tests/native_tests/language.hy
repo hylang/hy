@@ -32,6 +32,17 @@
   (assert (= count 150)))
 
 
+(defn test-while-loop []
+  "NATIVE: test while loops?"
+  (setv count 5)
+  (setv fact 1)
+  (while (> count 0)
+    (setv fact (* fact count))
+    (setv count (- count 1)))
+  (assert (= count 0))
+  (assert (= fact 120)))
+
+
 (defn test-in []
   "NATIVE: test in"
   (assert (in "a" ["a" "b" "c" "d"]))
