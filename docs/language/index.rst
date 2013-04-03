@@ -411,3 +411,4 @@ TODO
  - How do I define classes?
  - Blow your mind with macros!
  - Where's my banana???
+ - Mention that you can import .hy files in .py files and vice versa!
