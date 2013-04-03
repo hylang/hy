@@ -380,7 +380,7 @@ Let's take the classic:
     (loop (print (eval (read))))
 
 Rather then write it like that, we can write it as follows:
-1
+
 .. code-block:: clj
 
     (-> (read) (eval) (print) (loop))
