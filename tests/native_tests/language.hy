@@ -223,14 +223,16 @@
   (with-as (open "README.md" "r") fd
            (pass)))
 
+
 (defn test-for-doodle []
   "NATIVE: test for-do"
-  (setf (, x y) (, 0 0))
+  (do (do (do (do (do (do (do (do (do (setf (, x y) (, 0 0)))))))))))
   (foreach [- [1 2]]
            (do
              (setf x (+ x 1))
              (setf y (+ y 1))))
   (assert (= y x 2)))
+
 
 (defn test-comprehensions []
   "NATIVE: test list comprehensions"
@@ -240,6 +242,7 @@
              [2 4]))
   (assert (= (list-comp (, x y) (x (range 2) y (range 2)))
              [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
+
 
 (defn test-defn-order []
   "NATIVE: test defn evaluation order"
@@ -251,11 +254,13 @@
   (my-fun)
   (assert (= acc ["Foo" "Bar" "Baz"])))
 
+
 (defn test-defn-return []
   "NATIVE: test defn return"
   (defn my-fun [x]
     (+ x 1))
   (assert (= 43 (my-fun 42))))
+
 
 (defn test-defn-do []
   "NATIVE: test defn evaluation order with do"
@@ -267,6 +272,7 @@
       (.append acc "Baz")))
   (my-fun)
   (assert (= acc ["Foo" "Bar" "Baz"])))
+
 
 (defn test-defn-do-return []
   "NATIVE: test defn return with do"

@@ -27,6 +27,8 @@ from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
+from hy.util import flatten_literal_list
+
 import ast
 import sys
 
@@ -63,23 +65,18 @@ class HyASTCompiler(object):
 
     def _mangle_branch(self, tree):
         ret = []
+        tree = list(flatten_literal_list(tree))
         tree.reverse()
 
         if self.returnable and len(tree) > 0:
             el = tree[0]
-            if not isinstance(el, (ast.stmt, list)):
+            if not isinstance(el, ast.stmt):
                 el = tree.pop(0)
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
 
         for el in tree:
-            if type(el) == list:
-                blob = self._mangle_branch(el)
-                blob.reverse()
-                ret += blob
-                continue
-
             if isinstance(el, ast.stmt):
                 ret.append(el)
                 continue
