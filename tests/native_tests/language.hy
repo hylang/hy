@@ -85,6 +85,17 @@
       (assert (= 1 1))
       (assert (= 1 1)))))
 
+(defn test-branching-expr-count-with-do []
+  "NATIVE: make sure we execute the right number of expressions in the branch"
+  (setv counter 0)
+  (if false
+    (assert (= 2 1))
+    (do
+      (setv counter (+ counter 1))
+      (setv counter (+ counter 1))
+      (setv counter (+ counter 1))))
+  (assert (= counter 3)))
+
 
 (defn test-cond []
   "NATIVE: test if cond sorta works."
