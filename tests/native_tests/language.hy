@@ -245,3 +245,22 @@
   (defn my-fun [x]
     (+ x 1))
   (assert (= 43 (my-fun 42))))
+
+(defn test-defn-do []
+  "NATIVE: test defn evaluation order with do"
+  (setv acc [])
+  (defn my-fun []
+    (do
+      (.append acc "Foo")
+      (.append acc "Bar")
+      (.append acc "Baz")))
+  (my-fun)
+  (assert (= acc ["Foo" "Bar" "Baz"])))
+
+(defn test-defn-do-return []
+  "NATIVE: test defn return with do"
+  (defn my-fun [x]
+    (do
+      (+ x 42)  ; noop
+      (+ x 1)))
+  (assert (= 43 (my-fun 42))))
