@@ -229,3 +229,19 @@
              [2 4]))
   (assert (= (list-comp (, x y) (x (range 2) y (range 2)))
              [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
+
+(defn test-defn-order []
+  "NATIVE: test defn evaluation order"
+  (setv acc [])
+  (defn my-fun []
+    (.append acc "Foo")
+    (.append acc "Bar")
+    (.append acc "Baz"))
+  (my-fun)
+  (assert (= acc ["Foo" "Bar" "Baz"])))
+
+(defn test-defn-return []
+  "NATIVE: test defn return"
+  (defn my-fun [x]
+    (+ x 1))
+  (assert (= 43 (my-fun 42))))
