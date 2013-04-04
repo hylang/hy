@@ -85,6 +85,17 @@
       (assert (= 1 1))
       (assert (= 1 1)))))
 
+(defn test-branching-expr-count-with-do []
+  "NATIVE: make sure we execute the right number of expressions in the branch"
+  (setv counter 0)
+  (if false
+    (assert (= 2 1))
+    (do
+      (setv counter (+ counter 1))
+      (setv counter (+ counter 1))
+      (setv counter (+ counter 1))))
+  (assert (= counter 3)))
+
 
 (defn test-cond []
   "NATIVE: test if cond sorta works."
@@ -229,3 +240,38 @@
              [2 4]))
   (assert (= (list-comp (, x y) (x (range 2) y (range 2)))
              [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
+
+(defn test-defn-order []
+  "NATIVE: test defn evaluation order"
+  (setv acc [])
+  (defn my-fun []
+    (.append acc "Foo")
+    (.append acc "Bar")
+    (.append acc "Baz"))
+  (my-fun)
+  (assert (= acc ["Foo" "Bar" "Baz"])))
+
+(defn test-defn-return []
+  "NATIVE: test defn return"
+  (defn my-fun [x]
+    (+ x 1))
+  (assert (= 43 (my-fun 42))))
+
+(defn test-defn-do []
+  "NATIVE: test defn evaluation order with do"
+  (setv acc [])
+  (defn my-fun []
+    (do
+      (.append acc "Foo")
+      (.append acc "Bar")
+      (.append acc "Baz")))
+  (my-fun)
+  (assert (= acc ["Foo" "Bar" "Baz"])))
+
+(defn test-defn-do-return []
+  "NATIVE: test defn return with do"
+  (defn my-fun [x]
+    (do
+      (+ x 42)  ; noop
+      (+ x 1)))
+  (assert (= 43 (my-fun 42))))
