@@ -223,6 +223,13 @@
   (with-as (open "README.md" "r") fd
            (pass)))
 
+(defn test-eval []
+  "NATIVE: test eval"
+  (assert (= 1 (eval 1)))
+  (assert (= "foobar" (eval "foobar")))
+  (setv x 42)
+  (assert (= x (eval x))))
+
 (defn test-for-doodle []
   "NATIVE: test for-do"
   (setf (, x y) (, 0 0))
