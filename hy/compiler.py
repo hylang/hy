@@ -533,6 +533,12 @@ class HyASTCompiler(object):
             col_offset=expression.start_column,
             targets=[name], value=what)
 
+    @builds("eval")
+    def compile_eval_expression(self, expression):
+        expression.pop(0)  # "eval"
+        expr = expression.pop(0)
+        return self.compile(expr)
+
     @builds("foreach")
     def compile_for_expression(self, expression):
         ret_status = self.returnable
