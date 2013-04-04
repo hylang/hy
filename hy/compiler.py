@@ -72,10 +72,21 @@ class HyASTCompiler(object):
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
-        ret += [ast.Expr(value=el,
-                         lineno=el.lineno,
-                         col_offset=el.col_offset)
-                if not isinstance(el, ast.stmt) else el for el in tree]  # NOQA
+
+        for el in tree:
+            if type(el) == list:
+                blob = self._mangle_branch(el)
+                blob.reverse()
+                ret += blob
+                continue
+
+            if isinstance(el, ast.stmt):
+                ret.append(el)
+                continue
+
+            ret.append(ast.Expr(value=el,
+                       lineno=el.lineno,
+                       col_offset=el.col_offset))
 
         ret.reverse()
         return ret

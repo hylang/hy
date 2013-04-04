@@ -212,6 +212,14 @@
   (with-as (open "README.md" "r") fd
            (pass)))
 
+(defn test-for-doodle []
+  "NATIVE: test for-do"
+  (setf (, x y) (, 0 0))
+  (foreach [- [1 2]]
+           (do
+             (setf x (+ x 1))
+             (setf y (+ y 1))))
+  (assert (= y x 2)))
 
 (defn test-comprehensions []
   "NATIVE: test list comprehensions"
