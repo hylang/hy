@@ -7,6 +7,7 @@ modules
 * hy/compiler.py (compile_do_expression): Add progn as an alias
 (compile_def_expression): Add setf / setv as an alias for simple assignment
 (compile_list_comrehension): Added list comprehensions.
+(compile_while_expression): New `while' syntax
 
 2013-03-29  Paul Tagliamonte  <paultag@debian.org>
 
