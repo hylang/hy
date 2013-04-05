@@ -281,3 +281,8 @@
       (+ x 42)  ; noop
       (+ x 1)))
   (assert (= 43 (my-fun 42))))
+
+
+(defn test-mangles []
+  "NATIVE: test mangles"
+  (assert (= 2 ((fn [] (+ 1 1))))))
