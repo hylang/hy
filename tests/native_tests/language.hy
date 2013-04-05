@@ -286,3 +286,10 @@
 (defn test-mangles []
   "NATIVE: test mangles"
   (assert (= 2 ((fn [] (+ 1 1))))))
+
+
+(defn test-fn-return []
+  "NATIVE: test function return"
+  (setv fn-test ((fn [] (fn [] (+ 1 1)))))
+  (assert (= (fn-test) 2)))
+
