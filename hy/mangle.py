@@ -45,6 +45,8 @@ class Mangle(object):
         scopable = ["fn", "if"]
         scoped = False
 
+        self.push_stack(tree)
+
         if isinstance(tree, HyExpression):
             what = tree[0]
             if what in scopable:
@@ -52,29 +54,30 @@ class Mangle(object):
                 scoped = True
 
         if isinstance(tree, list):
-            for element in tree:
-                self.visit(element)
+            for i, element in enumerate(tree):
+                nel = self.visit(element)
+                if nel:
+                    tree[i] = nel
+                    self.tree_changed()
+
                 self._mangle(element)
 
         if scoped:
             self.pop_scope()
+        self.pop_stack()
 
     def hoist(self, what):
-        #print "HOIST: "
-        #print " --> (fro) ", what
-        #print " --> (to)  ", self.scope
         scope = self.scope
-        point = 0
-
-        if isinstance(scope, HyExpression) and len(scope):
-            if scope[0] == 'fn':
-                point = 2
-
+        for point, el in enumerate(scope):
+            if el in self.stack:
+                break
         self.scope.insert(point, what)
-        #print " --> (aft) ", self.scope
 
     def get_scope(self):
         return self.scopes[0]
+
+    def tree_changed(self):
+        raise self.TreeChanged()
 
     @property
     def scope(self):
@@ -83,14 +86,21 @@ class Mangle(object):
     def push_scope(self, tree):
         self.scopes.insert(0, tree)
 
+    def push_stack(self, tree):
+        self.stack.insert(0, tree)
+
     def pop_scope(self):
         return self.scopes.pop(0)
+
+    def pop_stack(self):
+        return self.stack.pop(0)
 
     def mangle(self, tree):
         unfinished = True
         while unfinished:
             self.root = tree
             self.scopes = []
+            self.stack = []
             self.push_scope(tree)
             try:
                 self._mangle(tree)
