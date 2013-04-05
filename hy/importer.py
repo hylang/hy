@@ -24,6 +24,7 @@ from hy.core import process
 from py_compile import wr_long, MAGIC
 
 
+import io
 import marshal
 import imp
 import sys
@@ -43,7 +44,7 @@ def import_buffer_to_hst(fd):
 
 
 def import_file_to_hst(fpath):
-    return import_buffer_to_hst(open(fpath, 'r'))
+    return import_buffer_to_hst(io.open(fpath, 'rU', encoding='utf-8'))
 
 
 def import_file_to_ast(fpath):
