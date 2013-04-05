@@ -7,6 +7,7 @@ Lisp and Python should love each other. Let's make it happen.
 
 [![Build Status](https://travis-ci.org/paultag/hy.png?branch=master)](https://travis-ci.org/paultag/hy)
 
+
 Hylarious Hacks
 ---------------
 
@@ -28,3 +29,13 @@ Well, I wrote Hy to help people realize one thing about Python:
 It's really goddamn awesome.
 
 Oh, and lisps are neat.
+
+
+Project
+-------
+
+* Code: https://github.com/paultag/hy
+* Docs: http://hy.rtfd.org/
+* Quickstart: http://hy.rtfd.org/en/latest/quickstart.html
+* Bug reports: We have no bugs! Your bugs are your own! (https://github.com/paultag/hy/issues)
+* License: MIT (Expat)
