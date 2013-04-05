@@ -18,26 +18,35 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.macros import process as mprocess
+from hy.models.expression import HyExpression
+from hy.models.symbol import HySymbol
 
 import hy.mangle
 
 
-MACROS = [
-    "hy.core.bootstrap",
-    "hy.core.mangles",
-]
+class FunctionMangle(hy.mangle.Mangle):
+    hoistable = ["fn"]
 
+    def __init__(self):
+        self.series = 0
 
-def process(tree):
-    load_macros()
-    tree = mprocess(tree)
-    for m in hy.mangle.MANGLES:
-        m().mangle(tree)
-    print tree
-    return tree
+    def unique_name(self):
+        self.series += 1
+        return "_hy_hoisted_fn_%s" % (self.series)
 
+    def visit(self, tree):
+        if isinstance(tree, HyExpression):
+            call = tree[0]
+            if isinstance(call, HyExpression) and len(call) != 0:
+                what = call[0]
+                if what in self.hoistable:
+                    name = self.unique_name()
+                    call = HyExpression([HySymbol("def"), name, call])
+                    self.hoist(call)
+                    tree.pop(0)
+                    entry = HySymbol(name)
+                    entry.replace(tree)
+                    tree.insert(0, entry)
+                    raise self.TreeChanged()
 
-def load_macros():
-    for module in MACROS:
-        __import__(module)
+hy.mangle.MANGLES.append(FunctionMangle)
