@@ -68,7 +68,7 @@ class Mangle(object):
 
         if isinstance(scope, HyExpression) and len(scope):
             if scope[0] == 'fn':
-                point = 3
+                point = 2
 
         self.scope.insert(point, what)
         #print " --> (aft) ", self.scope
