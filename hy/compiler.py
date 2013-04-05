@@ -75,6 +75,12 @@ class HyASTCompiler(object):
                 ret.append(ast.Return(value=el,
                                       lineno=el.lineno,
                                       col_offset=el.col_offset))
+            if isinstance(el, ast.FunctionDef):
+                ret.append(ast.Return(
+                    value=ast.Name(
+                        arg=el.name, id=el.name, ctx=ast.Load(),
+                        lineno=el.lineno, col_offset=el.col_offset),
+                    lineno=el.lineno, col_offset=el.col_offset))
 
         for el in tree:
             if isinstance(el, ast.stmt):
