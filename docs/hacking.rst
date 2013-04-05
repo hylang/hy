@@ -13,7 +13,7 @@ Please talk about it on Twitter with the ``#hy`` hashtag!
 
 Please blog about it!
 
-Please spraypaint it on your neighbor's fence!
+Please don't spraypaint it on your neighbor's fence (without asking nicely)!
 
 
 Hack!
