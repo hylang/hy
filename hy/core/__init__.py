@@ -34,7 +34,6 @@ def process(tree):
     tree = mprocess(tree)
     for m in hy.mangle.MANGLES:
         m().mangle(tree)
-    print tree
     return tree
 
 
