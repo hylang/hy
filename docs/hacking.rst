@@ -21,7 +21,8 @@ Hack!
 
 Do this:
 
-1. create a Python virtual environment
+1. create a `Python virtual environment
+   <https://pypi.python.org/pypi/virtualenv>`_
 2. (optional) go to https://github.com/paultag/hy and fork it
 3. get the source code::
 
