@@ -61,6 +61,15 @@ def test_ast_bad_if_1_arg():
         pass
 
 
+def test_ast_bad_if_too_much_arg():
+    "Make sure AST can't compile invalid if"
+    try:
+        hy_compile(tokenize("(if 1 2 3 4 5)"))
+        assert False
+    except TypeError:
+        pass
+
+
 def test_ast_valid_if():
     "Make sure AST can't compile invalid if"
     hy_compile(tokenize("(if foo bar)"))
