@@ -236,6 +236,9 @@ class String(State):
             if char == "\\":
                 self.nodes.append("\\")
                 return
+            if char == "\"":
+                self.nodes.append("\"")
+                return
 
             raise LexException("Unknown modifier: `%s'" % (char))
 
