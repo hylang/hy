@@ -36,5 +36,7 @@ Contents:
 .. toctree::
    :maxdepth: 3
 
+   quickstart
+   hacking
    language/tutorial
 ..   library/index

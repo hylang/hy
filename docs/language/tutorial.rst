@@ -1,3 +1,4 @@
+========
 Tutorial
 ========
 
@@ -20,7 +21,7 @@ This is pretty cool because it means Hy is several things:
 
 
 Basic intro to lisp for pythonistas
------------------------------------
+===================================
 
 Okay, maybe you've never used lisp before, but you've used python!
 
@@ -173,7 +174,7 @@ incredible power (just be careful to not aim them footward)!
 
 
 Hy is python flavored lisp (or vice versa?)
--------------------------------------------
+===========================================
 
 Hy converts to python's own abstract syntax tree, so you'll soon start
 to find that all the familiar power of python is at your fingertips.
@@ -364,7 +365,7 @@ In hy, you could do these like:
 
 
 Protips!
---------
+========
 
 Hy also features something known as the "threading macro", a really neat
 feature of Clojure's. The "threading macro" (written as "->"), is used
@@ -404,9 +405,8 @@ Which, of course, expands out to:
 Much more readable, no! Use the threading macro!
 
 
-
 TODO
-----
+====
 
  - How do I define classes?
  - Blow your mind with macros!
