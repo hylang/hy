@@ -26,7 +26,7 @@ import hy.mangle
 
 class FunctionMangle(hy.mangle.Mangle):
     hoistable = ["fn"]
-    ignore = ["def", "decorate_with"]
+    ignore = ["def", "decorate_with", "setf", "setv"]
 
     def __init__(self):
         self.series = 0
