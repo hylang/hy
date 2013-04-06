@@ -299,6 +299,20 @@
   (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6)))
 
 
+(defn test-let-scope []
+  "NATIVE: test let works rightish"
+  (setv y 123)
+  (assert (= (let [[x 1]
+                   [y 2]
+                   [z 3]]
+               (+ x y z))
+             6))
+  (try
+    (assert (= x 42))                   ; This ain't true
+    (catch NameError e (assert e)))
+  (assert (= y 123)))
+
+
 ; FEATURE: native hy-eval
 ;
 ;   - related to bug #64
