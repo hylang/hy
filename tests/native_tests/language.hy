@@ -294,6 +294,11 @@
   (assert (= (fn-test) 2)))
 
 
+(defn test-let []
+  "NATIVE: test let works rightish"
+  (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6)))
+
+
 ; FEATURE: native hy-eval
 ;
 ;   - related to bug #64

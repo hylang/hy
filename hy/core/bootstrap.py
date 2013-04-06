@@ -114,3 +114,19 @@ def rest_macro(tree):
     return HyExpression([HySymbol('slice'),
                          ret,
                          HyInteger(1)])
+
+
+@macro("let")
+def let_macro(tree):
+    tree.pop(0)  # "let"
+    ret = tree.pop(0)  # vars
+    # tree is now the body
+    expr = HyExpression([HySymbol("fn"), HyList([])])
+
+    for var in ret:
+        expr.append(HyExpression([HySymbol("setf"), var[0], var[1]]))
+
+    for stmt in tree:
+        expr.append(stmt)
+
+    return HyExpression([expr])
