@@ -34,7 +34,3 @@ class HyString(HyObject, _str_type):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
-
-    def __new__(cls, value):
-        obj = _str_type.__new__(cls, value)
-        return obj
