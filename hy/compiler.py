@@ -430,7 +430,6 @@ class HyASTCompiler(object):
                            lineno=operator.start_line,
                            col_offset=operator.start_column)
 
-
     @builds("=")
     @builds("!=")
     @builds("<")
