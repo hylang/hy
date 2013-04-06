@@ -292,3 +292,17 @@
   "NATIVE: test function return"
   (setv fn-test ((fn [] (fn [] (+ 1 1)))))
   (assert (= (fn-test) 2)))
+
+
+; FEATURE: native hy-eval
+;
+;   - related to bug #64
+;   - https://github.com/paultag/hy/issues/64
+;   - https://github.com/paultag/hy/pull/62
+;
+; (defn test-eval []
+;   "NATIVE: test eval"
+;   (assert (= 1 (eval 1)))
+;   (assert (= "foobar" (eval "foobar")))
+;   (setv x 42)
+;   (assert (= x (eval x))))
