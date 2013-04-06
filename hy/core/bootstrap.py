@@ -80,7 +80,7 @@ def for_macro(tree):
     return root
 
 
-@macro("_>")
+@macro("->")
 def threading_macro(tree):
     tree.pop(0)
     ret = tree.pop(0)
