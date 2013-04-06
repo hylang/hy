@@ -2,7 +2,7 @@
 Quickstart
 ==========
 
-I WANT TO BE DOING HY STUFF RIGHT NOW!
+HOW TO GET HY REAL FAST:
 
 1. create a `Python virtual environment
    <https://pypi.python.org/pypi/virtualenv>`_
@@ -33,5 +33,6 @@ OMG! That's amazing! I want to write a hy program.
 
         hy test_program_of_awesome.hy
 
-11. smile villainously and sneak off to your hydeaway and do
+11. take a deep breath so as to not hyperventilate
+12. smile villainously and sneak off to your hydeaway and do
     unspeakable things
