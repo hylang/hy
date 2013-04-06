@@ -20,21 +20,12 @@
 
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
+from hy.models.list import HyList
 
 import hy.mangle
 
 
-class FunctionMangle(hy.mangle.Mangle):
-    hoistable = ["fn"]
-    ignore = ["def", "decorate_with", "setf", "setv"]
-
-    def __init__(self):
-        self.series = 0
-
-    def unique_name(self):
-        self.series += 1
-        return "_hy_hoisted_fn_%s" % (self.series)
-
+class HoistableMangle(hy.mangle.Mangle):
     def should_hoist(self):
         for frame in self.stack:
             if frame is self.scope:
@@ -46,6 +37,18 @@ class FunctionMangle(hy.mangle.Mangle):
                     continue
             return True
         return False
+
+
+class FunctionMangle(HoistableMangle):
+    hoistable = ["fn"]
+    ignore = ["def", "decorate_with", "setf", "setv"]
+
+    def __init__(self):
+        self.series = 0
+
+    def unique_name(self):
+        self.series += 1
+        return "_hy_hoisted_fn_%s" % (self.series)
 
     def visit(self, tree):
         if isinstance(tree, HyExpression) and tree != []:
@@ -60,4 +63,22 @@ class FunctionMangle(hy.mangle.Mangle):
                 self.hoist(fn_def)
                 return new_name
 
+
+class IfMangle(HoistableMangle):
+    ignore = []
+
+    def __init__(self):
+        self.series = 0
+
+    def visit(self, tree):
+        if isinstance(tree, HyExpression) and tree != []:
+            call = tree[0]
+            if call == "if" and self.should_hoist():
+                fn = HyExpression([HyExpression([HySymbol("fn"),
+                                   HyList([]),
+                                   tree])])
+                fn.replace(tree)
+                return fn
+
+hy.mangle.MANGLES.append(IfMangle)
 hy.mangle.MANGLES.append(FunctionMangle)

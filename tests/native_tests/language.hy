@@ -312,6 +312,11 @@
   (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6)))
 
 
+(defn test-if-mangler []
+  "NATIVE: test that we return ifs"
+  (assert (= true (if true true true))))
+
+
 (defn test-let-scope []
   "NATIVE: test let works rightish"
   (setv y 123)
