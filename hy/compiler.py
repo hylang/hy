@@ -176,10 +176,12 @@ class HyASTCompiler(object):
             raise TypeError("if expects at least 2 arguments, got 1")
         body = self._code_branch(self.compile(body))
         orel = []
+
         if len(expr) == 1:
             orel = self._code_branch(self.compile(expr.pop(0)))
         elif len(expr) > 1:
-            raise TypeError("if expects 2 or 3 arguments, got %d" % (len(expr) + 2))
+            raise TypeError("if expects 2 or 3 arguments, got %d" % (
+                len(expr) + 2))
 
         return ast.If(test=test,
                       body=body,
