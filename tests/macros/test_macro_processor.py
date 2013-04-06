@@ -2,9 +2,7 @@
 from hy.macros import macro, process
 from hy.lex import tokenize
 
-from hy.models.expression import HyExpression
 from hy.models.string import HyString
-from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 
 

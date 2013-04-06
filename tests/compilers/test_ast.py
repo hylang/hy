@@ -258,17 +258,17 @@ def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = hy_compile(tokenize("(foo bar)")).body[0]
     tree = ast.Expr(value=ast.Call(
-            func=ast.Name(
-                id="foo",
-                ctx=ast.Load(),
-            ),
-            args=[
-                ast.Name(id="bar", ctx=ast.Load())
-            ],
-            keywords=[],
-            starargs=None,
-            kwargs=None,
-        ))
+        func=ast.Name(
+            id="foo",
+            ctx=ast.Load(),
+        ),
+        args=[
+            ast.Name(id="bar", ctx=ast.Load())
+        ],
+        keywords=[],
+        starargs=None,
+        kwargs=None,
+    ))
 
     _ast_spotcheck("value.func.id", code, tree)
 

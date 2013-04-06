@@ -32,13 +32,13 @@ from hy.lex import tokenize
 def test_lex_exception():
     """ Ensure tokenize throws a fit on a partial input """
     try:
-        objs = tokenize("(foo")
+        tokenize("(foo")
         assert True is False
     except LexException:
         pass
 
     try:
-        objs = tokenize("&foo&")
+        tokenize("&foo&")
         assert True is False
     except LexException:
         pass
