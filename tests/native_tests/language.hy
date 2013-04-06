@@ -292,4 +292,3 @@
   "NATIVE: test function return"
   (setv fn-test ((fn [] (fn [] (+ 1 1)))))
   (assert (= (fn-test) 2)))
-
