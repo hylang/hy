@@ -67,14 +67,14 @@ def checkargs(exact=None, min=None, max=None):
                                          exact)
 
             if min is not None and (len(expression) - 1) < min:
-                _raise_wrong_args_number(expression,
-                                         "`%%s' needs at least %d arguments, got %%d" %
-                                         min)
+                _raise_wrong_args_number(
+                    expression,
+                    "`%%s' needs at least %d arguments, got %%d" % (min))
 
             if max is not None and (len(expression) - 1) > max:
-                _raise_wrong_args_number(expression,
-                                         "`%%s' needs at most %d arguments, got %%d" %
-                                         max)
+                _raise_wrong_args_number(
+                    expression,
+                    "`%%s' needs at most %d arguments, got %%d" % (max))
 
             return fn(self, expression)
 
