@@ -51,31 +51,11 @@ def test_ast_bad_type():
         pass
 
 
-def test_ast_bad_if_0_arg():
+def test_ast_bad_if():
     "Make sure AST can't compile invalid if"
-    try:
-        hy_compile(tokenize("(if)"))
-        assert False
-    except HyCompileError:
-        pass
-
-
-def test_ast_bad_if_1_arg():
-    "Make sure AST can't compile invalid if"
-    try:
-        hy_compile(tokenize("(if foobar)"))
-        assert False
-    except HyCompileError:
-        pass
-
-
-def test_ast_bad_if_too_much_arg():
-    "Make sure AST can't compile invalid if"
-    try:
-        hy_compile(tokenize("(if 1 2 3 4 5)"))
-        assert False
-    except HyCompileError:
-        pass
+    cant_compile("(if)")
+    cant_compile("(if foobar)")
+    cant_compile("(if 1 2 3 4 5)")
 
 
 def test_ast_valid_if():
@@ -98,22 +78,10 @@ def test_ast_invalid_unary_op():
     cant_compile("(~)")
 
 
-def test_ast_bad_while_0_arg():
+def test_ast_bad_while():
     "Make sure AST can't compile invalid while"
-    try:
-        hy_compile(tokenize("(while)"))
-        assert False
-    except HyCompileError:
-        pass
-
-
-def test_ast_bad_while_1_arg():
-    "Make sure AST can't compile invalid while"
-    try:
-        hy_compile(tokenize("(while (true))"))
-        assert False
-    except HyCompileError:
-        pass
+    cant_compile("(while)")
+    cant_compile("(while (true))")
 
 
 def test_ast_good_do():
@@ -281,11 +249,7 @@ def test_ast_anon_fns_basics():
 
 def test_ast_non_decoratable():
     """ Ensure decorating garbage breaks """
-    try:
-        hy_compile(tokenize("(decorate-with (foo) (* x x))"))
-        assert True is False
-    except HyCompileError:
-        pass
+    cant_compile("(decorate-with (foo) (* x x))")
 
 
 def test_ast_non_kwapplyable():
