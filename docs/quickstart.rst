@@ -29,4 +29,6 @@ OMG! That's amazing! I want to write a hy program.
        (print "hy is the BEST!")
 
 9. save as ``test_program_of_awesome.hy``
-10. run ``hy test_program_of_awesome.hy``
+10. run::
+
+        hy test_program_of_awesome.hy
