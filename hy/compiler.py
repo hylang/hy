@@ -415,6 +415,22 @@ class HyASTCompiler(object):
 
         return call
 
+    @builds("not")
+    @builds("~")
+    def compile_unary_operator(self, expression):
+        if len(expression) != 2:
+            raise TypeError("Unary operator expects only 1 argument, got %d"
+                            % (len(expression) - 1))
+        ops = {"not": ast.Not,
+               "~": ast.Invert}
+        operator = expression.pop(0)
+        operand = expression.pop(0)
+        return ast.UnaryOp(op=ops[operator](),
+                           operand=self.compile(operand),
+                           lineno=operator.start_line,
+                           col_offset=operator.start_column)
+
+
     @builds("=")
     @builds("!=")
     @builds("<")

@@ -43,6 +43,19 @@
   (assert (= fact 120)))
 
 
+(defn test-not []
+  "NATIVE: test not"
+  (assert (not (= 1 2)))
+  (assert (= true (not false)))
+  (assert (= false (not 42))) )
+
+
+(defn test-inv []
+  "NATIVE: test inv"
+  (assert (= (~ 1) -2))
+  (assert (= (~ -2) 1)))
+
+
 (defn test-in []
   "NATIVE: test in"
   (assert (in "a" ["a" "b" "c" "d"]))

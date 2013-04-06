@@ -34,6 +34,14 @@ def _ast_spotcheck(arg, root, secondary):
     assert getattr(root, arg) == getattr(secondary, arg)
 
 
+def cant_compile(expr):
+    try:
+        hy_compile(tokenize(expr))
+        assert False
+    except TypeError:
+        pass
+
+
 def test_ast_bad_type():
     "Make sure AST breakage can happen"
     try:
@@ -64,6 +72,21 @@ def test_ast_bad_if_1_arg():
 def test_ast_valid_if():
     "Make sure AST can't compile invalid if"
     hy_compile(tokenize("(if foo bar)"))
+
+
+def test_ast_valid_unary_op():
+    "Make sure AST can compile valid unary operator"
+    hy_compile(tokenize("(not 2)"))
+    hy_compile(tokenize("(~ 1)"))
+
+
+def test_ast_invalid_unary_op():
+    "Make sure AST can't compile invalid unary operator"
+    cant_compile("(not 2 3 4)")
+    cant_compile("(not)")
+    cant_compile("(not 2 3 4)")
+    cant_compile("(~ 2 2 3 4)")
+    cant_compile("(~)")
 
 
 def test_ast_bad_while_0_arg():
