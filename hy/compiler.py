@@ -50,6 +50,38 @@ def builds(_type):
     return _dec
 
 
+def _raise_wrong_args_number(expression, error):
+    err = TypeError(error % (expression.pop(0),
+                             len(expression)))
+    err.start_line = expression.start_line
+    err.start_column = expression.start_column
+    raise err
+
+
+def checkargs(exact=None, min=None, max=None):
+    def _dec(fn):
+        def checker(self, expression):
+            if exact is not None and (len(expression) - 1) != exact:
+                _raise_wrong_args_number(expression,
+                                         "`%%s' needs %d arguments, got %%d" %
+                                         exact)
+
+            if min is not None and (len(expression) - 1) < min:
+                _raise_wrong_args_number(expression,
+                                         "`%%s' needs at least %d arguments, got %%d" %
+                                         min)
+
+            if max is not None and (len(expression) - 1) > max:
+                _raise_wrong_args_number(expression,
+                                         "`%%s' needs at most %d arguments, got %%d" %
+                                         max)
+
+            return fn(self, expression)
+
+        return checker
+    return _dec
+
+
 class HyASTCompiler(object):
 
     def __init__(self):
@@ -57,9 +89,16 @@ class HyASTCompiler(object):
         self.anon_fn_count = 0
 
     def compile(self, tree):
-        for _type in _compile_table:
-            if type(tree) == _type:
-                return _compile_table[_type](self, tree)
+        try:
+            for _type in _compile_table:
+                if type(tree) == _type:
+                    return _compile_table[_type](self, tree)
+        except Exception as e:
+            err = HyCompileError(str(e))
+            err.exception = e
+            err.start_line = getattr(e, "start_line", None)
+            err.start_column = getattr(e, "start_column", None)
+            raise err
 
         raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
 
@@ -100,10 +139,12 @@ class HyASTCompiler(object):
 
     @builds("do")
     @builds("progn")
+    @checkargs(min=1)
     def compile_do_expression(self, expr):
         return [self.compile(x) for x in expr[1:]]
 
     @builds("throw")
+    @checkargs(min=1)
     def compile_throw_expression(self, expr):
         expr.pop(0)
         exc = self.compile(expr.pop(0))
@@ -116,6 +157,7 @@ class HyASTCompiler(object):
             tback=None)
 
     @builds("try")
+    @checkargs(min=1)
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
 
@@ -134,6 +176,7 @@ class HyASTCompiler(object):
             orelse=[])
 
     @builds("catch")
+    @checkargs(min=2)
     def compile_catch_expression(self, expr):
         expr.pop(0)  # catch
         _type = self.compile(expr.pop(0))
@@ -163,25 +206,16 @@ class HyASTCompiler(object):
         return self._mangle_branch([branch])
 
     @builds("if")
+    @checkargs(min=2, max=3)
     def compile_if_expression(self, expr):
-        expr.pop(0)
-        try:
-            test = expr.pop(0)
-        except IndexError:
-            raise TypeError("if expects at least 2 arguments, got 0")
-        test = self.compile(test)
-        try:
-            body = expr.pop(0)
-        except IndexError:
-            raise TypeError("if expects at least 2 arguments, got 1")
-        body = self._code_branch(self.compile(body))
-        orel = []
+        expr.pop(0)             # if
+        test = self.compile(expr.pop(0))
+        body = self._code_branch(self.compile(expr.pop(0)))
 
         if len(expr) == 1:
             orel = self._code_branch(self.compile(expr.pop(0)))
-        elif len(expr) > 1:
-            raise TypeError("if expects 2 or 3 arguments, got %d" % (
-                len(expr) + 2))
+        else:
+            orel = []
 
         return ast.If(test=test,
                       body=body,
@@ -210,6 +244,7 @@ class HyASTCompiler(object):
             nl=True)
 
     @builds("assert")
+    @checkargs(1)
     def compile_assert_expression(self, expr):
         expr.pop(0)  # assert
         e = expr.pop(0)
@@ -219,6 +254,7 @@ class HyASTCompiler(object):
                           col_offset=e.start_column)
 
     @builds("lambda")
+    @checkargs(min=2)
     def compile_lambda_expression(self, expr):
         expr.pop(0)
         sig = expr.pop(0)
@@ -241,10 +277,12 @@ class HyASTCompiler(object):
             body=self.compile(body))
 
     @builds("pass")
+    @checkargs(0)
     def compile_pass_expression(self, expr):
         return ast.Pass(lineno=expr.start_line, col_offset=expr.start_column)
 
     @builds("yield")
+    @checkargs(1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
         return ast.Yield(
@@ -272,6 +310,7 @@ class HyASTCompiler(object):
                              asname=str(x[1])) for x in modlist])
 
     @builds("import_from")
+    @checkargs(min=1)
     def compile_import_from_expression(self, expr):
         expr.pop(0)  # index
         return ast.ImportFrom(
@@ -282,6 +321,7 @@ class HyASTCompiler(object):
             level=0)
 
     @builds("get")
+    @checkargs(2)
     def compile_index_expression(self, expr):
         expr.pop(0)  # index
         val = self.compile(expr.pop(0))  # target
@@ -295,6 +335,7 @@ class HyASTCompiler(object):
             ctx=ast.Load())
 
     @builds("slice")
+    @checkargs(min=1, max=3)
     def compile_slice_expression(self, expr):
         expr.pop(0)  # index
         val = self.compile(expr.pop(0))  # target
@@ -317,6 +358,7 @@ class HyASTCompiler(object):
             ctx=ast.Load())
 
     @builds("assoc")
+    @checkargs(3)
     def compile_assoc_expression(self, expr):
         expr.pop(0)  # assoc
         # (assoc foo bar baz)  => foo[bar] = baz
@@ -337,6 +379,7 @@ class HyASTCompiler(object):
             value=self.compile(val))
 
     @builds("decorate_with")
+    @checkargs(min=1)
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # decorate-with
         fn = self.compile(expr.pop(-1))
@@ -346,6 +389,7 @@ class HyASTCompiler(object):
         return fn
 
     @builds("with_as")
+    @checkargs(min=2)
     def compile_with_as_expression(self, expr):
         expr.pop(0)  # with-as
         ctx = self.compile(expr.pop(0))
@@ -372,6 +416,7 @@ class HyASTCompiler(object):
                          ctx=ast.Load())
 
     @builds("list_comp")
+    @checkargs(min=2, max=3)
     def compile_list_comprehension(self, expr):
         # (list-comp expr (target iter) cond?)
         expr.pop(0)
@@ -406,6 +451,7 @@ class HyASTCompiler(object):
         return name
 
     @builds("kwapply")
+    @checkargs(2)
     def compile_kwapply_expression(self, expr):
         expr.pop(0)  # kwapply
         call = self.compile(expr.pop(0))
@@ -421,10 +467,8 @@ class HyASTCompiler(object):
 
     @builds("not")
     @builds("~")
+    @checkargs(1)
     def compile_unary_operator(self, expression):
-        if len(expression) != 2:
-            raise TypeError("Unary operator expects only 1 argument, got %d"
-                            % (len(expression) - 1))
         ops = {"not": ast.Not,
                "~": ast.Invert}
         operator = expression.pop(0)
@@ -444,6 +488,7 @@ class HyASTCompiler(object):
     @builds("in")
     @builds("is_not")
     @builds("not_in")
+    @checkargs(min=2)
     def compile_compare_op_expression(self, expression):
         ops = {"=": ast.Eq, "!=": ast.NotEq,
                "<": ast.Lt, "<=": ast.LtE,
@@ -467,6 +512,7 @@ class HyASTCompiler(object):
     @builds("-")
     @builds("/")
     @builds("*")
+    @checkargs(min=2)
     def compile_maths_expression(self, expression):
         # operator = Mod | Pow | LShift | RShift | BitOr |
         #            BitXor | BitAnd | FloorDiv
@@ -535,6 +581,7 @@ class HyASTCompiler(object):
     @builds("def")
     @builds("setf")
     @builds("setv")
+    @checkargs(2)
     def compile_def_expression(self, expression):
         expression.pop(0)  # "def"
         name = expression.pop(0)
@@ -556,6 +603,7 @@ class HyASTCompiler(object):
             targets=[name], value=what)
 
     @builds("foreach")
+    @checkargs(min=1)
     def compile_for_expression(self, expression):
         ret_status = self.returnable
         self.returnable = False
@@ -579,17 +627,10 @@ class HyASTCompiler(object):
         return ret
 
     @builds("while")
+    @checkargs(min=2)
     def compile_while_expression(self, expr):
         expr.pop(0)  # "while"
-
-        try:
-            test = expr.pop(0)
-        except IndexError:
-            raise TypeError("while expects at least 2 arguments, got 0")
-        test = self.compile(test)
-
-        if not expr:
-            raise TypeError("while expects a body")
+        test = self.compile(expr.pop(0))
 
         return ast.While(test=test,
                          body=self._mangle_branch([
@@ -607,6 +648,7 @@ class HyASTCompiler(object):
             col_offset=expr.start_column)
 
     @builds("fn")
+    @checkargs(min=2)
     def compile_fn_expression(self, expression):
         expression.pop(0)  # fn
 

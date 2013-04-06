@@ -38,7 +38,7 @@ def cant_compile(expr):
     try:
         hy_compile(tokenize(expr))
         assert False
-    except TypeError:
+    except HyCompileError:
         pass
 
 
@@ -56,7 +56,7 @@ def test_ast_bad_if_0_arg():
     try:
         hy_compile(tokenize("(if)"))
         assert False
-    except TypeError:
+    except HyCompileError:
         pass
 
 
@@ -65,7 +65,7 @@ def test_ast_bad_if_1_arg():
     try:
         hy_compile(tokenize("(if foobar)"))
         assert False
-    except TypeError:
+    except HyCompileError:
         pass
 
 
@@ -74,7 +74,7 @@ def test_ast_bad_if_too_much_arg():
     try:
         hy_compile(tokenize("(if 1 2 3 4 5)"))
         assert False
-    except TypeError:
+    except HyCompileError:
         pass
 
 
@@ -103,7 +103,7 @@ def test_ast_bad_while_0_arg():
     try:
         hy_compile(tokenize("(while)"))
         assert False
-    except TypeError:
+    except HyCompileError:
         pass
 
 
@@ -112,8 +112,141 @@ def test_ast_bad_while_1_arg():
     try:
         hy_compile(tokenize("(while (true))"))
         assert False
-    except TypeError:
+    except HyCompileError:
         pass
+
+
+def test_ast_good_do():
+    "Make sure AST can compile valid do"
+    hy_compile(tokenize("(do 1)"))
+
+
+def test_ast_bad_do():
+    "Make sure AST can't compile invalid do"
+    cant_compile("(do)")
+
+
+def test_ast_good_throw():
+    "Make sure AST can compile valid throw"
+    hy_compile(tokenize("(throw 1)"))
+
+
+def test_ast_bad_throw():
+    "Make sure AST can't compile invalid throw"
+    cant_compile("(throw)")
+
+
+def test_ast_good_try():
+    "Make sure AST can compile valid try"
+    hy_compile(tokenize("(try 1)"))
+
+
+def test_ast_bad_try():
+    "Make sure AST can't compile invalid try"
+    cant_compile("(try)")
+
+
+def test_ast_good_catch():
+    "Make sure AST can compile valid catch"
+    hy_compile(tokenize("(catch 1 2)"))
+
+
+def test_ast_bad_catch():
+    "Make sure AST can't compile invalid catch"
+    cant_compile("(catch)")
+    cant_compile("(catch 1)")
+
+
+def test_ast_good_assert():
+    "Make sure AST can compile valid assert"
+    hy_compile(tokenize("(assert 1)"))
+
+
+def test_ast_bad_assert():
+    "Make sure AST can't compile invalid assert"
+    cant_compile("(assert)")
+    cant_compile("(assert 1 2)")
+
+
+def test_ast_good_lambda():
+    "Make sure AST can compile valid lambda"
+    hy_compile(tokenize("(lambda [] 1)"))
+
+
+def test_ast_bad_lambda():
+    "Make sure AST can't compile invalid lambda"
+    cant_compile("(lambda)")
+    cant_compile("(lambda [])")
+
+
+def test_ast_good_pass():
+    "Make sure AST can compile valid pass"
+    hy_compile(tokenize("(pass)"))
+
+
+def test_ast_bad_pass():
+    "Make sure AST can't compile invalid pass"
+    cant_compile("(pass 1)")
+    cant_compile("(pass 1 2)")
+
+
+def test_ast_good_yield():
+    "Make sure AST can compile valid yield"
+    hy_compile(tokenize("(yield 1)"))
+
+
+def test_ast_bad_yield():
+    "Make sure AST can't compile invalid yield"
+    cant_compile("(yield)")
+    cant_compile("(yield 1 2)")
+
+
+def test_ast_good_import_from():
+    "Make sure AST can compile valid import-from"
+    hy_compile(tokenize("(import-from x y)"))
+
+
+def test_ast_bad_import_from():
+    "Make sure AST can't compile invalid import-from"
+    cant_compile("(import-from)")
+
+
+def test_ast_good_get():
+    "Make sure AST can compile valid get"
+    hy_compile(tokenize("(get x y)"))
+
+
+def test_ast_bad_get():
+    "Make sure AST can't compile invalid get"
+    cant_compile("(get)")
+    cant_compile("(get 1)")
+    cant_compile("(get 1 2 3)")
+
+
+def test_ast_good_slice():
+    "Make sure AST can compile valid slice"
+    hy_compile(tokenize("(slice x)"))
+    hy_compile(tokenize("(slice x y)"))
+    hy_compile(tokenize("(slice x y z)"))
+
+
+def test_ast_bad_slice():
+    "Make sure AST can't compile invalid slice"
+    cant_compile("(slice)")
+    cant_compile("(slice 1 2 3 4)")
+
+
+def test_ast_good_assoc():
+    "Make sure AST can compile valid assoc"
+    hy_compile(tokenize("(assoc x y z)"))
+
+
+def test_ast_bad_assoc():
+    "Make sure AST can't compile invalid assoc"
+    cant_compile("(assoc)")
+    cant_compile("(assoc 1)")
+    cant_compile("(assoc 1 2)")
+    cant_compile("(assoc 1 2 3 4)")
 
 
 def test_ast_valid_while():
@@ -151,7 +284,7 @@ def test_ast_non_decoratable():
     try:
         hy_compile(tokenize("(decorate-with (foo) (* x x))"))
         assert True is False
-    except TypeError:
+    except HyCompileError:
         pass
 
 
@@ -162,7 +295,7 @@ def test_ast_non_kwapplyable():
     try:
         hy_compile(code)
         assert True is False
-    except TypeError:
+    except HyCompileError:
         pass
 
 

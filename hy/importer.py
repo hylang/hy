@@ -48,7 +48,13 @@ def import_file_to_hst(fpath):
 
 def import_file_to_ast(fpath):
     tree = import_file_to_hst(fpath)
-    ast = hy_compile(tree)
+    try:
+        ast = hy_compile(tree)
+    except Exception as e:
+        print("Compilation error at %s:%d,%d"
+              % (fpath, e.start_line, e.start_column))
+        print("Compilation error: " + e.message)
+        raise e.exception
     return ast
 
 
