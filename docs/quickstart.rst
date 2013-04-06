@@ -4,7 +4,8 @@ Quickstart
 
 I WANT TO BE DOING HY STUFF RIGHT NOW!
 
-1. create a Python virtual environment
+1. create a `Python virtual environment
+   <https://pypi.python.org/pypi/virtualenv>`_
 2. activate your Python virtual environment
 3. ``pip install hy``
 4. start a REPL with ``hy``
