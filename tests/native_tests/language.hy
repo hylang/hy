@@ -141,7 +141,7 @@
 
 
 (decorate-with foodec
-  (defn tfunction []
+  (defn test-decorator-function []
     (* 2 2)))
 
 
