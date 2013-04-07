@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -35,8 +36,9 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def cant_compile(expr):
+    expr = tokenize(expr)
     try:
-        hy_compile(tokenize(expr))
+        hy_compile(expr)
         assert False
     except HyCompileError:
         pass
