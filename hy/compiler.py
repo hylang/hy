@@ -137,13 +137,13 @@ class HyASTCompiler(object):
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
 
-    @builds(HySymbol("do"))
-    @builds(HySymbol("progn"))
+    @builds("do")
+    @builds("progn")
     @checkargs(min=1)
     def compile_do_expression(self, expr):
         return [self.compile(x) for x in expr[1:]]
 
-    @builds(HySymbol("throw"))
+    @builds("throw")
     @checkargs(min=1)
     def compile_throw_expression(self, expr):
         expr.pop(0)
@@ -156,7 +156,7 @@ class HyASTCompiler(object):
             inst=None,
             tback=None)
 
-    @builds(HySymbol("try"))
+    @builds("try")
     @checkargs(min=1)
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
@@ -175,7 +175,7 @@ class HyASTCompiler(object):
             finalbody=[],
             orelse=[])
 
-    @builds(HySymbol("catch"))
+    @builds("catch")
     @checkargs(min=2)
     def compile_catch_expression(self, expr):
         expr.pop(0)  # catch
@@ -205,7 +205,7 @@ class HyASTCompiler(object):
             return self._mangle_branch(branch)
         return self._mangle_branch([branch])
 
-    @builds(HySymbol("if"))
+    @builds("if")
     @checkargs(min=2, max=3)
     def compile_if_expression(self, expr):
         expr.pop(0)             # if
@@ -223,7 +223,7 @@ class HyASTCompiler(object):
                       lineno=expr.start_line,
                       col_offset=expr.start_column)
 
-    @builds(HySymbol("print"))
+    @builds("print")
     def compile_print_expression(self, expr):
         call = expr.pop(0)  # print
         if sys.version_info[0] >= 3:
@@ -243,7 +243,7 @@ class HyASTCompiler(object):
             values=[self.compile(x) for x in expr],
             nl=True)
 
-    @builds(HySymbol("assert"))
+    @builds("assert")
     @checkargs(1)
     def compile_assert_expression(self, expr):
         expr.pop(0)  # assert
@@ -253,7 +253,7 @@ class HyASTCompiler(object):
                           lineno=e.start_line,
                           col_offset=e.start_column)
 
-    @builds(HySymbol("lambda"))
+    @builds("lambda")
     @checkargs(min=2)
     def compile_lambda_expression(self, expr):
         expr.pop(0)
@@ -276,12 +276,12 @@ class HyASTCompiler(object):
                 kw_defaults=[]),
             body=self.compile(body))
 
-    @builds(HySymbol("pass"))
+    @builds("pass")
     @checkargs(0)
     def compile_pass_expression(self, expr):
         return ast.Pass(lineno=expr.start_line, col_offset=expr.start_column)
 
-    @builds(HySymbol("yield"))
+    @builds("yield")
     @checkargs(1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
@@ -290,7 +290,7 @@ class HyASTCompiler(object):
             lineno=expr.start_line,
             col_offset=expr.start_column)
 
-    @builds(HySymbol("import"))
+    @builds("import")
     def compile_import_expression(self, expr):
         expr.pop(0)  # index
         return ast.Import(
@@ -298,7 +298,7 @@ class HyASTCompiler(object):
             col_offset=expr.start_column,
             names=[ast.alias(name=str(x), asname=None) for x in expr])
 
-    @builds(HySymbol("import-as"))
+    @builds("import_as")
     def compile_import_as_expression(self, expr):
         expr.pop(0)  # index
         modlist = [expr[i:i + 2] for i in range(0, len(expr), 2)]
@@ -309,7 +309,7 @@ class HyASTCompiler(object):
             names=[ast.alias(name=str(x[0]),
                              asname=str(x[1])) for x in modlist])
 
-    @builds(HySymbol("import-from"))
+    @builds("import_from")
     @checkargs(min=1)
     def compile_import_from_expression(self, expr):
         expr.pop(0)  # index
@@ -320,7 +320,7 @@ class HyASTCompiler(object):
             names=[ast.alias(name=str(x), asname=None) for x in expr],
             level=0)
 
-    @builds(HySymbol("get"))
+    @builds("get")
     @checkargs(2)
     def compile_index_expression(self, expr):
         expr.pop(0)  # index
@@ -334,7 +334,7 @@ class HyASTCompiler(object):
             slice=ast.Index(value=sli),
             ctx=ast.Load())
 
-    @builds(HySymbol("slice"))
+    @builds("slice")
     @checkargs(min=1, max=3)
     def compile_slice_expression(self, expr):
         expr.pop(0)  # index
@@ -357,7 +357,7 @@ class HyASTCompiler(object):
                             step=None),
             ctx=ast.Load())
 
-    @builds(HySymbol("assoc"))
+    @builds("assoc")
     @checkargs(3)
     def compile_assoc_expression(self, expr):
         expr.pop(0)  # assoc
@@ -378,7 +378,7 @@ class HyASTCompiler(object):
                     ctx=ast.Store())],
             value=self.compile(val))
 
-    @builds(HySymbol("decorate-with"))
+    @builds("decorate_with")
     @checkargs(min=1)
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # decorate-with
@@ -388,7 +388,7 @@ class HyASTCompiler(object):
         fn.decorator_list = [self.compile(x) for x in expr]
         return fn
 
-    @builds(HySymbol("with-as"))
+    @builds("with_as")
     @checkargs(min=2)
     def compile_with_as_expression(self, expr):
         expr.pop(0)  # with-as
@@ -407,7 +407,7 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds(HySymbol(","))
+    @builds(",")
     def compile_tuple(self, expr):
         expr.pop(0)
         return ast.Tuple(elts=[self.compile(x) for x in expr],
@@ -415,7 +415,7 @@ class HyASTCompiler(object):
                          col_offset=expr.start_column,
                          ctx=ast.Load())
 
-    @builds(HySymbol("list-comp"))
+    @builds("list_comp")
     @checkargs(min=2, max=3)
     def compile_list_comprehension(self, expr):
         # (list-comp expr (target iter) cond?)
@@ -450,7 +450,7 @@ class HyASTCompiler(object):
         name.ctx = ast.Store()
         return name
 
-    @builds(HySymbol("kwapply"))
+    @builds("kwapply")
     @checkargs(2)
     def compile_kwapply_expression(self, expr):
         expr.pop(0)  # kwapply
@@ -465,8 +465,8 @@ class HyASTCompiler(object):
 
         return call
 
-    @builds(HySymbol("not"))
-    @builds(HySymbol("~"))
+    @builds("not")
+    @builds("~")
     @checkargs(1)
     def compile_unary_operator(self, expression):
         ops = {"not": ast.Not,
@@ -478,23 +478,23 @@ class HyASTCompiler(object):
                            lineno=operator.start_line,
                            col_offset=operator.start_column)
 
-    @builds(HySymbol("="))
-    @builds(HySymbol("!="))
-    @builds(HySymbol("<"))
-    @builds(HySymbol("<="))
-    @builds(HySymbol(">"))
-    @builds(HySymbol(">="))
-    @builds(HySymbol("is"))
-    @builds(HySymbol("in"))
-    @builds(HySymbol("is-not"))
-    @builds(HySymbol("not-in"))
+    @builds("=")
+    @builds("!=")
+    @builds("<")
+    @builds("<=")
+    @builds(">")
+    @builds(">=")
+    @builds("is")
+    @builds("in")
+    @builds("is_not")
+    @builds("not_in")
     @checkargs(min=2)
     def compile_compare_op_expression(self, expression):
         ops = {"=": ast.Eq, "!=": ast.NotEq,
                "<": ast.Lt, "<=": ast.LtE,
                ">": ast.Gt, ">=": ast.GtE,
-               "is": ast.Is, "is-not": ast.IsNot,
-               "in": ast.In, "not-in": ast.NotIn}
+               "is": ast.Is, "is_not": ast.IsNot,
+               "in": ast.In, "not_in": ast.NotIn}
 
         inv = expression.pop(0)
         op = ops[inv]
@@ -507,11 +507,11 @@ class HyASTCompiler(object):
                            lineno=e.start_line,
                            col_offset=e.start_column)
 
-    @builds(HySymbol("+"))
-    @builds(HySymbol("%"))
-    @builds(HySymbol("-"))
-    @builds(HySymbol("/"))
-    @builds(HySymbol("*"))
+    @builds("+")
+    @builds("%")
+    @builds("-")
+    @builds("/")
+    @builds("*")
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
         # operator = Mod | Pow | LShift | RShift | BitOr |
@@ -578,9 +578,9 @@ class HyASTCompiler(object):
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
 
-    @builds(HySymbol("def"))
-    @builds(HySymbol("setf"))
-    @builds(HySymbol("setv"))
+    @builds("def")
+    @builds("setf")
+    @builds("setv")
     @checkargs(2)
     def compile_def_expression(self, expression):
         expression.pop(0)  # "def"
@@ -602,7 +602,7 @@ class HyASTCompiler(object):
             col_offset=expression.start_column,
             targets=[name], value=what)
 
-    @builds(HySymbol("foreach"))
+    @builds("foreach")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
         ret_status = self.returnable
@@ -626,7 +626,7 @@ class HyASTCompiler(object):
         self.returnable = ret_status
         return ret
 
-    @builds(HySymbol("while"))
+    @builds("while")
     @checkargs(min=2)
     def compile_while_expression(self, expr):
         expr.pop(0)  # "while"
@@ -647,7 +647,7 @@ class HyASTCompiler(object):
             lineno=expr.start_line,
             col_offset=expr.start_column)
 
-    @builds(HySymbol("fn"))
+    @builds("fn")
     @checkargs(min=2)
     def compile_fn_expression(self, expression):
         expression.pop(0)  # fn

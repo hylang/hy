@@ -1,5 +1,4 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
-# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,8 +18,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import base64
-
 from hy.models.string import HyString
 
 
@@ -28,13 +25,6 @@ class HySymbol(HyString):
     """
     Hy Symbol. Basically a String.
     """
-    def encode_symbol(self):
-        return ("_hy_symbol_"
-                + base64.b64encode(
-                    self.encode(
-                        'unicode-escape')).decode('ascii'))
 
-    def __str__(self):
-        if all([(c.isalnum() or c == "_" or c == ".") for c in self]):
-            return super(HyString, self).__str__()
-        return self.encode_symbol()
+    def __init__(self, string):
+        self += string

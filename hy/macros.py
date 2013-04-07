@@ -22,14 +22,13 @@ from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.dict import HyDict
 from hy.models.list import HyList
-from hy.models.symbol import HySymbol
 
 _hy_macros = {}
 
 
 def macro(name):
     def _(fn):
-        _hy_macros[HySymbol(name)] = fn
+        _hy_macros[name] = fn
         return fn
     return _
 
