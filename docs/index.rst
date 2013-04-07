@@ -38,5 +38,5 @@ Contents:
 
    quickstart
    hacking
-   language/tutorial
-..   library/index
+   tutorial
+   language/index
