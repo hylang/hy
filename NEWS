@@ -4,24 +4,19 @@ Changes from Hy 0.9.4
 
     * Added "not" as the inline "not" operator. It's advised to still
       use "not-in" or "is-not" rather then nesting. (JD)
-
+    * `let' macro added (PT)
     * Added "~" as the "invert" operator. (JD)
-
     * `catch' now accepts a new format: (JD)
         (catch [] BODY)
         (catch [Exception] BODY)
         (catch [e Exception] BODY)
         (catch [e [Exception1 Exception2]] BODY)
 
-    * `let' macro added (PT)
-
   [ Language Changes ]
 
     * UTF encoded symbols are allowed, but mangled. All Hy source is now
       presumed to be UTF-8. (JD + PT)
-
     * Better builtin signature checking  (JD)
-
     * If hoisting (for things like printing the return of an if statement)
       have been added. '(print (if true true true))' (PT)
 
@@ -35,28 +30,20 @@ Changes from Hy 0.9.3
   [ Syntax Fixes ]
 
     * Nested (do) expressions no longer break Hy (PT)
-
     * `progn' is now a valid alias for `do' (PT)
-
     * `defun' is now a valid alias for `defn' (PT)
-
     * Added two new escapes for \ and " (PT)
 
   [ Language Changes ]
 
-    * `while' form added. (ND)
-        (while [CONDITIONAL] BODY)
-
     * Show a traceback when a compile-error bubbles up in the Hy REPL (PT)
-
     * `setf' / `setv' added, the behavior of `def` may change in the future.
-
     * `print' no longer breaks in Python 3.x (PT)
-
     * Added `list-comp' list comprehensions. (PT)
-
     * Function hoisting (for things like inline invocation of functions,
       e.g. '((fn [] (print "hi!")))' has been added. (PT)
+    * `while' form added. (ND)
+        (while [CONDITIONAL] BODY)
 
   [ Documentation ]
 
