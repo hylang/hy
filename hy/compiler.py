@@ -186,16 +186,31 @@ class HyASTCompiler(object):
             Try = ast.TryExcept
 
         if len(expr) == 0:
+            # (try)
             body = [ast.Pass(lineno=expr.start_line,
                              col_offset=expr.start_column)]
         else:
+            # (try something…)
             body = self._code_branch(self.compile(expr.pop(0)))
+
+        if len(expr) == 0:
+            # (try) or (try body)
+            handlers = [ast.ExceptHandler(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                type=None,
+                name=None,
+                body=[ast.Pass(lineno=expr.start_line,
+                               col_offset=expr.start_column)])]
+        else:
+            # (try body except except…)
+            handlers = [self.compile(s) for s in expr]
 
         return Try(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             body=body,
-            handlers=[self.compile(s) for s in expr],
+            handlers=handlers,
             finalbody=[],
             orelse=[])
 

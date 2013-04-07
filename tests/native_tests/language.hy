@@ -165,6 +165,12 @@
 
   (try)
 
+  (try (pass))
+
+  (try (pass) (except))
+
+  (try (pass) (except [IOError]) (except))
+
   (try
     (raise (KeyError))
     (catch [[IOError]] (assert false))

@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -118,6 +119,8 @@ def test_ast_good_try():
     "Make sure AST can compile valid try"
     hy_compile(tokenize("(try)"))
     hy_compile(tokenize("(try 1)"))
+    hy_compile(tokenize("(try 1 bla)"))
+    hy_compile(tokenize("(try 1 bla bla)"))
 
 
 def test_ast_good_catch():
