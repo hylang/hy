@@ -161,6 +161,9 @@ class ListeyThing(State):
         if char == self.end_char:
             return Idle
 
+        if char in ")]}":
+            raise LexException("Unexpected closing character: `%s'" % (char))
+
         if char in WHITESPACE:
             self.commit()
             return
