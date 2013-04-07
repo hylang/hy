@@ -119,10 +119,10 @@ def test_ast_good_catch():
     hy_compile(tokenize("(catch)"))
     hy_compile(tokenize("(catch [])"))
     hy_compile(tokenize("(catch [Foobar])"))
-    # hy_compile(tokenize("(catch [[]])"))
-    # hy_compile(tokenize("(catch [x FooBar])"))
-    # hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
-    # hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
+    hy_compile(tokenize("(catch [[]])"))
+    hy_compile(tokenize("(catch [x FooBar])"))
+    hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
+    hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
 
 
 def test_ast_bad_catch():
