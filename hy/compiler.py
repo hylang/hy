@@ -1,4 +1,7 @@
+# -*- encoding: utf-8 -*-
+#
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -191,29 +194,77 @@ class HyASTCompiler(object):
             orelse=[])
 
     @builds("catch")
-    @checkargs(min=2)
     def compile_catch_expression(self, expr):
         expr.pop(0)  # catch
-        _type = self.compile(expr.pop(0))
-        name = expr.pop(0)
 
-        if sys.version_info[0] >= 3:
-            # Python3 features a change where the Exception handler
-            # moved the name from a Name() to a pure Python String type.
-            #
-            # We'll just make sure it's a pure "string", and let it work
-            # it's magic.
-            name = ast_str(name)
+        try:
+            exceptions = expr.pop(0)
+        except IndexError:
+            exceptions = []
+        # exceptions catch should be either:
+        # [[list of exceptions]]
+        # or
+        # [variable [list of exceptions]]
+        # or
+        # [variable exception]
+        # or
+        # [exception]
+        # or
+        # []
+        if len(exceptions) > 2:
+            raise TypeError("`catch' exceptions list is too long")
+
+        # [variable [list of exceptions]]
+        # let's pop variable and use it as name
+        if len(exceptions) == 2:
+            name = exceptions.pop(0)
+            if sys.version_info[0] >= 3:
+                # Python3 features a change where the Exception handler
+                # moved the name from a Name() to a pure Python String type.
+                #
+                # We'll just make sure it's a pure "string", and let it work
+                # it's magic.
+                name = ast_str(name)
+            else:
+                # Python2 requires an ast.Name, set to ctx Store.
+                name = self._storeize(self.compile(name))
         else:
-            # Python2 requires an ast.Name, set to ctx Store.
-            name = self._storeize(self.compile(name))
+            name = None
+
+        try:
+            exceptions_list = exceptions.pop(0)
+        except IndexError:
+            exceptions_list = []
+
+        if isinstance(exceptions_list, list):
+            if len(exceptions_list):
+                # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
+                _type = ast.Tuple(elts=[self.compile(x)
+                                        for x in exceptions_list],
+                                  lineno=expr.start_line,
+                                  col_offset=expr.start_column,
+                                  ctx=ast.Load())
+            else:
+                # [] → all exceptions catched
+                _type = None
+        elif isinstance(exceptions_list, HySymbol):
+            _type = self.compile(exceptions_list)
+        else:
+            raise TypeError("`catch' needs a valid exception list to catch")
+
+        if len(expr) == 0:
+            # No body
+            body = [ast.Pass(lineno=expr.start_line,
+                             col_offset=expr.start_column)]
+        else:
+            body = self._code_branch([self.compile(x) for x in expr])
 
         return ast.ExceptHandler(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             type=_type,
             name=name,
-            body=self._code_branch([self.compile(x) for x in expr]))
+            body=body)
 
     def _code_branch(self, branch):
         if isinstance(branch, list):

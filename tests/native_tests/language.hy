@@ -164,8 +164,56 @@
   "NATIVE: test Exceptions"
   (try
     (throw (KeyError))
-  (catch IOError  e (assert (= 2 1)))
-  (catch KeyError e (+ 1 1) (assert (= 1 1)))))
+    (catch [[IOError]] (assert false))
+    (catch [e [KeyError]] (assert e)))
+
+  (try
+    (get [1] 3)
+    (catch [IndexError] (assert true))
+    (catch [IndexError] (pass)))
+
+  (try
+    (print foobar42ofthebaz)
+    (catch [IndexError] (assert false))
+    (catch [NameError] (pass)))
+
+  (try
+    (get [1] 3)
+    (catch [e IndexError] (assert (isinstance e IndexError))))
+
+  (try
+    (get [1] 3)
+    (catch [e [IndexError NameError]] (assert (isinstance e IndexError))))
+
+  (try
+    (print foobar42ofthebaz)
+    (catch [e [IndexError NameError]] (assert (isinstance e NameError))))
+
+  (try
+    (print foobar42)
+    (catch [[IndexError NameError]] (pass)))
+
+  (try
+    (get [1] 3)
+    (catch [[IndexError NameError]] (pass)))
+
+  (try
+    (print foobar42ofthebaz)
+    (catch))
+
+  (try
+    (print foobar42ofthebaz)
+    (catch []))
+
+  (try
+    (print foobar42ofthebaz)
+    (catch [] (pass)))
+
+  (try
+    (print foobar42ofthebaz)
+    (catch []
+        (setv foobar42ofthebaz 42)
+        (assert (= foobar42ofthebaz 42)))))
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"
@@ -327,7 +375,7 @@
              6))
   (try
     (assert (= x 42))                   ; This ain't true
-    (catch NameError e (assert e)))
+    (catch [e [NameError]] (assert e)))
   (assert (= y 123)))
 
 
