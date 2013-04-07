@@ -162,6 +162,9 @@
 
 (defn test-exceptions []
   "NATIVE: test Exceptions"
+
+  (try)
+
   (try
     (raise (KeyError))
     (catch [[IOError]] (assert false))

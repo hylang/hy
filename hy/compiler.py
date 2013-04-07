@@ -176,7 +176,6 @@ class HyASTCompiler(object):
             tback=None)
 
     @builds("try")
-    @checkargs(min=1)
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
 
@@ -186,10 +185,16 @@ class HyASTCompiler(object):
         else:
             Try = ast.TryExcept
 
+        if len(expr) == 0:
+            body = [ast.Pass(lineno=expr.start_line,
+                             col_offset=expr.start_column)]
+        else:
+            body = self._code_branch(self.compile(expr.pop(0)))
+
         return Try(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            body=self._code_branch(self.compile(expr.pop(0))),
+            body=body,
             handlers=[self.compile(s) for s in expr],
             finalbody=[],
             orelse=[])

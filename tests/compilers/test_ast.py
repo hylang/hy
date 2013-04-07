@@ -116,12 +116,8 @@ def test_ast_bad_raise():
 
 def test_ast_good_try():
     "Make sure AST can compile valid try"
+    hy_compile(tokenize("(try)"))
     hy_compile(tokenize("(try 1)"))
-
-
-def test_ast_bad_try():
-    "Make sure AST can't compile invalid try"
-    cant_compile("(try)")
 
 
 def test_ast_good_catch():
