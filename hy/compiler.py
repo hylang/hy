@@ -762,11 +762,26 @@ class HyASTCompiler(object):
         expression.pop(0)  # fn
 
         ret_status = self.returnable
-        self.returnable = True
 
         self.anon_fn_count += 1
         name = "_hy_anon_fn_%d" % (self.anon_fn_count)
         sig = expression.pop(0)
+
+        body = []
+        if expression != []:
+            self.returnable = True
+            tailop = self.compile(expression.pop(-1))
+            self.returnable = False
+            for el in expression:
+                body.append(self.compile(el))
+            body.append(tailop)
+
+        if body == []:
+            body = [ast.Pass(lineno=expression.start_line,
+                             col_offset=expression.start_column)]
+
+        self.returnable = True
+        body = self._code_branch(body)
 
         ret = ast.FunctionDef(
             name=name,
@@ -785,8 +800,7 @@ class HyASTCompiler(object):
                 kwonlyargs=[],
                 kw_defaults=[],
                 defaults=[]),
-            body=self._code_branch([
-                self.compile(x) for x in expression]),
+            body=body,
             decorator_list=[])
 
         self.returnable = ret_status

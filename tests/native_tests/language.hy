@@ -427,6 +427,7 @@
    (assert (= and123 3))
    (assert (= and-false False))))
 
+
 (defn test-or []
   "NATIVE: test the or function"
   (let [[or-all-true (or 1 2 3 True "string")]
@@ -435,6 +436,17 @@
    (assert (= or-all-true 1))
    (assert (= or-some-true "hello"))
    (assert (= or-none-true False))))
+
+
+(defn test-if-return-branching []
+  "NATIVE: test the if return branching"
+  ; thanks, algernon
+  (assert (= 1 (let [[x 1]
+                     [y 2]]
+                 (if true
+                   2)
+                 1))))
+
 
 ; FEATURE: native hy-eval
 ;
