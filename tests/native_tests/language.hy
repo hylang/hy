@@ -235,6 +235,12 @@
              ["X" "B" "C" "D"])))
 
 
+(defn test-tail-threading []
+  "NATIVE: test tail threading macro"
+  (assert (= (.join ", " (* 10 ["foo"]))
+             (->> ["foo"] (* 10) (.join ", ")))))
+
+
 (defn test-threading-two []
   "NATIVE: test threading macro"
   (assert (= (-> "a b c d" .upper (.replace "A" "X") .split)

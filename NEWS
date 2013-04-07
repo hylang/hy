@@ -14,6 +14,7 @@ Changes from Hy 0.9.4
 
   [ Language Changes ]
 
+    * Added the tail threading macro (->>) (PT)
     * UTF encoded symbols are allowed, but mangled. All Hy source is now
       presumed to be UTF-8. (JD + PT)
     * Better builtin signature checking  (JD)
