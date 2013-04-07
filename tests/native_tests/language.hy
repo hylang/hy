@@ -377,6 +377,11 @@
   (assert (= true (if true true true))))
 
 
+(defn test-nested-mangles []
+  "NATIVE: test that we can use macros in mangled code"
+  (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
+
+
 (defn test-let-scope []
   "NATIVE: test let works rightish"
   (setv y 123)
