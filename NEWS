@@ -1,0 +1,65 @@
+Changes from Hy 0.9.4
+
+  [ Syntax Fixes ]
+
+    * Added "not" / "~" as the inline "not" operator. It's advised to still
+      use "not-in" or "is-not" rather then nesting. (JD)
+
+    * `catch' now accepts a new format: (JD)
+        (catch [] BODY)
+        (catch [Exception] BODY)
+        (catch [e Exception] BODY)
+        (catch [e [Exception1 Exception2]] BODY)
+
+    * `let' macro added (PT)
+
+  [ Language Changes ]
+
+    * UTF encoded symbols are allowed, but mangled. All Hy source is now
+      presumed to be UTF-8. (JD + PT)
+
+    * Better builtin signature checking  (JD)
+
+    * Function hoisting (for things like inline invocation of functions,
+      e.g. '((fn [] (print "hi!")))' has been added.
+    * If hoisting (for things like printing the return of an if statement)
+      have been added. '(print (if true true true))'
+
+  [ Documentation ]
+
+    * Initial documentation added to the source tree.
+
+
+Changes from Hy 0.9.3
+
+  [ Syntax Fixes ]
+  [ Language Changes ]
+  [ Documentation ]
+
+
+Changes from Hy 0.9.2
+
+  [ Syntax Fixes ]
+  [ Language Changes ]
+  [ Documentation ]
+
+
+Changes from Hy 0.9.1
+
+  [ Syntax Fixes ]
+  [ Language Changes ]
+  [ Documentation ]
+
+
+Changes from Hy 0.9.0
+
+  [ Syntax Fixes ]
+  [ Language Changes ]
+  [ Documentation ]
+
+
+Changes from Hy 0.8.2
+
+  [ Syntax Fixes ]
+  [ Language Changes ]
+  [ Documentation ]
