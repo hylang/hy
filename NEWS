@@ -23,11 +23,11 @@ Changes from Hy 0.9.4
     * Better builtin signature checking  (JD)
 
     * If hoisting (for things like printing the return of an if statement)
-      have been added. '(print (if true true true))'
+      have been added. '(print (if true true true))' (PT)
 
   [ Documentation ]
 
-    * Initial documentation added to the source tree.
+    * Initial documentation added to the source tree. (PT)
 
 
 Changes from Hy 0.9.3
