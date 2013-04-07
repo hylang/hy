@@ -29,6 +29,7 @@ from hy.models.dict import HyDict
 
 from hy.util import flatten_literal_list
 
+import codecs
 import ast
 import sys
 
@@ -44,7 +45,14 @@ def ast_str(foobar):
     if sys.version_info[0] >= 3:
         return str(foobar)
 
-    return str(foobar.encode("ascii", 'backslashreplace'))
+    try:
+        return str(foobar)
+    except UnicodeEncodeError:
+        pass
+
+    enc = codecs.getencoder('punycode')
+    foobar, _ = enc(foobar)
+    return str(foobar).replace("-", "_")
 
 
 def builds(_type):
