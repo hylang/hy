@@ -445,7 +445,11 @@
                      [y 2]]
                  (if true
                    2)
-                 1))))
+                 1)))
+  (assert (= 1 (let [[x 1] [y 2]]
+                 (pass)
+                 (pass)
+                 ((fn [] 1))))))
 
 
 ; FEATURE: native hy-eval
