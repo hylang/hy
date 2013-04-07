@@ -11,6 +11,9 @@ Changes from Hy 0.9.4
         (catch [Exception] BODY)
         (catch [e Exception] BODY)
         (catch [e [Exception1 Exception2]] BODY)
+    * With's syntax was fixed to match the rest of the code. It's now: (PT)
+        (with [name context-managed-fn] BODY)
+        (with [context-managed-fn] BODY)
 
   [ Language Changes ]
 

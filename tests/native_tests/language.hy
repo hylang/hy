@@ -293,8 +293,8 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with-as (open "README.md" "r") fd
-           (pass)))
+  (with [fd (open "README.md" "r")] (pass))
+  (with [(open "README.md" "r")] (pass)))
 
 
 (defn test-for-doodle []
