@@ -116,13 +116,20 @@ def test_ast_bad_try():
 
 def test_ast_good_catch():
     "Make sure AST can compile valid catch"
-    hy_compile(tokenize("(catch 1 2)"))
+    hy_compile(tokenize("(catch)"))
+    hy_compile(tokenize("(catch [])"))
+    hy_compile(tokenize("(catch [Foobar])"))
+    # hy_compile(tokenize("(catch [[]])"))
+    # hy_compile(tokenize("(catch [x FooBar])"))
+    # hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
+    # hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
 
 
 def test_ast_bad_catch():
     "Make sure AST can't compile invalid catch"
-    cant_compile("(catch)")
     cant_compile("(catch 1)")
+    cant_compile("(catch [1 3])")
+    cant_compile("(catch [x [FooBar] BarBar]])")
 
 
 def test_ast_good_assert():
