@@ -302,8 +302,8 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with-as (open "README.md" "r") fd
-           (pass)))
+  (with [fd (open "README.md" "r")] (assert fd))
+  (with [(open "README.md" "r")] (pass)))
 
 
 (defn test-for-doodle []
@@ -384,6 +384,11 @@
 (defn test-if-mangler []
   "NATIVE: test that we return ifs"
   (assert (= true (if true true true))))
+
+
+(defn test-nested-mangles []
+  "NATIVE: test that we can use macros in mangled code"
+  (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
 
 
 (defn test-let-scope []

@@ -36,8 +36,9 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def cant_compile(expr):
+    expr = tokenize(expr)
     try:
-        hy_compile(tokenize(expr))
+        hy_compile(expr)
         assert False
     except HyCompileError:
         pass
@@ -249,6 +250,13 @@ def test_ast_bad_assoc():
     cant_compile("(assoc 1)")
     cant_compile("(assoc 1 2)")
     cant_compile("(assoc 1 2 3 4)")
+
+
+def test_ast_bad_with():
+    "Make sure AST can't compile invalid with"
+    cant_compile("(with)")
+    cant_compile("(with [])")
+    cant_compile("(with [] (pass))")
 
 
 def test_ast_valid_while():

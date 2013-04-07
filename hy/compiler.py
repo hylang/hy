@@ -476,12 +476,21 @@ class HyASTCompiler(object):
         fn.decorator_list = [self.compile(x) for x in expr]
         return fn
 
-    @builds("with_as")
+    @builds("with")
     @checkargs(min=2)
-    def compile_with_as_expression(self, expr):
-        expr.pop(0)  # with-as
-        ctx = self.compile(expr.pop(0))
-        thing = self._storeize(self.compile(expr.pop(0)))
+    def compile_with_expression(self, expr):
+        expr.pop(0)  # with
+
+        args = expr.pop(0)
+        if len(args) > 2 or len(args) < 1:
+            raise TypeError("with needs [arg (expr)] or [(expr)]")
+
+        args.reverse()
+        ctx = self.compile(args.pop(0))
+
+        thing = None
+        if args != []:
+            thing = self._storeize(self.compile(args.pop(0)))
 
         ret = ast.With(context_expr=ctx,
                        lineno=expr.start_line,
