@@ -331,6 +331,21 @@
   (assert (= y 123)))
 
 
+(defn test-symbol-utf-8 []
+  "NATIVE: test symbol encoded"
+  (let [[♥ "love"]
+        [⚘ "flower"]]
+   (assert (= (+ ⚘ ♥) "flowerlove"))))
+
+
+(defn test-symbol-dash []
+  "NATIVE: test symbol encoded"
+  (let [[♥-♥ "doublelove"]
+        [-_- "what?"]]
+   (assert (= ♥-♥ "doublelove"))
+   (assert (= -_- "what?"))))
+
+
 ; FEATURE: native hy-eval
 ;
 ;   - related to bug #64

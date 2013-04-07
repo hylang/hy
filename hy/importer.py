@@ -19,11 +19,12 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.compiler import hy_compile
-from hy.lex import tokenize
-from hy.core import process
 from py_compile import wr_long, MAGIC
+from hy.core import process
+from hy.lex import tokenize
 
 
+from io import open
 import marshal
 import imp
 import sys
@@ -43,18 +44,12 @@ def import_buffer_to_hst(fd):
 
 
 def import_file_to_hst(fpath):
-    return import_buffer_to_hst(open(fpath, 'r'))
+    return import_buffer_to_hst(open(fpath, 'r', encoding='utf-8'))
 
 
 def import_file_to_ast(fpath):
     tree = import_file_to_hst(fpath)
-    try:
-        ast = hy_compile(tree)
-    except Exception as e:
-        print("Compilation error at %s:%d,%d"
-              % (fpath, e.start_line, e.start_column))
-        print("Compilation error: " + e.message)
-        raise e.exception
+    ast = hy_compile(tree)
     return ast
 
 

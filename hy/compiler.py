@@ -40,6 +40,13 @@ class HyCompileError(HyError):
 _compile_table = {}
 
 
+def ast_str(foobar):
+    if sys.version_info[0] >= 3:
+        return str(foobar)
+
+    return str(foobar.encode("ascii", 'backslashreplace'))
+
+
 def builds(_type):
     def _dec(fn):
         _compile_table[_type] = fn
@@ -188,7 +195,7 @@ class HyASTCompiler(object):
             #
             # We'll just make sure it's a pure "string", and let it work
             # it's magic.
-            name = str(name)
+            name = ast_str(name)
         else:
             # Python2 requires an ast.Name, set to ctx Store.
             name = self._storeize(self.compile(name))
@@ -264,7 +271,7 @@ class HyASTCompiler(object):
             lineno=expr.start_line,
             col_offset=expr.start_column,
             args=ast.arguments(args=[
-                ast.Name(arg=str(x), id=str(x),
+                ast.Name(arg=ast_str(x), id=ast_str(x),
                          ctx=ast.Param(),
                          lineno=x.start_line,
                          col_offset=x.start_column)
@@ -296,7 +303,7 @@ class HyASTCompiler(object):
         return ast.Import(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            names=[ast.alias(name=str(x), asname=None) for x in expr])
+            names=[ast.alias(name=ast_str(x), asname=None) for x in expr])
 
     @builds("import_as")
     def compile_import_as_expression(self, expr):
@@ -305,9 +312,9 @@ class HyASTCompiler(object):
         return ast.Import(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            module=str(expr.pop(0)),
-            names=[ast.alias(name=str(x[0]),
-                             asname=str(x[1])) for x in modlist])
+            module=ast_str(expr.pop(0)),
+            names=[ast.alias(name=ast_str(x[0]),
+                             asname=ast_str(x[1])) for x in modlist])
 
     @builds("import_from")
     @checkargs(min=1)
@@ -316,8 +323,8 @@ class HyASTCompiler(object):
         return ast.ImportFrom(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            module=str(expr.pop(0)),
-            names=[ast.alias(name=str(x), asname=None) for x in expr],
+            module=ast_str(expr.pop(0)),
+            names=[ast.alias(name=ast_str(x), asname=None) for x in expr],
             level=0)
 
     @builds("get")
@@ -460,7 +467,7 @@ class HyASTCompiler(object):
         if type(call) != ast.Call:
             raise TypeError("kwapplying a non-call")
 
-        call.keywords = [ast.keyword(arg=str(x),
+        call.keywords = [ast.keyword(arg=ast_str(x),
                          value=self.compile(kwargs[x])) for x in kwargs]
 
         return call
@@ -551,7 +558,7 @@ class HyASTCompiler(object):
                 lineno=expr.start_line,
                 col_offset=expr.start_column,
                 value=self.compile(obj),
-                attr=str(fn),
+                attr=ast_str(fn),
                 ctx=ast.Load()),
             args=[self.compile(x) for x in expr],
             keywords=[],
@@ -592,7 +599,7 @@ class HyASTCompiler(object):
             # We special case a FunctionDef, since we can define by setting
             # FunctionDef's .name attribute, rather then foo == anon_fn. This
             # helps keep things clean.
-            what.name = str(name)
+            what.name = ast_str(name)
             return what
 
         name = self._storeize(self.compile(name))
@@ -666,7 +673,7 @@ class HyASTCompiler(object):
             args=ast.arguments(
                 args=[
                     ast.Name(
-                        arg=str(x), id=str(x),
+                        arg=ast_str(x), id=ast_str(x),
                         ctx=ast.Param(),
                         lineno=x.start_line,
                         col_offset=x.start_column)
@@ -700,19 +707,19 @@ class HyASTCompiler(object):
                 lineno=symbol.start_line,
                 col_offset=symbol.start_column,
                 value=self.compile_symbol(glob),
-                attr=str(local),
+                attr=ast_str(local),
                 ctx=ast.Load()
             )
 
-        return ast.Name(id=str(symbol),
-                        arg=str(symbol),
+        return ast.Name(id=ast_str(symbol),
+                        arg=ast_str(symbol),
                         ctx=ast.Load(),
                         lineno=symbol.start_line,
                         col_offset=symbol.start_column)
 
     @builds(HyString)
     def compile_string(self, string):
-        return ast.Str(s=str(string), lineno=string.start_line,
+        return ast.Str(s=ast_str(string), lineno=string.start_line,
                        col_offset=string.start_column)
 
     @builds(HyDict)
