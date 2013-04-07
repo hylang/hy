@@ -679,9 +679,6 @@ class HyASTCompiler(object):
         expression.pop(0)  # for
         name, iterable = expression.pop(0)
         target = self._storeize(self.compile_symbol(name))
-        # support stuff like:
-        # (for [x [1 2 3 4]
-        #       y [a b c d]] ...)
 
         ret = ast.For(lineno=expression.start_line,
                       col_offset=expression.start_column,
