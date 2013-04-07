@@ -80,5 +80,6 @@ class IfMangle(HoistableMangle):
                 fn.replace(tree)
                 return fn
 
+
 hy.mangle.MANGLES.append(IfMangle)
 hy.mangle.MANGLES.append(FunctionMangle)

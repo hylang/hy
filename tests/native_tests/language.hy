@@ -2,8 +2,8 @@
 
 (import-from tests.resources kwtest)
 (import-from os.path exists isdir isfile)
-(import sys)
 (import-as sys systest)
+(import sys)
 
 
 (defn test-sys-argv []
