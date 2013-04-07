@@ -94,6 +94,20 @@ def threading_macro(tree):
     return ret
 
 
+@macro("_>>")
+def threading_tail_macro(tree):
+    tree.pop(0)
+    ret = tree.pop(0)
+    for node in tree:
+        if not isinstance(node, HyExpression):
+            nnode = HyExpression([node])
+            nnode.replace(node)
+            node = nnode
+        node.append(ret)
+        ret = node
+    return ret
+
+
 @macro("car")
 @macro("first")
 def first_macro(tree):
