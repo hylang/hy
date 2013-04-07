@@ -2,8 +2,10 @@ Changes from Hy 0.9.4
 
   [ Syntax Fixes ]
 
-    * Added "not" / "~" as the inline "not" operator. It's advised to still
+    * Added "not" as the inline "not" operator. It's advised to still
       use "not-in" or "is-not" rather then nesting. (JD)
+
+    * Added "~" as the "invert" operator. (JD)
 
     * `catch' now accepts a new format: (JD)
         (catch [] BODY)
@@ -20,8 +22,6 @@ Changes from Hy 0.9.4
 
     * Better builtin signature checking  (JD)
 
-    * Function hoisting (for things like inline invocation of functions,
-      e.g. '((fn [] (print "hi!")))' has been added.
     * If hoisting (for things like printing the return of an if statement)
       have been added. '(print (if true true true))'
 
@@ -33,33 +33,55 @@ Changes from Hy 0.9.4
 Changes from Hy 0.9.3
 
   [ Syntax Fixes ]
+
+    * Nested (do) expressions no longer break Hy (PT)
+
+    * `progn' is now a valid alias for `do' (PT)
+
+    * `defun' is now a valid alias for `defn' (PT)
+
+    * Added two new escapes for \ and " (PT)
+
   [ Language Changes ]
+
+    * `while' form added. (ND)
+        (while [CONDITIONAL] BODY)
+
+    * Show a traceback when a compile-error bubbles up in the Hy REPL (PT)
+
+    * `setf' / `setv' added, the behavior of `def` may change in the future.
+
+    * `print' no longer breaks in Python 3.x (PT)
+
+    * Added `list-comp' list comprehensions. (PT)
+
+    * Function hoisting (for things like inline invocation of functions,
+      e.g. '((fn [] (print "hi!")))' has been added. (PT)
+
   [ Documentation ]
+
+    * Initial docs added. (WKG + CW)
 
 
 Changes from Hy 0.9.2
 
   [ Syntax Fixes ]
   [ Language Changes ]
-  [ Documentation ]
 
 
 Changes from Hy 0.9.1
 
   [ Syntax Fixes ]
   [ Language Changes ]
-  [ Documentation ]
 
 
 Changes from Hy 0.9.0
 
   [ Syntax Fixes ]
   [ Language Changes ]
-  [ Documentation ]
 
 
 Changes from Hy 0.8.2
 
   [ Syntax Fixes ]
   [ Language Changes ]
-  [ Documentation ]
