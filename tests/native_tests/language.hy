@@ -163,23 +163,29 @@
 (defn test-exceptions []
   "NATIVE: test Exceptions"
   (try
-    (throw (KeyError))
+    (raise (KeyError))
     (catch [[IOError]] (assert false))
     (catch [e [KeyError]] (assert e)))
 
   (try
+    (throw (KeyError))
+    (except [[IOError]] (assert false))
+    (catch [e [KeyError]] (assert e)))
+
+
+  (try
     (get [1] 3)
     (catch [IndexError] (assert true))
-    (catch [IndexError] (pass)))
+    (except [IndexError] (pass)))
 
   (try
     (print foobar42ofthebaz)
     (catch [IndexError] (assert false))
-    (catch [NameError] (pass)))
+    (except [NameError] (pass)))
 
   (try
     (get [1] 3)
-    (catch [e IndexError] (assert (isinstance e IndexError))))
+    (except [e IndexError] (assert (isinstance e IndexError))))
 
   (try
     (get [1] 3)
@@ -187,7 +193,7 @@
 
   (try
     (print foobar42ofthebaz)
-    (catch [e [IndexError NameError]] (assert (isinstance e NameError))))
+    (except [e [IndexError NameError]] (assert (isinstance e NameError))))
 
   (try
     (print foobar42)
@@ -203,11 +209,11 @@
 
   (try
     (print foobar42ofthebaz)
-    (catch []))
+    (except []))
 
   (try
     (print foobar42ofthebaz)
-    (catch [] (pass)))
+    (except [] (pass)))
 
   (try
     (print foobar42ofthebaz)

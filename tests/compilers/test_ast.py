@@ -104,6 +104,16 @@ def test_ast_bad_throw():
     cant_compile("(throw)")
 
 
+def test_ast_good_raise():
+    "Make sure AST can compile valid raise"
+    hy_compile(tokenize("(raise 1)"))
+
+
+def test_ast_bad_raise():
+    "Make sure AST can't compile invalid raise"
+    cant_compile("(raise)")
+
+
 def test_ast_good_try():
     "Make sure AST can compile valid try"
     hy_compile(tokenize("(try 1)"))
@@ -130,6 +140,24 @@ def test_ast_bad_catch():
     cant_compile("(catch 1)")
     cant_compile("(catch [1 3])")
     cant_compile("(catch [x [FooBar] BarBar]])")
+
+
+def test_ast_good_except():
+    "Make sure AST can compile valid except"
+    hy_compile(tokenize("(except)"))
+    hy_compile(tokenize("(except [])"))
+    hy_compile(tokenize("(except [Foobar])"))
+    hy_compile(tokenize("(except [[]])"))
+    hy_compile(tokenize("(except [x FooBar])"))
+    hy_compile(tokenize("(except [x [FooBar BarFoo]])"))
+    hy_compile(tokenize("(except [x [FooBar BarFoo]])"))
+
+
+def test_ast_bad_except():
+    "Make sure AST can't compile invalid except"
+    cant_compile("(except 1)")
+    cant_compile("(except [1 3])")
+    cant_compile("(except [x [FooBar] BarBar]])")
 
 
 def test_ast_good_assert():

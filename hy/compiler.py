@@ -162,6 +162,7 @@ class HyASTCompiler(object):
         return [self.compile(x) for x in expr[1:]]
 
     @builds("throw")
+    @builds("raise")
     @checkargs(min=1)
     def compile_throw_expression(self, expr):
         expr.pop(0)
@@ -194,6 +195,7 @@ class HyASTCompiler(object):
             orelse=[])
 
     @builds("catch")
+    @builds("except")
     def compile_catch_expression(self, expr):
         expr.pop(0)  # catch
 
