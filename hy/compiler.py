@@ -547,13 +547,16 @@ class HyASTCompiler(object):
                            col_offset=operator.start_column)
 
     @builds("and")
+    @builds("or")
     @checkargs(min=2)
-    def compile_and_operator(self, expression):
+    def compile_logical_or_and_and_operator(self, expression):
+        ops = {"and": ast.And,
+               "or": ast.Or}
         operator = expression.pop(0)
         values = []
         for child in expression:
             values.append (self.compile(child))
-        return ast.BoolOp(op=ast.And(),
+        return ast.BoolOp(op=ops[operator](),
                           lineno=operator.start_line,
                           col_offset=operator.start_column,
                           values=values)
