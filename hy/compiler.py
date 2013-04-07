@@ -546,6 +546,18 @@ class HyASTCompiler(object):
                            lineno=operator.start_line,
                            col_offset=operator.start_column)
 
+    @builds("and")
+    @checkargs(min=2)
+    def compile_and_operator(self, expression):
+        operator = expression.pop(0)
+        values = []
+        for child in expression:
+            values.append (self.compile(child))
+        return ast.BoolOp(op=ast.And(),
+                          lineno=operator.start_line,
+                          col_offset=operator.start_column,
+                          values=values)
+
     @builds("=")
     @builds("!=")
     @builds("<")
