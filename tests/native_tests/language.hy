@@ -406,6 +406,22 @@
    (assert (= -_- "what?"))))
 
 
+(defn test-and []
+  "NATIVE: test the and function"
+  (let [[and123 (and 1 2 3)]
+        [and-false (and 1 False 3)]]
+   (assert (= and123 3))
+   (assert (= and-false False))))
+
+(defn test-or []
+  "NATIVE: test the or function"
+  (let [[or-all-true (or 1 2 3 True "string")]
+        [or-some-true (or False "hello")]
+        [or-none-true (or False False)]]
+   (assert (= or-all-true 1))
+   (assert (= or-some-true "hello"))
+   (assert (= or-none-true False))))
+
 ; FEATURE: native hy-eval
 ;
 ;   - related to bug #64
