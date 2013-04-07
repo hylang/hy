@@ -44,6 +44,21 @@ def test_lex_exception():
         pass
 
 
+def test_unbalanced_exception():
+    """Ensure the tokenization fails on unbalanced expressions"""
+    try:
+        tokenize("(bar))")
+        assert True is False
+    except LexException:
+        pass
+
+    try:
+        tokenize("(baz [quux]])")
+        assert True is False
+    except LexException:
+        pass
+
+
 def test_lex_expression_symbols():
     """ Make sure that expressions produce symbols """
     objs = tokenize("(foo bar)")
