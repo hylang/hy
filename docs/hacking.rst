@@ -26,7 +26,7 @@ Do this:
 2. (optional) go to https://github.com/paultag/hy and fork it
 3. get the source code::
 
-       $ git clone git@github.com:paultag/hy.git
+       $ git clone git://github.com/paultag/hy.git
 
    (or use your fork)
 4. install for hacking::
