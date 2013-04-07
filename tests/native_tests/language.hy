@@ -293,7 +293,7 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with [fd (open "README.md" "r")] (pass))
+  (with [fd (open "README.md" "r")] (assert fd))
   (with [(open "README.md" "r")] (pass)))
 
 
