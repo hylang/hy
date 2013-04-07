@@ -254,6 +254,13 @@ def test_ast_bad_assoc():
     cant_compile("(assoc 1 2 3 4)")
 
 
+def test_ast_bad_with():
+    "Make sure AST can't compile invalid with"
+    cant_compile("(with)")
+    cant_compile("(with [])")
+    cant_compile("(with [] (pass))")
+
+
 def test_ast_valid_while():
     "Make sure AST can't compile invalid while"
     hy_compile(tokenize("(while foo bar)"))
