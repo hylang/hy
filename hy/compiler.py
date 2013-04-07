@@ -52,7 +52,7 @@ def ast_str(foobar):
 
     enc = codecs.getencoder('punycode')
     foobar, _ = enc(foobar)
-    return str(foobar).replace("-", "_")
+    return "__hy_%s" % (str(foobar).replace("-", "_"))
 
 
 def builds(_type):
