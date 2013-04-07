@@ -31,9 +31,12 @@ MACROS = [
 
 def process(tree):
     load_macros()
-    tree = mprocess(tree)
-    for m in hy.mangle.MANGLES:
-        m().mangle(tree)
+    old = None
+    while old != tree:
+        old = tree
+        tree = mprocess(tree)
+        for m in hy.mangle.MANGLES:
+            m().mangle(tree)
     return tree
 
 
