@@ -339,7 +339,7 @@ In hy, you could do these like:
     (list-comp
       (pow num 2)
       (num (range 100))
-      (= (% num 2) 1))
+      (= (% num 2) 1)))
 
 
 .. code-block:: clj

@@ -13,7 +13,7 @@ HOW TO GET HY REAL FAST:
 
        => (print "Hy!")
        Hy!
-       => (defn salutationsnm [] (print (+ "Hy " name "!")))
+       => (defn salutationsnm [name] (print (+ "Hy " name "!")))
        => (salutationsnm "YourName")
        Hy YourName!
 
