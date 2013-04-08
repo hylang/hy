@@ -88,12 +88,8 @@ def test_ast_bad_while():
 
 def test_ast_good_do():
     "Make sure AST can compile valid do"
+    hy_compile(tokenize("(do)"))
     hy_compile(tokenize("(do 1)"))
-
-
-def test_ast_bad_do():
-    "Make sure AST can't compile invalid do"
-    cant_compile("(do)")
 
 
 def test_ast_good_throw():

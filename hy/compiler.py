@@ -157,7 +157,6 @@ class HyASTCompiler(object):
 
     @builds("do")
     @builds("progn")
-    @checkargs(min=1)
     def compile_do_expression(self, expr):
         return [self.compile(x) for x in expr[1:]]
 
