@@ -160,10 +160,17 @@
   (assert (= (.join " " ["one" "two"]) "one two")))
 
 
+(defn test-do []
+  "NATIVE: test do"
+  (do))
+
+
 (defn test-exceptions []
   "NATIVE: test Exceptions"
 
   (try)
+
+  (try (do))
 
   (try (pass))
 

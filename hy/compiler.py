@@ -120,7 +120,12 @@ class HyASTCompiler(object):
 
         raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
 
-    def _mangle_branch(self, tree):
+    def _mangle_branch(self, tree, start_line, start_column):
+        # If tree is empty, just return a pass statement
+        if tree == []:
+            return [ast.Pass(lineno=start_line,
+                             col_offset=start_column)]
+
         ret = []
         tree = list(flatten_literal_list(tree))
         tree.reverse()
@@ -184,13 +189,15 @@ class HyASTCompiler(object):
         else:
             Try = ast.TryExcept
 
-        if len(expr) == 0:
-            # (try)
-            body = [ast.Pass(lineno=expr.start_line,
-                             col_offset=expr.start_column)]
-        else:
-            # (try something…)
-            body = self._code_branch(self.compile(expr.pop(0)))
+        try:
+            body = expr.pop(0)
+        except IndexError:
+            body = []
+
+        # (try something…)
+        body = self._code_branch(self.compile(body),
+                                 expr.start_line,
+                                 expr.start_column)
 
         if len(expr) == 0:
             # (try) or (try body)
@@ -273,12 +280,9 @@ class HyASTCompiler(object):
         else:
             raise TypeError("`catch' needs a valid exception list to catch")
 
-        if len(expr) == 0:
-            # No body
-            body = [ast.Pass(lineno=expr.start_line,
-                             col_offset=expr.start_column)]
-        else:
-            body = self._code_branch([self.compile(x) for x in expr])
+        body = self._code_branch([self.compile(x) for x in expr],
+                                 expr.start_line,
+                                 expr.start_column)
 
         return ast.ExceptHandler(
             lineno=expr.start_line,
@@ -287,20 +291,26 @@ class HyASTCompiler(object):
             name=name,
             body=body)
 
-    def _code_branch(self, branch):
-        if isinstance(branch, list):
-            return self._mangle_branch(branch)
-        return self._mangle_branch([branch])
+    def _code_branch(self, branch, start_line, start_column):
+        return self._mangle_branch((branch
+                                    if isinstance(branch, list)
+                                    else [branch]),
+                                   start_line,
+                                   start_column)
 
     @builds("if")
     @checkargs(min=2, max=3)
     def compile_if_expression(self, expr):
         expr.pop(0)             # if
         test = self.compile(expr.pop(0))
-        body = self._code_branch(self.compile(expr.pop(0)))
+        body = self._code_branch(self.compile(expr.pop(0)),
+                                 expr.start_line,
+                                 expr.start_column)
 
         if len(expr) == 1:
-            orel = self._code_branch(self.compile(expr.pop(0)))
+            orel = self._code_branch(self.compile(expr.pop(0)),
+                                     expr.start_line,
+                                     expr.start_column)
         else:
             orel = []
 
@@ -495,8 +505,10 @@ class HyASTCompiler(object):
                        lineno=expr.start_line,
                        col_offset=expr.start_column,
                        optional_vars=thing,
-                       body=self._mangle_branch([
-                           self.compile(x) for x in expr]))
+                       body=self._code_branch(
+                           [self.compile(x) for x in expr],
+                           expr.start_line,
+                           expr.start_column))
 
         if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
             ret.items = [ast.withitem(context_expr=ctx, optional_vars=thing)]
@@ -727,8 +739,10 @@ class HyASTCompiler(object):
                       col_offset=expression.start_column,
                       target=target,
                       iter=self.compile(iterable),
-                      body=self._mangle_branch([
-                          self.compile(x) for x in expression]),
+                      body=self._code_branch(
+                          [self.compile(x) for x in expression],
+                          expression.start_line,
+                          expression.start_column),
                       orelse=[])
 
         self.returnable = ret_status
@@ -741,8 +755,10 @@ class HyASTCompiler(object):
         test = self.compile(expr.pop(0))
 
         return ast.While(test=test,
-                         body=self._mangle_branch([
-                             self.compile(x) for x in expr]),
+                         body=self._code_branch(
+                             [self.compile(x) for x in expr],
+                             expr.start_line,
+                             expr.start_column),
                          orelse=[],
                          lineno=expr.start_line,
                          col_offset=expr.start_column)
@@ -775,12 +791,10 @@ class HyASTCompiler(object):
                 body.append(self.compile(el))
             body.append(tailop)
 
-        if body == []:
-            body = [ast.Pass(lineno=expression.start_line,
-                             col_offset=expression.start_column)]
-
         self.returnable = True
-        body = self._code_branch(body)
+        body = self._code_branch(body,
+                                 expression.start_line,
+                                 expression.start_column)
 
         ret = ast.FunctionDef(
             name=name,
@@ -858,5 +872,5 @@ def hy_compile(tree, root=None):
     tlo = root
     if root is None:
         tlo = ast.Module
-    ret = tlo(body=compiler._mangle_branch(compiler.compile(tree)))
+    ret = tlo(body=compiler._mangle_branch(compiler.compile(tree), 0, 0))
     return ret
