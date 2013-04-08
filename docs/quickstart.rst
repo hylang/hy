@@ -26,7 +26,7 @@ OMG! That's amazing! I want to write a hy program.
 7. open up an elite programming editor
 8. type::
 
-       (print "hy is the BEST!")
+       (print "i was going to code in python syntax, but then i got hy")
 
 9. save as ``test_program_of_awesome.hy``
 10. run::
