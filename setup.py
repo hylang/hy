@@ -29,7 +29,7 @@ long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
-install_requires = []
+install_requires = ["rply"]
 if sys.version_info[0] == 2:
     install_requires.append('argparse>=1.2.1')
 if os.name == 'nt':
@@ -55,6 +55,7 @@ setup(
     package_data={
         'hy.core': ['*.hy'],
     },
+    setup_requires=['rply'],
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,

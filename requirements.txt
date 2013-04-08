@@ -1,1 +1,2 @@
-# Nothing, yet! (ish). Check site / dev for more deps!
+# Check site / dev for more deps!
+-e git+https://github.com/hylang/rply.git#egg=rply
