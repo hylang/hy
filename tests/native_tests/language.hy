@@ -235,7 +235,39 @@
     (print foobar42ofthebaz)
     (catch []
         (setv foobar42ofthebaz 42)
-        (assert (= foobar42ofthebaz 42)))))
+        (assert (= foobar42ofthebaz 42))))
+
+  (let [[passed false]]
+    (try
+      (try (pass) (except) (else (bla)))
+      (except [NameError] (setv passed true)))
+    (assert passed))
+
+  (let [[x 0]]
+    (try
+      (raise IOError)
+      (except [IOError]
+              (setv x 45))
+      (else (setv x 44)))
+    (assert (= x 45)))
+
+  (let [[x 0]]
+    (try
+      (raise KeyError)
+      (except []
+              (setv x 45))
+      (else (setv x 44)))
+    (assert (= x 45)))
+
+  (let [[x 0]]
+    (try
+      (try
+        (raise KeyError)
+        (except [IOError]
+                (setv x 45))
+        (else (setv x 44)))
+      (except))
+    (assert (= x 0))))
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"

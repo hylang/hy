@@ -199,6 +199,7 @@ class HyASTCompiler(object):
                                  expr.start_line,
                                  expr.start_column)
 
+        orelse = []
         if len(expr) == 0:
             # (try) or (try body)
             handlers = [ast.ExceptHandler(
@@ -209,8 +210,27 @@ class HyASTCompiler(object):
                 body=[ast.Pass(lineno=expr.start_line,
                                col_offset=expr.start_column)])]
         else:
-            # (try body except except…)
-            handlers = [self.compile(s) for s in expr]
+            handlers = []
+            for e in expr:
+                if not len(e):
+                    raise TypeError("Empty list not allowed in `try'")
+
+                if e[0] in (HySymbol("except"), HySymbol("catch")):
+                    handlers.append(self.compile(e))
+                elif e[0] == HySymbol("else"):
+                    if orelse:
+                        raise TypeError(
+                            "`try' cannot have more than one `else'")
+                    else:
+                        orelse = self._code_branch(self.compile(e[1:]),
+                                                   e.start_line,
+                                                   e.start_column)
+                else:
+                    raise TypeError("Unknown expression in `try'")
+
+            if handlers == []:
+                raise TypeError(
+                    "`try' must have at least `except' or `finally'")
 
         return Try(
             lineno=expr.start_line,
@@ -218,7 +238,7 @@ class HyASTCompiler(object):
             body=body,
             handlers=handlers,
             finalbody=[],
-            orelse=[])
+            orelse=orelse)
 
     @builds("catch")
     @builds("except")
