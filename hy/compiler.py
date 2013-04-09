@@ -167,10 +167,10 @@ class HyASTCompiler(object):
 
     @builds("throw")
     @builds("raise")
-    @checkargs(min=1)
+    @checkargs(max=1)
     def compile_throw_expression(self, expr):
         expr.pop(0)
-        exc = self.compile(expr.pop(0))
+        exc = self.compile(expr.pop(0)) if expr else None
         return ast.Raise(
             lineno=expr.start_line,
             col_offset=expr.start_column,
