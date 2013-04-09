@@ -242,7 +242,7 @@ class HyASTCompiler(object):
         if not isinstance(exceptions, HyList):
             raise TypeError("`%s' exceptions list is not a list" % catch)
         if len(exceptions) > 2:
-            raise TypeError("`catch' exceptions list is too long")
+            raise TypeError("`%s' exceptions list is too long" % catch)
 
         # [variable [list of exceptions]]
         # let's pop variable and use it as name
@@ -280,7 +280,7 @@ class HyASTCompiler(object):
         elif isinstance(exceptions_list, HySymbol):
             _type = self.compile(exceptions_list)
         else:
-            raise TypeError("`catch' needs a valid exception list to catch")
+            raise TypeError("`%s' needs a valid exception list" % catch)
 
         body = self._code_branch([self.compile(x) for x in expr],
                                  expr.start_line,
