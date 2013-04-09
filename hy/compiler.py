@@ -38,7 +38,21 @@ import sys
 
 
 class HyCompileError(HyError):
-    pass
+    def __init__(self, exception,
+                 start_line=0, start_column=0):
+        self.exception = exception
+        self.start_line = start_line
+        self.start_column = start_column
+
+    def __str__(self):
+        if self.start_line == 0:
+            return("Internal Compiler Bug\n⤷ %s: %s"
+                   % (self.exception.__class__.__name__,
+                      self.exception))
+        return ("Compilation error at line %d, column %d\n%s: %s"
+                % (self.start_line, self.start_column,
+                   self.exception.__class__.__name__,
+                   self.exception))
 
 
 _compile_table = {}
@@ -111,12 +125,15 @@ class HyASTCompiler(object):
             for _type in _compile_table:
                 if type(tree) == _type:
                     return _compile_table[_type](self, tree)
+        except HyCompileError:
+            # compile calls compile, so we're going to have multiple raise
+            # nested; so let's re-raise this exception, let's not wrap it in
+            # another HyCompileError!
+            raise
         except Exception as e:
-            err = HyCompileError(str(e))
-            err.exception = e
-            err.start_line = getattr(e, "start_line", None)
-            err.start_column = getattr(e, "start_column", None)
-            raise err
+            raise HyCompileError(exception=e,
+                                 start_line=getattr(e, "start_line", 0),
+                                 start_column=getattr(e, "start_column", 0))
 
         raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
 
