@@ -2,6 +2,16 @@ Changes from Hy 0.9.4
 
   [ Syntax Fixes ]
 
+    * `try' now accepts `else': (JD)
+      (try BODY
+        (except [] BODY)
+        (else BODY))
+
+
+Changes from Hy 0.9.4
+
+  [ Syntax Fixes ]
+
     * Statements in the `fn' path early will not return anymore. (PT)
     * Added "not" as the inline "not" operator. It's advised to still
       use "not-in" or "is-not" rather then nesting. (JD)
