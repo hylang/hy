@@ -1,0 +1,15 @@
+Hy Logo is TeXGyreBonum font with the two parentheses, and two copies
+of the lambda character all flipped around and rotated!
+
+Aside from the font design (which was not done by any Hy authors!) the
+Hy logo is authored by Christopher Allan Webber in 2013 and released
+into the public domain under CC0... see CC0_1.0.txt!
+
+  To the extent possible under law, the author(s) have dedicated all
+  copyright and related and neighboring rights to this logo to
+  the public domain worldwide. This software is distributed without
+  any warranty.
+
+  You should have received a copy of the CC0 Public Domain
+  Dedication along with this software. If not, see
+  <http://creativecommons.org/publicdomain/zero/1.0/>.

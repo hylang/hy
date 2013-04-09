@@ -4,8 +4,8 @@ import ast
 
 def test_basics():
     "Make sure the basics of the importer work"
-    module = import_file_to_module("basic",
-                                   "tests/resources/importer/basic.hy")
+    import_file_to_module("basic",
+                          "tests/resources/importer/basic.hy")
 
 
 def test_stringer():

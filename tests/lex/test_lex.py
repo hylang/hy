@@ -33,13 +33,28 @@ from hy.lex import tokenize
 def test_lex_exception():
     """ Ensure tokenize throws a fit on a partial input """
     try:
-        objs = tokenize("(foo")
+        tokenize("(foo")
         assert True is False
     except LexException:
         pass
 
     try:
-        objs = tokenize("&foo&")
+        tokenize("&foo&")
+        assert True is False
+    except LexException:
+        pass
+
+
+def test_unbalanced_exception():
+    """Ensure the tokenization fails on unbalanced expressions"""
+    try:
+        tokenize("(bar))")
+        assert True is False
+    except LexException:
+        pass
+
+    try:
+        tokenize("(baz [quux]])")
         assert True is False
     except LexException:
         pass

@@ -9,9 +9,6 @@
 
    + Use (def) to imply global foo
 
- - New Builtins:
-   + While
-
  - New macros:
    + loop
 
@@ -31,3 +28,5 @@
 
  - core tests (odd? even? true? false?) which
    build out to a lambda / function / expr
+
+  - add -d flag (debug) for hy REPL based on @jd's try/catch

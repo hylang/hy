@@ -94,6 +94,20 @@ def threading_macro(tree):
     return ret
 
 
+@macro("_>>")
+def threading_tail_macro(tree):
+    tree.pop(0)
+    ret = tree.pop(0)
+    for node in tree:
+        if not isinstance(node, HyExpression):
+            nnode = HyExpression([node])
+            nnode.replace(node)
+            node = nnode
+        node.append(ret)
+        ret = node
+    return ret
+
+
 @macro("car")
 @macro("first")
 def first_macro(tree):
@@ -114,3 +128,19 @@ def rest_macro(tree):
     return HyExpression([HySymbol('slice'),
                          ret,
                          HyInteger(1)])
+
+
+@macro("let")
+def let_macro(tree):
+    tree.pop(0)  # "let"
+    ret = tree.pop(0)  # vars
+    # tree is now the body
+    expr = HyExpression([HySymbol("fn"), HyList([])])
+
+    for var in ret:
+        expr.append(HyExpression([HySymbol("setf"), var[0], var[1]]))
+
+    for stmt in tree:
+        expr.append(stmt)
+
+    return HyExpression([expr])

@@ -1,0 +1,122 @@
+Changes from Hy 0.9.4
+
+  [ Syntax Fixes ]
+
+    * `try' now accepts `else': (JD)
+      (try BODY
+        (except [] BODY)
+        (else BODY))
+
+
+Changes from Hy 0.9.4
+
+  [ Syntax Fixes ]
+
+    * Statements in the `fn' path early will not return anymore. (PT)
+    * Added "not" as the inline "not" operator. It's advised to still
+      use "not-in" or "is-not" rather then nesting. (JD)
+    * `let' macro added (PT)
+    * Added "~" as the "invert" operator. (JD)
+    * `catch' now accepts a new format: (JD)
+        (catch [] BODY)
+        (catch [Exception] BODY)
+        (catch [e Exception] BODY)
+        (catch [e [Exception1 Exception2]] BODY)
+    * With's syntax was fixed to match the rest of the code. It's now: (PT)
+        (with [name context-managed-fn] BODY)
+        (with [context-managed-fn] BODY)
+
+  [ Language Changes ]
+
+    * Added `and' and `or' (GN)
+    * Added the tail threading macro (->>) (PT)
+    * UTF encoded symbols are allowed, but mangled. All Hy source is now
+      presumed to be UTF-8. (JD + PT)
+    * Better builtin signature checking  (JD)
+    * If hoisting (for things like printing the return of an if statement)
+      have been added. '(print (if true true true))' (PT)
+
+  [ Documentation ]
+
+    * Initial documentation added to the source tree. (PT)
+
+
+Changes from Hy 0.9.3
+
+  [ Syntax Fixes ]
+
+    * Nested (do) expressions no longer break Hy (PT)
+    * `progn' is now a valid alias for `do' (PT)
+    * `defun' is now a valid alias for `defn' (PT)
+    * Added two new escapes for \ and " (PT)
+
+  [ Language Changes ]
+
+    * Show a traceback when a compile-error bubbles up in the Hy REPL (PT)
+    * `setf' / `setv' added, the behavior of `def` may change in the future.
+    * `print' no longer breaks in Python 3.x (PT)
+    * Added `list-comp' list comprehensions. (PT)
+    * Function hoisting (for things like inline invocation of functions,
+      e.g. '((fn [] (print "hi!")))' has been added. (PT)
+    * `while' form added. (ND)
+        (while [CONDITIONAL] BODY)
+
+  [ Documentation ]
+
+    * Initial docs added. (WKG + CW)
+
+
+Changes from Hy 0.9.2
+
+  [ General Enhancements ]
+
+    * hy.__main__ added, `python -m hy' will now allow a hy shim into existing
+      Python scripts. (PT)
+
+  [ Language Changes ]
+
+    * `import-as' added to allow for importing modules. (Amrut Joshi)
+    * `slice' added to slice up arrays. (PT)
+    * `with-as' added to allow for context managed bits. (PT)
+    * `%' added to do Modulo. (PT)
+    * Tuples added with the '(, foo bar)' syntax. (PT)
+    * `car' / `first' added. (PT)
+    * `cdr' / `rest' added. (PT)
+    * hy --> .pyc compiler added. (PT)
+    * Completer added for the REPL Readline autocompletion. (PT)
+    * Merge the `meth' macros into hy.contrib. (PT)
+    * Changed __repr__ to match Hy source conventions. (PT)
+    * 2.6 support restored. (PT)
+
+
+Changes from Hy 0.9.1
+
+  [ General Enhancements ]
+
+    * Hy REPL added. (PT)
+    * Doc templates added. (PT)
+
+  [ Language Changes ]
+
+    * Add `pass' (PT)
+    * Add `yield' (PT)
+    * Moved `for' to a macro, and move `foreach' to old `for'. (PT)
+    * Add the threading macro (`->'). (PT)
+    * Add "earmufs" in. (tenach)
+    * Add comments in (PT)
+
+
+Changes from Hy 0.9.0
+
+  [ Language Changes ]
+
+    * Add `throw' (PT)
+    * Add `try' (PT)
+    * add `catch' (PT)
+
+
+Changes from Hy 0.8.2
+
+  [ Notes ]
+
+    * Complete rewrite of old-hy. (PT)

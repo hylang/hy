@@ -18,28 +18,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.macros import process as mprocess
 
-import hy.mangle
-
-
-MACROS = [
-    "hy.core.bootstrap",
-    "hy.core.mangles",
-]
-
-
-def process(tree):
-    load_macros()
-    old = None
-    while old != tree:
-        old = tree
-        tree = mprocess(tree)
-        for m in hy.mangle.MANGLES:
-            m().mangle(tree)
-    return tree
-
-
-def load_macros():
-    for module in MACROS:
-        __import__(module)
+def flatten_literal_list(entry):
+    for e in entry:
+        if type(e) == list:
+            for x in flatten_literal_list(e):
+                yield x  # needs more yield-from
+        else:
+            yield e

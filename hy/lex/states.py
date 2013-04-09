@@ -166,6 +166,9 @@ class ListeyThing(State):
         if char == self.end_char:
             return Idle
 
+        if char in ")]}":
+            raise LexException("Unexpected closing character: `%s'" % (char))
+
         if char in WHITESPACE:
             self.commit()
             return
@@ -240,6 +243,9 @@ class String(State):
                 return
             if char == "\\":
                 self.nodes.append("\\")
+                return
+            if char == "\"":
+                self.nodes.append("\"")
                 return
 
             raise LexException("Unknown modifier: `%s'" % (char))

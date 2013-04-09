@@ -22,6 +22,9 @@ site:
 docs:
 	make -C docs html
 
+upload: r
+	python setup.py sdist upload
+
 full: d tox site docs
 
 venv:
