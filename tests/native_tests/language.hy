@@ -178,6 +178,26 @@
 
   (try (pass) (except [IOError]) (except))
 
+  ;; Test correct (raise)
+  (let [[passed false]]
+    (try
+      (try
+        (raise IndexError)
+        (except [IndexError] (raise)))
+      (except [IndexError]
+              (setv passed true)))
+    (assert passed))
+
+  ;; Test incorrect (raise)
+  (let [[passed false]]
+    (try
+      (raise)
+      ;; Python 2 raises TypeError
+      ;; Python 3 raises RuntimeError
+      (except [[TypeError RuntimeError]]
+              (setv passed true)))
+    (assert passed))
+
   (try
     (raise (KeyError))
     (catch [[IOError]] (assert false))
@@ -235,7 +255,39 @@
     (print foobar42ofthebaz)
     (catch []
         (setv foobar42ofthebaz 42)
-        (assert (= foobar42ofthebaz 42)))))
+        (assert (= foobar42ofthebaz 42))))
+
+  (let [[passed false]]
+    (try
+      (try (pass) (except) (else (bla)))
+      (except [NameError] (setv passed true)))
+    (assert passed))
+
+  (let [[x 0]]
+    (try
+      (raise IOError)
+      (except [IOError]
+              (setv x 45))
+      (else (setv x 44)))
+    (assert (= x 45)))
+
+  (let [[x 0]]
+    (try
+      (raise KeyError)
+      (except []
+              (setv x 45))
+      (else (setv x 44)))
+    (assert (= x 45)))
+
+  (let [[x 0]]
+    (try
+      (try
+        (raise KeyError)
+        (except [IOError]
+                (setv x 45))
+        (else (setv x 44)))
+      (except))
+    (assert (= x 0))))
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"

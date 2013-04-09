@@ -94,30 +94,40 @@ def test_ast_good_do():
 
 def test_ast_good_throw():
     "Make sure AST can compile valid throw"
+    hy_compile(tokenize("(throw)"))
     hy_compile(tokenize("(throw 1)"))
 
 
 def test_ast_bad_throw():
     "Make sure AST can't compile invalid throw"
-    cant_compile("(throw)")
+    cant_compile("(raise 1 2 3)")
 
 
 def test_ast_good_raise():
     "Make sure AST can compile valid raise"
+    hy_compile(tokenize("(raise)"))
     hy_compile(tokenize("(raise 1)"))
 
 
 def test_ast_bad_raise():
     "Make sure AST can't compile invalid raise"
-    cant_compile("(raise)")
+    cant_compile("(raise 1 2 3)")
 
 
 def test_ast_good_try():
     "Make sure AST can compile valid try"
     hy_compile(tokenize("(try)"))
     hy_compile(tokenize("(try 1)"))
-    hy_compile(tokenize("(try 1 bla)"))
-    hy_compile(tokenize("(try 1 bla bla)"))
+    hy_compile(tokenize("(try 1 (except) (else 1))"))
+    hy_compile(tokenize("(try 1 (else 1) (except))"))
+
+
+def test_ast_bad_try():
+    "Make sure AST can't compile invalid try"
+    cant_compile("(try 1 bla)")
+    cant_compile("(try 1 bla bla)")
+    cant_compile("(try (do) (else 1) (else 2))")
+    cant_compile("(try 1 (else 1))")
 
 
 def test_ast_good_catch():
@@ -134,6 +144,7 @@ def test_ast_good_catch():
 def test_ast_bad_catch():
     "Make sure AST can't compile invalid catch"
     cant_compile("(catch 1)")
+    cant_compile("(catch \"A\")")
     cant_compile("(catch [1 3])")
     cant_compile("(catch [x [FooBar] BarBar])")
 
