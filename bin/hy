@@ -48,7 +48,12 @@ class HyREPL(code.InteractiveConsole):
             _machine = Machine(Idle, 1, 0)
             return True
 
-        tokens = process(_machine.nodes)
+        try:
+            tokens = process(_machine.nodes)
+        except Exception:
+            _machine = Machine(Idle, 1, 0)
+            self.showtraceback()
+            return False
 
         _machine = Machine(Idle, 1, 0)
         try:
