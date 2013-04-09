@@ -178,6 +178,26 @@
 
   (try (pass) (except [IOError]) (except))
 
+  ;; Test correct (raise)
+  (let [[passed false]]
+    (try
+      (try
+        (raise IndexError)
+        (except [IndexError] (raise)))
+      (except [IndexError]
+              (setv passed true)))
+    (assert passed))
+
+  ;; Test incorrect (raise)
+  (let [[passed false]]
+    (try
+      (raise)
+      ;; Python 2 raises TypeError
+      ;; Python 3 raises RuntimeError
+      (except [[TypeError RuntimeError]]
+              (setv passed true)))
+    (assert passed))
+
   (try
     (raise (KeyError))
     (catch [[IOError]] (assert false))

@@ -94,22 +94,24 @@ def test_ast_good_do():
 
 def test_ast_good_throw():
     "Make sure AST can compile valid throw"
+    hy_compile(tokenize("(throw)"))
     hy_compile(tokenize("(throw 1)"))
 
 
 def test_ast_bad_throw():
     "Make sure AST can't compile invalid throw"
-    cant_compile("(throw)")
+    cant_compile("(raise 1 2 3)")
 
 
 def test_ast_good_raise():
     "Make sure AST can compile valid raise"
+    hy_compile(tokenize("(raise)"))
     hy_compile(tokenize("(raise 1)"))
 
 
 def test_ast_bad_raise():
     "Make sure AST can't compile invalid raise"
-    cant_compile("(raise)")
+    cant_compile("(raise 1 2 3)")
 
 
 def test_ast_good_try():
