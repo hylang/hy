@@ -223,12 +223,12 @@ class HyASTCompiler(object):
     @builds("catch")
     @builds("except")
     def compile_catch_expression(self, expr):
-        expr.pop(0)  # catch
+        catch = expr.pop(0)  # catch
 
         try:
             exceptions = expr.pop(0)
         except IndexError:
-            exceptions = []
+            exceptions = HyList()
         # exceptions catch should be either:
         # [[list of exceptions]]
         # or
@@ -239,6 +239,8 @@ class HyASTCompiler(object):
         # [exception]
         # or
         # []
+        if not isinstance(exceptions, HyList):
+            raise TypeError("`%s' exceptions list is not a list" % catch)
         if len(exceptions) > 2:
             raise TypeError("`catch' exceptions list is too long")
 

@@ -134,6 +134,7 @@ def test_ast_good_catch():
 def test_ast_bad_catch():
     "Make sure AST can't compile invalid catch"
     cant_compile("(catch 1)")
+    cant_compile("(catch \"A\")")
     cant_compile("(catch [1 3])")
     cant_compile("(catch [x [FooBar] BarBar])")
 
