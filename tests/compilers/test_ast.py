@@ -328,5 +328,8 @@ def test_ast_tuple():
 
 
 def test_lambda_list_keywords_rest():
-    code = hy_compile(tokenize("(defun foo (x &rest xs))"))
-    assert False == True
+    src = ("(defun foo (x &rest xs) (print xs))\n"
+           "(foo 1 2 3 4 5)")
+    code = hy_compile(tokenize(src))
+    print(ast.dump(code))
+    assert False

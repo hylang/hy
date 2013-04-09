@@ -176,7 +176,52 @@ class HyASTCompiler(object):
 
     def _parse_lambda_list(self, exprs):
         """ Return args, keywords, starargs, kwargs from exprs."""
-        return [self.compile(expr) for expr in exprs], [], None, None
+        exprs.reverse()
+        args = []
+        keywords = []
+        starargs = None
+        kwargs = {}
+        lambda_keyword = None
+
+        while exprs:
+            expr = exprs.pop()
+
+            if isinstance(expr, HyLambdaListKeyword):
+                if expr not in expr._valid_types:
+                    raise HyCompileError("{0} is not a valid "
+                                         "lambda-keyword.".format(repr(expr)))
+                if expr == "&rest" and lambda_keyword is None:
+                    print("Found &rest")
+                    lambda_keyword = expr
+                elif expr == "&optional" and lambda_keyword == "&rest":
+                    lambda_keyword = expr
+                elif expr == "&aux" and lambda_keyword == "&optional":
+                    lambda_keyword = expr
+                else:
+                    raise HyCompileError("{0} is in an invalid "
+                                         "position.".format(repr(expr)))
+                # we don't actually care about this token, so we set
+                # our state and continue to the next token...
+                continue
+
+            if lambda_keyword is None:
+                args.append(self.compile(expr))
+            elif lambda_keyword == "&rest":
+                print("The keyword is &rest, the expr is {0}".format(expr))
+                if starargs:
+                    raise HyCompileError("There can only be one "
+                                         "&rest argument")
+                starargs = self.compile(expr)
+            elif lambda_keyword == "&optional":
+                # add key to keywords and kwargs, value to kwargs? Look up AST docs you dummy.
+                pass
+            elif lambda_keyword == "&aux":
+                # update kwargs with the rest of the passed in keys/vals
+                pass
+
+        if not kwargs:
+            kwargs = None
+        return args, keywords, starargs, kwargs
 
     @builds(list)
     def compile_raw_list(self, entries):
@@ -841,6 +886,9 @@ class HyASTCompiler(object):
         body = self._code_branch(body,
                                  expression.start_line,
                                  expression.start_column)
+
+        print("HELLO", sig)
+        # TODO: Parse those args here
 
         ret = ast.FunctionDef(
             name=name,
