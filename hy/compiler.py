@@ -235,12 +235,6 @@ class HyASTCompiler(object):
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
-            # Python 3.3 features a rename of TryExcept to Try.
-            Try = ast.Try
-        else:
-            Try = ast.TryExcept
-
         try:
             body = expr.pop(0)
         except IndexError:
@@ -252,8 +246,42 @@ class HyASTCompiler(object):
                                  expr.start_column)
 
         orelse = []
-        if len(expr) == 0:
-            # (try) or (try body)
+        finalbody = []
+        handlers = []
+
+        for e in expr:
+            if not len(e):
+                raise TypeError("Empty list not allowed in `try'")
+
+            if e[0] in (HySymbol("except"), HySymbol("catch")):
+                handlers.append(self.compile(e))
+            elif e[0] == HySymbol("else"):
+                if orelse:
+                    raise TypeError(
+                        "`try' cannot have more than one `else'")
+                else:
+                    orelse = self._code_branch(self.compile(e[1:]),
+                                               e.start_line,
+                                               e.start_column)
+            elif e[0] == HySymbol("finally"):
+                if finalbody:
+                    raise TypeError(
+                        "`try' cannot have more than one `finally'")
+                else:
+                    finalbody = self._code_branch(self.compile(e[1:]),
+                                                  e.start_line,
+                                                  e.start_column)
+            else:
+                raise TypeError("Unknown expression in `try'")
+
+        # Using (else) without (except) is verboten!
+        if orelse and not handlers:
+            raise TypeError(
+                "`try' cannot have `else' without `except'")
+
+        # (try) or (try BODY)
+        # Generate a default handler for Python >= 3.3 and pypy
+        if not handlers and not finalbody and not orelse:
             handlers = [ast.ExceptHandler(
                 lineno=expr.start_line,
                 col_offset=expr.start_column,
@@ -261,35 +289,41 @@ class HyASTCompiler(object):
                 name=None,
                 body=[ast.Pass(lineno=expr.start_line,
                                col_offset=expr.start_column)])]
-        else:
-            handlers = []
-            for e in expr:
-                if not len(e):
-                    raise TypeError("Empty list not allowed in `try'")
 
-                if e[0] in (HySymbol("except"), HySymbol("catch")):
-                    handlers.append(self.compile(e))
-                elif e[0] == HySymbol("else"):
-                    if orelse:
-                        raise TypeError(
-                            "`try' cannot have more than one `else'")
-                    else:
-                        orelse = self._code_branch(self.compile(e[1:]),
-                                                   e.start_line,
-                                                   e.start_column)
-                else:
-                    raise TypeError("Unknown expression in `try'")
+        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+            # Python 3.3 features a merge of TryExcept+TryFinally into Try.
+            return ast.Try(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                body=body,
+                handlers=handlers,
+                orelse=orelse,
+                finalbody=finalbody)
 
-            if handlers == []:
-                raise TypeError(
-                    "`try' must have at least `except' or `finally'")
+        if finalbody:
+            if handlers:
+                return ast.TryFinally(
+                    lineno=expr.start_line,
+                    col_offset=expr.start_column,
+                    body=[ast.TryExcept(
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column,
+                        handlers=handlers,
+                        body=body,
+                        orelse=orelse)],
+                    finalbody=finalbody)
 
-        return Try(
+            return ast.TryFinally(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                body=body,
+                finalbody=finalbody)
+
+        return ast.TryExcept(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            body=body,
             handlers=handlers,
-            finalbody=[],
+            body=body,
             orelse=orelse)
 
     @builds("catch")

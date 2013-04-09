@@ -198,6 +198,34 @@
               (setv passed true)))
     (assert passed))
 
+
+  ;; Test (finally)
+  (let [[passed false]]
+    (try
+      (pass)
+      (finally (setv passed true)))
+    (assert passed))
+
+  ;; Test (finally) + (raise)
+  (let [[passed false]]
+    (try
+      (raise Exception)
+      (except)
+      (finally (setv passed true)))
+    (assert passed))
+
+
+  ;; Test (finally) + (raise) + (else)
+  (let [[passed false]
+        [not-elsed true]]
+    (try
+      (raise Exception)
+      (except)
+      (else (setv not-elsed false))
+      (finally (setv passed true)))
+    (assert passed)
+    (assert not-elsed))
+
   (try
     (raise (KeyError))
     (catch [[IOError]] (assert false))
