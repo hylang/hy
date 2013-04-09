@@ -31,6 +31,7 @@ class HyList(HyObject, list):
             x.replace(other)
 
         HyObject.replace(self, other)
+        return self
 
     def __repr__(self):
         return "[%s]" % (" ".join([str(x) for x in self]))

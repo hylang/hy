@@ -160,6 +160,22 @@ class HyASTCompiler(object):
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
 
+    def _render_quoted_form(self, form):
+        name = form.__class__.__name__
+        if isinstance(form, HyList):
+            return HyExpression(
+                [HySymbol(name),
+                 HyList([self._render_quoted_form(x) for x in form])]
+            ).replace(form)
+        elif isinstance(form, HySymbol):
+            return HyExpression([HySymbol(name), HyString(form)]).replace(form)
+        return HyExpression([HySymbol(name), form]).replace(form)
+
+    @builds("quote")
+    @checkargs(min=1, max=2)
+    def compile_quote(self, entries):
+        return self.compile(self._render_quoted_form(entries[1]))
+
     @builds("do")
     @builds("progn")
     def compile_do_expression(self, expr):
