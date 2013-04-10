@@ -520,7 +520,8 @@
   (assert (= 4 (eval (quote (+ x 2)))))
   (setf test-payload (quote (+ x 2)))
   (setf x 4)
-  (assert (= 6 (eval test-payload))))
+  (assert (= 6 (eval test-payload)))
+  (assert (= 6 (eval (quote ((fn [] (+ 3 3))))))))
 
 
 
