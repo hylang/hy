@@ -83,8 +83,7 @@ def builds(_type):
 
 
 def _raise_wrong_args_number(expression, error):
-    err = TypeError(error % (expression.pop(0),
-                             len(expression)))
+    err = TypeError(error % (expression.pop(0), len(expression)))
     err.start_line = expression.start_line
     err.start_column = expression.start_column
     raise err
@@ -94,9 +93,8 @@ def checkargs(exact=None, min=None, max=None):
     def _dec(fn):
         def checker(self, expression):
             if exact is not None and (len(expression) - 1) != exact:
-                _raise_wrong_args_number(expression,
-                                         "`%%s' needs %d arguments, got %%d" %
-                                         exact)
+                _raise_wrong_args_number(
+                    expression, "`%%s' needs %d arguments, got %%d" % exact)
 
             if min is not None and (len(expression) - 1) < min:
                 _raise_wrong_args_number(
@@ -140,8 +138,7 @@ class HyASTCompiler(object):
     def _mangle_branch(self, tree, start_line, start_column):
         # If tree is empty, just return a pass statement
         if tree == []:
-            return [ast.Pass(lineno=start_line,
-                             col_offset=start_column)]
+            return [ast.Pass(lineno=start_line, col_offset=start_column)]
 
         ret = []
         tree = list(flatten_literal_list(tree))
@@ -166,9 +163,10 @@ class HyASTCompiler(object):
                 ret.append(el)
                 continue
 
-            ret.append(ast.Expr(value=el,
-                       lineno=el.lineno,
-                       col_offset=el.col_offset))
+            ret.append(ast.Expr(
+                value=el,
+                lineno=el.lineno,
+                col_offset=el.col_offset))
 
         ret.reverse()
         return ret
@@ -176,6 +174,22 @@ class HyASTCompiler(object):
     @builds(list)
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
+
+    def _render_quoted_form(self, form):
+        name = form.__class__.__name__
+        if isinstance(form, HyList):
+            return HyExpression(
+                [HySymbol(name),
+                 HyList([self._render_quoted_form(x) for x in form])]
+            ).replace(form)
+        elif isinstance(form, HySymbol):
+            return HyExpression([HySymbol(name), HyString(form)]).replace(form)
+        return HyExpression([HySymbol(name), form]).replace(form)
+
+    @builds("quote")
+    @checkargs(exact=1)
+    def compile_quote(self, entries):
+        return self.compile(self._render_quoted_form(entries[1]))
 
     @builds("do")
     @builds("progn")
