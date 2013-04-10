@@ -20,6 +20,8 @@
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.float import HyFloat
+from hy.models.complex import HyComplex
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
@@ -45,12 +47,25 @@ def _resolve_atom(obj):
     Resolve a bare atom into one of the following (in order):
 
         - Integer
+        - Float
+        - Complex
         - Symbol
     """
     try:
         return HyInteger(obj)
     except ValueError:
         pass
+
+    try:
+        return HyFloat(obj)
+    except ValueError:
+        pass
+
+    try:
+        return HyComplex(obj)
+    except ValueError:
+        pass
+
 
     table = {
         "true": "True",
