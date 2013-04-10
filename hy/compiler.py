@@ -189,7 +189,7 @@ class HyASTCompiler(object):
         return HyExpression([HySymbol(name), form]).replace(form)
 
     @builds("quote")
-    @checkargs(min=1, max=2)
+    @checkargs(exact=1)
     def compile_quote(self, entries):
         return self.compile(self._render_quoted_form(entries[1]))
 
