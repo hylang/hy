@@ -197,8 +197,8 @@ class HyASTCompiler(object):
     def compile_eval(self, expr):
         expr.pop(0)
         return self.compile(HyExpression([
-            HySymbol("hy_eval")] + expr + [HyExpression([HySymbol("globals")])
-        ]).replace(expr))
+            HySymbol("hy_eval")] + expr + [
+                HyExpression([HySymbol("locals")])]).replace(expr))
 
     @builds("do")
     @builds("progn")

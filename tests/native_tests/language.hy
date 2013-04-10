@@ -511,6 +511,19 @@
                  ((fn [] 1))))))
 
 
+(defn test-eval []
+  "NATIVE: test eval"
+  (import-from hy.importer hy-eval)  ; XXX: Fix this!!!!!
+  (import-from hy HyExpression HyInteger HySymbol)
+  (assert (= 2 (eval (quote (+ 1 1)))))
+  (setf x 2)
+  (assert (= 4 (eval (quote (+ x 2)))))
+  (setf test-payload (quote (+ x 2)))
+  (setf x 4)
+  (assert (= 6 (eval test-payload))))
+
+
+
 ; FEATURE: native hy-eval
 ;
 ;   - related to bug #64

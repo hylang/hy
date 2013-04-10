@@ -51,21 +51,21 @@ def import_file_to_hst(fpath):
 
 def import_file_to_ast(fpath):
     tree = import_file_to_hst(fpath)
-    ast = hy_compile(tree)
-    return ast
+    _ast = hy_compile(tree)
+    return _ast
 
 
 def import_string_to_ast(buff):
     tree = import_buffer_to_hst(StringIO(buff))
-    ast = hy_compile(tree)
-    return ast
+    _ast = hy_compile(tree)
+    return _ast
 
 
 def import_file_to_module(name, fpath):
-    ast = import_file_to_ast(fpath)
+    _ast = import_file_to_ast(fpath)
     mod = imp.new_module(name)
     mod.__file__ = fpath
-    eval(compile(ast, fpath, "exec"), mod.__dict__)
+    eval(compile(_ast, fpath, "exec"), mod.__dict__)
     return mod
 
 
