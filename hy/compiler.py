@@ -97,11 +97,13 @@ def checkargs(exact=None, min=None, max=None):
                     expression, "`%%s' needs %d arguments, got %%d" % exact)
 
             if min is not None and (len(expression) - 1) < min:
-                _raise_wrong_args_number(expression,
+                _raise_wrong_args_number(
+                    expression,
                     "`%%s' needs at least %d arguments, got %%d" % (min))
 
             if max is not None and (len(expression) - 1) > max:
-                _raise_wrong_args_number(expression,
+                _raise_wrong_args_number(
+                    expression,
                     "`%%s' needs at most %d arguments, got %%d" % (max))
 
             return fn(self, expression)
@@ -152,7 +154,7 @@ class HyASTCompiler(object):
             if isinstance(el, ast.FunctionDef):
                 ret.append(ast.Return(
                     value=ast.Name(
-                        arg=el.name,id=el.name, ctx=ast.Load(),
+                        arg=el.name, id=el.name, ctx=ast.Load(),
                         lineno=el.lineno, col_offset=el.col_offset),
                     lineno=el.lineno, col_offset=el.col_offset))
 
