@@ -284,6 +284,9 @@ class Idle(State):
         if char == "#":
             return Hash
 
+        if char == "\"":
+            return String
+
         if char in WHITESPACE:
             return
 
