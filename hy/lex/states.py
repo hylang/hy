@@ -22,6 +22,7 @@ from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
+from hy.models.keyword import HyKeyword
 from hy.models.dict import HyDict
 from hy.models.list import HyList
 
@@ -60,6 +61,9 @@ def _resolve_atom(obj):
 
     if obj in table:
         return HySymbol(table[obj])
+
+    if obj.startswith(":"):
+        return HyKeyword(obj)
 
     if obj.startswith("*") and obj.endswith("*") and obj != "*":
         obj = obj[1:-1].upper()

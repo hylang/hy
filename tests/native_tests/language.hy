@@ -510,6 +510,12 @@
                  (pass)
                  ((fn [] 1))))))
 
+(defn test-keyword []
+  "NATIVE: test if keywords are recognised"
+
+  (assert (= :foo :foo))
+  (assert (= (get {:foo "bar"} :foo) "bar"))
+  (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
 
 (defn test-eval []
   "NATIVE: test eval"
