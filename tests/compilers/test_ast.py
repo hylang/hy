@@ -21,6 +21,7 @@
 
 from hy.compiler import hy_compile, HyCompileError
 from hy.lex import tokenize
+from hy.util import dump
 
 import ast
 import sys
@@ -331,5 +332,5 @@ def test_lambda_list_keywords_rest():
     src = ("(defun foo (x &rest xs) (print xs))\n"
            "(foo 1 2 3 4 5)")
     code = hy_compile(tokenize(src))
-    print(ast.dump(code))
+    print(dump(code))
     assert False

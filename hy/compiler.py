@@ -205,13 +205,13 @@ class HyASTCompiler(object):
                 continue
 
             if lambda_keyword is None:
-                args.append(self.compile(expr))
+                args.append(expr)
             elif lambda_keyword == "&rest":
                 print("The keyword is &rest, the expr is {0}".format(expr))
                 if starargs:
                     raise HyCompileError("There can only be one "
                                          "&rest argument")
-                starargs = self.compile(expr)
+                starargs = str(expr)
             elif lambda_keyword == "&optional":
                 # add key to keywords and kwargs, value to kwargs? Look up AST docs you dummy.
                 pass
@@ -782,13 +782,11 @@ class HyASTCompiler(object):
             if expression[0].startswith("."):
                 return self.compile_dotted_expression(expression)
 
-        args, keywords, starargs, kwargs = self._parse_lambda_list(expression[1:])
-
         return ast.Call(func=self.compile(fn),
-                        args=args,
-                        keywords=keywords,
-                        starargs=starargs,
-                        kwargs=kwargs,
+                        args=[self.compile(x) for x in expression[1:]],
+                        keywords=[],
+                        starargs=None,
+                        kwargs=None,
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
 
@@ -887,8 +885,7 @@ class HyASTCompiler(object):
                                  expression.start_line,
                                  expression.start_column)
 
-        print("HELLO", sig)
-        # TODO: Parse those args here
+        args, keywords, stararg, kwargs = self._parse_lambda_list(sig)
 
         ret = ast.FunctionDef(
             name=name,
@@ -901,8 +898,8 @@ class HyASTCompiler(object):
                         ctx=ast.Param(),
                         lineno=x.start_line,
                         col_offset=x.start_column)
-                    for x in sig],
-                vararg=None,
+                    for x in args],
+                vararg=stararg,
                 kwarg=None,
                 kwonlyargs=[],
                 kw_defaults=[],

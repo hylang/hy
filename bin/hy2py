@@ -3,6 +3,8 @@ from __future__ import print_function
 
 from hy.importer import (import_file_to_ast, import_file_to_module,
                          import_file_to_hst)
+from hy.util import dump
+
 #import astor.codegen
 import sys
 import ast
@@ -15,7 +17,7 @@ print("")
 _ast = import_file_to_ast(sys.argv[1])
 print("")
 print("")
-print(ast.dump(_ast))
+print(dump(_ast))
 print("")
 print("")
 #print(astor.codegen.to_source(_ast))
