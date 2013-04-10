@@ -18,8 +18,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.compiler import hy_compile
 from py_compile import wr_long, MAGIC
+from hy.compiler import hy_compile
+from hy.models import HyObject
 from hy.core import process
 from hy.lex import tokenize
 
@@ -28,6 +29,7 @@ from io import open
 import marshal
 import imp
 import sys
+import ast
 import os
 
 
@@ -49,22 +51,33 @@ def import_file_to_hst(fpath):
 
 def import_file_to_ast(fpath):
     tree = import_file_to_hst(fpath)
-    ast = hy_compile(tree)
-    return ast
+    _ast = hy_compile(tree)
+    return _ast
 
 
 def import_string_to_ast(buff):
     tree = import_buffer_to_hst(StringIO(buff))
-    ast = hy_compile(tree)
-    return ast
+    _ast = hy_compile(tree)
+    return _ast
 
 
 def import_file_to_module(name, fpath):
-    ast = import_file_to_ast(fpath)
+    _ast = import_file_to_ast(fpath)
     mod = imp.new_module(name)
     mod.__file__ = fpath
-    eval(compile(ast, fpath, "exec"), mod.__dict__)
+    eval(compile(_ast, fpath, "exec"), mod.__dict__)
     return mod
+
+
+def hy_eval(hytree, namespace):
+    foo = HyObject()
+    foo.start_line = 0
+    foo.end_line = 0
+    foo.start_column = 0
+    foo.end_column = 0
+    hytree.replace(foo)
+    _ast = hy_compile(hytree, root=ast.Expression)
+    return eval(compile(_ast, "<eval>", "eval"), namespace)
 
 
 def write_hy_as_pyc(fname):

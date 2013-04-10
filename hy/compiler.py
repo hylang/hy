@@ -133,7 +133,8 @@ class HyASTCompiler(object):
                                  start_line=getattr(e, "start_line", 0),
                                  start_column=getattr(e, "start_column", 0))
 
-        raise HyCompileError("Unknown type - `%s'" % (str(type(tree))))
+        raise HyCompileError(
+            "Unknown type - `%s' - %s" % (str(type(tree)), tree))
 
     def _mangle_branch(self, tree, start_line, start_column):
         # If tree is empty, just return a pass statement
@@ -190,6 +191,14 @@ class HyASTCompiler(object):
     @checkargs(exact=1)
     def compile_quote(self, entries):
         return self.compile(self._render_quoted_form(entries[1]))
+
+    @builds("eval")
+    @checkargs(exact=1)
+    def compile_eval(self, expr):
+        expr.pop(0)
+        return self.compile(HyExpression([
+            HySymbol("hy_eval")] + expr + [
+                HyExpression([HySymbol("locals")])]).replace(expr))
 
     @builds("do")
     @builds("progn")
@@ -925,5 +934,10 @@ def hy_compile(tree, root=None):
     tlo = root
     if root is None:
         tlo = ast.Module
-    ret = tlo(body=compiler._mangle_branch(compiler.compile(tree), 0, 0))
+
+    _ast = compiler.compile(tree)
+    if type(_ast) == list:
+        _ast = compiler._mangle_branch(_ast, 0, 0)
+
+    ret = tlo(body=_ast)
     return ret

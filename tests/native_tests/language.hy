@@ -511,15 +511,18 @@
                  ((fn [] 1))))))
 
 
-; FEATURE: native hy-eval
-;
-;   - related to bug #64
-;   - https://github.com/paultag/hy/issues/64
-;   - https://github.com/paultag/hy/pull/62
-;
-; (defn test-eval []
-;   "NATIVE: test eval"
-;   (assert (= 1 (eval 1)))
-;   (assert (= "foobar" (eval "foobar")))
-;   (setv x 42)
-;   (assert (= x (eval x))))
+(defn test-eval []
+  "NATIVE: test eval"
+  (import-from hy.importer hy-eval)  ; XXX: Fix this!!!!!
+  (import-from hy HyExpression HyInteger HySymbol HyString)
+  (assert (= 2 (eval (quote (+ 1 1)))))
+  (setf x 2)
+  (assert (= 4 (eval (quote (+ x 2)))))
+  (setf test-payload (quote (+ x 2)))
+  (setf x 4)
+  (assert (= 6 (eval test-payload)))
+  (assert (= 6 (eval (quote ((fn [] (+ 3 3)))))))
+  (assert (= 1 (eval (quote 1))))
+  (assert (= "foobar" (eval (quote "foobar"))))
+  (setv x (quote 42))
+  (assert (= x (eval x))))
