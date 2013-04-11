@@ -83,7 +83,7 @@ def test_lex_symbols():
     assert objs == [HySymbol("foo")]
 
 
-def test_lex_symbols():
+def test_lex_strings():
     """ Make sure that strings are valid expressions"""
     objs = tokenize("\"foo\" ")
     assert objs == [HyString("foo")]
