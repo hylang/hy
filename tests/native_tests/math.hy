@@ -29,6 +29,10 @@
   "NATIVE: Test division"
   (assert (= 25 (/ 100 2 2)))))
 
+(setv test_int_div (fn []
+  "NATIVE: Test integer division"
+  (assert (= 25 (// 101 2 2)))))
+
 (defn test-modulo []
   "NATIVE: test mod"
   (assert (= (% 10 2) 0)))
