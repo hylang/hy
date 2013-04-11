@@ -964,7 +964,10 @@ def hy_compile(tree, root=None):
                     HySymbol("import_from"),
                     HySymbol(package),
                     HySymbol(entry)
-                ]).replace(form))
+                ]).replace(tree[0]))  # form))
+                # using form causes pypy to blow up; let's conditionally
+                # add this for cpython or something. Muhahaha. - PRT
+
         _ast = compiler.compile(imports) + _ast
 
     ret = tlo(body=_ast)
