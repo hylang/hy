@@ -951,6 +951,11 @@ def hy_compile(tree, root=None):
     if type(_ast) == list:
         _ast = compiler._mangle_branch(_ast, 0, 0)
 
+        if hasattr(sys, "subversion"):
+            implementation = sys.subversion[0].lower()
+        elif hasattr(sys, "implementation"):
+            implementation = sys.implementation.name.lower()
+
         imports = []
         for package in compiler.imports:
             imported = set()
@@ -960,7 +965,7 @@ def hy_compile(tree, root=None):
                     continue
 
                 replace = form
-                if hasattr(sys, "subversion") and sys.subversion[0] == "PyPy":
+                if implementation != "cpython":
                     # using form causes pypy to blow up; let's conditionally
                     # add this for cpython, since it won't go through and make
                     # sure the AST makes sense. Muhahaha. - PRT
