@@ -328,9 +328,7 @@ def test_ast_tuple():
     assert type(code) == ast.Tuple
 
 
-def test_lambda_list_keywords_rest():
-    src = ("(defun foo (x &rest xs) (print xs))\n"
-           "(foo 1 2 3 4 5)")
-    code = hy_compile(tokenize(src))
-    print(dump(code))
-    assert False
+def test_lambda_list_keywords():
+    """ Ensure we can compile functions with lambda list keywords."""
+    hy_compile(tokenize("(fn (x &rest xs) (print xs))"))
+    cant_compile("(fn (x &rest xs &rest ys) (print xs))")

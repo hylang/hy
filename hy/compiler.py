@@ -175,11 +175,11 @@ class HyASTCompiler(object):
         return ret
 
     def _parse_lambda_list(self, exprs):
-        """ Return args, keywords, starargs, kwargs from exprs."""
+        """ Return args, keywords, varargs, kwargs from exprs."""
         exprs.reverse()
         args = []
         keywords = []
-        starargs = None
+        varargs = None
         kwargs = {}
         lambda_keyword = None
 
@@ -191,7 +191,6 @@ class HyASTCompiler(object):
                     raise HyCompileError("{0} is not a valid "
                                          "lambda-keyword.".format(repr(expr)))
                 if expr == "&rest" and lambda_keyword is None:
-                    print("Found &rest")
                     lambda_keyword = expr
                 elif expr == "&optional" and lambda_keyword == "&rest":
                     lambda_keyword = expr
@@ -207,11 +206,10 @@ class HyASTCompiler(object):
             if lambda_keyword is None:
                 args.append(expr)
             elif lambda_keyword == "&rest":
-                print("The keyword is &rest, the expr is {0}".format(expr))
-                if starargs:
+                if varargs:
                     raise HyCompileError("There can only be one "
                                          "&rest argument")
-                starargs = str(expr)
+                varargs = str(expr)
             elif lambda_keyword == "&optional":
                 # add key to keywords and kwargs, value to kwargs? Look up AST docs you dummy.
                 pass
@@ -221,7 +219,7 @@ class HyASTCompiler(object):
 
         if not kwargs:
             kwargs = None
-        return args, keywords, starargs, kwargs
+        return args, keywords, varargs, kwargs
 
     @builds(list)
     def compile_raw_list(self, entries):
