@@ -129,9 +129,12 @@ class HyASTCompiler(object):
             # another HyCompileError!
             raise
         except Exception as e:
-            raise HyCompileError(exception=e,
-                                 start_line=getattr(e, "start_line", 0),
-                                 start_column=getattr(e, "start_column", 0))
+            if isinstance(e, HyError):
+                raise HyCompileError(
+                    exception=e,
+                    start_line=getattr(e, "start_line", 0),
+                    start_column=getattr(e, "start_column", 0))
+            raise
 
         raise HyCompileError(
             "Unknown type - `%s' - %s" % (str(type(tree)), tree))
@@ -629,6 +632,9 @@ class HyASTCompiler(object):
 
         if type(call) != ast.Call:
             raise TypeError("kwapplying a non-call")
+
+        if type(kwargs) != HyDict:
+            raise TypeError("kwapplying with a non-dict")
 
         call.keywords = [ast.keyword(arg=ast_str(x),
                          value=self.compile(kwargs[x])) for x in kwargs]

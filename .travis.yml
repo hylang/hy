@@ -16,6 +16,11 @@ notifications:
     channels:
       - "irc.freenode.net#woo-city-commits"
       - "irc.freenode.net#hy"
-    on_success: always
-    on_failure: always
-    use_notice: true
+    on_success: change
+    on_failure: change
+    use_notice: false
+
+# blacklist
+branches:
+    except:
+      - debian
