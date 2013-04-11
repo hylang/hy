@@ -134,7 +134,7 @@ class HyASTCompiler(object):
                     exception=e,
                     start_line=getattr(e, "start_line", 0),
                     start_column=getattr(e, "start_column", 0))
-            raise
+            raise HyCompileError(exception=e)
 
         raise HyCompileError(
             "Unknown type - `%s' - %s" % (str(type(tree)), tree))
