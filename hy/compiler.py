@@ -959,14 +959,19 @@ def hy_compile(tree, root=None):
                 if entry in imported:
                     continue
 
+                replace = form
+                if hasattr(sys, "subversion") and sys.subversion[0] == "PyPy":
+                    # using form causes pypy to blow up; let's conditionally
+                    # add this for cpython, since it won't go through and make
+                    # sure the AST makes sense. Muhahaha. - PRT
+                    replace = tree[0]
+
                 imported.add(entry)
                 imports.append(HyExpression([
                     HySymbol("import_from"),
                     HySymbol(package),
                     HySymbol(entry)
-                ]).replace(tree[0]))  # form))
-                # using form causes pypy to blow up; let's conditionally
-                # add this for cpython or something. Muhahaha. - PRT
+                ]).replace(replace))
 
         _ast = compiler.compile(imports) + _ast
 
