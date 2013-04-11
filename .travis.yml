@@ -19,7 +19,6 @@ notifications:
     on_success: change
     on_failure: change
     use_notice: false
-
 # blacklist
 branches:
     except:
