@@ -517,6 +517,12 @@
   (assert (= (get {:foo "bar"} :foo) "bar"))
   (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
 
+(defn test-keyword-clash []
+  "NATIVE: test that keywords do not clash with normal strings"
+
+  (assert (= (get {:foo "bar" ":foo" "quux"} :foo) "bar"))
+  (assert (= (get {:foo "bar" ":foo" "quux"} ":foo") "quux")))
+
 (defn test-eval []
   "NATIVE: test eval"
   (assert (= 2 (eval (quote (+ 1 1)))))
