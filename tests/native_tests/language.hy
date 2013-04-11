@@ -513,8 +513,6 @@
 
 (defn test-eval []
   "NATIVE: test eval"
-  (import-from hy.importer hy-eval)  ; XXX: Fix this!!!!!
-  (import-from hy HyExpression HyInteger HySymbol HyString)
   (assert (= 2 (eval (quote (+ 1 1)))))
   (setf x 2)
   (assert (= 4 (eval (quote (+ x 2)))))

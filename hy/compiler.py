@@ -32,6 +32,7 @@ from hy.models.dict import HyDict
 
 from hy.util import flatten_literal_list
 
+from collections import defaultdict
 import codecs
 import ast
 import sys
@@ -117,6 +118,7 @@ class HyASTCompiler(object):
     def __init__(self):
         self.returnable = False
         self.anon_fn_count = 0
+        self.imports = defaultdict(list)
 
     def compile(self, tree):
         try:
@@ -181,6 +183,8 @@ class HyASTCompiler(object):
 
     def _render_quoted_form(self, form):
         name = form.__class__.__name__
+        self.imports["hy"].append((name, form))
+
         if isinstance(form, HyList):
             return HyExpression(
                 [HySymbol(name),
@@ -199,6 +203,8 @@ class HyASTCompiler(object):
     @checkargs(exact=1)
     def compile_eval(self, expr):
         expr.pop(0)
+        self.imports["hy.importer"].append(("hy_eval", expr))
+
         return self.compile(HyExpression([
             HySymbol("hy_eval")] + expr + [
                 HyExpression([HySymbol("locals")])]).replace(expr))
@@ -944,6 +950,22 @@ def hy_compile(tree, root=None):
     _ast = compiler.compile(tree)
     if type(_ast) == list:
         _ast = compiler._mangle_branch(_ast, 0, 0)
+
+        imports = []
+        for package in compiler.imports:
+            imported = set()
+            syms = compiler.imports[package]
+            for entry, form in syms:
+                if entry in imported:
+                    continue
+
+                imported.add(entry)
+                imports.append(HyExpression([
+                    HySymbol("import_from"),
+                    HySymbol(package),
+                    HySymbol(entry)
+                ]).replace(form))
+        _ast = compiler.compile(imports) + _ast
 
     ret = tlo(body=_ast)
     return ret
