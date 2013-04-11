@@ -23,12 +23,13 @@ __appname__ = "hy"
 __version__ = "0.9.5"
 
 
-import hy.importer  # NOQA
-# we import for side-effects.
-
 from hy.models.expression import HyExpression  # NOQA
 from hy.models.integer import HyInteger  # NOQA
 from hy.models.string import HyString  # NOQA
 from hy.models.symbol import HySymbol  # NOQA
 from hy.models.dict import HyDict  # NOQA
 from hy.models.list import HyList  # NOQA
+
+
+import hy.importer  # NOQA
+# we import for side-effects.
