@@ -20,6 +20,8 @@
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.float import HyFloat
+from hy.models.complex import HyComplex
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
@@ -75,6 +77,25 @@ def test_lex_expression_integer():
     """ Make sure expressions can produce integers """
     objs = tokenize("(foo 2)")
     assert objs == [HyExpression([HySymbol("foo"), HyInteger(2)])]
+
+
+def test_lex_expression_float():
+    """ Make sure expressions can produce floats """
+    objs = tokenize("(foo 2.)")
+    assert objs == [HyExpression([HySymbol("foo"), HyFloat(2.)])]
+    objs = tokenize("(foo -0.5)")
+    assert objs == [HyExpression([HySymbol("foo"), HyFloat(-0.5)])]
+    objs = tokenize("(foo 1.e7)")
+    assert objs == [HyExpression([HySymbol("foo"), HyFloat(1.e7)])]
+
+def test_lex_expression_complex():
+    """ Make sure expressions can produce complex """
+    objs = tokenize("(foo 2.j)")
+    assert objs == [HyExpression([HySymbol("foo"), HyComplex(2.j)])]
+    objs = tokenize("(foo -0.5j)")
+    assert objs == [HyExpression([HySymbol("foo"), HyComplex(-0.5j)])]
+    objs = tokenize("(foo 1.e7j)")
+    assert objs == [HyExpression([HySymbol("foo"), HyComplex(1.e7j)])]
 
 
 def test_lex_line_counting():

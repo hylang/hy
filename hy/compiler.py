@@ -25,6 +25,8 @@ from hy.errors import HyError
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.float import HyFloat
+from hy.models.complex import HyComplex
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
@@ -896,8 +898,20 @@ class HyASTCompiler(object):
         return ret
 
     @builds(HyInteger)
-    def compile_number(self, number):
-        return ast.Num(n=int(number),  # See HyInteger above.
+    def compile_integer(self, number):
+        return ast.Num(n=int(number),
+                       lineno=number.start_line,
+                       col_offset=number.start_column)
+
+    @builds(HyFloat)
+    def compile_float(self, number):
+        return ast.Num(n=float(number),
+                       lineno=number.start_line,
+                       col_offset=number.start_column)
+
+    @builds(HyComplex)
+    def compile_complex(self, number):
+        return ast.Num(n=complex(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
