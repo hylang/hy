@@ -708,6 +708,7 @@ class HyASTCompiler(object):
     @builds("%")
     @builds("-")
     @builds("/")
+    @builds("//")
     @builds("*")
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
@@ -717,6 +718,7 @@ class HyASTCompiler(object):
 
         ops = {"+": ast.Add,
                "/": ast.Div,
+               "//": ast.FloorDiv,
                "*": ast.Mult,
                "-": ast.Sub,
                "%": ast.Mod}
