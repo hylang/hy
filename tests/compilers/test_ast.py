@@ -19,6 +19,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import unicode_literals
+
+from hy import HyString
 from hy.compiler import hy_compile, HyCompileError
 from hy.lex import tokenize
 
@@ -325,3 +328,21 @@ def test_ast_tuple():
     """ Ensure tuples work. """
     code = hy_compile(tokenize("(, 1 2 3)")).body[0].value
     assert type(code) == ast.Tuple
+
+
+def test_ast_unicode_strings():
+    """Ensure we handle unicode strings correctly"""
+
+    def _compile_string(s):
+        hy_s = HyString(s)
+        hy_s.start_line = hy_s.end_line = 0
+        hy_s.start_column = hy_s.end_column = 0
+
+        code = hy_compile([hy_s])
+
+        # code == ast.Module(body=[ast.Expr(value=ast.Str(s=xxx))])
+        return code.body[0].value.s
+
+    assert _compile_string("test") == "test"
+    assert _compile_string("\u03b1\u03b2") == "\u03b1\u03b2"
+    assert _compile_string("\xc3\xa9") == "\xc3\xa9"
