@@ -29,6 +29,7 @@ from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 from hy.models.dict import HyDict
+from hy.models.keyword import HyKeyword
 
 from hy.util import flatten_literal_list
 
@@ -768,6 +769,11 @@ class HyASTCompiler(object):
 
             if expression[0].startswith("."):
                 return self.compile_dotted_expression(expression)
+        if isinstance(fn, HyKeyword):
+            new_expr = HyExpression(["get", expression[1], fn])
+            new_expr.start_line = expression.start_line
+            new_expr.start_column = expression.start_column
+            return self.compile_index_expression(new_expr)
 
         return ast.Call(func=self.compile(fn),
                         args=[self.compile(x) for x in expression[1:]],
@@ -926,6 +932,14 @@ class HyASTCompiler(object):
     def compile_string(self, string):
         return ast.Str(s=ast_str(string), lineno=string.start_line,
                        col_offset=string.start_column)
+
+    @builds(HyKeyword)
+    def compile_keyword(self, keyword):
+        _str_type = str
+        if sys.version_info[0] < 3:
+            _str_type = unicode
+        return ast.Str(s=_str_type(keyword), lineno=keyword.start_line,
+                       col_offset=keyword.start_column)
 
     @builds(HyDict)
     def compile_dict(self, m):

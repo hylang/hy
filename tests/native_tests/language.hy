@@ -510,6 +510,18 @@
                  (pass)
                  ((fn [] 1))))))
 
+(defn test-keyword []
+  "NATIVE: test if keywords are recognised"
+
+  (assert (= :foo :foo))
+  (assert (= (get {:foo "bar"} :foo) "bar"))
+  (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
+
+(defn test-keyword-clash []
+  "NATIVE: test that keywords do not clash with normal strings"
+
+  (assert (= (get {:foo "bar" ":foo" "quux"} :foo) "bar"))
+  (assert (= (get {:foo "bar" ":foo" "quux"} ":foo") "quux")))
 
 (defn test-nested-if []
   "NATIVE: test nested if"
