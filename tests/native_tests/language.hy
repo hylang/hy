@@ -511,6 +511,16 @@
                  ((fn [] 1))))))
 
 
+(defn test-nested-if []
+  "NATIVE: test nested if"
+  (for [x (range 10)]
+    (if (in "foo" "foobar")
+      (do
+        (if true true true))
+      (do
+        (if false false false)))))
+
+
 (defn test-eval []
   "NATIVE: test eval"
   (assert (= 2 (eval (quote (+ 1 1)))))
