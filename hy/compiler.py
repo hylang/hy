@@ -944,7 +944,7 @@ class HyASTCompiler(object):
 
     @builds(HyString)
     def compile_string(self, string):
-        return ast.Str(s=ast_str(string), lineno=string.start_line,
+        return ast.Str(s=str_type(string), lineno=string.start_line,
                        col_offset=string.start_column)
 
     @builds(HyKeyword)
