@@ -20,20 +20,14 @@
 
 from __future__ import unicode_literals
 from hy.models import HyObject
-import sys
+from hy.util import str_type
 
 
-if sys.version_info[0] >= 3:
-    _str_type = str
-else:
-    _str_type = unicode
-
-
-class HyKeyword(HyObject, _str_type):
+class HyKeyword(HyObject, str_type):
     """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
     depending on the Python version.
     """
 
     def __new__(cls, value):
-        obj = _str_type.__new__(cls, "\uFDD0" + value)
+        obj = str_type.__new__(cls, "\uFDD0" + value)
         return obj

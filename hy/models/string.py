@@ -19,13 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.models import HyObject
-import sys
-
-
-if sys.version_info[0] >= 3:
-    str_type = str
-else:
-    str_type = unicode
+from hy.util import str_type
 
 
 class HyString(HyObject, str_type):

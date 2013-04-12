@@ -18,6 +18,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import sys
+
+
+if sys.version_info[0] >= 3:
+    str_type = str
+else:
+    str_type = unicode
+
 
 def flatten_literal_list(entry):
     for e in entry:

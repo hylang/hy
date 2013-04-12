@@ -33,7 +33,7 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 from hy.models.keyword import HyKeyword
 
-from hy.util import flatten_literal_list
+from hy.util import flatten_literal_list, str_type
 
 from collections import defaultdict
 import codecs
@@ -949,10 +949,7 @@ class HyASTCompiler(object):
 
     @builds(HyKeyword)
     def compile_keyword(self, keyword):
-        _str_type = str
-        if sys.version_info[0] < 3:
-            _str_type = unicode
-        return ast.Str(s=_str_type(keyword), lineno=keyword.start_line,
+        return ast.Str(s=str_type(keyword), lineno=keyword.start_line,
                        col_offset=keyword.start_column)
 
     @builds(HyDict)
