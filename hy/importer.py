@@ -31,12 +31,16 @@ import imp
 import sys
 import ast
 import os
-
+import __future__
 
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
     from StringIO import StringIO  # NOQA
+
+
+def compile_(ast, filename, mode):
+    return compile(ast, filename, mode, __future__.CO_FUTURE_DIVISION)
 
 
 def import_buffer_to_hst(fd):
@@ -65,7 +69,7 @@ def import_file_to_module(name, fpath):
     _ast = import_file_to_ast(fpath)
     mod = imp.new_module(name)
     mod.__file__ = fpath
-    eval(compile(_ast, fpath, "exec"), mod.__dict__)
+    eval(compile_(_ast, fpath, "exec"), mod.__dict__)
     return mod
 
 
@@ -77,7 +81,7 @@ def hy_eval(hytree, namespace):
     foo.end_column = 0
     hytree.replace(foo)
     _ast = hy_compile(hytree, root=ast.Expression)
-    return eval(compile(_ast, "<eval>", "eval"), namespace)
+    return eval(compile_(_ast, "<eval>", "eval"), namespace)
 
 
 def write_hy_as_pyc(fname):
@@ -88,7 +92,7 @@ def write_hy_as_pyc(fname):
             timestamp = long(os.stat(fname).st_mtime)
 
     _ast = import_file_to_ast(fname)
-    code = compile(_ast, fname, "exec")
+    code = compile_(_ast, fname, "exec")
     cfile = "%s.pyc" % fname[:-len(".hy")]
 
     with open(cfile, 'wb') as fc:
