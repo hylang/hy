@@ -67,7 +67,6 @@ def _resolve_atom(obj):
     except ValueError:
         pass
 
-
     table = {
         "true": "True",
         "false": "False",

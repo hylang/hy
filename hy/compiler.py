@@ -910,13 +910,13 @@ class HyASTCompiler(object):
                        col_offset=number.start_column)
 
     @builds(HyFloat)
-    def compile_integer(self, number):
+    def compile_float(self, number):
         return ast.Num(n=float(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
     @builds(HyComplex)
-    def compile_integer(self, number):
+    def compile_complex(self, number):
         return ast.Num(n=complex(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
