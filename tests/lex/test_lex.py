@@ -77,6 +77,24 @@ def test_lex_expression_integer():
     assert objs == [HyExpression([HySymbol("foo"), HyInteger(2)])]
 
 
+def test_lex_symbols():
+    """ Make sure that symbols are valid expressions"""
+    objs = tokenize("foo ")
+    assert objs == [HySymbol("foo")]
+
+
+def test_lex_strings():
+    """ Make sure that strings are valid expressions"""
+    objs = tokenize("\"foo\" ")
+    assert objs == [HyString("foo")]
+
+
+def test_lex_integers():
+    """ Make sure that integers are valid expressions"""
+    objs = tokenize("42 ")
+    assert objs == [HyInteger(42)]
+
+
 def test_lex_line_counting():
     """ Make sure we can count lines / columns """
     entry = tokenize("(foo (one two))")[0]

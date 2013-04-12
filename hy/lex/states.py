@@ -255,6 +255,46 @@ class String(State):
         self.nodes.append(char)
 
 
+class Atom(State):
+    """
+    This state parses integer constants, boolean constants, and symbols
+    """
+
+    def __init__(self, machine):
+        State.__init__(self, machine)
+        self.initial_buf = ''
+
+    def enter(self):
+        self.buf = self.initial_buf
+
+    def exit(self):
+        self.result = _resolve_atom(self.buf)
+
+    def process(self, char):
+        """
+        State transitions:
+
+            - WHITESPACE - Idle
+            - ; - Comment
+        """
+
+        if char in WHITESPACE:
+            return Idle
+
+        if char == ";":
+            return Comment
+
+        self.buf += char
+
+
+def AtomStartingWith(initial_char):
+    def AtomFactory(machine):
+        state = Atom(machine)
+        state.initial_buf = initial_char
+        return state
+    return AtomFactory
+
+
 class Idle(State):
     """
     Idle state. This is the first (and last) thing that we should
@@ -266,7 +306,12 @@ class Idle(State):
         State transitions:
 
             - ( - Expression
-            - (default) - Error
+            - [ - List
+            - { - Dict
+            - \" - String
+            - ; - Comment
+            - # - Hash
+            - (default) - Atom
         """
 
         if char == "(":
@@ -278,6 +323,9 @@ class Idle(State):
         if char == "{":
             return Dict
 
+        if char == "\"":
+            return String
+
         if char == ";":
             return Comment
 
@@ -287,7 +335,7 @@ class Idle(State):
         if char in WHITESPACE:
             return
 
-        raise LexException("Unknown char (Idle state): `%s`" % (char))
+        return AtomStartingWith(char)
 
 
 class Comment(State):
