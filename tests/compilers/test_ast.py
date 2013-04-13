@@ -210,7 +210,6 @@ def test_ast_good_yield():
 
 def test_ast_bad_yield():
     "Make sure AST can't compile invalid yield"
-    cant_compile("(yield)")
     cant_compile("(yield 1 2)")
 
 

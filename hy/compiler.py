@@ -453,11 +453,14 @@ class HyASTCompiler(object):
         return ast.Pass(lineno=expr.start_line, col_offset=expr.start_column)
 
     @builds("yield")
-    @checkargs(1)
+    @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
+        value = None
+        if expr != []:
+            value = self.compile(expr.pop(0))
         return ast.Yield(
-            value=self.compile(expr.pop(0)),
+            value=value,
             lineno=expr.start_line,
             col_offset=expr.start_column)
 
