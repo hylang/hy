@@ -35,8 +35,11 @@ import __future__
 
 if sys.version_info[0] >= 3:
     from io import StringIO
+    long_type = int
 else:
     from StringIO import StringIO  # NOQA
+    import __builtin__
+    long_type = long  # NOQA
 
 
 def compile_(ast, filename, mode):
@@ -87,17 +90,28 @@ def hy_eval(hytree, namespace):
 def write_hy_as_pyc(fname):
     with open(fname, 'U') as f:
         try:
-            timestamp = long(os.fstat(f.fileno()).st_mtime)
+            st = os.fstat(f.fileno())
         except AttributeError:
-            timestamp = long(os.stat(fname).st_mtime)
+            st = os.stat(fname)
+        timestamp = long_type(st.st_mtime)
 
     _ast = import_file_to_ast(fname)
     code = compile_(_ast, fname, "exec")
     cfile = "%s.pyc" % fname[:-len(".hy")]
 
-    with open(cfile, 'wb') as fc:
-        fc.write('\0\0\0\0')
+    if sys.version_info[0] >= 3:
+        open_ = open
+    else:
+        open_ = __builtin__.open
+
+    with open_(cfile, 'wb') as fc:
+        if sys.version_info[0] >= 3:
+            fc.write(b'\0\0\0\0')
+        else:
+            fc.write('\0\0\0\0')
         wr_long(fc, timestamp)
+        if (sys.version_info[0] >= 3 and sys.version_info[1] >= 3):
+            wr_long(fc, st.st_size)
         marshal.dump(code, fc)
         fc.flush()
         fc.seek(0, 0)
