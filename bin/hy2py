@@ -17,7 +17,6 @@ print ""
 print ast.dump(_ast)
 print ""
 print ""
-print "from __future__ import division"
 print astor.codegen.to_source(_ast)
 
 import_file_to_module("<STDIN>", sys.argv[1])
