@@ -1,11 +1,11 @@
 Hy
 ==
 
-![](https://raw.github.com/paultag/hy/master/site/imgs/xkcd.png)
+![](https://raw.github.com/hylang/shyte/master/imgs/xkcd.png)
 
 Lisp and Python should love each other. Let's make it happen.
 
-[![Build Status](https://travis-ci.org/paultag/hy.png?branch=master)](https://travis-ci.org/paultag/hy)
+[![Build Status](https://travis-ci.org/hylang/hy.png?branch=master)](https://travis-ci.org/paultag/hy)
 
 
 Hylarious Hacks
@@ -34,8 +34,8 @@ Oh, and lisps are neat.
 Project
 -------
 
-* Code: https://github.com/paultag/hy
+* Code: https://github.com/hylang/hy
 * Docs: http://hy.rtfd.org/
 * Quickstart: http://hy.rtfd.org/en/latest/quickstart.html
-* Bug reports: We have no bugs! Your bugs are your own! (https://github.com/paultag/hy/issues)
+* Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
