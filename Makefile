@@ -4,7 +4,6 @@ all:
 	@echo " Other targets:"
 	@echo ""
 	@echo "   - docs"
-	@echo "   - site"
 	@echo "   - full"
 	@echo ""
 	@echo "   - dev (test & flake)"
@@ -16,16 +15,13 @@ all:
 	@echo "   - r"
 	@echo ""
 
-site:
-	make -C site
-
 docs:
 	make -C docs html
 
 upload: r
 	python setup.py sdist upload
 
-full: d tox site docs
+full: d tox docs
 
 venv:
 ifeq (,$(findstring hy,$(VIRTUAL_ENV)))
@@ -45,7 +41,6 @@ tox: venv
 
 flake:
 	flake8 hy
-	flake8 site
 
 clear:
 	clear
@@ -58,4 +53,4 @@ diff:
 r: d tox diff
 
 
-.PHONY: site docs
+.PHONY: docs
