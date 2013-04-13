@@ -27,7 +27,10 @@
 
 (setv test_div (fn []
   "NATIVE: Test division"
-  (assert (= 25 (/ 100 2 2)))))
+  (assert (= 25 (/ 100 2 2)))
+  ; Commented out until float constants get implemented
+  ; (assert (= 0.5 (/ 1 2)))
+  (assert (= 1 (* 2 (/ 1 2))))))
 
 (setv test_int_div (fn []
   "NATIVE: Test integer division"
