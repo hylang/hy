@@ -822,6 +822,19 @@ class HyASTCompiler(object):
         name, iterable = expression.pop(0)
         target = self._storeize(self.compile_symbol(name))
 
+        orelse = []
+        # (foreach [] body (else …))
+        if expression and expression[-1][0] == HySymbol("else"):
+            else_expr = expression.pop()
+            if len(else_expr) > 2:
+                # XXX use HyTypeError as soon as it lands
+                raise TypeError("`else' statement in `foreach' is too long")
+            elif len(else_expr) == 2:
+                orelse = self._code_branch(
+                    self.compile(else_expr[1]),
+                    else_expr[1].start_line,
+                    else_expr[1].start_column)
+
         ret = ast.For(lineno=expression.start_line,
                       col_offset=expression.start_column,
                       target=target,
@@ -830,7 +843,7 @@ class HyASTCompiler(object):
                           [self.compile(x) for x in expression],
                           expression.start_line,
                           expression.start_column),
-                      orelse=[])
+                      orelse=orelse)
 
         self.returnable = ret_status
         return ret

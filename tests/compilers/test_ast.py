@@ -273,6 +273,16 @@ def test_ast_valid_while():
     hy_compile(tokenize("(while foo bar)"))
 
 
+def test_ast_valid_foreach():
+    "Make sure AST can compile valid foreach"
+    hy_compile(tokenize("(foreach [a 2])"))
+
+
+def test_ast_invalid_foreach():
+    "Make sure AST can't compile invalid foreach"
+    cant_compile("(foreach [a 1] (else 1 2))")
+
+
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = hy_compile(tokenize("(foo bar)")).body[0]
