@@ -560,3 +560,15 @@
     (do-setv n (do (, 1 2) (, 2 3)))
     (do-setv n (do (, 4 5) (, 5 6))))
   (assert (= n (, 5 6))))
+
+
+(defn test-proper-if-mangling []
+  "NATIVE: test proper if mangling"
+  (assert
+    (=
+      "success"
+      (if
+        true
+        (do (setf a 42) "success")
+        (do (setf a 0) "failure"))))
+  (assert (= a 42)))
