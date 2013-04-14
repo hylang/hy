@@ -172,11 +172,11 @@
 
   (try (do))
 
-  (try (pass))
+  (try (do))
 
-  (try (pass) (except))
+  (try (do) (except))
 
-  (try (pass) (except [IOError]) (except))
+  (try (do) (except [IOError]) (except))
 
   ;; Test correct (raise)
   (let [[passed false]]
@@ -208,16 +208,15 @@
     (except [[IOError]] (assert false))
     (catch [e [KeyError]] (assert e)))
 
-
   (try
     (get [1] 3)
     (catch [IndexError] (assert true))
-    (except [IndexError] (pass)))
+    (except [IndexError] (do)))
 
   (try
     (print foobar42ofthebaz)
     (catch [IndexError] (assert false))
-    (except [NameError] (pass)))
+    (except [NameError] (do)))
 
   (try
     (get [1] 3)
@@ -233,11 +232,11 @@
 
   (try
     (print foobar42)
-    (catch [[IndexError NameError]] (pass)))
+    (catch [[IndexError NameError]] (do)))
 
   (try
     (get [1] 3)
-    (catch [[IndexError NameError]] (pass)))
+    (catch [[IndexError NameError]] (do)))
 
   (try
     (print foobar42ofthebaz)
@@ -249,7 +248,7 @@
 
   (try
     (print foobar42ofthebaz)
-    (except [] (pass)))
+    (except [] (do)))
 
   (try
     (print foobar42ofthebaz)
@@ -259,7 +258,7 @@
 
   (let [[passed false]]
     (try
-      (try (pass) (except) (else (bla)))
+      (try (do) (except) (else (bla)))
       (except [NameError] (setv passed true)))
     (assert passed))
 
@@ -324,7 +323,7 @@
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
-  (if true (pass) (pass))
+  (if true (do) (do))
   (assert (= 1 1)))
 
 
@@ -362,7 +361,7 @@
 (defn test-context []
   "NATIVE: test with"
   (with [fd (open "README.md" "r")] (assert fd))
-  (with [(open "README.md" "r")] (pass)))
+  (with [(open "README.md" "r")] (do)))
 
 
 (defn test-for-doodle []
@@ -506,8 +505,8 @@
                    2)
                  1)))
   (assert (= 1 (let [[x 1] [y 2]]
-                 (pass)
-                 (pass)
+                 (do)
+                 (do)
                  ((fn [] 1))))))
 
 (defn test-keyword []
