@@ -79,7 +79,7 @@ def _resolve_atom(obj):
     if obj.startswith(":"):
         return HyKeyword(obj)
 
-    if obj.startswith("*") and obj.endswith("*") and obj != "*":
+    if obj.startswith("*") and obj.endswith("*") and obj not in ("*", "**"):
         obj = obj[1:-1].upper()
 
     if "-" in obj and obj != "-":

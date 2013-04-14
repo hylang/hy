@@ -39,3 +39,27 @@
 (defn test-modulo []
   "NATIVE: test mod"
   (assert (= (% 10 2) 0)))
+
+(defn test-pow []
+  "NATIVE: test pow"
+  (assert (= (** 10 2) 100)))
+
+(defn test-lshift []
+  "NATIVE: test lshift"
+  (assert (= (<< 1 2) 4)))
+
+(defn test-rshift []
+  "NATIVE: test lshift"
+  (assert (= (>> 8 1) 4)))
+
+(defn test-bitor []
+  "NATIVE: test lshift"
+  (assert (= (| 1 2) 3)))
+
+(defn test-bitxor []
+  "NATIVE: test xor"
+  (assert (= (^ 1 2) 3)))
+
+(defn test-bitand []
+  "NATIVE: test lshift"
+  (assert (= (& 1 2) 0)))

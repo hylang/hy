@@ -716,18 +716,26 @@ class HyASTCompiler(object):
     @builds("/")
     @builds("//")
     @builds("*")
+    @builds("**")
+    @builds("<<")
+    @builds(">>")
+    @builds("|")
+    @builds("^")
+    @builds("&")
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
-        # operator = Mod | Pow | LShift | RShift | BitOr |
-        #            BitXor | BitAnd | FloorDiv
-        # (to implement list) XXX
-
         ops = {"+": ast.Add,
                "/": ast.Div,
                "//": ast.FloorDiv,
                "*": ast.Mult,
                "-": ast.Sub,
-               "%": ast.Mod}
+               "%": ast.Mod,
+               "**": ast.Pow,
+               "<<": ast.LShift,
+               ">>": ast.RShift,
+               "|": ast.BitOr,
+               "^": ast.BitXor,
+               "&": ast.BitAnd}
 
         inv = expression.pop(0)
         op = ops[inv]
