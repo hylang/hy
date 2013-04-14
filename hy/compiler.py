@@ -180,6 +180,21 @@ class HyASTCompiler(object):
         ret.reverse()
         return ret
 
+    def _compile_setv(self, name, what, expression):
+        if type(what) == ast.FunctionDef:
+            # We special case a FunctionDef, since we can define by setting
+            # FunctionDef's .name attribute, rather then foo == anon_fn. This
+            # helps keep things clean.
+            what.name = ast_str(name)
+            return what
+
+        name = self._storeize(self.compile(name))
+
+        return ast.Assign(
+            lineno=expression.start_line,
+            col_offset=expression.start_column,
+            targets=[name], value=what)
+
     @builds(list)
     def compile_raw_list(self, entries):
         return [self.compile(x) for x in entries]
@@ -216,6 +231,25 @@ class HyASTCompiler(object):
     @builds("progn")
     def compile_do_expression(self, expr):
         return [self.compile(x) for x in expr[1:]]
+
+    @builds("do_setv")
+    @checkargs(min=2)
+    def compile_do_setv_expression(self, expr):
+        expr.pop(0)
+        name = expr.pop(0)
+        ret = list(flatten_literal_list([self.compile(x) for x in expr]))
+        if isinstance(ret[-1], ast.expr):
+            ret[-1] = self._compile_setv(name, ret[-1], expr)
+        elif isinstance(ret[-1], ast.Expr):
+            ret[-1] = self._compile_setv(name, ret[-1].value, expr)
+        else:
+            ret.append(self._compile_setv(
+                name,
+                self.compile(HySymbol("None").replace(expr[-1])),
+                expr,
+            ))
+
+        return ret
 
     @builds("throw")
     @builds("raise")
@@ -798,19 +832,7 @@ class HyASTCompiler(object):
 
         what = self.compile(expression.pop(0))
 
-        if type(what) == ast.FunctionDef:
-            # We special case a FunctionDef, since we can define by setting
-            # FunctionDef's .name attribute, rather then foo == anon_fn. This
-            # helps keep things clean.
-            what.name = ast_str(name)
-            return what
-
-        name = self._storeize(self.compile(name))
-
-        return ast.Assign(
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
-            targets=[name], value=what)
+        return self._compile_setv(name, what, expression)
 
     @builds("foreach")
     @checkargs(min=1)

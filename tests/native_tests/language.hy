@@ -546,3 +546,17 @@
   (assert (= "foobar" (eval (quote "foobar"))))
   (setv x (quote 42))
   (assert (= x (eval x))))
+
+
+(defn test-do-setv []
+  "NATIVE: test do-setv"
+  (if
+    (= 42 42)
+    (do-setv n (, 1 2) (, 2 3))
+    (do-setv n (, 4 5) (, 5 6)))
+  (assert (= n (, 2 3)))
+  (if
+    false
+    (do-setv n (do (, 1 2) (, 2 3)))
+    (do-setv n (do (, 4 5) (, 5 6))))
+  (assert (= n (, 5 6))))
