@@ -1,3 +1,45 @@
+Changes from Hy 0.9.5
+
+  [ Syntax Fixes ]
+
+    * .pyc generation routines now work on Python 3. (Vladimir Gorbunov)
+    * Allow empty (do) forms (JD)
+    * The `else' form is now supported in `try' statements. (JD)
+    * Allow `(raise)', which, like Python, will re-raise
+      the last Exception. (JD)
+    * Strings, bools, symbols are now valid top-level entries. (Konrad Hinsen)
+    * UTF-8 strings will no longer get punycode encoded. (ND)
+    * bare (yield) is now valid. (PT)
+    * (try) now supports the (finally) form. (JD)
+    * Add in the missing operators and AugAssign operators. (JD)
+    * (foreach) now supports the (else) form. (JD)
+
+  [ Language Changes ]
+    
+    * WARNING: WARNING: READ ME: READ ME:
+    
+    =======================================================================
+    From here on out, we will only support "future division" as part of hy.
+    This is actually quite a pain for us, but it's going to be quite an
+    amazing feautre.
+
+    This also normalizes behavior from Py 2 --> Py 3.
+
+    Thank you so much, Konrad Hinsen.
+    =======================================================================
+
+    * (pass) has been removed from the language; it's a wart that comes from
+      a need to create valid Python syntax without breaking the whitespace
+      bits. (JD)
+    * We've moved to a new import style, (import-from) and (import-as) will
+      be removed before 1.0. (GN)
+    * Prototypes for quoted forms (PT)
+    * Prototypes for eval (PT)
+    * Enhance tracebacks from language breakage coming from the compiler (JD)
+    * The REPL no longer bails out if the internals break (Konrad Hinsen)
+    * We now support float and complex numbers. (Konrad Hinsen)
+    * Keywords (such as :foo) are now valid and loved. (GN)
+
 Changes from Hy 0.9.4
 
   [ Syntax Fixes ]
