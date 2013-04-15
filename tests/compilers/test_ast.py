@@ -123,6 +123,11 @@ def test_ast_good_try():
     hy_compile(tokenize("(try 1)"))
     hy_compile(tokenize("(try 1 (except) (else 1))"))
     hy_compile(tokenize("(try 1 (else 1) (except))"))
+    hy_compile(tokenize("(try 1 (finally 1) (except))"))
+    hy_compile(tokenize("(try 1 (finally 1))"))
+    hy_compile(tokenize("(try 1 (except) (finally 1))"))
+    hy_compile(tokenize("(try 1 (except) (finally 1) (else 1))"))
+    hy_compile(tokenize("(try 1 (except) (else 1) (finally 1))"))
 
 
 def test_ast_bad_try():

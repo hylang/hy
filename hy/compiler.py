@@ -39,25 +39,35 @@ from collections import defaultdict
 import codecs
 import ast
 import sys
+import traceback
 
 
 class HyCompileError(HyError):
-    def __init__(self, exception,
-                 start_line=0, start_column=0):
+    def __init__(self, exception, traceback=None):
         self.exception = exception
-        self.start_line = start_line
-        self.start_column = start_column
+        self.traceback = traceback
 
     def __str__(self):
-        if self.start_line == 0:
-            return("Internal Compiler Bug\n⤷ %s: %s"
-                   % (self.exception.__class__.__name__,
-                      self.exception))
-        return ("Compilation error at line %d, column %d\n%s: %s"
-                % (self.start_line, self.start_column,
-                   self.exception.__class__.__name__,
-                   self.exception))
+        if isinstance(self.exception, HyTypeError):
+            return str(self.exception)
+        if self.traceback:
+            tb = "".join(traceback.format_tb(self.traceback)).strip()
+        else:
+            tb = "No traceback available. 😟"
+        return("Internal Compiler Bug 😱\n⤷ %s: %s\nCompilation traceback:\n%s"
+               % (self.exception.__class__.__name__,
+                  self.exception, tb))
 
+
+class HyTypeError(TypeError):
+    def __init__(self, expression, message):
+        super(HyTypeError, self).__init__(message)
+        self.expression = expression
+
+    def __str__(self):
+        return (self.message + " (line %s, column %d)"
+                % (self.expression.start_line,
+                   self.expression.start_column))
 
 _compile_table = {}
 
@@ -87,10 +97,9 @@ def builds(_type):
 
 
 def _raise_wrong_args_number(expression, error):
-    err = TypeError(error % (expression.pop(0), len(expression)))
-    err.start_line = expression.start_line
-    err.start_column = expression.start_column
-    raise err
+    raise HyTypeError(expression,
+                      error % (expression.pop(0),
+                               len(expression)))
 
 
 def checkargs(exact=None, min=None, max=None):
@@ -134,15 +143,10 @@ class HyASTCompiler(object):
             # another HyCompileError!
             raise
         except Exception as e:
-            if isinstance(e, HyError):
-                raise HyCompileError(
-                    exception=e,
-                    start_line=getattr(e, "start_line", 0),
-                    start_column=getattr(e, "start_column", 0))
-            raise HyCompileError(exception=e)
+            raise HyCompileError(e, sys.exc_info()[2])
 
         raise HyCompileError(
-            "Unknown type - `%s' - %s" % (str(type(tree)), tree))
+            Exception("Unknown type: `%s'" % (str(type(tree)))))
 
     def _mangle_branch(self, tree, start_line, start_column):
         tree = list(flatten_literal_list(tree))
@@ -238,12 +242,6 @@ class HyASTCompiler(object):
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
-            # Python 3.3 features a rename of TryExcept to Try.
-            Try = ast.Try
-        else:
-            Try = ast.TryExcept
-
         try:
             body = expr.pop(0)
         except IndexError:
@@ -255,8 +253,45 @@ class HyASTCompiler(object):
                                  expr.start_column)
 
         orelse = []
-        if len(expr) == 0:
-            # (try) or (try body)
+        finalbody = []
+        handlers = []
+
+        for e in expr:
+            if not len(e):
+                raise HyTypeError(e, "Empty list not allowed in `try'")
+
+            if e[0] in (HySymbol("except"), HySymbol("catch")):
+                handlers.append(self.compile(e))
+            elif e[0] == HySymbol("else"):
+                if orelse:
+                    raise HyTypeError(
+                        e,
+                        "`try' cannot have more than one `else'")
+                else:
+                    orelse = self._code_branch(self.compile(e[1:]),
+                                               e.start_line,
+                                               e.start_column)
+            elif e[0] == HySymbol("finally"):
+                if finalbody:
+                    raise HyTypeError(
+                        e,
+                        "`try' cannot have more than one `finally'")
+                else:
+                    finalbody = self._code_branch(self.compile(e[1:]),
+                                                  e.start_line,
+                                                  e.start_column)
+            else:
+                raise HyTypeError(e, "Unknown expression in `try'")
+
+        # Using (else) without (except) is verboten!
+        if orelse and not handlers:
+            raise HyTypeError(
+                e,
+                "`try' cannot have `else' without `except'")
+
+        # (try) or (try BODY)
+        # Generate a default handler for Python >= 3.3 and pypy
+        if not handlers and not finalbody and not orelse:
             handlers = [ast.ExceptHandler(
                 lineno=expr.start_line,
                 col_offset=expr.start_column,
@@ -264,35 +299,41 @@ class HyASTCompiler(object):
                 name=None,
                 body=[ast.Pass(lineno=expr.start_line,
                                col_offset=expr.start_column)])]
-        else:
-            handlers = []
-            for e in expr:
-                if not len(e):
-                    raise TypeError("Empty list not allowed in `try'")
 
-                if e[0] in (HySymbol("except"), HySymbol("catch")):
-                    handlers.append(self.compile(e))
-                elif e[0] == HySymbol("else"):
-                    if orelse:
-                        raise TypeError(
-                            "`try' cannot have more than one `else'")
-                    else:
-                        orelse = self._code_branch(self.compile(e[1:]),
-                                                   e.start_line,
-                                                   e.start_column)
-                else:
-                    raise TypeError("Unknown expression in `try'")
+        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+            # Python 3.3 features a merge of TryExcept+TryFinally into Try.
+            return ast.Try(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                body=body,
+                handlers=handlers,
+                orelse=orelse,
+                finalbody=finalbody)
 
-            if handlers == []:
-                raise TypeError(
-                    "`try' must have at least `except' or `finally'")
+        if finalbody:
+            if handlers:
+                return ast.TryFinally(
+                    lineno=expr.start_line,
+                    col_offset=expr.start_column,
+                    body=[ast.TryExcept(
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column,
+                        handlers=handlers,
+                        body=body,
+                        orelse=orelse)],
+                    finalbody=finalbody)
 
-        return Try(
+            return ast.TryFinally(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                body=body,
+                finalbody=finalbody)
+
+        return ast.TryExcept(
             lineno=expr.start_line,
             col_offset=expr.start_column,
-            body=body,
             handlers=handlers,
-            finalbody=[],
+            body=body,
             orelse=orelse)
 
     @builds("catch")
@@ -315,9 +356,11 @@ class HyASTCompiler(object):
         # or
         # []
         if not isinstance(exceptions, HyList):
-            raise TypeError("`%s' exceptions list is not a list" % catch)
+            raise HyTypeError(exceptions,
+                              "`%s' exceptions list is not a list" % catch)
         if len(exceptions) > 2:
-            raise TypeError("`%s' exceptions list is too long" % catch)
+            raise HyTypeError(exceptions,
+                              "`%s' exceptions list is too long" % catch)
 
         # [variable [list of exceptions]]
         # let's pop variable and use it as name
@@ -355,7 +398,8 @@ class HyASTCompiler(object):
         elif isinstance(exceptions_list, HySymbol):
             _type = self.compile(exceptions_list)
         else:
-            raise TypeError("`%s' needs a valid exception list" % catch)
+            raise HyTypeError(exceptions,
+                              "`%s' needs a valid exception list" % catch)
 
         body = self._code_branch([self.compile(x) for x in expr],
                                  expr.start_line,
@@ -614,7 +658,7 @@ class HyASTCompiler(object):
         expr.pop(0)  # decorate-with
         fn = self.compile(expr.pop(-1))
         if type(fn) != ast.FunctionDef:
-            raise TypeError("Decorated a non-function")
+            raise HyTypeError(expr, "Decorated a non-function")
         fn.decorator_list = [self.compile(x) for x in expr]
         return fn
 
@@ -625,7 +669,7 @@ class HyASTCompiler(object):
 
         args = expr.pop(0)
         if len(args) > 2 or len(args) < 1:
-            raise TypeError("with needs [arg (expr)] or [(expr)]")
+            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
 
         args.reverse()
         ctx = self.compile(args.pop(0))
@@ -699,7 +743,7 @@ class HyASTCompiler(object):
         kwargs = expr.pop(0)
 
         if type(call) != ast.Call:
-            raise TypeError("kwapplying a non-call")
+            raise HyTypeError(expr, "kwapplying a non-call")
 
         if type(kwargs) != HyDict:
             raise TypeError("kwapplying with a non-dict")
