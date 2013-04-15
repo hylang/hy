@@ -202,7 +202,7 @@
   ;; Test (finally)
   (let [[passed false]]
     (try
-      (pass)
+      (do)
       (finally (setv passed true)))
     (assert passed))
 
