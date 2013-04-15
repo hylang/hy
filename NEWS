@@ -15,10 +15,8 @@ Changes from Hy 0.9.5
     * (foreach) now supports the (else) form. (JD)
 
   [ Language Changes ]
-    
-    * WARNING: WARNING: READ ME: READ ME:
-    
-    =======================================================================
+
+    =============== WARNING: WARNING: READ ME: READ ME: ===================
     From here on out, we will only support "future division" as part of hy.
     This is actually quite a pain for us, but it's going to be quite an
     amazing feautre.
