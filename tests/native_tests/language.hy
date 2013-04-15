@@ -560,3 +560,31 @@
   (assert (= "foobar" (eval (quote "foobar"))))
   (setv x (quote 42))
   (assert (= x (eval x))))
+
+(defn test-import-syntax []
+  "NATIVE: test the import syntax."
+
+  ; Simple import
+  (import sys os)
+
+  ; from os.path import basename
+  (import [os.path [basename]])
+  (assert (= (basename "/some/path") "path"))
+
+  ; import os.path as p
+  (import [os.path :as p])
+  (assert (= p.basename basename))
+
+  ; from os.path import basename as bn
+  (import [os.path [basename :as bn]])
+  (assert (= bn basename))
+
+  (import [sys])
+
+  ;; Multiple stuff to import
+  (import sys [os.path [dirname]]
+          [os.path :as op]
+          [os.path [dirname :as dn]])
+  (assert (= (dirname "/some/path") "/some"))
+  (assert (= op.dirname dirname))
+  (assert (= dn dirname)))
