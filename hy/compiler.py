@@ -464,13 +464,15 @@ class HyASTCompiler(object):
 
     @builds("import")
     def compile_import_expression(self, expr):
-        def _compile_import(expr, module, names = None, importer = ast.Import):
+        def _compile_import(expr, module, names=None, importer=ast.Import):
             return [
                 importer(
                     lineno=expr.start_line,
                     col_offset=expr.start_column,
                     module=ast_str(module),
-                    names=names or [ast.alias(name=ast_str(module), asname=None)],
+                    names=names or [
+                        ast.alias(name=ast_str(module), asname=None)
+                    ],
                     level=0)
             ]
 
@@ -479,31 +481,51 @@ class HyASTCompiler(object):
         while len(expr) > 0:
             iexpr = expr.pop(0)
 
-            if type(iexpr) == HySymbol:
+            if isinstance(iexpr, HySymbol):
                 rimports += _compile_import(expr, iexpr)
-            elif type(iexpr) == HyList and len(iexpr) == 1:
+                continue
+
+            if isinstance(iexpr, HyList) and len(iexpr) == 1:
                 rimports += _compile_import(expr, iexpr.pop(0))
-            elif type(iexpr) == HyList:
+                continue
+
+            if isinstance(iexpr, HyList) and iexpr:
                 module = iexpr.pop(0)
-                if type(iexpr[0]) == HyKeyword and iexpr[0] == HyKeyword(":as"):
+                entry = iexpr[0]
+                if isinstance(entry, HyKeyword) and entry == HyKeyword(":as"):
                     assert len(iexpr) == 2, "garbage after aliased import"
-                    iexpr.pop(0) # :as
-                    alias=iexpr.pop(0)
-                    rimports += _compile_import(expr, ast_str(module),
-                                                [ast.alias(name=ast_str(module),
-                                                           asname=ast_str(alias))])
-                elif type(iexpr[0] == HyList):
-                    symbol_list = iexpr.pop(0)
+                    iexpr.pop(0)  # :as
+                    alias = iexpr.pop(0)
+                    rimports += _compile_import(
+                        expr,
+                        ast_str(module),
+                        [
+                            ast.alias(name=ast_str(module),
+                                      asname=ast_str(alias))
+                        ]
+                    )
+                    continue
+
+                if isinstance(entry, HyList):
                     names = []
-                    while len(symbol_list) > 0:
-                        sym = symbol_list.pop(0)
-                        if len(symbol_list) > 0 and type(symbol_list[0]) == HyKeyword:
-                            symbol_list.pop(0)
-                            alias = ast_str(symbol_list.pop(0))
+                    while entry:
+                        sym = entry.pop(0)
+                        if entry and isinstance(entry[0], HyKeyword):
+                            entry.pop(0)
+                            alias = ast_str(entry.pop(0))
                         else:
                             alias = None
-                        names += [ast.alias(name=ast_str(sym), asname=alias)]
-                    rimports += _compile_import(expr, module, names, ast.ImportFrom)
+                        names += [
+                            ast.alias(name=ast_str(sym),
+                                      asname=alias)
+                        ]
+
+                    rimports += _compile_import(expr, module,
+                                                names, ast.ImportFrom)
+                    continue
+
+                raise TypeError("Unknown entry (`%s`) in the HyList" % (entry))
+
         return rimports
 
     @builds("import_as")
