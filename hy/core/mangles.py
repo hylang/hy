@@ -20,7 +20,6 @@
 
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
-from hy.models.list import HyList
 
 import hy.mangle
 
@@ -70,15 +69,34 @@ class IfMangle(HoistableMangle):
     def __init__(self):
         self.series = 0
 
+    def unique_name(self):
+        self.series += 1
+        return "_hy_mangled_if_result_%s" % (self.series)
+
     def visit(self, tree):
         if isinstance(tree, HyExpression) and tree != []:
             call = tree[0]
             if call == "if" and self.should_hoist():
-                fn = HyExpression([HyExpression([HySymbol("fn"),
-                                   HyList([]),
-                                   tree])])
-                fn.replace(tree)
-                return fn
+                name = HySymbol(self.unique_name())
+                name.replace(tree)
+                new_expression = []
+                # if
+                new_expression.append(tree.pop(0))
+                # cond
+                new_expression.append(tree.pop(0))
+                for expr in tree:
+                    new_expression.append(
+                        HyExpression([
+                            HySymbol("do_setv"),
+                            name,
+                            expr,
+                        ])
+                    )
+                    new_expression[-1].replace(expr)
+                new_if = HyExpression(new_expression)
+                new_if.replace(tree)
+                self.hoist(new_if)
+                return name
 
 
 hy.mangle.MANGLES.append(IfMangle)
