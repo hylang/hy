@@ -145,13 +145,16 @@ class HyASTCompiler(object):
             "Unknown type - `%s' - %s" % (str(type(tree)), tree))
 
     def _mangle_branch(self, tree, start_line, start_column):
+        tree = list(flatten_literal_list(tree))
+        tree = list(filter(bool, tree))  # Remove empty statements
+
         # If tree is empty, just return a pass statement
         if tree == []:
             return [ast.Pass(lineno=start_line, col_offset=start_column)]
 
-        ret = []
-        tree = list(flatten_literal_list(tree))
         tree.reverse()
+
+        ret = []
 
         if self.returnable and len(tree) > 0:
             el = tree[0]
@@ -446,11 +449,6 @@ class HyASTCompiler(object):
                 kwonlyargs=[],
                 kw_defaults=[]),
             body=self.compile(body))
-
-    @builds("pass")
-    @checkargs(0)
-    def compile_pass_expression(self, expr):
-        return ast.Pass(lineno=expr.start_line, col_offset=expr.start_column)
 
     @builds("yield")
     @checkargs(max=1)
