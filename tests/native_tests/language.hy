@@ -375,6 +375,21 @@
   (assert (= y x 2)))
 
 
+(defn test-foreach-else []
+  "NATIVE: test foreach else"
+  (let [[x 0]]
+    (foreach [a [1 2]]
+             (setv x (+ x a))
+             (else (setv x (+ x 50))))
+    (assert (= x 53)))
+
+  (let [[x 0]]
+    (foreach [a [1 2]]
+             (setv x (+ x a))
+             (else))
+    (assert (= x 3))))
+
+
 (defn test-comprehensions []
   "NATIVE: test list comprehensions"
   (assert (= (list-comp (* x 2) (x (range 2))) [0 2]))
