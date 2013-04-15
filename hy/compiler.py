@@ -716,18 +716,26 @@ class HyASTCompiler(object):
     @builds("/")
     @builds("//")
     @builds("*")
+    @builds("**")
+    @builds("<<")
+    @builds(">>")
+    @builds("|")
+    @builds("^")
+    @builds("&")
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
-        # operator = Mod | Pow | LShift | RShift | BitOr |
-        #            BitXor | BitAnd | FloorDiv
-        # (to implement list) XXX
-
         ops = {"+": ast.Add,
                "/": ast.Div,
                "//": ast.FloorDiv,
                "*": ast.Mult,
                "-": ast.Sub,
-               "%": ast.Mod}
+               "%": ast.Mod,
+               "**": ast.Pow,
+               "<<": ast.LShift,
+               ">>": ast.RShift,
+               "|": ast.BitOr,
+               "^": ast.BitXor,
+               "&": ast.BitAnd}
 
         inv = expression.pop(0)
         op = ops[inv]
@@ -742,6 +750,45 @@ class HyASTCompiler(object):
                              col_offset=child.start_column)
             left = calc
         return calc
+
+    @builds("+=")
+    @builds("/=")
+    @builds("//=")
+    @builds("*=")
+    @builds("_=")
+    @builds("%=")
+    @builds("**=")
+    @builds("<<=")
+    @builds(">>=")
+    @builds("|=")
+    @builds("^=")
+    @builds("&=")
+    @checkargs(2)
+    def compile_augassign_expression(self, expression):
+        ops = {"+=": ast.Add,
+               "/=": ast.Div,
+               "//=": ast.FloorDiv,
+               "*=": ast.Mult,
+               "_=": ast.Sub,
+               "%=": ast.Mod,
+               "**=": ast.Pow,
+               "<<=": ast.LShift,
+               ">>=": ast.RShift,
+               "|=": ast.BitOr,
+               "^=": ast.BitXor,
+               "&=": ast.BitAnd}
+
+        op = ops[expression[0]]
+
+        target = self._storeize(self.compile(expression[1]))
+        value = self.compile(expression[2])
+
+        return ast.AugAssign(
+            target=target,
+            value=value,
+            op=op(),
+            lineno=expression.start_line,
+            col_offset=expression.start_column)
 
     def compile_dotted_expression(self, expr):
         ofn = expr.pop(0)  # .join
