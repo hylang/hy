@@ -192,17 +192,6 @@ def test_ast_bad_lambda():
     cant_compile("(lambda [])")
 
 
-def test_ast_good_pass():
-    "Make sure AST can compile valid pass"
-    hy_compile(tokenize("(pass)"))
-
-
-def test_ast_bad_pass():
-    "Make sure AST can't compile invalid pass"
-    cant_compile("(pass 1)")
-    cant_compile("(pass 1 2)")
-
-
 def test_ast_good_yield():
     "Make sure AST can compile valid yield"
     hy_compile(tokenize("(yield 1)"))
