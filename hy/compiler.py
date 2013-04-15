@@ -974,8 +974,8 @@ class HyASTCompiler(object):
         if expression and expression[-1][0] == HySymbol("else"):
             else_expr = expression.pop()
             if len(else_expr) > 2:
-                # XXX use HyTypeError as soon as it lands
-                raise TypeError("`else' statement in `foreach' is too long")
+                raise HyTypeError(else_expr,
+                                  "`else' statement in `foreach' is too long")
             elif len(else_expr) == 2:
                 orelse = self._code_branch(
                     self.compile(else_expr[1]),
