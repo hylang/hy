@@ -89,10 +89,7 @@ def ast_str(foobar):
 def builds(_type):
     def _dec(fn):
         _compile_table[_type] = fn
-
-        def shim(*args, **kwargs):
-            return fn(*args, **kwargs)
-        return shim
+        return fn
     return _dec
 
 
