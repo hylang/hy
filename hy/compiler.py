@@ -809,7 +809,6 @@ class HyASTCompiler(object):
 
     @builds("+")
     @builds("%")
-    @builds("-")
     @builds("/")
     @builds("//")
     @builds("*")
@@ -847,6 +846,18 @@ class HyASTCompiler(object):
                              col_offset=child.start_column)
             left = calc
         return calc
+
+    @builds("-")
+    @checkargs(min=1)
+    def compile_maths_expression_sub(self, expression):
+        if len(expression) > 2:
+            return self.compile_maths_expression(expression)
+        else:
+            arg = expression[1]
+            return ast.UnaryOp(op=ast.USub(),
+                               operand=self.compile(arg),
+                               lineno=arg.start_line,
+                               col_offset=arg.start_column)
 
     @builds("+=")
     @builds("/=")
