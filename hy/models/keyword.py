@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Gergely Nagy <algernon@madhouse-project.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,20 +18,16 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import unicode_literals
 from hy.models import HyObject
+from hy.util import str_type
 
 
-class HyList(HyObject, list):
+class HyKeyword(HyObject, str_type):
+    """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
+    depending on the Python version.
     """
-    Hy List. Basically just a list.
-    """
 
-    def replace(self, other):
-        for x in self:
-            x.replace(other)
-
-        HyObject.replace(self, other)
-        return self
-
-    def __repr__(self):
-        return "[%s]" % (" ".join([str(x) for x in self]))
+    def __new__(cls, value):
+        obj = str_type.__new__(cls, "\uFDD0" + value)
+        return obj

@@ -21,17 +21,12 @@
 from hy.models import HyObject
 
 
-class HyList(HyObject, list):
+class HyComplex(HyObject, complex):
     """
-    Hy List. Basically just a list.
+    Internal represntation of a Hy Complex. May raise a ValueError as if
+    complex(foo) was called, given HyComplex(foo).
     """
 
-    def replace(self, other):
-        for x in self:
-            x.replace(other)
-
-        HyObject.replace(self, other)
-        return self
-
-    def __repr__(self):
-        return "[%s]" % (" ".join([str(x) for x in self]))
+    def __new__(cls, number, *args, **kwargs):
+        number = complex(number)
+        return super(HyComplex, cls).__new__(cls, number)

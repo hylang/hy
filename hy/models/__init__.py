@@ -34,3 +34,5 @@ class HyObject(object):
                     setattr(self, attr, getattr(other, attr))
         else:
             raise TypeError("Can't replace a non Hy object with a Hy object")
+
+        return self

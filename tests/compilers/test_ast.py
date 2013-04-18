@@ -19,6 +19,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import unicode_literals
+
+from hy import HyString
 from hy.compiler import hy_compile, HyCompileError
 from hy.lex import tokenize
 from hy.util import dump
@@ -121,6 +124,11 @@ def test_ast_good_try():
     hy_compile(tokenize("(try 1)"))
     hy_compile(tokenize("(try 1 (except) (else 1))"))
     hy_compile(tokenize("(try 1 (else 1) (except))"))
+    hy_compile(tokenize("(try 1 (finally 1) (except))"))
+    hy_compile(tokenize("(try 1 (finally 1))"))
+    hy_compile(tokenize("(try 1 (except) (finally 1))"))
+    hy_compile(tokenize("(try 1 (except) (finally 1) (else 1))"))
+    hy_compile(tokenize("(try 1 (except) (else 1) (finally 1))"))
 
 
 def test_ast_bad_try():
@@ -190,17 +198,6 @@ def test_ast_bad_lambda():
     cant_compile("(lambda [])")
 
 
-def test_ast_good_pass():
-    "Make sure AST can compile valid pass"
-    hy_compile(tokenize("(pass)"))
-
-
-def test_ast_bad_pass():
-    "Make sure AST can't compile invalid pass"
-    cant_compile("(pass 1)")
-    cant_compile("(pass 1 2)")
-
-
 def test_ast_good_yield():
     "Make sure AST can compile valid yield"
     hy_compile(tokenize("(yield 1)"))
@@ -208,7 +205,6 @@ def test_ast_good_yield():
 
 def test_ast_bad_yield():
     "Make sure AST can't compile invalid yield"
-    cant_compile("(yield)")
     cant_compile("(yield 1 2)")
 
 
@@ -272,6 +268,16 @@ def test_ast_valid_while():
     hy_compile(tokenize("(while foo bar)"))
 
 
+def test_ast_valid_foreach():
+    "Make sure AST can compile valid foreach"
+    hy_compile(tokenize("(foreach [a 2])"))
+
+
+def test_ast_invalid_foreach():
+    "Make sure AST can't compile invalid foreach"
+    cant_compile("(foreach [a 1] (else 1 2))")
+
+
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = hy_compile(tokenize("(foo bar)")).body[0]
@@ -332,3 +338,20 @@ def test_lambda_list_keywords():
     """ Ensure we can compile functions with lambda list keywords."""
     hy_compile(tokenize("(fn (x &rest xs) (print xs))"))
     cant_compile("(fn (x &rest xs &rest ys) (print xs))")
+
+def test_ast_unicode_strings():
+    """Ensure we handle unicode strings correctly"""
+
+    def _compile_string(s):
+        hy_s = HyString(s)
+        hy_s.start_line = hy_s.end_line = 0
+        hy_s.start_column = hy_s.end_column = 0
+
+        code = hy_compile([hy_s])
+
+        # code == ast.Module(body=[ast.Expr(value=ast.Str(s=xxx))])
+        return code.body[0].value.s
+
+    assert _compile_string("test") == "test"
+    assert _compile_string("\u03b1\u03b2") == "\u03b1\u03b2"
+    assert _compile_string("\xc3\xa9") == "\xc3\xa9"

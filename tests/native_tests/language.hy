@@ -172,11 +172,11 @@
 
   (try (do))
 
-  (try (pass))
+  (try (do))
 
-  (try (pass) (except))
+  (try (do) (except))
 
-  (try (pass) (except [IOError]) (except))
+  (try (do) (except [IOError]) (except))
 
   ;; Test correct (raise)
   (let [[passed false]]
@@ -198,6 +198,34 @@
               (setv passed true)))
     (assert passed))
 
+
+  ;; Test (finally)
+  (let [[passed false]]
+    (try
+      (do)
+      (finally (setv passed true)))
+    (assert passed))
+
+  ;; Test (finally) + (raise)
+  (let [[passed false]]
+    (try
+      (raise Exception)
+      (except)
+      (finally (setv passed true)))
+    (assert passed))
+
+
+  ;; Test (finally) + (raise) + (else)
+  (let [[passed false]
+        [not-elsed true]]
+    (try
+      (raise Exception)
+      (except)
+      (else (setv not-elsed false))
+      (finally (setv passed true)))
+    (assert passed)
+    (assert not-elsed))
+
   (try
     (raise (KeyError))
     (catch [[IOError]] (assert false))
@@ -208,16 +236,15 @@
     (except [[IOError]] (assert false))
     (catch [e [KeyError]] (assert e)))
 
-
   (try
     (get [1] 3)
     (catch [IndexError] (assert true))
-    (except [IndexError] (pass)))
+    (except [IndexError] (do)))
 
   (try
     (print foobar42ofthebaz)
     (catch [IndexError] (assert false))
-    (except [NameError] (pass)))
+    (except [NameError] (do)))
 
   (try
     (get [1] 3)
@@ -233,11 +260,11 @@
 
   (try
     (print foobar42)
-    (catch [[IndexError NameError]] (pass)))
+    (catch [[IndexError NameError]] (do)))
 
   (try
     (get [1] 3)
-    (catch [[IndexError NameError]] (pass)))
+    (catch [[IndexError NameError]] (do)))
 
   (try
     (print foobar42ofthebaz)
@@ -249,7 +276,7 @@
 
   (try
     (print foobar42ofthebaz)
-    (except [] (pass)))
+    (except [] (do)))
 
   (try
     (print foobar42ofthebaz)
@@ -259,7 +286,7 @@
 
   (let [[passed false]]
     (try
-      (try (pass) (except) (else (bla)))
+      (try (do) (except) (else (bla)))
       (except [NameError] (setv passed true)))
     (assert passed))
 
@@ -324,7 +351,7 @@
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
-  (if true (pass) (pass))
+  (if true (do) (do))
   (assert (= 1 1)))
 
 
@@ -362,7 +389,7 @@
 (defn test-context []
   "NATIVE: test with"
   (with [fd (open "README.md" "r")] (assert fd))
-  (with [(open "README.md" "r")] (pass)))
+  (with [(open "README.md" "r")] (do)))
 
 
 (defn test-for-doodle []
@@ -373,6 +400,21 @@
              (setf x (+ x 1))
              (setf y (+ y 1))))
   (assert (= y x 2)))
+
+
+(defn test-foreach-else []
+  "NATIVE: test foreach else"
+  (let [[x 0]]
+    (foreach [a [1 2]]
+             (setv x (+ x a))
+             (else (setv x (+ x 50))))
+    (assert (= x 53)))
+
+  (let [[x 0]]
+    (foreach [a [1 2]]
+             (setv x (+ x a))
+             (else))
+    (assert (= x 3))))
 
 
 (defn test-comprehensions []
@@ -506,20 +548,71 @@
                    2)
                  1)))
   (assert (= 1 (let [[x 1] [y 2]]
-                 (pass)
-                 (pass)
+                 (do)
+                 (do)
                  ((fn [] 1))))))
 
+(defn test-keyword []
+  "NATIVE: test if keywords are recognised"
 
-; FEATURE: native hy-eval
-;
-;   - related to bug #64
-;   - https://github.com/paultag/hy/issues/64
-;   - https://github.com/paultag/hy/pull/62
-;
-; (defn test-eval []
-;   "NATIVE: test eval"
-;   (assert (= 1 (eval 1)))
-;   (assert (= "foobar" (eval "foobar")))
-;   (setv x 42)
-;   (assert (= x (eval x))))
+  (assert (= :foo :foo))
+  (assert (= (get {:foo "bar"} :foo) "bar"))
+  (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
+
+(defn test-keyword-clash []
+  "NATIVE: test that keywords do not clash with normal strings"
+
+  (assert (= (get {:foo "bar" ":foo" "quux"} :foo) "bar"))
+  (assert (= (get {:foo "bar" ":foo" "quux"} ":foo") "quux")))
+
+(defn test-nested-if []
+  "NATIVE: test nested if"
+  (for [x (range 10)]
+    (if (in "foo" "foobar")
+      (do
+        (if true true true))
+      (do
+        (if false false false)))))
+
+
+(defn test-eval []
+  "NATIVE: test eval"
+  (assert (= 2 (eval (quote (+ 1 1)))))
+  (setf x 2)
+  (assert (= 4 (eval (quote (+ x 2)))))
+  (setf test-payload (quote (+ x 2)))
+  (setf x 4)
+  (assert (= 6 (eval test-payload)))
+  (assert (= 6 (eval (quote ((fn [] (+ 3 3)))))))
+  (assert (= 1 (eval (quote 1))))
+  (assert (= "foobar" (eval (quote "foobar"))))
+  (setv x (quote 42))
+  (assert (= x (eval x))))
+
+(defn test-import-syntax []
+  "NATIVE: test the import syntax."
+
+  ; Simple import
+  (import sys os)
+
+  ; from os.path import basename
+  (import [os.path [basename]])
+  (assert (= (basename "/some/path") "path"))
+
+  ; import os.path as p
+  (import [os.path :as p])
+  (assert (= p.basename basename))
+
+  ; from os.path import basename as bn
+  (import [os.path [basename :as bn]])
+  (assert (= bn basename))
+
+  (import [sys])
+
+  ;; Multiple stuff to import
+  (import sys [os.path [dirname]]
+          [os.path :as op]
+          [os.path [dirname :as dn]])
+  (assert (= (dirname "/some/path") "/some"))
+  (assert (= op.dirname dirname))
+  (assert (= dn dirname)))

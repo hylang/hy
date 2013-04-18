@@ -21,17 +21,12 @@
 from hy.models import HyObject
 
 
-class HyList(HyObject, list):
+class HyFloat(HyObject, float):
     """
-    Hy List. Basically just a list.
+    Internal represntation of a Hy Float. May raise a ValueError as if
+    float(foo) was called, given HyFloat(foo).
     """
 
-    def replace(self, other):
-        for x in self:
-            x.replace(other)
-
-        HyObject.replace(self, other)
-        return self
-
-    def __repr__(self):
-        return "[%s]" % (" ".join([str(x) for x in self]))
+    def __new__(cls, number, *args, **kwargs):
+        number = float(number)
+        return super(HyFloat, cls).__new__(cls, number)
