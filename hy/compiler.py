@@ -229,8 +229,13 @@ class HyASTCompiler(object):
                 if type(expr) != HyDict:
                     raise TypeError("FOOBAR")
                 else:
+                    if len(keywords) > 0:
+                        raise HyCompileError("There can only be "
+                                             "one &key argument")
                     keywords = [ast.keyword(arg=ast_str(k),
-                                            value=self.compile(v))
+                                            value=self.compile(v),
+                                            lineno=expr.start_line,
+                                            col_offset=expr.start_column)
                                 for k, v in expr.items()]
             elif lambda_keyword == "&optional":
                 # not implemented yet.
