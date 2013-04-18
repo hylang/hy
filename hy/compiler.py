@@ -189,7 +189,6 @@ class HyASTCompiler(object):
         return ret
 
     def _parse_lambda_list(self, exprs):
-        """ Return args, keywords, varargs, kwargs from exprs."""
         exprs.reverse()
         args = []
         keywords = []
@@ -206,9 +205,11 @@ class HyASTCompiler(object):
                                          "lambda-keyword.".format(repr(expr)))
                 if expr == "&rest" and lambda_keyword is None:
                     lambda_keyword = expr
-                elif expr == "&optional" and lambda_keyword == "&rest":
+                elif expr == "&optional":
                     lambda_keyword = expr
-                elif expr == "&aux" and lambda_keyword == "&optional":
+                elif expr == "&key":
+                    lambda_keyword = expr
+                elif expr == "&kwargs":
                     lambda_keyword = expr
                 else:
                     raise HyCompileError("{0} is in an invalid "
@@ -224,12 +225,18 @@ class HyASTCompiler(object):
                     raise HyCompileError("There can only be one "
                                          "&rest argument")
                 varargs = str(expr)
+            elif lambda_keyword == "&key":
+                if type(expr) != HyDict:
+                    raise TypeError("FOOBAR")
+                else:
+                    keywords = [ast.keyword(arg=ast_str(k),
+                                            value=self.compile(v))
+                                for k, v in expr.items()]
             elif lambda_keyword == "&optional":
-                # add key to keywords and kwargs, value to kwargs? Look up AST docs you dummy.
+                # not implemented yet.
                 pass
-            elif lambda_keyword == "&aux":
-                # update kwargs with the rest of the passed in keys/vals
-                pass
+            elif lambda_keyword == "&kwargs":
+                kwargs = str(expr)
 
         if not kwargs:
             kwargs = None
@@ -1106,9 +1113,9 @@ class HyASTCompiler(object):
                         col_offset=x.start_column)
                     for x in args],
                 vararg=stararg,
-                kwarg=None,
+                kwarg=kwargs,
                 kwonlyargs=[],
-                kw_defaults=[],
+                kw_defaults=keywords,
                 defaults=[]),
             body=body,
             decorator_list=[])

@@ -339,6 +339,10 @@ def test_lambda_list_keywords():
     hy_compile(tokenize("(fn (x &rest xs) (print xs))"))
     cant_compile("(fn (x &rest xs &rest ys) (print xs))")
 
+def test_lambda_list_keywords_optional():
+    """ Ensure we can compile functions with &optional."""
+    hy_compile(tokenize("(fn (x &optional (foo True)) foo)"))
+
 def test_ast_unicode_strings():
     """Ensure we handle unicode strings correctly"""
 

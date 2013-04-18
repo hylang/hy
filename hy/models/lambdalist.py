@@ -33,7 +33,7 @@ class HyLambdaListKeyword(HyString):
         pass
     """
 
-    _valid_types = ["&rest", "&optional", "&kwargs"]
+    _valid_types = ["&rest", "&optional", "&key", "&kwargs"]
 
     def __init__(self, string):
         self += string
