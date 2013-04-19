@@ -185,7 +185,7 @@ class ListeyThing(State):
             return Idle
 
         if char in ")]}":
-            raise LexException("Unexpected closing character: `{0}'".format(char))
+            raise LexException("Unexpected closing character: `%s'" % (char))
 
         if char in WHITESPACE:
             self.commit()
@@ -266,7 +266,7 @@ class String(State):
                 self.nodes.append("\"")
                 return
 
-            raise LexException("Unknown modifier: `{0}'".format(char))
+            raise LexException("Unknown modifier: `%s'" % (char))
 
         if char == "\"":
             return Idle
@@ -393,4 +393,4 @@ class Hash(State):
         if char == "!":
             return Comment
 
-        raise LexException("Unknown char (Hash state): `{0}'".format(char))
+        raise LexException("Unknown char (Hash state): `%s'" % (char))
