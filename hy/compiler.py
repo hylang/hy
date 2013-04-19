@@ -249,8 +249,6 @@ class HyASTCompiler(object):
                                          "&kwargs argument")
                 kwargs = str(expr)
 
-        if not kwargs:
-            kwargs = None
         return args, defaults, varargs, kwargs
 
     @builds(list)
