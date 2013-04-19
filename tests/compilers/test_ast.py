@@ -334,14 +334,25 @@ def test_ast_tuple():
     assert type(code) == ast.Tuple
 
 
-def test_lambda_list_keywords():
+def test_lambda_list_keywords_rest():
     """ Ensure we can compile functions with lambda list keywords."""
     hy_compile(tokenize("(fn (x &rest xs) (print xs))"))
     cant_compile("(fn (x &rest xs &rest ys) (print xs))")
 
-def test_lambda_list_keywords_optional():
-    """ Ensure we can compile functions with &optional."""
-    hy_compile(tokenize("(fn (x &optional (foo True)) foo)"))
+def test_lambda_list_keywords_key():
+    """ Ensure we can compile functions with &key."""
+    hy_compile(tokenize("(fn (x &key {foo True}) (list x foo))"))
+    cant_compile("(fn (x &key {bar \"baz\"} &key {foo 42}) (list x bar foo))")
+
+def test_lambda_list_keywords_kwargs():
+    """ Ensure we can compile functions with &kwargs."""
+    hy_compile(tokenize("(fn (x &kwargs kw) (list x kw))"))
+    cant_compile("(fn (x &kwargs xs &kwargs ys) (list x xs ys))")
+
+def test_lambda_list_keywords_mixed():
+    """ Ensure we can mix them up."""
+    hy_compile(tokenize("(fn (x &rest xs &kwargs kw) (list x xs kw))"))
+    cant_compile("(fn (x &rest xs &key {bar \"baz\"}))")
 
 def test_ast_unicode_strings():
     """Ensure we handle unicode strings correctly"""

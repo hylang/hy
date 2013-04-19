@@ -189,11 +189,12 @@ class HyASTCompiler(object):
         return ret
 
     def _parse_lambda_list(self, exprs):
+        """ Return FunctionDef parameter values from lambda list."""
         exprs.reverse()
         args = []
-        keywords = []
+        defaults = []
         varargs = None
-        kwargs = {}
+        kwargs = None
         lambda_keyword = None
 
         while exprs:
@@ -227,25 +228,30 @@ class HyASTCompiler(object):
                 varargs = str(expr)
             elif lambda_keyword == "&key":
                 if type(expr) != HyDict:
-                    raise TypeError("FOOBAR")
+                    raise TypeError("There can only be one &key "
+                                    "argument")
                 else:
-                    if len(keywords) > 0:
+                    if len(defaults) > 0:
                         raise HyCompileError("There can only be "
                                              "one &key argument")
-                    keywords = [ast.keyword(arg=ast_str(k),
-                                            value=self.compile(v),
-                                            lineno=expr.start_line,
-                                            col_offset=expr.start_column)
-                                for k, v in expr.items()]
+                    # As you can see, Python has a funny way of
+                    # defining keyword arguments.
+                    for k in expr.keys():
+                        args.append(k)
+                    for v in expr.values():
+                        defaults.append(self.compile(v))
             elif lambda_keyword == "&optional":
                 # not implemented yet.
                 pass
             elif lambda_keyword == "&kwargs":
+                if kwargs:
+                    raise HyCompileError("There can only be one "
+                                         "&kwargs argument")
                 kwargs = str(expr)
 
         if not kwargs:
             kwargs = None
-        return args, keywords, varargs, kwargs
+        return args, defaults, varargs, kwargs
 
     @builds(list)
     def compile_raw_list(self, entries):
@@ -1103,7 +1109,7 @@ class HyASTCompiler(object):
                                  expression.start_line,
                                  expression.start_column)
 
-        args, keywords, stararg, kwargs = self._parse_lambda_list(sig)
+        args, defaults, stararg, kwargs = self._parse_lambda_list(sig)
 
         ret = ast.FunctionDef(
             name=name,
@@ -1120,8 +1126,8 @@ class HyASTCompiler(object):
                 vararg=stararg,
                 kwarg=kwargs,
                 kwonlyargs=[],
-                kw_defaults=keywords,
-                defaults=[]),
+                kw_defaults=[],
+                defaults=defaults),
             body=body,
             decorator_list=[])
 

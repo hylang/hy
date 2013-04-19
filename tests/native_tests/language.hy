@@ -616,3 +616,8 @@
   (assert (= (dirname "/some/path") "/some"))
   (assert (= op.dirname dirname))
   (assert (= dn dirname)))
+
+(defn test-lambda-keyword-lists []
+  "NATIVE: test lambda keyword lists"
+  (defn foo (x &rest xs &kwargs kw) [x xs kw])
+  (assert (= (foo 10 20 30) [10, (20, 30), {}])))
