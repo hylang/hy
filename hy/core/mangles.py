@@ -28,6 +28,11 @@ import hy.mangle
 class HoistableMangle(hy.mangle.Mangle):
     def should_hoist(self):
         for frame in self.stack:
+            if (isinstance(frame, HyExpression) and
+                    frame and frame[0] == "quote"):
+                return False
+
+        for frame in self.stack:
             if frame is self.scope:
                 return False
 
