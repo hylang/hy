@@ -623,4 +623,5 @@
 (defn test-quoted-hoistable []
   "NATIVE: test quoted hoistable"
   (setf f (quote (if true true true)))
-  (assert (= (car f) "if")))
+  (assert (= (car f) "if"))
+  (assert (= (cdr f) (quote (true true true)))))
