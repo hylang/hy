@@ -190,15 +190,13 @@ class HyASTCompiler(object):
 
     def _parse_lambda_list(self, exprs):
         """ Return FunctionDef parameter values from lambda list."""
-        exprs.reverse()
         args = []
         defaults = []
         varargs = None
         kwargs = None
         lambda_keyword = None
 
-        while exprs:
-            expr = exprs.pop()
+        for expr in exprs:
 
             if isinstance(expr, HyLambdaListKeyword):
                 if expr not in expr._valid_types:
@@ -236,9 +234,8 @@ class HyASTCompiler(object):
                                              "one &key argument")
                     # As you can see, Python has a funny way of
                     # defining keyword arguments.
-                    for k in expr.keys():
+                    for k, v in expr.items():
                         args.append(k)
-                    for v in expr.values():
                         defaults.append(self.compile(v))
             elif lambda_keyword == "&optional":
                 # not implemented yet.

@@ -24,7 +24,6 @@ from __future__ import unicode_literals
 from hy import HyString
 from hy.compiler import hy_compile, HyCompileError
 from hy.lex import tokenize
-from hy.util import dump
 
 import ast
 import sys
