@@ -33,7 +33,7 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 from hy.models.keyword import HyKeyword
 
-from hy.util import flatten_literal_list, str_type
+from hy.util import flatten_literal_list, str_type, temporary_attribute_value
 
 from collections import defaultdict
 import codecs
@@ -128,6 +128,9 @@ class HyASTCompiler(object):
         self.returnable = False
         self.anon_fn_count = 0
         self.imports = defaultdict(list)
+
+    def being_returnable(self, v):
+        return temporary_attribute_value(self, "returnable", v)
 
     def compile(self, tree):
         try:
@@ -951,37 +954,35 @@ class HyASTCompiler(object):
     @builds("foreach")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
-        ret_status = self.returnable
-        self.returnable = False
+        with self.being_returnable(False):
+            expression.pop(0)  # for
+            name, iterable = expression.pop(0)
+            target = self._storeize(self.compile_symbol(name))
 
-        expression.pop(0)  # for
-        name, iterable = expression.pop(0)
-        target = self._storeize(self.compile_symbol(name))
+            orelse = []
+            # (foreach [] body (else …))
+            if expression and expression[-1][0] == HySymbol("else"):
+                else_expr = expression.pop()
+                if len(else_expr) > 2:
+                    raise HyTypeError(
+                        else_expr,
+                        "`else' statement in `foreach' is too long")
+                elif len(else_expr) == 2:
+                    orelse = self._code_branch(
+                        self.compile(else_expr[1]),
+                        else_expr[1].start_line,
+                        else_expr[1].start_column)
 
-        orelse = []
-        # (foreach [] body (else …))
-        if expression and expression[-1][0] == HySymbol("else"):
-            else_expr = expression.pop()
-            if len(else_expr) > 2:
-                raise HyTypeError(else_expr,
-                                  "`else' statement in `foreach' is too long")
-            elif len(else_expr) == 2:
-                orelse = self._code_branch(
-                    self.compile(else_expr[1]),
-                    else_expr[1].start_line,
-                    else_expr[1].start_column)
+            ret = ast.For(lineno=expression.start_line,
+                          col_offset=expression.start_column,
+                          target=target,
+                          iter=self.compile(iterable),
+                          body=self._code_branch(
+                              [self.compile(x) for x in expression],
+                              expression.start_line,
+                              expression.start_column),
+                          orelse=orelse)
 
-        ret = ast.For(lineno=expression.start_line,
-                      col_offset=expression.start_column,
-                      target=target,
-                      iter=self.compile(iterable),
-                      body=self._code_branch(
-                          [self.compile(x) for x in expression],
-                          expression.start_line,
-                          expression.start_column),
-                      orelse=orelse)
-
-        self.returnable = ret_status
         return ret
 
     @builds("while")
@@ -1012,47 +1013,44 @@ class HyASTCompiler(object):
     def compile_fn_expression(self, expression):
         expression.pop(0)  # fn
 
-        ret_status = self.returnable
-
         self.anon_fn_count += 1
         name = "_hy_anon_fn_%d" % (self.anon_fn_count)
         sig = expression.pop(0)
 
         body = []
         if expression != []:
-            self.returnable = True
-            tailop = self.compile(expression.pop(-1))
-            self.returnable = False
-            for el in expression:
-                body.append(self.compile(el))
+            with self.being_returnable(True):
+                tailop = self.compile(expression.pop(-1))
+            with self.being_returnable(False):
+                for el in expression:
+                    body.append(self.compile(el))
             body.append(tailop)
 
-        self.returnable = True
-        body = self._code_branch(body,
-                                 expression.start_line,
-                                 expression.start_column)
+        with self.being_returnable(True):
+            body = self._code_branch(body,
+                                     expression.start_line,
+                                     expression.start_column)
 
-        ret = ast.FunctionDef(
-            name=name,
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
-            args=ast.arguments(
-                args=[
-                    ast.Name(
-                        arg=ast_str(x), id=ast_str(x),
-                        ctx=ast.Param(),
-                        lineno=x.start_line,
-                        col_offset=x.start_column)
-                    for x in sig],
-                vararg=None,
-                kwarg=None,
-                kwonlyargs=[],
-                kw_defaults=[],
-                defaults=[]),
-            body=body,
-            decorator_list=[])
+            ret = ast.FunctionDef(
+                name=name,
+                lineno=expression.start_line,
+                col_offset=expression.start_column,
+                args=ast.arguments(
+                    args=[
+                        ast.Name(
+                            arg=ast_str(x), id=ast_str(x),
+                            ctx=ast.Param(),
+                            lineno=x.start_line,
+                            col_offset=x.start_column)
+                        for x in sig],
+                    vararg=None,
+                    kwarg=None,
+                    kwonlyargs=[],
+                    kw_defaults=[],
+                    defaults=[]),
+                body=body,
+                decorator_list=[])
 
-        self.returnable = ret_status
         return ret
 
     @builds(HyInteger)
