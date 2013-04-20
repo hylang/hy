@@ -34,10 +34,8 @@ import os
 import __future__
 
 if sys.version_info[0] >= 3:
-    from io import StringIO
     long_type = int
 else:
-    from StringIO import StringIO  # NOQA
     import __builtin__
     long_type = long  # NOQA
 
