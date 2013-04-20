@@ -474,7 +474,9 @@
 (defn test-fn-return []
   "NATIVE: test function return"
   (setv fn-test ((fn [] (fn [] (+ 1 1)))))
-  (assert (= (fn-test) 2)))
+  (assert (= (fn-test) 2))
+  (setv fn-test (fn []))
+  (assert (= (fn-test) None)))
 
 
 (defn test-let []

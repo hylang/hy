@@ -1027,7 +1027,7 @@ class HyASTCompiler(object):
             col_offset=expr.start_column)
 
     @builds("fn")
-    @checkargs(min=2)
+    @checkargs(min=1)
     def compile_fn_expression(self, expression):
         expression.pop(0)  # fn
 

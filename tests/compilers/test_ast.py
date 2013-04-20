@@ -300,6 +300,8 @@ def test_ast_anon_fns_basics():
     """ Ensure anon fns work. """
     code = hy_compile(tokenize("(fn (x) (* x x))")).body[0]
     assert type(code) == ast.FunctionDef
+    code = hy_compile(tokenize("(fn (x))")).body[0]
+    cant_compile("(fn)")
 
 
 def test_ast_non_decoratable():
