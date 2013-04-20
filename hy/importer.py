@@ -42,37 +42,41 @@ else:
     long_type = long  # NOQA
 
 
-def compile_(ast, filename, mode):
+def ast_compile(ast, filename, mode):
+    """Compile AST.
+    Like Python's compile, but with some special flags."""
     return compile(ast, filename, mode, __future__.CO_FUTURE_DIVISION)
 
 
-def import_buffer_to_hst(fd):
-    tree = tokenize(fd.read() + "\n")
-    tree = process(tree)
-    return tree
+def import_buffer_to_hst(buf):
+    """Import content from buf and return an Hy AST."""
+    return process(tokenize(buf + "\n"))
 
 
 def import_file_to_hst(fpath):
-    return import_buffer_to_hst(open(fpath, 'r', encoding='utf-8'))
+    """Import content from fpath and return an Hy AST."""
+    with open(fpath, 'r', encoding='utf-8') as f:
+        return import_buffer_to_hst(f.read())
+
+
+def import_buffer_to_ast(buf):
+    """ Import content from buf and return a Python AST."""
+    return hy_compile(import_buffer_to_hst(buf))
 
 
 def import_file_to_ast(fpath):
-    tree = import_file_to_hst(fpath)
-    _ast = hy_compile(tree)
-    return _ast
+    """Import content from fpath and return a Python AST."""
+    return hy_compile(import_file_to_hst(fpath))
 
 
-def import_string_to_ast(buff):
-    tree = import_buffer_to_hst(StringIO(buff))
-    _ast = hy_compile(tree)
-    return _ast
+def import_file_to_module(module_name, fpath):
+    """Import content from fpath and puts it into a Python module.
 
-
-def import_file_to_module(name, fpath):
+    Returns the module."""
     _ast = import_file_to_ast(fpath)
-    mod = imp.new_module(name)
+    mod = imp.new_module(module_name)
     mod.__file__ = fpath
-    eval(compile_(_ast, fpath, "exec"), mod.__dict__)
+    eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
     return mod
 
 
@@ -84,7 +88,7 @@ def hy_eval(hytree, namespace):
     foo.end_column = 0
     hytree.replace(foo)
     _ast = hy_compile(hytree, root=ast.Expression)
-    return eval(compile_(_ast, "<eval>", "eval"), namespace)
+    return eval(ast_compile(_ast, "<eval>", "eval"), namespace)
 
 
 def write_hy_as_pyc(fname):
@@ -96,7 +100,7 @@ def write_hy_as_pyc(fname):
         timestamp = long_type(st.st_mtime)
 
     _ast = import_file_to_ast(fname)
-    code = compile_(_ast, fname, "exec")
+    code = ast_compile(_ast, fname, "exec")
     cfile = "%s.pyc" % fname[:-len(".hy")]
 
     if sys.version_info[0] >= 3:
@@ -118,7 +122,10 @@ def write_hy_as_pyc(fname):
         fc.write(MAGIC)
 
 
-class HyFinder(object):
+class MetaLoader(object):
+    def __init__(self, path):
+        self.path = path
+
     def is_package(self, fullname):
         dirpath = "/".join(fullname.split("."))
         for pth in sys.path:
@@ -128,33 +135,20 @@ class HyFinder(object):
                 return True
         return False
 
-    def find_on_path(self, fullname):
-        fls = ["%s/__init__.hy", "%s.hy"]
-        dirpath = "/".join(fullname.split("."))
-
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            for fp in fls:
-                composed_path = fp % ("%s/%s" % (pth, dirpath))
-                if os.path.exists(composed_path):
-                    return composed_path
-
-
-class MetaLoader(HyFinder):
     def load_module(self, fullname):
         if fullname in sys.modules:
             return sys.modules[fullname]
 
-        pth = self.find_on_path(fullname)
-        if pth is None:
+        if not self.path:
             return
 
         sys.modules[fullname] = None
-        mod = import_file_to_module(fullname, pth)
+        mod = import_file_to_module(fullname,
+                                    self.path)
 
         ispkg = self.is_package(fullname)
 
-        mod.__file__ = pth
+        mod.__file__ = self.path
         mod.__loader__ = self
         mod.__name__ = fullname
 
@@ -168,12 +162,22 @@ class MetaLoader(HyFinder):
         return mod
 
 
-class MetaImporter(HyFinder):
+class MetaImporter(object):
+    def find_on_path(self, fullname):
+        fls = ["%s/__init__.hy", "%s.hy"]
+        dirpath = "/".join(fullname.split("."))
+
+        for pth in sys.path:
+            pth = os.path.abspath(pth)
+            for fp in fls:
+                composed_path = fp % ("%s/%s" % (pth, dirpath))
+                if os.path.exists(composed_path):
+                    return composed_path
+
     def find_module(self, fullname, path=None):
-        pth = self.find_on_path(fullname)
-        if pth is None:
-            return
-        return MetaLoader()
+        path = self.find_on_path(fullname)
+        if path:
+            return MetaLoader(path)
 
 
 sys.meta_path.append(MetaImporter())
