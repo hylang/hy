@@ -25,6 +25,7 @@ from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 from hy.models.string import HyString
+from hy.models.keyword import HyKeyword
 
 
 @macro("defn")
@@ -141,7 +142,7 @@ def keywordQ_macro(tree):
         cast_to = HyString
     return HyExpression([HySymbol('.startswith'),
                          cast_to(kw),
-                         HyString("\uFDD0")])
+                         HyKeyword("")])
 
 
 @macro("let")
