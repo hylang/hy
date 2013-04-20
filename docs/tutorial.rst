@@ -392,7 +392,7 @@ a pipe:
 
 .. code-block:: clj
 
-    => (import-from sh cat grep wc)
+    => (import [sh [cat grep wc]])
     => (-> (cat "/usr/share/dict/words") (grep "-E" "^hy") (wc "-l"))
     210
 

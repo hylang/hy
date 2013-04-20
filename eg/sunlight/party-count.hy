@@ -4,8 +4,8 @@
 ; the source.
 
 (import sys)
-(import-from sunlight openstates)
-(import-from collections Counter)
+(import [sunlight [openstates]]
+        [collections [Counter]])
 
 
 (def *state* (get sys.argv 1))

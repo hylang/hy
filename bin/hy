@@ -98,7 +98,7 @@ def koan_macro(tree):
     return HyExpression([HySymbol('print'),
                          HyString("""
 
-    => (import-from sh figlet)
+    => (import [sh [figlet]])
     => (figlet "Hi, Hy!")
      _   _ _     _   _       _
     | | | (_)   | | | |_   _| |
@@ -113,7 +113,7 @@ def koan_macro(tree):
 
 
 ;;; this one plays with command line bits
-(import-from sh cat grep)
+(import [sh [cat grep]])
 (-> (cat "/usr/share/dict/words") (grep "-E" "bro$"))
 
 
