@@ -17,7 +17,8 @@
 
 (setv test_sub (fn []
   "NATIVE: Test subtraction"
-  (assert (= 4 (- 8 4)))))
+  (assert (= 4 (- 8 4)))
+  (assert (= -8 (- 8)))))
 
 
 (setv test_add (fn []

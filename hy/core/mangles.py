@@ -26,7 +26,26 @@ import hy.mangle
 
 
 class HoistableMangle(hy.mangle.Mangle):
+    """
+    superclass for all the mangles down below -- this contains a bunch
+    of the core logic on when we should hoist things out.
+    """
+
     def should_hoist(self):
+        """
+        If the stack is:
+
+            - unquoted
+            - not at the top-level of the "scope" (code branch)
+            - not ignorable (something that factors out during AST render)
+
+        then we return True, otherwise, we return False.
+        """
+        for frame in self.stack:
+            if (isinstance(frame, HyExpression) and
+                    frame and frame[0] == "quote"):
+                return False
+
         for frame in self.stack:
             if frame is self.scope:
                 return False
@@ -40,8 +59,15 @@ class HoistableMangle(hy.mangle.Mangle):
 
 
 class FunctionMangle(HoistableMangle):
+    """
+    This will hoist function defs out of an inner expression (such as invoking
+    an anon function "((fn [] ...))", or using it as an arg in a call)
+    """
+
     hoistable = ["fn"]
+    # ^^ we're just looking for functions
     ignore = ["def", "decorate_with", "setf", "setv", "foreach", "do"]
+    # ^^ these guys don't affect us, really.
 
     def __init__(self):
         self.series = 0
@@ -51,9 +77,13 @@ class FunctionMangle(HoistableMangle):
         return "_hy_hoisted_fn_%s" % (self.series)
 
     def visit(self, tree):
+        """
+        Visit all the nodes in the Hy code tree.
+        """
         if isinstance(tree, HyExpression) and tree != []:
             call = tree[0]
             if call == "fn" and self.should_hoist():
+                # if we have a Function and we should hoist it --
                 new_name = HySymbol(self.unique_name())
                 new_name.replace(tree)
                 fn_def = HyExpression([HySymbol("def"),
@@ -65,6 +95,12 @@ class FunctionMangle(HoistableMangle):
 
 
 class IfMangle(HoistableMangle):
+    """
+    This will mangle an `if' statement that's nested inside something (meaning
+    we need some sort of return statement from the (if)), we should
+    special-case the code to give us some juju.
+    """
+
     ignore = ["foreach", "do"]
 
     def __init__(self):
@@ -74,6 +110,7 @@ class IfMangle(HoistableMangle):
         if isinstance(tree, HyExpression) and tree != []:
             call = tree[0]
             if call == "if" and self.should_hoist():
+                # If we've got a hoistable if statement
                 fn = HyExpression([HyExpression([HySymbol("fn"),
                                    HyList([]),
                                    tree])])

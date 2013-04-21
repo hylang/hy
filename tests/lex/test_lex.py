@@ -87,6 +87,7 @@ def test_lex_lambda_list_keyword():
                                   HyLambdaListKeyword("&rest"),
                                   HySymbol("xs")])]
 
+
 def test_lex_symbols():
     """ Make sure that symbols are valid expressions"""
     objs = tokenize("foo ")

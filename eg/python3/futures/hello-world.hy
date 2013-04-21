@@ -1,7 +1,6 @@
-(import-from concurrent.futures ThreadPoolExecutor as-completed)
-(import-from random randint)
-
-(import-from sh sleep)
+(import [concurrent.futures [ThreadPoolExecutor as-completed]]
+        [random [randint]]
+        [sh [sleep]])
 
 (defn task-to-do [] (sleep (randint 1 5)))
 

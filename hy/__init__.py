@@ -20,7 +20,7 @@
 
 
 __appname__ = "hy"
-__version__ = "0.9.5"
+__version__ = "0.9.6"
 
 
 from hy.models.expression import HyExpression  # NOQA

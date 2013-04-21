@@ -324,6 +324,18 @@ Comments start with semicolons:
    ; (print "but this will not")
    (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
+Python's context managers ('with' statements) are used like this:
+
+.. code-block:: clj 
+ 
+     (with [f (file "/tmp/data.in")] 
+       (print (.read f))) 
+
+which is equivalent to::
+
+  with file("/tmp/data.in") as f:
+    print f.read()
+ 
 And yes, we do have lisp comprehensions!  In Python you might do::
 
   odds_squared = [
@@ -392,7 +404,7 @@ a pipe:
 
 .. code-block:: clj
 
-    => (import-from sh cat grep wc)
+    => (import [sh [cat grep wc]])
     => (-> (cat "/usr/share/dict/words") (grep "-E" "^hy") (wc "-l"))
     210
 
@@ -408,6 +420,8 @@ Much more readable, no! Use the threading macro!
 TODO
 ====
 
+ - How do I index into arrays or dictionaries?
+ - How do I do array ranges?  e.g. x[5:] or y[2:10]
  - How do I define classes?
  - Blow your mind with macros!
  - Where's my banana???
