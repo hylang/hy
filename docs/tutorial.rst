@@ -421,7 +421,6 @@ TODO
 ====
 
  - How do I define classes?
- - How do I use context managers?
  - Blow your mind with macros!
  - Where's my banana???
  - Mention that you can import .hy files in .py files and vice versa!
