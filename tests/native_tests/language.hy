@@ -481,7 +481,8 @@
 
 (defn test-let []
   "NATIVE: test let works rightish"
-  (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6)))
+  (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6))
+  (assert (= (let [[x 1] a [y 2] b] (if a 1 2)) 2)))
 
 
 (defn test-if-mangler []
