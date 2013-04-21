@@ -567,29 +567,10 @@ class HyASTCompiler(object):
 
                 raise TypeError("Unknown entry (`%s`) in the HyList" % (entry))
 
-        return rimports
-
-    @builds("import_as")
-    def compile_import_as_expression(self, expr):
-        expr.pop(0)  # index
-        modlist = [expr[i:i + 2] for i in range(0, len(expr), 2)]
-        return ast.Import(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            module=ast_str(expr.pop(0)),
-            names=[ast.alias(name=ast_str(x[0]),
-                             asname=ast_str(x[1])) for x in modlist])
-
-    @builds("import_from")
-    @checkargs(min=1)
-    def compile_import_from_expression(self, expr):
-        expr.pop(0)  # index
-        return ast.ImportFrom(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            module=ast_str(expr.pop(0)),
-            names=[ast.alias(name=ast_str(x), asname=None) for x in expr],
-            level=0)
+        if len(rimports) == 1:
+            return rimports[0]
+        else:
+            return rimports
 
     @builds("get")
     @checkargs(2)
@@ -1171,9 +1152,8 @@ def hy_compile(tree, root=None):
 
                 imported.add(entry)
                 imports.append(HyExpression([
-                    HySymbol("import_from"),
-                    HySymbol(package),
-                    HySymbol(entry)
+                    HySymbol("import"),
+                    HyList([HySymbol(package), HyList([HySymbol(entry)])])
                 ]).replace(replace))
 
         _ast = compiler.compile(imports) + _ast
