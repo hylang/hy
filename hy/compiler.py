@@ -129,7 +129,7 @@ class HyASTCompiler(object):
         self.anon_fn_count = 0
         self.imports = defaultdict(list)
 
-    def being_returnable(self, v):
+    def is_returnable(self, v):
         return temporary_attribute_value(self, "returnable", v)
 
     def compile(self, tree):
@@ -954,7 +954,7 @@ class HyASTCompiler(object):
     @builds("foreach")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
-        with self.being_returnable(False):
+        with self.is_returnable(False):
             expression.pop(0)  # for
             name, iterable = expression.pop(0)
             target = self._storeize(self.compile_symbol(name))
@@ -1019,14 +1019,14 @@ class HyASTCompiler(object):
 
         body = []
         if expression != []:
-            with self.being_returnable(True):
+            with self.is_returnable(True):
                 tailop = self.compile(expression.pop(-1))
-            with self.being_returnable(False):
+            with self.is_returnable(False):
                 for el in expression:
                     body.append(self.compile(el))
             body.append(tailop)
 
-        with self.being_returnable(True):
+        with self.is_returnable(True):
             body = self._code_branch(body,
                                      expression.start_line,
                                      expression.start_column)
