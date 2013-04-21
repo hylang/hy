@@ -64,8 +64,6 @@ class FunctionMangle(HoistableMangle):
     an anon function "((fn [] ...))", or using it as an arg in a call)
     """
 
-    hoistable = ["fn"]
-    # ^^ we're just looking for functions
     ignore = ["def", "decorate_with", "setf", "setv", "foreach", "do"]
     # ^^ these guys don't affect us, really.
 
