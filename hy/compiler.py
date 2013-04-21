@@ -157,7 +157,7 @@ class HyASTCompiler(object):
 
         ret = []
 
-        if self.returnable and len(tree) > 0:
+        if self.returnable:
             el = tree[0]
             if not isinstance(el, ast.stmt):
                 el = tree.pop(0)

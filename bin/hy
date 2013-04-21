@@ -21,7 +21,7 @@ from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
 from hy.core import process
-from hy.importer import compile_
+from hy.importer import ast_compile
 
 import hy.completer
 
@@ -59,7 +59,7 @@ class HyREPL(code.InteractiveConsole):
         _machine = Machine(Idle, 1, 0)
         try:
             _ast = hy_compile(tokens, root=ast.Interactive)
-            code = compile_(_ast, filename, symbol)
+            code = ast_compile(_ast, filename, symbol)
         except Exception:
             self.showtraceback()
             return False
