@@ -420,6 +420,8 @@ Much more readable, no! Use the threading macro!
 TODO
 ====
 
+ - How do I index into arrays or dictionaries?
+ - How do I do array ranges?  e.g. x[5:] or y[2:10]
  - How do I define classes?
  - Blow your mind with macros!
  - Where's my banana???
