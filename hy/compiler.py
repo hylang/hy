@@ -679,14 +679,11 @@ class HyASTCompiler(object):
         expr.pop(0)
         n = self.compile(expr.pop(0))
         seq = self.compile(expr.pop(0))
-        zero = ast.Num(n=0,
-                       lineno=expr.start_column,
-                       col_offset=expr.start_column)
         return ast.Subscript(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             value=seq,
-            slice=ast.Slice(lower=zero,
+            slice=ast.Slice(lower=None,
                             upper=n,
                             step=None),
             ctx=ast.Load())
