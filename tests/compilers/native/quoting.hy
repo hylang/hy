@@ -1,7 +1,7 @@
 ;;;
 ;;;
 
-(import-from hy HyExpression HySymbol HyString)
+(import [hy [HyExpression HySymbol HyString]])
 
 
 (defn test-basic-quoting []
