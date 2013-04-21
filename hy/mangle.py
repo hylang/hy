@@ -18,6 +18,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import abc
+
 from hy.models.expression import HyExpression
 # from hy.models.list import HyList
 
@@ -34,6 +36,8 @@ class Mangle(object):
         (but mostly hacking)
     """
 
+    __metaclass___ = abc.ABCMeta
+
     class TreeChanged(Exception):
         """
         This exception gets raised whenver any code alters the tree. This is
@@ -42,14 +46,15 @@ class Mangle(object):
         """
         pass
 
+    @abc.abstractmethod
+    def visit(self, element):
+        raise NotImplementedError
+
     def _mangle(self, tree):
         """
         Main function of self.mangle, which is called over and over. This
         is used to beat the tree until it stops moving.
         """
-
-        scopable = ["fn", "if"]
-        # Not actually scope, more like code branch.
 
         scoped = False
         self.push_stack(tree)
@@ -58,7 +63,7 @@ class Mangle(object):
             # If it's an expression, let's make sure we reset the "scope"
             # (code branch) if it's a scopable object.
             what = tree[0]
-            if what in scopable:
+            if what in ["fn", "if"]:
                 self.push_scope(tree)
                 scoped = True
 
@@ -114,20 +119,19 @@ class Mangle(object):
         return self.stack.pop(0)
 
     def mangle(self, tree):
-        """
-        Magic external entry point.
+        """Magic external entry point.
 
-        We mangle until the tree stops moving (we don't get a TreeChanged
-        Exception during mangle)
+        We mangle until the tree stops moving, i.e. until we don't get a
+        TreeChanged Exception during mangle.
+
         """
-        unfinished = True
-        while unfinished:
+        while True:
             self.root = tree
             self.scopes = []
             self.stack = []
             self.push_scope(tree)
             try:
                 self._mangle(tree)
-                unfinished = False
+                break
             except self.TreeChanged:
                 pass
