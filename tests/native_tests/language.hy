@@ -386,7 +386,7 @@
 (defn test-drop []
   "NATIVE: test drop"
   (assert (= (drop 0 [2 3]) [2 3]))
-  (assert (= (drop 1 [2 3]) [2]))
+  (assert (= (drop 1 [2 3]) [3]))
   (assert (= (drop 2 [2 3]) [])))
 
 

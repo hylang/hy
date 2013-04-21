@@ -697,21 +697,12 @@ class HyASTCompiler(object):
         expr.pop(0)
         n = self.compile(expr.pop(0))
         seq = self.compile(expr.pop(0))
-        zero = ast.Num(n=0,
-                       lineno=expr.start_line,
-                       col_offset=expr.start_column)
-        upper = ast.UnaryOp(op=ast.USub(),
-                            operand=n,
-                            lineno=expr.start_line,
-                            col_offset=expr.start_column)
-        if upper.operand.n == 0:
-            return seq
         return ast.Subscript(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             value=seq,
-            slice=ast.Slice(lower=zero,
-                            upper=upper,
+            slice=ast.Slice(lower=n,
+                            upper=None,
                             step=None),
             ctx=ast.Load())
 
