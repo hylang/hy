@@ -324,6 +324,18 @@ Comments start with semicolons:
    ; (print "but this will not")
    (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
+Python's context managers ('with' statements) are used like this:
+
+.. code-block:: clj 
+ 
+     (with [f (file "/tmp/data.in")] 
+       (print (.read f))) 
+
+which is equivalent to::
+
+  with file("/tmp/data.in") as f:
+    print f.read()
+ 
 And yes, we do have lisp comprehensions!  In Python you might do::
 
   odds_squared = [
@@ -363,7 +375,7 @@ In hy, you could do these like:
   ;  (8, 'A'), (8, 'B'), (8, 'C'), (8, 'D'), (8, 'E'), (8, 'F'), (8, 'G'), (8, 'H')]
 
 
-
+ 
 Protips!
 ========
 
@@ -409,6 +421,7 @@ TODO
 ====
 
  - How do I define classes?
+ - How do I use context managers?
  - Blow your mind with macros!
  - Where's my banana???
  - Mention that you can import .hy files in .py files and vice versa!
