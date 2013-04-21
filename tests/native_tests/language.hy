@@ -1,8 +1,8 @@
 ;
 
-(import-from tests.resources kwtest function-with-a-dash)
-(import-from os.path exists isdir isfile)
-(import-as sys systest)
+(import [tests.resources [kwtest function-with-a-dash]]
+        [os.path [exists isdir isfile]]
+        [sys :as systest])
 (import sys)
 
 

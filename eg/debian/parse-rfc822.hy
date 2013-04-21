@@ -35,6 +35,6 @@
 (print source "is a(n)" (get block "Description"))
 
 
-(import-from sh apt-cache)
+(import [sh [apt-cache]])
 (setv archive-block (parse-rfc822-stream (.show apt-cache source)))
 (print "The archive has version" (get archive-block "Version") "of" source)
