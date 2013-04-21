@@ -375,7 +375,7 @@ In hy, you could do these like:
   ;  (8, 'A'), (8, 'B'), (8, 'C'), (8, 'D'), (8, 'E'), (8, 'F'), (8, 'G'), (8, 'H')]
 
 
- 
+
 Protips!
 ========
 
