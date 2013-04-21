@@ -1,8 +1,8 @@
 ;
 
-(import-from tests.resources kwtest function-with-a-dash)
-(import-from os.path exists isdir isfile)
-(import-as sys systest)
+(import [tests.resources [kwtest function-with-a-dash]]
+        [os.path [exists isdir isfile]]
+        [sys :as systest])
 (import sys)
 
 
@@ -474,7 +474,9 @@
 (defn test-fn-return []
   "NATIVE: test function return"
   (setv fn-test ((fn [] (fn [] (+ 1 1)))))
-  (assert (= (fn-test) 2)))
+  (assert (= (fn-test) 2))
+  (setv fn-test (fn []))
+  (assert (= (fn-test) None)))
 
 
 (defn test-let []

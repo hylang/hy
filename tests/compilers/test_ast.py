@@ -208,13 +208,8 @@ def test_ast_bad_yield():
 
 
 def test_ast_good_import_from():
-    "Make sure AST can compile valid import-from"
-    hy_compile(tokenize("(import-from x y)"))
-
-
-def test_ast_bad_import_from():
-    "Make sure AST can't compile invalid import-from"
-    cant_compile("(import-from)")
+    "Make sure AST can compile valid selective import"
+    hy_compile(tokenize("(import [x [y]])"))
 
 
 def test_ast_good_get():
@@ -300,6 +295,8 @@ def test_ast_anon_fns_basics():
     """ Ensure anon fns work. """
     code = hy_compile(tokenize("(fn (x) (* x x))")).body[0]
     assert type(code) == ast.FunctionDef
+    code = hy_compile(tokenize("(fn (x))")).body[0]
+    cant_compile("(fn)")
 
 
 def test_ast_non_decoratable():
