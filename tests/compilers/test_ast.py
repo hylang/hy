@@ -237,6 +237,16 @@ def test_ast_bad_slice():
     cant_compile("(slice 1 2 3 4)")
 
 
+def test_ast_good_take():
+    "Make sure AST can compile valid 'take'"
+    hy_compile(tokenize("(take 1 [2 3])"))
+
+
+def test_ast_good_drop():
+    "Make sure AST can compile valid 'drop'"
+    hy_compile(tokenize("(drop 1 [2 3])"))
+
+
 def test_ast_good_assoc():
     "Make sure AST can compile valid assoc"
     hy_compile(tokenize("(assoc x y z)"))

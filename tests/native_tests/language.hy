@@ -376,6 +376,20 @@
   (assert (= (slice [1 2 3 4 5]) [1 2 3 4 5])))
 
 
+(defn test-take []
+  "NATIVE: test take"
+  (assert (= (take 0 [2 3]) []))
+  (assert (= (take 1 [2 3]) [2]))
+  (assert (= (take 2 [2 3]) [2 3])))
+
+
+(defn test-drop []
+  "NATIVE: test drop"
+  (assert (= (drop 0 [2 3]) [2 3]))
+  (assert (= (drop 1 [2 3]) [3]))
+  (assert (= (drop 2 [2 3]) [])))
+
+
 (defn test-rest []
   "NATIVE: test rest"
   (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))
