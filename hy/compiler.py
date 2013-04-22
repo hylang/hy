@@ -135,9 +135,9 @@ class HyASTCompiler(object):
 
     def compile(self, tree):
         try:
-            for _type in _compile_table:
-                if type(tree) == _type:
-                    return _compile_table[_type](self, tree)
+            _type = type(tree)
+            if _type in _compile_table:
+                return _compile_table[_type](self, tree)
         except HyCompileError:
             # compile calls compile, so we're going to have multiple raise
             # nested; so let's re-raise this exception, let's not wrap it in
