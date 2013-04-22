@@ -149,3 +149,24 @@ def let_macro(tree):
         expr.append(stmt)
 
     return HyExpression([expr])
+
+
+@macro("take")
+def take_macro(tree):
+    tree.pop(0)  # "take"
+    n = tree.pop(0)
+    ret = tree.pop(0)
+    return HyExpression([HySymbol('slice'),
+                         ret,
+                         HyInteger(0),
+                         HyInteger(n)])
+
+
+@macro("drop")
+def drop_macro(tree):
+    tree.pop(0)  # "drop"
+    n = tree.pop(0)
+    ret = tree.pop(0)
+    return HyExpression([HySymbol('slice'),
+                         ret,
+                         HyInteger(n)])

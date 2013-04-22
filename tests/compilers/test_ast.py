@@ -242,20 +242,9 @@ def test_ast_good_take():
     hy_compile(tokenize("(take 1 [2 3])"))
 
 
-def test_ast_bad_take():
-    "Make sure AST chokes on bad 'take'"
-    cant_compile("(take)")
-    cant_compile("(take 2)")
-
 def test_ast_good_drop():
     "Make sure AST can compile valid 'drop'"
     hy_compile(tokenize("(drop 1 [2 3])"))
-
-
-def test_ast_bad_drop():
-    "Make sure AST chokes on bad 'drop'"
-    cant_compile("(drop)")
-    cant_compile("(drop 2)")
 
 
 def test_ast_good_assoc():

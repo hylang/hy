@@ -673,36 +673,6 @@ class HyASTCompiler(object):
                             step=None),
             ctx=ast.Load())
 
-    @builds("take")
-    @checkargs(2)
-    def compile_take_expression(self, expr):
-        expr.pop(0)
-        n = self.compile(expr.pop(0))
-        seq = self.compile(expr.pop(0))
-        return ast.Subscript(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            value=seq,
-            slice=ast.Slice(lower=None,
-                            upper=n,
-                            step=None),
-            ctx=ast.Load())
-
-    @builds("drop")
-    @checkargs(2)
-    def compile_drop_expression(self, expr):
-        expr.pop(0)
-        n = self.compile(expr.pop(0))
-        seq = self.compile(expr.pop(0))
-        return ast.Subscript(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            value=seq,
-            slice=ast.Slice(lower=n,
-                            upper=None,
-                            step=None),
-            ctx=ast.Load())
-
     @builds("assoc")
     @checkargs(3)
     def compile_assoc_expression(self, expr):
