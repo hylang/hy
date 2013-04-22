@@ -126,7 +126,6 @@ class Mangle(object):
 
         """
         while True:
-            self.root = tree
             self.scopes = []
             self.stack = []
             self.push_scope(tree)
