@@ -23,23 +23,24 @@
 
 from hy.errors import HyError
 
+from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.expression import HyExpression
+from hy.models.keyword import HyKeyword
 from hy.models.integer import HyInteger
-from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
+from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
-from hy.models.keyword import HyKeyword
 
-from hy.util import flatten_literal_list, str_type
+from hy.util import flatten_literal_list, str_type, temporary_attribute_value
 
 from collections import defaultdict
+import traceback
 import codecs
 import ast
 import sys
-import traceback
 
 
 class HyCompileError(HyError):
@@ -83,7 +84,7 @@ def ast_str(foobar):
 
     enc = codecs.getencoder('punycode')
     foobar, _ = enc(foobar)
-    return "__hy_%s" % (str(foobar).replace("-", "_"))
+    return "hy_%s" % (str(foobar).replace("-", "_"))
 
 
 def builds(_type):
@@ -129,11 +130,14 @@ class HyASTCompiler(object):
         self.anon_fn_count = 0
         self.imports = defaultdict(list)
 
+    def is_returnable(self, v):
+        return temporary_attribute_value(self, "returnable", v)
+
     def compile(self, tree):
         try:
-            for _type in _compile_table:
-                if type(tree) == _type:
-                    return _compile_table[_type](self, tree)
+            _type = type(tree)
+            if _type in _compile_table:
+                return _compile_table[_type](self, tree)
         except HyCompileError:
             # compile calls compile, so we're going to have multiple raise
             # nested; so let's re-raise this exception, let's not wrap it in
@@ -157,7 +161,7 @@ class HyASTCompiler(object):
 
         ret = []
 
-        if self.returnable and len(tree) > 0:
+        if self.returnable:
             el = tree[0]
             if not isinstance(el, ast.stmt):
                 el = tree.pop(0)
@@ -183,6 +187,66 @@ class HyASTCompiler(object):
 
         ret.reverse()
         return ret
+
+    def _parse_lambda_list(self, exprs):
+        """ Return FunctionDef parameter values from lambda list."""
+        args = []
+        defaults = []
+        varargs = None
+        kwargs = None
+        lambda_keyword = None
+
+        for expr in exprs:
+
+            if isinstance(expr, HyLambdaListKeyword):
+                if expr not in expr._valid_types:
+                    raise HyCompileError("{0} is not a valid "
+                                         "lambda-keyword.".format(repr(expr)))
+                if expr == "&rest" and lambda_keyword is None:
+                    lambda_keyword = expr
+                elif expr == "&optional":
+                    lambda_keyword = expr
+                elif expr == "&key":
+                    lambda_keyword = expr
+                elif expr == "&kwargs":
+                    lambda_keyword = expr
+                else:
+                    raise HyCompileError("{0} is in an invalid "
+                                         "position.".format(repr(expr)))
+                # we don't actually care about this token, so we set
+                # our state and continue to the next token...
+                continue
+
+            if lambda_keyword is None:
+                args.append(expr)
+            elif lambda_keyword == "&rest":
+                if varargs:
+                    raise HyCompileError("There can only be one "
+                                         "&rest argument")
+                varargs = str(expr)
+            elif lambda_keyword == "&key":
+                if type(expr) != HyDict:
+                    raise TypeError("There can only be one &key "
+                                    "argument")
+                else:
+                    if len(defaults) > 0:
+                        raise HyCompileError("There can only be "
+                                             "one &key argument")
+                    # As you can see, Python has a funny way of
+                    # defining keyword arguments.
+                    for k, v in expr.items():
+                        args.append(k)
+                        defaults.append(self.compile(v))
+            elif lambda_keyword == "&optional":
+                # not implemented yet.
+                pass
+            elif lambda_keyword == "&kwargs":
+                if kwargs:
+                    raise HyCompileError("There can only be one "
+                                         "&kwargs argument")
+                kwargs = str(expr)
+
+        return args, defaults, varargs, kwargs
 
     @builds(list)
     def compile_raw_list(self, entries):
@@ -576,29 +640,10 @@ class HyASTCompiler(object):
 
                 raise TypeError("Unknown entry (`%s`) in the HyList" % (entry))
 
-        return rimports
-
-    @builds("import_as")
-    def compile_import_as_expression(self, expr):
-        expr.pop(0)  # index
-        modlist = [expr[i:i + 2] for i in range(0, len(expr), 2)]
-        return ast.Import(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            module=ast_str(expr.pop(0)),
-            names=[ast.alias(name=ast_str(x[0]),
-                             asname=ast_str(x[1])) for x in modlist])
-
-    @builds("import_from")
-    @checkargs(min=1)
-    def compile_import_from_expression(self, expr):
-        expr.pop(0)  # index
-        return ast.ImportFrom(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            module=ast_str(expr.pop(0)),
-            names=[ast.alias(name=ast_str(x), asname=None) for x in expr],
-            level=0)
+        if len(rimports) == 1:
+            return rimports[0]
+        else:
+            return rimports
 
     @builds("get")
     @checkargs(2)
@@ -979,37 +1024,35 @@ class HyASTCompiler(object):
     @builds("foreach")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
-        ret_status = self.returnable
-        self.returnable = False
+        with self.is_returnable(False):
+            expression.pop(0)  # for
+            name, iterable = expression.pop(0)
+            target = self._storeize(self.compile_symbol(name))
 
-        expression.pop(0)  # for
-        name, iterable = expression.pop(0)
-        target = self._storeize(self.compile_symbol(name))
+            orelse = []
+            # (foreach [] body (else …))
+            if expression and expression[-1][0] == HySymbol("else"):
+                else_expr = expression.pop()
+                if len(else_expr) > 2:
+                    raise HyTypeError(
+                        else_expr,
+                        "`else' statement in `foreach' is too long")
+                elif len(else_expr) == 2:
+                    orelse = self._code_branch(
+                        self.compile(else_expr[1]),
+                        else_expr[1].start_line,
+                        else_expr[1].start_column)
 
-        orelse = []
-        # (foreach [] body (else …))
-        if expression and expression[-1][0] == HySymbol("else"):
-            else_expr = expression.pop()
-            if len(else_expr) > 2:
-                raise HyTypeError(else_expr,
-                                  "`else' statement in `foreach' is too long")
-            elif len(else_expr) == 2:
-                orelse = self._code_branch(
-                    self.compile(else_expr[1]),
-                    else_expr[1].start_line,
-                    else_expr[1].start_column)
+            ret = ast.For(lineno=expression.start_line,
+                          col_offset=expression.start_column,
+                          target=target,
+                          iter=self.compile(iterable),
+                          body=self._code_branch(
+                              [self.compile(x) for x in expression],
+                              expression.start_line,
+                              expression.start_column),
+                          orelse=orelse)
 
-        ret = ast.For(lineno=expression.start_line,
-                      col_offset=expression.start_column,
-                      target=target,
-                      iter=self.compile(iterable),
-                      body=self._code_branch(
-                          [self.compile(x) for x in expression],
-                          expression.start_line,
-                          expression.start_column),
-                      orelse=orelse)
-
-        self.returnable = ret_status
         return ret
 
     @builds("while")
@@ -1036,11 +1079,9 @@ class HyASTCompiler(object):
             col_offset=expr.start_column)
 
     @builds("fn")
-    @checkargs(min=2)
+    @checkargs(min=1)
     def compile_fn_expression(self, expression):
         expression.pop(0)  # fn
-
-        ret_status = self.returnable
 
         self.anon_fn_count += 1
         name = "_hy_anon_fn_%d" % (self.anon_fn_count)
@@ -1048,39 +1089,40 @@ class HyASTCompiler(object):
 
         body = []
         if expression != []:
-            self.returnable = True
-            tailop = self.compile(expression.pop(-1))
-            self.returnable = False
-            for el in expression:
-                body.append(self.compile(el))
+            with self.is_returnable(True):
+                tailop = self.compile(expression.pop(-1))
+            with self.is_returnable(False):
+                for el in expression:
+                    body.append(self.compile(el))
             body.append(tailop)
 
-        self.returnable = True
-        body = self._code_branch(body,
-                                 expression.start_line,
-                                 expression.start_column)
+        with self.is_returnable(True):
+            body = self._code_branch(body,
+                                     expression.start_line,
+                                     expression.start_column)
 
-        ret = ast.FunctionDef(
-            name=name,
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
-            args=ast.arguments(
-                args=[
-                    ast.Name(
-                        arg=ast_str(x), id=ast_str(x),
-                        ctx=ast.Param(),
-                        lineno=x.start_line,
-                        col_offset=x.start_column)
-                    for x in sig],
-                vararg=None,
-                kwarg=None,
-                kwonlyargs=[],
-                kw_defaults=[],
-                defaults=[]),
-            body=body,
-            decorator_list=[])
+            args, defaults, stararg, kwargs = self._parse_lambda_list(sig)
 
-        self.returnable = ret_status
+            ret = ast.FunctionDef(
+                name=name,
+                lineno=expression.start_line,
+                col_offset=expression.start_column,
+                args=ast.arguments(
+                    args=[
+                        ast.Name(
+                            arg=ast_str(x), id=ast_str(x),
+                            ctx=ast.Param(),
+                            lineno=x.start_line,
+                            col_offset=x.start_column)
+                        for x in args],
+                    vararg=stararg,
+                    kwarg=kwargs,
+                    kwonlyargs=[],
+                    kw_defaults=[],
+                    defaults=defaults),
+                body=body,
+                decorator_list=[])
+
         return ret
 
     @builds(HyInteger)
@@ -1180,9 +1222,8 @@ def hy_compile(tree, root=None):
 
                 imported.add(entry)
                 imports.append(HyExpression([
-                    HySymbol("import_from"),
-                    HySymbol(package),
-                    HySymbol(entry)
+                    HySymbol("import"),
+                    HyList([HySymbol(package), HyList([HySymbol(entry)])])
                 ]).replace(replace))
 
         _ast = compiler.compile(imports) + _ast

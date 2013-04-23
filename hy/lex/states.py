@@ -20,6 +20,7 @@
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
+from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.symbol import HySymbol
@@ -48,6 +49,7 @@ def _resolve_atom(obj):
     Resolve a bare atom into one of the following (in order):
 
         - Integer
+        - LambdaListKeyword
         - Float
         - Complex
         - Symbol
@@ -56,6 +58,9 @@ def _resolve_atom(obj):
         return HyInteger(obj)
     except ValueError:
         pass
+
+    if obj.startswith("&"):
+        return HyLambdaListKeyword(obj)
 
     try:
         return HyFloat(obj)
@@ -388,4 +393,4 @@ class Hash(State):
         if char == "!":
             return Comment
 
-        raise LexException("Unknown char (Hash state): `%s`" % (char))
+        raise LexException("Unknown char (Hash state): `%s'" % (char))

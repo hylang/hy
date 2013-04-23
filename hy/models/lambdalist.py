@@ -1,5 +1,4 @@
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
-# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
+# Copyright (c) 2013 James King <james@agentultra.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,34 +18,22 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import contextlib
-import sys
+from hy.models.string import HyString
 
 
-if sys.version_info[0] >= 3:
-    str_type = str
-else:
-    str_type = unicode
+class HyLambdaListKeyword(HyString):
+    """
+    Hy LambdaListKeyword. Demarcates arguments in an argument list.
 
+    (defun my-fun (x &rest xs &optional (foo "default string")))
 
-@contextlib.contextmanager
-def temporary_attribute_value(obj, attribute, value):
-    """Temporarily switch an object attribute value to another value."""
-    original_value = getattr(obj, attribute)
-    setattr(obj, attribute, value)
+    becomes:
 
-    try:
-        yield
-    except Exception:
+    def my_fun(x, *xs, foo="default string"):
         pass
+    """
 
-    setattr(obj, attribute, original_value)
+    _valid_types = ["&rest", "&optional", "&key", "&kwargs"]
 
-
-def flatten_literal_list(entry):
-    for e in entry:
-        if type(e) == list:
-            for x in flatten_literal_list(e):
-                yield x  # needs more yield-from
-        else:
-            yield e
+    def __init__(self, string):
+        self += string

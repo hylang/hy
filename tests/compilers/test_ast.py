@@ -216,13 +216,8 @@ def test_ast_bad_yield():
 
 
 def test_ast_good_import_from():
-    "Make sure AST can compile valid import-from"
-    hy_compile(tokenize("(import-from x y)"))
-
-
-def test_ast_bad_import_from():
-    "Make sure AST can't compile invalid import-from"
-    cant_compile("(import-from)")
+    "Make sure AST can compile valid selective import"
+    hy_compile(tokenize("(import [x [y]])"))
 
 
 def test_ast_good_get():
@@ -248,6 +243,16 @@ def test_ast_bad_slice():
     "Make sure AST can't compile invalid slice"
     cant_compile("(slice)")
     cant_compile("(slice 1 2 3 4)")
+
+
+def test_ast_good_take():
+    "Make sure AST can compile valid 'take'"
+    hy_compile(tokenize("(take 1 [2 3])"))
+
+
+def test_ast_good_drop():
+    "Make sure AST can compile valid 'drop'"
+    hy_compile(tokenize("(drop 1 [2 3])"))
 
 
 def test_ast_good_assoc():
@@ -308,6 +313,8 @@ def test_ast_anon_fns_basics():
     """ Ensure anon fns work. """
     code = hy_compile(tokenize("(fn (x) (* x x))")).body[0]
     assert type(code) == ast.FunctionDef
+    code = hy_compile(tokenize("(fn (x))")).body[0]
+    cant_compile("(fn)")
 
 
 def test_ast_non_decoratable():
@@ -339,6 +346,30 @@ def test_ast_tuple():
     """ Ensure tuples work. """
     code = hy_compile(tokenize("(, 1 2 3)")).body[0].value
     assert type(code) == ast.Tuple
+
+
+def test_lambda_list_keywords_rest():
+    """ Ensure we can compile functions with lambda list keywords."""
+    hy_compile(tokenize("(fn (x &rest xs) (print xs))"))
+    cant_compile("(fn (x &rest xs &rest ys) (print xs))")
+
+
+def test_lambda_list_keywords_key():
+    """ Ensure we can compile functions with &key."""
+    hy_compile(tokenize("(fn (x &key {foo True}) (list x foo))"))
+    cant_compile("(fn (x &key {bar \"baz\"} &key {foo 42}) (list x bar foo))")
+
+
+def test_lambda_list_keywords_kwargs():
+    """ Ensure we can compile functions with &kwargs."""
+    hy_compile(tokenize("(fn (x &kwargs kw) (list x kw))"))
+    cant_compile("(fn (x &kwargs xs &kwargs ys) (list x xs ys))")
+
+
+def test_lambda_list_keywords_mixed():
+    """ Ensure we can mix them up."""
+    hy_compile(tokenize("(fn (x &rest xs &kwargs kw) (list x xs kw))"))
+    cant_compile("(fn (x &rest xs &fasfkey {bar \"baz\"}))")
 
 
 def test_ast_unicode_strings():

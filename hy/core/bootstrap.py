@@ -133,14 +133,40 @@ def rest_macro(tree):
 @macro("let")
 def let_macro(tree):
     tree.pop(0)  # "let"
-    ret = tree.pop(0)  # vars
+    variables = tree.pop(0)
     # tree is now the body
     expr = HyExpression([HySymbol("fn"), HyList([])])
 
-    for var in ret:
-        expr.append(HyExpression([HySymbol("setf"), var[0], var[1]]))
+    for var in variables:
+        if isinstance(var, list):
+            expr.append(HyExpression([HySymbol("setf"),
+                                      var[0], var[1]]))
+        else:
+            expr.append(HyExpression([HySymbol("setf"),
+                                      var, HySymbol("None")]))
 
     for stmt in tree:
         expr.append(stmt)
 
     return HyExpression([expr])
+
+
+@macro("take")
+def take_macro(tree):
+    tree.pop(0)  # "take"
+    n = tree.pop(0)
+    ret = tree.pop(0)
+    return HyExpression([HySymbol('slice'),
+                         ret,
+                         HyInteger(0),
+                         HyInteger(n)])
+
+
+@macro("drop")
+def drop_macro(tree):
+    tree.pop(0)  # "drop"
+    n = tree.pop(0)
+    ret = tree.pop(0)
+    return HyExpression([HySymbol('slice'),
+                         ret,
+                         HyInteger(n)])

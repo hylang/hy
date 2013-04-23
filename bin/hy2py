@@ -1,22 +1,24 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 from hy.importer import (import_file_to_ast, import_file_to_module,
                          import_file_to_hst)
-import astor.codegen
+
+#import astor.codegen
 import sys
 import ast
 
 
 hst = import_file_to_hst(sys.argv[1])
-print hst
-print ""
-print ""
+print(hst)
+print("")
+print("")
 _ast = import_file_to_ast(sys.argv[1])
-print ""
-print ""
-print ast.dump(_ast)
-print ""
-print ""
-print astor.codegen.to_source(_ast)
+print("")
+print("")
+print(ast.dump(_ast))
+print("")
+print("")
+#print(astor.codegen.to_source(_ast))
 
 import_file_to_module("<STDIN>", sys.argv[1])

@@ -1,4 +1,4 @@
-(import-from gevent.server StreamServer)
+(import [gevent.server [StreamServer]])
 
 
 (defn handle [socket address]
