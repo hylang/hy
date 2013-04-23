@@ -534,8 +534,8 @@ class HyASTCompiler(object):
 
     @builds("global")
     @checkargs(1)
-    def compile_global_expression(self,expr):
-        expr.pop(0) # global
+    def compile_global_expression(self, expr):
+        expr.pop(0)  # global
         e = expr.pop(0)
         return ast.Global(names=[ast_str(e)],
                           lineno=e.start_line,

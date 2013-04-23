@@ -185,14 +185,17 @@ def test_ast_bad_assert():
     cant_compile("(assert)")
     cant_compile("(assert 1 2)")
 
+
 def test_ast_good_global():
     "Make sure AST can compile valid global"
     hy_compile(tokenize("(global a)"))
+
 
 def test_ast_bad_global():
     "Make sure AST can't compile invalid global"
     cant_compile("(global)")
     cant_compile("(global foo bar)")
+
 
 def test_ast_good_lambda():
     "Make sure AST can compile valid lambda"
