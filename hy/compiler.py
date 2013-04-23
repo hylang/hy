@@ -23,24 +23,24 @@
 
 from hy.errors import HyError
 
-from hy.models.expression import HyExpression
-from hy.models.integer import HyInteger
 from hy.models.lambdalist import HyLambdaListKeyword
-from hy.models.float import HyFloat
+from hy.models.expression import HyExpression
+from hy.models.keyword import HyKeyword
+from hy.models.integer import HyInteger
 from hy.models.complex import HyComplex
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
+from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
-from hy.models.keyword import HyKeyword
 
 from hy.util import flatten_literal_list, str_type, temporary_attribute_value
 
 from collections import defaultdict
+import traceback
 import codecs
 import ast
 import sys
-import traceback
 
 
 class HyCompileError(HyError):
