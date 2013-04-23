@@ -532,6 +532,15 @@ class HyASTCompiler(object):
                           lineno=e.start_line,
                           col_offset=e.start_column)
 
+    @builds("global")
+    @checkargs(1)
+    def compile_global_expression(self,expr):
+        expr.pop(0) # global
+        e = expr.pop(0)
+        return ast.Global(names=[ast_str(e)],
+                          lineno=e.start_line,
+                          col_offset=e.start_column)
+
     @builds("lambda")
     @checkargs(min=2)
     def compile_lambda_expression(self, expr):
