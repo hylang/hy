@@ -1,4 +1,9 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Gergely Nagy <algernon@madhouse-project.org>
+# Copyright (c) 2013 James King <james@agentultra.com>
+# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
+# Copyright (c) 2013 Konrad Hinsen <konrad.hinsen@fastmail.net>
+# Copyright (c) 2013 Thom Neale <twneale@gmail.com>
 # Copyright (c) 2013 Will Kahn-Greene <willg@bluesock.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
