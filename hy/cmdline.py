@@ -37,7 +37,7 @@ from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
 from hy.core import process
-from hy.importer import ast_compile
+from hy.importer import ast_compile, import_buffer_to_module
 
 import hy.completer
 
@@ -137,8 +137,13 @@ def ideas_macro(tree):
 
 
 def run_command(source):
-    hr = HyREPL()
-    hr.runsource(source, filename='<input>', symbol='single')
+    try:
+        import_buffer_to_module("__main__", source)
+    except LexException as exc:
+        # TODO: This would be better if we had line, col info.
+        print(source)
+        print(repr(exc))
+        return 1
     return 0
 
 
