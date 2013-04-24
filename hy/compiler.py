@@ -66,7 +66,7 @@ class HyTypeError(TypeError):
         self.expression = expression
 
     def __str__(self):
-        return (self.message + " (line %s, column %d)"
+        return (super(HyTypeError, self).__str__() + " (line %s, column %d)"
                 % (self.expression.start_line,
                    self.expression.start_column))
 

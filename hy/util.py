@@ -34,8 +34,10 @@ def temporary_attribute_value(obj, attribute, value):
     """Temporarily switch an object attribute value to another value."""
     original_value = getattr(obj, attribute)
     setattr(obj, attribute, value)
-    yield
-    setattr(obj, attribute, original_value)
+    try:
+        yield
+    finally:
+        setattr(obj, attribute, original_value)
 
 
 def flatten_literal_list(entry):

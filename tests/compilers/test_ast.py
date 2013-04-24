@@ -391,3 +391,14 @@ def test_ast_unicode_strings():
     assert _compile_string("test") == "test"
     assert _compile_string("\u03b1\u03b2") == "\u03b1\u03b2"
     assert _compile_string("\xc3\xa9") == "\xc3\xa9"
+
+
+def test_compile_error():
+    """Ensure we get compile error in tricky cases"""
+    try:
+        hy_compile(tokenize("(fn [] (= 1))"))
+    except HyCompileError as e:
+        assert(str(e)
+               == "`=' needs at least 2 arguments, got 1 (line 1, column 8)")
+    else:
+        assert(False)
