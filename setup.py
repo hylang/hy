@@ -65,5 +65,6 @@ setup(
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",
-    ]
+    ],
+    requires=['argparse']
 )
