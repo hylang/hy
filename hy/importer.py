@@ -78,6 +78,13 @@ def import_file_to_module(module_name, fpath):
     return mod
 
 
+def import_buffer_to_module(module_name, buf):
+    _ast = import_buffer_to_ast(buf)
+    mod = imp.new_module(module_name)
+    eval(ast_compile(_ast, "", "exec"), mod.__dict__)
+    return mod
+
+
 def hy_eval(hytree, namespace):
     foo = HyObject()
     foo.start_line = 0
