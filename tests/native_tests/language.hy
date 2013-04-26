@@ -650,3 +650,10 @@
   (setf f (quote (if true true true)))
   (assert (= (car f) "if"))
   (assert (= (cdr f) (quote (true true true)))))
+
+(defn test-keyword?-macro []
+  "NATIVE: test the keyword? macro"
+  (setf something :foo)
+  (assert (= (keyword? :foo) True))
+  (assert (= (keyword? ":foo") False))
+  (assert (= (keyword? something) True)))

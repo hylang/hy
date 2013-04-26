@@ -24,6 +24,8 @@ from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
+from hy.models.string import HyString
+from hy.models.keyword import HyKeyword
 
 
 @macro("defn")
@@ -128,6 +130,19 @@ def rest_macro(tree):
     return HyExpression([HySymbol('slice'),
                          ret,
                          HyInteger(1)])
+
+
+@macro("keyword?")
+def keywordQ_macro(tree):
+    tree.pop(0)
+    kw = tree.pop(0)
+    if type(kw) == HySymbol:
+        cast_to = HySymbol
+    else:
+        cast_to = HyString
+    return HyExpression([HySymbol('.startswith'),
+                         cast_to(kw),
+                         HyKeyword("")])
 
 
 @macro("let")
