@@ -81,28 +81,28 @@
 (defn test-branching []
   "NATIVE: test if branching"
   (if true
-      (assert (= 1 1))
-      (assert (= 2 1))))
+    (assert (= 1 1))
+    (assert (= 2 1))))
 
 
 (defn test-branching-with-do []
   "NATIVE: test if branching (multiline)"
   (if false
-      (assert (= 2 1))
-      (do
-       (assert (= 1 1))
-       (assert (= 1 1))
-       (assert (= 1 1)))))
+    (assert (= 2 1))
+    (do
+     (assert (= 1 1))
+     (assert (= 1 1))
+     (assert (= 1 1)))))
 
 (defn test-branching-expr-count-with-do []
   "NATIVE: make sure we execute the right number of expressions in the branch"
   (setv counter 0)
   (if false
-      (assert (= 2 1))
-      (do
-       (setv counter (+ counter 1))
-       (setv counter (+ counter 1))
-       (setv counter (+ counter 1))))
+    (assert (= 2 1))
+    (do
+     (setv counter (+ counter 1))
+     (setv counter (+ counter 1))
+     (setv counter (+ counter 1))))
   (assert (= counter 3)))
 
 
@@ -558,7 +558,7 @@
   (assert (= 1 (let [[x 1]
                      [y 2]]
                  (if true
-                     2)
+                   2)
                  1)))
   (assert (= 1 (let [[x 1] [y 2]]
                  (do)
@@ -583,10 +583,10 @@
   "NATIVE: test nested if"
   (for [x (range 10)]
     (if (in "foo" "foobar")
-        (do
-         (if true true true))
-        (do
-         (if false false false)))))
+      (do
+       (if true true true))
+      (do
+       (if false false false)))))
 
 
 (defn test-eval []
