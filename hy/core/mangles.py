@@ -64,7 +64,7 @@ class FunctionMangle(HoistableMangle):
     an anon function "((fn [] ...))", or using it as an arg in a call)
     """
 
-    ignore = ["def", "decorate_with", "setf", "setv", "foreach", "do"]
+    ignore = ["def", "with_decorator", "setf", "setv", "foreach", "do"]
     # ^^ these guys don't affect us, really.
 
     def __init__(self):

@@ -40,7 +40,7 @@ def router(tree, rkwargs=None):
         route = HyExpression([HySymbol("kwapply"), route,
                               HyDict({HyString("methods"): rkwargs})])
 
-    return HyExpression([HySymbol("decorate_with"), route, tree])
+    return HyExpression([HySymbol("with_decorator"), route, tree])
 
 
 @macro("route")

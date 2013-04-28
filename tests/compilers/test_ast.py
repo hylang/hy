@@ -322,7 +322,7 @@ def test_ast_anon_fns_basics():
 
 def test_ast_non_decoratable():
     """ Ensure decorating garbage breaks """
-    cant_compile("(decorate-with (foo) (* x x))")
+    cant_compile("(with-decorator (foo) (* x x))")
 
 
 def test_ast_non_kwapplyable():

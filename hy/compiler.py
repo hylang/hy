@@ -703,10 +703,10 @@ class HyASTCompiler(object):
                     ctx=ast.Store())],
             value=self.compile(val))
 
-    @builds("decorate_with")
+    @builds("with_decorator")
     @checkargs(min=1)
     def compile_decorate_expression(self, expr):
-        expr.pop(0)  # decorate-with
+        expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
         if type(fn) != ast.FunctionDef:
             raise HyTypeError(expr, "Decorated a non-function")
