@@ -170,3 +170,14 @@ def drop_macro(tree):
     return HyExpression([HySymbol('slice'),
                          ret,
                          HyInteger(n)])
+
+
+@macro("when")
+def when_macro(tree):
+    tree.pop(0)  # "when"
+    test = tree.pop(0)
+    return HyExpression([
+        HySymbol('if'),
+        test,
+        HyExpression([HySymbol("do")]) + tree,
+    ])
