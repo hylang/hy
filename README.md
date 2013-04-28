@@ -15,6 +15,8 @@ Hylarious Hacks
 
 [Python sh fun](https://twitter.com/paultag/status/314925996442796032)
 
+[Hy IRC bot](https://github.com/hylang/hygdrop)
+
 
 OK, so, why?
 ------------
