@@ -1,5 +1,3 @@
-;
-
 (import [tests.resources [kwtest function-with-a-dash]]
         [os.path [exists isdir isfile]]
         [sys :as systest])
@@ -8,9 +6,7 @@
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
-  ;
-  ; BTW, this also tests inline comments. Which suck to implement.
-  ;
+  ;; BTW, this also tests inline comments. Which suck to implement.
   (assert (isinstance sys.argv list)))
 
 
@@ -85,36 +81,36 @@
 (defn test-branching []
   "NATIVE: test if branching"
   (if true
-    (assert (= 1 1))
-    (assert (= 2 1))))
+      (assert (= 1 1))
+      (assert (= 2 1))))
 
 
 (defn test-branching-with-do []
   "NATIVE: test if branching (multiline)"
   (if false
-    (assert (= 2 1))
-    (do
-      (assert (= 1 1))
-      (assert (= 1 1))
-      (assert (= 1 1)))))
+      (assert (= 2 1))
+      (do
+       (assert (= 1 1))
+       (assert (= 1 1))
+       (assert (= 1 1)))))
 
 (defn test-branching-expr-count-with-do []
   "NATIVE: make sure we execute the right number of expressions in the branch"
   (setv counter 0)
   (if false
-    (assert (= 2 1))
-    (do
-      (setv counter (+ counter 1))
-      (setv counter (+ counter 1))
-      (setv counter (+ counter 1))))
+      (assert (= 2 1))
+      (do
+       (setv counter (+ counter 1))
+       (setv counter (+ counter 1))
+       (setv counter (+ counter 1))))
   (assert (= counter 3)))
 
 
 (defn test-cond []
   "NATIVE: test if cond sorta works."
   (cond
-    ((= 1 2) (assert (is true false)))
-    ((is null null) (assert (is true true)))))
+   ((= 1 2) (assert (is true false)))
+   ((is null null) (assert (is true true)))))
 
 
 (defn test-index []
@@ -181,37 +177,37 @@
   ;; Test correct (raise)
   (let [[passed false]]
     (try
-      (try
-        (raise IndexError)
-        (except [IndexError] (raise)))
-      (except [IndexError]
-              (setv passed true)))
+     (try
+      (raise IndexError)
+      (except [IndexError] (raise)))
+     (except [IndexError]
+       (setv passed true)))
     (assert passed))
 
   ;; Test incorrect (raise)
   (let [[passed false]]
     (try
-      (raise)
-      ;; Python 2 raises TypeError
-      ;; Python 3 raises RuntimeError
-      (except [[TypeError RuntimeError]]
-              (setv passed true)))
+     (raise)
+     ;; Python 2 raises TypeError
+     ;; Python 3 raises RuntimeError
+     (except [[TypeError RuntimeError]]
+       (setv passed true)))
     (assert passed))
 
 
   ;; Test (finally)
   (let [[passed false]]
     (try
-      (do)
-      (finally (setv passed true)))
+     (do)
+     (finally (setv passed true)))
     (assert passed))
 
   ;; Test (finally) + (raise)
   (let [[passed false]]
     (try
-      (raise Exception)
-      (except)
-      (finally (setv passed true)))
+     (raise Exception)
+     (except)
+     (finally (setv passed true)))
     (assert passed))
 
 
@@ -219,101 +215,101 @@
   (let [[passed false]
         [not-elsed true]]
     (try
-      (raise Exception)
-      (except)
-      (else (setv not-elsed false))
-      (finally (setv passed true)))
+     (raise Exception)
+     (except)
+     (else (setv not-elsed false))
+     (finally (setv passed true)))
     (assert passed)
     (assert not-elsed))
 
   (try
-    (raise (KeyError))
-    (catch [[IOError]] (assert false))
-    (catch [e [KeyError]] (assert e)))
+   (raise (KeyError))
+   (catch [[IOError]] (assert false))
+   (catch [e [KeyError]] (assert e)))
 
   (try
-    (throw (KeyError))
-    (except [[IOError]] (assert false))
-    (catch [e [KeyError]] (assert e)))
+   (throw (KeyError))
+   (except [[IOError]] (assert false))
+   (catch [e [KeyError]] (assert e)))
 
   (try
-    (get [1] 3)
-    (catch [IndexError] (assert true))
-    (except [IndexError] (do)))
+   (get [1] 3)
+   (catch [IndexError] (assert true))
+   (except [IndexError] (do)))
 
   (try
-    (print foobar42ofthebaz)
-    (catch [IndexError] (assert false))
-    (except [NameError] (do)))
+   (print foobar42ofthebaz)
+   (catch [IndexError] (assert false))
+   (except [NameError] (do)))
 
   (try
-    (get [1] 3)
-    (except [e IndexError] (assert (isinstance e IndexError))))
+   (get [1] 3)
+   (except [e IndexError] (assert (isinstance e IndexError))))
 
   (try
-    (get [1] 3)
-    (catch [e [IndexError NameError]] (assert (isinstance e IndexError))))
+   (get [1] 3)
+   (catch [e [IndexError NameError]] (assert (isinstance e IndexError))))
 
   (try
-    (print foobar42ofthebaz)
-    (except [e [IndexError NameError]] (assert (isinstance e NameError))))
+   (print foobar42ofthebaz)
+   (except [e [IndexError NameError]] (assert (isinstance e NameError))))
 
   (try
-    (print foobar42)
-    (catch [[IndexError NameError]] (do)))
+   (print foobar42)
+   (catch [[IndexError NameError]] (do)))
 
   (try
-    (get [1] 3)
-    (catch [[IndexError NameError]] (do)))
+   (get [1] 3)
+   (catch [[IndexError NameError]] (do)))
 
   (try
-    (print foobar42ofthebaz)
-    (catch))
+   (print foobar42ofthebaz)
+   (catch))
 
   (try
-    (print foobar42ofthebaz)
-    (except []))
+   (print foobar42ofthebaz)
+   (except []))
 
   (try
-    (print foobar42ofthebaz)
-    (except [] (do)))
+   (print foobar42ofthebaz)
+   (except [] (do)))
 
   (try
-    (print foobar42ofthebaz)
-    (catch []
-        (setv foobar42ofthebaz 42)
-        (assert (= foobar42ofthebaz 42))))
+   (print foobar42ofthebaz)
+   (catch []
+     (setv foobar42ofthebaz 42)
+     (assert (= foobar42ofthebaz 42))))
 
   (let [[passed false]]
     (try
-      (try (do) (except) (else (bla)))
-      (except [NameError] (setv passed true)))
+     (try (do) (except) (else (bla)))
+     (except [NameError] (setv passed true)))
     (assert passed))
 
   (let [[x 0]]
     (try
-      (raise IOError)
-      (except [IOError]
-              (setv x 45))
-      (else (setv x 44)))
+     (raise IOError)
+     (except [IOError]
+       (setv x 45))
+     (else (setv x 44)))
     (assert (= x 45)))
 
   (let [[x 0]]
     (try
+     (raise KeyError)
+     (except []
+       (setv x 45))
+     (else (setv x 44)))
+    (assert (= x 45)))
+
+  (let [[x 0]]
+    (try
+     (try
       (raise KeyError)
-      (except []
-              (setv x 45))
+      (except [IOError]
+        (setv x 45))
       (else (setv x 44)))
-    (assert (= x 45)))
-
-  (let [[x 0]]
-    (try
-      (try
-        (raise KeyError)
-        (except [IOError]
-                (setv x 45))
-        (else (setv x 44)))
-      (except))
+     (except))
     (assert (= x 0))))
 
 (defn test-earmuffs []
@@ -410,9 +406,9 @@
   "NATIVE: test for-do"
   (do (do (do (do (do (do (do (do (do (setf (, x y) (, 0 0)))))))))))
   (foreach [- [1 2]]
-           (do
-             (setf x (+ x 1))
-             (setf y (+ y 1))))
+    (do
+     (setf x (+ x 1))
+     (setf y (+ y 1))))
   (assert (= y x 2)))
 
 
@@ -420,14 +416,14 @@
   "NATIVE: test foreach else"
   (let [[x 0]]
     (foreach [a [1 2]]
-             (setv x (+ x a))
-             (else (setv x (+ x 50))))
+      (setv x (+ x a))
+      (else (setv x (+ x 50))))
     (assert (= x 53)))
 
   (let [[x 0]]
     (foreach [a [1 2]]
-             (setv x (+ x a))
-             (else))
+      (setv x (+ x a))
+      (else))
     (assert (= x 3))))
 
 
@@ -464,9 +460,9 @@
   (setv acc [])
   (defn my-fun []
     (do
-      (.append acc "Foo")
-      (.append acc "Bar")
-      (.append acc "Baz")))
+     (.append acc "Foo")
+     (.append acc "Bar")
+     (.append acc "Baz")))
   (my-fun)
   (assert (= acc ["Foo" "Bar" "Baz"])))
 
@@ -475,8 +471,8 @@
   "NATIVE: test defn return with do"
   (defn my-fun [x]
     (do
-      (+ x 42)  ; noop
-      (+ x 1)))
+     (+ x 42)  ; noop
+     (+ x 1)))
   (assert (= 43 (my-fun 42))))
 
 
@@ -518,8 +514,8 @@
                (+ x y z))
              6))
   (try
-    (assert (= x 42))                   ; This ain't true
-    (catch [e [NameError]] (assert e)))
+   (assert (= x 42))                   ; This ain't true
+   (catch [e [NameError]] (assert e)))
   (assert (= y 123)))
 
 
@@ -527,23 +523,23 @@
   "NATIVE: test symbol encoded"
   (let [[♥ "love"]
         [⚘ "flower"]]
-   (assert (= (+ ⚘ ♥) "flowerlove"))))
+    (assert (= (+ ⚘ ♥) "flowerlove"))))
 
 
 (defn test-symbol-dash []
   "NATIVE: test symbol encoded"
   (let [[♥-♥ "doublelove"]
         [-_- "what?"]]
-   (assert (= ♥-♥ "doublelove"))
-   (assert (= -_- "what?"))))
+    (assert (= ♥-♥ "doublelove"))
+    (assert (= -_- "what?"))))
 
 
 (defn test-and []
   "NATIVE: test the and function"
   (let [[and123 (and 1 2 3)]
         [and-false (and 1 False 3)]]
-   (assert (= and123 3))
-   (assert (= and-false False))))
+    (assert (= and123 3))
+    (assert (= and-false False))))
 
 
 (defn test-or []
@@ -551,18 +547,18 @@
   (let [[or-all-true (or 1 2 3 True "string")]
         [or-some-true (or False "hello")]
         [or-none-true (or False False)]]
-   (assert (= or-all-true 1))
-   (assert (= or-some-true "hello"))
-   (assert (= or-none-true False))))
+    (assert (= or-all-true 1))
+    (assert (= or-some-true "hello"))
+    (assert (= or-none-true False))))
 
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
-  ; thanks, algernon
+                                ; thanks, algernon
   (assert (= 1 (let [[x 1]
                      [y 2]]
                  (if true
-                   2)
+                     2)
                  1)))
   (assert (= 1 (let [[x 1] [y 2]]
                  (do)
@@ -587,10 +583,10 @@
   "NATIVE: test nested if"
   (for [x (range 10)]
     (if (in "foo" "foobar")
-      (do
-        (if true true true))
-      (do
-        (if false false false)))))
+        (do
+         (if true true true))
+        (do
+         (if false false false)))))
 
 
 (defn test-eval []
@@ -601,9 +597,9 @@
   (setf test-payload (quote (+ x 2)))
   (setf x 4)
   (assert (= 6 (eval test-payload)))
-  ; (assert (= 6 (eval (quote ((fn [] (+ 3 3)))))))
-  ; XXX: This must be commented out while we resolve stmts being run through
-  ; eval. Please fix me. -- PRT
+  ;; (assert (= 6 (eval (quote ((fn [] (+ 3 3)))))))
+  ;; XXX: This must be commented out while we resolve stmts being run through
+  ;; eval. Please fix me. -- PRT
   (assert (= 1 (eval (quote 1))))
   (assert (= "foobar" (eval (quote "foobar"))))
   (setv x (quote 42))
@@ -613,18 +609,18 @@
 (defn test-import-syntax []
   "NATIVE: test the import syntax."
 
-  ; Simple import
+  ;; Simple import
   (import sys os)
 
-  ; from os.path import basename
+  ;; from os.path import basename
   (import [os.path [basename]])
   (assert (= (basename "/some/path") "path"))
 
-  ; import os.path as p
+  ;; import os.path as p
   (import [os.path :as p])
   (assert (= p.basename basename))
 
-  ; from os.path import basename as bn
+  ;; from os.path import basename as bn
   (import [os.path [basename :as bn]])
   (assert (= bn basename))
 

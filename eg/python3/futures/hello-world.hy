@@ -6,6 +6,6 @@
 
 
 (with-as (ThreadPoolExecutor 10) executor
-         (setf jobs (list-comp (.submit executor task-to-do) (x (range 0 10))))
-         (for (future (as-completed jobs))
-           (.result future)))
+  (setf jobs (list-comp (.submit executor task-to-do) (x (range 0 10))))
+  (for (future (as-completed jobs))
+    (.result future)))

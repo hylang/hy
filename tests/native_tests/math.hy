@@ -1,41 +1,37 @@
-; copyright ..
-
-
 (setv square (fn [x]
-  (* x x)))
+               (* x x)))
 
 
 (setv test_basic_math (fn []
-  "NATIVE: Test basic math."
-  (assert (= (+ 2 2) 4))))
-
+                        "NATIVE: Test basic math."
+                        (assert (= (+ 2 2) 4))))
 
 (setv test_mult (fn []
-  "NATIVE: Test multiplication."
-  (assert (= 4 (square 2)))))
+                  "NATIVE: Test multiplication."
+                  (assert (= 4 (square 2)))))
 
 
 (setv test_sub (fn []
-  "NATIVE: Test subtraction"
-  (assert (= 4 (- 8 4)))
-  (assert (= -8 (- 8)))))
+                 "NATIVE: Test subtraction"
+                 (assert (= 4 (- 8 4)))
+                 (assert (= -8 (- 8)))))
 
 
 (setv test_add (fn []
-  "NATIVE: Test addition"
-  (assert (= 4 (+ 1 1 1 1)))))
+                 "NATIVE: Test addition"
+                 (assert (= 4 (+ 1 1 1 1)))))
 
 
 (setv test_div (fn []
-  "NATIVE: Test division"
-  (assert (= 25 (/ 100 2 2)))
-  ; Commented out until float constants get implemented
-  ; (assert (= 0.5 (/ 1 2)))
-  (assert (= 1 (* 2 (/ 1 2))))))
+                 "NATIVE: Test division"
+                 (assert (= 25 (/ 100 2 2)))
+                                ; Commented out until float constants get implemented
+                                ; (assert (= 0.5 (/ 1 2)))
+                 (assert (= 1 (* 2 (/ 1 2))))))
 
 (setv test_int_div (fn []
-  "NATIVE: Test integer division"
-  (assert (= 25 (// 101 2 2)))))
+                     "NATIVE: Test integer division"
+                     (assert (= 25 (// 101 2 2)))))
 
 (defn test-modulo []
   "NATIVE: test mod"
