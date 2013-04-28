@@ -181,3 +181,15 @@ def when_macro(tree):
         test,
         HyExpression([HySymbol("do")]) + tree,
     ])
+
+
+@macro("unless")
+def unless_macro(tree):
+    tree.pop(0)  # "unless"
+    test = tree.pop(0)
+    return HyExpression([
+        HySymbol('if'),
+        test,
+        HySymbol('None'),
+        HyExpression([HySymbol("do")]) + tree,
+    ])
