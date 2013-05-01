@@ -35,6 +35,8 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
+from hy.core import process
+
 from hy.util import str_type
 
 import codecs
@@ -361,6 +363,7 @@ class HyASTCompiler(object):
 
     def compile_atom(self, atom_type, atom):
         if atom_type in _compile_table:
+            atom = process(atom)
             ret = _compile_table[atom_type](self, atom)
             if not isinstance(ret, Result):
                 ret = Result() + ret

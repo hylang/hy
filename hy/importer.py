@@ -21,7 +21,6 @@
 from py_compile import wr_long, MAGIC
 from hy.compiler import hy_compile
 from hy.models import HyObject
-from hy.core import process
 from hy.lex import tokenize
 
 
@@ -48,7 +47,7 @@ def ast_compile(ast, filename, mode):
 
 def import_buffer_to_hst(buf):
     """Import content from buf and return an Hy AST."""
-    return process(tokenize(buf + "\n"))
+    return tokenize(buf + "\n")
 
 
 def import_file_to_hst(fpath):
