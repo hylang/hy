@@ -15,6 +15,13 @@
   (assert (= [1 2 3 4] (+ [1 2] [3 4]))))
 
 
+(defn test-setv-get []
+  "NATIVE: test setv works on a get expression"
+  (setv foo [0 1 2])
+  (setv (get foo 0) 12)
+  (assert (= (get foo 0) 12)))
+
+
 (defn test-for-loop []
   "NATIVE: test for loops?"
   (setv count 0)
