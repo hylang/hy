@@ -640,3 +640,11 @@
   (setf f (quote (if true true true)))
   (assert (= (car f) "if"))
   (assert (= (cdr f) (quote (true true true)))))
+
+(defn test-undefined-name []
+  "NATIVE: test that undefined names raise errors"
+  (try
+   (do
+    xxx
+    (assert False))
+   (except [NameError])))
