@@ -20,9 +20,6 @@
 
 from hy.macros import process as mprocess
 
-import hy.mangle
-
-
 MACROS = [
     "hy.core.bootstrap",
 ]
@@ -34,8 +31,6 @@ def process(tree):
     while old != tree:
         old = tree
         tree = mprocess(tree)
-        for m in hy.mangle.MANGLES:
-            m().mangle(tree)
     return tree
 
 

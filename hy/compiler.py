@@ -323,7 +323,6 @@ def checkargs(exact=None, min=None, max=None):
 class HyASTCompiler(object):
 
     def __init__(self):
-        self.returnable = False
         self.anon_fn_count = 0
         self.anon_var_count = 0
         self.imports = defaultdict(set)
