@@ -230,3 +230,12 @@ def test_hashbang():
     """ Ensure we can escape things """
     entry = tokenize("#!this is a comment\n")
     assert entry == []
+
+
+def test_complex():
+    """Ensure we tokenize complex numbers properly"""
+    # This is a regression test for #143
+    entry = tokenize("(1j)")[0][0]
+    assert entry == HyComplex("1.0j")
+    entry = tokenize("(j)")[0][0]
+    assert entry == HySymbol("j")
