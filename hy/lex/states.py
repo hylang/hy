@@ -67,10 +67,11 @@ def _resolve_atom(obj):
     except ValueError:
         pass
 
-    try:
-        return HyComplex(obj)
-    except ValueError:
-        pass
+    if obj != "j":
+        try:
+            return HyComplex(obj)
+        except ValueError:
+            pass
 
     table = {
         "true": "True",

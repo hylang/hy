@@ -420,7 +420,8 @@
   (assert (= (sorted (list-comp (* y 2) ((, x y) (.items {"1" 1 "2" 2}))))
              [2 4]))
   (assert (= (list-comp (, x y) (x (range 2) y (range 2)))
-             [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
+             [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
+  (assert (= (list-comp j (j [1 2])) [1 2])))
 
 
 (defn test-defn-order []
