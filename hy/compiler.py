@@ -169,23 +169,23 @@ class Result(object):
 
         If there is no expression context, we return a "None" expression.
         """
-        if not self.expr:
-            # Spoof the position of the last statement for our generated None
-            lineno = 0
-            col_offset = 0
-            if self.stmts:
-                lineno = self.stmts[-1].lineno
-                col_offset = self.stmts[-1].col_offset
-
-            return ast.Name(id=ast_str("None"),
-                            arg=ast_str("None"),
-                            ctx=ast.Load(),
-                            lineno=lineno,
-                            col_offset=col_offset)
-            # XXX: Likely raise Exception here - this will assertionfail
-            #      pypy since the ast will be out of numerical order.
-        else:
+        if self.expr:
             return self.expr
+
+        # Spoof the position of the last statement for our generated None
+        lineno = 0
+        col_offset = 0
+        if self.stmts:
+            lineno = self.stmts[-1].lineno
+            col_offset = self.stmts[-1].col_offset
+
+        return ast.Name(id=ast_str("None"),
+                        arg=ast_str("None"),
+                        ctx=ast.Load(),
+                        lineno=lineno,
+                        col_offset=col_offset)
+        # XXX: Likely raise Exception here - this will assertionfail
+        #      pypy since the ast will be out of numerical order.
 
     def expr_as_stmt(self):
         """Convert the Result's expression context to a statement
@@ -255,20 +255,6 @@ class Result(object):
             ", ".join(ast.dump(x) for x in self.stmts),
             ast.dump(self.expr) if self.expr else None,
         )
-
-
-def _collect(results):
-    """Collect the expression contexts from a list of results
-
-    This returns a list of the expression contexts, and the sum of the Result
-    objects passed as arguments.
-    """
-    compiled_exprs = []
-    ret = Result()
-    for result in results:
-        ret += result
-        compiled_exprs.append(ret.force_expr)
-    return compiled_exprs, ret
 
 
 def _branch(results):
@@ -363,8 +349,6 @@ class HyASTCompiler(object):
             if not isinstance(ret, Result):
                 ret = Result() + ret
             return ret
-        else:
-            return None
 
     def compile(self, tree):
         try:
@@ -384,7 +368,18 @@ class HyASTCompiler(object):
         raise HyCompileError(Exception("Unknown type: `%s'" % _type))
 
     def _compile_collect(self, exprs):
-        return _collect(self.compile(expr) for expr in exprs)
+        """Collect the expression contexts from a list of compiled expression.
+
+        This returns a list of the expression contexts, and the sum of the
+        Result objects passed as arguments.
+
+        """
+        compiled_exprs = []
+        ret = Result()
+        for expr in exprs:
+            ret += self.compile(expr)
+            compiled_exprs.append(ret.force_expr)
+        return compiled_exprs, ret
 
     def _compile_branch(self, exprs):
         return _branch(self.compile(expr) for expr in exprs)
