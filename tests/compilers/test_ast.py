@@ -240,12 +240,13 @@ def test_ast_good_slice():
     hy_compile(tokenize("(slice x)"))
     hy_compile(tokenize("(slice x y)"))
     hy_compile(tokenize("(slice x y z)"))
+    hy_compile(tokenize("(slice x y z t)"))
 
 
 def test_ast_bad_slice():
     "Make sure AST can't compile invalid slice"
     cant_compile("(slice)")
-    cant_compile("(slice 1 2 3 4)")
+    cant_compile("(slice 1 2 3 4 5)")
 
 
 def test_ast_good_take():

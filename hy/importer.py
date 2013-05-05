@@ -21,7 +21,6 @@
 from py_compile import wr_long, MAGIC
 from hy.compiler import hy_compile
 from hy.models import HyObject
-from hy.core import process
 from hy.lex import tokenize
 
 
@@ -48,7 +47,7 @@ def ast_compile(ast, filename, mode):
 
 def import_buffer_to_hst(buf):
     """Import content from buf and return an Hy AST."""
-    return process(tokenize(buf + "\n"))
+    return tokenize(buf + "\n")
 
 
 def import_file_to_hst(fpath):
@@ -92,8 +91,22 @@ def hy_eval(hytree, namespace):
     foo.start_column = 0
     foo.end_column = 0
     hytree.replace(foo)
-    _ast = hy_compile(hytree, root=ast.Expression)
-    return eval(ast_compile(_ast, "<eval>", "eval"), namespace)
+    _ast, expr = hy_compile(hytree, get_expr=True)
+
+    # Spoof the positions in the generated ast...
+    for node in ast.walk(_ast):
+        node.lineno = 1
+        node.col_offset = 1
+
+    for node in ast.walk(expr):
+        node.lineno = 1
+        node.col_offset = 1
+
+    # Two-step eval: eval() the body of the exec call
+    eval(ast_compile(_ast, "<eval_body>", "exec"), namespace)
+
+    # Then eval the expression context and return that
+    return eval(ast_compile(expr, "<eval>", "eval"), namespace)
 
 
 def write_hy_as_pyc(fname):

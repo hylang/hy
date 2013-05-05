@@ -19,7 +19,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import contextlib
 import sys
 
 
@@ -27,23 +26,3 @@ if sys.version_info[0] >= 3:
     str_type = str
 else:
     str_type = unicode
-
-
-@contextlib.contextmanager
-def temporary_attribute_value(obj, attribute, value):
-    """Temporarily switch an object attribute value to another value."""
-    original_value = getattr(obj, attribute)
-    setattr(obj, attribute, value)
-    try:
-        yield
-    finally:
-        setattr(obj, attribute, original_value)
-
-
-def flatten_literal_list(entry):
-    for e in entry:
-        if type(e) == list:
-            for x in flatten_literal_list(e):
-                yield x  # needs more yield-from
-        else:
-            yield e

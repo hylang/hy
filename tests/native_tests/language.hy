@@ -15,6 +15,13 @@
   (assert (= [1 2 3 4] (+ [1 2] [3 4]))))
 
 
+(defn test-setv-get []
+  "NATIVE: test setv works on a get expression"
+  (setv foo [0 1 2])
+  (setv (get foo 0) 12)
+  (assert (= (get foo 0) 12)))
+
+
 (defn test-for-loop []
   "NATIVE: test for loops?"
   (setv count 0)
@@ -584,13 +591,13 @@
   (setf test-payload (quote (+ x 2)))
   (setf x 4)
   (assert (= 6 (eval test-payload)))
-  ;; (assert (= 6 (eval (quote ((fn [] (+ 3 3)))))))
-  ;; XXX: This must be commented out while we resolve stmts being run through
-  ;; eval. Please fix me. -- PRT
+  (assert (= 9 ((eval (quote (fn [x] (+ 3 3 x)))) 3)))
   (assert (= 1 (eval (quote 1))))
   (assert (= "foobar" (eval (quote "foobar"))))
   (setv x (quote 42))
-  (assert (= x (eval x))))
+  (assert (= x (eval x)))
+  (assert (= 27 (eval (+ (quote (*)) (* [(quote 3)] 3)))))
+  (assert (= None (eval (quote (print ""))))))
 
 
 (defn test-import-syntax []
@@ -633,3 +640,11 @@
   (setf f (quote (if true true true)))
   (assert (= (car f) "if"))
   (assert (= (cdr f) (quote (true true true)))))
+
+(defn test-undefined-name []
+  "NATIVE: test that undefined names raise errors"
+  (try
+   (do
+    xxx
+    (assert False))
+   (except [NameError])))
