@@ -648,3 +648,18 @@
     xxx
     (assert False))
    (except [NameError])))
+
+(defn test-if-let-mixing []
+  "NATIVE: test that we can now mix if and let"
+  (assert (= 0 (if true (let [[x 0]] x) 42))))
+
+(defn test-if-in-if []
+  "NATIVE: test that we can use if in if"
+  (assert (= 42
+             (if (if 1 True False)
+               42
+               43)))
+  (assert (= 43
+             (if (if 0 True False)
+               42
+               43))))
