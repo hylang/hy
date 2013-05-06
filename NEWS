@@ -5,7 +5,7 @@ Changes from Hy 0.9.6
     * UTF-8 encoded hy symbols are now hy_... rather than __hy_..., it's
       silly to prefex them as such. (PT)
     * `j' is no longer always intepreted as a complex number; we use it much
-      more as a symbol. (JD)
+      more as a symbol. (ND)
     * (decorate-with) has been moved to (with-decorate) (JD)
     * New (unless) macro (JD)
     * New (when) macro (JD)
