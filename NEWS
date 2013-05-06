@@ -1,3 +1,32 @@
+Changes from Hy 0.9.6
+
+  [ Syntax Fixes ]
+
+    * UTF-8 encoded hy symbols are now hy_... rather than __hy_..., it's
+      silly to prefex them as such. (PT)
+    * `j' is no longer always intepreted as a complex number; we use it much
+      more as a symbol. (JD)
+    * (decorate-with) has been moved to (with-decorate) (JD)
+    * New (unless) macro (JD)
+    * New (when) macro (JD)
+    * New (take) macro (@eigenhombre)
+    * New (drop) macro (@eigenhombre)
+    * import-from and import-as finally removed. (GN)
+    * Allow bodyless functions (JD)
+    * Allow variable without value in `let' declaration (JD)
+    * new (global) builtin (@eal)
+    * new lambda-list syntax for function defs, for var-arity, kwargs. (JK)
+
+  [ Language Changes ]
+
+    * *HUGE* rewrite of the compiler. Massive thanks go to olasd
+      and jd for making this happen. This solves just an insane number
+      of bugs. (ND, PT, JD)
+    * Eval no longer sucks with statements (ND)
+    * New magic binary flags / mis fixes with the hy intepreter
+      (WKG + @eigenhombre)
+
+
 Changes from Hy 0.9.5
 
   [ Syntax Fixes ]
