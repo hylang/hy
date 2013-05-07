@@ -199,13 +199,13 @@ def test_ast_bad_global():
 
 def test_ast_good_lambda():
     "Make sure AST can compile valid lambda"
+    hy_compile(tokenize("(lambda [])"))
     hy_compile(tokenize("(lambda [] 1)"))
 
 
 def test_ast_bad_lambda():
     "Make sure AST can't compile invalid lambda"
     cant_compile("(lambda)")
-    cant_compile("(lambda [])")
 
 
 def test_ast_good_yield():
