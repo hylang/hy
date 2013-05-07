@@ -129,7 +129,9 @@
 (defn test-lambda []
   "NATIVE: test lambda operator"
   (setv square (lambda [x] (* x x)))
-  (assert (= 4 (square 2))))
+  (assert (= 4 (square 2)))
+  (setv lambda_list (lambda [test &rest args] (, test args)))
+  (assert (= (, 1 (, 2 3)) (lambda_list 1 2 3))))
 
 
 (defn test-imported-bits []
