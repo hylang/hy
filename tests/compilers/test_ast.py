@@ -197,6 +197,19 @@ def test_ast_bad_global():
     cant_compile("(global foo bar)")
 
 
+def test_ast_good_defclass():
+    "Make sure AST can compile valid defclass"
+    hy_compile(tokenize("(defclass a)"))
+    hy_compile(tokenize("(defclass a [])"))
+
+
+def test_ast_bad_defclass():
+    "Make sure AST can't compile invalid defclass"
+    cant_compile("(defclass)")
+    cant_compile("(defclass a null)")
+    cant_compile("(defclass a null null)")
+
+
 def test_ast_good_lambda():
     "Make sure AST can compile valid lambda"
     hy_compile(tokenize("(lambda [])"))
