@@ -645,6 +645,14 @@
   (assert (= (kwapply (foo) {"b" 42}) [None 42])))
 
 
+(defn test-optional-arguments []
+  "NATIVE: test &optional function arguments"
+  (defn foo [a b &optional c [d 42]] [a b c d])
+  (assert (= (foo 1 2) [1 2 None 42]))
+  (assert (= (foo 1 2 3) [1 2 3 42]))
+  (assert (= (foo 1 2 3 4) [1 2 3 4])))
+
+
 (defn test-quoted-hoistable []
   "NATIVE: test quoted hoistable"
   (setf f (quote (if true true true)))

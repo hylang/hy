@@ -402,6 +402,9 @@ class HyASTCompiler(object):
                 if expr == "&rest" and lambda_keyword is None:
                     lambda_keyword = expr
                 elif expr == "&optional":
+                    if len(defaults) > 0:
+                        raise HyCompileError("There can only be &optional "
+                                             "arguments or one &key argument")
                     lambda_keyword = expr
                 elif expr == "&key":
                     lambda_keyword = expr
@@ -427,8 +430,8 @@ class HyASTCompiler(object):
                                     "argument")
                 else:
                     if len(defaults) > 0:
-                        raise HyCompileError("There can only be "
-                                             "one &key argument")
+                        raise HyCompileError("There can only be &optional "
+                                             "arguments or one &key argument")
                     # As you can see, Python has a funny way of
                     # defining keyword arguments.
                     for k, v in expr.items():
@@ -436,8 +439,17 @@ class HyASTCompiler(object):
                         ret += self.compile(v)
                         defaults.append(ret.force_expr)
             elif lambda_keyword == "&optional":
-                # not implemented yet.
-                pass
+                if isinstance(expr, HyList):
+                    if not len(expr) == 2:
+                        raise TypeError("optional args should be bare names "
+                                        "or 2-item lists")
+                    k, v = expr
+                else:
+                    k = expr
+                    v = HySymbol("None").replace(k)
+                args.append(k)
+                ret += self.compile(v)
+                defaults.append(ret.force_expr)
             elif lambda_keyword == "&kwargs":
                 if kwargs:
                     raise HyCompileError("There can only be one "
