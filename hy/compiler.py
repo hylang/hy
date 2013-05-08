@@ -1301,9 +1301,13 @@ class HyASTCompiler(object):
     @builds("setv")
     @checkargs(2)
     def compile_def_expression(self, expression):
-        expression.pop(0)
-        name = expression.pop(0)
-        result = self.compile(expression.pop(0))
+        return self._compile_assign(expression[1], expression[2],
+                                    expression.start_line,
+                                    expression.start_column)
+
+    def _compile_assign(self, name, result,
+                        start_line, start_column):
+        result = self.compile(result)
 
         if result.temp_variables and isinstance(name, HyString):
             result.rename(name)
@@ -1313,8 +1317,8 @@ class HyASTCompiler(object):
         st_name = self._storeize(ld_name)
 
         result += ast.Assign(
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
+            lineno=start_line,
+            col_offset=start_column,
             targets=[st_name], value=result.force_expr)
 
         result += ld_name
@@ -1439,6 +1443,56 @@ class HyASTCompiler(object):
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
 
         return ret
+
+    @builds("defclass")
+    @checkargs(min=1)
+    def compile_class_expression(self, expression):
+        expression.pop(0)  # class
+
+        class_name = expression.pop(0)
+
+        if expression:
+            base_list = expression.pop(0)
+            if not isinstance(base_list, HyList):
+                raise HyTypeError(expression,
+                                  "Bases class must be a list")
+            bases_expr, bases = self._compile_collect(base_list)
+        else:
+            bases_expr = []
+            bases = Result()
+
+        body = Result()
+
+        if expression:
+            try:
+                body_expression = iter(expression.pop(0))
+            except TypeError:
+                raise HyTypeError(
+                    expression,
+                    "Wrong argument type for defclass slots definition.")
+            for b in body_expression:
+                if len(b) != 2:
+                    raise HyTypeError(
+                        expression,
+                        "Wrong number of argument in defclass slot.")
+                body += self._compile_assign(b[0], b[1],
+                                             b.start_line, b.start_column)
+                body += body.expr_as_stmt()
+
+        if not body.stmts:
+            body += ast.Pass(lineno=expression.start_line,
+                             col_offset=expression.start_column)
+
+        return bases + ast.ClassDef(
+            lineno=expression.start_line,
+            col_offset=expression.start_column,
+            decorator_list=[],
+            name=ast_str(class_name),
+            keywords=[],
+            starargs=None,
+            kwargs=None,
+            bases=bases_expr,
+            body=body.stmts)
 
     @builds(HyInteger)
     def compile_integer(self, number):
