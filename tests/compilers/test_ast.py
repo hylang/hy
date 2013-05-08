@@ -140,39 +140,39 @@ def test_ast_bad_try():
 
 def test_ast_good_catch():
     "Make sure AST can compile valid catch"
-    hy_compile(tokenize("(catch)"))
-    hy_compile(tokenize("(catch [])"))
-    hy_compile(tokenize("(catch [Foobar])"))
-    hy_compile(tokenize("(catch [[]])"))
-    hy_compile(tokenize("(catch [x FooBar])"))
-    hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
-    hy_compile(tokenize("(catch [x [FooBar BarFoo]])"))
+    hy_compile(tokenize("(try 1 (catch))"))
+    hy_compile(tokenize("(try 1 (catch []))"))
+    hy_compile(tokenize("(try 1 (catch [Foobar]))"))
+    hy_compile(tokenize("(try 1 (catch [[]]))"))
+    hy_compile(tokenize("(try 1 (catch [x FooBar]))"))
+    hy_compile(tokenize("(try 1 (catch [x [FooBar BarFoo]]))"))
+    hy_compile(tokenize("(try 1 (catch [x [FooBar BarFoo]]))"))
 
 
 def test_ast_bad_catch():
     "Make sure AST can't compile invalid catch"
-    cant_compile("(catch 1)")
-    cant_compile("(catch \"A\")")
-    cant_compile("(catch [1 3])")
-    cant_compile("(catch [x [FooBar] BarBar])")
+    cant_compile("(try (catch 1))")
+    cant_compile("(try (catch \"A\"))")
+    cant_compile("(try (catch [1 3]))")
+    cant_compile("(try (catch [x [FooBar] BarBar]))")
 
 
 def test_ast_good_except():
     "Make sure AST can compile valid except"
-    hy_compile(tokenize("(except)"))
-    hy_compile(tokenize("(except [])"))
-    hy_compile(tokenize("(except [Foobar])"))
-    hy_compile(tokenize("(except [[]])"))
-    hy_compile(tokenize("(except [x FooBar])"))
-    hy_compile(tokenize("(except [x [FooBar BarFoo]])"))
-    hy_compile(tokenize("(except [x [FooBar BarFoo]])"))
+    hy_compile(tokenize("(try 1 (except))"))
+    hy_compile(tokenize("(try 1 (except []))"))
+    hy_compile(tokenize("(try 1 (except [Foobar]))"))
+    hy_compile(tokenize("(try 1 (except [[]]))"))
+    hy_compile(tokenize("(try 1 (except [x FooBar]))"))
+    hy_compile(tokenize("(try 1 (except [x [FooBar BarFoo]]))"))
+    hy_compile(tokenize("(try 1 (except [x [FooBar BarFoo]]))"))
 
 
 def test_ast_bad_except():
     "Make sure AST can't compile invalid except"
-    cant_compile("(except 1)")
-    cant_compile("(except [1 3])")
-    cant_compile("(except [x [FooBar] BarBar])")
+    cant_compile("(try 1 (except 1))")
+    cant_compile("(try 1 (except [1 3]))")
+    cant_compile("(try 1 (except [x [FooBar] BarBar]))")
 
 
 def test_ast_good_assert():
