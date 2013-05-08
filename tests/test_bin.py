@@ -77,7 +77,7 @@ def test_bin_hy_file():
 
 
 def test_hy2py():
-    # XXX Astor doesn't seem to support astor :(
+    # XXX Astor doesn't seem to support Python3 :(
     if sys.version_info[0] == 3:
         return
 
