@@ -1,6 +1,5 @@
 tox
 nose
-astor
 flake8
 Sphinx
 coverage

@@ -37,4 +37,4 @@ class HyList(HyObject, list):
         return self.__class__(super(HyList, self).__add__(other))
 
     def __repr__(self):
-        return "[%s]" % (" ".join([str(x) for x in self]))
+        return "[%s]" % (" ".join([repr(x) for x in self]))

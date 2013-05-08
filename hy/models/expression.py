@@ -27,4 +27,4 @@ class HyExpression(HyList):
     """
 
     def __repr__(self):
-        return "(%s)" % (" ".join([str(x) for x in self]))
+        return "(%s)" % (" ".join([repr(x) for x in self]))
