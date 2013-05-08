@@ -1,3 +1,10 @@
+Changes from Hy 0.9.7
+
+  [ Syntax Fixes ]
+
+    * (fn) and (lambda) have been merged (ND)
+    * New (defclass) builtin for class definitions (JD)
+
 Changes from Hy 0.9.6
 
   [ Syntax Fixes ]
