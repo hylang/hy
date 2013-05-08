@@ -350,6 +350,11 @@ def test_ast_non_kwapplyable():
         pass
 
 
+def test_ast_lambda_lists():
+    """Ensure the compiler chokes on invalid lambda-lists"""
+    cant_compile('(fn [&key {"a" b} &key {"foo" bar}] [a foo])')
+
+
 def test_ast_print():
     code = hy_compile(tokenize("(print \"foo\")")).body[0]
 

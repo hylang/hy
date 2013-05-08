@@ -637,6 +637,14 @@
   (assert (= (foo 10 20 30) [10 (, 20 30) {}])))
 
 
+(defn test-key-arguments []
+  "NATIVE: test &key function arguments"
+  (defn foo [&key {"a" None "b" 1}] [a b])
+  (assert (= (foo) [None 1]))
+  (assert (= (kwapply (foo) {"a" 2}) [2 1]))
+  (assert (= (kwapply (foo) {"b" 42}) [None 42])))
+
+
 (defn test-quoted-hoistable []
   "NATIVE: test quoted hoistable"
   (setf f (quote (if true true true)))
