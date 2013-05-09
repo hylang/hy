@@ -24,8 +24,8 @@ languages.
 
   * UTF-8 entities will be encoded using
     `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
-    `__hy_`. For instance, `⚘` will become `__hy_w7h`, and `♥` will become
-    `__hy_g6h`.
+    `hy_`. For instance, `⚘` will become `hy_w7h`, and `♥` will become
+    `hy_g6h`.
 
   * Symbols that contain dashes will have them replaced with underscores. For
     example, `render-template` will become `render_template`.
