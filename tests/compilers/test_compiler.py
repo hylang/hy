@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
+# Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,6 +30,7 @@ else:
 
 from hy.models.expression import HyExpression
 from hy.models.list import HyList
+from hy.models.symbol import HySymbol
 from hy.compiler import HyASTCompiler
 
 
@@ -63,3 +65,26 @@ class HyASTCompilerTest(unittest.TestCase):
         self.assertIsInstance(stmt.body[0], ast.Pass)
 
         self.assertIsInstance(ret.expr, ast.Name)
+
+    def test_compiler_bare_names(self):
+        """
+        Check that the compiler doesn't drop bare names from code branches
+        """
+        ret = self.c.compile(self._make_expression(HySymbol("do"),
+                                                   HySymbol("a"),
+                                                   HySymbol("b"),
+                                                   HySymbol("c")))
+
+        # We expect two statements and a final expr.
+        self.assertEqual(len(ret.stmts), 2)
+        stmt = ret.stmts[0]
+        self.assertIsInstance(stmt, ast.Expr)
+        self.assertIsInstance(stmt.value, ast.Name)
+        self.assertEqual(stmt.value.id, "a")
+        stmt = ret.stmts[1]
+        self.assertIsInstance(stmt, ast.Expr)
+        self.assertIsInstance(stmt.value, ast.Name)
+        self.assertEqual(stmt.value.id, "b")
+        expr = ret.expr
+        self.assertIsInstance(expr, ast.Name)
+        self.assertEqual(expr.id, "c")
