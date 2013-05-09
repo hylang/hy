@@ -419,7 +419,7 @@ looks like:
 The difference here is that since it's a dictionary, you can't rely on
 any specific ordering to the arguments.
 
-Hy also supports **args and **kwargs.  In Python::
+Hy also supports ``*args`` and ``**kwargs``.  In Python::
 
   def some_func(foo, bar, *args, **kwargs):
     import pprint
