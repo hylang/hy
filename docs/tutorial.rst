@@ -418,6 +418,8 @@ Hy also supports **args and **kwargs.  In Python::
 
 The Hy equivalent:
 
+.. code-block:: clj
+
   (defn some_func [foo bar &rest args &kwargs kwargs]
     (import pprint)
     (pprint.pprint (, foo bar args kwargs)))
