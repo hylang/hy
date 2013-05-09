@@ -1096,24 +1096,14 @@ class HyASTCompiler(object):
     def compile_kwapply_expression(self, expr):
         expr.pop(0)  # kwapply
         call = self.compile(expr.pop(0))
-        kwargs = expr.pop(0)
+        kwargs = self.compile(expr.pop(0))
 
         if type(call.expr) != ast.Call:
             raise HyTypeError(expr, "kwapplying a non-call")
 
-        if type(kwargs) != HyDict:
-            raise TypeError("kwapplying with a non-dict")
+        call.expr.kwargs = kwargs.force_expr
 
-        keywords = []
-        ret = Result()
-        for x in kwargs:
-            ret += self.compile(kwargs[x])
-            keywords.append(ast.keyword(arg=ast_str(x),
-                                        value=ret.force_expr))
-
-        call.expr.keywords = keywords
-
-        return ret + call
+        return kwargs + call
 
     @builds("not")
     @builds("~")
