@@ -67,7 +67,9 @@ class HyASTCompilerTest(unittest.TestCase):
         self.assertIsInstance(ret.expr, ast.Name)
 
     def test_compiler_bare_names(self):
-        """Check that the compiler doesn't drop bare names from code branches"""
+        """
+        Check that the compiler doesn't drop bare names from code branches
+        """
         ret = self.c.compile(self._make_expression(HySymbol("do"),
                                                    HySymbol("a"),
                                                    HySymbol("b"),
