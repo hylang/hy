@@ -409,7 +409,7 @@ The same thing in Hy::
 See how we use kwapply to handle the fancy pssing? :)
 
 There's also a dictionary-style keyword arguments construction that
-looks like::
+looks like:
 
 .. code-block:: clj
 
