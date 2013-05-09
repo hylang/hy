@@ -451,7 +451,10 @@ In Hy:
   (defclass FooBar [object]
     [[--init--
       (fn [self x]
-        (setv self.x x))]  
+        (setv self.x x)
+        ; Currently needed for --init-- because __init__ needs None
+        ; Hopefully this will go away :)
+        None)]
   
      [get-x
       (fn [self]
