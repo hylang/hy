@@ -188,6 +188,8 @@ hy.  Let's experiment with this in the hy interpreter::
   ... "cat" "meow"}
   ...
   {'dog': 'bark', 'cat': 'meow'}
+  => (, 1 2 3)
+  (1, 2, 3)
 
 (You may notice that at present, the common lisp method of quoting
 things like so:
@@ -373,6 +375,52 @@ In hy, you could do these like:
   ;  (6, 'A'), (6, 'B'), (6, 'C'), (6, 'D'), (6, 'E'), (6, 'F'), (6, 'G'), (6, 'H'),
   ;  (7, 'A'), (7, 'B'), (7, 'C'), (7, 'D'), (7, 'E'), (7, 'F'), (7, 'G'), (7, 'H'),
   ;  (8, 'A'), (8, 'B'), (8, 'C'), (8, 'D'), (8, 'E'), (8, 'F'), (8, 'G'), (8, 'H')]
+
+
+Python has support for various fancy argument and keyword arguments.
+In python we might see::
+
+  >>> def optional_arg(pos1, pos2, keyword1=None, keyword2=42):
+  ...   return [pos1, pos2, keyword1, keyword2]
+  ... 
+  >>> optional_arg(1, 2)
+  [1, 2, None, 42]
+  >>> optional_arg(1, 2, 3, 4)
+  [1, 2, 3, 4]
+  >>> optional_arg(keyword1=1, pos2=2, pos1=3, keyword2=4)
+  [3, 2, 1, 4]
+
+The same thing in Hy:
+
+.. code-block:: clj
+
+  => (defn optional_arg [pos1 pos2 &optional keyword1 [keyword2 88]]
+  ...  [pos1 pos2 keyword1 keyword2])
+  => (optional_arg 1 2)
+  [1 2 None 42]
+  => (optional_arg 1 2 3 4)
+  [1 2 3 4]
+  => (kwapply (optional_arg)
+  ...         {"keyword1" 1
+  ...          "pos2" 2
+  ...          "pos1" 3
+  ...          "keyword2" 4})
+  ... 
+  [3, 2, 1, 4]
+
+See how we use kwapply to handle the fancy pssing? :)
+
+Hy also supports **args and **kwargs.  In Python::
+
+  def some_func(foo, bar, *args, **kwargs):
+    import pprint
+    pprint.pprint((foo, bar, args, kwargs))
+
+The Hy equivalent:
+
+  (defn some_func [foo bar &rest args &kwargs kwargs]
+    (import pprint)
+    (pprint.pprint (, foo bar args kwargs)))
 
 
 
