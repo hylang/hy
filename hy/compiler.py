@@ -193,9 +193,13 @@ class Result(object):
         This is useful when we want to use the stored expression in a
         statement context (for instance in a code branch).
 
+        We drop ast.Names if they are appended to statements, as they
+        can't have any side effect. "Bare" names still get converted to
+        statements.
+
         If there is no expression context, return an empty result.
         """
-        if self.expr:
+        if self.expr and not (isinstance(self.expr, ast.Name) and self.stmts):
             return Result() + ast.Expr(lineno=self.expr.lineno,
                                        col_offset=self.expr.col_offset,
                                        value=self.expr)
