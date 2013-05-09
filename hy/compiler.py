@@ -606,7 +606,7 @@ class HyASTCompiler(object):
                 raise HyTypeError(e, "Empty list not allowed in `try'")
 
             if e[0] in (HySymbol("except"), HySymbol("catch")):
-                handler_results += self._compile_catch_expression(e, var)
+                handler_results += self._compile_catch_expression(e, name)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
                 if orelse:
@@ -694,11 +694,6 @@ class HyASTCompiler(object):
     def _compile_catch_expression(self, expr, var):
         catch = expr.pop(0)  # catch
 
-        ret_name = ast.Name(id=ast_str(var), arg=ast_str(var),
-                            ctx=ast.Store(),
-                            lineno=expr.start_line,
-                            col_offset=expr.start_column)
-
         try:
             exceptions = expr.pop(0)
         except IndexError:
@@ -762,7 +757,7 @@ class HyASTCompiler(object):
                               "`%s' needs a valid exception list" % catch)
 
         body = self._compile_branch(expr)
-        body += ast.Assign(targets=[ret_name],
+        body += ast.Assign(targets=[var],
                            value=body.force_expr,
                            lineno=expr.start_line,
                            col_offset=expr.start_column)

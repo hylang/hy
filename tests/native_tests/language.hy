@@ -684,4 +684,8 @@
 
 (defn test-try-except-return []
   "NATIVE: test we can return from in a try except"
- (assert ((fn [] (try xxx (except [NameError] (+ 1 1)))))) 2)
+  (assert (= ((fn [] (try xxx (except [NameError] (+ 1 1))))) 2))
+  (setf foo (try xxx (except [NameError] (+ 1 1))))
+  (assert (= foo 2))
+  (setf foo (try (+ 2 2) (except [NameError] (+ 1 1))))
+  (assert (= foo 4)))
