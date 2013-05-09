@@ -414,7 +414,7 @@ Which, of course, expands out to:
 
     (wc (grep (cat "/usr/share/dict/words") "-E" "^hy") "-l")
 
-Much more readable, no! Use the threading macro!
+Much more readable, no? Use the threading macro!
 
 
 TODO
