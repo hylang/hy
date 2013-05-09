@@ -390,9 +390,7 @@ In python we might see::
   >>> optional_arg(keyword1=1, pos2=2, pos1=3, keyword2=4)
   [3, 2, 1, 4]
 
-The same thing in Hy:
-
-.. code-block:: clj
+The same thing in Hy::
 
   => (defn optional_arg [pos1 pos2 &optional keyword1 [keyword2 88]]
   ...  [pos1 pos2 keyword1 keyword2])
@@ -409,6 +407,17 @@ The same thing in Hy:
   [3, 2, 1, 4]
 
 See how we use kwapply to handle the fancy pssing? :)
+
+There's also a dictionary-style keyword arguments construction that
+looks like::
+
+.. code-block:: clj
+
+  (defn another_style [&key {"key1" "val1" "key2" "val2"}]
+    [key1 key2])
+
+The difference here is that since it's a dictionary, you can't rely on
+any specific ordering to the arguments.
 
 Hy also supports **args and **kwargs.  In Python::
 
