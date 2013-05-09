@@ -433,6 +433,46 @@ The Hy equivalent:
     (import pprint)
     (pprint.pprint (, foo bar args kwargs)))
 
+Finally, of course we need classes!  In python we might have a class
+like::
+
+  class FooBar (object):
+     def __init__(self, x):
+         self.x = x
+
+     def get_x(self):
+         return self.x
+
+
+In Hy:
+
+.. code-block:: clj
+
+  (defclass FooBar [object]
+    [[--init--
+      (fn [self x]
+        (setv self.x x))]  
+  
+     [get-x
+      (fn [self]
+        self.x)]])
+
+
+You can also do class-level attributes.  In Python::
+
+  class Customer(models.Model):
+      name = models.CharField(max_length=255)
+      address = models.TextField()
+      notes = models.TextField()
+
+In Hy:
+
+.. code-block:: clj
+
+  (defclass Customer [models.Model]
+    [[name (kwapply (models.CharField) {"max_length" 255})]
+     [address (models.TextField)]
+     [notes (models.TextField)]])
 
 
 Protips!
