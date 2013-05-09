@@ -151,6 +151,7 @@ def test_ast_good_catch():
 
 def test_ast_bad_catch():
     "Make sure AST can't compile invalid catch"
+    cant_compile("(catch 22)")   # heh
     cant_compile("(try (catch 1))")
     cant_compile("(try (catch \"A\"))")
     cant_compile("(try (catch [1 3]))")
@@ -170,6 +171,7 @@ def test_ast_good_except():
 
 def test_ast_bad_except():
     "Make sure AST can't compile invalid except"
+    cant_compile("(except 1)")
     cant_compile("(try 1 (except 1))")
     cant_compile("(try 1 (except [1 3]))")
     cant_compile("(try 1 (except [x [FooBar] BarBar]))")

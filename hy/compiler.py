@@ -557,8 +557,24 @@ class HyASTCompiler(object):
         # (try something…)
         body = self.compile(body)
 
-        # XXX we will likely want to make this a tempvar
-        body += body.expr_as_stmt()
+        var = self.get_anon_var()
+        name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                        ctx=ast.Store(),
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column)
+
+        expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                             ctx=ast.Load(),
+                             lineno=expr.start_line,
+                             col_offset=expr.start_column)
+
+        returnable = Result(expr=expr_name, temp_variables=[expr_name, name])
+
+        body += ast.Assign(targets=[name],
+                           value=body.force_expr,
+                           lineno=expr.start_line,
+                           col_offset=expr.start_column)
+
         body = body.stmts
         if not body:
             body = [ast.Pass(lineno=expr.start_line,
@@ -574,7 +590,7 @@ class HyASTCompiler(object):
                 raise HyTypeError(e, "Empty list not allowed in `try'")
 
             if e[0] in (HySymbol("except"), HySymbol("catch")):
-                handler_results += self.compile(e)
+                handler_results += self._compile_catch_expression(e, var)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
                 if orelse:
@@ -626,7 +642,7 @@ class HyASTCompiler(object):
                 body=body,
                 handlers=handlers,
                 orelse=orelse,
-                finalbody=finalbody)
+                finalbody=finalbody) + returnable
 
         if finalbody:
             if handlers:
@@ -639,30 +655,39 @@ class HyASTCompiler(object):
                         handlers=handlers,
                         body=body,
                         orelse=orelse)],
-                    finalbody=finalbody)
+                    finalbody=finalbody) + returnable
 
             return ret + ast.TryFinally(
                 lineno=expr.start_line,
                 col_offset=expr.start_column,
                 body=body,
-                finalbody=finalbody)
+                finalbody=finalbody) + returnable
 
         return ret + ast.TryExcept(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             handlers=handlers,
             body=body,
-            orelse=orelse)
+            orelse=orelse) + returnable
 
-    @builds("catch")
     @builds("except")
-    def compile_catch_expression(self, expr):
+    @builds("catch")
+    def magic_internal_form(self, expr):
+        raise TypeError("Error: `%s' can't be used like that." % (expr[0]))
+
+    def _compile_catch_expression(self, expr, var):
         catch = expr.pop(0)  # catch
+
+        ret_name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                            ctx=ast.Store(),
+                            lineno=expr.start_line,
+                            col_offset=expr.start_column)
 
         try:
             exceptions = expr.pop(0)
         except IndexError:
             exceptions = HyList()
+
         # exceptions catch should be either:
         # [[list of exceptions]]
         # or
@@ -673,6 +698,7 @@ class HyASTCompiler(object):
         # [exception]
         # or
         # []
+
         if not isinstance(exceptions, HyList):
             raise HyTypeError(exceptions,
                               "`%s' exceptions list is not a list" % catch)
@@ -720,7 +746,10 @@ class HyASTCompiler(object):
                               "`%s' needs a valid exception list" % catch)
 
         body = self._compile_branch(expr)
-        # XXX tempvar handling magic
+        body += ast.Assign(targets=[ret_name],
+                           value=body.force_expr,
+                           lineno=expr.start_line,
+                           col_offset=expr.start_column)
         body += body.expr_as_stmt()
 
         body = body.stmts

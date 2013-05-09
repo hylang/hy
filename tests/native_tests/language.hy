@@ -665,3 +665,7 @@
              (if (if 0 True False)
                42
                43))))
+
+(defn test-try-except-return []
+  "NATIVE: test we can return from in a try except"
+ (assert ((fn [] (try xxx (except [NameError] (+ 1 1)))))) 2)
