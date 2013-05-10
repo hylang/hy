@@ -188,6 +188,8 @@ hy.  Let's experiment with this in the hy interpreter::
   ... "cat" "meow"}
   ...
   {'dog': 'bark', 'cat': 'meow'}
+  => (, 1 2 3)
+  (1, 2, 3)
 
 (You may notice that at present, the common lisp method of quoting
 things like so:
@@ -375,6 +377,106 @@ In hy, you could do these like:
   ;  (8, 'A'), (8, 'B'), (8, 'C'), (8, 'D'), (8, 'E'), (8, 'F'), (8, 'G'), (8, 'H')]
 
 
+Python has support for various fancy argument and keyword arguments.
+In python we might see::
+
+  >>> def optional_arg(pos1, pos2, keyword1=None, keyword2=42):
+  ...   return [pos1, pos2, keyword1, keyword2]
+  ... 
+  >>> optional_arg(1, 2)
+  [1, 2, None, 42]
+  >>> optional_arg(1, 2, 3, 4)
+  [1, 2, 3, 4]
+  >>> optional_arg(keyword1=1, pos2=2, pos1=3, keyword2=4)
+  [3, 2, 1, 4]
+
+The same thing in Hy::
+
+  => (defn optional_arg [pos1 pos2 &optional keyword1 [keyword2 88]]
+  ...  [pos1 pos2 keyword1 keyword2])
+  => (optional_arg 1 2)
+  [1 2 None 42]
+  => (optional_arg 1 2 3 4)
+  [1 2 3 4]
+  => (kwapply (optional_arg)
+  ...         {"keyword1" 1
+  ...          "pos2" 2
+  ...          "pos1" 3
+  ...          "keyword2" 4})
+  ... 
+  [3, 2, 1, 4]
+
+See how we use kwapply to handle the fancy pssing? :)
+
+There's also a dictionary-style keyword arguments construction that
+looks like:
+
+.. code-block:: clj
+
+  (defn another_style [&key {"key1" "val1" "key2" "val2"}]
+    [key1 key2])
+
+The difference here is that since it's a dictionary, you can't rely on
+any specific ordering to the arguments.
+
+Hy also supports ``*args`` and ``**kwargs``.  In Python::
+
+  def some_func(foo, bar, *args, **kwargs):
+    import pprint
+    pprint.pprint((foo, bar, args, kwargs))
+
+The Hy equivalent:
+
+.. code-block:: clj
+
+  (defn some_func [foo bar &rest args &kwargs kwargs]
+    (import pprint)
+    (pprint.pprint (, foo bar args kwargs)))
+
+Finally, of course we need classes!  In python we might have a class
+like::
+
+  class FooBar (object):
+     def __init__(self, x):
+         self.x = x
+
+     def get_x(self):
+         return self.x
+
+
+In Hy:
+
+.. code-block:: clj
+
+  (defclass FooBar [object]
+    [[--init--
+      (fn [self x]
+        (setv self.x x)
+        ; Currently needed for --init-- because __init__ needs None
+        ; Hopefully this will go away :)
+        None)]
+  
+     [get-x
+      (fn [self]
+        self.x)]])
+
+
+You can also do class-level attributes.  In Python::
+
+  class Customer(models.Model):
+      name = models.CharField(max_length=255)
+      address = models.TextField()
+      notes = models.TextField()
+
+In Hy:
+
+.. code-block:: clj
+
+  (defclass Customer [models.Model]
+    [[name (kwapply (models.CharField) {"max_length" 255})]
+     [address (models.TextField)]
+     [notes (models.TextField)]])
+
 
 Protips!
 ========
@@ -414,7 +516,7 @@ Which, of course, expands out to:
 
     (wc (grep (cat "/usr/share/dict/words") "-E" "^hy") "-l")
 
-Much more readable, no! Use the threading macro!
+Much more readable, no? Use the threading macro!
 
 
 TODO
@@ -422,7 +524,6 @@ TODO
 
  - How do I index into arrays or dictionaries?
  - How do I do array ranges?  e.g. x[5:] or y[2:10]
- - How do I define classes?
  - Blow your mind with macros!
  - Where's my banana???
  - Mention that you can import .hy files in .py files and vice versa!

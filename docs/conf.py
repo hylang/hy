@@ -181,6 +181,12 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 #'preamble': '',
+
+# Stuff for unicode characters
+  'utf8extra': r'''
+\DeclareUnicodeCharacter{2698}{FLOWER}
+\DeclareUnicodeCharacter{2665}{HEART}
+''',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

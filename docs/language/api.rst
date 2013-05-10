@@ -24,8 +24,8 @@ languages.
 
   * UTF-8 entities will be encoded using
     `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
-    `__hy_`. For instance, `⚘` will become `__hy_w7h`, and `♥` will become
-    `__hy_g6h`.
+    `hy_`. For instance, `⚘` will become `hy_w7h`, and `♥` will become
+    `hy_g6h`.
 
   * Symbols that contain dashes will have them replaced with underscores. For
     example, `render-template` will become `render_template`.
@@ -37,6 +37,37 @@ Builtins
 Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
+
+import
+------
+
+`import` is used to import modules, like in Python. There are several forms
+of import you can use.
+
+.. code-block:: clj
+
+    ;; Imports each of these modules
+    ;;
+    ;; Python:
+    ;; import sys
+    ;; import os.path
+    (import sys os.path)
+
+    ;; Import from a module
+    ;;
+    ;; Python: from os.path import exists, isdir, isfile
+    (import [os.path [exists isdir isfile]])
+
+    ;; Import with an alias
+    ;;
+    ;; Python: import sys as systest
+    (import [sys :as systest])
+
+    ;; You can list as many imports as you like of different types.
+    (import [tests.resources [kwtest function-with-a-dash]]
+            [os.path [exists isdir isfile]]
+            [sys :as systest])
+
 
 do / progn
 ----------
