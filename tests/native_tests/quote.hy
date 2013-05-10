@@ -12,6 +12,15 @@
   (assert (= (cdr f) (quote (true true true)))))
 
 
+(defn test-quoted-macroexpand []
+  "NATIVE: check that we don't expand macros in quoted expressions"
+  (setf q1 (quote (-> a b c)))
+  (setf q2 (quasiquote (-> a b c)))
+  (assert (= q1 q2))
+  (assert (= (car q1) (quote ->)))
+  (assert (= (cdr q1) (quote (a b c)))))
+
+
 (defn test-quasiquote []
   "NATIVE: test that quasiquote and quote are equivalent for simple cases"
   (setf q (quote (a b c)))
