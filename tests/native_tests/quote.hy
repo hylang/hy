@@ -32,9 +32,10 @@
 (defn test-unquote-splice []
   "NATIVE: test splicing unquotes"
   (setf q (quote (c d e)))
-  (setf qq (quasiquote (a b (unquote-splice q))))
-  (assert (= (len qq) 5))
-  (assert (= qq (quote (a b c d e)))))
+  (setf qq (quasiquote (a b (unquote-splice q) f (unquote-splice q))))
+  (assert (= (len qq) 9))
+  (assert (= qq (quote (a b c d e f c d e)))))
+
 
 (defn test-nested-quasiquote []
   "NATIVE: test nested quasiquotes"

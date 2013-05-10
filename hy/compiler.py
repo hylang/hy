@@ -526,21 +526,26 @@ class HyASTCompiler(object):
         imports = set([name])
 
         if isinstance(form, HyList):
-            contents = HyList()
+            if not form:
+                contents = HyList()
+            else:
+                # If there are arguments, they can be spliced
+                # so we build a sum...
+                contents = HyExpression([HySymbol("+"), HyList()])
+
             for x in form:
                 f_imports, f_contents, splice = self._render_quoted_form(x,
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    contents = HyExpression([HySymbol('+'),
-                                             contents,
-                                             f_contents])
+                    to_add = f_contents
                 else:
-                    contents.append(f_contents)
-            return imports, HyExpression(
-                [HySymbol(name),
-                 contents]
-            ).replace(form), False
+                    to_add = HyList([f_contents])
+
+                contents.append(to_add)
+
+            return imports, HyExpression([HySymbol(name),
+                                          contents]).replace(form), False
 
         elif isinstance(form, HySymbol):
             return imports, HyExpression([HySymbol(name),
