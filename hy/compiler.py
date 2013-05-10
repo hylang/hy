@@ -494,7 +494,7 @@ class HyASTCompiler(object):
         ret += ret.expr_as_stmt()
         return ret
 
-    def _render_quoted_form(self, form, level=0):
+    def _render_quoted_form(self, form, level):
         """
         Render a quoted form as a new HyExpression.
 
@@ -517,7 +517,7 @@ class HyASTCompiler(object):
                     return set(), form[1], (form[0] == "unquote_splice")
 
         if isinstance(form, HyExpression):
-            if form and form[0] == "quote":
+            if form and form[0] == "quasiquote":
                 level += 1
             if form and form[0] in ("unquote", "unquote_splice"):
                 level -= 1
@@ -550,9 +550,15 @@ class HyASTCompiler(object):
                                       form]).replace(form), False
 
     @builds("quote")
+    @builds("quasiquote")
     @checkargs(exact=1)
     def compile_quote(self, entries):
-        imports, stmts, splice = self._render_quoted_form(entries[1])
+        if entries[0] == "quote":
+            # Never allow unquoting
+            level = float("inf")
+        else:
+            level = 0
+        imports, stmts, splice = self._render_quoted_form(entries[1], level)
         ret = self.compile(stmts)
         ret.add_imports("hy", imports)
         return ret
