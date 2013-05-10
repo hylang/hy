@@ -143,7 +143,10 @@
 
 (defn test-kwargs []
   "NATIVE: test kwargs things."
-  (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"})))
+  (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"}))
+  (setv mydict {"one" "three"})
+  (assert (= (kwapply (kwtest) mydict) mydict))
+  (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"})))
 
 
 (defn test-dotted []
