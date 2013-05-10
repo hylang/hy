@@ -656,12 +656,6 @@
   (assert (= (foo 1 2 3 4) [1 2 3 4])))
 
 
-(defn test-quoted-hoistable []
-  "NATIVE: test quoted hoistable"
-  (setf f (quote (if true true true)))
-  (assert (= (car f) "if"))
-  (assert (= (cdr f) (quote (true true true)))))
-
 (defn test-undefined-name []
   "NATIVE: test that undefined names raise errors"
   (try
