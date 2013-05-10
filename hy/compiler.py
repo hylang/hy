@@ -494,32 +494,85 @@ class HyASTCompiler(object):
         ret += ret.expr_as_stmt()
         return ret
 
-    def _render_quoted_form(self, form):
+    def _render_quoted_form(self, form, level):
+        """
+        Render a quoted form as a new HyExpression.
+
+        `level` is the level of quasiquoting of the current form. We can
+        unquote if level is 0.
+
+        Returns a three-tuple (`imports`, `expression`, `splice`).
+
+        The `splice` return value is used to mark `unquote-splice`d forms.
+        We need to distinguish them as want to concatenate them instead of
+        just nesting them.
+        """
+        if level == 0:
+            if isinstance(form, HyExpression):
+                if form and form[0] in ("unquote", "unquote_splice"):
+                    if len(form) != 2:
+                        raise HyTypeError(form,
+                                          ("`%s' needs 1 argument, got %s" %
+                                           form[0], len(form) - 1))
+                    return set(), form[1], (form[0] == "unquote_splice")
+
+        if isinstance(form, HyExpression):
+            if form and form[0] == "quasiquote":
+                level += 1
+            if form and form[0] in ("unquote", "unquote_splice"):
+                level -= 1
+
         name = form.__class__.__name__
-        imports = [name]
+        imports = set([name])
 
         if isinstance(form, HyList):
-            contents = []
+            if not form:
+                contents = HyList()
+            else:
+                # If there are arguments, they can be spliced
+                # so we build a sum...
+                contents = HyExpression([HySymbol("+"), HyList()])
+
             for x in form:
-                form_imports, form_contents = self._render_quoted_form(x)
-                imports += form_imports
-                contents.append(form_contents)
-            return imports, HyExpression(
-                [HySymbol(name),
-                 HyList(contents)]
-            ).replace(form)
+                f_imports, f_contents, splice = self._render_quoted_form(x,
+                                                                         level)
+                imports.update(f_imports)
+                if splice:
+                    to_add = f_contents
+                else:
+                    to_add = HyList([f_contents])
+
+                contents.append(to_add)
+
+            return imports, HyExpression([HySymbol(name),
+                                          contents]).replace(form), False
+
         elif isinstance(form, HySymbol):
             return imports, HyExpression([HySymbol(name),
-                                          HyString(form)]).replace(form)
-        return imports, HyExpression([HySymbol(name), form]).replace(form)
+                                          HyString(form)]).replace(form), False
+
+        return imports, HyExpression([HySymbol(name),
+                                      form]).replace(form), False
 
     @builds("quote")
+    @builds("quasiquote")
     @checkargs(exact=1)
     def compile_quote(self, entries):
-        imports, stmts = self._render_quoted_form(entries[1])
+        if entries[0] == "quote":
+            # Never allow unquoting
+            level = float("inf")
+        else:
+            level = 0
+        imports, stmts, splice = self._render_quoted_form(entries[1], level)
         ret = self.compile(stmts)
         ret.add_imports("hy", imports)
         return ret
+
+    @builds("unquote")
+    @builds("unquote-splicing")
+    def compile_unquote(self, expr):
+        raise HyTypeError(expr,
+                          "`%s' can't be used at the top-level" % expr[0])
 
     @builds("eval")
     @checkargs(exact=1)

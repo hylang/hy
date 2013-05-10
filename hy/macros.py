@@ -36,6 +36,8 @@ def macro(name):
 def process(tree):
     if isinstance(tree, HyExpression):
         fn = tree[0]
+        if fn in ("quote", "quasiquote"):
+            return tree
         ntree = HyExpression([fn] + [process(x) for x in tree[1:]])
         ntree.replace(tree)
 
