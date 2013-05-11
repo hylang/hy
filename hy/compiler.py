@@ -1197,6 +1197,19 @@ class HyASTCompiler(object):
                                col_offset=operator.start_column)
         return operand
 
+    @builds("require")
+    def compile_require(self, expression):
+        """
+        TODO: keep track of what we've imported in this run and then
+        "unimport" it after we've completed `thing' so that we don't polute
+        other envs.
+        """
+        expression.pop(0)
+        for entry in expression:
+            __import__(entry)  # Import it fo' them macros.
+        return ast.Pass(lineno=expression.start_line,
+                        col_offset=expression.start_column)
+
     @builds("and")
     @builds("or")
     @checkargs(min=2)
