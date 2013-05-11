@@ -44,7 +44,7 @@ def process(tree):
         if isinstance(fn, HyString):
             if fn in _hy_macros:
                 m = _hy_macros[fn]
-                obj = m(ntree)
+                obj = m(*ntree[1:])
                 obj.replace(tree)
                 return obj
 

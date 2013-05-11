@@ -7,9 +7,9 @@ from hy.models.list import HyList
 
 
 @macro("test")
-def tmac(tree):
+def tmac(*tree):
     """ Turn an expression into a list """
-    return HyList(tree[1:])
+    return HyList(tree)
 
 
 def test_preprocessor_simple():

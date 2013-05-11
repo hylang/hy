@@ -689,8 +689,17 @@
 
 
 (defn test-require []
+  "NATIVE: test requiring macros from python code"
   (try
     (assert (= "this won't happen" (qplah 1 2 3 4)))
   (catch [NameError]))
   (require tests.resources.tlib)
   (assert (= [1 2 3] (qplah 1 2 3))))
+
+
+(defn test-require-native []
+  "NATIVE: test requiring macros from native code"
+  (require tests.native_tests.native_macros)
+  (setv x [])
+  (rev (.append x 1) (.append x 2) (.append x 3))
+  (assert (= x [3 2 1])))
