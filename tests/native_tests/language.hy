@@ -686,3 +686,11 @@
   (assert (= foo 2))
   (setf foo (try (+ 2 2) (except [NameError] (+ 1 1))))
   (assert (= foo 4)))
+
+
+(defn test-require []
+  (try
+    (assert (= "this won't happen" (qplah 1 2 3 4)))
+  (catch [NameError]))
+  (require tests.resources.tlib)
+  (assert (= [1 2 3] (qplah 1 2 3))))
