@@ -93,6 +93,14 @@ def ast_str(foobar):
 
 
 def builds(_type):
+
+    unpythonic_chars = ["-"]
+    really_ok = ["-"]
+    if True in (x in str_type(_type) for x in unpythonic_chars):
+        if _type not in really_ok:
+            raise TypeError("`build' needs to be *post* translated strings, "
+                            "Mr. / Mrs. Hypser. -- `%s' sucks." % (_type))
+
     def _dec(fn):
         _compile_table[_type] = fn
         return fn
@@ -569,7 +577,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("unquote")
-    @builds("unquote-splicing")
+    @builds("unquote_splicing")
     def compile_unquote(self, expr):
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
