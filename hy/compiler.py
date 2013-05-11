@@ -35,6 +35,7 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
+import hy.importer
 from hy.core import process
 
 from hy.util import str_type
@@ -1615,6 +1616,8 @@ class HyASTCompiler(object):
                              expression),
             ]),
         ]).replace(expression)
+
+        hy.importer.hy_eval(new_expression, {})
 
         return self.compile(new_expression)
 
