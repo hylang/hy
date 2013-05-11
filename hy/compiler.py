@@ -1589,6 +1589,35 @@ class HyASTCompiler(object):
             bases=bases_expr,
             body=body.stmts)
 
+    @builds("defmacro")
+    @checkargs(min=1)
+    def compile_macro(self, expression):
+        expression.pop(0)
+        name = expression.pop(0)
+        if not isinstance(name, HySymbol):
+            raise HyTypeError(name,
+                              ("received a `%s' instead of a symbol "
+                               "for macro name" % type(name).__name__))
+        name = HyString(name).replace(name)
+        new_expression = HyExpression([
+            HySymbol("do"),
+            HyExpression([
+                HySymbol("import"),
+                HySymbol("hy.macros"),
+            ]),
+            HyExpression([
+                HySymbol("with_decorator"),
+                HyExpression([
+                    HySymbol("hy.macros.macro"),
+                    name,
+                ]),
+                HyExpression([HySymbol("fn")] +
+                             expression),
+            ]),
+        ]).replace(expression)
+
+        return self.compile(new_expression)
+
     @builds(HyInteger)
     def compile_integer(self, number):
         return ast.Num(n=int(number),
