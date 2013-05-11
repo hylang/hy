@@ -343,15 +343,24 @@ class HyASTCompiler(object):
         """Convert the Result's imports to statements"""
         ret = Result()
         for module, names in self.imports.items():
-            ret += self.compile([
-                HyExpression([
-                    HySymbol("import"),
-                    HyList([
+            if None in names:
+                ret += self.compile([
+                    HyExpression([
+                        HySymbol("import"),
                         HySymbol(module),
-                        HyList([HySymbol(name) for name in sorted(names)])
-                    ])
-                ]).replace(expr)
-            ])
+                    ]).replace(expr)
+                ])
+            names = sorted(name for name in names if name)
+            if names:
+                ret += self.compile([
+                    HyExpression([
+                        HySymbol("import"),
+                        HyList([
+                            HySymbol(module),
+                            HyList([HySymbol(name) for name in names])
+                        ])
+                    ]).replace(expr)
+                ])
         self.imports = defaultdict(set)
         return ret.stmts
 
@@ -1608,19 +1617,19 @@ class HyASTCompiler(object):
                                      "for macro name" % type(name).__name__))
         name = HyString(name).replace(name)
         new_expression = HyExpression([
-            HySymbol("do"),
-            HyExpression([
-                HySymbol("import"),
-                HySymbol("hy.macros"),
-            ]),
-            HyExpression([
-                HySymbol("with_decorator"),
-                HyExpression([HySymbol("hy.macros.macro"), name]),
-                HyExpression([HySymbol("fn")] + expression),
-            ]),
+            HySymbol("with_decorator"),
+            HyExpression([HySymbol("hy.macros.macro"), name]),
+            HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)
-        hy.importer.hy_eval(new_expression, {})
-        return self.compile(new_expression)
+
+        # Compile-time hack: we want to get our new macro now
+        hy.importer.hy_eval(new_expression, {'hy': hy})
+
+        # We really want to have a `hy` import to get hy.macro in
+        ret = self.compile(new_expression)
+        ret.add_imports('hy', [None])
+
+        return ret
 
     @builds(HyInteger)
     def compile_integer(self, number):
