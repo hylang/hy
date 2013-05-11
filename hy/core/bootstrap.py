@@ -28,14 +28,13 @@ from hy.models.list import HyList
 
 @macro("defn")
 @macro("defun")
-def defn_macro(tree):
+def defn_macro(name, *body):
     return HyExpression([HySymbol("def"),
-                         tree[1], HyExpression([HySymbol("fn")] + tree[2:])])
+                         name, HyExpression([HySymbol("fn")] + list(body))])
 
 
 @macro("cond")
-def cond_macro(tree):
-    tree.pop(0)  # cond flag
+def cond_macro(*tree):
     it = iter(tree)
     test, branch = next(it)
 
@@ -50,14 +49,15 @@ def cond_macro(tree):
 
 
 @macro("for")
-def for_macro(tree):
-    tree.pop(0)
+def for_macro(*tree):
     ret = None
     # for [x iter y iter] ...
     # ->
     # foreach x iter
     #   foreach y iter
     #     ...
+
+    tree = HyExpression(tree).replace(tree[0])
 
     it = iter(tree.pop(0))
     blocks = list(zip(it, it))  # List for Python 3.x degenerating.
@@ -81,10 +81,9 @@ def for_macro(tree):
 
 
 @macro("_>")
-def threading_macro(tree):
-    tree.pop(0)
-    ret = tree.pop(0)
-    for node in tree:
+def threading_macro(head, *rest):
+    ret = head
+    for node in rest:
         if not isinstance(node, HyExpression):
             nnode = HyExpression([node])
             nnode.replace(node)
@@ -95,10 +94,9 @@ def threading_macro(tree):
 
 
 @macro("_>>")
-def threading_tail_macro(tree):
-    tree.pop(0)
-    ret = tree.pop(0)
-    for node in tree:
+def threading_tail_macro(head, *rest):
+    ret = head
+    for node in rest:
         if not isinstance(node, HyExpression):
             nnode = HyExpression([node])
             nnode.replace(node)
@@ -110,31 +108,22 @@ def threading_tail_macro(tree):
 
 @macro("car")
 @macro("first")
-def first_macro(tree):
-    tree.pop(0)  # "first"
-    ret = tree.pop(0)  # the list
-    # assert tree is empty
+def first_macro(lst):
     return HyExpression([HySymbol('get'),
-                         ret,
+                         lst,
                          HyInteger(0)])
 
 
 @macro("cdr")
 @macro("rest")
-def rest_macro(tree):
-    tree.pop(0)  # "first"
-    ret = tree.pop(0)  # the list
-    # assert tree is empty
+def rest_macro(lst):
     return HyExpression([HySymbol('slice'),
-                         ret,
+                         lst,
                          HyInteger(1)])
 
 
 @macro("let")
-def let_macro(tree):
-    tree.pop(0)  # "let"
-    variables = tree.pop(0)
-    # tree is now the body
+def let_macro(variables, *body):
     expr = HyExpression([HySymbol("fn"), HyList([])])
 
     for var in variables:
@@ -145,51 +134,38 @@ def let_macro(tree):
             expr.append(HyExpression([HySymbol("setf"),
                                       var, HySymbol("None")]))
 
-    for stmt in tree:
-        expr.append(stmt)
-
-    return HyExpression([expr])
+    return HyExpression([expr + list(body)])
 
 
 @macro("take")
-def take_macro(tree):
-    tree.pop(0)  # "take"
-    n = tree.pop(0)
-    ret = tree.pop(0)
+def take_macro(n, lst):
     return HyExpression([HySymbol('slice'),
-                         ret,
+                         lst,
                          HyInteger(0),
                          HyInteger(n)])
 
 
 @macro("drop")
-def drop_macro(tree):
-    tree.pop(0)  # "drop"
-    n = tree.pop(0)
-    ret = tree.pop(0)
+def drop_macro(n, lst):
     return HyExpression([HySymbol('slice'),
-                         ret,
+                         lst,
                          HyInteger(n)])
 
 
 @macro("when")
-def when_macro(tree):
-    tree.pop(0)  # "when"
-    test = tree.pop(0)
+def when_macro(test, *body):
     return HyExpression([
         HySymbol('if'),
         test,
-        HyExpression([HySymbol("do")]) + tree,
+        HyExpression([HySymbol("do")] + list(body)),
     ])
 
 
 @macro("unless")
-def unless_macro(tree):
-    tree.pop(0)  # "unless"
-    test = tree.pop(0)
+def unless_macro(test, *body):
     return HyExpression([
         HySymbol('if'),
         test,
         HySymbol('None'),
-        HyExpression([HySymbol("do")]) + tree,
+        HyExpression([HySymbol("do")] + list(body)),
     ])

@@ -3,5 +3,5 @@ from hy import HyList
 
 
 @macro("qplah")
-def tmac(tree):
-    return HyList(tree[1:])
+def tmac(*tree):
+    return HyList(tree)
