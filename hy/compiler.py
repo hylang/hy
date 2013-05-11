@@ -1207,8 +1207,7 @@ class HyASTCompiler(object):
         expression.pop(0)
         for entry in expression:
             __import__(entry)  # Import it fo' them macros.
-        return ast.Pass(lineno=expression.start_line,
-                        col_offset=expression.start_column)
+        return Result()
 
     @builds("and")
     @builds("or")
