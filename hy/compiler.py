@@ -35,6 +35,7 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
+import hy.importer
 from hy.core import process
 
 from hy.util import str_type
@@ -93,6 +94,14 @@ def ast_str(foobar):
 
 
 def builds(_type):
+
+    unpythonic_chars = ["-"]
+    really_ok = ["-"]
+    if True in (x in str_type(_type) for x in unpythonic_chars):
+        if _type not in really_ok:
+            raise TypeError("`build' needs to be *post* translated strings, "
+                            "Mr. / Mrs. Hypser. -- `%s' sucks." % (_type))
+
     def _dec(fn):
         _compile_table[_type] = fn
         return fn
@@ -569,7 +578,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("unquote")
-    @builds("unquote-splicing")
+    @builds("unquote_splicing")
     def compile_unquote(self, expr):
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
@@ -1595,9 +1604,8 @@ class HyASTCompiler(object):
         expression.pop(0)
         name = expression.pop(0)
         if not isinstance(name, HySymbol):
-            raise HyTypeError(name,
-                              ("received a `%s' instead of a symbol "
-                               "for macro name" % type(name).__name__))
+            raise HyTypeError(name, ("received a `%s' instead of a symbol "
+                                     "for macro name" % type(name).__name__))
         name = HyString(name).replace(name)
         new_expression = HyExpression([
             HySymbol("do"),
@@ -1607,15 +1615,11 @@ class HyASTCompiler(object):
             ]),
             HyExpression([
                 HySymbol("with_decorator"),
-                HyExpression([
-                    HySymbol("hy.macros.macro"),
-                    name,
-                ]),
-                HyExpression([HySymbol("fn")] +
-                             expression),
+                HyExpression([HySymbol("hy.macros.macro"), name]),
+                HyExpression([HySymbol("fn")] + expression),
             ]),
         ]).replace(expression)
-
+        hy.importer.hy_eval(new_expression, {})
         return self.compile(new_expression)
 
     @builds(HyInteger)
