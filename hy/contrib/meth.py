@@ -28,7 +28,7 @@ from hy.macros import macro
 
 
 def router(tree, rkwargs=None):
-    tree.pop(0)
+    tree = HyExpression(tree)
     name = tree.pop(0)
     path = tree.pop(0)
     tree.insert(0, HySymbol("fn"))
@@ -44,15 +44,15 @@ def router(tree, rkwargs=None):
 
 
 @macro("route")
-def route_macro(tree):
+def route_macro(*tree):
     return router(tree)
 
 
 @macro("post_route")
-def post_route_macro(tree):
+def post_route_macro(*tree):
     return router(tree, rkwargs=HyList([HyString("POST")]))
 
 
 @macro("get_route")
-def get_route_macro(tree):
+def get_route_macro(*tree):
     return router(tree, rkwargs=HyList([HyString("GET")]))
