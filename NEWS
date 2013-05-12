@@ -2,8 +2,24 @@ Changes from Hy 0.9.7
 
   [ Syntax Fixes ]
 
+    * Quasi-quoting now exists long with quoting. Macros will also not
+      expand things in quotes.
+    * kwapply now works with symbols as well as raw dicts. (ND)
+    * Try / Except will now return properly again. (PT)
+    * Bare-names sprinked around the AST won't show up anymore (ND)
+
+  [ Language Changes ]
+
+    * Added a new (require) form, to import macros for that module (PT)
+    * Native macros exist and work now! (ND)
     * (fn) and (lambda) have been merged (ND)
     * New (defclass) builtin for class definitions (JD)
+    * Add unquote-splicing (ND)
+
+  [ Errata ]
+
+    * Paul was an idiot and marked the j-related bug as a JD fix, it was
+      actually ND. My bad.
 
 Changes from Hy 0.9.6
 
