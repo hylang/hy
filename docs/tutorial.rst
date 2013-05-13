@@ -71,7 +71,7 @@ the hy interpreter:
 
    (setv result (- (/ (+ 1 3 88) 2) 8))
 
-This would return 37.  But why?  Well, we could look at the equivalent
+This would return 38.  But why?  Well, we could look at the equivalent
 expression in python::
   
   result = ((1 + 3 + 88) / 2) - 8
