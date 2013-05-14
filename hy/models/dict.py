@@ -18,17 +18,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models.list import HyList
 
 
-class HyDict(HyObject, dict):
+class HyDict(HyList):
     """
-    HyDict (just a dict)
+    HyDict (just a representation of a dict)
     """
 
-    def replace(self, other):
-        for x in self:
-            self[x].replace(other)
-            x.replace(other)
-
-        HyObject.replace(self, other)
+    def __repr__(self):
+        return "{%s}" % (" ".join([repr(x) for x in self]))

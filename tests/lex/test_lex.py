@@ -185,15 +185,12 @@ def test_lex_line_counting_multi_inner():
 def test_dicts():
     """ Ensure that we can tokenize a dict. """
     objs = tokenize("{foo bar bar baz}")
-    assert objs == [HyDict({
-        "foo": "bar",
-        "bar": "baz"
-    })]
+    assert objs == [HyDict(["foo", "bar", "bar", "baz"])]
 
     objs = tokenize("(bar {foo bar bar baz})")
     assert objs == [HyExpression([HySymbol("bar"),
-                                  HyDict({"foo": "bar",
-                                          "bar": "baz"})])]
+                                  HyDict(["foo", "bar",
+                                          "bar", "baz"])])]
 
 
 def test_nospace():
