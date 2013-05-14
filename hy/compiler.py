@@ -97,7 +97,7 @@ def builds(_type):
 
     unpythonic_chars = ["-"]
     really_ok = ["-"]
-    if True in (x in str_type(_type) for x in unpythonic_chars):
+    if any(x in unpythonic_chars for x in str_type(_type)):
         if _type not in really_ok:
             raise TypeError("`build' needs to be *post* translated strings, "
                             "Mr. / Mrs. Hypser. -- `%s' sucks." % (_type))
