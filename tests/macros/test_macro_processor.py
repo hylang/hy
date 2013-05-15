@@ -13,15 +13,15 @@ def tmac(*tree):
 
 
 def test_preprocessor_simple():
-    """ Test basic macro expantion """
-    obj = process(tokenize('(test "one" "two")')[0])
+    """ Test basic macro expansion """
+    obj = process(tokenize('(test "one" "two")')[0], __name__)
     assert obj == HyList(["one", "two"])
     assert type(obj) == HyList
 
 
 def test_preprocessor_expression():
-    """ Test inner macro expantion """
-    obj = process(tokenize('(test (test "one" "two"))')[0])
+    """ Test inner macro expansion """
+    obj = process(tokenize('(test (test "one" "two"))')[0], __name__)
 
     assert type(obj) == HyList
     assert type(obj[0]) == HyList
@@ -30,4 +30,4 @@ def test_preprocessor_expression():
 
     obj = HyList([HyString("one"), HyString("two")])
     obj = tokenize('(shill ["one" "two"])')[0][1]
-    assert obj == process(obj)
+    assert obj == process(obj, '')

@@ -23,27 +23,39 @@ from hy.models.string import HyString
 from hy.models.dict import HyDict
 from hy.models.list import HyList
 
-_hy_macros = {}
+_hy_macros = {None: {}}
 
 
 def macro(name):
     def _(fn):
-        _hy_macros[name] = fn
+        module_name = fn.__module__
+        if module_name.startswith("hy.core"):
+            module_name = None
+        _hy_macros.setdefault(module_name, {}) [name] = fn
         return fn
     return _
 
 
-def process(tree):
+def require(macro_module_name, use_module_name):
+    macros = _hy_macros.get(macro_module_name, {})
+    refs = _hy_macros.setdefault(use_module_name, {})
+    for name, macro in macros.items():
+        refs[name] = macro
+
+
+def process(tree, module_name):
     if isinstance(tree, HyExpression):
         fn = tree[0]
         if fn in ("quote", "quasiquote"):
             return tree
-        ntree = HyExpression([fn] + [process(x) for x in tree[1:]])
+        ntree = HyExpression([fn] + [process(x, module_name) for x in tree[1:]])
         ntree.replace(tree)
 
         if isinstance(fn, HyString):
-            if fn in _hy_macros:
-                m = _hy_macros[fn]
+            m = _hy_macros.setdefault(module_name, {}).get(fn, None)
+            if m is None:
+                m = _hy_macros[None].get(fn, None)
+            if m is not None:
                 obj = m(*ntree[1:])
                 obj.replace(tree)
                 return obj
@@ -52,17 +64,19 @@ def process(tree):
         return ntree
 
     if isinstance(tree, HyDict):
-        obj = HyDict(dict((process(x), process(tree[x])) for x in tree))
+        obj = HyDict(dict((process(x, module_name),
+                           process(tree[x], module_name))
+                          for x in tree))
         obj.replace(tree)
         return obj
 
     if isinstance(tree, HyList):
-        obj = HyList([process(x) for x in tree])  # NOQA
+        obj = HyList([process(x, module_name) for x in tree])  # NOQA
         # flake8 thinks we're redefining from 52.
         obj.replace(tree)
         return obj
 
     if isinstance(tree, list):
-        return [process(x) for x in tree]
+        return [process(x, module_name) for x in tree]
 
     return tree
