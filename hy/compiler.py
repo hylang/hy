@@ -40,6 +40,8 @@ from hy.core import process
 
 from hy.util import str_type
 
+from hy.macros import require
+
 import codecs
 import traceback
 import ast
@@ -321,10 +323,11 @@ def checkargs(exact=None, min=None, max=None):
 
 class HyASTCompiler(object):
 
-    def __init__(self):
+    def __init__(self, module_name):
         self.anon_fn_count = 0
         self.anon_var_count = 0
         self.imports = defaultdict(set)
+        self.module_name = module_name
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -366,7 +369,7 @@ class HyASTCompiler(object):
 
     def compile_atom(self, atom_type, atom):
         if atom_type in _compile_table:
-            atom = process(atom)
+            atom = process(atom, self.module_name)
             ret = _compile_table[atom_type](self, atom)
             if not isinstance(ret, Result):
                 ret = Result() + ret
@@ -599,7 +602,8 @@ class HyASTCompiler(object):
 
         ret = self.compile(HyExpression([
             HySymbol("hy_eval")] + expr + [
-                HyExpression([HySymbol("locals")])]).replace(expr))
+                HyExpression([HySymbol("locals")])] + [
+                    HyString(self.module_name)]).replace(expr))
 
         ret.add_imports("hy.importer", ["hy_eval"])
 
@@ -1225,6 +1229,7 @@ class HyASTCompiler(object):
         expression.pop(0)
         for entry in expression:
             __import__(entry)  # Import it fo' them macros.
+            require(entry, self.module_name)
         return Result()
 
     @builds("and")
@@ -1623,7 +1628,11 @@ class HyASTCompiler(object):
         ]).replace(expression)
 
         # Compile-time hack: we want to get our new macro now
-        hy.importer.hy_eval(new_expression, {'hy': hy})
+        # We must provide __name__ in the namespace to make the Python
+        # compiler set the __module__ attribute of the macro function.
+        hy.importer.hy_eval(new_expression,
+                            {'hy': hy, '__name__': self.module_name},
+                            self.module_name)
 
         # We really want to have a `hy` import to get hy.macro in
         ret = self.compile(new_expression)
@@ -1694,7 +1703,7 @@ class HyASTCompiler(object):
         return ret
 
 
-def hy_compile(tree, root=ast.Module, get_expr=False):
+def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     """
     Compile a HyObject tree into a Python AST Module.
 
@@ -1711,7 +1720,7 @@ def hy_compile(tree, root=ast.Module, get_expr=False):
     expr = None
 
     if tree:
-        compiler = HyASTCompiler()
+        compiler = HyASTCompiler(module_name)
         result = compiler.compile(tree)
         expr = result.force_expr
 
