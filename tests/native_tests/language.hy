@@ -699,7 +699,26 @@
 
 (defn test-require-native []
   "NATIVE: test requiring macros from native code"
+  (assert (= "failure"
+             (try
+              (do (setv x [])
+                  (rev (.append x 1) (.append x 2) (.append x 3))
+                  (assert (= x [3 2 1]))
+                  "success")
+              (except [NameError] "failure"))))
+  (import tests.native_tests.native_macros)
+  (assert (= "failure"
+             (try
+              (do (setv x [])
+                  (rev (.append x 1) (.append x 2) (.append x 3))
+                  (assert (= x [3 2 1]))
+                  "success")
+              (except [NameError] "failure"))))
   (require tests.native_tests.native_macros)
-  (setv x [])
-  (rev (.append x 1) (.append x 2) (.append x 3))
-  (assert (= x [3 2 1])))
+  (assert (= "success"
+             (try
+              (do (setv x [])
+                  (rev (.append x 1) (.append x 2) (.append x 3))
+                  (assert (= x [3 2 1]))
+                  "success")
+              (except [NameError] "failure")))))

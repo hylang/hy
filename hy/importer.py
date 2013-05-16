@@ -56,21 +56,21 @@ def import_file_to_hst(fpath):
         return import_buffer_to_hst(f.read())
 
 
-def import_buffer_to_ast(buf):
+def import_buffer_to_ast(buf, module_name):
     """ Import content from buf and return a Python AST."""
-    return hy_compile(import_buffer_to_hst(buf))
+    return hy_compile(import_buffer_to_hst(buf), module_name)
 
 
-def import_file_to_ast(fpath):
+def import_file_to_ast(fpath, module_name):
     """Import content from fpath and return a Python AST."""
-    return hy_compile(import_file_to_hst(fpath))
+    return hy_compile(import_file_to_hst(fpath), module_name)
 
 
 def import_file_to_module(module_name, fpath):
     """Import content from fpath and puts it into a Python module.
 
     Returns the module."""
-    _ast = import_file_to_ast(fpath)
+    _ast = import_file_to_ast(fpath, module_name)
     mod = imp.new_module(module_name)
     mod.__file__ = fpath
     eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
@@ -78,20 +78,20 @@ def import_file_to_module(module_name, fpath):
 
 
 def import_buffer_to_module(module_name, buf):
-    _ast = import_buffer_to_ast(buf)
+    _ast = import_buffer_to_ast(buf, module_name)
     mod = imp.new_module(module_name)
     eval(ast_compile(_ast, "", "exec"), mod.__dict__)
     return mod
 
 
-def hy_eval(hytree, namespace):
+def hy_eval(hytree, namespace, module_name):
     foo = HyObject()
     foo.start_line = 0
     foo.end_line = 0
     foo.start_column = 0
     foo.end_column = 0
     hytree.replace(foo)
-    _ast, expr = hy_compile(hytree, get_expr=True)
+    _ast, expr = hy_compile(hytree, module_name, get_expr=True)
 
     # Spoof the positions in the generated ast...
     for node in ast.walk(_ast):
@@ -117,7 +117,8 @@ def write_hy_as_pyc(fname):
             st = os.stat(fname)
         timestamp = long_type(st.st_mtime)
 
-    _ast = import_file_to_ast(fname)
+    _ast = import_file_to_ast(fname,
+                              os.path.basename(os.path.splitext(fname)[0]))
     code = ast_compile(_ast, fname, "exec")
     cfile = "%s.pyc" % fname[:-len(".hy")]
 

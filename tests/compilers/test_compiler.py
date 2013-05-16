@@ -46,7 +46,7 @@ class HyASTCompilerTest(unittest.TestCase):
         return h
 
     def setUp(self):
-        self.c = HyASTCompiler()
+        self.c = HyASTCompiler('')
 
     def test_fn_compiler_empty_function(self):
         ret = self.c.compile_function_def(
