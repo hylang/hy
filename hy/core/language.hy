@@ -25,6 +25,8 @@
 
 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
+(import [hy.models.cons [HyCons]])
+
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -33,6 +35,14 @@
 (defn coll? [coll]
   "Checks whether item is a collection"
   (and (iterable? coll) (not (string? coll))))
+
+(defn cons [a b]
+  "Return a fresh cons cell with car = a and cdr = b"
+  (HyCons a b))
+
+(defn cons? [c]
+  "Check whether c can be used as a cons object"
+  (instance? HyCons c))
 
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
@@ -193,6 +203,12 @@
   (try (= x (iter x))
        (catch [TypeError] false)))
 
+(defn list* [hd &rest tl]
+  "Return a dotted list construed from the elements of the argument"
+  (if (not tl)
+    hd
+    (cons hd (apply list* tl))))
+
 (defn macroexpand [form]
   "Return the full macro expansion of form"
   (import hy.macros)
@@ -314,9 +330,10 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cycle dec distinct disassemble
-                 drop drop-while empty? even? first filter flatten float?
-                 gensym identity inc instance? integer integer? iterable?
-                 iterate iterator? macroexpand macroexpand-1 neg? nil?
-                 none? nth numeric? odd? pos? remove repeat repeatedly
-                 rest second string string? take take-nth take-while zero?])
+(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
+                 disassemble drop drop-while empty? even? first filter
+                 flatten float? gensym identity inc instance? integer
+                 integer? iterable? iterate iterator? list* macroexpand
+                 macroexpand-1 neg? nil? none? nth numeric? odd? pos?
+                 remove repeat repeatedly rest second string string?
+                 take take-nth take-while zero?])

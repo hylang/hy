@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,22 +18,39 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-
-from hy.version import __version__, __appname__  # NOQA
-
-
-from hy.models.expression import HyExpression  # NOQA
-from hy.models.lambdalist import HyLambdaListKeyword  # NOQA
-from hy.models.integer import HyInteger  # NOQA
-from hy.models.keyword import HyKeyword  # NOQA
-from hy.models.complex import HyComplex  # NOQA
-from hy.models.string import HyString  # NOQA
-from hy.models.symbol import HySymbol  # NOQA
-from hy.models.float import HyFloat  # NOQA
-from hy.models.dict import HyDict  # NOQA
-from hy.models.list import HyList  # NOQA
-from hy.models.cons import HyCons  # NOQA
+from hy.models.cons import HyCons
 
 
-import hy.importer  # NOQA
-# we import for side-effects.
+def test_cons_slicing():
+    """Check that cons slicing works as expected"""
+    cons = HyCons("car", "cdr")
+    assert cons[0] == "car"
+    assert cons[1:] == "cdr"
+    try:
+        cons[:]
+        assert True is False
+    except IndexError:
+        pass
+
+    try:
+        cons[1]
+        assert True is False
+    except IndexError:
+        pass
+
+
+def test_cons_replacing():
+    """Check that assigning to a cons works as expected"""
+    cons = HyCons("foo", "bar")
+    cons[0] = "car"
+
+    assert cons == HyCons("car", "bar")
+
+    cons[1:] = "cdr"
+    assert cons == HyCons("car", "cdr")
+
+    try:
+        cons[:] = "foo"
+        assert True is False
+    except IndexError:
+        pass

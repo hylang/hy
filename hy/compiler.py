@@ -34,6 +34,7 @@ from hy.models.symbol import HySymbol
 from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
+from hy.models.cons import HyCons
 
 from hy.errors import HyCompileError, HyTypeError
 
@@ -596,6 +597,24 @@ class HyASTCompiler(object):
 
             return imports, HyExpression([HySymbol(name),
                                           contents]).replace(form), False
+
+        elif isinstance(form, HyCons):
+            ret = HyExpression([HySymbol(name)])
+            nimport, contents, splice = self._render_quoted_form(form.car,
+                                                                 level)
+            if splice:
+                raise HyTypeError(form, "Can't splice dotted lists yet")
+            imports.update(nimport)
+            ret.append(contents)
+
+            nimport, contents, splice = self._render_quoted_form(form.cdr,
+                                                                 level)
+            if splice:
+                raise HyTypeError(form, "Can't splice the cdr of a cons")
+            imports.update(nimport)
+            ret.append(contents)
+
+            return imports, ret.replace(form), False
 
         elif isinstance(form, (HySymbol, HyLambdaListKeyword)):
             return imports, HyExpression([HySymbol(name),
@@ -2035,6 +2054,10 @@ class HyASTCompiler(object):
                             compile_time_ns(self.module_name),
                             self.module_name)
         return Result()
+
+    @builds(HyCons)
+    def compile_cons(self, cons):
+        raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
     @builds(HyInteger)
     def compile_integer(self, number):
