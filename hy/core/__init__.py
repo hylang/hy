@@ -25,12 +25,12 @@ MACROS = [
 ]
 
 
-def process(tree):
+def process(tree, module_name):
     load_macros()
     old = None
     while old != tree:
         old = tree
-        tree = mprocess(tree)
+        tree = mprocess(tree, module_name)
     return tree
 
 

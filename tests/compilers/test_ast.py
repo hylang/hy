@@ -39,13 +39,13 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def can_compile(expr):
-    return hy_compile(tokenize(expr))
+    return hy_compile(tokenize(expr), "__main__")
 
 
 def cant_compile(expr):
     expr = tokenize(expr)
     try:
-        hy_compile(expr)
+        hy_compile(expr, "__main__")
         assert False
     except HyCompileError:
         pass
@@ -54,7 +54,7 @@ def cant_compile(expr):
 def test_ast_bad_type():
     "Make sure AST breakage can happen"
     try:
-        hy_compile("foo")
+        hy_compile("foo", "__main__")
         assert True is False
     except HyCompileError:
         pass
@@ -350,7 +350,7 @@ def test_ast_non_kwapplyable():
     code = tokenize("(kwapply foo bar)")
     code[0][2] = None
     try:
-        hy_compile(code)
+        hy_compile(code, "__main__")
         assert True is False
     except HyCompileError:
         pass
@@ -410,7 +410,7 @@ def test_ast_unicode_strings():
         hy_s.start_line = hy_s.end_line = 0
         hy_s.start_column = hy_s.end_column = 0
 
-        code = hy_compile([hy_s])
+        code = hy_compile([hy_s], "__main__")
 
         # code == ast.Module(body=[ast.Expr(value=ast.Str(s=xxx))])
         return code.body[0].value.s

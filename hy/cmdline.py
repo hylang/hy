@@ -41,7 +41,7 @@ from hy.importer import ast_compile, import_buffer_to_module
 
 import hy.completer
 
-from hy.macros import macro
+from hy.macros import macro, require
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
@@ -66,7 +66,7 @@ class HyREPL(code.InteractiveConsole):
             return True
 
         try:
-            tokens = process(_machine.nodes)
+            tokens = process(_machine.nodes, "__console__")
         except Exception:
             _machine = Machine(Idle, 1, 0)
             self.showtraceback()
@@ -74,7 +74,7 @@ class HyREPL(code.InteractiveConsole):
 
         _machine = Machine(Idle, 1, 0)
         try:
-            _ast = hy_compile(tokens, root=ast.Interactive)
+            _ast = hy_compile(tokens, "__console__", root=ast.Interactive)
             code = ast_compile(_ast, filename, symbol)
         except Exception:
             self.showtraceback()
@@ -134,6 +134,9 @@ def ideas_macro():
 (max (map (lambda [x] (len x)) ["hi" "my" "name" "is" "paul"]))
 
 """)])
+
+require("hy.cmdline", "__console__")
+require("hy.cmdline", "__main__")
 
 
 def run_command(source):
