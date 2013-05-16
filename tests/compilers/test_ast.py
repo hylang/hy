@@ -38,6 +38,10 @@ def _ast_spotcheck(arg, root, secondary):
     assert getattr(root, arg) == getattr(secondary, arg)
 
 
+def can_compile(expr):
+    return hy_compile(tokenize(expr))
+
+
 def cant_compile(expr):
     expr = tokenize(expr)
     try:
@@ -65,13 +69,13 @@ def test_ast_bad_if():
 
 def test_ast_valid_if():
     "Make sure AST can't compile invalid if"
-    hy_compile(tokenize("(if foo bar)"))
+    can_compile("(if foo bar)")
 
 
 def test_ast_valid_unary_op():
     "Make sure AST can compile valid unary operator"
-    hy_compile(tokenize("(not 2)"))
-    hy_compile(tokenize("(~ 1)"))
+    can_compile("(not 2)")
+    can_compile("(~ 1)")
 
 
 def test_ast_invalid_unary_op():
@@ -91,14 +95,14 @@ def test_ast_bad_while():
 
 def test_ast_good_do():
     "Make sure AST can compile valid do"
-    hy_compile(tokenize("(do)"))
-    hy_compile(tokenize("(do 1)"))
+    can_compile("(do)")
+    can_compile("(do 1)")
 
 
 def test_ast_good_throw():
     "Make sure AST can compile valid throw"
-    hy_compile(tokenize("(throw)"))
-    hy_compile(tokenize("(throw 1)"))
+    can_compile("(throw)")
+    can_compile("(throw 1)")
 
 
 def test_ast_bad_throw():
@@ -108,8 +112,8 @@ def test_ast_bad_throw():
 
 def test_ast_good_raise():
     "Make sure AST can compile valid raise"
-    hy_compile(tokenize("(raise)"))
-    hy_compile(tokenize("(raise 1)"))
+    can_compile("(raise)")
+    can_compile("(raise 1)")
 
 
 def test_ast_bad_raise():
@@ -119,15 +123,15 @@ def test_ast_bad_raise():
 
 def test_ast_good_try():
     "Make sure AST can compile valid try"
-    hy_compile(tokenize("(try)"))
-    hy_compile(tokenize("(try 1)"))
-    hy_compile(tokenize("(try 1 (except) (else 1))"))
-    hy_compile(tokenize("(try 1 (else 1) (except))"))
-    hy_compile(tokenize("(try 1 (finally 1) (except))"))
-    hy_compile(tokenize("(try 1 (finally 1))"))
-    hy_compile(tokenize("(try 1 (except) (finally 1))"))
-    hy_compile(tokenize("(try 1 (except) (finally 1) (else 1))"))
-    hy_compile(tokenize("(try 1 (except) (else 1) (finally 1))"))
+    can_compile("(try)")
+    can_compile("(try 1)")
+    can_compile("(try 1 (except) (else 1))")
+    can_compile("(try 1 (else 1) (except))")
+    can_compile("(try 1 (finally 1) (except))")
+    can_compile("(try 1 (finally 1))")
+    can_compile("(try 1 (except) (finally 1))")
+    can_compile("(try 1 (except) (finally 1) (else 1))")
+    can_compile("(try 1 (except) (else 1) (finally 1))")
 
 
 def test_ast_bad_try():
@@ -140,13 +144,13 @@ def test_ast_bad_try():
 
 def test_ast_good_catch():
     "Make sure AST can compile valid catch"
-    hy_compile(tokenize("(try 1 (catch))"))
-    hy_compile(tokenize("(try 1 (catch []))"))
-    hy_compile(tokenize("(try 1 (catch [Foobar]))"))
-    hy_compile(tokenize("(try 1 (catch [[]]))"))
-    hy_compile(tokenize("(try 1 (catch [x FooBar]))"))
-    hy_compile(tokenize("(try 1 (catch [x [FooBar BarFoo]]))"))
-    hy_compile(tokenize("(try 1 (catch [x [FooBar BarFoo]]))"))
+    can_compile("(try 1 (catch))")
+    can_compile("(try 1 (catch []))")
+    can_compile("(try 1 (catch [Foobar]))")
+    can_compile("(try 1 (catch [[]]))")
+    can_compile("(try 1 (catch [x FooBar]))")
+    can_compile("(try 1 (catch [x [FooBar BarFoo]]))")
+    can_compile("(try 1 (catch [x [FooBar BarFoo]]))")
 
 
 def test_ast_bad_catch():
@@ -160,13 +164,13 @@ def test_ast_bad_catch():
 
 def test_ast_good_except():
     "Make sure AST can compile valid except"
-    hy_compile(tokenize("(try 1 (except))"))
-    hy_compile(tokenize("(try 1 (except []))"))
-    hy_compile(tokenize("(try 1 (except [Foobar]))"))
-    hy_compile(tokenize("(try 1 (except [[]]))"))
-    hy_compile(tokenize("(try 1 (except [x FooBar]))"))
-    hy_compile(tokenize("(try 1 (except [x [FooBar BarFoo]]))"))
-    hy_compile(tokenize("(try 1 (except [x [FooBar BarFoo]]))"))
+    can_compile("(try 1 (except))")
+    can_compile("(try 1 (except []))")
+    can_compile("(try 1 (except [Foobar]))")
+    can_compile("(try 1 (except [[]]))")
+    can_compile("(try 1 (except [x FooBar]))")
+    can_compile("(try 1 (except [x [FooBar BarFoo]]))")
+    can_compile("(try 1 (except [x [FooBar BarFoo]]))")
 
 
 def test_ast_bad_except():
@@ -179,7 +183,7 @@ def test_ast_bad_except():
 
 def test_ast_good_assert():
     "Make sure AST can compile valid assert"
-    hy_compile(tokenize("(assert 1)"))
+    can_compile("(assert 1)")
 
 
 def test_ast_bad_assert():
@@ -190,7 +194,7 @@ def test_ast_bad_assert():
 
 def test_ast_good_global():
     "Make sure AST can compile valid global"
-    hy_compile(tokenize("(global a)"))
+    can_compile("(global a)")
 
 
 def test_ast_bad_global():
@@ -201,8 +205,8 @@ def test_ast_bad_global():
 
 def test_ast_good_defclass():
     "Make sure AST can compile valid defclass"
-    hy_compile(tokenize("(defclass a)"))
-    hy_compile(tokenize("(defclass a [])"))
+    can_compile("(defclass a)")
+    can_compile("(defclass a [])")
 
 
 def test_ast_bad_defclass():
@@ -214,8 +218,8 @@ def test_ast_bad_defclass():
 
 def test_ast_good_lambda():
     "Make sure AST can compile valid lambda"
-    hy_compile(tokenize("(lambda [])"))
-    hy_compile(tokenize("(lambda [] 1)"))
+    can_compile("(lambda [])")
+    can_compile("(lambda [] 1)")
 
 
 def test_ast_bad_lambda():
@@ -225,7 +229,7 @@ def test_ast_bad_lambda():
 
 def test_ast_good_yield():
     "Make sure AST can compile valid yield"
-    hy_compile(tokenize("(yield 1)"))
+    can_compile("(yield 1)")
 
 
 def test_ast_bad_yield():
@@ -235,12 +239,12 @@ def test_ast_bad_yield():
 
 def test_ast_good_import_from():
     "Make sure AST can compile valid selective import"
-    hy_compile(tokenize("(import [x [y]])"))
+    can_compile("(import [x [y]])")
 
 
 def test_ast_good_get():
     "Make sure AST can compile valid get"
-    hy_compile(tokenize("(get x y)"))
+    can_compile("(get x y)")
 
 
 def test_ast_bad_get():
@@ -252,10 +256,10 @@ def test_ast_bad_get():
 
 def test_ast_good_slice():
     "Make sure AST can compile valid slice"
-    hy_compile(tokenize("(slice x)"))
-    hy_compile(tokenize("(slice x y)"))
-    hy_compile(tokenize("(slice x y z)"))
-    hy_compile(tokenize("(slice x y z t)"))
+    can_compile("(slice x)")
+    can_compile("(slice x y)")
+    can_compile("(slice x y z)")
+    can_compile("(slice x y z t)")
 
 
 def test_ast_bad_slice():
@@ -266,17 +270,17 @@ def test_ast_bad_slice():
 
 def test_ast_good_take():
     "Make sure AST can compile valid 'take'"
-    hy_compile(tokenize("(take 1 [2 3])"))
+    can_compile("(take 1 [2 3])")
 
 
 def test_ast_good_drop():
     "Make sure AST can compile valid 'drop'"
-    hy_compile(tokenize("(drop 1 [2 3])"))
+    can_compile("(drop 1 [2 3])")
 
 
 def test_ast_good_assoc():
     "Make sure AST can compile valid assoc"
-    hy_compile(tokenize("(assoc x y z)"))
+    can_compile("(assoc x y z)")
 
 
 def test_ast_bad_assoc():
@@ -296,12 +300,12 @@ def test_ast_bad_with():
 
 def test_ast_valid_while():
     "Make sure AST can't compile invalid while"
-    hy_compile(tokenize("(while foo bar)"))
+    can_compile("(while foo bar)")
 
 
 def test_ast_valid_foreach():
     "Make sure AST can compile valid foreach"
-    hy_compile(tokenize("(foreach [a 2])"))
+    can_compile("(foreach [a 2])")
 
 
 def test_ast_invalid_foreach():
@@ -311,7 +315,7 @@ def test_ast_invalid_foreach():
 
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
-    code = hy_compile(tokenize("(foo bar)")).body[0]
+    code = can_compile("(foo bar)").body[0]
     tree = ast.Expr(value=ast.Call(
         func=ast.Name(
             id="foo",
@@ -330,9 +334,9 @@ def test_ast_expression_basics():
 
 def test_ast_anon_fns_basics():
     """ Ensure anon fns work. """
-    code = hy_compile(tokenize("(fn (x) (* x x))")).body[0]
+    code = can_compile("(fn (x) (* x x))").body[0]
     assert type(code) == ast.FunctionDef
-    code = hy_compile(tokenize("(fn (x))")).body[0]
+    code = can_compile("(fn (x))").body[0]
     cant_compile("(fn)")
 
 
@@ -360,7 +364,7 @@ def test_ast_lambda_lists():
 
 
 def test_ast_print():
-    code = hy_compile(tokenize("(print \"foo\")")).body[0]
+    code = can_compile("(print \"foo\")").body[0]
 
     if sys.version_info[0] >= 3:
         assert type(code.value) == ast.Call
@@ -370,31 +374,31 @@ def test_ast_print():
 
 def test_ast_tuple():
     """ Ensure tuples work. """
-    code = hy_compile(tokenize("(, 1 2 3)")).body[0].value
+    code = can_compile("(, 1 2 3)").body[0].value
     assert type(code) == ast.Tuple
 
 
 def test_lambda_list_keywords_rest():
     """ Ensure we can compile functions with lambda list keywords."""
-    hy_compile(tokenize("(fn (x &rest xs) (print xs))"))
+    can_compile("(fn (x &rest xs) (print xs))")
     cant_compile("(fn (x &rest xs &rest ys) (print xs))")
 
 
 def test_lambda_list_keywords_key():
     """ Ensure we can compile functions with &key."""
-    hy_compile(tokenize("(fn (x &key {foo True}) (list x foo))"))
+    can_compile("(fn (x &key {foo True}) (list x foo))")
     cant_compile("(fn (x &key {bar \"baz\"} &key {foo 42}) (list x bar foo))")
 
 
 def test_lambda_list_keywords_kwargs():
     """ Ensure we can compile functions with &kwargs."""
-    hy_compile(tokenize("(fn (x &kwargs kw) (list x kw))"))
+    can_compile("(fn (x &kwargs kw) (list x kw))")
     cant_compile("(fn (x &kwargs xs &kwargs ys) (list x xs ys))")
 
 
 def test_lambda_list_keywords_mixed():
     """ Ensure we can mix them up."""
-    hy_compile(tokenize("(fn (x &rest xs &kwargs kw) (list x xs kw))"))
+    can_compile("(fn (x &rest xs &kwargs kw) (list x xs kw))")
     cant_compile("(fn (x &rest xs &fasfkey {bar \"baz\"}))")
 
 
@@ -419,7 +423,7 @@ def test_ast_unicode_strings():
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     try:
-        hy_compile(tokenize("(fn [] (= 1))"))
+        can_compile("(fn [] (= 1))")
     except HyCompileError as e:
         assert(str(e)
                == "`=' needs at least 2 arguments, got 1 (line 1, column 8)")
