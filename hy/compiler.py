@@ -801,8 +801,10 @@ class HyASTCompiler(object):
         if len(exceptions) == 2:
             name = exceptions.pop(0)
             if not isinstance(name, HySymbol):
-                raise HyTypeError(exceptions,
-                                  "Exception storage target name must be a symbol.")
+                raise HyTypeError(
+                    exceptions,
+                    "Exception storage target name must be a symbol.")
+
             if sys.version_info[0] >= 3:
                 # Python3 features a change where the Exception handler
                 # moved the name from a Name() to a pure Python String type.
