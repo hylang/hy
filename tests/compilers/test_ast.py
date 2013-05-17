@@ -22,7 +22,7 @@
 from __future__ import unicode_literals
 
 from hy import HyString
-from hy.compiler import hy_compile, HyCompileError
+from hy.compiler import hy_compile, HyCompileError, HyTypeError
 from hy.lex import tokenize
 
 import ast
@@ -43,8 +43,11 @@ def cant_compile(expr):
     try:
         hy_compile(expr)
         assert False
-    except HyCompileError:
-        pass
+    except HyCompileError as e:
+        # Anything that can't be compiled should raise a user friendly
+        # error, otherwise it's a compiler bug.
+        assert isinstance(e.exception, HyTypeError)
+        assert e.traceback
 
 
 def test_ast_bad_type():

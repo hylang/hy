@@ -27,11 +27,21 @@ if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
 else:
     import unittest
 
-
+from hy import compiler
 from hy.models.expression import HyExpression
 from hy.models.list import HyList
 from hy.models.symbol import HySymbol
-from hy.compiler import HyASTCompiler
+
+
+class CompilerTest(unittest.TestCase):
+
+    def test_builds_with_dash(self):
+        self.assert_(callable(compiler.builds("foobar")))
+        self.assert_(callable(compiler.builds("foo_bar")))
+        self.assert_(callable(compiler.builds("-")))
+        self.assertRaisesRegexp(TypeError,
+                                "\*post\* translated strings",
+                                compiler.builds, "foobar-with-dash-")
 
 
 class HyASTCompilerTest(unittest.TestCase):
@@ -46,7 +56,7 @@ class HyASTCompilerTest(unittest.TestCase):
         return h
 
     def setUp(self):
-        self.c = HyASTCompiler()
+        self.c = compiler.HyASTCompiler()
 
     def test_fn_compiler_empty_function(self):
         ret = self.c.compile_function_def(

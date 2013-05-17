@@ -97,7 +97,7 @@ def builds(_type):
 
     unpythonic_chars = ["-"]
     really_ok = ["-"]
-    if True in (x in str_type(_type) for x in unpythonic_chars):
+    if any(x in unpythonic_chars for x in str_type(_type)):
         if _type not in really_ok:
             raise TypeError("`build' needs to be *post* translated strings, "
                             "Mr. / Mrs. Hypser. -- `%s' sucks." % (_type))
@@ -419,22 +419,24 @@ class HyASTCompiler(object):
 
             if isinstance(expr, HyLambdaListKeyword):
                 if expr not in expr._valid_types:
-                    raise HyCompileError("{0} is not a valid "
-                                         "lambda-keyword.".format(repr(expr)))
+                    raise HyTypeError(expr, "{0} is not a valid "
+                                      "lambda-keyword.".format(repr(expr)))
                 if expr == "&rest" and lambda_keyword is None:
                     lambda_keyword = expr
                 elif expr == "&optional":
                     if len(defaults) > 0:
-                        raise HyCompileError("There can only be &optional "
-                                             "arguments or one &key argument")
+                        raise HyTypeError(expr,
+                                          "There can only be &optional "
+                                          "arguments or one &key argument")
                     lambda_keyword = expr
                 elif expr == "&key":
                     lambda_keyword = expr
                 elif expr == "&kwargs":
                     lambda_keyword = expr
                 else:
-                    raise HyCompileError("{0} is in an invalid "
-                                         "position.".format(repr(expr)))
+                    raise HyTypeError(expr,
+                                      "{0} is in an invalid "
+                                      "position.".format(repr(expr)))
                 # we don't actually care about this token, so we set
                 # our state and continue to the next token...
                 continue
@@ -443,17 +445,20 @@ class HyASTCompiler(object):
                 args.append(expr)
             elif lambda_keyword == "&rest":
                 if varargs:
-                    raise HyCompileError("There can only be one "
-                                         "&rest argument")
+                    raise HyTypeError(expr,
+                                      "There can only be one "
+                                      "&rest argument")
                 varargs = str(expr)
             elif lambda_keyword == "&key":
                 if type(expr) != HyDict:
-                    raise TypeError("There can only be one &key "
-                                    "argument")
+                    raise HyTypeError(expr,
+                                      "There can only be one &key "
+                                      "argument")
                 else:
                     if len(defaults) > 0:
-                        raise HyCompileError("There can only be &optional "
-                                             "arguments or one &key argument")
+                        raise HyTypeError(expr,
+                                          "There can only be &optional "
+                                          "arguments or one &key argument")
                     # As you can see, Python has a funny way of
                     # defining keyword arguments.
                     it = iter(expr)
@@ -464,8 +469,9 @@ class HyASTCompiler(object):
             elif lambda_keyword == "&optional":
                 if isinstance(expr, HyList):
                     if not len(expr) == 2:
-                        raise TypeError("optional args should be bare names "
-                                        "or 2-item lists")
+                        raise HyTypeError(expr,
+                                          "optional args should be bare names "
+                                          "or 2-item lists")
                     k, v = expr
                 else:
                     k = expr
@@ -475,8 +481,9 @@ class HyASTCompiler(object):
                 defaults.append(ret.force_expr)
             elif lambda_keyword == "&kwargs":
                 if kwargs:
-                    raise HyCompileError("There can only be one "
-                                         "&kwargs argument")
+                    raise HyTypeError(expr,
+                                      "There can only be one "
+                                      "&kwargs argument")
                 kwargs = str(expr)
 
         return ret, args, defaults, varargs, kwargs
@@ -761,7 +768,8 @@ class HyASTCompiler(object):
     @builds("except")
     @builds("catch")
     def magic_internal_form(self, expr):
-        raise TypeError("Error: `%s' can't be used like that." % (expr[0]))
+        raise HyTypeError(expr,
+                          "Error: `%s' can't be used like that." % (expr[0]))
 
     def _compile_catch_expression(self, expr, var):
         catch = expr.pop(0)  # catch
@@ -793,6 +801,11 @@ class HyASTCompiler(object):
         # let's pop variable and use it as name
         if len(exceptions) == 2:
             name = exceptions.pop(0)
+            if not isinstance(name, HySymbol):
+                raise HyTypeError(
+                    exceptions,
+                    "Exception storage target name must be a symbol.")
+
             if sys.version_info[0] >= 3:
                 # Python3 features a change where the Exception handler
                 # moved the name from a Name() to a pure Python String type.
