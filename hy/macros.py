@@ -20,7 +20,6 @@
 
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
-from hy.models.dict import HyDict
 from hy.models.list import HyList
 
 from collections import defaultdict
@@ -65,15 +64,8 @@ def process(tree, module_name):
         ntree.replace(tree)
         return ntree
 
-    if isinstance(tree, HyDict):
-        obj = HyDict(dict((process(x, module_name),
-                           process(tree[x], module_name))
-                          for x in tree))
-        obj.replace(tree)
-        return obj
-
     if isinstance(tree, HyList):
-        obj = HyList([process(x, module_name) for x in tree])  # NOQA
+        obj = tree.__class__([process(x, module_name) for x in tree])  # NOQA
         # flake8 thinks we're redefining from 52.
         obj.replace(tree)
         return obj
