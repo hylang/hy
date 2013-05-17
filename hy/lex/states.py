@@ -228,9 +228,7 @@ class Dict(ListeyThing):
 
     def exit(self):
         self.commit()
-        it = iter(self.nodes)
-        result = dict(zip(it, it))
-        self.result = HyDict(result)
+        self.result = HyDict(self.nodes)
 
     end_char = "}"
 

@@ -15,6 +15,12 @@
   (assert (= [1 2 3 4] (+ [1 2] [3 4]))))
 
 
+(defn test-dicts []
+  "NATIVE: test dicts work right"
+  (assert (= {1 2 3 4} {3 4 1 2}))
+  (assert (= {1 2 3 4} {1 (+ 1 1) 3 (+ 2 2)})))
+
+
 (defn test-setv-get []
   "NATIVE: test setv works on a get expression"
   (setv foo [0 1 2])

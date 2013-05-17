@@ -461,7 +461,8 @@ class HyASTCompiler(object):
                                           "arguments or one &key argument")
                     # As you can see, Python has a funny way of
                     # defining keyword arguments.
-                    for k, v in expr.items():
+                    it = iter(expr)
+                    for k, v in zip(it, it):
                         args.append(k)
                         ret += self.compile(v)
                         defaults.append(ret.force_expr)
@@ -550,7 +551,7 @@ class HyASTCompiler(object):
         name = form.__class__.__name__
         imports = set([name])
 
-        if isinstance(form, HyList):
+        if isinstance(form, (HyList, HyDict)):
             if not form:
                 contents = HyList()
             else:
@@ -1698,7 +1699,7 @@ class HyASTCompiler(object):
 
     @builds(HyDict)
     def compile_dict(self, m):
-        keyvalues, ret = self._compile_collect(sum(m.items(), ()))
+        keyvalues, ret = self._compile_collect(m)
 
         ret += ast.Dict(lineno=m.start_line,
                         col_offset=m.start_column,
