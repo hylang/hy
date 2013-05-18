@@ -32,6 +32,9 @@ It's really goddamn awesome.
 
 Oh, and lisps are neat.
 
+![](http://i.imgur.com/QbPMXTN.png)
+
+(fan art from the one and only [doctormo](http://doctormo.deviantart.com/art/Cuddles-the-Hacker-372184766)
 
 Project
 -------
