@@ -3,7 +3,7 @@ Welcome to Hy's documentation!
 
 
 .. image:: http://fc07.deviantart.net/fs70/i/2013/138/f/0/cuddles_the_hacker_by_doctormo-d65l7lq.png
-   :alt: Hy logo
+   :alt: Paul riding cuddles into the distance
 
 
 .. .. image:: _static/hy_logo-smaller.png
