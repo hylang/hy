@@ -48,6 +48,6 @@ Contents:
    :maxdepth: 3
 
    quickstart
-   hacking
    tutorial
+   hacking
    language/index
