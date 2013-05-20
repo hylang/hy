@@ -1,9 +1,15 @@
 Welcome to Hy's documentation!
 ==============================
 
-.. image:: _static/hy_logo-smaller.png
+
+.. image:: http://fc07.deviantart.net/fs70/i/2013/138/f/0/cuddles_the_hacker_by_doctormo-d65l7lq.png
    :alt: Hy logo
-   :align: left
+
+
+.. .. image:: _static/hy_logo-smaller.png
+..    :alt: Hy logo
+..    :align: left
+
 
 Welcome to `Hy <https://github.com/paultag/hy>`_!
 Hy is a wonderful dialect of Lisp that's embedded in Python.
