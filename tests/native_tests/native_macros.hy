@@ -9,7 +9,6 @@
   (rev (.append x 1) (.append x 2) (.append x 3))
   (assert (= x [3 2 1])))
 
-
 ; Macros returning constants
 
 (defmacro an-int [] 42)
@@ -34,3 +33,15 @@
 
 (defmacro a-dict [] {1 2})
 (assert (= (a-dict) {1 2}))
+
+; A macro calling a previously defined function
+(eval-when-compile
+ (defn foo [x y]
+   (quasiquote (+ (unquote x) (unquote y)))))
+
+(defmacro bar [x y]
+  (foo x y))
+
+(defn test-fn-calling-macro []
+  "NATIVE: test macro calling a plain function"
+  (assert (= 3 (bar 1 2))))
