@@ -6,7 +6,7 @@ Quickstart
    :alt: Karen Rustard's Cuddles
    :align: left
 
-(thanks to Karen Rustard for Cuddles!)
+(thanks to Karen Rustad for Cuddles!)
 
 
 HOW TO GET HY REAL FAST:
