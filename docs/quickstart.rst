@@ -2,6 +2,13 @@
 Quickstart
 ==========
 
+.. image:: _static/cuddles.png
+   :alt: Karen Rustard's Cuddles
+   :align: left
+
+(thanks to Karen Rustard for Cuddles!)
+
+
 HOW TO GET HY REAL FAST:
 
 1. create a `Python virtual environment

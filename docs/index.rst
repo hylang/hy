@@ -38,7 +38,6 @@ Read more about Hy in these docs!  Or, if you'd like, try the
 We're also on IRC!  Join
 `#hy on irc.freenode.net <http://webchat.freenode.net/?channels=hy>`_!
 
-
 Documentation Index
 ===================
 
