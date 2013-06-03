@@ -3,4 +3,4 @@
 (import sys)
 (import [hy.importer [write-hy-as-pyc]])
 
-(write-hy-as-pyc (get sys.argv 1))
+(write-hy-as-pyc (get sys.argv -1))
