@@ -45,3 +45,12 @@
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"
   (assert (= 3 (bar 1 2))))
+
+; Macro that checks a variable defined at compile or load time
+(setv phase "load")
+(eval-when-compile
+ (setv phase "compile"))
+(defmacro phase-when-compiling [] phase)
+(assert (= phase "load"))
+(assert (= (phase-when-compiling) "compile"))
+

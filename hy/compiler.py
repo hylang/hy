@@ -1664,14 +1664,22 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("eval_when_compile")
-    def compile_eval_when_compile(self, expression):
+    @builds("eval_and_compile")
+    def compile_eval_and_compile(self, expression):
         expression[0] = HySymbol("progn")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
         expression.pop(0)
         return self._compile_branch(expression)
+
+    @builds("eval_when_compile")
+    def compile_eval_when_compile(self, expression):
+        expression[0] = HySymbol("progn")
+        hy.importer.hy_eval(expression,
+                            compile_time_ns(self.module_name),
+                            self.module_name)
+        return Result()
 
     @builds(HyInteger)
     def compile_integer(self, number):
