@@ -15,6 +15,11 @@
 (defmacro an-int [] 42)
 (assert (= (an-int) 42))
 
+(defmacro a-true [] True)
+(assert (= (a-true) True))
+(defmacro a-false [] False)
+(assert (= (a-false) False))
+
 (defmacro a-float [] 42.)
 (assert (= (a-float) 42.))
 

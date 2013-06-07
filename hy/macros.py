@@ -20,6 +20,7 @@
 
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
+from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 from hy.models.integer import HyInteger
 from hy.models.float import HyFloat
@@ -57,6 +58,7 @@ def _wrap_value(x):
         return wrapper(x)
 
 _wrappers = {int: HyInteger,
+             bool: lambda x: HySymbol("True") if x else HySymbol("False"),
              float: HyFloat,
              complex: HyComplex,
              str_type: HyString,
