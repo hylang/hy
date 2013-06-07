@@ -20,7 +20,13 @@
 
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
+from hy.models.symbol import HySymbol
 from hy.models.list import HyList
+from hy.models.integer import HyInteger
+from hy.models.float import HyFloat
+from hy.models.complex import HyComplex
+from hy.models.dict import HyDict
+from hy.util import str_type
 
 from collections import defaultdict
 
@@ -44,6 +50,21 @@ def require(source_module_name, target_module_name):
         refs[name] = macro
 
 
+def _wrap_value(x):
+    wrapper = _wrappers.get(type(x))
+    if wrapper is None:
+        return x
+    else:
+        return wrapper(x)
+
+_wrappers = {int: HyInteger,
+             bool: lambda x: HySymbol("True") if x else HySymbol("False"),
+             float: HyFloat,
+             complex: HyComplex,
+             str_type: HyString,
+             dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
+             list: lambda l: HyList(_wrap_value(x) for x in l)}
+
 def process(tree, module_name):
     if isinstance(tree, HyExpression):
         fn = tree[0]
@@ -57,7 +78,7 @@ def process(tree, module_name):
             if m is None:
                 m = _hy_macros[None].get(fn)
             if m is not None:
-                obj = m(*ntree[1:])
+                obj = _wrap_value(m(*ntree[1:]))
                 obj.replace(tree)
                 return obj
 
