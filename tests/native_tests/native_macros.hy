@@ -54,3 +54,10 @@
 (assert (= phase "load"))
 (assert (= (phase-when-compiling) "compile"))
 
+(setv initialized False)
+(eval-and-compile
+ (setv initialized True))
+(defmacro test-initialized [] initialized)
+(assert initialized)
+(assert (test-initialized))
+
