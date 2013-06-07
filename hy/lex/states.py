@@ -255,8 +255,9 @@ class String(State):
         """
         if self.escaped:
             self.escaped = False
-            if char == "n":
-                self.nodes.append("\n")
+            simple_escapables = tuple('abfnrtv')
+            if char in simple_escapables:
+                self.nodes.append(eval('"\\'+char+'"'))
                 return
             if char == "\\":
                 self.nodes.append("\\")
