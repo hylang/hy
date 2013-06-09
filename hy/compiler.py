@@ -50,6 +50,16 @@ import sys
 from collections import defaultdict
 
 
+_compile_time_ns = {}
+
+def compile_time_ns(module_name):
+    ns = _compile_time_ns.get(module_name)
+    if ns is None:
+        ns = {'hy': hy, '__name__': module_name}
+        _compile_time_ns[module_name] = ns
+    return ns
+
+
 class HyCompileError(HyError):
     def __init__(self, exception, traceback=None):
         self.exception = exception
@@ -1645,7 +1655,7 @@ class HyASTCompiler(object):
         # We must provide __name__ in the namespace to make the Python
         # compiler set the __module__ attribute of the macro function.
         hy.importer.hy_eval(new_expression,
-                            {'hy': hy, '__name__': self.module_name},
+                            compile_time_ns(self.module_name),
                             self.module_name)
 
         # We really want to have a `hy` import to get hy.macro in
@@ -1653,6 +1663,23 @@ class HyASTCompiler(object):
         ret.add_imports('hy', [None])
 
         return ret
+
+    @builds("eval_and_compile")
+    def compile_eval_and_compile(self, expression):
+        expression[0] = HySymbol("progn")
+        hy.importer.hy_eval(expression,
+                            compile_time_ns(self.module_name),
+                            self.module_name)
+        expression.pop(0)
+        return self._compile_branch(expression)
+
+    @builds("eval_when_compile")
+    def compile_eval_when_compile(self, expression):
+        expression[0] = HySymbol("progn")
+        hy.importer.hy_eval(expression,
+                            compile_time_ns(self.module_name),
+                            self.module_name)
+        return Result()
 
     @builds(HyInteger)
     def compile_integer(self, number):
