@@ -57,20 +57,25 @@ def _wrap_value(x):
     else:
         return wrapper(x)
 
-_wrappers = {int: HyInteger,
-             bool: lambda x: HySymbol("True") if x else HySymbol("False"),
-             float: HyFloat,
-             complex: HyComplex,
-             str_type: HyString,
-             dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
-             list: lambda l: HyList(_wrap_value(x) for x in l)}
+_wrappers = {
+    int: HyInteger,
+    bool: lambda x: HySymbol("True") if x else HySymbol("False"),
+    float: HyFloat,
+    complex: HyComplex,
+    str_type: HyString,
+    dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
+    list: lambda l: HyList(_wrap_value(x) for x in l)
+}
+
 
 def process(tree, module_name):
     if isinstance(tree, HyExpression):
         fn = tree[0]
         if fn in ("quote", "quasiquote"):
             return tree
-        ntree = HyExpression([fn] + [process(x, module_name) for x in tree[1:]])
+        ntree = HyExpression(
+            [fn] + [process(x, module_name) for x in tree[1:]]
+        )
         ntree.replace(tree)
 
         if isinstance(fn, HyString):
