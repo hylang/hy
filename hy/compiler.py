@@ -52,6 +52,7 @@ from collections import defaultdict
 
 _compile_time_ns = {}
 
+
 def compile_time_ns(module_name):
     ns = _compile_time_ns.get(module_name)
     if ns is None:
