@@ -732,3 +732,8 @@
 (defn test-encoding-nightmares []
   "NATIVE: test unicode encoding escaping crazybits"
   (assert (= (len "ℵℵℵ♥♥♥\t♥♥\r\n") 11)))
+
+
+(defn test-keyword-dict-access []
+  "NATIVE: test keyword dict access"
+  (assert (= "test" (:foo {:foo "test"}))))
