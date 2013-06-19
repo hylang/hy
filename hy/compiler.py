@@ -1399,10 +1399,19 @@ class HyASTCompiler(object):
 
         return ret
 
+    @checkargs(1)
+    def _compile_keyword_call(self, expression):
+        expression.append(expression.pop(0))
+        expression.insert(0, HySymbol("get"))
+        return self.compile(expression)
+
     @builds(HyExpression)
     def compile_expression(self, expression):
         fn = expression[0]
         func = None
+        if isinstance(fn, HyKeyword):
+            return self._compile_keyword_call(expression)
+
         if isinstance(fn, HyString):
             ret = self.compile_atom(fn, expression)
             if ret:
