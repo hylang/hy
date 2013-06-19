@@ -728,3 +728,7 @@
                   (assert (= x [3 2 1]))
                   "success")
               (except [NameError] "failure")))))
+
+(defn test-encoding-nightmares []
+  "NATIVE: test unicode encoding escaping crazybits"
+  (assert (= (len "ℵℵℵ♥♥♥\t♥♥\r\n") 11)))

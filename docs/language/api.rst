@@ -12,7 +12,7 @@ Theory of Hy
 ============
 
 Hy maintains, over everything else, 100% compatibility in both directions
-with Python it's self. All Hy code follows a few simple rules. Memorize
+with Python itself. All Hy code follows a few simple rules. Memorize
 this, it's going to come in handy.
 
 These rules help make sure code is idiomatic and interface-able in both
