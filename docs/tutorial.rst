@@ -326,14 +326,6 @@ example:
      (os.mkdir "/tmp/somedir/anotherdir")
      (print "Hey, that path isn't there!"))
 
-Comments start with semicolons:
-
-.. code-block:: clj
-
-   (print "this will run")
-   ; (print "but this will not")
-   (+ 1 2 3)  ; we'll execute the addition, but not this comment!
-
 Python's context managers ('with' statements) are used like this:
 
 .. code-block:: clj 
