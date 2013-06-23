@@ -5,5 +5,22 @@ import sys
 from hy.cmdline import cmdline_handler
 
 
+class HyQuitter(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        self.__call__()
+
+    def __call__(self, code=None):
+        try:
+            sys.stdin.close()
+        except:
+            pass
+        raise SystemExit(code)
+
+__builtins__.quit = HyQuitter('quit')
+__builtins__.exit = HyQuitter('exit')
+
 if __name__ == '__main__':
     sys.exit(cmdline_handler("hy", sys.argv))
