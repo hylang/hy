@@ -157,7 +157,7 @@ def run_file(filename):
 
 
 def run_repl(hr=None):
-    sys.ps1 = "=> "
+    sys.ps1 = "λ → "
     sys.ps2 = "... "
 
     history = os.path.expanduser("~/.hy-history")
