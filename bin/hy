@@ -1,8 +1,28 @@
 #!/usr/bin/env python
 
 import sys
-
 from hy.cmdline import cmdline_handler
+
+
+class HyQuitter(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return "Use (%s) or Ctrl-D (i.e. EOF) to exit" % (self.name)
+
+    __str__ = __repr__
+
+    def __call__(self, code=None):
+        try:
+            sys.stdin.close()
+        except:
+            pass
+        raise SystemExit(code)
+
+
+__builtins__.quit = HyQuitter('quit')
+__builtins__.exit = HyQuitter('exit')
 
 
 if __name__ == '__main__':
