@@ -685,6 +685,7 @@
                42
                43))))
 
+
 (defn test-try-except-return []
   "NATIVE: test we can return from in a try except"
   (assert (= ((fn [] (try xxx (except [NameError] (+ 1 1))))) 2))
@@ -729,6 +730,7 @@
                   "success")
               (except [NameError] "failure")))))
 
+
 (defn test-encoding-nightmares []
   "NATIVE: test unicode encoding escaping crazybits"
   (assert (= (len "ℵℵℵ♥♥♥\t♥♥\r\n") 11)))
@@ -737,3 +739,19 @@
 (defn test-keyword-dict-access []
   "NATIVE: test keyword dict access"
   (assert (= "test" (:foo {:foo "test"}))))
+
+
+(defn test-break-breaking []
+  "NATIVE: test checking if break actually breaks"
+  (defn holy-grail [] (for [x (range 10)] (if (= x 5) (break))) x)
+  (assert (= (holy-grail) 5)))
+
+
+(defn test-continue-continuation []
+  "NATIVE: test checking if continue actually continues"
+  (setv y [])
+  (for [x (range 10)] 
+    (if (!= x 5) 
+      (continue)) 
+    (.append y x))
+  (assert (= y [5])))
