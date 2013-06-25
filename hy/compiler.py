@@ -959,6 +959,20 @@ class HyASTCompiler(object):
 
         return ret
 
+    @builds("break")
+    def compile_break_expression(self, expr):
+        ret = ast.Break(lineno=expr.start_line,
+                        col_offset=expr.start_column)
+
+        return ret
+
+    @builds("continue")
+    def compile_continue_expression(self, expr):
+        ret = ast.Continue(lineno=expr.start_line,
+                           col_offset=expr.start_column)
+
+        return ret
+
     @builds("assert")
     @checkargs(1)
     def compile_assert_expression(self, expr):
