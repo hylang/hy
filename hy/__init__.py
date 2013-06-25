@@ -32,6 +32,7 @@ from hy.models.symbol import HySymbol  # NOQA
 from hy.models.float import HyFloat  # NOQA
 from hy.models.dict import HyDict  # NOQA
 from hy.models.list import HyList  # NOQA
+from hy.models.cons import HyCons  # NOQA
 
 
 import hy.importer  # NOQA
