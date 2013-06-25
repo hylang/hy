@@ -49,6 +49,31 @@ from hy.models.symbol import HySymbol
 
 _machine = Machine(Idle, 1, 0)
 
+try:
+    import __builtin__ as builtins
+except ImportError:
+    import builtins
+
+
+class HyQuitter(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return "Use (%s) or Ctrl-D (i.e. EOF) to exit" % (self.name)
+
+    __str__ = __repr__
+
+    def __call__(self, code=None):
+        try:
+            sys.stdin.close()
+        except:
+            pass
+        raise SystemExit(code)
+
+builtins.quit = HyQuitter('quit')
+builtins.exit = HyQuitter('exit')
+
 
 class HyREPL(code.InteractiveConsole):
     def runsource(self, source, filename='<input>', symbol='single'):
