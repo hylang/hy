@@ -94,7 +94,7 @@ def test_hy2py():
 
 
 def test_bin_hy_builtins():
-    import hy.cmdline
+    import hy.cmdline  # NOQA
 
     assert str(exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
     assert str(quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
