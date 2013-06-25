@@ -36,5 +36,16 @@ class HyList(HyObject, list):
     def __add__(self, other):
         return self.__class__(super(HyList, self).__add__(other))
 
+    def __getslice__(self, start, end):
+        return self.__class__(super(HyList, self).__getslice__(start, end))
+
+    def __getitem__(self, item):
+        ret = super(HyList, self).__getitem__(item)
+
+        if isinstance(item, slice):
+            return self.__class__(ret)
+
+        return ret
+
     def __repr__(self):
         return "[%s]" % (" ".join([repr(x) for x in self]))
