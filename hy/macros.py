@@ -70,12 +70,13 @@ _wrappers = {
 
 def process(tree, module_name):
     if isinstance(tree, HyExpression):
-        try:
-            fn = tree[0]
-        except IndexError:
+        if tree == []:
+            # set value to []
             ntree = HyList()
             ntree.replace(tree)
             return ntree
+        
+        fn = tree[0]
         if fn in ("quote", "quasiquote"):
             return tree
         ntree = HyExpression(
