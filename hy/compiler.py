@@ -34,6 +34,7 @@ from hy.models.symbol import HySymbol
 from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
+from hy.models.cons import HyCons
 
 import hy.importer
 from hy.core import process
@@ -590,6 +591,16 @@ class HyASTCompiler(object):
         elif isinstance(form, HySymbol):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
+        elif isinstance(form, HyCons):
+            car_imports, car_contents, _ = self._render_quoted_form(form.car,
+                                                                    level)
+            cdr_imports, cdr_contents, _ = self._render_quoted_form(form.cdr,
+                                                                    level)
+            imports.update(car_imports)
+            imports.update(cdr_imports)
+            return imports, HyExpression([HySymbol(name),
+                                          car_contents,
+                                          cdr_contents]).replace(form), False
 
         return imports, HyExpression([HySymbol(name),
                                       form]).replace(form), False
@@ -1549,6 +1560,28 @@ class HyASTCompiler(object):
                         ctx=ast.Load(),
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
+        return ret
+
+    @builds(HyCons)
+    def compile_cons(self, expression):
+        args, ret = self._compile_collect([expression.car, expression.cdr])
+
+        name = "HyCons"
+        ast_name = ast.Name(id=name,
+                            arg=name,
+                            ctx=ast.Load(),
+                            lineno=expression.start_line,
+                            col_offset=expression.start_column)
+
+        ret += ast.Call(func=ast_name,
+                        args=args,
+                        keywords=[],
+                        starargs=None,
+                        kwargs=None,
+                        lineno=expression.start_line,
+                        col_offset=expression.start_column)
+
+        ret.add_imports("hy", [name])
         return ret
 
     @builds("lambda")
