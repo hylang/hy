@@ -28,6 +28,7 @@ from hy.models.string import HyString
 from hy.models.keyword import HyKeyword
 from hy.models.dict import HyDict
 from hy.models.list import HyList
+from hy.models.cons import HyCons
 
 from hy.errors import HyError
 
@@ -219,6 +220,14 @@ class Expression(ListeyThing):
 
     result_type = HyExpression
     end_char = ")"
+
+    def exit(self):
+        super(Expression, self).exit()
+        if self.result and self.result[0] == HySymbol("cons"):
+            if len(self.result) != 3:
+                raise LexException(
+                    "cons with %s elements" % (len(self.result) - 1))
+            self.result = HyCons(self.result[1], self.result[2])
 
 
 class Dict(ListeyThing):
