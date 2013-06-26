@@ -72,7 +72,7 @@ def process(tree, module_name):
     if isinstance(tree, HyExpression):
         if tree == []:
             return tree
-        
+
         fn = tree[0]
         if fn in ("quote", "quasiquote"):
             return tree
