@@ -1,3 +1,4 @@
+astor
 tox
 nose
 flake8
