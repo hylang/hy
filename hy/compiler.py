@@ -1421,6 +1421,8 @@ class HyASTCompiler(object):
 
     @builds(HyExpression)
     def compile_expression(self, expression):
+        if expression == []:
+            return self.compile_list(expression)
         fn = expression[0]
         func = None
         if isinstance(fn, HyKeyword):

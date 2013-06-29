@@ -91,3 +91,10 @@ def test_hy2py():
                 assert len(ret[1]) > 1, f
                 assert len(ret[2]) == 0, f
     assert i
+
+
+def test_bin_hy_builtins():
+    import hy.cmdline  # NOQA
+
+    assert str(exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
+    assert str(quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
