@@ -20,6 +20,7 @@
 
 import hy.macros
 import hy.compiler
+from hy.readline_helpers import set_completer
 
 try:
     import __builtin__
@@ -57,11 +58,5 @@ class Completer(object):
         except IndexError:
             return None
 
+set_completer(Completer().complete, "()[]{} ")
 
-try:
-    import readline
-except ImportError:
-    pass
-else:
-    readline.set_completer(Completer().complete)
-    readline.set_completer_delims("()[]{} ")

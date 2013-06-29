@@ -22,16 +22,20 @@
 
 from hy import __appname__, __version__
 from setuptools import setup
-
+import os
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
+install_requires = []
+if os.name == 'nt':
+    install_requires.append('pyreadline==2.0')
 
 setup(
     name=__appname__,
     version=__version__,
+    install_requires=install_requires,
     scripts=[
         "bin/hy",
         "bin/hyc",
