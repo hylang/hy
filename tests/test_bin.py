@@ -76,6 +76,18 @@ def test_bin_hy_file():
     assert "27" in ret[1]
 
 
+def test_bin_hy_file_with_args():
+    ret = run_cmd("bin/hy tests/argparse_ex.hy -h")
+    assert ret[0] == 0
+    assert "usage" in ret[1]
+    ret = run_cmd("bin/hy tests/argparse_ex.hy -c foo")
+    assert ret[0] == 0
+    assert "got c" in ret[1]
+    ret = run_cmd("bin/hy tests/argparse_ex.hy -i foo")
+    assert ret[0] == 0
+    assert "foo" in ret[1]
+
+
 def test_hy2py():
     # XXX Astor doesn't seem to support Python3 :(
     if sys.version_info[0] == 3:
