@@ -218,10 +218,11 @@ EPILOG = """  file         program read from script
   [arg] ...    arguments passed to program in sys.argv[1:]
 """
 
+
 def split_args(args):
     hy_args = args
     script_args = []
-    for i, arg in zip(range(len(args)), args):
+    for i, arg in enumerate(args):
         if arg == "-" or arg[-3:] == ".hy":
             hy_args = args[:i]
             script_args = args[i:]
