@@ -24,7 +24,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import optparse
+import argparse
 import code
 import ast
 import sys
@@ -198,26 +198,40 @@ def run_icommand(source):
     return run_repl(hr)
 
 
-USAGE = "usage: %prog [-h | -i cmd | -c cmd | file | -]"
-VERSION = "%prog " + hy.__version__
+USAGE = "%(prog)s [-h | -i cmd | -c cmd | file | -] [arg] ..."
+VERSION = "%(prog)s " + hy.__version__
 EPILOG = """  file         program read from script
   -            program read from stdin
+  [arg] ...    arguments passed to program in sys.argv[1:]
 """
 
 
 def cmdline_handler(scriptname, argv):
-    parser = optparse.OptionParser(usage=USAGE, version=VERSION)
-    parser.add_option(
-        "-c", dest="command", metavar="COMMAND",
-        help="program passed in as string")
-    parser.add_option(
-        "-i", dest="icommand", metavar="ICOMMAND",
-        help="program passed in as string, then stay in repl")
+    parser = argparse.ArgumentParser(
+        prog="hy",
+        usage=USAGE,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=EPILOG)
+    parser.add_argument("-c", dest="command",
+                        help="program passed in as a string")
+    parser.add_argument(
+        "-i", dest="icommand",
+        help="program passed in as a string, then stay in REPL")
 
-    # Hylarious way of adding non-option options to help text
-    parser.format_epilog = lambda self: EPILOG
+    parser.add_argument("-v", action="version", version=VERSION)
 
-    (options, args) = parser.parse_args()
+    # this will contain the script/program name and any arguments for it.
+    parser.add_argument('args', nargs=argparse.REMAINDER,
+                        help=argparse.SUPPRESS)
+
+    # stash the hy exectuable in case we need it later
+    # mimics Python sys.executable
+    hy.executable = argv[0]
+
+    options = parser.parse_args(argv[1:])
+
+    # reset sys.argv like Python
+    sys.argv = options.args
 
     if options.command:
         # User did "hy -c ..."
@@ -227,14 +241,25 @@ def cmdline_handler(scriptname, argv):
         # User did "hy -i ..."
         return run_icommand(options.icommand)
 
-    if args:
-        if args[0] == "-":
+    if options.args:
+        if options.args[0] == "-":
             # Read the program from stdin
             return run_command(sys.stdin.read())
 
         else:
             # User did "hy <filename>"
-            return run_file(args[0])
+            return run_file(options.args[0])
 
     # User did NOTHING!
     return run_repl()
+
+
+# entry point for cmd line script "hy"
+def hy_main():
+    sys.exit(cmdline_handler("hy", sys.argv))
+
+
+# entry point for cmd line script "hyc"
+def hyc_main():
+    from hy.importer import write_hy_as_pyc
+    write_hy_as_pyc(sys.argv[1])
