@@ -89,6 +89,39 @@ Some example usage
 `do` can accept any number of arguments, from 1 to n.
 
 
+if
+--
+
+the `if` form is used to conditionally select code to be executed. It has to
+contain the condition block and the block to be executed if the condition
+evaluates `True`. Optionally it may contain a block that is executed in case
+the evaluation of the condition is `False`.
+
+Example usage:
+
+.. code-block:: clj
+
+    (if (money-left? account)
+      (print "lets go shopping")
+      (print "lets go and work"))
+
+Truth values of Python objects are respected. Values `None`, `False`, zero of
+any numeric type, empty sequence and empty dictionary are considered `False`.
+Everything else is considered `True`.
+
+
+print
+-----
+
+.. TODO: can print used to output in file or stream?
+
+the `print` form is used to output on screen. Example usage:
+
+.. code-block:: clj
+
+    (print "Hello world!")
+
+
 throw / raise
 -------------
 
