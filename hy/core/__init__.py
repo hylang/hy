@@ -24,6 +24,10 @@ MACROS = [
     "hy.core.bootstrap",
 ]
 
+STDLIB = [
+    "hy.core.language"
+]
+
 
 def process(tree, module_name):
     load_macros()
