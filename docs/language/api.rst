@@ -78,8 +78,8 @@ Some example usage
 `do` can accept any number of arguments, from 1 to n.
 
 
-def, setf, setv
----------------
+def / setf / setv
+-----------------
 
 
 defclass
@@ -170,8 +170,8 @@ kwapply
 -------
 
 
-lambda, fn
-----------
+lambda / fn
+-----------
 
 
 list-comp
