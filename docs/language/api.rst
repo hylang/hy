@@ -38,6 +38,103 @@ Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+and
+---
+
+
+assert
+------
+
+
+assoc
+-----
+
+
+break
+-----
+
+
+continue
+--------
+
+
+do / progn
+----------
+
+the `do` or `progn` forms can be used in full code branches. What that means
+is basically `(do)` and `(progn)` can only be used where a Python expression
+can be used. These forms don't actually allow you to break Pythonic internals
+such as `lambda` or `list-comp`, where you can only have one expression.
+
+
+Some example usage
+
+.. code-block:: clj
+
+    (if true
+      (do (print "Side effects rock!")
+          (print "Yeah, really!")))
+
+`do` can accept any number of arguments, from 1 to n.
+
+
+def, setf, setv
+---------------
+
+
+defclass
+--------
+
+
+defmacro
+--------
+
+
+eval
+----
+
+
+eval-and-compile
+----------------
+
+
+eval-when-compile
+-----------------
+
+
+foreach
+-------
+
+
+get
+---
+
+
+global
+------
+
+
+if
+--
+
+the `if` form is used to conditionally select code to be executed. It has to
+contain the condition block and the block to be executed if the condition
+evaluates `True`. Optionally it may contain a block that is executed in case
+the evaluation of the condition is `False`.
+
+Example usage:
+
+.. code-block:: clj
+
+    (if (money-left? account)
+      (print "lets go shopping")
+      (print "lets go and work"))
+
+Truth values of Python objects are respected. Values `None`, `False`, zero of
+any numeric type, empty sequence and empty dictionary are considered `False`.
+Everything else is considered `True`.
+
+
 import
 ------
 
@@ -69,45 +166,24 @@ of import you can use.
             [sys :as systest])
 
 
-do / progn
+kwapply
+-------
+
+
+lambda, fn
 ----------
 
-the `do` or `progn` forms can be used in full code branches. What that means
-is basically `(do)` and `(progn)` can only be used where a Python expression
-can be used. These forms don't actually allow you to break Pythonic internals
-such as `lambda` or `list-comp`, where you can only have one expression.
+
+list-comp
+---------
 
 
-Some example usage
-
-.. code-block:: clj
-
-    (if true
-      (do (print "Side effects rock!")
-          (print "Yeah, really!")))
-
-`do` can accept any number of arguments, from 1 to n.
+not
+---
 
 
-if
+or
 --
-
-the `if` form is used to conditionally select code to be executed. It has to
-contain the condition block and the block to be executed if the condition
-evaluates `True`. Optionally it may contain a block that is executed in case
-the evaluation of the condition is `False`.
-
-Example usage:
-
-.. code-block:: clj
-
-    (if (money-left? account)
-      (print "lets go shopping")
-      (print "lets go and work"))
-
-Truth values of Python objects are respected. Values `None`, `False`, zero of
-any numeric type, empty sequence and empty dictionary are considered `False`.
-Everything else is considered `True`.
 
 
 print
@@ -120,6 +196,14 @@ the `print` form is used to output on screen. Example usage:
 .. code-block:: clj
 
     (print "Hello world!")
+
+
+require
+-------
+
+
+slice
+-----
 
 
 throw / raise
@@ -165,3 +249,22 @@ as follows
 block during execution of `error-prone-function` then that catch block will
 be executed. If no errors are raised the `else` block is executed. Regardless
 if an error was raised or not, the `finally` block is executed as last.
+
+
+while
+-----
+
+
+with
+----
+
+
+with-decorator
+--------------
+
+
+yield
+-----
+
+
+
