@@ -116,9 +116,6 @@ no arguments to re-raise the last Exception.
 try
 ---
 
-.. TODO::
-    Document the else / finally syntax.
-
 the `try` form is used to start a `try` / `catch` block. The form is used
 as follows
 
@@ -126,7 +123,12 @@ as follows
 
     (try
         (error-prone-function)
-        (catch [e SomeException] (err "It sucks!")))
+        (catch [e ZeroDivisionError] (print "Division by zero"))
+        (else (print "no errors"))
+        (finally (print "all done")))
 
 `try` must contain at least one `catch` block, and may optionally have an
-`else` or `finally` block.
+`else` or `finally` block. If an error is raised with a matching catch
+block during execution of `error-prone-function` then that catch block will
+be executed. If no errors are raised the `else` block is executed. Regardless
+if an error was raised or not, the `finally` block is executed as last.
