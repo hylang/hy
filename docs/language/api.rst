@@ -41,6 +41,20 @@ behavior that's slightly unexpected in some situations.
 and
 ---
 
+`and` form is used in logical expressions. It takes at least two parameters. If
+all parameters evaluate to `True` then `True` is returned. In any other case
+`False` will be returned. Examples of usage:
+
+.. code-block:: clj
+
+    => (and True False)
+    False
+
+    => (and True True)
+    True
+
+    => (and False False True False)
+    False
 
 assert
 ------
@@ -212,6 +226,21 @@ not
 
 or
 --
+
+`or` form is used in logical expressions. It takes at least two parameters. If
+any of  parameters evaluates to `True` then `True` is returned. In any other
+case `False` will be returned. Examples of usage:
+
+.. code-block:: clj
+
+    => (or True False)
+    True
+
+    => (and False False)
+    True
+
+    => (and False False True False)
+    True
 
 
 print
