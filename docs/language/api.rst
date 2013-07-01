@@ -223,6 +223,18 @@ list-comp
 not
 ---
 
+`not` form is used in logical expressions. It takes a single parameter and
+returns a reversed truth value. If `True` is given as a parameter, `False`
+will be returned and vice-versa. Examples for usage:
+
+.. code-block:: clj
+
+    => (not True)
+    False
+
+    => (not False)
+    True
+
 
 or
 --
