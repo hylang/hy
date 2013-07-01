@@ -211,11 +211,23 @@ def run_icommand(source):
     return run_repl(hr)
 
 
-USAGE = "usage: %prog [-h | -i cmd | -c cmd | file | -]"
+USAGE = "usage: %prog [-h | -i cmd | -c cmd | file | -] [arg] ..."
 VERSION = "%prog " + hy.__version__
 EPILOG = """  file         program read from script
   -            program read from stdin
+  [arg] ...    arguments passed to program in sys.argv[1:]
 """
+
+
+def split_args(args):
+    hy_args = args
+    script_args = []
+    for i, arg in enumerate(args):
+        if arg == "-" or arg[-3:] == ".hy":
+            hy_args = args[:i]
+            script_args = args[i:]
+            break
+    return hy_args, script_args
 
 
 def cmdline_handler(scriptname, argv):
@@ -230,7 +242,22 @@ def cmdline_handler(scriptname, argv):
     # Hylarious way of adding non-option options to help text
     parser.format_epilog = lambda self: EPILOG
 
-    (options, args) = parser.parse_args()
+    # need to split out args
+    # hy_args will contains flags specific to the hy script
+    # script_args will contains the script name and its args (if provided)
+    hy_args, script_args = split_args(argv)
+
+    if len(hy_args) > 0:
+        # stash the hy exectuable in case we need it later
+        # mimics Python sys.executable
+        hy.executable = hy_args[0]
+
+    # then only parse args for hy now
+    (options, args) = parser.parse_args(hy_args)
+
+    # reset sys.argv to contain only args for script
+    # script itself is argv[0] just like Python
+    sys.argv = script_args
 
     if options.command:
         # User did "hy -c ..."
@@ -240,14 +267,14 @@ def cmdline_handler(scriptname, argv):
         # User did "hy -i ..."
         return run_icommand(options.icommand)
 
-    if args:
-        if args[0] == "-":
+    if script_args:
+        if script_args[0] == "-":
             # Read the program from stdin
             return run_command(sys.stdin.read())
 
         else:
             # User did "hy <filename>"
-            return run_file(args[0])
+            return run_file(script_args[0])
 
     # User did NOTHING!
     return run_repl()
