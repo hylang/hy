@@ -385,9 +385,9 @@
 
 (defn test-drop []
   "NATIVE: test drop"
-  (assert (= (drop 0 [2 3]) [2 3]))
-  (assert (= (drop 1 [2 3]) [3]))
-  (assert (= (drop 2 [2 3]) [])))
+  (assert (= (list (drop 0 [2 3])) [2 3]))
+  (assert (= (list (drop 1 [2 3])) [3]))
+  (assert (= (list (drop 2 [2 3])) [])))
 
 
 (defn test-rest []
@@ -739,6 +739,13 @@
 (defn test-keyword-dict-access []
   "NATIVE: test keyword dict access"
   (assert (= "test" (:foo {:foo "test"}))))
+
+
+(defn test-take []
+  "NATIVE: test the take operator"
+  (assert (= [1 2 3] (list (take 3 [1 2 3]))))
+  (assert (= [1 2 3] (list (take 4 [1 2 3]))))
+  (assert (= [1 2] (list (take 2 [1 2 4])))))
 
 
 (defn test-break-breaking []

@@ -36,14 +36,14 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 
 import hy.importer
-from hy.core import process
-
-from hy.util import str_type
 
 from hy.macros import require
+from hy.util import str_type
+from hy.core import process
 
-import codecs
 import traceback
+import importlib
+import codecs
 import ast
 import sys
 
@@ -59,6 +59,17 @@ def compile_time_ns(module_name):
         ns = {'hy': hy, '__name__': module_name}
         _compile_time_ns[module_name] = ns
     return ns
+
+
+_stdlib = {}
+
+
+def load_stdlib():
+    import hy.core
+    for module in hy.core.STDLIB:
+        mod = importlib.import_module(module)
+        for e in mod.EXPORTS:
+            _stdlib[e] = module
 
 
 class HyCompileError(HyError):
@@ -339,6 +350,9 @@ class HyASTCompiler(object):
         self.anon_var_count = 0
         self.imports = defaultdict(set)
         self.module_name = module_name
+        if not module_name.startswith("hy.core"):
+            # everything in core needs to be explicit.
+            load_stdlib()
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -1432,6 +1446,10 @@ class HyASTCompiler(object):
             ret = self.compile_atom(fn, expression)
             if ret:
                 return ret
+
+            if fn in _stdlib:
+                self.imports[_stdlib[fn]].add(fn)
+
             if fn.startswith("."):
                 # (.split "test test") -> "test test".split()
 
