@@ -38,6 +38,164 @@ Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+and
+---
+
+`and` form is used in logical expressions. It takes at least two parameters. If
+all parameters evaluate to `True` then `True` is returned. In any other case
+`False` will be returned. Examples of usage:
+
+.. code-block:: clj
+
+    => (and True False)
+    False
+
+    => (and True True)
+    True
+
+    => (and False False True False)
+    False
+
+assert
+------
+
+`assert` is used to verify conditions while the program is running. If the 
+condition is not met, an `AssertionError` is raised. The example usage:
+
+.. code-block:: clj
+
+    (assert (variable = expected-value))
+
+Assert takes a single parameter, an conditional that evaluates to either `True`
+or `False`.
+
+assoc
+-----
+
+`assoc` form is used to associate a key with a value in a dictionary or to set
+an index of a list to a value. It takes three parameters: `datastructure` to be
+modified, `key` or `index`  and `value`.
+
+Examples of usage:
+
+.. code-block:: clj
+
+  =>(let [[collection (dict {})]]
+  ... (assoc collection "Dog" "Bark")
+  ... (print collection))
+  {u'Dog': u'Bark'}
+
+  =>(let [[collection [1 2 3 4]]]
+  ... (assoc collection 2 None)
+  ... (print collection))
+  [1, 2, None, 4]
+
+.. note:: `assoc` modifies the datastructure in place and returns `None`.
+
+break
+-----
+
+
+continue
+--------
+
+
+do / progn
+----------
+
+the `do` or `progn` forms can be used in full code branches. What that means
+is basically `(do)` and `(progn)` can only be used where a Python expression
+can be used. These forms don't actually allow you to break Pythonic internals
+such as `lambda` or `list-comp`, where you can only have one expression.
+
+
+Some example usage
+
+.. code-block:: clj
+
+    (if true
+      (do (print "Side effects rock!")
+          (print "Yeah, really!")))
+
+`do` can accept any number of arguments, from 1 to n.
+
+
+def / setf / setv
+-----------------
+
+
+defclass
+--------
+
+
+defmacro
+--------
+
+
+eval
+----
+
+
+eval-and-compile
+----------------
+
+
+eval-when-compile
+-----------------
+
+
+foreach
+-------
+
+
+get
+---
+
+`get` form is used to access single elements in lists and dictionaries. `get`
+takes two parameters, the `datastructure` and the `index` or `key` of the item.
+It will then return the corresponding value from the dictionary or the list. 
+Example usages:
+
+.. code-block:: clj
+
+   => (let [[animals {"dog" "bark" "cat" "meow"}]
+   ...      [numbers ["zero" "one" "two" "three"]]]
+   ...  (print (get animals "dog"))
+   ...  (print (get numbers 2)))
+   bark
+   two
+
+.. note:: `get` raises a KeyError if a dictionary is queried for a non-existing
+          key.
+
+.. note:: `get` raises an IndexError if a list is queried for an index that is
+          out of bounds.
+
+global
+------
+
+
+if
+--
+
+the `if` form is used to conditionally select code to be executed. It has to
+contain the condition block and the block to be executed if the condition
+evaluates `True`. Optionally it may contain a block that is executed in case
+the evaluation of the condition is `False`.
+
+Example usage:
+
+.. code-block:: clj
+
+    (if (money-left? account)
+      (print "lets go shopping")
+      (print "lets go and work"))
+
+Truth values of Python objects are respected. Values `None`, `False`, zero of
+any numeric type, empty sequence and empty dictionary are considered `False`.
+Everything else is considered `True`.
+
+
 import
 ------
 
@@ -69,24 +227,71 @@ of import you can use.
             [sys :as systest])
 
 
-do / progn
-----------
-
-the `do` or `progn` forms can be used in full code branches. What that means
-is basically `(do)` and `(progn)` can only be used where a Python expression
-can be used. These forms don't actually allow you to break Pythonic internals
-such as `lambda` or `list-comp`, where you can only have one expression.
+kwapply
+-------
 
 
-Some example usage
+lambda / fn
+-----------
+
+
+list-comp
+---------
+
+
+not
+---
+
+`not` form is used in logical expressions. It takes a single parameter and
+returns a reversed truth value. If `True` is given as a parameter, `False`
+will be returned and vice-versa. Examples for usage:
 
 .. code-block:: clj
 
-    (if true
-      (do (print "Side effects rock!")
-          (print "Yeah, really!")))
+    => (not True)
+    False
 
-`do` can accept any number of arguments, from 1 to n.
+    => (not False)
+    True
+
+
+or
+--
+
+`or` form is used in logical expressions. It takes at least two parameters. If
+any of  parameters evaluates to `True` then `True` is returned. In any other
+case `False` will be returned. Examples of usage:
+
+.. code-block:: clj
+
+    => (or True False)
+    True
+
+    => (and False False)
+    True
+
+    => (and False False True False)
+    True
+
+
+print
+-----
+
+.. TODO:: can print used to output in file or stream?
+
+the `print` form is used to output on screen. Example usage:
+
+.. code-block:: clj
+
+    (print "Hello world!")
+
+
+require
+-------
+
+
+slice
+-----
 
 
 throw / raise
@@ -132,3 +337,22 @@ as follows
 block during execution of `error-prone-function` then that catch block will
 be executed. If no errors are raised the `else` block is executed. Regardless
 if an error was raised or not, the `finally` block is executed as last.
+
+
+while
+-----
+
+
+with
+----
+
+
+with-decorator
+--------------
+
+
+yield
+-----
+
+
+
