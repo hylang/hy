@@ -151,6 +151,25 @@ foreach
 get
 ---
 
+`get` form is used to access single elements in lists and dictionaries. `get`
+takes two parameters, the `datastructure` and the `index` or `key` of the item.
+It will then return the corresponding value from the dictionary or the list. 
+Example usages:
+
+.. code-block:: clj
+
+   => (let [[animals {"dog" "bark" "cat" "meow"}]
+   ...      [numbers ["zero" "one" "two" "three"]]]
+   ...  (print (get animals "dog"))
+   ...  (print (get numbers 2)))
+   bark
+   two
+
+.. note:: `get` raises a KeyError if a dictionary is queried for a non-existing
+          key.
+
+.. note:: `get` raises an IndexError if a list is queried for an index that is
+          out of bounds.
 
 global
 ------
@@ -258,7 +277,7 @@ case `False` will be returned. Examples of usage:
 print
 -----
 
-.. TODO: can print used to output in file or stream?
+.. TODO:: can print used to output in file or stream?
 
 the `print` form is used to output on screen. Example usage:
 
