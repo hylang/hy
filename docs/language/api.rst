@@ -45,10 +45,38 @@ and
 assert
 ------
 
+`assert` is used to verify conditions while the program is running. If the 
+condition is not met, an `AssertionError` is raised. The example usage:
+
+.. code-block:: clj
+
+    (assert (variable = expected-value))
+
+Assert takes a single parameter, an conditional that evaluates to either `True`
+or `False`.
 
 assoc
 -----
 
+`assoc` form is used to associate a key with a value in a dictionary or to set
+an index of a list to a value. It takes three parameters: `datastructure` to be
+modified, `key` or `index`  and `value`.
+
+Examples of usage:
+
+.. code-block:: clj
+
+  =>(let [[collection (dict {})]]
+  ... (assoc collection "Dog" "Bark")
+  ... (print collection))
+  {u'Dog': u'Bark'}
+
+  =>(let [[collection [1 2 3 4]]]
+  ... (assoc collection 2 None)
+  ... (print collection))
+  [1, 2, None, 4]
+
+.. note:: `assoc` modifies the datastructure in place and returns `None`.
 
 break
 -----
