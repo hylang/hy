@@ -8,7 +8,7 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt --use-mirrors
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install argparse unittest2 astor --use-mirrors; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install importlib unittest2 astor --use-mirrors; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install astor --use-mirrors; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pip install astor --use-mirrors; fi
   - python setup.py -q install
