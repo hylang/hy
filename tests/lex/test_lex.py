@@ -97,8 +97,16 @@ def test_lex_symbols():
 def test_lex_strings():
     """ Make sure that strings are valid expressions"""
     objs = tokenize("\"foo\" ")
+    print objs
+    print HyString("foo")
     assert objs == [HyString("foo")]
 
+def test_lex_raw_strings():
+    """ Make sure that raw strings are valid """
+    objs = tokenize("r\"\ntr\"")
+    print objs
+    print HyString(r"\ntr")
+    assert objs == [HyString(r"\ntr")]
 
 def test_lex_integers():
     """ Make sure that integers are valid expressions"""
