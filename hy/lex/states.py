@@ -237,6 +237,7 @@ class Dict(ListeyThing):
 
     end_char = "}"
 
+
 class RawString(State):
     """
     RawString state. This will handle stuff like:
@@ -260,7 +261,7 @@ class RawString(State):
         if char == "\"":
             return Idle
 
-        if  char == "r\"":
+        if char == 'r"':
             self.nodes.append("r")
             return Idle
 
@@ -305,7 +306,7 @@ class String(State):
         if char == "\"":
             return Idle
 
-        if  char == "r\"":
+        if char == 'r"':
             self.nodes.append("r")
             return Idle
 
@@ -388,7 +389,7 @@ class Idle(State):
             return String
 
         if char == "r\"":
-             return RawString
+            return RawString
 
         if char == ";":
             return Comment

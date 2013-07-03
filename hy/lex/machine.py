@@ -88,7 +88,7 @@ class Machine(object):
                 self.line += 1
                 self.column = 0
 
-            if char == "r" and i<len(buf)-1 and buf[i+1] == "\"":
+            if char == "r" and i < len(buf)-1 and buf[i+1] == "\"":
                 char = "r\""
                 skip_one = True
 
