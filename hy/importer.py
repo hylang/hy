@@ -76,9 +76,9 @@ def import_file_to_module(module_name, fpath):
 
     try:
         eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
-    except Exception as e:
+    except Exception:
         sys.modules.pop(module_name, None)
-        raise e
+        raise
 
     return mod
 
