@@ -73,7 +73,13 @@ def import_file_to_module(module_name, fpath):
     _ast = import_file_to_ast(fpath, module_name)
     mod = imp.new_module(module_name)
     mod.__file__ = fpath
-    eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
+
+    try:
+        eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
+    except Exception as e:
+        sys.modules.pop(module_name, None)
+        raise e
+
     return mod
 
 
