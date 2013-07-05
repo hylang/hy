@@ -1246,14 +1246,16 @@ class HyASTCompiler(object):
     def compile_kwapply_expression(self, expr):
         expr.pop(0)  # kwapply
         call = self.compile(expr.pop(0))
-        kwargs = self.compile(expr.pop(0))
-
-        if type(call.expr) != ast.Call:
-            raise HyTypeError(expr, "kwapplying a non-call")
-
-        call.expr.kwargs = kwargs.force_expr
-
-        return kwargs + call
+        argish = expr.pop(0)
+        argish = self.compile(argish)
+        ret = argish + ast.Call(func=call.expr,
+                              args= [],
+                              keywords=[],
+                              starargs=None,
+                              kwargs=argish.force_expr,
+                              lineno=expr.start_line,
+                              col_offset=expr.start_column)                            
+        return ret
 
     @builds("not")
     @builds("~")
