@@ -16,7 +16,7 @@ def test_stringer():
 
 
 def test_imports():
-    path = os.getcwd()+"/tests/resources/importer/a.hy"
+    path = os.getcwd() + "/tests/resources/importer/a.hy"
     testLoader = MetaLoader(path)
 
     def _import_test():
