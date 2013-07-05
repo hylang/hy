@@ -137,21 +137,6 @@ def let_macro(variables, *body):
     return HyExpression([expr + list(body)])
 
 
-@macro("take")
-def take_macro(n, lst):
-    return HyExpression([HySymbol('slice'),
-                         lst,
-                         HyInteger(0),
-                         HyInteger(n)])
-
-
-@macro("drop")
-def drop_macro(n, lst):
-    return HyExpression([HySymbol('slice'),
-                         lst,
-                         HyInteger(n)])
-
-
 @macro("when")
 def when_macro(test, *body):
     return HyExpression([
