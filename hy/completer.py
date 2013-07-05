@@ -59,4 +59,3 @@ class Completer(object):
             return None
 
 set_completer(Completer().complete, "()[]{} ")
-

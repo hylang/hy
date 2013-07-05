@@ -35,15 +35,17 @@ try:
 except ImportError:
     try:
         import pyreadline.rlmain
-        import pyreadline.unicode_helper
+        import pyreadline.unicode_helper  # NOQA
         import readline
     except ImportError:
         noop = True
+
 
 def set_completer(completer, delims):
     if not noop:
         readline.set_completer(completer)
         readline.set_completer_delims(delims)
+
 
 def read_history_file():
     if noop:
@@ -59,6 +61,7 @@ def read_history_file():
 
     readline.parse_and_bind("tab: complete")
     return history
+
 
 def write_history_file(history):
     if not noop:
