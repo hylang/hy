@@ -70,10 +70,15 @@ def import_file_to_module(module_name, fpath):
     """Import content from fpath and puts it into a Python module.
 
     Returns the module."""
-    _ast = import_file_to_ast(fpath, module_name)
-    mod = imp.new_module(module_name)
-    mod.__file__ = fpath
-    eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
+    try:
+        _ast = import_file_to_ast(fpath, module_name)
+        mod = imp.new_module(module_name)
+        mod.__file__ = fpath
+        eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
+    except Exception:
+        sys.modules.pop(module_name, None)
+        raise
+
     return mod
 
 
