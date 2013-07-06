@@ -188,7 +188,7 @@ def run_repl(hr=None):
         hr.interact("{appname} {version}".format(
             appname=hy.__appname__,
             version=hy.__version__
-            ))
+        ))
 
     return 0
 

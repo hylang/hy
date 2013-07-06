@@ -26,6 +26,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+from contextlib import contextmanager
 
 docomplete = True
 
@@ -79,32 +80,27 @@ class Completer(object):
             return None
 
 
-class completion(object):
+@contextmanager
+def completion(completer=None):
     delims = "()[]{} "
+    if not completer:
+        completer = Completer()
 
-    def __init__(self, completer=None):
-        if not completer:
-            completer = Completer()
-        
-        self.completer = completer
+    if docomplete:
+        readline.set_completer(completer.complete)
+        readline.set_completer_delims(delims)
 
-    def __enter__(self):
-        if not docomplete:
-            return
-
-        readline.set_completer(self.completer.complete)
-        readline.set_completer_delims(self.delims)
-
-        self.history = os.path.expanduser("~/.hy-history")
+        history = os.path.expanduser("~/.hy-history")
         readline.parse_and_bind("set blink-matching-paren on")
-    
+
         try:
-            readline.read_history_file(self.history)
+            readline.read_history_file(history)
         except IOError:
-            open(self.history, 'a').close()
+            open(history, 'a').close()
 
         readline.parse_and_bind("tab: complete")
 
-    def __exit__(self, type, value, tb):
-        if docomplete:
-            readline.write_history_file(self.history)
+    yield
+
+    if docomplete:
+        readline.write_history_file(history)
