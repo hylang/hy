@@ -36,9 +36,7 @@ from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
 from hy.core import process
-
-from hy.readline_helpers import read_history_file, write_history_file
-import hy.completer
+from hy.completer import completion
 
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
@@ -183,16 +181,14 @@ def run_repl(hr=None):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    history = read_history_file()
+    with completion():
+        if not hr:
+            hr = HyREPL()
 
-    if not hr:
-        hr = HyREPL()
-    hr.interact("{appname} {version}".format(
-        appname=hy.__appname__,
-        version=hy.__version__
-    ))
-
-    write_history_file(history)
+        hr.interact("{appname} {version}".format(
+            appname=hy.__appname__,
+            version=hy.__version__
+            ))
 
     return 0
 
