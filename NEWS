@@ -1,3 +1,29 @@
+Changes from Hy 0.9.8
+
+  [ Syntax Fixes ]
+
+    * Macros are now module-specific, and must be required when used. (KH)
+    * Added a few more string escapes to the compiler (Thomas Ballinger)
+    * Keywords are pseudo-callable again, to get the value out of a dict. (PT)
+    * Empty expression is now the same as an empty vector. (Guillermo Vaya)
+
+  [ Language Changes ]
+
+    * HyDicts (quoted dicts or internal HST repr) are now lists
+      that compiled down to dicts by the Compiler later on. (ND)
+    * Macros can be constants as well. (KH)
+    * Add eval-when-compile and eval-and-compile (KH)
+    * Add break and continue to Hy (Morten Linderud)
+    * Core language libraries added. As example, I've included `take` and
+      `drop` in this release. More to come (PT)
+
+  [ Misc. Fixes ]
+
+    * Ensure compiler errors are always "user friendly" (JD)
+    * Hy REPL quitter repr adjusted to match Hy syntax (Morten Linderud)
+    * Windows will no longer break due to missing readline (Ralph Moritz)
+
+
 Changes from Hy 0.9.7
 
   [ Syntax Fixes ]

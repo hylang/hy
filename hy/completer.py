@@ -1,4 +1,11 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Gergely Nagy <algernon@madhouse-project.org>
+# Copyright (c) 2013 James King <james@agentultra.com>
+# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
+# Copyright (c) 2013 Konrad Hinsen <konrad.hinsen@fastmail.net>
+# Copyright (c) 2013 Thom Neale <twneale@gmail.com>
+# Copyright (c) 2013 Will Kahn-Greene <willg@bluesock.org>
+# Copyright (c) 2013 Ralph Moritz <ralph.moeritz@outlook.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -17,6 +24,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+
+import os
+from contextlib import contextmanager
+
+docomplete = True
+
+try:
+    import readline
+except ImportError:
+    try:
+        import pyreadline.rlmain
+        import pyreadline.unicode_helper  # NOQA
+        import readline
+    except ImportError:
+        docomplete = False
 
 import hy.macros
 import hy.compiler
@@ -58,10 +80,27 @@ class Completer(object):
             return None
 
 
-try:
-    import readline
-except ImportError:
-    pass
-else:
-    readline.set_completer(Completer().complete)
-    readline.set_completer_delims("()[]{} ")
+@contextmanager
+def completion(completer=None):
+    delims = "()[]{} "
+    if not completer:
+        completer = Completer()
+
+    if docomplete:
+        readline.set_completer(completer.complete)
+        readline.set_completer_delims(delims)
+
+        history = os.path.expanduser("~/.hy-history")
+        readline.parse_and_bind("set blink-matching-paren on")
+
+        try:
+            readline.read_history_file(history)
+        except IOError:
+            open(history, 'a').close()
+
+        readline.parse_and_bind("tab: complete")
+
+    yield
+
+    if docomplete:
+        readline.write_history_file(history)

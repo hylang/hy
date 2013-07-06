@@ -24,28 +24,24 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import ast
-import code
 import optparse
-import os
-import readline
+import code
+import ast
 import sys
 
 import hy
 
+from hy.importer import ast_compile, import_buffer_to_module
 from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
 from hy.core import process
-from hy.importer import ast_compile, import_buffer_to_module
+from hy.completer import completion
 
-import hy.completer
-
-from hy.macros import macro, require
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
-
+from hy.macros import macro, require
 
 _machine = Machine(Idle, 1, 0)
 
@@ -185,23 +181,15 @@ def run_repl(hr=None):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    history = os.path.expanduser("~/.hy-history")
-    readline.parse_and_bind("set blink-matching-paren on")
+    with completion():
+        if not hr:
+            hr = HyREPL()
 
-    try:
-        readline.read_history_file(history)
-    except IOError:
-        open(history, 'a').close()
+        hr.interact("{appname} {version}".format(
+            appname=hy.__appname__,
+            version=hy.__version__
+        ))
 
-    readline.parse_and_bind("tab: complete")
-
-    if not hr:
-        hr = HyREPL()
-    hr.interact("{appname} {version}".format(
-        appname=hy.__appname__,
-        version=hy.__version__
-    ))
-    readline.write_history_file(history)
     return 0
 
 
