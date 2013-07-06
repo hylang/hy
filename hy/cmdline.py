@@ -35,13 +35,12 @@ from hy.importer import ast_compile, import_buffer_to_module
 from hy.lex.states import Idle, LexException
 from hy.lex.machine import Machine
 from hy.compiler import hy_compile
-from hy.core import process
 from hy.completer import completion
 
+from hy.macros import macro, require, process
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
-from hy.macros import macro, require
 
 _machine = Machine(Idle, 1, 0)
 

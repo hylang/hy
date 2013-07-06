@@ -30,6 +30,11 @@ from hy.util import str_type
 
 from collections import defaultdict
 
+
+MACROS = [
+    "hy.core.bootstrap",
+]
+
 _hy_macros = defaultdict(dict)
 
 
@@ -69,6 +74,20 @@ _wrappers = {
 
 
 def process(tree, module_name):
+    load_macros()
+    old = None
+    while old != tree:
+        old = tree
+        tree = macroexpand(tree, module_name)
+    return tree
+
+
+def load_macros():
+    for module in MACROS:
+        __import__(module)
+
+
+def macroexpand(tree, module_name):
     if isinstance(tree, HyExpression):
         if tree == []:
             return tree
@@ -76,9 +95,7 @@ def process(tree, module_name):
         fn = tree[0]
         if fn in ("quote", "quasiquote"):
             return tree
-        ntree = HyExpression(
-            [fn] + [process(x, module_name) for x in tree[1:]]
-        )
+        ntree = HyExpression(tree[:])
         ntree.replace(tree)
 
         if isinstance(fn, HyString):
@@ -90,16 +107,5 @@ def process(tree, module_name):
                 obj.replace(tree)
                 return obj
 
-        ntree.replace(tree)
         return ntree
-
-    if isinstance(tree, HyList):
-        obj = tree.__class__([process(x, module_name) for x in tree])  # NOQA
-        # flake8 thinks we're redefining from 52.
-        obj.replace(tree)
-        return obj
-
-    if isinstance(tree, list):
-        return [process(x, module_name) for x in tree]
-
     return tree

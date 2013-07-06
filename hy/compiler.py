@@ -35,11 +35,9 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
-import hy.importer
-
-from hy.macros import require
+from hy.macros import require, process
 from hy.util import str_type
-from hy.core import process
+import hy.importer
 
 import traceback
 import importlib
@@ -394,7 +392,6 @@ class HyASTCompiler(object):
 
     def compile_atom(self, atom_type, atom):
         if atom_type in _compile_table:
-            atom = process(atom, self.module_name)
             ret = _compile_table[atom_type](self, atom)
             if not isinstance(ret, Result):
                 ret = Result() + ret
@@ -402,6 +399,7 @@ class HyASTCompiler(object):
 
     def compile(self, tree):
         try:
+            tree = process(tree, self.module_name)
             _type = type(tree)
             ret = self.compile_atom(_type, tree)
             if ret:
@@ -633,10 +631,10 @@ class HyASTCompiler(object):
     def compile_eval(self, expr):
         expr.pop(0)
 
-        ret = self.compile(HyExpression([
-            HySymbol("hy_eval")] + expr + [
-                HyExpression([HySymbol("locals")])] + [
-                    HyString(self.module_name)]).replace(expr))
+        ret = self.compile(HyExpression(
+            [HySymbol("hy_eval")] + expr + [HyExpression([HySymbol("locals")])]
+            + [HyString(self.module_name)]).replace(expr)
+        )
 
         ret.add_imports("hy.importer", ["hy_eval"])
 

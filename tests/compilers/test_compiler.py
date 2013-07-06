@@ -53,14 +53,14 @@ class HyASTCompilerTest(unittest.TestCase):
         h.end_line = 1
         h.start_column = 1
         h.end_column = 1
-        return h
+        return h.replace(h)
 
     def setUp(self):
         self.c = compiler.HyASTCompiler('test')
 
     def test_fn_compiler_empty_function(self):
         ret = self.c.compile_function_def(
-            self._make_expression("fn", HyList()))
+            self._make_expression(HySymbol("fn"), HyList()))
         self.assertEqual(ret.imports, {})
 
         self.assertEqual(len(ret.stmts), 1)

@@ -4,6 +4,8 @@ from hy.lex import tokenize
 
 from hy.models.string import HyString
 from hy.models.list import HyList
+from hy.models.symbol import HySymbol
+from hy.models.expression import HyExpression
 
 
 @macro("test")
@@ -20,13 +22,15 @@ def test_preprocessor_simple():
 
 
 def test_preprocessor_expression():
-    """ Test inner macro expansion """
+    """ Test that macro expansion doesn't recurse"""
     obj = process(tokenize('(test (test "one" "two"))')[0], __name__)
 
     assert type(obj) == HyList
-    assert type(obj[0]) == HyList
+    assert type(obj[0]) == HyExpression
 
-    assert obj[0] == HyList([HyString("one"), HyString("two")])
+    assert obj[0] == HyExpression([HySymbol("test"),
+                                   HyString("one"),
+                                   HyString("two")])
 
     obj = HyList([HyString("one"), HyString("two")])
     obj = tokenize('(shill ["one" "two"])')[0][1]
