@@ -40,29 +40,42 @@ def run_cmd(cmd):
     return p.returncode, stdout, stderr
 
 
+def run_os_dependent_cmd(default_cmd, **keywords):
+    for kw in keywords:
+        if os.name == kw:
+            return run_cmd(keywords[kw])
+
+    return run_cmd(default_cmd)
+
+
 def test_bin_hy():
-    ret = run_cmd("echo | bin/hy")
+    ret = run_os_dependent_cmd("echo | bin/hy",
+                               nt="echo. | bin\\hy.bat")
     assert ret[0] == 0
 
 
 def test_bin_hy_stdin():
-    ret = run_cmd("echo \"(koan)\" | bin/hy")
+    ret = run_os_dependent_cmd("echo \"(koan)\" | bin/hy",
+                               nt="echo (koan) | bin\\hy.bat")
     assert ret[0] == 0
     assert "monk" in ret[1]
 
 
 def test_bin_hy_cmd():
-    ret = run_cmd("bin/hy -c \"(koan)\"")
+    ret = run_os_dependent_cmd("bin/hy -c \"(koan)\"",
+                               nt="bin\\hy.bat -c (koan)")
     assert ret[0] == 0
     assert "monk" in ret[1]
 
-    ret = run_cmd("bin/hy -c \"(koan\"")
+    ret = run_os_dependent_cmd("bin/hy -c \"(koan\"",
+                               nt="bin\\hy.bat -c (koan")
     assert ret[0] == 1
     assert "LexException" in ret[1]
 
 
 def test_bin_hy_icmd():
-    ret = run_cmd("echo \"(ideas)\" | bin/hy -i \"(koan)\"")
+    ret = run_os_dependent_cmd("echo \"(ideas)\" | bin/hy -i \"(koan)\"",
+                               nt="echo (ideas) | bin\\hy.bat -i (koan)")
     assert ret[0] == 0
     output = ret[1]
 
@@ -71,7 +84,8 @@ def test_bin_hy_icmd():
 
 
 def test_bin_hy_file():
-    ret = run_cmd("bin/hy eg/nonfree/halting-problem/halting.hy")
+    ret = run_os_dependent_cmd("bin/hy eg/nonfree/halting-problem/halting.hy",
+                               nt="bin\\hy.bat eg\\nonfree\\halting-problem\\halting.hy")
     assert ret[0] == 0
     assert "27" in ret[1]
 
@@ -81,12 +95,18 @@ def test_hy2py():
     if sys.version_info[0] == 3:
         return
 
+    cmd = None
+    if os.name == 'nt':
+        cmd = "bin\\hy2py.bat "
+    else:
+        cmd = "bin/hy2py "
+
     i = 0
     for dirpath, dirnames, filenames in os.walk("tests/native_tests"):
         for f in filenames:
             if f.endswith(".hy"):
                 i += 1
-                ret = run_cmd("bin/hy2py " + os.path.join(dirpath, f))
+                ret = run_cmd(cmd + os.path.join(dirpath, f))
                 assert ret[0] == 0, f
                 assert len(ret[1]) > 1, f
                 assert len(ret[2]) == 0, f
