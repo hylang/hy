@@ -47,6 +47,9 @@ setup(
         'hy.models',
         'hy.contrib',
     ],
+    package_data={
+        'hy.core': ['*.hy'],
+    },
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,
