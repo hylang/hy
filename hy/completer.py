@@ -1,4 +1,11 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Gergely Nagy <algernon@madhouse-project.org>
+# Copyright (c) 2013 James King <james@agentultra.com>
+# Copyright (c) 2013 Julien Danjou <julien@danjou.info>
+# Copyright (c) 2013 Konrad Hinsen <konrad.hinsen@fastmail.net>
+# Copyright (c) 2013 Thom Neale <twneale@gmail.com>
+# Copyright (c) 2013 Will Kahn-Greene <willg@bluesock.org>
+# Copyright (c) 2013 Ralph Moritz <ralph.moeritz@outlook.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,9 +25,22 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
+
+docomplete = True
+
+try:
+    import readline
+except ImportError:
+    try:
+        import pyreadline.rlmain
+        import pyreadline.unicode_helper  # NOQA
+        import readline
+    except ImportError:
+        docomplete = False
+
 import hy.macros
 import hy.compiler
-from hy.readline_helpers import set_completer
 
 try:
     import __builtin__
@@ -58,4 +78,33 @@ class Completer(object):
         except IndexError:
             return None
 
-set_completer(Completer().complete, "()[]{} ")
+
+class completion(object):
+    delims = "()[]{} "
+
+    def __init__(self, completer=None):
+        if not completer:
+            completer = Completer()
+        
+        self.completer = completer
+
+    def __enter__(self):
+        if not docomplete:
+            return
+
+        readline.set_completer(self.completer.complete)
+        readline.set_completer_delims(self.delims)
+
+        self.history = os.path.expanduser("~/.hy-history")
+        readline.parse_and_bind("set blink-matching-paren on")
+    
+        try:
+            readline.read_history_file(self.history)
+        except IOError:
+            open(self.history, 'a').close()
+
+        readline.parse_and_bind("tab: complete")
+
+    def __exit__(self, type, value, tb):
+        if docomplete:
+            readline.write_history_file(self.history)
