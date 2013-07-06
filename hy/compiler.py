@@ -1257,6 +1257,23 @@ class HyASTCompiler(object):
                               col_offset=expr.start_column)                            
         return ret
 
+    @builds("lapply")
+    @checkargs(2)
+    def compile_kwapply_expression(self, expr):
+        expr.pop(0)  # kwapply
+        call = self.compile(expr.pop(0))
+        argish = expr.pop(0)
+        argish = self.compile(argish)
+        ret = argish + ast.Call(func=call.expr,
+                              args= [],
+                              keywords=[],
+                              starargs=argish.force_expr,
+                              kwargs=None,
+                              lineno=expr.start_line,
+                              col_offset=expr.start_column)                            
+        return ret
+
+    
     @builds("not")
     @builds("~")
     @checkargs(1)
