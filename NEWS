@@ -16,6 +16,8 @@ Changes from Hy 0.9.8
     * Add break and continue to Hy (Morten Linderud)
     * Core language libraries added. As example, I've included `take` and
       `drop` in this release. More to come (PT)
+    * Importing a broken module's behavior now matches Python's more
+      closely. (Morten Linderud)
 
   [ Misc. Fixes ]
 
