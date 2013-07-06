@@ -26,4 +26,4 @@ def test_imports():
             return "Error"
 
     assert _import_test() == "Error"
-    assert _import_test() != None
+    assert _import_test() is not None
