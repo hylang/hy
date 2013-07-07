@@ -1,3 +1,9 @@
+Changes from Hy 0.9.9
+
+  [ Stupid Fixes ]
+ 
+    * I forgot to include hy.core.language in the sdist. (PT)
+
 Changes from Hy 0.9.8
 
   [ Syntax Fixes ]
