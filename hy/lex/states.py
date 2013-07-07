@@ -177,6 +177,11 @@ class ListeyThing(State):
             self.machine.sub(String)
             return
 
+        if char == "r\"":
+            self.commit()
+            self.machine.sub(RawString)
+            return
+
         if char == ";":
             self.commit()
             self.machine.sub(Comment)
@@ -233,6 +238,36 @@ class Dict(ListeyThing):
     end_char = "}"
 
 
+class RawString(State):
+    """
+    RawString state. This will handle stuff like:
+
+        (println r"foobar")
+                 ^^^^^^^^  -- RawString
+    """
+
+    def enter(self):
+        self.escaped = False
+
+    def exit(self):
+        self.result = HyString("".join(self.nodes))
+
+    def process(self, char):
+        """
+        State transitions:
+
+            - \" - Idle
+        """
+        if char == "\"":
+            return Idle
+
+        if char == 'r"':
+            self.nodes.append("r")
+            return Idle
+
+        self.nodes.append(char)
+
+
 class String(State):
     """
     String state. This will handle stuff like:
@@ -269,6 +304,10 @@ class String(State):
             raise LexException("Unknown modifier: `%s'" % (char))
 
         if char == "\"":
+            return Idle
+
+        if char == 'r"':
+            self.nodes.append("r")
             return Idle
 
         if char == "\\":
@@ -348,6 +387,9 @@ class Idle(State):
 
         if char == "\"":
             return String
+
+        if char == "r\"":
+            return RawString
 
         if char == ";":
             return Comment

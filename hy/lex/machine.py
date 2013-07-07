@@ -77,12 +77,20 @@ class Machine(object):
         """
         process an iterable of chars into Hy internal models of the Source.
         """
-        for char in buf:
+        skip_one = False
+        for i, char in enumerate(buf):
+            if skip_one:
+                skip_one = False
+                continue
 
             self.column += 1
             if char == "\n":
                 self.line += 1
                 self.column = 0
+
+            if char == "r" and i < len(buf)-1 and buf[i+1] == "\"":
+                char = "r\""
+                skip_one = True
 
             if self.submachine:
                 self.submachine.process([char])

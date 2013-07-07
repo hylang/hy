@@ -100,6 +100,12 @@ def test_lex_strings():
     assert objs == [HyString("foo")]
 
 
+def test_lex_raw_strings():
+    """ Make sure that raw strings are valid """
+    objs = tokenize("r\"\ntr\"")
+    assert objs == [HyString("\ntr")]
+
+
 def test_lex_integers():
     """ Make sure that integers are valid expressions"""
     objs = tokenize("42 ")
