@@ -1467,9 +1467,6 @@ class HyASTCompiler(object):
             if ret:
                 return ret
 
-            if fn in _stdlib:
-                self.imports[_stdlib[fn]].add(fn)
-
             if fn.startswith("."):
                 # (.split "test test") -> "test test".split()
 
@@ -1795,6 +1792,9 @@ class HyASTCompiler(object):
                 ctx=ast.Load()
             )
             return ret
+
+        if symbol in _stdlib:
+            self.imports[_stdlib[symbol]].add(symbol)
 
         return ast.Name(id=ast_str(symbol),
                         arg=ast_str(symbol),

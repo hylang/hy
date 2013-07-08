@@ -8,4 +8,5 @@ Contents:
    :maxdepth: 3
 
    api
+   core
    internals
