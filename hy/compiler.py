@@ -1481,7 +1481,6 @@ class HyASTCompiler(object):
         return func + ret
 
     @builds("def")
-    @builds("setf")
     @builds("setv")
     @checkargs(2)
     def compile_def_expression(self, expression):
