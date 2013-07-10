@@ -408,11 +408,11 @@
 
 (defn test-for-doodle []
   "NATIVE: test for-do"
-  (do (do (do (do (do (do (do (do (do (setf (, x y) (, 0 0)))))))))))
+  (do (do (do (do (do (do (do (do (do (setv (, x y) (, 0 0)))))))))))
   (foreach [- [1 2]]
     (do
-     (setf x (+ x 1))
-     (setf y (+ y 1))))
+     (setv x (+ x 1))
+     (setv y (+ y 1))))
   (assert (= y x 2)))
 
 
@@ -597,10 +597,10 @@
 (defn test-eval []
   "NATIVE: test eval"
   (assert (= 2 (eval (quote (+ 1 1)))))
-  (setf x 2)
+  (setv x 2)
   (assert (= 4 (eval (quote (+ x 2)))))
-  (setf test-payload (quote (+ x 2)))
-  (setf x 4)
+  (setv test-payload (quote (+ x 2)))
+  (setv x 4)
   (assert (= 6 (eval test-payload)))
   (assert (= 9 ((eval (quote (fn [x] (+ 3 3 x)))) 3)))
   (assert (= 1 (eval (quote 1))))
@@ -689,9 +689,9 @@
 (defn test-try-except-return []
   "NATIVE: test we can return from in a try except"
   (assert (= ((fn [] (try xxx (except [NameError] (+ 1 1))))) 2))
-  (setf foo (try xxx (except [NameError] (+ 1 1))))
+  (setv foo (try xxx (except [NameError] (+ 1 1))))
   (assert (= foo 2))
-  (setf foo (try (+ 2 2) (except [NameError] (+ 1 1))))
+  (setv foo (try (+ 2 2) (except [NameError] (+ 1 1))))
   (assert (= foo 4)))
 
 
