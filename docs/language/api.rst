@@ -180,8 +180,8 @@ Some example usage:
 def / setf / setv
 -----------------
 
-`def`, `setv` and `setf`  are used to bind value, object or a function to a
-symbol. For example:
+`def` and `setv` are used to bind value, object or a function to a symbol. For
+example:
 
 .. code-block:: clj
 
@@ -189,7 +189,7 @@ symbol. For example:
     => (print names)
     [u'Alice', u'Bob', u'Charlie']
 
-    => (setf counter (fn [collection item] (.count collection item)))
+    => (setv counter (fn [collection item] (.count collection item)))
     => (counter [1 2 3 4 5 2 3] 2)
     2
 
