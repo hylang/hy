@@ -252,8 +252,29 @@ collection and calls side-effect to each element in the collection:
     (foreach [element collection] (side-effect element))
 
     ;; foreach can have an optional else block
-    (foreach [element collection] (side-effect element)
-             (else (side-effect2 element)))
+    (foreach [element collection] (side-effect-2 element)
+             (else (side-effect-2)))
+
+The optional `else` block is executed only if the `foreach` loop terminates
+normally. If the execution is halted with `break`, the `else` does not execute.
+
+.. code-block:: clj
+
+    => (foreach [element [1 2 3]] (if (< element 3)
+    ...                               (print element) 
+    ...                               (break))
+    ...    (else (print "loop finished")))
+    1
+    2
+
+    => (foreach [element [1 2 3]] (if (< element 4)
+    ...                               (print element)
+    ...                               (break))
+    ...    (else (print "loop finished")))
+    1
+    2
+    3
+    loop finished
 
 
 get
