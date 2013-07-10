@@ -198,12 +198,12 @@ defclass
 --------
 
 new classes are declared with `defclass`. It can takes two optional parameters:
-a vector defining a possible super class and another vector containing
+a vector defining a possible super classes and another vector containing
 attributes of the new class as two item vectors.
 
 .. code-block:: clj
 
-    (defclass class-name [super-class]
+    (defclass class-name [super-class-1 super-class-2]
       [[attribute value]])
 
 Both values and functions can be bound on the new class as shown by the example
