@@ -98,3 +98,22 @@ def test_bin_hy_builtins():
 
     assert str(exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
     assert str(quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
+
+
+def test_bin_hy_main():
+    ret = run_cmd("bin/hy tests/resources/bin/main.hy")
+    assert ret[0] == 0
+    assert "Hello World" in ret[1]
+
+
+def test_bin_hy_main_args():
+    ret = run_cmd("bin/hy tests/resources/bin/main.hy test 123")
+    assert ret[0] == 0
+    assert "test" in ret[1]
+    assert "123" in ret[1]
+
+
+def test_bin_hy_no_main():
+    ret = run_cmd("bin/hy tests/resources/bin/nomain.hy")
+    assert ret[0] == 0
+    assert "This Should Still Work" in ret[1]
