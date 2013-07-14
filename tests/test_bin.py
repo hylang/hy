@@ -111,3 +111,9 @@ def test_bin_hy_main_args():
     assert ret[0] == 0
     assert "test" in ret[1]
     assert "123" in ret[1]
+
+
+def test_bin_hy_no_main():
+    ret = run_cmd("bin/hy tests/resources/bin/nomain.hy")
+    assert ret[0] == 0
+    assert "This Should Still Work" in ret[1]
