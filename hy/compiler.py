@@ -1646,6 +1646,17 @@ class HyASTCompiler(object):
 
         body = Result()
 
+        # grab the doc string, if there is one
+        if expression and isinstance(expression[0], HyString):
+            docstring = expression.pop(0)
+            symb = HySymbol("__doc__")
+            symb.start_line = docstring.start_line
+            symb.start_column = docstring.start_column
+            body += self._compile_assign(symb, docstring,
+                                         docstring.start_line,
+                                         docstring.start_column)
+            body += body.expr_as_stmt()
+
         if expression:
             try:
                 body_expression = iter(expression.pop(0))
