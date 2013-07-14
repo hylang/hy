@@ -170,9 +170,14 @@ def run_command(source):
     return 0
 
 
-def run_file(filename):
+def run_file(filename, args):
     from hy.importer import import_file_to_module
-    import_file_to_module("__main__", filename)
+    imp_module = import_file_to_module("__main__", filename)
+    if "_main" in dir(imp_module):
+        try:
+            imp_module._main(args)
+        except:
+            raise
     return 0  # right?
 
 
@@ -234,7 +239,7 @@ def cmdline_handler(scriptname, argv):
 
         else:
             # User did "hy <filename>"
-            return run_file(args[0])
+            return run_file(args[0], args[1:])
 
     # User did NOTHING!
     return run_repl()
