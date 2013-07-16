@@ -252,7 +252,7 @@ collection and calls side-effect to each element in the collection:
     (foreach [element collection] (side-effect element))
 
     ;; foreach can have an optional else block
-    (foreach [element collection] (side-effect-2 element)
+    (foreach [element collection] (side-effect element)
              (else (side-effect-2)))
 
 The optional `else` block is executed only if the `foreach` loop terminates
