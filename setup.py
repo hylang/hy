@@ -58,7 +58,8 @@ setup(
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
-            'hyc = hy.cmdline:hyc_main'
+            'hyc = hy.cmdline:hyc_main',
+            'hydoc = hy.hydoc:main'
         ]
     },
     packages=[
