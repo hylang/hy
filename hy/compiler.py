@@ -334,11 +334,14 @@ def checkargs(exact=None, min=None, max=None, even=None):
                 _raise_wrong_args_number(
                     expression,
                     "`%%s' needs at most %d arguments, got %%d" % (max))
-                
+
             is_even = not((len(expression) - 1) % 2)
-            if even is not None and is_even!=even:
+            if even is not None and is_even != even:
                 even_str = "even" if even else "odd"
-                _raise_wrong_args_number(expression, "`%%s' needs an %s number of arguments, got %%d" % (even_str))
+                _raise_wrong_args_number(
+                    expression,
+                    "`%%s' needs an %s number of arguments, got %%d"
+                    % (even_str))
 
             return fn(self, expression)
 
@@ -1141,12 +1144,13 @@ class HyASTCompiler(object):
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
         ret = target
-        while expr != []:
+        while expr:
             key = self.compile(expr.pop(0))
             try:
                 val = self.compile(expr.pop(0))
             except IndexError:
-                raise HyCompileError("Key {key} has no value to associate".format(key))
+                raise HyCompileError(
+                    "Key {key} has no value to associate".format(key))
 
             ret += key + val + ast.Assign(
                 lineno=expr.start_line,
