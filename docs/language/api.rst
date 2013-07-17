@@ -75,6 +75,7 @@ case the first false value will be returned. Examples of usage:
     I can has False
     False
 
+
 assert
 ------
 
@@ -87,6 +88,7 @@ condition is not met, an `AssertionError` is raised. The example usage:
 
 Assert takes a single parameter, a conditional that evaluates to either `True`
 or `False`.
+
 
 assoc
 -----
@@ -110,6 +112,7 @@ Examples of usage:
   [1, 2, None, 4]
 
 .. note:: `assoc` modifies the datastructure in place and returns `None`.
+
 
 break
 -----
@@ -144,6 +147,7 @@ however is called only for every other value in the list.
         (continue))
       (side-effect2 x)))
 
+
 do / progn
 ----------
 
@@ -176,9 +180,47 @@ Some example usage:
 def / setv
 -----------------
 
+`def` and `setv` are used to bind value, object or a function to a symbol. For
+example:
+
+.. code-block:: clj
+
+    => (def names ["Alice" "Bob" "Charlie"]
+    => (print names)
+    [u'Alice', u'Bob', u'Charlie']
+
+    => (setv counter (fn [collection item] (.count collection item)))
+    => (counter [1 2 3 4 5 2 3] 2)
+    2
+
 
 defclass
 --------
+
+new classes are declared with `defclass`. It can takes two optional parameters:
+a vector defining a possible super classes and another vector containing
+attributes of the new class as two item vectors.
+
+.. code-block:: clj
+
+    (defclass class-name [super-class-1 super-class-2]
+      [[attribute value]])
+
+Both values and functions can be bound on the new class as shown by the example
+below:
+
+.. code-block:: clj
+
+    => (defclass Cat []
+    ...  [[age None]
+    ...   [colour "white"]
+    ...   [speak (fn [self] (print "Meow"))]])
+
+    => (def spot (Cat))
+    => (setv spot.colour "Black")
+    'Black'
+    => (.speak spot)
+    Meow
 
 
 defmacro
@@ -199,6 +241,40 @@ eval-when-compile
 
 foreach
 -------
+
+`foreach` is used to call a function for each element in a list or vector.
+Results are discarded and None is returned instead. Example code iterates over
+collection and calls side-effect to each element in the collection:
+
+.. code-block:: clj
+
+    ;; assuming that (side-effect) is a function that takes a single parameter
+    (foreach [element collection] (side-effect element))
+
+    ;; foreach can have an optional else block
+    (foreach [element collection] (side-effect element)
+             (else (side-effect-2)))
+
+The optional `else` block is executed only if the `foreach` loop terminates
+normally. If the execution is halted with `break`, the `else` does not execute.
+
+.. code-block:: clj
+
+    => (foreach [element [1 2 3]] (if (< element 3)
+    ...                               (print element) 
+    ...                               (break))
+    ...    (else (print "loop finished")))
+    1
+    2
+
+    => (foreach [element [1 2 3]] (if (< element 4)
+    ...                               (print element)
+    ...                               (break))
+    ...    (else (print "loop finished")))
+    1
+    2
+    3
+    loop finished
 
 
 get
@@ -223,6 +299,7 @@ Example usages:
 
 .. note:: `get` raises an IndexError if a list is queried for an index that is
           out of bounds.
+
 
 global
 ------
@@ -283,9 +360,50 @@ of import you can use.
 kwapply
 -------
 
+`kwapply` can be used to supply keyword arguments to a function.
+
+For example:
+
+.. code-block:: clj
+
+    => (defn rent-car [&kwargs kwargs]
+    ...  (cond ((in :brand kwargs) (print "brand:" (:brand kwargs)))
+    ...        ((in :model kwargs) (print "model:" (:model kwargs)))))
+
+    => (kwapply (rent-car) {:model "T-Model"})
+    model: T-Model
+
+    => (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]] 
+    ...  (* price amount fees vat))
+
+    => (total-purchase 10 15)
+    173.25
+
+    => (kwapply (total-purchase 10 15) {"vat" 1.05})
+    165.375
+
 
 lambda / fn
 -----------
+
+`lambda` and `fn` can be used to define an anonymous function. The parameters are
+similar to `defn`: first parameter is vector of parameters and the rest is the
+body of the function. lambda returns a new function. In the example an anonymous
+function is defined and passed to another function for filtering output.
+
+.. code-block:: clj
+
+    => (def people [{:name "Alice" :age 20}
+    ...             {:name "Bob" :age 25}
+    ...             {:name "Charlie" :age 50}
+    ...             {:name "Dave" :age 5}])
+
+    => (defn display-people [people filter]
+    ...  (foreach [person people] (if (filter person) (print (:name person)))))
+
+    => (display-people people (fn [person] (< (:age person) 25)))
+    Alice
+    Dave
 
 
 list-comp
@@ -308,6 +426,7 @@ conditional expression. Some examples:
 
     => (list-comp (* x 2) [x collection] (< x 5))
     [0, 2, 4, 6, 8]
+
 
 not
 ---
@@ -373,6 +492,7 @@ the `print` form is used to output on screen. Example usage:
     (print "Hello world!")
 
 .. note:: `print` always returns None
+
 
 require
 -------
@@ -469,16 +589,75 @@ The following example will output "hello world!" on screen indefinetely:
 
     (while True (print "hello world!"))
 
+
 with
 ----
+
+`with` is used to wrap execution of a block with a context manager. The context
+manager can then set up the local system and tear it down in a controlled
+manner. Typical example of using `with` is processing files. `with`  can bind
+context to an argument or ignore it completely, as shown below:
+
+.. code-block:: clj
+
+    (with [arg (expr)] block)
+
+    (with [(expr)] block)
+
+The following example will open file `NEWS` and print its content on screen. The
+file is automatically closed after it has been processed.
+
+.. code-block:: clj
+
+    (with [f (open "NEWS")] (print (.read f)))
 
 
 with-decorator
 --------------
 
+`with-decorator` is used to wrap a function with another. The function performing
+decoration should accept a single value, the function being decorated and return
+a new function. `with-decorator` takes two parameters, the function performing
+decoration and the function being decorated.
+
+In the following example, `inc-decorator` is used to decorate function `addition`
+with a function that takes two parameters and calls the decorated function with
+values that are incremented by 1. When decorated `addition` is called with values
+1 and 1, the end result will be 4 (1+1 + 1+1).
+
+.. code-block:: clj
+
+    => (defn inc-decorator [func] 
+    ...  (fn [value-1 value-2] (func (+ value-1 1) (+ value-2 1))))
+    => (with-decorator inc-decorator (defn addition [a b] (+ a b)))
+    => (addition 1 1)
+    4
+
 
 yield
 -----
 
+`yield` is used to create a generator object, that returns 1 or more values.
+The generator is iterable and therefore can be used in loops, list
+comprehensions and other similar constructs.
 
+Especially the second example shows how generators can be used to generate
+infinite series without consuming infinite amount of memory.
 
+.. code-block:: clj
+
+    => (defn multiply [bases coefficients]
+    ...  (foreach [(, base coefficient) (zip bases coefficients)]
+    ...   (yield (* base coefficient))))
+
+    => (multiply (range 5) (range 5))
+    <generator object multiply at 0x978d8ec>
+
+    => (list-comp value [value (multiply (range 10) (range 10))])
+    [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+    => (import random)
+    => (defn random-numbers [low high]
+    ...  (while True (yield (.randint random low high))))
+    => (list-comp x [x (take 15 (random-numbers 1 50))])])
+    [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
