@@ -128,10 +128,10 @@ def let_macro(variables, *body):
 
     for var in variables:
         if isinstance(var, list):
-            expr.append(HyExpression([HySymbol("setf"),
+            expr.append(HyExpression([HySymbol("setv"),
                                       var[0], var[1]]))
         else:
-            expr.append(HyExpression([HySymbol("setf"),
+            expr.append(HyExpression([HySymbol("setv"),
                                       var, HySymbol("None")]))
 
     return HyExpression([expr + list(body)])

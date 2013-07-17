@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2012, 2013 Paul Tagliamonte <paultag@debian.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,12 +23,15 @@
 from hy import __appname__, __version__
 from setuptools import setup
 import os
+import sys
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
 install_requires = []
+if sys.version_info[0] == 2:
+    install_requires.append('argparse>=1.2.1')
 if os.name == 'nt':
     install_requires.append('pyreadline==2.0')
 
@@ -36,10 +39,12 @@ setup(
     name=__appname__,
     version=__version__,
     install_requires=install_requires,
-    scripts=[
-        "bin/hy",
-        "bin/hyc",
-    ],
+    entry_points={
+        'console_scripts': [
+            'hy = hy.cmdline:hy_main',
+            'hyc = hy.cmdline:hyc_main'
+        ]
+    },
     packages=[
         'hy',
         'hy.lex',

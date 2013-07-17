@@ -173,7 +173,7 @@ Some example usage:
 `do` can accept any number of arguments, from 1 to n.
 
 
-def / setf / setv
+def / setv
 -----------------
 
 
