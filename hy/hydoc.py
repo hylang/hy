@@ -460,7 +460,10 @@ def hydoc(args):
         it is treated as a filename; if it names a directory, documentation
         is written for all the contents.""")
 
-    opts = parser.parse_args(args[1:])
+    if len(args) > 1:
+        opts = parser.parse_args(args[1:])
+    else:
+        opts = parser.parse_args(["-h"])
 
     if opts.keyword:
         pydoc.apropos(opts.keyword)
@@ -482,7 +485,10 @@ def hydoc(args):
     if os.path.isfile(name) and os.path.exists(name):
         basename = os.path.basename(name)
         modname, ext = os.path.splitext(basename)
-        name = hy.importer.import_file_to_module(modname, name)
+        if ext == ".py":
+            name = pydoc.importfile(name)
+        else:
+            name = hy.importer.import_file_to_module(modname, name)
 
     if opts.w and name:
         pydoc.writedoc(name)
@@ -490,8 +496,6 @@ def hydoc(args):
 
     if name:
         pydoc.help(name)
-    else:
-        opts = parser.parse_args(["-h"])
 
     return 0
 
