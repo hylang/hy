@@ -177,7 +177,7 @@ Some example usage:
 `do` can accept any number of arguments, from 1 to n.
 
 
-def / setf / setv
+def / setv
 -----------------
 
 `def` and `setv` are used to bind value, object or a function to a symbol. For

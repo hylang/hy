@@ -25,13 +25,18 @@ import subprocess
 import sys
 
 
-def run_cmd(cmd):
+def run_cmd(cmd, stdin_data=None):
     p = subprocess.Popen(cmd,
+                         stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          shell=True)
     stdout = ""
     stderr = ""
+    if stdin_data is not None:
+        p.stdin.write(stdin_data.encode('ASCII'))
+        p.stdin.flush()
+        p.stdin.close()
     # Read stdout and stderr otherwise if the PIPE buffer is full, we might
     # wait for ever…
     while p.poll() is None:
@@ -41,28 +46,28 @@ def run_cmd(cmd):
 
 
 def test_bin_hy():
-    ret = run_cmd("echo | bin/hy")
+    ret = run_cmd("hy", "")
     assert ret[0] == 0
 
 
 def test_bin_hy_stdin():
-    ret = run_cmd("echo \"(koan)\" | bin/hy")
+    ret = run_cmd("hy", '(koan)')
     assert ret[0] == 0
     assert "monk" in ret[1]
 
 
 def test_bin_hy_cmd():
-    ret = run_cmd("bin/hy -c \"(koan)\"")
+    ret = run_cmd("hy -c \"(koan)\"")
     assert ret[0] == 0
     assert "monk" in ret[1]
 
-    ret = run_cmd("bin/hy -c \"(koan\"")
+    ret = run_cmd("hy -c \"(koan\"")
     assert ret[0] == 1
     assert "LexException" in ret[1]
 
 
 def test_bin_hy_icmd():
-    ret = run_cmd("echo \"(ideas)\" | bin/hy -i \"(koan)\"")
+    ret = run_cmd("hy -i \"(koan)\"", "(ideas)")
     assert ret[0] == 0
     output = ret[1]
 
@@ -71,14 +76,39 @@ def test_bin_hy_icmd():
 
 
 def test_bin_hy_file():
-    ret = run_cmd("bin/hy eg/nonfree/halting-problem/halting.hy")
+    ret = run_cmd("hy eg/nonfree/halting-problem/halting.hy")
     assert ret[0] == 0
     assert "27" in ret[1]
+
+
+def test_bin_hy_missing_file():
+    ret = run_cmd("hy foobarbaz")
+    assert ret[0] == 1
+    assert "No such file" in ret[2]
+
+
+def test_bin_hy_file_with_args():
+    ret = run_cmd("hy tests/resources/argparse_ex.hy -h")
+    assert ret[0] == 0
+    assert "usage" in ret[1]
+    ret = run_cmd("hy tests/resources/argparse_ex.hy -c bar")
+    assert ret[0] == 0
+    assert "got c" in ret[1]
+    ret = run_cmd("hy tests/resources/argparse_ex.hy -i foo")
+    assert ret[0] == 0
+    assert "foo" in ret[1]
+    ret = run_cmd("hy tests/resources/argparse_ex.hy -i foo -c bar")
+    assert ret[0] == 0
+    assert "foo" in ret[1]
 
 
 def test_hy2py():
     # XXX Astor doesn't seem to support Python3 :(
     if sys.version_info[0] == 3:
+        return
+
+    # and running this script this way doesn't work on Windows
+    if os.name == "nt":
         return
 
     i = 0
