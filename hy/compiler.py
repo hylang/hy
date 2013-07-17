@@ -1144,13 +1144,9 @@ class HyASTCompiler(object):
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
         ret = target
-        while expr:
-            key = self.compile(expr.pop(0))
-            try:
-                val = self.compile(expr.pop(0))
-            except IndexError:
-                raise HyCompileError(
-                    "Key {key} has no value to associate".format(key))
+        i = iter(expr)
+        for (key, val) in ((self.compile(x), self.compile(y))
+                           for (x, y) in zip(i, i)):
 
             ret += key + val + ast.Assign(
                 lineno=expr.start_line,
