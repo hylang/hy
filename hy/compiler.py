@@ -329,7 +329,7 @@ def _raise_wrong_args_number(expression, error):
                                len(expression)))
 
 
-def checkargs(exact=None, min=None, max=None):
+def checkargs(exact=None, min=None, max=None, even=None):
     def _dec(fn):
         def checker(self, expression):
             if exact is not None and (len(expression) - 1) != exact:
@@ -345,6 +345,14 @@ def checkargs(exact=None, min=None, max=None):
                 _raise_wrong_args_number(
                     expression,
                     "`%%s' needs at most %d arguments, got %%d" % (max))
+
+            is_even = not((len(expression) - 1) % 2)
+            if even is not None and is_even != even:
+                even_str = "even" if even else "odd"
+                _raise_wrong_args_number(
+                    expression,
+                    "`%%s' needs an %s number of arguments, got %%d"
+                    % (even_str))
 
             return fn(self, expression)
 
@@ -1141,25 +1149,28 @@ class HyASTCompiler(object):
             ctx=ast.Load())
 
     @builds("assoc")
-    @checkargs(3)
+    @checkargs(min=3, even=False)
     def compile_assoc_expression(self, expr):
         expr.pop(0)  # assoc
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
-        key = self.compile(expr.pop(0))
-        val = self.compile(expr.pop(0))
+        ret = target
+        i = iter(expr)
+        for (key, val) in ((self.compile(x), self.compile(y))
+                           for (x, y) in zip(i, i)):
 
-        return target + key + val + ast.Assign(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            targets=[
-                ast.Subscript(
-                    lineno=expr.start_line,
-                    col_offset=expr.start_column,
-                    value=target.force_expr,
-                    slice=ast.Index(value=key.force_expr),
-                    ctx=ast.Store())],
-            value=val.force_expr)
+            ret += key + val + ast.Assign(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                targets=[
+                    ast.Subscript(
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column,
+                        value=target.force_expr,
+                        slice=ast.Index(value=key.force_expr),
+                        ctx=ast.Store())],
+                value=val.force_expr)
+        return ret
 
     @builds("with_decorator")
     @checkargs(min=1)

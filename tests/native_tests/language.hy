@@ -348,6 +348,11 @@
   (assoc vals "two" "three")
   (assert (= (get vals "two") "three")))
 
+(defn test-multiassoc []
+  "NATIVE: test assoc multiple values"
+  (setv vals {"one" "two"})
+  (assoc vals "two" "three" "four" "five")
+  (assert (and (= (get vals "two") "three") (= (get vals "four") "five") (= (get vals "one") "two"))))
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
