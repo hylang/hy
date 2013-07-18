@@ -60,3 +60,26 @@
     (x)
     (assert false))
    (except [NameError])))
+
+(defn test-defclass-docstring []
+  "NATIVE: test defclass docstring"
+  (defclass A []
+    [[--doc-- "doc string"]
+     [x 1]])
+  (setv a (A))
+  (assert (= a.__doc__ "doc string"))
+  (defclass B []
+    "doc string"
+    [[x 1]])
+  (setv b (B))
+  (assert (= b.x 1))
+  (assert (= b.__doc__ "doc string"))
+  (defclass MultiLine []
+    "begin a very long multi-line string to make
+     sure that it comes out the way we hope
+     and can span 3 lines end."
+    [[x 1]])
+  (setv mL (MultiLine))
+  (assert (= mL.x 1))
+  (assert (in "begin" mL.__doc__))
+  (assert (in "end" mL.__doc__)))

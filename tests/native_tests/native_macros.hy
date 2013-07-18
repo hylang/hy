@@ -46,6 +46,36 @@
   "NATIVE: test macro calling a plain function"
   (assert (= 3 (bar 1 2))))
 
+(defn test-midtree-yield []
+  "NATIVE: test yielding with a returnable"
+  (defn kruft [] (yield) (+ 1 1)))
+
+(defn test-midtree-yield-in-for []
+  "NATIVE: test yielding in a for with a return"
+  (defn kruft-in-for []
+    (for [i (range 5)]
+      (yield i))
+    (+ 1 2)))
+
+(defn test-midtree-yield-in-while []
+  "NATIVE: test yielding in a while with a return"
+  (defn kruft-in-while []
+    (setv i 0)
+    (while (< i 5)
+      (yield i)
+      (setv i (+ i 1)))
+    (+ 2 3)))
+
+(defn test-multi-yield []
+  "NATIVE: testing multiple yields"
+  (defn multi-yield []
+    (for [i (range 3)]
+      (yield i))
+    (yield "a")
+    (yield "end"))
+  (assert (= (list (multi-yield)) [0 1 2 "a" "end"])))
+
+
 ; Macro that checks a variable defined at compile or load time
 (setv phase "load")
 (eval-when-compile

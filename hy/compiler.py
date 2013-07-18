@@ -154,7 +154,8 @@ class Result(object):
     The Result object is interoperable with python AST objects: when an AST
     object gets added to a Result object, it gets converted on-the-fly.
     """
-    __slots__ = ("imports", "stmts", "temp_variables", "_expr", "__used_expr")
+    __slots__ = ("imports", "stmts", "temp_variables",
+                 "_expr", "__used_expr", "contains_yield")
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -165,12 +166,14 @@ class Result(object):
         self.stmts = []
         self.temp_variables = []
         self._expr = None
+        self.contains_yield = False
 
         self.__used_expr = False
 
         # XXX: Make sure we only have AST where we should.
         for kwarg in kwargs:
-            if kwarg not in ["imports", "stmts", "expr", "temp_variables"]:
+            if kwarg not in ["imports", "contains_yield", "stmts", "expr",
+                             "temp_variables"]:
                 raise TypeError(
                     "%s() got an unexpected keyword argument '%s'" % (
                         self.__class__.__name__, kwarg))
@@ -282,13 +285,21 @@ class Result(object):
         result.stmts = self.stmts + other.stmts
         result.expr = other.expr
         result.temp_variables = other.temp_variables
+        result.contains_yield = False
+        if self.contains_yield or other.contains_yield:
+            result.contains_yield = True
+
         return result
 
     def __str__(self):
-        return "Result(imports=[%s], stmts=[%s], expr=%s)" % (
+        return (
+            "Result(imports=[%s], stmts=[%s], "
+            "expr=%s, contains_yield=%s)"
+        ) % (
             ", ".join(ast.dump(x) for x in self.imports),
             ", ".join(ast.dump(x) for x in self.stmts),
             ast.dump(self.expr) if self.expr else None,
+            self.contains_yield
         )
 
 
@@ -1019,7 +1030,7 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        ret = Result()
+        ret = Result(contains_yield=True)
 
         value = None
         if expr != []:
@@ -1551,6 +1562,8 @@ class HyASTCompiler(object):
                        body=body.stmts,
                        orelse=orel.stmts)
 
+        ret.contains_yield = body.contains_yield
+
         return ret
 
     @builds("while")
@@ -1567,6 +1580,8 @@ class HyASTCompiler(object):
                          orelse=[],
                          lineno=expr.start_line,
                          col_offset=expr.start_column)
+
+        ret.contains_yield = body.contains_yield
 
         return ret
 
@@ -1611,9 +1626,12 @@ class HyASTCompiler(object):
             return ret
 
         if body.expr:
-            body += ast.Return(value=body.expr,
-                               lineno=body.expr.lineno,
-                               col_offset=body.expr.col_offset)
+            if body.contains_yield:
+                body += body.expr_as_stmt()
+            else:
+                body += ast.Return(value=body.expr,
+                                   lineno=body.expr.lineno,
+                                   col_offset=body.expr.col_offset)
 
         if not body.stmts:
             body += ast.Pass(lineno=expression.start_line,
@@ -1656,6 +1674,17 @@ class HyASTCompiler(object):
             bases = Result()
 
         body = Result()
+
+        # grab the doc string, if there is one
+        if expression and isinstance(expression[0], HyString):
+            docstring = expression.pop(0)
+            symb = HySymbol("__doc__")
+            symb.start_line = docstring.start_line
+            symb.start_column = docstring.start_column
+            body += self._compile_assign(symb, docstring,
+                                         docstring.start_line,
+                                         docstring.start_column)
+            body += body.expr_as_stmt()
 
         if expression:
             try:
