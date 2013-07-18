@@ -226,6 +226,21 @@ below:
 defmacro
 --------
 
+`defmacro` is used to define macros.
+
+The general format is `(defmacro [parameters] expr)`.
+
+Following example defines a macro that can be used to multiply all but the first
+parameter given to it.
+
+.. codeblock:: clj
+
+  => (defmacro multiply-some [&rest params] (quasiquote (* (unquote-splice (list (slice params 1))))))
+
+  => (multiply-some 0 2 3)
+  6
+  => (multiply-some 2 0 3)
+  0
 
 eval
 ----
