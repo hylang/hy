@@ -321,6 +321,25 @@ Example usages:
 global
 ------
 
+`global` can be used to mark a symbol as global. This allows the programmer to
+assign a value to a global symbol. Reading a global symbol does not require the
+`global` keyword, just the assigning does.
+
+Following example shows how global `a` is assigned a value in a function and later
+on printed on another function. Without the `global` keyword, the second function
+would thrown a `NameError`.
+
+.. code-block:: clj
+
+    (defn set-a [value]
+      (global a)
+      (setv a value))
+
+    (defn print-a []
+      (print a))
+
+    (set-a 5)
+    (print-a)
 
 if
 --
