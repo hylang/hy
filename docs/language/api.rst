@@ -226,21 +226,23 @@ below:
 defmacro
 --------
 
-`defmacro` is used to define macros.
+`defmacro` is used to define macros. The general format is
+`(defmacro [parameters] expr)`.
 
-The general format is `(defmacro [parameters] expr)`.
-
-Following example defines a macro that can be used to multiply all but the first
-parameter given to it.
+Following example defines a macro that can be used to swap order of elements in
+code, allowing the user to write code in infix notation, where operator is in
+between the operands.
 
 .. codeblock:: clj
 
-  => (defmacro multiply-some [&rest params] (quasiquote (* (unquote-splice (list (slice params 1))))))
+  => (defmacro infix [code]
+  ...  (quasiquote (
+  ...    (unquote (get code 1))
+  ...    (unquote (get code 0))
+  ...    (unquote (get code 2)))))
 
-  => (multiply-some 0 2 3)
-  6
-  => (multiply-some 2 0 3)
-  0
+  => (infix (1 + 1))
+  2
 
 eval
 ----
