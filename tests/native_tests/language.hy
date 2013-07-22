@@ -411,6 +411,13 @@
   (with [(open "README.md" "r")] (do)))
 
 
+(defn test-with-return []
+  "NATIVE: test that with returns stuff"
+  (defn read-file [filename]
+    (with [fd (open filename "r")] (.read fd)))
+  (assert (!= 0 (len (read-file "README.md")))))
+
+
 (defn test-for-doodle []
   "NATIVE: test for-do"
   (do (do (do (do (do (do (do (do (do (setv (, x y) (, 0 0)))))))))))
