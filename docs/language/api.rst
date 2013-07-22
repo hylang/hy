@@ -140,6 +140,32 @@ the user enters `k`.
 cond
 ----
 
+`cond` macro can be used to build nested if-statements.
+
+The following example shows the relationship between the macro and the expanded
+code:
+
+.. code-block:: clj
+
+    (cond (condition-1 result-1)
+          (condition-2 result-2))
+
+    (if condition-1 result-1
+      (if condition-2 result-2))
+
+As shown below only the first matching result block is executed.
+
+.. code-block:: clj
+
+    => (defn check-value [value]
+    ...  (cond ((< value 5) (print "value is smaller than 5"))
+    ...        ((= value 5) (print "value is equal to 5"))
+    ...        ((> value 5) (print "value is greater than 5"))
+    ...	       (True (print "value is something that it should not be"))))
+ 
+    => (check-value 6)
+    value is greater than 5
+
 
 continue
 --------
