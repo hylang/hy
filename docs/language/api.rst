@@ -41,9 +41,29 @@ behavior that's slightly unexpected in some situations.
 ->
 --
 
+`->` or `threading macro` is used to avoid nesting of expressions. The threading
+macro inserts each expression into the next expression’s first argument place.
+The following code demonstrates this:
+
+.. code-block:: clj
+
+    => (defn output [a b] (print a b))
+    => (-> (+ 5 5) (output 5))
+    10 5
+
 
 ->>
 ---
+
+`->>` or `threading tail macro` is similar to `threading macro` but instead of
+inserting each expression into the next expression’s first argument place it
+appends it as the last argument. The following code demonstrates this:
+
+.. code-block:: clj
+
+    => (defn output [a b] (print a b))
+    => (->> (+ 5 5) (output 5))
+    5 10
 
 
 and
@@ -301,9 +321,28 @@ eval-when-compile
 first / car
 -----------
 
+`first` and `car` are macros for accessing the first element of a collection:
+
+.. code-block:: clj
+
+    => (first (range 10))
+    0
+
 
 for
 ---
+
+`for` macro is used to build nested `foreach` loops. The macro takes two
+parameters, first being a vector specifying collections to iterate over and 
+variables to bind. The second parameter is a statement which is executed during
+each loop:
+
+.. code-block:: clj
+
+    (for [x iter y iter] stmt)
+
+    (foreach [x iter]
+      (foreach [y iter] stmt))
 
 
 foreach
@@ -601,6 +640,14 @@ The following example will import macros from `namespace-1` and `namespace-2`:
 rest / cdr
 ----------
 
+`rest` and `cdr` are used to access every element in collection, except the
+first one:
+
+.. code-block:: clj
+
+    => (rest (range 10))
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 
 slice
 -----
@@ -684,10 +731,29 @@ if an error was raised or not, the `finally` block is executed as last.
 unless
 ------
 
+`unless` macro is a shorthand for writing a if-statement that checks if the
+given conditional is False. The following shows how the macro expands into code.
+
+.. code-block:: clj
+
+    (unless conditional statement)
+
+    (if conditional 
+      None 
+      (do statement))
 
 when
 ----
 
+`when` is similar to `unless`, except it tests when the given conditional is
+True. It is not possible to have an `else` block in `when` macro. The following
+shows how the macro is expanded into code.
+
+.. code-block:: clj
+
+    (when conditional statement)
+
+    (if conditional (do statement))
 
 while
 -----
