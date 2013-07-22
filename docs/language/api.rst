@@ -38,6 +38,14 @@ Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+->
+--
+
+
+->>
+---
+
+
 and
 ---
 
@@ -127,6 +135,10 @@ the user enters `k`.
     (while True (if (= "k" (raw-input "? ")) 
                   (break) 
                   (print "Try again")))
+
+
+cond
+----
 
 
 continue
@@ -223,6 +235,10 @@ below:
     Meow
 
 
+defn / defun
+------------
+
+
 defmacro
 --------
 
@@ -233,7 +249,7 @@ Following example defines a macro that can be used to swap order of elements in
 code, allowing the user to write code in infix notation, where operator is in
 between the operands.
 
-.. codeblock:: clj
+.. code-block:: clj
 
   => (defmacro infix [code]
   ...  (quasiquote (
@@ -254,6 +270,14 @@ eval-and-compile
 
 eval-when-compile
 -----------------
+
+
+first / car
+-----------
+
+
+for
+---
 
 
 foreach
@@ -442,6 +466,10 @@ function is defined and passed to another function for filtering output.
     Dave
 
 
+let
+---
+
+
 list-comp
 ---------
 
@@ -533,6 +561,20 @@ the `print` form is used to output on screen. Example usage:
 require
 -------
 
+`require` is used to import macros from a given namespace. It takes at least one
+parameter specifying the namespace which macros should be imported. Multiple
+namesspaces can be imported with a single `require`.
+
+The following example will import macros from `namespace-1` and `namespace-2`:
+
+.. code-block:: clj
+
+    (require namespace-1 namespace-2)
+
+
+rest / cdr
+----------
+
 
 slice
 -----
@@ -611,6 +653,14 @@ as follows
 block during execution of `error-prone-function` then that catch block will
 be executed. If no errors are raised the `else` block is executed. Regardless
 if an error was raised or not, the `finally` block is executed as last.
+
+
+unless
+------
+
+
+when
+----
 
 
 while
