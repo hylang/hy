@@ -122,17 +122,23 @@ assoc
 -----
 
 `assoc` form is used to associate a key with a value in a dictionary or to set
-an index of a list to a value. It takes three parameters: `datastructure` to be
-modified, `key` or `index`  and `value`.
+an index of a list to a value. It takes at least three parameters: `datastructure` 
+to be modified, `key` or `index`  and `value`. If more than three parameters are
+used it will associate in pairs.
 
 Examples of usage:
 
 .. code-block:: clj
 
-  =>(let [[collection ({})]]
+  =>(let [[collection {}]]
   ... (assoc collection "Dog" "Bark")
   ... (print collection))
   {u'Dog': u'Bark'}
+
+  =>(let [[collection {}]]
+  ... (assoc collection "Dog" "Bark" "Cat" "Meow")
+  ... (print collection))
+  {u'Cat': u'Meow', u'Dog': u'Bark'}
 
   =>(let [[collection [1 2 3 4]]]
   ... (assoc collection 2 None)
