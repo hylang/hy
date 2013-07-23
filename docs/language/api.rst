@@ -38,6 +38,34 @@ Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+->
+--
+
+`->` or `threading macro` is used to avoid nesting of expressions. The threading
+macro inserts each expression into the next expression’s first argument place.
+The following code demonstrates this:
+
+.. code-block:: clj
+
+    => (defn output [a b] (print a b))
+    => (-> (+ 5 5) (output 5))
+    10 5
+
+
+->>
+---
+
+`->>` or `threading tail macro` is similar to `threading macro` but instead of
+inserting each expression into the next expression’s first argument place it
+appends it as the last argument. The following code demonstrates this:
+
+.. code-block:: clj
+
+    => (defn output [a b] (print a b))
+    => (->> (+ 5 5) (output 5))
+    5 10
+
+
 and
 ---
 
@@ -127,6 +155,36 @@ the user enters `k`.
     (while True (if (= "k" (raw-input "? ")) 
                   (break) 
                   (print "Try again")))
+
+
+cond
+----
+
+`cond` macro can be used to build nested if-statements.
+
+The following example shows the relationship between the macro and the expanded
+code:
+
+.. code-block:: clj
+
+    (cond (condition-1 result-1)
+          (condition-2 result-2))
+
+    (if condition-1 result-1
+      (if condition-2 result-2))
+
+As shown below only the first matching result block is executed.
+
+.. code-block:: clj
+
+    => (defn check-value [value]
+    ...  (cond ((< value 5) (print "value is smaller than 5"))
+    ...        ((= value 5) (print "value is equal to 5"))
+    ...        ((> value 5) (print "value is greater than 5"))
+    ...	       (True (print "value is something that it should not be"))))
+ 
+    => (check-value 6)
+    value is greater than 5
 
 
 continue
@@ -223,9 +281,30 @@ below:
     Meow
 
 
+defn / defun
+------------
+
+
 defmacro
 --------
 
+`defmacro` is used to define macros. The general format is
+`(defmacro [parameters] expr)`.
+
+Following example defines a macro that can be used to swap order of elements in
+code, allowing the user to write code in infix notation, where operator is in
+between the operands.
+
+.. code-block:: clj
+
+  => (defmacro infix [code]
+  ...  (quasiquote (
+  ...    (unquote (get code 1))
+  ...    (unquote (get code 0))
+  ...    (unquote (get code 2)))))
+
+  => (infix (1 + 1))
+  2
 
 eval
 ----
@@ -237,6 +316,33 @@ eval-and-compile
 
 eval-when-compile
 -----------------
+
+
+first / car
+-----------
+
+`first` and `car` are macros for accessing the first element of a collection:
+
+.. code-block:: clj
+
+    => (first (range 10))
+    0
+
+
+for
+---
+
+`for` macro is used to build nested `foreach` loops. The macro takes two
+parameters, first being a vector specifying collections to iterate over and 
+variables to bind. The second parameter is a statement which is executed during
+each loop:
+
+.. code-block:: clj
+
+    (for [x iter y iter] stmt)
+
+    (foreach [x iter]
+      (foreach [y iter] stmt))
 
 
 foreach
@@ -304,6 +410,25 @@ Example usages:
 global
 ------
 
+`global` can be used to mark a symbol as global. This allows the programmer to
+assign a value to a global symbol. Reading a global symbol does not require the
+`global` keyword, just the assigning does.
+
+Following example shows how global `a` is assigned a value in a function and later
+on printed on another function. Without the `global` keyword, the second function
+would thrown a `NameError`.
+
+.. code-block:: clj
+
+    (defn set-a [value]
+      (global a)
+      (setv a value))
+
+    (defn print-a []
+      (print a))
+
+    (set-a 5)
+    (print-a)
 
 if
 --
@@ -406,6 +531,10 @@ function is defined and passed to another function for filtering output.
     Dave
 
 
+let
+---
+
+
 list-comp
 ---------
 
@@ -497,6 +626,28 @@ the `print` form is used to output on screen. Example usage:
 require
 -------
 
+`require` is used to import macros from a given module. It takes at least one
+parameter specifying the module which macros should be imported. Multiple
+modules can be imported with a single `require`.
+
+The following example will import macros from `module-1` and `module-2`:
+
+.. code-block:: clj
+
+    (require module-1 module-2)
+
+
+rest / cdr
+----------
+
+`rest` and `cdr` return the collection passed as an argument without the first
+element:
+
+.. code-block:: clj
+
+    => (rest (range 10))
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 
 slice
 -----
@@ -576,6 +727,33 @@ block during execution of `error-prone-function` then that catch block will
 be executed. If no errors are raised the `else` block is executed. Regardless
 if an error was raised or not, the `finally` block is executed as last.
 
+
+unless
+------
+
+`unless` macro is a shorthand for writing a if-statement that checks if the
+given conditional is False. The following shows how the macro expands into code.
+
+.. code-block:: clj
+
+    (unless conditional statement)
+
+    (if conditional 
+      None 
+      (do statement))
+
+when
+----
+
+`when` is similar to `unless`, except it tests when the given conditional is
+True. It is not possible to have an `else` block in `when` macro. The following
+shows how the macro is expanded into code.
+
+.. code-block:: clj
+
+    (when conditional statement)
+
+    (if conditional (do statement))
 
 while
 -----
