@@ -25,6 +25,7 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
+(import [functools [reduce]])
 
 (defmacro for [args &rest body]
   "shorthand for nested foreach loops:
@@ -116,3 +117,15 @@
   ;; TODO: this needs some gensym love
   `(foreach [_hy_yield_from_x ~iterable]
      (yield _hy_yield_from_x)))
+
+(defmacro kwapply [call kwargs]
+  "Use a dictionary as keyword arguments"
+  (let [[-fun (car call)]
+        [-args (cdr call)]
+        [-okwargs kwargs]]
+    (while (= -fun "kwapply") ;; join any further kw
+      (setv -okwargs (+ (car (cdr -args)) -okwargs))
+      (setv -fun (car (car -args)))
+      (setv -args (cdr (car -args))))
+
+    `(apply ~-fun [~@-args] ~-okwargs)))
