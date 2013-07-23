@@ -290,6 +290,14 @@ below:
 defn / defun
 ------------
 
+`defn` and `defun` macros are used to define functions. They take three
+parameters: `name` of the function to define, vector of `parameters` and the
+`body` of the function:
+
+.. code-block:: clj
+
+    (defn name [params] body)
+
 
 defmacro
 --------
@@ -539,6 +547,30 @@ function is defined and passed to another function for filtering output.
 
 let
 ---
+
+`let` is used to create lexically scoped variables. They are created at the
+beginning of `let` form and cease to exist after the form. The following
+example showcases this behaviour:
+
+.. code-block:: clj
+
+    => (let [[x 5]] (print x) 
+    ...  (let [[x 6]] (print x)) 
+    ...  (print x))
+    5
+    6
+    5
+
+`let` macro takes two parameters: a vector defining `variables` and `body`,
+which is being executed. `variables` is a vector where each element is either
+a single variable or a vector defining a variable value pair. In case of a
+single variable, it is assigned value None, otherwise the supplied value is
+used.
+
+.. code-block:: clj
+
+    => (let [x [y 5]] (print x y))
+    None 5
 
 
 list-comp
