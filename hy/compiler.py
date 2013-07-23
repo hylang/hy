@@ -1200,11 +1200,18 @@ class HyASTCompiler(object):
             thing = self._storeize(self.compile(args.pop(0)))
 
         body = self._compile_branch(expr)
-        body += body.expr_as_stmt()
 
-        if not body.stmts:
-            body += ast.Pass(lineno=expr.start_line,
-                             col_offset=expr.start_column)
+        var = self.get_anon_var()
+        name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                        ctx=ast.Store(),
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column)
+
+        # Store the result of the body in a tempvar
+        body += ast.Assign(targets=[name],
+                           value=body.force_expr,
+                           lineno=expr.start_line,
+                           col_offset=expr.start_column)
 
         the_with = ast.With(context_expr=ctx.force_expr,
                             lineno=expr.start_line,
@@ -1216,7 +1223,16 @@ class HyASTCompiler(object):
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
-        return ctx + the_with
+        ret = ctx + the_with
+        # And make our expression context our temp variable
+        expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                             ctx=ast.Load(),
+                             lineno=expr.start_line,
+                             col_offset=expr.start_column)
+
+        ret += Result(expr=expr_name, temp_variables=[expr_name, name])
+
+        return ret
 
     @builds(",")
     def compile_tuple(self, expr):
