@@ -626,22 +626,22 @@ the `print` form is used to output on screen. Example usage:
 require
 -------
 
-`require` is used to import macros from a given namespace. It takes at least one
-parameter specifying the namespace which macros should be imported. Multiple
-namesspaces can be imported with a single `require`.
+`require` is used to import macros from a given module. It takes at least one
+parameter specifying the module which macros should be imported. Multiple
+modules can be imported with a single `require`.
 
-The following example will import macros from `namespace-1` and `namespace-2`:
+The following example will import macros from `module-1` and `module-2`:
 
 .. code-block:: clj
 
-    (require namespace-1 namespace-2)
+    (require module-1 module-2)
 
 
 rest / cdr
 ----------
 
-`rest` and `cdr` are used to access every element in collection, except the
-first one:
+`rest` and `cdr` return the collection passed as an argument without the first
+element:
 
 .. code-block:: clj
 
