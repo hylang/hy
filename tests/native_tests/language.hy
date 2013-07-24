@@ -154,6 +154,14 @@
   (assert (= (kwapply (kwtest) mydict) mydict))
   (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"})))
 
+(defn test-apply []
+  "NATIVE: test working with args and functions"
+  (defn sumit [a b c] (+ a b c))
+  (assert (= (apply sumit [1] {"b" 2 "c" 3}) 6))
+  (assert (= (apply sumit [1 2 2]) 5))
+  (assert (= (apply sumit [] {"a" 1 "b" 1 "c" 2}) 4))
+  (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3)))
+
 
 (defn test-dotted []
   "NATIVE: test dotted invocation"
