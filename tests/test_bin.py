@@ -83,7 +83,7 @@ def test_bin_hy_file():
 
 def test_bin_hy_missing_file():
     ret = run_cmd("hy foobarbaz")
-    assert ret[0] == 1
+    assert ret[0] == 2
     assert "No such file" in ret[2]
 
 
@@ -100,6 +100,25 @@ def test_bin_hy_file_with_args():
     ret = run_cmd("hy tests/resources/argparse_ex.hy -i foo -c bar")
     assert ret[0] == 0
     assert "foo" in ret[1]
+
+
+def test_bin_hyc():
+    ret = run_cmd("hyc")
+    assert ret[0] == 2
+    assert "usage" in ret[2]
+    ret = run_cmd("hyc -h")
+    assert ret[0] == 0
+    assert "usage" in ret[1]
+    ret = run_cmd("hyc tests/resources/argparse_ex.hy")
+    assert ret[0] == 0
+    assert "Compiling" in ret[1]
+    assert os.path.exists("tests/resources/argparse_ex.pyc")
+
+
+def test_bin_hyc_missing_file():
+    ret = run_cmd("hyc foobarbaz")
+    assert ret[0] == 2
+    assert "[Errno 2]" in ret[2]
 
 
 def test_hy2py():
