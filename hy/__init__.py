@@ -24,6 +24,7 @@ __version__ = "0.9.10"
 
 
 from hy.models.expression import HyExpression  # NOQA
+from hy.models.lambdalist import HyLambdaListKeyword  # NOQA
 from hy.models.integer import HyInteger  # NOQA
 from hy.models.keyword import HyKeyword  # NOQA
 from hy.models.complex import HyComplex  # NOQA

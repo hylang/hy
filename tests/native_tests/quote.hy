@@ -75,3 +75,10 @@
   (assert (= (len q) 3))
   (assert (= (get qq 1) (quote (quasiquote (unquote (+ 1 5))))))
   (assert (= q qq)))
+
+
+(defn test-quote-lambdalistkeyword []
+  "NATIVE: test quoting lambda list keywords"
+  (setv opt (quote &optional))
+  (assert (isinstance opt hy.HyLambdaListKeyword))
+  (assert (= (str opt) "&optional")))
