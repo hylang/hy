@@ -348,6 +348,11 @@
   (assoc vals "two" "three")
   (assert (= (get vals "two") "three")))
 
+(defn test-multiassoc []
+  "NATIVE: test assoc multiple values"
+  (setv vals {"one" "two"})
+  (assoc vals "two" "three" "four" "five")
+  (assert (and (= (get vals "two") "three") (= (get vals "four") "five") (= (get vals "one") "two"))))
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
@@ -404,6 +409,13 @@
   "NATIVE: test with"
   (with [fd (open "README.md" "r")] (assert fd))
   (with [(open "README.md" "r")] (do)))
+
+
+(defn test-with-return []
+  "NATIVE: test that with returns stuff"
+  (defn read-file [filename]
+    (with [fd (open filename "r")] (.read fd)))
+  (assert (!= 0 (len (read-file "README.md")))))
 
 
 (defn test-for-doodle []

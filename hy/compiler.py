@@ -154,7 +154,8 @@ class Result(object):
     The Result object is interoperable with python AST objects: when an AST
     object gets added to a Result object, it gets converted on-the-fly.
     """
-    __slots__ = ("imports", "stmts", "temp_variables", "_expr", "__used_expr")
+    __slots__ = ("imports", "stmts", "temp_variables",
+                 "_expr", "__used_expr", "contains_yield")
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -165,12 +166,14 @@ class Result(object):
         self.stmts = []
         self.temp_variables = []
         self._expr = None
+        self.contains_yield = False
 
         self.__used_expr = False
 
         # XXX: Make sure we only have AST where we should.
         for kwarg in kwargs:
-            if kwarg not in ["imports", "stmts", "expr", "temp_variables"]:
+            if kwarg not in ["imports", "contains_yield", "stmts", "expr",
+                             "temp_variables"]:
                 raise TypeError(
                     "%s() got an unexpected keyword argument '%s'" % (
                         self.__class__.__name__, kwarg))
@@ -282,13 +285,21 @@ class Result(object):
         result.stmts = self.stmts + other.stmts
         result.expr = other.expr
         result.temp_variables = other.temp_variables
+        result.contains_yield = False
+        if self.contains_yield or other.contains_yield:
+            result.contains_yield = True
+
         return result
 
     def __str__(self):
-        return "Result(imports=[%s], stmts=[%s], expr=%s)" % (
+        return (
+            "Result(imports=[%s], stmts=[%s], "
+            "expr=%s, contains_yield=%s)"
+        ) % (
             ", ".join(ast.dump(x) for x in self.imports),
             ", ".join(ast.dump(x) for x in self.stmts),
             ast.dump(self.expr) if self.expr else None,
+            self.contains_yield
         )
 
 
@@ -318,7 +329,7 @@ def _raise_wrong_args_number(expression, error):
                                len(expression)))
 
 
-def checkargs(exact=None, min=None, max=None):
+def checkargs(exact=None, min=None, max=None, even=None):
     def _dec(fn):
         def checker(self, expression):
             if exact is not None and (len(expression) - 1) != exact:
@@ -334,6 +345,14 @@ def checkargs(exact=None, min=None, max=None):
                 _raise_wrong_args_number(
                     expression,
                     "`%%s' needs at most %d arguments, got %%d" % (max))
+
+            is_even = not((len(expression) - 1) % 2)
+            if even is not None and is_even != even:
+                even_str = "even" if even else "odd"
+                _raise_wrong_args_number(
+                    expression,
+                    "`%%s' needs an %s number of arguments, got %%d"
+                    % (even_str))
 
             return fn(self, expression)
 
@@ -1011,7 +1030,7 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        ret = Result()
+        ret = Result(contains_yield=True)
 
         value = None
         if expr != []:
@@ -1130,25 +1149,28 @@ class HyASTCompiler(object):
             ctx=ast.Load())
 
     @builds("assoc")
-    @checkargs(3)
+    @checkargs(min=3, even=False)
     def compile_assoc_expression(self, expr):
         expr.pop(0)  # assoc
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
-        key = self.compile(expr.pop(0))
-        val = self.compile(expr.pop(0))
+        ret = target
+        i = iter(expr)
+        for (key, val) in ((self.compile(x), self.compile(y))
+                           for (x, y) in zip(i, i)):
 
-        return target + key + val + ast.Assign(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            targets=[
-                ast.Subscript(
-                    lineno=expr.start_line,
-                    col_offset=expr.start_column,
-                    value=target.force_expr,
-                    slice=ast.Index(value=key.force_expr),
-                    ctx=ast.Store())],
-            value=val.force_expr)
+            ret += key + val + ast.Assign(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                targets=[
+                    ast.Subscript(
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column,
+                        value=target.force_expr,
+                        slice=ast.Index(value=key.force_expr),
+                        ctx=ast.Store())],
+                value=val.force_expr)
+        return ret
 
     @builds("with_decorator")
     @checkargs(min=1)
@@ -1178,11 +1200,18 @@ class HyASTCompiler(object):
             thing = self._storeize(self.compile(args.pop(0)))
 
         body = self._compile_branch(expr)
-        body += body.expr_as_stmt()
 
-        if not body.stmts:
-            body += ast.Pass(lineno=expr.start_line,
-                             col_offset=expr.start_column)
+        var = self.get_anon_var()
+        name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                        ctx=ast.Store(),
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column)
+
+        # Store the result of the body in a tempvar
+        body += ast.Assign(targets=[name],
+                           value=body.force_expr,
+                           lineno=expr.start_line,
+                           col_offset=expr.start_column)
 
         the_with = ast.With(context_expr=ctx.force_expr,
                             lineno=expr.start_line,
@@ -1194,7 +1223,16 @@ class HyASTCompiler(object):
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
-        return ctx + the_with
+        ret = ctx + the_with
+        # And make our expression context our temp variable
+        expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
+                             ctx=ast.Load(),
+                             lineno=expr.start_line,
+                             col_offset=expr.start_column)
+
+        ret += Result(expr=expr_name, temp_variables=[expr_name, name])
+
+        return ret
 
     @builds(",")
     def compile_tuple(self, expr):
@@ -1537,6 +1575,8 @@ class HyASTCompiler(object):
                        body=body.stmts,
                        orelse=orel.stmts)
 
+        ret.contains_yield = body.contains_yield
+
         return ret
 
     @builds("while")
@@ -1553,6 +1593,8 @@ class HyASTCompiler(object):
                          orelse=[],
                          lineno=expr.start_line,
                          col_offset=expr.start_column)
+
+        ret.contains_yield = body.contains_yield
 
         return ret
 
@@ -1597,9 +1639,12 @@ class HyASTCompiler(object):
             return ret
 
         if body.expr:
-            body += ast.Return(value=body.expr,
-                               lineno=body.expr.lineno,
-                               col_offset=body.expr.col_offset)
+            if body.contains_yield:
+                body += body.expr_as_stmt()
+            else:
+                body += ast.Return(value=body.expr,
+                                   lineno=body.expr.lineno,
+                                   col_offset=body.expr.col_offset)
 
         if not body.stmts:
             body += ast.Pass(lineno=expression.start_line,
@@ -1642,6 +1687,17 @@ class HyASTCompiler(object):
             bases = Result()
 
         body = Result()
+
+        # grab the doc string, if there is one
+        if expression and isinstance(expression[0], HyString):
+            docstring = expression.pop(0)
+            symb = HySymbol("__doc__")
+            symb.start_line = docstring.start_line
+            symb.start_column = docstring.start_column
+            body += self._compile_assign(symb, docstring,
+                                         docstring.start_line,
+                                         docstring.start_column)
+            body += body.expr_as_stmt()
 
         if expression:
             try:

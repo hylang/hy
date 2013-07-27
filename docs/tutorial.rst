@@ -392,7 +392,7 @@ In python we might see::
 
 The same thing in Hy::
 
-  => (defn optional_arg [pos1 pos2 &optional keyword1 [keyword2 88]]
+  => (defn optional_arg [pos1 pos2 &optional keyword1 [keyword2 42]]
   ...  [pos1 pos2 keyword1 keyword2])
   => (optional_arg 1 2)
   [1 2 None 42]

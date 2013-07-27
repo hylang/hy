@@ -38,6 +38,34 @@ Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+->
+--
+
+`->` or `threading macro` is used to avoid nesting of expressions. The threading
+macro inserts each expression into the next expression’s first argument place.
+The following code demonstrates this:
+
+.. code-block:: clj
+
+    => (defn output [a b] (print a b))
+    => (-> (+ 5 5) (output 5))
+    10 5
+
+
+->>
+---
+
+`->>` or `threading tail macro` is similar to `threading macro` but instead of
+inserting each expression into the next expression’s first argument place it
+appends it as the last argument. The following code demonstrates this:
+
+.. code-block:: clj
+
+    => (defn output [a b] (print a b))
+    => (->> (+ 5 5) (output 5))
+    5 10
+
+
 and
 ---
 
@@ -75,6 +103,7 @@ case the first false value will be returned. Examples of usage:
     I can has False
     False
 
+
 assert
 ------
 
@@ -88,21 +117,28 @@ condition is not met, an `AssertionError` is raised. The example usage:
 Assert takes a single parameter, a conditional that evaluates to either `True`
 or `False`.
 
+
 assoc
 -----
 
 `assoc` form is used to associate a key with a value in a dictionary or to set
-an index of a list to a value. It takes three parameters: `datastructure` to be
-modified, `key` or `index`  and `value`.
+an index of a list to a value. It takes at least three parameters: `datastructure` 
+to be modified, `key` or `index`  and `value`. If more than three parameters are
+used it will associate in pairs.
 
 Examples of usage:
 
 .. code-block:: clj
 
-  =>(let [[collection ({})]]
+  =>(let [[collection {}]]
   ... (assoc collection "Dog" "Bark")
   ... (print collection))
   {u'Dog': u'Bark'}
+
+  =>(let [[collection {}]]
+  ... (assoc collection "Dog" "Bark" "Cat" "Meow")
+  ... (print collection))
+  {u'Cat': u'Meow', u'Dog': u'Bark'}
 
   =>(let [[collection [1 2 3 4]]]
   ... (assoc collection 2 None)
@@ -110,6 +146,7 @@ Examples of usage:
   [1, 2, None, 4]
 
 .. note:: `assoc` modifies the datastructure in place and returns `None`.
+
 
 break
 -----
@@ -124,6 +161,36 @@ the user enters `k`.
     (while True (if (= "k" (raw-input "? ")) 
                   (break) 
                   (print "Try again")))
+
+
+cond
+----
+
+`cond` macro can be used to build nested if-statements.
+
+The following example shows the relationship between the macro and the expanded
+code:
+
+.. code-block:: clj
+
+    (cond (condition-1 result-1)
+          (condition-2 result-2))
+
+    (if condition-1 result-1
+      (if condition-2 result-2))
+
+As shown below only the first matching result block is executed.
+
+.. code-block:: clj
+
+    => (defn check-value [value]
+    ...  (cond ((< value 5) (print "value is smaller than 5"))
+    ...        ((= value 5) (print "value is equal to 5"))
+    ...        ((> value 5) (print "value is greater than 5"))
+    ...	       (True (print "value is something that it should not be"))))
+ 
+    => (check-value 6)
+    value is greater than 5
 
 
 continue
@@ -143,6 +210,7 @@ however is called only for every other value in the list.
       (if (% x 2)
         (continue))
       (side-effect2 x)))
+
 
 do / progn
 ----------
@@ -176,14 +244,73 @@ Some example usage:
 def / setv
 -----------------
 
+`def` and `setv` are used to bind value, object or a function to a symbol. For
+example:
+
+.. code-block:: clj
+
+    => (def names ["Alice" "Bob" "Charlie"]
+    => (print names)
+    [u'Alice', u'Bob', u'Charlie']
+
+    => (setv counter (fn [collection item] (.count collection item)))
+    => (counter [1 2 3 4 5 2 3] 2)
+    2
+
 
 defclass
 --------
+
+new classes are declared with `defclass`. It can takes two optional parameters:
+a vector defining a possible super classes and another vector containing
+attributes of the new class as two item vectors.
+
+.. code-block:: clj
+
+    (defclass class-name [super-class-1 super-class-2]
+      [[attribute value]])
+
+Both values and functions can be bound on the new class as shown by the example
+below:
+
+.. code-block:: clj
+
+    => (defclass Cat []
+    ...  [[age None]
+    ...   [colour "white"]
+    ...   [speak (fn [self] (print "Meow"))]])
+
+    => (def spot (Cat))
+    => (setv spot.colour "Black")
+    'Black'
+    => (.speak spot)
+    Meow
+
+
+defn / defun
+------------
 
 
 defmacro
 --------
 
+`defmacro` is used to define macros. The general format is
+`(defmacro [parameters] expr)`.
+
+Following example defines a macro that can be used to swap order of elements in
+code, allowing the user to write code in infix notation, where operator is in
+between the operands.
+
+.. code-block:: clj
+
+  => (defmacro infix [code]
+  ...  (quasiquote (
+  ...    (unquote (get code 1))
+  ...    (unquote (get code 0))
+  ...    (unquote (get code 2)))))
+
+  => (infix (1 + 1))
+  2
 
 eval
 ----
@@ -197,8 +324,69 @@ eval-when-compile
 -----------------
 
 
+first / car
+-----------
+
+`first` and `car` are macros for accessing the first element of a collection:
+
+.. code-block:: clj
+
+    => (first (range 10))
+    0
+
+
+for
+---
+
+`for` macro is used to build nested `foreach` loops. The macro takes two
+parameters, first being a vector specifying collections to iterate over and 
+variables to bind. The second parameter is a statement which is executed during
+each loop:
+
+.. code-block:: clj
+
+    (for [x iter y iter] stmt)
+
+    (foreach [x iter]
+      (foreach [y iter] stmt))
+
+
 foreach
 -------
+
+`foreach` is used to call a function for each element in a list or vector.
+Results are discarded and None is returned instead. Example code iterates over
+collection and calls side-effect to each element in the collection:
+
+.. code-block:: clj
+
+    ;; assuming that (side-effect) is a function that takes a single parameter
+    (foreach [element collection] (side-effect element))
+
+    ;; foreach can have an optional else block
+    (foreach [element collection] (side-effect element)
+             (else (side-effect-2)))
+
+The optional `else` block is executed only if the `foreach` loop terminates
+normally. If the execution is halted with `break`, the `else` does not execute.
+
+.. code-block:: clj
+
+    => (foreach [element [1 2 3]] (if (< element 3)
+    ...                               (print element) 
+    ...                               (break))
+    ...    (else (print "loop finished")))
+    1
+    2
+
+    => (foreach [element [1 2 3]] (if (< element 4)
+    ...                               (print element)
+    ...                               (break))
+    ...    (else (print "loop finished")))
+    1
+    2
+    3
+    loop finished
 
 
 get
@@ -224,9 +412,29 @@ Example usages:
 .. note:: `get` raises an IndexError if a list is queried for an index that is
           out of bounds.
 
+
 global
 ------
 
+`global` can be used to mark a symbol as global. This allows the programmer to
+assign a value to a global symbol. Reading a global symbol does not require the
+`global` keyword, just the assigning does.
+
+Following example shows how global `a` is assigned a value in a function and later
+on printed on another function. Without the `global` keyword, the second function
+would thrown a `NameError`.
+
+.. code-block:: clj
+
+    (defn set-a [value]
+      (global a)
+      (setv a value))
+
+    (defn print-a []
+      (print a))
+
+    (set-a 5)
+    (print-a)
 
 if
 --
@@ -283,9 +491,54 @@ of import you can use.
 kwapply
 -------
 
+`kwapply` can be used to supply keyword arguments to a function.
+
+For example:
+
+.. code-block:: clj
+
+    => (defn rent-car [&kwargs kwargs]
+    ...  (cond ((in :brand kwargs) (print "brand:" (:brand kwargs)))
+    ...        ((in :model kwargs) (print "model:" (:model kwargs)))))
+
+    => (kwapply (rent-car) {:model "T-Model"})
+    model: T-Model
+
+    => (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]] 
+    ...  (* price amount fees vat))
+
+    => (total-purchase 10 15)
+    173.25
+
+    => (kwapply (total-purchase 10 15) {"vat" 1.05})
+    165.375
+
 
 lambda / fn
 -----------
+
+`lambda` and `fn` can be used to define an anonymous function. The parameters are
+similar to `defn`: first parameter is vector of parameters and the rest is the
+body of the function. lambda returns a new function. In the example an anonymous
+function is defined and passed to another function for filtering output.
+
+.. code-block:: clj
+
+    => (def people [{:name "Alice" :age 20}
+    ...             {:name "Bob" :age 25}
+    ...             {:name "Charlie" :age 50}
+    ...             {:name "Dave" :age 5}])
+
+    => (defn display-people [people filter]
+    ...  (foreach [person people] (if (filter person) (print (:name person)))))
+
+    => (display-people people (fn [person] (< (:age person) 25)))
+    Alice
+    Dave
+
+
+let
+---
 
 
 list-comp
@@ -308,6 +561,7 @@ conditional expression. Some examples:
 
     => (list-comp (* x 2) [x collection] (< x 5))
     [0, 2, 4, 6, 8]
+
 
 not
 ---
@@ -374,8 +628,31 @@ the `print` form is used to output on screen. Example usage:
 
 .. note:: `print` always returns None
 
+
 require
 -------
+
+`require` is used to import macros from a given module. It takes at least one
+parameter specifying the module which macros should be imported. Multiple
+modules can be imported with a single `require`.
+
+The following example will import macros from `module-1` and `module-2`:
+
+.. code-block:: clj
+
+    (require module-1 module-2)
+
+
+rest / cdr
+----------
+
+`rest` and `cdr` return the collection passed as an argument without the first
+element:
+
+.. code-block:: clj
+
+    => (rest (range 10))
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
 slice
@@ -457,6 +734,33 @@ be executed. If no errors are raised the `else` block is executed. Regardless
 if an error was raised or not, the `finally` block is executed as last.
 
 
+unless
+------
+
+`unless` macro is a shorthand for writing a if-statement that checks if the
+given conditional is False. The following shows how the macro expands into code.
+
+.. code-block:: clj
+
+    (unless conditional statement)
+
+    (if conditional 
+      None 
+      (do statement))
+
+when
+----
+
+`when` is similar to `unless`, except it tests when the given conditional is
+True. It is not possible to have an `else` block in `when` macro. The following
+shows how the macro is expanded into code.
+
+.. code-block:: clj
+
+    (when conditional statement)
+
+    (if conditional (do statement))
+
 while
 -----
 
@@ -469,16 +773,75 @@ The following example will output "hello world!" on screen indefinetely:
 
     (while True (print "hello world!"))
 
+
 with
 ----
+
+`with` is used to wrap execution of a block with a context manager. The context
+manager can then set up the local system and tear it down in a controlled
+manner. Typical example of using `with` is processing files. `with`  can bind
+context to an argument or ignore it completely, as shown below:
+
+.. code-block:: clj
+
+    (with [arg (expr)] block)
+
+    (with [(expr)] block)
+
+The following example will open file `NEWS` and print its content on screen. The
+file is automatically closed after it has been processed.
+
+.. code-block:: clj
+
+    (with [f (open "NEWS")] (print (.read f)))
 
 
 with-decorator
 --------------
 
+`with-decorator` is used to wrap a function with another. The function performing
+decoration should accept a single value, the function being decorated and return
+a new function. `with-decorator` takes two parameters, the function performing
+decoration and the function being decorated.
+
+In the following example, `inc-decorator` is used to decorate function `addition`
+with a function that takes two parameters and calls the decorated function with
+values that are incremented by 1. When decorated `addition` is called with values
+1 and 1, the end result will be 4 (1+1 + 1+1).
+
+.. code-block:: clj
+
+    => (defn inc-decorator [func] 
+    ...  (fn [value-1 value-2] (func (+ value-1 1) (+ value-2 1))))
+    => (with-decorator inc-decorator (defn addition [a b] (+ a b)))
+    => (addition 1 1)
+    4
+
 
 yield
 -----
 
+`yield` is used to create a generator object, that returns 1 or more values.
+The generator is iterable and therefore can be used in loops, list
+comprehensions and other similar constructs.
 
+Especially the second example shows how generators can be used to generate
+infinite series without consuming infinite amount of memory.
 
+.. code-block:: clj
+
+    => (defn multiply [bases coefficients]
+    ...  (foreach [(, base coefficient) (zip bases coefficients)]
+    ...   (yield (* base coefficient))))
+
+    => (multiply (range 5) (range 5))
+    <generator object multiply at 0x978d8ec>
+
+    => (list-comp value [value (multiply (range 10) (range 10))])
+    [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+    => (import random)
+    => (defn random-numbers [low high]
+    ...  (while True (yield (.randint random low high))))
+    => (list-comp x [x (take 15 (random-numbers 1 50))])])
+    [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
