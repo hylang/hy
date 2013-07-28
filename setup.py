@@ -20,10 +20,26 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-from hy import __appname__, __version__
 from setuptools import setup
 import os
+import re
 import sys
+
+PKG = "hy"
+VERSIONFILE = os.path.join(PKG, "version.py")
+verstr = "unknown"
+try:
+    verstrline = open(VERSIONFILE, "rt").read()
+except EnvironmentError:
+    pass # Okay, there is no version file.
+else:
+    VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+    mo = re.search(VSRE, verstrline, re.M)
+    if mo:
+        __version__ = mo.group(1)
+    else:
+        raise RuntimeError("if %s.py exists, it is required to be well-formed" % (VERSIONFILE,))
+
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
@@ -36,7 +52,7 @@ if os.name == 'nt':
     install_requires.append('pyreadline==2.0')
 
 setup(
-    name=__appname__,
+    name=PKG,
     version=__version__,
     install_requires=install_requires,
     entry_points={
