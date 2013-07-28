@@ -618,7 +618,7 @@ class HyASTCompiler(object):
             return imports, HyExpression([HySymbol(name),
                                           contents]).replace(form), False
 
-        elif isinstance(form, HySymbol):
+        elif isinstance(form, (HySymbol, HyLambdaListKeyword)):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
 
