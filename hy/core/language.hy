@@ -1,7 +1,27 @@
+;; Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+;; Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
+
+;; Permission is hereby granted, free of charge, to any person obtaining a
+;; copy of this software and associated documentation files (the "Software"),
+;; to deal in the Software without restriction, including without limitation
+;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
+;; and/or sell copies of the Software, and to permit persons to whom the
+;; Software is furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+;; DEALINGS IN THE SOFTWARE.
+
 ;;;; This contains some of the core Hy functions used
 ;;;; to make functional programming slightly easier.
 ;;;;
-
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -40,6 +60,20 @@
          (catch [StopIteration]))
     citer))
 
+(defn drop-while [pred coll]
+  "Drop all elements of `coll` until `pred` is False"
+  (let [[citer (iter coll)]]
+    (let [found false]
+      (for [val citer]
+        (if (not (pred val))
+          (setv found true))
+        (if found
+          (yield val))))))
+
+(defn empty? [coll]
+  "Return True if `coll` is empty"
+  (= 0 (len coll)))
+
 (defn even? [n]
   "Return true if n is an even number"
   (_numeric-check n)
@@ -52,6 +86,10 @@
       (if (pred val)
         (yield val)))))
 
+(defn float? [x]
+  "Return True if x is float"
+  (isinstance x float))
+
 (defn inc [n]
   "Increment n by 1"
   (_numeric-check n)
@@ -59,6 +97,13 @@
 
 (defn instance? [klass x]
   (isinstance x klass))
+
+(defn integer? [x]
+  "Return True if x in an integer"
+  (import sys)
+  (if (< (get sys.version_info 0) 3)
+    (isinstance x (, int long)))
+    (isinstance x int))
 
 (defn iterable? [x]
   "Return true if x is iterable"
@@ -128,6 +173,17 @@
   (while true
     (yield (func))))
 
+(defn second [coll]
+  "Return second item from `coll`"
+  (get coll 1))
+
+(defn string? [x]
+  "Return True if x is a string"
+  (import sys)
+  (if (< (get sys.version_info 0) 3)
+    (isinstance x (, str unicode))
+    (isinstance x str)))
+
 (defn take [count coll]
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
@@ -159,7 +215,9 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* ["cycle" "dec" "distinct" "drop" "even?" "filter" "inc"
-                "instance?" "iterable?" "iterate" "iterator?" "neg?"
+(def *exports* ["cycle" "dec" "distinct" "drop" "drop_while" "empty?"
+                "even?" "filter" "float?" "inc"
+                "instance?" "integer?" "iterable?" "iterate" "iterator?" "neg?"
                 "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
-                "repeatedly" "take" "take_nth" "take_while" "zero?"])
+                "repeatedly" "second" "string?" "take" "take_nth" "take_while"
+                "zero?"])
