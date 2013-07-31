@@ -63,7 +63,7 @@ def test_bin_hy_cmd():
 
     ret = run_cmd("hy -c \"(koan\"")
     assert ret[0] == 1
-    assert "LexException" in ret[1]
+    assert "PrematureEndOfInput" in ret[1]
 
 
 def test_bin_hy_icmd():

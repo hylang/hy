@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,21 +18,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from rply.errors import LexingError
-
-from hy.lex.exceptions import LexException, PrematureEndOfInput  # NOQA
-from hy.lex.lexer import lexer
-from hy.lex.parser import parser
+from hy.errors import HyError
 
 
-def tokenize(buf):
-    """
-    Tokenize a Lisp file or string buffer into internal Hy objects.
-    """
-    try:
-        return parser.parse(lexer.lex(buf))
-    except LexingError as e:
-        pos = e.getsourcepos()
-        raise LexException(
-            "Could not identify the next token at line %s, column %s" % (
-                pos.lineno, pos.colno))
+class LexException(HyError):
+    """Error during the Lexing of a Hython expression."""
+    pass
+
+
+class PrematureEndOfInput(LexException):
+    """We got a premature end of input"""
+    pass
