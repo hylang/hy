@@ -355,7 +355,7 @@ Parameters may have following keywords in front of them:
         => (zig-zag-sum 3 9 4)
         8
         => (zig-zag-sum 1 2 3 4 5 6)
-       -3
+        -3
 
 defmacro
 --------
