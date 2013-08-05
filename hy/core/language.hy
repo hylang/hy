@@ -63,12 +63,11 @@
 (defn drop-while [pred coll]
   "Drop all elements of `coll` until `pred` is False"
   (let [[citer (iter coll)]]
-    (let [found false]
-      (for [val citer]
-        (if (not (pred val))
-          (setv found true))
-        (if found
-          (yield val))))))
+    (for [val citer]
+      (if (not (pred val))
+        (do (yield val) (break))))
+    (for [val citer]
+      (yield val))))
 
 (defn empty? [coll]
   "Return True if `coll` is empty"
