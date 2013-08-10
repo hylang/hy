@@ -432,3 +432,8 @@ def test_compile_error():
                == "`=' needs at least 2 arguments, got 1 (line 1, column 8)")
     else:
         assert(False)
+
+
+def test_cons_correct():
+    """Ensure cons gets compiled correctly"""
+    can_compile("(cons a b)")
