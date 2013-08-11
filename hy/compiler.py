@@ -3,6 +3,7 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 # Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
+# Copyright (c) 2013 James King <james@agentultra.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
