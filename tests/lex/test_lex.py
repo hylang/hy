@@ -27,9 +27,7 @@ from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
 
-from hy.lex.states import LexException
-
-from hy.lex import tokenize
+from hy.lex import LexException, PrematureEndOfInput, tokenize
 
 
 def test_lex_exception():
@@ -37,13 +35,17 @@ def test_lex_exception():
     try:
         tokenize("(foo")
         assert True is False
-    except LexException:
+    except PrematureEndOfInput:
         pass
-
     try:
-        tokenize("&foo&")
+        tokenize("{foo bar")
         assert True is False
-    except LexException:
+    except PrematureEndOfInput:
+        pass
+    try:
+        tokenize("(defn foo [bar]")
+        assert True is False
+    except PrematureEndOfInput:
         pass
 
 
@@ -124,6 +126,8 @@ def test_lex_expression_complex():
     assert objs == [HyExpression([HySymbol("foo"), HyComplex(-0.5j)])]
     objs = tokenize("(foo 1.e7j)")
     assert objs == [HyExpression([HySymbol("foo"), HyComplex(1.e7j)])]
+    objs = tokenize("(foo j)")
+    assert objs == [HyExpression([HySymbol("foo"), HySymbol("j")])]
 
 
 def test_lex_line_counting():
@@ -222,11 +226,17 @@ def test_escapes():
     entry = tokenize("(foo \"foo\\n\")")[0]
     assert entry[1] == "foo\n"
 
-    try:
-        entry = tokenize("(foo \"foo\s\")")[0]
-        assert True is False
-    except LexException:
-        pass
+    entry = tokenize("(foo \"foo\s\")")[0]
+    assert entry[1] == "foo\\s"
+
+
+def test_unicode_escapes():
+    """Ensure unicode escapes are handled correctly"""
+    s = r'"a\xac\u1234\u20ac\U00008000"'
+    assert len(s) == 29
+    entry = tokenize(s)[0]
+    assert len(entry) == 5
+    assert [ord(x) for x in entry] == [97, 172, 4660, 8364, 32768]
 
 
 def test_hashbang():

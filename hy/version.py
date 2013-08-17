@@ -18,21 +18,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from rply.errors import LexingError
 
-from hy.lex.exceptions import LexException, PrematureEndOfInput  # NOQA
-from hy.lex.lexer import lexer
-from hy.lex.parser import parser
-
-
-def tokenize(buf):
-    """
-    Tokenize a Lisp file or string buffer into internal Hy objects.
-    """
-    try:
-        return parser.parse(lexer.lex(buf))
-    except LexingError as e:
-        pos = e.getsourcepos()
-        raise LexException(
-            "Could not identify the next token at line %s, column %s" % (
-                pos.lineno, pos.colno))
+__appname__ = "hy"
+__version__ = "0.9.10"

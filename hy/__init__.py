@@ -19,8 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-__appname__ = "hy"
-__version__ = "0.9.10"
+from hy.version import __version__, __appname__  # NOQA
 
 
 from hy.models.expression import HyExpression  # NOQA

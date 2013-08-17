@@ -31,18 +31,16 @@ import sys
 
 import hy
 
-from hy.importer import ast_compile, import_buffer_to_module
-from hy.lex.states import Idle, LexException
-from hy.lex.machine import Machine
+from hy.lex import LexException, PrematureEndOfInput, tokenize
 from hy.compiler import hy_compile
+from hy.importer import ast_compile, import_buffer_to_module
 from hy.completer import completion
 
-from hy.macros import macro, require, process
+from hy.macros import macro, require
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 
-_machine = Machine(Idle, 1, 0)
 
 try:
     import __builtin__ as builtins
@@ -72,27 +70,14 @@ builtins.exit = HyQuitter('exit')
 
 class HyREPL(code.InteractiveConsole):
     def runsource(self, source, filename='<input>', symbol='single'):
-        global _machine
-
         try:
-            _machine.process(source + "\n")
+            tokens = tokenize(source)
+        except PrematureEndOfInput:
+            return True
         except LexException:
-            _machine = Machine(Idle, 1, 0)
             self.showsyntaxerror(filename)
             return False
 
-        if type(_machine.state) != Idle:
-            _machine = Machine(Idle, 1, 0)
-            return True
-
-        try:
-            tokens = process(_machine.nodes, "__console__")
-        except Exception:
-            _machine = Machine(Idle, 1, 0)
-            self.showtraceback()
-            return False
-
-        _machine = Machine(Idle, 1, 0)
         try:
             _ast = hy_compile(tokens, "__console__", root=ast.Interactive)
             code = ast_compile(_ast, filename, symbol)
