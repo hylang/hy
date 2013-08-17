@@ -290,6 +290,72 @@ below:
 defn / defun
 ------------
 
+`defn` and `defun` macros are used to define functions. They take three
+parameters: `name` of the function to define, vector of `parameters` and the
+`body` of the function:
+
+.. code-block:: clj
+
+    (defn name [params] body)
+
+Parameters may have following keywords in front of them:
+
+&optional
+    parameter is optional. The parameter can be given as a two item list, where
+    the first element is parameter name and the second is the default value. The
+    parameter can be also given as a single item, in which case the default
+    value is None.
+
+    .. code-block:: clj
+
+        => (defn total-value [value &optional [value-added-tax 10]]
+        ...  (+ (/ (* value value-added-tax) 100) value))
+
+	=> (total-value 100)
+        110.0
+
+    	=> (total-value 100 1)
+	101.0
+
+&key
+    
+
+&kwargs
+    parameter will contain 0 or more keyword arguments.
+
+    The following code examples defines a function that will print all keyword
+    arguments and their values.
+
+    .. code-block:: clj
+
+        => (defn print-parameters [&kwargs kwargs]
+        ...    (for [(, k v) (.items kwargs)] (print k v)))
+
+        => (kwapply (print-parameters) {"parameter-1" 1 "parameter-2" 2})
+        parameter-2 2
+        parameter-1 1
+
+&rest
+    parameter will contain 0 or more positional arguments. No other positional
+    arguments may be specified after this one.
+
+    The following code example defines a function that can be given 0 to n
+    numerical parameters. It then sums every odd number and substracts
+    every even number.
+
+    .. code-block:: clj
+
+        => (defn zig-zag-sum [&rest numbers]
+             (let [[odd-numbers (list-comp x [x numbers] (odd? x))]
+	           [even-numbers (list-comp x [x numbers] (even? x))]]
+               (- (sum odd-numbers) (sum even-numbers))))
+
+        => (zig-zag-sum)
+        0
+        => (zig-zag-sum 3 9 4)
+        8
+        => (zig-zag-sum 1 2 3 4 5 6)
+        -3
 
 defmacro
 --------
@@ -539,6 +605,30 @@ function is defined and passed to another function for filtering output.
 
 let
 ---
+
+`let` is used to create lexically scoped variables. They are created at the
+beginning of `let` form and cease to exist after the form. The following
+example showcases this behaviour:
+
+.. code-block:: clj
+
+    => (let [[x 5]] (print x) 
+    ...  (let [[x 6]] (print x)) 
+    ...  (print x))
+    5
+    6
+    5
+
+`let` macro takes two parameters: a vector defining `variables` and `body`,
+which is being executed. `variables` is a vector where each element is either
+a single variable or a vector defining a variable value pair. In case of a
+single variable, it is assigned value None, otherwise the supplied value is
+used.
+
+.. code-block:: clj
+
+    => (let [x [y 5]] (print x y))
+    None 5
 
 
 list-comp
