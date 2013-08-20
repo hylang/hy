@@ -247,7 +247,12 @@ def cmdline_handler(scriptname, argv):
 
         else:
             # User did "hy <filename>"
-            return run_file(options.args[0])
+            try:
+                return run_file(options.args[0])
+            except IOError as x:
+                sys.stderr.write("hy: Can't open file '%s': [Errno %d] %s\n" %
+                                 (x.filename, x.errno, x.strerror))
+                sys.exit(x.errno)
 
     # User did NOTHING!
     return run_repl(spy=options.spy)
@@ -261,4 +266,18 @@ def hy_main():
 # entry point for cmd line script "hyc"
 def hyc_main():
     from hy.importer import write_hy_as_pyc
-    write_hy_as_pyc(sys.argv[1])
+    parser = argparse.ArgumentParser(prog="hyc")
+    parser.add_argument("files", metavar="FILE", nargs='+',
+                        help="file to compile")
+    parser.add_argument("-v", action="version", version=VERSION)
+
+    options = parser.parse_args(sys.argv[1:])
+
+    for file in options.files:
+        try:
+            write_hy_as_pyc(file)
+            print("Compiling %s" % file)
+        except IOError as x:
+            sys.stderr.write("hyc: Can't open file '%s': [Errno %d] %s\n" %
+                             (x.filename, x.errno, x.strerror))
+            sys.exit(x.errno)
