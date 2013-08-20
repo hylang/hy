@@ -163,7 +163,7 @@
   (assert-false (instance? Foo2 foo))
   (assert-true (instance? Foo foo3))
   (assert-true (instance? float 1.0))
-  (assert-true (instance? int 3))
+  (assert-true (instance? int (int  3)))
   (assert-true (instance? str (str "hello"))))
 
 (defn test-integer? []

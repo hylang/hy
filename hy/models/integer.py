@@ -19,14 +19,16 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.models import HyObject
+from hy._compat import long_type
 
 
-class HyInteger(HyObject, int):
+class HyInteger(HyObject, long_type):
     """
     Internal represntation of a Hy Integer. May raise a ValueError as if
-    int(foo) was caled, given HyInteger(foo).
+    int(foo) was called, given HyInteger(foo). On python 2.x long will
+    be used instead
     """
 
     def __new__(cls, number, *args, **kwargs):
-        number = int(number)
+        number = long_type(number)
         return super(HyInteger, cls).__new__(cls, number)
