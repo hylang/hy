@@ -67,8 +67,18 @@ class HyQuitter(object):
 builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
 
+def print_python_code(_ast):
+    import astor.codegen
+    # astor cannot handle ast.Interactive, so disguise it as a module
+    _ast_for_print = ast.Module()
+    _ast_for_print.body = _ast.body
+    print(astor.codegen.to_source(_ast_for_print))
 
 class HyREPL(code.InteractiveConsole):
+    def __init__(self, spy=False):
+        self.spy = spy
+        code.InteractiveConsole.__init__(self)
+
     def runsource(self, source, filename='<input>', symbol='single'):
         try:
             tokens = tokenize(source)
@@ -80,6 +90,8 @@ class HyREPL(code.InteractiveConsole):
 
         try:
             _ast = hy_compile(tokens, "__console__", root=ast.Interactive)
+            if self.spy:
+                print_python_code(_ast)
             code = ast_compile(_ast, filename, symbol)
         except Exception:
             self.showtraceback()
@@ -161,13 +173,13 @@ def run_file(filename):
     return 0  # right?
 
 
-def run_repl(hr=None):
+def run_repl(hr=None, spy=False):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
     with completion():
         if not hr:
-            hr = HyREPL()
+            hr = HyREPL(spy)
 
         hr.interact("{appname} {version}".format(
             appname=hy.__appname__,
@@ -202,6 +214,8 @@ def cmdline_handler(scriptname, argv):
     parser.add_argument(
         "-i", dest="icommand",
         help="program passed in as a string, then stay in REPL")
+    parser.add_argument("--spy", action="store_true",
+                        help="print equivalent Python code before executing")
 
     parser.add_argument("-v", action="version", version=VERSION)
 
@@ -241,7 +255,7 @@ def cmdline_handler(scriptname, argv):
                 sys.exit(x.errno)
 
     # User did NOTHING!
-    return run_repl()
+    return run_repl(spy=options.spy)
 
 
 # entry point for cmd line script "hy"
