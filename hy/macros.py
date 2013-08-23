@@ -31,8 +31,12 @@ from hy.util import str_type
 from collections import defaultdict
 
 
-MACROS = [
+CORE_MACROS = [
     "hy.core.bootstrap",
+]
+
+EXTRA_MACROS = [
+    "hy.core.macros",
 ]
 
 _hy_macros = defaultdict(dict)
@@ -74,7 +78,7 @@ _wrappers = {
 
 
 def process(tree, module_name):
-    load_macros()
+    load_macros(module_name)
     old = None
     while old != tree:
         old = tree
@@ -82,8 +86,14 @@ def process(tree, module_name):
     return tree
 
 
-def load_macros():
-    for module in MACROS:
+def load_macros(module_name):
+    for module in CORE_MACROS:
+        __import__(module)
+
+    if module_name.startswith("hy.core"):
+        return
+
+    for module in EXTRA_MACROS:
         __import__(module)
 
 
