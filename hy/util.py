@@ -25,4 +25,4 @@ import sys
 if sys.version_info[0] >= 3:
     str_type = str
 else:
-    str_type = unicode
+    str_type = unicode  # NOQA
