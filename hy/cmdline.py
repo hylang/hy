@@ -67,12 +67,14 @@ class HyQuitter(object):
 builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
 
+
 def print_python_code(_ast):
     import astor.codegen
     # astor cannot handle ast.Interactive, so disguise it as a module
     _ast_for_print = ast.Module()
     _ast_for_print.body = _ast.body
     print(astor.codegen.to_source(_ast_for_print))
+
 
 class HyREPL(code.InteractiveConsole):
     def __init__(self, spy=False):
