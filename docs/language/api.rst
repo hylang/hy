@@ -249,7 +249,7 @@ example:
 
 .. code-block:: clj
 
-    => (def names ["Alice" "Bob" "Charlie"]
+    => (def names ["Alice" "Bob" "Charlie"])
     => (print names)
     [u'Alice', u'Bob', u'Charlie']
 
