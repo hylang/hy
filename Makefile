@@ -52,5 +52,12 @@ diff:
 
 r: d tox diff
 
+travis:
+	nosetests -s
+ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
+	@echo "skipping flake8 on pypy"
+else
+	flake8 hy bin tests
+endif
 
 .PHONY: docs

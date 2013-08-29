@@ -13,7 +13,7 @@ install:
   - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pip install astor --use-mirrors; fi
   - python setup.py -q install
 # # command to run tests
-script: nosetests
+script: make travis
 notifications:
   email:
     - paultag@gmail.com
