@@ -775,7 +775,14 @@
     (.append y x))
   (assert (= y [5])))
 
+
 (defn test-empty-list []
   "Evaluate an empty list to a []"
   (assert (= () [])))
 
+
+(defn test-gensym []
+  "Make sure gensym is sane"
+  (assert (= (gensym "G") 'G100))
+  (assert (= (gensym 100) (gensym 100)))
+  (assert (!= (gensym 100) (gensym 120))))

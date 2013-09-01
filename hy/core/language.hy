@@ -5,7 +5,7 @@
 (import [hy.models.symbol [HySymbol]])
 
 (setv *gensym-counter* 100)
-(setv *gensym-prefix* "G")
+(setv *gensym-prefix* "\uFDD1")
 
 
 (defn _numeric-check [x]
@@ -180,8 +180,7 @@
   (_numeric_check n)
   (= n 0))
 
-
-(def *exports* ["cycle" "dec" "distinct" "drop" "even?" "filter" "inc"
-                "instance?" "iterable?" "iterate" "iterator?" "neg?"
+(def *exports* ["cycle" "dec" "distinct" "drop" "even?" "filter" "gensym"
+                "inc" "instance?" "iterable?" "iterate" "iterator?" "neg?"
                 "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
                 "repeatedly" "take" "take_nth" "take_while" "zero?"])
