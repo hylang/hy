@@ -270,6 +270,27 @@ Return True if x is greater than zero (0).
    False
 
 
+.. _zero?-fn:
+
+zero?
+----
+
+Usage: ``(zero? x)``
+
+Return True if x is zero (0).
+
+.. code-block:: clojure
+
+   => (zero? 3)
+   False
+
+   => (zero? -2)
+   False
+
+   => (zero? 0)
+   True
+
+
 Sequence Functions
 =======================
 
