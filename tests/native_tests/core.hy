@@ -181,6 +181,18 @@
   (try (do (neg? None) (assert False))
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
 
+(defn test-zero []
+  "NATIVE: testing the zero? function"
+  (assert-false (zero? -2))
+  (assert-false (zero? 1))
+  (assert-true (zero? 0))
+  (try (do (zero? "foo") (assert False))
+       (catch [e [TypeError]] (assert (in "not a number" (str e)))))
+  (try (do (zero? []) (assert False))
+       (catch [e [TypeError]] (assert (in "not a number" (str e)))))
+  (try (do (zero? None) (assert False))
+       (catch [e [TypeError]] (assert (in "not a number" (str e))))))
+
 (defn test-none []
   "NATIVE: testing for `is None`"
   (assert-true (none? None))

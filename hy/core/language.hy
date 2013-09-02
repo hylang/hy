@@ -154,7 +154,12 @@
         (yield val)
         (break)))))
 
+(defn zero? [n]
+  "Return true if n is 0"
+  (_numeric_check n)
+  (= n 0))
+
 (def *exports* ["cycle" "dec" "distinct" "drop" "even?" "filter" "inc"
                 "instance?" "iterable?" "iterate" "iterator?" "neg?"
                 "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
-                "repeatedly" "take" "take_nth" "take_while"])
+                "repeatedly" "take" "take_nth" "take_while" "zero?"])
