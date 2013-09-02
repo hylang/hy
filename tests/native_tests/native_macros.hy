@@ -99,3 +99,8 @@
       (yield i))
     (yield-from [1 2 3]))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
+
+(defn test-if-python2 []
+  (import sys)
+  (assert (= (get sys.version_info 0)
+             (if-python2 2 3))))
