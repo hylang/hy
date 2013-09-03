@@ -1184,14 +1184,14 @@ class HyASTCompiler(object):
         fn.stmts[-1].decorator_list = decorators
         return ret + fn
 
-    @builds("with")
-    @checkargs(min=2)
+    @builds("with*")
+    @checkargs(min=1)
     def compile_with_expression(self, expr):
         expr.pop(0)  # with
 
         args = expr.pop(0)
         if len(args) > 2 or len(args) < 1:
-            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
+            raise HyTypeError(expr, "with* needs [arg (expr)] or [(expr)]")
 
         args.reverse()
         ctx = self.compile(args.pop(0))
@@ -1543,23 +1543,23 @@ class HyASTCompiler(object):
         result += ld_name
         return result
 
-    @builds("foreach")
+    @builds("for*")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
-        expression.pop(0)  # for
+        expression.pop(0)  # for*
         target_name, iterable = expression.pop(0)
         target = self._storeize(self.compile(target_name))
 
         ret = Result()
 
         orel = Result()
-        # (foreach [] body (else …))
+        # (for* [] body (else …))
         if expression and expression[-1][0] == HySymbol("else"):
             else_expr = expression.pop()
             if len(else_expr) > 2:
                 raise HyTypeError(
                     else_expr,
-                    "`else' statement in `foreach' is too long")
+                    "`else' statement in `for' is too long")
             elif len(else_expr) == 2:
                 orel += self.compile(else_expr[1])
                 orel += orel.expr_as_stmt()
