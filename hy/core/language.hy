@@ -2,6 +2,11 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+(import [hy.models.symbol [HySymbol]])
+
+(setv *gensym-counter* 100)
+(setv *gensym-prefix* "\uFDD1")
+
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -51,6 +56,22 @@
     (for [val citer]
       (if (pred val)
         (yield val)))))
+
+(defn gensym [&optional [x None]]
+  "Generate a new symbol"
+  (global *gensym-counter*)
+  (setv prefix *gensym-prefix*)
+  (setv counter *gensym-counter*)
+
+  (if x
+    (if (numeric? x)
+      (setv counter x)
+      (setv prefix x))
+    (setv *gensym-counter* (inc *gensym-counter*)))
+
+  (setv new-symbol (HySymbol (+ prefix (str counter))))
+  (setv *gensym-counter* (inc *gensym-counter*))
+  new-symbol)
 
 (defn inc [n]
   "Increment n by 1"
@@ -159,7 +180,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* ["cycle" "dec" "distinct" "drop" "even?" "filter" "inc"
-                "instance?" "iterable?" "iterate" "iterator?" "neg?"
+(def *exports* ["cycle" "dec" "distinct" "drop" "even?" "filter" "gensym"
+                "inc" "instance?" "iterable?" "iterate" "iterator?" "neg?"
                 "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
                 "repeatedly" "take" "take_nth" "take_while" "zero?"])
