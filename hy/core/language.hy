@@ -3,6 +3,17 @@
 ;;;;
 
 
+(defmacro if-python2 [python2-form python3-form]
+  (import sys)
+  (if (< (get sys.version_info 0) 3)
+    python2-form
+    python3-form))
+
+(defmacro yield-from [_hy_yield_from_els]
+  (quasiquote
+    (for [_hy_yield_from_x (unquote _hy_yield_from_els)]
+      (yield _hy_yield_from_x))))
+
 (defn _numeric-check [x]
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
