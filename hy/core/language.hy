@@ -23,6 +23,18 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+;;;; These are local-only macros that are copied from hy.core.macros since
+;;;; those are invisible here.
+(defmacro -if-python2-local- [python2-form python3-form]
+  (import sys)
+  (if (< (get sys.version_info 0) 3)
+    python2-form
+    python3-form))
+
+;;;;
+;;;;
+
+
 (defn _numeric-check [x]
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
@@ -99,10 +111,9 @@
 
 (defn integer? [x]
   "Return True if x in an integer"
-  (import sys)
-  (if (< (get sys.version_info 0) 3)
-    (isinstance x (, int long)))
-    (isinstance x int))
+  (-if-python2-local-
+    (isinstance x (, int long))
+    (isinstance x int)))
 
 (defn iterable? [x]
   "Return true if x is iterable"
@@ -178,8 +189,7 @@
 
 (defn string? [x]
   "Return True if x is a string"
-  (import sys)
-  (if (< (get sys.version_info 0) 3)
+  (-if-python2-local-
     (isinstance x (, str unicode))
     (isinstance x str)))
 

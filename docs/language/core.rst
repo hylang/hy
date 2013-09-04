@@ -361,26 +361,6 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
    False
 
 
-.. _zero?-fn:
-
-zero?
-----
-
-Usage: ``(zero? x)``
-
-Return True if x is zero (0).
-
-.. code-block:: clojure
-
-   => (zero? 3)
-   False
-
-   => (zero? -2)
-   False
-
-   => (zero? 0)
-   True
-
 .. _second-fn:
 
 second
@@ -413,6 +393,26 @@ Return True if x is a string.
 
    => (string? -2)
    False
+
+.. _zero?-fn:
+
+zero?
+----
+
+Usage: ``(zero? x)``
+
+Return True if x is zero (0).
+
+.. code-block:: clojure
+
+   => (zero? 3)
+   False
+
+   => (zero? -2)
+   False
+
+   => (zero? 0)
+   True
 
 
 Sequence Functions
