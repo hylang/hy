@@ -1,4 +1,23 @@
-(import time)
+;; Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+;; Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
+
+;; Permission is hereby granted, free of charge, to any person obtaining a
+;; copy of this software and associated documentation files (the "Software"),
+;; to deal in the Software without restriction, including without limitation
+;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
+;; and/or sell copies of the Software, and to permit persons to whom the
+;; Software is furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+;; DEALINGS IN THE SOFTWARE.
 
 ;;;; some simple helpers
 
@@ -62,6 +81,28 @@
   (setv res (list (take 5 (drop 2 (iterate inc 0)))))
   (assert-equal res [2 3 4 5 6]))
 
+(defn test-drop-while []
+  "NATIVE: testing drop-while function"
+  (setv res (list (drop-while even? [2 4 7 8 9])))
+  (assert (= res [7 8 9]))
+  (setv res (list (drop-while pos? [2 4 7 8 9])))
+  (assert (= res []))
+  (setv res (list (drop-while numeric? [1 2 3 None "a"])))
+  (assert (= res [None "a"])))
+
+(defn test-empty? []
+  "NATIVE: testing the empty? function"
+  (assert-true (empty? ""))
+  (assert-false (empty? "None"))
+  (assert-true (empty? (,)))
+  (assert-false (empty? (, None)))
+  (assert-true (empty? []))
+  (assert-false (empty? [None]))
+  (assert-true (empty? {}))
+  (assert-false (empty? {"a" None}))
+  (assert-true (empty? (set)))
+  (assert-false (empty? (set [None]))))
+
 (defn test-even []
   "NATIVE: testing the even? function"
   (assert-true (even? -2))
@@ -92,6 +133,14 @@
   (setv res (list (filter none? [1 2 None 3 4 None 4 6])))
   (assert-equal res [None None]))
 
+(defn test-float? []
+  "NATIVE: testing the float? function"
+  (assert-true (float? 4.2))
+  (assert-false (float? 0))
+  (assert-false (float? -3))
+  (assert-true (float? -3.2))
+  (assert-false (float? "foo")))
+
 (defn test-inc []
   "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
@@ -116,6 +165,15 @@
   (assert-true (instance? float 1.0))
   (assert-true (instance? int 3))
   (assert-true (instance? str (str "hello"))))
+
+(defn test-integer? []
+  "NATIVE: testing the integer? function"
+  (assert-true (integer? 0))
+  (assert-true (integer? 3))
+  (assert-true (integer? -3))
+  (assert-false (integer? 4.2))
+  (assert-false (integer? None))
+  (assert-false (integer? "foo")))
 
 (defn test-iterable []
   "NATIVE: testing iterable? function"
@@ -213,6 +271,15 @@
   (assert-true  (none? (nth (iter [1 2 4 7]) -1)))
   (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
 
+(defn test-numeric? []
+  "NATIVE: testing the numeric? function"
+  (assert-true (numeric? 1))
+  (assert-true (numeric? 3.4))
+  (assert-true (numeric? 0.0))
+  (assert-true (numeric? -1.45))
+  (assert-false (numeric? "Foo"))
+  (assert-false (numeric? None)))
+
 (defn test-odd []
   "NATIVE: testing the odd? function"
   (assert-true (odd? -3))
@@ -261,6 +328,19 @@
   (assert-equal (list (take 5 r)) [5 5 5 5 5])
   (assert-equal (list (take 4 r)) [5 5 5 5])
   (assert-equal (list (take 6 r)) [5 5 5 5 5 5]))
+
+(defn test-second []
+  "NATIVE: testing second"
+  (assert-equal 2 (second [1 2]))
+  (assert-equal 3 (second [2 3 4])))
+
+(defn test-string? []
+  "NATIVE: testing string?"
+  (assert-true (string? "foo"))
+  (assert-true (string? ""))
+  (assert-false (string? 5.3))
+  (assert-true (string? (str 5.3)))
+  (assert-false (string? None)))
 
 (defn test-take []
   "NATIVE: testing the take function"

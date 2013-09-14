@@ -15,6 +15,8 @@ Usage: ``(dec x)``
 
 Return one less than x. Equivalent to ``(- x 1)``.
 
+Raises ``TypeError`` if ``(not (numeric? x))``.
+
 .. code-block:: clojure
 
    => (dec 3)
@@ -27,6 +29,45 @@ Return one less than x. Equivalent to ``(- x 1)``.
    11.3
 
 
+.. _emtpy?-fn:
+
+empty?
+------
+
+Usage: ``(empty? coll)``
+
+Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
+
+.. code-block:: clojure
+
+   => (empty? [])
+   True
+
+   => (empty? "")
+   True
+
+   => (empty? (, 1 2))
+   False
+
+
+.. _float?-fn:
+
+float?
+-------
+
+Usage: ``(float? x)``
+
+Return True if x is a float.
+
+.. code-block:: clojure
+
+   => (float? 3.2)
+   True
+
+   => (float? -2)
+   False
+
+
 .. _even?-fn:
 
 even?
@@ -35,6 +76,8 @@ even?
 Usage: ``(even? x)``
 
 Return True if x is even.
+
+Raises ``TypeError`` if ``(not (numeric? x))``.
 
 .. code-block:: clojure
 
@@ -56,6 +99,8 @@ inc
 Usage: ``(inc x)``
 
 Return one more than x. Equivalent to ``(+ x 1)``.
+
+Raises ``TypeError`` if ``(not (numeric? x))``.
 
 .. code-block:: clojure
 
@@ -93,6 +138,24 @@ Return True if x is an instance of CLASS.
    => (setv inst (TestClass))
    => (instance? TestClass inst)
    True
+
+.. _integer?-fn:
+
+integer?
+--------
+
+Usage: ``(integer? x)``
+
+Return True if x is an integer. For Python 2, this is
+either ``int`` or ``long``. For Python 3, this is ``int``.
+
+.. code-block:: clojure
+
+   => (integer? 3)
+   True
+
+   => (integer? -2.4)
+   False
 
 
 .. _iterable?-fn:
@@ -166,6 +229,8 @@ Usage: ``(neg? x)``
 
 Return True if x is less than zero (0).
 
+Raises ``TypeError`` if ``(not (numeric? x))``.
+
 .. code-block:: clojure
 
    => (neg? -2)
@@ -228,6 +293,28 @@ if the `n` is outside the range of `coll`.
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
    
+.. _numeric?-fn:
+
+numeric?
+---------
+
+Usage: ``(numeric? x)``
+
+Return True if x is a numeric, as defined in the Python
+numbers module class ``numbers.Number``.
+
+.. code-block:: clojure
+
+   => (numeric? -2)
+   True
+
+   => (numeric? 3.2)
+   True
+
+   => (numeric? "foo")
+   False
+
+
 .. _odd?-fn:
 
 odd?
@@ -236,6 +323,8 @@ odd?
 Usage: ``(odd? x)``
 
 Return True if x is odd.
+
+Raises ``TypeError`` if ``(not (numeric? x))``.
 
 .. code-block:: clojure
 
@@ -258,6 +347,8 @@ Usage: ``(pos? x)``
 
 Return True if x is greater than zero (0).
 
+Raises ``TypeError`` if ``(not (numeric? x))``.
+
 .. code-block:: clojure
 
    => (pos? 3)
@@ -269,6 +360,39 @@ Return True if x is greater than zero (0).
    => (pos? 0)
    False
 
+
+.. _second-fn:
+
+second
+-------
+
+Usage: ``(second coll)``
+
+Return the second member of ``coll``. Equivalent to
+``(get coll 1)``
+
+.. code-block:: clojure
+
+   => (second [0 1 2])
+   1
+
+
+.. _string?-fn:
+
+string?
+-------
+
+Usage: ``(string? x)``
+
+Return True if x is a string.
+
+.. code-block:: clojure
+
+   => (string? "foo")
+   True
+
+   => (string? -2)
+   False
 
 .. _zero?-fn:
 
@@ -408,6 +532,27 @@ Return an iterator, skipping the first ``n`` members of ``coll``
    [1, 2, 3, 4, 5]
 
    => (list (drop 6 [1 2 3 4 5]))
+   []
+
+.. _drop-while-fn:
+
+drop-while
+-----------
+
+Usage: ``(drop-while pred coll)``
+
+Return an iterator, skipping members of ``coll`` until ``pred``
+is False.
+
+.. code-block:: clojure
+
+   => (list (drop-while even? [2 4 7 8 9]))
+   [7, 8, 9]
+
+   => (list (drop-while numeric? [1 2 3 None "a"])))
+   [None, u'a']
+
+   => (list (drop-while pos? [2 4 7 8 9]))
    []
 
 
