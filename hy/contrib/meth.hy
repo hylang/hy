@@ -3,13 +3,13 @@
 
 (defmacro route [name path params code]
   "Default get request"
-   `(let [[deco ((getattr app "route") ~path)]]
+  `(let [[deco (.route app ~path)]]
                  (with-decorator deco
                    (defn ~name ~params ~@code))))
 
 (defmacro route-with-methods [name path params code methods]
   "Same as route but with an extra methods array to specify HTTP methods"
-  `(let [[deco (kwapply ((getattr app "route") ~path)
+  `(let [[deco (kwapply (.route app ~path)
                                     {"methods" ~methods})]]
                  (with-decorator deco
                    (defn ~name ~params ~@code))))
