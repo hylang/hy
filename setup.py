@@ -19,11 +19,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-
-from setuptools import setup
 import os
 import re
 import sys
+
+from setuptools import find_packages, setup
 
 PKG = "hy"
 VERSIONFILE = os.path.join(PKG, "version.py")
@@ -31,22 +31,22 @@ verstr = "unknown"
 try:
     verstrline = open(VERSIONFILE, "rt").read()
 except EnvironmentError:
-    pass # Okay, there is no version file.
+    pass  # Okay, there is no version file.
 else:
     VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
     mo = re.search(VSRE, verstrline, re.M)
     if mo:
         __version__ = mo.group(1)
     else:
-        raise RuntimeError("if %s.py exists, it is required to be well-formed" % (VERSIONFILE,))
-
+        msg = "if %s.py exists, it is required to be well-formed" % VERSIONFILE
+        raise RuntimeError(msg)
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
-install_requires = ["rply"]
-if sys.version_info[0] == 2:
+install_requires = []
+if sys.version_info[:2] < (2, 7):
     install_requires.append('argparse>=1.2.1')
 if os.name == 'nt':
     install_requires.append('pyreadline==2.0')
@@ -61,23 +61,16 @@ setup(
             'hyc = hy.cmdline:hyc_main'
         ]
     },
-    packages=[
-        'hy',
-        'hy.lex',
-        'hy.core',
-        'hy.models',
-        'hy.contrib',
-    ],
+    packages=find_packages(exclude=['tests*']),
     package_data={
         'hy.core': ['*.hy'],
     },
-    setup_requires=['rply'],
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,
     description='Lisp and Python love each other.',
     license="Expat",
-    url="http://hy.pault.ag/",
+    url="http://hylang.org/",
     platforms=['any'],
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -87,8 +80,10 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Lisp",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.2",
         "Programming Language :: Python :: 3.3",
         "Topic :: Software Development :: Code Generators",
