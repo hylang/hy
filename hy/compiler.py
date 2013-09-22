@@ -610,7 +610,7 @@ class HyASTCompiler(object):
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    to_add = f_contents
+                    to_add = HyExpression([HySymbol("list"), f_contents])
                 else:
                     to_add = HyList([f_contents])
 
