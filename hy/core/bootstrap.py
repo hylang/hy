@@ -27,6 +27,7 @@ from hy.models.list import HyList
 
 from hy.compiler import HyTypeError
 
+
 @macro("defn")
 @macro("defun")
 def defn_macro(name, *body):
@@ -64,7 +65,8 @@ def for_macro(*tree):
         blocks = list(tree.pop(0))  # List for Python 3.x degenerating.
         key, val = blocks.pop(0)
     except IndexError:
-        # Because we get a indexError, we emulate the correct behavior from the original for* function
+        # Because we get a indexError, we emulate the correct
+        # behavior from the original for* function
         raise ValueError("need more than 0 values to unpack")
 
     ret = HyExpression([HySymbol("for*"),
@@ -89,9 +91,9 @@ def with_macro(*tree):
     ret = None
     # (with [[f (open "file1")]
     #        [n (open "file2")]] ...)
-    # -> 
+    # ->
     # (with [f (open "file1")]
-    #    (with [n (open "file")] 
+    #    (with [n (open "file")]
     #   ...))
 
     try:
