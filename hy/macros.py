@@ -35,10 +35,6 @@ CORE_MACROS = [
     "hy.core.bootstrap",
 ]
 
-EXTRA_MACROS = [
-    "hy.core.macros",
-]
-
 _hy_macros = defaultdict(dict)
 
 
@@ -92,9 +88,6 @@ def load_macros(module_name):
 
     if module_name.startswith("hy.core"):
         return
-
-    for module in EXTRA_MACROS:
-        __import__(module)
 
 
 def macroexpand(tree, module_name):
