@@ -33,7 +33,7 @@
     (assert (= t2 2))
     (assert (= t3 3))))
 
-(defn test quince-with []
+(defn test-quince-with []
   "NATIVE: test four withs, one with no args"
     (with [[t1 (WithTest 1)]
           [t2 (WithTest 2)]
