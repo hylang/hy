@@ -966,31 +966,6 @@ class HyASTCompiler(object):
                              col_offset=expression.start_column)
         return ret
 
-    @builds("print")
-    def compile_print_expression(self, expr):
-        call = expr.pop(0)  # print
-        values, ret = self._compile_collect(expr)
-
-        if sys.version_info[0] >= 3:
-            call = self.compile(call)
-            ret += call
-            ret += ast.Call(func=call.expr,
-                            args=values,
-                            keywords=[],
-                            starargs=None,
-                            kwargs=None,
-                            lineno=expr.start_line,
-                            col_offset=expr.start_column)
-        else:
-            ret += ast.Print(
-                lineno=expr.start_line,
-                col_offset=expr.start_column,
-                dest=None,
-                values=values,
-                nl=True)
-
-        return ret
-
     @builds("break")
     def compile_break_expression(self, expr):
         ret = ast.Break(lineno=expr.start_line,
