@@ -3,16 +3,16 @@
 
 (defmacro route [name path params code]
   "Default get request"
-  (quasiquote (let [[deco ((getattr app "route") (unquote path))]]
-                (with-decorator deco
-                  (defn (unquote name) (unquote params) (unquote-splice code))))))
+   `(let [[deco ((getattr app "route") ~path)]]
+                 (with-decorator deco
+                   (defn ~name ~params ~@code))))
 
 (defmacro route-with-methods [name path params code methods]
   "Same as route but with an extra methods array to specify HTTP methods"
-  (quasiquote (let [[deco (kwapply ((getattr app "route") (unquote path))
-                                   {"methods" (unquote methods)})]]
-                (with-decorator deco
-                  (defn (unquote name) (unquote params) (unquote-splice code))))))
+  `(let [[deco (kwapply ((getattr app "route") ~path)
+                                    {"methods" ~methods})]]
+                 (with-decorator deco
+                   (defn ~name ~params ~@code))))
 
 ;; Some macro examples
 (defmacro post-route [name path params code]
