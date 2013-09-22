@@ -82,3 +82,14 @@
   (setv opt (quote &optional))
   (assert (isinstance opt hy.HyLambdaListKeyword))
   (assert (= (str opt) "&optional")))
+
+(defmacro doodle [&rest body]
+  `(do ~@body))
+
+(defn test-unquote-splice []
+  "NATIVE: test unquote-splice does what's intended"
+  (assert (=
+    (doodle
+      [1 2 3]
+      [4 5 6])
+    [4 5 6])))
