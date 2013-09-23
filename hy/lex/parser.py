@@ -231,6 +231,8 @@ def t_identifier(p):
         return HyKeyword(obj)
 
     if obj.startswith("%"):
+        if "-" in obj and obj != "-":
+            obj = obj.replace("-", "_")
         return HyArgName(obj)
 
     if obj.startswith("&"):
