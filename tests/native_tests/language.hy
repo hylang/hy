@@ -779,3 +779,11 @@
   "Evaluate an empty list to a []"
   (assert (= () [])))
 
+(defn test-keywords []
+  "Check keyword use in function calls"
+  (assert (= (kwtest) {}))
+  (assert (= (kwtest %key "value") {"key" "value"}))
+  (assert (= (kwtest %key-with-dashes "value") {"key_with_dashes" "value"}))
+  (assert (= (kwtest %result (+ 1 1)) {"result" 2}))
+  (assert (= (kwtest %key (kwtest %key2 "value")) {"key" {"key2" "value"}}))
+  (assert (= (kwapply (kwtest %key2 "value2") {"key" "value"}) {"key" "value" "key2" "value2"})))

@@ -27,6 +27,7 @@ from hy.errors import HyError
 
 from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.expression import HyExpression
+from hy.models.argname import HyArgName
 from hy.models.keyword import HyKeyword
 from hy.models.integer import HyInteger
 from hy.models.complex import HyComplex
@@ -435,7 +436,7 @@ class HyASTCompiler(object):
 
         raise HyCompileError(Exception("Unknown type: `%s'" % _type))
 
-    def _compile_collect(self, exprs):
+    def _compile_collect(self, exprs, with_kwargs=False):
         """Collect the expression contexts from a list of compiled expression.
 
         This returns a list of the expression contexts, and the sum of the
@@ -444,10 +445,32 @@ class HyASTCompiler(object):
         """
         compiled_exprs = []
         ret = Result()
-        for expr in exprs:
-            ret += self.compile(expr)
-            compiled_exprs.append(ret.force_expr)
-        return compiled_exprs, ret
+        keywords = []
+
+        exprs_iter = exprs.__iter__()
+        for expr in exprs_iter:
+            if isinstance(expr, HyArgName):
+                if not with_kwargs:
+                    msg = "Named argument {kw} not in a function call"
+                    raise HyCompileError(msg.format(kw=str(expr)))
+
+                try:
+                    value = next(exprs_iter)
+                except StopIteration:
+                    msg = "Keyword argument {kw} needs a value"
+                    raise HyCompileError(msg.format(kw=str(expr)))
+
+                compiled_value = self.compile(value)
+                # no unicode for py2 in ast names
+                keywords.append(ast.keyword(arg=str(expr)[1:],
+                                            value=compiled_value.force_expr,
+                                            lineno=expr.start_line,
+                                            col_offset=expr.start_column))
+            else:
+                ret += self.compile(expr)
+                compiled_exprs.append(ret.force_expr)
+
+        return compiled_exprs, ret, keywords
 
     def _compile_branch(self, exprs):
         return _branch(self.compile(expr) for expr in exprs)
@@ -874,7 +897,7 @@ class HyASTCompiler(object):
         if isinstance(exceptions_list, list):
             if len(exceptions_list):
                 # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
-                elts, _type = self._compile_collect(exceptions_list)
+                elts, _type, _ = self._compile_collect(exceptions_list)
                 _type += ast.Tuple(elts=elts,
                                    lineno=expr.start_line,
                                    col_offset=expr.start_column,
@@ -969,14 +992,14 @@ class HyASTCompiler(object):
     @builds("print")
     def compile_print_expression(self, expr):
         call = expr.pop(0)  # print
-        values, ret = self._compile_collect(expr)
+        values, ret, keywords = self._compile_collect(expr, True)
 
         if sys.version_info[0] >= 3:
             call = self.compile(call)
             ret += call
             ret += ast.Call(func=call.expr,
                             args=values,
-                            keywords=[],
+                            keywords=keywords,
                             starargs=None,
                             kwargs=None,
                             lineno=expr.start_line,
@@ -1180,7 +1203,7 @@ class HyASTCompiler(object):
         fn = self.compile(expr.pop(-1))
         if not fn.stmts or not isinstance(fn.stmts[-1], ast.FunctionDef):
             raise HyTypeError(expr, "Decorated a non-function")
-        decorators, ret = self._compile_collect(expr)
+        decorators, ret, _ = self._compile_collect(expr)
         fn.stmts[-1].decorator_list = decorators
         return ret + fn
 
@@ -1238,7 +1261,7 @@ class HyASTCompiler(object):
     @builds(",")
     def compile_tuple(self, expr):
         expr.pop(0)
-        elts, ret = self._compile_collect(expr)
+        elts, ret, _ = self._compile_collect(expr)
         ret += ast.Tuple(elts=elts,
                          lineno=expr.start_line,
                          col_offset=expr.start_column,
@@ -1329,7 +1352,7 @@ class HyASTCompiler(object):
         ops = {"and": ast.And,
                "or": ast.Or}
         operator = expression.pop(0)
-        values, ret = self._compile_collect(expression)
+        values, ret, _ = self._compile_collect(expression)
 
         ret += ast.BoolOp(op=ops[operator](),
                           lineno=operator.start_line,
@@ -1360,7 +1383,7 @@ class HyASTCompiler(object):
         ops = [op() for x in range(1, len(expression))]
 
         e = expression[0]
-        exprs, ret = self._compile_collect(expression)
+        exprs, ret, _ = self._compile_collect(expression)
 
         return ret + ast.Compare(left=exprs[0],
                                  ops=ops,
@@ -1504,11 +1527,10 @@ class HyASTCompiler(object):
 
         if not func:
             func = self.compile(fn)
-        args, ret = self._compile_collect(expression[1:])
-
+        args, ret, kwargs = self._compile_collect(expression[1:], True)
         ret += ast.Call(func=func.expr,
                         args=args,
-                        keywords=[],
+                        keywords=kwargs,
                         starargs=None,
                         kwargs=None,
                         lineno=expression.start_line,
@@ -1601,7 +1623,7 @@ class HyASTCompiler(object):
 
     @builds(HyList)
     def compile_list(self, expression):
-        elts, ret = self._compile_collect(expression)
+        elts, ret, _ = self._compile_collect(expression)
         ret += ast.List(elts=elts,
                         ctx=ast.Load(),
                         lineno=expression.start_line,
@@ -1682,7 +1704,7 @@ class HyASTCompiler(object):
             if not isinstance(base_list, HyList):
                 raise HyTypeError(expression,
                                   "Bases class must be a list")
-            bases_expr, bases = self._compile_collect(base_list)
+            bases_expr, bases, _ = self._compile_collect(base_list)
         else:
             bases_expr = []
             bases = Result()
@@ -1833,7 +1855,7 @@ class HyASTCompiler(object):
 
     @builds(HyDict)
     def compile_dict(self, m):
-        keyvalues, ret = self._compile_collect(m)
+        keyvalues, ret, _ = self._compile_collect(m)
 
         ret += ast.Dict(lineno=m.start_line,
                         col_offset=m.start_column,
