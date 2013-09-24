@@ -26,7 +26,7 @@ from hy.models.integer import HyInteger
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.dict import HyDict
-from hy.util import str_type
+from hy._compat import str_type
 
 from collections import defaultdict
 

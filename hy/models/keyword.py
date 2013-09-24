@@ -20,7 +20,7 @@
 
 from __future__ import unicode_literals
 from hy.models import HyObject
-from hy.util import str_type
+from hy._compat import str_type
 
 
 class HyKeyword(HyObject, str_type):

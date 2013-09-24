@@ -37,7 +37,7 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 
 from hy.macros import require, process
-from hy.util import str_type
+from hy._compat import str_type
 import hy.importer
 
 import traceback

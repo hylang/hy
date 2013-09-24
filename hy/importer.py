@@ -32,11 +32,7 @@ import ast
 import os
 import __future__
 
-if sys.version_info[0] >= 3:
-    long_type = int
-else:
-    import __builtin__
-    long_type = long  # NOQA
+from hy._compat import builtins, long_type
 
 
 def ast_compile(ast, filename, mode):
@@ -129,10 +125,7 @@ def write_hy_as_pyc(fname):
     code = ast_compile(_ast, fname, "exec")
     cfile = "%s.pyc" % fname[:-len(".hy")]
 
-    if sys.version_info[0] >= 3:
-        open_ = open
-    else:
-        open_ = __builtin__.open
+    open_ = builtins.open
 
     with open_(cfile, 'wb') as fc:
         if sys.version_info[0] >= 3:
