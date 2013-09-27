@@ -42,7 +42,9 @@ else:
 def ast_compile(ast, filename, mode):
     """Compile AST.
     Like Python's compile, but with some special flags."""
-    return compile(ast, filename, mode, __future__.CO_FUTURE_DIVISION)
+    flags = (__future__.CO_FUTURE_DIVISION |
+             __future__.CO_FUTURE_PRINT_FUNCTION)
+    return compile(ast, filename, mode, flags)
 
 
 def import_buffer_to_hst(buf):

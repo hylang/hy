@@ -26,7 +26,6 @@ from hy.compiler import hy_compile, HyCompileError, HyTypeError
 from hy.lex import tokenize
 
 import ast
-import sys
 
 
 def _ast_spotcheck(arg, root, secondary):
@@ -369,10 +368,7 @@ def test_ast_lambda_lists():
 def test_ast_print():
     code = can_compile("(print \"foo\")").body[0]
 
-    if sys.version_info[0] >= 3:
-        assert type(code.value) == ast.Call
-        return
-    assert type(code) == ast.Print
+    assert type(code.value) == ast.Call
 
 
 def test_ast_tuple():
