@@ -36,7 +36,7 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
-from hy.macros import require, process
+from hy.macros import require, macroexpand
 from hy._compat import str_type
 import hy.importer
 
@@ -419,7 +419,7 @@ class HyASTCompiler(object):
 
     def compile(self, tree):
         try:
-            tree = process(tree, self.module_name)
+            tree = macroexpand(tree, self.module_name)
             _type = type(tree)
             ret = self.compile_atom(_type, tree)
             if ret:

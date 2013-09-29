@@ -1,5 +1,5 @@
 
-from hy.macros import macro, process
+from hy.macros import macro, macroexpand
 from hy.lex import tokenize
 
 from hy.models.string import HyString
@@ -16,14 +16,14 @@ def tmac(*tree):
 
 def test_preprocessor_simple():
     """ Test basic macro expansion """
-    obj = process(tokenize('(test "one" "two")')[0], __name__)
+    obj = macroexpand(tokenize('(test "one" "two")')[0], __name__)
     assert obj == HyList(["one", "two"])
     assert type(obj) == HyList
 
 
 def test_preprocessor_expression():
     """ Test that macro expansion doesn't recurse"""
-    obj = process(tokenize('(test (test "one" "two"))')[0], __name__)
+    obj = macroexpand(tokenize('(test (test "one" "two"))')[0], __name__)
 
     assert type(obj) == HyList
     assert type(obj[0]) == HyExpression
@@ -34,4 +34,4 @@ def test_preprocessor_expression():
 
     obj = HyList([HyString("one"), HyString("two")])
     obj = tokenize('(shill ["one" "two"])')[0][1]
-    assert obj == process(obj, '')
+    assert obj == macroexpand(obj, '')

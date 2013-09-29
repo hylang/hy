@@ -43,6 +43,17 @@ _hy_macros = defaultdict(dict)
 
 
 def macro(name):
+    """Decorator to define a macro called `name`.
+
+    This stores the macro `name` in the namespace for the module where it is
+    defined.
+
+    If the module where it is defined is in `hy.core`, then the macro is stored
+    in the default `None` namespace.
+
+    This function is called from the `defmacro` special form in the compiler.
+
+    """
     def _(fn):
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
@@ -52,20 +63,20 @@ def macro(name):
     return _
 
 
-def require(source_module_name, target_module_name):
-    macros = _hy_macros[source_module_name]
-    refs = _hy_macros[target_module_name]
+def require(source_module, target_module):
+    """Load the macros from `source_module` in the namespace of
+    `target_module`.
+
+    This function is called from the `require` special form in the compiler.
+
+    """
+    macros = _hy_macros[source_module]
+    refs = _hy_macros[target_module]
     for name, macro in macros.items():
         refs[name] = macro
 
 
-def _wrap_value(x):
-    wrapper = _wrappers.get(type(x))
-    if wrapper is None:
-        return x
-    else:
-        return wrapper(x)
-
+# type -> wrapping function mapping for _wrap_value
 _wrappers = {
     int: HyInteger,
     bool: lambda x: HySymbol("True") if x else HySymbol("False"),
@@ -77,27 +88,60 @@ _wrappers = {
 }
 
 
-def process(tree, module_name):
-    load_macros(module_name)
-    old = None
-    while old != tree:
-        old = tree
-        tree = macroexpand(tree, module_name)
-    return tree
+def _wrap_value(x):
+    """Wrap `x` into the corresponding Hy type.
+
+    This allows a macro to return an unquoted expression transparently.
+
+    """
+    wrapper = _wrappers.get(type(x))
+    if wrapper is None:
+        return x
+    else:
+        return wrapper(x)
 
 
 def load_macros(module_name):
+    """Load the hy builtin macros for module `module_name`.
+
+    Modules from `hy.core` can only use the macros from CORE_MACROS.
+    Other modules get the macros from CORE_MACROS and EXTRA_MACROS.
+
+    """
+
+    def _import(module, module_name=module_name):
+        "__import__ a module, avoiding recursions"
+        if module != module_name:
+            __import__(module)
+
     for module in CORE_MACROS:
-        __import__(module)
+        _import(module)
 
     if module_name.startswith("hy.core"):
         return
 
     for module in EXTRA_MACROS:
-        __import__(module)
+        _import(module)
 
 
 def macroexpand(tree, module_name):
+    """Expand the toplevel macros for the `tree`.
+
+    Load the macros from the given `module_name`, then expand the (top-level)
+    macros in `tree` until it stops changing.
+
+    """
+    load_macros(module_name)
+    old = None
+    while old != tree:
+        old = tree
+        tree = macroexpand_1(tree, module_name)
+    return tree
+
+
+def macroexpand_1(tree, module_name):
+    """Expand the toplevel macro from `tree` once, in the context of
+    `module_name`."""
     if isinstance(tree, HyExpression):
         if tree == []:
             return tree
