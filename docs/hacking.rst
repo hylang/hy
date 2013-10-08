@@ -2,6 +2,8 @@
  Hacking on hy
 ===============
 
+.. highlight:: bash
+
 Join our hyve!
 ==============
 
@@ -21,24 +23,32 @@ Hack!
 
 Do this:
 
-1. create a `Python virtual environment
-   <https://pypi.python.org/pypi/virtualenv>`_
-2. (optional) go to https://github.com/paultag/hy and fork it
-3. get the source code::
+1. create a `virtual environment
+   <https://pypi.python.org/pypi/virtualenv>`_::
 
-       $ git clone git://github.com/paultag/hy.git
+       $ virtualenv venv
 
-   (or use your fork)
-4. install for hacking::
+   and activate it::
 
-       $ python setup.py develop
+       $ . venv/bin/activate
+2. get the source code::
 
-5. install other develop-y requirements::
+       $ git clone https://github.com/hylang/hy.git
+
+   or use your fork::
+
+       $ git clone git@github.com:<YOUR_USERNAME>/hy.git
+3. install for hacking::
+
+       $ cd hy/
+       $ pip install -e .
+
+4. install other develop-y requirements::
 
        $ pip install -r requirements-dev.txt
 
-6. do awesome things; make someone shriek in delight/disgust at what
-   you have wrought
+5. do awesome things; make someone shriek in delight/disgust at what
+   you have wrought.
 
 
 Test!
@@ -60,7 +70,7 @@ Document!
 Documentation is located in ``docs/``. We use `Sphinx
 <http://sphinx-doc.org/>`_.
 
-To build the docs in html::
+To build the docs in HTML::
 
     $ cd docs
     $ make html
