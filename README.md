@@ -41,6 +41,6 @@ Project
 
 * Code: https://github.com/hylang/hy
 * Docs: http://hy.rtfd.org/
-* Quickstart: http://hy.readthedocs.org/en/latest/quickstart.html
+* Quickstart: http://hy.rtfd.org/quickstart
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
