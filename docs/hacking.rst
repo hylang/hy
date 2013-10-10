@@ -35,8 +35,8 @@ Do this:
    or use `virtualenvwrapper <http://virtualenvwrapper.readthedocs.org/en/latest/#introduction>`_
    to create and manage your virtual environment::
 
-       $ mkvirtualenv venv
-       $ workon venv
+       $ mkvirtualenv hy
+       $ workon hy
 
 2. get the source code::
 
