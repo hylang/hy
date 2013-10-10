@@ -41,11 +41,7 @@ from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 
-
-try:
-    import __builtin__ as builtins
-except ImportError:
-    import builtins
+from hy._compat import builtins
 
 
 class HyQuitter(object):

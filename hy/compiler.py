@@ -36,8 +36,8 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
-from hy.macros import require, process
-from hy.util import str_type
+from hy.macros import require, macroexpand
+from hy._compat import str_type
 import hy.importer
 
 import traceback
@@ -419,7 +419,7 @@ class HyASTCompiler(object):
 
     def compile(self, tree):
         try:
-            tree = process(tree, self.module_name)
+            tree = macroexpand(tree, self.module_name)
             _type = type(tree)
             ret = self.compile_atom(_type, tree)
             if ret:
@@ -610,7 +610,7 @@ class HyASTCompiler(object):
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    to_add = f_contents
+                    to_add = HyExpression([HySymbol("list"), f_contents])
                 else:
                     to_add = HyList([f_contents])
 
