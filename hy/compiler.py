@@ -37,7 +37,7 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 
 from hy.macros import require, process
-from hy.util import str_type
+from hy._compat import str_type
 import hy.importer
 
 import traceback
@@ -610,7 +610,7 @@ class HyASTCompiler(object):
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    to_add = f_contents
+                    to_add = HyExpression([HySymbol("list"), f_contents])
                 else:
                     to_add = HyList([f_contents])
 
@@ -964,31 +964,6 @@ class HyASTCompiler(object):
                              orelse=orel.force_expr,
                              lineno=expression.start_line,
                              col_offset=expression.start_column)
-        return ret
-
-    @builds("print")
-    def compile_print_expression(self, expr):
-        call = expr.pop(0)  # print
-        values, ret = self._compile_collect(expr)
-
-        if sys.version_info[0] >= 3:
-            call = self.compile(call)
-            ret += call
-            ret += ast.Call(func=call.expr,
-                            args=values,
-                            keywords=[],
-                            starargs=None,
-                            kwargs=None,
-                            lineno=expr.start_line,
-                            col_offset=expr.start_column)
-        else:
-            ret += ast.Print(
-                lineno=expr.start_line,
-                col_offset=expr.start_column,
-                dest=None,
-                values=values,
-                nl=True)
-
         return ret
 
     @builds("break")

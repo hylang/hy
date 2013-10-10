@@ -43,15 +43,11 @@ except ImportError:
 import hy.macros
 import hy.compiler
 
-try:
-    import __builtin__
-except ImportError:
-    import builtins as __builtin__  # NOQA
-
+from hy._compat import builtins
 
 PATH = [hy.compiler._compile_table,
         hy.macros._hy_macros,
-        __builtin__.__dict__]
+        builtins.__dict__]
 
 
 class Completer(object):
