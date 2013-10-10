@@ -60,7 +60,7 @@
   (setv test_iter (iter [1 2 3 4 3 5 2]))
   (setv res (list (distinct test_iter)))
   (assert-equal res [1 2 3 4 5])
-  ; make sure we can handle None in the list
+  ; make sure we can handle None in the listwith
   (setv res (list (distinct [1 2 3 2 5 None 3 4 None])))
   (assert-equal res [1 2 3 5 None 4]))
 

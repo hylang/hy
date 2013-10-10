@@ -53,7 +53,7 @@
 (defn test-midtree-yield-in-for []
   "NATIVE: test yielding in a for with a return"
   (defn kruft-in-for []
-    (for [i (range 5)]
+    (for [[i (range 5)]]
       (yield i))
     (+ 1 2)))
 
@@ -69,7 +69,7 @@
 (defn test-multi-yield []
   "NATIVE: testing multiple yields"
   (defn multi-yield []
-    (for [i (range 3)]
+    (for [[i (range 3)]]
       (yield i))
     (yield "a")
     (yield "end"))
@@ -95,7 +95,7 @@
 (defn test-yield-from []
   "NATIVE: testing yield from"
   (defn yield-from-test []
-    (for [i (range 3)]
+    (for [[i (range 3)]]
       (yield i))
     (yield-from [1 2 3]))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))

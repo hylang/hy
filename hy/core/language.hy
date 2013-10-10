@@ -32,11 +32,11 @@
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
   (setv seen [])
-  (for [x coll]
+  (for [[x coll]]
     (yield x)
     (.append seen x))
   (while seen
-    (for [x seen]
+    (for [[x seen]] 
       (yield x))))
 
 (defn dec [n]
@@ -48,7 +48,7 @@
   "Return a generator from the original collection with duplicates
    removed"
   (let [[seen []] [citer (iter coll)]]
-    (for [val citer]
+    (for [[val citer]]
       (if (not_in val seen)
         (do
          (yield val)
@@ -57,7 +57,7 @@
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
   (let [[citer (iter coll)]]
-    (try (for [i (range count)]
+    (try (for [[i (range count)]]
            (next citer))
          (catch [StopIteration]))
     citer))
@@ -83,7 +83,7 @@
 (defn filter [pred coll]
   "Return all elements from `coll` that pass `pred`"
   (let [[citer (iter coll)]]
-    (for [val citer]
+    (for [[val citer]]
       (if (pred val)
         (yield val)))))
 
@@ -157,7 +157,7 @@
 (defn remove [pred coll]
   "Return coll with elements removed that pass `pred`"
   (let [[citer (iter coll)]]
-    (for [val citer]
+    (for [[val citer]]
       (if (not (pred val))
         (yield val)))))
 
@@ -165,7 +165,7 @@
   "Yield x forever or optionally n times"
   (if (none? n)
     (setv dispatch (fn [] (while true (yield x))))
-    (setv dispatch (fn [] (for [_ (range n)] (yield x)))))
+    (setv dispatch (fn [] (for [[_ (range n)]] (yield x)))))
   (dispatch))
 
 (defn repeatedly [func]
@@ -187,7 +187,7 @@
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
   (let [[citer (iter coll)]]
-    (for [_ (range count)]
+    (for [[_ (range count)]]
       (yield (next citer)))))
 
 (defn take-nth [n coll]
@@ -195,16 +195,16 @@
      raises ValueError for (not (pos? n))"
   (if (pos? n)
     (let [[citer (iter coll)] [skip (dec n)]]
-      (for [val citer]
+      (for [[val citer]]
         (yield val)
-        (for [_ (range skip)]
+        (for [[_ (range skip)]]
           (next citer))))
     (raise (ValueError "n must be positive"))))
 
 (defn take-while [pred coll]
   "Take all elements while `pred` is true"
   (let [[citer (iter coll)]]
-    (for [val citer]
+    (for [[val citer]]
       (if (pred val)
         (yield val)
         (break)))))

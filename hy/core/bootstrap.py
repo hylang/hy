@@ -25,6 +25,8 @@ from hy.models.integer import HyInteger
 from hy.models.symbol import HySymbol
 from hy.models.list import HyList
 
+from hy.compiler import HyTypeError
+
 
 @macro("defn")
 @macro("defun")
@@ -51,32 +53,77 @@ def cond_macro(*tree):
 @macro("for")
 def for_macro(*tree):
     ret = None
-    # for [x iter y iter] ...
+    # for [[x iter] [y iter]] ...
     # ->
-    # foreach x iter
-    #   foreach y iter
+    # for* x iter
+    #   for* y iter
     #     ...
 
     tree = HyExpression(tree).replace(tree[0])
 
-    it = iter(tree.pop(0))
-    blocks = list(zip(it, it))  # List for Python 3.x degenerating.
+    try:
+        blocks = list(tree.pop(0))  # List for Python 3.x degenerating.
+        key, val = blocks.pop(0)
+    except IndexError:
+        # Because we get a indexError, we emulate the correct
+        # behavior from the original for* function
+        raise ValueError("need more than 0 values to unpack")
 
-    key, val = blocks.pop(0)
-    ret = HyExpression([HySymbol("foreach"),
+    ret = HyExpression([HySymbol("for*"),
                         HyList([key, val])])
     root = ret
     ret.replace(tree)
 
     for key, val in blocks:
         # x, [1, 2, 3,  4]
-        nret = HyExpression([HySymbol("foreach"),
+        nret = HyExpression([HySymbol("for*"),
                              HyList([key, val])])
         nret.replace(key)
         ret.append(nret)
         ret = nret
 
     [ret.append(x) for x in tree]  # we really need ~@
+    return root
+
+
+@macro("with")
+def with_macro(*tree):
+    ret = None
+    # (with [[f (open "file1")]
+    #        [n (open "file2")]] ...)
+    # ->
+    # (with [f (open "file1")]
+    #    (with [n (open "file")]
+    #   ...))
+
+    try:
+        tree = HyExpression(tree).replace(tree[0])
+        blocks = list(tree.pop(0))  # List for Python 3.x degenerating.
+
+        if len(blocks) == 0:
+            raise
+    except:
+        raise HyTypeError(tree, "with needs [arg (expr)] or [(expr)]")
+
+    vals = blocks.pop(0)
+
+    # Because we can't have a function and a macro named "with"
+    # The function got a name change while the macro acts as a wrapper
+    ret = HyExpression([HySymbol("with*"),
+                        HyList(vals)])
+    root = ret
+    ret.replace(tree)
+
+    for vals in blocks:
+        nret = HyExpression([HySymbol("with*"),
+                             HyList(vals)])
+
+        nret.replace(vals)
+        ret.append(nret)
+        ret = nret
+
+    [ret.append(x) for x in tree]  # we really need ~@
+                                   # I think we got it now.
     return root
 
 
