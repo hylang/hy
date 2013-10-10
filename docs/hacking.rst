@@ -31,6 +31,13 @@ Do this:
    and activate it::
 
        $ . venv/bin/activate
+
+   or use `virtualenvwrapper <http://virtualenvwrapper.readthedocs.org/en/latest/#introduction>`_
+   to create and manage your virtual environment::
+
+       $ mkvirtualenv venv
+       $ workon venv
+
 2. get the source code::
 
        $ git clone https://github.com/hylang/hy.git
