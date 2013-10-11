@@ -119,6 +119,11 @@
   (try (= x (iter x))
        (catch [TypeError] false)))
 
+(defn macroexpand [form]
+  "Return the macro expansion of form"
+  (import hy.macros)
+  (hy.macros.macroexpand form --name--))
+
 (defn neg? [n]
   "Return true if n is < 0"
   (_numeric-check n)
@@ -212,9 +217,8 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* ["cycle" "dec" "distinct" "drop" "drop_while" "empty?"
-                "even?" "filter" "float?" "inc"
-                "instance?" "integer?" "iterable?" "iterate" "iterator?" "neg?"
-                "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
-                "repeatedly" "second" "string?" "take" "take_nth" "take_while"
-                "zero?"])
+(def *exports* ["cycle" "dec" "distinct" "drop" "drop_while" "empty?" "even?"
+                "filter" "float?" "inc" "instance?" "integer?" "iterable?"
+                "iterate" "iterator?" "macroexpand" "neg?" "none?" "nth"
+                "numeric?" "odd?" "pos?" "remove" "repeat" "repeatedly"
+                "second" "string?" "take" "take_nth" "take_while" "zero?"])
