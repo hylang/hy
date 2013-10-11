@@ -171,6 +171,8 @@
   (assert-true (integer? 0))
   (assert-true (integer? 3))
   (assert-true (integer? -3))
+  (assert-true (integer? (integer "-3")))
+  (assert-true (integer? (integer 3)))
   (assert-false (integer? 4.2))
   (assert-false (integer? None))
   (assert-false (integer? "foo")))
