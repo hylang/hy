@@ -775,7 +775,13 @@
     (.append y x))
   (assert (= y [5])))
 
+
 (defn test-empty-list []
   "Evaluate an empty list to a []"
   (assert (= () [])))
 
+
+(defn test-macroexpand []
+   "Test macroexpand on ->"
+   (assert (= (macroexpand '(-> (a b) (x y)))
+              '(x (a b) y))))
