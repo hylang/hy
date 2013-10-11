@@ -1734,6 +1734,30 @@ class HyASTCompiler(object):
 
         return ret
 
+    @builds("macroexpand")
+    @checkargs(exact=1)
+    def compile_macro_expand(self, expression):
+        form = hy.importer.hy_eval(expression[1],
+                                   compile_time_ns(self.module_name),
+                                   self.module_name)
+        form.replace(expression)
+        expression[0] = HySymbol("quote") 
+        expression[1] = hy.macros.macroexpand(form,
+                                              self.module_name)
+        return self.compile(expression)
+ 
+    @builds("macroexpand_1")
+    @checkargs(exact=1)
+    def compile_macro_expand_1(self, expression):
+        form = hy.importer.hy_eval(expression[1],
+                                   compile_time_ns(self.module_name),
+                                   self.module_name)
+        form.replace(expression)
+        expression[0] = HySymbol("quote") 
+        expression[1] = hy.macros.macroexpand_1(form,
+                                                self.module_name)
+        return self.compile(expression)
+
     @builds("eval_and_compile")
     def compile_eval_and_compile(self, expression):
         expression[0] = HySymbol("progn")
