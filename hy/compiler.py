@@ -1741,11 +1741,11 @@ class HyASTCompiler(object):
                                    compile_time_ns(self.module_name),
                                    self.module_name)
         form.replace(expression)
-        expression[0] = HySymbol("quote") 
+        expression[0] = HySymbol("quote")
         expression[1] = hy.macros.macroexpand(form,
                                               self.module_name)
         return self.compile(expression)
- 
+
     @builds("macroexpand_1")
     @checkargs(exact=1)
     def compile_macro_expand_1(self, expression):
@@ -1753,7 +1753,7 @@ class HyASTCompiler(object):
                                    compile_time_ns(self.module_name),
                                    self.module_name)
         form.replace(expression)
-        expression[0] = HySymbol("quote") 
+        expression[0] = HySymbol("quote")
         expression[1] = hy.macros.macroexpand_1(form,
                                                 self.module_name)
         return self.compile(expression)
