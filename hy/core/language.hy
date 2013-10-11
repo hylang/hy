@@ -121,13 +121,21 @@
 
 (defn macroexpand [form]
   "Return the full macro expansion of form"
+  (import inspect)
   (import hy.macros)
-  (hy.macros.macroexpand form --name--))
+
+  (setv f (get (get (.stack inspect) 1) 0))
+  (setv name (get f.f_globals "__name__"))
+  (hy.macros.macroexpand form name))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of form"
+  (import inspect)
   (import hy.macros)
-  (hy.macros.macroexpand-1 form --name--))
+
+  (setv f (get (get (.stack inspect) 1) 0))
+  (setv name (get f.f_globals "__name__"))
+  (hy.macros.macroexpand-1 form name))
 
 (defn neg? [n]
   "Return true if n is < 0"
