@@ -222,6 +222,18 @@ Contrast with :ref:`iterable?-fn`.
 
 .. _neg?-fn:
 
+macroexpand
+-----------
+
+Usage: ``(macroexpand form)``
+
+Returns the macro expansion of form.
+
+.. code-block:: clojure
+
+   => (macroexpand '(-> (a b) (x y)))
+   (u'x' (u'a' u'b') u'y')
+
 neg?
 ----
 
