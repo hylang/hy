@@ -254,12 +254,12 @@ In hy, you would do:
 .. code-block:: clj
 
    (cond
-    ((> somevar 50)
-     (print "That variable is too big!"))
-    ((< somevar 10)
-     (print "That variable is too small!"))
-    (true
-     (print "That variable is jussssst right!")))
+    [(> somevar 50)
+     (print "That variable is too big!")]
+    [(< somevar 10)
+     (print "That variable is too small!")]
+    [true
+     (print "That variable is jussssst right!")])
 
 What you'll notice is that cond switches off between a some statement
 that is executed and checked conditionally for true or falseness, and

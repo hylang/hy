@@ -173,8 +173,8 @@ code:
 
 .. code-block:: clj
 
-    (cond (condition-1 result-1)
-          (condition-2 result-2))
+    (cond [condition-1 result-1]
+          [condition-2 result-2])
 
     (if condition-1 result-1
       (if condition-2 result-2))
@@ -184,10 +184,10 @@ As shown below only the first matching result block is executed.
 .. code-block:: clj
 
     => (defn check-value [value]
-    ...  (cond ((< value 5) (print "value is smaller than 5"))
-    ...        ((= value 5) (print "value is equal to 5"))
-    ...        ((> value 5) (print "value is greater than 5"))
-    ...	       (True (print "value is something that it should not be"))))
+    ...  (cond [(< value 5) (print "value is smaller than 5")]
+    ...        [(= value 5) (print "value is equal to 5")]
+    ...        [(> value 5) (print "value is greater than 5")]
+    ...	       [True (print "value is something that it should not be")]))
  
     => (check-value 6)
     value is greater than 5
@@ -564,8 +564,8 @@ For example:
 .. code-block:: clj
 
     => (defn rent-car [&kwargs kwargs]
-    ...  (cond ((in :brand kwargs) (print "brand:" (:brand kwargs)))
-    ...        ((in :model kwargs) (print "model:" (:model kwargs)))))
+    ...  (cond [(in :brand kwargs) (print "brand:" (:brand kwargs))]
+    ...        [(in :model kwargs) (print "model:" (:model kwargs))]))
 
     => (kwapply (rent-car) {:model "T-Model"})
     model: T-Model
