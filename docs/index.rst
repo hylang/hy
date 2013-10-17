@@ -8,7 +8,7 @@ Welcome to Hy's documentation!
    :alt: Hy logo
    :align: left
 
-Welcome to `Hy <https://github.com/paultag/hy>`_!
+Welcome to `Hy <https://github.com/hylang/hy>`_!
 Hy is a wonderful dialect of Lisp that's embedded in Python.
 Since Hy transforms its lisp code into the python Abstract Syntax
 Tree, you have the whole beautiful world of python at your fingertips,
