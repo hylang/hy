@@ -25,12 +25,10 @@
 ;;; These macros are the essential hy macros.
 ;;; They are automatically required everywhere, even inside hy.core modules.
 
-(import [hy.compiler [HyTypeError]])
-
 
 (defmacro macro-error [location reason]
   "error out properly within a macro"
-  `(raise (HyTypeError ~location ~reason)))
+  `(raise (hy.compiler.HyTypeError ~location ~reason)))
 
 
 (defmacro defmacro-alias [names lambda-list &rest body]
