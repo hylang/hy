@@ -1,7 +1,7 @@
 Hy
 ==
 
-![](https://raw.github.com/hylang/shyte/master/imgs/xkcd.png)
+![](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)
 
 Lisp and Python should love each other. Let's make it happen.
 
