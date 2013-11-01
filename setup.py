@@ -63,6 +63,7 @@ setup(
     },
     packages=find_packages(exclude=['tests*']),
     package_data={
+        'hy.contrib': ['*.hy'],
         'hy.core': ['*.hy'],
     },
     author="Paul Tagliamonte",
