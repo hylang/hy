@@ -1,4 +1,3 @@
-(require hy.contrib.meth)
 (import [hy.cmdline [HyREPL]]
         [sys]
         [StringIO [StringIO]]
@@ -18,9 +17,13 @@
            (setv sys.stderr old-stderr)
            {"stdout" (fake-stdout.getvalue) "stderr" (fake-stderr.getvalue)})]])
                  
-
-(def repl (MyHyREPL))
-
 (def app (Flask __name__))
-(route hello "/<name>" [name] (.format "(hello \"{0}!\")" name))
-(route eval-get "/eval" [] (json.dumps (repl.eval (get request.args "code"))))
+
+(with-decorator (kwapply (app.route "/eval") {"methods" ["POST"]})
+  (fn [] 
+    (let [[repl (MyHyREPL)] [input (request.get_json)]]
+      (foreach [expr (get input "env")]
+        (repl.eval expr))
+      (json.dumps (repl.eval (get input "code")))
+    )))
+
