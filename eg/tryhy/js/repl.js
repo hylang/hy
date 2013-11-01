@@ -6,8 +6,9 @@ $(document).ready(function(){
       else return true;
     },
     commandHandle:function(line, report){
-      $.get("/eval", {code: line}, function(data) {
-        report([{msg : data, className:"jquery-console-message-value"}]);
+      $.getJSON("/eval", {code: line}, function(data) {
+        report([{msg : data.stdout, className:"jquery-console-message-value"},
+                {msg : data.stderr, className:"jquery-console-message-error"}]);
       });
     },
     animateScroll:true,
