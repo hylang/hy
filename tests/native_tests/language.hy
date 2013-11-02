@@ -788,13 +788,12 @@
 (defn test-continue-continuation []
   "NATIVE: test checking if continue actually continues"
   (setv y [])
-  (for [x (range 10)] 
-    (if (!= x 5) 
-      (continue)) 
+  (for [x (range 10)]
+    (if (!= x 5)
+      (continue))
     (.append y x))
   (assert (= y [5])))
 
 (defn test-empty-list []
   "Evaluate an empty list to a []"
   (assert (= () [])))
-
