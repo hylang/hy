@@ -17,3 +17,6 @@ handlers:
 
 - url: .*
   script: main.__hymain__.app
+
+inbound_services:
+- warmup
