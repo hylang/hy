@@ -20,3 +20,19 @@ div.console div.jquery-console-welcome
 { color:#52666f; font-family:monospace;
   padding:0.1em; }
 div.console span.jquery-console-prompt-label { font-weight:bold }
+
+span.jquery-console-cursor.running {
+    -webkit-animation-duration: 0.1s;
+    -webkit-animation-name: blink;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-direction: alternate;
+}
+
+@-webkit-keyframes blink {
+    from {
+        opacity: 1.0
+    }
+    to {
+        opacity: 0.5
+    }
+}
