@@ -1,8 +1,9 @@
-(import [hy.cmdline [HyREPL]]
-        [sys]
+(import [sys]
         [StringIO [StringIO]]
-        [flask [Flask redirect request]]
-        [json])
+        [json]
+        [hy.cmdline [HyREPL]]
+        [hy]
+        [flask [Flask redirect request render_template]])
 
 (defclass MyHyREPL [HyREPL]
   [[eval (fn [self code]
@@ -19,6 +20,11 @@
                  
 (def app (Flask __name__))
 
+(with-decorator (kwapply (app.route "/") {"methods" ["GET"]})
+  (fn []
+    (kwapply (render_template "index.html") {"hy_version" hy.__version__})
+    ))
+
 (with-decorator (kwapply (app.route "/eval") {"methods" ["POST"]})
   (fn [] 
     (let [[repl (MyHyREPL)] [input (request.get_json)]]
@@ -26,4 +32,3 @@
         (repl.eval expr))
       (json.dumps (repl.eval (get input "code")))
     )))
-

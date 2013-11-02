@@ -1,7 +1,7 @@
 $(document).ready(function(){
   var backlog = [];
-  $('#hy-console').console({
-    promptLabel: 'hy=> ',
+  var console = $('#hy-console').console({
+    promptLabel: '=> ',
     commandValidate:function(line){
       if (line == '') return false;
       else return true;
@@ -23,5 +23,20 @@ $(document).ready(function(){
     animateScroll:true,
     promptHistory:true,
     autofocus:true,
-  }).promptText('(+ 41 1)');
+    welcomeMessage: 'hy ({hy_version})'.supplant({hy_version: hy_version})
+  });
+  console.promptText('(+ 41 1)');
 });
+
+
+if (!String.prototype.supplant) {
+    String.prototype.supplant = function (o) {
+        return this.replace(
+            /\{([^{}]*)\}/g,
+            function (a, b) {
+                var r = o[b];
+                return typeof r === 'string' || typeof r === 'number' ? r : a;
+            }
+        );
+    };
+}

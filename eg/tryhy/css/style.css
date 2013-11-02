@@ -16,4 +16,7 @@ div.console div.jquery-console-message-value
 div.console div.jquery-console-message-type
 { color:#52666f; font-family:monospace;
   padding:0.1em; }
+div.console div.jquery-console-welcome
+{ color:#52666f; font-family:monospace;
+  padding:0.1em; }
 div.console span.jquery-console-prompt-label { font-weight:bold }
