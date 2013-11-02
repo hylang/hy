@@ -25,7 +25,10 @@ $(document).ready(function(){
     animateScroll:true,
     promptHistory:true,
     autofocus:true,
-    welcomeMessage: 'hy ({hy_version})'.supplant({hy_version: hy_version})
+    welcomeMessage: 'hy ({hy_version}) [{server_software}]'.supplant({
+      hy_version: hy_version,
+      server_software: server_software
+    })
   });
   console.promptText('(+ 41 1)');
 });

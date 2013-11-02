@@ -1,4 +1,5 @@
-(import [sys]
+(import [os]
+        [sys]
         [StringIO [StringIO]]
         [json]
         [hy.cmdline [HyREPL]]
@@ -22,7 +23,8 @@
 
 (with-decorator (kwapply (app.route "/") {"methods" ["GET"]})
   (fn []
-    (kwapply (render_template "index.html") {"hy_version" hy.__version__})
+    (kwapply (render_template "index.html")
+             {"hy_version" hy.__version__ "server_software" (get os.environ "SERVER_SOFTWARE")})
     ))
 
 (with-decorator (kwapply (app.route "/eval") {"methods" ["POST"]})
