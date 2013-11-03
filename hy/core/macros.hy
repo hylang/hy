@@ -25,7 +25,6 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
-(import [functools [reduce]])
 
 (defmacro for [args &rest body]
   "shorthand for nested foreach loops:
