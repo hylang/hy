@@ -121,10 +121,15 @@
   "Use a dictionary as keyword arguments"
   (let [[-fun (car call)]
         [-args (cdr call)]
-        [-okwargs kwargs]]
+        [-okwargs `[(list (.items ~kwargs))]]]
     (while (= -fun "kwapply") ;; join any further kw
-      (setv -okwargs (+ (car (cdr -args)) -okwargs))
+      (if (not (= (len -args) 2))
+        (macro-error
+         call
+         (.format "Trying to call nested kwapply with {0} args instead of 2"
+                  (len -args))))
+      (.insert -okwargs 0 `(list (.items ~(car (cdr -args)))))
       (setv -fun (car (car -args)))
       (setv -args (cdr (car -args))))
 
-    `(apply ~-fun [~@-args] ~-okwargs)))
+    `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))

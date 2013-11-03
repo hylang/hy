@@ -153,14 +153,16 @@
   (setv mydict {"one" "three"})
   (assert (= (kwapply (kwtest) mydict) mydict))
   (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"}))
-  (assert (= (kwapply 
-              (kwapply 
-               (kwapply 
-                (kwapply (kwtest) {"x" 4}) 
-                {"x" 8}) 
-               {"x" (- 3 2) "y" 2}) 
+  (assert (= (kwapply
+              (kwapply
+               (kwapply
+                (kwapply
+                 (kwapply (kwtest) {"x" 4})
+                 mydict)
+                {"x" 8})
+               {"x" (- 3 2) "y" 2})
               {"y" 5 "z" 3})
-             {"x" 1 "y" 5 "z" 3})))
+             {"x" 1 "y" 5 "z" 3 "one" "three"})))
 
 (defn test-apply []
   "NATIVE: test working with args and functions"
@@ -168,7 +170,9 @@
   (assert (= (apply sumit [1] {"b" 2 "c" 3}) 6))
   (assert (= (apply sumit [1 2 2]) 5))
   (assert (= (apply sumit [] {"a" 1 "b" 1 "c" 2}) 4))
-  (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3)))
+  (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3))
+  (defn noargs [] [1 2 3])
+  (assert (= (apply noargs) [1 2 3])))
 
 (defn test-dotted []
   "NATIVE: test dotted invocation"
@@ -784,13 +788,12 @@
 (defn test-continue-continuation []
   "NATIVE: test checking if continue actually continues"
   (setv y [])
-  (for [x (range 10)] 
-    (if (!= x 5) 
-      (continue)) 
+  (for [x (range 10)]
+    (if (!= x 5)
+      (continue))
     (.append y x))
   (assert (= y [5])))
 
 (defn test-empty-list []
   "Evaluate an empty list to a []"
   (assert (= () [])))
-

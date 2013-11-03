@@ -1255,35 +1255,33 @@ class HyASTCompiler(object):
 
         return ret
 
-    # apply only needs to be defined for python3
-    if sys.version_info[0] >= 3:
-        @builds("apply")
-        @checkargs(min=2, max=3)
-        def compile_apply_expression(self, expr):
-            expr.pop(0)  # apply
-            call = self.compile(expr.pop(0))
-            call = ast.Call(func=call.expr,
-                            args=[],
-                            keywords=[],
-                            starargs=None,
-                            kwargs=None,
-                            lineno=expr.start_line,
-                            col_offset=expr.start_column)
-            ret = call
+    @builds("apply")
+    @checkargs(min=1, max=3)
+    def compile_apply_expression(self, expr):
+        expr.pop(0)  # apply
+        call = self.compile(expr.pop(0))
+        call = ast.Call(func=call.expr,
+                        args=[],
+                        keywords=[],
+                        starargs=None,
+                        kwargs=None,
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column)
+        ret = call
 
-            #add star args if any
+        if expr:
             stargs = expr.pop(0)
             if stargs is not None:
                 stargs = self.compile(stargs)
                 call.starargs = stargs.force_expr
                 ret = stargs + ret
 
-            if expr != []:
-                kwargs = self.compile(expr.pop(0))
-                call.kwargs = kwargs.force_expr
-                ret = kwargs + ret
+        if expr:
+            kwargs = self.compile(expr.pop(0))
+            call.kwargs = kwargs.force_expr
+            ret = kwargs + ret
 
-            return ret
+        return ret
 
     @builds("not")
     @builds("~")
