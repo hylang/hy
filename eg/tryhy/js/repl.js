@@ -7,7 +7,6 @@ $(document).ready(function(){
       else return true;
     },
     commandHandle:function(line, report){
-      $('.jquery-console-cursor').addClass('running');
       $.ajax({
         type: 'POST',
         url: '/eval',
@@ -15,7 +14,6 @@ $(document).ready(function(){
         contentType: 'application/json',
         dataType: 'json',
         success: function(data) {
-          $('.jquery-console-cursor').removeClass('running');
           report([{msg : data.stdout, className:'jquery-console-message-value'},
                   {msg : data.stderr, className:'jquery-console-message-error'}]);
         }

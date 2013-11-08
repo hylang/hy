@@ -20,5 +20,8 @@ handlers:
 - url: /css
   static_dir: css
 
+- url: /img
+  static_dir: img
+
 - url: .*
   script: main.__hymain__.app

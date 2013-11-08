@@ -8,7 +8,7 @@ div.console div.jquery-console-prompt-box
 div.console div.jquery-console-focus span.jquery-console-cursor
 { background:#fefefe; color:#333; font-weight:bold }
 div.console div.jquery-console-message-error
-{ color:#ef0505; font-family:sans-serif; font-weight:bold;
+{ color:#ff6969; font-family:monospace;
   padding:0.1em; }
 div.console div.jquery-console-message-value
 { color:#1ad027; font-family:monospace;
@@ -17,22 +17,24 @@ div.console div.jquery-console-message-type
 { color:#52666f; font-family:monospace;
   padding:0.1em; }
 div.console div.jquery-console-welcome
-{ color:#52666f; font-family:monospace;
+{ color:#929292; font-family:monospace;
   padding:0.1em; }
 div.console span.jquery-console-prompt-label { font-weight:bold }
 
-span.jquery-console-cursor.running {
-    -webkit-animation-duration: 0.1s;
-    -webkit-animation-name: blink;
-    -webkit-animation-iteration-count: infinite;
-    -webkit-animation-direction: alternate;
+body {
+    background-image: url(/img/symbolics.jpg);
+    background-repeat: no-repeat;
 }
 
-@-webkit-keyframes blink {
-    from {
-        opacity: 1.0
-    }
-    to {
-        opacity: 0.5
-    }
+#hy-console {
+    margin-top: 177px;
+    margin-left: 230px;
+    -webkit-transform: skew(4deg) rotate(4deg);
+}
+
+div#hy-console.console div.jquery-console-inner {
+    width: 314px;
+    height: 251px;
+    overflow: hidden;
+    background: none;
 }
