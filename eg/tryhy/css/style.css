@@ -30,6 +30,7 @@ body {
     margin-top: 177px;
     margin-left: 230px;
     -webkit-transform: skew(4deg) rotate(4deg);
+    transform: skew(4deg) rotate(4deg);
 }
 
 div#hy-console.console div.jquery-console-inner {
@@ -37,4 +38,19 @@ div#hy-console.console div.jquery-console-inner {
     height: 251px;
     overflow: hidden;
     background: none;
+}
+
+#footer {
+    margin-left: 165px;
+    margin-top: 65px;
+    -webkit-transform: skew(4deg) rotate(4deg);
+    transform: skew(4deg) rotate(4deg);
+    font-family: monospace;
+    font-style: italic;
+    font-weight: bold;
+}
+
+#footer a {
+    color:#686868;
+    text-decoration: none;
 }
