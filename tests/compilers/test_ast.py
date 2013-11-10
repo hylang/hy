@@ -295,9 +295,9 @@ def test_ast_bad_assoc():
 
 def test_ast_bad_with():
     "Make sure AST can't compile invalid with"
-    cant_compile("(with)")
-    cant_compile("(with [])")
-    cant_compile("(with [] (pass))")
+    cant_compile("(with*)")
+    cant_compile("(with* [])")
+    cant_compile("(with* [] (pass))")
 
 
 def test_ast_valid_while():
@@ -305,14 +305,14 @@ def test_ast_valid_while():
     can_compile("(while foo bar)")
 
 
-def test_ast_valid_foreach():
-    "Make sure AST can compile valid foreach"
-    can_compile("(foreach [a 2])")
+def test_ast_valid_for():
+    "Make sure AST can compile valid for"
+    can_compile("(for [[a 2]])")
 
 
-def test_ast_invalid_foreach():
-    "Make sure AST can't compile invalid foreach"
-    cant_compile("(foreach [a 1] (else 1 2))")
+def test_ast_invalid_for():
+    "Make sure AST can't compile invalid for"
+    cant_compile("(for* [a 1] (else 1 2))")
 
 
 def test_ast_expression_basics():
