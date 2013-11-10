@@ -48,6 +48,7 @@ nice together. """
 install_requires = ['rply>=0.6.2']
 if sys.version_info[:2] < (2, 7):
     install_requires.append('argparse>=1.2.1')
+    install_requires.append('importlib>=1.0.2')
 if os.name == 'nt':
     install_requires.append('pyreadline==2.0')
 
