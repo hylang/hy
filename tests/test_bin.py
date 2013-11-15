@@ -22,7 +22,6 @@
 # DEALINGS IN THE SOFTWARE.
 import os
 import subprocess
-import sys
 
 
 def run_cmd(cmd, stdin_data=None):
@@ -116,10 +115,6 @@ def test_bin_hyc_missing_file():
 
 
 def test_hy2py():
-    # XXX Astor doesn't seem to support Python3 :(
-    if sys.version_info[0] == 3:
-        return
-
     # and running this script this way doesn't work on Windows
     if os.name == "nt":
         return
