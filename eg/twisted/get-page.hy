@@ -14,32 +14,26 @@
         [twisted.internet [reactor]]
         [twisted.python [log]])
 
-(defun get-page-size (result)
+(defn get-page-size [result]
   (print
     (+ "Byte count for the content of the HTTP page passed: "
        (str (len result)))))
 
-(defun log-error (err)
+(defn log-error [err]
   (log.msg err))
 
-(defun finish (ignore)
+(defn finish [ignore]
   (log.msg "Preparing to stop reactor ...")
   (reactor.stop))
 
-(defun get-page (url)
-  (let ((d (getPage url)))
+(defn get-page [url]
+  (let [[d (getPage url)]]
     (d.addCallback get-page-size)
     (d.addErrback log-error)
     (d.addCallback finish)))
 
-(defun caddr (list)
-  ; This is how you'd do this in CL:
-  ;(car (cdr (cdr list))))
-  ; However, I think this is more efficient in hy:
-  (get list 2))
-
 (if (= __name__ "__main__")
   (do
     (log.startLogging sys.stdout)
-    (get-page (caddr sys.argv))
+    (get-page (second sys.argv))
     (reactor.run)))
