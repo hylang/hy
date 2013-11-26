@@ -381,6 +381,12 @@ between the operands.
 eval
 ----
 
+`eval` evaluates a quoted expression and returns the value.
+
+.. code-block:: clj
+
+   => (eval '(print "Hello World"))
+   "Hello World"
 
 eval-and-compile
 ----------------
@@ -732,9 +738,9 @@ using the backquote (`) symbol.
 .. code-block:: clj
     ;; let `qux' be a variable with value (bar baz)
     `(foo ~qux)
-    ; equivalent to (foo (bar baz))
+    ; equivalent to '(foo (bar baz))
     `(foo ~@qux)
-    ; equivalent to (foo bar baz)
+    ; equivalent to '(foo bar baz)
 
 
 quote
@@ -745,9 +751,12 @@ be alternatively written using the (') symbol
 
 
 .. code-block:: clj
-    => '(a b c)
-	(a b c)
-
+    => (setv x '(print "Hello World"))
+    ; variable x is set to expression & not evaluated
+    => x
+    (u'print' u'Hello World')
+    => (eval x)
+    Hello World
 
 require
 -------
