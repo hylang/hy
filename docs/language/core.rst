@@ -433,7 +433,7 @@ as an example of how to use some of these functions.
      (setv b 1)
      (while true
        (yield a)
-       (setf (, a b) (, b (+ a b)))))
+       (setv (, a b) (, b (+ a b)))))
 
 
 Note the ``(while true ...)`` loop. If we run this in the REPL,
