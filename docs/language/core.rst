@@ -429,8 +429,8 @@ as an example of how to use some of these functions.
 .. code-block:: clojure
 
    (defn fib []
-     (setf a 0)
-     (setf b 1)
+     (setv a 0)
+     (setv b 1)
      (while true
        (yield a)
        (setf (, a b) (, b (+ a b)))))
