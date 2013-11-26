@@ -719,6 +719,36 @@ the `print` form is used to output on screen. Example usage:
 .. note:: `print` always returns None
 
 
+quasiquote
+----------
+
+`quasiquote` allows you to quote a form, but also to
+selectively evaluate expressions, expressions inside a `quasiquote`
+can be selectively evaluated using `unquote` (~). The evaluated form can
+also be spliced using `unquote-splice` (~@). Quasiquote can be also written
+using the backquote (`) symbol.
+
+
+.. code-block:: clj
+    ;; let `qux' be a variable with value (bar baz)
+    `(foo ~qux)
+    ; equivalent to (foo (bar baz))
+    `(foo ~@qux)
+    ; equivalent to (foo bar baz)
+
+
+quote
+-----
+
+`quote` returns the form passed to it without evaluating. `quote` can
+be alternatively written using the (') symbol
+
+
+.. code-block:: clj
+    => '(a b c)
+	(a b c)
+
+
 require
 -------
 
