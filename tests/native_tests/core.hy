@@ -413,10 +413,9 @@
   (assert-equal (list (--map (* it 3) []))
                 []))
 
-
 (defn test-anaphoric-map-when []
   "NATIVE: testing anaphoric map-when"
-  (assert-equal (list (--map-when (even? it) (* it 2) [1 2 3 4]))
+  (assert-equal (list (--map-when even? (* it 2) [1 2 3 4]))
                 [1 4 3 8]))
 
 (defn test-anaphoric-filter []

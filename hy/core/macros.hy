@@ -137,13 +137,12 @@
        (yield (f v)))))
 
 
-(defmacro --map-when [pred rep lst]
-  `(let [[p (lambda [it] ~pred)]
-         [f (lambda [it] ~rep)]]
-     (foreach [v ~lst]
-       (if (p v)
-         (yield (r v))
-         (yield v)))))
+(defmacro --map-when [predfn rep lst]
+  `(let [[f (lambda [it] ~rep)]]
+     (foreach [it ~lst]
+       (if (~pred it)
+         (yield (f it))
+         (yield it)))))
 
 
 (defmacro --filter [form lst]
