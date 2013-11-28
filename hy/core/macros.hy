@@ -3,6 +3,7 @@
 ;; Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 ;; Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
 ;; Copyright (c) 2013 Konrad Hinsen <konrad.hinsen@fastmail.net>
+;; Copyright (c) 2013 James King <james@agentultra.com>
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -116,3 +117,20 @@
   ;; TODO: this needs some gensym love
   `(foreach [_hy_yield_from_x ~iterable]
      (yield _hy_yield_from_x)))
+
+
+(defmacro --each [lst &rest body]
+  `(foreach [it ~list] ~@body))
+
+
+(defmacro --map [form lst]
+  `(let [[f (lambda [it] ~form)]]
+     (foreach [v ~lst]
+       (yield (f v)))))
+
+
+(defmacro --filter [form lst]
+  `(let [[pred (lambda [it] ~form)]]
+     (foreach [val ~lst]
+       (if (pred val)
+         (yield val)))))
