@@ -1255,19 +1255,33 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("kwapply")
-    @checkargs(2)
-    def compile_kwapply_expression(self, expr):
-        expr.pop(0)  # kwapply
+    @builds("apply")
+    @checkargs(min=1, max=3)
+    def compile_apply_expression(self, expr):
+        expr.pop(0)  # apply
         call = self.compile(expr.pop(0))
-        kwargs = self.compile(expr.pop(0))
+        call = ast.Call(func=call.expr,
+                        args=[],
+                        keywords=[],
+                        starargs=None,
+                        kwargs=None,
+                        lineno=expr.start_line,
+                        col_offset=expr.start_column)
+        ret = call
 
-        if type(call.expr) != ast.Call:
-            raise HyTypeError(expr, "kwapplying a non-call")
+        if expr:
+            stargs = expr.pop(0)
+            if stargs is not None:
+                stargs = self.compile(stargs)
+                call.starargs = stargs.force_expr
+                ret = stargs + ret
 
-        call.expr.kwargs = kwargs.force_expr
+        if expr:
+            kwargs = self.compile(expr.pop(0))
+            call.kwargs = kwargs.force_expr
+            ret = kwargs + ret
 
-        return kwargs + call
+        return ret
 
     @builds("not")
     @builds("~")

@@ -116,3 +116,20 @@
   ;; TODO: this needs some gensym love
   `(foreach [_hy_yield_from_x ~iterable]
      (yield _hy_yield_from_x)))
+
+(defmacro kwapply [call kwargs]
+  "Use a dictionary as keyword arguments"
+  (let [[-fun (car call)]
+        [-args (cdr call)]
+        [-okwargs `[(list (.items ~kwargs))]]]
+    (while (= -fun "kwapply") ;; join any further kw
+      (if (not (= (len -args) 2))
+        (macro-error
+         call
+         (.format "Trying to call nested kwapply with {0} args instead of 2"
+                  (len -args))))
+      (.insert -okwargs 0 `(list (.items ~(car (cdr -args)))))
+      (setv -fun (car (car -args)))
+      (setv -args (cdr (car -args))))
+
+    `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))
