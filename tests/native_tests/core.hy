@@ -399,12 +399,25 @@
   (--each [1 2 3 4] (.append res it))
   (assert-equal res [1 2 3 4]))
 
+
+(defn test-anaphoric-each-while []
+  "NATIVE: testing anaphoric each-while"
+  (setv res [])
+  (--each-while [2 2 4 3 4 5 6] (even? it) (.append res it))
+  (assert-equal res [2 2 4]))
+
 (defn test-anaphoric-map []
   "NATIVE: testing anaphoric map"
   (assert-equal (list (--map (* it 3) [1 2 3]))
                 [3 6 9])
   (assert-equal (list (--map (* it 3) []))
                 []))
+
+
+(defn test-anaphoric-map-when []
+  "NATIVE: testing anaphoric map-when"
+  (assert-equal (list (--map-when (even? it) (* it 2) [1 2 3 4]))
+                [1 4 3 8]))
 
 (defn test-anaphoric-filter []
   "NATIVE: testing anaphoric filter"
