@@ -1,6 +1,5 @@
 ;; Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
 ;; Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
-;; Copyright (c) 2013 James King <james@agentultra.com>
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -392,35 +391,3 @@
   (assert-equal res [None None])
   (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
   (assert-equal res [1 2 3 4]))
-
-(defn test-anaphoric-each []
-  "NATIVE: testing anaphoric each"
-  (setv res [])
-  (--each [1 2 3 4] (.append res it))
-  (assert-equal res [1 2 3 4]))
-
-
-(defn test-anaphoric-each-while []
-  "NATIVE: testing anaphoric each-while"
-  (setv res [])
-  (--each-while [2 2 4 3 4 5 6] (even? it) (.append res it))
-  (assert-equal res [2 2 4]))
-
-(defn test-anaphoric-map []
-  "NATIVE: testing anaphoric map"
-  (assert-equal (list (--map (* it 3) [1 2 3]))
-                [3 6 9])
-  (assert-equal (list (--map (* it 3) []))
-                []))
-
-(defn test-anaphoric-map-when []
-  "NATIVE: testing anaphoric map-when"
-  (assert-equal (list (--map-when even? (* it 2) [1 2 3 4]))
-                [1 4 3 8]))
-
-(defn test-anaphoric-filter []
-  "NATIVE: testing anaphoric filter"
-  (assert-equal (list (--filter (> it 2) [1 2 3 4]))
-                [3 4])
-  (assert-equal (list (--filter (even? it) [1 2 3 4]))
-                [2 4]))

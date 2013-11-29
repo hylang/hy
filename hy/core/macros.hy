@@ -117,36 +117,3 @@
   ;; TODO: this needs some gensym love
   `(foreach [_hy_yield_from_x ~iterable]
      (yield _hy_yield_from_x)))
-
-
-(defmacro --each [lst &rest body]
-  `(foreach [it ~list] ~@body))
-
-
-(defmacro --each-while [lst pred &rest body]
-  `(let [[p (lambda [it] ~pred)]]
-     (foreach [it ~lst]
-       (if (p it)
-         ~@body
-         (break)))))
-
-
-(defmacro --map [form lst]
-  `(let [[f (lambda [it] ~form)]]
-     (foreach [v ~lst]
-       (yield (f v)))))
-
-
-(defmacro --map-when [predfn rep lst]
-  `(let [[f (lambda [it] ~rep)]]
-     (foreach [it ~lst]
-       (if (~pred it)
-         (yield (f it))
-         (yield it)))))
-
-
-(defmacro --filter [form lst]
-  `(let [[pred (lambda [it] ~form)]]
-     (foreach [val ~lst]
-       (if (pred val)
-         (yield val)))))
