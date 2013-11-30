@@ -736,6 +736,7 @@ using the backquote (`) symbol.
 
 
 .. code-block:: clj
+
     ;; let `qux' be a variable with value (bar baz)
     `(foo ~qux)
     ; equivalent to '(foo (bar baz))
@@ -751,12 +752,14 @@ be alternatively written using the (') symbol
 
 
 .. code-block:: clj
+
     => (setv x '(print "Hello World"))
     ; variable x is set to expression & not evaluated
     => x
     (u'print' u'Hello World')
     => (eval x)
     Hello World
+
 
 require
 -------
