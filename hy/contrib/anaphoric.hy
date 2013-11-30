@@ -50,7 +50,7 @@
   predicate function returns True."
   `(let [[f (lambda [it] ~rep)]]
      (foreach [it ~lst]
-       (if (~pred it)
+       (if (~predfn it)
          (yield (f it))
          (yield it)))))
 
