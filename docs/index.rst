@@ -49,3 +49,4 @@ Contents:
    tutorial
    hacking
    language/index
+   contrib/index
