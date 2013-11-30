@@ -25,7 +25,7 @@
 
 (defmacro ap-each [lst &rest body]
   "Evaluate the body form for each element in the list."
-  `(foreach [it ~list] ~@body))
+  `(foreach [it ~lst] ~@body))
 
 
 (defmacro ap-each-while [lst form &rest body]
