@@ -24,11 +24,14 @@
 
 
 (defmacro ap-each [lst &rest body]
+  "Evaluate the body form for each element in the list."
   `(foreach [it ~list] ~@body))
 
 
-(defmacro ap-each-while [lst pred &rest body]
-  `(let [[p (lambda [it] ~pred)]]
+(defmacro ap-each-while [lst form &rest body]
+  "Evalutate the body form for each element in the list while the
+  predicate form evaluates to True."
+  `(let [[p (lambda [it] ~form)]]
      (foreach [it ~lst]
        (if (p it)
          ~@body
@@ -36,12 +39,15 @@
 
 
 (defmacro ap-map [form lst]
+  "Yield elements evaluated in the form for each element in the list."
   `(let [[f (lambda [it] ~form)]]
      (foreach [v ~lst]
        (yield (f v)))))
 
 
 (defmacro ap-map-when [predfn rep lst]
+  "Yield elements evaluated for each element in the list when the
+  predicate function returns True."
   `(let [[f (lambda [it] ~rep)]]
      (foreach [it ~lst]
        (if (~pred it)
@@ -50,6 +56,7 @@
 
 
 (defmacro ap-filter [form lst]
+  "Yield elements returned when the predicate form evaluates to True."
   `(let [[pred (lambda [it] ~form)]]
      (foreach [val ~lst]
        (if (pred val)
