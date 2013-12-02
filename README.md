@@ -3,7 +3,7 @@ Hy
 
 ![](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)
 
-Lisp and Python should love each other. Let's make it happen.
+Lisp and Python should love each other. Let's make it happen. [Try it](http://try-hy.appspot.com/).
 
 [![Build Status](https://travis-ci.org/hylang/hy.png?branch=master)](https://travis-ci.org/hylang/hy)
 [![Downloads](https://pypip.in/d/hy/badge.png)](https://crate.io/packages/hy)
