@@ -8,12 +8,14 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt
+  - pip install coveralls
   - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install argparse importlib unittest2 astor; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install astor; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pip install astor; fi
   - python setup.py -q install
 # # command to run tests
 script: make travis
+after_success: coveralls
 notifications:
   email:
     - paultag@gmail.com
