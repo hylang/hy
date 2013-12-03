@@ -99,3 +99,23 @@ core team. Additional review is clearly welcome, but we need a minimum of
 If a core member is sending in a PR, please find 2 core members that don't
 include them PR submitter. The idea here is that one can work with the PR
 author, and a second acks the entire change set.
+
+
+Core Team
+=========
+
+Core development team of hy consists of following developers.
+
+ - `Paul Richard Tagliamonte <https://github.com/paultag>`_
+ - `J Kenneth King <https://github.com/agentultra>`_
+ - `Julien Danjou <https://github.com/jd>`_
+ - `Nicolas Dandrimont <https://github.com/olasd>`_
+ - `Morten Linderud <https://github.com/Foxboron>`_
+ - `Gergely Nagy <https://github.com/algernon>`_
+ - `Karen Rustad <https://github.com/aldeka>`_
+ - `Berker Peksag <https://github.com/berkerpeksag>`_
+ - `Christopher Allan Webber <https://github.com/cwebber>`_
+ - `Bob Tolbert <https://github.com/rwtolbert>`_
+ - `Tuukka Turto <https://github.com/tuturto>`_
+ - `Will Kahn-Greene <https://github.com/willkg>`_
+ - `Konrad Hinsen <https://github.com/khinsen>`_
