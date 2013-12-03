@@ -34,3 +34,6 @@ class HyKeyword(HyObject, str_type):
 
         obj = str_type.__new__(cls, value)
         return obj
+
+    def __repr__(self):
+        return self.strip(self.magic_marker)

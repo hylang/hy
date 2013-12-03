@@ -28,3 +28,6 @@ class HySymbol(HyString):
 
     def __init__(self, string):
         self += string
+
+    def __repr__(self):
+        return self.__escaped__()
