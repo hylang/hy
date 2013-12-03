@@ -53,7 +53,7 @@ diff:
 r: d tox diff
 
 travis:
-	nosetests -s
+	nosetests -s --with-coverage --cover-package hy
 ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 	@echo "skipping flake8 on pypy"
 else
