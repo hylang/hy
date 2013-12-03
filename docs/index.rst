@@ -32,6 +32,8 @@ Meet our mascot, "Cuddles":
 ..   \|\||/
 
 
+You can try Hy `in your browser <https://try-hy.appspot.com>`_.
+
 Read more about Hy in these docs!
 
 We're also on IRC!  Join
