@@ -1,0 +1,13 @@
+ - `Paul Richard Tagliamonte <https://github.com/paultag>`_
+ - `J Kenneth King <https://github.com/agentultra>`_
+ - `Julien Danjou <https://github.com/jd>`_
+ - `Nicolas Dandrimont <https://github.com/olasd>`_
+ - `Morten Linderud <https://github.com/Foxboron>`_
+ - `Gergely Nagy <https://github.com/algernon>`_
+ - `Karen Rustad <https://github.com/aldeka>`_
+ - `Berker Peksag <https://github.com/berkerpeksag>`_
+ - `Christopher Allan Webber <https://github.com/cwebber>`_
+ - `Bob Tolbert <https://github.com/rwtolbert>`_
+ - `Tuukka Turto <https://github.com/tuturto>`_
+ - `Will Kahn-Greene <https://github.com/willkg>`_
+ - `Konrad Hinsen <https://github.com/khinsen>`_
