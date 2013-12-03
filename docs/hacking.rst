@@ -70,6 +70,10 @@ To run the tests::
 
 Write tests---tests are good!
 
+Also, it is good to run the tests for all the platforms supported and for pep8 compliant code. 
+You can do so by running tox::
+
+    $ tox
 
 Document!
 =========
