@@ -75,12 +75,6 @@ def test_bin_hy_icmd():
     assert "figlet" in output
 
 
-def test_bin_hy_file():
-    ret = run_cmd("hy eg/nonfree/halting-problem/halting.hy")
-    assert ret[0] == 0
-    assert "27" in ret[1]
-
-
 def test_bin_hy_missing_file():
     ret = run_cmd("hy foobarbaz")
     assert ret[0] == 2
