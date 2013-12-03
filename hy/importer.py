@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from py_compile import wr_long, MAGIC
-from hy.compiler import hy_compile
+from hy.compiler import hy_compile, hy_incr_compile
 from hy.models import HyObject
 from hy.lex import tokenize
 
@@ -58,6 +58,10 @@ def import_buffer_to_ast(buf, module_name):
     """ Import content from buf and return a Python AST."""
     return hy_compile(import_buffer_to_hst(buf), module_name)
 
+
+def incr_import_buffer_to_ast(buf, module_name, ctx={}):
+    """ Import content from buf and return a Python AST."""
+    return hy_incr_compile(import_buffer_to_hst(buf), module_name, ctx=ctx)
 
 def import_file_to_ast(fpath, module_name):
     """Import content from fpath and return a Python AST."""
