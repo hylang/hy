@@ -175,6 +175,12 @@
   "Return second item from `coll`"
   (get coll 1))
 
+(defn string [x]
+  "Cast x as current string implementation"
+  (if-python2
+   (unicode x)
+   (str x)))
+
 (defn string? [x]
   "Return True if x is a string"
   (if-python2
@@ -216,5 +222,5 @@
                 "even?" "filter" "float?" "inc"
                 "instance?" "integer?" "iterable?" "iterate" "iterator?" "neg?"
                 "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
-                "repeatedly" "second" "string?" "take" "take_nth" "take_while"
+                "repeatedly" "second" "string" "string?" "take" "take_nth" "take_while"
                 "zero?"])
