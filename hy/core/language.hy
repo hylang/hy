@@ -212,9 +212,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* ["cycle" "dec" "distinct" "drop" "drop_while" "empty?"
-                "even?" "filter" "float?" "inc"
-                "instance?" "integer?" "iterable?" "iterate" "iterator?" "neg?"
-                "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
-                "repeatedly" "second" "string?" "take" "take_nth" "take_while"
-                "zero?"])
+(def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
+                 inc instance? integer? iterable? iterate iterator? neg? none?
+                 nth numeric? odd? pos? remove repeat repeatedly second string?
+                 take take-nth take-while zero?])

@@ -551,6 +551,12 @@
     (assert (= -_- "what?"))))
 
 
+(defn test-symbol-question-mark []
+  "NATIVE: test foo? -> is_foo behavior"
+  (let [[foo? "nachos"]]
+    (assert (= is_foo "nachos"))))
+
+
 (defn test-and []
   "NATIVE: test the and function"
   (let [[and123 (and 1 2 3)]
