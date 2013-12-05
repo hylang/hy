@@ -238,6 +238,9 @@ def t_identifier(p):
     if "-" in obj and obj != "-":
         obj = obj.replace("-", "_")
 
+    if obj.endswith("?") and obj != "?":
+        obj = "is_%s" % (obj[:-1])
+
     return HySymbol(obj)
 
 
