@@ -228,7 +228,10 @@ def cmdline_handler(scriptname, argv):
     options = parser.parse_args(argv[1:])
 
     # reset sys.argv like Python
-    sys.argv = options.args
+    if options.args and len(options.args) > 0:
+        sys.argv = options.args
+    else: # Python default
+        sys.argv =  ['']
 
     if options.command:
         # User did "hy -c ..."
