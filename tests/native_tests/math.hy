@@ -132,3 +132,7 @@
   (let [[x 1]]
     (^= x 1)
     (assert (= x 0))))
+
+(defn overflow-int-to-long []
+  "NATIVE: test if int does not raise an overflow exception"
+  (assert (integer? (+ 1 1000000000000000000000000))))
