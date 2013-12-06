@@ -23,6 +23,8 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+(import [hy._compat [long-type]]) ; long for python2, int for python3
+
 (defn _numeric-check [x]
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
@@ -97,11 +99,13 @@
 (defn instance? [klass x]
   (isinstance x klass))
 
+(defn integer [x]
+  "Return Hy kind of integer"
+  (long-type x))
+
 (defn integer? [x]
   "Return True if x in an integer"
-  (if-python2
-    (isinstance x (, int long))
-    (isinstance x int)))
+  (isinstance x (, int long-type)))
 
 (defn iterable? [x]
   "Return true if x is iterable"
@@ -219,6 +223,6 @@
   (= n 0))
 
 (def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
-                 inc instance? integer? iterable? iterate iterator? neg? none?
-                 nth numeric? odd? pos? remove repeat repeatedly second string
-                 string? take take-nth take-while zero?])
+                 inc instance? integer integer? iterable? iterate iterator? neg?
+                 none? nth numeric? odd? pos? remove repeat repeatedly second
+                 string string? take take-nth take-while zero?])
