@@ -30,6 +30,8 @@ Command line options
     Hy YourName!
     =>
 
+   .. versionadded:: 0.9.11
+
 .. cmdoption:: -v
 
    Print the Hy version number and exit.
