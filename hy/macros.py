@@ -84,7 +84,8 @@ _wrappers = {
     complex: HyComplex,
     str_type: HyString,
     dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
-    list: lambda l: HyList(_wrap_value(x) for x in l)
+    list: lambda l: HyList(_wrap_value(x) for x in l),
+    type(None): lambda foo: HySymbol("None"),
 }
 
 
