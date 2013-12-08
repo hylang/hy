@@ -45,7 +45,7 @@ long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
-install_requires = ['rply>=0.6.2']
+install_requires = ['rply>=0.7.0']
 if sys.version_info[:2] < (2, 7):
     install_requires.append('argparse>=1.2.1')
     install_requires.append('importlib>=1.0.2')
@@ -56,7 +56,7 @@ setup(
     name=PKG,
     version=__version__,
     install_requires=install_requires,
-    dependency_links=['https://github.com/hylang/rply/zipball/master#egg=rply-0.6.2'],
+    dependency_links=['https://github.com/hylang/rply/zipball/master#egg=rply-0.7.0'],
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
