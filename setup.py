@@ -56,7 +56,6 @@ setup(
     name=PKG,
     version=__version__,
     install_requires=install_requires,
-    dependency_links=['https://github.com/hylang/rply/zipball/master#egg=rply-0.7.0'],
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
