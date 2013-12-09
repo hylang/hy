@@ -1,3 +1,3 @@
 # Check site / dev for more deps!
 flake8
--e git+https://github.com/hylang/rply.git#egg=rply
+rply>=0.7.0

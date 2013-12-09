@@ -34,6 +34,9 @@
 (defmacro a-dict [] {1 2})
 (assert (= (a-dict) {1 2}))
 
+(defmacro a-none [])
+(assert (= (a-none) None))
+
 ; A macro calling a previously defined function
 (eval-when-compile
  (defn foo [x y]

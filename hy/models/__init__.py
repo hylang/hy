@@ -29,7 +29,7 @@ class HyObject(object):
         if isinstance(other, HyObject):
             for attr in ["start_line", "end_line",
                          "start_column", "end_column"]:
-                if not hasattr(self, attr):
+                if not hasattr(self, attr) and hasattr(other, attr):
                     setattr(self, attr, getattr(other, attr))
         else:
             raise TypeError("Can't replace a non Hy object with a Hy object")

@@ -37,7 +37,7 @@ from hy.models.list import HyList
 from hy.models.dict import HyDict
 
 from hy.macros import require, macroexpand
-from hy._compat import str_type
+from hy._compat import str_type, long_type
 import hy.importer
 
 import traceback
@@ -1758,7 +1758,7 @@ class HyASTCompiler(object):
 
     @builds(HyInteger)
     def compile_integer(self, number):
-        return ast.Num(n=int(number),
+        return ast.Num(n=long_type(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
