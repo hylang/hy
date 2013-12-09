@@ -23,7 +23,7 @@ import os
 import re
 import sys
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup, Command
 
 PKG = "hy"
 VERSIONFILE = os.path.join(PKG, "version.py")
@@ -52,6 +52,19 @@ if sys.version_info[:2] < (2, 7):
 if os.name == 'nt':
     install_requires.append('pyreadline==2.0')
 
+class HySyntax(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        import shutil
+        from distutils.sysconfig import get_python_lib
+        python_lib = get_python_lib()
+        print "Installing Hy syntax extension"
+        shutil.copy('hy.pth', python_lib)
+
 setup(
     name=PKG,
     version=__version__,
@@ -74,6 +87,7 @@ setup(
     license="Expat",
     url="http://hylang.org/",
     platforms=['any'],
+    cmdclass = {'hysyntax': HySyntax},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

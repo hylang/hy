@@ -13,6 +13,11 @@ import ast
 from hy.lex import tokenize, LexException, PrematureEndOfInput
 
 def hy_transform(stream):
+    """
+    - read a python code stream
+    - extract lisp code
+    - generate python ast
+    """
     try:
         py_buffer = ""
         lisp_expr = ""
