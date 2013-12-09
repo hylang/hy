@@ -11,7 +11,7 @@
 
 ;; Some macro examples
 (defmacro route [name path params &rest code]
-  "Post request"
+  "Get request"
   `(route-with-methods ~name ~path ["GET"] ~params ~@code))
 
 (defmacro post-route [name path params &rest code]
