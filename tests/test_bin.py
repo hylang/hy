@@ -39,8 +39,8 @@ def run_cmd(cmd, stdin_data=None):
     # Read stdout and stderr otherwise if the PIPE buffer is full, we might
     # wait for ever…
     while p.poll() is None:
-        stdout += str(p.stdout.read())
-        stderr += str(p.stderr.read())
+        stdout += p.stdout.read().decode('utf-8')
+        stderr += p.stderr.read().decode('utf-8')
     return p.returncode, stdout, stderr
 
 
