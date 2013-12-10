@@ -24,6 +24,8 @@ import os
 import subprocess
 import sys
 
+from nose.plugins.skip import SkipTest
+
 
 def run_cmd(cmd, stdin_data=None):
     p = subprocess.Popen(cmd,
@@ -122,7 +124,7 @@ def test_hy2py():
 
     # and running this script this way doesn't work on Windows
     if os.name == "nt":
-        return
+        raise SkipTest("doesn't work on Windows")
 
     i = 0
     for dirpath, dirnames, filenames in os.walk("tests/native_tests"):
