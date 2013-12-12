@@ -107,3 +107,9 @@
   (import sys)
   (assert (= (get sys.version_info 0)
              (if-python2 2 3))))
+
+(defn test-prog1 []
+  (assert (= 4 (prog1 (+ 2 2) (+ 3 4)))))
+
+(defn test-prog2 []
+  (assert (= 4 (prog2 (+ 1 1) (+ 2 2) (+ 3 4)))))

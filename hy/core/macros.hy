@@ -101,6 +101,21 @@
   ret)
 
 
+(defmacro-alias [do1 prog1] [&rest body]
+  "eval statements in body sequentially, return the value of first expr"
+  (if (> (len body) 0)
+    `(let [[ret ~(car body)]]
+       ~@(cdr body)
+       ret)))
+
+
+(defmacro-alias [do2 prog2] [expr1 &rest body]
+  "eval statements in body sequentially and return the value of second expr"
+  (if (> (len body) 0)
+    `(do ~expr1 (do1 ~@body))
+    (macro-error expr1 "Atleast 2 args are needed for do2/prog2")))
+
+
 (defmacro when [test &rest body]
   "Execute `body` when `test` is true"
   `(if ~test (do ~@body)))
