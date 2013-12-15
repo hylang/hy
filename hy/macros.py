@@ -40,6 +40,8 @@ EXTRA_MACROS = [
 ]
 
 _hy_macros = defaultdict(dict)
+_hy_reader = defaultdict(dict)
+_hy_reader_chars = set()
 
 
 def macro(name):
@@ -63,6 +65,30 @@ def macro(name):
     return _
 
 
+def reader(name):
+    """Decorator to define a macro called `name`.
+
+    This stores the macro `name` in the namespace for the module where it is
+    defined.
+
+    If the module where it is defined is in `hy.core`, then the macro is stored
+    in the default `None` namespace.
+
+    This function is called from the `defmacro` special form in the compiler.
+
+    """
+    def _(fn):
+        module_name = fn.__module__
+        if module_name.startswith("hy.core"):
+            module_name = None
+        _hy_reader[module_name][name] = fn
+
+        # Ugly hack to get some error handling
+        _hy_reader_chars.add(name)
+        return fn
+    return _
+
+
 def require(source_module, target_module):
     """Load the macros from `source_module` in the namespace of
     `target_module`.
@@ -74,6 +100,11 @@ def require(source_module, target_module):
     refs = _hy_macros[target_module]
     for name, macro in macros.items():
         refs[name] = macro
+
+    readers = _hy_reader[source_module]
+    reader_refs = _hy_reader[target_module]
+    for name, reader in readers.items():
+        reader_refs[name] = reader
 
 
 # type -> wrapping function mapping for _wrap_value

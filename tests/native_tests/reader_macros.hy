@@ -1,0 +1,32 @@
+(defn test-reader-macro []
+  "Test a basic redaer macro"
+  (defreader ^ [expr]
+    expr)
+
+  (assert (= #^"works" "works")))
+
+
+(defn test-reader-macro-expr []
+  "Test basic exprs like lists and arrays"
+  (defreader n [expr]
+    (get expr 1))
+
+  (assert (= #n[1 2] 2))
+  (assert (= #n(1 2) 2)))
+
+
+(defn test-reader-macro-override []
+  "Test if we can override function symbols"
+  (defreader + [n]
+    (+ n 1))
+
+  (assert (= #+2 3)))
+
+
+(defn test-reader-macro-compile-docstring []
+  "Test if we can compile with a docstring"
+  (try
+    (defreader d []
+      "Compiles with docstrings")
+    (except [Exception] 
+            (assert False))))
