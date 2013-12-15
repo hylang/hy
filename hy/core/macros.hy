@@ -113,6 +113,6 @@
 
 (defmacro yield-from [iterable]
   "Yield all the items from iterable"
-  ;; TODO: this needs some gensym love
-  `(foreach [_hy_yield_from_x ~iterable]
-     (yield _hy_yield_from_x)))
+  (let [[x (gensym)]]
+  `(foreach [~x ~iterable]
+     (yield ~x))))

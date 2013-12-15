@@ -23,6 +23,7 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 
 (defn _numeric-check [x]
@@ -90,6 +91,20 @@
 (defn float? [x]
   "Return True if x is float"
   (isinstance x float))
+
+(import [threading [Lock]])
+(setv _gensym_counter 1234)
+(setv _gensym_lock (Lock))
+
+(defn gensym [&optional [g "G"]]
+  (let [[new_symbol None]]
+    (global _gensym_counter)
+    (global _gensym_lock)
+    (.acquire _gensym_lock)
+    (try (do (setv _gensym_counter (inc _gensym_counter))
+             (setv new_symbol (HySymbol (.format ":{0}_{1}" g _gensym_counter))))
+         (finally (.release _gensym_lock)))
+    new_symbol))
 
 (defn inc [n]
   "Increment n by 1"
@@ -223,6 +238,7 @@
   (= n 0))
 
 (def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
+                 gensym
                  inc instance? integer integer? iterable? iterate iterator? neg?
                  none? nth numeric? odd? pos? remove repeat repeatedly second
                  string string? take take-nth take-while zero?])

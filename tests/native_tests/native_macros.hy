@@ -94,7 +94,6 @@
 (assert initialized)
 (assert (test-initialized))
 
-
 (defn test-yield-from []
   "NATIVE: testing yield from"
   (defn yield-from-test []
@@ -107,3 +106,28 @@
   (import sys)
   (assert (= (get sys.version_info 0)
              (if-python2 2 3))))
+
+(defn test-gensym-in-macros []
+  (import ast)
+  (import [astor.codegen [to_source]])
+  (import [hy.importer [import_buffer_to_ast]])
+  (setv macro1 "(defmacro nif [expr pos zero neg]
+      (let [[g (gensym)]]
+        `(let [[~g ~expr]]
+           (cond [(pos? ~g) ~pos]
+                 [(zero? ~g) ~zero]
+                 [(neg? ~g) ~neg]))))
+
+    (print (nif (inc -1) 1 0 -1))
+    ")
+  ;; expand the macro twice, should use a different
+  ;; gensym each time
+  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv s1 (to_source _ast1))
+  (setv s2 (to_source _ast2))
+  ;; and make sure there is something new that starts with :G_
+  (assert (in ":G_" s1))
+  (assert (in ":G_" s2))
+  ;; but make sure the two don't match each other
+  (assert (not (= s1 s2))))

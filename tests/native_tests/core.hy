@@ -141,6 +141,18 @@
   (assert-true (float? -3.2))
   (assert-false (float? "foo")))
 
+(defn test-gensym []
+  "NATIVE: testing the gensym function"
+  (import [hy.models.symbol [HySymbol]])
+  (setv s1 (gensym))
+  (assert (isinstance s1 HySymbol))
+  (assert (= 0 (.find s1 ":G_")))
+  (setv s2 (gensym "xx"))
+  (setv s3 (gensym "xx"))
+  (assert (= 0 (.find s2 ":xx_")))
+  (assert (not (= s2 s3)))
+  (assert (not (= (str s2) (str s3)))))
+
 (defn test-inc []
   "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
@@ -393,3 +405,4 @@
   (assert-equal res [None None])
   (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
   (assert-equal res [1 2 3 4]))
+
