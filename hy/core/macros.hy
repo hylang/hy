@@ -116,3 +116,13 @@
   (let [[x (gensym)]]
   `(foreach [~x ~iterable]
      (yield ~x))))
+
+(defmacro with-gensyms [args &rest body]
+  `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
+    ~@body))
+
+(defmacro defmacro/g! [name args &rest body]
+  (let [[syms (list (distinct (filter (fn [x] (.startswith x "g!")) (flatten body))))]]
+    `(defmacro ~name [~@args]
+       (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
+            ~@body))))

@@ -133,6 +133,26 @@
   (setv res (list (filter none? [1 2 None 3 4 None 4 6])))
   (assert-equal res [None None]))
 
+(defn test-flatten []
+  "NATIVE: testing the flatten function"
+  (setv res (flatten [1 2 [3 4] 5]))
+  (assert-equal res [1 2 3 4 5])
+  (setv res (flatten ["foo" (, 1 2) [1 [2 3] 4] "bar"]))
+  (assert-equal res ["foo" 1 2 1 2 3 4 "bar"])
+  (setv res (flatten [1]))
+  (assert-equal res [1])
+  (setv res (flatten []))
+  (assert-equal res [])
+  (setv res (flatten (, 1)))
+  (assert-equal res [1])
+  ;; test with None
+  (setv res (flatten (, 1 (, None 3))))
+  (assert-equal res [1 None 3])
+  (try (flatten "foo")
+       (catch [e [TypeError]] (assert (in "not a collection" (str e)))))
+  (try (flatten 12.34)
+       (catch [e [TypeError]] (assert (in "not a collection" (str e))))))
+
 (defn test-float? []
   "NATIVE: testing the float? function"
   (assert-true (float? 4.2))
