@@ -26,10 +26,10 @@ from hy.models.integer import HyInteger
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.dict import HyDict
-from hy._compat import str_type
+from hy._compat import str_type, long_type
 
 from collections import defaultdict
-
+import sys
 
 CORE_MACROS = [
     "hy.core.bootstrap",
@@ -84,8 +84,12 @@ _wrappers = {
     complex: HyComplex,
     str_type: HyString,
     dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
-    list: lambda l: HyList(_wrap_value(x) for x in l)
+    list: lambda l: HyList(_wrap_value(x) for x in l),
+    type(None): lambda foo: HySymbol("None"),
 }
+
+if sys.version_info[0] < 3:  # do not add long on python3
+    _wrappers[long_type] = HyInteger
 
 
 def _wrap_value(x):

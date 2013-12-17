@@ -1,3 +1,10 @@
+Changes from Hy 0.9.11
+
+    [ Misc. Fixes ]
+    [ Syntax Fixes ]
+    [ Language Changes ]
+     * Translate foo? -> is_foo, for better Python interop. (PT)
+
 Changes from Hy 0.9.10
 
     * Many thanks to Guillermo Vayá (Willyfrog) for preparing this release's

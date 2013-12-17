@@ -23,6 +23,8 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+(import [hy._compat [long-type]]) ; long for python2, int for python3
+
 (defn _numeric-check [x]
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
@@ -97,11 +99,13 @@
 (defn instance? [klass x]
   (isinstance x klass))
 
+(defn integer [x]
+  "Return Hy kind of integer"
+  (long-type x))
+
 (defn integer? [x]
   "Return True if x in an integer"
-  (if-python2
-    (isinstance x (, int long))
-    (isinstance x int)))
+  (isinstance x (, int long-type)))
 
 (defn iterable? [x]
   "Return true if x is iterable"
@@ -175,6 +179,12 @@
   "Return second item from `coll`"
   (get coll 1))
 
+(defn string [x]
+  "Cast x as current string implementation"
+  (if-python2
+   (unicode x)
+   (str x)))
+
 (defn string? [x]
   "Return True if x is a string"
   (if-python2
@@ -212,9 +222,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* ["cycle" "dec" "distinct" "drop" "drop_while" "empty?"
-                "even?" "filter" "float?" "inc"
-                "instance?" "integer?" "iterable?" "iterate" "iterator?" "neg?"
-                "none?" "nth" "numeric?" "odd?" "pos?" "remove" "repeat"
-                "repeatedly" "second" "string?" "take" "take_nth" "take_while"
-                "zero?"])
+(def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
+                 inc instance? integer integer? iterable? iterate iterator? neg?
+                 none? nth numeric? odd? pos? remove repeat repeatedly second
+                 string string? take take-nth take-while zero?])
