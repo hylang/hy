@@ -19,8 +19,11 @@ These rules help make sure code is idiomatic and interface-able in both
 languages.
 
 
-  * Symbols in earmufs will be translated to the uppercased version of that
-    string. For example, `*foo*` will become `FOO`.
+  * Symbols in earmufs will be considered globals.
+
+  * Symbols between + are considered constants and will be translated to 
+    the uppercased version of that string. For example, `+foo+` will 
+    become `FOO`.
 
   * UTF-8 entities will be encoded using
     `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with

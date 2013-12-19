@@ -232,8 +232,11 @@ def t_identifier(p):
     if obj.startswith("&"):
         return HyLambdaListKeyword(obj)
 
-    if obj.startswith("*") and obj.endswith("*") and obj not in ("*", "**"):
+    if obj.startswith("+") and obj.endswith("+") and obj not in ("+", "++"):
         obj = obj[1:-1].upper()
+
+    if obj.startswith("*") and obj.endswith("*") and obj not in ("*", "**"):
+        obj = obj[1:-1]
 
     if "-" in obj and obj != "-":
         obj = obj.replace("-", "_")

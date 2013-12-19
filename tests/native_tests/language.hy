@@ -316,12 +316,12 @@
      (except))
     (assert (= x 0))))
 
-(defn test-earmuffs []
-  "NATIVE: Test earmuffs"
-  (setv *foo* "2")
+(defn test-constants []
+  "NATIVE: Test constants"
+  (setv +foo+ "2")
   (setv foo "3")
-  (assert (= *foo* FOO))
-  (assert (!= *foo* foo)))
+  (assert (= +foo+ FOO))
+  (assert (!= +foo+ foo)))
 
 
 (defn test-threading []
