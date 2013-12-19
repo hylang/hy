@@ -18,20 +18,21 @@ this, it's going to come in handy.
 These rules help make sure code is idiomatic and interface-able in both
 languages.
 
+* UTF-8 entities will be encoded using
+  `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
+  `hy_`. For instance, `⚘` will become `hy_w7h`, `♥` will become `hy_g6h`,
+  and `i♥u` will become `hy_iu_t0x`.
+     
+* Symbols that contain dashes will have them replaced with underscores. For
+  example, `render-template` will become `render_template`.
 
-  * Symbols in earmufs will be considered globals.
+.. versionchanged:: 0.9.12
 
-  * Symbols between + are considered constants and will be translated to 
-    the uppercased version of that string. For example, `+foo+` will 
-    become `FOO`.
+   * Symbols in earmufs will be considered globals.
 
-  * UTF-8 entities will be encoded using
-    `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
-    `hy_`. For instance, `⚘` will become `hy_w7h`, `♥` will become `hy_g6h`,
-    and `i♥u` will become `hy_iu_t0x`.
-
-  * Symbols that contain dashes will have them replaced with underscores. For
-    example, `render-template` will become `render_template`.
+   * Symbols between + are considered constants and will be translated to 
+     the uppercased version of that string. For example, `+foo+` will 
+     become `FOO`.
 
 
 Builtins
