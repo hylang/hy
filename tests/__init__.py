@@ -11,3 +11,4 @@ from .native_tests.unless import *  # noqa
 from .native_tests.when import *  # noqa
 from .native_tests.with_decorator import *  # noqa
 from .native_tests.core import *  # noqa
+from .contrib.test_meth import *  # noqa
