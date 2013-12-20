@@ -41,7 +41,7 @@ except ImportError:
     except ImportError:
         docomplete = False
 
-if sys.platform == 'darwin':
+if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
     readline_bind = "bind ^I rl_complete"
 else:
     readline_bind = "tab: complete"
