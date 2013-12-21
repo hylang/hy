@@ -789,3 +789,18 @@
   (assert (string? (string "a")))
   (assert (string? (string 1)))
   (assert (= u"unicode" (string "unicode"))))
+
+(defn test-del []
+  "NATIVE: Test the behavior of del"
+  (setv foo 42)
+  (assert (= foo 42))
+  (del foo)
+  (assert (= 'good
+    (try
+      (do foo 'bad)
+      (except [NameError] 'good))))
+  (setv test (list (range 5)))
+  (del (get test 4))
+  (assert (= test [0 1 2 3]))
+  (del (get test 2))
+  (assert (= test [0 1 3])))

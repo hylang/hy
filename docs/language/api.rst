@@ -378,6 +378,39 @@ between the operands.
   => (infix (1 + 1))
   2
 
+del
+---
+
+.. versionadded:: 0.9.12
+
+`del` removes an object from the current namespace.
+
+.. code-block:: clj
+
+  => (setv foo 42)
+  => (del foo)
+  => foo
+  Traceback (most recent call last):
+    File "<console>", line 1, in <module>
+  NameError: name 'foo' is not defined
+
+`del` can also remove objects from a mapping, a list, ...
+
+.. code-block:: clj
+
+  => (setv test (list (range 10)))
+  => test
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  => (del (slice test 2 4)) ;; remove items from 2 to 4 excluded
+  => test
+  [0, 1, 4, 5, 6, 7, 8, 9]
+  => (setv dic {"foo" "bar"})
+  => dic
+  {"foo": "bar"}
+  => (del (get dic "foo"))
+  => dic
+  {}
+
 eval
 ----
 

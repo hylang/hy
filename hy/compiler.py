@@ -1099,6 +1099,21 @@ class HyASTCompiler(object):
             slice=ast.Index(value=sli.force_expr),
             ctx=ast.Load())
 
+    @builds("del")
+    @checkargs(min=1)
+    def compile_del_expression(self, expr):
+        expr.pop(0)
+        ld_targets, ret = self._compile_collect(expr)
+
+        del_targets = []
+        for target in ld_targets:
+            del_targets.append(self._storeize(target, ast.Del))
+
+        return ret + ast.Delete(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            targets=del_targets)
+
     @builds("slice")
     @checkargs(min=1, max=4)
     def compile_slice_expression(self, expr):
