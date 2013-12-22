@@ -33,6 +33,5 @@ def tokenize(buf):
         return parser.parse(lexer.lex(buf))
     except LexingError as e:
         pos = e.getsourcepos()
-        raise LexException(
-            "Could not identify the next token at line %s, column %s" % (
-                pos.lineno, pos.colno))
+        raise LexException("Could not identify the next token.",
+                           pos.lineno, pos.colno)

@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,3 +26,41 @@ class HyError(Exception):
     Exception.
     """
     pass
+
+
+try:
+    from clint.textui import colored
+except:
+    class colored:
+
+        @staticmethod
+        def black(foo):
+            return foo
+
+        @staticmethod
+        def red(foo):
+            return foo
+
+        @staticmethod
+        def green(foo):
+            return foo
+
+        @staticmethod
+        def yellow(foo):
+            return foo
+
+        @staticmethod
+        def blue(foo):
+            return foo
+
+        @staticmethod
+        def magenta(foo):
+            return foo
+
+        @staticmethod
+        def cyan(foo):
+            return foo
+
+        @staticmethod
+        def white(foo):
+            return foo

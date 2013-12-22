@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,10 +20,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 from py_compile import wr_long, MAGIC
-from hy.compiler import hy_compile
+from hy.compiler import hy_compile, HyTypeError
 from hy.models import HyObject
-from hy.lex import tokenize
-
+from hy.lex import tokenize, LexException
 
 from io import open
 import marshal
@@ -73,17 +73,29 @@ def import_file_to_module(module_name, fpath):
         mod = imp.new_module(module_name)
         mod.__file__ = fpath
         eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
+    except (HyTypeError, LexException) as e:
+        if e.source is None:
+            fp = open(fpath, 'rt')
+            e.source = fp.read()
+            fp.close()
+            e.filename = fpath
+        raise
     except Exception:
         sys.modules.pop(module_name, None)
         raise
-
     return mod
 
 
 def import_buffer_to_module(module_name, buf):
-    _ast = import_buffer_to_ast(buf, module_name)
-    mod = imp.new_module(module_name)
-    eval(ast_compile(_ast, "", "exec"), mod.__dict__)
+    try:
+        _ast = import_buffer_to_ast(buf, module_name)
+        mod = imp.new_module(module_name)
+        eval(ast_compile(_ast, "", "exec"), mod.__dict__)
+    except (HyTypeError, LexException) as e:
+        if e.source is None:
+            e.source = buf
+            e.filename = '<stdin>'
+        raise
     return mod
 
 

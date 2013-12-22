@@ -22,6 +22,7 @@
 from __future__ import unicode_literals
 
 from hy import HyString
+from hy.models import HyObject
 from hy.compiler import hy_compile, HyCompileError, HyTypeError
 from hy.lex import tokenize
 
@@ -42,10 +43,14 @@ def can_compile(expr):
 
 
 def cant_compile(expr):
-    expr = tokenize(expr)
     try:
-        hy_compile(expr, "__main__")
+        hy_compile(tokenize(expr), "__main__")
         assert False
+    except HyTypeError as e:
+        # Anything that can't be compiled should raise a user friendly
+        # error, otherwise it's a compiler bug.
+        assert isinstance(e.expression, HyObject)
+        assert e.message
     except HyCompileError as e:
         # Anything that can't be compiled should raise a user friendly
         # error, otherwise it's a compiler bug.
@@ -422,8 +427,7 @@ def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     try:
         can_compile("(fn [] (= 1))")
-    except HyCompileError as e:
-        assert(str(e)
-               == "`=' needs at least 2 arguments, got 1 (line 1, column 8)")
+    except HyTypeError as e:
+        assert(e.message == "`=' needs at least 2 arguments, got 1.")
     else:
         assert(False)

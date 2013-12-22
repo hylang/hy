@@ -4,6 +4,7 @@
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 # Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 # Copyright (c) 2013 James King <james@agentultra.com>
+# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -93,11 +94,52 @@ class HyTypeError(TypeError):
     def __init__(self, expression, message):
         super(HyTypeError, self).__init__(message)
         self.expression = expression
+        self.message = message
+        self.source = None
+        self.filename = None
 
     def __str__(self):
-        return (super(HyTypeError, self).__str__() + " (line %s, column %d)"
-                % (self.expression.start_line,
-                   self.expression.start_column))
+        from hy.errors import colored
+
+        line = self.expression.start_line
+        start = self.expression.start_column
+        end = self.expression.end_column
+
+        source = []
+        if self.source is not None:
+            source = self.source.split("\n")[line-1:self.expression.end_line]
+
+            if line == self.expression.end_line:
+                length = end - start
+            else:
+                length = len(source[0]) - start
+
+        result = ""
+
+        result += '  File "%s", line %d, column %d\n\n' % (self.filename,
+                                                           line,
+                                                           start)
+
+        if len(source) == 1:
+            result += '  %s\n' % colored.red(source[0])
+            result += '  %s%s\n' % (' '*(start-1),
+                                    colored.green('^' + '-'*(length-1) + '^'))
+        if len(source) > 1:
+            result += '  %s\n' % colored.red(source[0])
+            result += '  %s%s\n' % (' '*(start-1),
+                                    colored.green('^' + '-'*length))
+            if len(source) > 2:  # write the middle lines
+                for line in source[1:-1]:
+                    result += '  %s\n' % colored.red("".join(line))
+                    result += '  %s\n' % colored.green("-"*len(line))
+
+            # write the last line
+            result += '  %s\n' % colored.red("".join(source[-1]))
+            result += '  %s\n' % colored.green('-'*(end-1) + '^')
+
+        result += colored.yellow("HyTypeError: %s\n\n" % self.message)
+
+        return result
 
 
 _compile_table = {}
@@ -341,7 +383,7 @@ def checkargs(exact=None, min=None, max=None, even=None):
             if min is not None and (len(expression) - 1) < min:
                 _raise_wrong_args_number(
                     expression,
-                    "`%%s' needs at least %d arguments, got %%d" % (min))
+                    "`%%s' needs at least %d arguments, got %%d." % (min))
 
             if max is not None and (len(expression) - 1) > max:
                 _raise_wrong_args_number(
@@ -429,6 +471,8 @@ class HyASTCompiler(object):
             # compile calls compile, so we're going to have multiple raise
             # nested; so let's re-raise this exception, let's not wrap it in
             # another HyCompileError!
+            raise
+        except HyTypeError as e:
             raise
         except Exception as e:
             raise HyCompileError(e, sys.exc_info()[2])
@@ -1584,6 +1628,9 @@ class HyASTCompiler(object):
                 fn.replace(ofn)
 
                 # Get the object we want to take an attribute from
+                if len(expression) < 2:
+                    raise HyTypeError(expression,
+                                      "attribute access requires object")
                 func = self.compile(expression.pop(1))
 
                 # And get the attribute
