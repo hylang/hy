@@ -250,7 +250,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[cycle dec distinct drop drop-while empty? even? filter flatten 
+(def *exports* '[cycle dec distinct drop drop-while empty? even? filter flatten
                  float? gensym
                  inc instance? integer integer? iterable? iterate iterator? neg?
                  none? nth numeric? odd? pos? remove repeat repeatedly second
