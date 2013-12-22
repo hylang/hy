@@ -23,6 +23,7 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 
 (defn _numeric-check [x]
@@ -87,9 +88,36 @@
       (if (pred val)
         (yield val)))))
 
+(defn flatten [coll]
+  "Return a single flat list expanding all members of coll"
+  (if (and (iterable? coll) (not (string? coll)))
+    (_flatten coll [])
+    (raise (TypeError (.format "{0!r} is not a collection" coll)))))
+
+(defn _flatten [coll result]
+  (if (and (iterable? coll) (not (string? coll)))
+    (do (foreach [b coll]
+          (_flatten b result)))
+    (.append result coll))
+  result)
+
 (defn float? [x]
   "Return True if x is float"
   (isinstance x float))
+
+(import [threading [Lock]])
+(setv _gensym_counter 1234)
+(setv _gensym_lock (Lock))
+
+(defn gensym [&optional [g "G"]]
+  (let [[new_symbol None]]
+    (global _gensym_counter)
+    (global _gensym_lock)
+    (.acquire _gensym_lock)
+    (try (do (setv _gensym_counter (inc _gensym_counter))
+             (setv new_symbol (HySymbol (.format ":{0}_{1}" g _gensym_counter))))
+         (finally (.release _gensym_lock)))
+    new_symbol))
 
 (defn inc [n]
   "Increment n by 1"
@@ -222,7 +250,8 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
+(def *exports* '[cycle dec distinct drop drop-while empty? even? filter flatten 
+                 float? gensym
                  inc instance? integer integer? iterable? iterate iterator? neg?
                  none? nth numeric? odd? pos? remove repeat repeatedly second
                  string string? take take-nth take-while zero?])
