@@ -222,7 +222,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
+(def +exports+ '[cycle dec distinct drop drop-while empty? even? filter float?
                  inc instance? integer integer? iterable? iterate iterator? neg?
                  none? nth numeric? odd? pos? remove repeat repeatedly second
                  string string? take take-nth take-while zero?])

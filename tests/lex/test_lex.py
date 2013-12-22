@@ -252,3 +252,11 @@ def test_complex():
     assert entry == HyComplex("1.0j")
     entry = tokenize("(j)")[0][0]
     assert entry == HySymbol("j")
+
+
+def test_python_conversion():
+    """Make sure some conventions are properly translated"""
+    entry = tokenize("questionable? *foo* +bar+")
+    assert entry[0] == "is_questionable"
+    assert entry[1] == "foo"
+    assert entry[2] == "BAR"

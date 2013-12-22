@@ -8,7 +8,7 @@
         [collections [Counter]])
 
 
-(def *state* (get sys.argv 1))
+(def +state+ (get sys.argv 1))
 
 
 (defn get-legislators [state]
