@@ -1361,11 +1361,9 @@ class HyASTCompiler(object):
                                  lineno=e.start_line,
                                  col_offset=e.start_column)
 
-    @builds("+")
     @builds("%")
     @builds("/")
     @builds("//")
-    @builds("*")
     @builds("**")
     @builds("<<")
     @builds(">>")
@@ -1401,6 +1399,23 @@ class HyASTCompiler(object):
                              lineno=child.start_line,
                              col_offset=child.start_column)
         return ret
+
+    @builds("+")
+    @builds("*")
+    def compile_maths_expression_mul(self, expression):
+        if len(expression) > 2:
+            return self.compile_maths_expression(expression)
+        else:
+            id_op = {"+": HyInteger(0), "*": HyInteger(1)}
+
+            op = expression.pop(0)
+            arg = expression.pop(0) if expression else id_op[op]
+            expr = HyExpression([
+                HySymbol(op),
+                id_op[op],
+                arg
+            ]).replace(expression)
+            return self.compile_maths_expression(expr)
 
     @builds("-")
     @checkargs(min=1)

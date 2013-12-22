@@ -8,7 +8,9 @@
 
 (setv test_mult (fn []
                   "NATIVE: Test multiplication."
-                  (assert (= 4 (square 2)))))
+                  (assert (= 4 (square 2)))
+                  (assert (= 8 (* 8)))
+                  (assert (= 1 (*)))))
 
 
 (setv test_sub (fn []
@@ -19,7 +21,9 @@
 
 (setv test_add (fn []
                  "NATIVE: Test addition"
-                 (assert (= 4 (+ 1 1 1 1)))))
+                 (assert (= 4 (+ 1 1 1 1)))
+                 (assert (= 8 (+ 8)))
+                 (assert (= 0 (+)))))
 
 
 (setv test_div (fn []
