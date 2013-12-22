@@ -534,18 +534,21 @@ class HyASTCompiler(object):
 
         return ret, args, defaults, varargs, kwargs
 
-    def _storeize(self, name):
+    def _storeize(self, name, func=None):
         """Return a new `name` object with an ast.Store() context"""
+        if not func:
+            func = ast.Store
+
         if isinstance(name, Result):
             if not name.is_expr():
-                raise TypeError("Can't assign to a non-expr")
+                raise TypeError("Can't assign / delete a non-expression")
             name = name.expr
 
         if isinstance(name, (ast.Tuple, ast.List)):
             typ = type(name)
             new_elts = []
             for x in name.elts:
-                new_elts.append(self._storeize(x))
+                new_elts.append(self._storeize(x, func))
             new_name = typ(elts=new_elts)
         elif isinstance(name, ast.Name):
             new_name = ast.Name(id=name.id, arg=name.arg)
@@ -554,9 +557,9 @@ class HyASTCompiler(object):
         elif isinstance(name, ast.Attribute):
             new_name = ast.Attribute(value=name.value, attr=name.attr)
         else:
-            raise TypeError("Can't assign to a %s object" % type(name))
+            raise TypeError("Can't assign / delete a %s object" % type(name))
 
-        new_name.ctx = ast.Store()
+        new_name.ctx = func()
         ast.copy_location(new_name, name)
         return new_name
 
@@ -1095,6 +1098,21 @@ class HyASTCompiler(object):
             value=val.force_expr,
             slice=ast.Index(value=sli.force_expr),
             ctx=ast.Load())
+
+    @builds("del")
+    @checkargs(min=1)
+    def compile_del_expression(self, expr):
+        expr.pop(0)
+        ld_targets, ret = self._compile_collect(expr)
+
+        del_targets = []
+        for target in ld_targets:
+            del_targets.append(self._storeize(target, ast.Del))
+
+        return ret + ast.Delete(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            targets=del_targets)
 
     @builds("slice")
     @checkargs(min=1, max=4)
