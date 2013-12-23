@@ -36,6 +36,7 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
+import hy.macros
 from hy.macros import require, macroexpand
 from hy._compat import str_type, long_type
 import hy.importer
@@ -1753,6 +1754,19 @@ class HyASTCompiler(object):
             bases=bases_expr,
             body=body.stmts)
 
+    def _compile_time_hack(self, expression):
+        """Compile-time hack: we want to get our new macro now
+        We must provide __name__ in the namespace to make the Python
+        compiler set the __module__ attribute of the macro function."""
+        hy.importer.hy_eval(expression,
+                            compile_time_ns(self.module_name),
+                            self.module_name)
+
+        # We really want to have a `hy` import to get hy.macro in
+        ret = self.compile(expression)
+        ret.add_imports('hy', [None])
+        return ret
+
     @builds("defmacro")
     @checkargs(min=1)
     def compile_macro(self, expression):
@@ -1768,16 +1782,30 @@ class HyASTCompiler(object):
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)
 
-        # Compile-time hack: we want to get our new macro now
-        # We must provide __name__ in the namespace to make the Python
-        # compiler set the __module__ attribute of the macro function.
-        hy.importer.hy_eval(new_expression,
-                            compile_time_ns(self.module_name),
-                            self.module_name)
+        ret = self._compile_time_hack(new_expression)
 
-        # We really want to have a `hy` import to get hy.macro in
-        ret = self.compile(new_expression)
-        ret.add_imports('hy', [None])
+        return ret
+
+    @builds("defreader")
+    @checkargs(min=2, max=3)
+    def compile_reader(self, expression):
+        expression.pop(0)
+        name = expression.pop(0)
+        NOT_READERS = [":", "&"]
+        if name in NOT_READERS:
+            raise NameError("%s can't be used as a macro reader symbol" % name)
+        if not isinstance(name, HySymbol):
+            raise HyTypeError(name,
+                              ("received a `%s' instead of a symbol "
+                               "for reader macro name" % type(name).__name__))
+        name = HyString(name).replace(name)
+        new_expression = HyExpression([
+            HySymbol("with_decorator"),
+            HyExpression([HySymbol("hy.macros.reader"), name]),
+            HyExpression([HySymbol("fn")] + expression),
+        ]).replace(expression)
+
+        ret = self._compile_time_hack(new_expression)
 
         return ret
 

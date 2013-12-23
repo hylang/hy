@@ -150,6 +150,15 @@ def term_unquote_splice(p):
     return HyExpression([HySymbol("unquote_splice"), p[1]])
 
 
+@pg.production("term : HASHREADER term")
+@set_quote_boundaries
+def hash_reader(p):
+    st = p[0].getstr()[1]
+    str_object = HyExpression([HySymbol("quote"), HyString(st)])
+    expr = HyExpression([HySymbol("quote"), p[1]])
+    return HyExpression([HySymbol("dispatch_reader_macro"), str_object, expr])
+
+
 @pg.production("dict : LCURLY list_contents RCURLY")
 @set_boundaries
 def t_dict(p):
