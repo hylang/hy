@@ -164,6 +164,7 @@
               {"y" 5 "z" 3})
              {"x" 1 "y" 5 "z" 3 "one" "three"})))
 
+
 (defn test-apply []
   "NATIVE: test working with args and functions"
   (defn sumit [a b c] (+ a b c))
@@ -173,6 +174,18 @@
   (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3))
   (defn noargs [] [1 2 3])
   (assert (= (apply noargs) [1 2 3])))
+
+
+(defn test-apply-with-methods []
+  "NATIVE: test apply to call a method"
+  (setv str "foo {bar}")
+  (assert (= (apply .format [str] {"bar" "baz"})
+             (apply .format ["foo {0}" "baz"])
+             "foo baz"))
+  (setv lst ["a {0} {1} {foo} {bar}" "b" "c"])
+  (assert (= (apply .format lst {"foo" "d" "bar" "e"})
+             "a b c d e")))
+
 
 (defn test-dotted []
   "NATIVE: test dotted invocation"
