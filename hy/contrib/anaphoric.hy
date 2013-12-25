@@ -1,6 +1,7 @@
 ;;; Hy anaphoric macros
 ;;
 ;; Copyright (c) 2013 James King <james@agentultra.com>
+;;               2013 Paul R. Tagliamonte <tag@pault.ag>
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -21,6 +22,10 @@
 ;; DEALINGS IN THE SOFTWARE.
 ;;
 ;;; These macros make writing functional programs more concise
+
+
+(defmacro ap-if (test-form &rest args)
+  `(let [[it ~test-form]] (if it ~@args)))
 
 
 (defmacro ap-each [lst &rest body]
