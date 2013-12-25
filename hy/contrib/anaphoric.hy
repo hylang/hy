@@ -1,6 +1,7 @@
 ;;; Hy anaphoric macros
 ;;
 ;; Copyright (c) 2013 James King <james@agentultra.com>
+;;               2013 Abhishek L <abhishek.lekshmanan@gmail.com>
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -61,3 +62,42 @@
      (foreach [val ~lst]
        (if (pred val)
          (yield val)))))
+
+
+(defmacro ap-reject [form lst]
+  "Yield elements returned when the predicate form evaluates to False"
+  `(ap-filter (not ~form) ~lst))
+
+
+(defmacro ap-dotimes [n &rest body]
+  "Execute body for side effects `n' times, with it bound from 0 to n-1"
+  (unless (numeric? n)
+    (raise (TypeError (.format "{0!r} is not a number" n))))
+  `(ap-each (range ~n) ~@body))
+
+
+(defmacro ap-first [predfn lst]
+  "Yield the first element that passes `predfn`"
+  `(let [[n (gensym)]]
+     (ap-each ~lst (when ~predfn (setv n it) (break)))
+     n))
+
+
+(defmacro ap-last [predfn lst]
+  "Yield the last element that passes `predfn`"
+  `(let [[n (gensym)]]
+     (ap-each ~lst (none? n)
+	      (when ~predfn
+		(setv n it)))
+	n))
+
+
+(defmacro ap-reduce [form lst &optional [initial-value None]]
+  "Anaphoric form of reduce, `acc' and `it' can be used for a form"
+  (if (none? initial-value)
+    `(let [[acc (car ~lst)]]
+       (ap-each (cdr ~lst) (setv acc ~form))
+       acc)
+    `(let [[acc ~initial-value]]
+       (ap-each ~lst (setv acc ~form))
+       acc)))
