@@ -24,8 +24,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.errors import HyError
-
 from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.expression import HyExpression
 from hy.models.keyword import HyKeyword
@@ -37,12 +35,13 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
+from hy.errors import HyMacroExpansionError, HyCompileError, HyTypeError
+
 import hy.macros
 from hy.macros import require, macroexpand
 from hy._compat import str_type, long_type
 import hy.importer
 
-import traceback
 import importlib
 import codecs
 import ast
@@ -71,75 +70,6 @@ def load_stdlib():
         mod = importlib.import_module(module)
         for e in mod.EXPORTS:
             _stdlib[e] = module
-
-
-class HyCompileError(HyError):
-    def __init__(self, exception, traceback=None):
-        self.exception = exception
-        self.traceback = traceback
-
-    def __str__(self):
-        if isinstance(self.exception, HyTypeError):
-            return str(self.exception)
-        if self.traceback:
-            tb = "".join(traceback.format_tb(self.traceback)).strip()
-        else:
-            tb = "No traceback available. 😟"
-        return("Internal Compiler Bug 😱\n⤷ %s: %s\nCompilation traceback:\n%s"
-               % (self.exception.__class__.__name__,
-                  self.exception, tb))
-
-
-class HyTypeError(TypeError):
-    def __init__(self, expression, message):
-        super(HyTypeError, self).__init__(message)
-        self.expression = expression
-        self.message = message
-        self.source = None
-        self.filename = None
-
-    def __str__(self):
-        from hy.errors import colored
-
-        line = self.expression.start_line
-        start = self.expression.start_column
-        end = self.expression.end_column
-
-        source = []
-        if self.source is not None:
-            source = self.source.split("\n")[line-1:self.expression.end_line]
-
-            if line == self.expression.end_line:
-                length = end - start
-            else:
-                length = len(source[0]) - start
-
-        result = ""
-
-        result += '  File "%s", line %d, column %d\n\n' % (self.filename,
-                                                           line,
-                                                           start)
-
-        if len(source) == 1:
-            result += '  %s\n' % colored.red(source[0])
-            result += '  %s%s\n' % (' '*(start-1),
-                                    colored.green('^' + '-'*(length-1) + '^'))
-        if len(source) > 1:
-            result += '  %s\n' % colored.red(source[0])
-            result += '  %s%s\n' % (' '*(start-1),
-                                    colored.green('^' + '-'*length))
-            if len(source) > 2:  # write the middle lines
-                for line in source[1:-1]:
-                    result += '  %s\n' % colored.red("".join(line))
-                    result += '  %s\n' % colored.green("-"*len(line))
-
-            # write the last line
-            result += '  %s\n' % colored.red("".join(source[-1]))
-            result += '  %s\n' % colored.green('-'*(end-1) + '^')
-
-        result += colored.yellow("HyTypeError: %s\n\n" % self.message)
-
-        return result
 
 
 _compile_table = {}
