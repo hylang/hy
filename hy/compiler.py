@@ -420,7 +420,6 @@ class HyASTCompiler(object):
 
     def compile(self, tree):
         try:
-            tree = macroexpand(tree, self.module_name)
             _type = type(tree)
             ret = self.compile_atom(_type, tree)
             if ret:
@@ -1497,6 +1496,13 @@ class HyASTCompiler(object):
     def compile_expression(self, expression):
         if expression == []:
             return self.compile_list(expression)
+
+        # Perform macro expansions
+        expression = macroexpand(expression, self.module_name)
+        if not isinstance(expression, HyExpression):
+            # Go through compile again if the type changed.
+            return self.compile(expression)
+
         fn = expression[0]
         func = None
         if isinstance(fn, HyKeyword):
