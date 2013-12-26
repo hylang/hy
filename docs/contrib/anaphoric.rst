@@ -16,6 +16,18 @@ concise and easy to read.
 Macros
 ======
 
+
+.. _ap-if:
+
+ap-if
+-------
+
+Usage: ``(ap-if (foo) (print it))``
+
+Evaluate the first form for trutheyness, and bind it to ``it`` in both the
+true and false branch.
+
+
 .. _ap-each:
 
 ap-each

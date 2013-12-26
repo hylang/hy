@@ -31,6 +31,12 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
+
+(defn test-ap-if []
+  "NATIVE: testing anaphoric if"
+  (ap-if true (assert-true it))
+  (ap-if false true (assert-false it)))
+
 (defn test-ap-each []
   "NATIVE: testing anaphoric each"
   (setv res [])
