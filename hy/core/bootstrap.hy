@@ -28,7 +28,7 @@
 
 (defmacro macro-error [location reason]
   "error out properly within a macro"
-  `(raise (hy.compiler.HyTypeError ~location ~reason)))
+  `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
 
 
 (defmacro defmacro-alias [names lambda-list &rest body]

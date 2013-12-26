@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+#
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
 # Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
 #
@@ -131,9 +133,9 @@ class HyTypeError(TypeError):
             result += '  %s\n' % colored.red("".join(source[-1]))
             result += '  %s\n' % colored.green('-'*(end-1) + '^')
 
-
-        result += colored.yellow("%s: %s\n\n" % (self.__class__.__name__,
-                                                 self.message))
+        result += colored.yellow("%s: %s\n\n" %
+                                 (self.__class__.__name__,
+                                  self.message))
 
         return result
 

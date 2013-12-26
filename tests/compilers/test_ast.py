@@ -23,7 +23,9 @@ from __future__ import unicode_literals
 
 from hy import HyString
 from hy.models import HyObject
-from hy.compiler import hy_compile, HyCompileError, HyTypeError
+from hy.compiler import hy_compile
+from hy.errors import HyCompileError, HyTypeError
+from hy.lex.exceptions import LexException
 from hy.lex import tokenize
 
 import ast
@@ -429,5 +431,36 @@ def test_compile_error():
         can_compile("(fn [] (= 1))")
     except HyTypeError as e:
         assert(e.message == "`=' needs at least 2 arguments, got 1.")
+    else:
+        assert(False)
+
+
+def test_for_compile_error():
+    """Ensure we get compile error in tricky 'for' cases"""
+    try:
+        can_compile("(fn [] (for)")
+    except LexException as e:
+        assert(e.message == "Premature end of input")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for)))")
+    except LexException as e:
+        assert(e.message == "Ran into a RPAREN where it wasn't expected.")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for [x]))")
+    except HyTypeError as e:
+        assert(e.message == "`for' requires an even number of elements in its first argument")  # noqa
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for [x xx]))")
+    except HyTypeError as e:
+        assert(e.message == "`for' requires a body to evaluate")
     else:
         assert(False)

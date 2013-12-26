@@ -35,13 +35,14 @@ from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
 
-from hy.errors import HyMacroExpansionError, HyCompileError, HyTypeError
+from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
 from hy.macros import require, macroexpand
 from hy._compat import str_type, long_type
 import hy.importer
 
+import traceback
 import importlib
 import codecs
 import ast

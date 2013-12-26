@@ -80,6 +80,7 @@ class HyREPL(code.InteractiveConsole):
                                          filename=filename)
 
     def runsource(self, source, filename='<input>', symbol='single'):
+        global SIMPLE_TRACEBACKS
         try:
             tokens = tokenize(source)
         except PrematureEndOfInput:
@@ -88,7 +89,7 @@ class HyREPL(code.InteractiveConsole):
             if e.source is None:
                 e.source = source
                 e.filename = filename
-            print(e)
+            sys.stderr.write(str(e))
             return False
 
         try:
@@ -100,7 +101,10 @@ class HyREPL(code.InteractiveConsole):
             if e.source is None:
                 e.source = source
                 e.filename = filename
-            print(e)
+            if SIMPLE_TRACEBACKS:
+                sys.stderr.write(str(e))
+            else:
+                self.showtraceback()
             return False
         except Exception:
             self.showtraceback()
@@ -172,7 +176,7 @@ def run_command(source):
         import_buffer_to_module("__main__", source)
     except (HyTypeError, LexException) as e:
         if SIMPLE_TRACEBACKS:
-            print(e)
+            sys.stderr.write(str(e))
             return 1
         raise
     except Exception:
@@ -186,7 +190,7 @@ def run_file(filename):
         import_file_to_module("__main__", filename)
     except (HyTypeError, LexException) as e:
         if SIMPLE_TRACEBACKS:
-            print(e)
+            sys.stderr.write(str(e))
             return 1
         raise
     except Exception:

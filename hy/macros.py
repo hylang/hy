@@ -28,7 +28,7 @@ from hy.models.complex import HyComplex
 from hy.models.dict import HyDict
 from hy._compat import str_type, long_type
 
-from hy.errors import HyMacroExpansionError
+from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
 import sys
@@ -196,8 +196,13 @@ def macroexpand_1(tree, module_name):
             if m is not None:
                 try:
                     obj = _wrap_value(m(*ntree[1:]))
+                except HyTypeError as e:
+                    if e.expression is None:
+                        e.expression = tree
+                    raise
                 except Exception as e:
-                    msg = str(tree[0]) + " " + " ".join(str(e).split()[1:])
+                    msg = "`" + str(tree[0]) + "' " + \
+                          " ".join(str(e).split()[1:])
                     raise HyMacroExpansionError(tree, msg)
                 obj.replace(tree)
                 return obj

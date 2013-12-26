@@ -31,6 +31,8 @@
   (for* [x foo]
     (for* [y bar]
       baz))"
+  (if (empty? body)
+    (macro-error None "`for' requires a body to evaluate"))
   (if args
     `(for* ~(.pop args 0) (for ~args ~@body))
     `(do ~@body)))
