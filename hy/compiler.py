@@ -1277,26 +1277,77 @@ class HyASTCompiler(object):
     @checkargs(min=1, max=3)
     def compile_apply_expression(self, expr):
         expr.pop(0)  # apply
-        call = self.compile(expr.pop(0))
-        call = ast.Call(func=call.expr,
-                        args=[],
-                        keywords=[],
-                        starargs=None,
-                        kwargs=None,
-                        lineno=expr.start_line,
-                        col_offset=expr.start_column)
-        ret = call
+
+        ret = Result()
+
+        fun = expr.pop(0)
+
+        # We actually defer the compilation of the function call to
+        # @builds(HyExpression), allowing us to work on method calls
+        call = HyExpression([fun]).replace(fun)
+
+        if isinstance(fun, HySymbol) and fun.startswith("."):
+            # (apply .foo lst) needs to work as lst[0].foo(*lst[1:])
+            if not expr:
+                raise HyTypeError(
+                    expr, "apply of a method needs to have an argument"
+                )
+
+            # We need to grab the arguments, and split them.
+
+            # Assign them to a variable if they're not one already
+            if type(expr[0]) == HyList:
+                if len(expr[0]) == 0:
+                    raise HyTypeError(
+                        expr, "apply of a method needs to have an argument"
+                    )
+                call.append(expr[0].pop(0))
+            else:
+                if isinstance(expr[0], HySymbol):
+                    tempvar = expr[0]
+                else:
+                    tempvar = HySymbol(self.get_anon_var()).replace(expr[0])
+                    assignment = HyExpression(
+                        [HySymbol("setv"), tempvar, expr[0]]
+                    ).replace(expr[0])
+
+                    # and add the assignment to our result
+                    ret += self.compile(assignment)
+
+                # The first argument is the object on which to call the method
+                # So we translate (apply .foo args) to (.foo (get args 0))
+                call.append(HyExpression(
+                    [HySymbol("get"), tempvar, HyInteger(0)]
+                ).replace(tempvar))
+
+                # We then pass the other arguments to the function
+                expr[0] = HyExpression(
+                    [HySymbol("slice"), tempvar, HyInteger(1)]
+                ).replace(expr[0])
+
+        ret += self.compile(call)
+
+        if not isinstance(ret.expr, ast.Call):
+            raise HyTypeError(
+                fun, "compiling the application of `{}' didn't return a "
+                "function call, but `{}'".format(fun, type(ret.expr).__name__)
+            )
+        if ret.expr.starargs or ret.expr.kwargs:
+            raise HyTypeError(
+                expr, "compiling the function application returned a function "
+                "call with arguments"
+            )
 
         if expr:
             stargs = expr.pop(0)
             if stargs is not None:
                 stargs = self.compile(stargs)
-                call.starargs = stargs.force_expr
+                ret.expr.starargs = stargs.force_expr
                 ret = stargs + ret
 
         if expr:
             kwargs = self.compile(expr.pop(0))
-            call.kwargs = kwargs.force_expr
+            ret.expr.kwargs = kwargs.force_expr
             ret = kwargs + ret
 
         return ret
