@@ -34,7 +34,7 @@ class HyError(Exception):
 
 try:
     from clint.textui import colored
-except:
+except Exception:
     class colored:
 
         @staticmethod

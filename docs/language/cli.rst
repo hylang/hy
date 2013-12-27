@@ -32,6 +32,10 @@ Command line options
 
    .. versionadded:: 0.9.11
 
+.. cmdoption:: --show_tracebacks
+
+   Print extended tracebacks for Hy exceptions.
+
 .. cmdoption:: -v
 
    Print the Hy version number and exit.

@@ -75,9 +75,8 @@ def import_file_to_module(module_name, fpath):
         eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
     except (HyTypeError, LexException) as e:
         if e.source is None:
-            fp = open(fpath, 'rt')
-            e.source = fp.read()
-            fp.close()
+            with open(fpath, 'rt') as fp:
+                e.source = fp.read()
             e.filename = fpath
         raise
     except Exception:
