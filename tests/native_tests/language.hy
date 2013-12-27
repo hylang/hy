@@ -86,9 +86,10 @@
 
 (defn test-is []
   "NATIVE: test is can deal with None"
-  (setv a null)
-  (assert (is a null))
-  (assert (is-not a "b")))
+  (setv a nil)
+  (assert (is a nil))
+  (assert (is-not a "b"))
+  (assert (none? a)))
 
 
 (defn test-branching []
