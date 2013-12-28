@@ -244,7 +244,7 @@ def cmdline_handler(scriptname, argv):
 
     parser.add_argument("-v", action="version", version=VERSION)
 
-    parser.add_argument("--show_tracebacks", action="store_true",
+    parser.add_argument("--show-tracebacks", action="store_true",
                         help="show complete tracebacks for Hy exceptions")
 
     # this will contain the script/program name and any arguments for it.
