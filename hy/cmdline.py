@@ -73,9 +73,10 @@ def print_python_code(_ast):
 
 
 class HyREPL(code.InteractiveConsole):
-    def __init__(self, spy=False):
+    def __init__(self, spy=False, locals=None, filename="<input>"):
         self.spy = spy
-        code.InteractiveConsole.__init__(self)
+        code.InteractiveConsole.__init__(self, locals=locals,
+                                         filename=filename)
 
     def runsource(self, source, filename='<input>', symbol='single'):
         try:
