@@ -18,11 +18,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from py_compile import wr_long, MAGIC
 from hy.compiler import hy_compile
 from hy.models import HyObject
 from hy.lex import tokenize
-
 
 from io import open
 import marshal
@@ -32,7 +30,7 @@ import ast
 import os
 import __future__
 
-from hy._compat import builtins, long_type
+from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
 
 
 def ast_compile(ast, filename, mode):
@@ -128,12 +126,12 @@ def write_hy_as_pyc(fname):
     open_ = builtins.open
 
     with open_(cfile, 'wb') as fc:
-        if sys.version_info[0] >= 3:
+        if PY3:
             fc.write(b'\0\0\0\0')
         else:
             fc.write('\0\0\0\0')
         wr_long(fc, timestamp)
-        if (sys.version_info[0] >= 3 and sys.version_info[1] >= 3):
+        if PY33:
             wr_long(fc, st.st_size)
         marshal.dump(code, fc)
         fc.flush()
