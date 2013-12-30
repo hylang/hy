@@ -461,52 +461,36 @@ first / car
 
 
 for
----
-
-`for` macro is used to build nested `foreach` loops. The macro takes two
-parameters, first being a vector specifying collections to iterate over and 
-variables to bind. The second parameter is a statement which is executed during
-each loop:
-
-.. code-block:: clj
-
-    (for [x iter y iter] stmt)
-
-    (foreach [x iter]
-      (foreach [y iter] stmt))
-
-
-foreach
 -------
 
-`foreach` is used to call a function for each element in a list or vector.
+`for` is used to call a function for each element in a list or vector.
 Results are discarded and None is returned instead. Example code iterates over
 collection and calls side-effect to each element in the collection:
 
 .. code-block:: clj
 
     ;; assuming that (side-effect) is a function that takes a single parameter
-    (foreach [element collection] (side-effect element))
+    (for [[element collection]] (side-effect element))
 
-    ;; foreach can have an optional else block
-    (foreach [element collection] (side-effect element)
-             (else (side-effect-2)))
+    ;; for can have an optional else block
+    (for [[element collection]] (side-effect element)
+         (else (side-effect-2)))
 
-The optional `else` block is executed only if the `foreach` loop terminates
+The optional `else` block is executed only if the `for` loop terminates
 normally. If the execution is halted with `break`, the `else` does not execute.
 
 .. code-block:: clj
 
-    => (foreach [element [1 2 3]] (if (< element 3)
-    ...                               (print element) 
-    ...                               (break))
+    => (for [[element [1 2 3]]] (if (< element 3)
+    ...                             (print element) 
+    ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
 
-    => (foreach [element [1 2 3]] (if (< element 4)
-    ...                               (print element)
-    ...                               (break))
+    => (for [[element [1 2 3]]] (if (< element 4)
+    ...                             (print element)
+    ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
@@ -677,7 +661,7 @@ function is defined and passed to another function for filtering output.
     ...             {:name "Dave" :age 5}])
 
     => (defn display-people [people filter]
-    ...  (foreach [person people] (if (filter person) (print (:name person)))))
+    ...  (for [[person people]] (if (filter person) (print (:name person)))))
 
     => (display-people people (fn [person] (< (:age person) 25)))
     Alice
@@ -991,16 +975,18 @@ context to an argument or ignore it completely, as shown below:
 
 .. code-block:: clj
 
-    (with [arg (expr)] block)
+    (with [[arg (expr)]] block)
 
-    (with [(expr)] block)
+    (with [[(expr)]] block)
+
+    (with [[arg (expr)] [(expr)]] block)
 
 The following example will open file `NEWS` and print its content on screen. The
 file is automatically closed after it has been processed.
 
 .. code-block:: clj
 
-    (with [f (open "NEWS")] (print (.read f)))
+    (with [[f (open "NEWS")]] (print (.read f)))
 
 
 with-decorator
@@ -1067,7 +1053,7 @@ infinite series without consuming infinite amount of memory.
 .. code-block:: clj
 
     => (defn multiply [bases coefficients]
-    ...  (foreach [(, base coefficient) (zip bases coefficients)]
+    ...  (for [[(, base coefficient) (zip bases coefficients)]]
     ...   (yield (* base coefficient))))
 
     => (multiply (range 5) (range 5))

@@ -26,17 +26,24 @@
 ;;; They are automatically required in every module, except inside hy.core
 
 (defmacro for [args &rest body]
-  "shorthand for nested foreach loops:
-  (for [x foo y bar] baz) ->
-  (foreach [x foo]
-    (foreach [y bar]
+  "shorthand for nested for loops:
+  (for [[x foo] [y bar]] baz) ->
+  (for* [x foo]
+    (for* [y bar]
       baz))"
-  ;; TODO: that signature sucks.
-  ;; (for [[x foo] [y bar]] baz) would be more consistent
-  (if (% (len args) 2)
-    (macro-error args "for needs an even number of elements in its first argument"))
   (if args
-    `(foreach [~(.pop args 0) ~(.pop args 0)] (for ~args ~@body))
+    `(for* ~(.pop args 0) (for ~args ~@body))
+    `(do ~@body)))
+
+
+(defmacro with [args &rest body]
+  "shorthand for nested for* loops:
+  (with [[x foo] [y bar]] baz) ->
+  (with* [x foo]
+    (with* [y bar]
+      baz))"
+  (if args
+    `(with* ~(.pop args 0) (with ~args ~@body))
     `(do ~@body)))
 
 
@@ -71,7 +78,7 @@
   (setv root (check-branch branch))
   (setv latest-branch root)
 
-  (foreach [branch branches]
+  (for* [branch branches]
     (setv cur-branch (check-branch branch))
     (.append latest-branch cur-branch)
     (setv latest-branch cur-branch))
@@ -81,7 +88,7 @@
 (defmacro -> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
-  (foreach [node rest]
+  (for* [node rest]
     (if (not (isinstance node HyExpression))
       (setv node `(~node)))
     (.insert node 1 ret)
@@ -92,7 +99,7 @@
 (defmacro ->> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
-  (foreach [node rest]
+  (for* [node rest]
     (if (not (isinstance node HyExpression))
       (setv node `(~node)))
     (.append node ret)
@@ -113,7 +120,7 @@
 (defmacro yield-from [iterable]
   "Yield all the items from iterable"
   (let [[x (gensym)]]
-  `(foreach [~x ~iterable]
+  `(for* [~x ~iterable]
      (yield ~x))))
 
 (defmacro with-gensyms [args &rest body]

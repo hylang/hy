@@ -12,4 +12,5 @@ from .native_tests.when import *  # noqa
 from .native_tests.with_decorator import *  # noqa
 from .native_tests.core import *  # noqa
 from .native_tests.reader_macros import *  # noqa
+from .native_tests.with_test import *  # noqa
 from .native_tests.contrib.anaphoric import *  # noqa
