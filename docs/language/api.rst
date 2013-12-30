@@ -357,6 +357,8 @@ Parameters may have following keywords in front of them:
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
 
+.. _defmacro:
+
 defmacro
 --------
 
@@ -377,6 +379,24 @@ between the operands.
 
   => (infix (1 + 1))
   2
+
+.. _defmacro/g!:
+
+defmacro/g!
+------------
+
+.. versionadded:: 0.9.12
+
+`defmacro/g!` is a special version of `defmacro` that is used to
+automatically generate :ref:`gensym` for any symbol that
+starts with ``g!``.
+
+So ``g!a`` would become ``(gensym "a")``.
+
+.. seealso::
+
+   Section :ref:`using-gensym`
+
 
 del
 ---
@@ -477,6 +497,28 @@ normally. If the execution is halted with `break`, the `else` does not execute.
     3
     loop finished
 
+
+.. _gensym:
+
+gensym
+------
+
+.. versionadded:: 0.9.12
+
+`gensym` form is used to generate a unique symbol to allow writing macros
+without accidental variable name clashes.
+
+.. code-block:: clj
+
+   => (gensym)
+   u':G_1235'
+
+   => (gensym "x")
+   u':x_1236'
+
+.. seealso::
+
+   Section :ref:`using-gensym`
 
 get
 ---
@@ -967,6 +1009,35 @@ values that are incremented by 1. When decorated `addition` is called with value
     => (with-decorator inc-decorator (defn addition [a b] (+ a b)))
     => (addition 1 1)
     4
+
+
+.. _with-gensyms:
+
+with-gensyms
+-------------
+
+.. versionadded:: 0.9.12
+
+`with-gensym` form is used to generate a set of :ref:`gensym` for use
+in a macro.
+
+.. code-block:: clojure
+
+   (with-gensyms [a b c]
+     ...)
+
+expands to:
+
+.. code-block:: clojure
+
+   (let [[a (gensym)
+         [b (gensym)
+         [c (gensym)]]
+     ...)
+
+.. seealso::
+
+   Section :ref:`using-gensym`
 
 
 yield
