@@ -229,6 +229,7 @@ def t_identifier(p):
     table = {
         "true": "True",
         "false": "False",
+        "nil": "None",
         "null": "None",
     }
 
