@@ -242,6 +242,36 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
    => (neg? 0)
    False
 
+
+.. _nil?-fn:
+
+nil?
+-----
+
+Usage: ``(nil? x)``
+
+Return True if x is nil/None.
+
+.. code-block:: clojure
+
+   => (nil? nil)
+   True
+
+   => (nil? None)
+   True
+
+   => (nil? 0)
+   False
+
+   => (setf x nil)
+   => (nil? x)
+   True
+
+   => ;; list.append always returns None
+   => (nil? (.append [1 2 3] 4))
+   True
+
+
 .. _none?-fn:
 
 none?
@@ -397,7 +427,7 @@ Return True if x is a string.
 .. _zero?-fn:
 
 zero?
-----
+-----
 
 Usage: ``(zero? x)``
 
