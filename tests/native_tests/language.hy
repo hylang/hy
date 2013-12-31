@@ -130,7 +130,16 @@
 (defn test-index []
   "NATIVE: Test that dict access works"
   (assert (= (get {"one" "two"} "one") "two"))
-  (assert (= (get [1 2 3 4 5] 1) 2)))
+  (assert (= (get [1 2 3 4 5] 1) 2))
+  (assert (= (get {"first" {"second" {"third" "level"}}}
+                  "first" "second" "third")
+             "level"))
+  (assert (= (get ((fn [] {"first" {"second" {"third" "level"}}}))
+                  "first" "second" "third")
+             "level"))
+  (assert (= (get {"first" {"second" {"third" "level"}}}
+                  ((fn [] "first")) "second" "third")
+             "level")))
 
 
 (defn test-lambda []

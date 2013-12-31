@@ -1086,18 +1086,25 @@ class HyASTCompiler(object):
         return rimports
 
     @builds("get")
-    @checkargs(2)
+    @checkargs(min=2)
     def compile_index_expression(self, expr):
         expr.pop(0)  # index
-        val = self.compile(expr.pop(0))  # target
-        sli = self.compile(expr.pop(0))  # slice
 
-        return val + sli + ast.Subscript(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            value=val.force_expr,
-            slice=ast.Index(value=sli.force_expr),
-            ctx=ast.Load())
+        val = self.compile(expr.pop(0))
+        slices, ret = self._compile_collect(expr)
+
+        if val.stmts:
+            ret += val
+
+        for sli in slices:
+            val = Result() + ast.Subscript(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                value=val.force_expr,
+                slice=ast.Index(value=sli),
+                ctx=ast.Load())
+
+        return ret + val
 
     @builds("del")
     @checkargs(min=1)

@@ -253,7 +253,6 @@ def test_ast_bad_get():
     "Make sure AST can't compile invalid get"
     cant_compile("(get)")
     cant_compile("(get 1)")
-    cant_compile("(get 1 2 3)")
 
 
 def test_ast_good_slice():
