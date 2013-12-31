@@ -40,7 +40,7 @@ Lexing / tokenizing
 
 The first stage of compiling hy is to lex the source into tokens that we can
 deal with. We use a project called rply, which is a really nice (and fast)
-parser, written in a subset of Python called rply.
+parser, written in a subset of Python called rpython.
 
 The lexing code is all defined in ``hy.lex.lexer``. This code is mostly just
 defining the Hy grammer, and all the actual hard parts are taken care of by
