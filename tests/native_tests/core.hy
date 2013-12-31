@@ -293,6 +293,15 @@
   (assert-false (none? 0))
   (assert-false (none? "")))
 
+(defn test-nil? []
+  "NATIVE: testing for `is nil`"
+  (assert-true (nil? nil))
+  (assert-true (nil? None))
+  (setv f nil)
+  (assert-true (nil? f))
+  (assert-false (nil? 0))
+  (assert-false (nil? "")))
+
 (defn test-nth []
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))

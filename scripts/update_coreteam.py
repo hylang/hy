@@ -19,7 +19,6 @@ MISSING_NAMES = {
 # an owner of the organization.
 CONCEALED_MEMBERS = [
     ('aldeka', 'Karen Rustad'),
-    ('rwtolbert', 'Bob Tolbert'),
     ('tuturto', 'Tuukka Turto'),
 ]
 

@@ -160,6 +160,10 @@
   "Return true if x is None"
   (is x None))
 
+(defn nil? [x]
+  "Return true if x is nil (None)"
+  (is x None))
+
 (defn numeric? [x]
   (import numbers)
   (instance? numbers.Number x))
@@ -253,5 +257,5 @@
 (def *exports* '[cycle dec distinct drop drop-while empty? even? filter flatten
                  float? gensym
                  inc instance? integer integer? iterable? iterate iterator? neg?
-                 none? nth numeric? odd? pos? remove repeat repeatedly second
+                 nil? none? nth numeric? odd? pos? remove repeat repeatedly second
                  string string? take take-nth take-while zero?])
