@@ -31,12 +31,12 @@
 (defn test-for-loop []
   "NATIVE: test for loops?"
   (setv count 0)
-  (for [[x [1 2 3 4 5]]]
+  (for [x [1 2 3 4 5]]
     (setv count (+ count x)))
   (assert (= count 15))
   (setv count 0)
-  (for [[x [1 2 3 4 5]]
-        [y [1 2 3 4 5]]]
+  (for [x [1 2 3 4 5]
+        y [1 2 3 4 5]]
     (setv count (+ count x y)))
   (assert (= count 150)))
 
@@ -404,9 +404,9 @@
 
 (defn test-yield []
   "NATIVE: test yielding"
-  (defn gen [] (for [[x [1 2 3 4]]] (yield x)))
+  (defn gen [] (for [x [1 2 3 4]] (yield x)))
   (setv ret 0)
-  (for [[y (gen)]] (setv ret (+ ret y)))
+  (for [y (gen)] (setv ret (+ ret y)))
   (assert (= ret 10)))
 
 
@@ -463,7 +463,7 @@
 (defn test-for-doodle []
   "NATIVE: test for-do"
   (do (do (do (do (do (do (do (do (do (setv (, x y) (, 0 0)))))))))))
-  (for [[- [1 2]]]
+  (for [- [1 2]]
     (do
      (setv x (+ x 1))
      (setv y (+ y 1))))
@@ -646,7 +646,7 @@
 
 (defn test-nested-if []
   "NATIVE: test nested if"
-  (for [[x (range 10)]]
+  (for [x (range 10)]
     (if (in "foo" "foobar")
       (do
        (if true true true))
@@ -810,14 +810,14 @@
 
 (defn test-break-breaking []
   "NATIVE: test checking if break actually breaks"
-  (defn holy-grail [] (for [[x (range 10)]] (if (= x 5) (break))) x)
+  (defn holy-grail [] (for [x (range 10)] (if (= x 5) (break))) x)
   (assert (= (holy-grail) 5)))
 
 
 (defn test-continue-continuation []
   "NATIVE: test checking if continue actually continues"
   (setv y [])
-  (for [[x (range 10)]] 
+  (for [x (range 10)] 
     (if (!= x 5) 
       (continue)) 
     (.append y x))

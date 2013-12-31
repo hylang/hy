@@ -55,8 +55,6 @@ Changes from Hy 0.9.11
 
 
     [ Syntax Fixes ]
-    * for changed syntax from (for [] ...) -> (for [[]] ...)
-    * with changed syntax from (with [] ...) -> (with [[]] ...)
     * get allows multiple arguments
 
 
