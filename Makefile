@@ -13,6 +13,7 @@ all:
 	@echo "   - tox"
 	@echo "   - d"
 	@echo "   - r"
+	@echo "   - clean"
 	@echo ""
 
 docs:
@@ -59,5 +60,13 @@ ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 else
 	flake8 hy bin tests
 endif
+
+clean:
+	@find . -name "*.pyc" -exec rm {} \;
+	@find -name __pycache__ -delete
+	@${RM} -r -f .tox
+	@${RM} -r -f dist
+	@${RM} -r -f *.egg-info
+	@${RM} -r -f docs/_build
 
 .PHONY: docs
