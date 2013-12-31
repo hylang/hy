@@ -25,16 +25,29 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
+
+(import [hy.models.list [HyList]]
+        [hy.models.symbol [HySymbol]])
+
+
+
 (defmacro for [args &rest body]
   "shorthand for nested for loops:
-  (for [[x foo] [y bar]] baz) ->
+  (for [x foo
+        y bar]
+    baz) ->
   (for* [x foo]
     (for* [y bar]
       baz))"
+
+  (if (odd? (len args))
+    (macro-error args "`for' requires an even number of args."))
+
   (if (empty? body)
     (macro-error None "`for' requires a body to evaluate"))
   (if args
-    `(for* ~(.pop args 0) (for ~args ~@body))
+    `(for* [~(.pop args 0) ~(.pop args 0)]
+       (for ~args ~@body))
     `(do ~@body)))
 
 
@@ -44,9 +57,17 @@
   (with* [x foo]
     (with* [y bar]
       baz))"
-  (if args
-    `(with* ~(.pop args 0) (with ~args ~@body))
-    `(do ~@body)))
+
+  (if (not (empty? args))
+    (let [[primary (.pop args 0)]]
+      (if (isinstance primary HyList)
+        ;;; OK. if we have a list, we can go ahead and unpack that
+        ;;; as the argument to with.
+        `(with* [~@primary] (with ~args ~@body))
+        ;;; OK, let's just give it away. This may not be something we
+        ;;; can do, but that's really the programmer's problem.
+        `(with* [~primary] (with ~args ~@body))))
+      `(do ~@body)))
 
 
 (defmacro-alias [car first] [thing]

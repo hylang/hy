@@ -205,11 +205,12 @@ however is called only for every other value in the list.
     ;; assuming that (side-effect1) and (side-effect2) are functions and
     ;; collection is a list of numerical values
 
-    (for (x collection) (do
-      (side-effect1 x)
-      (if (% x 2)
-        (continue))
-      (side-effect2 x)))
+    (for [x collection]
+      (do
+        (side-effect1 x)
+        (if (% x 2)
+          (continue))
+        (side-effect2 x)))
 
 
 do / progn
@@ -489,10 +490,10 @@ collection and calls side-effect to each element in the collection:
 .. code-block:: clj
 
     ;; assuming that (side-effect) is a function that takes a single parameter
-    (for [[element collection]] (side-effect element))
+    (for [element collection] (side-effect element))
 
     ;; for can have an optional else block
-    (for [[element collection]] (side-effect element)
+    (for [element collection] (side-effect element)
          (else (side-effect-2)))
 
 The optional `else` block is executed only if the `for` loop terminates
@@ -500,14 +501,14 @@ normally. If the execution is halted with `break`, the `else` does not execute.
 
 .. code-block:: clj
 
-    => (for [[element [1 2 3]]] (if (< element 3)
+    => (for [element [1 2 3]] (if (< element 3)
     ...                             (print element) 
     ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
 
-    => (for [[element [1 2 3]]] (if (< element 4)
+    => (for [element [1 2 3]] (if (< element 4)
     ...                             (print element)
     ...                             (break))
     ...    (else (print "loop finished")))
@@ -680,7 +681,7 @@ function is defined and passed to another function for filtering output.
     ...             {:name "Dave" :age 5}])
 
     => (defn display-people [people filter]
-    ...  (for [[person people]] (if (filter person) (print (:name person)))))
+    ...  (for [person people] (if (filter person) (print (:name person)))))
 
     => (display-people people (fn [person] (< (:age person) 25)))
     Alice

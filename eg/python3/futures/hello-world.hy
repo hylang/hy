@@ -7,5 +7,5 @@
 
 (with-as (ThreadPoolExecutor 10) executor
   (setv jobs (list-comp (.submit executor task-to-do) (x (range 0 10))))
-  (for (future (as-completed jobs))
+  (for [future (as-completed jobs)]
     (.result future)))
