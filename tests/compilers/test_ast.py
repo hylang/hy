@@ -313,7 +313,7 @@ def test_ast_valid_while():
 
 def test_ast_valid_for():
     "Make sure AST can compile valid for"
-    can_compile("(for [[a 2]])")
+    can_compile("(for [[a 2]] (print a))")
 
 
 def test_ast_invalid_for():
@@ -452,14 +452,14 @@ def test_for_compile_error():
         assert(False)
 
     try:
-        can_compile("(fn [] (for [x]))")
+        can_compile("(fn [] (for [[x]]))")
     except HyTypeError as e:
-        assert(e.message == "`for' requires an even number of elements in its first argument")  # noqa
+        assert(e.message == "`for' requires a body to evaluate")
     else:
         assert(False)
 
     try:
-        can_compile("(fn [] (for [x xx]))")
+        can_compile("(fn [] (for [[x xx]]))")
     except HyTypeError as e:
         assert(e.message == "`for' requires a body to evaluate")
     else:
