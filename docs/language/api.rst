@@ -397,6 +397,25 @@ So ``g!a`` would become ``(gensym "a")``.
 
    Section :ref:`using-gensym`
 
+defreader
+---------
+
+.. versionadded:: 0.9.12
+
+`defreader` defines a reader macro, enabling you to restructure or
+modify syntax.
+
+.. code-block:: clj
+
+    => (defreader ^ [expr] (print expr))
+    => #^(1 2 3 4)
+    (1 2 3 4)
+    => #^"Hello"
+    "Hello"
+
+.. seealso::
+
+    Section :ref:`Reader Macros <reader-macros>`
 
 del
 ---

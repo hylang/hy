@@ -1866,7 +1866,7 @@ class HyASTCompiler(object):
         expression.pop(0)
         name = expression.pop(0)
         NOT_READERS = [":", "&"]
-        if name in NOT_READERS:
+        if name in NOT_READERS or len(name) > 1:
             raise NameError("%s can't be used as a macro reader symbol" % name)
         if not isinstance(name, HySymbol):
             raise HyTypeError(name,
