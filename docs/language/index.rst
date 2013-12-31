@@ -11,3 +11,4 @@ Contents:
    api
    core
    internals
+   readermacros
