@@ -33,11 +33,11 @@
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
   (setv seen [])
-  (foreach [x coll]
+  (for* [x coll]
     (yield x)
     (.append seen x))
   (while seen
-    (foreach [x seen]
+    (for* [x seen]
       (yield x))))
 
 (defn dec [n]
@@ -49,7 +49,7 @@
   "Return a generator from the original collection with duplicates
    removed"
   (let [[seen []] [citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (not_in val seen)
         (do
          (yield val)
@@ -58,7 +58,7 @@
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
   (let [[citer (iter coll)]]
-    (try (foreach [i (range count)]
+    (try (for* [i (range count)]
            (next citer))
          (catch [StopIteration]))
     citer))
@@ -66,10 +66,10 @@
 (defn drop-while [pred coll]
   "Drop all elements of `coll` until `pred` is False"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (not (pred val))
         (do (yield val) (break))))
-    (foreach [val citer]
+    (for* [val citer]
       (yield val))))
 
 (defn empty? [coll]
@@ -84,7 +84,7 @@
 (defn filter [pred coll]
   "Return all elements from `coll` that pass `pred`"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (pred val)
         (yield val)))))
 
@@ -96,7 +96,7 @@
 
 (defn _flatten [coll result]
   (if (and (iterable? coll) (not (string? coll)))
-    (do (foreach [b coll]
+    (do (for* [b coll]
           (_flatten b result)))
     (.append result coll))
   result)
@@ -160,6 +160,10 @@
   "Return true if x is None"
   (is x None))
 
+(defn nil? [x]
+  "Return true if x is nil (None)"
+  (is x None))
+
 (defn numeric? [x]
   (import numbers)
   (instance? numbers.Number x))
@@ -187,7 +191,7 @@
 (defn remove [pred coll]
   "Return coll with elements removed that pass `pred`"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (not (pred val))
         (yield val)))))
 
@@ -195,7 +199,7 @@
   "Yield x forever or optionally n times"
   (if (none? n)
     (setv dispatch (fn [] (while true (yield x))))
-    (setv dispatch (fn [] (foreach [_ (range n)] (yield x)))))
+    (setv dispatch (fn [] (for* [_ (range n)] (yield x)))))
   (dispatch))
 
 (defn repeatedly [func]
@@ -223,7 +227,7 @@
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
   (let [[citer (iter coll)]]
-    (foreach [_ (range count)]
+    (for* [_ (range count)]
       (yield (next citer)))))
 
 (defn take-nth [n coll]
@@ -231,16 +235,16 @@
      raises ValueError for (not (pos? n))"
   (if (pos? n)
     (let [[citer (iter coll)] [skip (dec n)]]
-      (foreach [val citer]
+      (for* [val citer]
         (yield val)
-        (foreach [_ (range skip)]
+        (for* [_ (range skip)]
           (next citer))))
     (raise (ValueError "n must be positive"))))
 
 (defn take-while [pred coll]
   "Take all elements while `pred` is true"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (pred val)
         (yield val)
         (break)))))
@@ -253,5 +257,5 @@
 (def *exports* '[cycle dec distinct drop drop-while empty? even? filter flatten
                  float? gensym
                  inc instance? integer integer? iterable? iterate iterator? neg?
-                 none? nth numeric? odd? pos? remove repeat repeatedly second
+                 nil? none? nth numeric? odd? pos? remove repeat repeatedly second
                  string string? take take-nth take-while zero?])

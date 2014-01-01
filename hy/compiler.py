@@ -4,6 +4,7 @@
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 # Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 # Copyright (c) 2013 James King <james@agentultra.com>
+# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,8 +24,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.errors import HyError
-
 from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.expression import HyExpression
 from hy.models.keyword import HyKeyword
@@ -35,6 +34,8 @@ from hy.models.symbol import HySymbol
 from hy.models.float import HyFloat
 from hy.models.list import HyList
 from hy.models.dict import HyDict
+
+from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
 from hy.macros import require, macroexpand
@@ -70,34 +71,6 @@ def load_stdlib():
         mod = importlib.import_module(module)
         for e in mod.EXPORTS:
             _stdlib[e] = module
-
-
-class HyCompileError(HyError):
-    def __init__(self, exception, traceback=None):
-        self.exception = exception
-        self.traceback = traceback
-
-    def __str__(self):
-        if isinstance(self.exception, HyTypeError):
-            return str(self.exception)
-        if self.traceback:
-            tb = "".join(traceback.format_tb(self.traceback)).strip()
-        else:
-            tb = "No traceback available. 😟"
-        return("Internal Compiler Bug 😱\n⤷ %s: %s\nCompilation traceback:\n%s"
-               % (self.exception.__class__.__name__,
-                  self.exception, tb))
-
-
-class HyTypeError(TypeError):
-    def __init__(self, expression, message):
-        super(HyTypeError, self).__init__(message)
-        self.expression = expression
-
-    def __str__(self):
-        return (super(HyTypeError, self).__str__() + " (line %s, column %d)"
-                % (self.expression.start_line,
-                   self.expression.start_column))
 
 
 _compile_table = {}
@@ -341,7 +314,7 @@ def checkargs(exact=None, min=None, max=None, even=None):
             if min is not None and (len(expression) - 1) < min:
                 _raise_wrong_args_number(
                     expression,
-                    "`%%s' needs at least %d arguments, got %%d" % (min))
+                    "`%%s' needs at least %d arguments, got %%d." % (min))
 
             if max is not None and (len(expression) - 1) > max:
                 _raise_wrong_args_number(
@@ -429,6 +402,8 @@ class HyASTCompiler(object):
             # compile calls compile, so we're going to have multiple raise
             # nested; so let's re-raise this exception, let's not wrap it in
             # another HyCompileError!
+            raise
+        except HyTypeError as e:
             raise
         except Exception as e:
             raise HyCompileError(e, sys.exc_info()[2])
@@ -1086,18 +1061,25 @@ class HyASTCompiler(object):
         return rimports
 
     @builds("get")
-    @checkargs(2)
+    @checkargs(min=2)
     def compile_index_expression(self, expr):
         expr.pop(0)  # index
-        val = self.compile(expr.pop(0))  # target
-        sli = self.compile(expr.pop(0))  # slice
 
-        return val + sli + ast.Subscript(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            value=val.force_expr,
-            slice=ast.Index(value=sli.force_expr),
-            ctx=ast.Load())
+        val = self.compile(expr.pop(0))
+        slices, ret = self._compile_collect(expr)
+
+        if val.stmts:
+            ret += val
+
+        for sli in slices:
+            val = Result() + ast.Subscript(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                value=val.force_expr,
+                slice=ast.Index(value=sli),
+                ctx=ast.Load())
+
+        return ret + val
 
     @builds("del")
     @checkargs(min=1)
@@ -1177,14 +1159,18 @@ class HyASTCompiler(object):
         fn.stmts[-1].decorator_list = decorators
         return ret + fn
 
-    @builds("with")
+    @builds("with*")
     @checkargs(min=2)
     def compile_with_expression(self, expr):
-        expr.pop(0)  # with
+        expr.pop(0)  # with*
 
         args = expr.pop(0)
-        if len(args) > 2 or len(args) < 1:
-            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
+        if not isinstance(args, HyList):
+            raise HyTypeError(expr,
+                              "with expects a list, received `{0}'".format(
+                                  type(args).__name__))
+        if len(args) < 1:
+            raise HyTypeError(expr, "with needs [[arg (expr)]] or [[(expr)]]]")
 
         args.reverse()
         ctx = self.compile(args.pop(0))
@@ -1573,6 +1559,9 @@ class HyASTCompiler(object):
                 fn.replace(ofn)
 
                 # Get the object we want to take an attribute from
+                if len(expression) < 2:
+                    raise HyTypeError(expression,
+                                      "attribute access requires object")
                 func = self.compile(expression.pop(1))
 
                 # And get the attribute
@@ -1623,23 +1612,36 @@ class HyASTCompiler(object):
         result += ld_name
         return result
 
-    @builds("foreach")
+    @builds("for*")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
         expression.pop(0)  # for
-        target_name, iterable = expression.pop(0)
+
+        args = expression.pop(0)
+
+        if not isinstance(args, HyList):
+            raise HyTypeError(expression,
+                              "for expects a list, received `{0}'".format(
+                                  type(args).__name__))
+
+        try:
+            target_name, iterable = args
+        except ValueError:
+            raise HyTypeError(expression,
+                              "for requires two forms in the list")
+
         target = self._storeize(self.compile(target_name))
 
         ret = Result()
 
         orel = Result()
-        # (foreach [] body (else …))
+        # (for* [] body (else …))
         if expression and expression[-1][0] == HySymbol("else"):
             else_expr = expression.pop()
             if len(else_expr) > 2:
                 raise HyTypeError(
                     else_expr,
-                    "`else' statement in `foreach' is too long")
+                    "`else' statement in `for' is too long")
             elif len(else_expr) == 2:
                 orel += self.compile(else_expr[1])
                 orel += orel.expr_as_stmt()
@@ -1849,7 +1851,7 @@ class HyASTCompiler(object):
         expression.pop(0)
         name = expression.pop(0)
         NOT_READERS = [":", "&"]
-        if name in NOT_READERS:
+        if name in NOT_READERS or len(name) > 1:
             raise NameError("%s can't be used as a macro reader symbol" % name)
         if not isinstance(name, HySymbol):
             raise HyTypeError(name,

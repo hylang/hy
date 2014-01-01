@@ -28,13 +28,13 @@
 
 (defmacro macro-error [location reason]
   "error out properly within a macro"
-  `(raise (hy.compiler.HyTypeError ~location ~reason)))
+  `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
 
 
 (defmacro defmacro-alias [names lambda-list &rest body]
   "define one macro with several names"
   (setv ret `(do))
-  (foreach [name names]
+  (for* [name names]
     (.append ret
              `(defmacro ~name ~lambda-list ~@body)))
   ret)
@@ -52,7 +52,7 @@
   (setv macroed_variables [])
   (if (not (isinstance variables HyList))
     (macro-error variables "let lexical context must be a list"))
-  (foreach [variable variables]
+  (for* [variable variables]
     (if (isinstance variable HyList)
       (do
        (if (!= (len variable) 2)

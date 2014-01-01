@@ -229,6 +229,7 @@ def t_identifier(p):
     table = {
         "true": "True",
         "false": "False",
+        "nil": "None",
         "null": "None",
     }
 
@@ -257,12 +258,11 @@ def t_identifier(p):
 def error_handler(token):
     tokentype = token.gettokentype()
     if tokentype == '$end':
-        raise PrematureEndOfInput
+        raise PrematureEndOfInput("Premature end of input")
     else:
         raise LexException(
-            "Ran into a %s where it wasn't expected at line %s, column %s" %
-            (tokentype, token.source_pos.lineno, token.source_pos.colno)
-        )
+            "Ran into a %s where it wasn't expected." % tokentype,
+            token.source_pos.lineno, token.source_pos.colno)
 
 
 parser = pg.build()

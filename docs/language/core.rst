@@ -242,6 +242,36 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
    => (neg? 0)
    False
 
+
+.. _nil?-fn:
+
+nil?
+-----
+
+Usage: ``(nil? x)``
+
+Return True if x is nil/None.
+
+.. code-block:: clojure
+
+   => (nil? nil)
+   True
+
+   => (nil? None)
+   True
+
+   => (nil? 0)
+   False
+
+   => (setf x nil)
+   => (nil? x)
+   True
+
+   => ;; list.append always returns None
+   => (nil? (.append [1 2 3] 4))
+   True
+
+
 .. _none?-fn:
 
 none?
@@ -397,7 +427,7 @@ Return True if x is a string.
 .. _zero?-fn:
 
 zero?
-----
+-----
 
 Usage: ``(zero? x)``
 
@@ -574,6 +604,26 @@ See also :ref:`remove-fn`.
 
    => (list (filter even? [1 2 3 -4 5 -7]))
    [2, -4]
+
+.. _flatten-fn:
+
+flatten
+-------
+
+.. versionadded:: 0.9.12
+
+Usage: ``(flatten coll)``
+
+Return a single list of all the items in ``coll``, by flattening all
+contained lists and/or tuples.
+
+.. code-block:: clojure
+
+   => (flatten [1 2 [3 4] 5])
+   [1, 2, 3, 4, 5]
+
+   => (flatten ["foo" (, 1 2) [1 [2 3] 4] "bar"])
+   ['foo', 1, 2, 1, 2, 3, 4, 'bar']
 
 
 .. _iterate-fn:

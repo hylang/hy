@@ -86,9 +86,10 @@
 
 (defn test-is []
   "NATIVE: test is can deal with None"
-  (setv a null)
-  (assert (is a null))
-  (assert (is-not a "b")))
+  (setv a nil)
+  (assert (is a nil))
+  (assert (is-not a "b"))
+  (assert (none? a)))
 
 
 (defn test-branching []
@@ -129,7 +130,16 @@
 (defn test-index []
   "NATIVE: Test that dict access works"
   (assert (= (get {"one" "two"} "one") "two"))
-  (assert (= (get [1 2 3 4 5] 1) 2)))
+  (assert (= (get [1 2 3 4 5] 1) 2))
+  (assert (= (get {"first" {"second" {"third" "level"}}}
+                  "first" "second" "third")
+             "level"))
+  (assert (= (get ((fn [] {"first" {"second" {"third" "level"}}}))
+                  "first" "second" "third")
+             "level"))
+  (assert (= (get {"first" {"second" {"third" "level"}}}
+                  ((fn [] "first")) "second" "third")
+             "level")))
 
 
 (defn test-lambda []
@@ -439,37 +449,37 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with [fd (open "README.md" "r")] (assert fd))
-  (with [(open "README.md" "r")] (do)))
+  (with [[fd (open "README.md" "r")]] (assert fd))
+  (with [[(open "README.md" "r")]] (do)))
 
 
 (defn test-with-return []
   "NATIVE: test that with returns stuff"
   (defn read-file [filename]
-    (with [fd (open filename "r")] (.read fd)))
+    (with [[fd (open filename "r")]] (.read fd)))
   (assert (!= 0 (len (read-file "README.md")))))
 
 
 (defn test-for-doodle []
   "NATIVE: test for-do"
   (do (do (do (do (do (do (do (do (do (setv (, x y) (, 0 0)))))))))))
-  (foreach [- [1 2]]
+  (for [- [1 2]]
     (do
      (setv x (+ x 1))
      (setv y (+ y 1))))
   (assert (= y x 2)))
 
 
-(defn test-foreach-else []
-  "NATIVE: test foreach else"
+(defn test-for-else []
+  "NATIVE: test for else"
   (let [[x 0]]
-    (foreach [a [1 2]]
+    (for* [a [1 2]]
       (setv x (+ x a))
       (else (setv x (+ x 50))))
     (assert (= x 53)))
 
   (let [[x 0]]
-    (foreach [a [1 2]]
+    (for* [a [1 2]]
       (setv x (+ x a))
       (else))
     (assert (= x 3))))
@@ -807,9 +817,9 @@
 (defn test-continue-continuation []
   "NATIVE: test checking if continue actually continues"
   (setv y [])
-  (for [x (range 10)]
-    (if (!= x 5)
-      (continue))
+  (for [x (range 10)] 
+    (if (!= x 5) 
+      (continue)) 
     (.append y x))
   (assert (= y [5])))
 
