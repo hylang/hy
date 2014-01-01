@@ -817,15 +817,17 @@
 (defn test-continue-continuation []
   "NATIVE: test checking if continue actually continues"
   (setv y [])
-  (for [x (range 10)] 
-    (if (!= x 5) 
-      (continue)) 
+  (for [x (range 10)]
+    (if (!= x 5)
+      (continue))
     (.append y x))
   (assert (= y [5])))
+
 
 (defn test-empty-list []
   "Evaluate an empty list to a []"
   (assert (= () [])))
+
 
 (defn test-string []
   (assert (string? (string "a")))
@@ -846,3 +848,17 @@
   (assert (= test [0 1 2 3]))
   (del (get test 2))
   (assert (= test [0 1 3])))
+
+
+(defn test-macroexpand []
+  "Test macroexpand on ->"
+  (assert (= (macroexpand '(-> (a b) (x y)))
+             '(x (a b) y)))
+  (assert (= (macroexpand '(-> (a b) (-> (c d) (e f))))
+             '(e (c (a b) d) f))))
+
+
+(defn test-macroexpand-1 []
+  "Test macroexpand-1 on ->"
+  (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
+             '(-> (a b) (c d) (e f)))))
