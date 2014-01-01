@@ -1699,12 +1699,32 @@ class HyASTCompiler(object):
         arglist = expression.pop(0)
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
+        if sys.version_info[0] >= 3 and sys.version_info[1] >= 4:
+            # Python 3.4+ requres that args are an ast.arg object, rather
+            # than an ast.Name or bare string.
+            args = [ast.arg(arg=ast_str(x),
+                            annotation=None,  ### Fix me!
+                            lineno=x.start_line,
+                            col_offset=x.start_column) for x in args]
+
+            # XXX: Beware. Beware. This wasn't put into the parse lambda
+            # list because it's really just an internal parsing thing.
+
+            if kwargs:
+                kwargs = ast.arg(arg=kwargs, annotation=None)
+
+            if stararg:
+                stararg = ast.arg(arg=stararg, annotation=None)
+
+            # Let's find a better home for these guys.
+        else:
+            args = [ast.Name(arg=ast_str(x), id=ast_str(x),
+                             ctx=ast.Param(),
+                             lineno=x.start_line,
+                             col_offset=x.start_column) for x in args]
+
         args = ast.arguments(
-            args=[ast.Name(arg=ast_str(x), id=ast_str(x),
-                           ctx=ast.Param(),
-                           lineno=x.start_line,
-                           col_offset=x.start_column)
-                  for x in args],
+            args=args,
             vararg=stararg,
             kwarg=kwargs,
             kwonlyargs=[],
