@@ -198,7 +198,7 @@ iterator?
 
 Usage: ``(iterator? x)``
 
-Return True if x is an iterator. Iterators are objects that return 
+Return True if x is an iterator. Iterators are objects that return
 themselves as an iterator when ``(iter x)`` is called.
 Contrast with :ref:`iterable?-fn`.
 
@@ -220,10 +220,12 @@ Contrast with :ref:`iterable?-fn`.
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
 
-.. _neg?-fn:
+.. _macroexpand-fn:
 
 macroexpand
 -----------
+
+.. versionadded:: 0.9.13
 
 Usage: ``(macroexpand form)``
 
@@ -237,8 +239,12 @@ Returns the full macro expansion of form.
    => (macroexpand '(-> (a b) (-> (c d) (e f))))
    (u'e' (u'c' (u'a' u'b') u'd') u'f')
 
+.. _macroexpand-1-fn:
+
 macroexpand-1
 -------------
+
+.. versionadded:: 0.9.13
 
 Usage: ``(macroexpand-1 form)``
 
@@ -248,6 +254,8 @@ Returns the single step macro expansion of form.
 
    => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
    (u'_>' (u'a' u'b') (u'c' u'd') (u'e' u'f'))
+
+.. _neg?-fn:
 
 neg?
 ----
@@ -349,7 +357,7 @@ if the `n` is outside the range of `coll`.
 
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
-   
+
 .. _numeric?-fn:
 
 numeric?
@@ -526,7 +534,7 @@ To get the Fibonacci number at index 9, (starting from 0):
 .. code-block:: clojure
 
    => (nth (fib) 9)
-   34 
+   34
 
 
 .. _cycle-fn:
@@ -544,7 +552,7 @@ Return an infinite iterator of the members of coll.
    [1, 2, 3, 1, 2, 3, 1]
 
    => (list (take 2 (cycle [1 2 3])))
-   [1, 2]   
+   [1, 2]
 
 
 .. _distinct-fn:
@@ -744,7 +752,7 @@ Return an iterator containing the first ``n`` members of ``coll``.
 
    => (list (take 4 (repeat "s")))
    [u's', u's', u's', u's']
-   
+
    => (list (take 0 (repeat "s")))
    []
 
@@ -770,7 +778,7 @@ Return an iterator containing every ``nth`` member of ``coll``.
 
    => (list (take-nth 10 [1 2 3 4 5 6 7]))
    [1]
-   
+
 
 .. _take-while-fn:
 
