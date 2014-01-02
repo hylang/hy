@@ -181,13 +181,14 @@ Hy Internal Theory
 Overview
 --------
 
-The Hy internals work by acting as a front-end to Python bytecode, so that
-Hy it's self compiles down to Python Bytecode, allowing an unmodified Python
-runtime to run Hy.
+The Hy internals work by acting as a front-end to Python bytecode, so
+that Hy itself compiles down to Python Bytecode, allowing an unmodified
+Python runtime to run Hy code, without even noticing it.
 
-The way we do this is by translating Hy into Python AST, and building that AST
-down into Python bytecode using standard internals, so that we don't have
-to duplicate all the work of the Python internals for every single Python
+The way we do this is by translating Hy into an internal Python AST
+datastructure, and building that AST down into Python bytecode using
+modules from the Python standard library, so that we don't have to
+duplicate all the work of the Python internals for every single Python
 release.
 
 Hy works in four stages. The following sections will cover each step of Hy
@@ -195,8 +196,8 @@ from source to runtime.
 
 .. _lexing:
 
-Lexing / tokenizing
--------------------
+Steps 1 and 2: Tokenizing and parsing
+-------------------------------------
 
 The first stage of compiling hy is to lex the source into tokens that we can
 deal with. We use a project called rply, which is a really nice (and fast)
@@ -216,8 +217,8 @@ on (directly), and it's what the compiler uses when it compiles Hy down.
 
 .. _compiling:
 
-Compiling
----------
+Step 3: Hy compilation to Python AST
+------------------------------------
 
 This is where most of the magic in Hy happens. This is where we take Hy AST
 (the models), and compile them into Python AST. A couple of funky things happen
@@ -329,8 +330,8 @@ into::
 By forcing things into an ``ast.expr`` if we can, but the general idea holds.
 
 
-Runtime
--------
+Step 4: Python bytecode output and runtime
+------------------------------------------
 
 After we have a Python AST tree that's complete, we can try and compile it to
 Python bytecode by pushing it through ``eval``. From here on out, we're no
