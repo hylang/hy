@@ -2,8 +2,8 @@
 Internal Hy Documentation
 =========================
 
-.. note::
-    These bits are for folks who hack on Hy itself, mostly!
+.. note:: These bits are mostly useful for folks who hack on Hy itself,
+    but can also be used for those delving deeper in macro programming.
 
 .. _models:
 
