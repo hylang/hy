@@ -251,7 +251,7 @@ so our re-written ``nif`` would look like:
                 [(zero? ~g) ~zero-form]
                 [(neg? ~g) ~neg-form]))))
 
-Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!` 
+Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
 remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 
