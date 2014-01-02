@@ -39,7 +39,7 @@ except ImportError:
 import sys
 
 PY3 = sys.version_info[0] >= 3
-PY33 = sys.version_info[0] >= 3 and sys.version_info[1] >= 3
+PY33 = sys.version_info >= (3, 3)
 
 if PY3:
     str_type = str

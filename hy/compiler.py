@@ -754,7 +754,7 @@ class HyASTCompiler(object):
 
         ret = handler_results
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+        if sys.version_info >= (3, 3):
             # Python 3.3 features a merge of TryExcept+TryFinally into Try.
             return ret + ast.Try(
                 lineno=expr.start_line,
@@ -1199,7 +1199,7 @@ class HyASTCompiler(object):
                             optional_vars=thing,
                             body=body.stmts)
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+        if sys.version_info >= (3, 3):
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
@@ -1699,7 +1699,7 @@ class HyASTCompiler(object):
         arglist = expression.pop(0)
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 4:
+        if sys.version_info >= (3, 4):
             # Python 3.4+ requres that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
