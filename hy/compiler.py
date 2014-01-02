@@ -1703,7 +1703,7 @@ class HyASTCompiler(object):
             # Python 3.4+ requres that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
-                            annotation=None,  ### Fix me!
+                            annotation=None,  # Fix me!
                             lineno=x.start_line,
                             col_offset=x.start_column) for x in args]
 
