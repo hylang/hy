@@ -862,3 +862,9 @@
   "Test macroexpand-1 on ->"
   (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
+
+
+(defn test-calling-module-name []
+  "NATIVE: Test the calling-module-name function"
+  (assert (= (calling-module-name -1) "hy.core.language"))
+  (assert (= (calling-module-name 0) "tests.native_tests.language")))
