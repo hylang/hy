@@ -2,15 +2,175 @@
 Internal Hy Documentation
 =========================
 
-.. note::
-    These bits are for folks who hack on Hy itself, mostly!
+.. note:: These bits are mostly useful for folks who hack on Hy itself,
+    but can also be used for those delving deeper in macro programming.
 
+.. _models:
 
 Hy Models
 =========
 
-.. todo::
-    Write this.
+Introduction to Hy models
+-------------------------
+
+Hy models are a very thin layer on top of regular Python objects,
+representing Hy source code as data. Models only add source position
+information, and a handful of methods to support clean manipulation of
+Hy source code, for instance in macros. To achieve that goal, Hy models
+are mixins of a base Python class and :ref:`HyObject`.
+
+.. _hyobject:
+
+HyObject
+~~~~~~~~
+
+``hy.models.HyObject`` is the base class of Hy models. It only
+implements one method, ``replace``, which replaces the source position
+of the current object with the one passed as argument. This allows us to
+keep track of the original position of expressions that get modified by
+macros, be that in the compiler or in pure hy macros.
+
+``HyObject`` is not intended to be used directly to instantiate Hy
+models, but only as a mixin for other classes.
+
+Compound models
+---------------
+
+Parenthesized and bracketed lists are parsed as compound models by the
+Hy parser.
+
+.. _hylist:
+
+HyList
+~~~~~~
+
+``hy.models.list.HyList`` is the base class of "iterable" Hy models. Its
+basic use is to represent bracketed ``[]`` lists, which, when used as a
+top-level expression, translate to Python list literals in the
+compilation phase.
+
+Adding a HyList to another iterable object reuses the class of the
+left-hand-side object, a useful behavior when you want to concatenate Hy
+objects in a macro, for instance.
+
+.. _hyexpression:
+
+HyExpression
+~~~~~~~~~~~~
+
+``hy.models.expression.HyExpression`` inherits :ref:`HyList` for
+parenthesized ``()`` expressions. The compilation result of those
+expressions depends on the first element of the list: the compiler
+dispatches expressions between compiler special-forms, user-defined
+macros, and regular Python function calls.
+
+.. _hydict:
+
+HyDict
+~~~~~~
+
+``hy.models.dict.HyDict`` inherits :ref:`HyList` for curly-bracketed ``{}``
+expressions, which compile down to a Python dictionary literal.
+
+The decision of using a list instead of a dict as the base class for
+``HyDict`` allows easier manipulation of dicts in macros, with the added
+benefit of allowing compound expressions as dict keys (as, for instance,
+the :ref:`HyExpression` Python class isn't hashable).
+
+Atomic models
+-------------
+
+In the input stream, double-quoted strings, respecting the Python
+notation for strings, are parsed as a single token, which is directly
+parsed as a :ref:`HyString`.
+
+An ininterrupted string of characters, excluding spaces, brackets,
+quotes, double-quotes and comments, is parsed as an identifier.
+
+Identifiers are resolved to atomic models during the parsing phase in
+the following order:
+
+ - :ref:`HyInteger <hy_numeric_models>`
+ - :ref:`HyFloat <hy_numeric_models>`
+ - :ref:`HyComplex <hy_numeric_models>` (if the atom isn't a bare ``j``)
+ - :ref:`HyKeyword` (if the atom starts with ``:``)
+ - :ref:`HyLambdaListKeyword` (if the atom starts with ``&``)
+ - :ref:`HySymbol`
+
+.. _hystring:
+
+HyString
+~~~~~~~~
+
+``hy.models.string.HyString`` is the base class of string-equivalent Hy
+models. It also represents double-quoted string literals, ``""``, which
+compile down to unicode string literals in Python. ``HyStrings`` inherit
+unicode objects in Python 2, and string objects in Python 3 (and are
+therefore not encoding-dependent).
+
+``HyString`` based models are immutable.
+
+Hy literal strings can span multiple lines, and are considered by the
+parser as a single unit, respecting the Python escapes for unicode
+strings.
+
+.. _hy_numeric_models:
+
+Numeric models
+~~~~~~~~~~~~~~
+
+``hy.models.integer.HyInteger`` represents integer literals (using the
+``long`` type on Python 2, and ``int`` on Python 3).
+
+``hy.models.float.HyFloat`` represents floating-point literals.
+
+``hy.models.complex.HyComplex`` represents complex literals.
+
+Numeric models are parsed using the corresponding Python routine, and
+valid numeric python literals will be turned into their Hy counterpart.
+
+.. _hysymbol:
+
+HySymbol
+~~~~~~~~
+
+``hy.models.symbol.HySymbol`` is the model used to represent symbols
+in the Hy language. It inherits :ref:`HyString`.
+
+``HySymbol`` objects are mangled in the parsing phase, to help Python
+interoperability:
+
+ - Symbols surrounded by asterisks (``*``) are turned into uppercase;
+ - Dashes (``-``) are turned into underscores (``_``);
+ - One trailing question mark (``?``) is turned into a leading ``is_``.
+
+Caveat: as the mangling is done during the parsing phase, it is possible
+to programmatically generate HySymbols that can't be generated with Hy
+source code. Such a mechanism is used by :ref:`gensym` to generate
+"uninterned" symbols.
+
+.. _hykeyword:
+
+HyKeyword
+~~~~~~~~~
+
+``hy.models.keyword.HyKeyword`` represents keywords in Hy. Keywords are
+symbols starting with a ``:``. The class inherits :ref:`HyString`.
+
+To distinguish :ref:`HyKeywords <HyKeyword>` from :ref:`HySymbols
+<HySymbol>`, without the possibility of (involuntary) clashes, the
+private-use unicode character ``"\uFDD0"`` is prepended to the keyword
+literal before storage.
+
+.. _hylambdalistkeyword:
+
+HyLambdaListKeyword
+~~~~~~~~~~~~~~~~~~~
+
+``hy.models.lambdalist.HyLambdaListKeyword`` represents lambda-list
+keywords, that is keywords used by the language definition inside
+function signatures. Lambda-list keywords are symbols starting with a
+``&``. The class inherits :ref:`HyString`
 
 
 Hy Internal Theory
@@ -21,13 +181,14 @@ Hy Internal Theory
 Overview
 --------
 
-The Hy internals work by acting as a front-end to Python bytecode, so that
-Hy it's self compiles down to Python Bytecode, allowing an unmodified Python
-runtime to run Hy.
+The Hy internals work by acting as a front-end to Python bytecode, so
+that Hy itself compiles down to Python Bytecode, allowing an unmodified
+Python runtime to run Hy code, without even noticing it.
 
-The way we do this is by translating Hy into Python AST, and building that AST
-down into Python bytecode using standard internals, so that we don't have
-to duplicate all the work of the Python internals for every single Python
+The way we do this is by translating Hy into an internal Python AST
+datastructure, and building that AST down into Python bytecode using
+modules from the Python standard library, so that we don't have to
+duplicate all the work of the Python internals for every single Python
 release.
 
 Hy works in four stages. The following sections will cover each step of Hy
@@ -35,8 +196,8 @@ from source to runtime.
 
 .. _lexing:
 
-Lexing / tokenizing
--------------------
+Steps 1 and 2: Tokenizing and parsing
+-------------------------------------
 
 The first stage of compiling hy is to lex the source into tokens that we can
 deal with. We use a project called rply, which is a really nice (and fast)
@@ -50,16 +211,14 @@ the tokens generated, and return the Hy models.
 You can think of the Hy models as the "AST" for Hy, it's what Macros operate
 on (directly), and it's what the compiler uses when it compiles Hy down.
 
-Check the documentation for more information on the Hy models for more
-information regarding the Hy models, and what they mean.
+.. seealso::
 
-.. TODO: Uh, we should, like, document models.
-
+   Section :ref:`models` for more information on Hy models and what they mean.
 
 .. _compiling:
 
-Compiling
----------
+Step 3: Hy compilation to Python AST
+------------------------------------
 
 This is where most of the magic in Hy happens. This is where we take Hy AST
 (the models), and compile them into Python AST. A couple of funky things happen
@@ -171,8 +330,8 @@ into::
 By forcing things into an ``ast.expr`` if we can, but the general idea holds.
 
 
-Runtime
--------
+Step 4: Python bytecode output and runtime
+------------------------------------------
 
 After we have a Python AST tree that's complete, we can try and compile it to
 Python bytecode by pushing it through ``eval``. From here on out, we're no
@@ -251,7 +410,7 @@ so our re-written ``nif`` would look like:
                 [(zero? ~g) ~zero-form]
                 [(neg? ~g) ~neg-form]))))
 
-Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!` 
+Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
 remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 
