@@ -45,6 +45,19 @@
   (_numeric-check n)
   (- n 1))
 
+(defn disassemble [tree &optional [codegen false]]
+  "Dump the python AST for a given Hy tree to standard output
+   If the second argument is true, generate python code instead."
+  (import astor)
+  (import hy.compiler)
+
+  (fake-source-positions tree)
+  (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
+  (print ((if codegen
+            astor.codegen.to_source
+            astor.dump)
+          compiled)))
+
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
@@ -80,6 +93,15 @@
   "Return true if n is an even number"
   (_numeric-check n)
   (= (% n 2) 0))
+
+(defn fake-source-positions [tree]
+  "Fake the source positions for a given tree"
+  (if (and (iterable? tree) (not (string? tree)))
+    (for* [subtree tree]
+          (fake-source-positions subtree)))
+  (for* [attr '[start-line end-line start-column end-column]]
+        (if (not (hasattr tree attr))
+          (setattr tree attr 1))))
 
 (defn filter [pred coll]
   "Return all elements from `coll` that pass `pred`"
@@ -276,7 +298,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name cycle dec distinct drop
+(def *exports* '[calling-module-name cycle dec distinct disassemble drop
                  drop-while empty? even? filter flatten float? gensym
                  inc instance? integer integer? iterable? iterate
                  iterator? macroexpand macroexpand-1 neg? nil? none?
