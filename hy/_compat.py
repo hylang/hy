@@ -40,6 +40,7 @@ import sys
 
 PY3 = sys.version_info[0] >= 3
 PY33 = sys.version_info >= (3, 3)
+PY34 = sys.version_info >= (3, 4)
 
 if PY3:
     str_type = str
