@@ -45,6 +45,19 @@
   (_numeric-check n)
   (- n 1))
 
+(defn disassemble [tree &optional [codegen false]]
+  "Dump the python AST for a given Hy tree to standard output
+   If the second argument is true, generate python code instead."
+  (import astor)
+  (import hy.compiler)
+
+  (fake-source-positions tree)
+  (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
+  (print ((if codegen
+            astor.codegen.to_source
+            astor.dump)
+          compiled)))
+
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
@@ -80,6 +93,15 @@
   "Return true if n is an even number"
   (_numeric-check n)
   (= (% n 2) 0))
+
+(defn fake-source-positions [tree]
+  "Fake the source positions for a given tree"
+  (if (and (iterable? tree) (not (string? tree)))
+    (for* [subtree tree]
+          (fake-source-positions subtree)))
+  (for* [attr '[start-line end-line start-column end-column]]
+        (if (not (hasattr tree attr))
+          (setattr tree attr 1))))
 
 (defn filter [pred coll]
   "Return all elements from `coll` that pass `pred`"
@@ -119,6 +141,14 @@
          (finally (.release _gensym_lock)))
     new_symbol))
 
+(defn calling-module-name [&optional [n 1]]
+  "Get the name of the module calling `n` levels up the stack from the
+  `calling-module-name` function call (by default, one level up)"
+  (import inspect)
+
+  (setv f (get (.stack inspect) (+ n 1) 0))
+  (get f.f_globals "__name__"))
+
 (defn inc [n]
   "Increment n by 1"
   (_numeric-check n)
@@ -153,20 +183,16 @@
 
 (defn macroexpand [form]
   "Return the full macro expansion of form"
-  (import inspect)
   (import hy.macros)
 
-  (setv f (get (get (.stack inspect) 1) 0))
-  (setv name (get f.f_globals "__name__"))
+  (setv name (calling-module-name))
   (hy.macros.macroexpand form name))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of form"
-  (import inspect)
   (import hy.macros)
 
-  (setv f (get (get (.stack inspect) 1) 0))
-  (setv name (get f.f_globals "__name__"))
+  (setv name (calling-module-name))
   (hy.macros.macroexpand-1 form name))
 
 (defn neg? [n]
@@ -272,9 +298,9 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[cycle dec distinct drop drop-while empty? even? filter
-                 flatten float? gensym inc instance? integer integer?
-                 iterable? iterate iterator? macroexpand macroexpand-1
-                 neg?  nil? none? nth numeric? odd? pos? remove repeat
-                 repeatedly second string string? take take-nth
-                 take-while zero?])
+(def *exports* '[calling-module-name cycle dec distinct disassemble drop
+                 drop-while empty? even? filter flatten float? gensym
+                 inc instance? integer integer? iterable? iterate
+                 iterator? macroexpand macroexpand-1 neg? nil? none?
+                 nth numeric? odd? pos? remove repeat repeatedly second
+                 string string? take take-nth take-while zero?])
