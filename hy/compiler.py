@@ -39,7 +39,7 @@ from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
 from hy.macros import require, macroexpand
-from hy._compat import str_type, long_type
+from hy._compat import str_type, long_type, PY33, PY3, PY34
 import hy.importer
 
 import traceback
@@ -77,7 +77,7 @@ _compile_table = {}
 
 
 def ast_str(foobar):
-    if sys.version_info[0] >= 3:
+    if PY3:
         return str(foobar)
 
     try:
@@ -754,7 +754,7 @@ class HyASTCompiler(object):
 
         ret = handler_results
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+        if PY33:
             # Python 3.3 features a merge of TryExcept+TryFinally into Try.
             return ret + ast.Try(
                 lineno=expr.start_line,
@@ -831,7 +831,7 @@ class HyASTCompiler(object):
                     exceptions,
                     "Exception storage target name must be a symbol.")
 
-            if sys.version_info[0] >= 3:
+            if PY3:
                 # Python3 features a change where the Exception handler
                 # moved the name from a Name() to a pure Python String type.
                 #
@@ -1199,7 +1199,7 @@ class HyASTCompiler(object):
                             optional_vars=thing,
                             body=body.stmts)
 
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+        if PY33:
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
@@ -1699,12 +1699,32 @@ class HyASTCompiler(object):
         arglist = expression.pop(0)
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
+        if PY34:
+            # Python 3.4+ requres that args are an ast.arg object, rather
+            # than an ast.Name or bare string.
+            args = [ast.arg(arg=ast_str(x),
+                            annotation=None,  # Fix me!
+                            lineno=x.start_line,
+                            col_offset=x.start_column) for x in args]
+
+            # XXX: Beware. Beware. This wasn't put into the parse lambda
+            # list because it's really just an internal parsing thing.
+
+            if kwargs:
+                kwargs = ast.arg(arg=kwargs, annotation=None)
+
+            if stararg:
+                stararg = ast.arg(arg=stararg, annotation=None)
+
+            # Let's find a better home for these guys.
+        else:
+            args = [ast.Name(arg=ast_str(x), id=ast_str(x),
+                             ctx=ast.Param(),
+                             lineno=x.start_line,
+                             col_offset=x.start_column) for x in args]
+
         args = ast.arguments(
-            args=[ast.Name(arg=ast_str(x), id=ast_str(x),
-                           ctx=ast.Param(),
-                           lineno=x.start_line,
-                           col_offset=x.start_column)
-                  for x in args],
+            args=args,
             vararg=stararg,
             kwarg=kwargs,
             kwonlyargs=[],
