@@ -31,6 +31,12 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
+
+(defn test-ap-if []
+  "NATIVE: testing anaphoric if"
+  (ap-if true (assert-true it))
+  (ap-if false true (assert-false it)))
+
 (defn test-ap-each []
   "NATIVE: testing anaphoric each"
   (setv res [])
@@ -61,3 +67,35 @@
                 [3 4])
   (assert-equal (list (ap-filter (even? it) [1 2 3 4]))
                 [2 4]))
+
+(defn test-ap-reject []
+  "NATIVE: testing anaphoric filter"
+  (assert-equal (list (ap-reject (> it 2) [1 2 3 4]))
+                [1 2])
+  (assert-equal (list (ap-reject (even? it) [1 2 3 4]))
+                [1 3]))
+
+(defn test-ap-dotimes []
+  "NATIVE: testing anaphoric dotimes"
+  (assert-equal (let [[n []]] (ap-dotimes 3 (.append n 3)) n)
+		[3 3 3])
+  (assert-equal (let [[n []]] (ap-dotimes 3 (.append n it)) n)
+		[0 1 2]))
+
+(defn test-ap-first []
+  "NATIVE: testing anaphoric first"
+  (assert-equal (ap-first (> it 5) (range 10)) 6)
+  (assert-equal (ap-first (even? it) [1 2 3 4]) 2))
+
+(defn test-ap-last []
+  "NATIVE: testing anaphoric last"
+  (assert-equal (ap-last (> it 5) (range 10)) 9)
+  (assert-equal (ap-last (even? it) [1 2 3 4]) 4))
+
+(defn test-ap-reduce []
+  "NATIVE: testing anaphoric reduce"
+  (assert-equal (ap-reduce (* acc it) [1 2 3]) 6)
+  (assert-equal (ap-reduce (* acc it) [1 2 3] 6) 36)
+  (assert-equal (ap-reduce (+ acc " on " it) ["Hy" "meth"])
+		"Hy on meth")
+  (assert-equal (ap-reduce (+ acc it) [] 1) 1))

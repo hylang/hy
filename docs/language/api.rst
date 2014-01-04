@@ -205,11 +205,12 @@ however is called only for every other value in the list.
     ;; assuming that (side-effect1) and (side-effect2) are functions and
     ;; collection is a list of numerical values
 
-    (for (x collection) (do
-      (side-effect1 x)
-      (if (% x 2)
-        (continue))
-      (side-effect2 x)))
+    (for [x collection]
+      (do
+        (side-effect1 x)
+        (if (% x 2)
+          (continue))
+        (side-effect2 x)))
 
 
 do / progn
@@ -357,6 +358,8 @@ Parameters may have following keywords in front of them:
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
 
+.. _defmacro:
+
 defmacro
 --------
 
@@ -377,6 +380,76 @@ between the operands.
 
   => (infix (1 + 1))
   2
+
+.. _defmacro/g!:
+
+defmacro/g!
+------------
+
+.. versionadded:: 0.9.12
+
+`defmacro/g!` is a special version of `defmacro` that is used to
+automatically generate :ref:`gensym` for any symbol that
+starts with ``g!``.
+
+So ``g!a`` would become ``(gensym "a")``.
+
+.. seealso::
+
+   Section :ref:`using-gensym`
+
+defreader
+---------
+
+.. versionadded:: 0.9.12
+
+`defreader` defines a reader macro, enabling you to restructure or
+modify syntax.
+
+.. code-block:: clj
+
+    => (defreader ^ [expr] (print expr))
+    => #^(1 2 3 4)
+    (1 2 3 4)
+    => #^"Hello"
+    "Hello"
+
+.. seealso::
+
+    Section :ref:`Reader Macros <reader-macros>`
+
+del
+---
+
+.. versionadded:: 0.9.12
+
+`del` removes an object from the current namespace.
+
+.. code-block:: clj
+
+  => (setv foo 42)
+  => (del foo)
+  => foo
+  Traceback (most recent call last):
+    File "<console>", line 1, in <module>
+  NameError: name 'foo' is not defined
+
+`del` can also remove objects from a mapping, a list, ...
+
+.. code-block:: clj
+
+  => (setv test (list (range 10)))
+  => test
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  => (del (slice test 2 4)) ;; remove items from 2 to 4 excluded
+  => test
+  [0, 1, 4, 5, 6, 7, 8, 9]
+  => (setv dic {"foo" "bar"})
+  => dic
+  {"foo": "bar"}
+  => (del (get dic "foo"))
+  => dic
+  {}
 
 eval
 ----
@@ -408,58 +481,64 @@ first / car
 
 
 for
----
-
-`for` macro is used to build nested `foreach` loops. The macro takes two
-parameters, first being a vector specifying collections to iterate over and 
-variables to bind. The second parameter is a statement which is executed during
-each loop:
-
-.. code-block:: clj
-
-    (for [x iter y iter] stmt)
-
-    (foreach [x iter]
-      (foreach [y iter] stmt))
-
-
-foreach
 -------
 
-`foreach` is used to call a function for each element in a list or vector.
+`for` is used to call a function for each element in a list or vector.
 Results are discarded and None is returned instead. Example code iterates over
 collection and calls side-effect to each element in the collection:
 
 .. code-block:: clj
 
     ;; assuming that (side-effect) is a function that takes a single parameter
-    (foreach [element collection] (side-effect element))
+    (for [element collection] (side-effect element))
 
-    ;; foreach can have an optional else block
-    (foreach [element collection] (side-effect element)
-             (else (side-effect-2)))
+    ;; for can have an optional else block
+    (for [element collection] (side-effect element)
+         (else (side-effect-2)))
 
-The optional `else` block is executed only if the `foreach` loop terminates
+The optional `else` block is executed only if the `for` loop terminates
 normally. If the execution is halted with `break`, the `else` does not execute.
 
 .. code-block:: clj
 
-    => (foreach [element [1 2 3]] (if (< element 3)
-    ...                               (print element) 
-    ...                               (break))
+    => (for [element [1 2 3]] (if (< element 3)
+    ...                             (print element) 
+    ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
 
-    => (foreach [element [1 2 3]] (if (< element 4)
-    ...                               (print element)
-    ...                               (break))
+    => (for [element [1 2 3]] (if (< element 4)
+    ...                             (print element)
+    ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
     3
     loop finished
 
+
+.. _gensym:
+
+gensym
+------
+
+.. versionadded:: 0.9.12
+
+`gensym` form is used to generate a unique symbol to allow writing macros
+without accidental variable name clashes.
+
+.. code-block:: clj
+
+   => (gensym)
+   u':G_1235'
+
+   => (gensym "x")
+   u':x_1236'
+
+.. seealso::
+
+   Section :ref:`using-gensym`
 
 get
 ---
@@ -602,7 +681,7 @@ function is defined and passed to another function for filtering output.
     ...             {:name "Dave" :age 5}])
 
     => (defn display-people [people filter]
-    ...  (foreach [person people] (if (filter person) (print (:name person)))))
+    ...  (for [person people] (if (filter person) (print (:name person)))))
 
     => (display-people people (fn [person] (< (:age person) 25)))
     Alice
@@ -916,16 +995,18 @@ context to an argument or ignore it completely, as shown below:
 
 .. code-block:: clj
 
-    (with [arg (expr)] block)
+    (with [[arg (expr)]] block)
 
-    (with [(expr)] block)
+    (with [[(expr)]] block)
+
+    (with [[arg (expr)] [(expr)]] block)
 
 The following example will open file `NEWS` and print its content on screen. The
 file is automatically closed after it has been processed.
 
 .. code-block:: clj
 
-    (with [f (open "NEWS")] (print (.read f)))
+    (with [[f (open "NEWS")]] (print (.read f)))
 
 
 with-decorator
@@ -950,6 +1031,35 @@ values that are incremented by 1. When decorated `addition` is called with value
     4
 
 
+.. _with-gensyms:
+
+with-gensyms
+-------------
+
+.. versionadded:: 0.9.12
+
+`with-gensym` form is used to generate a set of :ref:`gensym` for use
+in a macro.
+
+.. code-block:: clojure
+
+   (with-gensyms [a b c]
+     ...)
+
+expands to:
+
+.. code-block:: clojure
+
+   (let [[a (gensym)
+         [b (gensym)
+         [c (gensym)]]
+     ...)
+
+.. seealso::
+
+   Section :ref:`using-gensym`
+
+
 yield
 -----
 
@@ -963,7 +1073,7 @@ infinite series without consuming infinite amount of memory.
 .. code-block:: clj
 
     => (defn multiply [bases coefficients]
-    ...  (foreach [(, base coefficient) (zip bases coefficients)]
+    ...  (for [[(, base coefficient) (zip bases coefficients)]]
     ...   (yield (* base coefficient))))
 
     => (multiply (range 5) (range 5))
