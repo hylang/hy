@@ -372,7 +372,7 @@ class HyASTCompiler(object):
             # everything in core needs to be explicit.
             load_stdlib()
 
-    def getContext(self):
+    def get_context(self):
         return {"fn_count": self.anon_fn_count,
                 "var_count": self.anon_var_count,
                 "imports": self.imports}
@@ -1908,5 +1908,5 @@ def hy_incr_compile(tree, module_name, root=ast.Module, get_expr=False, ctx={}):
         expr = ast.Expression(body=expr)
         ret = (ret, expr)
 
-    return ret, compiler.getContext()
+    return ret, compiler.get_context()
 

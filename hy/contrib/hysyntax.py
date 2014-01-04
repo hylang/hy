@@ -1,15 +1,20 @@
 """
    Inspired by PyXL, register.py.
 """
-from __future__ import with_statement
-
-import codecs, cStringIO, encodings
+# stdlib
+from __future__ import print_function
+import ast
+import cStringIO
+import codecs
+import encodings
 import sys
 from encodings import utf_8
-from hy.lex import tokenize
-from hy.importer import import_buffer_to_hst, incr_import_buffer_to_ast
+
+# third party
 import astor.codegen
-import ast
+
+# local
+from hy.importer import import_buffer_to_hst, incr_import_buffer_to_ast
 from hy.lex import tokenize, LexException, PrematureEndOfInput
 
 def hy_transform(stream):
@@ -26,12 +31,12 @@ def hy_transform(stream):
         counter = 0
         ctx = {}
         for char in stream.read():
-            if in_lisp == False and prv_char == "@" and char == "(":
+            if not in_lisp and prv_char == "@" and char == "(":
                 in_lisp = True
                 lisp_expr = "("
                 counter += 1
                 py_buffer = py_buffer[:-1]
-            elif in_lisp == True:
+            elif in_lisp:
                 lisp_expr += char
                 if char == ")":
                     counter -= 1
@@ -45,8 +50,8 @@ def hy_transform(stream):
                 py_buffer += char
             prv_char = char
         output = py_buffer
-    except Exception, ex:
-        print ex
+    except Exception as exc:
+        print(exc)
         raise
 
     return output.rstrip()
@@ -73,7 +78,8 @@ class HyStreamReader(utf_8.StreamReader):
         self.stream = cStringIO.StringIO(hy_transform(self.stream))
 
 def search_function(encoding):
-    if encoding != 'hy': return None
+    if encoding != 'hy': 
+        return None
     # Assume utf8 encoding
     utf8 = encodings.search_function('utf8')
     return codecs.CodecInfo(
