@@ -6,7 +6,6 @@ from hy.importer import (import_file_to_ast, import_file_to_module,
 
 import astor.codegen
 import sys
-import ast
 
 module_name = "<STDIN>"
 
@@ -17,7 +16,7 @@ print("")
 _ast = import_file_to_ast(sys.argv[1], module_name)
 print("")
 print("")
-print(ast.dump(_ast).encode("utf-8"))
+print(astor.dump(_ast).encode("utf-8"))
 print("")
 print("")
 print(astor.codegen.to_source(_ast).encode("utf-8"))

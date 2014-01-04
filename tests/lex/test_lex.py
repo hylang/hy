@@ -260,3 +260,9 @@ def test_reader_macro():
     assert entry[0][0] == HySymbol("dispatch_reader_macro")
     assert entry[0][1] == HyExpression([HySymbol("quote"), HyString("^")])
     assert len(entry[0]) == 3
+
+
+def test_lex_comment_382():
+    """Ensure that we can tokenize sources with a comment at the end"""
+    entry = tokenize("foo ;bar\n;baz")
+    assert entry == [HySymbol("foo")]

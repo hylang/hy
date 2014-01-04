@@ -60,7 +60,7 @@ lg.add('STRING', r'''(?x)
 lg.add('IDENTIFIER', r'[^()\[\]{}\'"\s;]+')
 
 
-lg.ignore(r';.*[\r\n]+')
+lg.ignore(r';.*(?=\r|\n|$)')
 lg.ignore(r'\s+')
 
 
