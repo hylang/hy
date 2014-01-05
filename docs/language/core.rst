@@ -34,10 +34,12 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 disassemble
 -----------
 
+.. versionadded:: 0.9.13
+
 Usage: ``(disassemble tree &optional [codegen false])``
 
-Dump the Python AST for given Hy tree to standard output. If codegen
-is true function prints Python code instead.
+Dump the Python AST for given Hy ``tree`` to standard output. If *codegen*
+is ``true`` function prints Python code instead.
 
 .. code-block:: clojure
 
@@ -46,7 +48,7 @@ is true function prints Python code instead.
     body=[
         Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
 
-   => (disassemble '(print "Hello World!"))
+   => (disassemble '(print "Hello World!") true)
    print('Hello World!')
 
 
