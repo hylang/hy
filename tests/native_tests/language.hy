@@ -862,3 +862,29 @@
   "Test macroexpand-1 on ->"
   (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
+
+
+(defn test-calling-module-name []
+  "NATIVE: Test the calling-module-name function"
+  (assert (= (calling-module-name -1) "hy.core.language"))
+  (assert (= (calling-module-name 0) "tests.native_tests.language")))
+
+
+(defn test-disassemble []
+  "NATIVE: Test the disassemble function"
+  (import sys)
+  (if-python2
+   (import [io [BytesIO :as StringIO]])
+   (import [io [StringIO]]))
+  (setv prev-stdout sys.stdout)
+  (setv sys.stdout (StringIO))
+  (disassemble '(do (leaky) (leaky) (macros)))
+  (setv stdout (.getvalue sys.stdout))
+  (setv sys.stdout prev-stdout)
+  (assert (in "leaky" stdout))
+  (assert (in "macros" stdout))
+  (setv sys.stdout (StringIO))
+  (disassemble '(do (leaky) (leaky) (macros)) true)
+  (setv stdout (.getvalue sys.stdout))
+  (setv sys.stdout prev-stdout)
+  (assert (= stdout "leaky()\nleaky()\nmacros()\n")))
