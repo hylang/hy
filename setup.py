@@ -62,7 +62,6 @@ class HySyntax(Command):
         import shutil
         from distutils.sysconfig import get_python_lib
         python_lib = get_python_lib()
-        print "Installing Hy syntax extension"
         shutil.copy('hy.pth', python_lib)
 
 setup(
