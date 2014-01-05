@@ -103,7 +103,6 @@ author, and a second acks the entire change set.
 If the change is adding documentation, feel free to just merge after one
 ACK. We've got low coverage, so it'd be great to keep that barrier low.
 
-
 Core Team
 =========
 
