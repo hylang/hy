@@ -29,6 +29,29 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
    11.3
 
 
+.. _disassemble-fn:
+
+disassemble
+-----------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(disassemble tree &optional [codegen false])``
+
+Dump the Python AST for given Hy ``tree`` to standard output. If *codegen*
+is ``true`` function prints Python code instead.
+
+.. code-block:: clojure
+
+   => (disassemble '(print "Hello World!"))
+   Module(
+    body=[
+        Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
+
+   => (disassemble '(print "Hello World!") true)
+   print('Hello World!')
+
+
 .. _emtpy?-fn:
 
 empty?
