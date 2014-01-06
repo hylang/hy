@@ -4,7 +4,6 @@ Quickstart
 
 .. image:: _static/cuddles.png
    :alt: Karen Rustard's Cuddles
-   :align: left
 
 (thanks to Karen Rustad for Cuddles!)
 
