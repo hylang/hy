@@ -150,6 +150,15 @@ def term_unquote_splice(p):
     return HyExpression([HySymbol("unquote_splice"), p[1]])
 
 
+@pg.production("term : HASHREADER term")
+@set_quote_boundaries
+def hash_reader(p):
+    st = p[0].getstr()[1]
+    str_object = HyExpression([HySymbol("quote"), HyString(st)])
+    expr = HyExpression([HySymbol("quote"), p[1]])
+    return HyExpression([HySymbol("dispatch_reader_macro"), str_object, expr])
+
+
 @pg.production("dict : LCURLY list_contents RCURLY")
 @set_boundaries
 def t_dict(p):
@@ -220,6 +229,7 @@ def t_identifier(p):
     table = {
         "true": "True",
         "false": "False",
+        "nil": "None",
         "null": "None",
     }
 
@@ -248,12 +258,11 @@ def t_identifier(p):
 def error_handler(token):
     tokentype = token.gettokentype()
     if tokentype == '$end':
-        raise PrematureEndOfInput
+        raise PrematureEndOfInput("Premature end of input")
     else:
         raise LexException(
-            "Ran into a %s where it wasn't expected at line %s, column %s" %
-            (tokentype, token.source_pos.lineno, token.source_pos.colno)
-        )
+            "Ran into a %s where it wasn't expected." % tokentype,
+            token.source_pos.lineno, token.source_pos.colno)
 
 
 parser = pg.build()

@@ -23,6 +23,7 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
+
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 
 (defn _numeric-check [x]
@@ -32,11 +33,11 @@
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
   (setv seen [])
-  (foreach [x coll]
+  (for* [x coll]
     (yield x)
     (.append seen x))
   (while seen
-    (foreach [x seen]
+    (for* [x seen]
       (yield x))))
 
 (defn dec [n]
@@ -44,11 +45,24 @@
   (_numeric-check n)
   (- n 1))
 
+(defn disassemble [tree &optional [codegen false]]
+  "Dump the python AST for a given Hy tree to standard output
+   If the second argument is true, generate python code instead."
+  (import astor)
+  (import hy.compiler)
+
+  (fake-source-positions tree)
+  (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
+  (print ((if codegen
+            astor.codegen.to_source
+            astor.dump)
+          compiled)))
+
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
   (let [[seen []] [citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (not_in val seen)
         (do
          (yield val)
@@ -57,7 +71,7 @@
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
   (let [[citer (iter coll)]]
-    (try (foreach [i (range count)]
+    (try (for* [i (range count)]
            (next citer))
          (catch [StopIteration]))
     citer))
@@ -65,10 +79,10 @@
 (defn drop-while [pred coll]
   "Drop all elements of `coll` until `pred` is False"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (not (pred val))
         (do (yield val) (break))))
-    (foreach [val citer]
+    (for* [val citer]
       (yield val))))
 
 (defn empty? [coll]
@@ -80,16 +94,60 @@
   (_numeric-check n)
   (= (% n 2) 0))
 
+(defn fake-source-positions [tree]
+  "Fake the source positions for a given tree"
+  (if (and (iterable? tree) (not (string? tree)))
+    (for* [subtree tree]
+          (fake-source-positions subtree)))
+  (for* [attr '[start-line end-line start-column end-column]]
+        (if (not (hasattr tree attr))
+          (setattr tree attr 1))))
+
 (defn filter [pred coll]
   "Return all elements from `coll` that pass `pred`"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (pred val)
         (yield val)))))
+
+(defn flatten [coll]
+  "Return a single flat list expanding all members of coll"
+  (if (and (iterable? coll) (not (string? coll)))
+    (_flatten coll [])
+    (raise (TypeError (.format "{0!r} is not a collection" coll)))))
+
+(defn _flatten [coll result]
+  (if (and (iterable? coll) (not (string? coll)))
+    (do (for* [b coll]
+          (_flatten b result)))
+    (.append result coll))
+  result)
 
 (defn float? [x]
   "Return True if x is float"
   (isinstance x float))
+
+(import [threading [Lock]])
+(setv _gensym_counter 1234)
+(setv _gensym_lock (Lock))
+
+(defn gensym [&optional [g "G"]]
+  (let [[new_symbol None]]
+    (global _gensym_counter)
+    (global _gensym_lock)
+    (.acquire _gensym_lock)
+    (try (do (setv _gensym_counter (inc _gensym_counter))
+             (setv new_symbol (HySymbol (.format ":{0}_{1}" g _gensym_counter))))
+         (finally (.release _gensym_lock)))
+    new_symbol))
+
+(defn calling-module-name [&optional [n 1]]
+  "Get the name of the module calling `n` levels up the stack from the
+  `calling-module-name` function call (by default, one level up)"
+  (import inspect)
+
+  (setv f (get (.stack inspect) (+ n 1) 0))
+  (get f.f_globals "__name__"))
 
 (defn inc [n]
   "Increment n by 1"
@@ -123,6 +181,20 @@
   (try (= x (iter x))
        (catch [TypeError] false)))
 
+(defn macroexpand [form]
+  "Return the full macro expansion of form"
+  (import hy.macros)
+
+  (setv name (calling-module-name))
+  (hy.macros.macroexpand form name))
+
+(defn macroexpand-1 [form]
+  "Return the single step macro expansion of form"
+  (import hy.macros)
+
+  (setv name (calling-module-name))
+  (hy.macros.macroexpand-1 form name))
+
 (defn neg? [n]
   "Return true if n is < 0"
   (_numeric-check n)
@@ -130,6 +202,10 @@
 
 (defn none? [x]
   "Return true if x is None"
+  (is x None))
+
+(defn nil? [x]
+  "Return true if x is nil (None)"
   (is x None))
 
 (defn numeric? [x]
@@ -159,7 +235,7 @@
 (defn remove [pred coll]
   "Return coll with elements removed that pass `pred`"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (not (pred val))
         (yield val)))))
 
@@ -167,7 +243,7 @@
   "Yield x forever or optionally n times"
   (if (none? n)
     (setv dispatch (fn [] (while true (yield x))))
-    (setv dispatch (fn [] (foreach [_ (range n)] (yield x)))))
+    (setv dispatch (fn [] (for* [_ (range n)] (yield x)))))
   (dispatch))
 
 (defn repeatedly [func]
@@ -195,7 +271,7 @@
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
   (let [[citer (iter coll)]]
-    (foreach [_ (range count)]
+    (for* [_ (range count)]
       (yield (next citer)))))
 
 (defn take-nth [n coll]
@@ -203,16 +279,16 @@
      raises ValueError for (not (pos? n))"
   (if (pos? n)
     (let [[citer (iter coll)] [skip (dec n)]]
-      (foreach [val citer]
+      (for* [val citer]
         (yield val)
-        (foreach [_ (range skip)]
+        (for* [_ (range skip)]
           (next citer))))
     (raise (ValueError "n must be positive"))))
 
 (defn take-while [pred coll]
   "Take all elements while `pred` is true"
   (let [[citer (iter coll)]]
-    (foreach [val citer]
+    (for* [val citer]
       (if (pred val)
         (yield val)
         (break)))))
@@ -222,7 +298,9 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[cycle dec distinct drop drop-while empty? even? filter float?
-                 inc instance? integer integer? iterable? iterate iterator? neg?
-                 none? nth numeric? odd? pos? remove repeat repeatedly second
+(def *exports* '[calling-module-name cycle dec distinct disassemble drop
+                 drop-while empty? even? filter flatten float? gensym
+                 inc instance? integer integer? iterable? iterate
+                 iterator? macroexpand macroexpand-1 neg? nil? none?
+                 nth numeric? odd? pos? remove repeat repeatedly second
                  string string? take take-nth take-while zero?])

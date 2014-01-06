@@ -5,6 +5,7 @@
 # Copyright (c) 2013 Konrad Hinsen <konrad.hinsen@fastmail.net>
 # Copyright (c) 2013 Thom Neale <twneale@gmail.com>
 # Copyright (c) 2013 Will Kahn-Greene <willg@bluesock.org>
+# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@ import sys
 import hy
 
 from hy.lex import LexException, PrematureEndOfInput, tokenize
-from hy.compiler import hy_compile
+from hy.compiler import hy_compile, HyTypeError
 from hy.importer import ast_compile, import_buffer_to_module
 from hy.completer import completion
 
@@ -73,17 +74,22 @@ def print_python_code(_ast):
 
 
 class HyREPL(code.InteractiveConsole):
-    def __init__(self, spy=False):
+    def __init__(self, spy=False, locals=None, filename="<input>"):
         self.spy = spy
-        code.InteractiveConsole.__init__(self)
+        code.InteractiveConsole.__init__(self, locals=locals,
+                                         filename=filename)
 
     def runsource(self, source, filename='<input>', symbol='single'):
+        global SIMPLE_TRACEBACKS
         try:
             tokens = tokenize(source)
         except PrematureEndOfInput:
             return True
-        except LexException:
-            self.showsyntaxerror(filename)
+        except LexException as e:
+            if e.source is None:
+                e.source = source
+                e.filename = filename
+            sys.stderr.write(str(e))
             return False
 
         try:
@@ -91,6 +97,15 @@ class HyREPL(code.InteractiveConsole):
             if self.spy:
                 print_python_code(_ast)
             code = ast_compile(_ast, filename, symbol)
+        except HyTypeError as e:
+            if e.source is None:
+                e.source = source
+                e.filename = filename
+            if SIMPLE_TRACEBACKS:
+                sys.stderr.write(str(e))
+            else:
+                self.showtraceback()
+            return False
         except Exception:
             self.showtraceback()
             return False
@@ -153,22 +168,34 @@ def ideas_macro():
 require("hy.cmdline", "__console__")
 require("hy.cmdline", "__main__")
 
+SIMPLE_TRACEBACKS = True
+
 
 def run_command(source):
     try:
         import_buffer_to_module("__main__", source)
-    except LexException as exc:
-        # TODO: This would be better if we had line, col info.
-        print(source)
-        print(repr(exc))
-        return 1
+    except (HyTypeError, LexException) as e:
+        if SIMPLE_TRACEBACKS:
+            sys.stderr.write(str(e))
+            return 1
+        raise
+    except Exception:
+        raise
     return 0
 
 
 def run_file(filename):
     from hy.importer import import_file_to_module
-    import_file_to_module("__main__", filename)
-    return 0  # right?
+    try:
+        import_file_to_module("__main__", filename)
+    except (HyTypeError, LexException) as e:
+        if SIMPLE_TRACEBACKS:
+            sys.stderr.write(str(e))
+            return 1
+        raise
+    except Exception:
+        raise
+    return 0
 
 
 def run_repl(hr=None, spy=False):
@@ -217,6 +244,9 @@ def cmdline_handler(scriptname, argv):
 
     parser.add_argument("-v", action="version", version=VERSION)
 
+    parser.add_argument("--show-tracebacks", action="store_true",
+                        help="show complete tracebacks for Hy exceptions")
+
     # this will contain the script/program name and any arguments for it.
     parser.add_argument('args', nargs=argparse.REMAINDER,
                         help=argparse.SUPPRESS)
@@ -226,6 +256,10 @@ def cmdline_handler(scriptname, argv):
     hy.executable = argv[0]
 
     options = parser.parse_args(argv[1:])
+
+    if options.show_tracebacks:
+        global SIMPLE_TRACEBACKS
+        SIMPLE_TRACEBACKS = False
 
     # reset sys.argv like Python
     sys.argv = options.args or [""]

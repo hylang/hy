@@ -26,19 +26,48 @@
 ;;; They are automatically required in every module, except inside hy.core
 
 
+(import [hy.models.list [HyList]]
+        [hy.models.symbol [HySymbol]])
+
+
+
 (defmacro for [args &rest body]
-  "shorthand for nested foreach loops:
-  (for [x foo y bar] baz) ->
-  (foreach [x foo]
-    (foreach [y bar]
+  "shorthand for nested for loops:
+  (for [x foo
+        y bar]
+    baz) ->
+  (for* [x foo]
+    (for* [y bar]
       baz))"
-  ;; TODO: that signature sucks.
-  ;; (for [[x foo] [y bar]] baz) would be more consistent
-  (if (% (len args) 2)
-    (macro-error args "for needs an even number of elements in its first argument"))
+
+  (if (odd? (len args))
+    (macro-error args "`for' requires an even number of args."))
+
+  (if (empty? body)
+    (macro-error None "`for' requires a body to evaluate"))
   (if args
-    `(foreach [~(.pop args 0) ~(.pop args 0)] (for ~args ~@body))
+    `(for* [~(.pop args 0) ~(.pop args 0)]
+       (for ~args ~@body))
     `(do ~@body)))
+
+
+(defmacro with [args &rest body]
+  "shorthand for nested for* loops:
+  (with [[x foo] [y bar]] baz) ->
+  (with* [x foo]
+    (with* [y bar]
+      baz))"
+
+  (if (not (empty? args))
+    (let [[primary (.pop args 0)]]
+      (if (isinstance primary HyList)
+        ;;; OK. if we have a list, we can go ahead and unpack that
+        ;;; as the argument to with.
+        `(with* [~@primary] (with ~args ~@body))
+        ;;; OK, let's just give it away. This may not be something we
+        ;;; can do, but that's really the programmer's problem.
+        `(with* [~primary] (with ~args ~@body))))
+      `(do ~@body)))
 
 
 (defmacro-alias [car first] [thing]
@@ -72,7 +101,7 @@
   (setv root (check-branch branch))
   (setv latest-branch root)
 
-  (foreach [branch branches]
+  (for* [branch branches]
     (setv cur-branch (check-branch branch))
     (.append latest-branch cur-branch)
     (setv latest-branch cur-branch))
@@ -82,7 +111,7 @@
 (defmacro -> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
-  (foreach [node rest]
+  (for* [node rest]
     (if (not (isinstance node HyExpression))
       (setv node `(~node)))
     (.insert node 1 ret)
@@ -93,7 +122,7 @@
 (defmacro ->> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
-  (foreach [node rest]
+  (for* [node rest]
     (if (not (isinstance node HyExpression))
       (setv node `(~node)))
     (.append node ret)
@@ -113,6 +142,44 @@
 
 (defmacro yield-from [iterable]
   "Yield all the items from iterable"
-  ;; TODO: this needs some gensym love
-  `(foreach [_hy_yield_from_x ~iterable]
-     (yield _hy_yield_from_x)))
+  (let [[x (gensym)]]
+  `(for* [~x ~iterable]
+     (yield ~x))))
+
+(defmacro with-gensyms [args &rest body]
+  `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
+    ~@body))
+
+(defmacro defmacro/g! [name args &rest body]
+  (let [[syms (list (distinct (filter (fn [x] (.startswith x "g!")) (flatten body))))]]
+    `(defmacro ~name [~@args]
+       (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
+            ~@body))))
+
+
+(defmacro kwapply [call kwargs]
+  "Use a dictionary as keyword arguments"
+  (let [[-fun (car call)]
+        [-args (cdr call)]
+        [-okwargs `[(list (.items ~kwargs))]]]
+    (while (= -fun "kwapply") ;; join any further kw
+      (if (not (= (len -args) 2))
+        (macro-error
+         call
+         (.format "Trying to call nested kwapply with {0} args instead of 2"
+                  (len -args))))
+      (.insert -okwargs 0 `(list (.items ~(car (cdr -args)))))
+      (setv -fun (car (car -args)))
+      (setv -args (cdr (car -args))))
+
+    `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))
+
+
+(defmacro dispatch-reader-macro [char &rest body]
+  "Dispatch a reader macro based on the character"
+  (import [hy.macros])
+  (setv str_char (get char 1))
+  (if (not (in str_char hy.macros._hy_reader_chars))
+    (raise (hy.compiler.HyTypeError char (.format "There is no reader macro with the character `{0}`" str_char))))
+  `(do (import [hy.macros [_hy_reader]])
+       ((get (get _hy_reader --name--) ~char) ~(get body 0))))

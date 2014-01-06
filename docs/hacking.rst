@@ -99,3 +99,14 @@ core team. Additional review is clearly welcome, but we need a minimum of
 If a core member is sending in a PR, please find 2 core members that don't
 include them PR submitter. The idea here is that one can work with the PR
 author, and a second acks the entire change set.
+
+If the change is adding documentation, feel free to just merge after one
+ACK. We've got low coverage, so it'd be great to keep that barrier low.
+
+
+Core Team
+=========
+
+Core development team of hy consists of following developers.
+
+.. include:: coreteam.rst

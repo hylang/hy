@@ -20,8 +20,9 @@ if "%1" == "help" (
     echo.    - tox
     echo.    - d
     echo.    - r
+    echo.    - clean
     echo.
-    goto end
+    goto :EOF
 )
 
 if "%1" == "docs" (
@@ -109,8 +110,25 @@ if "%1" == "r" (
 goto :EOF
 )
 
-if "%1" == full (
+if "%1" == "full" (
     call :docs
     call :d
     call :tox
+goto :EOF
 )
+
+if "%1" == "clean" (
+:clean
+   if EXIST hy\*.pyc cmd /C del /S /Q hy\*.pyc
+   if EXIST tests\*pyc cmd /C del /S /Q tests\*pyc
+   for /r %%R in (__pycache__) do if EXIST %%R (rmdir /S /Q %%R)
+   if EXIST .tox\NUL cmd /C rmdir /S /Q .tox
+   if EXIST dist\NUL cmd /C rmdir /S /Q dist
+   if EXIST hy.egg-info\NUL cmd /C rmdir /S /Q hy.egg-info
+   if EXIST docs\_build\NUL cmd /C rmdir /S /Q docs\_build
+   goto :EOF
+)
+
+echo.Error: '%1' - unknown target
+echo.
+goto :help

@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,6 +18,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from .test_ast import can_compile, cant_compile
 
-__appname__ = "hy"
-__version__ = "0.9.12"
+
+def test_macro_nested_kwapply():
+    "Make sure nested kwapply compile correctly"
+    can_compile("(kwapply (kwapply (foo) bar) baz)")
+    cant_compile("(kwapply (kwapply (foo)) bar)")

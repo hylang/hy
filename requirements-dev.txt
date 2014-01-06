@@ -1,5 +1,4 @@
 -r requirements.txt
-astor
 tox
 nose
 Sphinx

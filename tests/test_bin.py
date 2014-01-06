@@ -22,7 +22,8 @@
 # DEALINGS IN THE SOFTWARE.
 import os
 import subprocess
-import sys
+
+from nose.plugins.skip import SkipTest
 
 
 def run_cmd(cmd, stdin_data=None):
@@ -40,8 +41,8 @@ def run_cmd(cmd, stdin_data=None):
     # Read stdout and stderr otherwise if the PIPE buffer is full, we might
     # wait for ever…
     while p.poll() is None:
-        stdout += str(p.stdout.read())
-        stderr += str(p.stderr.read())
+        stdout += p.stdout.read().decode('utf-8')
+        stderr += p.stderr.read().decode('utf-8')
     return p.returncode, stdout, stderr
 
 
@@ -63,7 +64,7 @@ def test_bin_hy_cmd():
 
     ret = run_cmd("hy -c \"(koan\"")
     assert ret[0] == 1
-    assert "PrematureEndOfInput" in ret[1]
+    assert "Premature end of input" in ret[2]
 
 
 def test_bin_hy_icmd():
@@ -116,13 +117,9 @@ def test_bin_hyc_missing_file():
 
 
 def test_hy2py():
-    # XXX Astor doesn't seem to support Python3 :(
-    if sys.version_info[0] == 3:
-        return
-
     # and running this script this way doesn't work on Windows
     if os.name == "nt":
-        return
+        raise SkipTest("doesn't work on Windows")
 
     i = 0
     for dirpath, dirnames, filenames in os.walk("tests/native_tests"):
