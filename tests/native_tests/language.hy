@@ -888,3 +888,23 @@
   (setv stdout (.getvalue sys.stdout))
   (setv sys.stdout prev-stdout)
   (assert (= stdout "leaky()\nleaky()\nmacros()\n")))
+
+
+(defn test-attribute-access []
+  "NATIVE: Test the attribute access DSL"
+  (defclass mycls [object])
+
+  (setv foo [(mycls) (mycls) (mycls)])
+  (assert (is (. foo) foo))
+  (assert (is (. foo [0]) (get foo 0)))
+  (assert (is (. foo [0] --class--) mycls))
+  (assert (is (. foo [1] --class--) mycls))
+  (assert (is (. foo [(+ 1 1)] --class--) mycls))
+  (assert (= (. foo [(+ 1 1)] --class-- --name-- [0]) "m"))
+  (assert (= (. foo [(+ 1 1)] --class-- --name-- [1]) "y"))
+
+  (setv bar (mycls))
+  (setv (. foo [1]) bar)
+  (assert (is bar (get foo 1)))
+  (setv (. foo [1] test) "hello")
+  (assert (= (getattr (. foo [1]) "test") "hello")))

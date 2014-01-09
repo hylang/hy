@@ -464,3 +464,14 @@ def test_for_compile_error():
         assert(e.message == "`for' requires a body to evaluate")
     else:
         assert(False)
+
+
+def test_attribute_access():
+    """Ensure attribute access compiles correctly"""
+    can_compile("(. foo bar baz)")
+    can_compile("(. foo [bar] baz)")
+    can_compile("(. foo bar [baz] [0] quux [frob])")
+    can_compile("(. foo bar [(+ 1 2 3 4)] quux [frob])")
+    cant_compile("(. foo bar :baz [0] quux [frob])")
+    cant_compile("(. foo bar baz (0) quux [frob])")
+    cant_compile("(. foo bar baz [0] quux {frob})")
