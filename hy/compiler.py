@@ -1081,6 +1081,47 @@ class HyASTCompiler(object):
 
         return ret + val
 
+    @builds(".")
+    @checkargs(min=1)
+    def compile_attribute_access(self, expr):
+        expr.pop(0)  # dot
+
+        ret = self.compile(expr.pop(0))
+
+        for attr in expr:
+            if isinstance(attr, HySymbol):
+                ret += ast.Attribute(lineno=attr.start_line,
+                                     col_offset=attr.start_column,
+                                     value=ret.force_expr,
+                                     attr=ast_str(attr),
+                                     ctx=ast.Load())
+            elif type(attr) == HyList:
+                if len(attr) != 1:
+                    raise HyTypeError(
+                        attr,
+                        "The attribute access DSL only accepts HySymbols "
+                        "and one-item lists, got {0}-item list instead".format(
+                            len(attr),
+                        ),
+                    )
+                compiled_attr = self.compile(attr.pop(0))
+                ret = compiled_attr + ret + ast.Subscript(
+                    lineno=attr.start_line,
+                    col_offset=attr.start_column,
+                    value=ret.force_expr,
+                    slice=ast.Index(value=compiled_attr.force_expr),
+                    ctx=ast.Load())
+            else:
+                raise HyTypeError(
+                    attr,
+                    "The attribute access DSL only accepts HySymbols "
+                    "and one-item lists, got {0} instead".format(
+                        type(attr).__name__,
+                    ),
+                )
+
+        return ret
+
     @builds("del")
     @checkargs(min=1)
     def compile_del_expression(self, expr):
