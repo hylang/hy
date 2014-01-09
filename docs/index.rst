@@ -4,7 +4,7 @@ Welcome to Hy's documentation!
 
 
 
-.. image:: _static/hy_logo-smaller.png
+.. image:: _static/hy-logo-full.png
    :alt: Hy logo
    :align: left
 
