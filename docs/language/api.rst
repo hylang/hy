@@ -38,6 +38,37 @@ Hy features a number special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+.
+-
+
+.. versionadded:: 0.9.13
+
+
+`.` is used to perform attribute access on objects. It uses a small DSL
+to allow quick access to attributes and items in a nested datastructure.
+
+For instance,
+
+.. code-block:: clj
+
+    (. foo bar baz [(+ 1 2)] frob)
+
+Compiles down to
+
+.. code-block:: python
+
+     foo.bar.baz[1 + 2].frob
+
+`.` compiles its first argument (in the example, `foo`) as the object on
+which to do the attribute dereference. It uses bare symbols as
+attributes to access (in the example, `bar`, `baz`, `frob`), and
+compiles the contents of lists (in the example, `[(+ 1 2)]`) for
+indexation. Other arguments throw a compilation error.
+
+Access to unknown attributes throws an `AttributeError`. Access to
+unknown keys throws an `IndexError` (on lists) or a `KeyError` (on
+dicts).
+
 ->
 --
 
