@@ -97,6 +97,31 @@ appends it as the last argument. The following code demonstrates this:
     5 10
 
 
+apply
+-----
+
+`apply` is used to apply a list of arguments and an optional dictionary of
+kwargs to a function.
+
+Usage: `(apply fn-name args [kwargs])`
+
+Examples:
+
+.. code-block:: clj
+
+    (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]]
+      (* price amount fees vat))
+
+    (apply total-purchase [10 15])
+    ;=> 173.25
+
+    (apply total-purchase [10 15] {"vat" 1.05})
+    ;=> 165.375
+
+    (apply total-purchase [] {"price" 10 "amount" 15 "vat" 1.05})
+    ;=> 165.375
+
+
 and
 ---
 
