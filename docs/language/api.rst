@@ -100,14 +100,19 @@ appends it as the last argument. The following code demonstrates this:
 apply
 -----
 
-`apply` is used to apply a list of arguments and an optional dictionary of
-kwargs to a function.
+`apply` is used to apply an optional list of arguments and an optional
+dictionary of kwargs to a function.
 
-Usage: `(apply fn-name args [kwargs])`
+Usage: `(apply fn-name [args] [kwargs])`
 
 Examples:
 
 .. code-block:: clj
+    (defn thunk []
+      "hy there")
+
+    (apply thunk)
+    ;=> "hy there"
 
     (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]]
       (* price amount fees vat))
