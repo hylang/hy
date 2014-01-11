@@ -41,7 +41,7 @@
   (assert (= count 150)))
 
 
-(defn test-nasty-nesting []
+(defn test-nasty-for-nesting []
   "NATIVE: test nesting for loops harder"
   ;; This test and feature is dedicated to @nedbat.
 
@@ -65,7 +65,7 @@
     (else (throw Exception)))
 
   ;; OK. This next test will ensure that the else is hooked up to the
-  ;; "outter" iteration
+  ;; "outer" iteration
   (for [x (range 2)
         y (range 2)]
     (if (= x 1) (break))
