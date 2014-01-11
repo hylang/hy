@@ -52,10 +52,8 @@
       ; basecase, let's just slip right in.
       `(for* [~@args] ~@body)
       ; otherwise, let's do some legit handling.
-      (let [[it (iter args)]
-            [az (list (zip it it))]
-            [alist (list-comp (get x 0) [x az])]
-            [ilist (list-comp (get x 1) [x az])]]
+      (let [[alist (slice args 0 nil 2)]
+            [ilist (slice args 1 nil 2)]]
         `(do
            (import itertools)
            (for* [(, ~@alist) (itertools.product ~@ilist)] ~@body))))))
