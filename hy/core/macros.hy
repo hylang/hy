@@ -45,10 +45,18 @@
 
   (if (empty? body)
     (macro-error None "`for' requires a body to evaluate"))
-  (if args
-    `(for* [~(.pop args 0) ~(.pop args 0)]
-       (for ~args ~@body))
-    `(do ~@body)))
+
+  (if (= (len args) 2)
+    ; basecase, let's just slip right in.
+    `(for* [~@args] ~@body)
+    ; otherwise, let's do some legit handling.
+    (let [[it (iter args)]
+          [az (list (zip it it))]
+          [alist (list-comp (get x 0) [x az])]
+          [ilist (list-comp (get x 1) [x az])]]
+      `(do
+         (import itertools)
+         (for* [(, ~@alist) (itertools.product ~@ilist)] ~@body)))))
 
 
 (defmacro with [args &rest body]
