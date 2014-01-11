@@ -28,7 +28,9 @@ languages.
     and `i♥u` will become `hy_iu_t0x`.
 
   * Symbols that contain dashes will have them replaced with underscores. For
-    example, `render-template` will become `render_template`.
+    example, `render-template` will become `render_template`. This means that
+    symbols with dashes will shadow their underscore equivalents, and vice
+    versa.
 
 
 Builtins
