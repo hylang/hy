@@ -45,6 +45,11 @@
   "NATIVE: test nesting for loops harder"
   ;; This test and feature is dedicated to @nedbat.
 
+  ;; let's ensure empty iterating is an implicit do
+  (setv t 0)
+  (for [] (setv t 1))
+  (assert (= t 1))
+
   ;; OK. This first test will ensure that the else is hooked up to the
   ;; for when we break out of it.
   (for [x (range 2)
