@@ -41,6 +41,41 @@
   (assert (= count 150)))
 
 
+(defn test-nasty-nesting []
+  "NATIVE: test nesting for loops harder"
+  ;; This test and feature is dedicated to @nedbat.
+
+  ;; OK. This first test will ensure that the else is hooked up to the
+  ;; for when we break out of it.
+  (for [x (range 2)
+        y (range 2)]
+      (break)
+    (else (throw Exception)))
+
+  ;; OK. This next test will ensure that the else is hooked up to the
+  ;; "inner" iteration
+  (for [x (range 2)
+        y (range 2)]
+    (if (= y 1) (break))
+    (else (throw Exception)))
+
+  ;; OK. This next test will ensure that the else is hooked up to the
+  ;; "outter" iteration
+  (for [x (range 2)
+        y (range 2)]
+    (if (= x 1) (break))
+    (else (throw Exception)))
+
+  ;; OK. This next test will ensure that we call the else branch exactly
+  ;; once.
+  (setv flag 0)
+  (for [x (range 2)
+        y (range 2)]
+    (+ 1 1)
+    (else (setv flag (+ flag 2))))
+  (assert (= flag 2)))
+
+
 (defn test-while-loop []
   "NATIVE: test while loops?"
   (setv count 5)
