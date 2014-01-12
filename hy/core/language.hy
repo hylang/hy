@@ -149,6 +149,10 @@
   (setv f (get (.stack inspect) (+ n 1) 0))
   (get f.f_globals "__name__"))
 
+(defn first [coll]
+  "Return first item from `coll`"
+  (get coll 0))
+
 (defn inc [n]
   "Increment n by 1"
   (_numeric-check n)
@@ -239,6 +243,10 @@
       (if (not (pred val))
         (yield val)))))
 
+(defn rest [coll]
+  "Get all the elements of a coll, except the first."
+  (slice coll 1))
+
 (defn repeat [x &optional n]
   "Yield x forever or optionally n times"
   (if (none? n)
@@ -298,9 +306,9 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name cycle dec distinct disassemble drop
-                 drop-while empty? even? filter flatten float? gensym
-                 inc instance? integer integer? iterable? iterate
+(def *exports* '[calling-module-name cycle dec distinct disassemble
+                 drop drop-while empty? even? filter first flatten float?
+                 gensym inc instance? integer integer? iterable? iterate
                  iterator? macroexpand macroexpand-1 neg? nil? none?
-                 nth numeric? odd? pos? remove repeat repeatedly second
-                 string string? take take-nth take-while zero?])
+                 nth numeric? odd? pos? remove repeat repeatedly rest
+                 second string string? take take-nth take-while zero?])

@@ -78,12 +78,12 @@
       `(do ~@body)))
 
 
-(defmacro-alias [car first] [thing]
+(defmacro car [thing]
   "Get the first element of a list/cons"
   `(get ~thing 0))
 
 
-(defmacro-alias [cdr rest] [thing]
+(defmacro cdr [thing]
   "Get all the elements of a thing, except the first"
   `(slice ~thing 1))
 
