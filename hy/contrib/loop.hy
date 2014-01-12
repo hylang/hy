@@ -55,6 +55,23 @@
                 (recursive-replace old-term new-term term)]
                [True term]) [term body])))
 
+
+(defmacro/g! fnr [signature &rest body]
+  (let [[new-body (recursive-replace 'recur g!recur-fn body)]]
+    `(do
+      (import [hy.contrib.loop [--trampoline--]])
+      (def ~g!recur-fn
+        (--trampoline-- (fn [~@signature]
+                          ~@new-body)))
+      ~g!recur-fn)))
+
+(defmacro defnr [name lambda-list &rest body]
+  (if (not (= (type name) HySymbol))
+    (macro-error name "defnr takes a name as first argument"))
+  `(setv ~name (fnr ~lambda-list ~@body)))
+
+
+
 (defmacro loop [bindings &rest body]
   ;; Use inside functions like so:
   ;; (defun factorial [n]
