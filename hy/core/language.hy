@@ -30,6 +30,10 @@
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
 
+(defn coll? [coll]
+  "Checks whether item is a collection"
+  (and (iterable? coll) (not (string? coll))))
+
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
   (setv seen [])
@@ -112,7 +116,7 @@
 
 (defn flatten [coll]
   "Return a single flat list expanding all members of coll"
-  (if (and (iterable? coll) (not (string? coll)))
+  (if (coll? coll)
     (_flatten coll [])
     (raise (TypeError (.format "{0!r} is not a collection" coll)))))
 
@@ -298,8 +302,8 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name cycle dec distinct disassemble drop
-                 drop-while empty? even? filter flatten float? gensym
+(def *exports* '[calling-module-name coll? cycle dec distinct disassemble
+		 drop drop-while empty? even? filter flatten float? gensym
                  inc instance? integer integer? iterable? iterate
                  iterator? macroexpand macroexpand-1 neg? nil? none?
                  nth numeric? odd? pos? remove repeat repeatedly second
