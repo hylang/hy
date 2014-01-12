@@ -30,6 +30,14 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
+(defn test-coll? []
+  "NATIVE: testing coll?"
+  (assert-true (coll? [1 2 3]))
+  (assert-true (coll? {"a" 1 "b" 2}))
+  (assert-true (coll? (range 10)))
+  (assert-false (coll? "abc"))
+  (assert-false (coll? 1)))
+
 (defn test-cycle []
   "NATIVE: testing cycle"
   (assert-equal (list (cycle [])) [])

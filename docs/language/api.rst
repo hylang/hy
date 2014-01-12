@@ -28,7 +28,9 @@ languages.
     and `i♥u` will become `hy_iu_t0x`.
 
   * Symbols that contain dashes will have them replaced with underscores. For
-    example, `render-template` will become `render_template`.
+    example, `render-template` will become `render_template`. This means that
+    symbols with dashes will shadow their underscore equivalents, and vice
+    versa.
 
 
 Builtins
@@ -95,6 +97,36 @@ appends it as the last argument. The following code demonstrates this:
     => (defn output [a b] (print a b))
     => (->> (+ 5 5) (output 5))
     5 10
+
+
+apply
+-----
+
+`apply` is used to apply an optional list of arguments and an optional
+dictionary of kwargs to a function.
+
+Usage: `(apply fn-name [args] [kwargs])`
+
+Examples:
+
+.. code-block:: clj
+    (defn thunk []
+      "hy there")
+
+    (apply thunk)
+    ;=> "hy there"
+
+    (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]]
+      (* price amount fees vat))
+
+    (apply total-purchase [10 15])
+    ;=> 173.25
+
+    (apply total-purchase [10 15] {"vat" 1.05})
+    ;=> 165.375
+
+    (apply total-purchase [] {"price" 10 "amount" 15 "vat" 1.05})
+    ;=> 165.375
 
 
 and
@@ -989,6 +1021,42 @@ given conditional is False. The following shows how the macro expands into code.
     (if conditional 
       None 
       (do statement))
+
+
+unquote
+-------
+
+Within a quasiquoted form, `unquote` forces evaluation of a symbol. `unquote`
+is aliased to the `~` symbol.
+
+.. code-block:: clj
+
+    (def name "Cuddles")
+    (quasiquote (= name (unquote name)))
+    ;=> (u'=' u'name' u'Cuddles')
+
+    `(= name ~name)
+    ;=> (u'=' u'name' u'Cuddles')
+
+
+unquote-splice
+--------------
+
+`unquote-splice` forces the evaluation of a symbol within a quasiquoted form,
+much like `unquote`. `unquote-splice` can only be used when the symbol being
+unquoted contains an iterable value, as it "splices" that iterable into the
+quasiquoted form. `unquote-splice` is aliased to the `~@` symbol.
+
+.. code-block:: clj
+
+    (def nums [1 2 3 4])
+    (quasiquote (+ (unquote-splice nums)))
+    ;=> (u'+' 1L 2L 3L 4L)
+
+    `(+ ~@nums)
+    ;=> (u'+' 1L 2L 3L 4L)
+
+
 
 when
 ----
