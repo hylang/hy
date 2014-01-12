@@ -302,9 +302,9 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cycle dec distinct disassemble
-		 drop drop-while empty? even? filter flatten float? gensym
-                 inc instance? integer integer? iterable? iterate
-                 iterator? macroexpand macroexpand-1 neg? nil? none?
-                 nth numeric? odd? pos? remove repeat repeatedly second
-                 string string? take take-nth take-while zero?])
+(def *exports* '[calling-module-name coll? cycle dec distinct
+		 disassemble drop drop-while empty? even? filter flatten
+		 float? gensym inc instance? integer integer? iterable?
+		 iterate iterator? macroexpand macroexpand-1 neg? nil?
+		 none?  nth numeric? odd? pos? remove repeat repeatedly
+		 second string string? take take-nth take-while zero?])
