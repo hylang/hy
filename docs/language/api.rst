@@ -1022,6 +1022,42 @@ given conditional is False. The following shows how the macro expands into code.
       None 
       (do statement))
 
+
+unquote
+-------
+
+Within a quasiquoted form, `unquote` forces evaluation of a symbol. `unquote`
+is aliased to the `~` symbol.
+
+.. code-block:: clj
+
+    (def name "Cuddles")
+    (quasiquote (= name (unquote name)))
+    ;=> (u'=' u'name' u'Cuddles')
+
+    `(= name ~name)
+    ;=> (u'=' u'name' u'Cuddles')
+
+
+unquote-splice
+--------------
+
+`unquote-splice` forces the evaluation of a symbol within a quasiquoted form,
+much like `unquote`. `unquote-splice` can only be used when the symbol being
+unquoted contains an iterable value, as it "splices" that iterable into the
+quasiquoted form. `unquote-splice` is aliased to the `~@` symbol.
+
+.. code-block:: clj
+
+    (def nums [1 2 3 4])
+    (quasiquote (+ (unquote-splice nums)))
+    ;=> (u'+' 1L 2L 3L 4L)
+
+    `(+ ~@nums)
+    ;=> (u'+' 1L 2L 3L 4L)
+
+
+
 when
 ----
 
