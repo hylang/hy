@@ -6,6 +6,29 @@ Hy Core
 Core Functions
 ===============
 
+.. _is-coll-fn:
+
+coll?
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(coll? x)``
+
+Returns true if argument is iterable and not a string.
+
+.. code-block:: clojure
+
+   => (coll? [1 2 3 4])
+   True
+
+   => (coll? {"a" 1 "b" 2})
+   True
+
+   => (coll? "abc")
+   False
+
+
 .. _dec-fn:
 
 dec
