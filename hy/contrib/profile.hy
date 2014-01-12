@@ -23,7 +23,15 @@
 ;;; These macros make debugging where bottlenecks exist easier.
 
 
-(defmacro/g! profile [&rest body]
+(defmacro profile/calls [&rest body]
+  `(do
+     (import [pycallgraph [PyCallGraph]]
+             [pycallgraph.output [GraphvizOutput]])
+     (with* [(apply PyCallGraph [] {"output" (GraphvizOutput)})]
+           ~@body)))
+
+
+(defmacro/g! profile/cpu [&rest body]
   " Profile a bit of code "
   `(do
      (import cProfile pstats)
