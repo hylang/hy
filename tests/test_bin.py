@@ -76,6 +76,14 @@ def test_bin_hy_icmd():
     assert "figlet" in output
 
 
+def test_bin_hy_icmd_and_spy():
+    ret = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
+    assert ret[0] == 0
+    output = ret[1]
+
+    assert "([] + [])" in output
+
+
 def test_bin_hy_missing_file():
     ret = run_cmd("hy foobarbaz")
     assert ret[0] == 2
