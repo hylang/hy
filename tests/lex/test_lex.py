@@ -294,3 +294,11 @@ def test_lex_mangling_qmark():
     assert entry == [HySymbol("?")]
     entry = tokenize("im?foo")
     assert entry == [HySymbol("im?foo")]
+    entry = tokenize(".foo?")
+    assert entry == [HySymbol(".is_foo")]
+    entry = tokenize("foo.bar?")
+    assert entry == [HySymbol("foo.is_bar")]
+    entry = tokenize("foo?.bar")
+    assert entry == [HySymbol("is_foo.bar")]
+    entry = tokenize(".foo?.bar.baz?")
+    assert entry == [HySymbol(".is_foo.bar.is_baz")]

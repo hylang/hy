@@ -254,7 +254,7 @@ def t_identifier(p):
 
         return p
 
-    obj = mangle(obj)
+    obj = ".".join([mangle(part) for part in obj.split(".")])
 
     return HySymbol(obj)
 
