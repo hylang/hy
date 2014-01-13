@@ -126,7 +126,7 @@ def test_hy2py():
         for f in filenames:
             if f.endswith(".hy"):
                 i += 1
-                ret = run_cmd("bin/hy2py " + os.path.join(dirpath, f))
+                ret = run_cmd("bin/hy2py -s -a " + os.path.join(dirpath, f))
                 assert ret[0] == 0, f
                 assert len(ret[1]) > 1, f
                 assert len(ret[2]) == 0, f
