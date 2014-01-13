@@ -266,3 +266,31 @@ def test_lex_comment_382():
     """Ensure that we can tokenize sources with a comment at the end"""
     entry = tokenize("foo ;bar\n;baz")
     assert entry == [HySymbol("foo")]
+
+
+def test_lex_mangling_star():
+    """Ensure that mangling starred identifiers works according to plan"""
+    entry = tokenize("*foo*")
+    assert entry == [HySymbol("FOO")]
+    entry = tokenize("*")
+    assert entry == [HySymbol("*")]
+    entry = tokenize("*foo")
+    assert entry == [HySymbol("*foo")]
+
+
+def test_lex_mangling_hyphen():
+    """Ensure that hyphens get translated to underscores during mangling"""
+    entry = tokenize("foo-bar")
+    assert entry == [HySymbol("foo_bar")]
+    entry = tokenize("-")
+    assert entry == [HySymbol("-")]
+
+
+def test_lex_mangling_qmark():
+    """Ensure that identifiers ending with a question mark get mangled ok"""
+    entry = tokenize("foo?")
+    assert entry == [HySymbol("is_foo")]
+    entry = tokenize("?")
+    assert entry == [HySymbol("?")]
+    entry = tokenize("im?foo")
+    assert entry == [HySymbol("im?foo")]
