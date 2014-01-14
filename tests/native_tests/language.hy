@@ -1,6 +1,7 @@
 (import [tests.resources [kwtest function-with-a-dash]]
         [os.path [exists isdir isfile]]
-        [sys :as systest])
+        [sys :as systest]
+        [operator [or_]])
 (import sys)
 
 (import [hy._compat [PY33 PY34]])
@@ -985,6 +986,24 @@
   (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
 
+(defn test-merge-with []
+  "NATIVE: test merge-with"
+  (assert (= (merge-with + {} {}) nil))
+  (assert (= (merge-with + {"a" 10 "b" 20} {}) {"a" 10 "b" 20}))
+  (assert (= (merge-with + {} {"a" 10 "b" 20}) {"a" 10 "b" 20}))
+  (assert (= (merge-with + {"a" 10 "b" 20} {"a" 1 "c" 30})
+	     {"a" 11 "b" 20 "c" 30}))
+  (assert (= (merge-with +
+                         {:a 1  :b 2}
+                         {:a 9  :b 98  :c 0}
+                         {:a 10 :b 100 :c 10}
+                         {:a 5}
+                         {:c 5  :d 42})
+             {:d 42 :c 15 :a 25 :b 200}))
+  (assert (= (merge-with or_
+                         {"a" (set [1 2 3]) "b" (set [4 5 6])}
+                         {"a" (set [2 3 7 8]) "c" (set [1 2 3])})
+             {"a" (set [1 2 3 7 8]) "c" (set [1 2 3]) "b" (set [4 5 6])})))
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"
