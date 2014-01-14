@@ -203,6 +203,22 @@
   (setv name (calling-module-name))
   (hy.macros.macroexpand-1 form name))
 
+(defn merge-with [f &rest maps]
+  "Returns a map that consists of the rest of the maps joined onto
+   the first. If a key occurs in more than one map, the mapping(s)
+   from the latter (left-to-right) will be combined with the mapping in
+   the result by calling (f val-in-result val-in-latter)."
+  (when (any maps)
+    (let [[merge-entry (fn [m e]
+			 (let [[k (get e 0)] [v (get e 1)]]
+			   (if (in k m)
+			     (assoc m k (f (get m k) v))
+			     (assoc m k v)))
+			 m)]
+	  [merge2 (fn [m1 m2]
+		    (reduce merge-entry (.items m2) (or m1 {})))]]
+      (reduce merge2 maps))))
+
 (defn neg? [n]
   "Return true if n is < 0"
   (_numeric-check n)

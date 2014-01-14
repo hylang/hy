@@ -903,6 +903,11 @@
   (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
 
+(defn test-merge-with []
+  "NATIVE: test merge-with works right"
+  (assert (= (merge-with (fn [x y] (+ x y)) {"a" 1 "b" 2} {"a" 1 "c" 3})
+	     {"a" 2 "b" 2 "c" 3}))
+  )
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"
