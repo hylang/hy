@@ -110,6 +110,7 @@ Usage: `(apply fn-name [args] [kwargs])`
 Examples:
 
 .. code-block:: clj
+
     (defn thunk []
       "hy there")
 
