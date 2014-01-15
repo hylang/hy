@@ -89,7 +89,7 @@ The following code demonstrates this:
 ---
 
 `->>` or `threading tail macro` is similar to `threading macro` but instead of
-inserting each expression into the next expression’s first argument place it
+inserting each expression into the next expression’s first argument place, it
 appends it as the last argument. The following code demonstrates this:
 
 .. code-block:: clj
