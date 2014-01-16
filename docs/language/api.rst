@@ -283,7 +283,7 @@ do / progn
 the `do` and `progn` forms are used to evaluate each of their arguments and
 return the last one. Return values from every other than the last argument are
 discarded. It can be used in `lambda` or `list-comp` to perform more complex
-logic as show by one of the examples.
+logic as shown by one of the examples.
 
 Some example usage:
 
