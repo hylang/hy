@@ -1167,7 +1167,7 @@ yield
 The generator is iterable and therefore can be used in loops, list
 comprehensions and other similar constructs.
 
-Especially the second example shows how generators can be used to generate
+The function random-numbers shows how generators can be used to generate
 infinite series without consuming infinite amount of memory.
 
 .. code-block:: clj
