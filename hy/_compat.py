@@ -38,6 +38,7 @@ except ImportError:
                        (x >> 24) & 0xff]))
 import sys
 
+PY27 = sys.version_info >= (2, 7)
 PY3 = sys.version_info[0] >= 3
 PY33 = sys.version_info >= (3, 3)
 PY34 = sys.version_info >= (3, 4)
