@@ -548,8 +548,10 @@ for
 -------
 
 `for` is used to call a function for each element in a list or vector.
-The results of each call are discarded and the for expression returns None instead. Example code iterates over
-collection and calls side-effect to each element in the collection:
+The results of each call are discarded and the for expression returns
+None instead. The example code iterates over `collection` and
+for each `element` in `collection` calls the `side-effect`
+function with `element` as its argument:
 
 .. code-block:: clj
 
