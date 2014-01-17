@@ -242,14 +242,19 @@ def t_identifier(p):
     if obj.startswith("&"):
         return HyLambdaListKeyword(obj)
 
-    if obj.startswith("*") and obj.endswith("*") and obj not in ("*", "**"):
-        obj = obj[1:-1].upper()
+    def mangle(p):
+        if p.startswith("*") and p.endswith("*") and p not in ("*", "**"):
+            p = p[1:-1].upper()
 
-    if "-" in obj and obj != "-":
-        obj = obj.replace("-", "_")
+        if "-" in p and p != "-":
+            p = p.replace("-", "_")
 
-    if obj.endswith("?") and obj != "?":
-        obj = "is_%s" % (obj[:-1])
+        if p.endswith("?") and p != "?":
+            p = "is_%s" % (p[:-1])
+
+        return p
+
+    obj = ".".join([mangle(part) for part in obj.split(".")])
 
     return HySymbol(obj)
 

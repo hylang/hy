@@ -76,6 +76,14 @@ def test_bin_hy_icmd():
     assert "figlet" in output
 
 
+def test_bin_hy_icmd_and_spy():
+    ret = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
+    assert ret[0] == 0
+    output = ret[1]
+
+    assert "([] + [])" in output
+
+
 def test_bin_hy_missing_file():
     ret = run_cmd("hy foobarbaz")
     assert ret[0] == 2
@@ -126,7 +134,7 @@ def test_hy2py():
         for f in filenames:
             if f.endswith(".hy"):
                 i += 1
-                ret = run_cmd("bin/hy2py " + os.path.join(dirpath, f))
+                ret = run_cmd("bin/hy2py -s -a " + os.path.join(dirpath, f))
                 assert ret[0] == 0, f
                 assert len(ret[1]) > 1, f
                 assert len(ret[2]) == 0, f
