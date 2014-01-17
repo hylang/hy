@@ -1,6 +1,7 @@
 ;;; Hy tail-call optimization
 ;;
 ;; Copyright (c) 2014 Clinton Dreisbach <clinton@dreisbach.us>
+;; Copyright (c) 2014 Paul R. Tagliamonte <tag@pault.ag>
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -55,7 +56,24 @@
                 (recursive-replace old-term new-term term)]
                [True term]) [term body])))
 
-(defmacro loop [bindings &rest body]
+
+(defmacro/g! fnr [signature &rest body]
+  (let [[new-body (recursive-replace 'recur g!recur-fn body)]]
+    `(do
+      (import [hy.contrib.loop [--trampoline--]])
+      (with-decorator
+        --trampoline--
+        (def ~g!recur-fn (fn [~@signature] ~@new-body)))
+      ~g!recur-fn)))
+
+
+(defmacro defnr [name lambda-list &rest body]
+  (if (not (= (type name) HySymbol))
+    (macro-error name "defnr takes a name as first argument"))
+  `(setv ~name (fnr ~lambda-list ~@body)))
+
+
+(defmacro/g! loop [bindings &rest body]
   ;; Use inside functions like so:
   ;; (defun factorial [n]
   ;;   (loop [[i n]
@@ -67,13 +85,7 @@
   ;; If recur is used in a non-tail-call position, None is returned, which
   ;; causes chaos. Fixing this to detect if recur is in a tail-call position
   ;; and erroring if not is a giant TODO.
-  (with-gensyms [recur-fn]
-    (let [[fnargs (map (fn [x] (first x)) bindings)]
-          [initargs (map second bindings)]
-          [new-body (recursive-replace 'recur recur-fn body)]]
-      `(do
-        (import [hy.contrib.loop [--trampoline--]])
-        (def ~recur-fn
-          (--trampoline-- (fn [~@fnargs]
-                            ~@new-body)))
-        (~recur-fn ~@initargs)))))
+  (let [[fnargs (map (fn [x] (first x)) bindings)]
+        [initargs (map second bindings)]]
+    `(do (defnr ~g!recur-fn [~@fnargs] ~@body)
+         (~g!recur-fn ~@initargs))))

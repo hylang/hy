@@ -36,7 +36,7 @@ languages.
 Builtins
 ========
 
-Hy features a number special forms that are used to help generate
+Hy features a number of special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
@@ -89,7 +89,7 @@ The following code demonstrates this:
 ---
 
 `->>` or `threading tail macro` is similar to `threading macro` but instead of
-inserting each expression into the next expression’s first argument place it
+inserting each expression into the next expression’s first argument place, it
 appends it as the last argument. The following code demonstrates this:
 
 .. code-block:: clj
@@ -110,6 +110,7 @@ Usage: `(apply fn-name [args] [kwargs])`
 Examples:
 
 .. code-block:: clj
+
     (defn thunk []
       "hy there")
 
@@ -282,7 +283,7 @@ do / progn
 the `do` and `progn` forms are used to evaluate each of their arguments and
 return the last one. Return values from every other than the last argument are
 discarded. It can be used in `lambda` or `list-comp` to perform more complex
-logic as show by one of the examples.
+logic as shown by one of the examples.
 
 Some example usage:
 
@@ -429,7 +430,7 @@ defmacro
 `defmacro` is used to define macros. The general format is
 `(defmacro [parameters] expr)`.
 
-Following example defines a macro that can be used to swap order of elements in
+The following example defines a macro that can be used to swap order of elements in
 code, allowing the user to write code in infix notation, where operator is in
 between the operands.
 
@@ -1166,7 +1167,7 @@ yield
 The generator is iterable and therefore can be used in loops, list
 comprehensions and other similar constructs.
 
-Especially the second example shows how generators can be used to generate
+The function random-numbers shows how generators can be used to generate
 infinite series without consuming infinite amount of memory.
 
 .. code-block:: clj

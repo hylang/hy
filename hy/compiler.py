@@ -39,7 +39,7 @@ from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
 from hy.macros import require, macroexpand
-from hy._compat import str_type, long_type, PY33, PY3, PY34
+from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34
 import hy.importer
 
 import traceback
@@ -1265,39 +1265,112 @@ class HyASTCompiler(object):
                          ctx=ast.Load())
         return ret
 
+    def _compile_generator_iterables(self, trailers):
+        """Helper to compile the "trailing" parts of comprehensions:
+        generators and conditions"""
+
+        generators = trailers.pop(0)
+
+        cond = self.compile(trailers.pop(0)) if trailers != [] else Result()
+
+        gen_it = iter(generators)
+        paired_gens = zip(gen_it, gen_it)
+
+        gen_res = Result()
+        gen = []
+        for target, iterable in paired_gens:
+            comp_target = self.compile(target)
+            target = self._storeize(comp_target)
+            gen_res += self.compile(iterable)
+            gen.append(ast.comprehension(
+                target=target,
+                iter=gen_res.force_expr,
+                ifs=[]))
+
+        if cond.expr:
+            gen[-1].ifs.append(cond.expr)
+
+        return gen_res + cond, gen
+
     @builds("list_comp")
     @checkargs(min=2, max=3)
     def compile_list_comprehension(self, expr):
         # (list-comp expr (target iter) cond?)
         expr.pop(0)
         expression = expr.pop(0)
-        tar_it = iter(expr.pop(0))
-        targets = zip(tar_it, tar_it)
 
-        cond = self.compile(expr.pop(0)) if expr != [] else Result()
-
-        generator_res = Result()
-        generators = []
-        for target, iterable in targets:
-            comp_target = self.compile(target)
-            target = self._storeize(comp_target)
-            generator_res += self.compile(iterable)
-            generators.append(ast.comprehension(
-                target=target,
-                iter=generator_res.force_expr,
-                ifs=[]))
-
-        if cond.expr:
-            generators[-1].ifs.append(cond.expr)
+        gen_res, gen = self._compile_generator_iterables(expr)
 
         compiled_expression = self.compile(expression)
-        ret = compiled_expression + generator_res + cond
+        ret = compiled_expression + gen_res
         ret += ast.ListComp(
             lineno=expr.start_line,
             col_offset=expr.start_column,
             elt=compiled_expression.force_expr,
-            generators=generators)
+            generators=gen)
 
+        return ret
+
+    @builds("set_comp")
+    @checkargs(min=2, max=3)
+    def compile_set_comprehension(self, expr):
+        if PY27:
+            ret = self.compile_list_comprehension(expr)
+            expr = ret.expr
+            ret.expr = ast.SetComp(
+                lineno=expr.lineno,
+                col_offset=expr.col_offset,
+                elt=expr.elt,
+                generators=expr.generators)
+
+            return ret
+
+        expr[0] = HySymbol("list_comp").replace(expr[0])
+        expr = HyExpression([HySymbol("set"), expr]).replace(expr)
+        return self.compile(expr)
+
+    @builds("dict_comp")
+    @checkargs(min=3, max=4)
+    def compile_dict_comprehension(self, expr):
+        if PY27:
+            expr.pop(0)  # dict-comp
+            key = expr.pop(0)
+            value = expr.pop(0)
+
+            gen_res, gen = self._compile_generator_iterables(expr)
+
+            compiled_key = self.compile(key)
+            compiled_value = self.compile(value)
+            ret = compiled_key + compiled_value + gen_res
+            ret += ast.DictComp(
+                lineno=expr.start_line,
+                col_offset=expr.start_column,
+                key=compiled_key.force_expr,
+                value=compiled_value.force_expr,
+                generators=gen)
+
+            return ret
+
+        # In Python 2.6, turn (dict-comp key value [foo]) into
+        # (dict (list-comp (, key value) [foo]))
+
+        expr[0] = HySymbol("list_comp").replace(expr[0])
+        expr[1:3] = [HyExpression(
+            [HySymbol(",")] +
+            expr[1:3]
+        ).replace(expr[1])]
+        expr = HyExpression([HySymbol("dict"), expr]).replace(expr)
+        return self.compile(expr)
+
+    @builds("genexpr")
+    def compile_genexpr(self, expr):
+        ret = self.compile_list_comprehension(expr)
+        expr = ret.expr
+        ret.expr = ast.GeneratorExp(
+            lineno=expr.lineno,
+            col_offset=expr.col_offset,
+            elt=expr.elt,
+            generators=expr.generators)
         return ret
 
     @builds("apply")
