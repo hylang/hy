@@ -428,7 +428,7 @@ defmacro
 --------
 
 `defmacro` is used to define macros. The general format is
-`(defmacro [parameters] expr)`.
+`(defmacro name [parameters] expr)`.
 
 The following example defines a macro that can be used to swap order of elements in
 code, allowing the user to write code in infix notation, where operator is in
