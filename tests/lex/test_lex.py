@@ -258,7 +258,7 @@ def test_reader_macro():
     """Ensure reader macros are handles properly"""
     entry = tokenize("#^()")
     assert entry[0][0] == HySymbol("dispatch_reader_macro")
-    assert entry[0][1] == HyExpression([HySymbol("quote"), HyString("^")])
+    assert entry[0][1] == HyString("^")
     assert len(entry[0]) == 3
 
 
