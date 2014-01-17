@@ -3,7 +3,7 @@
 (defclass FakeMeth []
   "Mocking decorator class"
   [[rules {}]
-   [route (fn [self rule &kwargs options] 
+   [route (fn [self rule &kwargs options]
             (fn [f]
               (assoc self.rules rule (, f options))
               f))]])
