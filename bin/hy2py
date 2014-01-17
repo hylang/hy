@@ -1,24 +1,39 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from hy.importer import (import_file_to_ast, import_file_to_hst)
 
-from hy.importer import (import_file_to_ast, import_file_to_module,
-                         import_file_to_hst)
+import argparse
+import sys
 
 import astor.codegen
-import sys
 
 module_name = "<STDIN>"
 
-hst = import_file_to_hst(sys.argv[1])
-print(str(hst).encode("utf-8"))
-print("")
-print("")
-_ast = import_file_to_ast(sys.argv[1], module_name)
-print("")
-print("")
-print(astor.dump(_ast).encode("utf-8"))
-print("")
-print("")
-print(astor.codegen.to_source(_ast).encode("utf-8"))
+parser = argparse.ArgumentParser(
+    prog="hy2py",
+    usage="%(prog)s [options] FILE",
+    formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument("--with-source", "-s", action="store_true",
+                    help="Show the parsed source structure")
+parser.add_argument("--with-ast", "-a", action="store_true",
+                    help="Show the generated AST")
+parser.add_argument("--without-python", "-np", action="store_true",
+                    help="Do not show the python code generated from the AST")
+parser.add_argument('args', nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
 
-import_file_to_module(module_name, sys.argv[1])
+options = parser.parse_args(sys.argv[1:])
+
+if options.with_source:
+    hst = import_file_to_hst(options.args[0])
+    print(str(hst).encode("utf-8"))
+    print()
+    print()
+
+_ast = import_file_to_ast(options.args[0], module_name)
+if options.with_ast:
+    print(astor.dump(_ast).encode("utf-8"))
+    print()
+    print()
+
+if not options.without_python:
+    print(astor.codegen.to_source(_ast).encode("utf-8"))
