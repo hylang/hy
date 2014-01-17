@@ -12,3 +12,4 @@
 * `Nicolas Dandrimont <https://github.com/olasd>`_
 * `Bob Tolbert <https://github.com/rwtolbert>`_
 * `Berker Peksag <https://github.com/berkerpeksag>`_
+* `Clinton N. Dreisbach <https://github.com/cndreisbach>`_
