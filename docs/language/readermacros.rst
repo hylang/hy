@@ -24,7 +24,7 @@ Syntax
     => #^1+2+3+4+3+2
     1+2+3+4+3+2
 
-Hy got no literal for tuples. Lets say you dislike `(, ...)` and want something
+Hy has no literal for tuples. Lets say you dislike `(, ...)` and want something
 else. This is a problem reader macros are able to solve in a neat way.
 
 ::
@@ -33,7 +33,7 @@ else. This is a problem reader macros are able to solve in a neat way.
     => #t(1 2 3)
     (1, 2, 3)
 
-You could even do like clojure, and have a litteral for regular expressions!
+You could even do like clojure, and have a literal for regular expressions!
 
 ::
 
