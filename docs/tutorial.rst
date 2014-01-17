@@ -406,7 +406,7 @@ The same thing in Hy::
   ... 
   [3, 2, 1, 4]
 
-See how we use kwapply to handle the fancy pssing? :)
+See how we use kwapply to handle the fancy passing? :)
 
 There's also a dictionary-style keyword arguments construction that
 looks like:

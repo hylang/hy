@@ -9,7 +9,7 @@ Core Functions
 .. _is-coll-fn:
 
 coll?
-----
+-----
 
 .. versionadded:: 0.9.13
 
