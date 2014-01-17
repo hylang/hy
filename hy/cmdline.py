@@ -214,8 +214,8 @@ def run_repl(hr=None, spy=False):
     return 0
 
 
-def run_icommand(source):
-    hr = HyREPL()
+def run_icommand(source, spy=False):
+    hr = HyREPL(spy)
     hr.runsource(source, filename='<input>', symbol='single')
     return run_repl(hr)
 
@@ -270,7 +270,7 @@ def cmdline_handler(scriptname, argv):
 
     if options.icommand:
         # User did "hy -i ..."
-        return run_icommand(options.icommand)
+        return run_icommand(options.icommand, spy=options.spy)
 
     if options.args:
         if options.args[0] == "-":

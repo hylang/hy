@@ -181,13 +181,3 @@
       (setv -args (cdr (car -args))))
 
     `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))
-
-
-(defmacro dispatch-reader-macro [char &rest body]
-  "Dispatch a reader macro based on the character"
-  (import [hy.macros])
-  (setv str_char (get char 1))
-  (if (not (in str_char hy.macros._hy_reader_chars))
-    (raise (hy.compiler.HyTypeError char (.format "There is no reader macro with the character `{0}`" str_char))))
-  `(do (import [hy.macros [_hy_reader]])
-       ((get (get _hy_reader --name--) ~char) ~(get body 0))))

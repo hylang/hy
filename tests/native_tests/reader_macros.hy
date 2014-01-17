@@ -23,10 +23,14 @@
   (assert (= #+2 3)))
 
 
-(defn test-reader-macro-compile-docstring []
-  "Test if we can compile with a docstring"
-  (try
-    (defreader d []
-      "Compiles with docstrings")
-    (except [Exception] 
-            (assert False))))
+(defn test-reader-macros-macros []
+  "Test if defreader is actually a macro"
+  (defreader t [expr]
+    `(, ~@expr))
+
+  (def a #t[1 2 3])
+
+  (assert (= (type a) tuple))
+  (assert (= (, 1 2 3) a)))
+
+
