@@ -138,6 +138,13 @@
   ret)
 
 
+(defmacro if-not [test not-branch &optional [yes-branch nil]]
+  "Like `if`, but execute the first branch when the test fails"
+  (if (nil? yes-branch)
+    `(if (not ~test) ~not-branch)
+    `(if (not ~test) ~not-branch ~yes-branch)))
+
+
 (defmacro when [test &rest body]
   "Execute `body` when `test` is true"
   `(if ~test (do ~@body)))

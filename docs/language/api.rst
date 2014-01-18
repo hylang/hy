@@ -679,13 +679,16 @@ would thrown a `NameError`.
     (set-a 5)
     (print-a)
 
-if
---
+if / if-not
+-----------
 
 the `if` form is used to conditionally select code to be executed. It has to
 contain the condition block and the block to be executed if the condition
 evaluates `True`. Optionally it may contain a block that is executed in case
-the evaluation of the condition is `False`.
+the evaluation of the condition is `False`. The `if-not` form (*new in
+0.9.13*) is similar, but the first block after the test will be
+executed when the test fails, while the other, conditional one, when
+the test succeeds - opposite of the order of the `if` form.
 
 Example usage:
 
@@ -694,6 +697,10 @@ Example usage:
     (if (money-left? account)
       (print "lets go shopping")
       (print "lets go and work"))
+
+    (if-not (money-left? account)
+      (print "lets go and work")
+      (print "lets go shopping"))
 
 Truth values of Python objects are respected. Values `None`, `False`, zero of
 any numeric type, empty sequence and empty dictionary are considered `False`.
