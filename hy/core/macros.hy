@@ -152,7 +152,7 @@
 
 (defmacro unless [test &rest body]
   "Execute `body` when `test` is false"
-  `(if ~test None (do ~@body)))
+  `(if-not ~test (do ~@body)))
 
 
 (defmacro yield-from [iterable]
