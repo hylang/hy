@@ -20,7 +20,7 @@ Command line options
 
 .. cmdoption:: --spy
 
-   Print equivalent Hy code before executing. For example::
+   Print equivalent Python code before executing. For example::
 
     => (defn salutationsnm [name] (print (+ "Hy " name "!")))
     def salutationsnm(name):
