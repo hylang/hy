@@ -176,3 +176,12 @@
   (assert (in ":res_" s1))
   (assert (in ":res_" s2))
   (assert (not (= s1 s2))))
+
+(defn test-if-not []
+  (assert (= (if-not True :yes :no)
+             :no))
+  (assert (= (if-not False :yes :no)
+             :yes))
+  (assert (nil? (if-not True :yes)))
+  (assert (= (if-not False :yes)
+             :yes)))
