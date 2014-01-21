@@ -137,6 +137,24 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
    True
 
 
+.. _identity-fn:
+
+identity
+--------
+
+Usage: ``(identity x)``
+
+Returns argument supplied to the function
+
+.. code-block:: clojure
+
+   => (identity 4)
+   4
+
+   => (list (map identity [1 2 3 4]))
+   [1 2 3 4]
+
+
 .. _inc-fn:
 
 inc

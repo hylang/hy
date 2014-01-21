@@ -181,6 +181,12 @@
   (assert (not (= s2 s3)))
   (assert (not (= (str s2) (str s3)))))
 
+(defn test-identity []
+  "NATIVE: testing the identity function"
+  (assert (= 4 (identity 4)))
+  (assert (= "hy" (identity "hy")))
+  (assert (= [1 2] (identity [1 2]))))
+
 (defn test-inc []
   "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
