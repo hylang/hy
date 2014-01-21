@@ -176,3 +176,11 @@
   (assert (in ":res_" s1))
   (assert (in ":res_" s2))
   (assert (not (= s1 s2))))
+
+(defn test-defn-alias []
+  (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)
+  (defun-alias [tda-main tda-a1 tda-a2] [] :bazinga)
+  (assert (= (tda-main) :bazinga))
+  (assert (= (tda-a1) :bazinga))
+  (assert (= (tda-a2) :bazinga))
+  (assert (= tda-main tda-a1 tda-a2)))
