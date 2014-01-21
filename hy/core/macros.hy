@@ -181,3 +181,15 @@
       (setv -args (cdr (car -args))))
 
     `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))
+
+(defmacro dotimes [spec &rest body]
+  (unless (and  (>= (len spec) 2) (isinstance spec HyList))
+    (macro-error spec "`dotimes' needs a spec of the form [var num &optional result]"))
+
+  (unless (pos? (second spec))
+    (macro-error (second spec) "`dotimes' needs a positive num as second arg"))
+
+  `(do
+    (for* [~(first spec) (range ~(second spec))]
+      ~@body)
+    ~@(rest (rest spec))))

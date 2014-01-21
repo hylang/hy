@@ -176,3 +176,13 @@
   (assert (in ":res_" s1))
   (assert (in ":res_" s2))
   (assert (not (= s1 s2))))
+
+(defn test-dotimes []
+  ;; initially checking examples given in hyperspec
+  (assert (= (dotimes [temp-one 10 temp-one] nil) 9)) ; explicit nil for py3
+  (setv temp-two 0)
+  (defmacro incf [x] `(setv ~x (inc ~x)))
+  (assert (= (dotimes [temp-one 10 true] (incf temp-two)) true))
+  (assert (= temp-two 10))
+  (setv temp-three (iter (range 11)))
+  (assert (= (dotimes [i 10 (next temp-three)] (next temp-three)) 10)))
