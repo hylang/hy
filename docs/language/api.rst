@@ -392,7 +392,7 @@ Parameters may have following keywords in front of them:
         => (defn print-parameters [&kwargs kwargs]
         ...    (for [(, k v) (.items kwargs)] (print k v)))
 
-        => (kwapply (print-parameters) {"parameter-1" 1 "parameter-2" 2})
+        => (apply print-parameters [] {"parameter-1" 1 "parameter-2" 2})
         parameter-2 2
         parameter-1 1
 
@@ -758,32 +758,6 @@ of import you can use.
 
     ;; Import all module functions into current namespace
     (import [sys [*]])
-
-
-kwapply
--------
-
-`kwapply` can be used to supply keyword arguments to a function.
-
-For example:
-
-.. code-block:: clj
-
-    => (defn rent-car [&kwargs kwargs]
-    ...  (cond [(in :brand kwargs) (print "brand:" (:brand kwargs))]
-    ...        [(in :model kwargs) (print "model:" (:model kwargs))]))
-
-    => (kwapply (rent-car) {:model "T-Model"})
-    model: T-Model
-
-    => (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]] 
-    ...  (* price amount fees vat))
-
-    => (total-purchase 10 15)
-    173.25
-
-    => (kwapply (total-purchase 10 15) {"vat" 1.05})
-    165.375
 
 
 lambda / fn
