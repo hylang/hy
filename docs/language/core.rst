@@ -301,6 +301,24 @@ Returns the single step macro expansion of form.
    => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
    (u'_>' (u'a' u'b') (u'c' u'd') (u'e' u'f'))
 
+
+.. _merge-with-fn:
+
+merge-with
+----------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(merge-with f &rest maps)
+
+Returns a map that consist of the rest of the maps joined onto first. If a key occurs in more than one map, the mapping(s) from the latter (left-to-right) will be combined with the mapping in the result by calling (f val-in-result val-in-latter).
+
+.. code-block:: clojure
+
+    => (merge-with (fn [x y] (- x y)) {"a" 1 "b" 2} {"a" 1 "c" 3})
+    {u'a': 0L, u'c': 3L, u'b': 2L}
+
+
 .. _neg?-fn:
 
 neg?
