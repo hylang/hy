@@ -352,6 +352,8 @@ below:
     Meow
 
 
+.. _defn:
+
 defn / defun
 ------------
 
@@ -421,6 +423,29 @@ Parameters may have following keywords in front of them:
         8
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
+
+.. _defn-alias / defun-alias:
+
+defn-alias / defun-alias
+------------------------
+
+.. versionadded:: 0.9.13
+
+The `defn-alias` and `defun-alias` macros are much like `defn`_ above,
+with the difference that instead of defining a function with a single
+name, these can also define aliases. Other than taking a list of
+symbols for function names as the first parameter, `defn-alias` and
+`defun-alias` have no other differences compared to `defn` and
+`defun`.
+
+.. code-block:: clj
+
+  => (defn-alias [main-name alias] []
+  ...  (print "Hello!"))
+  => (main-name)
+  "Hello!"
+  => (alias)
+  "Hello!"
 
 .. _defmacro:
 
