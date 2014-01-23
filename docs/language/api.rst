@@ -352,6 +352,8 @@ below:
     Meow
 
 
+.. _defn:
+
 defn / defun
 ------------
 
@@ -421,6 +423,29 @@ Parameters may have following keywords in front of them:
         8
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
+
+.. _defn-alias / defun-alias:
+
+defn-alias / defun-alias
+------------------------
+
+.. versionadded:: 0.9.13
+
+The `defn-alias` and `defun-alias` macros are much like `defn`_ above,
+with the difference that instead of defining a function with a single
+name, these can also define aliases. Other than taking a list of
+symbols for function names as the first parameter, `defn-alias` and
+`defun-alias` have no other differences compared to `defn` and
+`defun`.
+
+.. code-block:: clj
+
+  => (defn-alias [main-name alias] []
+  ...  (print "Hello!"))
+  => (main-name)
+  "Hello!"
+  => (alias)
+  "Hello!"
 
 .. _defmacro:
 
@@ -679,13 +704,16 @@ would thrown a `NameError`.
     (set-a 5)
     (print-a)
 
-if
---
+if / if-not
+-----------
 
 the `if` form is used to conditionally select code to be executed. It has to
 contain the condition block and the block to be executed if the condition
 evaluates `True`. Optionally it may contain a block that is executed in case
-the evaluation of the condition is `False`.
+the evaluation of the condition is `False`. The `if-not` form (*new in
+0.9.13*) is similar, but the first block after the test will be
+executed when the test fails, while the other, conditional one, when
+the test succeeds - opposite of the order of the `if` form.
 
 Example usage:
 
@@ -694,6 +722,10 @@ Example usage:
     (if (money-left? account)
       (print "lets go shopping")
       (print "lets go and work"))
+
+    (if-not (money-left? account)
+      (print "lets go and work")
+      (print "lets go shopping"))
 
 Truth values of Python objects are respected. Values `None`, `False`, zero of
 any numeric type, empty sequence and empty dictionary are considered `False`.

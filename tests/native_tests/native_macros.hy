@@ -176,3 +176,22 @@
   (assert (in ":res_" s1))
   (assert (in ":res_" s2))
   (assert (not (= s1 s2))))
+
+
+(defn test-if-not []
+  (assert (= (if-not True :yes :no)
+             :no))
+  (assert (= (if-not False :yes :no)
+             :yes))
+  (assert (nil? (if-not True :yes)))
+  (assert (= (if-not False :yes)
+             :yes)))
+
+
+(defn test-defn-alias []
+  (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)
+  (defun-alias [tda-main tda-a1 tda-a2] [] :bazinga)
+  (assert (= (tda-main) :bazinga))
+  (assert (= (tda-a1) :bazinga))
+  (assert (= (tda-a2) :bazinga))
+  (assert (= tda-main tda-a1 tda-a2)))
