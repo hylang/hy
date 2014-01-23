@@ -1645,14 +1645,14 @@ class HyASTCompiler(object):
 
     @builds(HyExpression)
     def compile_expression(self, expression):
-        if expression == []:
-            return self.compile_list(expression)
-
         # Perform macro expansions
         expression = macroexpand(expression, self.module_name)
         if not isinstance(expression, HyExpression):
             # Go through compile again if the type changed.
             return self.compile(expression)
+
+        if expression == []:
+            return self.compile_list(expression)
 
         fn = expression[0]
         func = None
