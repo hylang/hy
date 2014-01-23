@@ -39,7 +39,7 @@ from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
 from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34
-from hy.macros import require, macroexpand, reader_macroexpand
+from hy.macros import require, macroexpand, reader_macroexpand, _wrap_value
 import hy.importer
 
 import traceback
@@ -564,7 +564,8 @@ class HyASTCompiler(object):
                         raise HyTypeError(form,
                                           ("`%s' needs 1 argument, got %s" %
                                            form[0], len(form) - 1))
-                    return set(), form[1], (form[0] == "unquote_splice")
+                    wval = _wrap_value(form[1])
+                    return set(), wval, (form[0] == "unquote_splice")
 
         if isinstance(form, HyExpression):
             if form and form[0] == "quasiquote":
@@ -594,15 +595,17 @@ class HyASTCompiler(object):
 
                 contents.append(to_add)
 
+            wval = _wrap_value(form)
             return imports, HyExpression([HySymbol(name),
-                                          contents]).replace(form), False
+                                          contents]).replace(wval), False
 
         elif isinstance(form, (HySymbol, HyLambdaListKeyword)):
+            wval = _wrap_value(form)
             return imports, HyExpression([HySymbol(name),
-                                          HyString(form)]).replace(form), False
+                                          HyString(form)]).replace(wval), False
 
         return imports, HyExpression([HySymbol(name),
-                                      form]).replace(form), False
+                                      form]).replace(_wrap_value(form)), False
 
     @builds("quote")
     @builds("quasiquote")
