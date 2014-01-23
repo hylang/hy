@@ -940,8 +940,8 @@
 
 (defn test-merge-with []
   "NATIVE: test merge-with"
-  (assert (= (merge-with (fn [x y] (+ x y)) {"a" 1 "b" 2} {"a" 1 "c" 3})
-	     {"a" 2 "b" 2 "c" 3})))
+  (assert (= (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
+	     {"a" 11 "b" 20 "c" 30})))
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"

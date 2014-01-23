@@ -315,8 +315,8 @@ Returns a map that consist of the rest of the maps joined onto first. If a key o
 
 .. code-block:: clojure
 
-    => (merge-with (fn [x y] (- x y)) {"a" 1 "b" 2} {"a" 1 "c" 3})
-    {u'a': 0L, u'c': 3L, u'b': 2L}
+    => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
+    {u'a': 11L, u'c': 30L, u'b': 20L}
 
 
 .. _neg?-fn:
