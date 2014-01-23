@@ -23,7 +23,7 @@
 ;;;; to make functional programming slightly easier.
 ;;;;
 
-
+(if-python2 nil (import [functools [reduce]]))
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 
 (defn _numeric-check [x]
@@ -203,6 +203,22 @@
   (setv name (calling-module-name))
   (hy.macros.macroexpand-1 form name))
 
+(defn merge-with [f &rest maps]
+  "Returns a map that consists of the rest of the maps joined onto
+   the first. If a key occurs in more than one map, the mapping(s)
+   from the latter (left-to-right) will be combined with the mapping in
+   the result by calling (f val-in-result val-in-latter)."
+  (if (any maps)
+    (let [[merge-entry (fn [m e]
+			 (let [[k (get e 0)] [v (get e 1)]]
+			   (if (in k m)
+			     (assoc m k (f (get m k) v))
+			     (assoc m k v)))
+			 m)]
+	  [merge2 (fn [m1 m2]
+		    (reduce merge-entry (.items m2) (or m1 {})))]]
+      (reduce merge2 maps))))
+
 (defn neg? [n]
   "Return true if n is < 0"
   (_numeric-check n)
@@ -313,7 +329,8 @@
 (def *exports* '[calling-module-name coll? cycle dec distinct
 		 disassemble drop drop-while empty? even? filter flatten
 		 float? gensym inc instance? integer integer? iterable?
-		 iterate iterator? macroexpand macroexpand-1 neg? nil?
-		 none?  nth numeric? odd? pos? remove repeat repeatedly
-		 second string string? take take-nth take-while zero?
+		 iterate iterator? macroexpand macroexpand-1 merge-with
+		 neg? nil? none?  nth numeric? odd? pos? remove repeat 
+		 repeatedly second string string? take take-nth take-while
+		 zero?
          first rest])
