@@ -2,8 +2,11 @@
 Command Line Interface
 ======================
 
+hy
+--
+
 Command line options
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 .. cmdoption:: -c <command>
 
@@ -41,3 +44,30 @@ Command line options
 .. cmdoption:: -v
 
    Print the Hy version number and exit.
+
+
+hyc
+---
+
+Command line options
+^^^^^^^^^^^^^^^^^^^^
+
+.. cmdoption:: file[, fileN]
+
+   Compile Hy code to Python bytecode. For example, save the
+   following code as ``hyname.hy``:
+
+   .. code-block:: clojure
+
+      (defn hy-hy [name]
+        (print (+ "Hy " name "!")))
+
+      (hy-hy "Afroman")
+
+   Then run:
+
+   .. code-block:: bash
+
+      $ hyc hyname.hy
+      $ python hyname.pyc
+      Hy Afroman!
