@@ -45,3 +45,11 @@
   "Performs depth-first, pre-order traversal of form. Calls f on each
   sub-form, uses f's return value in place of the original."
   (walk (partial prewalk f) identity (f form)))
+
+(defn macroexpand-all [form]
+  "Recursively performs all possible macroexpansions in form."
+  (prewalk (fn [x]
+             (if (instance? HyExpression x)
+               (macroexpand x)
+               x))
+           form))

@@ -22,3 +22,7 @@
     (assert (= (walk identity (partial collector acc) walk-form)
                nil))
     (assert (= acc [walk-form]))))
+
+(defn test-macroexpand-all []
+  (assert (= (macroexpand-all '(with [a b c] (for [d c] foo)))
+             '(with* [a] (with* [b] (with* [c] (do (for* [d c] foo))))))))
