@@ -36,4 +36,4 @@ class HyDict(HyList):
         return self[1::2]
 
     def items(self):
-        return zip(self.keys(), self.values())
+        return list(zip(self.keys(), self.values()))
