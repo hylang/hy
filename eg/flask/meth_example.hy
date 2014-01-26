@@ -23,5 +23,3 @@
 
 (route-with-methods both-index "/both" ["GET" "POST"] []
   (str "Hy to both worlds!"))
-
-(apply app.run [] {"port" 5151})
