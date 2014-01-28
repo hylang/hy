@@ -223,6 +223,14 @@
   (assert-false (integer? None))
   (assert-false (integer? "foo")))
 
+(defn test-integer-char? []
+  "NATIVE: testing the integer-char? function"
+  (assert-true (integer-char? "1"))
+  (assert-true (integer-char? "-1"))
+  (assert-true (integer-char? (str (integer 300))))
+  (assert-false (integer-char? "foo"))
+  (assert-false (integer-char? None)))
+
 (defn test-iterable []
   "NATIVE: testing iterable? function"
   ;; should work for a string

@@ -177,6 +177,13 @@
   "Return True if x in an integer"
   (isinstance x (, int long-type)))
 
+(defn integer-char? [x]
+  "Return True if char `x` parses as an integer"
+  (try
+   (integer? (int x))
+   (catch [e ValueError] False)
+   (catch [e TypeError] False)))
+
 (defn iterable? [x]
   "Return true if x is iterable"
   (try (do (iter x) true)
@@ -314,9 +321,11 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cycle dec distinct disassemble
-                 drop drop-while empty? even? first filter flatten float?
-                 gensym identity inc instance? integer integer? iterable?
-                 iterate iterator? macroexpand macroexpand-1 neg? nil?
-                 none? nth numeric? odd? pos? remove repeat repeatedly
-                 rest second string string? take take-nth take-while zero?])
+(def *exports* '[calling-module-name coll? cycle dec distinct
+                 disassemble drop drop-while empty? even? first filter
+                 flatten float? gensym identity inc instance? integer
+                 integer? integer-char? iterable? iterate iterator?
+                 macroexpand macroexpand-1 neg? nil? none? nth
+                 numeric? odd? pos? remove repeat repeatedly rest
+                 second string string? take take-nth take-while
+                 zero?])
