@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2014 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,6 +27,8 @@ from hy.models.complex import HyComplex
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
+from hy.models.list import HyList
+from hy.models.cons import HyCons
 
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 
@@ -302,3 +305,32 @@ def test_lex_mangling_qmark():
     assert entry == [HySymbol("is_foo.bar")]
     entry = tokenize(".foo?.bar.baz?")
     assert entry == [HySymbol(".is_foo.bar.is_baz")]
+
+
+def test_simple_cons():
+    """Check that cons gets tokenized correctly"""
+    entry = tokenize("(a . b)")[0]
+    assert entry == HyCons(HySymbol("a"), HySymbol("b"))
+
+
+def test_dotted_list():
+    """Check that dotted lists get tokenized correctly"""
+    entry = tokenize("(a b c . (d . e))")[0]
+    assert entry == HyCons(HySymbol("a"),
+                           HyCons(HySymbol("b"),
+                                  HyCons(HySymbol("c"),
+                                         HyCons(HySymbol("d"),
+                                                HySymbol("e")))))
+
+
+def test_cons_list():
+    """Check that cons of something and a list gets tokenized as a list"""
+    entry = tokenize("(a . [])")[0]
+    assert entry == HyList([HySymbol("a")])
+    assert type(entry) == HyList
+    entry = tokenize("(a . ())")[0]
+    assert entry == HyExpression([HySymbol("a")])
+    assert type(entry) == HyExpression
+    entry = tokenize("(a b . {})")[0]
+    assert entry == HyDict([HySymbol("a"), HySymbol("b")])
+    assert type(entry) == HyDict

@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,34 +18,39 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models.cons import HyCons
 
 
-class HyList(HyObject, list):
-    """
-    Hy List. Basically just a list.
-    """
+def test_cons_slicing():
+    """Check that cons slicing works as expected"""
+    cons = HyCons("car", "cdr")
+    assert cons[0] == "car"
+    assert cons[1:] == "cdr"
+    try:
+        cons[:]
+        assert True is False
+    except IndexError:
+        pass
 
-    def replace(self, other):
-        for x in self:
-            x.replace(other)
+    try:
+        cons[1]
+        assert True is False
+    except IndexError:
+        pass
 
-        HyObject.replace(self, other)
-        return self
 
-    def __add__(self, other):
-        return self.__class__(super(HyList, self).__add__(other))
+def test_cons_replacing():
+    """Check that assigning to a cons works as expected"""
+    cons = HyCons("foo", "bar")
+    cons[0] = "car"
 
-    def __getslice__(self, start, end):
-        return self.__class__(super(HyList, self).__getslice__(start, end))
+    assert cons == HyCons("car", "bar")
 
-    def __getitem__(self, item):
-        ret = super(HyList, self).__getitem__(item)
+    cons[1:] = "cdr"
+    assert cons == HyCons("car", "cdr")
 
-        if isinstance(item, slice):
-            return self.__class__(ret)
-
-        return ret
-
-    def __repr__(self):
-        return "[%s]" % (" ".join([repr(x) for x in self]))
+    try:
+        cons[:] = "foo"
+        assert True is False
+    except IndexError:
+        pass

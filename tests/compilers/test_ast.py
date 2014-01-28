@@ -475,3 +475,8 @@ def test_attribute_access():
     cant_compile("(. foo bar :baz [0] quux [frob])")
     cant_compile("(. foo bar baz (0) quux [frob])")
     cant_compile("(. foo bar baz [0] quux {frob})")
+
+
+def test_cons_correct():
+    """Ensure cons gets compiled correctly"""
+    can_compile("(cons a b)")

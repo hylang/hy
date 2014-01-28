@@ -29,6 +29,48 @@ Returns true if argument is iterable and not a string.
    False
 
 
+cons
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(cons a b)``
+
+Returns a fresh :ref:`cons cell <hycons>` with car `a` and cdr `b`.
+
+.. code-block:: clojure
+
+   => (setv a (cons 'hd 'tl))
+
+   => (= 'hd (car a))
+   True
+
+   => (= 'tl (cdr a))
+   True
+
+
+cons?
+-----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(cons? foo)``
+
+Checks whether ``foo`` is a :ref:`cons cell <hycons>`.
+
+.. code-block:: clojure
+
+   => (setv a (cons 'hd 'tl))
+
+   => (cons? a)
+   True
+
+   => (cons? nil)
+   False
+
+   => (cons? [1 2 3])
+   False
+
 .. _dec-fn:
 
 dec
@@ -282,6 +324,28 @@ Contrast with :ref:`iterable?-fn`.
 
    => ;; create an iterator from the dict
    => (iterator? (iter {:a 1 :b 2 :c 3}))
+   True
+
+list*
+-----
+
+Usage: ``(list* head &rest tail)``
+
+Generate a chain of nested cons cells (a dotted list) containing the
+arguments. If the argument list only has one element, return it.
+
+.. code-block:: clojure
+
+   => (list* 1 2 3 4)
+   (1 2 3 . 4)
+
+   => (list* 1 2 3 [4])
+   [1, 2, 3, 4]
+
+   => (list* 1)
+   1
+
+   => (cons? (list* 1 2 3 4))
    True
 
 .. _macroexpand-fn:
@@ -863,5 +927,3 @@ Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
 
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
-
-

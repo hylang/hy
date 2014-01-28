@@ -2,6 +2,7 @@
 
 
 import hy  # noqa
+from .native_tests.cons import *  # noqa
 from .native_tests.defclass import *  # noqa
 from .native_tests.math import *  # noqa
 from .native_tests.native_macros import *  # noqa
