@@ -19,6 +19,7 @@ Hylarious Hacks
 
 [Hy IRC bot](https://github.com/hylang/hygdrop)
 
+[miniKanren in Hy](https://github.com/algernon/adderall)
 
 OK, so, why?
 ------------
