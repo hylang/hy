@@ -180,7 +180,7 @@
 (defn integer-char? [x]
   "Return True if char `x` parses as an integer"
   (try
-   (integer? (int x))
+   (integer (int x))
    (catch [e ValueError] False)
    (catch [e TypeError] False)))
 

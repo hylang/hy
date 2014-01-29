@@ -225,9 +225,9 @@
 
 (defn test-integer-char? []
   "NATIVE: testing the integer-char? function"
-  (assert-true (integer-char? "1"))
-  (assert-true (integer-char? "-1"))
-  (assert-true (integer-char? (str (integer 300))))
+  (assert-equal 1 (integer-char? "1"))
+  (assert-equal -1 (integer-char? "-1"))
+  (assert-equal 300 (integer-char? (str (integer 300))))
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
