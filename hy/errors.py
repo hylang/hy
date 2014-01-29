@@ -137,7 +137,7 @@ class HyTypeError(TypeError):
                                  (self.__class__.__name__,
                                   self.message))
 
-        return result
+        return result.encode('utf-8')
 
 
 class HyMacroExpansionError(HyTypeError):
