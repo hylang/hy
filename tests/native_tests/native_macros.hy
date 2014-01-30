@@ -179,7 +179,7 @@
 
 (defn test-dotimes []
   ;; initially checking examples given in hyperspec
-  (assert (= (dotimes [temp-one 10 temp-one] nil) 9)) ; explicit nil for py3
+  (assert (= (dotimes [temp-one 10 temp-one] nil) 10)) ; explicit nil for py3
   (setv temp-two 0)
   (defmacro incf [x] `(setv ~x (inc ~x)))
   (assert (= (dotimes [temp-one 10 true] (incf temp-two)) true))

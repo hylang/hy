@@ -183,13 +183,10 @@
     `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))
 
 (defmacro dotimes [spec &rest body]
-  (unless (and  (>= (len spec) 2) (isinstance spec HyList))
+  (unless (and (isinstance spec HyList) (<= 2 (len spec) 3))
     (macro-error spec "`dotimes' needs a spec of the form [var num &optional result]"))
-
-  (unless (pos? (second spec))
-    (macro-error (second spec) "`dotimes' needs a positive num as second arg"))
-
   `(do
     (for* [~(first spec) (range ~(second spec))]
       ~@body)
-    ~@(rest (rest spec))))
+    (setv ~(car spec) (inc ~(car spec)))
+    ~@(slice spec 2)))
