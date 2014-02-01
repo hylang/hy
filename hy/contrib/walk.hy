@@ -32,6 +32,9 @@
     (outer (HyExpression (map inner form)))]
    [(instance? HyDict form)
     (HyDict (outer (HyExpression (map inner form))))]
+   [(cons? form)
+    (outer (cons (inner (first form))
+                 (inner (rest form))))]
    [(instance? list form)
     ((type form) (outer (HyExpression (map inner form))))]
    [true (outer form)]))
