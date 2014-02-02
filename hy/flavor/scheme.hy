@@ -24,9 +24,8 @@
 
 
 (defn null? [x]
-  "Returns true if x is empty list or tupple"
+  "Returns true if x is empty list or tuple"
   (if (and (not (isinstance list)) (not (isinstance tuple)))
     false
-    (progn
      (if (= (len x) 0)
-       true false))))
+       true false)))
