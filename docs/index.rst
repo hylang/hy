@@ -33,5 +33,6 @@ Contents:
    quickstart
    tutorial
    language/index
+   flavor/index
    contrib/index
    hacking
