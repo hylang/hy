@@ -110,7 +110,7 @@
 
 (defn fake-source-positions [tree]
   "Fake the source positions for a given tree"
-  (if (and (iterable? tree) (not (string? tree)))
+  (if (coll? tree)
     (for* [subtree tree]
           (fake-source-positions subtree)))
   (for* [attr '[start-line end-line start-column end-column]]
@@ -131,7 +131,7 @@
     (raise (TypeError (.format "{0!r} is not a collection" coll)))))
 
 (defn _flatten [coll result]
-  (if (and (iterable? coll) (not (string? coll)))
+  (if (coll? coll)
     (do (for* [b coll]
           (_flatten b result)))
     (.append result coll))
