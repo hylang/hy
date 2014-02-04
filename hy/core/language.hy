@@ -75,12 +75,12 @@
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
-  (let [[seen []] [citer (iter coll)]]
+  (let [[seen (set)] [citer (iter coll)]]
     (for* [val citer]
       (if (not_in val seen)
         (do
          (yield val)
-         (.append seen val))))))
+         (.add seen val))))))
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
