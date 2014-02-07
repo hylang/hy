@@ -25,7 +25,12 @@
 
 (defn null? [x]
   "Returns true if x is empty list or tuple"
-  (if (and (not (isinstance list)) (not (isinstance tuple)))
+  (if (and (not (isinstance x list)) (not (isinstance x tuple)))
     false
      (if (= (len x) 0)
        true false)))
+
+(defn pair? [x]
+  "Returns true if x is a non empty list or tuple"
+  (if (and (or (isinstance x list) (isinstance x tuple)) (not (null? x)))
+    true false))

@@ -41,3 +41,22 @@ Returns ``true`` if `x` is a empty list or tuple object otherwise returns
 
    => (null? nil)
    False
+
+.. _pair?-fn:
+
+pair?
+-----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(pair? x)``
+
+Returns ``true`` if ``x`` is a list or tuple, ``false`` otherwise.
+
+.. code-block:: clojure
+
+   => (pair? [])
+   True
+
+   => (pair? ())
+   
