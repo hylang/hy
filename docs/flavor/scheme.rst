@@ -13,8 +13,8 @@ null?
 
 Usage: ``(null? x)``
 
-Returns True if x is a empty list or tuple object otherwise returns
-false.
+Returns ``true`` if `x` is a empty list or tuple object otherwise returns
+``false``.
 
 .. code-block:: clojure
 
