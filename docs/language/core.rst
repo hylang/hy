@@ -164,7 +164,6 @@ Return True if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwi
 
 .. _float?-fn:
 
-
 float?
 -------
 
