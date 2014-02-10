@@ -31,7 +31,7 @@ Why?
 
 Well, I wrote Hy to help people realize one thing about Python:
 
-It's really goddamn awesome.
+It's awesome.
 
 Oh, and lisps are neat.
 
