@@ -123,6 +123,14 @@
   (try (even? None)
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
 
+(defn test-every? []
+  "NATIVE: testing the every? function"
+  (print "test-every?")
+  (assert-true (every? even? [2 4 6]))
+  (assert-false (every? even? [1 3 5]))
+  (assert-false (every? even? [2 4 5]))
+  (assert-true (every? even? [])))
+
 (defn test-filter []
   "NATIVE: testing the filter function"
   (setv res (list (filter pos? [ 1 2 3 -4 5])))
@@ -399,6 +407,14 @@
   (assert-equal 2 (second [1 2]))
   (assert-equal 3 (second [2 3 4])))
 
+(defn test-some []
+  "NATIVE: testing the some function"
+  (print "test-some")
+  (assert-true (some even? [2 4 6]))
+  (assert-false (some even? [1 3 5]))
+  (assert-true (some even? [1 3 6]))
+  (assert-false (some even? [])))
+
 (defn test-string? []
   "NATIVE: testing string?"
   (assert-true (string? "foo"))
@@ -456,4 +472,3 @@
   (assert-equal res [None None])
   (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
   (assert-equal res [1 2 3 4]))
-
