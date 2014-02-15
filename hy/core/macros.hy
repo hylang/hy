@@ -114,10 +114,6 @@
     (.append latest-branch cur-branch)
     (setv latest-branch cur-branch))
   root)
-  
-(defmacro cut [collection &rest slice_args]
-  "Performs slicing on a collection"
-  (get collection (apply slice slice_args)))
 
 
 (defmacro -> [head &rest rest]

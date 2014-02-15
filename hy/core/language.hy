@@ -53,6 +53,10 @@
   (while seen
     (for* [x seen]
       (yield x))))
+      
+(defn cut [collection &rest slice_args]
+  "Performs slicing on a collection"
+  (get collection (apply slice slice_args)))
 
 (defn dec [n]
   "Decrement n by 1"
