@@ -1,14 +1,14 @@
 Hy
 ==
 
-![](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)
-
-Lisp and Python should love each other. Let's make it happen. [Try it](http://try-hy.appspot.com/).
-
 [![Build Status](https://travis-ci.org/hylang/hy.png?branch=master)](https://travis-ci.org/hylang/hy)
 [![Downloads](https://pypip.in/d/hy/badge.png)](https://crate.io/packages/hy)
 [![version](https://pypip.in/v/hy/badge.png)](https://crate.io/packages/hy)
 [![Coverage Status](https://coveralls.io/repos/hylang/hy/badge.png)](https://coveralls.io/r/hylang/hy)
+
+![](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)
+
+Lisp and Python should love each other. Let's make it happen. [Try it](http://try-hy.appspot.com/).
 
 Hylarious Hacks
 ---------------
@@ -19,6 +19,7 @@ Hylarious Hacks
 
 [Hy IRC bot](https://github.com/hylang/hygdrop)
 
+[miniKanren in Hy](https://github.com/algernon/adderall)
 
 OK, so, why?
 ------------
@@ -30,7 +31,7 @@ Why?
 
 Well, I wrote Hy to help people realize one thing about Python:
 
-It's really goddamn awesome.
+It's really awesome.
 
 Oh, and lisps are neat.
 

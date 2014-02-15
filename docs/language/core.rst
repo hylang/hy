@@ -29,6 +29,48 @@ Returns true if argument is iterable and not a string.
    False
 
 
+cons
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(cons a b)``
+
+Returns a fresh :ref:`cons cell <hycons>` with car `a` and cdr `b`.
+
+.. code-block:: clojure
+
+   => (setv a (cons 'hd 'tl))
+
+   => (= 'hd (car a))
+   True
+
+   => (= 'tl (cdr a))
+   True
+
+
+cons?
+-----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(cons? foo)``
+
+Checks whether ``foo`` is a :ref:`cons cell <hycons>`.
+
+.. code-block:: clojure
+
+   => (setv a (cons 'hd 'tl))
+
+   => (cons? a)
+   True
+
+   => (cons? nil)
+   False
+
+   => (cons? [1 2 3])
+   False
+
 .. _dec-fn:
 
 dec
@@ -94,6 +136,32 @@ Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
 
    => (empty? (, 1 2))
    False
+
+
+.. _every?-fn:
+
+every?
+------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(every? pred coll)``
+
+Return True if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwise False. Return True if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (every? even? [2 4 6])
+   True
+
+   => (every? even? [1 3 5])
+   False
+
+   => (every? even? [2 4 5])
+   False
+
+   => (every? even? [])
+   True
 
 
 .. _float?-fn:
@@ -282,6 +350,28 @@ Contrast with :ref:`iterable?-fn`.
 
    => ;; create an iterator from the dict
    => (iterator? (iter {:a 1 :b 2 :c 3}))
+   True
+
+list*
+-----
+
+Usage: ``(list* head &rest tail)``
+
+Generate a chain of nested cons cells (a dotted list) containing the
+arguments. If the argument list only has one element, return it.
+
+.. code-block:: clojure
+
+   => (list* 1 2 3 4)
+   (1 2 3 . 4)
+
+   => (list* 1 2 3 [4])
+   [1, 2, 3, 4]
+
+   => (list* 1)
+   1
+
+   => (cons? (list* 1 2 3 4))
    True
 
 .. _macroexpand-fn:
@@ -504,6 +594,32 @@ Return the second member of ``coll``. Equivalent to
 
    => (second [0 1 2])
    1
+
+
+.. _some-fn:
+
+some
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(some pred coll)``
+
+Return True if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise False. Return False if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (some even? [2 4 6])
+   True
+
+   => (some even? [1 3 5])
+   False
+
+   => (some even? [1 3 6])
+   True
+
+   => (some even? [])
+   False
 
 
 .. _string?-fn:
@@ -863,5 +979,3 @@ Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
 
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
-
-

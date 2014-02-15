@@ -276,7 +276,7 @@ You might notice above that if you have code like:
      (body-if-true)
      (body-if-false))
 
-But wait!  What if you want to execute more than one statment in the
+But wait!  What if you want to execute more than one statement in the
 body of one of these?
 
 You can do the following:
@@ -289,7 +289,7 @@ You can do the following:
        (print "and why not, let's keep talking about how true it is!))
      (print "this one's still simply just false"))
 
-You can see that we used "do" to wrap multiple statments.  If you're
+You can see that we used "do" to wrap multiple statements.  If you're
 familiar with other lisps, this is the equivalent of "progn"
 elsewhere.
 
@@ -311,8 +311,8 @@ The equivalent in hy would be:
 
 .. code-block:: clj
 
-  (for (i (range 10))
-     (print (+ "'i' is now at " (str i))))
+  (for [i (range 10)]
+    (print (+ "'i' is now at " (str i))))
 
 
 You can also import and make use of various python libraries.  For
@@ -330,13 +330,13 @@ Python's context managers ('with' statements) are used like this:
 
 .. code-block:: clj 
  
-     (with [f (file "/tmp/data.in")] 
-       (print (.read f))) 
+     (with [[f (open "/tmp/data.in")]]
+       (print (.read f)))
 
 which is equivalent to::
 
-  with file("/tmp/data.in") as f:
-    print f.read()
+  with open("/tmp/data.in") as f:
+      print f.read()
  
 And yes, we do have lisp comprehensions!  In Python you might do::
 
@@ -435,7 +435,7 @@ The Hy equivalent:
 Finally, of course we need classes!  In python we might have a class
 like::
 
-  class FooBar (object):
+  class FooBar(object):
      def __init__(self, x):
          self.x = x
 
