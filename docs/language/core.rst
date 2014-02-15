@@ -138,6 +138,32 @@ Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
    False
 
 
+.. _every?-fn:
+
+every?
+------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(every? pred coll)``
+
+Return True if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwise False. Return True if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (every? even? [2 4 6])
+   True
+
+   => (every? even? [1 3 5])
+   False
+
+   => (every? even? [2 4 5])
+   False
+
+   => (every? even? [])
+   True
+
+
 .. _float?-fn:
 
 float?
@@ -568,6 +594,32 @@ Return the second member of ``coll``. Equivalent to
 
    => (second [0 1 2])
    1
+
+
+.. _some-fn:
+
+some
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(some pred coll)``
+
+Return True if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise False. Return False if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (some even? [2 4 6])
+   True
+
+   => (some even? [1 3 5])
+   False
+
+   => (some even? [1 3 6])
+   True
+
+   => (some even? [])
+   False
 
 
 .. _string?-fn:
