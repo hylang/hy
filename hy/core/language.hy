@@ -75,12 +75,12 @@
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
-  (let [[seen []] [citer (iter coll)]]
+  (let [[seen (set)] [citer (iter coll)]]
     (for* [val citer]
       (if (not_in val seen)
         (do
          (yield val)
-         (.append seen val))))))
+         (.add seen val))))))
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
@@ -107,6 +107,10 @@
   "Return true if n is an even number"
   (_numeric-check n)
   (= (% n 2) 0))
+
+(defn every? [pred coll]
+  "Return true if (pred x) is logical true for every x in coll, else false"
+  (all (map pred coll)))
 
 (defn fake-source-positions [tree]
   "Fake the source positions for a given tree"
@@ -294,6 +298,10 @@
   "Return second item from `coll`"
   (get coll 1))
 
+(defn some [pred coll]
+  "Return true if (pred x) is logical true for any x in coll, else false"
+  (any (map pred coll)))
+
 (defn string [x]
   "Cast x as current string implementation"
   (if-python2
@@ -338,9 +346,9 @@
   (= n 0))
 
 (def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
-                 disassemble drop drop-while empty? even? first filter
+                 disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
                  list* macroexpand macroexpand-1 neg? nil? none? nth
                  numeric? odd? pos? remove repeat repeatedly rest second
-                 string string? take take-nth take-while zero?])
+                 some string string? take take-nth take-while zero?])

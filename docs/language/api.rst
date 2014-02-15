@@ -762,6 +762,9 @@ of import you can use.
             [os.path [exists isdir isfile]]
             [sys :as systest])
 
+    ;; Import all module functions into current namespace
+    (import [sys [*]])
+
 
 kwapply
 -------
