@@ -280,7 +280,7 @@
 
 (defn rest [coll]
   "Get all the elements of a coll, except the first."
-  (slice coll 1))
+  (get coll (slice 1 None)))
 
 (defn repeat [x &optional n]
   "Yield x forever or optionally n times"
