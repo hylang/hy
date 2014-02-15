@@ -85,7 +85,7 @@
 
 (defmacro cdr [thing]
   "Get all the elements of a thing, except the first"
-  `(slice ~thing 1))
+  `(get ~thing (slice 1 None)))
 
 
 (defmacro cond [&rest branches]
