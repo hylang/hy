@@ -52,8 +52,8 @@
       ; basecase, let's just slip right in.
       `(for* [~@args] ~@body)
       ; otherwise, let's do some legit handling.
-      (let [[alist (slice args 0 nil 2)]
-            [ilist (slice args 1 nil 2)]]
+      (let [[alist (get args (slice 0 nil 2))]
+            [ilist (get args (slice 1 nil 2))]]
         `(do
            (import itertools)
            (for* [(, ~@alist) (itertools.product ~@ilist)] ~@body))))))
@@ -172,7 +172,7 @@
 (defmacro defmacro/g! [name args &rest body]
   (let [[syms (list (distinct (filter (fn [x] (.startswith x "g!")) (flatten body))))]]
     `(defmacro ~name [~@args]
-       (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
+       (let ~(HyList (map (fn [x] `[~x (gensym (get '~x (slice 2 None)))]) syms))
             ~@body))))
 
 
