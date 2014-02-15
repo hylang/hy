@@ -1156,34 +1156,6 @@ class HyASTCompiler(object):
             col_offset=expr.start_column,
             targets=del_targets)
 
-    @builds("slice")
-    @checkargs(min=1, max=4)
-    def compile_slice_expression(self, expr):
-        expr.pop(0)  # index
-        val = self.compile(expr.pop(0))  # target
-
-        low = Result()
-        if expr != []:
-            low = self.compile(expr.pop(0))
-
-        high = Result()
-        if expr != []:
-            high = self.compile(expr.pop(0))
-
-        step = Result()
-        if expr != []:
-            step = self.compile(expr.pop(0))
-
-        # use low.expr, high.expr and step.expr to use a literal `None`.
-        return val + low + high + step + ast.Subscript(
-            lineno=expr.start_line,
-            col_offset=expr.start_column,
-            value=val.force_expr,
-            slice=ast.Slice(lower=low.expr,
-                            upper=high.expr,
-                            step=step.expr),
-            ctx=ast.Load())
-
     @builds("assoc")
     @checkargs(min=3, even=False)
     def compile_assoc_expression(self, expr):
