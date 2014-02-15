@@ -11,7 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
+import sys
+import time
 sys.path.append(os.path.abspath(".."))
 
 import hy
@@ -44,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'hy'
-copyright = u'2013, Paul Tagliamonte'
+copyright = u'2013-%s, Paul Tagliamonte' % time.strftime('%Y')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
