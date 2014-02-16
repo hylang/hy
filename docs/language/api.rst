@@ -993,16 +993,16 @@ element:
     [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
-slice
+cut
 -----
 
-`slice` can be used to take a subset of a list and create a new list from it.
-The form takes at least one parameter specifying the list to slice. Two
+`cut` can be used to take a subset of a list and create a new list from it, much like Python's slice.
+The form takes at least one parameter specifying the list to cut. Two
 optional parameters can be used to give the start and end position of the
 subset. If they are not supplied, default value of None will be used instead.
 Third optional parameter is used to control step between the elements.
 
-`slice` follows the same rules as the Python counterpart. Negative indecies are
+`cut` follows the same rules as the Python counterpart. Negative indices are
 counted starting from the end of the list.
 Some examples of
 usage:
@@ -1011,19 +1011,19 @@ usage:
 
     => (def collection (range 10))
 
-    => (slice collection)
+    => (cut collection None)
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    => (slice collection 5)
-    [5, 6, 7, 8, 9]
+    => (cut collection 5)
+    [0, 1, 2, 3, 4]
 
-    => (slice collection 2 8)
+    => (cut collection 2 8)
     [2, 3, 4, 5, 6, 7]
 
-    => (slice collection 2 8 2)
+    => (cut collection 2 8 2)
     [2, 4, 6]
 
-    => (slice collection -4 -2)
+    => (cut collection -4 -2)
     [6, 7]
 
 
