@@ -453,6 +453,7 @@
 (defn test-first []
   "NATIVE: test firsty things"
   (assert (= (first [1 2 3 4 5]) 1))
+  (assert (= (first (genexpr (* x 10) (x (range 1 6)))) 10))
   (assert (= (car [1 2 3 4 5]) 1)))
 
 
@@ -479,7 +480,8 @@
 
 (defn test-rest []
   "NATIVE: test rest"
-  (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))
+  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5]))
+  (assert (= (list (rest (genexpr (* x 10) (x (range 1 6))))) [20 30 40 50])))
 
 
 (defn test-importas []

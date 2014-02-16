@@ -170,7 +170,7 @@
 
 (defn first [coll]
   "Return first item from `coll`"
-  (get coll 0))
+  (nth coll 0))
 
 (defn identity [x]
   "Returns the argument unchanged"
@@ -277,7 +277,7 @@
 
 (defn rest [coll]
   "Get all the elements of a coll, except the first."
-  (slice coll 1))
+  ((. itertools islice) coll 1 None))
 
 (defn repeat [x &optional n]
   "Yield x forever or optionally n times"
@@ -293,7 +293,7 @@
 
 (defn second [coll]
   "Return second item from `coll`"
-  (get coll 1))
+  (first (rest coll)))
 
 (defn some [pred coll]
   "Return true if (pred x) is logical true for any x in coll, else false"

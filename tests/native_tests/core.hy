@@ -407,7 +407,8 @@
 (defn test-second []
   "NATIVE: testing second"
   (assert-equal 2 (second [1 2]))
-  (assert-equal 3 (second [2 3 4])))
+  (assert-equal 3 (second [2 3 4]))
+  (assert-equal 20 (second (genexpr (* x 10) (x (range 1 6))))))
 
 (defn test-some []
   "NATIVE: testing the some function"
