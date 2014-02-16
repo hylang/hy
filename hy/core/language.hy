@@ -349,7 +349,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
+(def *exports* '[calling-module-name coll? cons cons? cut cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
