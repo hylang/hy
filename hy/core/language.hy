@@ -26,6 +26,7 @@
 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]])
+(import itertools)
 
 
 (defn _numeric-check [x]
@@ -251,15 +252,11 @@
   (import numbers)
   (instance? numbers.Number x))
 
-(defn nth [coll index]
+(defn nth [coll index &optional default]
   "Return nth item in collection or sequence, counting from 0"
   (if (not (neg? index))
-    (if (iterable? coll)
-      (try (get (list (take 1 (drop index coll))) 0)
-           (catch [IndexError] None))
-      (try (get coll index)
-           (catch [IndexError] None)))
-    None))
+    (next ((. itertools islice) coll index None) default)
+    default))
 
 (defn odd? [n]
   "Return true if n is an odd number"

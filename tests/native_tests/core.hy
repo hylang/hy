@@ -341,7 +341,10 @@
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
   (assert-true  (none? (nth (iter [1 2 4 7]) -1)))
-  (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
+  (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
+  ; with default specified
+  (assert-equal "default value" (nth [0 1 2] 3 "default value"))
+  (assert-equal "default value" (nth [0 1 2] -1 "default value")))
 
 (defn test-numeric? []
   "NATIVE: testing the numeric? function"
