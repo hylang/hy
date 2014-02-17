@@ -983,3 +983,8 @@
   (assert (is bar (get foo 1)))
   (setv (. foo [1] test) "hello")
   (assert (= (getattr (. foo [1]) "test") "hello")))
+
+(defn test-keyword-quoting []
+  "NATIVE: test keyword quoting magic"
+  (assert (= :foo "\ufdd0:foo"))
+  (assert (= `:foo "\ufdd0:foo")))
