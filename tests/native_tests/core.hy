@@ -331,6 +331,20 @@
   (assert-false (nil? 0))
   (assert-false (nil? "")))
 
+(defn test-not-any? []
+  "NATIVE: testing the not-any? function"
+  (assert-false (not-any? even? [2 4 6]))
+  (assert-true (not-any? even? [1 3 5]))
+  (assert-false (not-any? even? [1 3 6]))
+  (assert-true (not-any? even? [])))
+
+(defn test-not-every? []
+  "NATIVE: testing the not-every? function"
+  (assert-false (not-every? even? [2 4 6]))
+  (assert-true (not-every? even? [1 3 5]))
+  (assert-true (not-every? even? [2 4 5]))
+  (assert-false (not-every? even? [])))
+
 (defn test-nth []
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))

@@ -248,6 +248,14 @@
   "Return true if x is nil (None)"
   (is x None))
 
+(defn not-any? [pred coll]
+  "Return false if (pred x) is logical true for any x in coll, else true"
+  (not (some pred coll)))
+
+(defn not-every? [pred coll]
+  "Return false if (pred x) is logical true for every x in coll, else true"
+  (not (every? pred coll)))
+
 (defn numeric? [x]
   (import numbers)
   (instance? numbers.Number x))
@@ -346,6 +354,7 @@
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
-                 list* macroexpand macroexpand-1 neg? nil? none? nth
-                 numeric? odd? pos? remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero?])
+                 list* macroexpand macroexpand-1 neg? nil? none? not-any?
+                 not-every? nth numeric? odd? pos? remove repeat repeatedly
+                 rest second some string string? take take-nth take-while
+                 zero?])
