@@ -262,20 +262,6 @@ def test_ast_bad_get():
     cant_compile("(get 1)")
 
 
-def test_ast_good_slice():
-    "Make sure AST can compile valid slice"
-    can_compile("(slice x)")
-    can_compile("(slice x y)")
-    can_compile("(slice x y z)")
-    can_compile("(slice x y z t)")
-
-
-def test_ast_bad_slice():
-    "Make sure AST can't compile invalid slice"
-    cant_compile("(slice)")
-    cant_compile("(slice 1 2 3 4 5)")
-
-
 def test_ast_good_take():
     "Make sure AST can compile valid 'take'"
     can_compile("(take 1 [2 3])")
