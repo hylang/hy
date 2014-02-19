@@ -487,6 +487,58 @@ Return True if x is None.
    True
 
 
+.. _not-any?-fn:
+
+not-any?
+--------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(not-any? pred coll)``
+
+Return False if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise True. Return True if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (not-any? even? [2 4 6])
+   False
+
+   => (not-any? even? [1 3 5])
+   True
+
+   => (not-any? even? [1 3 6])
+   False
+
+   => (not-any? even? [])
+   True
+
+
+.. _not-every?-fn:
+
+not-every?
+----------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(not-every? pred coll)``
+
+Return False if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwise True. Return False if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (not-every? even? [2 4 6])
+   False
+
+   => (not-every? even? [1 3 5])
+   True
+
+   => (not-every? even? [2 4 5])
+   True
+
+   => (not-every? even? [])
+   False
+
+
 .. _nth-fn:
 
 nth

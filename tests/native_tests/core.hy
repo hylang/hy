@@ -331,6 +331,20 @@
   (assert-false (nil? 0))
   (assert-false (nil? "")))
 
+(defn test-not-any? []
+  "NATIVE: testing the not-any? function"
+  (assert-false (not-any? even? [2 4 6]))
+  (assert-true (not-any? even? [1 3 5]))
+  (assert-false (not-any? even? [1 3 6]))
+  (assert-true (not-any? even? [])))
+
+(defn test-not-every? []
+  "NATIVE: testing the not-every? function"
+  (assert-false (not-every? even? [2 4 6]))
+  (assert-true (not-every? even? [1 3 5]))
+  (assert-true (not-every? even? [2 4 5]))
+  (assert-false (not-every? even? [])))
+
 (defn test-nth []
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
@@ -341,7 +355,10 @@
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
   (assert-true  (none? (nth (iter [1 2 4 7]) -1)))
-  (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
+  (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
+  ; with default specified
+  (assert-equal "default value" (nth [0 1 2] 3 "default value"))
+  (assert-equal "default value" (nth [0 1 2] -1 "default value")))
 
 (defn test-numeric? []
   "NATIVE: testing the numeric? function"
@@ -404,7 +421,8 @@
 (defn test-second []
   "NATIVE: testing second"
   (assert-equal 2 (second [1 2]))
-  (assert-equal 3 (second [2 3 4])))
+  (assert-equal 3 (second [2 3 4]))
+  (assert-equal 20 (second (genexpr (* x 10) (x (range 1 6))))))
 
 (defn test-some []
   "NATIVE: testing the some function"

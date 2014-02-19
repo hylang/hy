@@ -26,6 +26,7 @@
 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]])
+(import itertools)
 
 
 (defn _numeric-check [x]
@@ -169,7 +170,7 @@
 
 (defn first [coll]
   "Return first item from `coll`"
-  (get coll 0))
+  (nth coll 0))
 
 (defn identity [x]
   "Returns the argument unchanged"
@@ -247,19 +248,23 @@
   "Return true if x is nil (None)"
   (is x None))
 
+(defn not-any? [pred coll]
+  "Return false if (pred x) is logical true for any x in coll, else true"
+  (not (some pred coll)))
+
+(defn not-every? [pred coll]
+  "Return false if (pred x) is logical true for every x in coll, else true"
+  (not (every? pred coll)))
+
 (defn numeric? [x]
   (import numbers)
   (instance? numbers.Number x))
 
-(defn nth [coll index]
+(defn nth [coll index &optional default]
   "Return nth item in collection or sequence, counting from 0"
   (if (not (neg? index))
-    (if (iterable? coll)
-      (try (get (list (take 1 (drop index coll))) 0)
-           (catch [IndexError] None))
-      (try (get coll index)
-           (catch [IndexError] None)))
-    None))
+    (next ((. itertools islice) coll index None) default)
+    default))
 
 (defn odd? [n]
   "Return true if n is an odd number"
@@ -280,7 +285,7 @@
 
 (defn rest [coll]
   "Get all the elements of a coll, except the first."
-  (slice coll 1))
+  ((. itertools islice) coll 1 None))
 
 (defn repeat [x &optional n]
   "Yield x forever or optionally n times"
@@ -296,7 +301,7 @@
 
 (defn second [coll]
   "Return second item from `coll`"
-  (get coll 1))
+  (first (rest coll)))
 
 (defn some [pred coll]
   "Return true if (pred x) is logical true for any x in coll, else false"
@@ -349,6 +354,7 @@
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
-                 list* macroexpand macroexpand-1 neg? nil? none? nth
-                 numeric? odd? pos? remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero?])
+                 list* macroexpand macroexpand-1 neg? nil? none? not-any?
+                 not-every? nth numeric? odd? pos? remove repeat repeatedly
+                 rest second some string string? take take-nth take-while
+                 zero?])
