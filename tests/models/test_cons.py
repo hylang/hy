@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Gergely Nagy <algernon@madhouse-project.org>
+# Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,19 +18,39 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from __future__ import unicode_literals
-from hy.models import HyObject
-from hy._compat import str_type
+from hy.models.cons import HyCons
 
 
-class HyKeyword(HyObject, str_type):
-    """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
-    depending on the Python version.
-    """
+def test_cons_slicing():
+    """Check that cons slicing works as expected"""
+    cons = HyCons("car", "cdr")
+    assert cons[0] == "car"
+    assert cons[1:] == "cdr"
+    try:
+        cons[:]
+        assert True is False
+    except IndexError:
+        pass
 
-    def __new__(cls, value):
-        if not value.startswith("\uFDD0"):
-            value = "\uFDD0" + value
+    try:
+        cons[1]
+        assert True is False
+    except IndexError:
+        pass
 
-        obj = str_type.__new__(cls, value)
-        return obj
+
+def test_cons_replacing():
+    """Check that assigning to a cons works as expected"""
+    cons = HyCons("foo", "bar")
+    cons[0] = "car"
+
+    assert cons == HyCons("car", "bar")
+
+    cons[1:] = "cdr"
+    assert cons == HyCons("car", "cdr")
+
+    try:
+        cons[:] = "foo"
+        assert True is False
+    except IndexError:
+        pass

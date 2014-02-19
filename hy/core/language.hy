@@ -25,6 +25,8 @@
 
 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
+(import [hy.models.cons [HyCons]])
+
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -33,6 +35,14 @@
 (defn coll? [coll]
   "Checks whether item is a collection"
   (and (iterable? coll) (not (string? coll))))
+
+(defn cons [a b]
+  "Return a fresh cons cell with car = a and cdr = b"
+  (HyCons a b))
+
+(defn cons? [c]
+  "Check whether c can be used as a cons object"
+  (instance? HyCons c))
 
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
@@ -65,12 +75,12 @@
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
-  (let [[seen []] [citer (iter coll)]]
+  (let [[seen (set)] [citer (iter coll)]]
     (for* [val citer]
       (if (not_in val seen)
         (do
          (yield val)
-         (.append seen val))))))
+         (.add seen val))))))
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
@@ -97,6 +107,10 @@
   "Return true if n is an even number"
   (_numeric-check n)
   (= (% n 2) 0))
+
+(defn every? [pred coll]
+  "Return true if (pred x) is logical true for every x in coll, else false"
+  (all (map pred coll)))
 
 (defn fake-source-positions [tree]
   "Fake the source positions for a given tree"
@@ -200,6 +214,12 @@
   (try (= x (iter x))
        (catch [TypeError] false)))
 
+(defn list* [hd &rest tl]
+  "Return a dotted list construed from the elements of the argument"
+  (if (not tl)
+    hd
+    (cons hd (apply list* tl))))
+
 (defn macroexpand [form]
   "Return the full macro expansion of form"
   (import hy.macros)
@@ -278,6 +298,10 @@
   "Return second item from `coll`"
   (get coll 1))
 
+(defn some [pred coll]
+  "Return true if (pred x) is logical true for any x in coll, else false"
+  (any (map pred coll)))
+
 (defn string [x]
   "Cast x as current string implementation"
   (if-python2
@@ -321,11 +345,10 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cycle dec distinct
-                 disassemble drop drop-while empty? even? first filter
+(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
+                 disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
-                 macroexpand macroexpand-1 neg? nil? none? nth
-                 numeric? odd? pos? remove repeat repeatedly rest
-                 second string string? take take-nth take-while
-                 zero?])
+                 list* macroexpand macroexpand-1 neg? nil? none? nth
+                 numeric? odd? pos? remove repeat repeatedly rest second
+                 some string string? take take-nth take-while zero?])

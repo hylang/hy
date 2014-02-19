@@ -172,6 +172,38 @@ keywords, that is keywords used by the language definition inside
 function signatures. Lambda-list keywords are symbols starting with a
 ``&``. The class inherits :ref:`HyString`
 
+.. _hycons:
+
+Cons Cells
+==========
+
+``hy.models.cons.HyCons`` is a representation of Python-friendly `cons
+cells`_.  Cons cells are especially useful to mimic features of "usual"
+LISP variants such as Scheme or Common Lisp.
+
+.. _cons cells: http://en.wikipedia.org/wiki/Cons
+
+A cons cell is a 2-item object, containing a ``car`` (head) and a
+``cdr`` (tail). In some Lisp variants, the cons cell is the fundamental
+building block, and S-expressions are actually represented as linked
+lists of cons cells. This is not the case in Hy, as the usual
+expressions are made of Python lists wrapped in a
+``HyExpression``. However, the ``HyCons`` mimicks the behavior of
+"usual" Lisp variants thusly:
+
+ - ``(cons something nil)`` is ``(HyExpression [something])``
+ - ``(cons something some-list)`` is ``((type some-list) (+ [something]
+   some-list))`` (if ``some-list`` inherits from ``list``).
+ - ``(get (cons a b) 0)`` is ``a``
+ - ``(slice (cons a b) 1)`` is ``b``
+
+Hy supports a dotted-list syntax, where ``'(a . b)`` means ``(cons 'a
+'b)`` and ``'(a b . c)`` means ``(cons 'a (cons 'b 'c))``. If the
+compiler encounters a cons cell at the top level, it raises a
+compilation error.
+
+``HyCons`` wraps the passed arguments (car and cdr) in Hy types, to ease
+the manipulation of cons cells in a macro context.
 
 Hy Internal Theory
 ==================

@@ -10,5 +10,5 @@ Contents:
    cli
    api
    core
-   internals
    readermacros
+   internals
