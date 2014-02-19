@@ -1413,7 +1413,7 @@ class HyASTCompiler(object):
 
                 # We then pass the other arguments to the function
                 expr[0] = HyExpression(
-                    [HySymbol("slice"), tempvar, HyInteger(1)]
+                    [HySymbol("rest"), tempvar]
                 ).replace(expr[0])
 
         ret += self.compile(call)
