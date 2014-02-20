@@ -1250,3 +1250,20 @@ infinite series without consuming infinite amount of memory.
     ...  (while True (yield (.randint random low high))))
     => (list-comp x [x (take 15 (random-numbers 1 50))])])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
+
+zipwith
+-------
+
+`zipwith` zips multiple lists and maps the given function over the result. It is equilavent to calling `zip`, followed by calling `map` on the result.
+
+In the following example, `zipwith` is used to add the contents of two lists together. The equilavent `map` and `zip` calls follow.
+
+.. code-block:: clj
+   
+   => (import operator.add)
+   
+   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
+   [5, 7, 9]
+   
+   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
+   [5, 7, 9]
