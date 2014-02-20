@@ -349,9 +349,7 @@
   "Zip the contents of several lists and map a function to the result"
   (do
     (import functools)
-    (map (functools.partial apply func) (apply zip lists))
-  )
-)
+    (map (functools.partial apply func) (apply zip lists))))
 
 (def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
