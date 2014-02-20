@@ -470,3 +470,12 @@
   (assert-equal res [None None])
   (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
   (assert-equal res [1 2 3 4]))
+
+(defn test-zipwith []
+  "NATIVE: testing the zipwith function"
+  (import operator)
+  (setv res (zipwith operator.add [1 2 3] [3 2 1]))
+  (assert-equal res [4 4 4])
+  (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
+  (assert-equal res [2 5 5]))
+
