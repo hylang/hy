@@ -200,11 +200,3 @@
                    `(setv ~name ~main)))
     ret))
 
-(defmacro zipwith [func &rest lists]
-  "Zip the contents of several lists and map a function to the result"
-  `(do
-     (import functools)
-     (map (functools.partial apply ~func) (apply zip [~@lists]))
-   )
-)
-
