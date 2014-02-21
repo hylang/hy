@@ -475,7 +475,7 @@
   "NATIVE: testing the zipwith function"
   (import operator)
   (setv res (zipwith operator.add [1 2 3] [3 2 1]))
-  (assert-equal res [4 4 4])
+  (assert-equal (list res) [4 4 4])
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
-  (assert-equal res [2 5 5]))
+  (assert-equal (list res) [2 5 5]))
 
