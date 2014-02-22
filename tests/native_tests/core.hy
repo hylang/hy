@@ -478,4 +478,3 @@
   (assert-equal (list res) [4 4 4])
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
   (assert-equal (list res) [2 5 5]))
-
