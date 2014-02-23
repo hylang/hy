@@ -436,11 +436,17 @@ Finally, of course we need classes!  In python we might have a class
 like::
 
   class FooBar(object):
-     def __init__(self, x):
-         self.x = x
+      """
+      Yet Another Example Class
+      """
+      def __init__(self, x):
+          self.x = x
 
-     def get_x(self):
-         return self.x
+      def get_x(self):
+          """
+          Return our copy of x
+          """
+          return self.x
 
 
 In Hy:
@@ -448,6 +454,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass FooBar [object]
+    "Yet Another Example Class"
     [[--init--
       (fn [self x]
         (setv self.x x)
@@ -457,6 +464,7 @@ In Hy:
   
      [get-x
       (fn [self]
+        "Return our copy of x"
         self.x)]])
 
 

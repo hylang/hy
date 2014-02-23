@@ -814,6 +814,22 @@ function is defined and passed to another function for filtering output.
     Alice
     Dave
 
+Just as in normal function definitions, if the first element of the
+body is a string, it serves as docstring.  This is useful for giving
+class methods docstrings.
+
+    => (setv times-three
+    ...   (fn [x]
+    ...    "Multiplies input by three and returns the result."
+    ...    (* x 3)))
+
+    => (help times-three)
+    Help on function times_three:
+
+    times_three(x)
+    Multiplies input by three and returns result
+    (END)
+
 
 let
 ---
