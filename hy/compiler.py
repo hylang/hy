@@ -1017,6 +1017,28 @@ class HyASTCompiler(object):
 
         return ret
 
+    @builds("yield_from")
+    @checkargs(max=1)
+    def compile_yield_from_expression(self, expr):
+        if not PY33:
+            raise HyCompileError(
+                "yield-from only supported in python 3.3+!")
+
+        expr.pop(0)
+        ret = Result(contains_yield=True)
+
+        value = None
+        if expr != []:
+            ret += self.compile(expr.pop(0))
+            value = ret.force_expr
+
+        ret += ast.YieldFrom(
+            value=value,
+            lineno=expr.start_line,
+            col_offset=expr.start_column)
+
+        return ret
+
     @builds("import")
     def compile_import_expression(self, expr):
         def _compile_import(expr, module, names=None, importer=ast.Import):
