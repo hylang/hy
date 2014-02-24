@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2014 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,6 +27,8 @@ from hy.models.complex import HyComplex
 from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
+from hy.models.list import HyList
+from hy.models.cons import HyCons
 
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 
@@ -252,3 +255,82 @@ def test_complex():
     assert entry == HyComplex("1.0j")
     entry = tokenize("(j)")[0][0]
     assert entry == HySymbol("j")
+
+
+def test_reader_macro():
+    """Ensure reader macros are handles properly"""
+    entry = tokenize("#^()")
+    assert entry[0][0] == HySymbol("dispatch_reader_macro")
+    assert entry[0][1] == HyString("^")
+    assert len(entry[0]) == 3
+
+
+def test_lex_comment_382():
+    """Ensure that we can tokenize sources with a comment at the end"""
+    entry = tokenize("foo ;bar\n;baz")
+    assert entry == [HySymbol("foo")]
+
+
+def test_lex_mangling_star():
+    """Ensure that mangling starred identifiers works according to plan"""
+    entry = tokenize("*foo*")
+    assert entry == [HySymbol("FOO")]
+    entry = tokenize("*")
+    assert entry == [HySymbol("*")]
+    entry = tokenize("*foo")
+    assert entry == [HySymbol("*foo")]
+
+
+def test_lex_mangling_hyphen():
+    """Ensure that hyphens get translated to underscores during mangling"""
+    entry = tokenize("foo-bar")
+    assert entry == [HySymbol("foo_bar")]
+    entry = tokenize("-")
+    assert entry == [HySymbol("-")]
+
+
+def test_lex_mangling_qmark():
+    """Ensure that identifiers ending with a question mark get mangled ok"""
+    entry = tokenize("foo?")
+    assert entry == [HySymbol("is_foo")]
+    entry = tokenize("?")
+    assert entry == [HySymbol("?")]
+    entry = tokenize("im?foo")
+    assert entry == [HySymbol("im?foo")]
+    entry = tokenize(".foo?")
+    assert entry == [HySymbol(".is_foo")]
+    entry = tokenize("foo.bar?")
+    assert entry == [HySymbol("foo.is_bar")]
+    entry = tokenize("foo?.bar")
+    assert entry == [HySymbol("is_foo.bar")]
+    entry = tokenize(".foo?.bar.baz?")
+    assert entry == [HySymbol(".is_foo.bar.is_baz")]
+
+
+def test_simple_cons():
+    """Check that cons gets tokenized correctly"""
+    entry = tokenize("(a . b)")[0]
+    assert entry == HyCons(HySymbol("a"), HySymbol("b"))
+
+
+def test_dotted_list():
+    """Check that dotted lists get tokenized correctly"""
+    entry = tokenize("(a b c . (d . e))")[0]
+    assert entry == HyCons(HySymbol("a"),
+                           HyCons(HySymbol("b"),
+                                  HyCons(HySymbol("c"),
+                                         HyCons(HySymbol("d"),
+                                                HySymbol("e")))))
+
+
+def test_cons_list():
+    """Check that cons of something and a list gets tokenized as a list"""
+    entry = tokenize("(a . [])")[0]
+    assert entry == HyList([HySymbol("a")])
+    assert type(entry) == HyList
+    entry = tokenize("(a . ())")[0]
+    assert entry == HyExpression([HySymbol("a")])
+    assert type(entry) == HyExpression
+    entry = tokenize("(a b . {})")[0]
+    assert entry == HyDict([HySymbol("a"), HySymbol("b")])
+    assert type(entry) == HyDict

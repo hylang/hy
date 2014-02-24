@@ -28,15 +28,48 @@ languages.
     and `i♥u` will become `hy_iu_t0x`.
 
   * Symbols that contain dashes will have them replaced with underscores. For
-    example, `render-template` will become `render_template`.
+    example, `render-template` will become `render_template`. This means that
+    symbols with dashes will shadow their underscore equivalents, and vice
+    versa.
 
 
 Builtins
 ========
 
-Hy features a number special forms that are used to help generate
+Hy features a number of special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
+
+.
+-
+
+.. versionadded:: 0.9.13
+
+
+`.` is used to perform attribute access on objects. It uses a small DSL
+to allow quick access to attributes and items in a nested datastructure.
+
+For instance,
+
+.. code-block:: clj
+
+    (. foo bar baz [(+ 1 2)] frob)
+
+Compiles down to
+
+.. code-block:: python
+
+     foo.bar.baz[1 + 2].frob
+
+`.` compiles its first argument (in the example, `foo`) as the object on
+which to do the attribute dereference. It uses bare symbols as
+attributes to access (in the example, `bar`, `baz`, `frob`), and
+compiles the contents of lists (in the example, ``[(+ 1 2)]``) for
+indexation. Other arguments throw a compilation error.
+
+Access to unknown attributes throws an :exc:`AttributeError`. Access to
+unknown keys throws an :exc:`IndexError` (on lists and tuples) or a
+:exc:`KeyError` (on dicts).
 
 ->
 --
@@ -56,7 +89,7 @@ The following code demonstrates this:
 ---
 
 `->>` or `threading tail macro` is similar to `threading macro` but instead of
-inserting each expression into the next expression’s first argument place it
+inserting each expression into the next expression’s first argument place, it
 appends it as the last argument. The following code demonstrates this:
 
 .. code-block:: clj
@@ -64,6 +97,37 @@ appends it as the last argument. The following code demonstrates this:
     => (defn output [a b] (print a b))
     => (->> (+ 5 5) (output 5))
     5 10
+
+
+apply
+-----
+
+`apply` is used to apply an optional list of arguments and an optional
+dictionary of kwargs to a function.
+
+Usage: `(apply fn-name [args] [kwargs])`
+
+Examples:
+
+.. code-block:: clj
+
+    (defn thunk []
+      "hy there")
+
+    (apply thunk)
+    ;=> "hy there"
+
+    (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]]
+      (* price amount fees vat))
+
+    (apply total-purchase [10 15])
+    ;=> 173.25
+
+    (apply total-purchase [10 15] {"vat" 1.05})
+    ;=> 165.375
+
+    (apply total-purchase [] {"price" 10 "amount" 15 "vat" 1.05})
+    ;=> 165.375
 
 
 and
@@ -205,11 +269,12 @@ however is called only for every other value in the list.
     ;; assuming that (side-effect1) and (side-effect2) are functions and
     ;; collection is a list of numerical values
 
-    (for (x collection) (do
-      (side-effect1 x)
-      (if (% x 2)
-        (continue))
-      (side-effect2 x)))
+    (for [x collection]
+      (do
+        (side-effect1 x)
+        (if (% x 2)
+          (continue))
+        (side-effect2 x)))
 
 
 do / progn
@@ -218,7 +283,7 @@ do / progn
 the `do` and `progn` forms are used to evaluate each of their arguments and
 return the last one. Return values from every other than the last argument are
 discarded. It can be used in `lambda` or `list-comp` to perform more complex
-logic as show by one of the examples.
+logic as shown by one of the examples.
 
 Some example usage:
 
@@ -286,6 +351,8 @@ below:
     => (.speak spot)
     Meow
 
+
+.. _defn:
 
 defn / defun
 ------------
@@ -357,13 +424,38 @@ Parameters may have following keywords in front of them:
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
 
+.. _defn-alias / defun-alias:
+
+defn-alias / defun-alias
+------------------------
+
+.. versionadded:: 0.9.13
+
+The `defn-alias` and `defun-alias` macros are much like `defn`_ above,
+with the difference that instead of defining a function with a single
+name, these can also define aliases. Other than taking a list of
+symbols for function names as the first parameter, `defn-alias` and
+`defun-alias` have no other differences compared to `defn` and
+`defun`.
+
+.. code-block:: clj
+
+  => (defn-alias [main-name alias] []
+  ...  (print "Hello!"))
+  => (main-name)
+  "Hello!"
+  => (alias)
+  "Hello!"
+
+.. _defmacro:
+
 defmacro
 --------
 
 `defmacro` is used to define macros. The general format is
-`(defmacro [parameters] expr)`.
+`(defmacro name [parameters] expr)`.
 
-Following example defines a macro that can be used to swap order of elements in
+The following example defines a macro that can be used to swap order of elements in
 code, allowing the user to write code in infix notation, where operator is in
 between the operands.
 
@@ -377,6 +469,102 @@ between the operands.
 
   => (infix (1 + 1))
   2
+
+.. _defmacro-alias:
+
+defmacro-alias
+--------------
+
+`defmacro-alias` is used to define macros with multiple names
+(aliases). The general format is `(defmacro-alias [names] [parameters]
+expr)`. It creates multiple macros with the same parameter list and
+body, under the specified list of names.
+
+The following example defines two macros, both of which allow the user
+to write code in infix notation.
+
+.. code-block:: clj
+
+  => (defmacro-alias [infix infi] [code]
+  ...  (quasiquote (
+  ...    (unquote (get code 1))
+  ...    (unquote (get code 0))
+  ...    (unquote (get code 2)))))
+
+  => (infix (1 + 1))
+  2
+  => (infi (1 + 1))
+  2
+
+.. _defmacro/g!:
+
+defmacro/g!
+------------
+
+.. versionadded:: 0.9.12
+
+`defmacro/g!` is a special version of `defmacro` that is used to
+automatically generate :ref:`gensym` for any symbol that
+starts with ``g!``.
+
+So ``g!a`` would become ``(gensym "a")``.
+
+.. seealso::
+
+   Section :ref:`using-gensym`
+
+defreader
+---------
+
+.. versionadded:: 0.9.12
+
+`defreader` defines a reader macro, enabling you to restructure or
+modify syntax.
+
+.. code-block:: clj
+
+    => (defreader ^ [expr] (print expr))
+    => #^(1 2 3 4)
+    (1 2 3 4)
+    => #^"Hello"
+    "Hello"
+
+.. seealso::
+
+    Section :ref:`Reader Macros <reader-macros>`
+
+del
+---
+
+.. versionadded:: 0.9.12
+
+`del` removes an object from the current namespace.
+
+.. code-block:: clj
+
+  => (setv foo 42)
+  => (del foo)
+  => foo
+  Traceback (most recent call last):
+    File "<console>", line 1, in <module>
+  NameError: name 'foo' is not defined
+
+`del` can also remove objects from a mapping, a list, ...
+
+.. code-block:: clj
+
+  => (setv test (list (range 10)))
+  => test
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  => (del (slice test 2 4)) ;; remove items from 2 to 4 excluded
+  => test
+  [0, 1, 4, 5, 6, 7, 8, 9]
+  => (setv dic {"foo" "bar"})
+  => dic
+  {"foo": "bar"}
+  => (del (get dic "foo"))
+  => dic
+  {}
 
 eval
 ----
@@ -408,58 +596,66 @@ first / car
 
 
 for
----
-
-`for` macro is used to build nested `foreach` loops. The macro takes two
-parameters, first being a vector specifying collections to iterate over and 
-variables to bind. The second parameter is a statement which is executed during
-each loop:
-
-.. code-block:: clj
-
-    (for [x iter y iter] stmt)
-
-    (foreach [x iter]
-      (foreach [y iter] stmt))
-
-
-foreach
 -------
 
-`foreach` is used to call a function for each element in a list or vector.
-Results are discarded and None is returned instead. Example code iterates over
-collection and calls side-effect to each element in the collection:
+`for` is used to call a function for each element in a list or vector.
+The results of each call are discarded and the for expression returns
+None instead. The example code iterates over `collection` and
+for each `element` in `collection` calls the `side-effect`
+function with `element` as its argument:
 
 .. code-block:: clj
 
     ;; assuming that (side-effect) is a function that takes a single parameter
-    (foreach [element collection] (side-effect element))
+    (for [element collection] (side-effect element))
 
-    ;; foreach can have an optional else block
-    (foreach [element collection] (side-effect element)
-             (else (side-effect-2)))
+    ;; for can have an optional else block
+    (for [element collection] (side-effect element)
+         (else (side-effect-2)))
 
-The optional `else` block is executed only if the `foreach` loop terminates
+The optional `else` block is executed only if the `for` loop terminates
 normally. If the execution is halted with `break`, the `else` does not execute.
 
 .. code-block:: clj
 
-    => (foreach [element [1 2 3]] (if (< element 3)
-    ...                               (print element) 
-    ...                               (break))
+    => (for [element [1 2 3]] (if (< element 3)
+    ...                             (print element) 
+    ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
 
-    => (foreach [element [1 2 3]] (if (< element 4)
-    ...                               (print element)
-    ...                               (break))
+    => (for [element [1 2 3]] (if (< element 4)
+    ...                             (print element)
+    ...                             (break))
     ...    (else (print "loop finished")))
     1
     2
     3
     loop finished
 
+
+.. _gensym:
+
+gensym
+------
+
+.. versionadded:: 0.9.12
+
+`gensym` form is used to generate a unique symbol to allow writing macros
+without accidental variable name clashes.
+
+.. code-block:: clj
+
+   => (gensym)
+   u':G_1235'
+
+   => (gensym "x")
+   u':x_1236'
+
+.. seealso::
+
+   Section :ref:`using-gensym`
 
 get
 ---
@@ -481,8 +677,8 @@ Example usages:
 .. note:: `get` raises a KeyError if a dictionary is queried for a non-existing
           key.
 
-.. note:: `get` raises an IndexError if a list is queried for an index that is
-          out of bounds.
+.. note:: `get` raises an IndexError if a list or a tuple is queried for an index
+          that is out of bounds.
 
 
 global
@@ -508,13 +704,16 @@ would thrown a `NameError`.
     (set-a 5)
     (print-a)
 
-if
---
+if / if-not
+-----------
 
 the `if` form is used to conditionally select code to be executed. It has to
 contain the condition block and the block to be executed if the condition
 evaluates `True`. Optionally it may contain a block that is executed in case
-the evaluation of the condition is `False`.
+the evaluation of the condition is `False`. The `if-not` form (*new in
+0.9.13*) is similar, but the first block after the test will be
+executed when the test fails, while the other, conditional one, when
+the test succeeds - opposite of the order of the `if` form.
 
 Example usage:
 
@@ -523,6 +722,10 @@ Example usage:
     (if (money-left? account)
       (print "lets go shopping")
       (print "lets go and work"))
+
+    (if-not (money-left? account)
+      (print "lets go and work")
+      (print "lets go shopping"))
 
 Truth values of Python objects are respected. Values `None`, `False`, zero of
 any numeric type, empty sequence and empty dictionary are considered `False`.
@@ -558,6 +761,9 @@ of import you can use.
     (import [tests.resources [kwtest function-with-a-dash]]
             [os.path [exists isdir isfile]]
             [sys :as systest])
+
+    ;; Import all module functions into current namespace
+    (import [sys [*]])
 
 
 kwapply
@@ -602,11 +808,27 @@ function is defined and passed to another function for filtering output.
     ...             {:name "Dave" :age 5}])
 
     => (defn display-people [people filter]
-    ...  (foreach [person people] (if (filter person) (print (:name person)))))
+    ...  (for [person people] (if (filter person) (print (:name person)))))
 
     => (display-people people (fn [person] (< (:age person) 25)))
     Alice
     Dave
+
+Just as in normal function definitions, if the first element of the
+body is a string, it serves as docstring.  This is useful for giving
+class methods docstrings.
+
+    => (setv times-three
+    ...   (fn [x]
+    ...    "Multiplies input by three and returns the result."
+    ...    (* x 3)))
+
+    => (help times-three)
+    Help on function times_three:
+
+    times_three(x)
+    Multiplies input by three and returns result
+    (END)
 
 
 let
@@ -736,6 +958,7 @@ using the backquote (`) symbol.
 
 
 .. code-block:: clj
+
     ;; let `qux' be a variable with value (bar baz)
     `(foo ~qux)
     ; equivalent to '(foo (bar baz))
@@ -751,12 +974,14 @@ be alternatively written using the (') symbol
 
 
 .. code-block:: clj
+
     => (setv x '(print "Hello World"))
     ; variable x is set to expression & not evaluated
     => x
     (u'print' u'Hello World')
     => (eval x)
     Hello World
+
 
 require
 -------
@@ -877,6 +1102,42 @@ given conditional is False. The following shows how the macro expands into code.
       None 
       (do statement))
 
+
+unquote
+-------
+
+Within a quasiquoted form, `unquote` forces evaluation of a symbol. `unquote`
+is aliased to the `~` symbol.
+
+.. code-block:: clj
+
+    (def name "Cuddles")
+    (quasiquote (= name (unquote name)))
+    ;=> (u'=' u'name' u'Cuddles')
+
+    `(= name ~name)
+    ;=> (u'=' u'name' u'Cuddles')
+
+
+unquote-splice
+--------------
+
+`unquote-splice` forces the evaluation of a symbol within a quasiquoted form,
+much like `unquote`. `unquote-splice` can only be used when the symbol being
+unquoted contains an iterable value, as it "splices" that iterable into the
+quasiquoted form. `unquote-splice` is aliased to the `~@` symbol.
+
+.. code-block:: clj
+
+    (def nums [1 2 3 4])
+    (quasiquote (+ (unquote-splice nums)))
+    ;=> (u'+' 1L 2L 3L 4L)
+
+    `(+ ~@nums)
+    ;=> (u'+' 1L 2L 3L 4L)
+
+
+
 when
 ----
 
@@ -913,16 +1174,18 @@ context to an argument or ignore it completely, as shown below:
 
 .. code-block:: clj
 
-    (with [arg (expr)] block)
+    (with [[arg (expr)]] block)
 
-    (with [(expr)] block)
+    (with [[(expr)]] block)
+
+    (with [[arg (expr)] [(expr)]] block)
 
 The following example will open file `NEWS` and print its content on screen. The
 file is automatically closed after it has been processed.
 
 .. code-block:: clj
 
-    (with [f (open "NEWS")] (print (.read f)))
+    (with [[f (open "NEWS")]] (print (.read f)))
 
 
 with-decorator
@@ -947,6 +1210,35 @@ values that are incremented by 1. When decorated `addition` is called with value
     4
 
 
+.. _with-gensyms:
+
+with-gensyms
+-------------
+
+.. versionadded:: 0.9.12
+
+`with-gensym` form is used to generate a set of :ref:`gensym` for use
+in a macro.
+
+.. code-block:: clojure
+
+   (with-gensyms [a b c]
+     ...)
+
+expands to:
+
+.. code-block:: clojure
+
+   (let [[a (gensym)
+         [b (gensym)
+         [c (gensym)]]
+     ...)
+
+.. seealso::
+
+   Section :ref:`using-gensym`
+
+
 yield
 -----
 
@@ -954,13 +1246,13 @@ yield
 The generator is iterable and therefore can be used in loops, list
 comprehensions and other similar constructs.
 
-Especially the second example shows how generators can be used to generate
+The function random-numbers shows how generators can be used to generate
 infinite series without consuming infinite amount of memory.
 
 .. code-block:: clj
 
     => (defn multiply [bases coefficients]
-    ...  (foreach [(, base coefficient) (zip bases coefficients)]
+    ...  (for [[(, base coefficient) (zip bases coefficients)]]
     ...   (yield (* base coefficient))))
 
     => (multiply (range 5) (range 5))
@@ -974,3 +1266,24 @@ infinite series without consuming infinite amount of memory.
     ...  (while True (yield (.randint random low high))))
     => (list-comp x [x (take 15 (random-numbers 1 50))])])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
+
+.. _zipwith:
+
+zipwith
+-------
+
+.. versionadded:: 0.9.13
+
+`zipwith` zips multiple lists and maps the given function over the result. It is
+equilavent to calling ``zip``, followed by calling ``map`` on the result.
+
+In the following example, `zipwith` is used to add the contents of two lists
+together. The equilavent ``map`` and ``zip`` calls follow.
+
+.. code-block:: clj
+   
+   => (import operator.add)
+   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
+   [5, 7, 9]
+   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
+   [5, 7, 9]

@@ -41,6 +41,46 @@
   (assert (= count 150)))
 
 
+(defn test-nasty-for-nesting []
+  "NATIVE: test nesting for loops harder"
+  ;; This test and feature is dedicated to @nedbat.
+
+  ;; let's ensure empty iterating is an implicit do
+  (setv t 0)
+  (for [] (setv t 1))
+  (assert (= t 1))
+
+  ;; OK. This first test will ensure that the else is hooked up to the
+  ;; for when we break out of it.
+  (for [x (range 2)
+        y (range 2)]
+      (break)
+    (else (throw Exception)))
+
+  ;; OK. This next test will ensure that the else is hooked up to the
+  ;; "inner" iteration
+  (for [x (range 2)
+        y (range 2)]
+    (if (= y 1) (break))
+    (else (throw Exception)))
+
+  ;; OK. This next test will ensure that the else is hooked up to the
+  ;; "outer" iteration
+  (for [x (range 2)
+        y (range 2)]
+    (if (= x 1) (break))
+    (else (throw Exception)))
+
+  ;; OK. This next test will ensure that we call the else branch exactly
+  ;; once.
+  (setv flag 0)
+  (for [x (range 2)
+        y (range 2)]
+    (+ 1 1)
+    (else (setv flag (+ flag 2))))
+  (assert (= flag 2)))
+
+
 (defn test-while-loop []
   "NATIVE: test while loops?"
   (setv count 5)
@@ -86,9 +126,10 @@
 
 (defn test-is []
   "NATIVE: test is can deal with None"
-  (setv a null)
-  (assert (is a null))
-  (assert (is-not a "b")))
+  (setv a nil)
+  (assert (is a nil))
+  (assert (is-not a "b"))
+  (assert (none? a)))
 
 
 (defn test-branching []
@@ -129,7 +170,16 @@
 (defn test-index []
   "NATIVE: Test that dict access works"
   (assert (= (get {"one" "two"} "one") "two"))
-  (assert (= (get [1 2 3 4 5] 1) 2)))
+  (assert (= (get [1 2 3 4 5] 1) 2))
+  (assert (= (get {"first" {"second" {"third" "level"}}}
+                  "first" "second" "third")
+             "level"))
+  (assert (= (get ((fn [] {"first" {"second" {"third" "level"}}}))
+                  "first" "second" "third")
+             "level"))
+  (assert (= (get {"first" {"second" {"third" "level"}}}
+                  ((fn [] "first")) "second" "third")
+             "level")))
 
 
 (defn test-lambda []
@@ -152,7 +202,39 @@
   (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"}))
   (setv mydict {"one" "three"})
   (assert (= (kwapply (kwtest) mydict) mydict))
-  (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"})))
+  (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"}))
+  (assert (= (kwapply
+              (kwapply
+               (kwapply
+                (kwapply
+                 (kwapply (kwtest) {"x" 4})
+                 mydict)
+                {"x" 8})
+               {"x" (- 3 2) "y" 2})
+              {"y" 5 "z" 3})
+             {"x" 1 "y" 5 "z" 3 "one" "three"})))
+
+
+(defn test-apply []
+  "NATIVE: test working with args and functions"
+  (defn sumit [a b c] (+ a b c))
+  (assert (= (apply sumit [1] {"b" 2 "c" 3}) 6))
+  (assert (= (apply sumit [1 2 2]) 5))
+  (assert (= (apply sumit [] {"a" 1 "b" 1 "c" 2}) 4))
+  (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3))
+  (defn noargs [] [1 2 3])
+  (assert (= (apply noargs) [1 2 3])))
+
+
+(defn test-apply-with-methods []
+  "NATIVE: test apply to call a method"
+  (setv str "foo {bar}")
+  (assert (= (apply .format [str] {"bar" "baz"})
+             (apply .format ["foo {0}" "baz"])
+             "foo baz"))
+  (setv lst ["a {0} {1} {foo} {bar}" "b" "c"])
+  (assert (= (apply .format lst {"foo" "d" "bar" "e"})
+             "a b c d e")))
 
 
 (defn test-dotted []
@@ -407,43 +489,43 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with [fd (open "README.md" "r")] (assert fd))
-  (with [(open "README.md" "r")] (do)))
+  (with [[fd (open "README.md" "r")]] (assert fd))
+  (with [[(open "README.md" "r")]] (do)))
 
 
 (defn test-with-return []
   "NATIVE: test that with returns stuff"
   (defn read-file [filename]
-    (with [fd (open filename "r")] (.read fd)))
+    (with [[fd (open filename "r")]] (.read fd)))
   (assert (!= 0 (len (read-file "README.md")))))
 
 
 (defn test-for-doodle []
   "NATIVE: test for-do"
   (do (do (do (do (do (do (do (do (do (setv (, x y) (, 0 0)))))))))))
-  (foreach [- [1 2]]
+  (for [- [1 2]]
     (do
      (setv x (+ x 1))
      (setv y (+ y 1))))
   (assert (= y x 2)))
 
 
-(defn test-foreach-else []
-  "NATIVE: test foreach else"
+(defn test-for-else []
+  "NATIVE: test for else"
   (let [[x 0]]
-    (foreach [a [1 2]]
+    (for* [a [1 2]]
       (setv x (+ x a))
       (else (setv x (+ x 50))))
     (assert (= x 53)))
 
   (let [[x 0]]
-    (foreach [a [1 2]]
+    (for* [a [1 2]]
       (setv x (+ x a))
       (else))
     (assert (= x 3))))
 
 
-(defn test-comprehensions []
+(defn test-list-comprehensions []
   "NATIVE: test list comprehensions"
   (assert (= (list-comp (* x 2) (x (range 2))) [0 2]))
   (assert (= (list-comp (* x 2) (x (range 4)) (% x 2)) [2 6]))
@@ -452,6 +534,41 @@
   (assert (= (list-comp (, x y) (x (range 2) y (range 2)))
              [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
   (assert (= (list-comp j (j [1 2])) [1 2])))
+
+
+(defn test-set-comprehensions []
+  "NATIVE: test set comprehensions"
+  (assert (instance? set (set-comp x [x (range 2)])))
+  (assert (= (set-comp (* x 2) (x (range 2))) (set [0 2])))
+  (assert (= (set-comp (* x 2) (x (range 4)) (% x 2)) (set [2 6])))
+  (assert (= (set-comp (* y 2) ((, x y) (.items {"1" 1 "2" 2})))
+             (set [2 4])))
+  (assert (= (set-comp (, x y) (x (range 2) y (range 2)))
+             (set [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
+  (assert (= (set-comp j (j [1 2])) (set [1 2]))))
+
+
+(defn test-dict-comprehensions []
+  "NATIVE: test dict comprehensions"
+  (assert (instance? dict (dict-comp x x [x (range 2)])))
+  (assert (= (dict-comp x (* x 2) (x (range 2))) {1 2 0 0}))
+  (assert (= (dict-comp x (* x 2) (x (range 4)) (% x 2)) {3 6 1 2}))
+  (assert (= (dict-comp x (* y 2) ((, x y) (.items {"1" 1 "2" 2})))
+             {"2" 4 "1" 2}))
+  (assert (= (dict-comp (, x y) (+ x y) (x (range 2) y (range 2)))
+             {(, 0 0) 0 (, 1 0) 1 (, 0 1) 1 (, 1 1) 2})))
+
+
+(defn test-generator-expressions []
+  "NATIVE: test generator expressions"
+  (assert (not (instance? list (genexpr x [x (range 2)]))))
+  (assert (= (list (genexpr (* x 2) (x (range 2)))) [0 2]))
+  (assert (= (list (genexpr (* x 2) (x (range 4)) (% x 2))) [2 6]))
+  (assert (= (list (sorted (genexpr (* y 2) ((, x y) (.items {"1" 1 "2" 2})))))
+             [2 4]))
+  (assert (= (list (genexpr (, x y) (x (range 2) y (range 2))))
+             [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
+  (assert (= (list (genexpr j (j [1 2]))) [1 2])))
 
 
 (defn test-defn-order []
@@ -549,6 +666,12 @@
         [-_- "what?"]]
     (assert (= ♥-♥ "doublelove"))
     (assert (= -_- "what?"))))
+
+
+(defn test-symbol-question-mark []
+  "NATIVE: test foo? -> is_foo behavior"
+  (let [[foo? "nachos"]]
+    (assert (= is_foo "nachos"))))
 
 
 (defn test-and []
@@ -769,13 +892,99 @@
 (defn test-continue-continuation []
   "NATIVE: test checking if continue actually continues"
   (setv y [])
-  (for [x (range 10)] 
-    (if (!= x 5) 
-      (continue)) 
+  (for [x (range 10)]
+    (if (!= x 5)
+      (continue))
     (.append y x))
   (assert (= y [5])))
+
 
 (defn test-empty-list []
   "Evaluate an empty list to a []"
   (assert (= () [])))
 
+
+(defn test-string []
+  (assert (string? (string "a")))
+  (assert (string? (string 1)))
+  (assert (= u"unicode" (string "unicode"))))
+
+(defn test-del []
+  "NATIVE: Test the behavior of del"
+  (setv foo 42)
+  (assert (= foo 42))
+  (del foo)
+  (assert (= 'good
+    (try
+      (do foo 'bad)
+      (except [NameError] 'good))))
+  (setv test (list (range 5)))
+  (del (get test 4))
+  (assert (= test [0 1 2 3]))
+  (del (get test 2))
+  (assert (= test [0 1 3])))
+
+
+(defn test-macroexpand []
+  "Test macroexpand on ->"
+  (assert (= (macroexpand '(-> (a b) (x y)))
+             '(x (a b) y)))
+  (assert (= (macroexpand '(-> (a b) (-> (c d) (e f))))
+             '(e (c (a b) d) f))))
+
+
+(defn test-macroexpand-1 []
+  "Test macroexpand-1 on ->"
+  (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
+             '(-> (a b) (c d) (e f)))))
+
+
+(defn test-calling-module-name []
+  "NATIVE: Test the calling-module-name function"
+  (assert (= (calling-module-name -1) "hy.core.language"))
+  (assert (= (calling-module-name 0) "tests.native_tests.language")))
+
+
+(defn test-disassemble []
+  "NATIVE: Test the disassemble function"
+  (import sys)
+  (if-python2
+   (import [io [BytesIO :as StringIO]])
+   (import [io [StringIO]]))
+  (setv prev-stdout sys.stdout)
+  (setv sys.stdout (StringIO))
+  (disassemble '(do (leaky) (leaky) (macros)))
+  (setv stdout (.getvalue sys.stdout))
+  (setv sys.stdout prev-stdout)
+  (assert (in "leaky" stdout))
+  (assert (in "macros" stdout))
+  (setv sys.stdout (StringIO))
+  (disassemble '(do (leaky) (leaky) (macros)) true)
+  (setv stdout (.getvalue sys.stdout))
+  (setv sys.stdout prev-stdout)
+  (assert (= stdout "leaky()\nleaky()\nmacros()\n")))
+
+
+(defn test-attribute-access []
+  "NATIVE: Test the attribute access DSL"
+  (defclass mycls [object])
+
+  (setv foo [(mycls) (mycls) (mycls)])
+  (assert (is (. foo) foo))
+  (assert (is (. foo [0]) (get foo 0)))
+  (assert (is (. foo [0] --class--) mycls))
+  (assert (is (. foo [1] --class--) mycls))
+  (assert (is (. foo [(+ 1 1)] --class--) mycls))
+  (assert (= (. foo [(+ 1 1)] --class-- --name-- [0]) "m"))
+  (assert (= (. foo [(+ 1 1)] --class-- --name-- [1]) "y"))
+
+  (setv bar (mycls))
+  (setv (. foo [1]) bar)
+  (assert (is bar (get foo 1)))
+  (setv (. foo [1] test) "hello")
+  (assert (= (getattr (. foo [1]) "test") "hello")))
+
+(defn test-keyword-quoting []
+  "NATIVE: test keyword quoting magic"
+  (assert (= :foo "\ufdd0:foo"))
+  (assert (= `:foo "\ufdd0:foo")))

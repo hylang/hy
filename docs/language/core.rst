@@ -6,6 +6,71 @@ Hy Core
 Core Functions
 ===============
 
+.. _is-coll-fn:
+
+coll?
+-----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(coll? x)``
+
+Returns true if argument is iterable and not a string.
+
+.. code-block:: clojure
+
+   => (coll? [1 2 3 4])
+   True
+
+   => (coll? {"a" 1 "b" 2})
+   True
+
+   => (coll? "abc")
+   False
+
+
+cons
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(cons a b)``
+
+Returns a fresh :ref:`cons cell <hycons>` with car `a` and cdr `b`.
+
+.. code-block:: clojure
+
+   => (setv a (cons 'hd 'tl))
+
+   => (= 'hd (car a))
+   True
+
+   => (= 'tl (cdr a))
+   True
+
+
+cons?
+-----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(cons? foo)``
+
+Checks whether ``foo`` is a :ref:`cons cell <hycons>`.
+
+.. code-block:: clojure
+
+   => (setv a (cons 'hd 'tl))
+
+   => (cons? a)
+   True
+
+   => (cons? nil)
+   False
+
+   => (cons? [1 2 3])
+   False
+
 .. _dec-fn:
 
 dec
@@ -29,6 +94,29 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
    11.3
 
 
+.. _disassemble-fn:
+
+disassemble
+-----------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(disassemble tree &optional [codegen false])``
+
+Dump the Python AST for given Hy ``tree`` to standard output. If *codegen*
+is ``true`` function prints Python code instead.
+
+.. code-block:: clojure
+
+   => (disassemble '(print "Hello World!"))
+   Module(
+    body=[
+        Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
+
+   => (disassemble '(print "Hello World!") true)
+   print('Hello World!')
+
+
 .. _emtpy?-fn:
 
 empty?
@@ -48,6 +136,32 @@ Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
 
    => (empty? (, 1 2))
    False
+
+
+.. _every?-fn:
+
+every?
+------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(every? pred coll)``
+
+Return True if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwise False. Return True if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (every? even? [2 4 6])
+   True
+
+   => (every? even? [1 3 5])
+   False
+
+   => (every? even? [2 4 5])
+   False
+
+   => (every? even? [])
+   True
 
 
 .. _float?-fn:
@@ -89,6 +203,24 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 
    => (even? 0)
    True
+
+
+.. _identity-fn:
+
+identity
+--------
+
+Usage: ``(identity x)``
+
+Returns argument supplied to the function
+
+.. code-block:: clojure
+
+   => (identity 4)
+   4
+
+   => (list (map identity [1 2 3 4]))
+   [1 2 3 4]
 
 
 .. _inc-fn:
@@ -198,7 +330,7 @@ iterator?
 
 Usage: ``(iterator? x)``
 
-Return True if x is an iterator. Iterators are objects that return 
+Return True if x is an iterator. Iterators are objects that return
 themselves as an iterator when ``(iter x)`` is called.
 Contrast with :ref:`iterable?-fn`.
 
@@ -219,6 +351,63 @@ Contrast with :ref:`iterable?-fn`.
    => ;; create an iterator from the dict
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
+
+list*
+-----
+
+Usage: ``(list* head &rest tail)``
+
+Generate a chain of nested cons cells (a dotted list) containing the
+arguments. If the argument list only has one element, return it.
+
+.. code-block:: clojure
+
+   => (list* 1 2 3 4)
+   (1 2 3 . 4)
+
+   => (list* 1 2 3 [4])
+   [1, 2, 3, 4]
+
+   => (list* 1)
+   1
+
+   => (cons? (list* 1 2 3 4))
+   True
+
+.. _macroexpand-fn:
+
+macroexpand
+-----------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(macroexpand form)``
+
+Returns the full macro expansion of form.
+
+.. code-block:: clojure
+
+   => (macroexpand '(-> (a b) (x y)))
+   (u'x' (u'a' u'b') u'y')
+
+   => (macroexpand '(-> (a b) (-> (c d) (e f))))
+   (u'e' (u'c' (u'a' u'b') u'd') u'f')
+
+.. _macroexpand-1-fn:
+
+macroexpand-1
+-------------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(macroexpand-1 form)``
+
+Returns the single step macro expansion of form.
+
+.. code-block:: clojure
+
+   => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
+   (u'_>' (u'a' u'b') (u'c' u'd') (u'e' u'f'))
 
 .. _neg?-fn:
 
@@ -241,6 +430,36 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 
    => (neg? 0)
    False
+
+
+.. _nil?-fn:
+
+nil?
+-----
+
+Usage: ``(nil? x)``
+
+Return True if x is nil/None.
+
+.. code-block:: clojure
+
+   => (nil? nil)
+   True
+
+   => (nil? None)
+   True
+
+   => (nil? 0)
+   False
+
+   => (setf x nil)
+   => (nil? x)
+   True
+
+   => ;; list.append always returns None
+   => (nil? (.append [1 2 3] 4))
+   True
+
 
 .. _none?-fn:
 
@@ -292,7 +511,7 @@ if the `n` is outside the range of `coll`.
 
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
-   
+
 .. _numeric?-fn:
 
 numeric?
@@ -377,6 +596,32 @@ Return the second member of ``coll``. Equivalent to
    1
 
 
+.. _some-fn:
+
+some
+----
+
+.. versionadded:: 0.9.13
+
+Usage: ``(some pred coll)``
+
+Return True if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise False. Return False if ``coll`` is empty.
+
+.. code-block:: clojure
+
+   => (some even? [2 4 6])
+   True
+
+   => (some even? [1 3 5])
+   False
+
+   => (some even? [1 3 6])
+   True
+
+   => (some even? [])
+   False
+
+
 .. _string?-fn:
 
 string?
@@ -397,7 +642,7 @@ Return True if x is a string.
 .. _zero?-fn:
 
 zero?
-----
+-----
 
 Usage: ``(zero? x)``
 
@@ -469,7 +714,7 @@ To get the Fibonacci number at index 9, (starting from 0):
 .. code-block:: clojure
 
    => (nth (fib) 9)
-   34 
+   34
 
 
 .. _cycle-fn:
@@ -487,7 +732,7 @@ Return an infinite iterator of the members of coll.
    [1, 2, 3, 1, 2, 3, 1]
 
    => (list (take 2 (cycle [1 2 3])))
-   [1, 2]   
+   [1, 2]
 
 
 .. _distinct-fn:
@@ -574,6 +819,26 @@ See also :ref:`remove-fn`.
 
    => (list (filter even? [1 2 3 -4 5 -7]))
    [2, -4]
+
+.. _flatten-fn:
+
+flatten
+-------
+
+.. versionadded:: 0.9.12
+
+Usage: ``(flatten coll)``
+
+Return a single list of all the items in ``coll``, by flattening all
+contained lists and/or tuples.
+
+.. code-block:: clojure
+
+   => (flatten [1 2 [3 4] 5])
+   [1, 2, 3, 4, 5]
+
+   => (flatten ["foo" (, 1 2) [1 [2 3] 4] "bar"])
+   ['foo', 1, 2, 1, 2, 3, 4, 'bar']
 
 
 .. _iterate-fn:
@@ -667,7 +932,7 @@ Return an iterator containing the first ``n`` members of ``coll``.
 
    => (list (take 4 (repeat "s")))
    [u's', u's', u's', u's']
-   
+
    => (list (take 0 (repeat "s")))
    []
 
@@ -693,7 +958,7 @@ Return an iterator containing every ``nth`` member of ``coll``.
 
    => (list (take-nth 10 [1 2 3 4 5 6 7]))
    [1]
-   
+
 
 .. _take-while-fn:
 
@@ -714,5 +979,3 @@ Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
 
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
-
-

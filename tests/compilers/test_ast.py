@@ -22,7 +22,10 @@
 from __future__ import unicode_literals
 
 from hy import HyString
-from hy.compiler import hy_compile, HyCompileError, HyTypeError
+from hy.models import HyObject
+from hy.compiler import hy_compile
+from hy.errors import HyCompileError, HyTypeError
+from hy.lex.exceptions import LexException
 from hy.lex import tokenize
 
 import ast
@@ -42,10 +45,14 @@ def can_compile(expr):
 
 
 def cant_compile(expr):
-    expr = tokenize(expr)
     try:
-        hy_compile(expr, "__main__")
+        hy_compile(tokenize(expr), "__main__")
         assert False
+    except HyTypeError as e:
+        # Anything that can't be compiled should raise a user friendly
+        # error, otherwise it's a compiler bug.
+        assert isinstance(e.expression, HyObject)
+        assert e.message
     except HyCompileError as e:
         # Anything that can't be compiled should raise a user friendly
         # error, otherwise it's a compiler bug.
@@ -253,7 +260,6 @@ def test_ast_bad_get():
     "Make sure AST can't compile invalid get"
     cant_compile("(get)")
     cant_compile("(get 1)")
-    cant_compile("(get 1 2 3)")
 
 
 def test_ast_good_slice():
@@ -295,9 +301,9 @@ def test_ast_bad_assoc():
 
 def test_ast_bad_with():
     "Make sure AST can't compile invalid with"
-    cant_compile("(with)")
-    cant_compile("(with [])")
-    cant_compile("(with [] (pass))")
+    cant_compile("(with*)")
+    cant_compile("(with* [])")
+    cant_compile("(with* [] (pass))")
 
 
 def test_ast_valid_while():
@@ -305,14 +311,14 @@ def test_ast_valid_while():
     can_compile("(while foo bar)")
 
 
-def test_ast_valid_foreach():
-    "Make sure AST can compile valid foreach"
-    can_compile("(foreach [a 2])")
+def test_ast_valid_for():
+    "Make sure AST can compile valid for"
+    can_compile("(for [a 2] (print a))")
 
 
-def test_ast_invalid_foreach():
-    "Make sure AST can't compile invalid foreach"
-    cant_compile("(foreach [a 1] (else 1 2))")
+def test_ast_invalid_for():
+    "Make sure AST can't compile invalid for"
+    cant_compile("(for* [a 1] (else 1 2))")
 
 
 def test_ast_expression_basics():
@@ -423,8 +429,54 @@ def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     try:
         can_compile("(fn [] (= 1))")
-    except HyCompileError as e:
-        assert(str(e)
-               == "`=' needs at least 2 arguments, got 1 (line 1, column 8)")
+    except HyTypeError as e:
+        assert(e.message == "`=' needs at least 2 arguments, got 1.")
     else:
         assert(False)
+
+
+def test_for_compile_error():
+    """Ensure we get compile error in tricky 'for' cases"""
+    try:
+        can_compile("(fn [] (for)")
+    except LexException as e:
+        assert(e.message == "Premature end of input")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for)))")
+    except LexException as e:
+        assert(e.message == "Ran into a RPAREN where it wasn't expected.")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for [x]))")
+    except HyTypeError as e:
+        assert(e.message == "`for' requires an even number of args.")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for [x xx]))")
+    except HyTypeError as e:
+        assert(e.message == "`for' requires a body to evaluate")
+    else:
+        assert(False)
+
+
+def test_attribute_access():
+    """Ensure attribute access compiles correctly"""
+    can_compile("(. foo bar baz)")
+    can_compile("(. foo [bar] baz)")
+    can_compile("(. foo bar [baz] [0] quux [frob])")
+    can_compile("(. foo bar [(+ 1 2 3 4)] quux [frob])")
+    cant_compile("(. foo bar :baz [0] quux [frob])")
+    cant_compile("(. foo bar baz (0) quux [frob])")
+    cant_compile("(. foo bar baz [0] quux {frob})")
+
+
+def test_cons_correct():
+    """Ensure cons gets compiled correctly"""
+    can_compile("(cons a b)")

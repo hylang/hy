@@ -28,3 +28,12 @@ class HyDict(HyList):
 
     def __repr__(self):
         return "{%s}" % (" ".join([repr(x) for x in self]))
+
+    def keys(self):
+        return self[0::2]
+
+    def values(self):
+        return self[1::2]
+
+    def items(self):
+        return list(zip(self.keys(), self.values()))

@@ -40,6 +40,7 @@ lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
 lg.add('HASHBANG', r'#!.*[^\r\n]')
+lg.add('HASHREADER', r'#.')
 
 
 lg.add('STRING', r'''(?x)
@@ -59,7 +60,7 @@ lg.add('STRING', r'''(?x)
 lg.add('IDENTIFIER', r'[^()\[\]{}\'"\s;]+')
 
 
-lg.ignore(r';.*[\r\n]+')
+lg.ignore(r';.*(?=\r|\n|$)')
 lg.ignore(r'\s+')
 
 

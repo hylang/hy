@@ -70,6 +70,10 @@ To run the tests::
 
 Write tests---tests are good!
 
+Also, it is good to run the tests for all the platforms supported and for pep8 compliant code. 
+You can do so by running tox::
+
+    $ tox
 
 Document!
 =========
@@ -83,3 +87,26 @@ To build the docs in HTML::
     $ make html
 
 Write docs---docs are good! Even this doc!
+
+
+Core Development Rules
+======================
+
+All incoming changes need to be acked by 2 different members of Hylang's
+core team. Additional review is clearly welcome, but we need a minimum of
+2 signoffs for any change.
+
+If a core member is sending in a PR, please find 2 core members that don't
+include the PR submitter. The idea here is that one can work with the PR
+author, and a second acks the entire change set.
+
+If the change is adding documentation, feel free to just merge after one
+ACK. We've got low coverage, so it'd be great to keep that barrier low.
+
+
+Core Team
+=========
+
+Core development team of hy consists of following developers.
+
+.. include:: coreteam.rst

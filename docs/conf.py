@@ -11,7 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
+import sys
+import time
 sys.path.append(os.path.abspath(".."))
 
 import hy
@@ -28,7 +30,7 @@ import hy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = ['sphinx.ext.todo']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -44,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'hy'
-copyright = u'2013, Paul Tagliamonte'
+copyright = u'2013-%s, Paul Tagliamonte' % time.strftime('%Y')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -67,7 +69,7 @@ release = hy.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', 'coreteam.rst']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None

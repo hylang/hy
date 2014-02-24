@@ -26,10 +26,12 @@ from hy.models.integer import HyInteger
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.dict import HyDict
-from hy._compat import str_type
+from hy._compat import str_type, long_type
+
+from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
-
+import sys
 
 CORE_MACROS = [
     "hy.core.bootstrap",
@@ -40,6 +42,7 @@ EXTRA_MACROS = [
 ]
 
 _hy_macros = defaultdict(dict)
+_hy_reader = defaultdict(dict)
 
 
 def macro(name):
@@ -63,6 +66,28 @@ def macro(name):
     return _
 
 
+def reader(name):
+    """Decorator to define a macro called `name`.
+
+    This stores the macro `name` in the namespace for the module where it is
+    defined.
+
+    If the module where it is defined is in `hy.core`, then the macro is stored
+    in the default `None` namespace.
+
+    This function is called from the `defmacro` special form in the compiler.
+
+    """
+    def _(fn):
+        module_name = fn.__module__
+        if module_name.startswith("hy.core"):
+            module_name = None
+        _hy_reader[module_name][name] = fn
+
+        return fn
+    return _
+
+
 def require(source_module, target_module):
     """Load the macros from `source_module` in the namespace of
     `target_module`.
@@ -75,6 +100,11 @@ def require(source_module, target_module):
     for name, macro in macros.items():
         refs[name] = macro
 
+    readers = _hy_reader[source_module]
+    reader_refs = _hy_reader[target_module]
+    for name, reader in readers.items():
+        reader_refs[name] = reader
+
 
 # type -> wrapping function mapping for _wrap_value
 _wrappers = {
@@ -84,8 +114,13 @@ _wrappers = {
     complex: HyComplex,
     str_type: HyString,
     dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
-    list: lambda l: HyList(_wrap_value(x) for x in l)
+    list: lambda l: HyList(_wrap_value(x) for x in l),
+    tuple: lambda t: HyList(_wrap_value(x) for x in t),
+    type(None): lambda foo: HySymbol("None"),
 }
+
+if sys.version_info[0] < 3:  # do not add long on python3
+    _wrappers[long_type] = HyInteger
 
 
 def _wrap_value(x):
@@ -157,9 +192,35 @@ def macroexpand_1(tree, module_name):
             if m is None:
                 m = _hy_macros[None].get(fn)
             if m is not None:
-                obj = _wrap_value(m(*ntree[1:]))
+                try:
+                    obj = _wrap_value(m(*ntree[1:]))
+                except HyTypeError as e:
+                    if e.expression is None:
+                        e.expression = tree
+                    raise
+                except Exception as e:
+                    msg = "`" + str(tree[0]) + "' " + \
+                          " ".join(str(e).split()[1:])
+                    raise HyMacroExpansionError(tree, msg)
                 obj.replace(tree)
                 return obj
 
         return ntree
     return tree
+
+
+def reader_macroexpand(char, tree, module_name):
+    """Expand the reader macro "char" with argument `tree`."""
+    load_macros(module_name)
+
+    if not char in _hy_reader[module_name]:
+        raise HyTypeError(
+            char,
+            "`{0}' is not a reader macro in module '{1}'".format(
+                char,
+                module_name,
+            ),
+        )
+
+    expr = _hy_reader[module_name][char](tree)
+    return _wrap_value(expr).replace(tree)

@@ -1,3 +1,76 @@
+Changes from Hy 0.9.11
+
+   tl;dr:
+
+    0.9.12 comes with some massive changes,
+    We finally took the time to implement gensym, as well as a few
+    other bits that help macro writing. Check the changelog for
+    what exactly was added. 
+    
+    The biggest feature, Reader Macros, landed later
+    in the cycle, but were big enough to warrent a release on it's
+    own. A huge thanks goes to Foxboron for implementing them
+    and a massive hug goes out to olasd for providing ongoing
+    reviews during the development.
+    
+    Welcome to the new Hy contributors, Henrique Carvalho Alves,
+    Kevin Zita and Kenan Bölükbaşı. Thanks for your work so far,
+    folks!
+    
+    Hope y'all enjoy the finest that 2013 has to offer,
+      - Hy Society
+
+
+    * Special thanks goes to Willyfrog, Foxboron and theanalyst for writing
+      0.9.12's NEWS. Thanks, y'all! (PT)
+
+
+    [ Language Changes ]
+    * Translate foo? -> is_foo, for better Python interop. (PT)
+    * Reader Macros!
+    * Operators + and * now can work without arguments
+    * Define kwapply as a macro
+    * Added apply as a function
+    * Instant symbol generation with gensym
+    * Allow macros to return None
+    * Add a method for casting into byte string or unicode depending on python version
+    * flatten function added to language
+    * Add a method for casting into byte string or unicode depending on python version
+    * Added type coercing to the right integer for the platform
+
+
+    [ Misc. Fixes ]
+    * Added information about core team members
+    * Documentation fixed and extended
+    * Add astor to install_requires to fix hy --spy failing on hy 0.9.11.
+    * Convert stdout and stderr to UTF-8 properly in the run_cmd helper.
+    * Update requirements.txt and setup.py to use rply upstream.
+    * tryhy link added in documentation and README
+    * Command line options documented
+    * Adding support for coverage tests at coveralls.io
+    * Added info about tox, so people can use it prior to a PR
+    * Added the start of hacking rules
+    * Halting Problem removed from example as it was nonfree
+    * Fixed PyPI is now behind a CDN. The --use-mirrors option is deprecated.
+    * Badges for pypi version and downloads.
+
+
+    [ Syntax Fixes ]
+    * get allows multiple arguments
+
+
+    [ Bug Fixes ]
+    *  OSX: Fixes for readline Repl problem which caused HyREPL not allowing 'b'
+    * Fix REPL completions on OSX
+    *  Make HyObject.replace more resilient to prevent compiler breakage.
+
+
+    [ Contrib changes ]
+    * Anaphoric macros added to contrib
+    * Modified eg/twisted to follow the newer hy syntax
+    * Added (experimental) profile module
+
+
 Changes from Hy 0.9.10
 
     * Many thanks to Guillermo Vayá (Willyfrog) for preparing this release's

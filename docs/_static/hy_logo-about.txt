@@ -13,3 +13,6 @@ into the public domain under CC0... see CC0_1.0.txt!
   You should have received a copy of the CC0 Public Domain
   Dedication along with this software. If not, see
   <http://creativecommons.org/publicdomain/zero/1.0/>.
+
+The new Hy logo is Copyright CC-BY-SA 4.0 Kenan Bölükbaşı, thanks, Kenan!
+http://www.kenanb.com/posts/Hy-Programming-Language-Logo.html

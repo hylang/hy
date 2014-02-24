@@ -29,5 +29,8 @@ class HyKeyword(HyObject, str_type):
     """
 
     def __new__(cls, value):
-        obj = str_type.__new__(cls, "\uFDD0" + value)
+        if not value.startswith("\uFDD0"):
+            value = "\uFDD0" + value
+
+        obj = str_type.__new__(cls, value)
         return obj

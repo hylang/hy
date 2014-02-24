@@ -31,8 +31,14 @@
 (defmacro a-list [] [1 2])
 (assert (= (a-list) [1 2]))
 
+(defmacro a-tuple [&rest b] b)
+(assert (= (a-tuple 1 2) [1 2]))
+
 (defmacro a-dict [] {1 2})
 (assert (= (a-dict) {1 2}))
+
+(defmacro a-none [])
+(assert (= (a-none) None))
 
 ; A macro calling a previously defined function
 (eval-when-compile
@@ -53,7 +59,7 @@
 (defn test-midtree-yield-in-for []
   "NATIVE: test yielding in a for with a return"
   (defn kruft-in-for []
-    (for [i (range 5)]
+    (for* [i (range 5)]
       (yield i))
     (+ 1 2)))
 
@@ -69,7 +75,7 @@
 (defn test-multi-yield []
   "NATIVE: testing multiple yields"
   (defn multi-yield []
-    (for [i (range 3)]
+    (for* [i (range 3)]
       (yield i))
     (yield "a")
     (yield "end"))
@@ -91,11 +97,10 @@
 (assert initialized)
 (assert (test-initialized))
 
-
 (defn test-yield-from []
   "NATIVE: testing yield from"
   (defn yield-from-test []
-    (for [i (range 3)]
+    (for* [i (range 3)]
       (yield i))
     (yield-from [1 2 3]))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
@@ -104,3 +109,92 @@
   (import sys)
   (assert (= (get sys.version_info 0)
              (if-python2 2 3))))
+
+(defn test-gensym-in-macros []
+  (import ast)
+  (import [astor.codegen [to_source]])
+  (import [hy.importer [import_buffer_to_ast]])
+  (setv macro1 "(defmacro nif [expr pos zero neg]
+      (let [[g (gensym)]]
+        `(let [[~g ~expr]]
+           (cond [(pos? ~g) ~pos]
+                 [(zero? ~g) ~zero]
+                 [(neg? ~g) ~neg]))))
+
+    (print (nif (inc -1) 1 0 -1))
+    ")
+  ;; expand the macro twice, should use a different
+  ;; gensym each time
+  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv s1 (to_source _ast1))
+  (setv s2 (to_source _ast2))
+  ;; and make sure there is something new that starts with :G_
+  (assert (in ":G_" s1))
+  (assert (in ":G_" s2))
+  ;; but make sure the two don't match each other
+  (assert (not (= s1 s2))))
+
+(defn test-with-gensym []
+  (import ast)
+  (import [astor.codegen [to_source]])
+  (import [hy.importer [import_buffer_to_ast]])
+  (setv macro1 "(defmacro nif [expr pos zero neg]
+      (with-gensyms [a]
+        `(let [[~a ~expr]]
+           (cond [(pos? ~a) ~pos]
+                 [(zero? ~a) ~zero]
+                 [(neg? ~a) ~neg]))))
+
+    (print (nif (inc -1) 1 0 -1))
+    ")
+  ;; expand the macro twice, should use a different
+  ;; gensym each time
+  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv s1 (to_source _ast1))
+  (setv s2 (to_source _ast2))
+  (assert (in ":a_" s1))
+  (assert (in ":a_" s2))
+  (assert (not (= s1 s2))))
+
+(defn test-defmacro-g! []
+  (import ast)
+  (import [astor.codegen [to_source]])
+  (import [hy.importer [import_buffer_to_ast]])
+  (setv macro1 "(defmacro/g! nif [expr pos zero neg]
+        `(let [[~g!res ~expr]]
+           (cond [(pos? ~g!res) ~pos]
+                 [(zero? ~g!res) ~zero]
+                 [(neg? ~g!res) ~neg])))
+
+    (print (nif (inc -1) 1 0 -1))
+    ")
+  ;; expand the macro twice, should use a different
+  ;; gensym each time
+  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv s1 (to_source _ast1))
+  (setv s2 (to_source _ast2))
+  (assert (in ":res_" s1))
+  (assert (in ":res_" s2))
+  (assert (not (= s1 s2))))
+
+
+(defn test-if-not []
+  (assert (= (if-not True :yes :no)
+             :no))
+  (assert (= (if-not False :yes :no)
+             :yes))
+  (assert (nil? (if-not True :yes)))
+  (assert (= (if-not False :yes)
+             :yes)))
+
+
+(defn test-defn-alias []
+  (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)
+  (defun-alias [tda-main tda-a1 tda-a2] [] :bazinga)
+  (assert (= (tda-main) :bazinga))
+  (assert (= (tda-a1) :bazinga))
+  (assert (= (tda-a2) :bazinga))
+  (assert (= tda-main tda-a1 tda-a2)))

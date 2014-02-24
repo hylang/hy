@@ -276,7 +276,7 @@ You might notice above that if you have code like:
      (body-if-true)
      (body-if-false))
 
-But wait!  What if you want to execute more than one statment in the
+But wait!  What if you want to execute more than one statement in the
 body of one of these?
 
 You can do the following:
@@ -289,7 +289,7 @@ You can do the following:
        (print "and why not, let's keep talking about how true it is!))
      (print "this one's still simply just false"))
 
-You can see that we used "do" to wrap multiple statments.  If you're
+You can see that we used "do" to wrap multiple statements.  If you're
 familiar with other lisps, this is the equivalent of "progn"
 elsewhere.
 
@@ -311,8 +311,8 @@ The equivalent in hy would be:
 
 .. code-block:: clj
 
-  (for (i (range 10))
-     (print (+ "'i' is now at " (str i))))
+  (for [i (range 10)]
+    (print (+ "'i' is now at " (str i))))
 
 
 You can also import and make use of various python libraries.  For
@@ -330,13 +330,13 @@ Python's context managers ('with' statements) are used like this:
 
 .. code-block:: clj 
  
-     (with [f (file "/tmp/data.in")] 
-       (print (.read f))) 
+     (with [[f (open "/tmp/data.in")]]
+       (print (.read f)))
 
 which is equivalent to::
 
-  with file("/tmp/data.in") as f:
-    print f.read()
+  with open("/tmp/data.in") as f:
+      print f.read()
  
 And yes, we do have lisp comprehensions!  In Python you might do::
 
@@ -363,7 +363,7 @@ In hy, you could do these like:
   
   (list-comp
     (, x y)
-    (x (range 9)
+    (x (range 8)
      y "ABCDEFGH"))
   
   ; [(0, 'A'), (0, 'B'), (0, 'C'), (0, 'D'), (0, 'E'), (0, 'F'), (0, 'G'), (0, 'H'),
@@ -373,8 +373,7 @@ In hy, you could do these like:
   ;  (4, 'A'), (4, 'B'), (4, 'C'), (4, 'D'), (4, 'E'), (4, 'F'), (4, 'G'), (4, 'H'),
   ;  (5, 'A'), (5, 'B'), (5, 'C'), (5, 'D'), (5, 'E'), (5, 'F'), (5, 'G'), (5, 'H'),
   ;  (6, 'A'), (6, 'B'), (6, 'C'), (6, 'D'), (6, 'E'), (6, 'F'), (6, 'G'), (6, 'H'),
-  ;  (7, 'A'), (7, 'B'), (7, 'C'), (7, 'D'), (7, 'E'), (7, 'F'), (7, 'G'), (7, 'H'),
-  ;  (8, 'A'), (8, 'B'), (8, 'C'), (8, 'D'), (8, 'E'), (8, 'F'), (8, 'G'), (8, 'H')]
+  ;  (7, 'A'), (7, 'B'), (7, 'C'), (7, 'D'), (7, 'E'), (7, 'F'), (7, 'G'), (7, 'H')]
 
 
 Python has support for various fancy argument and keyword arguments.
@@ -406,7 +405,7 @@ The same thing in Hy::
   ... 
   [3, 2, 1, 4]
 
-See how we use kwapply to handle the fancy pssing? :)
+See how we use kwapply to handle the fancy passing? :)
 
 There's also a dictionary-style keyword arguments construction that
 looks like:
@@ -436,12 +435,18 @@ The Hy equivalent:
 Finally, of course we need classes!  In python we might have a class
 like::
 
-  class FooBar (object):
-     def __init__(self, x):
-         self.x = x
+  class FooBar(object):
+      """
+      Yet Another Example Class
+      """
+      def __init__(self, x):
+          self.x = x
 
-     def get_x(self):
-         return self.x
+      def get_x(self):
+          """
+          Return our copy of x
+          """
+          return self.x
 
 
 In Hy:
@@ -449,6 +454,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass FooBar [object]
+    "Yet Another Example Class"
     [[--init--
       (fn [self x]
         (setv self.x x)
@@ -458,6 +464,7 @@ In Hy:
   
      [get-x
       (fn [self]
+        "Return our copy of x"
         self.x)]])
 
 

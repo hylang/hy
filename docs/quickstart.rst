@@ -2,21 +2,20 @@
 Quickstart
 ==========
 
-.. image:: _static/cuddles.png
+.. image:: _static/cuddles-transparent-small.png
    :alt: Karen Rustard's Cuddles
-   :align: left
 
-(thanks to Karen Rustad for Cuddles!)
+(Thanks to Karen Rustad for Cuddles!)
 
 
-HOW TO GET HY REAL FAST:
+**HOW TO GET HY REAL FAST**:
 
-1. create a `Python virtual environment
+1. Create a `Virtual Python Environment
    <https://pypi.python.org/pypi/virtualenv>`_
-2. activate your Python virtual environment
-3. ``pip install hy``
-4. start a REPL with ``hy``
-5. type stuff in the REPL::
+2. Activate your Virtual Python Environment
+3. Install `hy from PyPI <https://pypi.python.org/pypi/hy>`_ with ``pip install hy``
+4. Start a REPL with ``hy``
+5. Type stuff in the REPL::
 
        => (print "Hy!")
        Hy!
@@ -26,20 +25,19 @@ HOW TO GET HY REAL FAST:
 
        etc
 
-6. hit CTRL-D when you're done
+6. Hit CTRL-D when you're done
 
 OMG! That's amazing! I want to write a hy program.
 
-7. open up an elite programming editor
-8. type::
+7. Open up an elite programming editor and type::
 
-       (print "i was going to code in python syntax, but then i got hy")
+       (print "I was going to code in python syntax, but then I got hy.")
 
-9. save as ``test_program_of_awesome.hy``
-10. run::
+8. Save as ``awesome.hy``
+9. And run your first Hy program::
 
-        hy test_program_of_awesome.hy
+        hy awesome.hy
 
-11. take a deep breath so as to not hyperventilate
-12. smile villainously and sneak off to your hydeaway and do
+10. Take a deep breath so as to not hyperventilate
+11. Smile villainously and sneak off to your hydeaway and do
     unspeakable things

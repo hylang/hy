@@ -13,6 +13,7 @@ all:
 	@echo "   - tox"
 	@echo "   - d"
 	@echo "   - r"
+	@echo "   - clean"
 	@echo ""
 
 docs:
@@ -53,11 +54,19 @@ diff:
 r: d tox diff
 
 travis:
-	nosetests -s
+	nosetests -s --with-coverage --cover-package hy
 ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 	@echo "skipping flake8 on pypy"
 else
 	flake8 hy bin tests
 endif
+
+clean:
+	@find . -name "*.pyc" -exec rm {} \;
+	@find -name __pycache__ -delete
+	@${RM} -r -f .tox
+	@${RM} -r -f dist
+	@${RM} -r -f *.egg-info
+	@${RM} -r -f docs/_build
 
 .PHONY: docs

@@ -26,6 +26,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+import sys
 from contextlib import contextmanager
 
 docomplete = True
@@ -39,6 +40,12 @@ except ImportError:
         import readline
     except ImportError:
         docomplete = False
+
+if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
+    readline_bind = "bind ^I rl_complete"
+else:
+    readline_bind = "tab: complete"
+
 
 import hy.macros
 import hy.compiler
@@ -94,7 +101,7 @@ def completion(completer=None):
         except IOError:
             open(history, 'a').close()
 
-        readline.parse_and_bind("tab: complete")
+        readline.parse_and_bind(readline_bind)
 
     yield
 

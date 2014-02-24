@@ -1,41 +1,26 @@
 Welcome to Hy's documentation!
 ==============================
 
-
-
-
-.. image:: _static/hy_logo-smaller.png
-   :alt: Hy logo
+.. image:: _static/hy-logo-small.png
+   :alt: Hy
    :align: left
 
-Welcome to `Hy <https://github.com/hylang/hy>`_!
+:Try Hy: https://try-hy.appspot.com
+:PyPI: https://pypi.python.org/pypi/hy
+:Source: https://github.com/hylang/hy
+:List: `hylang-discuss <https://groups.google.com/forum/#!forum/hylang-discuss>`_
+:IRC: ``#hy`` on Freenode
+:Build status:
+    .. image:: https://secure.travis-ci.org/hylang/hy.png
+        :alt: Travis CI
+        :target: http://travis-ci.org/hylang/hy
+
 Hy is a wonderful dialect of Lisp that's embedded in Python.
-Since Hy transforms its lisp code into the python Abstract Syntax
-Tree, you have the whole beautiful world of python at your fingertips,
-in lisp form!
 
-Meet our mascot, "Cuddles":
+Since Hy transforms its Lisp code into the Python Abstract Syntax
+Tree, you have the whole beautiful world of Python at your fingertips,
+in Lisp form!
 
-.. image:: http://fc07.deviantart.net/fs70/i/2013/138/f/0/cuddles_the_hacker_by_doctormo-d65l7lq.png
-   :alt: Paul riding cuddles into the distance
-
-
-..   Our old ascii art mascot version
-..   Retained as an easter egg for those who read the docs via .rst!
-..
-..   LET'S CUDDLEFISH
-..              ______
-..       _.----'#'  # '
-..     ,'  #'    ,#  ;
-..    ('   (w)  _,-'_/
-..   /// / /'.____.'
-..   \|\||/
-
-
-Read more about Hy in these docs!
-
-We're also on IRC!  Join
-`#hy on irc.freenode.net <http://webchat.freenode.net/?channels=hy>`_!
 
 Documentation Index
 ===================
@@ -47,5 +32,6 @@ Contents:
 
    quickstart
    tutorial
-   hacking
    language/index
+   contrib/index
+   hacking

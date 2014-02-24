@@ -30,6 +30,14 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
+(defn test-coll? []
+  "NATIVE: testing coll?"
+  (assert-true (coll? [1 2 3]))
+  (assert-true (coll? {"a" 1 "b" 2}))
+  (assert-true (coll? (range 10)))
+  (assert-false (coll? "abc"))
+  (assert-false (coll? 1)))
+
 (defn test-cycle []
   "NATIVE: testing cycle"
   (assert-equal (list (cycle [])) [])
@@ -115,6 +123,13 @@
   (try (even? None)
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
 
+(defn test-every? []
+  "NATIVE: testing the every? function"
+  (assert-true (every? even? [2 4 6]))
+  (assert-false (every? even? [1 3 5]))
+  (assert-false (every? even? [2 4 5]))
+  (assert-true (every? even? [])))
+
 (defn test-filter []
   "NATIVE: testing the filter function"
   (setv res (list (filter pos? [ 1 2 3 -4 5])))
@@ -133,6 +148,26 @@
   (setv res (list (filter none? [1 2 None 3 4 None 4 6])))
   (assert-equal res [None None]))
 
+(defn test-flatten []
+  "NATIVE: testing the flatten function"
+  (setv res (flatten [1 2 [3 4] 5]))
+  (assert-equal res [1 2 3 4 5])
+  (setv res (flatten ["foo" (, 1 2) [1 [2 3] 4] "bar"]))
+  (assert-equal res ["foo" 1 2 1 2 3 4 "bar"])
+  (setv res (flatten [1]))
+  (assert-equal res [1])
+  (setv res (flatten []))
+  (assert-equal res [])
+  (setv res (flatten (, 1)))
+  (assert-equal res [1])
+  ;; test with None
+  (setv res (flatten (, 1 (, None 3))))
+  (assert-equal res [1 None 3])
+  (try (flatten "foo")
+       (catch [e [TypeError]] (assert (in "not a collection" (str e)))))
+  (try (flatten 12.34)
+       (catch [e [TypeError]] (assert (in "not a collection" (str e))))))
+
 (defn test-float? []
   "NATIVE: testing the float? function"
   (assert-true (float? 4.2))
@@ -140,6 +175,24 @@
   (assert-false (float? -3))
   (assert-true (float? -3.2))
   (assert-false (float? "foo")))
+
+(defn test-gensym []
+  "NATIVE: testing the gensym function"
+  (import [hy.models.symbol [HySymbol]])
+  (setv s1 (gensym))
+  (assert (isinstance s1 HySymbol))
+  (assert (= 0 (.find s1 ":G_")))
+  (setv s2 (gensym "xx"))
+  (setv s3 (gensym "xx"))
+  (assert (= 0 (.find s2 ":xx_")))
+  (assert (not (= s2 s3)))
+  (assert (not (= (str s2) (str s3)))))
+
+(defn test-identity []
+  "NATIVE: testing the identity function"
+  (assert (= 4 (identity 4)))
+  (assert (= "hy" (identity "hy")))
+  (assert (= [1 2] (identity [1 2]))))
 
 (defn test-inc []
   "NATIVE: testing the inc function"
@@ -163,7 +216,7 @@
   (assert-false (instance? Foo2 foo))
   (assert-true (instance? Foo foo3))
   (assert-true (instance? float 1.0))
-  (assert-true (instance? int 3))
+  (assert-true (instance? int (int  3)))
   (assert-true (instance? str (str "hello"))))
 
 (defn test-integer? []
@@ -171,9 +224,19 @@
   (assert-true (integer? 0))
   (assert-true (integer? 3))
   (assert-true (integer? -3))
+  (assert-true (integer? (integer "-3")))
+  (assert-true (integer? (integer 3)))
   (assert-false (integer? 4.2))
   (assert-false (integer? None))
   (assert-false (integer? "foo")))
+
+(defn test-integer-char? []
+  "NATIVE: testing the integer-char? function"
+  (assert-true (integer-char? "1"))
+  (assert-true (integer-char? "-1"))
+  (assert-true (integer-char? (str (integer 300))))
+  (assert-false (integer-char? "foo"))
+  (assert-false (integer-char? None)))
 
 (defn test-iterable []
   "NATIVE: testing iterable? function"
@@ -259,6 +322,15 @@
   (assert-false (none? 0))
   (assert-false (none? "")))
 
+(defn test-nil? []
+  "NATIVE: testing for `is nil`"
+  (assert-true (nil? nil))
+  (assert-true (nil? None))
+  (setv f nil)
+  (assert-true (nil? f))
+  (assert-false (nil? 0))
+  (assert-false (nil? "")))
+
 (defn test-nth []
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
@@ -334,6 +406,13 @@
   (assert-equal 2 (second [1 2]))
   (assert-equal 3 (second [2 3 4])))
 
+(defn test-some []
+  "NATIVE: testing the some function"
+  (assert-true (some even? [2 4 6]))
+  (assert-false (some even? [1 3 5]))
+  (assert-true (some even? [1 3 6]))
+  (assert-false (some even? [])))
+
 (defn test-string? []
   "NATIVE: testing string?"
   (assert-true (string? "foo"))
@@ -391,3 +470,11 @@
   (assert-equal res [None None])
   (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
   (assert-equal res [1 2 3 4]))
+
+(defn test-zipwith []
+  "NATIVE: testing the zipwith function"
+  (import operator)
+  (setv res (zipwith operator.add [1 2 3] [3 2 1]))
+  (assert-equal (list res) [4 4 4])
+  (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
+  (assert-equal (list res) [2 5 5]))
