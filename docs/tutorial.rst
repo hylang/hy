@@ -181,14 +181,14 @@ for python programmers... now you too can make use of macros'
 incredible power (just be careful to not aim them footward)!
 
 
-Hy is python flavored lisp (or vice versa?)
-===========================================
+Hy is a Lisp flavored Python
+============================
 
-Hy converts to python's own abstract syntax tree, so you'll soon start
+Hy converts to Python's own abstract syntax tree, so you'll soon start
 to find that all the familiar power of python is at your fingertips.
 
-You have full access to python's data types and standard library in
-hy.  Let's experiment with this in the hy interpreter::
+You have full access to Python's data types and standard library in
+Hy.  Let's experiment with this in the hy interpreter::
 
   => [1 2 3]
   [1, 2, 3]
