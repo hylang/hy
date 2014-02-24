@@ -32,6 +32,10 @@
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
 
+(defn butlast [coll]
+  "Returns coll except of last element."
+  (slice coll 0 (dec (len coll))))
+
 (defn coll? [coll]
   "Checks whether item is a collection"
   (and (iterable? coll) (not (string? coll))))
@@ -60,17 +64,24 @@
   (- n 1))
 
 (defn disassemble [tree &optional [codegen false]]
-  "Dump the python AST for a given Hy tree to standard output
+  "Return the python AST for a quoted Hy tree as a string.
    If the second argument is true, generate python code instead."
   (import astor)
   (import hy.compiler)
 
   (fake-source-positions tree)
   (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
-  (print ((if codegen
+  ((if codegen
             astor.codegen.to_source
             astor.dump)
-          compiled)))
+          compiled))
+
+(defn profile [tree]
+  "Profile a quoted Hy tree."
+  (import cProfile)
+  (import re)
+
+  (.run cProfile (disassemble tree true)))
 
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
@@ -351,10 +362,11 @@
     (import functools)
     (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
 
-(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
-                 disassemble drop drop-while empty? even? every? first filter
-                 flatten float? gensym identity inc instance? integer
-                 integer? integer-char? iterable? iterate iterator?
-                 list* macroexpand macroexpand-1 neg? nil? none? nth
-                 numeric? odd? pos? remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero? zipwith])
+(def *exports* '[butlast calling-module-name coll? cons cons? cycle dec
+                 distinct disassemble profile drop drop-while empty?
+                 even? every? first filter flatten float? gensym
+                 identity inc instance? integer integer? integer-char?
+                 iterable? iterate iterator?  list* macroexpand
+                 macroexpand-1 neg? nil? none? nth numeric? odd? pos?
+                 remove repeat repeatedly rest second some string
+                 string? take take-nth take-while zero? zipwith])
