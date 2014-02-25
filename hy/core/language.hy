@@ -76,13 +76,6 @@
             astor.dump)
           compiled))
 
-(defn profile [tree]
-  "Profile a quoted Hy tree."
-  (import cProfile)
-  (import re)
-
-  (.run cProfile (disassemble tree true)))
-
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
