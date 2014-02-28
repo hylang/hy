@@ -26,7 +26,7 @@
 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]]
-        [hy.models.keyword [HyKeyword KEYWORD_PREFIX]])
+        [hy.models.keyword [HyKeyword *keyword-prefix*]])
 
 
 (defn _numeric-check [x]
@@ -359,7 +359,7 @@
 (defn keyword [value]
   "Create a keyword from the given value. Strings numbers and even objects
   with the __name__ magic will work"
-  (if (and (string? value) (value.startswith KEYWORD_PREFIX))
+  (if (and (string? value) (value.startswith *keyword-prefix*))
     (hyify value)
     (if (string? value)
       (HyKeyword (+ ":" (hyify value)))
@@ -370,7 +370,7 @@
 (defn name [value]
   "Convert the given value to a string. Keyword special character will be stripped.
   String will be used as is. Even objects with the __name__ magic will work"
-  (if (and (string? value) (value.startswith KEYWORD_PREFIX))
+  (if (and (string? value) (value.startswith *keyword-prefix*))
     (hyify (slice value 2))
     (if (string? value)
       (hyify value)
