@@ -25,7 +25,8 @@
 
 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
-(import [hy.models.cons [HyCons]])
+(import [hy.models.cons [HyCons]]
+        [hy.models.keyword [HyKeyword KEYWORD_PREFIX]])
 
 
 (defn _numeric-check [x]
@@ -351,10 +352,36 @@
     (import functools)
     (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
 
+(defn hyify [text]
+  "Convert text to match hy identifier"
+  (.replace (string text) "_" "-"))
+
+(defn keyword [value]
+  "Create a keyword from the given value. Strings numbers and even objects
+  with the __name__ magic will work"
+  (if (and (string? value) (value.startswith KEYWORD_PREFIX))
+    (hyify value)
+    (if (string? value)
+      (HyKeyword (+ ":" (hyify value)))
+      (try
+        (hyify (.__name__ value))
+        (catch [] (HyKeyword (+ ":" (string value))))))))
+
+(defn name [value]
+  "Convert the given value to a string. Keyword special character will be stripped.
+  String will be used as is. Even objects with the __name__ magic will work"
+  (if (and (string? value) (value.startswith KEYWORD_PREFIX))
+    (hyify (slice value 2))
+    (if (string? value)
+      (hyify value)
+      (try
+        (hyify (. value __name__))
+        (catch [] (string value))))))
+
 (def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
-                 integer? integer-char? iterable? iterate iterator?
-                 list* macroexpand macroexpand-1 neg? nil? none? nth
+                 integer? integer-char? iterable? iterate iterator? keyword
+                 list* macroexpand macroexpand-1 name neg? nil? none? nth
                  numeric? odd? pos? remove repeat repeatedly rest second
                  some string string? take take-nth take-while zero? zipwith])

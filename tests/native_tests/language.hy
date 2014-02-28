@@ -988,3 +988,29 @@
   "NATIVE: test keyword quoting magic"
   (assert (= :foo "\ufdd0:foo"))
   (assert (= `:foo "\ufdd0:foo")))
+
+(defn test-keyword-creation []
+  "NATIVE: Test keyword creation"
+  (assert (= (keyword "foo") :foo))
+  (assert (= (keyword "foo_bar") :foo-bar))
+  (assert (= (keyword `foo) :foo))
+  (assert (= (keyword `foo-bar) :foo-bar))
+  (assert (= (keyword 'foo) :foo))
+  (assert (= (keyword 'foo-bar) :foo-bar))
+  (assert (= (keyword 1) :1))
+  (assert (= (keyword 1.0) :1.0))
+  (assert (= (keyword :foo_bar) :foo-bar)))
+
+(defn test-name-conversion []
+  "NATIVE: Test name conversion"
+  (assert (= (name "foo") "foo"))
+  (assert (= (name "foo_bar") "foo-bar"))
+  (assert (= (name `foo) "foo"))
+  (assert (= (name `foo_bar) "foo-bar"))
+  (assert (= (name 'foo) "foo"))
+  (assert (= (name 'foo_bar) "foo-bar"))
+  (assert (= (name 1) "1"))
+  (assert (= (name 1.0) "1.0"))
+  (assert (= (name :foo) "foo"))
+  (assert (= (name :foo_bar) "foo-bar"))
+  (assert (= (name test-name-conversion) "test-name-conversion")))
