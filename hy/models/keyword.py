@@ -22,7 +22,9 @@ from __future__ import unicode_literals
 from hy.models import HyObject
 from hy._compat import str_type
 
+
 KEYWORD_PREFIX = "\uFDD0"
+
 
 class HyKeyword(HyObject, str_type):
     """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
