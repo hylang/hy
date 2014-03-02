@@ -356,7 +356,7 @@
     (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
 
 (def *exports* '[butlast calling-module-name coll? cons cons? cycle dec
-                 distinct disassemble profile drop drop-while empty?
+                 distinct disassemble drop drop-while empty?
                  even? every? first filter flatten float? gensym
                  identity inc instance? integer integer? integer-char?
                  iterable? iterate iterator?  list* macroexpand
