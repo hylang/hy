@@ -345,10 +345,16 @@
   (_numeric_check n)
   (= n 0))
 
+(defn zipwith [func &rest lists]
+  "Zip the contents of several lists and map a function to the result"
+  (do
+    (import functools)
+    (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
+
 (def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
                  list* macroexpand macroexpand-1 neg? nil? none? nth
                  numeric? odd? pos? remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero?])
+                 some string string? take take-nth take-while zero? zipwith])

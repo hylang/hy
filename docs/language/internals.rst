@@ -84,7 +84,7 @@ In the input stream, double-quoted strings, respecting the Python
 notation for strings, are parsed as a single token, which is directly
 parsed as a :ref:`HyString`.
 
-An ininterrupted string of characters, excluding spaces, brackets,
+An uninterrupted string of characters, excluding spaces, brackets,
 quotes, double-quotes and comments, is parsed as an identifier.
 
 Identifiers are resolved to atomic models during the parsing phase in
@@ -231,14 +231,14 @@ from source to runtime.
 Steps 1 and 2: Tokenizing and parsing
 -------------------------------------
 
-The first stage of compiling hy is to lex the source into tokens that we can
+The first stage of compiling Hy is to lex the source into tokens that we can
 deal with. We use a project called rply, which is a really nice (and fast)
 parser, written in a subset of Python called rpython.
 
 The lexing code is all defined in ``hy.lex.lexer``. This code is mostly just
-defining the Hy grammer, and all the actual hard parts are taken care of by
-rply -- we just define "callbacks" for rply in ``hy.lex.parser``, which take
-the tokens generated, and return the Hy models.
+defining the Hy grammar, and all the actual hard parts are taken care of by
+rply -- we just define "callbacks" for rply in ``hy.lex.parser``, which takes
+the tokens generated, and returns the Hy models.
 
 You can think of the Hy models as the "AST" for Hy, it's what Macros operate
 on (directly), and it's what the compiler uses when it compiles Hy down.

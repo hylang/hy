@@ -814,6 +814,22 @@ function is defined and passed to another function for filtering output.
     Alice
     Dave
 
+Just as in normal function definitions, if the first element of the
+body is a string, it serves as docstring.  This is useful for giving
+class methods docstrings.
+
+    => (setv times-three
+    ...   (fn [x]
+    ...    "Multiplies input by three and returns the result."
+    ...    (* x 3)))
+
+    => (help times-three)
+    Help on function times_three:
+
+    times_three(x)
+    Multiplies input by three and returns result
+    (END)
+
 
 let
 ---
@@ -1250,3 +1266,24 @@ infinite series without consuming infinite amount of memory.
     ...  (while True (yield (.randint random low high))))
     => (list-comp x [x (take 15 (random-numbers 1 50))])])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
+
+.. _zipwith:
+
+zipwith
+-------
+
+.. versionadded:: 0.9.13
+
+`zipwith` zips multiple lists and maps the given function over the result. It is
+equilavent to calling ``zip``, followed by calling ``map`` on the result.
+
+In the following example, `zipwith` is used to add the contents of two lists
+together. The equilavent ``map`` and ``zip`` calls follow.
+
+.. code-block:: clj
+   
+   => (import operator.add)
+   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
+   [5, 7, 9]
+   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
+   [5, 7, 9]
