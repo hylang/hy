@@ -171,6 +171,21 @@
        (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
             ~@body))))
 
+
+(defmacro defmain [args &rest body]
+  "Write a function named \"main\" and do the if __main__ dance"
+  (let [[retval (gensym)]]
+    `(do
+      (defn main [~@args]
+        ~@body)
+
+      (when (= --name-- "__main__")
+        (import sys)
+        (setv ~retval (apply main sys.argv))
+        (if (integer? ~retval)
+          (sys.exit ~retval))))))
+
+
 (defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
   "define one function with several names"
   (let [[main (first names)]
