@@ -199,14 +199,12 @@ Hy.  Let's experiment with this in the hy interpreter::
   => (, 1 2 3)
   (1, 2, 3)
 
-(You may notice that at present, the common lisp method of quoting
-things like so:
+If you are familiar with other lisps, you may be interested that Hy supports the common lisp method of quoting:
 
 .. code-block:: clj
 
-   '(1 2 3)
-
-does not work.  Instead, use square brackets as above.)
+   => '(1 2 3)
+   (1L 2L 3L)
 
 You also have access to all the builtin types' nice methods::
 
