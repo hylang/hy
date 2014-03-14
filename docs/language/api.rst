@@ -151,20 +151,14 @@ case the first false value will be returned. Examples of usage:
     => (and True [] False True)
     []
 
-.. note:: `and` shortcuts and stops evaluating parameters as soon as the first
-          false is encountered. However, in the current implementation of Hy
-          statements are executed as soon as they are converted to expressions.
-          The following two examples demonstrates the difference.
+.. note::
+
+    `and` shortcuts and stops evaluating parameters as soon as the first
+    false is encountered.
 
 .. code-block:: clj
 
     => (and False (print "hello"))
-    hello
-    False
-
-    => (defn side-effects [x] (print "I can has" x) x)
-    => (and (side-effects false) (side-effects 42))
-    I can has False
     False
 
 
@@ -919,20 +913,12 @@ parameter will be returned.
     1
 
 .. note:: `or` shortcuts and stops evaluating parameters as soon as the first
-          true is encountered. However, in the current implementation of Hy
-          statements are executed as soon as they are converted to expressions.
-          The following two examples demonstrates the difference.
+          true is encountered.
 
 .. code-block:: clj
 
     => (or True (print "hello"))
-    hello
     True
-
-    => (defn side-effects [x] (print "I can has" x) x)
-    => (or (side-effects 42) (side-effects False))
-    I can has 42
-    42
 
 
 print
