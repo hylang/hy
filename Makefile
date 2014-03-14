@@ -41,7 +41,7 @@ tox: venv
 	tox
 
 flake:
-	flake8 hy
+	flake8 hy tests
 
 clear:
 	clear
