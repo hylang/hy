@@ -27,7 +27,9 @@ if "%1" == "help" (
 
 if "%1" == "docs" (
 :docs
-    echo.docs not yet supported under Windows
+    cd docs
+    make.bat html
+    cd ..
 goto :EOF
 )
 

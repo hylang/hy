@@ -48,7 +48,7 @@ Usage: ``(ap-each-while list pred body)``
 Evaluate the form for each element where the predicate form returns
 True.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    => (ap-each-while [1 2 3 4 5 6] (< it 4) (print it))
    1
@@ -66,7 +66,7 @@ The anaphoric form of map works just like regular map except that
 instead of a function object it takes a Hy form. The special name,
 ``it`` is bound to the current object from the list in the iteration.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (list (ap-map (* it 2) [1 2 3]))
     [2, 4, 6]
@@ -82,7 +82,7 @@ Usage: ``(ap-map-when predfn rep list)``
 Evaluate a mapping over the list using a predicate function to
 determin when to apply the form.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (list (ap-map-when odd? (* it 2) [1 2 3 4]))
     [2, 2, 6, 4]
@@ -102,7 +102,7 @@ As with ``ap-map`` we take a special form instead of a function to
 filter the elements of the list. The special name ``it`` is bound to
 the current element in the iteration.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (list (ap-filter (> (* it 2) 6) [1 2 3 4 5]))
     [4, 5]
@@ -119,7 +119,7 @@ This function does the opposite of ``ap-filter``, it rejects the
 elements passing the predicate . The special name ``it`` is bound to
 the current element in the iteration.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (list (ap-reject (> (* it 2) 6) [1 2 3 4 5]))
     [1, 2, 3]
@@ -135,7 +135,7 @@ Usage ``(ap-dotimes n body)``
 This function evaluates the body *n* times, with the special
 variable ``it`` bound from *0* to *1-n*. It is useful for side-effects.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (setv n [])
     => (ap-dotimes 3 (.append n it))
@@ -154,7 +154,7 @@ This function returns the first element that passes the predicate or
 ``None``, with the special variable ``it`` bound to the current element in
 iteration.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    =>(ap-first (> it 5) (range 10))
    6
@@ -171,7 +171,7 @@ This function returns the last element that passes the predicate or
 ``None``, with the special variable ``it`` bound to the current element in
 iteration.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    =>(ap-last (> it 5) (range 10))
    9
@@ -191,7 +191,7 @@ supplied so the function will be applied to initial value and the
 first element instead. This exposes the element being iterated as
 ``it`` and the current accumulated value as ``acc``.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    =>(ap-reduce (+ it acc) (range 10))
    45
