@@ -57,7 +57,7 @@ Command line options
    Compile Hy code to Python bytecode. For example, save the
    following code as ``hyname.hy``:
 
-   .. code-block:: clojure
+   .. code-block:: hy
 
       (defn hy-hy [name]
         (print (+ "Hy " name "!")))

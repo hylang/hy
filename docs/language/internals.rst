@@ -389,7 +389,7 @@ expression is positive, zero or negative.
 
 A first pass might be someting like:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
      `(let [[obscure-name ~expr]]
@@ -404,7 +404,7 @@ this is no guarantee.
 The method :ref:`gensym` is designed to generate a new, unique symbol for just
 such an occasion. A much better version of ``nif`` would be:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (let [[g (gensym)]]
@@ -417,14 +417,14 @@ This is an easy case, since there is only one symbol. But if there is
 a need for several gensym's there is a second macro :ref:`with-gensyms` that
 basically expands to a series of ``let`` statements:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (with-gensyms [a b c]
      ...)
 
 expands to:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (let [[a (gensym)
          [b (gensym)
@@ -433,7 +433,7 @@ expands to:
 
 so our re-written ``nif`` would look like:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (with-gensyms [g]
@@ -448,7 +448,7 @@ remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 
 Our final version of ``nif``, built with ``defmacro/g!`` becomes:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro/g! nif [expr pos-form zero-form neg-form]
      `(let [[~g!res ~expr]]

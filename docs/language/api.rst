@@ -1220,14 +1220,14 @@ with-gensyms
 `with-gensym` form is used to generate a set of :ref:`gensym` for use
 in a macro.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (with-gensyms [a b c]
      ...)
 
 expands to:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (let [[a (gensym)
          [b (gensym)
