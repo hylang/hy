@@ -72,8 +72,8 @@ goto :EOF
 
 if "%1" == "flake" (
 :flake
-    echo.flake8 hy
-    flake8 hy
+    echo.flake8 hy tests
+    flake8 hy tests
 goto :EOF
 )
 
