@@ -2,10 +2,13 @@
 ;;; Copyright (c) Paul R. Tagliamonte, 2013, MIT/Expat license.
 
 
-(import [urllib2 [urlopen]]
-        [lxml [etree]]
+(import [lxml [etree]]
         [sys [argv]])
 
+(try
+  (import [urllib.request [urlopen]])
+  (catch [ImportError]
+    (import [urllib2 [urlopen]])))
 
 (defn get-rss-feed-name [tumblr]
   (kwapply (.format "http://{tumblr}.tumblr.com/rss") {"tumblr" tumblr}))
