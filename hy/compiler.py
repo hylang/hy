@@ -1034,6 +1034,10 @@ class HyASTCompiler(object):
         while len(expr) > 0:
             iexpr = expr.pop(0)
 
+            if not isinstance(iexpr, (HySymbol, HyList)):
+                raise HyTypeError(iexpr, "(import) requires a Symbol "
+                                  "or a List.")
+
             if isinstance(iexpr, HySymbol):
                 rimports += _compile_import(expr, iexpr)
                 continue

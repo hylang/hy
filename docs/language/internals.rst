@@ -84,7 +84,7 @@ In the input stream, double-quoted strings, respecting the Python
 notation for strings, are parsed as a single token, which is directly
 parsed as a :ref:`HyString`.
 
-An ininterrupted string of characters, excluding spaces, brackets,
+An uninterrupted string of characters, excluding spaces, brackets,
 quotes, double-quotes and comments, is parsed as an identifier.
 
 Identifiers are resolved to atomic models during the parsing phase in
@@ -231,14 +231,14 @@ from source to runtime.
 Steps 1 and 2: Tokenizing and parsing
 -------------------------------------
 
-The first stage of compiling hy is to lex the source into tokens that we can
+The first stage of compiling Hy is to lex the source into tokens that we can
 deal with. We use a project called rply, which is a really nice (and fast)
 parser, written in a subset of Python called rpython.
 
 The lexing code is all defined in ``hy.lex.lexer``. This code is mostly just
-defining the Hy grammer, and all the actual hard parts are taken care of by
-rply -- we just define "callbacks" for rply in ``hy.lex.parser``, which take
-the tokens generated, and return the Hy models.
+defining the Hy grammar, and all the actual hard parts are taken care of by
+rply -- we just define "callbacks" for rply in ``hy.lex.parser``, which takes
+the tokens generated, and returns the Hy models.
 
 You can think of the Hy models as the "AST" for Hy, it's what Macros operate
 on (directly), and it's what the compiler uses when it compiles Hy down.
@@ -389,7 +389,7 @@ expression is positive, zero or negative.
 
 A first pass might be someting like:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
      `(let [[obscure-name ~expr]]
@@ -404,7 +404,7 @@ this is no guarantee.
 The method :ref:`gensym` is designed to generate a new, unique symbol for just
 such an occasion. A much better version of ``nif`` would be:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (let [[g (gensym)]]
@@ -417,14 +417,14 @@ This is an easy case, since there is only one symbol. But if there is
 a need for several gensym's there is a second macro :ref:`with-gensyms` that
 basically expands to a series of ``let`` statements:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (with-gensyms [a b c]
      ...)
 
 expands to:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (let [[a (gensym)
          [b (gensym)
@@ -433,7 +433,7 @@ expands to:
 
 so our re-written ``nif`` would look like:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (with-gensyms [g]
@@ -448,7 +448,7 @@ remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 
 Our final version of ``nif``, built with ``defmacro/g!`` becomes:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (defmacro/g! nif [expr pos-form zero-form neg-form]
      `(let [[~g!res ~expr]]

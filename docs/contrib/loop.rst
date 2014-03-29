@@ -43,7 +43,7 @@ Usage: `(loop bindings &rest body)`
 
 Example:
 
-.. code-block:: clojure
+.. code-block:: hy
 
     (require hy.contrib.loop)
 

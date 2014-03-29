@@ -1,5 +1,6 @@
 -r requirements.txt
 tox
 nose
+Pygments>=1.6
 Sphinx
 coverage

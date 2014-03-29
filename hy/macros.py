@@ -115,6 +115,7 @@ _wrappers = {
     str_type: HyString,
     dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
     list: lambda l: HyList(_wrap_value(x) for x in l),
+    tuple: lambda t: HyList(_wrap_value(x) for x in t),
     type(None): lambda foo: HySymbol("None"),
 }
 

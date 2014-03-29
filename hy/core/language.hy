@@ -118,7 +118,7 @@
 
 (defn fake-source-positions [tree]
   "Fake the source positions for a given tree"
-  (if (and (iterable? tree) (not (string? tree)))
+  (if (coll? tree)
     (for* [subtree tree]
           (fake-source-positions subtree)))
   (for* [attr '[start-line end-line start-column end-column]]
@@ -139,7 +139,7 @@
     (raise (TypeError (.format "{0!r} is not a collection" coll)))))
 
 (defn _flatten [coll result]
-  (if (and (iterable? coll) (not (string? coll)))
+  (if (coll? coll)
     (do (for* [b coll]
           (_flatten b result)))
     (.append result coll))
@@ -349,10 +349,16 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cons cons? cut cycle dec distinct
+(defn zipwith [func &rest lists]
+  "Zip the contents of several lists and map a function to the result"
+  (do
+    (import functools)
+    (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
+
+(def *exports* '[calling-module-name coll? cons cons? cycle cut dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?
                  list* macroexpand macroexpand-1 neg? nil? none? nth
                  numeric? odd? pos? remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero?])
+                 some string string? take take-nth take-while zero? zipwith])

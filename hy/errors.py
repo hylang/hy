@@ -21,6 +21,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy._compat import PY3
+
 import traceback
 
 
@@ -137,7 +139,10 @@ class HyTypeError(TypeError):
                                  (self.__class__.__name__,
                                   self.message))
 
-        return result.encode('utf-8')
+        if not PY3:
+            return result.encode('utf-8')
+        else:
+            return result
 
 
 class HyMacroExpansionError(HyTypeError):
