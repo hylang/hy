@@ -213,7 +213,7 @@ def reader_macroexpand(char, tree, module_name):
     """Expand the reader macro "char" with argument `tree`."""
     load_macros(module_name)
 
-    if not char in _hy_reader[module_name]:
+    if char not in _hy_reader[module_name]:
         raise HyTypeError(
             char,
             "`{0}' is not a reader macro in module '{1}'".format(
