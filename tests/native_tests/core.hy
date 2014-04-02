@@ -478,3 +478,14 @@
   (assert-equal (list res) [4 4 4])
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
   (assert-equal (list res) [2 5 5]))
+
+(defn test-is-keyword []
+  "NATIVE: testing the keyword? function"
+  (assert (keyword? ':bar))
+  (assert (keyword? ':baz))
+  (assert (keyword? :bar))
+  (assert (keyword? :baz))
+  (assert (not (keyword? "foo")))
+  (assert (not (keyword? ":foo")))
+  (assert (not (keyword? 1)))
+  (assert (not (keyword? nil))))
