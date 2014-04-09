@@ -396,7 +396,7 @@ The same thing in Hy::
   [1 2 None 42]
   => (optional_arg 1 2 3 4)
   [1 2 3 4]
-  => (kwapply (optional_arg)
+  => (apply optional_arg []
   ...         {"keyword1" 1
   ...          "pos2" 2
   ...          "pos1" 3
@@ -404,7 +404,7 @@ The same thing in Hy::
   ... 
   [3, 2, 1, 4]
 
-See how we use kwapply to handle the fancy passing? :)
+See how we use apply to handle the fancy passing? :)
 
 There's also a dictionary-style keyword arguments construction that
 looks like:
@@ -479,7 +479,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [[name (kwapply (models.CharField) {"max_length" 255})]
+    [[name (apply models.CharField [] {"max_length" 255})]
      [address (models.TextField)]
      [notes (models.TextField)]])
 

@@ -199,20 +199,10 @@
 
 (defn test-kwargs []
   "NATIVE: test kwargs things."
-  (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"}))
+  (assert (= (apply kwtest [] {"one" "two"}) {"one" "two"}))
   (setv mydict {"one" "three"})
-  (assert (= (kwapply (kwtest) mydict) mydict))
-  (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"}))
-  (assert (= (kwapply
-              (kwapply
-               (kwapply
-                (kwapply
-                 (kwapply (kwtest) {"x" 4})
-                 mydict)
-                {"x" 8})
-               {"x" (- 3 2) "y" 2})
-              {"y" 5 "z" 3})
-             {"x" 1 "y" 5 "z" 3 "one" "three"})))
+  (assert (= (apply kwtest [] mydict) mydict))
+  (assert (= (apply kwtest [] ((fn [] {"one" "two"}))) {"one" "two"})))
 
 
 (defn test-apply []
@@ -785,8 +775,8 @@
   "NATIVE: test &key function arguments"
   (defn foo [&key {"a" None "b" 1}] [a b])
   (assert (= (foo) [None 1]))
-  (assert (= (kwapply (foo) {"a" 2}) [2 1]))
-  (assert (= (kwapply (foo) {"b" 42}) [None 42])))
+  (assert (= (apply foo [] {"a" 2}) [2 1]))
+  (assert (= (apply foo [] {"b" 42}) [None 42])))
 
 
 (defn test-optional-arguments []

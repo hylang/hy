@@ -353,17 +353,6 @@ def test_ast_non_decoratable():
     cant_compile("(with-decorator (foo) (* x x))")
 
 
-def test_ast_non_kwapplyable():
-    """ Ensure kwapply breaks """
-    code = tokenize("(kwapply foo bar)")
-    code[0][2] = None
-    try:
-        hy_compile(code, "__main__")
-        assert True is False
-    except HyCompileError:
-        pass
-
-
 def test_ast_lambda_lists():
     """Ensure the compiler chokes on invalid lambda-lists"""
     cant_compile('(fn [&key {"a" b} &key {"foo" bar}] [a foo])')
