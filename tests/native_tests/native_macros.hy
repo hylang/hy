@@ -191,6 +191,25 @@
              :yes)))
 
 
+(defn test-lisp-if []
+  "test that lisp-if works as expected"
+  ; nil is false
+  (assert (= (lisp-if None "true" "false") "false"))
+  (assert (= (lisp-if nil "true" "false") "false"))
+
+  ; But everything else is True!  Even falsey things.
+  (assert (= (lisp-if True "true" "false") "true"))
+  (assert (= (lisp-if False "true" "false") "true"))
+  (assert (= (lisp-if 0 "true" "false") "true"))
+  (assert (= (lisp-if "some-string" "true" "false") "true"))
+  (assert (= (lisp-if "" "true" "false") "true"))
+  (assert (= (lisp-if (+ 1 2 3) "true" "false") "true"))
+
+  ; Just to be sure, test the alias lif
+  (assert (= (lif nil "true" "false") "false"))
+  (assert (= (lif 0 "true" "false") "true")))
+
+
 (defn test-defn-alias []
   (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)
   (defun-alias [tda-main tda-a1 tda-a2] [] :bazinga)
