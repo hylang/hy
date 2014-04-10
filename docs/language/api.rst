@@ -1255,6 +1255,20 @@ infinite series without consuming infinite amount of memory.
     => (list-comp x [x (take 15 (random-numbers 1 50))])])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
 
+
+yield-from
+----------
+
+.. versionadded:: 0.9.13
+
+**PYTHON 3.3 AND UP ONLY!**
+
+`yield-from` is used to call a subgenerator.  This is useful if you
+want your coroutine to be able to delegate its processes to another
+coroutine, say if using something fancy like
+`asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.
+
+
 .. _zipwith:
 
 zipwith
