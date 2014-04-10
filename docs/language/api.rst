@@ -43,7 +43,7 @@ behavior that's slightly unexpected in some situations.
 .
 -
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 
 `.` is used to perform attribute access on objects. It uses a small DSL
@@ -423,7 +423,7 @@ Parameters may have following keywords in front of them:
 defn-alias / defun-alias
 ------------------------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 The `defn-alias` and `defun-alias` macros are much like `defn`_ above,
 with the difference that instead of defining a function with a single
@@ -705,7 +705,7 @@ the `if` form is used to conditionally select code to be executed. It has to
 contain the condition block and the block to be executed if the condition
 evaluates `True`. Optionally it may contain a block that is executed in case
 the evaluation of the condition is `False`. The `if-not` form (*new in
-0.9.13*) is similar, but the first block after the test will be
+0.10.0*) is similar, but the first block after the test will be
 executed when the test fails, while the other, conditional one, when
 the test succeeds - opposite of the order of the `if` form.
 
@@ -1232,7 +1232,7 @@ infinite series without consuming infinite amount of memory.
 zipwith
 -------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 `zipwith` zips multiple lists and maps the given function over the result. It is
 equilavent to calling ``zip``, followed by calling ``map`` on the result.

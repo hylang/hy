@@ -11,7 +11,7 @@ Core Functions
 coll?
 -----
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(coll? x)``
 
@@ -32,7 +32,7 @@ Returns true if argument is iterable and not a string.
 cons
 ----
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(cons a b)``
 
@@ -52,7 +52,7 @@ Returns a fresh :ref:`cons cell <hycons>` with car `a` and cdr `b`.
 cons?
 -----
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(cons? foo)``
 
@@ -99,7 +99,7 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 disassemble
 -----------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(disassemble tree &optional [codegen false])``
 
@@ -143,7 +143,7 @@ Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
 every?
 ------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(every? pred coll)``
 
@@ -379,7 +379,7 @@ arguments. If the argument list only has one element, return it.
 macroexpand
 -----------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(macroexpand form)``
 
@@ -398,7 +398,7 @@ Returns the full macro expansion of form.
 macroexpand-1
 -------------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(macroexpand-1 form)``
 
@@ -601,7 +601,7 @@ Return the second member of ``coll``. Equivalent to
 some
 ----
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 Usage: ``(some pred coll)``
 
