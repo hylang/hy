@@ -59,7 +59,8 @@ setup(
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
-            'hyc = hy.cmdline:hyc_main'
+            'hyc = hy.cmdline:hyc_main',
+            'hy2py = hy.cmdline:hy2py_main',
         ]
     },
     packages=find_packages(exclude=['tests*']),

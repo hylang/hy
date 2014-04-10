@@ -25,16 +25,21 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import print_function
+
 import argparse
 import code
 import ast
 import sys
 
+import astor.codegen
+
 import hy
 
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 from hy.compiler import hy_compile, HyTypeError
-from hy.importer import ast_compile, import_buffer_to_module
+from hy.importer import (ast_compile, import_buffer_to_module,
+                         import_file_to_ast, import_file_to_hst)
 from hy.completer import completion
 
 from hy.macros import macro, require
@@ -66,7 +71,6 @@ builtins.exit = HyQuitter('exit')
 
 
 def print_python_code(_ast):
-    import astor.codegen
     # astor cannot handle ast.Interactive, so disguise it as a module
     _ast_for_print = ast.Module()
     _ast_for_print.body = _ast.body
@@ -313,3 +317,43 @@ def hyc_main():
             sys.stderr.write("hyc: Can't open file '%s': [Errno %d] %s\n" %
                              (x.filename, x.errno, x.strerror))
             sys.exit(x.errno)
+
+
+# entry point for cmd line script "hy2py"
+def hy2py_main():
+    module_name = "<STDIN>"
+
+    options = dict(prog="hy2py", usage="%(prog)s [options] FILE",
+                   formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(**options)
+    parser.add_argument("--with-source", "-s", action="store_true",
+                        help="Show the parsed source structure")
+    parser.add_argument("--with-ast", "-a", action="store_true",
+                        help="Show the generated AST")
+    parser.add_argument("--without-python", "-np", action="store_true",
+                        help=("Do not show the Python code generated "
+                              "from the AST"))
+    parser.add_argument('args', nargs=argparse.REMAINDER,
+                        help=argparse.SUPPRESS)
+
+    options = parser.parse_args(sys.argv[1:])
+
+    if not options.args:
+        parser.exit(1, parser.format_help())
+
+    if options.with_source:
+        hst = import_file_to_hst(options.args[0])
+        print(hst)
+        print()
+        print()
+
+    _ast = import_file_to_ast(options.args[0], module_name)
+    if options.with_ast:
+        print(astor.dump(_ast))
+        print()
+        print()
+
+    if not options.without_python:
+        print(astor.codegen.to_source(_ast))
+
+    parser.exit(0)
