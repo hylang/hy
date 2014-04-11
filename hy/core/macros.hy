@@ -145,6 +145,11 @@
     `(if (not ~test) ~not-branch ~yes-branch)))
 
 
+(defmacro-alias [lisp-if lif] [test &rest branches]
+  "Like `if`, but anything that is not None/nil is considered true."
+  `(if (is-not ~test nil) ~@branches))
+
+
 (defmacro when [test &rest body]
   "Execute `body` when `test` is true"
   `(if ~test (do ~@body)))
