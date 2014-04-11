@@ -1,3 +1,83 @@
+Changes from 0.9.12
+
+ 0.10.0 - the "oh man I'm late for PyCon" release
+
+ Thanks to theanalyst (Abhi) for getting the release notes
+ together. You're the best!
+   - Hy Society
+
+  [ Breaking Changes ]
+  
+  We're calling this release 0.10 because we broke
+  API. Sorry about that. We've removed kwapply in 
+  favor of using `apply`. Please be sure to upgrade
+  all code to work with `apply`.
+  
+  (apply function-call args kwargs)  ; is the signature
+
+  [Thanks]
+
+   Major shoutout to Clinton Dreisbach for implementing loop/recur.
+   As always, massive hugs to olasd for the constant reviews and for
+   implementing HyCons cells. Thanks to @kenanb for redesigning the
+   new Hy logo.
+    
+   Many thanks to algernon for working on adderall, which helped
+   push Hy further this cycle. Adderall is an implementation of miniKanren
+   in Hy. If you're interested in using Adderall, check out hydiomatic,
+   which prettfies Hy source using Adderall rules.
+   
+   This release saw an increase of about 11 contributors for a point
+   release, you guys rock!
+
+    -Hy Society
+     
+  [ Language Changes ]
+
+  * `for' revamped again (Last time, we hope!), this time using a saner
+    itertools.product when nesting
+  * `lisp-if'/`lif' added for the lisp-like everything is true if, giving
+    seasoned lispers a better if check (0 is a value, etc)
+  * Reader Macros are macros now!
+  * yield-from is now a proper yield from on Python 3. It also now breaks on
+    Python 2.x.
+  * Added if-not macro
+  * We finally have a lisp like cons cells
+  * Generator expressions, set & dict comprehensions are now supported
+  * (.) is a mini DSL for attribute access
+  * `macroexpand' & `macroexpand-1' added to core
+  * `disassemble' added to core, which dumps the AST or equivalent python code
+  * `coll?' added to core to check for a collection
+  * `identity' function added to core
+  
+  [ Misc. Fixes ]
+  * Lots of doc fixes. Reorganization as well as better docs on Hy internals
+  * Universal Wheel Support
+  * Pygments > 1.6 supports Hy now. All codeblocks in  docs have been changed
+    from clojure to hy
+  * Hy REPL supports invoking with --spy & -i options [reword]
+  * `first' and `rest' are functions and not macros anymore
+  * "clean" target added to Makefile 
+  * hy2py supports a bunch of commandline options to show AST, source etc.
+  * Sub-object mangling: every identifier is split along the dots & mangled
+    seperately
+  
+  [ Bug Fixes ]
+  * Empty MacroExpansions work as expected
+  * Python 3.4 port. Sorry this wasn't in a 3.4 release time, we forgot to do
+    a release. Whoops.
+  * eg/lxml/parse-tumblr.hy works with Python 3
+  * hy2py works on Windows
+  * Fixed unicode encoding issue in REPL during unicode exceptions
+  * Fixed handling of comments at end of input (#382)
+
+  [ Contrib changes ]
+  * Curry module added to contrib
+  * Loop/recur module added which provides TCO at tail position
+  * defmulti has been added - check out more in the docs -- thanks to Foxboron for this one!
+  * Walk module for walking the Hy AST, features a `macroexpand-all` as well
+
+
 Changes from Hy 0.9.11
 
    tl;dr:
