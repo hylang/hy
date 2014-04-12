@@ -199,14 +199,13 @@ Hy.  Let's experiment with this in the hy interpreter::
   => (, 1 2 3)
   (1, 2, 3)
 
-(You may notice that at present, the common lisp method of quoting
-things like so:
+If you are familiar with other lisps, you may be interested that Hy
+supports the Common Lisp method of quoting:
 
 .. code-block:: clj
 
-   '(1 2 3)
-
-does not work.  Instead, use square brackets as above.)
+   => '(1 2 3)
+   (1L 2L 3L)
 
 You also have access to all the builtin types' nice methods::
 
@@ -397,7 +396,7 @@ The same thing in Hy::
   [1 2 None 42]
   => (optional_arg 1 2 3 4)
   [1 2 3 4]
-  => (kwapply (optional_arg)
+  => (apply optional_arg []
   ...         {"keyword1" 1
   ...          "pos2" 2
   ...          "pos1" 3
@@ -405,7 +404,7 @@ The same thing in Hy::
   ... 
   [3, 2, 1, 4]
 
-See how we use kwapply to handle the fancy passing? :)
+See how we use apply to handle the fancy passing? :)
 
 There's also a dictionary-style keyword arguments construction that
 looks like:
@@ -480,7 +479,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [[name (kwapply (models.CharField) {"max_length" 255})]
+    [[name (apply models.CharField [] {"max_length" 255})]
      [address (models.TextField)]
      [notes (models.TextField)]])
 

@@ -12,7 +12,7 @@
 
 
 (defn get-legislators [state]
-  (kwapply (.legislators openstates) {"state" state}))
+  (apply openstates.legislators [] {"state" state}))
 
 
 (defn get-party-breakdown [state]

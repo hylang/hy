@@ -2,7 +2,7 @@
 loop/recur
 ==========
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 The loop/recur macro gives programmers a simple way to use tail-call
 optimization (TCO) in their Hy code.
@@ -43,7 +43,7 @@ Usage: `(loop bindings &rest body)`
 
 Example:
 
-.. code-block:: clojure
+.. code-block:: hy
 
     (require hy.contrib.loop)
 
