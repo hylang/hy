@@ -729,6 +729,8 @@ Everything else is considered `True`.
 lisp-if / lif
 -------------
 
+.. versionadded:: 0.10.0
+
 For those that prefer a more lisp-y if clause, we have lisp-if, or lif.  This
 *only* considers None/nil as false!  All other values of python
 "falseiness" are considered true.
