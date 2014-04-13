@@ -446,11 +446,11 @@
   (assert (= (car [1 2 3 4 5]) 1)))
 
 
-(defn test-slice []
-  "NATIVE: test slice"
-  (assert (= (slice [1 2 3 4 5] 1) [2 3 4 5]))
-  (assert (= (slice [1 2 3 4 5] 1 3) [2 3]))
-  (assert (= (slice [1 2 3 4 5]) [1 2 3 4 5])))
+(defn test-cut []
+  "NATIVE: test cut"
+  (assert (= (cut [1 2 3 4 5] 3) [1 2 3]))
+  (assert (= (cut [1 2 3 4 5] 1 3) [2 3]))
+  (assert (= (cut [1 2 3 4 5] None) [1 2 3 4 5])))
 
 
 (defn test-take []

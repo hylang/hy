@@ -53,6 +53,10 @@
   (while seen
     (for* [x seen]
       (yield x))))
+      
+(defn cut [collection &rest slice_args]
+  "Performs slicing on a collection"
+  (get collection (apply slice slice_args)))
 
 (defn dec [n]
   "Decrement n by 1"
@@ -280,7 +284,7 @@
 
 (defn rest [coll]
   "Get all the elements of a coll, except the first."
-  (slice coll 1))
+  (get coll (slice 1 None)))
 
 (defn repeat [x &optional n]
   "Yield x forever or optionally n times"
@@ -351,7 +355,7 @@
     (import functools)
     (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
 
-(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
+(def *exports* '[calling-module-name coll? cons cons? cycle cut dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator?

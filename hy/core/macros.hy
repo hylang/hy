@@ -52,8 +52,8 @@
       ; basecase, let's just slip right in.
       `(for* [~@args] ~@body)
       ; otherwise, let's do some legit handling.
-      (let [[alist (slice args 0 nil 2)]
-            [ilist (slice args 1 nil 2)]]
+      (let [[alist (get args (slice 0 nil 2))]
+            [ilist (get args (slice 1 nil 2))]]
         `(do
            (import itertools)
            (for* [(, ~@alist) (itertools.product ~@ilist)] ~@body))))))
@@ -85,7 +85,7 @@
 
 (defmacro cdr [thing]
   "Get all the elements of a thing, except the first"
-  `(slice ~thing 1))
+  `(get ~thing (slice 1 None)))
 
 
 (defmacro cond [&rest branches]
@@ -167,7 +167,7 @@
 (defmacro defmacro/g! [name args &rest body]
   (let [[syms (list (distinct (filter (fn [x] (.startswith x "g!")) (flatten body))))]]
     `(defmacro ~name [~@args]
-       (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
+       (let ~(HyList (map (fn [x] `[~x (gensym (get '~x (slice 2 None)))]) syms))
             ~@body))))
 
 (defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
