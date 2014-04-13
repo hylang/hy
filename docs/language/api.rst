@@ -814,10 +814,14 @@ Just as in normal function definitions, if the first element of the
 body is a string, it serves as docstring.  This is useful for giving
 class methods docstrings.
 
+.. code-block:: clj
+
     => (setv times-three
     ...   (fn [x]
     ...    "Multiplies input by three and returns the result."
     ...    (* x 3)))
+
+Then test it via the Python built-in ``help`` function::
 
     => (help times-three)
     Help on function times_three:
