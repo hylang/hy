@@ -752,7 +752,7 @@ class HyASTCompiler(object):
                 col_offset=expr.start_column,
                 type=None,
                 name=None,
-                body=[ast.Pass(lineno=expr.start_line,
+                body=[ast.Raise(lineno=expr.start_line,
                                col_offset=expr.start_column)])]
 
         ret = handler_results
