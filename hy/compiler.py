@@ -732,25 +732,9 @@ class HyASTCompiler(object):
                 handler_results += self._compile_catch_expression(e, name)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
-                if orelse:
-                    raise HyTypeError(
-                        e,
-                        "`try' cannot have more than one `else'")
-                else:
-                    orelse = self._compile_branch(e[1:])
-                    # XXX tempvar magic
-                    orelse += orelse.expr_as_stmt()
-                    orelse = orelse.stmts
+                orelse = self.try_except_helper(e, HySymbol("else"), orelse)
             elif e[0] == HySymbol("finally"):
-                if finalbody:
-                    raise HyTypeError(
-                        e,
-                        "`try' cannot have more than one `finally'")
-                else:
-                    finalbody = self._compile_branch(e[1:])
-                    # XXX tempvar magic
-                    finalbody += finalbody.expr_as_stmt()
-                    finalbody = finalbody.stmts
+                finalbody = self.try_except_helper(e, HySymbol("finally"), finalbody)
             else:
                 raise HyTypeError(e, "Unknown expression in `try'")
 
@@ -808,6 +792,18 @@ class HyASTCompiler(object):
             handlers=handlers,
             body=body,
             orelse=orelse) + returnable
+
+    def try_except_helper(self, hy_obj, symbol, accumulated):
+        if accumulated:
+            raise HyTypeError(
+                hy_obj,
+                "`try' cannot have more than one `%s'" % symbol)
+        else:
+            accumulated = self._compile_branch(hy_obj[1:])
+            accumulated += accumulated.expr_as_stmt()
+            accumulated = accumulated.stmts
+        return accumulated
+
 
     @builds("except")
     @builds("catch")
