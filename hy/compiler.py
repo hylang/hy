@@ -734,7 +734,8 @@ class HyASTCompiler(object):
             elif e[0] == HySymbol("else"):
                 orelse = self.try_except_helper(e, HySymbol("else"), orelse)
             elif e[0] == HySymbol("finally"):
-                finalbody = self.try_except_helper(e, HySymbol("finally"), finalbody)
+                finalbody = self.try_except_helper(e, HySymbol("finally"),
+                                                   finalbody)
             else:
                 raise HyTypeError(e, "Unknown expression in `try'")
 
@@ -753,7 +754,7 @@ class HyASTCompiler(object):
                 type=None,
                 name=None,
                 body=[ast.Raise(lineno=expr.start_line,
-                               col_offset=expr.start_column)])]
+                                col_offset=expr.start_column)])]
 
         ret = handler_results
 
@@ -803,7 +804,6 @@ class HyASTCompiler(object):
             accumulated += accumulated.expr_as_stmt()
             accumulated = accumulated.stmts
         return accumulated
-
 
     @builds("except")
     @builds("catch")
