@@ -92,6 +92,12 @@ Write docs---docs are good! Even this doc!
 Core Development Rules
 ======================
 
+Pull requests are good!
+
+Before you submit a PR, please run the tests and check your code against the style guide.  You can do both these things at once::
+
+    $ make d
+
 All incoming changes need to be acked by 2 different members of Hylang's
 core team. Additional review is clearly welcome, but we need a minimum of
 2 signoffs for any change.
