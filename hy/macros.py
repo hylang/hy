@@ -108,11 +108,10 @@ def require(source_module, target_module):
 
 
 def _keyword_or_string(s):
-    # This is horrible and introduces bugs. We need a better way to map
-    # a string back to a keyword, maybe a really unique
-    # HyKeyword.magic_marker (hash).
-    if s.startswith(HyKeyword.magic_marker):
-        return HyKeyword(s.strip(HyKeyword.magic_marker))
+    # Not guaranteed to be always correct since the magic marker
+    # is not really unique...
+    if s.startswith(HyKeyword._magic_marker):
+        return HyKeyword(s.lstrip(HyKeyword._magic_marker))
     return HyString(s)
 
 # type -> wrapping function mapping for _wrap_value
