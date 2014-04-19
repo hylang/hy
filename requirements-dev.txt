@@ -1,6 +1,11 @@
--r requirements.txt
-tox
+# test tools
 nose
+tox
+
+# code quality
+flake8
+coverage
+
+# documentation
 Pygments>=1.6
 Sphinx
-coverage
