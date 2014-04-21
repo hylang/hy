@@ -128,7 +128,8 @@
 
 
 (defmacro doto [form &rest expressions]
-  "Performs a sequence of potentially mutating actions on an initial object, returning the resulting object after the sequence is performed"
+  "Performs a sequence of potentially mutating actions
+   on an initial object, returning the resulting object"
   (setv f (gensym))
   (defn build-form [expression]
     (if (isinstance expression HyExpression)
