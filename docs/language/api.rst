@@ -560,6 +560,27 @@ del
   => dic
   {}
 
+doto
+----
+
+`doto` macro is used to make repetitive calls to an object easy. Following
+example demonstrates this.
+
+.. code-block:: clj
+
+  => (setv collection [])
+  => (doto collection (.append 1) (.append 2))
+  => collection
+  [1 2]
+
+.. code-block:: clj
+
+  => (setv collection [])
+  => (.append 1 collection)
+  => (.append 2 collection)
+  => collection
+  [1 2]
+
 eval
 ----
 
