@@ -128,14 +128,15 @@
 
 
 (defmacro doto [form &rest expressions]
-  (setv expressions (iter expressions))
-  (defn build-form [form expression]
-    `(~(first expression) ~form ~@(rest expression)))
-  (setv result `())
-  (for* [expression expressions]
-    (.append result (build-form form expression)))
-  `(do ~@result))
-
+  "Performs a sequence of potentially mutating actions on an initial object, returning the resulting object after the sequence is performed"
+  (setv f (gensym))
+  (defn build-form [expression]
+    (if (isinstance expression HyExpression)
+      `(~(first expression) ~f ~@(rest expression))
+      `(~expression ~f)))
+  `(let [[~f ~form]]
+     ~@(map build-form expressions)
+     ~f))
 
 (defmacro ->> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
