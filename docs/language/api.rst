@@ -563,6 +563,8 @@ del
 doto
 ----
 
+.. versionadded:: 0.10.1
+
 `doto` macro is used to make repetitive calls to an object easy. Following
 example demonstrates this.
 
