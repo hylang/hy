@@ -489,3 +489,9 @@
   (assert (not (keyword? ":foo")))
   (assert (not (keyword? 1)))
   (assert (not (keyword? nil))))
+
+(defn test-doto []
+  "NATIVE: testing doto macro"
+  (setv collection [])
+  (doto collection (.append 1) (.append 2) (.append 3))
+  (assert-equal collection [1 2 3]))
