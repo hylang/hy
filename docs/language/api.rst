@@ -601,23 +601,21 @@ del
 doto
 ----
 
-`doto` macro is used to make repetitive calls to an object easy. Following
-example demonstrates this.
+`doto` macro is used to make a sequence of method calls for an object easy.
+
+.. code-block:: clj
+
+  => (doto [] (.append 1) (.append 2) .reverse)
+  [2 1]
 
 .. code-block:: clj
 
   => (setv collection [])
-  => (doto collection (.append 1) (.append 2))
+  => (.append collection 1)
+  => (.append collection 2)
+  => (.reverse collection)
   => collection
-  [1 2]
-
-.. code-block:: clj
-
-  => (setv collection [])
-  => (.append 1 collection)
-  => (.append 2 collection)
-  => collection
-  [1 2]
+  [2 1]
 
 eval
 ----
