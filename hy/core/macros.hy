@@ -127,6 +127,16 @@
   ret)
 
 
+(defmacro doto [form &rest expressions]
+  (setv expressions (iter expressions))
+  (defn build-form [form expression]
+    `(~(first expression) ~form ~@(rest expression)))
+  (setv result `())
+  (for* [expression expressions]
+    (.append result (build-form form expression)))
+  `(do ~@result))
+
+
 (defmacro ->> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
