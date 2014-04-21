@@ -478,3 +478,10 @@
   (assert-equal (list res) [4 4 4])
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
   (assert-equal (list res) [2 5 5]))
+
+(defn test-doto []
+  "NATIVE: testing doto macro"
+  (setv collection [])
+  (doto collection (.append 1) (.append 2) (.append 3))
+  (assert-equal collection [1 2 3]))
+
