@@ -4,3 +4,4 @@ nose
 Pygments>=1.6
 Sphinx
 coverage
+sphinx_rtd_theme
