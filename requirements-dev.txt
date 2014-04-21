@@ -9,3 +9,4 @@ coverage
 # documentation
 Pygments>=1.6
 Sphinx
+sphinx_rtd_theme
