@@ -52,11 +52,8 @@
       ; basecase, let's just slip right in.
       `(for* [~@args] ~@body)
       ; otherwise, let's do some legit handling.
-      (let [[alist (slice args 0 nil 2)]
-            [ilist (slice args 1 nil 2)]]
-        `(do
-           (import itertools)
-           (for* [(, ~@alist) (itertools.product ~@ilist)] ~@body))))))
+      (let [[alist (slice args 0 nil 2)]]
+        `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body)))))
 
 
 (defmacro with [args &rest body]
