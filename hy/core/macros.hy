@@ -127,6 +127,18 @@
   ret)
 
 
+(defmacro doto [form &rest expressions]
+  "Performs a sequence of potentially mutating actions
+   on an initial object, returning the resulting object"
+  (setv f (gensym))
+  (defn build-form [expression]
+    (if (isinstance expression HyExpression)
+      `(~(first expression) ~f ~@(rest expression))
+      `(~expression ~f)))
+  `(let [[~f ~form]]
+     ~@(map build-form expressions)
+     ~f))
+
 (defmacro ->> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
