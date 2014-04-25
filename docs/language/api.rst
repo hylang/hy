@@ -563,6 +563,8 @@ del
 doto
 ----
 
+.. versionadded:: 0.10.1
+
 `doto` macro is used to make a sequence of method calls for an object easy.
 
 .. code-block:: clj
