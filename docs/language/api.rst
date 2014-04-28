@@ -274,13 +274,13 @@ however is called only for every other value in the list.
 dict-comp
 ---------
 
-`dict-comp` is used to create dictionaries. It takes two or three parameters.
+`dict-comp` is used to create dictionaries. It takes three or four parameters.
 The first two parameters are for controlling the return value
 (key-value pair), while the third is used to select items from a sequence. The
 fourth and optional parameter can be used to filter out some of the items in
-the list based on a conditional expression.
+the sequence based on a conditional expression.
 
-.. code-block:: clj
+.. code-block:: hy
 
     => (dict-comp x (* x 2) [x (range 10)] (odd? x))
     {1: 2, 3: 6, 9: 18, 5: 10, 7: 14}
@@ -654,7 +654,7 @@ parameter can be used to filter out some of the items in the list based on a
 conditional expression. `genexpr` is similar to `list-comp`, except that it returns
 an iterable that evaluates values one by one instead of evaluating them immediately.
 
-.. code-block:: clj
+.. code-block:: hy
 
     => (def collection (range 10))
     => (def filtered (genexpr x [x collection] (even? x)))
@@ -1034,6 +1034,22 @@ element:
 
     => (rest (range 10))
     [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+
+set-comp
+--------
+
+`set-comp` is used to create sets. It takes two or three parameters.
+The first parameter is for controlling the return value, while the second is
+used to select items from a sequence. The third and optional parameter can be
+used to filter out some of the items in the sequence based on a conditional
+expression.
+
+.. code-block:: hy
+
+    => (setv data [1 2 3 4 5 2 3 4 5 3 4 5])
+    => (set-comp x [x data] (odd? x))
+    {1, 3, 5}
 
 
 slice
