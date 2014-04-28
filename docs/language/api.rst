@@ -271,6 +271,21 @@ however is called only for every other value in the list.
         (side-effect2 x)))
 
 
+dict-comp
+---------
+
+`dict-comp` is used to create dictionaries. It takes two or three parameters.
+The first two parameters are for controlling the return value
+(key-value pair), while the third is used to select items from a sequence. The
+fourth and optional parameter can be used to filter out some of the items in
+the list based on a conditional expression.
+
+.. code-block:: clj
+
+    => (dict-comp x (* x 2) [x (range 10)] (odd? x))
+    {1: 2, 3: 6, 9: 18, 5: 10, 7: 14}
+
+
 do / progn
 ----------
 
@@ -686,6 +701,24 @@ normally. If the execution is halted with `break`, the `else` does not execute.
     2
     3
     loop finished
+
+
+genexpr
+-------
+
+`genexpr` is used to create generator expressions. It takes two or three parameters.
+The first parameter is the expression controlling the return value, while
+the second is used to select items from a list. The third and optional
+parameter can be used to filter out some of the items in the list based on a 
+conditional expression. `genexpr` is similar to `list-comp`, except that it returns
+an iterable that evaluates values one by one instead of evaluating them immediately.
+
+.. code-block:: clj
+
+    => (def collection (range 10))
+    => (def filtered (genexpr x [x collection] (even? x)))
+    => (list filtered)
+    [0, 2, 4, 6, 8]
 
 
 .. _gensym:
