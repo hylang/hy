@@ -44,6 +44,11 @@
   "Check whether c can be used as a cons object"
   (instance? HyCons c))
 
+(defn keyword? [k]
+  "Check whether k is a keyword"
+  (and (instance? (type :foo) k)
+       (.startswith k (get :foo 0))))
+
 (defn cycle [coll]
   "Yield an infinite repetition of the items in coll"
   (setv seen [])
@@ -354,7 +359,7 @@
 (def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
-                 integer? integer-char? iterable? iterate iterator?
+                 integer? integer-char? iterable? iterate iterator? keyword?
                  list* macroexpand macroexpand-1 neg? nil? none? nth
                  numeric? odd? pos? remove repeat repeatedly rest second
                  some string string? take take-nth take-while zero? zipwith])
