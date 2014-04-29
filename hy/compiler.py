@@ -1751,18 +1751,19 @@ class HyASTCompiler(object):
     def _compile_assign(self, name, result,
                         start_line, start_column):
         result = self.compile(result)
-
-        if result.temp_variables and isinstance(name, HyString):
-            result.rename(name)
-            return result
-
         ld_name = self.compile(name)
-        st_name = self._storeize(ld_name)
 
-        result += ast.Assign(
-            lineno=start_line,
-            col_offset=start_column,
-            targets=[st_name], value=result.force_expr)
+        if result.temp_variables \
+           and isinstance(name, HyString) \
+           and '.' not in name:
+            result.rename(name)
+        else:
+            st_name = self._storeize(ld_name)
+            result += ast.Assign(
+                lineno=start_line,
+                col_offset=start_column,
+                targets=[st_name],
+                value=result.force_expr)
 
         result += ld_name
         return result
