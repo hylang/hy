@@ -620,8 +620,33 @@
 
 (defn test-let []
   "NATIVE: test let works rightish"
+  ;; TODO: test sad paths for let
   (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6))
-  (assert (= (let [[x 1] a [y 2] b] (if a 1 2)) 2)))
+  (assert (= (let [[x 1] a [y 2] b] (if a 1 2)) 2))
+  (assert (= (let [x] x) nil))
+  (assert (= (let [[x "x not bound"]] (setv x "x bound by setv") x)
+             "x bound by setv"))
+  (assert (= (let [[x "let nests scope correctly"]]
+               (let [y] x))
+             "let nests scope correctly"))
+  (assert (= (let [[x 999999]]
+               (let [[x "x being rebound"]] x))
+             "x being rebound"))
+  (assert (= (let [[x "x not being rebound"]]
+               (let [[x 2]] nil)
+               x)
+             "x not being rebound"))
+  (assert (= (let [[x (set [3 2 1 3 2])] [y x] [z y]] z) (set [1 2 3])))
+  (import math)
+  (let [[cos math.cos]
+        [foo-cos (fn [x] (cos x))]]
+    (assert (= (cos math.pi) -1.0))
+    (assert (= (foo-cos (- math.pi)) -1.0))
+    (let [[cos (fn [_] "cos has been locally rebound")]]
+      (assert (= (cos cos) "cos has been locally rebound"))
+      (assert (= (-> math.pi (/ 3) foo-cos (round 2)) 0.5)))
+    (setv cos (fn [_] "cos has been rebound by setv"))
+    (assert (= (foo-cos foo-cos) "cos has been rebound by setv"))))
 
 
 (defn test-if-mangler []
