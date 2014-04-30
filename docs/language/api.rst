@@ -1273,25 +1273,3 @@ yield-from
 want your coroutine to be able to delegate its processes to another
 coroutine, say if using something fancy like
 `asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.
-
-
-.. _zipwith:
-
-zipwith
--------
-
-.. versionadded:: 0.10.0
-
-`zipwith` zips multiple lists and maps the given function over the result. It is
-equilavent to calling ``zip``, followed by calling ``map`` on the result.
-
-In the following example, `zipwith` is used to add the contents of two lists
-together. The equilavent ``map`` and ``zip`` calls follow.
-
-.. code-block:: clj
-   
-   => (import operator.add)
-   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
-   [5, 7, 9]
-   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
-   [5, 7, 9]

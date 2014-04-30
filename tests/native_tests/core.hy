@@ -82,8 +82,8 @@
   (assert-equal res [None 4 5])
   (setv res (list (drop 0 [1 2 3 4 5])))
   (assert-equal res [1 2 3 4 5])
-  (setv res (list (drop -1 [1 2 3 4 5])))
-  (assert-equal res [1 2 3 4 5])
+  (try (do (list (drop -1 [1 2 3 4 5])) (assert False))
+       (catch [e [ValueError]] nil))
   (setv res (list (drop 6 (iter [1 2 3 4 5]))))
   (assert-equal res [])
   (setv res (list (take 5 (drop 2 (iterate inc 0)))))
@@ -335,12 +335,15 @@
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
   (assert-equal 7 (nth [1 2 4 7] 3))
-  (assert-true (none? (nth [1 2 4 7] 5)))
-  (assert-true (none? (nth [1 2 4 7] -1)))
+  (try (do (nth [1 2 4 7] 5) (assert False))
+       (catch [e [IndexError]] nil))
+  (try (do (nth [1 2 4 7] -1) (assert False))
+       (catch [e [ValueError]] nil))
   ;; now for iterators
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
-  (assert-true  (none? (nth (iter [1 2 4 7]) -1)))
+  (try (do (nth (iter [1 2 4 7]) -1) (assert False))
+       (catch [e [ValueError]] nil))
   (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
 
 (defn test-numeric? []
@@ -429,8 +432,8 @@
   (assert-equal res ["s" "s" "s" "s"])
   (setv res (list (take 0 (repeat "s"))))
   (assert-equal res [])
-  (setv res (list (take -1 (repeat "s"))))
-  (assert-equal res [])
+  (try (do (list (take -1 (repeat "s"))) (assert False))
+       (catch [e [ValueError]] nil))
   (setv res (list (take 6 [1 2 None 4])))
   (assert-equal res [1 2 None 4]))
 
