@@ -305,13 +305,12 @@ def _raise_wrong_args_number(expression, error):
                                len(expression)))
 
 
-def checkargs(exact=None, min=None, max=None, even=None):
+def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
     def _dec(fn):
         def checker(self, expression):
             if exact is not None and (len(expression) - 1) != exact:
                 _raise_wrong_args_number(
                     expression, "`%%s' needs %d arguments, got %%d" % exact)
-
             if min is not None and (len(expression) - 1) < min:
                 _raise_wrong_args_number(
                     expression,
@@ -329,6 +328,14 @@ def checkargs(exact=None, min=None, max=None, even=None):
                     expression,
                     "`%%s' needs an %s number of arguments, got %%d"
                     % (even_str))
+
+            if multiple is not None:
+                if not (len(expression) - 1) in multiple:
+                    choices = ", ".join([str(val) for val in multiple[:-1]])
+                    choices += " or %s" % multiple[-1]
+                    _raise_wrong_args_number(
+                        expression,
+                        "`%%s' needs %s arguments, got %%d" % choices)
 
             return fn(self, expression)
 
@@ -665,12 +672,20 @@ class HyASTCompiler(object):
 
     @builds("throw")
     @builds("raise")
-    @checkargs(max=1)
+    @checkargs(multiple=[0, 1, 3])
     def compile_throw_expression(self, expr):
         expr.pop(0)
         ret = Result()
         if expr:
             ret += self.compile(expr.pop(0))
+
+        cause = None
+        if PY3:
+            if len(expr) == 2:
+                if expr[0] == HyKeyword(":from"):
+                    expr.pop(0)
+                    cause = self.compile(expr.pop(0))
+                    cause = cause.expr
 
         # Use ret.expr to get a literal `None`
         ret += ast.Raise(
@@ -680,7 +695,7 @@ class HyASTCompiler(object):
             exc=ret.expr,
             inst=None,
             tback=None,
-            cause=None)
+            cause=cause)
 
         return ret
 
