@@ -100,21 +100,6 @@
 (assert initialized)
 (assert (test-initialized))
 
-(defn test-yield-from []
-  "NATIVE: testing yield from"
-  
-  (try
-   (eval
-    '(do (defn yield-from-test []
-           (for* [i (range 3)]
-             (yield i))
-           (yield-from [1 2 3]))
-         (assert (= (list (yield-from-test)) [0 1 2 1 2 3]))))
-   (catch [e HyCompileError]
-     ;; Yup, this should happen on non-Python3.3 thingies
-     (assert (not PY33)))
-   (else (assert PY33))))
-
 (defn test-if-python2 []
   (import sys)
   (assert (= (get sys.version_info 0)

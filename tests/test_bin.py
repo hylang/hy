@@ -23,6 +23,7 @@
 # DEALINGS IN THE SOFTWARE.
 import os
 import subprocess
+from hy._compat import PY3
 
 
 def run_cmd(cmd, stdin_data=None):
@@ -128,12 +129,15 @@ def test_hy2py():
     for dirpath, dirnames, filenames in os.walk("tests/native_tests"):
         for f in filenames:
             if f.endswith(".hy"):
-                i += 1
-                ret = run_cmd("hy2py -s -a "
-                              + os.path.join(dirpath, f))
-                assert ret[0] == 0, f
-                assert len(ret[1]) > 1, f
-                assert len(ret[2]) == 0, f
+                if f == "py3_only_tests.hy" and not PY3:
+                    continue
+                else:
+                    i += 1
+                    ret = run_cmd("hy2py -s -a "
+                                  + os.path.join(dirpath, f))
+                    assert ret[0] == 0, f
+                    assert len(ret[1]) > 1, f
+                    assert len(ret[2]) == 0, f
     assert i
 
 

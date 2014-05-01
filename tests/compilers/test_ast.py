@@ -27,6 +27,7 @@ from hy.compiler import hy_compile
 from hy.errors import HyCompileError, HyTypeError
 from hy.lex.exceptions import LexException
 from hy.lex import tokenize
+from hy._compat import PY3
 
 import ast
 
@@ -111,23 +112,29 @@ def test_ast_good_do():
 def test_ast_good_throw():
     "Make sure AST can compile valid throw"
     can_compile("(throw)")
-    can_compile("(throw 1)")
+    can_compile("(throw Exception)")
 
 
 def test_ast_bad_throw():
     "Make sure AST can't compile invalid throw"
-    cant_compile("(raise 1 2 3)")
+    cant_compile("(throw Exception Exception)")
 
 
 def test_ast_good_raise():
     "Make sure AST can compile valid raise"
     can_compile("(raise)")
-    can_compile("(raise 1)")
+    can_compile("(raise Exception)")
+    can_compile("(raise e)")
+
+
+if PY3:
+    def test_ast_raise_from():
+        can_compile("(raise Exception :from NameError)")
 
 
 def test_ast_bad_raise():
     "Make sure AST can't compile invalid raise"
-    cant_compile("(raise 1 2 3)")
+    cant_compile("(raise Exception Exception)")
 
 
 def test_ast_good_try():
