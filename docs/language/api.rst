@@ -441,6 +441,44 @@ symbols for function names as the first parameter, `defn-alias` and
   => (alias)
   "Hello!"
 
+
+defmain
+-------
+
+.. versionadded:: 0.9.13
+
+The `defmain` macro defines a main function that is immediately called
+with sys.argv as arguments if and only if this file is being executed
+as a script.  In other words this:
+
+.. code-block:: clj
+
+   (defmain [&rest args]
+     (do-something-with args))
+
+is the equivalent of::
+
+   def main(*args):
+       do_something_with(args)
+       return 0
+
+   if __name__ == "__main__":
+       import sys
+       retval = main(*sys.arg)
+
+       if isinstance(retval, int):
+           sys.exit(retval)
+
+Note, as you can see above, if you return an integer from this
+function, this will be used as the exit status for your script.
+(Python defaults to exit status 0 otherwise, which means everything's
+okay!)
+
+(Since (sys.exit 0) is not run explicitly in case of a non-integer
+return from defmain, it's good to put (defmain) as the last bit of
+code in your file.)
+
+
 .. _defmacro:
 
 defmacro
