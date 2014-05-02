@@ -764,6 +764,36 @@ any numeric type, empty sequence and empty dictionary are considered `False`.
 Everything else is considered `True`.
 
 
+lisp-if / lif
+-------------
+
+.. versionadded:: 0.10.0
+
+For those that prefer a more lisp-y if clause, we have lisp-if, or lif.  This
+*only* considers None/nil as false!  All other values of python
+"falseiness" are considered true.
+
+
+.. code-block:: clj
+
+    => (lisp-if True "true" "false")
+    "true"
+    => (lisp-if False "true" "false")
+    "true"
+    => (lisp-if 0 "true" "false")
+    "true"
+    => (lisp-if nil "true" "false")
+    "false"
+    => (lisp-if None "true" "false")
+    "false"
+
+    ; And, same thing
+    => (lif True "true" "false")
+    "true"
+    => (lif nil "true" "false")
+    "false"
+
+
 import
 ------
 
@@ -824,10 +854,14 @@ Just as in normal function definitions, if the first element of the
 body is a string, it serves as docstring.  This is useful for giving
 class methods docstrings.
 
+.. code-block:: clj
+
     => (setv times-three
     ...   (fn [x]
     ...    "Multiplies input by three and returns the result."
     ...    (* x 3)))
+
+Then test it via the Python built-in ``help`` function::
 
     => (help times-three)
     Help on function times_three:
@@ -1265,23 +1299,15 @@ infinite series without consuming infinite amount of memory.
     => (list-comp x [x (take 15 (random-numbers 1 50))])])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
 
-.. _zipwith:
 
-zipwith
--------
+yield-from
+----------
 
-.. versionadded:: 0.10.0
+.. versionadded:: 0.9.13
 
-`zipwith` zips multiple lists and maps the given function over the result. It is
-equilavent to calling ``zip``, followed by calling ``map`` on the result.
+**PYTHON 3.3 AND UP ONLY!**
 
-In the following example, `zipwith` is used to add the contents of two lists
-together. The equilavent ``map`` and ``zip`` calls follow.
-
-.. code-block:: clj
-   
-   => (import operator.add)
-   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
-   [5, 7, 9]
-   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
-   [5, 7, 9]
+`yield-from` is used to call a subgenerator.  This is useful if you
+want your coroutine to be able to delegate its processes to another
+coroutine, say if using something fancy like
+`asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.

@@ -27,8 +27,8 @@
 
 
 (import [hy.models.list [HyList]]
-        [hy.models.symbol [HySymbol]])
-
+        [hy.models.symbol [HySymbol]]
+        [hy._compat [PY33 PY34]])
 
 
 (defmacro for [args &rest body]
@@ -145,6 +145,11 @@
     `(if (not ~test) ~not-branch ~yes-branch)))
 
 
+(defmacro-alias [lisp-if lif] [test &rest branches]
+  "Like `if`, but anything that is not None/nil is considered true."
+  `(if (is-not ~test nil) ~@branches))
+
+
 (defmacro when [test &rest body]
   "Execute `body` when `test` is true"
   `(if ~test (do ~@body)))
@@ -154,12 +159,6 @@
   "Execute `body` when `test` is false"
   `(if-not ~test (do ~@body)))
 
-
-(defmacro yield-from [iterable]
-  "Yield all the items from iterable"
-  (let [[x (gensym)]]
-  `(for* [~x ~iterable]
-     (yield ~x))))
 
 (defmacro with-gensyms [args &rest body]
   `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
