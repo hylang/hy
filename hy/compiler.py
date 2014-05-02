@@ -1512,7 +1512,7 @@ class HyASTCompiler(object):
     def compile_require(self, expression):
         """
         TODO: keep track of what we've imported in this run and then
-        "unimport" it after we've completed `thing' so that we don't polute
+        "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
         """
         expression.pop(0)

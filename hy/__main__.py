@@ -23,7 +23,7 @@ import imp
 import sys
 
 # This just mocks the normalish behavior of the Python interp. Helpful to aid
-# with shiming existing apps that don't really "work" with Hy.
+# with shimming existing apps that don't really "work" with Hy.
 #
 # You could say this script helps Hyjack a file.
 #
