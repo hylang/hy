@@ -460,7 +460,7 @@ symbols for function names as the first parameter, `defn-alias` and
 defmain
 -------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.1
 
 The `defmain` macro defines a main function that is immediately called
 with sys.argv as arguments if and only if this file is being executed
