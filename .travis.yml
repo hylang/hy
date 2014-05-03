@@ -1,19 +1,18 @@
 language: python
 python:
   - "pypy"
+  - "2.6"
   - "2.7"
   - "3.2"
   - "3.3"
-  - "2.6"
+  - "3.4"
 # command to install dependencies
 install:
-  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
   - pip install coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install argparse importlib unittest2 astor; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install astor; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pip install astor; fi
-  - python setup.py -q install
-# # command to run tests
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi  # needs for running tests
+  - pip install --allow-all-external -e .
+# command to run tests
 script: make travis
 after_success: coveralls
 notifications:

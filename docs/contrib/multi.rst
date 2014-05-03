@@ -2,7 +2,7 @@
 defmulti
 ========
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 `defmulti` lets you arity-overload a function by the given number of 
 args and/or kwargs. Inspired by clojures take on `defn`.

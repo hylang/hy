@@ -43,7 +43,7 @@ behavior that's slightly unexpected in some situations.
 .
 -
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 
 `.` is used to perform attribute access on objects. It uses a small DSL
@@ -151,20 +151,14 @@ case the first false value will be returned. Examples of usage:
     => (and True [] False True)
     []
 
-.. note:: `and` shortcuts and stops evaluating parameters as soon as the first
-          false is encountered. However, in the current implementation of Hy
-          statements are executed as soon as they are converted to expressions.
-          The following two examples demonstrates the difference.
+.. note::
+
+    `and` shortcuts and stops evaluating parameters as soon as the first
+    false is encountered.
 
 .. code-block:: clj
 
     => (and False (print "hello"))
-    hello
-    False
-
-    => (defn side-effects [x] (print "I can has" x) x)
-    => (and (side-effects false) (side-effects 42))
-    I can has False
     False
 
 
@@ -275,6 +269,21 @@ however is called only for every other value in the list.
         (if (% x 2)
           (continue))
         (side-effect2 x)))
+
+
+dict-comp
+---------
+
+`dict-comp` is used to create dictionaries. It takes three or four parameters.
+The first two parameters are for controlling the return value
+(key-value pair), while the third is used to select items from a sequence. The
+fourth and optional parameter can be used to filter out some of the items in
+the sequence based on a conditional expression.
+
+.. code-block:: hy
+
+    => (dict-comp x (* x 2) [x (range 10)] (odd? x))
+    {1: 2, 3: 6, 9: 18, 5: 10, 7: 14}
 
 
 do / progn
@@ -398,7 +407,7 @@ Parameters may have following keywords in front of them:
         => (defn print-parameters [&kwargs kwargs]
         ...    (for [(, k v) (.items kwargs)] (print k v)))
 
-        => (kwapply (print-parameters) {"parameter-1" 1 "parameter-2" 2})
+        => (apply print-parameters [] {"parameter-1" 1 "parameter-2" 2})
         parameter-2 2
         parameter-1 1
 
@@ -429,7 +438,7 @@ Parameters may have following keywords in front of them:
 defn-alias / defun-alias
 ------------------------
 
-.. versionadded:: 0.9.13
+.. versionadded:: 0.10.0
 
 The `defn-alias` and `defun-alias` macros are much like `defn`_ above,
 with the difference that instead of defining a function with a single
@@ -446,6 +455,44 @@ symbols for function names as the first parameter, `defn-alias` and
   "Hello!"
   => (alias)
   "Hello!"
+
+
+defmain
+-------
+
+.. versionadded:: 0.10.1
+
+The `defmain` macro defines a main function that is immediately called
+with sys.argv as arguments if and only if this file is being executed
+as a script.  In other words this:
+
+.. code-block:: clj
+
+   (defmain [&rest args]
+     (do-something-with args))
+
+is the equivalent of::
+
+   def main(*args):
+       do_something_with(args)
+       return 0
+
+   if __name__ == "__main__":
+       import sys
+       retval = main(*sys.arg)
+
+       if isinstance(retval, int):
+           sys.exit(retval)
+
+Note, as you can see above, if you return an integer from this
+function, this will be used as the exit status for your script.
+(Python defaults to exit status 0 otherwise, which means everything's
+okay!)
+
+(Since (sys.exit 0) is not run explicitly in case of a non-integer
+return from defmain, it's good to put (defmain) as the last bit of
+code in your file.)
+
 
 .. _defmacro:
 
@@ -635,6 +682,24 @@ normally. If the execution is halted with `break`, the `else` does not execute.
     loop finished
 
 
+genexpr
+-------
+
+`genexpr` is used to create generator expressions. It takes two or three parameters.
+The first parameter is the expression controlling the return value, while
+the second is used to select items from a list. The third and optional
+parameter can be used to filter out some of the items in the list based on a 
+conditional expression. `genexpr` is similar to `list-comp`, except that it returns
+an iterable that evaluates values one by one instead of evaluating them immediately.
+
+.. code-block:: hy
+
+    => (def collection (range 10))
+    => (def filtered (genexpr x [x collection] (even? x)))
+    => (list filtered)
+    [0, 2, 4, 6, 8]
+
+
 .. _gensym:
 
 gensym
@@ -711,7 +776,7 @@ the `if` form is used to conditionally select code to be executed. It has to
 contain the condition block and the block to be executed if the condition
 evaluates `True`. Optionally it may contain a block that is executed in case
 the evaluation of the condition is `False`. The `if-not` form (*new in
-0.9.13*) is similar, but the first block after the test will be
+0.10.0*) is similar, but the first block after the test will be
 executed when the test fails, while the other, conditional one, when
 the test succeeds - opposite of the order of the `if` form.
 
@@ -730,6 +795,36 @@ Example usage:
 Truth values of Python objects are respected. Values `None`, `False`, zero of
 any numeric type, empty sequence and empty dictionary are considered `False`.
 Everything else is considered `True`.
+
+
+lisp-if / lif
+-------------
+
+.. versionadded:: 0.10.0
+
+For those that prefer a more lisp-y if clause, we have lisp-if, or lif.  This
+*only* considers None/nil as false!  All other values of python
+"falseiness" are considered true.
+
+
+.. code-block:: clj
+
+    => (lisp-if True "true" "false")
+    "true"
+    => (lisp-if False "true" "false")
+    "true"
+    => (lisp-if 0 "true" "false")
+    "true"
+    => (lisp-if nil "true" "false")
+    "false"
+    => (lisp-if None "true" "false")
+    "false"
+
+    ; And, same thing
+    => (lif True "true" "false")
+    "true"
+    => (lif nil "true" "false")
+    "false"
 
 
 import
@@ -766,32 +861,6 @@ of import you can use.
     (import [sys [*]])
 
 
-kwapply
--------
-
-`kwapply` can be used to supply keyword arguments to a function.
-
-For example:
-
-.. code-block:: clj
-
-    => (defn rent-car [&kwargs kwargs]
-    ...  (cond [(in :brand kwargs) (print "brand:" (:brand kwargs))]
-    ...        [(in :model kwargs) (print "model:" (:model kwargs))]))
-
-    => (kwapply (rent-car) {:model "T-Model"})
-    model: T-Model
-
-    => (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]] 
-    ...  (* price amount fees vat))
-
-    => (total-purchase 10 15)
-    173.25
-
-    => (kwapply (total-purchase 10 15) {"vat" 1.05})
-    165.375
-
-
 lambda / fn
 -----------
 
@@ -818,10 +887,14 @@ Just as in normal function definitions, if the first element of the
 body is a string, it serves as docstring.  This is useful for giving
 class methods docstrings.
 
+.. code-block:: clj
+
     => (setv times-three
     ...   (fn [x]
     ...    "Multiplies input by three and returns the result."
     ...    (* x 3)))
+
+Then test it via the Python built-in ``help`` function::
 
     => (help times-three)
     Help on function times_three:
@@ -919,20 +992,12 @@ parameter will be returned.
     1
 
 .. note:: `or` shortcuts and stops evaluating parameters as soon as the first
-          true is encountered. However, in the current implementation of Hy
-          statements are executed as soon as they are converted to expressions.
-          The following two examples demonstrates the difference.
+          true is encountered.
 
 .. code-block:: clj
 
     => (or True (print "hello"))
-    hello
     True
-
-    => (defn side-effects [x] (print "I can has" x) x)
-    => (or (side-effects 42) (side-effects False))
-    I can has 42
-    42
 
 
 print
@@ -1007,6 +1072,22 @@ element:
 
     => (rest (range 10))
     [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+
+set-comp
+--------
+
+`set-comp` is used to create sets. It takes two or three parameters.
+The first parameter is for controlling the return value, while the second is
+used to select items from a sequence. The third and optional parameter can be
+used to filter out some of the items in the sequence based on a conditional
+expression.
+
+.. code-block:: hy
+
+    => (setv data [1 2 3 4 5 2 3 4 5 3 4 5])
+    => (set-comp x [x data] (odd? x))
+    {1, 3, 5}
 
 
 slice
@@ -1220,14 +1301,14 @@ with-gensyms
 `with-gensym` form is used to generate a set of :ref:`gensym` for use
 in a macro.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (with-gensyms [a b c]
      ...)
 
 expands to:
 
-.. code-block:: clojure
+.. code-block:: hy
 
    (let [[a (gensym)
          [b (gensym)
@@ -1267,23 +1348,15 @@ infinite series without consuming infinite amount of memory.
     => (list-comp x [x (take 15 (random-numbers 1 50))])])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
 
-.. _zipwith:
 
-zipwith
--------
+yield-from
+----------
 
 .. versionadded:: 0.9.13
 
-`zipwith` zips multiple lists and maps the given function over the result. It is
-equilavent to calling ``zip``, followed by calling ``map`` on the result.
+**PYTHON 3.3 AND UP ONLY!**
 
-In the following example, `zipwith` is used to add the contents of two lists
-together. The equilavent ``map`` and ``zip`` calls follow.
-
-.. code-block:: clj
-   
-   => (import operator.add)
-   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
-   [5, 7, 9]
-   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
-   [5, 7, 9]
+`yield-from` is used to call a subgenerator.  This is useful if you
+want your coroutine to be able to delegate its processes to another
+coroutine, say if using something fancy like
+`asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.

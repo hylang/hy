@@ -27,8 +27,8 @@
 
 
 (import [hy.models.list [HyList]]
-        [hy.models.symbol [HySymbol]])
-
+        [hy.models.symbol [HySymbol]]
+        [hy._compat [PY33 PY34]])
 
 
 (defmacro for [args &rest body]
@@ -145,6 +145,11 @@
     `(if (not ~test) ~not-branch ~yes-branch)))
 
 
+(defmacro-alias [lisp-if lif] [test &rest branches]
+  "Like `if`, but anything that is not None/nil is considered true."
+  `(if (is-not ~test nil) ~@branches))
+
+
 (defmacro when [test &rest body]
   "Execute `body` when `test` is true"
   `(if ~test (do ~@body)))
@@ -154,12 +159,6 @@
   "Execute `body` when `test` is false"
   `(if-not ~test (do ~@body)))
 
-
-(defmacro yield-from [iterable]
-  "Yield all the items from iterable"
-  (let [[x (gensym)]]
-  `(for* [~x ~iterable]
-     (yield ~x))))
 
 (defmacro with-gensyms [args &rest body]
   `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
@@ -172,22 +171,18 @@
             ~@body))))
 
 
-(defmacro kwapply [call kwargs]
-  "Use a dictionary as keyword arguments"
-  (let [[-fun (car call)]
-        [-args (cdr call)]
-        [-okwargs `[(list (.items ~kwargs))]]]
-    (while (= -fun "kwapply") ;; join any further kw
-      (if (not (= (len -args) 2))
-        (macro-error
-         call
-         (.format "Trying to call nested kwapply with {0} args instead of 2"
-                  (len -args))))
-      (.insert -okwargs 0 `(list (.items ~(car (cdr -args)))))
-      (setv -fun (car (car -args)))
-      (setv -args (cdr (car -args))))
+(defmacro defmain [args &rest body]
+  "Write a function named \"main\" and do the if __main__ dance"
+  (let [[retval (gensym)]]
+    `(do
+      (defn main [~@args]
+        ~@body)
 
-    `(apply ~-fun [~@-args] (dict (sum ~-okwargs [])))))
+      (when (= --name-- "__main__")
+        (import sys)
+        (setv ~retval (apply main sys.argv))
+        (if (integer? ~retval)
+          (sys.exit ~retval))))))
 
 
 (defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]

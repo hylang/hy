@@ -1,5 +1,12 @@
--r requirements.txt
-tox
+# test tools
 nose
-Sphinx
+tox
+
+# code quality
+flake8
 coverage
+
+# documentation
+Pygments>=1.6
+Sphinx
+sphinx_rtd_theme

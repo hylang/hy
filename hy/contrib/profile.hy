@@ -46,6 +46,6 @@
      (.disable ~g!hy-pr)
      (setv ~g!hy-s (StringIO))
      (setv ~g!hy-ps
-           (.sort-stats (kwapply (.Stats pstats ~g!hy-pr) {"stream" ~g!hy-s})))
+           (.sort-stats (apply pstats.Stats [~g!hy-pr] {"stream" ~g!hy-s})))
      (.print-stats ~g!hy-ps)
      (print (.getvalue ~g!hy-s))))

@@ -2,6 +2,8 @@
 Command Line Interface
 ======================
 
+.. _hy:
+
 hy
 --
 
@@ -46,6 +48,8 @@ Command line options
    Print the Hy version number and exit.
 
 
+.. _hyc:
+
 hyc
 ---
 
@@ -57,7 +61,7 @@ Command line options
    Compile Hy code to Python bytecode. For example, save the
    following code as ``hyname.hy``:
 
-   .. code-block:: clojure
+   .. code-block:: hy
 
       (defn hy-hy [name]
         (print (+ "Hy " name "!")))
@@ -71,3 +75,29 @@ Command line options
       $ hyc hyname.hy
       $ python hyname.pyc
       Hy Afroman!
+
+
+.. _hy2py:
+
+hy2py
+-----
+
+.. versionadded:: 0.10.1
+
+Command line options
+^^^^^^^^^^^^^^^^^^^^
+
+.. cmdoption:: -s
+               --with-source
+
+   Show the parsed source structure.
+
+.. cmdoption:: -a
+               --with-ast
+
+   Show the generated AST.
+
+.. cmdoption:: -np
+               --without-python
+
+   Do not show the Python code generated from the AST.

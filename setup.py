@@ -59,7 +59,8 @@ setup(
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
-            'hyc = hy.cmdline:hyc_main'
+            'hyc = hy.cmdline:hyc_main',
+            'hy2py = hy.cmdline:hy2py_main',
         ]
     },
     packages=find_packages(exclude=['tests*']),
@@ -88,6 +89,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.2",
         "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",

@@ -199,20 +199,10 @@
 
 (defn test-kwargs []
   "NATIVE: test kwargs things."
-  (assert (= (kwapply (kwtest) {"one" "two"}) {"one" "two"}))
+  (assert (= (apply kwtest [] {"one" "two"}) {"one" "two"}))
   (setv mydict {"one" "three"})
-  (assert (= (kwapply (kwtest) mydict) mydict))
-  (assert (= (kwapply (kwtest) ((fn [] {"one" "two"}))) {"one" "two"}))
-  (assert (= (kwapply
-              (kwapply
-               (kwapply
-                (kwapply
-                 (kwapply (kwtest) {"x" 4})
-                 mydict)
-                {"x" 8})
-               {"x" (- 3 2) "y" 2})
-              {"y" 5 "z" 3})
-             {"x" 1 "y" 5 "z" 3 "one" "three"})))
+  (assert (= (apply kwtest [] mydict) mydict))
+  (assert (= (apply kwtest [] ((fn [] {"one" "two"}))) {"one" "two"})))
 
 
 (defn test-apply []
@@ -245,6 +235,11 @@
 (defn test-do []
   "NATIVE: test do"
   (do))
+
+(defn test-bare-try [] (try
+    (try (raise ValueError))
+  (except [ValueError])
+  (else (assert false))))
 
 
 (defn test-exceptions []
@@ -479,7 +474,7 @@
 
 (defn test-rest []
   "NATIVE: test rest"
-  (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))
+  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5])))
 
 
 (defn test-importas []
@@ -785,8 +780,8 @@
   "NATIVE: test &key function arguments"
   (defn foo [&key {"a" None "b" 1}] [a b])
   (assert (= (foo) [None 1]))
-  (assert (= (kwapply (foo) {"a" 2}) [2 1]))
-  (assert (= (kwapply (foo) {"b" 42}) [None 42])))
+  (assert (= (apply foo [] {"a" 2}) [2 1]))
+  (assert (= (apply foo [] {"b" 42}) [None 42])))
 
 
 (defn test-optional-arguments []
@@ -947,22 +942,10 @@
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (import sys)
-  (if-python2
-   (import [io [BytesIO :as StringIO]])
-   (import [io [StringIO]]))
-  (setv prev-stdout sys.stdout)
-  (setv sys.stdout (StringIO))
-  (disassemble '(do (leaky) (leaky) (macros)))
-  (setv stdout (.getvalue sys.stdout))
-  (setv sys.stdout prev-stdout)
-  (assert (in "leaky" stdout))
-  (assert (in "macros" stdout))
-  (setv sys.stdout (StringIO))
-  (disassemble '(do (leaky) (leaky) (macros)) true)
-  (setv stdout (.getvalue sys.stdout))
-  (setv sys.stdout prev-stdout)
-  (assert (= stdout "leaky()\nleaky()\nmacros()\n")))
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)))
+             "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])"))
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)) true)
+             "leaky()\nleaky()\nmacros()")))
 
 
 (defn test-attribute-access []

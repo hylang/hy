@@ -21,12 +21,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy._compat import PY3
+
 import traceback
 
 
 class HyError(Exception):
     """
-    Generic Hy error. All interal Exceptions will be subclassed from this
+    Generic Hy error. All internal Exceptions will be subclassed from this
     Exception.
     """
     pass
@@ -137,7 +139,10 @@ class HyTypeError(TypeError):
                                  (self.__class__.__name__,
                                   self.message))
 
-        return result.encode('utf-8')
+        if not PY3:
+            return result.encode('utf-8')
+        else:
+            return result
 
 
 class HyMacroExpansionError(HyTypeError):
