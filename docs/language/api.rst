@@ -1165,7 +1165,7 @@ Example usage
     ; Throw an IOError("foobar")
 
 
-`throw` can acccept a single argument (an `Exception` class or instance), or
+`throw` can accept a single argument (an `Exception` class or instance), or
 no arguments to re-raise the last Exception.
 
 
@@ -1259,7 +1259,7 @@ while
 `while` form is used to execute a single or more blocks as long as a condition
 is being met.
 
-The following example will output "hello world!" on screen indefinetely:
+The following example will output "hello world!" on screen indefinitely:
 
 .. code-block:: clj
 

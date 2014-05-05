@@ -29,7 +29,7 @@ Pull requests are great! We love them, here is a quick guide:
     continue describing the commit in detail
 
 
-- Finally add yourself to the AUTHORS file (as a seperate commit), you
+- Finally add yourself to the AUTHORS file (as a separate commit), you
   deserve it :)
 
 - All incoming changes need to be acked by 2 different members of
