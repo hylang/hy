@@ -70,4 +70,4 @@ and expression is passed to the correct function.
 .. warning::
    Because of a limitation in Hy's lexer and parser, reader macros can't
    redefine defined syntax such as ``()[]{}``. This will most likely be
-   adressed in the future.
+   addressed in the future.

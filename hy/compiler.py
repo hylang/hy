@@ -1855,7 +1855,7 @@ class HyASTCompiler(object):
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
         if PY34:
-            # Python 3.4+ requres that args are an ast.arg object, rather
+            # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
                             annotation=None,  # Fix me!

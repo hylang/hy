@@ -500,7 +500,7 @@ Let's take the classic:
 
     (loop (print (eval (read))))
 
-Rather then write it like that, we can write it as follows:
+Rather than write it like that, we can write it as follows:
 
 .. code-block:: clj
 
