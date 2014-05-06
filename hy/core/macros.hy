@@ -169,7 +169,7 @@
     ~@body))
 
 (defmacro defmacro/g! [name args &rest body]
-  (let [[syms (list (distinct (filter (fn [x] (.startswith x "g!")) (flatten body))))]]
+  (let [[syms (list (distinct (filter (fn [x] (and (hasattr x "startswith") (.startswith x "g!"))) (flatten body))))]]
     `(defmacro ~name [~@args]
        (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
             ~@body))))
