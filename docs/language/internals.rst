@@ -387,7 +387,7 @@ for a more complete description.) ``nif`` is an example, something like a numeri
 where based on the expression, one of the 3 forms is called depending on if the
 expression is positive, zero or negative.
 
-A first pass might be someting like:
+A first pass might be something like:
 
 .. code-block:: hy
 
