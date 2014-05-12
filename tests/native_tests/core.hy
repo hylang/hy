@@ -57,6 +57,34 @@
   (try (do (dec None) (assert False))
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
 
+(defn test-setv []
+  "NATIVE: testing setv mutation"
+  (setv x 1)
+  (setv y 1)
+  (assert-equal x y)
+  (setv x (setv y  12))
+  (assert-equal x 12)
+  (assert-equal y 12)
+  (setv x (setv y (fn [x] 9)))
+  (assert-equal (x y) 9)
+  (assert-equal (y x) 9)
+  (try (do (setv a.b 1) (assert False))
+       (catch [e [NameError]] (assert (in "name 'a' is not defined" (str e)))))
+  (try (do (setv b.a (fn [x] x)) (assert False))
+       (catch [e [NameError]] (assert (in "name 'b' is not defined" (str e)))))
+  (import itertools)
+  (setv foopermutations (fn [x] (itertools.permutations x)))
+  (setv p (set [(, 1 3 2) (, 3 2 1) (, 2 1 3) (, 3 1 2) (, 1 2 3) (, 2 3 1)]))
+  (assert-equal (set (itertools.permutations [1 2 3])) p)
+  (assert-equal (set (foopermutations [3 1 2])) p)
+  (setv permutations- itertools.permutations)
+  (setv itertools.permutations (fn [x] 9))
+  (assert-equal (itertools.permutations p) 9)
+  (assert-equal (foopermutations foopermutations) 9)
+  (setv itertools.permutations permutations-)
+  (assert-equal (set (itertools.permutations [2 1 3])) p)
+  (assert-equal (set (foopermutations [2 3 1])) p))
+
 (defn test-distinct []
   "NATIVE: testing the distinct function"
   (setv res (list (distinct [ 1 2 3 4 3 5 2 ])))
