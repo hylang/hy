@@ -194,3 +194,16 @@
           (.append ret
                    `(setv ~name ~main)))
     ret))
+
+(defmacro $ [func &rest args]
+  "Return a partial function object"
+  `(.partial (__import__ "functools") ~func ~@args))
+
+(defmacro defp [f args &rest body]
+  "Return a function that takes its excess arguments and applies them to the function that the original function returned"
+  (def arglen (HyInteger (len args)))
+  (with-gensyms [fargs]
+    `(defn ~f [&rest ~fargs]
+      (apply
+        (apply (fn [~@args] ~@body) (slice ~fargs 0 ~arglen))
+        (slice ~fargs ~arglen)))))

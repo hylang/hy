@@ -102,7 +102,7 @@
 
 (defn test-yield-from []
   "NATIVE: testing yield from"
-  
+
   (try
    (eval
     '(do (defn yield-from-test []
@@ -227,3 +227,14 @@
   (assert (= (tda-a1) :bazinga))
   (assert (= (tda-a2) :bazinga))
   (assert (= tda-main tda-a1 tda-a2)))
+
+(defn test-f-partial []
+  (import functools)
+  (defn test [a b] (+ a b))
+  (def a (functools.partial test 1 2))
+  (def b ($ test 1 2))
+  (assert (= (b) 3)))
+
+(defn test-defp []
+  (defp add [a] (fn [b] (+ a b)))
+  (assert (= (add 1 2) 3)))
