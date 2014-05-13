@@ -227,3 +227,34 @@
   (assert (= (tda-a1) :bazinga))
   (assert (= (tda-a2) :bazinga))
   (assert (= tda-main tda-a1 tda-a2)))
+
+(defn test-with-redefs[]
+  "test that with-redefs is behaving correctly"
+  (setv expected-output
+        [(, 1 2 3) (, 1 3 2) (, 2 1 3)
+         (, 2 3 1) (, 3 1 2) (, 3 2 1)])
+
+  (import foo)
+  ;; foo.mypermutations wraps itertools.permutations
+  (assert (= (list (foo.mypermutations [1 2 3])) expected-output))
+
+  (with-redefs
+    [(. (--import-- "itertools") permutations) (fn [x] "bar")]
+    (assert (= (foo.mypermutations [1 2 3]) "bar")))
+
+  ;; Original behavior is restored after monkeypatching
+  (assert (= (list (foo.mypermutations [1 2 3])) expected-output))
+
+  (import itertools)
+  (assert
+   (= (with-redefs [itertools.permutations (fn [x] "bas")]
+        (foo.mypermutations [1 2 3]))
+      "bas"))
+
+  ;; State is restored even after an exception
+  (try (with-redefs [itertools.permutations (fn [] (/ 0 0))]
+         (itertools.permutations))
+       (catch [ZeroDivisionError]))
+  (assert (= (list (itertools.permutations [1 2 3]))
+             expected-output))
+  )

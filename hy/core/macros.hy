@@ -198,3 +198,21 @@
           (.append ret
                    `(setv ~name ~main)))
     ret))
+
+
+(defmacro with-redefs [bindings &rest body]
+  "temporarily redefines vars while executing the body,
+   restoring the vars afterwards"
+  (let [[make-bindings
+         (fn [vars vals] (map (fn [x y] `(setv ~x ~y)) vars vals))]
+        [bound-vars (slice bindings 0 nil 2)]
+        [new-vals (slice bindings 1 nil 2)]
+        [syms (list-comp (gensym) [_ bound-vars])]
+        [ret-var (gensym "ret-var")]]
+    `(do
+      ~@(make-bindings syms bound-vars)
+      ~@(make-bindings bound-vars new-vals)
+      (try
+       (setv ~ret-var (do ~@body))
+       (finally ~@(make-bindings bound-vars syms)))
+      ~ret-var)))
