@@ -60,7 +60,7 @@ Changes from 0.9.12
   * "clean" target added to Makefile 
   * hy2py supports a bunch of commandline options to show AST, source etc.
   * Sub-object mangling: every identifier is split along the dots & mangled
-    seperately
+    separately
   
   [ Bug Fixes ]
   * Empty MacroExpansions work as expected
@@ -88,7 +88,7 @@ Changes from Hy 0.9.11
     what exactly was added. 
     
     The biggest feature, Reader Macros, landed later
-    in the cycle, but were big enough to warrent a release on it's
+    in the cycle, but were big enough to warrant a release on its
     own. A huge thanks goes to Foxboron for implementing them
     and a massive hug goes out to olasd for providing ongoing
     reviews during the development.
@@ -267,7 +267,7 @@ Changes from Hy 0.9.6
 
     * UTF-8 encoded hy symbols are now hy_... rather than __hy_..., it's
       silly to prefex them as such. (PT)
-    * `j' is no longer always intepreted as a complex number; we use it much
+    * `j' is no longer always interpreted as a complex number; we use it much
       more as a symbol. (ND)
     * (decorate-with) has been moved to (with-decorate) (JD)
     * New (unless) macro (JD)
@@ -286,7 +286,7 @@ Changes from Hy 0.9.6
       and jd for making this happen. This solves just an insane number
       of bugs. (ND, PT, JD)
     * Eval no longer sucks with statements (ND)
-    * New magic binary flags / mis fixes with the hy intepreter
+    * New magic binary flags / mis fixes with the hy interpreter
       (WKG + @eigenhombre)
 
 
@@ -311,7 +311,7 @@ Changes from Hy 0.9.5
     =============== WARNING: WARNING: READ ME: READ ME: ===================
     From here on out, we will only support "future division" as part of hy.
     This is actually quite a pain for us, but it's going to be quite an
-    amazing feautre.
+    amazing feature.
 
     This also normalizes behavior from Py 2 --> Py 3.
 
@@ -346,7 +346,7 @@ Changes from Hy 0.9.4
 
     * Statements in the `fn' path early will not return anymore. (PT)
     * Added "not" as the inline "not" operator. It's advised to still
-      use "not-in" or "is-not" rather then nesting. (JD)
+      use "not-in" or "is-not" rather than nesting. (JD)
     * `let' macro added (PT)
     * Added "~" as the "invert" operator. (JD)
     * `catch' now accepts a new format: (JD)
