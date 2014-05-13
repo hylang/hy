@@ -1,0 +1,3 @@
+# code quality
+flake8
+coverage
