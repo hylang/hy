@@ -54,7 +54,9 @@
   (assert-equal (list (ap-map (* it 3) [1 2 3]))
                 [3 6 9])
   (assert-equal (list (ap-map (* it 3) []))
-                []))
+                [])
+  (assert-equal (let [[v 1] [f 1]] (list (ap-map (it v f) [(fn [a b] (+ a b))])))
+                [2]))
 
 (defn test-ap-map-when []
   "NATIVE: testing anaphoric map-when"
