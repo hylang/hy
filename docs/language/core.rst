@@ -495,8 +495,8 @@ nth
 Usage: ``(nth coll n)``
 
 Return the `nth` item in a collection, counting from 0. Unlike
-``get``, ``nth`` works on both iterators and iterables. Returns ``None``
-if the `n` is outside the range of `coll`.
+``get``, ``nth`` works on both iterators and iterables. Raises ``IndexError``
+if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
 
 .. code-block:: hy
 
@@ -506,8 +506,10 @@ if the `n` is outside the range of `coll`.
    => (nth [1 2 4 7] 3)
    7
 
-   => (none? (nth [1 2 4 7] 5))
-   True
+   => (nth [1 2 4 7] 5)
+   Traceback (most recent call last):
+     ...
+   IndexError: 5
 
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
@@ -764,6 +766,7 @@ drop
 Usage: ``(drop n coll)``
 
 Return an iterator, skipping the first ``n`` members of ``coll``
+Raises ``ValueError`` if ``n`` is negative.
 
 .. code-block:: hy
 
@@ -924,6 +927,7 @@ take
 Usage: ``(take n coll)``
 
 Return an iterator containing the first ``n`` members of ``coll``.
+Raises ``ValueError`` if ``n`` is negative.
 
 .. code-block:: hy
 
@@ -979,3 +983,21 @@ Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
 
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
+
+.. _zipwith:
+
+zipwith
+-------
+
+.. versionadded:: 0.9.13
+
+Usage: ``(zipwith fn coll ...)``
+
+Equivalent to ``zip``, but uses a multi-argument function instead of creating a tuple.
+If ``zipwith`` is called with N collections, then ``fn`` must accept N arguments.
+
+.. code-block:: clojure
+
+   => (import operator)
+   => (list (zipwith operator.add [1 2 3] [4 5 6]))
+   [5, 7, 9]

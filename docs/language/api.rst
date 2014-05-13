@@ -271,6 +271,21 @@ however is called only for every other value in the list.
         (side-effect2 x)))
 
 
+dict-comp
+---------
+
+`dict-comp` is used to create dictionaries. It takes three or four parameters.
+The first two parameters are for controlling the return value
+(key-value pair), while the third is used to select items from a sequence. The
+fourth and optional parameter can be used to filter out some of the items in
+the sequence based on a conditional expression.
+
+.. code-block:: hy
+
+    => (dict-comp x (* x 2) [x (range 10)] (odd? x))
+    {1: 2, 3: 6, 9: 18, 5: 10, 7: 14}
+
+
 do / progn
 ----------
 
@@ -440,6 +455,44 @@ symbols for function names as the first parameter, `defn-alias` and
   "Hello!"
   => (alias)
   "Hello!"
+
+
+defmain
+-------
+
+.. versionadded:: 0.10.1
+
+The `defmain` macro defines a main function that is immediately called
+with sys.argv as arguments if and only if this file is being executed
+as a script.  In other words this:
+
+.. code-block:: clj
+
+   (defmain [&rest args]
+     (do-something-with args))
+
+is the equivalent of::
+
+   def main(*args):
+       do_something_with(args)
+       return 0
+
+   if __name__ == "__main__":
+       import sys
+       retval = main(*sys.arg)
+
+       if isinstance(retval, int):
+           sys.exit(retval)
+
+Note, as you can see above, if you return an integer from this
+function, this will be used as the exit status for your script.
+(Python defaults to exit status 0 otherwise, which means everything's
+okay!)
+
+(Since (sys.exit 0) is not run explicitly in case of a non-integer
+return from defmain, it's good to put (defmain) as the last bit of
+code in your file.)
+
 
 .. _defmacro:
 
@@ -627,6 +680,24 @@ normally. If the execution is halted with `break`, the `else` does not execute.
     2
     3
     loop finished
+
+
+genexpr
+-------
+
+`genexpr` is used to create generator expressions. It takes two or three parameters.
+The first parameter is the expression controlling the return value, while
+the second is used to select items from a list. The third and optional
+parameter can be used to filter out some of the items in the list based on a 
+conditional expression. `genexpr` is similar to `list-comp`, except that it returns
+an iterable that evaluates values one by one instead of evaluating them immediately.
+
+.. code-block:: hy
+
+    => (def collection (range 10))
+    => (def filtered (genexpr x [x collection] (even? x)))
+    => (list filtered)
+    [0, 2, 4, 6, 8]
 
 
 .. _gensym:
@@ -1003,6 +1074,22 @@ element:
     [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
+set-comp
+--------
+
+`set-comp` is used to create sets. It takes two or three parameters.
+The first parameter is for controlling the return value, while the second is
+used to select items from a sequence. The third and optional parameter can be
+used to filter out some of the items in the sequence based on a conditional
+expression.
+
+.. code-block:: hy
+
+    => (setv data [1 2 3 4 5 2 3 4 5 3 4 5])
+    => (set-comp x [x data] (odd? x))
+    {1, 3, 5}
+
+
 slice
 -----
 
@@ -1057,7 +1144,7 @@ Example usage
     ; Throw an IOError("foobar")
 
 
-`throw` can acccept a single argument (an `Exception` class or instance), or
+`throw` can accept a single argument (an `Exception` class or instance), or
 no arguments to re-raise the last Exception.
 
 
@@ -1151,7 +1238,7 @@ while
 `while` form is used to execute a single or more blocks as long as a condition
 is being met.
 
-The following example will output "hello world!" on screen indefinetely:
+The following example will output "hello world!" on screen indefinitely:
 
 .. code-block:: clj
 
@@ -1273,25 +1360,3 @@ yield-from
 want your coroutine to be able to delegate its processes to another
 coroutine, say if using something fancy like
 `asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.
-
-
-.. _zipwith:
-
-zipwith
--------
-
-.. versionadded:: 0.10.0
-
-`zipwith` zips multiple lists and maps the given function over the result. It is
-equilavent to calling ``zip``, followed by calling ``map`` on the result.
-
-In the following example, `zipwith` is used to add the contents of two lists
-together. The equilavent ``map`` and ``zip`` calls follow.
-
-.. code-block:: clj
-   
-   => (import operator.add)
-   => (zipwith operator.add [1 2 3] [4 5 6])   ; using zipwith
-   [5, 7, 9]
-   => (map operator.add (zip [1 2 3] [4 5 6])) ; using map+zip
-   [5, 7, 9]
