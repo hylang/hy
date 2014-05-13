@@ -946,22 +946,10 @@
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (import sys)
-  (if-python2
-   (import [io [BytesIO :as StringIO]])
-   (import [io [StringIO]]))
-  (setv prev-stdout sys.stdout)
-  (setv sys.stdout (StringIO))
-  (disassemble '(do (leaky) (leaky) (macros)))
-  (setv stdout (.getvalue sys.stdout))
-  (setv sys.stdout prev-stdout)
-  (assert (in "leaky" stdout))
-  (assert (in "macros" stdout))
-  (setv sys.stdout (StringIO))
-  (disassemble '(do (leaky) (leaky) (macros)) true)
-  (setv stdout (.getvalue sys.stdout))
-  (setv sys.stdout prev-stdout)
-  (assert (= stdout "leaky()\nleaky()\nmacros()\n")))
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)))
+             "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])"))
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)) true)
+             "leaky()\nleaky()\nmacros()")))
 
 
 (defn test-attribute-access []
