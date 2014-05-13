@@ -29,7 +29,7 @@
 
 
 (defn test-for-loop []
-  "NATIVE: test for loops?"
+  "NATIVE: test for loops"
   (setv count 0)
   (for [x [1 2 3 4 5]]
     (setv count (+ count x)))
@@ -38,7 +38,11 @@
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
     (setv count (+ count x y)))
-  (assert (= count 150)))
+  (assert (= count 150))
+  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
+             (list-comp y [x [[1] [2 3]] y x])))
+  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
+             (list-comp z [x [[1] [2 3]] y x z (range 5)]))))
 
 
 (defn test-nasty-for-nesting []
@@ -235,6 +239,11 @@
 (defn test-do []
   "NATIVE: test do"
   (do))
+
+(defn test-bare-try [] (try
+    (try (raise ValueError))
+  (except [ValueError])
+  (else (assert false))))
 
 
 (defn test-exceptions []
@@ -469,7 +478,7 @@
 
 (defn test-rest []
   "NATIVE: test rest"
-  (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))
+  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5])))
 
 
 (defn test-importas []

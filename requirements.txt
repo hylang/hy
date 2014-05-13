@@ -1,3 +1,0 @@
-# Check site / dev for more deps!
-flake8
-rply>=0.7.0
