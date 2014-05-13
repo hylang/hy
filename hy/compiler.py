@@ -1751,18 +1751,19 @@ class HyASTCompiler(object):
     def _compile_assign(self, name, result,
                         start_line, start_column):
         result = self.compile(result)
-
-        if result.temp_variables and isinstance(name, HyString):
-            result.rename(name)
-            return result
-
         ld_name = self.compile(name)
-        st_name = self._storeize(ld_name)
 
-        result += ast.Assign(
-            lineno=start_line,
-            col_offset=start_column,
-            targets=[st_name], value=result.force_expr)
+        if result.temp_variables \
+           and isinstance(name, HyString) \
+           and '.' not in name:
+            result.rename(name)
+        else:
+            st_name = self._storeize(ld_name)
+            result += ast.Assign(
+                lineno=start_line,
+                col_offset=start_column,
+                targets=[st_name],
+                value=result.force_expr)
 
         result += ld_name
         return result
@@ -1855,7 +1856,7 @@ class HyASTCompiler(object):
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
         if PY34:
-            # Python 3.4+ requres that args are an ast.arg object, rather
+            # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
                             annotation=None,  # Fix me!

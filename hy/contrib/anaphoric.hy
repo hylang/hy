@@ -46,9 +46,10 @@
 
 (defmacro ap-map [form lst]
   "Yield elements evaluated in the form for each element in the list."
-  `(let [[f (lambda [it] ~form)]]
-     (for [v ~lst]
-       (yield (f v)))))
+  (let [[v (gensym 'v)] [f (gensym 'f)]]
+    `(let [[~f (lambda [it] ~form)]]
+       (for [~v ~lst]
+         (yield (~f ~v))))))
 
 
 (defmacro ap-map-when [predfn rep lst]
