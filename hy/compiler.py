@@ -732,25 +732,10 @@ class HyASTCompiler(object):
                 handler_results += self._compile_catch_expression(e, name)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
-                if orelse:
-                    raise HyTypeError(
-                        e,
-                        "`try' cannot have more than one `else'")
-                else:
-                    orelse = self._compile_branch(e[1:])
-                    # XXX tempvar magic
-                    orelse += orelse.expr_as_stmt()
-                    orelse = orelse.stmts
+                orelse = self.try_except_helper(e, HySymbol("else"), orelse)
             elif e[0] == HySymbol("finally"):
-                if finalbody:
-                    raise HyTypeError(
-                        e,
-                        "`try' cannot have more than one `finally'")
-                else:
-                    finalbody = self._compile_branch(e[1:])
-                    # XXX tempvar magic
-                    finalbody += finalbody.expr_as_stmt()
-                    finalbody = finalbody.stmts
+                finalbody = self.try_except_helper(e, HySymbol("finally"),
+                                                   finalbody)
             else:
                 raise HyTypeError(e, "Unknown expression in `try'")
 
@@ -768,8 +753,8 @@ class HyASTCompiler(object):
                 col_offset=expr.start_column,
                 type=None,
                 name=None,
-                body=[ast.Pass(lineno=expr.start_line,
-                               col_offset=expr.start_column)])]
+                body=[ast.Raise(lineno=expr.start_line,
+                                col_offset=expr.start_column)])]
 
         ret = handler_results
 
@@ -808,6 +793,17 @@ class HyASTCompiler(object):
             handlers=handlers,
             body=body,
             orelse=orelse) + returnable
+
+    def try_except_helper(self, hy_obj, symbol, accumulated):
+        if accumulated:
+            raise HyTypeError(
+                hy_obj,
+                "`try' cannot have more than one `%s'" % symbol)
+        else:
+            accumulated = self._compile_branch(hy_obj[1:])
+            accumulated += accumulated.expr_as_stmt()
+            accumulated = accumulated.stmts
+        return accumulated
 
     @builds("except")
     @builds("catch")
@@ -1516,7 +1512,7 @@ class HyASTCompiler(object):
     def compile_require(self, expression):
         """
         TODO: keep track of what we've imported in this run and then
-        "unimport" it after we've completed `thing' so that we don't polute
+        "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
         """
         expression.pop(0)
@@ -1755,18 +1751,19 @@ class HyASTCompiler(object):
     def _compile_assign(self, name, result,
                         start_line, start_column):
         result = self.compile(result)
-
-        if result.temp_variables and isinstance(name, HyString):
-            result.rename(name)
-            return result
-
         ld_name = self.compile(name)
-        st_name = self._storeize(ld_name)
 
-        result += ast.Assign(
-            lineno=start_line,
-            col_offset=start_column,
-            targets=[st_name], value=result.force_expr)
+        if result.temp_variables \
+           and isinstance(name, HyString) \
+           and '.' not in name:
+            result.rename(name)
+        else:
+            st_name = self._storeize(ld_name)
+            result += ast.Assign(
+                lineno=start_line,
+                col_offset=start_column,
+                targets=[st_name],
+                value=result.force_expr)
 
         result += ld_name
         return result
@@ -1859,7 +1856,7 @@ class HyASTCompiler(object):
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
         if PY34:
-            # Python 3.4+ requres that args are an ast.arg object, rather
+            # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
                             annotation=None,  # Fix me!

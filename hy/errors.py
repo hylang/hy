@@ -28,7 +28,7 @@ import traceback
 
 class HyError(Exception):
     """
-    Generic Hy error. All interal Exceptions will be subclassed from this
+    Generic Hy error. All internal Exceptions will be subclassed from this
     Exception.
     """
     pass

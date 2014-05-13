@@ -57,6 +57,34 @@
   (try (do (dec None) (assert False))
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
 
+(defn test-setv []
+  "NATIVE: testing setv mutation"
+  (setv x 1)
+  (setv y 1)
+  (assert-equal x y)
+  (setv x (setv y  12))
+  (assert-equal x 12)
+  (assert-equal y 12)
+  (setv x (setv y (fn [x] 9)))
+  (assert-equal (x y) 9)
+  (assert-equal (y x) 9)
+  (try (do (setv a.b 1) (assert False))
+       (catch [e [NameError]] (assert (in "name 'a' is not defined" (str e)))))
+  (try (do (setv b.a (fn [x] x)) (assert False))
+       (catch [e [NameError]] (assert (in "name 'b' is not defined" (str e)))))
+  (import itertools)
+  (setv foopermutations (fn [x] (itertools.permutations x)))
+  (setv p (set [(, 1 3 2) (, 3 2 1) (, 2 1 3) (, 3 1 2) (, 1 2 3) (, 2 3 1)]))
+  (assert-equal (set (itertools.permutations [1 2 3])) p)
+  (assert-equal (set (foopermutations [3 1 2])) p)
+  (setv permutations- itertools.permutations)
+  (setv itertools.permutations (fn [x] 9))
+  (assert-equal (itertools.permutations p) 9)
+  (assert-equal (foopermutations foopermutations) 9)
+  (setv itertools.permutations permutations-)
+  (assert-equal (set (itertools.permutations [2 1 3])) p)
+  (assert-equal (set (foopermutations [2 3 1])) p))
+
 (defn test-distinct []
   "NATIVE: testing the distinct function"
   (setv res (list (distinct [ 1 2 3 4 3 5 2 ])))
@@ -82,8 +110,8 @@
   (assert-equal res [None 4 5])
   (setv res (list (drop 0 [1 2 3 4 5])))
   (assert-equal res [1 2 3 4 5])
-  (setv res (list (drop -1 [1 2 3 4 5])))
-  (assert-equal res [1 2 3 4 5])
+  (try (do (list (drop -1 [1 2 3 4 5])) (assert False))
+       (catch [e [ValueError]] nil))
   (setv res (list (drop 6 (iter [1 2 3 4 5]))))
   (assert-equal res [])
   (setv res (list (take 5 (drop 2 (iterate inc 0)))))
@@ -335,12 +363,15 @@
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
   (assert-equal 7 (nth [1 2 4 7] 3))
-  (assert-true (none? (nth [1 2 4 7] 5)))
-  (assert-true (none? (nth [1 2 4 7] -1)))
+  (try (do (nth [1 2 4 7] 5) (assert False))
+       (catch [e [IndexError]] nil))
+  (try (do (nth [1 2 4 7] -1) (assert False))
+       (catch [e [ValueError]] nil))
   ;; now for iterators
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
-  (assert-true  (none? (nth (iter [1 2 4 7]) -1)))
+  (try (do (nth (iter [1 2 4 7]) -1) (assert False))
+       (catch [e [ValueError]] nil))
   (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
 
 (defn test-numeric? []
@@ -429,8 +460,8 @@
   (assert-equal res ["s" "s" "s" "s"])
   (setv res (list (take 0 (repeat "s"))))
   (assert-equal res [])
-  (setv res (list (take -1 (repeat "s"))))
-  (assert-equal res [])
+  (try (do (list (take -1 (repeat "s"))) (assert False))
+       (catch [e [ValueError]] nil))
   (setv res (list (take 6 [1 2 None 4])))
   (assert-equal res [1 2 None 4]))
 
@@ -478,3 +509,14 @@
   (assert-equal (list res) [4 4 4])
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
   (assert-equal (list res) [2 5 5]))
+
+(defn test-is-keyword []
+  "NATIVE: testing the keyword? function"
+  (assert (keyword? ':bar))
+  (assert (keyword? ':baz))
+  (assert (keyword? :bar))
+  (assert (keyword? :baz))
+  (assert (not (keyword? "foo")))
+  (assert (not (keyword? ":foo")))
+  (assert (not (keyword? 1)))
+  (assert (not (keyword? nil))))

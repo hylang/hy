@@ -25,7 +25,7 @@ OK, so, why?
 ------------
 
 Well. Python is awesome. So awesome, that we have so many tools to alter the
-languge in a *core* way, but we never use them.
+language in a *core* way, but we never use them.
 
 Why?
 

@@ -240,6 +240,11 @@
   "NATIVE: test do"
   (do))
 
+(defn test-bare-try [] (try
+    (try (raise ValueError))
+  (except [ValueError])
+  (else (assert false))))
+
 
 (defn test-exceptions []
   "NATIVE: test Exceptions"
@@ -473,7 +478,7 @@
 
 (defn test-rest []
   "NATIVE: test rest"
-  (assert (= (rest [1 2 3 4 5]) [2 3 4 5])))
+  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5])))
 
 
 (defn test-importas []
