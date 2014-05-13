@@ -203,6 +203,7 @@ def run_file(filename):
 
 
 def run_repl(hr=None, spy=False):
+    import platform
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
@@ -210,10 +211,15 @@ def run_repl(hr=None, spy=False):
         if not hr:
             hr = HyREPL(spy)
 
-        hr.interact("{appname} {version}".format(
-            appname=hy.__appname__,
-            version=hy.__version__
-        ))
+        hr.interact("{appname} {version} using "
+                    "{py}({build}) {pyversion} on {os}".format(
+                        appname=hy.__appname__,
+                        version=hy.__version__,
+                        py=platform.python_implementation(),
+                        build=platform.python_build()[0],
+                        pyversion=platform.python_version(),
+                        os=platform.system()
+                    ))
 
     return 0
 
