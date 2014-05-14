@@ -31,34 +31,6 @@
         [hy._compat [PY33 PY34]])
 
 
-(defmacro for [args &rest body]
-  "shorthand for nested for loops:
-  (for [x foo
-        y bar]
-    baz) ->
-  (for* [x foo]
-    (for* [y bar]
-      baz))"
-
-  (if (odd? (len args))
-    (macro-error args "`for' requires an even number of args."))
-
-  (if (empty? body)
-    (macro-error None "`for' requires a body to evaluate"))
-
-  (if (empty? args)
-    `(do ~@body)
-    (if (= (len args) 2)
-      ; basecase, let's just slip right in.
-      `(for* [~@args] ~@body)
-      ; otherwise, let's do some legit handling.
-      (let [[alist (slice args 0 nil 2)]
-            [ilist (slice args 1 nil 2)]]
-        `(do
-           (import itertools)
-           (for* [(, ~@alist) (itertools.product ~@ilist)] ~@body))))))
-
-
 (defmacro with [args &rest body]
   "shorthand for nested for* loops:
   (with [[x foo] [y bar]] baz) ->
@@ -116,6 +88,26 @@
   root)
 
 
+(defmacro for [args &rest body]
+  "shorthand for nested for loops:
+  (for [x foo
+        y bar]
+    baz) ->
+  (for* [x foo]
+    (for* [y bar]
+      baz))"
+  (cond 
+   [(odd? (len args))
+    (macro-error args "`for' requires an even number of args.")]
+   [(empty? body)
+    (macro-error None "`for' requires a body to evaluate")]
+   [(empty? args) `(do ~@body)]
+   [(= (len args) 2)  `(for* [~@args] ~@body)]
+   [true 
+    (let [[alist (slice args 0 nil 2)]]
+      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
+
+
 (defmacro -> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this
   (setv ret head)
@@ -126,6 +118,18 @@
     (setv ret node))
   ret)
 
+
+(defmacro doto [form &rest expressions]
+  "Performs a sequence of potentially mutating actions
+   on an initial object, returning the resulting object"
+  (setv f (gensym))
+  (defn build-form [expression]
+    (if (isinstance expression HyExpression)
+      `(~(first expression) ~f ~@(rest expression))
+      `(~expression ~f)))
+  `(let [[~f ~form]]
+     ~@(map build-form expressions)
+     ~f))
 
 (defmacro ->> [head &rest rest]
   ;; TODO: fix the docstring by someone who understands this

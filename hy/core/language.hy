@@ -34,6 +34,10 @@
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
 
+(defn butlast [coll]
+  "Returns coll except of last element."
+  (itertools.islice coll 0 (dec (len coll))))
+
 (defn coll? [coll]
   "Checks whether item is a collection"
   (and (iterable? coll) (not (string? coll))))
@@ -58,17 +62,17 @@
   (- n 1))
 
 (defn disassemble [tree &optional [codegen false]]
-  "Dump the python AST for a given Hy tree to standard output
+  "Return the python AST for a quoted Hy tree as a string.
    If the second argument is true, generate python code instead."
   (import astor)
   (import hy.compiler)
 
   (fake-source-positions tree)
   (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
-  (print ((if codegen
+  ((if codegen
             astor.codegen.to_source
             astor.dump)
-          compiled)))
+          compiled))
 
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
@@ -327,7 +331,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
+(def *exports* '[butlast calling-module-name coll? cons cons? cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator? keyword?

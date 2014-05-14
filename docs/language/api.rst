@@ -613,6 +613,27 @@ del
   => dic
   {}
 
+doto
+----
+
+.. versionadded:: 0.10.1
+
+`doto` macro is used to make a sequence of method calls for an object easy.
+
+.. code-block:: clj
+
+  => (doto [] (.append 1) (.append 2) .reverse)
+  [2 1]
+
+.. code-block:: clj
+
+  => (setv collection [])
+  => (.append collection 1)
+  => (.append collection 2)
+  => (.reverse collection)
+  => collection
+  [2 1]
+
 eval
 ----
 
