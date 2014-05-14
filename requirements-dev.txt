@@ -1,10 +1,7 @@
+-r requirements-travis.txt
 # test tools
 nose
 tox
-
-# code quality
-flake8
-coverage
 
 # documentation
 Pygments>=1.6
