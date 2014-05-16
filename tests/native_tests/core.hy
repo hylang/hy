@@ -510,6 +510,16 @@
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
   (assert-equal (list res) [2 5 5]))
 
+(defn test-doto []
+  "NATIVE: testing doto macro"
+  (setv collection [])
+  (doto collection (.append 1) (.append 2) (.append 3))
+  (assert-equal collection [1 2 3])
+  (setv res (doto (set) (.add 2) (.add 1)))
+  (assert-equal res (set [1 2]))
+  (setv res (doto [] (.append 1) (.append 2) .reverse))
+  (assert-equal res [2 1]))
+
 (defn test-is-keyword []
   "NATIVE: testing the keyword? function"
   (assert (keyword? ':bar))
@@ -520,13 +530,3 @@
   (assert (not (keyword? ":foo")))
   (assert (not (keyword? 1)))
   (assert (not (keyword? nil))))
-
-(defn test-doto []
-  "NATIVE: testing doto macro"
-  (setv collection [])
-  (doto collection (.append 1) (.append 2) (.append 3))
-  (assert-equal collection [1 2 3])
-  (setv res (doto (set) (.add 2) (.add 1)))
-  (assert-equal res (set [1 2]))
-  (setv res (doto [] (.append 1) (.append 2) .reverse))
-  (assert-equal res [2 1]))

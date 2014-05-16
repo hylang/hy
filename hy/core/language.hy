@@ -36,7 +36,7 @@
 
 (defn butlast [coll]
   "Returns coll except of last element."
-  (slice coll 0 (dec (len coll))))
+  (itertools.islice coll 0 (dec (len coll))))
 
 (defn coll? [coll]
   "Checks whether item is a collection"
@@ -331,7 +331,7 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
+(def *exports* '[butlast calling-module-name coll? cons cons? cycle dec distinct
                  disassemble drop drop-while empty? even? every? first filter
                  flatten float? gensym identity inc instance? integer
                  integer? integer-char? iterable? iterate iterator? keyword?
