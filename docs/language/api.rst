@@ -416,7 +416,7 @@ Parameters may have following keywords in front of them:
     arguments may be specified after this one.
 
     The following code example defines a function that can be given 0 to n
-    numerical parameters. It then sums every odd number and substracts
+    numerical parameters. It then sums every odd number and subtracts
     every even number.
 
     .. code-block:: clj
