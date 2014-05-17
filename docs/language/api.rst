@@ -305,7 +305,7 @@ Some example usage:
     Yeah, really!
 
     ;; assuming that (side-effect) is a function that we want to call for each
-    ;; and every value in the list, but which return values we do not care
+    ;; and every value in the list, but whose return value we do not care about
     => (list-comp (do (side-effect x) 
     ...               (if (< x 5) (* 2 x) 
     ...                   (* 4 x))) 
