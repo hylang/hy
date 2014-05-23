@@ -1293,23 +1293,48 @@ file is automatically closed after it has been processed.
 with-decorator
 --------------
 
-`with-decorator` is used to wrap a function with another. The function performing
-decoration should accept a single value, the function being decorated and return
-a new function. `with-decorator` takes two parameters, the function performing
-decoration and the function being decorated.
-
-In the following example, `inc-decorator` is used to decorate function `addition`
-with a function that takes two parameters and calls the decorated function with
-values that are incremented by 1. When decorated `addition` is called with values
-1 and 1, the end result will be 4 (1+1 + 1+1).
+`with-decorator` is used to wrap a function with another. The function
+performing decoration should accept a single value, the function being
+decorated and return a new function. `with-decorator` takes a minimum
+of two parameters, the function performing decoration and the function
+being decorated. More than one decorator function can be applied, they
+will be applied in order from outermost to innermost, ie. the first
+decorator will be the outermost one & so on. Decorators with arguments
+are called just like a function call.
 
 .. code-block:: clj
 
-    => (defn inc-decorator [func] 
+   (with-decorator decorator-fun
+      (defn some-function [] ...)
+
+   (with-decorator decorator1 decorator2 ...
+      (defn some-function [] ...)
+
+   (with-decorator (decorator arg) ..
+      (defn some-function [] ...)
+
+
+
+In the following example, `inc-decorator` is used to decorate function
+`addition` with a function that takes two parameters and calls the
+decorated function with values that are incremented by 1. When
+decorated `addition` is called with values 1 and 1, the end result
+will be 4 (1+1 + 1+1).
+
+.. code-block:: clj
+
+    => (defn inc-decorator [func]
     ...  (fn [value-1 value-2] (func (+ value-1 1) (+ value-2 1))))
+    => (defn inc2-decorator [func]
+    ...  (fn [value-1 value-2] (func (+ value-1 2) (+ value-2 2))))
+
     => (with-decorator inc-decorator (defn addition [a b] (+ a b)))
     => (addition 1 1)
     4
+    => (with-decorator inc2-decorator inc-decorator
+    ...	 (defn addition [a b] (+ a b)))
+    => (addition 1 1)
+    8
 
 
 .. _with-gensyms:
