@@ -24,7 +24,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.expression import HyExpression
 from hy.models.keyword import HyKeyword
 from hy.models.integer import HyInteger
@@ -430,6 +429,7 @@ class HyASTCompiler(object):
 
     def _parse_lambda_list(self, exprs):
         """ Return FunctionDef parameter values from lambda list."""
+        ll_keywords = ("&rest", "&optional", "&key", "&kwargs")
         ret = Result()
         args = []
         defaults = []
@@ -439,10 +439,7 @@ class HyASTCompiler(object):
 
         for expr in exprs:
 
-            if isinstance(expr, HyLambdaListKeyword):
-                if expr not in expr._valid_types:
-                    raise HyTypeError(expr, "{0} is not a valid "
-                                      "lambda-keyword.".format(repr(expr)))
+            if expr in ll_keywords:
                 if expr == "&rest" and lambda_keyword is None:
                     lambda_keyword = expr
                 elif expr == "&optional":
@@ -616,7 +613,7 @@ class HyASTCompiler(object):
 
             return imports, ret.replace(form), False
 
-        elif isinstance(form, (HySymbol, HyLambdaListKeyword)):
+        elif isinstance(form, HySymbol):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
 

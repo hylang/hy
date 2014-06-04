@@ -975,3 +975,10 @@
   "NATIVE: test keyword quoting magic"
   (assert (= :foo "\ufdd0:foo"))
   (assert (= `:foo "\ufdd0:foo")))
+
+(defn test-only-parse-lambda-list-in-defn []
+  "NATIVE: test lambda lists are only parsed in defn"
+  (try
+   (foo [&rest spam] 1)
+   (catch [NameError] True)
+   (else (raise AssertionError))))
