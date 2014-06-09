@@ -680,12 +680,13 @@ class HyASTCompiler(object):
             ret += self.compile(expr.pop(0))
 
         cause = None
-        if PY3:
-            if len(expr) == 2:
-                if expr[0] == HyKeyword(":from"):
-                    expr.pop(0)
-                    cause = self.compile(expr.pop(0))
-                    cause = cause.expr
+        if len(expr) == 2 and expr[0] == HyKeyword(":from"):
+            if not PY3:
+                raise HyCompileError(
+                    "raise from only supported in python 3")
+            expr.pop(0)
+            cause = self.compile(expr.pop(0))
+            cause = cause.expr
 
         # Use ret.expr to get a literal `None`
         ret += ast.Raise(
