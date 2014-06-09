@@ -1,6 +1,3 @@
-(import [hy._compat [PY33]])
-(import [hy.errors [HyCompileError]])
-
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
   (quasiquote (do (unquote-splice (list (reversed body))))))
