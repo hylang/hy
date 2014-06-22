@@ -997,7 +997,10 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        ret = Result(contains_yield=True)
+        if PY33:
+            ret = Result(contains_yield=False)
+        else:
+            ret = Result(contains_yield=True)
 
         value = None
         if expr != []:

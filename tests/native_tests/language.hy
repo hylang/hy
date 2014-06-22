@@ -3,6 +3,7 @@
         [sys :as systest])
 (import sys)
 
+(import [hy._compat [PY33 PY34]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -448,6 +449,29 @@
   (for [y (gen)] (setv ret (+ ret y)))
   (assert (= ret 10)))
 
+(defn test-yield-with-return []
+  "NATIVE: test yield with return"
+  (defn gen [] (yield 3) "goodbye")
+  (if PY33
+    (do (setv gg (gen))
+        (assert (= 3 (next gg)))
+        (try (next gg)
+             (except [e StopIteration] (assert (hasattr e "value"))
+                                       (assert (= (getattr e "value") "goodbye")))))
+    (do (setv gg (gen))
+        (assert (= 3 (next gg)))
+        (try (next gg)
+             (except [e StopIteration] (assert (not (hasattr e "value"))))))))
+
+
+(defn test-yield-in-try []
+  "NATIVE: test yield in try"
+  (defn gen []
+    (let [[x 1]]
+    (try (yield x)
+         (finally (print x)))))
+  (setv output (list (gen)))
+  (assert (= [1] output)))
 
 (defn test-first []
   "NATIVE: test firsty things"
