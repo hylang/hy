@@ -87,12 +87,14 @@
 (defn test-ap-first []
   "NATIVE: testing anaphoric first"
   (assert-equal (ap-first (> it 5) (range 10)) 6)
-  (assert-equal (ap-first (even? it) [1 2 3 4]) 2))
+  (assert-equal (ap-first (even? it) [1 2 3 4]) 2)
+  (assert-equal (ap-first (> it 10) (range 10)) None))
 
 (defn test-ap-last []
   "NATIVE: testing anaphoric last"
   (assert-equal (ap-last (> it 5) (range 10)) 9)
-  (assert-equal (ap-last (even? it) [1 2 3 4]) 4))
+  (assert-equal (ap-last (even? it) [1 2 3 4]) 4)
+  (assert-equal (ap-last (> it 10) (range 10)) None))
 
 (defn test-ap-reduce []
   "NATIVE: testing anaphoric reduce"

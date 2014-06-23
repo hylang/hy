@@ -84,18 +84,20 @@
 
 (defmacro ap-first [predfn lst]
   "Yield the first element that passes `predfn`"
-  `(let [[n (gensym)]]
-     (ap-each ~lst (when ~predfn (setv n it) (break)))
-     n))
+  (with-gensyms [n]
+    `(let [[~n None]]
+       (ap-each ~lst (when ~predfn (setv ~n it) (break)))
+       ~n)))
 
 
 (defmacro ap-last [predfn lst]
   "Yield the last element that passes `predfn`"
-  `(let [[n (gensym)]]
-     (ap-each ~lst (none? n)
-	      (when ~predfn
-		(setv n it)))
-	n))
+  (with-gensyms [n]
+    `(let [[~n None]]
+       (ap-each ~lst (none? ~n)
+                (when ~predfn
+                  (setv ~n it)))
+       ~n)))
 
 
 (defmacro ap-reduce [form lst &optional [initial-value None]]
