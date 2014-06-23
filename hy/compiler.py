@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 #
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013, 2014 Paul Tagliamonte <paultag@debian.org>
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 # Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 # Copyright (c) 2013 James King <james@agentultra.com>
-# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
+# Copyright (c) 2013, 2014 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -704,7 +704,8 @@ class HyASTCompiler(object):
                              lineno=expr.start_line,
                              col_offset=expr.start_column)
 
-        returnable = Result(expr=expr_name, temp_variables=[expr_name, name])
+        returnable = Result(expr=expr_name, temp_variables=[expr_name, name],
+                            contains_yield=body.contains_yield)
 
         body += ast.Assign(targets=[name],
                            value=body.force_expr,
@@ -996,7 +997,10 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        ret = Result(contains_yield=True)
+        if PY33:
+            ret = Result(contains_yield=False)
+        else:
+            ret = Result(contains_yield=True)
 
         value = None
         if expr != []:
