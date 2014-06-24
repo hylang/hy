@@ -92,7 +92,8 @@
     (setv map itertools.imap)
     (setv zip itertools.izip)
     (setv range xrange)
-    (setv input raw_input))
+    (setv input raw_input)
+    (setv reduce reduce))
   (do
     (setv reduce functools.reduce)
     (setv filterfalse itertools.filterfalse)
@@ -331,10 +332,12 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[butlast calling-module-name coll? cons cons? cycle dec distinct
-                 disassemble drop drop-while empty? even? every? first filter
-                 flatten float? gensym identity inc instance? integer
-                 integer? integer-char? iterable? iterate iterator? keyword?
-                 list* macroexpand macroexpand-1 map neg? nil? none? nth
-                 numeric? odd? pos? range remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero? zip zipwith])
+(def *exports* '[butlast calling-module-name coll? cons cons? cycle
+                 dec distinct disassemble drop drop-while empty? even?
+                 every? first filter flatten float? gensym identity
+                 inc instance? integer integer? integer-char?
+                 iterable? iterate iterator? keyword? list*
+                 macroexpand macroexpand-1 map neg? nil? none? nth
+                 numeric? odd? pos? range remove repeat repeatedly
+                 rest reduce second some string string? take take-nth
+                 take-while zero? zip zipwith])
