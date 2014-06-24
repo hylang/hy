@@ -47,7 +47,7 @@ from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 
-from hy._compat import builtins
+from hy._compat import builtins, PY3
 
 
 class HyQuitter(object):
@@ -327,6 +327,7 @@ def hyc_main():
 
 # entry point for cmd line script "hy2py"
 def hy2py_main():
+    import platform
     module_name = "<STDIN>"
 
     options = dict(prog="hy2py", usage="%(prog)s [options] FILE",
@@ -349,17 +350,42 @@ def hy2py_main():
 
     if options.with_source:
         hst = import_file_to_hst(options.args[0])
-        print(hst)
+        # need special printing on Windows in case the
+        # codepage doesn't support utf-8 characters
+        if PY3 and platform.system() == "Windows":
+            for h in hst:
+                try:
+                    print(h)
+                except:
+                    print(str(h).encode('utf-8'))
+        else:
+            print(hst)
         print()
         print()
 
     _ast = import_file_to_ast(options.args[0], module_name)
     if options.with_ast:
-        print(astor.dump(_ast))
+        if PY3 and platform.system() == "Windows":
+            _print_for_windows(astor.dump(_ast))
+        else:
+            print(astor.dump(_ast))
         print()
         print()
 
     if not options.without_python:
-        print(astor.codegen.to_source(_ast))
+        if PY3 and platform.system() == "Windows":
+            _print_for_windows(astor.codegen.to_source(_ast))
+        else:
+            print(astor.codegen.to_source(_ast))
 
     parser.exit(0)
+
+
+# need special printing on Windows in case the
+# codepage doesn't support utf-8 characters
+def _print_for_windows(src):
+    for line in src.split("\n"):
+        try:
+            print(line)
+        except:
+            print(line.encode('utf-8'))
