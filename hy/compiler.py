@@ -47,6 +47,7 @@ import importlib
 import codecs
 import ast
 import sys
+import keyword
 
 from collections import defaultdict
 
@@ -71,6 +72,21 @@ def load_stdlib():
         mod = importlib.import_module(module)
         for e in mod.EXPORTS:
             _stdlib[e] = module
+
+
+# True, False and None included here since they
+# are assignable in Python 2.* but become
+# keywords in Python 3.*
+def _is_hy_builtin(name, module_name):
+    extras = ['True', 'False', 'None',
+              'true', 'false', 'nil', 'null']
+    if name in extras or keyword.iskeyword(name):
+        return True
+    # for non-Hy modules, check for pre-existing name in
+    # _compile_table
+    if not module_name.startswith("hy."):
+        return name in _compile_table
+    return False
 
 
 _compile_table = {}
@@ -1751,6 +1767,12 @@ class HyASTCompiler(object):
 
     def _compile_assign(self, name, result,
                         start_line, start_column):
+
+        str_name = "%s" % name
+        if _is_hy_builtin(str_name, self.module_name):
+            raise HyTypeError(name,
+                              "Can't assign to a builtin: `%s'" % str_name)
+
         result = self.compile(result)
         ld_name = self.compile(name)
 

@@ -28,6 +28,28 @@
   (setv (get foo 0) 12)
   (assert (= (get foo 0) 12)))
 
+(defn test-setv-builtin []
+  "NATIVE: test that setv doesn't work on builtins"
+  (try (eval '(setv False 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv True 0))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv None 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv false 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv true 0))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv nil 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv null 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(defn defclass [] (print "hello")))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(defn get [] (print "hello")))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(defn lambda [] (print "hello")))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
 
 (defn test-for-loop []
   "NATIVE: test for loops"
