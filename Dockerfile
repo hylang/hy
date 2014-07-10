@@ -1,11 +1,10 @@
 # Base image
 #
-# VERSION   0.1
-FROM        debian:unstable
+# VERSION   0.2
+FROM        python:3
 MAINTAINER  Paul R. Tagliamonte <paultag@debian.org>
 
-RUN apt-get update && apt-get install -y python3.4 python3-pip
 ADD . /opt/hylang/hy
-RUN python3.4 /usr/bin/pip3 install -e /opt/hylang/hy
+RUN pip3 install -e /opt/hylang/hy
 
 CMD ["hy"]
