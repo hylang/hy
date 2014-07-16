@@ -1,3 +1,5 @@
+# for Botsbuildbots
+requests
 # code quality
 flake8
 coverage
