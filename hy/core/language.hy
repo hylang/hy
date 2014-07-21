@@ -334,10 +334,10 @@
 
 (def *exports* '[butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-while empty? even?
-                 every? first filter flatten float? gensym identity
-                 inc instance? integer integer? integer-char?
+                 every? first filter filterfalse flatten float? gensym identity
+                 inc input instance? integer integer? integer-char?
                  iterable? iterate iterator? keyword? list*
                  macroexpand macroexpand-1 map neg? nil? none? nth
                  numeric? odd? pos? range remove repeat repeatedly
                  rest reduce second some string string? take take-nth
-                 take-while zero? zip zipwith])
+                 take-while zero? zip zip_longest zipwith])
