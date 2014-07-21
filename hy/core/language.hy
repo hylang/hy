@@ -111,6 +111,7 @@
 (setv drop-while itertools.dropwhile)
 (setv take-while itertools.takewhile)
 (setv zipwith map)
+(setv remove filterfalse)
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
@@ -274,13 +275,6 @@
   "Return true if n is > 0"
   (_numeric_check n)
   (> n 0))
-
-(defn remove [pred coll]
-  "Return coll with elements removed that pass `pred`"
-  (let [[citer (iter coll)]]
-    (for* [val citer]
-      (if (not (pred val))
-        (yield val)))))
 
 (defn rest [coll]
   "Get all the elements of a coll, except the first."
