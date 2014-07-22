@@ -96,14 +96,14 @@
   (for* [x foo]
     (for* [y bar]
       baz))"
-  (cond 
+  (cond
    [(odd? (len args))
     (macro-error args "`for' requires an even number of args.")]
    [(empty? body)
     (macro-error None "`for' requires a body to evaluate")]
    [(empty? args) `(do ~@body)]
    [(= (len args) 2)  `(for* [~@args] ~@body)]
-   [true 
+   [true
     (let [[alist (slice args 0 nil 2)]]
       `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
 
@@ -198,3 +198,19 @@
           (.append ret
                    `(setv ~name ~main)))
     ret))
+
+
+(defmacro timeit [body]
+  "Output the number of milliseconds taken to evaluate body,
+  and return the value of body at the end"
+  `(do
+    (import [datetime [datetime]])
+    (let [[start (datetime.utcnow)]]
+      (let [[val ~body]]
+        (let [[end (datetime.utcnow)]]
+          (do
+           (print (+ "Time elapsed: "
+                     (str (/ (. (- end start) microseconds)
+                             1e3))
+                     " ms"))
+           val))))))
