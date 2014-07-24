@@ -26,8 +26,10 @@
 (import itertools)
 (import functools)
 (import collections)
+(import sys) 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]])
+(import [hy.lex [LexException PrematureEndOfInput tokenize]])
 
 
 (defn _numeric-check [x]
@@ -326,12 +328,29 @@
   (_numeric_check n)
   (= n 0))
 
+(defn read [&optional [stdin sys.stdin]
+                      [eof ""]]
+  "Read from input and returns a tokenized string.
+   Can take a given input buffer to read from"
+  (def buff "")
+  (while true
+    (def inn (str (.read stdin 1)))
+    (if (= inn eof)
+      (throw (EOFError "Reached end of file" )))
+    (setv buff (+ buff inn))
+    (try
+      (def parsed (first (tokenize buff)))
+      (except [e [LexException PrematureEndOfInput IndexError]]) 
+      (else (if parsed (break)))))
+    parsed)
+
+
 (def *exports* '[butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-while empty? even?
                  every? first filter filterfalse flatten float? gensym identity
                  inc input instance? integer integer? integer-char?
                  iterable? iterate iterator? keyword? list*
                  macroexpand macroexpand-1 map neg? nil? none? nth
-                 numeric? odd? pos? range remove repeat repeatedly
+                 numeric? odd? pos? range read remove repeat repeatedly
                  rest reduce second some string string? take take-nth
                  take-while zero? zip zip_longest zipwith])

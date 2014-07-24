@@ -862,6 +862,32 @@ Return an iterator of `x`, `fn(x)`, `fn(fn(x))`.
    [5, 25, 625, 390625, 152587890625]
 
 
+.. _read-fn:
+
+read
+----
+
+Usage: ``(read [stdin eof])``
+
+Reads the given form and parses it to hy. Takes optional argument
+for a different stdin object or eof byte. Throws `EOFError` when
+stdin is empty.
+
+.. code-block:: hy
+   => (read)
+   (+ 2 2)
+   ('+' 2 2)
+   => (eval (read))
+   (+ 2 2) 
+   4
+   => (import io)
+   => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
+   => (eval (apply read [] {"stdin" buffer}))
+   4
+   => (eval (apply read [] {"stdin" buffer}))
+   1
+
+
 .. _remove-fn:
 
 remove
