@@ -23,7 +23,7 @@ from hy.models import HyObject
 
 class HyComplex(HyObject, complex):
     """
-    Internal represntation of a Hy Complex. May raise a ValueError as if
+    Internal representation of a Hy Complex. May raise a ValueError as if
     complex(foo) was called, given HyComplex(foo).
     """
 
