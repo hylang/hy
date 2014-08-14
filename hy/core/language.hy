@@ -328,13 +328,13 @@
   (_numeric_check n)
   (= n 0))
 
-(defn read [&optional [stdin sys.stdin]
+(defn read [&optional [from-file sys.stdin]
                       [eof ""]]
   "Read from input and returns a tokenized string.
    Can take a given input buffer to read from"
   (def buff "")
   (while true
-    (def inn (str (.read stdin 1)))
+    (def inn (str (.read from-file 1)))
     (if (= inn eof)
       (throw (EOFError "Reached end of file" )))
     (setv buff (+ buff inn))

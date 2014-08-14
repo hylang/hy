@@ -867,11 +867,12 @@ Return an iterator of `x`, `fn(x)`, `fn(fn(x))`.
 read
 ----
 
-Usage: ``(read [stdin eof])``
+Usage: ``(read [from-file eof])``
 
-Reads the given form and parses it to hy. Takes optional argument
-for a different stdin object or eof byte. Throws `EOFError` when
-stdin is empty.
+Reads the next hy expression from `from-file` (defaults to `sys.stdin`), and
+can take a single byte as EOF (defaults to an empty string).
+Raises an `EOFError` if `from-file` ends before a complete expression can be
+parsed.
 
 .. code-block:: hy
    => (read)
@@ -882,9 +883,9 @@ stdin is empty.
    4
    => (import io)
    => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
-   => (eval (apply read [] {"stdin" buffer}))
+   => (eval (apply read [] {"from_file" buffer}))
    4
-   => (eval (apply read [] {"stdin" buffer}))
+   => (eval (apply read [] {"from_file" buffer}))
    1
 
 

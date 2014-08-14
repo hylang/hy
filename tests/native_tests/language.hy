@@ -1037,21 +1037,20 @@
   (import [hy.models.expression [HyExpression]])
  
   (def stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
-  (assert (= (eval (apply read [] {"stdin" stdin-buffer})) 4))
-  (assert (isinstance (apply read [] {"stdin" stdin-buffer}) HyExpression))
+  (assert (= (eval (read stdin-buffer)) 4))
+  (assert (isinstance (read stdin-buffer) HyExpression))
   
   "Multiline test"
   (def stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
-  (assert (= (eval (apply read [] {"stdin" stdin-buffer})) 42))
-  (assert (= (eval (apply read [] {"stdin" stdin-buffer})) 1))
+  (assert (= (eval (read stdin-buffer)) 42))
+  (assert (= (eval (read stdin-buffer)) 1))
 
   "EOF test"
   (def stdin-buffer (StringIO "(+ 2 2)"))
-  (apply read [] {"stdin" stdin-buffer})
+  (read stdin-buffer)
   (try 
-    (apply read [] {"stdin" stdin-buffer})
+    (read stdin-buffer)
     (catch [e Exception]
-      (print e)
       (assert (isinstance e EOFError)))))
 
 
