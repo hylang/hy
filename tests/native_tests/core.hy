@@ -266,6 +266,33 @@
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
+(defn test-interleave []
+  "NATIVE: testing the interleave function"
+  ;; with more than 2 sequences
+  (assert-equal (list (take 9 (interleave (range 10)
+                                          (range 10 20)
+                                          (range 20 30))))
+                [0 10 20 1 11 21 2 12 22])
+  ;; with sequences of different length
+  (assert-equal (list (interleave (range 1000000)
+                                  (range 0 -3 -1)))
+                [0 0 1 -1 2 -2])
+  ;; with infinite sequences
+  (import itertools)
+  (assert-equal (list (take 10 (interleave (itertools.count)
+                                           (itertools.count 100))))
+                [0 100 1 101 2 102 3 103 4 104]))
+
+(defn test-interpose []
+  "NATIVE: testing the interpose function"
+  ;; with a list
+  (assert-equal (list (interpose "!" ["a" "b" "c"]))
+                ["a" "!" "b" "!" "c"])
+  ;; with an infinite sequence
+  (import itertools)
+  (assert-equal (list (take 7 (interpose -1 (itertools.count))))
+                [0 -1 1 -1 2 -1 3]))
+
 (defn test-iterable []
   "NATIVE: testing iterable? function"
   ;; should work for a string

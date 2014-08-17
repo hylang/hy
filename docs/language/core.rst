@@ -290,6 +290,46 @@ either ``int`` or ``long``. For Python 3, this is ``int``.
    False
 
 
+.. _interleave-fn:
+
+interleave
+----------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(interleave seq1 seq2 ...)``
+
+Return an iterable of the first item in each of the sequences, then the second etc.
+
+.. code-block:: hy
+
+   => (list (interleave (range 5) (range 100 105)))
+   [0, 100, 1, 101, 2, 102, 3, 103, 4, 104]
+
+   => (list (interleave (range 1000000) "abc"))
+   [0, 'a', 1, 'b', 2, 'c']
+
+
+.. _interpose-fn:
+
+interpose
+---------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(interpose item seq)``
+
+Return an iterable of the elements of the sequence separated by the item.
+
+.. code-block:: hy
+
+   => (list (interpose "!" "abcd"))
+   ['a', '!', 'b', '!', 'c', '!', 'd']
+
+   => (list (interpose -1 (range 5)))
+   [0, -1, 1, -1, 2, -1, 3, -1, 4]
+
+
 .. _iterable?-fn:
 
 iterable?

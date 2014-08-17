@@ -209,6 +209,14 @@
     (catch [e ValueError] False)
     (catch [e TypeError] False)))
 
+(defn interleave [&rest seqs]
+  "Return an iterable of the first item in each of seqs, then the second etc."
+  (itertools.chain.from_iterable (apply zip seqs)))
+
+(defn interpose [item seq]
+  "Return an iterable of the elements of seq separated by item"
+  (drop 1 (interleave (itertools.repeat item) seq)))
+
 (defn iterable? [x]
   "Return true if x is iterable"
   (isinstance x collections.Iterable))
@@ -329,8 +337,8 @@
 (def *exports* '[butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-while empty? even?
                  every? first filter filterfalse flatten float? gensym identity
-                 inc input instance? integer integer? integer-char?
-                 iterable? iterate iterator? keyword? list*
+                 inc input instance? integer integer? integer-char? interleave
+                 interpose iterable? iterate iterator? keyword? list*
                  macroexpand macroexpand-1 map neg? nil? none? nth
                  numeric? odd? pos? range remove repeat repeatedly
                  rest reduce second some string string? take take-nth
