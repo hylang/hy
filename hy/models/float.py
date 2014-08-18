@@ -23,7 +23,7 @@ from hy.models import HyObject
 
 class HyFloat(HyObject, float):
     """
-    Internal represntation of a Hy Float. May raise a ValueError as if
+    Internal representation of a Hy Float. May raise a ValueError as if
     float(foo) was called, given HyFloat(foo).
     """
 

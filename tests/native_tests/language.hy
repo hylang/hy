@@ -1028,3 +1028,29 @@
    (foo [&rest spam] 1)
    (catch [NameError] True)
    (else (raise AssertionError))))
+
+(defn test-read []
+  "NATIVE: test that read takes something for stdin and reads"
+  (if-python2
+    (import [StringIO [StringIO]])
+    (import [io [StringIO]]))
+  (import [hy.models.expression [HyExpression]])
+ 
+  (def stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
+  (assert (= (eval (read stdin-buffer)) 4))
+  (assert (isinstance (read stdin-buffer) HyExpression))
+  
+  "Multiline test"
+  (def stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
+  (assert (= (eval (read stdin-buffer)) 42))
+  (assert (= (eval (read stdin-buffer)) 1))
+
+  "EOF test"
+  (def stdin-buffer (StringIO "(+ 2 2)"))
+  (read stdin-buffer)
+  (try 
+    (read stdin-buffer)
+    (catch [e Exception]
+      (assert (isinstance e EOFError)))))
+
+
