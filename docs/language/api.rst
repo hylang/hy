@@ -99,6 +99,18 @@ appends it as the last argument. The following code demonstrates this:
     5 10
 
 
+$
+-
+
+`$` takes a function and multiple argument and applies the function to those arguments. It's equilavent ``functools.partial``.
+
+.. code-block:: clj
+   
+  => (import operator)
+  => (def myinc ($ operator.add 1))
+  => (print (myinc 7)) ; 8
+
+
 apply
 -----
 
@@ -559,6 +571,26 @@ So ``g!a`` would become ``(gensym "a")``.
 .. seealso::
 
    Section :ref:`using-gensym`
+
+defp
+----
+
+`defp` defines a function that returns a function. When called, any excess arguments passed to the function will be passed to its return value. For example, this:
+
+.. code-block:: clj
+   
+   (defp test [a b] (fn [c d] (+ a b c d)))
+   (test 1 2 3 4) ; 10
+
+is equilavent to:
+
+.. code-block:: clj
+  
+  (def test [a b] (fn [c d] (+ a b c d)))
+  ((test 1 2) 3 4) ; 10
+
+In the bottom example, ``test`` returns a function that returns a value. In the top example, the same thing occurs, except that calling the second function is hidden. Note that it does work with functions that take a variable number of arguments.
+
 
 defreader
 ---------
