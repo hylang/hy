@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 #
-# Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013, 2014 Paul Tagliamonte <paultag@debian.org>
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 # Copyright (c) 2013 Nicolas Dandrimont <nicolas.dandrimont@crans.org>
 # Copyright (c) 2013 James King <james@agentultra.com>
-# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
+# Copyright (c) 2013, 2014 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.expression import HyExpression
 from hy.models.keyword import HyKeyword
 from hy.models.integer import HyInteger
@@ -48,6 +47,7 @@ import importlib
 import codecs
 import ast
 import sys
+import keyword
 
 from collections import defaultdict
 
@@ -72,6 +72,21 @@ def load_stdlib():
         mod = importlib.import_module(module)
         for e in mod.EXPORTS:
             _stdlib[e] = module
+
+
+# True, False and None included here since they
+# are assignable in Python 2.* but become
+# keywords in Python 3.*
+def _is_hy_builtin(name, module_name):
+    extras = ['True', 'False', 'None',
+              'true', 'false', 'nil', 'null']
+    if name in extras or keyword.iskeyword(name):
+        return True
+    # for non-Hy modules, check for pre-existing name in
+    # _compile_table
+    if not module_name.startswith("hy."):
+        return name in _compile_table
+    return False
 
 
 _compile_table = {}
@@ -437,6 +452,7 @@ class HyASTCompiler(object):
 
     def _parse_lambda_list(self, exprs):
         """ Return FunctionDef parameter values from lambda list."""
+        ll_keywords = ("&rest", "&optional", "&key", "&kwargs")
         ret = Result()
         args = []
         defaults = []
@@ -446,10 +462,7 @@ class HyASTCompiler(object):
 
         for expr in exprs:
 
-            if isinstance(expr, HyLambdaListKeyword):
-                if expr not in expr._valid_types:
-                    raise HyTypeError(expr, "{0} is not a valid "
-                                      "lambda-keyword.".format(repr(expr)))
+            if expr in ll_keywords:
                 if expr == "&rest" and lambda_keyword is None:
                     lambda_keyword = expr
                 elif expr == "&optional":
@@ -623,7 +636,7 @@ class HyASTCompiler(object):
 
             return imports, ret.replace(form), False
 
-        elif isinstance(form, (HySymbol, HyLambdaListKeyword)):
+        elif isinstance(form, HySymbol):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
 
@@ -723,7 +736,8 @@ class HyASTCompiler(object):
                              lineno=expr.start_line,
                              col_offset=expr.start_column)
 
-        returnable = Result(expr=expr_name, temp_variables=[expr_name, name])
+        returnable = Result(expr=expr_name, temp_variables=[expr_name, name],
+                            contains_yield=body.contains_yield)
 
         body += ast.Assign(targets=[name],
                            value=body.force_expr,
@@ -1015,7 +1029,10 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        ret = Result(contains_yield=True)
+        if PY33:
+            ret = Result(contains_yield=False)
+        else:
+            ret = Result(contains_yield=True)
 
         value = None
         if expr != []:
@@ -1528,7 +1545,7 @@ class HyASTCompiler(object):
     def compile_require(self, expression):
         """
         TODO: keep track of what we've imported in this run and then
-        "unimport" it after we've completed `thing' so that we don't polute
+        "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
         """
         expression.pop(0)
@@ -1766,19 +1783,26 @@ class HyASTCompiler(object):
 
     def _compile_assign(self, name, result,
                         start_line, start_column):
+
+        str_name = "%s" % name
+        if _is_hy_builtin(str_name, self.module_name):
+            raise HyTypeError(name,
+                              "Can't assign to a builtin: `%s'" % str_name)
+
         result = self.compile(result)
-
-        if result.temp_variables and isinstance(name, HyString):
-            result.rename(name)
-            return result
-
         ld_name = self.compile(name)
-        st_name = self._storeize(ld_name)
 
-        result += ast.Assign(
-            lineno=start_line,
-            col_offset=start_column,
-            targets=[st_name], value=result.force_expr)
+        if result.temp_variables \
+           and isinstance(name, HyString) \
+           and '.' not in name:
+            result.rename(name)
+        else:
+            st_name = self._storeize(ld_name)
+            result += ast.Assign(
+                lineno=start_line,
+                col_offset=start_column,
+                targets=[st_name],
+                value=result.force_expr)
 
         result += ld_name
         return result
@@ -1871,7 +1895,7 @@ class HyASTCompiler(object):
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
         if PY34:
-            # Python 3.4+ requres that args are an ast.arg object, rather
+            # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
                             annotation=None,  # Fix me!

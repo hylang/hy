@@ -170,7 +170,12 @@
   (setv s2 (to_source _ast2))
   (assert (in ":res_" s1))
   (assert (in ":res_" s2))
-  (assert (not (= s1 s2))))
+  (assert (not (= s1 s2)))
+
+  ;; defmacro/g! didn't like numbers initially because they
+  ;; don't have a startswith method and blew up during expansion
+  (setv macro2 "(defmacro/g! two-point-zero [] `(+ (float 1) 1.0))")
+  (assert (import_buffer_to_ast macro2 "foo")))
 
 
 (defn test-if-not []

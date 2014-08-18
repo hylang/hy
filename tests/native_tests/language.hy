@@ -3,6 +3,7 @@
         [sys :as systest])
 (import sys)
 
+(import [hy._compat [PY33 PY34]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -27,9 +28,31 @@
   (setv (get foo 0) 12)
   (assert (= (get foo 0) 12)))
 
+(defn test-setv-builtin []
+  "NATIVE: test that setv doesn't work on builtins"
+  (try (eval '(setv False 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv True 0))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv None 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv false 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv true 0))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv nil 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(setv null 1))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(defn defclass [] (print "hello")))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(defn get [] (print "hello")))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  (try (eval '(defn lambda [] (print "hello")))
+       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
 
 (defn test-for-loop []
-  "NATIVE: test for loops?"
+  "NATIVE: test for loops"
   (setv count 0)
   (for [x [1 2 3 4 5]]
     (setv count (+ count x)))
@@ -38,7 +61,11 @@
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
     (setv count (+ count x y)))
-  (assert (= count 150)))
+  (assert (= count 150))
+  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
+             (list-comp y [x [[1] [2 3]] y x])))
+  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
+             (list-comp z [x [[1] [2 3]] y x z (range 5)]))))
 
 
 (defn test-nasty-for-nesting []
@@ -444,6 +471,29 @@
   (for [y (gen)] (setv ret (+ ret y)))
   (assert (= ret 10)))
 
+(defn test-yield-with-return []
+  "NATIVE: test yield with return"
+  (defn gen [] (yield 3) "goodbye")
+  (if PY33
+    (do (setv gg (gen))
+        (assert (= 3 (next gg)))
+        (try (next gg)
+             (except [e StopIteration] (assert (hasattr e "value"))
+                                       (assert (= (getattr e "value") "goodbye")))))
+    (do (setv gg (gen))
+        (assert (= 3 (next gg)))
+        (try (next gg)
+             (except [e StopIteration] (assert (not (hasattr e "value"))))))))
+
+
+(defn test-yield-in-try []
+  "NATIVE: test yield in try"
+  (defn gen []
+    (let [[x 1]]
+    (try (yield x)
+         (finally (print x)))))
+  (setv output (list (gen)))
+  (assert (= [1] output)))
 
 (defn test-first []
   "NATIVE: test firsty things"
@@ -942,22 +992,10 @@
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (import sys)
-  (if-python2
-   (import [io [BytesIO :as StringIO]])
-   (import [io [StringIO]]))
-  (setv prev-stdout sys.stdout)
-  (setv sys.stdout (StringIO))
-  (disassemble '(do (leaky) (leaky) (macros)))
-  (setv stdout (.getvalue sys.stdout))
-  (setv sys.stdout prev-stdout)
-  (assert (in "leaky" stdout))
-  (assert (in "macros" stdout))
-  (setv sys.stdout (StringIO))
-  (disassemble '(do (leaky) (leaky) (macros)) true)
-  (setv stdout (.getvalue sys.stdout))
-  (setv sys.stdout prev-stdout)
-  (assert (= stdout "leaky()\nleaky()\nmacros()\n")))
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)))
+             "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])"))
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)) true)
+             "leaky()\nleaky()\nmacros()")))
 
 
 (defn test-attribute-access []
@@ -983,3 +1021,36 @@
   "NATIVE: test keyword quoting magic"
   (assert (= :foo "\ufdd0:foo"))
   (assert (= `:foo "\ufdd0:foo")))
+
+(defn test-only-parse-lambda-list-in-defn []
+  "NATIVE: test lambda lists are only parsed in defn"
+  (try
+   (foo [&rest spam] 1)
+   (catch [NameError] True)
+   (else (raise AssertionError))))
+
+(defn test-read []
+  "NATIVE: test that read takes something for stdin and reads"
+  (if-python2
+    (import [StringIO [StringIO]])
+    (import [io [StringIO]]))
+  (import [hy.models.expression [HyExpression]])
+ 
+  (def stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
+  (assert (= (eval (read stdin-buffer)) 4))
+  (assert (isinstance (read stdin-buffer) HyExpression))
+  
+  "Multiline test"
+  (def stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
+  (assert (= (eval (read stdin-buffer)) 42))
+  (assert (= (eval (read stdin-buffer)) 1))
+
+  "EOF test"
+  (def stdin-buffer (StringIO "(+ 2 2)"))
+  (read stdin-buffer)
+  (try 
+    (read stdin-buffer)
+    (catch [e Exception]
+      (assert (isinstance e EOFError)))))
+
+

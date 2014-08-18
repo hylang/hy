@@ -26,13 +26,19 @@
 (import itertools)
 (import functools)
 (import collections)
+(import sys) 
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]])
+(import [hy.lex [LexException PrematureEndOfInput tokenize]])
 
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
     (raise (TypeError (.format "{0!r} is not a number" x)))))
+
+(defn butlast [coll]
+  "Returns coll except of last element."
+  (itertools.islice coll 0 (dec (len coll))))
 
 (defn coll? [coll]
   "Checks whether item is a collection"
@@ -58,17 +64,17 @@
   (- n 1))
 
 (defn disassemble [tree &optional [codegen false]]
-  "Dump the python AST for a given Hy tree to standard output
+  "Return the python AST for a quoted Hy tree as a string.
    If the second argument is true, generate python code instead."
   (import astor)
   (import hy.compiler)
 
   (fake-source-positions tree)
   (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
-  (print ((if codegen
+  ((if codegen
             astor.codegen.to_source
             astor.dump)
-          compiled)))
+          compiled))
 
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
@@ -88,7 +94,8 @@
     (setv map itertools.imap)
     (setv zip itertools.izip)
     (setv range xrange)
-    (setv input raw_input))
+    (setv input raw_input)
+    (setv reduce reduce))
   (do
     (setv reduce functools.reduce)
     (setv filterfalse itertools.filterfalse)
@@ -106,6 +113,7 @@
 (setv drop-while itertools.dropwhile)
 (setv take-while itertools.takewhile)
 (setv zipwith map)
+(setv remove filterfalse)
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
@@ -203,6 +211,14 @@
     (catch [e ValueError] False)
     (catch [e TypeError] False)))
 
+(defn interleave [&rest seqs]
+  "Return an iterable of the first item in each of seqs, then the second etc."
+  (itertools.chain.from_iterable (apply zip seqs)))
+
+(defn interpose [item seq]
+  "Return an iterable of the elements of seq separated by item"
+  (drop 1 (interleave (itertools.repeat item) seq)))
+
 (defn iterable? [x]
   "Return true if x is iterable"
   (isinstance x collections.Iterable))
@@ -270,13 +286,6 @@
   (_numeric_check n)
   (> n 0))
 
-(defn remove [pred coll]
-  "Return coll with elements removed that pass `pred`"
-  (let [[citer (iter coll)]]
-    (for* [val citer]
-      (if (not (pred val))
-        (yield val)))))
-
 (defn rest [coll]
   "Get all the elements of a coll, except the first."
   (drop 1 coll))
@@ -327,10 +336,29 @@
   (_numeric_check n)
   (= n 0))
 
-(def *exports* '[calling-module-name coll? cons cons? cycle dec distinct
-                 disassemble drop drop-while empty? even? every? first filter
-                 flatten float? gensym identity inc instance? integer
-                 integer? integer-char? iterable? iterate iterator? keyword?
-                 list* macroexpand macroexpand-1 map neg? nil? none? nth
-                 numeric? odd? pos? range remove repeat repeatedly rest second
-                 some string string? take take-nth take-while zero? zip zipwith])
+(defn read [&optional [from-file sys.stdin]
+                      [eof ""]]
+  "Read from input and returns a tokenized string.
+   Can take a given input buffer to read from"
+  (def buff "")
+  (while true
+    (def inn (str (.read from-file 1)))
+    (if (= inn eof)
+      (throw (EOFError "Reached end of file" )))
+    (setv buff (+ buff inn))
+    (try
+      (def parsed (first (tokenize buff)))
+      (except [e [LexException PrematureEndOfInput IndexError]]) 
+      (else (if parsed (break)))))
+    parsed)
+
+
+(def *exports* '[butlast calling-module-name coll? cons cons? cycle
+                 dec distinct disassemble drop drop-while empty? even?
+                 every? first filter filterfalse flatten float? gensym identity
+                 inc input instance? integer integer? integer-char? interleave
+                 interpose iterable? iterate iterator? keyword? list*
+                 macroexpand macroexpand-1 map neg? nil? none? nth
+                 numeric? odd? pos? range read remove repeat repeatedly
+                 rest reduce second some string string? take take-nth
+                 take-while zero? zip zip_longest zipwith])

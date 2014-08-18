@@ -54,7 +54,9 @@
   (assert-equal (list (ap-map (* it 3) [1 2 3]))
                 [3 6 9])
   (assert-equal (list (ap-map (* it 3) []))
-                []))
+                [])
+  (assert-equal (let [[v 1] [f 1]] (list (ap-map (it v f) [(fn [a b] (+ a b))])))
+                [2]))
 
 (defn test-ap-map-when []
   "NATIVE: testing anaphoric map-when"
@@ -85,12 +87,14 @@
 (defn test-ap-first []
   "NATIVE: testing anaphoric first"
   (assert-equal (ap-first (> it 5) (range 10)) 6)
-  (assert-equal (ap-first (even? it) [1 2 3 4]) 2))
+  (assert-equal (ap-first (even? it) [1 2 3 4]) 2)
+  (assert-equal (ap-first (> it 10) (range 10)) None))
 
 (defn test-ap-last []
   "NATIVE: testing anaphoric last"
   (assert-equal (ap-last (> it 5) (range 10)) 9)
-  (assert-equal (ap-last (even? it) [1 2 3 4]) 4))
+  (assert-equal (ap-last (even? it) [1 2 3 4]) 4)
+  (assert-equal (ap-last (> it 10) (range 10)) None))
 
 (defn test-ap-reduce []
   "NATIVE: testing anaphoric reduce"
