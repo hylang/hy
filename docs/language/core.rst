@@ -930,6 +930,24 @@ parsed.
    => (eval (apply read [] {"from_file" buffer}))
    1
 
+   => ; assuming "example.hy" contains:
+   => ;   (print "hello")
+   => ;   (print "hyfriends!")
+   => (with [[f (open "example.hy")]]
+   ...   (try
+   ...     (while true
+   ...            (let [[exp (read f)]]
+   ...              (do
+   ...                (print "OHY" exp)
+   ...                (eval exp))))
+   ...     (catch [e EOFError]
+   ...            (print "EOF!"))))
+   OHY ('print' 'hello')
+   hello
+   OHY ('print' 'hyfriends!')
+   hyfriends!
+   EOF!
+
 
 .. _remove-fn:
 
