@@ -915,12 +915,14 @@ Raises an `EOFError` if `from-file` ends before a complete expression can be
 parsed.
 
 .. code-block:: hy
+
    => (read)
    (+ 2 2)
    ('+' 2 2)
    => (eval (read))
-   (+ 2 2) 
+   (+ 2 2)
    4
+
    => (import io)
    => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
    => (eval (apply read [] {"from_file" buffer}))
