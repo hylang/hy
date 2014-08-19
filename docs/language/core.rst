@@ -915,18 +915,38 @@ Raises an `EOFError` if `from-file` ends before a complete expression can be
 parsed.
 
 .. code-block:: hy
+
    => (read)
    (+ 2 2)
    ('+' 2 2)
    => (eval (read))
-   (+ 2 2) 
+   (+ 2 2)
    4
+
    => (import io)
    => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
    => (eval (apply read [] {"from_file" buffer}))
    4
    => (eval (apply read [] {"from_file" buffer}))
    1
+
+   => ; assuming "example.hy" contains:
+   => ;   (print "hello")
+   => ;   (print "hyfriends!")
+   => (with [[f (open "example.hy")]]
+   ...   (try
+   ...     (while true
+   ...            (let [[exp (read f)]]
+   ...              (do
+   ...                (print "OHY" exp)
+   ...                (eval exp))))
+   ...     (catch [e EOFError]
+   ...            (print "EOF!"))))
+   OHY ('print' 'hello')
+   hello
+   OHY ('print' 'hyfriends!')
+   hyfriends!
+   EOF!
 
 
 .. _remove-fn:
