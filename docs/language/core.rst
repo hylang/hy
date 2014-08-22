@@ -6,6 +6,31 @@ Hy Core
 Core Functions
 ===============
 
+.. _butlast-fn:
+
+butlast
+-------
+
+Usage: ``(butlast coll)``
+
+Returns an iterator of all but the last item in ``coll``.
+
+.. code-block:: hy
+
+   => (list (butlast (range 10)))
+   [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+   => (list (butlast [1]))
+   []
+
+   => (list (butlast []))
+   []
+
+   => (import itertools)
+   => (list (take 5 (butlast (itertools.count 10))))
+   [10, 11, 12, 13, 14]
+
+
 .. _is-coll-fn:
 
 coll?

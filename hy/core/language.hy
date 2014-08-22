@@ -38,7 +38,7 @@
 
 (defn butlast [coll]
   "Returns coll except of last element."
-  (itertools.islice coll 0 (dec (len coll))))
+  (drop-last 1 coll))
 
 (defn coll? [coll]
   "Checks whether item is a collection"

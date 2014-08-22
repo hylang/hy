@@ -38,6 +38,19 @@
   (assert-false (coll? "abc"))
   (assert-false (coll? 1)))
 
+(defn test-butlast []
+  "NATIVE: testing butlast function"
+  (assert-equal (list (butlast (range 10)))
+                [0 1 2 3 4 5 6 7 8])
+  (assert-equal (list (butlast [1]))
+                [])
+  (assert-equal (list (butlast []))
+                [])
+  ; with an infinite sequence
+  (import itertools)
+  (assert-equal (list (take 5 (butlast (itertools.count 10))))
+                [10 11 12 13 14]))
+
 (defn test-cycle []
   "NATIVE: testing cycle"
   (assert-equal (list (cycle [])) [])
