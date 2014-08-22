@@ -822,6 +822,32 @@ Raises ``ValueError`` if ``n`` is negative.
    => (list (drop 6 [1 2 3 4 5]))
    []
 
+
+.. _drop-last-fn:
+
+drop-last
+---------
+
+Usage: ``(drop-last n coll)``
+
+Return an iterator of all but the last ``n`` items in ``coll``. Raise ``ValueError`` if ``n`` is negative.
+
+.. code-block:: hy
+
+   => (list (drop-last 5 (range 10 20)))
+   [10, 11, 12, 13, 14]
+
+   => (list (drop-last 0 (range 5)))
+   [0, 1, 2, 3, 4]
+
+   => (list (drop-last 100 (range 100)))
+   []
+
+   => (import itertools)
+   => (list (take 5 (drop-last 100 (itertools.count 10))))
+   [10, 11, 12, 13, 14]
+
+
 .. _drop-while-fn:
 
 drop-while

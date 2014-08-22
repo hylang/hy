@@ -117,6 +117,19 @@
   (setv res (list (take 5 (drop 2 (iterate inc 0)))))
   (assert-equal res [2 3 4 5 6]))
 
+(defn test-drop-last []
+  "NATIVE: testing drop-last function"
+  (assert-equal (list (drop-last 5 (range 10 20)))
+                [10 11 12 13 14])
+  (assert-equal (list (drop-last 0 (range 5)))
+                [0 1 2 3 4])
+  (assert-equal (list (drop-last 100 (range 100)))
+                [])
+  ; with an infinite sequence
+  (import itertools)
+  (assert-equal (list (take 5 (drop-last 100 (itertools.count 10))))
+                [10 11 12 13 14]))
+
 (defn test-drop-while []
   "NATIVE: testing drop-while function"
   (setv res (list (drop-while even? [2 4 7 8 9])))

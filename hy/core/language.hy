@@ -57,7 +57,6 @@
   (and (instance? (type :foo) k)
        (.startswith k (get :foo 0))))
 
-
 (defn dec [n]
   "Decrement n by 1"
   (_numeric-check n)
@@ -118,6 +117,12 @@
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
   (itertools.islice coll count nil))
+
+(defn drop-last [n coll]
+  "Return a sequence of all but the last n elements in coll."
+  (let [[iters (itertools.tee coll)]]
+    (map first (apply zip [(get iters 0)
+                           (drop n (get iters 1))]))))
 
 (defn empty? [coll]
   "Return True if `coll` is empty"
@@ -354,7 +359,7 @@
 
 
 (def *exports* '[butlast calling-module-name coll? cons cons? cycle
-                 dec distinct disassemble drop drop-while empty? even?
+                 dec distinct disassemble drop drop-last drop-while empty? even?
                  every? first filter filterfalse flatten float? gensym identity
                  inc input instance? integer integer? integer-char? interleave
                  interpose iterable? iterate iterator? keyword? list*
