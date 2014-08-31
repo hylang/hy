@@ -26,9 +26,12 @@
 
 (defn + [&rest args]
   "Shadow + operator for when we need to import / map it against something"
-  (if (= (len args) 0)
-    0
-    (sum args)))  ; shortcut here.
+  (let [[count (len args)]]
+    (if (zero? count)
+      (raise (TypeError "Need at least 1 argument to add/concatenate"))
+      (if (= count 1)
+        (get args 0)
+        (reduce operator.add args)))))
 
 
 (defn - [&rest args]
