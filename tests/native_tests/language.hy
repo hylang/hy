@@ -495,9 +495,11 @@
   (setv output (list (gen)))
   (assert (= [1] output)))
 
+
 (defn test-first []
   "NATIVE: test firsty things"
   (assert (= (first [1 2 3 4 5]) 1))
+  (assert (is (first []) nil))
   (assert (= (car [1 2 3 4 5]) 1)))
 
 

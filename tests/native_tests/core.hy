@@ -30,6 +30,9 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
+(defn assert-nil [x]
+  (assert (is x nil)))
+
 (defn test-coll? []
   "NATIVE: testing coll?"
   (assert-true (coll? [1 2 3]))
@@ -390,13 +393,17 @@
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
   (assert-equal 7 (nth [1 2 4 7] 3))
-  (try (do (nth [1 2 4 7] 5) (assert False))
-       (catch [e [IndexError]] nil))
+  (assert-nil (nth [1 2 4 7] 5))
+  (assert-equal (nth [1 2 4 7] 5 "some default value")
+                "some default value")  ; with default specified
   (try (do (nth [1 2 4 7] -1) (assert False))
        (catch [e [ValueError]] nil))
   ;; now for iterators
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
+  (assert-nil (nth (iter [1 2 4 7]) 5))
+  (assert-equal (nth (iter [1 2 4 7]) 5 "some default value")
+                "some default value")  ; with default specified
   (try (do (nth (iter [1 2 4 7]) -1) (assert False))
        (catch [e [ValueError]] nil))
   (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))

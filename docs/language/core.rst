@@ -532,11 +532,11 @@ Return True if x is None.
 nth
 ---
 
-Usage: ``(nth coll n)``
+Usage: ``(nth coll n &optional [default nil])``
 
-Return the `nth` item in a collection, counting from 0. Unlike
-``get``, ``nth`` works on both iterators and iterables. Raises ``IndexError``
-if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
+Return the `nth` item in a collection, counting from 0. Return the
+default value, ``nil``, if out of bounds (unless specified otherwise).
+Raise ``ValueError`` if ``n`` is negative.
 
 .. code-block:: hy
 
@@ -546,13 +546,20 @@ if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
    => (nth [1 2 4 7] 3)
    7
 
-   => (nth [1 2 4 7] 5)
-   Traceback (most recent call last):
-     ...
-   IndexError: 5
+   => (nil? (nth [1 2 4 7] 5))
+   True
+
+   => (nth [1 2 4 7] 5 "default")
+   'default'
 
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
+
+   => (nth [1 2 4 7] -1)
+   Traceback (most recent call last):
+     ...
+   ValueError: Indices for islice() must be None or an integer: 0 <= x <= sys.maxsize.
+
 
 .. _numeric?-fn:
 

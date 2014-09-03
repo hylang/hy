@@ -270,11 +270,10 @@
   (import numbers)
   (instance? numbers.Number x))
 
-(defn nth [coll index]
-  "Return nth item in collection or sequence, counting from 0"
-  (try
-    (next (drop index coll))
-    (catch [e StopIteration] (raise (IndexError index)))))
+(defn nth [coll n &optional [default nil]]
+  "Return nth item in collection or sequence, counting from 0.
+   Return nil if out of bounds unless specified otherwise."
+  (next (drop n coll) default))
 
 (defn odd? [n]
   "Return true if n is an odd number"
