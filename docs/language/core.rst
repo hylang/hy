@@ -907,7 +907,7 @@ Return an iterator of `x`, `fn(x)`, `fn(fn(x))`.
 read
 ----
 
-Usage: ``(read [from-file eof])``
+Usage: ``(read &optional [from-file eof])``
 
 Reads the next hy expression from `from-file` (defaults to `sys.stdin`), and
 can take a single byte as EOF (defaults to an empty string).
