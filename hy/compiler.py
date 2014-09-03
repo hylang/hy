@@ -2003,12 +2003,12 @@ class HyASTCompiler(object):
             except TypeError:
                 raise HyTypeError(
                     expression,
-                    "Wrong argument type for defclass slots definition.")
+                    "Wrong argument type for defclass attributes definition.")
             for b in body_expression:
                 if len(b) != 2:
                     raise HyTypeError(
                         expression,
-                        "Wrong number of argument in defclass slot.")
+                        "Wrong number of argument in defclass attribute.")
                 body += self._compile_assign(b[0], b[1],
                                              b.start_line, b.start_column)
                 body += body.expr_as_stmt()

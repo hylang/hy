@@ -20,16 +20,16 @@
   (assert (not (isinstance (A) D))))
 
 
-(defn test-defclass-slots []
-  "NATIVE: test defclass slots"
+(defn test-defclass-attrs []
+  "NATIVE: test defclass attributes"
   (defclass A []
     [[x 42]])
   (assert (= A.x 42))
   (assert (= (getattr (A) "x")  42)))
 
 
-(defn test-defclass-slots-fn []
-  "NATIVE: test defclass slots with fn"
+(defn test-defclass-attrs-fn []
+  "NATIVE: test defclass attributes with fn"
   (defclass B []
     [[x 42]
      [y (fn [self value]
@@ -52,7 +52,7 @@
 
 
 (defn test-defclass-no-fn-leak []
-  "NATIVE: test defclass slots with fn"
+  "NATIVE: test defclass attributes with fn"
   (defclass A []
     [[x (fn [] 1)]])
   (try
