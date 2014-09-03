@@ -532,11 +532,11 @@ Return True if x is None.
 nth
 ---
 
-Usage: ``(nth coll n)``
+Usage: ``(nth coll n &optional [default nil])``
 
-Return the `nth` item in a collection, counting from 0. Return ``nil``
-if out of bounds (unless specified otherwise). Raise ``ValueError`` if
-``n`` is negative.
+Return the `nth` item in a collection, counting from 0. Return the
+default value, ``nil``, if out of bounds (unless specified otherwise).
+Raise ``ValueError`` if ``n`` is negative.
 
 .. code-block:: hy
 
