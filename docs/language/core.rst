@@ -654,21 +654,25 @@ some
 
 Usage: ``(some pred coll)``
 
-Return True if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise False. Return False if ``coll`` is empty.
+Return the first logical true value of ``(pred x)`` for any ``x`` in
+``coll``, otherwise ``nil``. Return ``nil`` if ``coll`` is empty.
 
 .. code-block:: hy
 
    => (some even? [2 4 6])
    True
 
-   => (some even? [1 3 5])
-   False
-
-   => (some even? [1 3 6])
+   => (nil? (some even? [1 3 5]))
    True
 
-   => (some even? [])
-   False
+   => (nil? (some identity [0 "" []]))
+   True
+
+   => (some identity [0 "non-empty-string" []])
+   'non-empty-string'
+
+   => (nil? (some even? []))
+   True
 
 
 .. _string?-fn:
