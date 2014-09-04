@@ -494,6 +494,22 @@ return from defmain, it's good to put (defmain) as the last bit of
 code in your file.)
 
 
+timeit
+------
+
+.. versionadded:: 0.10.1
+
+The `timeit` macro takes a body of expressions and outputs the number
+of milliseconds taken to evaluate it. It returns the value of the
+body.
+
+.. code-block:: clj
+
+  => (timeit (len (list (range 1000000))))
+  Time elapsed: 31.521 ms
+  1000000
+
+
 .. _defmacro:
 
 defmacro
