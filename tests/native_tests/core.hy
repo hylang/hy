@@ -474,9 +474,16 @@
 (defn test-some []
   "NATIVE: testing the some function"
   (assert-true (some even? [2 4 6]))
-  (assert-false (some even? [1 3 5]))
-  (assert-true (some even? [1 3 6]))
-  (assert-false (some even? [])))
+  (assert-nil (some even? [1 3 5]))
+  (assert-true (some even? [1 2 3]))
+  (assert-nil (some even? []))
+  ; 0, "" (empty string) and [] (empty list) are all logical false
+  (assert-nil (some identity [0 "" []]))
+  ; non-empty string is logical true
+  (assert-equal (some identity [0 "this string is non-empty" []])
+                "this string is non-empty")
+  ; nil if collection is empty
+  (assert-nil (some even? [])))
 
 (defn test-string? []
   "NATIVE: testing string?"

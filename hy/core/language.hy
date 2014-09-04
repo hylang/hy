@@ -26,7 +26,7 @@
 (import itertools)
 (import functools)
 (import collections)
-(import sys) 
+(import sys)
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
@@ -299,8 +299,8 @@
   (nth coll 1))
 
 (defn some [pred coll]
-  "Return true if (pred x) is logical true for any x in coll, else false"
-  (any (map pred coll)))
+  "Return the first logical true value of (pred x) for any x in coll, else nil"
+  (first (filter nil (map pred coll))))
 
 (defn string [x]
   "Cast x as current string implementation"
@@ -347,7 +347,7 @@
     (setv buff (+ buff inn))
     (try
       (def parsed (first (tokenize buff)))
-      (except [e [LexException PrematureEndOfInput IndexError]]) 
+      (except [e [LexException PrematureEndOfInput IndexError]])
       (else (if parsed (break)))))
     parsed)
 
