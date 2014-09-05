@@ -57,7 +57,7 @@
 
 (defmacro cdr [thing]
   "Get all the elements of a thing, except the first"
-  `(slice ~thing 1))
+  `(cut ~thing 1))
 
 
 (defmacro cond [&rest branches]
@@ -104,7 +104,7 @@
    [(empty? args) `(do ~@body)]
    [(= (len args) 2)  `(for* [~@args] ~@body)]
    [true 
-    (let [[alist (slice args 0 nil 2)]]
+    (let [[alist (cut args 0 nil 2)]]
       `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
 
 
@@ -175,7 +175,7 @@
 (defmacro defmacro/g! [name args &rest body]
   (let [[syms (list (distinct (filter (fn [x] (and (hasattr x "startswith") (.startswith x "g!"))) (flatten body))))]]
     `(defmacro ~name [~@args]
-       (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
+       (let ~(HyList (map (fn [x] `[~x (gensym (cut '~x 2))]) syms))
             ~@body))))
 
 
