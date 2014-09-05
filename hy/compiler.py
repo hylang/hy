@@ -1195,9 +1195,9 @@ class HyASTCompiler(object):
             col_offset=expr.start_column,
             targets=del_targets)
 
-    @builds("slice")
+    @builds("cut")
     @checkargs(min=1, max=4)
-    def compile_slice_expression(self, expr):
+    def compile_cut_expression(self, expr):
         expr.pop(0)  # index
         val = self.compile(expr.pop(0))  # target
 
@@ -1480,7 +1480,7 @@ class HyASTCompiler(object):
 
                 # We then pass the other arguments to the function
                 expr[0] = HyExpression(
-                    [HySymbol("slice"), tempvar, HyInteger(1)]
+                    [HySymbol("cut"), tempvar, HyInteger(1)]
                 ).replace(expr[0])
 
         ret += self.compile(call)
