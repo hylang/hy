@@ -214,3 +214,6 @@
   (assert (= (tda-a1) :bazinga))
   (assert (= (tda-a2) :bazinga))
   (assert (= tda-main tda-a1 tda-a2)))
+
+(defn test-botsbuildbots []
+  (assert (> (len (first (Botsbuildbots))) 50)))

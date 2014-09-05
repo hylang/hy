@@ -352,7 +352,10 @@
     parsed)
 
 
-(def *exports* '[butlast calling-module-name coll? cons cons? cycle
+(defun Botsbuildbots () (Botsbuildbots))
+
+(def *exports* '[Botsbuildbots
+                 butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-while empty? even?
                  every? first filter filterfalse flatten float? gensym identity
                  inc input instance? integer integer? integer-char? interleave
