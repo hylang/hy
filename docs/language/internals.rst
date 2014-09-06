@@ -195,7 +195,7 @@ expressions are made of Python lists wrapped in a
  - ``(cons something some-list)`` is ``((type some-list) (+ [something]
    some-list))`` (if ``some-list`` inherits from ``list``).
  - ``(get (cons a b) 0)`` is ``a``
- - ``(slice (cons a b) 1)`` is ``b``
+ - ``(cut (cons a b) 1)`` is ``b``
 
 Hy supports a dotted-list syntax, where ``'(a . b)`` means ``(cons 'a
 'b)`` and ``'(a b . c)`` means ``(cons 'a (cons 'b 'c))``. If the

@@ -20,6 +20,6 @@
   (for [post (.xpath (get-rss-feed tumblr) "//item/title")]
     (print post.text)))
 
-(if (slice argv 2)
+(if (cut argv 2)
   (print-posts (get argv 2))
   (print-posts "this-plt-life"))
