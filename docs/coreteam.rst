@@ -13,3 +13,4 @@
 * `Bob Tolbert <https://github.com/rwtolbert>`_
 * `Berker Peksag <https://github.com/berkerpeksag>`_
 * `Clinton N. Dreisbach <https://github.com/cndreisbach>`_
+* `han semaj <https://github.com/microamp>`_
