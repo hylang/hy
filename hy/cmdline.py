@@ -87,7 +87,6 @@ def print_hyrepr(obj):
     sys.stdout.write(hyrepr(obj))
     sys.stdout.write("\n")
 
-
 sys.displayhook = print_hyrepr
 
 
