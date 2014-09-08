@@ -28,4 +28,9 @@ class HyString(HyObject, str_type):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
-    pass
+    def __escaped__(self):
+        # XXX: Not sure this covers all cases...
+        return str_type.encode(self, 'unicode_escape')
+
+    def __repr__(self):
+        return '"%s"' % self.__escaped__()

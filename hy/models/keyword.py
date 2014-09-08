@@ -27,10 +27,15 @@ class HyKeyword(HyObject, str_type):
     """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
     depending on the Python version.
     """
+    __slots__ = ['_magic_marker']
+    _magic_marker = "\uFDD0"
 
     def __new__(cls, value):
-        if not value.startswith("\uFDD0"):
-            value = "\uFDD0" + value
+        if not value.startswith(cls._magic_marker):
+            value = cls._magic_marker + value
 
         obj = str_type.__new__(cls, value)
         return obj
+
+    def __repr__(self):
+        return self.strip(self._magic_marker)

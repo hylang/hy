@@ -26,6 +26,7 @@ from hy.models.integer import HyInteger
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.dict import HyDict
+from hy.models.keyword import HyKeyword
 from hy._compat import str_type, long_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
@@ -106,16 +107,23 @@ def require(source_module, target_module):
         reader_refs[name] = reader
 
 
+def _keyword_or_string(s):
+    # Not guaranteed to be always correct since the magic marker
+    # is not really unique...
+    if s.startswith(HyKeyword._magic_marker):
+        return HyKeyword(s.lstrip(HyKeyword._magic_marker))
+    return HyString(s)
+
 # type -> wrapping function mapping for _wrap_value
 _wrappers = {
     int: HyInteger,
     bool: lambda x: HySymbol("True") if x else HySymbol("False"),
     float: HyFloat,
     complex: HyComplex,
-    str_type: HyString,
     dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
     list: lambda l: HyList(_wrap_value(x) for x in l),
     tuple: lambda t: HyList(_wrap_value(x) for x in t),
+    str_type: _keyword_or_string,
     type(None): lambda foo: HySymbol("None"),
 }
 

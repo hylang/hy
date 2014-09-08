@@ -42,7 +42,7 @@ from hy.importer import (ast_compile, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst)
 from hy.completer import completion
 
-from hy.macros import macro, require
+from hy.macros import macro, require, _wrap_value
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
@@ -75,6 +75,19 @@ def print_python_code(_ast):
     _ast_for_print = ast.Module()
     _ast_for_print.body = _ast.body
     print(astor.codegen.to_source(_ast_for_print))
+
+
+def hyrepr(obj):
+    if hasattr(obj, "__hyrepr__"):
+        return obj.__hyrepr__()
+    return _wrap_value(obj).__repr__()
+
+
+def print_hyrepr(obj):
+    sys.stdout.write(hyrepr(obj))
+    sys.stdout.write("\n")
+
+sys.displayhook = print_hyrepr
 
 
 class HyREPL(code.InteractiveConsole):
