@@ -1908,11 +1908,11 @@ class HyASTCompiler(object):
                 ann = None
                 if isinstance(x, HyList):
                     x, ann = x
-                    ann_ret = self.compile(ann)
+                    ann_ret = self.compile(ann)._expr
                 ret_args.append(ast.arg(arg=ast_str(x),
-                                    annotation= ann_ret._expr if ann else None,
-                                    lineno=x.start_line,
-                                    col_offset=x.start_column))
+                                        annotation=ann_ret if ann else None,
+                                        lineno=x.start_line,
+                                        col_offset=x.start_column))
             args = ret_args
             # XXX: Beware. Beware. This wasn't put into the parse lambda
             # list because it's really just an internal parsing thing.
