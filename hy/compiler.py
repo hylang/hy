@@ -1899,7 +1899,7 @@ class HyASTCompiler(object):
         if PY34:
             # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
-            if expression[0] == "_>":
+            if len(expression) > 0 and expression[0] == "_>":
                 expression.pop(0)
                 return_ann = self.compile(expression.pop(0))._expr
 
