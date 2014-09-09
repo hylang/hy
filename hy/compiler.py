@@ -1894,14 +1894,21 @@ class HyASTCompiler(object):
         arglist = expression.pop(0)
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
+
         if PY34:
             # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
-            args = [ast.arg(arg=ast_str(x),
-                            annotation=None,  # Fix me!
-                            lineno=x.start_line,
-                            col_offset=x.start_column) for x in args]
-
+            ret_args = []
+            for x in args:
+                ann = None
+                if isinstance(x, HyList):
+                    x, ann = x
+                    ann_ret = self.compile(ann)
+                ret_args.append(ast.arg(arg=ast_str(x),
+                                    annotation= ann_ret._expr if ann else None,
+                                    lineno=x.start_line,
+                                    col_offset=x.start_column))
+            args = ret_args
             # XXX: Beware. Beware. This wasn't put into the parse lambda
             # list because it's really just an internal parsing thing.
 
