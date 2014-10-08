@@ -455,11 +455,14 @@ Returns the single step macro expansion of form.
 merge-with
 ----------
 
-.. versionadded:: 0.10.0
+.. versionadded:: 0.10.1
 
 Usage: ``(merge-with f &rest maps)
 
-Returns a map that consist of the rest of the maps joined onto first. If a key occurs in more than one map, the mapping(s) from the latter (left-to-right) will be combined with the mapping in the result by calling (f val-in-result val-in-latter).
+Returns a map that consist of the rest of the maps joined onto first.
+If a key occurs in more than one map, the mapping(s) from the latter
+(left-to-right) will be combined with the mapping in the result by
+calling ``(f val-in-result val-in-latter)``.
 
 .. code-block:: clojure
 
