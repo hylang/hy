@@ -28,9 +28,9 @@
 (import collections)
 (import sys)
 (import [hy._compat [long-type]]) ; long for python2, int for python3
-(import [hy.models.cons [HyCons]])
+(import [hy.models.cons [HyCons]]
+        [hy.models.keyword [HyKeyword *keyword-prefix*]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
-
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -370,13 +370,45 @@
 
 (defun Botsbuildbots () (Botsbuildbots))
 
+(defn zipwith [func &rest lists]
+  "Zip the contents of several lists and map a function to the result"
+  (do
+    (import functools)
+    (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
+
+(defn hyify [text]
+  "Convert text to match hy identifier"
+  (.replace (string text) "_" "-"))
+
+(defn keyword [value]
+  "Create a keyword from the given value. Strings numbers and even objects
+  with the __name__ magic will work"
+  (if (and (string? value) (value.startswith *keyword-prefix*))
+    (hyify value)
+    (if (string? value)
+      (HyKeyword (+ ":" (hyify value)))
+      (try
+        (hyify (.__name__ value))
+        (catch [] (HyKeyword (+ ":" (string value))))))))
+
+(defn name [value]
+  "Convert the given value to a string. Keyword special character will be stripped.
+  String will be used as is. Even objects with the __name__ magic will work"
+  (if (and (string? value) (value.startswith *keyword-prefix*))
+    (hyify (slice value 2))
+    (if (string? value)
+      (hyify value)
+      (try
+        (hyify (. value __name__))
+        (catch [] (string value))))))
+
 (def *exports* '[Botsbuildbots
                  butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-while empty? even?
                  every? first filter filterfalse flatten float? gensym identity
                  inc input instance? integer integer? integer-char? interleave
-                 interpose iterable? iterate iterator? keyword? list*
-                 macroexpand macroexpand-1 map merge-with neg? nil? none? nth
-                 numeric? odd? pos? range read remove repeat repeatedly
+                 interpose iterable? iterate iterator? keyword keyword? list*
+                 macroexpand macroexpand-1 map merge-with name neg? nil? none?
+                 nth numeric? odd? pos? range read remove repeat repeatedly
                  rest reduce second some string string? take take-nth
                  take-while zero? zip zip_longest zipwith])
