@@ -5,7 +5,7 @@ Changes from 0.10.0
  hacking on Hy.
 
  In other news, we're Dockerized as an official library image!
- https://registry.hub.docker.com/_/hylang/>
+ <https://registry.hub.docker.com/_/hylang/>
 
  $ docker run -it --rm hylang
  hy 0.10.0 using CPython(default) 3.4.1 on Linux
