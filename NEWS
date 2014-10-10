@@ -1,7 +1,7 @@
 Changes from 0.10.0
 
  This release took some time (sorry, all my fault) but it's got a bunch of
- really nice feature. We hope you enjoy hacking with Hy as much as we enjoy
+ really nice features. We hope you enjoy hacking with Hy as much as we enjoy
  hacking on Hy.
 
  In other news, we're Dockerized as an official library image!
