@@ -1,3 +1,49 @@
+Changes from 0.10.0
+
+ This release took some time (sorry, all my fault) but it's got a bunch of
+ really nice feature. We hope you enjoy hacking with Hy as much as we enjoy
+ hacking on Hy.
+
+ In other news, we're Dockerized as an official library image!
+ https://registry.hub.docker.com/_/hylang/>
+
+ $ docker run -it --rm hylang
+ hy 0.10.0 using CPython(default) 3.4.1 on Linux
+ => ((lambda [] (print "Hello, World!")))
+ Hello, World!
+
+  - Hy Society
+
+  [ Language Changes ]
+  * Implement raise :from, Python 3 only.
+  * defmain macro
+  * name & keyword functions added to core
+  * (read) added to core
+  * shadow added to core
+  * New functions interleave interpose zip_longest added to core
+  * nth returns default value when out of bounds
+  * merge-with added
+  * doto macro added
+  * keyword? to findout keywords
+  * setv no longer allows "." in names
+  
+  [Internals ]
+  * Builtins reimplemented in terms of python stdlib
+  * gensyms (defmacro/g!) handles non-string types better
+
+  [Tools]
+  * Added hy2py to installed scripts
+
+  [ Misc. Fixes ]
+  * Symbols like true, false, none can't be assigned
+  * Set sys.argv default to [''] like Python does
+  * REPL displays the the python version and platform at startup
+  * Dockerfile added for https://registry.hub.docker.com/_/hylang/
+
+  [ Contrib changes ]
+  * Fix ap-first and ap-last for failure conditions
+
+
 Changes from 0.9.12
 
  0.10.0 - the "oh man I'm late for PyCon" release
