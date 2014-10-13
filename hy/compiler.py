@@ -944,6 +944,9 @@ class HyASTCompiler(object):
 
         # We want to hoist the statements from the condition
         ret = cond
+        contains_yield = body.contains_yield or orel.contains_yield
+        if contains_yield:
+            ret.contains_yield = True
 
         if body.stmts or orel.stmts:
             # We have statements in our bodies
