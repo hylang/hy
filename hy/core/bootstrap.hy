@@ -47,7 +47,7 @@
   `(setv ~name (fn ~lambda-list ~@body)))
 
 
-(defmacro let [variables &rest body]
+(defmacro let* [variables &rest body]
   "Execute `body` in the lexical context of `variables`"
   (setv macroed_variables [])
   (if (not (isinstance variables HyList))
@@ -59,9 +59,7 @@
          (macro-error variable "let variable assignments must contain two items"))
        (.append macroed-variables `(setv ~(get variable 0) ~(get variable 1))))
       (.append macroed-variables `(setv ~variable None))))
-  `((fn []
-     ~@macroed-variables
-     ~@body)))
+  `((fn [] ~@macroed-variables ~@body)))
 
 
 (defmacro if-python2 [python2-form python3-form]
