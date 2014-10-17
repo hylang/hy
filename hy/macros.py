@@ -26,6 +26,7 @@ from hy.models.integer import HyInteger
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.dict import HyDict
+from hy.models import HyObject
 from hy._compat import str_type, long_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
@@ -202,6 +203,15 @@ def macroexpand_1(tree, module_name):
                     msg = "`" + str(tree[0]) + "' " + \
                           " ".join(str(e).split()[1:])
                     raise HyMacroExpansionError(tree, msg)
+
+                if not isinstance(obj, HyObject):
+                    msg = ("`{name}' returned an unquoted Hy object "
+                           "of type `{type_}'".format(
+                        name=str(tree[0]),
+                        type_=type(obj).__name__
+                    ))
+                    raise HyMacroExpansionError(tree, msg)
+
                 obj.replace(tree)
                 return obj
 
