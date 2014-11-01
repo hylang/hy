@@ -56,4 +56,5 @@ else:
 if PY3:
     exec('def raise_empty(t, *args): raise t(*args) from None')
 else:
-    def raise_empty(t, *args): raise t(*args)
+    def raise_empty(t, *args):
+        raise t(*args)
