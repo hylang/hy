@@ -52,3 +52,8 @@ if PY3:
     long_type = int
 else:
     long_type = long  # NOQA
+
+if PY3:
+    exec('def raise_empty(t, *args): raise t(*args) from None')
+else:
+    def raise_empty(t, *args): raise t(*args)

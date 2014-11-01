@@ -38,7 +38,7 @@ from hy.models.cons import HyCons
 from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
-from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34
+from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34, raise_empty
 from hy.macros import require, macroexpand, reader_macroexpand
 import hy.importer
 
@@ -429,7 +429,7 @@ class HyASTCompiler(object):
         except HyTypeError as e:
             raise
         except Exception as e:
-            raise HyCompileError(e, sys.exc_info()[2])
+            raise_empty(HyCompileError, e, sys.exc_info()[2])
 
         raise HyCompileError(Exception("Unknown type: `%s'" % _type))
 
