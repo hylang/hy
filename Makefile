@@ -93,7 +93,7 @@ ifeq ($(bad_pypy),1)
 endif
 
 travis: python
-	$(nose) -s --with-coverage --cover-package hy
+    PATH=$PATH:`dirname $(python)` $(nose) -s --with-coverage --cover-package hy
 ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 	@echo "skipping flake8 on pypy"
 else
