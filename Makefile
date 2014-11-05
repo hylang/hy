@@ -1,4 +1,4 @@
-pypy_url=http://buildbot.pypy.org/nightly/trunk/pypy-c-jit-latest-linux.tar.bz2
+pypy_url=http://buildbot.pypy.org/nightly/trunk/pypy-c-jit-latest-linux64.tar.bz2
 pip_url=https://bootstrap.pypa.io/get-pip.py
 python=python
 pip=pip
