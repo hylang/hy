@@ -77,7 +77,7 @@ ifeq ($(bad_pypy),1)
 	curl $(pypy_url) -o pypy.tbz2
 	tar xf pypy.tbz2
 	ln -sf `pwd`/pypy-*/bin/pypy $(python)
-	ldd $(python)
+	curl $(pip_url) | $(python)
 	ln -sf `pwd`/pypy-*/bin/pip $(pip)
 	sudo $(pip) install nose
 	ln -sf `pwd`/pypy-*/bin/nosetests $(nose)
