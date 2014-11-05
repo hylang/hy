@@ -77,12 +77,10 @@ ifeq ($(bad_pypy),1)
 	curl $(pypy_url) -o pypy.tbz2
 	tar xf pypy.tbz2
 	ln -sf `pwd`/pypy-*/bin/pypy $(python)
-	file $(python)
 	ldd $(python)
-	curl $(pip_url) | $(python)
-	ln -sf `pwd`/pypy-*-linux/bin/pip $(pip)
+	ln -sf `pwd`/pypy-*/bin/pip $(pip)
 	sudo $(pip) install nose
-	ln -sf `pwd`/pypy-*-linux/bin/nosetests $(nose)
+	ln -sf `pwd`/pypy-*/bin/nosetests $(nose)
 endif
 ifeq (Python 2.6,$(findstring Python 2.6,$(shell python -V 2>&1)))
 	$(pip) install unittest2
@@ -91,7 +89,7 @@ endif
 	$(pip) install coveralls --download-cache $(pcache)
 	$(pip) install --allow-all-external -e .
 ifeq ($(bad_pypy),1)
-	ln -sf `pwd`/pypy-*-linux/bin/coveralls $(coveralls)
+	ln -sf `pwd`/pypy-*/bin/coveralls $(coveralls)
 endif
 
 travis: python
