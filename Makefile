@@ -76,7 +76,7 @@ ifeq ($(bad_pypy),1)
 	# Due to stupid PyPy 2.4 bugs, a custom version needs to be downloaded
 	curl $(pypy_url) -o pypy.tbz2
 	tar xf pypy.tbz2
-	ln -sf `pwd`/pypy-*-linux/bin/pypy $(python)
+	ln -sf `pwd`/pypy-*/bin/pypy $(python)
 	file $(python)
 	ldd $(python)
 	curl $(pip_url) | $(python)
