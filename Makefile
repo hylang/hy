@@ -94,7 +94,7 @@ endif
 
 travis: python
 ifeq $((bad_pypy),1)
-	PATH=$$PATH:`pwd`/pypy-*/bin $(nose) -s --with-coverage --cover-package hy
+	PATH=$PATH:$(abspath $(wildcard pypy-*/bin)) $(nose) -s --with-coverage --cover-package hy
 else
 	$(nose) -s --with-coverage --cover-package hy
 endif
