@@ -90,11 +90,14 @@ endif
 	$(pip) install --allow-all-external -e .
 ifeq ($(bad_pypy),1)
 	ln -sf `pwd`/pypy-*/bin/coveralls $(coveralls)
-	chmod +x pypy-*/bin/hy
 endif
 
 travis: python
-	PATH=$$PATH:`dirname $(python)` $(nose) -s --with-coverage --cover-package hy
+ifeq $((bad_pypy),1)
+	PATH=$$PATH:`pwd`/pypy-*/bin $(nose) -s --with-coverage --cover-package hy
+else
+	$(nose) -s --with-coverage --cover-package hy
+endif
 ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 	@echo "skipping flake8 on pypy"
 else
