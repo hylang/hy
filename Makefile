@@ -10,8 +10,8 @@ ifeq (PyPy 2.4,$(findstring PyPy 2.4,$(shell python -V 2>&1 | tail -1)))
 	bad_pypy=1
 	python=./pypy
 	pip=./pip
-    coveralls=./coveralls
-    nose=./nosetests
+	coveralls=./coveralls
+	nose=./nosetests
 else
 	bad_pypy=
 endif
@@ -93,7 +93,7 @@ ifeq ($(bad_pypy),1)
 endif
 
 travis: python
-ifeq $((bad_pypy),1)
+ifeq ($(bad_pypy),1)
 	PATH=$PATH:$(abspath $(wildcard pypy-*/bin)) $(nose) -s --with-coverage --cover-package hy
 else
 	$(nose) -s --with-coverage --cover-package hy
