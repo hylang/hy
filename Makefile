@@ -94,9 +94,9 @@ endif
 
 travis: python
 ifeq ($(bad_pypy),1)
-	$(nose) -s --with-coverage --cover-package hy
-else
 	HY_BIN=$(realpath $(wildcard pypy-*/bin)) $(nose) -s --with-coverage --cover-package hy
+else
+	$(nose) -s --with-coverage --cover-package hy
 endif
 ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 	@echo "skipping flake8 on pypy"
