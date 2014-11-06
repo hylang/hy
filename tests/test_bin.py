@@ -26,8 +26,12 @@ import subprocess
 from hy._compat import PY3
 
 
+hy_dir = os.environ.get('HY_DIR', os.getcwd())
+
+
 def run_cmd(cmd, stdin_data=None):
-    p = subprocess.Popen(cmd,
+    print(os.path.join(hy_dir, cmd))
+    p = subprocess.Popen(os.path.join(hy_dir, cmd),
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
