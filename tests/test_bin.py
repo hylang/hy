@@ -26,7 +26,7 @@ import subprocess
 from hy._compat import PY3
 
 
-hy_dir = os.environ.get('HY_DIR','')
+hy_dir = os.environ.get('HY_DIR', '')
 
 
 def run_cmd(cmd, stdin_data=None):
