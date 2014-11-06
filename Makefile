@@ -94,7 +94,7 @@ endif
 
 travis: python
 ifeq ($(bad_pypy),1)
-	HY_BIN=`pwd`/pypy-*/bin $(nose) -s --with-coverage --cover-package hy
+	HY_DIR=`pwd`/pypy-*/bin $(nose) -s --with-coverage --cover-package hy
 else
 	$(nose) -s --with-coverage --cover-package hy
 endif
