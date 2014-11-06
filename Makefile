@@ -90,6 +90,7 @@ endif
 	$(pip) install --allow-all-external -e .
 ifeq ($(bad_pypy),1)
 	ln -sf `pwd`/pypy-*/bin/coveralls $(coveralls)
+	chmod +x pypy-*/bin/hy
 endif
 
 travis: python
