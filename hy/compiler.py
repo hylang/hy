@@ -1268,7 +1268,8 @@ class HyASTCompiler(object):
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
-        if not fn.stmts or not isinstance(fn.stmts[-1], ast.FunctionDef):
+        if not fn.stmts or not (isinstance(fn.stmts[-1], ast.FunctionDef) or
+                                isinstance(fn.stmts[-1], ast.ClassDef)):
             raise HyTypeError(expr, "Decorated a non-function")
         decorators, ret = self._compile_collect(expr)
         fn.stmts[-1].decorator_list = decorators
