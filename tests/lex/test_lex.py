@@ -21,7 +21,6 @@
 
 from hy.models.expression import HyExpression
 from hy.models.integer import HyInteger
-from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.float import HyFloat
 from hy.models.complex import HyComplex
 from hy.models.symbol import HySymbol
@@ -83,14 +82,6 @@ def test_lex_expression_integer():
     """ Make sure expressions can produce integers """
     objs = tokenize("(foo 2)")
     assert objs == [HyExpression([HySymbol("foo"), HyInteger(2)])]
-
-
-def test_lex_lambda_list_keyword():
-    """ Make sure expressions can produce lambda list keywords """
-    objs = tokenize("(x &rest xs)")
-    assert objs == [HyExpression([HySymbol("x"),
-                                  HyLambdaListKeyword("&rest"),
-                                  HySymbol("xs")])]
 
 
 def test_lex_symbols():

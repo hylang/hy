@@ -30,6 +30,9 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
+(defn assert-nil [x]
+  (assert (is x nil)))
+
 (defn test-coll? []
   "NATIVE: testing coll?"
   (assert-true (coll? [1 2 3]))
@@ -37,6 +40,19 @@
   (assert-true (coll? (range 10)))
   (assert-false (coll? "abc"))
   (assert-false (coll? 1)))
+
+(defn test-butlast []
+  "NATIVE: testing butlast function"
+  (assert-equal (list (butlast (range 10)))
+                [0 1 2 3 4 5 6 7 8])
+  (assert-equal (list (butlast [1]))
+                [])
+  (assert-equal (list (butlast []))
+                [])
+  ; with an infinite sequence
+  (import itertools)
+  (assert-equal (list (take 5 (butlast (itertools.count 10))))
+                [10 11 12 13 14]))
 
 (defn test-cycle []
   "NATIVE: testing cycle"
@@ -56,6 +72,34 @@
        (catch [e [TypeError]] (assert (in "not a number" (str e)))))
   (try (do (dec None) (assert False))
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
+
+(defn test-setv []
+  "NATIVE: testing setv mutation"
+  (setv x 1)
+  (setv y 1)
+  (assert-equal x y)
+  (setv x (setv y  12))
+  (assert-equal x 12)
+  (assert-equal y 12)
+  (setv x (setv y (fn [x] 9)))
+  (assert-equal (x y) 9)
+  (assert-equal (y x) 9)
+  (try (do (setv a.b 1) (assert False))
+       (catch [e [NameError]] (assert (in "name 'a' is not defined" (str e)))))
+  (try (do (setv b.a (fn [x] x)) (assert False))
+       (catch [e [NameError]] (assert (in "name 'b' is not defined" (str e)))))
+  (import itertools)
+  (setv foopermutations (fn [x] (itertools.permutations x)))
+  (setv p (set [(, 1 3 2) (, 3 2 1) (, 2 1 3) (, 3 1 2) (, 1 2 3) (, 2 3 1)]))
+  (assert-equal (set (itertools.permutations [1 2 3])) p)
+  (assert-equal (set (foopermutations [3 1 2])) p)
+  (setv permutations- itertools.permutations)
+  (setv itertools.permutations (fn [x] 9))
+  (assert-equal (itertools.permutations p) 9)
+  (assert-equal (foopermutations foopermutations) 9)
+  (setv itertools.permutations permutations-)
+  (assert-equal (set (itertools.permutations [2 1 3])) p)
+  (assert-equal (set (foopermutations [2 3 1])) p))
 
 (defn test-distinct []
   "NATIVE: testing the distinct function"
@@ -88,6 +132,19 @@
   (assert-equal res [])
   (setv res (list (take 5 (drop 2 (iterate inc 0)))))
   (assert-equal res [2 3 4 5 6]))
+
+(defn test-drop-last []
+  "NATIVE: testing drop-last function"
+  (assert-equal (list (drop-last 5 (range 10 20)))
+                [10 11 12 13 14])
+  (assert-equal (list (drop-last 0 (range 5)))
+                [0 1 2 3 4])
+  (assert-equal (list (drop-last 100 (range 100)))
+                [])
+  ; with an infinite sequence
+  (import itertools)
+  (assert-equal (list (take 5 (drop-last 100 (itertools.count 10))))
+                [10 11 12 13 14]))
 
 (defn test-drop-while []
   "NATIVE: testing drop-while function"
@@ -238,6 +295,33 @@
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
+(defn test-interleave []
+  "NATIVE: testing the interleave function"
+  ;; with more than 2 sequences
+  (assert-equal (list (take 9 (interleave (range 10)
+                                          (range 10 20)
+                                          (range 20 30))))
+                [0 10 20 1 11 21 2 12 22])
+  ;; with sequences of different length
+  (assert-equal (list (interleave (range 1000000)
+                                  (range 0 -3 -1)))
+                [0 0 1 -1 2 -2])
+  ;; with infinite sequences
+  (import itertools)
+  (assert-equal (list (take 10 (interleave (itertools.count)
+                                           (itertools.count 100))))
+                [0 100 1 101 2 102 3 103 4 104]))
+
+(defn test-interpose []
+  "NATIVE: testing the interpose function"
+  ;; with a list
+  (assert-equal (list (interpose "!" ["a" "b" "c"]))
+                ["a" "!" "b" "!" "c"])
+  ;; with an infinite sequence
+  (import itertools)
+  (assert-equal (list (take 7 (interpose -1 (itertools.count))))
+                [0 -1 1 -1 2 -1 3]))
+
 (defn test-iterable []
   "NATIVE: testing iterable? function"
   ;; should work for a string
@@ -335,13 +419,17 @@
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
   (assert-equal 7 (nth [1 2 4 7] 3))
-  (try (do (nth [1 2 4 7] 5) (assert False))
-       (catch [e [IndexError]] nil))
+  (assert-nil (nth [1 2 4 7] 5))
+  (assert-equal (nth [1 2 4 7] 5 "some default value")
+                "some default value")  ; with default specified
   (try (do (nth [1 2 4 7] -1) (assert False))
        (catch [e [ValueError]] nil))
   ;; now for iterators
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
+  (assert-nil (nth (iter [1 2 4 7]) 5))
+  (assert-equal (nth (iter [1 2 4 7]) 5 "some default value")
+                "some default value")  ; with default specified
   (try (do (nth (iter [1 2 4 7]) -1) (assert False))
        (catch [e [ValueError]] nil))
   (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
@@ -412,9 +500,16 @@
 (defn test-some []
   "NATIVE: testing the some function"
   (assert-true (some even? [2 4 6]))
-  (assert-false (some even? [1 3 5]))
-  (assert-true (some even? [1 3 6]))
-  (assert-false (some even? [])))
+  (assert-nil (some even? [1 3 5]))
+  (assert-true (some even? [1 2 3]))
+  (assert-nil (some even? []))
+  ; 0, "" (empty string) and [] (empty list) are all logical false
+  (assert-nil (some identity [0 "" []]))
+  ; non-empty string is logical true
+  (assert-equal (some identity [0 "this string is non-empty" []])
+                "this string is non-empty")
+  ; nil if collection is empty
+  (assert-nil (some even? [])))
 
 (defn test-string? []
   "NATIVE: testing string?"
@@ -481,6 +576,16 @@
   (assert-equal (list res) [4 4 4])
   (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
   (assert-equal (list res) [2 5 5]))
+
+(defn test-doto []
+  "NATIVE: testing doto macro"
+  (setv collection [])
+  (doto collection (.append 1) (.append 2) (.append 3))
+  (assert-equal collection [1 2 3])
+  (setv res (doto (set) (.add 2) (.add 1)))
+  (assert-equal res (set [1 2]))
+  (setv res (doto [] (.append 1) (.append 2) .reverse))
+  (assert-equal res [2 1]))
 
 (defn test-is-keyword []
   "NATIVE: testing the keyword? function"

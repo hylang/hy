@@ -6,6 +6,31 @@ Hy Core
 Core Functions
 ===============
 
+.. _butlast-fn:
+
+butlast
+-------
+
+Usage: ``(butlast coll)``
+
+Returns an iterator of all but the last item in ``coll``.
+
+.. code-block:: hy
+
+   => (list (butlast (range 10)))
+   [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+   => (list (butlast [1]))
+   []
+
+   => (list (butlast []))
+   []
+
+   => (import itertools)
+   => (list (take 5 (butlast (itertools.count 10))))
+   [10, 11, 12, 13, 14]
+
+
 .. _is-coll-fn:
 
 coll?
@@ -290,6 +315,46 @@ either ``int`` or ``long``. For Python 3, this is ``int``.
    False
 
 
+.. _interleave-fn:
+
+interleave
+----------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(interleave seq1 seq2 ...)``
+
+Return an iterable of the first item in each of the sequences, then the second etc.
+
+.. code-block:: hy
+
+   => (list (interleave (range 5) (range 100 105)))
+   [0, 100, 1, 101, 2, 102, 3, 103, 4, 104]
+
+   => (list (interleave (range 1000000) "abc"))
+   [0, 'a', 1, 'b', 2, 'c']
+
+
+.. _interpose-fn:
+
+interpose
+---------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(interpose item seq)``
+
+Return an iterable of the elements of the sequence separated by the item.
+
+.. code-block:: hy
+
+   => (list (interpose "!" "abcd"))
+   ['a', '!', 'b', '!', 'c', '!', 'd']
+
+   => (list (interpose -1 (range 5)))
+   [0, -1, 1, -1, 2, -1, 3, -1, 4]
+
+
 .. _iterable?-fn:
 
 iterable?
@@ -409,6 +474,27 @@ Returns the single step macro expansion of form.
    => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
    (u'_>' (u'a' u'b') (u'c' u'd') (u'e' u'f'))
 
+
+.. _merge-with-fn:
+
+merge-with
+----------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(merge-with f &rest maps)
+
+Returns a map that consist of the rest of the maps joined onto first.
+If a key occurs in more than one map, the mapping(s) from the latter
+(left-to-right) will be combined with the mapping in the result by
+calling ``(f val-in-result val-in-latter)``.
+
+.. code-block:: clojure
+
+    => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
+    {u'a': 11L, u'c': 30L, u'b': 20L}
+
+
 .. _neg?-fn:
 
 neg?
@@ -492,11 +578,11 @@ Return True if x is None.
 nth
 ---
 
-Usage: ``(nth coll n)``
+Usage: ``(nth coll n &optional [default nil])``
 
-Return the `nth` item in a collection, counting from 0. Unlike
-``get``, ``nth`` works on both iterators and iterables. Raises ``IndexError``
-if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
+Return the `nth` item in a collection, counting from 0. Return the
+default value, ``nil``, if out of bounds (unless specified otherwise).
+Raise ``ValueError`` if ``n`` is negative.
 
 .. code-block:: hy
 
@@ -506,13 +592,20 @@ if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
    => (nth [1 2 4 7] 3)
    7
 
-   => (nth [1 2 4 7] 5)
-   Traceback (most recent call last):
-     ...
-   IndexError: 5
+   => (nil? (nth [1 2 4 7] 5))
+   True
+
+   => (nth [1 2 4 7] 5 "default")
+   'default'
 
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
+
+   => (nth [1 2 4 7] -1)
+   Traceback (most recent call last):
+     ...
+   ValueError: Indices for islice() must be None or an integer: 0 <= x <= sys.maxsize.
+
 
 .. _numeric?-fn:
 
@@ -607,21 +700,25 @@ some
 
 Usage: ``(some pred coll)``
 
-Return True if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise False. Return False if ``coll`` is empty.
+Return the first logical true value of ``(pred x)`` for any ``x`` in
+``coll``, otherwise ``nil``. Return ``nil`` if ``coll`` is empty.
 
 .. code-block:: hy
 
    => (some even? [2 4 6])
    True
 
-   => (some even? [1 3 5])
-   False
-
-   => (some even? [1 3 6])
+   => (nil? (some even? [1 3 5]))
    True
 
-   => (some even? [])
-   False
+   => (nil? (some identity [0 "" []]))
+   True
+
+   => (some identity [0 "non-empty-string" []])
+   'non-empty-string'
+
+   => (nil? (some even? []))
+   True
 
 
 .. _string?-fn:
@@ -782,6 +879,32 @@ Raises ``ValueError`` if ``n`` is negative.
    => (list (drop 6 [1 2 3 4 5]))
    []
 
+
+.. _drop-last-fn:
+
+drop-last
+---------
+
+Usage: ``(drop-last n coll)``
+
+Return an iterator of all but the last ``n`` items in ``coll``. Raise ``ValueError`` if ``n`` is negative.
+
+.. code-block:: hy
+
+   => (list (drop-last 5 (range 10 20)))
+   [10, 11, 12, 13, 14]
+
+   => (list (drop-last 0 (range 5)))
+   [0, 1, 2, 3, 4]
+
+   => (list (drop-last 100 (range 100)))
+   []
+
+   => (import itertools)
+   => (list (take 5 (drop-last 100 (itertools.count 10))))
+   [10, 11, 12, 13, 14]
+
+
 .. _drop-while-fn:
 
 drop-while
@@ -860,6 +983,53 @@ Return an iterator of `x`, `fn(x)`, `fn(fn(x))`.
 
    => (list (take 5 (iterate (fn [x] (* x x)) 5)))
    [5, 25, 625, 390625, 152587890625]
+
+
+.. _read-fn:
+
+read
+----
+
+Usage: ``(read &optional [from-file eof])``
+
+Reads the next hy expression from `from-file` (defaults to `sys.stdin`), and
+can take a single byte as EOF (defaults to an empty string).
+Raises an `EOFError` if `from-file` ends before a complete expression can be
+parsed.
+
+.. code-block:: hy
+
+   => (read)
+   (+ 2 2)
+   ('+' 2 2)
+   => (eval (read))
+   (+ 2 2)
+   4
+
+   => (import io)
+   => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
+   => (eval (apply read [] {"from_file" buffer}))
+   4
+   => (eval (apply read [] {"from_file" buffer}))
+   1
+
+   => ; assuming "example.hy" contains:
+   => ;   (print "hello")
+   => ;   (print "hyfriends!")
+   => (with [[f (open "example.hy")]]
+   ...   (try
+   ...     (while true
+   ...            (let [[exp (read f)]]
+   ...              (do
+   ...                (print "OHY" exp)
+   ...                (eval exp))))
+   ...     (catch [e EOFError]
+   ...            (print "EOF!"))))
+   OHY ('print' 'hello')
+   hello
+   OHY ('print' 'hyfriends!')
+   hyfriends!
+   EOF!
 
 
 .. _remove-fn:

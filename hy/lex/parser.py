@@ -30,7 +30,6 @@ from hy.models.expression import HyExpression
 from hy.models.float import HyFloat
 from hy.models.integer import HyInteger
 from hy.models.keyword import HyKeyword
-from hy.models.lambdalist import HyLambdaListKeyword
 from hy.models.list import HyList
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
@@ -270,9 +269,6 @@ def t_identifier(p):
 
     if obj.startswith(":"):
         return HyKeyword(obj)
-
-    if obj.startswith("&"):
-        return HyLambdaListKeyword(obj)
 
     def mangle(p):
         if p.startswith("*") and p.endswith("*") and p not in ("*", "**"):

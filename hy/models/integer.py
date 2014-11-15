@@ -24,7 +24,7 @@ from hy._compat import long_type
 
 class HyInteger(HyObject, long_type):
     """
-    Internal represntation of a Hy Integer. May raise a ValueError as if
+    Internal representation of a Hy Integer. May raise a ValueError as if
     int(foo) was called, given HyInteger(foo). On python 2.x long will
     be used instead
     """

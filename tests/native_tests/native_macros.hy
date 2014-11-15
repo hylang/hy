@@ -1,6 +1,3 @@
-(import [hy._compat [PY33]])
-(import [hy.errors [HyCompileError]])
-
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
   (quasiquote (do (unquote-splice (list (reversed body))))))
@@ -100,21 +97,6 @@
 (assert initialized)
 (assert (test-initialized))
 
-(defn test-yield-from []
-  "NATIVE: testing yield from"
-  
-  (try
-   (eval
-    '(do (defn yield-from-test []
-           (for* [i (range 3)]
-             (yield i))
-           (yield-from [1 2 3]))
-         (assert (= (list (yield-from-test)) [0 1 2 1 2 3]))))
-   (catch [e HyCompileError]
-     ;; Yup, this should happen on non-Python3.3 thingies
-     (assert (not PY33)))
-   (else (assert PY33))))
-
 (defn test-if-python2 []
   (import sys)
   (assert (= (get sys.version_info 0)
@@ -188,7 +170,12 @@
   (setv s2 (to_source _ast2))
   (assert (in ":res_" s1))
   (assert (in ":res_" s2))
-  (assert (not (= s1 s2))))
+  (assert (not (= s1 s2)))
+
+  ;; defmacro/g! didn't like numbers initially because they
+  ;; don't have a startswith method and blew up during expansion
+  (setv macro2 "(defmacro/g! two-point-zero [] `(+ (float 1) 1.0))")
+  (assert (import_buffer_to_ast macro2 "foo")))
 
 
 (defn test-if-not []
@@ -219,6 +206,24 @@
   (assert (= (lif nil "true" "false") "false"))
   (assert (= (lif 0 "true" "false") "true")))
 
+(defn test-lisp-if-not []
+  "test that lisp-if-not works as expected"
+  ; nil is false
+  (assert (= (lisp-if-not None "false" "true") "false"))
+  (assert (= (lisp-if-not nil "false" "true") "false"))
+
+  ; But everything else is True!  Even falsey things.
+  (assert (= (lisp-if-not True "false" "true") "true"))
+  (assert (= (lisp-if-not False "false" "true") "true"))
+  (assert (= (lisp-if-not 0 "false" "true") "true"))
+  (assert (= (lisp-if-not "some-string" "false" "true") "true"))
+  (assert (= (lisp-if-not "" "false" "true") "true"))
+  (assert (= (lisp-if-not (+ 1 2 3) "false" "true") "true"))
+
+  ; Just to be sure, test the alias lif-not
+  (assert (= (lif-not nil "false" "true") "false"))
+  (assert (= (lif-not 0 "false" "true") "true")))
+
 
 (defn test-defn-alias []
   (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)
@@ -227,3 +232,6 @@
   (assert (= (tda-a1) :bazinga))
   (assert (= (tda-a2) :bazinga))
   (assert (= tda-main tda-a1 tda-a2)))
+
+(defn test-botsbuildbots []
+  (assert (> (len (first (Botsbuildbots))) 50)))
