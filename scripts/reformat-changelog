@@ -1,0 +1,66 @@
+#!/usr/bin/env hy
+
+(import re)
+(import pdb)
+(import codecs)
+
+(setv *maintainer-line*
+      " -- Alexander Artemenko <svetlyak.40wt@gmail.com>  Thu, 30 Sep 2014 13:06:09 +0400")
+
+(defun read-lines-from-file [filename]
+  (let [[f (codecs.open filename "r" "utf-8")]]
+       (fn [] (let [[line (.readline f) ]]
+                   line))))
+
+
+(defun get-version-number [line]
+  (let [[match (re.search r"Changes from.*(\d+\.\d+\.\d+)$" line)]]
+       (if match
+           (let [[version (.group match (int 1))]
+                 [numbered (list (map int (.split version "."))) ]
+                 [explicit-mapping {"0.9.12" "0.10.0"
+                                    "0.8.2" "0.9.0"}]]
+                (assoc numbered 2 (+ (get numbered 2) 1))
+                (.get explicit-mapping
+                      version
+                      (.join "." (map str numbered)))))))
+
+
+(defun read-version-content [reader]
+  (setv line (reader))
+  (setv content [])
+  (while (and line (not (get-version-number line)))
+    (.append content (.strip line))
+    (setv line (reader)))
+  [content line])
+
+
+(defun read-versions-from-file [filename]
+  (let [[reader (read-lines-from-file filename)]]
+       (read-versions-rec (reader)
+                          reader)))
+
+(defun read-versions-rec [line reader]
+  (if line 
+      (let [[version (get-version-number line)]
+        [[content next-line] (read-version-content reader)]]
+
+        (+ [{"from" version
+             "content" content}]
+           (read-versions-rec next-line reader)))
+    []))
+
+(defun format-deb-version [version]
+  (setv result [(.format "hy ({}) unstable; urgency=low"
+                        (get version "from"))])
+  (for [line (get version "content")]
+       (.append result (+ "  " line)))
+  (.append result *maintainer-line*)
+  (.append result "")
+  (.join "\n" result))
+
+
+(defmain [&rest args]
+  (let ((versions (read-versions-from-file "NEWS")))
+    (for [version versions]
+         (print (.encode (format-deb-version version) "utf-8")))))
