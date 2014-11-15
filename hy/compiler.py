@@ -38,7 +38,7 @@ from hy.models.cons import HyCons
 from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
-from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34
+from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34, raise_empty
 from hy.macros import require, macroexpand, reader_macroexpand
 import hy.importer
 
@@ -429,7 +429,7 @@ class HyASTCompiler(object):
         except HyTypeError as e:
             raise
         except Exception as e:
-            raise HyCompileError(e, sys.exc_info()[2])
+            raise_empty(HyCompileError, e, sys.exc_info()[2])
 
         raise HyCompileError(Exception("Unknown type: `%s'" % _type))
 
@@ -1268,7 +1268,8 @@ class HyASTCompiler(object):
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
-        if not fn.stmts or not isinstance(fn.stmts[-1], ast.FunctionDef):
+        if not fn.stmts or not (isinstance(fn.stmts[-1], ast.FunctionDef) or
+                                isinstance(fn.stmts[-1], ast.ClassDef)):
             raise HyTypeError(expr, "Decorated a non-function")
         decorators, ret = self._compile_collect(expr)
         fn.stmts[-1].decorator_list = decorators
@@ -2003,12 +2004,12 @@ class HyASTCompiler(object):
             except TypeError:
                 raise HyTypeError(
                     expression,
-                    "Wrong argument type for defclass slots definition.")
+                    "Wrong argument type for defclass attributes definition.")
             for b in body_expression:
                 if len(b) != 2:
                     raise HyTypeError(
                         expression,
-                        "Wrong number of argument in defclass slot.")
+                        "Wrong number of argument in defclass attribute.")
                 body += self._compile_assign(b[0], b[1],
                                              b.start_line, b.start_column)
                 body += body.expr_as_stmt()

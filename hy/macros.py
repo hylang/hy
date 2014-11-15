@@ -117,6 +117,7 @@ _wrappers = {
     list: lambda l: HyList(_wrap_value(x) for x in l),
     tuple: lambda t: HyList(_wrap_value(x) for x in t),
     type(None): lambda foo: HySymbol("None"),
+    HyExpression: lambda e: HyExpression(_wrap_value(x) for x in e),
 }
 
 if sys.version_info[0] < 3:  # do not add long on python3

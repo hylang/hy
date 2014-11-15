@@ -1,11 +1,22 @@
-
-
 (defn test-shadow-addition []
   "NATIVE: test shadow addition"
   (let [[x +]]
-    (assert (= (x) 0))
+    (assert (try
+             (x)
+             (catch [TypeError] True)
+             (else (throw AssertionError))))
     (assert (= (x 1 2 3 4) 10))
-    (assert (= (x 1 2 3 4 5) 15))))
+    (assert (= (x 1 2 3 4 5) 15))
+    ; with strings
+    (assert (= (x "a")
+               "a"))
+    (assert (= (x "a" "b" "c")
+               "abc"))
+    ; with lists
+    (assert (= (x ["a"])
+               ["a"]))
+    (assert (= (x ["a"] ["b"] ["c"])
+               ["a" "b" "c"]))))
 
 
 (defn test-shadow-subtraction []

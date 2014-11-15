@@ -818,14 +818,18 @@ any numeric type, empty sequence and empty dictionary are considered `False`.
 Everything else is considered `True`.
 
 
-lisp-if / lif
--------------
+lisp-if / lif and lisp-if-not / lif-not
+---------------------------------------
 
 .. versionadded:: 0.10.0
 
+.. versionadded:: 0.10.2
+   lisp-if-not / lif-not
+
 For those that prefer a more lisp-y if clause, we have lisp-if, or lif.  This
 *only* considers None/nil as false!  All other values of python
-"falseiness" are considered true.
+"falseiness" are considered true.  Conversely, we have lisp-if-not or lif-not,
+in parallel to if / if-not, which reverses the comparison.
 
 
 .. code-block:: clj
@@ -840,12 +844,20 @@ For those that prefer a more lisp-y if clause, we have lisp-if, or lif.  This
     "false"
     => (lisp-if None "true" "false")
     "false"
+    => (lisp-if-not nil "true" "false")
+    "true"
+    => (lisp-if-not None "true" "false")
+    "true"
+    => (lisp-if-not False "true" "false")
+    "false"
 
     ; And, same thing
     => (lif True "true" "false")
     "true"
     => (lif nil "true" "false")
     "false"
+    => (lif-not None "true" "false")
+    "true"
 
 
 import

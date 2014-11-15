@@ -474,6 +474,27 @@ Returns the single step macro expansion of form.
    => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
    (u'_>' (u'a' u'b') (u'c' u'd') (u'e' u'f'))
 
+
+.. _merge-with-fn:
+
+merge-with
+----------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(merge-with f &rest maps)
+
+Returns a map that consist of the rest of the maps joined onto first.
+If a key occurs in more than one map, the mapping(s) from the latter
+(left-to-right) will be combined with the mapping in the result by
+calling ``(f val-in-result val-in-latter)``.
+
+.. code-block:: clojure
+
+    => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
+    {u'a': 11L, u'c': 30L, u'b': 20L}
+
+
 .. _neg?-fn:
 
 neg?
@@ -557,11 +578,11 @@ Return True if x is None.
 nth
 ---
 
-Usage: ``(nth coll n)``
+Usage: ``(nth coll n &optional [default nil])``
 
-Return the `nth` item in a collection, counting from 0. Unlike
-``get``, ``nth`` works on both iterators and iterables. Raises ``IndexError``
-if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
+Return the `nth` item in a collection, counting from 0. Return the
+default value, ``nil``, if out of bounds (unless specified otherwise).
+Raise ``ValueError`` if ``n`` is negative.
 
 .. code-block:: hy
 
@@ -571,13 +592,20 @@ if the `n` is outside the range of ``coll`` or ``ValueError`` if it's negative.
    => (nth [1 2 4 7] 3)
    7
 
-   => (nth [1 2 4 7] 5)
-   Traceback (most recent call last):
-     ...
-   IndexError: 5
+   => (nil? (nth [1 2 4 7] 5))
+   True
+
+   => (nth [1 2 4 7] 5 "default")
+   'default'
 
    => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
    5
+
+   => (nth [1 2 4 7] -1)
+   Traceback (most recent call last):
+     ...
+   ValueError: Indices for islice() must be None or an integer: 0 <= x <= sys.maxsize.
+
 
 .. _numeric?-fn:
 
@@ -672,21 +700,25 @@ some
 
 Usage: ``(some pred coll)``
 
-Return True if ``(pred x)`` is logical true for any ``x`` in ``coll``, otherwise False. Return False if ``coll`` is empty.
+Return the first logical true value of ``(pred x)`` for any ``x`` in
+``coll``, otherwise ``nil``. Return ``nil`` if ``coll`` is empty.
 
 .. code-block:: hy
 
    => (some even? [2 4 6])
    True
 
-   => (some even? [1 3 5])
-   False
-
-   => (some even? [1 3 6])
+   => (nil? (some even? [1 3 5]))
    True
 
-   => (some even? [])
-   False
+   => (nil? (some identity [0 "" []]))
+   True
+
+   => (some identity [0 "non-empty-string" []])
+   'non-empty-string'
+
+   => (nil? (some even? []))
+   True
 
 
 .. _string?-fn:
@@ -958,7 +990,7 @@ Return an iterator of `x`, `fn(x)`, `fn(fn(x))`.
 read
 ----
 
-Usage: ``(read [from-file eof])``
+Usage: ``(read &optional [from-file eof])``
 
 Reads the next hy expression from `from-file` (defaults to `sys.stdin`), and
 can take a single byte as EOF (defaults to an empty string).

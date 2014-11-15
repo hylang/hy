@@ -153,6 +153,10 @@
   "Like `if`, but anything that is not None/nil is considered true."
   `(if (is-not ~test nil) ~@branches))
 
+(defmacro-alias [lisp-if-not lif-not] [test &rest branches]
+  "Like `if-not`, but anything that is not None/nil is considered true."
+  `(if (is ~test nil) ~@branches))
+
 
 (defmacro when [test &rest body]
   "Execute `body` when `test` is true"
@@ -198,3 +202,15 @@
           (.append ret
                    `(setv ~name ~main)))
     ret))
+
+(defmacro Botsbuildbots []
+  "Build bots, repeatedly.^W^W^WPrint the AUTHORS, forever."
+  `(try
+    (do
+     (import [requests])
+
+     (let [[r (requests.get
+               "https://raw.githubusercontent.com/hylang/hy/master/AUTHORS")]]
+       (repeat r.text)))
+    (catch [e ImportError]
+      (repeat "Botsbuildbots requires `requests' to function."))))
