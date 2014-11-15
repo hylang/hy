@@ -360,14 +360,19 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
 
 class HyASTCompiler(object):
 
-    def __init__(self, module_name):
-        self.anon_fn_count = 0
-        self.anon_var_count = 0
-        self.imports = defaultdict(set)
+    def __init__(self, module_name, ctx = {}):
+        self.anon_fn_count = 0 if "fn_count" not in ctx else ctx["fn_count"]
+        self.anon_var_count = 0 if "var_count" not in ctx else ctx["var_count"]
+        self.imports = defaultdict(set) if "imports" not in ctx else ctx["imports"]
         self.module_name = module_name
         if not module_name.startswith("hy.core"):
             # everything in core needs to be explicit.
             load_stdlib()
+
+    def get_context(self):
+        return {"fn_count": self.anon_fn_count,
+                "var_count": self.anon_var_count,
+                "imports": self.imports}
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -2231,3 +2236,48 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
         ret = (ret, expr)
 
     return ret
+
+def hy_incr_compile(tree, module_name, root=ast.Module, get_expr=False, ctx={}):
+    """
+    Compile a HyObject tree into a Python AST Module.
+
+    If `get_expr` is True, return a tuple (module, last_expression), where
+    `last_expression` is the.
+    """
+
+    if hasattr(sys, "subversion"):
+        implementation = sys.subversion[0].lower()
+    elif hasattr(sys, "implementation"):
+        implementation = sys.implementation.name.lower()
+
+    body = []
+    expr = None
+
+    if tree:
+        compiler = HyASTCompiler(module_name, ctx)
+        result = compiler.compile(tree)
+        expr = result.force_expr
+
+        if not get_expr:
+            result += result.expr_as_stmt()
+
+        if isinstance(tree, list):
+            spoof_tree = tree[0]
+        else:
+            spoof_tree = tree
+        body = compiler.imports_as_stmts(spoof_tree) + result.stmts
+
+    ret = root(body=body)
+
+    # PyPy _really_ doesn't like the ast going backwards...
+    if implementation != "cpython":
+        for node in ast.walk(ret):
+            node.lineno = 1
+            node.col_offset = 1
+
+    if get_expr:
+        expr = ast.Expression(body=expr)
+        ret = (ret, expr)
+
+    return ret, compiler.get_context()
+
