@@ -8,7 +8,8 @@
 
 
 (defn bardec [cls]
-  (setv cls.my_attr 123))
+  (setv cls.my_attr 123)
+  cls)
 
 (with-decorator bardec
   (defclass cls []
