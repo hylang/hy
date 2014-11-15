@@ -1,6 +1,7 @@
 (import [tests.resources [kwtest function-with-a-dash]]
         [os.path [exists isdir isfile]]
-        [sys :as systest])
+        [sys :as systest]
+        [operator [or_]])
 (import sys)
 
 (import [hy._compat [PY33 PY34]])
@@ -985,6 +986,24 @@
   (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
 
+(defn test-merge-with []
+  "NATIVE: test merge-with"
+  (assert (= (merge-with + {} {}) nil))
+  (assert (= (merge-with + {"a" 10 "b" 20} {}) {"a" 10 "b" 20}))
+  (assert (= (merge-with + {} {"a" 10 "b" 20}) {"a" 10 "b" 20}))
+  (assert (= (merge-with + {"a" 10 "b" 20} {"a" 1 "c" 30})
+	     {"a" 11 "b" 20 "c" 30}))
+  (assert (= (merge-with +
+                         {:a 1  :b 2}
+                         {:a 9  :b 98  :c 0}
+                         {:a 10 :b 100 :c 10}
+                         {:a 5}
+                         {:c 5  :d 42})
+             {:d 42 :c 15 :a 25 :b 200}))
+  (assert (= (merge-with or_
+                         {"a" (set [1 2 3]) "b" (set [4 5 6])}
+                         {"a" (set [2 3 7 8]) "c" (set [1 2 3])})
+             {"a" (set [1 2 3 7 8]) "c" (set [1 2 3]) "b" (set [4 5 6])})))
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"
@@ -1037,11 +1056,11 @@
     (import [StringIO [StringIO]])
     (import [io [StringIO]]))
   (import [hy.models.expression [HyExpression]])
- 
+
   (def stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
   (assert (= (eval (read stdin-buffer)) 4))
   (assert (isinstance (read stdin-buffer) HyExpression))
-  
+
   "Multiline test"
   (def stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
   (assert (= (eval (read stdin-buffer)) 42))
@@ -1050,9 +1069,33 @@
   "EOF test"
   (def stdin-buffer (StringIO "(+ 2 2)"))
   (read stdin-buffer)
-  (try 
+  (try
     (read stdin-buffer)
     (catch [e Exception]
       (assert (isinstance e EOFError)))))
 
+(defn test-keyword-creation []
+  "NATIVE: Test keyword creation"
+  (assert (= (keyword "foo") :foo))
+  (assert (= (keyword "foo_bar") :foo-bar))
+  (assert (= (keyword `foo) :foo))
+  (assert (= (keyword `foo-bar) :foo-bar))
+  (assert (= (keyword 'foo) :foo))
+  (assert (= (keyword 'foo-bar) :foo-bar))
+  (assert (= (keyword 1) :1))
+  (assert (= (keyword 1.0) :1.0))
+  (assert (= (keyword :foo_bar) :foo-bar)))
 
+(defn test-name-conversion []
+  "NATIVE: Test name conversion"
+  (assert (= (name "foo") "foo"))
+  (assert (= (name "foo_bar") "foo-bar"))
+  (assert (= (name `foo) "foo"))
+  (assert (= (name `foo_bar) "foo-bar"))
+  (assert (= (name 'foo) "foo"))
+  (assert (= (name 'foo_bar) "foo-bar"))
+  (assert (= (name 1) "1"))
+  (assert (= (name 1.0) "1.0"))
+  (assert (= (name :foo) "foo"))
+  (assert (= (name :foo_bar) "foo-bar"))
+  (assert (= (name test-name-conversion) "test-name-conversion")))

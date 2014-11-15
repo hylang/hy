@@ -8,15 +8,9 @@ python:
   - "3.4"
 cache:
   - $HOME/.pip-cache
-# command to install dependencies
-install:
-  - pip install -r requirements-travis.txt --download-cache $HOME/.pip-cache
-  - pip install coveralls --download-cache $HOME/.pip-cache
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi  # needs for running tests
-  - pip install --allow-all-external -e .
 # command to run tests
 script: make travis
-after_success: coveralls
+after_success: make coveralls
 notifications:
   email:
     - paultag@gmail.com
