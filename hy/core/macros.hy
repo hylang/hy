@@ -179,6 +179,25 @@
             ~@body))))
 
 
+(if-python2
+  (defmacro/g! yield-from [expr]
+    `(do (import types)
+         (setv ~g!iter (iter ~expr))
+         (setv ~g!return nil)
+         (setv ~g!message nil)
+         (while true
+           (try (if (isinstance ~g!iter types.GeneratorType)
+                  (setv ~g!message (yield (.send ~g!iter ~g!message)))
+                  (setv ~g!message (yield (next ~g!iter))))
+           (catch [~g!e StopIteration]
+             (do (setv ~g!return (if (hasattr ~g!e "value")
+                                     (. ~g!e value)
+                                     nil))
+               (break)))))
+           ~g!return))
+  nil)
+
+
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
   (let [[retval (gensym)]]

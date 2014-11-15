@@ -87,7 +87,7 @@ goto :EOF
 if "%1" == "tox" (
 :tox
     call :venv
-    tox -e "py26,py27,py32,py33,flake8"
+    tox -e "py26,py27,py33,py34,flake8"
 goto :EOF
 )
 
