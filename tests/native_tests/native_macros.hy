@@ -234,11 +234,11 @@
   (assert (= tda-main tda-a1 tda-a2)))
 
 (defn test-yield-from []
- "NATIVE: testing yield from"
+  "NATIVE: testing yield from"
   (defn yield-from-test []
     (for* [i (range 3)]
-       (yield i))
-       (yield-from [1 2 3]))
+      (yield i))
+    (yield-from [1 2 3]))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
 
 (defn test-botsbuildbots []
