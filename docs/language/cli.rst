@@ -23,6 +23,16 @@ Command line options
 
    Execute the Hy code in *command*, then stay in REPL.
 
+.. cmdoption:: -m <module>
+
+   Execute the Hy code in *module*, including ``defmain`` if defined.
+
+   The :option:`-m` flag terminates the options list so that
+   all arguments after the *module* name are passed to the module in
+   ``sys.argv``.
+
+   .. versionadded:: 0.10.2
+
 .. cmdoption:: --spy
 
    Print equivalent Python code before executing. For example::

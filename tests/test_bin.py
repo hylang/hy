@@ -173,3 +173,27 @@ def test_bin_hy_no_main():
     ret = run_cmd("hy tests/resources/bin/nomain.hy")
     assert ret[0] == 0
     assert "This Should Still Work" in ret[1]
+
+
+def test_bin_hy_module_main():
+    ret = run_cmd("hy -m tests.resources.bin.main")
+    assert ret[0] == 0
+    assert "Hello World" in ret[1]
+
+
+def test_bin_hy_module_main_args():
+    ret = run_cmd("hy -m tests.resources.bin.main test 123")
+    assert ret[0] == 0
+    assert "test" in ret[1]
+    assert "123" in ret[1]
+
+
+def test_bin_hy_module_main_exitvalue():
+    ret = run_cmd("hy -m tests.resources.bin.main exit1")
+    assert ret[0] == 1
+
+
+def test_bin_hy_module_no_main():
+    ret = run_cmd("hy -m tests.resources.bin.nomain")
+    assert ret[0] == 0
+    assert "This Should Still Work" in ret[1]
