@@ -94,7 +94,6 @@ the following order:
  - :ref:`HyFloat <hy_numeric_models>`
  - :ref:`HyComplex <hy_numeric_models>` (if the atom isn't a bare ``j``)
  - :ref:`HyKeyword` (if the atom starts with ``:``)
- - :ref:`HyLambdaListKeyword` (if the atom starts with ``&``)
  - :ref:`HySymbol`
 
 .. _hystring:
@@ -161,16 +160,6 @@ To distinguish :ref:`HyKeywords <HyKeyword>` from :ref:`HySymbols
 <HySymbol>`, without the possibility of (involuntary) clashes, the
 private-use unicode character ``"\uFDD0"`` is prepended to the keyword
 literal before storage.
-
-.. _hylambdalistkeyword:
-
-HyLambdaListKeyword
-~~~~~~~~~~~~~~~~~~~
-
-``hy.models.lambdalist.HyLambdaListKeyword`` represents lambda-list
-keywords, that is keywords used by the language definition inside
-function signatures. Lambda-list keywords are symbols starting with a
-``&``. The class inherits :ref:`HyString`
 
 .. _hycons:
 
