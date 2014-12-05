@@ -48,7 +48,7 @@ Implementation
 
 ``defreader`` takes a single character as symbol name for the reader macro,
 anything longer will return an error. Implementation wise, ``defreader``
-expands into a lambda covered with a decorator, this decorater saves the
+expands into a lambda covered with a decorator, this decorator saves the
 lambda in a dict with its module name and symbol.
 
 ::
