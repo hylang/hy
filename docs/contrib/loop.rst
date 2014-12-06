@@ -25,7 +25,7 @@ optimization (TCO) in their Hy code.
     allowing efficient structured programming.
 
     -- Wikipedia (http://en.wikipedia.org/wiki/Tail_call)
-                  
+
 Macros
 ======
 

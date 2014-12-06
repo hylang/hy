@@ -1,6 +1,6 @@
-
-Contrib Modules Index
-=====================
+=========================
+Contributor Modules Index
+=========================
 
 Contents:
 

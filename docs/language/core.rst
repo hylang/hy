@@ -419,6 +419,9 @@ Contrast with :ref:`iterable?-fn`.
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
 
+
+.. _list*-fn:
+
 list*
 -----
 
@@ -484,7 +487,7 @@ merge-with
 
 .. versionadded:: 0.10.1
 
-Usage: ``(merge-with f &rest maps)
+Usage: ``(merge-with f &rest maps)``
 
 Returns a map that consist of the rest of the maps joined onto first.
 If a key occurs in more than one map, the mapping(s) from the latter
@@ -612,7 +615,7 @@ Raise ``ValueError`` if ``n`` is negative.
 .. _numeric?-fn:
 
 numeric?
----------
+--------
 
 Usage: ``(numeric? x)``
 
@@ -680,7 +683,7 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 .. _second-fn:
 
 second
--------
+------
 
 Usage: ``(second coll)``
 
@@ -762,7 +765,7 @@ Return `True` if x is zero (0).
 
 
 Sequence Functions
-=======================
+==================
 
 Sequence functions can either create or operate on a potentially
 infinite sequence without requiring the sequence be fully realized in
@@ -821,7 +824,7 @@ To get the Fibonacci number at index 9, (starting from 0):
 .. _cycle-fn:
 
 cycle
-------
+-----
 
 Usage: ``(cycle coll)``
 
@@ -1156,7 +1159,7 @@ Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
 
-.. _zipwith:
+.. _zipwith-fn:
 
 zipwith
 -------
