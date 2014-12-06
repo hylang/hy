@@ -1,13 +1,13 @@
 ===============
- Hacking on hy
+ Hacking on Hy
 ===============
 
 .. highlight:: bash
 
-Join our hyve!
+Join our Hyve!
 ==============
 
-Please come hack on hy!
+Please come hack on Hy!
 
 Please come hang out with us on ``#hy`` on ``irc.freenode.net``!
 
@@ -23,7 +23,7 @@ Hack!
 
 Do this:
 
-1. create a `virtual environment
+1. Create a `virtual environment
    <https://pypi.python.org/pypi/virtualenv>`_::
 
        $ virtualenv venv
@@ -38,23 +38,24 @@ Do this:
        $ mkvirtualenv hy
        $ workon hy
 
-2. get the source code::
+2. Get the source code::
 
        $ git clone https://github.com/hylang/hy.git
 
    or use your fork::
 
        $ git clone git@github.com:<YOUR_USERNAME>/hy.git
-3. install for hacking::
+
+3. Install for hacking::
 
        $ cd hy/
        $ pip install -e .
 
-4. install other develop-y requirements::
+4. Install other develop-y requirements::
 
        $ pip install -r requirements-dev.txt
 
-5. do awesome things; make someone shriek in delight/disgust at what
+5. Do awesome things; make someone shriek in delight/disgust at what
    you have wrought.
 
 
@@ -70,8 +71,8 @@ To run the tests::
 
 Write tests---tests are good!
 
-Also, it is good to run the tests for all the platforms supported and for pep8 compliant code. 
-You can do so by running tox::
+Also, it is good to run the tests for all the platforms supported and for
+PEP 8 compliant code. You can do so by running tox::
 
     $ tox
 
@@ -97,6 +98,6 @@ Contributing
 Core Team
 =========
 
-Core development team of hy consists of following developers.
+The core development team of Hy consists of following developers:
 
 .. include:: coreteam.rst
