@@ -7,7 +7,7 @@ Command Line Interface
 hy
 --
 
-Command line options
+Command Line Options
 ^^^^^^^^^^^^^^^^^^^^
 
 .. cmdoption:: -c <command>

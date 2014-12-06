@@ -1,10 +1,10 @@
-=================
+=======
 Hy Core
-=================
+=======
 
 
 Core Functions
-===============
+==============
 
 .. _butlast-fn:
 
@@ -40,7 +40,7 @@ coll?
 
 Usage: ``(coll? x)``
 
-Returns true if argument is iterable and not a string.
+Returns `True` if argument is iterable and not a string.
 
 .. code-block:: hy
 
@@ -149,7 +149,7 @@ empty?
 
 Usage: ``(empty? coll)``
 
-Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
+Return `True` if ``coll`` is empty. Equivalent to ``(= 0 (len coll))``.
 
 .. code-block:: hy
 
@@ -172,7 +172,8 @@ every?
 
 Usage: ``(every? pred coll)``
 
-Return True if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwise False. Return True if ``coll`` is empty.
+Return `True` if ``(pred x)`` is logical true for every ``x`` in ``coll``,
+otherwise `False`. Return `True` if ``coll`` is empty.
 
 .. code-block:: hy
 
@@ -196,7 +197,7 @@ float?
 
 Usage: ``(float? x)``
 
-Return True if x is a float.
+Return `True` if x is a float.
 
 .. code-block:: hy
 
@@ -214,7 +215,7 @@ even?
 
 Usage: ``(even? x)``
 
-Return True if x is even.
+Return `True` if x is even.
 
 Raises ``TypeError`` if ``(not (numeric? x))``.
 
@@ -278,7 +279,7 @@ instance?
 
 Usage: ``(instance? CLASS x)``
 
-Return True if x is an instance of CLASS.
+Return `True` if x is an instance of CLASS.
 
 .. code-block:: hy
 
@@ -303,7 +304,7 @@ integer?
 
 Usage: ``(integer? x)``
 
-Return True if x is an integer. For Python 2, this is
+Return `True` if x is an integer. For Python 2, this is
 either ``int`` or ``long``. For Python 3, this is ``int``.
 
 .. code-block:: hy
@@ -324,7 +325,8 @@ interleave
 
 Usage: ``(interleave seq1 seq2 ...)``
 
-Return an iterable of the first item in each of the sequences, then the second etc.
+Return an iterable of the first item in each of the sequences,
+then the second, etc.
 
 .. code-block:: hy
 
@@ -362,7 +364,7 @@ iterable?
 
 Usage: ``(iterable? x)``
 
-Return True if x is iterable. Iterable objects return a new iterator
+Return `True` if x is iterable. Iterable objects return a new iterator
 when ``(iter x)`` is called. Contrast with :ref:`iterator?-fn`.
 
 .. code-block:: hy
@@ -395,7 +397,7 @@ iterator?
 
 Usage: ``(iterator? x)``
 
-Return True if x is an iterator. Iterators are objects that return
+Return `True` if x is an iterator. Iterators are objects that return
 themselves as an iterator when ``(iter x)`` is called.
 Contrast with :ref:`iterable?-fn`.
 
@@ -502,7 +504,7 @@ neg?
 
 Usage: ``(neg? x)``
 
-Return True if x is less than zero (0).
+Return `True` if x is less than zero (0).
 
 Raises ``TypeError`` if ``(not (numeric? x))``.
 
@@ -521,11 +523,11 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 .. _nil?-fn:
 
 nil?
------
+----
 
 Usage: ``(nil? x)``
 
-Return True if x is nil/None.
+Return `True` if x is `nil`/`None`.
 
 .. code-block:: hy
 
@@ -554,7 +556,7 @@ none?
 
 Usage: ``(none? x)``
 
-Return True if x is None.
+Return `True` if x is `None`.
 
 .. code-block:: hy
 
@@ -614,7 +616,7 @@ numeric?
 
 Usage: ``(numeric? x)``
 
-Return True if x is a numeric, as defined in the Python
+Return `True` if x is a numeric, as defined in the Python
 numbers module class ``numbers.Number``.
 
 .. code-block:: hy
@@ -636,7 +638,7 @@ odd?
 
 Usage: ``(odd? x)``
 
-Return True if x is odd.
+Return `True` if x is odd.
 
 Raises ``TypeError`` if ``(not (numeric? x))``.
 
@@ -659,7 +661,7 @@ pos?
 
 Usage: ``(pos? x)``
 
-Return True if x is greater than zero (0).
+Return `True` if x is greater than zero (0).
 
 Raises ``TypeError`` if ``(not (numeric? x))``.
 
@@ -728,7 +730,7 @@ string?
 
 Usage: ``(string? x)``
 
-Return True if x is a string.
+Return `True` if x is a string.
 
 .. code-block:: hy
 
@@ -745,7 +747,7 @@ zero?
 
 Usage: ``(zero? x)``
 
-Return True if x is zero (0).
+Return `True` if x is zero (0).
 
 .. code-block:: hy
 

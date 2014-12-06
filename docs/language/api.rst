@@ -13,14 +13,14 @@ Theory of Hy
 
 Hy maintains, over everything else, 100% compatibility in both directions
 with Python itself. All Hy code follows a few simple rules. Memorize
-this, it's going to come in handy.
+this, as it's going to come in handy.
 
-These rules help make sure code is idiomatic and interface-able in both
+These rules help ensure that Hy code is idiomatic and interface-able in both
 languages.
 
 
-  * Symbols in earmufs will be translated to the uppercased version of that
-    string. For example, `*foo*` will become `FOO`.
+  * Symbols in earmufs will be translated to the upper-cased version of that
+    string. For example, `foo` will become `FOO`.
 
   * UTF-8 entities will be encoded using
     `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
@@ -33,8 +33,8 @@ languages.
     versa.
 
 
-Builtins
-========
+Built-Ins
+=========
 
 Hy features a number of special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
@@ -47,7 +47,7 @@ behavior that's slightly unexpected in some situations.
 
 
 `.` is used to perform attribute access on objects. It uses a small DSL
-to allow quick access to attributes and items in a nested datastructure.
+to allow quick access to attributes and items in a nested data structure.
 
 For instance,
 
@@ -69,7 +69,7 @@ indexation. Other arguments throw a compilation error.
 
 Access to unknown attributes throws an :exc:`AttributeError`. Access to
 unknown keys throws an :exc:`IndexError` (on lists and tuples) or a
-:exc:`KeyError` (on dicts).
+:exc:`KeyError` (on dictionaries).
 
 ->
 --
@@ -89,7 +89,7 @@ The following code demonstrates this:
 ---
 
 `->>` or `threading tail macro` is similar to `threading macro` but instead of
-inserting each expression into the next expression’s first argument place, it
+inserting each expression into the next expression’s first argument, it
 appends it as the last argument. The following code demonstrates this:
 
 .. code-block:: clj
@@ -133,9 +133,9 @@ Examples:
 and
 ---
 
-`and` form is used in logical expressions. It takes at least two parameters. If
-all parameters evaluate to `True` the last parameter is returned. In any other
-case the first false value will be returned. Examples of usage:
+`and` is used in logical expressions. It takes at least two parameters. If all
+parameters evaluate to `True`, the last parameter is returned. In any other
+case, the first false value will be returned. Example usage:
 
 .. code-block:: clj
 
@@ -165,7 +165,7 @@ case the first false value will be returned. Examples of usage:
 assert
 ------
 
-`assert` is used to verify conditions while the program is running. If the 
+`assert` is used to verify conditions while the program is running. If the
 condition is not met, an `AssertionError` is raised. The example usage:
 
 .. code-block:: clj
@@ -179,10 +179,10 @@ or `False`.
 assoc
 -----
 
-`assoc` form is used to associate a key with a value in a dictionary or to set
-an index of a list to a value. It takes at least three parameters: `datastructure` 
-to be modified, `key` or `index`  and `value`. If more than three parameters are
-used it will associate in pairs.
+`assoc` is used to associate a key with a value in a dictionary or to set an
+index of a list to a value. It takes at least three parameters: the `data
+structure` to be modified, `key` or `index`  and `value`. If more than three
+parameters are used, it will associate in pairs.
 
 Examples of usage:
 
@@ -210,24 +210,21 @@ break
 -----
 
 `break` is used to break out from a loop. It terminates the loop immediately.
-
-The following example has an infinite while loop that is terminated as soon as
-the user enters `k`.
+The following example has an infinite `while` loop that is terminated as soon
+as the user enters `k`.
 
 .. code-block:: clj
 
-    (while True (if (= "k" (raw-input "? ")) 
-                  (break) 
+    (while True (if (= "k" (raw-input "? "))
+                  (break)
                   (print "Try again")))
 
 
 cond
 ----
 
-`cond` macro can be used to build nested if-statements.
-
-The following example shows the relationship between the macro and the expanded
-code:
+`cond` can be used to build nested if-statements. The following example shows
+the relationship between the macro and the expanded code:
 
 .. code-block:: clj
 
@@ -246,7 +243,7 @@ As shown below only the first matching result block is executed.
     ...        [(= value 5) (print "value is equal to 5")]
     ...        [(> value 5) (print "value is greater than 5")]
     ...	       [True (print "value is something that it should not be")]))
- 
+
     => (check-value 6)
     value is greater than 5
 
@@ -255,7 +252,7 @@ continue
 --------
 
 `continue` returns execution to the start of a loop. In the following example,
-function `(side-effect1)` is called for each iteration. `(side-effect2)` 
+function `(side-effect1)` is called for each iteration. `(side-effect2)`
 however is called only for every other value in the list.
 
 .. code-block:: clj
@@ -289,10 +286,10 @@ the sequence based on a conditional expression.
 do / progn
 ----------
 
-the `do` and `progn` forms are used to evaluate each of their arguments and
-return the last one. Return values from every other than the last argument are
-discarded. It can be used in `lambda` or `list-comp` to perform more complex
-logic as shown by one of the examples.
+`do` and `progn` are used to evaluate each of their arguments and return the last
+one. Return values from every other than the last argument are discarded. It can be
+used in `lambda` or `list-comp` to perform more complex logic as shown by one of the
+examples.
 
 Some example usage:
 
@@ -306,9 +303,9 @@ Some example usage:
 
     ;; assuming that (side-effect) is a function that we want to call for each
     ;; and every value in the list, but whose return value we do not care about
-    => (list-comp (do (side-effect x) 
-    ...               (if (< x 5) (* 2 x) 
-    ...                   (* 4 x))) 
+    => (list-comp (do (side-effect x)
+    ...               (if (< x 5) (* 2 x)
+    ...                   (* 4 x)))
     ...           (x (range 10)))
     [0, 2, 4, 6, 8, 20, 24, 28, 32, 36]
 
@@ -316,9 +313,9 @@ Some example usage:
 
 
 def / setv
------------------
+----------
 
-`def` and `setv` are used to bind value, object or a function to a symbol. For
+`def` and `setv` are used to bind a value, object, or function to a symbol. For
 example:
 
 .. code-block:: clj
@@ -335,7 +332,7 @@ example:
 defclass
 --------
 
-new classes are declared with `defclass`. It can takes two optional parameters:
+New classes are declared with `defclass`. It can takes two optional parameters:
 a vector defining a possible super classes and another vector containing
 attributes of the new class as two item vectors.
 
@@ -367,17 +364,17 @@ defn / defun
 ------------
 
 `defn` and `defun` macros are used to define functions. They take three
-parameters: `name` of the function to define, vector of `parameters` and the
-`body` of the function:
+parameters: the `name` of the function to define, a vector of `parameters`,
+and the `body` of the function:
 
 .. code-block:: clj
 
     (defn name [params] body)
 
-Parameters may have following keywords in front of them:
+Parameters may have the following keywords in front of them:
 
 &optional
-    parameter is optional. The parameter can be given as a two item list, where
+    Parameter is optional. The parameter can be given as a two item list, where
     the first element is parameter name and the second is the default value. The
     parameter can be also given as a single item, in which case the default
     value is None.
@@ -394,10 +391,10 @@ Parameters may have following keywords in front of them:
 	101.0
 
 &key
-    
+
 
 &kwargs
-    parameter will contain 0 or more keyword arguments.
+    Parameter will contain 0 or more keyword arguments.
 
     The following code examples defines a function that will print all keyword
     arguments and their values.
@@ -412,7 +409,7 @@ Parameters may have following keywords in front of them:
         parameter-1 1
 
 &rest
-    parameter will contain 0 or more positional arguments. No other positional
+    Parameter will contain 0 or more positional arguments. No other positional
     arguments may be specified after this one.
 
     The following code example defines a function that can be given 0 to n
@@ -463,8 +460,8 @@ defmain
 .. versionadded:: 0.10.1
 
 The `defmain` macro defines a main function that is immediately called
-with sys.argv as arguments if and only if this file is being executed
-as a script.  In other words this:
+with ``sys.argv`` as arguments if and only if this file is being executed
+as a script.  In other words, this:
 
 .. code-block:: clj
 
@@ -484,7 +481,7 @@ is the equivalent of::
        if isinstance(retval, int):
            sys.exit(retval)
 
-Note, as you can see above, if you return an integer from this
+Note that as you can see above, if you return an integer from this
 function, this will be used as the exit status for your script.
 (Python defaults to exit status 0 otherwise, which means everything's
 okay!)
@@ -596,7 +593,7 @@ del
     File "<console>", line 1, in <module>
   NameError: name 'foo' is not defined
 
-`del` can also remove objects from a mapping, a list, ...
+`del` can also remove objects from mappings, lists, and more.
 
 .. code-block:: clj
 
@@ -618,7 +615,7 @@ doto
 
 .. versionadded:: 0.10.1
 
-`doto` macro is used to make a sequence of method calls for an object easy.
+`doto` macro is used to simplify a sequence of method calls to an object.
 
 .. code-block:: clj
 
@@ -664,11 +661,11 @@ first / car
 
 
 for
--------
+---
 
 `for` is used to call a function for each element in a list or vector.
 The results of each call are discarded and the for expression returns
-None instead. The example code iterates over `collection` and
+`None` instead. The example code iterates over `collection` and
 for each `element` in `collection` calls the `side-effect`
 function with `element` as its argument:
 
@@ -687,7 +684,7 @@ normally. If the execution is halted with `break`, the `else` does not execute.
 .. code-block:: clj
 
     => (for [element [1 2 3]] (if (< element 3)
-    ...                             (print element) 
+    ...                             (print element)
     ...                             (break))
     ...    (else (print "loop finished")))
     1
@@ -709,7 +706,7 @@ genexpr
 `genexpr` is used to create generator expressions. It takes two or three parameters.
 The first parameter is the expression controlling the return value, while
 the second is used to select items from a list. The third and optional
-parameter can be used to filter out some of the items in the list based on a 
+parameter can be used to filter out some of the items in the list based on a
 conditional expression. `genexpr` is similar to `list-comp`, except that it returns
 an iterable that evaluates values one by one instead of evaluating them immediately.
 
@@ -728,7 +725,7 @@ gensym
 
 .. versionadded:: 0.9.12
 
-`gensym` form is used to generate a unique symbol to allow writing macros
+`gensym` is used to generate a unique symbol to allow writing macros
 without accidental variable name clashes.
 
 .. code-block:: clj
@@ -746,10 +743,10 @@ without accidental variable name clashes.
 get
 ---
 
-`get` form is used to access single elements in lists and dictionaries. `get`
-takes two parameters, the `datastructure` and the `index` or `key` of the item.
-It will then return the corresponding value from the dictionary or the list. 
-Example usages:
+`get` is used to access single elements in lists and dictionaries. `get` takes
+two parameters: the `data structure` and the `index` or `key` of the item.
+It will then return the corresponding value from the dictionary or the list.
+Example usage:
 
 .. code-block:: clj
 
@@ -772,11 +769,11 @@ global
 
 `global` can be used to mark a symbol as global. This allows the programmer to
 assign a value to a global symbol. Reading a global symbol does not require the
-`global` keyword, just the assigning does.
+`global` keyword -- only assigning it does.
 
-Following example shows how global `a` is assigned a value in a function and later
-on printed on another function. Without the `global` keyword, the second function
-would thrown a `NameError`.
+The following example shows how the global symbol `a` is assigned a value in a
+function and is later on printed in another function. Without the `global` keyword,
+the second function would have thrown a `NameError`.
 
 .. code-block:: clj
 
@@ -793,29 +790,32 @@ would thrown a `NameError`.
 if / if-not
 -----------
 
-the `if` form is used to conditionally select code to be executed. It has to
-contain the condition block and the block to be executed if the condition
-evaluates `True`. Optionally it may contain a block that is executed in case
-the evaluation of the condition is `False`. The `if-not` form (*new in
-0.10.0*) is similar, but the first block after the test will be
-executed when the test fails, while the other, conditional one, when
-the test succeeds - opposite of the order of the `if` form.
+.. versionadded:: 0.10.0
+   if-not
+
+`if` is used to conditionally select code to be executed. It has to contain a
+condition block and the block to be executed if the condition block evaluates
+to `True`. Optionally, it may contain a final block that is executed in case
+the evaluation of the condition is `False`. The `if-not` form is similar, but
+the second block will be executed when the condition fails while the third and
+final block is executed when the test succeeds -- the opposite order of the `if`
+form.
 
 Example usage:
 
 .. code-block:: clj
 
     (if (money-left? account)
-      (print "lets go shopping")
-      (print "lets go and work"))
+      (print "let's go shopping")
+      (print "let's go and work"))
 
     (if-not (money-left? account)
-      (print "lets go and work")
-      (print "lets go shopping"))
+      (print "let's go and work")
+      (print "let's go shopping"))
 
-Truth values of Python objects are respected. Values `None`, `False`, zero of
-any numeric type, empty sequence and empty dictionary are considered `False`.
-Everything else is considered `True`.
+Truth values of Python objects are respected. `None`, `False`, zero of any numeric
+type, an empty sequence, and an empty dictionary are considered `False`. Everything else
+is considered `True`.
 
 
 lisp-if / lif and lisp-if-not / lif-not
@@ -826,10 +826,10 @@ lisp-if / lif and lisp-if-not / lif-not
 .. versionadded:: 0.10.2
    lisp-if-not / lif-not
 
-For those that prefer a more lisp-y if clause, we have lisp-if, or lif.  This
-*only* considers None/nil as false!  All other values of python
-"falseiness" are considered true.  Conversely, we have lisp-if-not or lif-not,
-in parallel to if / if-not, which reverses the comparison.
+For those that prefer a more Lispy `if` clause, we have `lisp-if`, or `lif`.  This
+*only* considers `None`/`nil` as false!  All other "false-ish" Python values are
+considered true.  Conversely, we have `lisp-if-not` and `lif-not` in parallel to
+`if` and `if-not` which reverses the comparison.
 
 
 .. code-block:: clj
@@ -851,7 +851,7 @@ in parallel to if / if-not, which reverses the comparison.
     => (lisp-if-not False "true" "false")
     "false"
 
-    ; And, same thing
+    ; Equivalent but shorter
     => (lif True "true" "false")
     "true"
     => (lif nil "true" "false")
@@ -898,9 +898,9 @@ lambda / fn
 -----------
 
 `lambda` and `fn` can be used to define an anonymous function. The parameters are
-similar to `defn`: first parameter is vector of parameters and the rest is the
-body of the function. lambda returns a new function. In the example an anonymous
-function is defined and passed to another function for filtering output.
+similar to `defn`: the first parameter is vector of parameters and the rest is the
+body of the function. `lambda` returns a new function. In the following example, an
+anonymous function is defined and passed to another function for filtering output.
 
 .. code-block:: clj
 
@@ -927,7 +927,7 @@ class methods docstrings.
     ...    "Multiplies input by three and returns the result."
     ...    (* x 3)))
 
-Then test it via the Python built-in ``help`` function::
+This can be confirmed via Python's built-in ``help`` function::
 
     => (help times-three)
     Help on function times_three:
@@ -941,22 +941,22 @@ let
 ---
 
 `let` is used to create lexically scoped variables. They are created at the
-beginning of `let` form and cease to exist after the form. The following
+beginning of the `let` form and cease to exist after the form. The following
 example showcases this behaviour:
 
 .. code-block:: clj
 
-    => (let [[x 5]] (print x) 
-    ...  (let [[x 6]] (print x)) 
+    => (let [[x 5]] (print x)
+    ...  (let [[x 6]] (print x))
     ...  (print x))
     5
     6
     5
 
-`let` macro takes two parameters: a vector defining `variables` and `body`,
-which is being executed. `variables` is a vector where each element is either
-a single variable or a vector defining a variable value pair. In case of a
-single variable, it is assigned value None, otherwise the supplied value is
+The `let` macro takes two parameters: a vector defining `variables` and the
+`body` which gets executed. `variables` is a vector where each element is either
+a single variable or a vector defining a variable value pair. In the case of a
+single variable, it is assigned value `None`; otherwise, the supplied value is
 used.
 
 .. code-block:: clj
@@ -971,7 +971,7 @@ list-comp
 `list-comp` performs list comprehensions. It takes two or three parameters.
 The first parameter is the expression controlling the return value, while
 the second is used to select items from a list. The third and optional
-parameter can be used to filter out some of the items in the list based on a 
+parameter can be used to filter out some of the items in the list based on a
 conditional expression. Some examples:
 
 .. code-block:: clj
@@ -990,9 +990,9 @@ conditional expression. Some examples:
 not
 ---
 
-`not` form is used in logical expressions. It takes a single parameter and
+`not` is used in logical expressions. It takes a single parameter and
 returns a reversed truth value. If `True` is given as a parameter, `False`
-will be returned and vice-versa. Examples for usage:
+will be returned and vice-versa. Example usage:
 
 .. code-block:: clj
 
@@ -1009,8 +1009,8 @@ will be returned and vice-versa. Examples for usage:
 or
 --
 
-`or` form is used in logical expressions. It takes at least two parameters. It
-will return the first non-false parameter. If no such value exist, the last
+`or` is used in logical expressions. It takes at least two parameters. It will
+return the first non-false parameter. If no such value exists, the last
 parameter will be returned.
 
 .. code-block:: clj
@@ -1024,8 +1024,8 @@ parameter will be returned.
     => (and False 1 True False)
     1
 
-.. note:: `or` shortcuts and stops evaluating parameters as soon as the first
-          true is encountered.
+.. note:: `or` short-circuits and stops evaluating parameters as soon as the
+          first true value is encountered.
 
 .. code-block:: clj
 
@@ -1036,7 +1036,7 @@ parameter will be returned.
 print
 -----
 
-the `print` form is used to output on screen. Example usage:
+`print` is used to output on screen. Example usage:
 
 .. code-block:: clj
 
@@ -1048,11 +1048,11 @@ the `print` form is used to output on screen. Example usage:
 quasiquote
 ----------
 
-`quasiquote` allows you to quote a form, but also to
-selectively evaluate expressions, expressions inside a `quasiquote`
-can be selectively evaluated using `unquote` (~). The evaluated form can
-also be spliced using `unquote-splice` (~@). Quasiquote can be also written
-using the backquote (`) symbol.
+`quasiquote` allows you to quote a form, but also selectively evaluate
+expressions. Expressions inside a `quasiquote` can be selectively evaluated
+using `unquote` (~). The evaluated form can also be spliced using
+`unquote-splice` (~@). Quasiquote can be also written using the backquote (`)
+symbol.
 
 
 .. code-block:: clj
@@ -1067,7 +1067,7 @@ using the backquote (`) symbol.
 quote
 -----
 
-`quote` returns the form passed to it without evaluating. `quote` can
+`quote` returns the form passed to it without evaluating it. `quote` can
 be alternatively written using the (') symbol
 
 
@@ -1129,13 +1129,11 @@ slice
 `slice` can be used to take a subset of a list and create a new list from it.
 The form takes at least one parameter specifying the list to slice. Two
 optional parameters can be used to give the start and end position of the
-subset. If they are not supplied, default value of None will be used instead.
-Third optional parameter is used to control step between the elements.
+subset. If they are not supplied, default value of `None` will be used instead.
+The third optional parameter is used to control step between the elements.
 
-`slice` follows the same rules as the Python counterpart. Negative indecies are
-counted starting from the end of the list.
-Some examples of
-usage:
+`slice` follows the same rules as its Python counterpart. Negative indices are
+counted starting from the end of the list. Some example usage:
 
 .. code-block:: clj
 
@@ -1160,32 +1158,30 @@ usage:
 throw / raise
 -------------
 
-the `throw` or `raise` forms can be used to raise an Exception at runtime.
-
-
-Example usage
+The `throw` or `raise` forms can be used to raise an `Exception` at runtime.
+Example usage:
 
 .. code-block:: clj
 
     (throw)
     ; re-rase the last exception
-    
+
     (throw IOError)
     ; Throw an IOError
-    
+
     (throw (IOError "foobar"))
     ; Throw an IOError("foobar")
 
 
-`throw` can accept a single argument (an `Exception` class or instance), or
-no arguments to re-raise the last Exception.
+`throw` can accept a single argument (an `Exception` class or instance) or
+no arguments to re-raise the last `Exception`.
 
 
 try
 ---
 
-the `try` form is used to start a `try` / `catch` block. The form is used
-as follows
+The `try` form is used to start a `try` / `catch` block. The form is used
+as follows:
 
 .. code-block:: clj
 
@@ -1197,23 +1193,24 @@ as follows
 
 `try` must contain at least one `catch` block, and may optionally have an
 `else` or `finally` block. If an error is raised with a matching catch
-block during execution of `error-prone-function` then that catch block will
-be executed. If no errors are raised the `else` block is executed. Regardless
-if an error was raised or not, the `finally` block is executed as last.
+block during execution of `error-prone-function`, that catch block will
+be executed. If no errors are raised, the `else` block is executed. The
+`finally` block will be executed last, regardless of whether or not an error
+was raised.
 
 
 unless
 ------
 
-`unless` macro is a shorthand for writing a if-statement that checks if the
-given conditional is False. The following shows how the macro expands into code.
+The `unless` macro is a shorthand for writing an `if` statement that checks if the
+given conditional is `False`. The following shows the expansion of this macro.
 
 .. code-block:: clj
 
     (unless conditional statement)
 
-    (if conditional 
-      None 
+    (if conditional
+      None
       (do statement))
 
 
@@ -1256,8 +1253,8 @@ when
 ----
 
 `when` is similar to `unless`, except it tests when the given conditional is
-True. It is not possible to have an `else` block in `when` macro. The following
-shows how the macro is expanded into code.
+`True`. It is not possible to have an `else` block in a `when` macro. The following
+shows the expansion of the macro.
 
 .. code-block:: clj
 
@@ -1268,10 +1265,8 @@ shows how the macro is expanded into code.
 while
 -----
 
-`while` form is used to execute a single or more blocks as long as a condition
-is being met.
-
-The following example will output "hello world!" on screen indefinitely:
+`while` is used to execute one or more blocks as long as a condition is met.
+The following example will output "hello world!" to the screen indefinitely:
 
 .. code-block:: clj
 
@@ -1281,10 +1276,10 @@ The following example will output "hello world!" on screen indefinitely:
 with
 ----
 
-`with` is used to wrap execution of a block with a context manager. The context
-manager can then set up the local system and tear it down in a controlled
-manner. Typical example of using `with` is processing files. `with`  can bind
-context to an argument or ignore it completely, as shown below:
+`with` is used to wrap the execution of a block within a context manager. The
+context manager can then set up the local system and tear it down in a controlled
+manner. The archetypical example of using `with` is when processing files. `with`
+can bind context to an argument or ignore it completely, as shown below:
 
 .. code-block:: clj
 
@@ -1306,12 +1301,12 @@ with-decorator
 --------------
 
 `with-decorator` is used to wrap a function with another. The function
-performing decoration should accept a single value, the function being
-decorated and return a new function. `with-decorator` takes a minimum
-of two parameters, the function performing decoration and the function
-being decorated. More than one decorator function can be applied, they
+performing the decoration should accept a single value: the function being
+decorated, and return a new function. `with-decorator` takes a minimum
+of two parameters: the function performing decoration and the function
+being decorated. More than one decorator function can be applied; they
 will be applied in order from outermost to innermost, ie. the first
-decorator will be the outermost one & so on. Decorators with arguments
+decorator will be the outermost one, and so on. Decorators with arguments
 are called just like a function call.
 
 .. code-block:: clj
@@ -1326,11 +1321,10 @@ are called just like a function call.
       (defn some-function [] ...)
 
 
-
-In the following example, `inc-decorator` is used to decorate function
+In the following example, `inc-decorator` is used to decorate the function
 `addition` with a function that takes two parameters and calls the
 decorated function with values that are incremented by 1. When
-decorated `addition` is called with values 1 and 1, the end result
+the decorated `addition` is called with values 1 and 1, the end result
 will be 4 (1+1 + 1+1).
 
 .. code-block:: clj
@@ -1356,8 +1350,7 @@ with-gensyms
 
 .. versionadded:: 0.9.12
 
-`with-gensym` form is used to generate a set of :ref:`gensym` for use
-in a macro.
+`with-gensym` is used to generate a set of :ref:`gensym` for use in a macro.
 
 .. code-block:: hy
 
@@ -1381,11 +1374,11 @@ expands to:
 yield
 -----
 
-`yield` is used to create a generator object, that returns 1 or more values.
+`yield` is used to create a generator object that returns one or more values.
 The generator is iterable and therefore can be used in loops, list
 comprehensions and other similar constructs.
 
-The function random-numbers shows how generators can be used to generate
+The function `random-numbers` shows how generators can be used to generate
 infinite series without consuming infinite amount of memory.
 
 .. code-block:: clj
@@ -1416,5 +1409,5 @@ yield-from
 
 `yield-from` is used to call a subgenerator.  This is useful if you
 want your coroutine to be able to delegate its processes to another
-coroutine, say if using something fancy like
+coroutine, say, if using something fancy like
 `asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.
