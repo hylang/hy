@@ -483,6 +483,61 @@ In Hy:
      [address (models.TextField)]
      [notes (models.TextField)]])
 
+Hy <-> Python interop
+=================
+
+By importing Hy, you can use Hy directly from Python!
+
+If you save the following in greetings.hy
+
+.. code-block:: clj
+
+    (defn greet [name] (print "hello from hy," name))
+
+Then you can use it directly from python, by importing hy before importing
+the module. In Python::
+
+  import hy
+  import greetings
+  
+  greetings.greet("Foo")
+
+You can also declare a function in python (or even a class!) and use it in Hy!
+
+If you save the following in greetings.py in Python::
+
+  def greet(name):
+      print( "hello, %s" % (name))
+
+You can use it in Hy:
+
+.. code-block:: clj
+
+  (import greetings)
+  (.greet greetings "foo")
+
+To use keyword arguments, you can use in greetings.py::
+
+  def greet(name, title="Sir"):
+      print("Greetings, %s %s" % (title,name))
+
+
+.. code-block:: clj
+    
+  (import greetings)
+  (.greet greetings "Foo")
+  (.greet greetings "Foo" "Darth")
+  (apply (. greetings greet) ["Foo"] {"title" "Lord"})
+
+Which would output:
+
+  Greetings, Sir Foo
+
+  Greetings, Darth Foo
+
+  Greetings, Lord Foo
+  
+
 
 Protips!
 ========
