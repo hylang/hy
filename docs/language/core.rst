@@ -494,7 +494,7 @@ If a key occurs in more than one map, the mapping(s) from the latter
 (left-to-right) will be combined with the mapping in the result by
 calling ``(f val-in-result val-in-latter)``.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
     {u'a': 11L, u'c': 30L, u'b': 20L}
@@ -1171,7 +1171,7 @@ Usage: ``(zipwith fn coll ...)``
 Equivalent to ``zip``, but uses a multi-argument function instead of creating a tuple.
 If ``zipwith`` is called with N collections, then ``fn`` must accept N arguments.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    => (import operator)
    => (list (zipwith operator.add [1 2 3] [4 5 6]))
