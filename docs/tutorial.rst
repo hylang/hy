@@ -264,8 +264,8 @@ What you'll notice is that ``cond`` switches off between a some statement
 that is executed and checked conditionally for true or falseness, and
 then a bit of code to execute if it turns out to be true.  You'll also
 notice that the ``else`` is implemented at the end simply by checking
-for "true"--that's because true will always be true, so if we get this
-far, we'll always run that one!
+for ``true`` -- that's because ``true`` will always be true, so if we get
+this far, we'll always run that one!
 
 You might notice above that if you have code like:
 
@@ -325,7 +325,7 @@ example:
      (os.mkdir "/tmp/somedir/anotherdir")
      (print "Hey, that path isn't there!"))
 
-Python's context managers ('with' statements) are used like this:
+Python's context managers (``with`` statements) are used like this:
 
 .. code-block:: clj
 
@@ -488,7 +488,7 @@ Protips!
 ========
 
 Hy also features something known as the "threading macro", a really neat
-feature of Clojure's. The "threading macro" (written as "->"), is used
+feature of Clojure's. The "threading macro" (written as ``->``) is used
 to avoid deep nesting of expressions.
 
 The threading macro inserts each expression into the next expression's first

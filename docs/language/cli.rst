@@ -63,7 +63,7 @@ Command Line Options
 hyc
 ---
 
-Command line options
+Command Line Options
 ^^^^^^^^^^^^^^^^^^^^
 
 .. cmdoption:: file[, fileN]
@@ -94,7 +94,7 @@ hy2py
 
 .. versionadded:: 0.10.1
 
-Command line options
+Command Line Options
 ^^^^^^^^^^^^^^^^^^^^
 
 .. cmdoption:: -s
