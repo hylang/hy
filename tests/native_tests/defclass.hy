@@ -83,3 +83,11 @@
   (assert (= mL.x 1))
   (assert (in "begin" mL.__doc__))
   (assert (in "end" mL.__doc__)))
+
+(defn test-defclass-macroexpand []
+  "NATIVE: test defclass with macro expand"
+  (defmacro M [] `[x (fn [self x] (setv self._x x))])
+  (defclass A [] [(M)])
+  (setv a (A))
+  (a.x 1)
+  (assert (= a._x 1)))

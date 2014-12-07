@@ -2006,6 +2006,8 @@ class HyASTCompiler(object):
                     expression,
                     "Wrong argument type for defclass attributes definition.")
             for b in body_expression:
+                if isinstance(b, HyExpression):
+                    b = macroexpand(b, self.module_name)
                 if len(b) != 2:
                     raise HyTypeError(
                         expression,
