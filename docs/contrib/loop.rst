@@ -4,8 +4,8 @@ loop/recur
 
 .. versionadded:: 0.10.0
 
-The loop/recur macro gives programmers a simple way to use tail-call
-optimization (TCO) in their Hy code.
+The ``loop`` / ``recur`` macro gives programmers a simple way to use
+tail-call optimization (TCO) in their Hy code.
 
     A tail call is a subroutine call that happens inside another
     procedure as its final action; it may produce a return value which
@@ -25,7 +25,7 @@ optimization (TCO) in their Hy code.
     allowing efficient structured programming.
 
     -- Wikipedia (http://en.wikipedia.org/wiki/Tail_call)
-                  
+
 Macros
 ======
 

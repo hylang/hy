@@ -1,5 +1,5 @@
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
-# Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
+# Copyright (c) 2013, 2014 Bob Tolbert <bob@tolbert.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -209,5 +209,5 @@ class MetaImporter(object):
             return MetaLoader(path)
 
 
-sys.meta_path.append(MetaImporter())
+sys.meta_path.insert(0, MetaImporter())
 sys.path.insert(0, "")

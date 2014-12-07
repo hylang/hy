@@ -4,8 +4,8 @@ defmulti
 
 .. versionadded:: 0.10.0
 
-`defmulti` lets you arity-overload a function by the given number of 
-args and/or kwargs. Inspired by clojures take on `defn`.
+``defmulti`` lets you arity-overload a function by the given number of
+args and/or kwargs. Inspired by Clojure's take on ``defn``.
 
 .. code-block:: clj
 

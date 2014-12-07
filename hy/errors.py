@@ -21,9 +21,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy._compat import PY3
-
 import traceback
+
+from clint.textui import colored
+
+from hy._compat import PY3
 
 
 class HyError(Exception):
@@ -32,44 +34,6 @@ class HyError(Exception):
     Exception.
     """
     pass
-
-
-try:
-    from clint.textui import colored
-except Exception:
-    class colored:
-
-        @staticmethod
-        def black(foo):
-            return foo
-
-        @staticmethod
-        def red(foo):
-            return foo
-
-        @staticmethod
-        def green(foo):
-            return foo
-
-        @staticmethod
-        def yellow(foo):
-            return foo
-
-        @staticmethod
-        def blue(foo):
-            return foo
-
-        @staticmethod
-        def magenta(foo):
-            return foo
-
-        @staticmethod
-        def cyan(foo):
-            return foo
-
-        @staticmethod
-        def white(foo):
-            return foo
 
 
 class HyCompileError(HyError):
