@@ -1,5 +1,5 @@
 ;; Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
-;; Copyright (c) 2013 Bob Tolbert <bob@tolbert.org>
+;; Copyright (c) 2013, 2014 Bob Tolbert <bob@tolbert.org>
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -597,3 +597,8 @@
   (assert (not (keyword? ":foo")))
   (assert (not (keyword? 1)))
   (assert (not (keyword? nil))))
+
+(defn test-import-init-hy []
+  "NATIVE: testing import of __init__.hy"
+  (import tests.resources.bin)
+  (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
