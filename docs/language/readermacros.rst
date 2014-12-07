@@ -6,8 +6,8 @@
 Reader Macros
 =============
 
-Reader macros gives LISP the power to modify and alter syntax on the fly.
-You don't want polish notation? A reader macro can easily do just that. Want
+Reader macros gives Lisp the power to modify and alter syntax on the fly.
+You don't want Polish notation? A reader macro can easily do just that. Want
 Clojure's way of having a regex? Reader macros can also do this easily.
 
 
@@ -33,7 +33,7 @@ else. This is a problem reader macros are able to solve in a neat way.
     => #t(1 2 3)
     (1, 2, 3)
 
-You could even do like clojure, and have a literal for regular expressions!
+You could even do it like Clojure and have a literal for regular expressions!
 
 ::
 
@@ -46,10 +46,10 @@ You could even do like clojure, and have a literal for regular expressions!
 Implementation
 ==============
 
-``defreader`` takes a single character as symbol name for the reader macro,
-anything longer will return an error. Implementation wise, ``defreader``
-expands into a lambda covered with a decorator, this decorator saves the
-lambda in a dict with its module name and symbol.
+``defreader`` takes a single character as symbol name for the reader macro;
+anything longer will return an error. Implementation-wise, ``defreader``
+expands into a lambda covered with a decorator. This decorator saves the
+lambda in a dictionary with its module name and symbol.
 
 ::
 

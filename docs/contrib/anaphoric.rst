@@ -24,8 +24,8 @@ ap-if
 
 Usage: ``(ap-if (foo) (print it))``
 
-Evaluate the first form for trutheyness, and bind it to ``it`` in both the
-true and false branch.
+Evaluates the first form for truthiness, and bind it to ``it`` in both the
+true and false branches.
 
 
 .. _ap-each:
@@ -46,7 +46,7 @@ ap-each-while
 Usage: ``(ap-each-while list pred body)``
 
 Evaluate the form for each element where the predicate form returns
-True.
+``True``.
 
 .. code-block:: hy
 
@@ -63,7 +63,7 @@ ap-map
 Usage: ``(ap-map form list)``
 
 The anaphoric form of map works just like regular map except that
-instead of a function object it takes a Hy form. The special name,
+instead of a function object it takes a Hy form. The special name
 ``it`` is bound to the current object from the list in the iteration.
 
 .. code-block:: hy

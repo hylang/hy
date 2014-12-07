@@ -1,10 +1,10 @@
-=================
+=======
 Hy Core
-=================
+=======
 
 
 Core Functions
-===============
+==============
 
 .. _butlast-fn:
 
@@ -13,7 +13,7 @@ butlast
 
 Usage: ``(butlast coll)``
 
-Returns an iterator of all but the last item in ``coll``.
+Returns an iterator of all but the last item in *coll*.
 
 .. code-block:: hy
 
@@ -40,7 +40,7 @@ coll?
 
 Usage: ``(coll? x)``
 
-Returns true if argument is iterable and not a string.
+Returns ``True`` if *x* is iterable and not a string.
 
 .. code-block:: hy
 
@@ -61,7 +61,7 @@ cons
 
 Usage: ``(cons a b)``
 
-Returns a fresh :ref:`cons cell <hycons>` with car `a` and cdr `b`.
+Returns a fresh :ref:`cons cell <hycons>` with car *a* and cdr *b*.
 
 .. code-block:: hy
 
@@ -81,7 +81,7 @@ cons?
 
 Usage: ``(cons? foo)``
 
-Checks whether ``foo`` is a :ref:`cons cell <hycons>`.
+Checks whether *foo* is a :ref:`cons cell <hycons>`.
 
 .. code-block:: hy
 
@@ -103,9 +103,8 @@ dec
 
 Usage: ``(dec x)``
 
-Return one less than x. Equivalent to ``(- x 1)``.
-
-Raises ``TypeError`` if ``(not (numeric? x))``.
+Returns one less than *x*. Equivalent to ``(- x 1)``. Raises ``TypeError``
+if ``(not (numeric? x))``.
 
 .. code-block:: hy
 
@@ -128,8 +127,8 @@ disassemble
 
 Usage: ``(disassemble tree &optional [codegen false])``
 
-Dump the Python AST for given Hy ``tree`` to standard output. If *codegen*
-is ``true`` function prints Python code instead.
+Dump the Python AST for given Hy *tree* to standard output. If *codegen*
+is ``True``, the function prints Python code instead.
 
 .. code-block:: hy
 
@@ -149,7 +148,7 @@ empty?
 
 Usage: ``(empty? coll)``
 
-Return True if ``coll`` is empty, i.e. ``(= 0 (len coll))``.
+Returns ``True`` if *coll* is empty. Equivalent to ``(= 0 (len coll))``.
 
 .. code-block:: hy
 
@@ -172,7 +171,8 @@ every?
 
 Usage: ``(every? pred coll)``
 
-Return True if ``(pred x)`` is logical true for every ``x`` in ``coll``, otherwise False. Return True if ``coll`` is empty.
+Returns ``True`` if ``(pred x)`` is logical true for every *x* in *coll*,
+otherwise ``False``. Return ``True`` if *coll* is empty.
 
 .. code-block:: hy
 
@@ -196,7 +196,7 @@ float?
 
 Usage: ``(float? x)``
 
-Return True if x is a float.
+Returns ``True`` if *x* is a float.
 
 .. code-block:: hy
 
@@ -214,9 +214,8 @@ even?
 
 Usage: ``(even? x)``
 
-Return True if x is even.
-
-Raises ``TypeError`` if ``(not (numeric? x))``.
+Returns ``True`` if *x* is even. Raises ``TypeError`` if
+``(not (numeric? x))``.
 
 .. code-block:: hy
 
@@ -237,7 +236,7 @@ identity
 
 Usage: ``(identity x)``
 
-Returns argument supplied to the function
+Returns the argument supplied to the function.
 
 .. code-block:: hy
 
@@ -255,9 +254,8 @@ inc
 
 Usage: ``(inc x)``
 
-Return one more than x. Equivalent to ``(+ x 1)``.
-
-Raises ``TypeError`` if ``(not (numeric? x))``.
+Returns one more than *x*. Equivalent to ``(+ x 1)``. Raises ``TypeError``
+if ``(not (numeric? x))``.
 
 .. code-block:: hy
 
@@ -276,9 +274,9 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 instance?
 ---------
 
-Usage: ``(instance? CLASS x)``
+Usage: ``(instance? class x)``
 
-Return True if x is an instance of CLASS.
+Returns ``True`` if *x* is an instance of *class*.
 
 .. code-block:: hy
 
@@ -303,7 +301,7 @@ integer?
 
 Usage: ``(integer? x)``
 
-Return True if x is an integer. For Python 2, this is
+Returns `True` if *x* is an integer. For Python 2, this is
 either ``int`` or ``long``. For Python 3, this is ``int``.
 
 .. code-block:: hy
@@ -324,7 +322,8 @@ interleave
 
 Usage: ``(interleave seq1 seq2 ...)``
 
-Return an iterable of the first item in each of the sequences, then the second etc.
+Returns an iterable of the first item in each of the sequences,
+then the second, etc.
 
 .. code-block:: hy
 
@@ -344,7 +343,7 @@ interpose
 
 Usage: ``(interpose item seq)``
 
-Return an iterable of the elements of the sequence separated by the item.
+Returns an iterable of the elements of the sequence separated by the item.
 
 .. code-block:: hy
 
@@ -362,7 +361,7 @@ iterable?
 
 Usage: ``(iterable? x)``
 
-Return True if x is iterable. Iterable objects return a new iterator
+Returns ``True`` if *x* is iterable. Iterable objects return a new iterator
 when ``(iter x)`` is called. Contrast with :ref:`iterator?-fn`.
 
 .. code-block:: hy
@@ -395,9 +394,9 @@ iterator?
 
 Usage: ``(iterator? x)``
 
-Return True if x is an iterator. Iterators are objects that return
-themselves as an iterator when ``(iter x)`` is called.
-Contrast with :ref:`iterable?-fn`.
+Returns ``True`` if *x* is an iterator. Iterators are objects that return
+themselves as an iterator when ``(iter x)`` is called. Contrast with
+:ref:`iterable?-fn`.
 
 .. code-block:: hy
 
@@ -417,12 +416,15 @@ Contrast with :ref:`iterable?-fn`.
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
 
+
+.. _list*-fn:
+
 list*
 -----
 
 Usage: ``(list* head &rest tail)``
 
-Generate a chain of nested cons cells (a dotted list) containing the
+Generates a chain of nested cons cells (a dotted list) containing the
 arguments. If the argument list only has one element, return it.
 
 .. code-block:: hy
@@ -448,7 +450,7 @@ macroexpand
 
 Usage: ``(macroexpand form)``
 
-Returns the full macro expansion of form.
+Returns the full macro expansion of *form*.
 
 .. code-block:: hy
 
@@ -467,7 +469,7 @@ macroexpand-1
 
 Usage: ``(macroexpand-1 form)``
 
-Returns the single step macro expansion of form.
+Returns the single step macro expansion of *form*.
 
 .. code-block:: hy
 
@@ -482,14 +484,14 @@ merge-with
 
 .. versionadded:: 0.10.1
 
-Usage: ``(merge-with f &rest maps)
+Usage: ``(merge-with f &rest maps)``
 
 Returns a map that consist of the rest of the maps joined onto first.
 If a key occurs in more than one map, the mapping(s) from the latter
 (left-to-right) will be combined with the mapping in the result by
 calling ``(f val-in-result val-in-latter)``.
 
-.. code-block:: clojure
+.. code-block:: hy
 
     => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
     {u'a': 11L, u'c': 30L, u'b': 20L}
@@ -502,9 +504,8 @@ neg?
 
 Usage: ``(neg? x)``
 
-Return True if x is less than zero (0).
-
-Raises ``TypeError`` if ``(not (numeric? x))``.
+Returns ``True`` if *x* is less than zero. Raises ``TypeError`` if
+``(not (numeric? x))``.
 
 .. code-block:: hy
 
@@ -521,11 +522,11 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 .. _nil?-fn:
 
 nil?
------
+----
 
 Usage: ``(nil? x)``
 
-Return True if x is nil/None.
+Returns ``True`` if *x* is ``nil`` / ``None``.
 
 .. code-block:: hy
 
@@ -554,7 +555,7 @@ none?
 
 Usage: ``(none? x)``
 
-Return True if x is None.
+Returns ``True`` if *x* is ``None``.
 
 .. code-block:: hy
 
@@ -580,9 +581,9 @@ nth
 
 Usage: ``(nth coll n &optional [default nil])``
 
-Return the `nth` item in a collection, counting from 0. Return the
+Returns the *n*-th item in a collection, counting from 0. Return the
 default value, ``nil``, if out of bounds (unless specified otherwise).
-Raise ``ValueError`` if ``n`` is negative.
+Raises ``ValueError`` if *n* is negative.
 
 .. code-block:: hy
 
@@ -610,12 +611,12 @@ Raise ``ValueError`` if ``n`` is negative.
 .. _numeric?-fn:
 
 numeric?
----------
+--------
 
 Usage: ``(numeric? x)``
 
-Return True if x is a numeric, as defined in the Python
-numbers module class ``numbers.Number``.
+Returns ``True`` if *x* is a numeric, as defined in Python's
+``numbers.Number`` class.
 
 .. code-block:: hy
 
@@ -636,9 +637,8 @@ odd?
 
 Usage: ``(odd? x)``
 
-Return True if x is odd.
-
-Raises ``TypeError`` if ``(not (numeric? x))``.
+Returns ``True`` if *x* is odd. Raises ``TypeError`` if
+``(not (numeric? x))``.
 
 .. code-block:: hy
 
@@ -659,9 +659,8 @@ pos?
 
 Usage: ``(pos? x)``
 
-Return True if x is greater than zero (0).
-
-Raises ``TypeError`` if ``(not (numeric? x))``.
+Returns ``True`` if *x* is greater than zero. Raises ``TypeError``
+if ``(not (numeric? x))``.
 
 .. code-block:: hy
 
@@ -678,12 +677,11 @@ Raises ``TypeError`` if ``(not (numeric? x))``.
 .. _second-fn:
 
 second
--------
+------
 
 Usage: ``(second coll)``
 
-Return the second member of ``coll``. Equivalent to
-``(get coll 1)``
+Returns the second member of *coll*. Equivalent to ``(get coll 1)``.
 
 .. code-block:: hy
 
@@ -700,8 +698,8 @@ some
 
 Usage: ``(some pred coll)``
 
-Return the first logical true value of ``(pred x)`` for any ``x`` in
-``coll``, otherwise ``nil``. Return ``nil`` if ``coll`` is empty.
+Returns the first logically-true value of ``(pred x)`` for any ``x`` in
+*coll*, otherwise ``nil``. Return ``nil`` if *coll* is empty.
 
 .. code-block:: hy
 
@@ -728,7 +726,7 @@ string?
 
 Usage: ``(string? x)``
 
-Return True if x is a string.
+Returns ``True`` if *x* is a string.
 
 .. code-block:: hy
 
@@ -745,7 +743,7 @@ zero?
 
 Usage: ``(zero? x)``
 
-Return True if x is zero (0).
+Returns ``True`` if *x* is zero.
 
 .. code-block:: hy
 
@@ -760,7 +758,7 @@ Return True if x is zero (0).
 
 
 Sequence Functions
-=======================
+==================
 
 Sequence functions can either create or operate on a potentially
 infinite sequence without requiring the sequence be fully realized in
@@ -819,11 +817,11 @@ To get the Fibonacci number at index 9, (starting from 0):
 .. _cycle-fn:
 
 cycle
-------
+-----
 
 Usage: ``(cycle coll)``
 
-Return an infinite iterator of the members of coll.
+Returns an infinite iterator of the members of coll.
 
 .. code-block:: clj
 
@@ -841,7 +839,7 @@ distinct
 
 Usage: ``(distinct coll)``
 
-Returns an iterator containing only the unique members in ``coll``.
+Returns an iterator containing only the unique members in *coll*.
 
 .. code-block:: hy
 
@@ -862,8 +860,8 @@ drop
 
 Usage: ``(drop n coll)``
 
-Return an iterator, skipping the first ``n`` members of ``coll``
-Raises ``ValueError`` if ``n`` is negative.
+Returns an iterator, skipping the first *n* members of *coll*.
+Raises ``ValueError`` if *n* is negative.
 
 .. code-block:: hy
 
@@ -887,7 +885,8 @@ drop-last
 
 Usage: ``(drop-last n coll)``
 
-Return an iterator of all but the last ``n`` items in ``coll``. Raise ``ValueError`` if ``n`` is negative.
+Returns an iterator of all but the last *n* items in *coll*. Raises
+``ValueError`` if *n* is negative.
 
 .. code-block:: hy
 
@@ -912,8 +911,7 @@ drop-while
 
 Usage: ``(drop-while pred coll)``
 
-Return an iterator, skipping members of ``coll`` until ``pred``
-is False.
+Returns an iterator, skipping members of *coll* until *pred* is ``False``.
 
 .. code-block:: hy
 
@@ -934,7 +932,7 @@ filter
 
 Usage: ``(filter pred coll)``
 
-Return an iterator for all items in ``coll`` that pass the predicate ``pred``.
+Returns an iterator for all items in *coll* that pass the predicate *pred*.
 
 See also :ref:`remove-fn`.
 
@@ -955,7 +953,7 @@ flatten
 
 Usage: ``(flatten coll)``
 
-Return a single list of all the items in ``coll``, by flattening all
+Returns a single list of all the items in *coll*, by flattening all
 contained lists and/or tuples.
 
 .. code-block:: hy
@@ -974,7 +972,7 @@ iterate
 
 Usage: ``(iterate fn x)``
 
-Return an iterator of `x`, `fn(x)`, `fn(fn(x))`.
+Returns an iterator of *x*, *fn(x)*, *fn(fn(x))*, etc.
 
 .. code-block:: hy
 
@@ -992,10 +990,9 @@ read
 
 Usage: ``(read &optional [from-file eof])``
 
-Reads the next hy expression from `from-file` (defaults to `sys.stdin`), and
-can take a single byte as EOF (defaults to an empty string).
-Raises an `EOFError` if `from-file` ends before a complete expression can be
-parsed.
+Reads the next Hy expression from *from-file* (defaulting to ``sys.stdin``), and
+can take a single byte as EOF (defaults to an empty string). Raises ``EOFError``
+if *from-file* ends before a complete expression can be parsed.
 
 .. code-block:: hy
 
@@ -1039,8 +1036,8 @@ remove
 
 Usage: ``(remove pred coll)``
 
-Return an iterator from ``coll`` with elements that pass the
-predicate, ``pred``, removed.
+Returns an iterator from *coll* with elements that pass the
+predicate, *pred*, removed.
 
 See also :ref:`filter-fn`.
 
@@ -1064,7 +1061,7 @@ repeat
 
 Usage: ``(repeat x)``
 
-Return an iterator (infinite) of ``x``.
+Returns an iterator (infinite) of ``x``.
 
 .. code-block:: hy
 
@@ -1079,7 +1076,7 @@ repeatedly
 
 Usage: ``(repeatedly fn)``
 
-Return an iterator by calling ``fn`` repeatedly.
+Returns an iterator by calling *fn* repeatedly.
 
 .. code-block:: hy
 
@@ -1096,8 +1093,8 @@ take
 
 Usage: ``(take n coll)``
 
-Return an iterator containing the first ``n`` members of ``coll``.
-Raises ``ValueError`` if ``n`` is negative.
+Returns an iterator containing the first *n* members of *coll*.
+Raises ``ValueError`` if *n* is negative.
 
 .. code-block:: hy
 
@@ -1117,7 +1114,7 @@ take-nth
 
 Usage: ``(take-nth n coll)``
 
-Return an iterator containing every ``nth`` member of ``coll``.
+Returns an iterator containing every *n*-th member of *coll*.
 
 .. code-block:: hy
 
@@ -1141,7 +1138,7 @@ take-while
 
 Usage: ``(take-while pred coll)``
 
-Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
+Returns an iterator from *coll* as long as *pred* returns ``True``.
 
 .. code-block:: hy
 
@@ -1154,7 +1151,7 @@ Return an iterator from ``coll`` as long as predicate, ``pred`` returns True.
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
 
-.. _zipwith:
+.. _zipwith-fn:
 
 zipwith
 -------
@@ -1163,10 +1160,11 @@ zipwith
 
 Usage: ``(zipwith fn coll ...)``
 
-Equivalent to ``zip``, but uses a multi-argument function instead of creating a tuple.
-If ``zipwith`` is called with N collections, then ``fn`` must accept N arguments.
+Equivalent to ``zip``, but uses a multi-argument function instead of creating
+a tuple. If ``zipwith`` is called with N collections, then *fn* must accept
+N arguments.
 
-.. code-block:: clojure
+.. code-block:: hy
 
    => (import operator)
    => (list (zipwith operator.add [1 2 3] [4 5 6]))

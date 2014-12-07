@@ -27,7 +27,7 @@ Quickstart
 
 6. Hit CTRL-D when you're done.
 
-OMG! That's amazing! I want to write a Hy program.
+*OMG! That's amazing! I want to write a Hy program.*
 
 7. Open up an elite programming editor and type::
 
