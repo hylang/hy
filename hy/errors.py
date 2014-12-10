@@ -21,11 +21,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import unicode_literals
+
 import traceback
 
 from clint.textui import colored
 
-from hy._compat import PY3
+from hy._compat import str_type
 
 
 class HyError(Exception):
@@ -99,14 +101,11 @@ class HyTypeError(TypeError):
             result += '  %s\n' % colored.red("".join(source[-1]))
             result += '  %s\n' % colored.green('-'*(end-1) + '^')
 
-        result += colored.yellow("%s: %s\n\n" %
-                                 (self.__class__.__name__,
-                                  self.message))
+        result += str_type(colored.yellow("%s: %s\n\n" %
+                                          (self.__class__.__name__,
+                                           self.message)))
 
-        if not PY3:
-            return result.encode('utf-8')
-        else:
-            return result
+        return result
 
 
 class HyMacroExpansionError(HyTypeError):

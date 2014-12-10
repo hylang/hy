@@ -21,6 +21,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+
+from __future__ import unicode_literals
+
 import os
 import subprocess
 from hy._compat import PY3
@@ -38,7 +41,7 @@ def run_cmd(cmd, stdin_data=None):
     stdout = ""
     stderr = ""
     if stdin_data is not None:
-        p.stdin.write(stdin_data.encode('ASCII'))
+        p.stdin.write(stdin_data.encode('utf-8'))
         p.stdin.flush()
         p.stdin.close()
     # Read stdout and stderr otherwise if the PIPE buffer is full, we might
@@ -68,6 +71,34 @@ def test_bin_hy_cmd():
     ret = run_cmd("hy -c \"(koan\"")
     assert ret[0] == 1
     assert "Premature end of input" in ret[2]
+
+
+def test_bin_hy_cmd_unicode_arg():
+    ret = run_cmd("hy -c '(defun 鱿 () (print \"OK\")) (鱿)'")
+    assert ret[0] == 0
+    assert "OK" in ret[1]
+
+
+def test_bin_hy_cmd_unicode_output():
+    test_string = "🐍 + ⸨λ⸩ = ❤"
+    code = """(print "%s")""" % test_string
+
+    # In python2, automatic setting of sys.stdout.encoding is only
+    # done when the output is a terminal. This is why this test will
+    # work when done manually from terminal, and fail when called with
+    # run_cmd(). To pass the test in python2, encoding must be set
+    # manually.
+    code = """
+    (import sys)
+    (when (= (get sys.version_info 0) 2)
+      (import locale codecs)
+      (setv sys.stdout ((codecs.getwriter (locale.getpreferredencoding))
+                        sys.stdout)))
+    %s""" % code
+
+    ret = run_cmd("hy -c '%s'" % code)
+    assert ret[0] == 0
+    assert (test_string + "\n") in ret[1]
 
 
 def test_bin_hy_icmd():

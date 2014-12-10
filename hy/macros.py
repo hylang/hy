@@ -200,7 +200,7 @@ def macroexpand_1(tree, module_name):
                         e.expression = tree
                     raise
                 except Exception as e:
-                    msg = "expanding `" + str(tree[0]) + "': " + repr(e)
+                    msg = "expanding `" + str_type(tree[0]) + "': " + repr(e)
                     raise HyMacroExpansionError(tree, msg)
                 obj.replace(tree)
                 return obj
