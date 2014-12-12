@@ -44,6 +44,8 @@
   "define a function `name` with signature `lambda-list` and body `body`"
   (if (not (= (type name) HySymbol))
     (macro-error name "defn/defun takes a name as first argument"))
+  (if (not (isinstance lambda-list HyList))
+    (macro-error name "defn/defun takes a parameter list as second argument"))
   `(setv ~name (fn ~lambda-list ~@body)))
 
 
