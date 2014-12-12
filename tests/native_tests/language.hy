@@ -52,6 +52,15 @@
   (try (eval '(defn lambda [] (print "hello")))
        (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
 
+(defn test-fn-corner-cases []
+  "NATIVE: tests that fn/defn handles corner cases gracefully"
+  (try (eval '(fn "foo"))
+       (catch [e [Exception]] (assert (in "to (fn) must be a list"
+                                          (str e)))))
+  (try (eval '(defn foo "foo"))
+       (catch [e [Exception]]
+         (assert (in "takes a parameter list as second" (str e))))))
+
 (defn test-for-loop []
   "NATIVE: test for loops"
   (setv count 0)

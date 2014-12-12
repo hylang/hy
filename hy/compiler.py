@@ -1893,6 +1893,9 @@ class HyASTCompiler(object):
         called_as = expression.pop(0)
 
         arglist = expression.pop(0)
+        if not isinstance(arglist, HyList):
+            raise HyTypeError(expression,
+                              "First argument to (fn) must be a list")
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
 
         if PY34:
