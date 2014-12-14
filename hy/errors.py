@@ -27,9 +27,10 @@ import traceback
 
 from clint.textui import colored
 
-from hy._compat import str_type
+from hy._compat import str_type, python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class HyError(Exception):
     """
     Generic Hy error. All internal Exceptions will be subclassed from this
@@ -45,7 +46,7 @@ class HyCompileError(HyError):
 
     def __str__(self):
         if isinstance(self.exception, HyTypeError):
-            return str(self.exception)
+            return str_type(self.exception)
         if self.traceback:
             tb = "".join(traceback.format_tb(self.traceback)).strip()
         else:
@@ -55,6 +56,7 @@ class HyCompileError(HyError):
                   self.exception, tb))
 
 
+@python_2_unicode_compatible
 class HyTypeError(TypeError):
     def __init__(self, expression, message):
         super(HyTypeError, self).__init__(message)

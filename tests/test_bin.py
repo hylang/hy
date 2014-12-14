@@ -88,7 +88,7 @@ def test_bin_hy_cmd_unicode_output():
     # work when done manually from terminal, and fail when called with
     # run_cmd(). To pass the test in python2, encoding must be set
     # manually.
-    code = """
+    code = """\
     (import sys)
     (when (= (get sys.version_info 0) 2)
       (import locale codecs)
