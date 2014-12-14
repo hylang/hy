@@ -220,6 +220,18 @@ def test_ast_bad_global():
     cant_compile("(global (foo))")
 
 
+if PY3:
+    def test_ast_good_nonlocal():
+        "Make sure AST can compile valid nonlocal"
+        can_compile("(nonlocal a)")
+        can_compile("(nonlocal foo bar)")
+
+    def test_ast_bad_nonlocal():
+        "Make sure AST can't compile invalid nonlocal"
+        cant_compile("(nonlocal)")
+        cant_compile("(nonlocal (foo))")
+
+
 def test_ast_good_defclass():
     "Make sure AST can compile valid defclass"
     can_compile("(defclass a)")
