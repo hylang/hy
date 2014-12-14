@@ -211,12 +211,13 @@ def test_ast_bad_assert():
 def test_ast_good_global():
     "Make sure AST can compile valid global"
     can_compile("(global a)")
+    can_compile("(global foo bar)")
 
 
 def test_ast_bad_global():
     "Make sure AST can't compile invalid global"
     cant_compile("(global)")
-    cant_compile("(global foo bar)")
+    cant_compile("(global (foo))")
 
 
 def test_ast_good_defclass():
