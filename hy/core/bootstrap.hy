@@ -60,7 +60,9 @@
        (if (!= (len variable) 2)
          (macro-error variable "let variable assignments must contain two items"))
        (.append macroed-variables `(setv ~(get variable 0) ~(get variable 1))))
-      (.append macroed-variables `(setv ~variable None))))
+      (if (isinstance variable HySymbol)
+        (.append macroed-variables `(setv ~variable None))
+        (macro-error variable "let lexical context element must be a list or symbol"))))
   `((fn []
      ~@macroed-variables
      ~@body)))
