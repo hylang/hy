@@ -328,6 +328,24 @@ def test_ast_invalid_for():
     cant_compile("(for* [a 1] (else 1 2))")
 
 
+def test_ast_valid_let():
+    "Make sure AST can compile valid let"
+    can_compile("(let [])")
+    can_compile("(let [a b])")
+    can_compile("(let [[a 1]])")
+    can_compile("(let [[a 1] b])")
+
+
+def test_ast_invalid_let():
+    "Make sure AST can't compile invalid let"
+    cant_compile("(let 1)")
+    cant_compile("(let [1])")
+    cant_compile("(let [[a 1 2]])")
+    cant_compile("(let [[]])")
+    cant_compile("(let [[a]])")
+    cant_compile("(let [[1]])")
+
+
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = can_compile("(foo bar)").body[0]
