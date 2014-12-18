@@ -1,4 +1,4 @@
-pypy_url=http://buildbot.pypy.org/nightly/trunk/pypy-c-jit-latest-linux64.tar.bz2
+pypy_url=https://bitbucket.org/pypy/pypy/downloads/pypy-2.3.1-linux64.tar.bz2
 pip_url=https://bootstrap.pypa.io/get-pip.py
 python=python
 pip=pip
@@ -73,8 +73,8 @@ r: d tox diff
 
 python:
 ifeq ($(bad_pypy),1)
-	# Due to stupid PyPy 2.4 bugs, a custom version needs to be downloaded
-	curl $(pypy_url) -o pypy.tbz2
+	# Due to stupid PyPy 2.4 bugs, an older PyPy 2.3 needs to be downloaded
+	curl -L $(pypy_url) -o pypy.tbz2
 	tar xf pypy.tbz2
 	ln -sf `pwd`/pypy-*/bin/pypy $(python)
 	curl $(pip_url) | $(python)
