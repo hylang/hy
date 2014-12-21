@@ -363,6 +363,7 @@ class HyASTCompiler(object):
     def __init__(self, module_name):
         self.anon_fn_count = 0
         self.anon_var_count = 0
+        self.tail_rec = False
         self.imports = defaultdict(set)
         self.module_name = module_name
         if not module_name.startswith("hy.core"):
@@ -1085,6 +1086,12 @@ class HyASTCompiler(object):
         while len(expr) > 0:
             iexpr = expr.pop(0)
 
+            if iexpr[0] == "__future__" and "TailRec" in iexpr[1]:
+                self.tail_rec = True
+                TRInd = iexpr[1].index("TailRec")
+                iexpr[1].pop(TRInd)
+                if(len(iexpr[1]) == 0):
+                    continue
             if not isinstance(iexpr, (HySymbol, HyList)):
                 raise HyTypeError(iexpr, "(import) requires a Symbol "
                                   "or a List.")
@@ -1944,6 +1951,17 @@ class HyASTCompiler(object):
             if body.contains_yield:
                 body += body.expr_as_stmt()
             else:
+                if self.tail_rec:
+                    expression[-1], changed = self.makeTailRec(expression[-1])
+                    if changed:
+                        new_expression = HyExpression([
+                            HySymbol("with_decorator"),
+                            HySymbol("HyTailRec"),
+                            HyExpression([
+                                called_as,
+                                arglist] + expression)
+                        ]).replace(expression)
+                        return self.compile(new_expression)
                 body += ast.Return(value=body.expr,
                                    lineno=body.expr.lineno,
                                    col_offset=body.expr.col_offset)
@@ -1970,6 +1988,34 @@ class HyASTCompiler(object):
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
 
         return ret
+
+    def exprToTailCall(self, expr):
+        "Takes an expression, and returns a TailCall of that expression"
+        return HyExpression([
+            HySymbol("raise"),
+            HyExpression([HySymbol("HyTailCall")] + expr),
+        ]).replace(expr)
+
+    def makeTailRec(self, body):
+        """ Takes the body of an expression, and returns a tail recursive
+            TailCall form of the body """
+        if isinstance(body, HyExpression):
+            # Only compile expression, names and symbols should just stand
+            if body[0] == "if":
+                body[2], changed2 = self.makeTailRec(body[2])
+                changed3 = False
+                if len(body) == 4:
+                    body[3], changed3 = self.makeTailRec(body[3])
+                return body, (changed2 or changed3)
+            if body[0] == "progn" or body[0] == "do":
+                body[-1], changed = self.makeTailRec(body[-1])
+                return body, changed
+            elif body[0] in _compile_table.keys():
+                # Bail on all keywords in hy and other special forms
+                return body, False
+            else:
+                return self.exprToTailCall(body), True
+        return body, False
 
     @builds("defclass")
     @checkargs(min=1)
