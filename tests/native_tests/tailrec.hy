@@ -17,8 +17,3 @@
                 (facthelper (- n 1) (* n acc))))
          (facthelper n 1))
         (assert (< 0 (fact 1000)))))
-
-
-
-
-
