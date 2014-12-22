@@ -1133,3 +1133,23 @@
   (assert (= (name :foo) "foo"))
   (assert (= (name :foo_bar) "foo-bar"))
   (assert (= (name test-name-conversion) "test-name-conversion")))
+
+(defn test-keywords []
+  "Check keyword use in function calls"
+  (assert (= (kwtest) {}))
+  (assert (= (kwtest :key "value") {"key" "value"}))
+  (assert (= (kwtest :key-with-dashes "value") {"key_with_dashes" "value"}))
+  (assert (= (kwtest :result (+ 1 1)) {"result" 2}))
+  (assert (= (kwtest :key (kwtest :key2 "value")) {"key" {"key2" "value"}})))
+
+(defmacro identify-keywords [&rest elts]
+  `(list
+    (map
+     (lambda (x) (if (is-keyword x) "keyword" "other"))
+     ~elts)))
+
+(defn test-keywords-and-macros []
+  "Macros should still be able to handle keywords as they best see fit."
+  (assert
+   (= (identify-keywords 1 "bloo" :foo)
+      ["other" "other" "keyword"])))

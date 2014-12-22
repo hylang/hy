@@ -396,15 +396,26 @@ The same thing in Hy::
   [1 2 None 42]
   => (optional_arg 1 2 3 4)
   [1 2 3 4]
-  => (apply optional_arg []
-  ...         {"keyword1" 1
-  ...          "pos2" 2
-  ...          "pos1" 3
-  ...          "keyword2" 4})
-  ...
+  => (optional_arg :keyword1 1
+  ...              :pos2 2    
+  ...              :pos1 3    
+  ...              :keyword2 4)
   [3, 2, 1, 4]
 
-See how we use apply to handle the fancy passing? :)
+Are you familiar with passing in *args and **kwargs in Python?::
+
+  >>> args = [1 2]
+  >>> kwargs = {"keyword2": 3
+  ...           "keyword1": 4}
+  >>> optional_arg(*args, **kwargs)
+
+We can reproduce this with "apply"::
+
+  => (setv args [1 2])
+  => (setv kwargs {"keyword2" 3
+  ...              "keyword1" 4})
+  => (apply optional_arg args kwargs)
+  [1, 2, 4, 3]
 
 There's also a dictionary-style keyword arguments construction that
 looks like:
@@ -479,7 +490,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [[name (apply models.CharField [] {"max_length" 255})]
+    [[name (models.CharField :max_length 255})]
      [address (models.TextField)]
      [notes (models.TextField)]])
 
