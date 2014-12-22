@@ -112,8 +112,8 @@ def builds(_type):
     really_ok = ["-"]
     if any(x in unpythonic_chars for x in str_type(_type)):
         if _type not in really_ok:
-            raise TypeError("`build' needs to be *post* translated strings, "
-                            "Mr. / Mrs. Hypser. -- `%s' sucks." % (_type))
+            raise TypeError("Dear Hypster: `build' needs to be *post* "
+                            "translated strings... `%s' sucks." % (_type))
 
     def _dec(fn):
         _compile_table[_type] = fn
