@@ -397,8 +397,8 @@ The same thing in Hy::
   => (optional-arg 1 2 3 4)
   [1 2 3 4]
   => (optional-arg :keyword1 1
-  ...              :pos2 2    
-  ...              :pos1 3    
+  ...              :pos2 2
+  ...              :pos1 3
   ...              :keyword2 4)
   [3, 2, 1, 4]
 
