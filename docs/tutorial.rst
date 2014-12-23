@@ -396,20 +396,26 @@ The same thing in Hy::
   [1 2 None 42]
   => (optional-arg 1 2 3 4)
   [1 2 3 4]
+
+If you're running a version of Hy past 0.10.1 (eg, git master),
+there's also a nice new keyword argument syntax::
+
   => (optional-arg :keyword1 1
   ...              :pos2 2
   ...              :pos1 3
   ...              :keyword2 4)
   [3, 2, 1, 4]
 
-Are you familiar with passing in *args and **kwargs in Python?::
+Otherwise, you can always use `apply`.  But what's `apply`?
+
+Are you familiar with passing in `*args` and `**kwargs` in Python?::
 
   >>> args = [1 2]
   >>> kwargs = {"keyword2": 3
   ...           "keyword1": 4}
   >>> optional_arg(*args, **kwargs)
 
-We can reproduce this with "apply"::
+We can reproduce this with `apply`::
 
   => (setv args [1 2])
   => (setv kwargs {"keyword2" 3
