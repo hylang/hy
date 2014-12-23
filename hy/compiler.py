@@ -444,7 +444,7 @@ class HyASTCompiler(object):
         ret = Result()
         keywords = []
 
-        exprs_iter = exprs.__iter__()
+        exprs_iter = iter(exprs)
         for expr in exprs_iter:
             if with_kwargs and isinstance(expr, HyKeyword):
                 try:
