@@ -42,8 +42,9 @@ lg.add('UNQUOTE', r'~%s' % end_quote)
 lg.add('HASHBANG', r'#!.*[^\r\n]')
 lg.add('HASHREADER', r'#.')
 
-
-lg.add('STRING', r'''(?x)
+# A regexp which matches incomplete strings, used to support
+# multi-line strings in the interpreter
+partial_string = r'''(?x)
     (?:u|r|ur|ru)? # prefix
     "  # start string
     (?:
@@ -53,9 +54,10 @@ lg.add('STRING', r'''(?x)
        | \\u[0-9a-fA-F]{4}  # or unicode escape
        | \\U[0-9a-fA-F]{8}  # or long unicode escape
     )* # one or more times
-    "  # end string
-''')
+'''
 
+lg.add('STRING', r'%s"' % partial_string)
+lg.add('PARTIAL_STRING', partial_string)
 
 lg.add('IDENTIFIER', r'[^()\[\]{}\'"\s;]+')
 
