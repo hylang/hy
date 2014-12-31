@@ -49,6 +49,11 @@ def test_lex_exception():
         assert True is False
     except PrematureEndOfInput:
         pass
+    try:
+        tokenize("(foo \"bar")
+        assert True is False
+    except PrematureEndOfInput:
+        pass
 
 
 def test_unbalanced_exception():
@@ -73,7 +78,7 @@ def test_lex_expression_symbols():
 
 
 def test_lex_expression_strings():
-    """ Test that expressions can produce symbols """
+    """ Test that expressions can produce strings """
     objs = tokenize("(foo \"bar\")")
     assert objs == [HyExpression([HySymbol("foo"), HyString("bar")])]
 

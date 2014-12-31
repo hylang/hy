@@ -144,8 +144,8 @@ Now let's look at the equivalent Hy program:
 
    (defn simple-conversation []
       (print "Hello!  I'd like to get to know you.  Tell me about yourself!")
-      (setv name (raw_input "What is your name? "))
-      (setv age (raw_input "What is your age? "))
+      (setv name (raw-input "What is your name? "))
+      (setv age (raw-input "What is your age? "))
       (print (+ "Hello " name "!  I see you are "
                  age " years old.")))
 
@@ -390,28 +390,45 @@ In Python we might see::
 
 The same thing in Hy::
 
-  => (defn optional_arg [pos1 pos2 &optional keyword1 [keyword2 42]]
+  => (defn optional-arg [pos1 pos2 &optional keyword1 [keyword2 42]]
   ...  [pos1 pos2 keyword1 keyword2])
-  => (optional_arg 1 2)
+  => (optional-arg 1 2)
   [1 2 None 42]
-  => (optional_arg 1 2 3 4)
+  => (optional-arg 1 2 3 4)
   [1 2 3 4]
-  => (apply optional_arg []
-  ...         {"keyword1" 1
-  ...          "pos2" 2
-  ...          "pos1" 3
-  ...          "keyword2" 4})
-  ...
+
+If you're running a version of Hy past 0.10.1 (eg, git master),
+there's also a nice new keyword argument syntax::
+
+  => (optional-arg :keyword1 1
+  ...              :pos2 2
+  ...              :pos1 3
+  ...              :keyword2 4)
   [3, 2, 1, 4]
 
-See how we use apply to handle the fancy passing? :)
+Otherwise, you can always use `apply`.  But what's `apply`?
+
+Are you familiar with passing in `*args` and `**kwargs` in Python?::
+
+  >>> args = [1 2]
+  >>> kwargs = {"keyword2": 3
+  ...           "keyword1": 4}
+  >>> optional_arg(*args, **kwargs)
+
+We can reproduce this with `apply`::
+
+  => (setv args [1 2])
+  => (setv kwargs {"keyword2" 3
+  ...              "keyword1" 4})
+  => (apply optional-arg args kwargs)
+  [1, 2, 4, 3]
 
 There's also a dictionary-style keyword arguments construction that
 looks like:
 
 .. code-block:: clj
 
-  (defn another_style [&key {"key1" "val1" "key2" "val2"}]
+  (defn another-style [&key {"key1" "val1" "key2" "val2"}]
     [key1 key2])
 
 The difference here is that since it's a dictionary, you can't rely on
@@ -427,7 +444,7 @@ The Hy equivalent:
 
 .. code-block:: clj
 
-  (defn some_func [foo bar &rest args &kwargs kwargs]
+  (defn some-func [foo bar &rest args &kwargs kwargs]
     (import pprint)
     (pprint.pprint (, foo bar args kwargs)))
 
@@ -479,7 +496,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [[name (apply models.CharField [] {"max_length" 255})]
+    [[name (models.CharField :max-length 255})]
      [address (models.TextField)]
      [notes (models.TextField)]])
 

@@ -236,6 +236,12 @@ def t_string(p):
     return uni_hystring(s)
 
 
+@pg.production("string : PARTIAL_STRING")
+def t_partial_string(p):
+    # Any unterminated string requires more input
+    raise PrematureEndOfInput("Premature end of input")
+
+
 @pg.production("identifier : IDENTIFIER")
 @set_boundaries
 def t_identifier(p):
