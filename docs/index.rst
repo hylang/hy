@@ -32,6 +32,7 @@ Contents:
 
    quickstart
    tutorial
+   style-guide
    language/index
    contrib/index
    hacking
