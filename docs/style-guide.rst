@@ -11,11 +11,12 @@ The Hy style guide intends to be a set of ground rules for the Hyve
 to write idiomatic Hy code. Hy derives a lot from Clojure & Common
 Lisp, while always maintaining Python interopability.
 
+
 Prelude
--------
+=======
 
 The Tao of Hy
-~~~~~~~~~~~~~
+-------------
 
 ::
 
@@ -46,8 +47,9 @@ into the making of Hy.
 + Keep in mind we're not Clojure. We're not Common Lisp. We're
   Homoiconic Python, with extra bits that make sense.
 
+
 Layout & Indentation
---------------------
+====================
 
 + Avoid trailing spaces. They suck!
 
@@ -129,7 +131,7 @@ Layout & Indentation
 
 
 Coding Style
-------------
+============
 
 + As a convention, try not to use `def` for other than global
   variables, use `setv` inside functions,loops etc.
@@ -217,7 +219,7 @@ expressions
 
 
 Conclusion
-----------
+==========
 
   “Fashions fade, style is eternal”
   —Yves Saint Laurent
@@ -230,7 +232,7 @@ about it, tweet about it, and importantly have fun with Hy
 
 
 Thanks
-------
+======
 
 + This guide is heavily inspired from `@paultag`_ 's blog post `Hy
   Survival Guide`_
