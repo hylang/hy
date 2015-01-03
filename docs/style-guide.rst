@@ -56,58 +56,58 @@ Layout & Indentation
 + Indentation shall be 2 spaces (no hard tabs), except when matching
   the indentation of the previous line.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-   ;; Good (and preferred)
-   (defn fib [n]
-     (if (<= n 2)
-       n
-       (+ (fib (- n 1)) (fib (- n 2)))))
-
-   ;; Still okay
-   (defn fib [n]
-     (if (<= n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
-
-   ;; Still okay
-   (defn fib [n]
-     (if (<= n 2)
-       n
-       (+ (fib (- n 1)) (fib (- n 2)))))
-
-   ;; Hysterically ridiculous
-   (defn fib [n]
+     ;; Good (and preferred)
+     (defn fib [n]
        (if (<= n 2)
-               n ;; yes, I love randomly hitting the space key
+         n
          (+ (fib (- n 1)) (fib (- n 2)))))
+
+     ;; Still okay
+     (defn fib [n]
+       (if (<= n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
+
+     ;; Still okay
+     (defn fib [n]
+       (if (<= n 2)
+         n
+         (+ (fib (- n 1)) (fib (- n 2)))))
+
+     ;; Hysterically ridiculous
+     (defn fib [n]
+         (if (<= n 2)
+                 n ;; yes, I love randomly hitting the space key
+           (+ (fib (- n 1)) (fib (- n 2)))))
 
 
 + Parentheses must *never* be left alone, sad and lonesome on their own
   line.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-  ;; Good (and preferred)
-  (defn fib [n]
-    (if (<= n 2)
-	n
-	(+ (fib (- n 1)) (fib (- n 2)))))
-
-  ;; Hysterically ridiculous
-  (defn fib [n]
+    ;; Good (and preferred)
+    (defn fib [n]
       (if (<= n 2)
-	n
-	(+ (fib (- n 1)) (fib (- n 2)))
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))))
+
+    ;; Hysterically ridiculous
+    (defn fib [n]
+      (if (<= n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
       )
-  )  ; GAH, BURN IT WITH FIRE
+    )  ; GAH, BURN IT WITH FIRE
 
 
 + Vertically align ``let`` blocks.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-   (let [[foo (bar)]
-         [qux (baz)]]
-     (foo qux))
+     (let [[foo (bar)]
+           [qux (baz)]]
+        (foo qux))
 
 
 + Inline comments shall be two spaces from the end of the code; they
@@ -132,21 +132,21 @@ Coding Style
 + As a convention, try not to use ``def`` for anything other than global
   variables; use ``setv`` inside functions, loops, etc.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-   ;; Good (and preferred)
-   (def *limit* 400000)
+     ;; Good (and preferred)
+     (def *limit* 400000)
 
-   (defn fibs [a b]
-     (while true
-       (yield a)
-       (setv (, a b) (, b (+ a b)))))
+     (defn fibs [a b]
+       (while true
+         (yield a)
+         (setv (, a b) (, b (+ a b)))))
 
-   ;; Bad (and not preferred)
-   (defn fibs [a b]
-     (while true
-       (yield a)
-       (def (, a b) (, b (+ a b)))))
+     ;; Bad (and not preferred)
+     (defn fibs [a b]
+       (while true
+         (yield a)
+         (def (, a b) (, b (+ a b)))))
 
 
 + Do not use s-expression syntax where vector syntax is intended.
@@ -154,15 +154,15 @@ Coding Style
   is just because the compiler isn't overly strict. In reality, the
   correct syntax in places such as this is the latter.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-   ;; Bad (and evil)
-   (defn foo (x) (print x))
-   (foo 1)
+     ;; Bad (and evil)
+     (defn foo (x) (print x))
+     (foo 1)
 
-   ;; Good (and preferred)
-   (defn foo [x] (print x))
-   (foo 1)
+     ;; Good (and preferred)
+     (defn foo [x] (print x))
+     (foo 1)
 
 
 + Use the threading macro or the threading tail macros when encountering
@@ -170,34 +170,34 @@ Coding Style
   use them when clarity and readability improves; do not construct
   convoluted, hard to understand expressions.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-   ;; Preferred
-   (def *names*
-     (with [f (open "names.txt")]
-       (-> (.read f) (.strip) (.replace "\"" "") (.split ",") (sorted))))
+     ;; Preferred
+     (def *names*
+       (with [f (open "names.txt")]
+         (-> (.read f) (.strip) (.replace "\"" "") (.split ",") (sorted))))
 
-   ;; Not so good
-   (def *names*
-     (with [f (open "names.txt")]
-     (sorted (.spilt "," (.replace "\"" "" (.strip (.read f)))))))
+     ;; Not so good
+     (def *names*
+       (with [f (open "names.txt")]
+       (sorted (.spilt "," (.replace "\"" "" (.strip (.read f)))))))
 
-   ;; Probably not a good idea
-   (defn square? [x]
-     (->> 2 (pow (int (sqrt x))) (= x)))
+     ;; Probably not a good idea
+     (defn square? [x]
+       (->> 2 (pow (int (sqrt x))) (= x)))
 
 
 + Clojure-style dot notation is preferred over the direct call of
   the object's method, though both will continue to be supported.
 
-.. code-block:: clj
+  .. code-block:: clj
 
-   ;; Good
-   (with [fd (open "/etc/passwd")]
+     ;; Good
+     (with [fd (open "/etc/passwd")]
        (print (.readlines fd)))
 
-   ;; Not so good
-   (with [fd (open "/etc/passwd")]
+     ;; Not so good
+     (with [fd (open "/etc/passwd")]
        (print (fd.readlines)))
 
 
