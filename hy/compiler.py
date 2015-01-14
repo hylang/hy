@@ -1295,7 +1295,7 @@ class HyASTCompiler(object):
                                 isinstance(fn.stmts[-1], ast.ClassDef)):
             raise HyTypeError(expr, "Decorated a non-function")
         decorators, ret, _ = self._compile_collect(expr)
-        fn.stmts[-1].decorator_list = decorators
+        fn.stmts[-1].decorator_list = decorators + fn.stmts[-1].decorator_list
         return ret + fn
 
     @builds("with*")
