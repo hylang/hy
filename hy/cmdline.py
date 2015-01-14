@@ -41,6 +41,7 @@ from hy.compiler import hy_compile, HyTypeError
 from hy.importer import (ast_compile, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst)
 from hy.completer import completion
+from hy.completer import Completer
 
 from hy.macros import macro, require
 from hy.models.expression import HyExpression
@@ -219,9 +220,12 @@ def run_repl(hr=None, spy=False):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    with completion():
+    ns = dict()
+
+    with completion(Completer(namespace=ns)):
+
         if not hr:
-            hr = HyREPL(spy)
+            hr = HyREPL(spy, locals=ns)
 
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
@@ -326,6 +330,7 @@ def cmdline_handler(scriptname, argv):
                 sys.exit(x.errno)
 
     # User did NOTHING!
+
     return run_repl(spy=options.spy)
 
 

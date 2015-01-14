@@ -26,7 +26,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+import re
 import sys
+
 from contextlib import contextmanager
 
 docomplete = True
@@ -64,19 +66,51 @@ class Completer(object):
 
         self.namespace = namespace
 
-    def complete(self, text, state):
+    def attr_matches(self, text):
+        # Borrowed from IPython's completer
+
+        # Another option, seems to work great. Catches things like ''.<tab>
+        m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
+
+        if m:
+            expr, attr = m.group(1, 3)
+        else:
+            return []
+
+        try:
+            obj = eval(expr, self.namespace)
+        except:
+            return []
+
+        # Build match list to return
+        n = len(attr)
+        matches = ["%s.%s" % (expr, w) for w in words if w[:n] == attr]
+        return matches
+
+    def global_matches(self, text):
         path = PATH
         if self.namespace:
             path.append(self.namespace)
 
         matches = []
-
         for p in path:
             p = filter(lambda x: isinstance(x, str), p.keys())
             p = [x.replace("_", "-") for x in p]
             [matches.append(x) for x in
                 filter(lambda x: x.startswith(text), p)]
+        return matches
 
+    def complete(self, text, state):
+        matches = []
+
+        if "." in text:
+            try:
+                matches = self.attr_matches(text)
+            except:
+                import traceback
+                traceback.print_exc()
+        else:
+            matches = self.global_matches(text)
         try:
             return matches[state]
         except IndexError:
