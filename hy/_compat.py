@@ -54,6 +54,11 @@ else:
     long_type = long  # NOQA
 
 if PY3:
+    string_types = str,
+else:
+    string_types = basestring,  # NOQA
+
+if PY3:
     exec('def raise_empty(t, *args): raise t(*args) from None')
 else:
     def raise_empty(t, *args):
