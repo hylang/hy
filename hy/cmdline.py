@@ -128,9 +128,9 @@ def koan_macro():
   "The Nirvana Sutra has the Four Virtues, hasn't it?"
   "It has."
   Ummon asked, picking up a cup, "How many virtues has this?"
-  "None at all, " said the monk.
+  "None at all," said the monk.
   "But ancient people said it had, didn't they?" said Ummon.
-  "Whatdo you think of what they said?"
+  "What do you think of what they said?"
   Ummon struck the cup and asked, "You understand?"
   "No," said the monk.
   "Then," said Ummon, "You'd better go on with your lectures on the sutra."
