@@ -337,7 +337,7 @@ which is equivalent to::
   with open("/tmp/data.in") as f:
       print f.read()
 
-And yes, we do have Lisp comprehensions!  In Python you might do::
+And yes, we do have List comprehensions!  In Python you might do::
 
   odds_squared = [
     pow(num, 2)
