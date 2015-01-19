@@ -220,12 +220,12 @@ def run_repl(hr=None, spy=False):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    ns = {}
+    namespace = {'__name__': '__console__', '__doc__': ''}
 
-    with completion(Completer(namespace=ns)):
+    with completion(Completer(namespace)):
 
         if not hr:
-            hr = HyREPL(spy, locals=ns)
+            hr = HyREPL(spy, namespace)
 
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
