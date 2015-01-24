@@ -18,7 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models import HyObject, replace_hy_obj, _wrappers, wrap_value
 
 
 class HyList(HyObject, list):
@@ -28,7 +28,7 @@ class HyList(HyObject, list):
 
     def replace(self, other):
         for x in self:
-            x.replace(other)
+            replace_hy_obj(x, other)
 
         HyObject.replace(self, other)
         return self
@@ -49,3 +49,6 @@ class HyList(HyObject, list):
 
     def __repr__(self):
         return "[%s]" % (" ".join([repr(x) for x in self]))
+
+_wrappers[list] = lambda l: HyList(wrap_value(x) for x in l)
+_wrappers[tuple] = lambda t: HyList(wrap_value(x) for x in t)

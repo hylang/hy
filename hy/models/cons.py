@@ -18,8 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.macros import _wrap_value
-from hy.models import HyObject
+from hy.models import HyObject, replace_hy_obj, wrap_value
 from hy.models.expression import HyExpression
 from hy.models.symbol import HySymbol
 
@@ -42,17 +41,17 @@ class HyCons(HyObject):
                     if cdr[0] in ("unquote", "unquote_splice"):
                         return super(HyCons, cls).__new__(cls)
 
-            return cdr.__class__([_wrap_value(car)] + cdr)
+            return cdr.__class__([wrap_value(car)] + cdr)
 
         elif cdr is None:
-            return HyExpression([_wrap_value(car)])
+            return HyExpression([wrap_value(car)])
 
         else:
             return super(HyCons, cls).__new__(cls)
 
     def __init__(self, car, cdr):
-        self.car = _wrap_value(car)
-        self.cdr = _wrap_value(cdr)
+        self.car = wrap_value(car)
+        self.cdr = wrap_value(cdr)
 
     def __getitem__(self, n):
         if n == 0:
@@ -88,9 +87,9 @@ class HyCons(HyObject):
 
     def replace(self, other):
         if self.car is not None:
-            self.car.replace(other)
+            replace_hy_obj(self.car, other)
         if self.cdr is not None:
-            self.cdr.replace(other)
+            replace_hy_obj(self.cdr, other)
 
         HyObject.replace(self, other)
 

@@ -18,7 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models import HyObject, _wrappers
 from hy._compat import str_type
 
 
@@ -29,3 +29,5 @@ class HyString(HyObject, str_type):
     Python version.
     """
     pass
+
+_wrappers[str_type] = HyString

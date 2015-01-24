@@ -18,7 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models import HyObject, _wrappers
 
 
 class HyFloat(HyObject, float):
@@ -30,3 +30,5 @@ class HyFloat(HyObject, float):
     def __new__(cls, number, *args, **kwargs):
         number = float(number)
         return super(HyFloat, cls).__new__(cls, number)
+
+_wrappers[float] = HyFloat

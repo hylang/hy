@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy.models import _wrappers, wrap_value
 from hy.models.list import HyList
 
 
@@ -28,3 +29,5 @@ class HyExpression(HyList):
 
     def __repr__(self):
         return "(%s)" % (" ".join([repr(x) for x in self]))
+
+_wrappers[HyExpression] = lambda e: HyExpression(wrap_value(x) for x in e)

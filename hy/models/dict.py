@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy.models import _wrappers, wrap_value
 from hy.models.list import HyList
 
 
@@ -37,3 +38,5 @@ class HyDict(HyList):
 
     def items(self):
         return list(zip(self.keys(), self.values()))
+
+_wrappers[dict] = lambda d: HyDict(wrap_value(x) for x in sum(d.items(), ()))
