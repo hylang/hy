@@ -21,18 +21,10 @@
 from hy.models import replace_hy_obj, wrap_value
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
-from hy.models.symbol import HySymbol
-from hy.models.list import HyList
-from hy.models.integer import HyInteger
-from hy.models.float import HyFloat
-from hy.models.complex import HyComplex
-from hy.models.dict import HyDict
-from hy._compat import str_type, long_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
-import sys
 
 CORE_MACROS = [
     "hy.core.bootstrap",

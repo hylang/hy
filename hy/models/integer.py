@@ -23,6 +23,7 @@ from hy._compat import long_type
 
 import sys
 
+
 class HyInteger(HyObject, long_type):
     """
     Internal representation of a Hy Integer. May raise a ValueError as if

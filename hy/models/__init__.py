@@ -38,6 +38,7 @@ class HyObject(object):
 
 _wrappers = {}
 
+
 def wrap_value(x):
     """Wrap `x` into the corresponding Hy type.
 
@@ -64,6 +65,5 @@ def replace_hy_obj(obj, other):
     if isinstance(wrapped_obj, HyObject):
         return wrapped_obj.replace(other)
     else:
-        raise TypeError("Can't replace a Hy object with a non wrappable non Hy object")
-        
-
+        raise TypeError("Can't replace a Hy object "
+                        "with a non wrappable non Hy object")

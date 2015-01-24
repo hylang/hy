@@ -11,6 +11,7 @@ def test_replace_long_type():
     replaced = replace_hy_obj(long_type(0), HyInteger(13))
     assert replaced == HyInteger(0)
 
+
 def test_replace_string_type():
     """Test replacing python string"""
     replaced = replace_hy_obj(str_type("foo"), HyString("bar"))
@@ -23,4 +24,3 @@ def test_replace_tuple():
     assert type(replaced) == HyList
     assert type(replaced[0]) == HyInteger
     assert replaced == HyList([HyInteger(0)])
-
