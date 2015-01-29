@@ -29,6 +29,7 @@
 (import sys)
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]]
+        [hy.models.symbol [HySymbol]]
         [hy.models.keyword [HyKeyword *keyword-prefix*]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 
@@ -162,6 +163,10 @@
 (defn float? [x]
   "Return True if x is float"
   (isinstance x float))
+
+(defn symbol? [s]
+  "Check whether s is a symbol"
+  (instance? HySymbol s))
 
 (import [threading [Lock]])
 (setv _gensym_counter 1234)
@@ -414,5 +419,5 @@
                  interpose iterable? iterate iterator? keyword keyword? list*
                  macroexpand macroexpand-1 map merge-with name neg? nil? none?
                  nth numeric? odd? pos? range read remove repeat repeatedly
-                 rest reduce second some string string? take take-nth
+                 rest reduce second some string string? symbol? take take-nth
                  take-while zero? zip zip_longest zipwith])

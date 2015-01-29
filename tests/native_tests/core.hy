@@ -233,6 +233,14 @@
   (assert-true (float? -3.2))
   (assert-false (float? "foo")))
 
+(defn test-symbol? []
+  "NATIVE: testing the symbol? function"
+  (assert-false (symbol? "hello"))
+  (assert-false (symbol? [1 2 3]))
+  (assert-false (symbol? '[a b c]))
+  (assert-true (symbol? 'im-symbol))
+  (assert-false (symbol? (name 'im-symbol))))
+
 (defn test-gensym []
   "NATIVE: testing the gensym function"
   (import [hy.models.symbol [HySymbol]])
