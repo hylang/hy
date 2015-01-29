@@ -736,6 +736,23 @@ Returns ``True`` if *x* is a string.
    => (string? -2)
    False
 
+.. _symbol?-fn:
+
+symbol?
+-------
+
+Usage: ``(symbol? x)``
+
+Returns ``True`` if *x* is a symbol.
+
+.. code-block:: hy
+
+   => (symbol? 'foo)
+   True
+
+   => (symbol? '[a b c])
+   False
+
 .. _zero?-fn:
 
 zero?
