@@ -26,8 +26,10 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+import re
 import sys
 from contextlib import contextmanager
+from hy._compat import string_types
 
 docomplete = True
 
@@ -52,31 +54,75 @@ import hy.compiler
 
 from hy._compat import builtins
 
-PATH = [hy.compiler._compile_table,
-        hy.macros._hy_macros,
-        builtins.__dict__]
-
 
 class Completer(object):
-    def __init__(self, namespace=None):
-        if namespace and not isinstance(namespace, dict):
-            raise TypeError('namespace must be a dictionary')
 
+    def __init__(self, namespace={}):
+        if not isinstance(namespace, dict):
+            raise TypeError('namespace must be a dictionary')
         self.namespace = namespace
+        self.path = [hy.compiler._compile_table,
+                     builtins.__dict__,
+                     hy.macros._hy_macros[None],
+                     namespace]
+        self.reader_path = [hy.macros._hy_reader[None]]
+        if '__name__' in namespace:
+            module_name = namespace['__name__']
+            self.path.append(hy.macros._hy_macros[module_name])
+            self.reader_path.append(hy.macros._hy_reader[module_name])
+
+    def attr_matches(self, text):
+        # Borrowed from IPython's completer
+        m = re.match(r"(\S+(\.[\w-]+)*)\.([\w-]*)$", text)
+
+        if m:
+            expr, attr = m.group(1, 3)
+            attr = attr.replace("-", "_")
+            expr = expr.replace("-", "_")
+        else:
+            return []
+
+        try:
+            obj = eval(expr, self.namespace)
+            words = dir(obj)
+        except Exception:
+            return []
+
+        n = len(attr)
+        matches = []
+        for w in words:
+            if w[:n] == attr:
+                matches.append("{}.{}".format(
+                    expr.replace("_", "-"), w.replace("_", "-")))
+        return matches
+
+    def global_matches(self, text):
+        matches = []
+        for p in self.path:
+            for k in p.keys():
+                if isinstance(k, string_types):
+                    k = k.replace("_", "-")
+                    if k.startswith(text):
+                        matches.append(k)
+        return matches
+
+    def reader_matches(self, text):
+        text = text[1:]
+        matches = []
+        for p in self.reader_path:
+            for k in p.keys():
+                if isinstance(k, string_types):
+                    if k.startswith(text):
+                        matches.append("#{}".format(k))
+        return matches
 
     def complete(self, text, state):
-        path = PATH
-        if self.namespace:
-            path.append(self.namespace)
-
-        matches = []
-
-        for p in path:
-            p = filter(lambda x: isinstance(x, str), p.keys())
-            p = [x.replace("_", "-") for x in p]
-            [matches.append(x) for x in
-                filter(lambda x: x.startswith(text), p)]
-
+        if text.startswith("#"):
+            matches = self.reader_matches(text)
+        elif "." in text:
+            matches = self.attr_matches(text)
+        else:
+            matches = self.global_matches(text)
         try:
             return matches[state]
         except IndexError:

@@ -41,6 +41,7 @@ from hy.compiler import hy_compile, HyTypeError
 from hy.importer import (ast_compile, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst)
 from hy.completer import completion
+from hy.completer import Completer
 
 from hy.macros import macro, require
 from hy.models.expression import HyExpression
@@ -127,9 +128,9 @@ def koan_macro():
   "The Nirvana Sutra has the Four Virtues, hasn't it?"
   "It has."
   Ummon asked, picking up a cup, "How many virtues has this?"
-  "None at all, " said the monk.
+  "None at all," said the monk.
   "But ancient people said it had, didn't they?" said Ummon.
-  "Whatdo you think of what they said?"
+  "What do you think of what they said?"
   Ummon struck the cup and asked, "You understand?"
   "No," said the monk.
   "Then," said Ummon, "You'd better go on with your lectures on the sutra."
@@ -219,9 +220,12 @@ def run_repl(hr=None, spy=False):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    with completion():
+    namespace = {'__name__': '__console__', '__doc__': ''}
+
+    with completion(Completer(namespace)):
+
         if not hr:
-            hr = HyREPL(spy)
+            hr = HyREPL(spy, namespace)
 
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
