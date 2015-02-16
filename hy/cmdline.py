@@ -43,6 +43,8 @@ from hy.importer import (ast_compile, import_buffer_to_module,
 from hy.completer import completion
 from hy.completer import Completer
 
+from hy.errors import HyIOError
+
 from hy.macros import macro, require
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
@@ -324,10 +326,10 @@ def cmdline_handler(scriptname, argv):
             # User did "hy <filename>"
             try:
                 return run_file(options.args[0])
-            except IOError as x:
+            except HyIOError as e:
                 sys.stderr.write("hy: Can't open file '%s': [Errno %d] %s\n" %
-                                 (x.filename, x.errno, x.strerror))
-                sys.exit(x.errno)
+                                 (e.filename, e.errno, e.strerror))
+                sys.exit(e.errno)
 
     # User did NOTHING!
     return run_repl(spy=options.spy)
