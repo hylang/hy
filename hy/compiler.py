@@ -692,8 +692,9 @@ class HyASTCompiler(object):
         expr.pop(0)
 
         ret = self.compile(HyExpression(
-            [HySymbol("hy_eval")] + expr + [HyExpression([HySymbol("locals")])]
-            + [HyString(self.module_name)]).replace(expr)
+            [HySymbol("hy_eval")] + expr +
+            [HyExpression([HySymbol("locals")])] +
+            [HyString(self.module_name)]).replace(expr)
         )
 
         ret.add_imports("hy.importer", ["hy_eval"])

@@ -25,11 +25,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import contextlib
 import os
 import re
 import sys
-from contextlib import contextmanager
-from hy._compat import string_types
+
+import hy.macros
+import hy.compiler
+from hy._compat import builtins, string_types
+
 
 docomplete = True
 
@@ -47,12 +51,6 @@ if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
     readline_bind = "bind ^I rl_complete"
 else:
     readline_bind = "tab: complete"
-
-
-import hy.macros
-import hy.compiler
-
-from hy._compat import builtins
 
 
 class Completer(object):
@@ -129,7 +127,7 @@ class Completer(object):
             return None
 
 
-@contextmanager
+@contextlib.contextmanager
 def completion(completer=None):
     delims = "()[]{} "
     if not completer:
