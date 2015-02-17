@@ -22,15 +22,15 @@
 import ast
 import sys
 
-if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
-    import unittest2 as unittest
-else:
-    import unittest
-
 from hy import compiler
 from hy.models.expression import HyExpression
 from hy.models.list import HyList
 from hy.models.symbol import HySymbol
+
+if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
+    import unittest2 as unittest
+else:
+    import unittest
 
 
 class CompilerTest(unittest.TestCase):
