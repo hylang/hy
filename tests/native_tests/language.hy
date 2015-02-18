@@ -767,7 +767,11 @@
   (let [[and123 (and 1 2 3)]
         [and-false (and 1 False 3)]]
     (assert (= and123 3))
-    (assert (= and-false False))))
+    (assert (= and-false False)))
+  ; short circuiting
+  (setv a 1)
+  (and 0 (setv a 2))
+  (assert (= a 1)))
 
 
 (defn test-or []
@@ -777,7 +781,11 @@
         [or-none-true (or False False)]]
     (assert (= or-all-true 1))
     (assert (= or-some-true "hello"))
-    (assert (= or-none-true False))))
+    (assert (= or-none-true False)))
+  ; short circuiting
+  (setv a 1)
+  (or 1 (setv a 2))
+  (assert (= a 1)))
 
 
 (defn test-if-return-branching []
