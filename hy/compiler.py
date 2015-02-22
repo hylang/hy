@@ -1028,13 +1028,17 @@ class HyASTCompiler(object):
         return ret
 
     @builds("assert")
-    @checkargs(1)
+    @checkargs(min=1, max=2)
     def compile_assert_expression(self, expr):
         expr.pop(0)  # assert
         e = expr.pop(0)
+        if len(expr) == 1:
+            msg = self.compile(expr.pop(0)).force_expr
+        else:
+            msg = None
         ret = self.compile(e)
         ret += ast.Assert(test=ret.force_expr,
-                          msg=None,
+                          msg=msg,
                           lineno=e.start_line,
                           col_offset=e.start_column)
 

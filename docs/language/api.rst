@@ -163,15 +163,23 @@ other case, the first false value will be returned. Example usage:
 assert
 ------
 
-``assert`` is used to verify conditions while the program is running. If the
-condition is not met, an ``AssertionError`` is raised. Example usage:
+``assert`` is used to verify conditions while the program is
+running. If the condition is not met, an :exc:`AssertionError` is
+raised. ``assert`` may take one or two parameters.  The first
+parameter is the condition to check, and it should evaluate to either
+``True`` or ``False``. The second parameter, optional, is a label for
+the assert, and is the string that will be raised with the
+:exc:`AssertionError`. For example:
 
 .. code-block:: clj
 
-    (assert (= variable expected-value))
+  (assert (= variable expected-value))
 
-``assert`` takes a single parameter, a conditional that evaluates to either
-``True`` or ``False``.
+  (assert False)
+  ; AssertionError
+
+  (assert (= 1 2) "one should equal two")
+  ; AssertionError: one should equal two
 
 
 assoc

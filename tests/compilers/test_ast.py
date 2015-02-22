@@ -198,14 +198,21 @@ def test_ast_bad_except():
 
 
 def test_ast_good_assert():
-    "Make sure AST can compile valid assert"
+    """Make sure AST can compile valid asserts. Asserts may or may not
+    include a label."""
     can_compile("(assert 1)")
+    can_compile("(assert 1 \"Assert label\")")
+    can_compile("(assert 1 (+ \"spam \" \"eggs\"))")
+    can_compile("(assert 1 12345)")
+    can_compile("(assert 1 nil)")
+    can_compile("(assert 1 (+ 2 \"incoming eggsception\"))")
 
 
 def test_ast_bad_assert():
     "Make sure AST can't compile invalid assert"
     cant_compile("(assert)")
-    cant_compile("(assert 1 2)")
+    cant_compile("(assert 1 2 3)")
+    cant_compile("(assert 1 [1 2] 3)")
 
 
 def test_ast_good_global():
