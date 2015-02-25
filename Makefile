@@ -1,20 +1,8 @@
-pypy_url=https://bitbucket.org/pypy/pypy/downloads/pypy-2.3.1-linux64.tar.bz2
 pip_url=https://bootstrap.pypa.io/get-pip.py
 python=python
 pip=pip
 coveralls=coveralls
 nose=nosetests
-pcache=$(HOME)/.pip-cache
-
-ifeq (PyPy 2.4,$(findstring PyPy 2.4,$(shell python -V 2>&1 | tail -1)))
-	bad_pypy=1
-	python=./pypy
-	pip=./pip
-	coveralls=./coveralls
-	nose=./nosetests
-else
-	bad_pypy=
-endif
 
 all:
 	@echo "No default step. Use setup.py"
@@ -72,32 +60,15 @@ diff:
 r: d tox diff
 
 python:
-ifeq ($(bad_pypy),1)
-	# Due to stupid PyPy 2.4 bugs, an older PyPy 2.3 needs to be downloaded
-	curl -L $(pypy_url) -o pypy.tbz2
-	tar xf pypy.tbz2
-	ln -sf `pwd`/pypy-*/bin/pypy $(python)
-	curl $(pip_url) | $(python)
-	ln -sf `pwd`/pypy-*/bin/pip $(pip)
-	sudo $(pip) install nose
-	ln -sf `pwd`/pypy-*/bin/nosetests $(nose)
-endif
 ifeq (Python 2.6,$(findstring Python 2.6,$(shell python -V 2>&1)))
 	$(pip) install unittest2
 endif
-	$(pip) install -r requirements-travis.txt --download-cache $(pcache)
-	$(pip) install coveralls --download-cache $(pcache)
+	$(pip) install -r requirements-travis.txt
+	$(pip) install coveralls
 	$(pip) install --allow-all-external -e .
-ifeq ($(bad_pypy),1)
-	ln -sf `pwd`/pypy-*/bin/coveralls $(coveralls)
-endif
 
 travis: python
-ifeq ($(bad_pypy),1)
-	HY_DIR=`pwd`/pypy-*/bin $(nose) -s --with-coverage --cover-package hy
-else
 	$(nose) -s --with-coverage --cover-package hy
-endif
 ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
 	@echo "skipping flake8 on pypy"
 else

@@ -1,3 +1,4 @@
+sudo: false
 language: python
 python:
   - "pypy"
@@ -5,8 +6,7 @@ python:
   - "2.7"
   - "3.3"
   - "3.4"
-cache:
-  - $HOME/.pip-cache
+cache: pip
 # command to run tests
 script: make travis
 after_success: make coveralls
