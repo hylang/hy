@@ -79,6 +79,14 @@ def test_bin_hy_icmd():
     assert "figlet" in output
 
 
+def test_bin_hy_icmd_file():
+    ret = run_cmd("hy -i test_files/icmd_test_file.hy", "(ideas)")
+    assert ret[0] == 0
+    output = ret[1]
+
+    assert "Hy!" in output
+
+
 def test_bin_hy_icmd_and_spy():
     ret = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
     assert ret[0] == 0

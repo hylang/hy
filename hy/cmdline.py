@@ -31,6 +31,7 @@ import argparse
 import code
 import ast
 import sys
+import os
 
 import astor.codegen
 
@@ -244,7 +245,13 @@ def run_repl(hr=None, spy=False):
 
 def run_icommand(source, spy=False):
     hr = HyREPL(spy)
-    hr.runsource(source, filename='<input>', symbol='single')
+    if os.path.exists(source):
+        with open(source, "r") as f:
+            source = f.read()
+        filename = source
+    else:
+        filename = '<input>'
+    hr.runsource(source, filename=filename, symbol='single')
     return run_repl(hr)
 
 
