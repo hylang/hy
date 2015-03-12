@@ -79,7 +79,7 @@ place. The following code demonstrates this:
 .. code-block:: clj
 
     => (defn output [a b] (print a b))
-    => (-> (+ 5 5) (output 5))
+    => (-> (+ 4 6) (output 5))
     10 5
 
 
@@ -93,7 +93,7 @@ it appends it as the last argument. The following code demonstrates this:
 .. code-block:: clj
 
     => (defn output [a b] (print a b))
-    => (->> (+ 5 5) (output 5))
+    => (->> (+ 4 6) (output 5))
     5 10
 
 
