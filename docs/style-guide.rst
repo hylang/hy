@@ -180,7 +180,7 @@ Coding Style
      ;; Not so good
      (def *names*
        (with [f (open "names.txt")]
-       (sorted (.spilt "," (.replace "\"" "" (.strip (.read f)))))))
+       (sorted (.split "," (.replace "\"" "" (.strip (.read f)))))))
 
      ;; Probably not a good idea
      (defn square? [x]
