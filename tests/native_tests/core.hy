@@ -382,6 +382,11 @@
   ;; should not work for an int
   (assert-false (iterator? 5)))
 
+(defn test-last []
+  "NATIVE: testing the last function"
+  (assert-equal (last [1 2 3 4]) 4)
+  (assert-equal (last [5]) 5))
+
 (defn test-neg []
   "NATIVE: testing the neg? function"
   (assert-true (neg? -2))
