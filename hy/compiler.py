@@ -1934,6 +1934,19 @@ class HyASTCompiler(object):
             raise HyTypeError(expression,
                               "First argument to (fn) must be a list")
         ret, args, defaults, stararg, kwargs = self._parse_lambda_list(arglist)
+        for i, arg in enumerate(args):
+            if isinstance(arg, HyList):
+                # Destructuring argument
+                if not arg:
+                    raise HyTypeError(arglist,
+                                      "Cannot destruct empty list")
+                args[i] = var = HySymbol(self.get_anon_var())
+                expression = HyExpression([
+                    HyExpression([
+                        HyString("setv"), arg, var
+                    ])]
+                ) + expression
+                expression = expression.replace(arg[0])
 
         if PY34:
             # Python 3.4+ requires that args are an ast.arg object, rather

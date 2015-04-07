@@ -1153,3 +1153,8 @@
   (assert
    (= (identify-keywords 1 "bloo" :foo)
       ["other" "other" "keyword"])))
+
+(defn test-argument-destr []
+  "Make sure argument destructuring works"
+  (defn f [[a b] [c]] (, a b c))
+  (assert (= (f [1 2] [3]) (, 1 2 3))))
