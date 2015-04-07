@@ -245,7 +245,7 @@
 
 (defn last [coll]
   "Return last item from `coll`"
-  (nth coll (- (len coll) 1)))
+  (get (list coll) -1))
 
 (defn list* [hd &rest tl]
   "Return a dotted list construed from the elements of the argument"
