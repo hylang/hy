@@ -243,6 +243,10 @@
   "Return true if x is an iterator"
   (isinstance x collections.Iterator))
 
+(defn last [coll]
+  "Return last item from `coll`"
+  (get (list coll) -1))
+
 (defn list* [hd &rest tl]
   "Return a dotted list construed from the elements of the argument"
   (if (not tl)
@@ -416,7 +420,7 @@
                  dec distinct disassemble drop drop-last drop-while empty? even?
                  every? first filter filterfalse flatten float? gensym identity
                  inc input instance? integer integer? integer-char? interleave
-                 interpose iterable? iterate iterator? keyword keyword? list*
+                 interpose iterable? iterate iterator? keyword keyword? last list*
                  macroexpand macroexpand-1 map merge-with name neg? nil? none?
                  nth numeric? odd? pos? range read remove repeat repeatedly
                  rest reduce second some string string? symbol? take take-nth

@@ -944,7 +944,19 @@ This can be confirmed via Python's built-in ``help`` function::
     times_three(x)
     Multiplies input by three and returns result
     (END)
+	
+last
+-----------
 
+.. versionadded:: 0.10.2
+
+``last`` can be used for accessing the last element of a collection:
+
+.. code-block:: clj
+
+    => (last [2 4 6])
+    6
+	
 
 let
 ---
