@@ -38,7 +38,8 @@ from hy.models.cons import HyCons
 from hy.errors import HyCompileError, HyTypeError
 
 import hy.macros
-from hy._compat import str_type, long_type, PY27, PY33, PY3, PY34, raise_empty
+from hy._compat import (
+    str_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
 from hy.macros import require, macroexpand, reader_macroexpand
 import hy.importer
 
@@ -119,6 +120,13 @@ def builds(_type):
         _compile_table[_type] = fn
         return fn
     return _dec
+
+
+def builds_if(_type, condition):
+    if condition:
+        return builds(_type)
+    else:
+        return lambda fn: fn
 
 
 class Result(object):
@@ -1638,6 +1646,7 @@ class HyASTCompiler(object):
     @builds("|")
     @builds("^")
     @builds("&")
+    @builds_if("@", PY35)
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
         ops = {"+": ast.Add,
@@ -1652,6 +1661,8 @@ class HyASTCompiler(object):
                "|": ast.BitOr,
                "^": ast.BitXor,
                "&": ast.BitAnd}
+        if PY35:
+            ops.update({"@": ast.MatMult})
 
         inv = expression.pop(0)
         op = ops[inv]
@@ -1711,6 +1722,7 @@ class HyASTCompiler(object):
     @builds("|=")
     @builds("^=")
     @builds("&=")
+    @builds_if("@=", PY35)
     @checkargs(2)
     def compile_augassign_expression(self, expression):
         ops = {"+=": ast.Add,
@@ -1725,6 +1737,8 @@ class HyASTCompiler(object):
                "|=": ast.BitOr,
                "^=": ast.BitXor,
                "&=": ast.BitAnd}
+        if PY35:
+            ops.update({"@=": ast.MatMult})
 
         op = ops[expression[0]]
 
