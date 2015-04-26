@@ -103,3 +103,13 @@
   (assert-equal (ap-reduce (+ acc " on " it) ["Hy" "meth"])
 		"Hy on meth")
   (assert-equal (ap-reduce (+ acc it) [] 1) 1))
+  
+(defn test-ap-pipe []
+  "NATIVE: testing anaphoric pipe"
+  (assert-equal (ap-pipe 2 (+ it 1) (* it 3)) 9)
+  (assert-equal (ap-pipe [4 5 6 7] (list (rest it)) (len it)) 3))
+  
+(defn test-ap-compose []
+  "NATIVE: testing anaphoric compose"  
+  (assert-equal ((ap-compose (+ it 1) (* it 3)) 2) 9)
+  (assert-equal ((ap-compose (list (rest it)) (len it)) [4 5 6 7]) 3))
