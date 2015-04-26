@@ -1,3 +1,5 @@
+(import [hy._compat [PY35]])
+
 (setv square (fn [x]
                (* x x)))
 
@@ -140,3 +142,52 @@
 (defn overflow-int-to-long []
   "NATIVE: test if int does not raise an overflow exception"
   (assert (integer? (+ 1 1000000000000000000000000))))
+
+
+(defclass HyTestMatrix [list]
+  [[--matmul--
+    (fn [self other]
+      (let [[n (len self)]
+            [m (len (. other [0]))]
+            [result []]]
+        (for [i (range m)]
+          (let [[result-row []]]
+            (for [j (range n)]
+              (let [[dot-product 0]]
+                (for [k (range (len (. self [0])))]
+                  (+= dot-product (* (. self [i] [k])
+                                     (. other [k] [j]))))
+                (.append result-row dot-product)))
+            (.append result result-row)))
+        result))]])
+
+(def first-test-matrix (HyTestMatrix [[1 2 3]
+                                      [4 5 6]
+                                      [7 8 9]]))
+
+(def second-test-matrix (HyTestMatrix [[2 0 0]
+                                       [0 2 0]
+                                       [0 0 2]]))
+
+(def product-of-test-matrices (HyTestMatrix [[ 2  4  6]
+                                             [ 8 10 12]
+                                             [14 16 18]]))
+
+(defn test-matmul []
+  "NATIVE: test matrix multiplication"
+  (if PY35
+    (assert (= (@ first-test-matrix second-test-matrix)
+               product-of-test-matrices))
+    ;; Python <= 3.4
+    (let [[matmul-attempt (try (@ first-test-matrix second-test-matrix)
+                               (catch [e [Exception]] e))]]
+      (assert (isinstance matmul-attempt NameError)))))
+
+(defn test-augassign-matmul []
+  "NATIVE: test augmented-assignment matrix multiplication"
+  (let [[matrix first-test-matrix]
+        [matmul-attempt (try (@= matrix second-test-matrix)
+                              (catch [e [Exception]] e))]]
+    (if PY35
+      (assert (= product-of-test-matrices matrix))
+      (assert (isinstance matmul-attempt NameError)))))
