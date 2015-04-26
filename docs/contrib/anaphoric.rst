@@ -195,3 +195,36 @@ first element instead. This exposes the element being iterated as
 
    =>(ap-reduce (+ it acc) (range 10))
    45
+
+
+.. _ap-pipe:
+
+ap-pipe
+=========
+
+Usage ``(ap-pipe value form1 form2 ...)``
+
+Applies several forms in series to a value from left to right. The special variable ``ìt`` in each form is replaced by the result of the previous form.
+
+.. code-block:: hy
+
+   => (ap-pipe 3 (+ it 1) (/ 5 it))
+   1.25
+   => (ap-pipe [4 5 6 7] (list (rest it)) (len it))
+   3
+
+
+.. _ap-compose:
+
+ap-compose
+=========
+
+Usage ``(ap-compose form1 form2 ...)``
+
+Returns a function which applies several forms in series from left to right. The special variable ``ìt`` in each form is replaced by the result of the previous form.
+
+.. code-block:: hy
+
+   => (def op (ap-compose (+ it 1) (* it 3)))
+   => (op 2)
+   9
