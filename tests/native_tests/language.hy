@@ -1140,7 +1140,8 @@
   (assert (= (kwtest :key "value") {"key" "value"}))
   (assert (= (kwtest :key-with-dashes "value") {"key_with_dashes" "value"}))
   (assert (= (kwtest :result (+ 1 1)) {"result" 2}))
-  (assert (= (kwtest :key (kwtest :key2 "value")) {"key" {"key2" "value"}})))
+  (assert (= (kwtest :key (kwtest :key2 "value")) {"key" {"key2" "value"}}))
+  (assert (= ((get (kwtest :key (fn [x] (* x 2))) "key") 3) 6)))
 
 (defmacro identify-keywords [&rest elts]
   `(list

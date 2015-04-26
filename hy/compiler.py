@@ -462,6 +462,7 @@ class HyASTCompiler(object):
                     raise HyCompileError(msg.format(kw=str(expr)))
 
                 compiled_value = self.compile(value)
+                ret += compiled_value
 
                 # no unicode for py2 in ast names
                 keyword = str(expr[2:])
