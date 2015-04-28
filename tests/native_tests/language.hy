@@ -264,6 +264,15 @@
              "a b c d e")))
 
 
+(defn test-apply-with-shadows []
+  "NATIVE: test apply to call shadowed operators"
+  (assert (= (apply + [1 2]) 3))
+  (assert (= (apply - [1 2]) -1))
+  (setv d {})
+  (apply assoc [d 123 456])
+  (assert (= (get assoc 123) 456)))
+
+
 (defn test-dotted []
   "NATIVE: test dotted invocation"
   (assert (= (.join " " ["one" "two"]) "one two")))

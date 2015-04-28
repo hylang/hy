@@ -60,5 +60,9 @@
         (operator.truediv 1 (get args 0))
         (reduce operator.truediv args)))))
 
+(defn assoc [seq key value]
+  "Shadow assoc for when we need to import / map it against something"
+  (assoc seq key value))
 
-(setv *exports* ['+ '- '* '/])
+
+(setv *exports* ['+ '- '* '/ 'assoc])

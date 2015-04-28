@@ -1536,7 +1536,7 @@ class HyASTCompiler(object):
                     [HySymbol("slice"), tempvar, HyInteger(1)]
                 ).replace(expr[0])
 
-        ret += self.compile(call)
+        ret += self.compile_expression(call, force_call=True)
 
         if not isinstance(ret.expr, ast.Call):
             raise HyTypeError(
@@ -1761,7 +1761,7 @@ class HyASTCompiler(object):
         return self.compile(expression)
 
     @builds(HyExpression)
-    def compile_expression(self, expression):
+    def compile_expression(self, expression, force_call=False):
         # Perform macro expansions
         expression = macroexpand(expression, self.module_name)
         if not isinstance(expression, HyExpression):
@@ -1776,7 +1776,7 @@ class HyASTCompiler(object):
         if isinstance(fn, HyKeyword):
             return self._compile_keyword_call(expression)
 
-        if isinstance(fn, HyString):
+        if isinstance(fn, HyString) and not force_call:
             ret = self.compile_atom(fn, expression)
             if ret:
                 return ret
