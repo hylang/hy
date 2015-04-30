@@ -61,4 +61,33 @@
         (reduce operator.truediv args)))))
 
 
-(setv *exports* ['+ '- '* '/])
+(defn comp-op [op args]
+  "Helper for shadow comparison operators"
+  (if (< (len args) 2)
+    (raise (TypeError "Need at least 2 arguments to compare"))
+    (reduce operator.and_
+            (list-comp (op x y)
+                       [(, x y) (zip args (slice args 1))]))))
+(defn < [&rest args]
+  "Shadow < operator for when we need to import / map it against something"
+  (comp-op operator.lt args))
+(defn <= [&rest args]
+  "Shadow <= operator for when we need to import / map it against something"
+  (comp-op operator.le args))
+(defn = [&rest args]
+  "Shadow = operator for when we need to import / map it against something"
+  (comp-op operator.eq args))
+(defn != [&rest args]
+  "Shadow != operator for when we need to import / map it against something"
+  (comp-op operator.ne args))
+(defn >= [&rest args]
+  "Shadow >= operator for when we need to import / map it against something"
+  (comp-op operator.ge args))
+(defn > [&rest args]
+  "Shadow > operator for when we need to import / map it against something"
+  (comp-op operator.gt args))
+
+; TODO figure out a way to shadow "is", "is_not", "and", "or"
+
+
+(setv *exports* ['+ '- '* '/ '< '<= '= '!= '>= '>])
