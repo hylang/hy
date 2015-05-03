@@ -1,3 +1,39 @@
+Changes from 0.10.1
+
+   [ Language Changes ]
+   * new keyword-argument call syntax
+   * Function argument destructuring has been added.
+   * Macro expansion inside of class definitions is now supported.
+   * yield-from support for Python 2
+   * with-decorator can now be applied to classes.
+   * assert now accepts an optional assertion message.
+   * Comparision operators can now be used with map, filter, and reduce.
+   * new last function
+   * new drop-last function
+   * new lisp-if-not/lif-not macro
+   * new symbol? function
+   * butlast can now handle lazy sequences.
+   * Python 3.2 support has been dropped.
+   * Support for the @ matrix-multiplication operator (forthcoming in
+     Python 3.5) has been added.
+
+   [ Bug Fixes ]
+   * Nested decorators now work correctly.
+   * Importing hy modules under Python >=3.3 has been fixed.
+   * Some bugs involving macro unquoting have been fixed.
+   * Misleading tracebacks when Hy programs raise IOError have been
+     corrected.
+
+   [ Misc. Improvements ]
+   * attribute completion in REPL
+   * new -m command-line flag for running a module
+   * new -i command-line flag for running a file
+   * improved error messaging for attempted function definitions
+     without argument lists
+   * Macro expansion error messages are no longer truncated.
+   * Error messaging when trying to bind to a non-list non-symbol in a
+     let form has been improved.
+
 Changes from 0.10.0
 
  This release took some time (sorry, all my fault) but it's got a bunch of
