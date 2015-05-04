@@ -45,6 +45,7 @@ Command Line Options
     Hy YourName!
     =>
 
+   `--spy` only works on REPL mode.
    .. versionadded:: 0.9.11
 
 .. cmdoption:: --show-tracebacks
