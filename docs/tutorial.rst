@@ -151,6 +151,9 @@ Now let's look at the equivalent Hy program:
 
    (simple-conversation)
 
+Note that ``raw_input`` is for Python 2, if you are using Python 3,
+replace ``raw_input`` with ``input``.
+
 If you look at the above program, as long as you remember that the
 first element in each list of the program is the function (or
 macro... we'll get to those later) being called and that the rest are
@@ -212,6 +215,9 @@ supports the Common Lisp method of quoting:
 
    => '(1 2 3)
    (1L 2L 3L)
+
+Note the output is in Python 2. In Python 3 it is `(1 2 3)`
+because Python 3 does not support `Long`.
 
 You also have access to all the built-in types' nice methods::
 
