@@ -63,6 +63,11 @@
   (assert-equal (list (ap-map-when even? (* it 2) [1 2 3 4]))
                 [1 4 3 8]))
 
+(defn test-ap-map-whenl []
+  "NATIVE: testing anaphoric map-when (lambda version)"
+  (assert-equal (list (ap-map-whenl (even? it) (* it 2) [1 2 3 4]))
+                [1 4 3 8]))
+
 (defn test-ap-filter []
   "NATIVE: testing anaphoric filter"
   (assert-equal (list (ap-filter (> it 2) [1 2 3 4]))
