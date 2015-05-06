@@ -61,6 +61,16 @@
          (yield (f it))
          (yield it)))))
 
+(defmacro ap-map-whenl [predfn rep lst]
+  "Yield elements evaluated for each element in the list when the
+  predicate function returns True."
+  `(let [[f (lambda [it] ~rep)]
+         [predf (lambda [it] ~predfn)]]
+     (for [it ~lst]
+       (if (predf it)
+         (yield (f it))
+         (yield it)))))
+
 
 (defmacro ap-filter [form lst]
   "Yield elements returned when the predicate form evaluates to True."

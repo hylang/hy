@@ -90,6 +90,23 @@ determin when to apply the form.
     => (list (ap-map-when even? (* it 2) [1 2 3 4]))
     [1, 4, 3, 8]
 
+.. _ap-map-whenl:
+
+ap-map-whenl
+===========
+
+Usage: ``(ap-map-whenl predfn rep list)``
+
+As ``ap-map-when``, but takes a predicate in lambda form.
+
+.. code-block:: hy
+
+    => (list (ap-map-whenl (odd? it) (* it 2) [1 2 3 4]))
+    [2, 2, 6, 4]
+
+    => (list (ap-map-when (even? it) (* it 2) [1 2 3 4]))
+    [1, 4, 3, 8]
+
 
 .. _ap-filter:
 
