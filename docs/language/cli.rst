@@ -31,7 +31,7 @@ Command Line Options
    all arguments after the *module* name are passed to the module in
    ``sys.argv``.
 
-   .. versionadded:: 0.10.2
+   .. versionadded:: 0.11.0
 
 .. cmdoption:: --spy
 

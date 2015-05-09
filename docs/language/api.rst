@@ -831,7 +831,7 @@ lisp-if / lif and lisp-if-not / lif-not
 
 .. versionadded:: 0.10.0
 
-.. versionadded:: 0.10.2
+.. versionadded:: 0.11.0
    lisp-if-not / lif-not
 
 For those that prefer a more Lispy ``if`` clause, we have ``lisp-if``, or
@@ -944,11 +944,11 @@ This can be confirmed via Python's built-in ``help`` function::
     times_three(x)
     Multiplies input by three and returns result
     (END)
-	
+
 last
 -----------
 
-.. versionadded:: 0.10.2
+.. versionadded:: 0.11.0
 
 ``last`` can be used for accessing the last element of a collection:
 
@@ -956,7 +956,7 @@ last
 
     => (last [2 4 6])
     6
-	
+
 
 let
 ---
