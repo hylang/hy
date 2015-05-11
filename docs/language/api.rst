@@ -1011,6 +1011,8 @@ conditional expression. Some examples:
 nonlocal
 --------
 
+**PYTHON 3.0 AND UP ONLY!**
+
 ``nonlocal`` can be used to mark a symbol as not local to the current scope.
 The parameters are the names of symbols to mark as nonlocal.  This is necessary
 to modify variables through nested ``let`` scopes:
