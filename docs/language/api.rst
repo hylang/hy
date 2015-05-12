@@ -1017,7 +1017,7 @@ nonlocal
 
 ``nonlocal`` can be used to mark a symbol as not local to the current scope.
 The parameters are the names of symbols to mark as nonlocal.  This is necessary
-to modify variables through nested ``let`` scopes:
+to modify variables through nested ``let`` or ``fn`` scopes:
 
 .. code-block:: clj
 
@@ -1028,11 +1028,22 @@ to modify variables through nested ``let`` scopes:
           (setv x (+ x y))))
       x)
 
-Without the call to ``(nonlocal x)``, this code would result in an
-UnboundLocalError being raised during the call to ``setv``. This is the result
-of the way Python handles scoping for nested functions, which are used by Hy to
-implement ``let``. See `PEP3104 <https://www.python.org/dev/peps/pep-3104/>`_
-for further information.
+    (defn some-function []
+      (let [[x 0]]
+        (register-some-callback
+          (fn [stuff]
+            (nonlocal x)
+            (setv x stuff)))))
+
+In the first example, without the call to ``(nonlocal x)``, this code would
+result in an UnboundLocalError being raised during the call to ``setv``.
+
+In the second example, without the call to ``(nonlocal x)``, the inner function
+would redefine ``x`` to ``stuff`` inside its local scope instead of overwriting
+the ``x`` in the outer function
+
+See `PEP3104 <https://www.python.org/dev/peps/pep-3104/>`_ for further
+information.
 
 
 not
