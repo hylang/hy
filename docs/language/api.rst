@@ -1011,6 +1011,8 @@ conditional expression. Some examples:
 nonlocal
 --------
 
+.. versionadded:: 0.11.1
+
 **PYTHON 3.0 AND UP ONLY!**
 
 ``nonlocal`` can be used to mark a symbol as not local to the current scope.
