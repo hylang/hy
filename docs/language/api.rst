@@ -639,7 +639,10 @@ doto
 eval
 ----
 
-``eval`` evaluates a quoted expression and returns the value.
+``eval`` evaluates a quoted expression and returns the value. The optional
+second and third arguments specify the dictionary of globals to use and the
+module name. The globals dictionary defaults to ``(local)`` and the module name
+defaults to the name of the current module.
 
 .. code-block:: clj
 
