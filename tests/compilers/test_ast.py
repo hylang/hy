@@ -27,7 +27,7 @@ from hy.compiler import hy_compile
 from hy.errors import HyCompileError, HyTypeError
 from hy.lex.exceptions import LexException
 from hy.lex import tokenize
-from hy._compat import PY3
+from hy._compat import PY3, PY35
 
 import ast
 
@@ -271,6 +271,15 @@ def test_ast_good_yield():
 def test_ast_bad_yield():
     "Make sure AST can't compile invalid yield"
     cant_compile("(yield 1 2)")
+
+
+def test_ast_defasync():
+    """Make sure we can compile async function definitions if Python
+    supports doing so."""
+    if PY35:
+        code = can_compile("(defasync foo [] (await bar))")
+        assert type(code.body[0]) == ast.AsyncFunctionDef
+        assert type(code.body[0].body[0].value) == ast.Await
 
 
 def test_ast_good_import_from():

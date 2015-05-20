@@ -108,7 +108,7 @@ def ast_str(foobar):
     return "hy_%s" % (str(foobar).replace("-", "_"))
 
 
-def builds(_type):
+def builds(_type, **options):
 
     unpythonic_chars = ["-"]
     really_ok = ["-"]
@@ -118,14 +118,20 @@ def builds(_type):
                             "translated strings... `%s' sucks." % (_type))
 
     def _dec(fn):
-        _compile_table[_type] = fn
+        if options:
+            def builder(*args, **kwargs):
+                kwargs.update(options)
+                return fn(*args, **kwargs)
+            _compile_table[_type] = builder
+        else:
+            _compile_table[_type] = fn
         return fn
     return _dec
 
 
-def builds_if(_type, condition):
+def builds_if(_type, condition, **options):
     if condition:
-        return builds(_type)
+        return builds(_type, **options)
     else:
         return lambda fn: fn
 
@@ -251,6 +257,8 @@ class Result(object):
                 var.arg = new_name
             elif isinstance(var, ast.FunctionDef):
                 var.name = new_name
+            elif PY35 and isinstance(var, ast.AsyncFunctionDef):
+                var.name = new_name
             else:
                 raise TypeError("Don't know how to rename a %s!" % (
                     var.__class__.__name__))
@@ -329,9 +337,10 @@ def _raise_wrong_args_number(expression, error):
                                len(expression)))
 
 
-def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
+def checkargs(exact=None, min=None, max=None, even=None, multiple=None,
+              **kwargs):
     def _dec(fn):
-        def checker(self, expression):
+        def checker(self, expression, **kwargs):
             if exact is not None and (len(expression) - 1) != exact:
                 _raise_wrong_args_number(
                     expression, "`%%s' needs %d arguments, got %%d" % exact)
@@ -361,7 +370,7 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
                         expression,
                         "`%%s' needs %s arguments, got %%d" % choices)
 
-            return fn(self, expression)
+            return fn(self, expression, **kwargs)
 
         return checker
     return _dec
@@ -1136,6 +1145,24 @@ class HyASTCompiler(object):
             value = ret.force_expr
 
         ret += ast.YieldFrom(
+            value=value,
+            lineno=expr.start_line,
+            col_offset=expr.start_column)
+
+        return ret
+
+    @builds_if("await", PY35)
+    @checkargs(max=1)
+    def compile_await_expression(self, expr):
+        expr.pop(0)  # "await"
+        ret = Result(contains_yield=True)
+
+        value = None
+        if expr != []:
+            ret += self.compile(expr.pop(0))
+            value = ret.force_expr
+
+        ret += ast.Await(
             value=value,
             lineno=expr.start_line,
             col_offset=expr.start_column)
@@ -2018,8 +2045,9 @@ class HyASTCompiler(object):
 
     @builds("lambda")
     @builds("fn")
+    @builds_if("async_fn", PY35, async=True)
     @checkargs(min=1)
-    def compile_function_def(self, expression):
+    def compile_function_def(self, expression, async=False):
         called_as = expression.pop(0)
 
         arglist = expression.pop(0)
@@ -2097,12 +2125,17 @@ class HyASTCompiler(object):
 
         name = self.get_anon_fn()
 
-        ret += ast.FunctionDef(name=name,
-                               lineno=expression.start_line,
-                               col_offset=expression.start_column,
-                               args=args,
-                               body=body.stmts,
-                               decorator_list=[])
+        function_def_attributes = dict(name=name,
+                                       lineno=expression.start_line,
+                                       col_offset=expression.start_column,
+                                       args=args,
+                                       body=body.stmts,
+                                       decorator_list=[])
+
+        if async:
+            ret += ast.AsyncFunctionDef(**function_def_attributes)
+        else:
+            ret += ast.FunctionDef(**function_def_attributes)
 
         ast_name = ast.Name(id=name,
                             arg=name,
