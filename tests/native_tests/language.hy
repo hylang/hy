@@ -827,6 +827,20 @@
   (assert (= 27 (eval (+ (quote (*)) (* [(quote 3)] 3)))))
   (assert (= None (eval (quote (print ""))))))
 
+(defn test-eval-globals []
+  "NATIVE: test eval with explicit global dict"
+  (assert (= 'bar (eval (quote foo) {'foo 'bar})))
+  (assert (= 1 (let [[d {}]] (eval '(setv x 1) d) (eval (quote x) d))))
+  (let [[d1 {}]
+        [d2 {}]]
+    (eval '(setv x 1) d1)
+    (try
+      (do
+         ; this should fail with a name error
+         (eval (quote x) d2)
+         (assert False "We shouldn't have arrived here"))
+      (catch [e Exception]
+        (assert (isinstance e NameError))))))
 
 (defn test-import-syntax []
   "NATIVE: test the import syntax."
