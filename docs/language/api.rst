@@ -988,6 +988,14 @@ used.
     => (let [x [y 5]] (print x y))
     None 5
 
+Note that the variable assignments are executed one by one, from left to right.
+The following example takes advantage of this:
+
+.. code-block:: clj
+
+    => (let [[x 5] [y (+ x 1)]] (print x y))
+    5 6
+
 
 list-comp
 ---------
