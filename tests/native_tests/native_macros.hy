@@ -259,3 +259,19 @@
 
 (defn test-botsbuildbots []
   (assert (> (len (first (Botsbuildbots))) 50)))
+
+
+(defn test-defmain []
+  "NATIVE: make sure defmain is clean"
+  (global --name--)
+  (setv oldname --name--)
+  (setv --name-- "__main__")
+  (defn main []
+    (print 'Hy)
+    42)
+  (try
+    (defmain [&rest args]
+      (main))
+    (except [e SystemExit]
+      (assert (= (str e) "42"))))
+  (setv --name-- oldname))

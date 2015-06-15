@@ -200,16 +200,14 @@
 
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
-  (let [[retval (gensym)]]
-    `(do
-      (defn main [~@args]
-        ~@body)
-
-      (when (= --name-- "__main__")
-        (import sys)
-        (setv ~retval (apply main sys.argv))
-        (if (integer? ~retval)
-          (sys.exit ~retval))))))
+  (let [[retval (gensym)]
+        [mainfn `(fn [~@args]
+                   ~@body)]]
+    `(when (= --name-- "__main__")
+       (import sys)
+       (setv ~retval (apply ~mainfn sys.argv))
+       (if (integer? ~retval)
+         (sys.exit ~retval)))))
 
 
 (defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
