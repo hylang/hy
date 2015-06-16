@@ -25,8 +25,9 @@
 ;;; These macros make writing functional programs more concise
 
 
-(defmacro ap-if (test-form &rest args)
-  `(let [it ~test-form] (if it ~@args)))
+(defmacro ap-if [test-form then-form &optional else-form]
+  `(let [it ~test-form]
+     (if it ~then-form ~else-form)))
 
 
 (defmacro ap-each [lst &rest body]
