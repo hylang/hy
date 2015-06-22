@@ -1061,13 +1061,42 @@ class HyASTCompiler(object):
         return ret
 
     @builds("global")
-    @checkargs(1)
+    @checkargs(min=1)
     def compile_global_expression(self, expr):
         expr.pop(0)  # global
-        e = expr.pop(0)
-        return ast.Global(names=[ast_str(e)],
-                          lineno=e.start_line,
-                          col_offset=e.start_column)
+        names = []
+        while len(expr) > 0:
+            identifier = expr.pop(0)
+            name = ast_str(identifier)
+            names.append(name)
+            if not isinstance(identifier, HySymbol):
+                raise HyTypeError(identifier, "(global) arguments must "
+                                  " be Symbols")
+
+        return ast.Global(names=names,
+                          lineno=expr.start_line,
+                          col_offset=expr.start_column)
+
+    @builds("nonlocal")
+    @checkargs(min=1)
+    def compile_nonlocal_expression(self, expr):
+        if not PY3:
+            raise HyCompileError(
+                "nonlocal only supported in python 3!")
+
+        expr.pop(0)  # nonlocal
+        names = []
+        while len(expr) > 0:
+            identifier = expr.pop(0)
+            name = ast_str(identifier)
+            names.append(name)
+            if not isinstance(identifier, HySymbol):
+                raise HyTypeError(identifier, "(nonlocal) arguments must "
+                                  "be Symbols.")
+
+        return ast.Nonlocal(names=names,
+                            lineno=expr.start_line,
+                            col_offset=expr.start_column)
 
     @builds("yield")
     @checkargs(max=1)
