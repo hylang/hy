@@ -434,6 +434,16 @@ def test_lambda_list_keywords_mixed():
     cant_compile("(fn (x &rest xs &fasfkey {bar \"baz\"}))")
 
 
+def test_missing_keyword_argument_value():
+    """Ensure the compiler chokes on missing keyword argument values."""
+    try:
+        can_compile("((fn [x] x) :x)")
+    except HyTypeError as e:
+        assert(e.message == "Keyword argument \ufdd0:x needs a value.")
+    else:
+        assert(False)
+
+
 def test_ast_unicode_strings():
     """Ensure we handle unicode strings correctly"""
 
