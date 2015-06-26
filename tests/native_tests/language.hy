@@ -12,6 +12,11 @@
   (assert (isinstance sys.argv list)))
 
 
+(defn test-fractions []
+  "NATIVE: test fractions"
+  (assert (= 1/2 (fraction 1 2))))
+
+
 (defn test-lists []
   "NATIVE: test lists work right"
   (assert (= [1 2 3 4] (+ [1 2] [3 4]))))

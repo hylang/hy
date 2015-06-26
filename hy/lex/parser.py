@@ -266,6 +266,14 @@ def t_identifier(p):
     except ValueError:
         pass
 
+    if '/' in obj:
+        try:
+            lhs, rhs = obj.split('/')
+            return HyExpression([HySymbol('fraction'), HyInteger(lhs),
+                                 HyInteger(rhs)])
+        except ValueError:
+            pass
+
     try:
         return HyFloat(obj)
     except ValueError:
