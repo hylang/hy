@@ -31,6 +31,7 @@ from hy.models.float import HyFloat
 from hy.models.integer import HyInteger
 from hy.models.keyword import HyKeyword
 from hy.models.list import HyList
+from hy.models.set import HySet
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 
@@ -152,6 +153,7 @@ def list_contents_single(p):
 @pg.production("term : paren")
 @pg.production("term : dict")
 @pg.production("term : list")
+@pg.production("term : set")
 @pg.production("term : string")
 def term(p):
     return p[0]
@@ -188,6 +190,18 @@ def hash_reader(p):
     str_object = HyString(st)
     expr = p[1]
     return HyExpression([HySymbol("dispatch_reader_macro"), str_object, expr])
+
+
+@pg.production("set : HLCURLY list_contents RCURLY")
+@set_boundaries
+def t_set(p):
+    return HySet(p[1])
+
+
+@pg.production("set : HLCURLY RCURLY")
+@set_boundaries
+def empty_set(p):
+    return HySet([])
 
 
 @pg.production("dict : LCURLY list_contents RCURLY")

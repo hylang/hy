@@ -32,6 +32,7 @@ from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 from hy.models.float import HyFloat
 from hy.models.list import HyList
+from hy.models.set import HySet
 from hy.models.dict import HyDict
 from hy.models.cons import HyCons
 
@@ -628,7 +629,7 @@ class HyASTCompiler(object):
         name = form.__class__.__name__
         imports = set([name])
 
-        if isinstance(form, (HyList, HyDict)):
+        if isinstance(form, (HyList, HyDict, HySet)):
             if not form:
                 contents = HyList()
             else:
@@ -1972,6 +1973,31 @@ class HyASTCompiler(object):
                         ctx=ast.Load(),
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
+        return ret
+
+    @builds(HySet)
+    def compile_set(self, expression):
+        elts, ret, _ = self._compile_collect(expression)
+        if PY27:
+            ret += ast.Set(elts=elts,
+                           ctx=ast.Load(),
+                           lineno=expression.start_line,
+                           col_offset=expression.start_column)
+        else:
+            ret += ast.Call(func=ast.Name(id='set',
+                                          ctx=ast.Load(),
+                                          lineno=expression.start_line,
+                                          col_offset=expression.start_column),
+                            args=[
+                                ast.List(elts=elts,
+                                         ctx=ast.Load(),
+                                         lineno=expression.start_line,
+                                         col_offset=expression.start_column)],
+                            keywords=[],
+                            starargs=None,
+                            kwargs=None,
+                            lineno=expression.start_line,
+                            col_offset=expression.start_column)
         return ret
 
     @builds("lambda")
