@@ -23,6 +23,12 @@
   (assert (= {1 2 3 4} {1 (+ 1 1) 3 (+ 2 2)})))
 
 
+(defn test-sets []
+  "NATIVE: test sets work right"
+  (assert (= #{1 2 3 4} (| #{1 2} #{3 4})))
+  (assert (= #{} (set))))
+
+
 (defn test-setv-get []
   "NATIVE: test setv works on a get expression"
   (setv foo [0 1 2])

@@ -198,6 +198,8 @@ Hy.  Let's experiment with this in the hy interpreter::
   {'dog': 'bark', 'cat': 'meow'}
   => (, 1 2 3)
   (1, 2, 3)
+  => #{3 1 2}
+  {1, 2, 3}
 
 If you are familiar with other Lisps, you may be interested that Hy
 supports the Common Lisp method of quoting:
