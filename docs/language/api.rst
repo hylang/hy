@@ -1024,6 +1024,44 @@ conditional expression. Some examples:
     [0, 2, 4, 6, 8]
 
 
+nonlocal
+--------
+
+.. versionadded:: 0.11.1
+
+**PYTHON 3.0 AND UP ONLY!**
+
+``nonlocal`` can be used to mark a symbol as not local to the current scope.
+The parameters are the names of symbols to mark as nonlocal.  This is necessary
+to modify variables through nested ``let`` or ``fn`` scopes:
+
+.. code-block:: clj
+
+    (let [[x 0]]
+      (for [y (range 10)]
+        (let [[z (inc y)]]
+          (nonlocal x)  ; allow the setv to "jump scope" to resolve x
+          (setv x (+ x y))))
+      x)
+
+    (defn some-function []
+      (let [[x 0]]
+        (register-some-callback
+          (fn [stuff]
+            (nonlocal x)
+            (setv x stuff)))))
+
+In the first example, without the call to ``(nonlocal x)``, this code would
+result in an UnboundLocalError being raised during the call to ``setv``.
+
+In the second example, without the call to ``(nonlocal x)``, the inner function
+would redefine ``x`` to ``stuff`` inside its local scope instead of overwriting
+the ``x`` in the outer function
+
+See `PEP3104 <https://www.python.org/dev/peps/pep-3104/>`_ for further
+information.
+
+
 not
 ---
 
