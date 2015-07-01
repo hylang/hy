@@ -410,9 +410,14 @@ Parameters may have the following keywords in front of them:
         => (defn print-parameters [&kwargs kwargs]
         ...    (for [(, k v) (.items kwargs)] (print k v)))
 
+        => (print-parameters :parameter-1 1 :parameter-2 2)
+        parameter_1 1
+        parameter_2 2
+
+        ; to avoid the mangling of '-' to '_', use apply:
         => (apply print-parameters [] {"parameter-1" 1 "parameter-2" 2})
-        parameter-2 2
         parameter-1 1
+        parameter-2 2
 
 &rest
     Parameter will contain 0 or more positional arguments. No other positional
