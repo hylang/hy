@@ -1669,15 +1669,22 @@ class HyASTCompiler(object):
 
     @builds("and")
     @builds("or")
-    @checkargs(min=2)
     def compile_logical_or_and_and_operator(self, expression):
-        ops = {"and": ast.And,
-               "or" : ast.Or}
+        ops = {"and": (ast.And, "True"),
+               "or": (ast.Or, "None")}
         operator = expression.pop(0)
+        opnode, default = ops[operator]
+        root_line, root_column = operator.start_line, operator.start_column
+        if len(expression) == 0:
+            return ast.Name(id=default,
+                            ctx=ast.Load(),
+                            lineno=root_line,
+                            col_offset=root_column)
+        elif len(expression) == 1:
+            return self.compile(expression[0])
         ret = Result()
         values = list(map(self.compile, expression))
         has_stmt = any(value.stmts for value in values)
-        root_line, root_column = operator.start_line, operator.start_column
         if has_stmt:
             # Compile it to an if...else sequence
             var = self.get_anon_var()
@@ -1730,7 +1737,7 @@ class HyASTCompiler(object):
             ret = sum(root, ret)
             ret += Result(expr=expr_name, temp_variables=[expr_name, name])
         else:
-            ret += ast.BoolOp(op=ops[operator](),
+            ret += ast.BoolOp(op=opnode(),
                               lineno=root_line,
                               col_offset=root_column,
                               values=[value.force_expr for value in values])
