@@ -27,6 +27,7 @@ from hy.models.symbol import HySymbol
 from hy.models.string import HyString
 from hy.models.dict import HyDict
 from hy.models.list import HyList
+from hy.models.set import HySet
 from hy.models.cons import HyCons
 
 from hy.lex import LexException, PrematureEndOfInput, tokenize
@@ -197,6 +198,21 @@ def test_dicts():
 
     objs = tokenize("{(foo bar) (baz quux)}")
     assert objs == [HyDict([
+        HyExpression([HySymbol("foo"), HySymbol("bar")]),
+        HyExpression([HySymbol("baz"), HySymbol("quux")])
+    ])]
+
+
+def test_sets():
+    """ Ensure that we can tokenize a set. """
+    objs = tokenize("#{1 2}")
+    assert objs == [HySet([HyInteger(1), HyInteger(2)])]
+    objs = tokenize("(bar #{foo bar baz})")
+    assert objs == [HyExpression([HySymbol("bar"),
+                                  HySet(["foo", "bar", "baz"])])]
+
+    objs = tokenize("#{(foo bar) (baz quux)}")
+    assert objs == [HySet([
         HyExpression([HySymbol("foo"), HySymbol("bar")]),
         HyExpression([HySymbol("baz"), HySymbol("quux")])
     ])]
