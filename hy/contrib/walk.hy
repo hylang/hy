@@ -1,6 +1,6 @@
 ;;; Hy AST walker
 ;;
-;; Copyright (c) 2014  Gergely Nagy <algernon@madhouse-project.org>
+;; Copyright (c) 2014, 2015  Gergely Nagy <algernon@madhouse-project.org>
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,8 @@
                  (inner (rest form))))]
    [(instance? list form)
     ((type form) (outer (HyExpression (map inner form))))]
+   [(coll? form)
+    (walk inner outer (list form))]
    [true (outer form)]))
 
 (defn postwalk [f form]

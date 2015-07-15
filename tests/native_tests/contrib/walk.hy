@@ -24,6 +24,12 @@
                nil))
     (assert (= acc [walk-form]))))
 
+(defn test-walk-iterators []
+  (let [[acc []]]
+    (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
+                     (drop 1 [1 [2 [3 [4]]]]))
+               [[2 [3 [4]] 2 [3 [4]]]]))))
+
 (defn test-macroexpand-all []
   (assert (= (macroexpand-all '(with [a b c] (for [d c] foo)))
              '(with* [a] (with* [b] (with* [c] (do (for* [d c] foo))))))))
