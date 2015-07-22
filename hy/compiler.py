@@ -460,7 +460,7 @@ class HyASTCompiler(object):
                     value = next(exprs_iter)
                 except StopIteration:
                     msg = "Keyword argument {kw} needs a value"
-                    raise HyCompileError(msg.format(kw=str(expr)))
+                    raise HyCompileError(msg.format(kw=str(expr[1:])))
 
                 compiled_value = self.compile(value)
                 ret += compiled_value
