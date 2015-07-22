@@ -1802,6 +1802,10 @@ class HyASTCompiler(object):
     def compile_expression(self, expression):
         # Perform macro expansions
         expression = macroexpand(expression, self.module_name)
+
+        if isinstance(expression, ast.AST):
+            return expression
+
         if not isinstance(expression, HyExpression):
             # Go through compile again if the type changed.
             return self.compile(expression)

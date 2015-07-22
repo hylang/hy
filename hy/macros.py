@@ -31,6 +31,7 @@ from hy._compat import str_type, long_type
 from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
+import ast
 import sys
 
 CORE_MACROS = [
@@ -202,6 +203,13 @@ def macroexpand_1(tree, module_name):
                 except Exception as e:
                     msg = "expanding `" + str(tree[0]) + "': " + repr(e)
                     raise HyMacroExpansionError(tree, msg)
+
+                if isinstance(obj, ast.AST):
+                    obj.lineno = tree.start_line
+                    obj.col_offset = tree.start_column
+                    ast.fix_missing_locations(obj)
+                    return obj
+
                 obj.replace(tree)
                 return obj
 
