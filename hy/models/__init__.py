@@ -66,4 +66,4 @@ def replace_hy_obj(obj, other):
         return wrapped_obj.replace(other)
     else:
         raise TypeError("Don't know how to wrap a %s object to a HyObject"
-                        % (type obj))
+                        % type(obj))
