@@ -65,5 +65,5 @@ def replace_hy_obj(obj, other):
     if isinstance(wrapped_obj, HyObject):
         return wrapped_obj.replace(other)
     else:
-        raise TypeError("Can't replace a Hy object "
-                        "with a non wrappable non Hy object")
+        raise TypeError("Don't know how to wrap a %s object to a HyObject"
+                        % (type obj))
