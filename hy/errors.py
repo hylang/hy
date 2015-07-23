@@ -21,13 +21,16 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import unicode_literals
+
 import traceback
 
 from clint.textui import colored
 
-from hy._compat import PY3
+from hy._compat import str_type, python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class HyError(Exception):
     """
     Generic Hy error. All internal Exceptions will be subclassed from this
@@ -43,7 +46,7 @@ class HyCompileError(HyError):
 
     def __str__(self):
         if isinstance(self.exception, HyTypeError):
-            return str(self.exception)
+            return str_type(self.exception)
         if self.traceback:
             tb = "".join(traceback.format_tb(self.traceback)).strip()
         else:
@@ -53,6 +56,7 @@ class HyCompileError(HyError):
                   self.exception, tb))
 
 
+@python_2_unicode_compatible
 class HyTypeError(TypeError):
     def __init__(self, expression, message):
         super(HyTypeError, self).__init__(message)
@@ -99,14 +103,11 @@ class HyTypeError(TypeError):
             result += '  %s\n' % colored.red("".join(source[-1]))
             result += '  %s\n' % colored.green('-'*(end-1) + '^')
 
-        result += colored.yellow("%s: %s\n\n" %
-                                 (self.__class__.__name__,
-                                  self.message))
+        result += str_type(colored.yellow("%s: %s\n\n" %
+                                          (self.__class__.__name__,
+                                           self.message)))
 
-        if not PY3:
-            return result.encode('utf-8')
-        else:
-            return result
+        return result
 
 
 class HyMacroExpansionError(HyTypeError):

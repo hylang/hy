@@ -18,6 +18,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from __future__ import unicode_literals
+
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
@@ -200,7 +202,7 @@ def macroexpand_1(tree, module_name):
                         e.expression = tree
                     raise
                 except Exception as e:
-                    msg = "expanding `" + str(tree[0]) + "': " + repr(e)
+                    msg = "expanding `" + str_type(tree[0]) + "': " + repr(e)
                     raise HyMacroExpansionError(tree, msg)
                 obj.replace(tree)
                 return obj

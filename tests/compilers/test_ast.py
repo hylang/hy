@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Paul Tagliamonte <paultag@debian.org>
 # Copyright (c) 2013 Julien Danjou <julien@danjou.info>
 #
@@ -24,10 +25,10 @@ from __future__ import unicode_literals
 from hy import HyString
 from hy.models import HyObject
 from hy.compiler import hy_compile
-from hy.errors import HyCompileError, HyTypeError
+from hy.errors import HyCompileError, HyTypeError, HyMacroExpansionError
 from hy.lex.exceptions import LexException
 from hy.lex import tokenize
-from hy._compat import PY3
+from hy._compat import PY3, str_type
 
 import ast
 
@@ -463,6 +464,19 @@ def test_ast_unicode_strings():
     assert _compile_string("test") == "test"
     assert _compile_string("\u03b1\u03b2") == "\u03b1\u03b2"
     assert _compile_string("\xc3\xa9") == "\xc3\xa9"
+
+
+def test_unicode_exception_messages():
+    """Ensure we can generate error messages containing unicode."""
+    try:
+        hy_compile(tokenize("(defmacro ❤ () (throw Exception)) (❤)"),
+                   "__main__")
+        assert False
+    except HyMacroExpansionError as e:
+        assert isinstance(e.expression, HyObject)
+        message = str_type(e)
+        assert '❤' in message
+        assert "Exception()" in message
 
 
 def test_compile_error():

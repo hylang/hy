@@ -51,7 +51,7 @@ from hy.models.expression import HyExpression
 from hy.models.string import HyString
 from hy.models.symbol import HySymbol
 
-from hy._compat import builtins, PY3
+from hy._compat import builtins, PY3, str_type
 
 
 class HyQuitter(object):
@@ -97,7 +97,7 @@ class HyREPL(code.InteractiveConsole):
             if e.source is None:
                 e.source = source
                 e.filename = filename
-            sys.stderr.write(str(e))
+            sys.stderr.write(str_type(e))
             return False
 
         try:
@@ -110,7 +110,7 @@ class HyREPL(code.InteractiveConsole):
                 e.source = source
                 e.filename = filename
             if SIMPLE_TRACEBACKS:
-                sys.stderr.write(str(e))
+                sys.stderr.write(str_type(e))
             else:
                 self.showtraceback()
             return False
@@ -181,10 +181,13 @@ SIMPLE_TRACEBACKS = True
 
 def run_command(source):
     try:
+        if not PY3:
+            # TODO: Encoding type should depend on locale.
+            source = source.decode('utf-8')
         import_buffer_to_module("__main__", source)
     except (HyTypeError, LexException) as e:
         if SIMPLE_TRACEBACKS:
-            sys.stderr.write(str(e))
+            sys.stderr.write(str_type(e))
             return 1
         raise
     except Exception:
@@ -210,7 +213,7 @@ def run_file(filename):
         import_file_to_module("__main__", filename)
     except (HyTypeError, LexException) as e:
         if SIMPLE_TRACEBACKS:
-            sys.stderr.write(str(e))
+            sys.stderr.write(str_type(e))
             return 1
         raise
     except Exception:
