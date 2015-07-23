@@ -2041,14 +2041,26 @@ class HyASTCompiler(object):
                 ) + expression
                 expression = expression.replace(arg[0])
 
+        return_ann = None
+
         if PY34:
             # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
-            args = [ast.arg(arg=ast_str(x),
-                            annotation=None,  # Fix me!
-                            lineno=x.start_line,
-                            col_offset=x.start_column) for x in args]
+            if len(expression) > 0 and expression[0] == "_>":
+                expression.pop(0)
+                return_ann = self.compile(expression.pop(0))._expr
 
+            ret_args = []
+            for x in args:
+                ann = None
+                if isinstance(x, HyList):
+                    x, ann = x
+                    ann_ret = self.compile(ann)._expr
+                ret_args.append(ast.arg(arg=ast_str(x),
+                                        annotation=ann_ret if ann else None,
+                                        lineno=x.start_line,
+                                        col_offset=x.start_column))
+            args = ret_args
             # XXX: Beware. Beware. This wasn't put into the parse lambda
             # list because it's really just an internal parsing thing.
 
@@ -2096,13 +2108,21 @@ class HyASTCompiler(object):
                              col_offset=expression.start_column)
 
         name = self.get_anon_fn()
-
-        ret += ast.FunctionDef(name=name,
-                               lineno=expression.start_line,
-                               col_offset=expression.start_column,
-                               args=args,
-                               body=body.stmts,
-                               decorator_list=[])
+        if return_ann:
+            ret += ast.FunctionDef(name=name,
+                                   lineno=expression.start_line,
+                                   col_offset=expression.start_column,
+                                   args=args,
+                                   body=body.stmts,
+                                   decorator_list=[],
+                                   returns=return_ann)
+        else:
+            ret += ast.FunctionDef(name=name,
+                                   lineno=expression.start_line,
+                                   col_offset=expression.start_column,
+                                   args=args,
+                                   body=body.stmts,
+                                   decorator_list=[])
 
         ast_name = ast.Name(id=name,
                             arg=name,
