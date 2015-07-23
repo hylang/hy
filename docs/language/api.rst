@@ -441,6 +441,41 @@ Parameters may have the following keywords in front of them:
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
 
+&kwonly
+    .. versionadded:: 0.12.0
+
+    Parameters that can only be called as keywords. Mandatory
+    keyword-only arguments are declared with the argument's name;
+    optional keyword-only arguments are declared as a two-element list
+    containing the argument name followed by the default value (as
+    with `&optional` above).
+
+    .. code-block:: clj
+
+        => (defn compare [a b &kwonly keyfn [reverse false]]
+        ...  (let [[result (keyfn a b)]]
+        ...    (if (not reverse)
+        ...      result
+        ...      (- result))))
+        => (apply compare ["lisp" "python"]
+        ...        {"keyfn" (fn [x y]
+        ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))})
+        -4
+        => (apply compare ["lisp" "python"]
+        ...        {"keyfn" (fn [x y]
+        ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))
+        ...         "reverse" true})
+        4
+
+    .. code-block:: python
+
+        => (compare "lisp" "python")
+        Traceback (most recent call last):
+          File "<input>", line 1, in <module>
+        TypeError: compare() missing 1 required keyword-only argument: 'keyfn'
+
+    Availability: Python 3.
+
 .. _defn-alias / defun-alias:
 
 defn-alias / defun-alias

@@ -54,11 +54,13 @@ def cant_compile(expr):
         # error, otherwise it's a compiler bug.
         assert isinstance(e.expression, HyObject)
         assert e.message
+        return e
     except HyCompileError as e:
         # Anything that can't be compiled should raise a user friendly
         # error, otherwise it's a compiler bug.
         assert isinstance(e.exception, HyTypeError)
         assert e.traceback
+        return e
 
 
 def test_ast_bad_type():
@@ -441,10 +443,31 @@ def test_lambda_list_keywords_kwargs():
     cant_compile("(fn (x &kwargs xs &kwargs ys) (list x xs ys))")
 
 
+def test_lambda_list_keywords_kwonly():
+    """Ensure we can compile functions with &kwonly if we're on Python
+    3, or fail with an informative message on Python 2."""
+    kwonly_demo = "(fn [&kwonly a [b 2]] (print a b))"
+    if PY3:
+        code = can_compile(kwonly_demo)
+        for i, kwonlyarg_name in enumerate(('a', 'b')):
+            assert kwonlyarg_name == code.body[0].args.kwonlyargs[i].arg
+        assert code.body[0].args.kw_defaults[0] is None
+        assert code.body[0].args.kw_defaults[1].n == 2
+    else:
+        exception = cant_compile(kwonly_demo)
+        assert isinstance(exception, HyTypeError)
+        message, = exception.args
+        assert message == ("keyword-only arguments are only "
+                           "available under Python 3")
+
+
 def test_lambda_list_keywords_mixed():
     """ Ensure we can mix them up."""
     can_compile("(fn (x &rest xs &kwargs kw) (list x xs kw))")
     cant_compile("(fn (x &rest xs &fasfkey {bar \"baz\"}))")
+    if PY3:
+        can_compile("(fn [x &rest xs &kwargs kwxs &kwonly kwoxs]"
+                    "  (list x xs kwxs kwoxs))")
 
 
 def test_ast_unicode_strings():
