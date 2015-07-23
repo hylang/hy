@@ -18,20 +18,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy.models import replace_hy_obj, wrap_value
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
-from hy.models.symbol import HySymbol
-from hy.models.list import HyList
-from hy.models.integer import HyInteger
-from hy.models.float import HyFloat
-from hy.models.complex import HyComplex
-from hy.models.dict import HyDict
-from hy._compat import str_type, long_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
-import sys
 
 CORE_MACROS = [
     "hy.core.bootstrap",
@@ -106,37 +99,6 @@ def require(source_module, target_module):
         reader_refs[name] = reader
 
 
-# type -> wrapping function mapping for _wrap_value
-_wrappers = {
-    int: HyInteger,
-    bool: lambda x: HySymbol("True") if x else HySymbol("False"),
-    float: HyFloat,
-    complex: HyComplex,
-    str_type: HyString,
-    dict: lambda d: HyDict(_wrap_value(x) for x in sum(d.items(), ())),
-    list: lambda l: HyList(_wrap_value(x) for x in l),
-    tuple: lambda t: HyList(_wrap_value(x) for x in t),
-    type(None): lambda foo: HySymbol("None"),
-    HyExpression: lambda e: HyExpression(_wrap_value(x) for x in e),
-}
-
-if sys.version_info[0] < 3:  # do not add long on python3
-    _wrappers[long_type] = HyInteger
-
-
-def _wrap_value(x):
-    """Wrap `x` into the corresponding Hy type.
-
-    This allows a macro to return an unquoted expression transparently.
-
-    """
-    wrapper = _wrappers.get(type(x))
-    if wrapper is None:
-        return x
-    else:
-        return wrapper(x)
-
-
 def load_macros(module_name):
     """Load the hy builtin macros for module `module_name`.
 
@@ -194,7 +156,8 @@ def macroexpand_1(tree, module_name):
                 m = _hy_macros[None].get(fn)
             if m is not None:
                 try:
-                    obj = _wrap_value(m(*ntree[1:]))
+                    obj = wrap_value(m(*ntree[1:]))
+
                 except HyTypeError as e:
                     if e.expression is None:
                         e.expression = tree
@@ -202,7 +165,7 @@ def macroexpand_1(tree, module_name):
                 except Exception as e:
                     msg = "expanding `" + str(tree[0]) + "': " + repr(e)
                     raise HyMacroExpansionError(tree, msg)
-                obj.replace(tree)
+                replace_hy_obj(obj, tree)
                 return obj
 
         return ntree
@@ -223,4 +186,4 @@ def reader_macroexpand(char, tree, module_name):
         )
 
     expr = _hy_reader[module_name][char](tree)
-    return _wrap_value(expr).replace(tree)
+    return replace_hy_obj(wrap_value(expr), tree)

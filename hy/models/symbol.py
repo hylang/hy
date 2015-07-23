@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy.models import _wrappers
 from hy.models.string import HyString
 
 
@@ -28,3 +29,6 @@ class HySymbol(HyString):
 
     def __init__(self, string):
         self += string
+
+_wrappers[bool] = lambda x: HySymbol("True") if x else HySymbol("False")
+_wrappers[type(None)] = lambda foo: HySymbol("None")

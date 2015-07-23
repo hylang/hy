@@ -18,7 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models import HyObject, _wrappers
 
 
 class HyComplex(HyObject, complex):
@@ -30,3 +30,5 @@ class HyComplex(HyObject, complex):
     def __new__(cls, number, *args, **kwargs):
         number = complex(number)
         return super(HyComplex, cls).__new__(cls, number)
+
+_wrappers[complex] = HyComplex

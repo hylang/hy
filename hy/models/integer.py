@@ -18,8 +18,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import HyObject
+from hy.models import HyObject, _wrappers
 from hy._compat import long_type
+
+import sys
 
 
 class HyInteger(HyObject, long_type):
@@ -32,3 +34,9 @@ class HyInteger(HyObject, long_type):
     def __new__(cls, number, *args, **kwargs):
         number = long_type(number)
         return super(HyInteger, cls).__new__(cls, number)
+
+
+_wrappers[int] = HyInteger
+
+if sys.version_info[0] < 3:  # do not add long on python3
+    _wrappers[long_type] = HyInteger

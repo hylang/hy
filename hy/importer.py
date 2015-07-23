@@ -20,7 +20,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.compiler import hy_compile, HyTypeError
-from hy.models import HyObject
+from hy.models import HyObject, replace_hy_obj
 from hy.lex import tokenize, LexException
 from hy.errors import HyIOError
 
@@ -107,7 +107,7 @@ def hy_eval(hytree, namespace, module_name):
     foo.end_line = 0
     foo.start_column = 0
     foo.end_column = 0
-    hytree.replace(foo)
+    replace_hy_obj(hytree, foo)
     _ast, expr = hy_compile(hytree, module_name, get_expr=True)
 
     # Spoof the positions in the generated ast...
