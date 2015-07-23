@@ -1984,7 +1984,7 @@ class HyASTCompiler(object):
                 body += body.expr_as_stmt()
             else:
                 if self.tail_rec:
-                    expression[-1], changed = self.makeTailRec(expression[-1])
+                    expression[-1], changed = self.make_tail_rec(expression[-1])
                     if changed:
                         new_expression = HyExpression([
                             HySymbol("with_decorator"),
@@ -2021,32 +2021,32 @@ class HyASTCompiler(object):
 
         return ret
 
-    def exprToTailCall(self, expr):
+    def expr_to_tail_call(self, expr):
         "Takes an expression, and returns a TailCall of that expression"
         return HyExpression([
             HySymbol("raise"),
             HyExpression([HySymbol("HyTailCall")] + expr),
         ]).replace(expr)
 
-    def makeTailRec(self, body):
+    def make_tail_rec(self, body):
         """ Takes the body of an expression, and returns a tail recursive
             TailCall form of the body """
         if isinstance(body, HyExpression):
             # Only compile expression, names and symbols should just stand
             if body[0] == "if":
-                body[2], changed2 = self.makeTailRec(body[2])
+                body[2], changed2 = self.make_tail_rec(body[2])
                 changed3 = False
                 if len(body) == 4:
-                    body[3], changed3 = self.makeTailRec(body[3])
+                    body[3], changed3 = self.make_tail_rec(body[3])
                 return body, (changed2 or changed3)
             if body[0] == "progn" or body[0] == "do":
-                body[-1], changed = self.makeTailRec(body[-1])
+                body[-1], changed = self.make_tail_rec(body[-1])
                 return body, changed
             elif body[0] in _compile_table.keys():
                 # Bail on all keywords in hy and other special forms
                 return body, False
             else:
-                return self.exprToTailCall(body), True
+                return self.expr_to_tail_call(body), True
         return body, False
 
     @builds("defclass")
