@@ -4,7 +4,7 @@
         [operator [or_]])
 (import sys)
 
-(import [hy._compat [PY33 PY34]])
+(import [hy._compat [PY33 PY34 PY35]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -1067,8 +1067,11 @@
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-             "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])"))
+  (if PY35
+    (assert (= (disassemble '(do (leaky) (leaky) (macros)))
+               "Module(\n    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
+    (assert (= (disassemble '(do (leaky) (leaky) (macros)))
+               "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) true)
              "leaky()\nleaky()\nmacros()")))
 
