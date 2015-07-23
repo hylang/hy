@@ -109,3 +109,15 @@
     `(let [[acc ~initial-value]]
        (ap-each ~lst (setv acc ~form))
        acc)))
+
+
+(defmacro ap-pipe [var &rest forms]
+  "Pushes a value through several forms.
+  (Anaphoric version of -> and ->>)"
+  (if (empty? forms) var
+      `(ap-pipe (let [[it ~var]] ~(first forms)) ~@(rest forms))))
+
+
+(defmacro ap-compose [&rest forms]
+  "Returns a function which is the composition of several forms."
+  `(fn [var] (ap-pipe var ~@forms)))
