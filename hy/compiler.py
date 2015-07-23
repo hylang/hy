@@ -1984,7 +1984,8 @@ class HyASTCompiler(object):
                 body += body.expr_as_stmt()
             else:
                 if self.tail_rec:
-                    expression[-1], changed = self.make_tail_rec(expression[-1])
+                    expression[-1], changed = self.make_tail_rec(
+                        expression[-1])
                     if changed:
                         new_expression = HyExpression([
                             HySymbol("with_decorator"),
