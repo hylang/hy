@@ -1903,11 +1903,29 @@ class HyASTCompiler(object):
 
     @builds("def")
     @builds("setv")
-    @checkargs(2)
+    @checkargs(min=2)
     def compile_def_expression(self, expression):
-        return self._compile_assign(expression[1], expression[2],
-                                    expression.start_line,
-                                    expression.start_column)
+        expression.pop(0)
+        if len(expression) == 2:
+            return self._compile_assign(expression[0], expression[1],
+                                        expression.start_line,
+                                        expression.start_column)
+        elif len(expression) % 2 != 0:
+            raise HyTypeError(expression,
+                              "setv needs an even number of arguments")
+        else:
+            result = Result()
+            exprs = []
+            for tgt, target in zip(expression[::2], expression[1::2]):
+                item = self._compile_assign(tgt, target,
+                                            tgt.start_line, tgt.start_column)
+                result += item
+                exprs.append(item.force_expr)
+
+            result += ast.Tuple(elts=exprs, lineno=expression.start_line,
+                                col_offset=expression.start_column,
+                                ctx=ast.Load())
+            return result
 
     def _compile_assign(self, name, result,
                         start_line, start_column):

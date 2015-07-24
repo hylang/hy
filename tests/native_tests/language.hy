@@ -58,6 +58,18 @@
   (try (eval '(defn lambda [] (print "hello")))
        (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
 
+
+(defn test-setv-pairs []
+  "NATIVE: test that setv works on pairs of arguments"
+  (assert (= (setv a 1 b 2) (, 1 2)))
+  (assert (= a 1))
+  (assert (= b 2))
+  (setv y 0 x 1 y x)
+  (assert y)
+  (try (eval '(setv a 1 b))
+       (catch [e [TypeError]] (assert (in "setv needs an even number of arguments" (str e))))))
+
+
 (defn test-fn-corner-cases []
   "NATIVE: tests that fn/defn handles corner cases gracefully"
   (try (eval '(fn "foo"))

@@ -334,6 +334,18 @@ For example:
     => (counter [1 2 3 4 5 2 3] 2)
     2
 
+They can be used to assign multiple variables at once:
+
+.. code-block:: hy
+
+    => (setv a 1 b 2)
+    (1L, 2L)
+    => a
+    1L
+    => b
+    2L
+    =>
+
 
 defclass
 --------
