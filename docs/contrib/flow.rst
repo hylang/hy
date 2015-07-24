@@ -4,10 +4,9 @@ Flow
 
 .. versionadded:: 0.10.1
 
-The ``flow`` macros allow a programmer to direct the flow of his program with
-greater ease.
-   
-   
+The ``flow`` macros allow directing the flow of a program with greater ease.
+
+
 Macros
 ======
 
@@ -27,15 +26,15 @@ Example:
 .. code-block:: hy
 
     (require hy.contrib.flow)
-                
-    (defn bmi-commenter [bmi]
-        (case bmi
-            10 (print "The bmi was 10, wow.")
-            20 (print "20? Really?")
-            30 (print "Was it 30? Ok...")
+
+    (defn temp-commenter [temp]
+        (case temp
+            -10 (print "It's freezing. Turn up the thermostat!")
+            15 (print "Sounds about average.")
+            45 (print "Holy smokes. It's hot in here!")
                (print  "I don't even know.")))
 
-    
+
 switch
 -----
 
@@ -50,11 +49,10 @@ Example:
 .. code-block:: hy
 
     (require hy.contrib.flow)
-                
-    (defn bmi-commenter [bmi]
-        (switch bmi
-            (<= 18.5) (print "you are underweight!")
-            (<= 25.0) (print "apparently normal")
-            (<= 30.0) (print "a little too heavy, but ok")
-                      (print  "You are a whale!")))
-    
+
+    (defn temp-commenter [temp]
+        (switch temp
+            (<= 10.0) (print "Better wear a jacket!")
+            (<= 25.0) (print "Brace yourselves. Summer is coming!")
+            (<= 30.0) (print "Time to get some ice cream.")
+                      (print "Sounds like a heat wave")))
