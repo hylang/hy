@@ -231,3 +231,9 @@
        (repeat r.text)))
     (catch [e ImportError]
       (repeat "Botsbuildbots requires `requests' to function."))))
+
+
+(defreader @ [expr]
+  (let [[decorators (slice expr nil -1)]
+        [fndef (get expr -1)]]
+    `(with-decorator ~@decorators ~fndef)))

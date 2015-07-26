@@ -1463,6 +1463,25 @@ will be 4 (``1+1 + 1+1``).
     8
 
 
+#@
+~~
+
+.. versionadded:: 0.12.0
+
+The :ref:`reader macro<reader-macros>` ``#@`` can be used as a shorthand
+for ``with-decorator``. With ``#@``, the previous example becomes:
+
+.. code-block:: clj
+
+    => #@(inc-decorator (defn addition [a b] (+ a b)))
+    => (addition 1 1)
+    4
+    => #@(inc2-decorator inc-decorator
+    ...   (defn addition [a b] (+ a b)))
+    => (addition 1 1)
+    8
+
+
 .. _with-gensyms:
 
 with-gensyms

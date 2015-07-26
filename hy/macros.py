@@ -60,7 +60,7 @@ def macro(name):
 
 
 def reader(name):
-    """Decorator to define a macro called `name`.
+    """Decorator to define a reader macro called `name`.
 
     This stores the macro `name` in the namespace for the module where it is
     defined.
@@ -68,7 +68,7 @@ def reader(name):
     If the module where it is defined is in `hy.core`, then the macro is stored
     in the default `None` namespace.
 
-    This function is called from the `defmacro` special form in the compiler.
+    This function is called from the `defreader` special form in the compiler.
 
     """
     def _(fn):
@@ -176,14 +176,15 @@ def reader_macroexpand(char, tree, module_name):
     """Expand the reader macro "char" with argument `tree`."""
     load_macros(module_name)
 
-    if char not in _hy_reader[module_name]:
-        raise HyTypeError(
-            char,
-            "`{0}' is not a reader macro in module '{1}'".format(
+    reader_macro = _hy_reader[module_name].get(char)
+    if reader_macro is None:
+        try:
+            reader_macro = _hy_reader[None][char]
+        except KeyError:
+            raise HyTypeError(
                 char,
-                module_name,
-            ),
-        )
+                "`{0}' is not a defined reader macro.".format(char)
+            )
 
-    expr = _hy_reader[module_name][char](tree)
+    expr = reader_macro(tree)
     return replace_hy_obj(wrap_value(expr), tree)
