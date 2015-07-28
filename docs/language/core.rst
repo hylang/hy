@@ -1068,7 +1068,7 @@ if *from-file* ends before a complete expression can be parsed.
 read-str
 --------
 
-Usage: ``(read "string")``
+Usage: ``(read-str "string")``
 
 This is essentially a wrapper around `read` which reads expressions from a
 string:
