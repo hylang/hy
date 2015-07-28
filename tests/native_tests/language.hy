@@ -833,6 +833,19 @@
   (assert (= 27 (eval (+ (quote (*)) (* [(quote 3)] 3)))))
   (assert (= None (eval (quote (print ""))))))
 
+
+(defmacro assert-throw [exc-type &rest body]
+  `(try
+     (do
+       (eval ~@body)
+       (assert False "we shouldn't have arrived here"))
+     (catch [e Exception]
+       (assert (instance? ~exc-type e)
+         (.format "Expected exception of type {}, got {}: {}"
+                  (. ~exc-type --name--)
+                  (. (type e) --name--)
+                  (str e))))))
+
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
   (assert (= 'bar (eval (quote foo) {'foo 'bar})))
@@ -847,6 +860,15 @@
          (assert False "We shouldn't have arrived here"))
       (catch [e Exception]
         (assert (isinstance e NameError))))))
+
+(defn test-eval-failure []
+  "NATIVE: test eval failure modes"
+  (import [hy.errors [HyTypeError]])
+  (assert-throw HyTypeError '(eval))
+  (assert-throw HyTypeError '(eval "snafu"))
+  (assert-throw HyTypeError '(eval 'false []))
+  (assert-throw HyTypeError '(eval 'false {} 1)))
+
 
 (defn test-import-syntax []
   "NATIVE: test the import syntax."
