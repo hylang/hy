@@ -371,13 +371,13 @@
    Can take a given input buffer to read from"
   (def buff "")
   (while true
-    (def inn (str (.read from-file 1)))
+    (def inn (str (.readline from-file)))
     (if (= inn eof)
       (throw (EOFError "Reached end of file" )))
     (setv buff (+ buff inn))
     (try
       (def parsed (first (tokenize buff)))
-      (except [e [LexException PrematureEndOfInput IndexError]])
+      (except [e [PrematureEndOfInput IndexError]])
       (else (if parsed (break)))))
     parsed)
 
