@@ -1065,6 +1065,21 @@ if *from-file* ends before a complete expression can be parsed.
    hyfriends!
    EOF!
 
+read-str
+--------
+
+Usage: ``(read "string")``
+
+This is essentially a wrapper around `read` which reads expressions from a
+string:
+
+.. code-block:: hy
+
+   => (read-str "(print 1)")
+   (u'print' 1L)
+   => (eval (read-str "(print 1)"))
+   1
+   =>
 
 .. _remove-fn:
 
