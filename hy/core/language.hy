@@ -28,6 +28,9 @@
 (import collections)
 (import [fractions [Fraction :as fraction]])
 (import sys)
+(if-python2
+  (import [StringIO [StringIO]])
+  (import [io [StringIO]]))
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]]
         [hy.models.symbol [HySymbol]]
@@ -382,6 +385,12 @@
       (else (if parsed (break)))))
     parsed)
 
+
+(defn read-str [input]
+  "Reads and tokenizes first line of input"
+  (read :from-file (StringIO input)))
+
+
 (defun Botsbuildbots () (Botsbuildbots))
 
 (defn zipwith [func &rest lists]
@@ -423,6 +432,6 @@
                  identity inc input instance? integer integer? integer-char?
                  interleave interpose iterable? iterate iterator? keyword
                  keyword? last list* macroexpand macroexpand-1 map merge-with
-                 name neg? nil? none? nth numeric? odd? pos? range read remove
-                 repeat repeatedly rest reduce second some string string?
+                 name neg? nil? none? nth numeric? odd? pos? range read read-str
+                 remove repeat repeatedly rest reduce second some string string?
                  symbol? take take-nth take-while zero? zip zip_longest zipwith])
