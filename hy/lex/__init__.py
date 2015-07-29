@@ -35,3 +35,7 @@ def tokenize(buf):
         pos = e.getsourcepos()
         raise LexException("Could not identify the next token.",
                            pos.lineno, pos.colno)
+    except LexException as e:
+        if e.source is None:
+            e.source = buf
+        raise
