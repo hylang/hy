@@ -267,11 +267,10 @@ is only called on every other value in the list.
     ;; collection is a list of numerical values
 
     (for [x collection]
-      (do
-        (side-effect1 x)
-        (if (% x 2)
-          (continue))
-        (side-effect2 x)))
+      (side-effect1 x)
+      (if (% x 2)
+        (continue))
+      (side-effect2 x))
 
 
 dict-comp

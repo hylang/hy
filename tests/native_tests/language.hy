@@ -86,10 +86,12 @@
 
 (defn test-for-loop []
   "NATIVE: test for loops"
-  (setv count 0)
+  (setv count1 0 count2 0)
   (for [x [1 2 3 4 5]]
-    (setv count (+ count x)))
-  (assert (= count 15))
+    (setv count1 (+ count1 x))
+    (setv count2 (+ count2 x)))
+  (assert (= count1 15))
+  (assert (= count2 15))
   (setv count 0)
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
@@ -224,7 +226,7 @@
   "NATIVE: test if cond sorta works."
   (cond
    [(= 1 2) (assert (is true false))]
-   [(is null null) (assert (is true true))]))
+   [(is null null) (setv x true) (assert x)]))
 
 
 (defn test-index []
