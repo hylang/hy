@@ -108,6 +108,13 @@ def test_lex_integers():
     assert objs == [HyInteger(42)]
 
 
+def test_lex_fractions():
+    """ Make sure that fractions are valid expressions"""
+    objs = tokenize("1/2")
+    assert objs == [HyExpression([HySymbol("fraction"), HyInteger(1),
+                                  HyInteger(2)])]
+
+
 def test_lex_expression_float():
     """ Make sure expressions can produce floats """
     objs = tokenize("(foo 2.)")
