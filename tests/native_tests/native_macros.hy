@@ -257,9 +257,6 @@
        (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
 
-(defn test-botsbuildbots []
-  (assert (> (len (first (Botsbuildbots))) 50)))
-
 
 (defn test-defmain []
   "NATIVE: make sure defmain is clean"
