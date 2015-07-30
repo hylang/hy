@@ -32,7 +32,7 @@
 
 
 (defmacro with [args &rest body]
-  "shorthand for nested for* loops:
+  "shorthand for nested with* loops:
   (with [[x foo] [y bar]] baz) ->
   (with* [x foo]
     (with* [y bar]
