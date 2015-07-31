@@ -1887,7 +1887,8 @@ class HyASTCompiler(object):
 
         op = ops[expression[0]]
 
-        target = self._storeize(self.compile(expression[1]))
+        orig_target = self.compile(expression[1])
+        target = self._storeize(orig_target)
         ret = self.compile(expression[2])
 
         ret += ast.AugAssign(
@@ -1897,6 +1898,14 @@ class HyASTCompiler(object):
             lineno=expression.start_line,
             col_offset=expression.start_column)
 
+        if not isinstance(target, ast.Name):
+            var = self.get_anon_var()
+            name = ast.Name(id=var, ctx=ast.Load(),
+                            lineno=target.lineno, col_offset=target.col_offset)
+
+            ret += name
+        else:
+            ret += orig_target
         return ret
 
     @checkargs(1)
