@@ -1186,6 +1186,10 @@
     (catch [e Exception]
       (assert (isinstance e EOFError)))))
 
+(defn test-read-str []
+  "NATIVE: test read-str"
+  (assert (= (read-str "(print 1)") '(print 1))))
+
 (defn test-keyword-creation []
   "NATIVE: Test keyword creation"
   (assert (= (keyword "foo") :foo))
