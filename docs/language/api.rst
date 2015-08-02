@@ -1511,6 +1511,28 @@ expands to:
    Section :ref:`using-gensym`
 
 
+xor
+---
+
+.. versionadded:: 0.12.0
+
+``xor`` is used in logical expressions to perform exclusive or. It takes at
+least two parameters. It returns ``True`` if exactly one of the parameters
+evaluates to ``True``. In all other cases ``False`` is returned. Example
+usage:
+
+.. code-block:: clj
+
+    => (xor True False)
+    True
+
+    => (xor True True)
+    False
+
+    => (xor [] [] [0])
+    True
+
+
 yield
 -----
 

@@ -237,3 +237,8 @@
   (let [[decorators (slice expr nil -1)]
         [fndef (get expr -1)]]
     `(with-decorator ~@decorators ~fndef)))
+
+(defmacro xor [&rest args]
+  "perform exclusive or comparison between all arguments"
+  (when (< (len args) 2) (macro-error nil "xor requires at least two arguments."))
+  `(= (reduce (fn [a b] (if b (inc a) a)) ~args 0) 1))
