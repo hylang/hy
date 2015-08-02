@@ -482,7 +482,7 @@
 (defn test-assoc []
   "NATIVE: test assoc"
   (setv vals {"one" "two"})
-  (assoc vals "two" "three")
+  (assert (= (assoc vals "two" "three") {"one" "two" "two" "three"}))
   (assert (= (get vals "two") "three")))
 
 (defn test-multiassoc []

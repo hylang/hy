@@ -1349,6 +1349,16 @@ class HyASTCompiler(object):
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
         ret = target
+        target_expr = target.force_expr
+        if not isinstance(target_expr, ast.Name):
+            var = self.get_anon_var()
+            target_expr = ast.Name(id=var, ctx=ast.Load(), arg=None,
+                                   lineno=target_expr.lineno,
+                                   col_offset=target_expr.col_offset)
+            ret += ast.Assign(targets=[self._storeize(target_expr)],
+                              value=target.force_expr,
+                              lineno=target_expr.lineno,
+                              col_offset=target_expr.col_offset)
         i = iter(expr)
         for (key, val) in ((self.compile(x), self.compile(y))
                            for (x, y) in zip(i, i)):
@@ -1360,10 +1370,11 @@ class HyASTCompiler(object):
                     ast.Subscript(
                         lineno=expr.start_line,
                         col_offset=expr.start_column,
-                        value=target.force_expr,
+                        value=target_expr,
                         slice=ast.Index(value=key.force_expr),
                         ctx=ast.Store())],
                 value=val.force_expr)
+        ret += target_expr
         return ret
 
     @builds("with_decorator")
