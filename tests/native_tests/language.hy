@@ -95,8 +95,10 @@
   (setv count 0)
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
-    (setv count (+ count x y)))
-  (assert (= count 150))
+    (setv count (+ count x y))
+    (else
+      (+= count 1)))
+  (assert (= count 151))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
              (list-comp y [x [[1] [2 3]] y x])))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))

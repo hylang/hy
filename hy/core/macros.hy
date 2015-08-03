@@ -97,16 +97,21 @@
   (for* [x foo]
     (for* [y bar]
       baz))"
+  (setv body (list body))
+  (setv lst (get body -1))
+  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
+                [(body.pop)]
+                []))
   (cond
    [(odd? (len args))
     (macro-error args "`for' requires an even number of args.")]
    [(empty? body)
     (macro-error None "`for' requires a body to evaluate")]
-   [(empty? args) `(do ~@body)]
-   [(= (len args) 2)  `(for* [~@args] (do ~@body))]
+   [(empty? args) `(do ~@body ~@belse)]
+   [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
    [true
     (let [[alist (cut args 0 nil 2)]]
-      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
+      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
 (defmacro -> [head &rest rest]
