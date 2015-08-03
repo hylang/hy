@@ -425,6 +425,11 @@
         (hyify (. value __name__))
         (catch [] (string value))))))
 
+(defn xor [a b]
+  "Perform exclusive or between two parameters"
+  (or (and a (not b))
+      (and b (not a))))
+
 (def *exports* '[Botsbuildbots
                  butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-last drop-while empty? even?
@@ -434,4 +439,5 @@
                  keyword? last list* macroexpand macroexpand-1 map merge-with
                  name neg? nil? none? nth numeric? odd? pos? range read read-str
                  remove repeat repeatedly rest reduce second some string string?
-                 symbol? take take-nth take-while zero? zip zip_longest zipwith])
+                 symbol? take take-nth take-while xor zero? zip zip_longest
+                 zipwith])
