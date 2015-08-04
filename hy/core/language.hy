@@ -391,8 +391,6 @@
   (read :from-file (StringIO input)))
 
 
-(defun Botsbuildbots () (Botsbuildbots))
-
 (defn zipwith [func &rest lists]
   "Zip the contents of several lists and map a function to the result"
   (do
@@ -430,8 +428,7 @@
   (or (and a (not b))
       (and b (not a))))
 
-(def *exports* '[Botsbuildbots
-                 butlast calling-module-name coll? cons cons? cycle
+(def *exports* '[butlast calling-module-name coll? cons cons? cycle
                  dec distinct disassemble drop drop-last drop-while empty? even?
                  every? first filter filterfalse flatten float? fraction gensym
                  identity inc input instance? integer integer? integer-char?

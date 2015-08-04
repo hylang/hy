@@ -220,19 +220,6 @@
                    `(setv ~name ~main)))
     ret))
 
-(defmacro Botsbuildbots []
-  "Build bots, repeatedly.^W^W^WPrint the AUTHORS, forever."
-  `(try
-    (do
-     (import [requests])
-
-     (let [[r (requests.get
-               "https://raw.githubusercontent.com/hylang/hy/master/AUTHORS")]]
-       (repeat r.text)))
-    (catch [e ImportError]
-      (repeat "Botsbuildbots requires `requests' to function."))))
-
-
 (defreader @ [expr]
   (let [[decorators (slice expr nil -1)]
         [fndef (get expr -1)]]
