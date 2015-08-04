@@ -2238,15 +2238,15 @@ class HyASTCompiler(object):
 
     @builds("defclass")
     @checkargs(min=1)
-    def compile_class_expression(self, expression):
-        expression.pop(0)  # class
+    def compile_class_expression(self, expressions):
+        expressions.pop(0)  # class
 
-        class_name = expression.pop(0)
+        class_name = expressions.pop(0)
 
-        if expression:
-            base_list = expression.pop(0)
+        if expressions:
+            base_list = expressions.pop(0)
             if not isinstance(base_list, HyList):
-                raise HyTypeError(expression,
+                raise HyTypeError(expressions,
                                   "Bases class must be a list")
             bases_expr, bases, _ = self._compile_collect(base_list)
         else:
@@ -2256,8 +2256,8 @@ class HyASTCompiler(object):
         body = Result()
 
         # grab the doc string, if there is one
-        if expression and isinstance(expression[0], HyString):
-            docstring = expression.pop(0)
+        if expressions and isinstance(expressions[0], HyString):
+            docstring = expressions.pop(0)
             symb = HySymbol("__doc__")
             symb.start_line = docstring.start_line
             symb.start_column = docstring.start_column
@@ -2266,31 +2266,25 @@ class HyASTCompiler(object):
                                          docstring.start_column)
             body += body.expr_as_stmt()
 
-        if expression:
-            try:
-                body_expression = iter(expression.pop(0))
-            except TypeError:
-                raise HyTypeError(
-                    expression,
-                    "Wrong argument type for defclass attributes definition.")
-            for b in body_expression:
-                if isinstance(b, HyExpression):
-                    b = macroexpand(b, self.module_name)
-                if len(b) != 2:
-                    raise HyTypeError(
-                        expression,
-                        "Wrong number of argument in defclass attribute.")
-                body += self._compile_assign(b[0], b[1],
-                                             b.start_line, b.start_column)
-                body += body.expr_as_stmt()
+        if expressions and isinstance(expressions[0], HyList) \
+           and not isinstance(expressions[0], HyExpression):
+            expr = expressions.pop(0)
+            body += self.compile(
+                HyExpression([
+                    HySymbol("setv")
+                ] + expr).replace(expr)
+            )
+
+        for expression in expressions:
+            body += self.compile(macroexpand(expression, self.module_name))
 
         if not body.stmts:
-            body += ast.Pass(lineno=expression.start_line,
-                             col_offset=expression.start_column)
+            body += ast.Pass(lineno=expressions.start_line,
+                             col_offset=expressions.start_column)
 
         return bases + ast.ClassDef(
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
+            lineno=expressions.start_line,
+            col_offset=expressions.start_column,
             decorator_list=[],
             name=ast_str(class_name),
             keywords=[],

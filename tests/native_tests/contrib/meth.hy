@@ -2,12 +2,11 @@
 
 (defclass FakeMeth []
   "Mocking decorator class"
-  [[rules {}]
-   [route (fn [self rule &kwargs options]
-            (fn [f]
-              (assoc self.rules rule (, f options))
-              f))]])
-
+  [rules {}]
+  (defn route [self rule &kwargs options]
+    (fn [f]
+      (assoc self.rules rule (, f options))
+      f)))
 
 (defn test_route []
   (let [[app (FakeMeth)]]
