@@ -32,7 +32,7 @@
 
 
 (defmacro with [args &rest body]
-  "shorthand for nested for* loops:
+  "shorthand for nested with* loops:
   (with [[x foo] [y bar]] baz) ->
   (with* [x foo]
     (with* [y bar]
@@ -73,10 +73,11 @@
     "check `cond` branch for validity, return the corresponding `if` expr"
     (if (not (= (type branch) HyList))
       (macro-error branch "cond branches need to be a list"))
-    (if (!= (len branch) 2)
-      (macro-error branch "cond branches need two items: a test and a code branch"))
-    (setv (, test thebranch) branch)
-    `(if ~test ~thebranch))
+    (if (< (len branch) 2)
+      (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
+    (setv test (car branch))
+    (setv thebranch (cdr branch))
+    `(if ~test (do ~@thebranch)))
 
   (setv root (check-branch branch))
   (setv latest-branch root)
@@ -96,16 +97,21 @@
   (for* [x foo]
     (for* [y bar]
       baz))"
-  (cond 
+  (setv body (list body))
+  (setv lst (get body -1))
+  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
+                [(body.pop)]
+                []))
+  (cond
    [(odd? (len args))
     (macro-error args "`for' requires an even number of args.")]
    [(empty? body)
     (macro-error None "`for' requires a body to evaluate")]
-   [(empty? args) `(do ~@body)]
-   [(= (len args) 2)  `(for* [~@args] ~@body)]
-   [true 
+   [(empty? args) `(do ~@body ~@belse)]
+   [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
+   [true
     (let [[alist (slice args 0 nil 2)]]
-      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
+      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
 (defmacro -> [head &rest rest]
