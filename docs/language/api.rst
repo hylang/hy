@@ -657,7 +657,7 @@ del
   => (setv test (list (range 10)))
   => test
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  => (del (slice test 2 4)) ;; remove items from 2 to 4 excluded
+  => (del (cut test 2 4)) ;; remove items from 2 to 4 excluded
   => test
   [0, 1, 4, 5, 6, 7, 8, 9]
   => (setv dic {"foo" "bar"})
@@ -1243,35 +1243,35 @@ expression.
     {1, 3, 5}
 
 
-slice
+cut
 -----
 
-``slice`` can be used to take a subset of a list and create a new list from it.
-The form takes at least one parameter specifying the list to slice. Two
+``cut`` can be used to take a subset of a list and create a new list from it.
+The form takes at least one parameter specifying the list to cut. Two
 optional parameters can be used to give the start and end position of the
 subset. If they are not supplied, the default value of ``None`` will be used
 instead. The third optional parameter is used to control step between the elements.
 
-``slice`` follows the same rules as its Python counterpart. Negative indices are
+``cut`` follows the same rules as its Python counterpart. Negative indices are
 counted starting from the end of the list. Some example usage:
 
 .. code-block:: clj
 
     => (def collection (range 10))
 
-    => (slice collection)
+    => (cut collection)
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    => (slice collection 5)
+    => (cut collection 5)
     [5, 6, 7, 8, 9]
 
-    => (slice collection 2 8)
+    => (cut collection 2 8)
     [2, 3, 4, 5, 6, 7]
 
-    => (slice collection 2 8 2)
+    => (cut collection 2 8 2)
     [2, 4, 6]
 
-    => (slice collection -4 -2)
+    => (cut collection -4 -2)
     [6, 7]
 
 
