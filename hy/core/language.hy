@@ -314,6 +314,10 @@
   (_numeric-check n)
   (= (% n 2) 1))
 
+(defn partition [n coll]
+  "Chunks coll into tuples of length n. The remainder, if any, is not included."
+  (apply zip (* n (, (iter coll)))))
+
 (defn pos? [n]
   "Return true if n is > 0"
   (_numeric_check n)
@@ -423,12 +427,12 @@
         (hyify (. value __name__))
         (catch [] (string value))))))
 
-(def *exports* '[butlast calling-module-name coll? cons cons? cycle
-                 dec distinct disassemble drop drop-last drop-while empty? even?
-                 every? first filter filterfalse flatten float? fraction gensym
-                 identity inc input instance? integer integer? integer-char?
-                 interleave interpose iterable? iterate iterator? keyword
-                 keyword? last list* macroexpand macroexpand-1 map merge-with
-                 name neg? nil? none? nth numeric? odd? pos? range read read-str
-                 remove repeat repeatedly rest reduce second some string string?
-                 symbol? take take-nth take-while zero? zip zip_longest zipwith])
+(def *exports*
+  '[butlast calling-module-name coll? cons cons? cycle dec distinct disassemble
+    drop drop-last drop-while empty? even? every? first filter filterfalse
+    flatten float? fraction gensym identity inc input instance? integer integer?
+    integer-char? interleave interpose iterable? iterate iterator? keyword
+    keyword? last list* macroexpand macroexpand-1 map merge-with name neg? nil?
+    none? nth numeric? odd? partition pos? range read read-str remove repeat
+    repeatedly rest reduce second some string string? symbol? take take-nth
+    take-while zero? zip zip_longest zipwith])
