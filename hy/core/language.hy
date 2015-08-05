@@ -416,7 +416,7 @@
   "Convert the given value to a string. Keyword special character will be stripped.
   String will be used as is. Even objects with the __name__ magic will work"
   (if (and (string? value) (value.startswith *keyword-prefix*))
-    (hyify (slice value 2))
+    (hyify (cut value 2))
     (if (string? value)
       (hyify value)
       (try

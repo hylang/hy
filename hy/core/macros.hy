@@ -221,6 +221,6 @@
     ret))
 
 (defreader @ [expr]
-  (let [[decorators (slice expr nil -1)]
+  (let [[decorators (cut expr nil -1)]
         [fndef (get expr -1)]]
     `(with-decorator ~@decorators ~fndef)))

@@ -67,7 +67,7 @@
     (raise (TypeError "Need at least 2 arguments to compare"))
     (reduce operator.and_
             (list-comp (op x y)
-                       [(, x y) (zip args (slice args 1))]))))
+                       [(, x y) (zip args (cut args 1))]))))
 (defn < [&rest args]
   "Shadow < operator for when we need to import / map it against something"
   (comp-op operator.lt args))
