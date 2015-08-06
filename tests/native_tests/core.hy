@@ -470,6 +470,18 @@
   (try (do (odd? None) (assert False))
        (catch [e [TypeError]] (assert (in "not a number" (str e))))))
 
+(defn test-partition []
+  "NATIVE: testing the partition function"
+  (setv ten (range 10))
+  (assert-equal (list (partition 3 ten))
+                [(, 0 1 2) (, 3 4 5) (, 6 7 8)])
+  (assert-equal (list (partition 2 ten))
+                [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)])
+  (assert-equal (list (partition 1 ten))
+                [(, 0) (, 1) (, 2) (, 3) (, 4) (, 5) (, 6) (, 7) (, 8) (, 9)])
+  (assert-equal (list (partition 0 ten)) [])
+  (assert-equal (list (partition -1 ten)) []))
+
 (defn test-pos []
   "NATIVE: testing the pos? function"
   (assert-true (pos? 2))
