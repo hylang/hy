@@ -672,6 +672,21 @@ Returns ``True`` if *x* is odd. Raises ``TypeError`` if
    False
 
 
+.. _partition-fn:
+
+partition
+---------
+
+Usage: ``(partition n coll)``
+
+Chunks coll into tuples of length *n*. The remainder, if any, is not included.
+
+.. code-block:: hy
+
+   => (list (partition 3 (range 10)))
+   [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
+
+
 .. _pos?-fn:
 
 pos?
