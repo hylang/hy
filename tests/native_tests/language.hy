@@ -115,21 +115,21 @@
   (for [x (range 2)
         y (range 2)]
       (break)
-    (else (throw Exception)))
+    (else (raise Exception)))
 
   ;; OK. This next test will ensure that the else is hooked up to the
   ;; "inner" iteration
   (for [x (range 2)
         y (range 2)]
     (if (= y 1) (break))
-    (else (throw Exception)))
+    (else (raise Exception)))
 
   ;; OK. This next test will ensure that the else is hooked up to the
   ;; "outer" iteration
   (for [x (range 2)
         y (range 2)]
     (if (= x 1) (break))
-    (else (throw Exception)))
+    (else (raise Exception)))
 
   ;; OK. This next test will ensure that we call the else branch exactly
   ;; once.
@@ -369,7 +369,7 @@
    (catch [e [KeyError]] (assert e)))
 
   (try
-   (throw (KeyError))
+   (raise (KeyError))
    (except [[IOError]] (assert false))
    (catch [e [KeyError]] (assert e)))
 
@@ -867,7 +867,7 @@
   (assert (= None (eval (quote (print ""))))))
 
 
-(defmacro assert-throw [exc-type &rest body]
+(defmacro assert-raise [exc-type &rest body]
   `(try
      (do
        (eval ~@body)
@@ -897,10 +897,10 @@
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
   (import [hy.errors [HyTypeError]])
-  (assert-throw HyTypeError '(eval))
-  (assert-throw HyTypeError '(eval "snafu"))
-  (assert-throw HyTypeError '(eval 'false []))
-  (assert-throw HyTypeError '(eval 'false {} 1)))
+  (assert-raise HyTypeError '(eval))
+  (assert-raise HyTypeError '(eval "snafu"))
+  (assert-raise HyTypeError '(eval 'false []))
+  (assert-raise HyTypeError '(eval 'false {} 1)))
 
 
 (defn test-import-syntax []

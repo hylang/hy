@@ -753,10 +753,9 @@ class HyASTCompiler(object):
         expression.pop(0)
         return self._compile_branch(expression)
 
-    @builds("throw")
     @builds("raise")
     @checkargs(multiple=[0, 1, 3])
-    def compile_throw_expression(self, expr):
+    def compile_raise_expression(self, expr):
         expr.pop(0)
         ret = Result()
         if expr:

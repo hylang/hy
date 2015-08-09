@@ -381,7 +381,7 @@
   (while true
     (def inn (str (.read from-file 1)))
     (if (= inn eof)
-      (throw (EOFError "Reached end of file" )))
+      (raise (EOFError "Reached end of file" )))
     (setv buff (+ buff inn))
     (try
       (def parsed (first (tokenize buff)))

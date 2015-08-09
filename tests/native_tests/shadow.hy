@@ -4,7 +4,7 @@
     (assert (try
              (x)
              (catch [TypeError] True)
-             (else (throw AssertionError))))
+             (else (raise AssertionError))))
     (assert (= (x 1 2 3 4) 10))
     (assert (= (x 1 2 3 4 5) 15))
     ; with strings
@@ -25,7 +25,7 @@
     (assert (try
              (x)
              (catch [TypeError] True)
-             (else (throw AssertionError))))
+             (else (raise AssertionError))))
     (assert (= (x 1) -1))
     (assert (= (x 2 1) 1))
     (assert (= (x 2 1 1) 0))))
@@ -45,7 +45,7 @@
     (assert (try
              (x)
              (catch [TypeError] True)
-             (else (throw AssertionError))))
+             (else (raise AssertionError))))
     (assert (= (x 1) 1))
     (assert (= (x 8 2) 4))
     (assert (= (x 8 2 2) 2))
@@ -58,11 +58,11 @@
      (assert (try
               (x)
               (catch [TypeError] True)
-              (else (throw AssertionError))))
+              (else (raise AssertionError))))
      (assert (try
               (x 1)
               (catch [TypeError] True)
-              (else (throw AssertionError)))))
+              (else (raise AssertionError)))))
   (for [(, x y) [[< >=]
                  [<= >]
                  [= !=]]]

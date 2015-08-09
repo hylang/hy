@@ -63,10 +63,10 @@ Compiles down to:
 which to do the attribute dereference. It uses bare symbols as attributes
 to access (in the example, *bar*, *baz*, *frob*), and compiles the contents
 of lists (in the example, ``[(+ 1 2)]``) for indexation. Other arguments
-throw a compilation error.
+raise a compilation error.
 
-Access to unknown attributes throws an :exc:`AttributeError`. Access to
-unknown keys throws an :exc:`IndexError` (on lists and tuples) or a
+Access to unknown attributes raises an :exc:`AttributeError`. Access to
+unknown keys raises an :exc:`IndexError` (on lists and tuples) or a
 :exc:`KeyError` (on dictionaries).
 
 ->
@@ -835,7 +835,7 @@ assign a value to a global symbol. Reading a global symbol does not require the
 
 The following example shows how the global symbol ``a`` is assigned a value in a
 function and is later on printed in another function. Without the ``global``
-keyword, the second function would have thrown a ``NameError``.
+keyword, the second function would have raised a ``NameError``.
 
 .. code-block:: clj
 
@@ -1275,25 +1275,25 @@ counted starting from the end of the list. Some example usage:
     [6, 7]
 
 
-throw / raise
+raise
 -------------
 
-The ``throw`` or ``raise`` forms can be used to raise an ``Exception`` at
+The or ``raise`` forms can be used to raise an ``Exception`` at
 runtime. Example usage:
 
 .. code-block:: clj
 
-    (throw)
+    (raise)
     ; re-rase the last exception
 
-    (throw IOError)
-    ; Throw an IOError
+    (raise IOError)
+    ; raise an IOError
 
-    (throw (IOError "foobar"))
-    ; Throw an IOError("foobar")
+    (raise (IOError "foobar"))
+    ; raise an IOError("foobar")
 
 
-``throw`` can accept a single argument (an ``Exception`` class or instance)
+``raise`` can accept a single argument (an ``Exception`` class or instance)
 or no arguments to re-raise the last ``Exception``.
 
 
