@@ -289,10 +289,10 @@ conditional expression.
     {1: 2, 3: 6, 9: 18, 5: 10, 7: 14}
 
 
-do / progn
+do
 ----------
 
-``do`` and `progn` are used to evaluate each of their arguments and return the
+``do`` is used to evaluate each of its arguments and return the
 last one. Return values from every other than the last argument are discarded.
 It can be used in ``lambda`` or ``list-comp`` to perform more complex logic as
 shown in one of the following examples.

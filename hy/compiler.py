@@ -748,8 +748,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("do")
-    @builds("progn")
-    def compile_progn(self, expression):
+    def compile_do(self, expression):
         expression.pop(0)
         return self._compile_branch(expression)
 
@@ -2371,7 +2370,7 @@ class HyASTCompiler(object):
 
     @builds("eval_and_compile")
     def compile_eval_and_compile(self, expression):
-        expression[0] = HySymbol("progn")
+        expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
@@ -2380,7 +2379,7 @@ class HyASTCompiler(object):
 
     @builds("eval_when_compile")
     def compile_eval_when_compile(self, expression):
-        expression[0] = HySymbol("progn")
+        expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
