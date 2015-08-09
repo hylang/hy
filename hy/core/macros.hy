@@ -210,7 +210,7 @@
          (sys.exit ~retval)))))
 
 
-(defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
+(defmacro defn-alias [names lambda-list &rest body]
   "define one function with several names"
   (let [[main (first names)]
         [aliases (rest names)]]

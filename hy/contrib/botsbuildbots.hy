@@ -18,7 +18,7 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
-(defun Botsbuildbots () (Botsbuildbots))
+(defn Botsbuildbots () (Botsbuildbots))
 
 (defmacro Botsbuildbots []
   "Build bots, repeatedly.^W^W^WPrint the AUTHORS, forever."

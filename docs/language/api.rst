@@ -378,10 +378,10 @@ below:
 
 .. _defn:
 
-defn / defun
+defn
 ------------
 
-``defn`` and ``defun`` macros are used to define functions. They take three
+``defn`` macro is used to define functions. It takes three
 parameters: the *name* of the function to define, a vector of *parameters*,
 and the *body* of the function:
 
@@ -488,18 +488,18 @@ Parameters may have the following keywords in front of them:
 
     Availability: Python 3.
 
-.. _defn-alias / defun-alias:
+.. _defn-alias:
 
-defn-alias / defun-alias
+defn-alias
 ------------------------
 
 .. versionadded:: 0.10.0
 
-The ``defn-alias`` and ``defun-alias`` macros are much like `defn`_,
+The ``defn-alias`` and macro is much like `defn`_,
 with the distinction that instead of defining a function with a single
 name, these can also define aliases. Other than taking a list of
-symbols for function names as the first parameter, ``defn-alias`` and
-``defun-alias`` are no different from ``defn`` and ``defun``.
+symbols for function names as the first parameter, ``defn-alias``
+is no different from ``defn``.
 
 .. code-block:: clj
 
