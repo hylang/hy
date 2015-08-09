@@ -7,7 +7,7 @@
 
 (try
   (import [urllib.request [urlopen]])
-  (catch [ImportError]
+  (except [ImportError]
     (import [urllib2 [urlopen]])))
 
 (defn get-rss-feed-name [tumblr]

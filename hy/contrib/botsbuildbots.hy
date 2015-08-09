@@ -29,5 +29,5 @@
      (let [[r (requests.get
                "https://raw.githubusercontent.com/hylang/hy/master/AUTHORS")]]
        (repeat r.text)))
-    (catch [e ImportError]
+    (except [e ImportError]
       (repeat "Botsbuildbots requires `requests' to function."))))

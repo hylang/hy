@@ -3,7 +3,7 @@
   (let [[x +]]
     (assert (try
              (x)
-             (catch [TypeError] True)
+             (except [TypeError] True)
              (else (raise AssertionError))))
     (assert (= (x 1 2 3 4) 10))
     (assert (= (x 1 2 3 4 5) 15))
@@ -24,7 +24,7 @@
   (let [[x -]]
     (assert (try
              (x)
-             (catch [TypeError] True)
+             (except [TypeError] True)
              (else (raise AssertionError))))
     (assert (= (x 1) -1))
     (assert (= (x 2 1) 1))
@@ -44,7 +44,7 @@
   (let [[x /]]
     (assert (try
              (x)
-             (catch [TypeError] True)
+             (except [TypeError] True)
              (else (raise AssertionError))))
     (assert (= (x 1) 1))
     (assert (= (x 8 2) 4))
@@ -57,11 +57,11 @@
   (for [x [< <= = != >= >]]
      (assert (try
               (x)
-              (catch [TypeError] True)
+              (except [TypeError] True)
               (else (raise AssertionError))))
      (assert (try
               (x 1)
-              (catch [TypeError] True)
+              (except [TypeError] True)
               (else (raise AssertionError)))))
   (for [(, x y) [[< >=]
                  [<= >]

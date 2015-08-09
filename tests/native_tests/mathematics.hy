@@ -180,14 +180,14 @@
                product-of-test-matrices))
     ;; Python <= 3.4
     (let [[matmul-attempt (try (@ first-test-matrix second-test-matrix)
-                               (catch [e [Exception]] e))]]
+                               (except [e [Exception]] e))]]
       (assert (isinstance matmul-attempt NameError)))))
 
 (defn test-augassign-matmul []
   "NATIVE: test augmented-assignment matrix multiplication"
   (let [[matrix first-test-matrix]
         [matmul-attempt (try (@= matrix second-test-matrix)
-                              (catch [e [Exception]] e))]]
+                              (except [e [Exception]] e))]]
     (if PY35
       (assert (= product-of-test-matrices matrix))
       (assert (isinstance matmul-attempt NameError)))))

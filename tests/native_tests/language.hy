@@ -43,25 +43,25 @@
 (defn test-setv-builtin []
   "NATIVE: test that setv doesn't work on builtins"
   (try (eval '(setv False 1))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv True 0))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv None 1))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv false 1))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv true 0))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv nil 1))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv null 1))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn defclass [] (print "hello")))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn get [] (print "hello")))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn lambda [] (print "hello")))
-       (catch [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
+       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
 
 
 (defn test-setv-pairs []
@@ -72,16 +72,16 @@
   (setv y 0 x 1 y x)
   (assert y)
   (try (eval '(setv a 1 b))
-       (catch [e [TypeError]] (assert (in "setv needs an even number of arguments" (str e))))))
+       (except [e [TypeError]] (assert (in "setv needs an even number of arguments" (str e))))))
 
 
 (defn test-fn-corner-cases []
   "NATIVE: tests that fn/defn handles corner cases gracefully"
   (try (eval '(fn "foo"))
-       (catch [e [Exception]] (assert (in "to (fn) must be a list"
+       (except [e [Exception]] (assert (in "to (fn) must be a list"
                                           (str e)))))
   (try (eval '(defn foo "foo"))
-       (catch [e [Exception]]
+       (except [e [Exception]]
          (assert (in "takes a parameter list as second" (str e))))))
 
 (defn test-for-loop []
@@ -365,22 +365,22 @@
 
   (try
    (raise (KeyError))
-   (catch [[IOError]] (assert false))
-   (catch [e [KeyError]] (assert e)))
+   (except [[IOError]] (assert false))
+   (except [e [KeyError]] (assert e)))
 
   (try
    (raise (KeyError))
    (except [[IOError]] (assert false))
-   (catch [e [KeyError]] (assert e)))
+   (except [e [KeyError]] (assert e)))
 
   (try
    (get [1] 3)
-   (catch [IndexError] (assert true))
+   (except [IndexError] (assert true))
    (except [IndexError] (do)))
 
   (try
    (print foobar42ofthebaz)
-   (catch [IndexError] (assert false))
+   (except [IndexError] (assert false))
    (except [NameError] (do)))
 
   (try
@@ -389,7 +389,7 @@
 
   (try
    (get [1] 3)
-   (catch [e [IndexError NameError]] (assert (isinstance e IndexError))))
+   (except [e [IndexError NameError]] (assert (isinstance e IndexError))))
 
   (try
    (print foobar42ofthebaz)
@@ -397,15 +397,15 @@
 
   (try
    (print foobar42)
-   (catch [[IndexError NameError]] (do)))
+   (except [[IndexError NameError]] (do)))
 
   (try
    (get [1] 3)
-   (catch [[IndexError NameError]] (do)))
+   (except [[IndexError NameError]] (do)))
 
   (try
    (print foobar42ofthebaz)
-   (catch))
+   (except))
 
   (try
    (print foobar42ofthebaz)
@@ -417,7 +417,7 @@
 
   (try
    (print foobar42ofthebaz)
-   (catch []
+   (except []
      (setv foobar42ofthebaz 42)
      (assert (= foobar42ofthebaz 42))))
 
@@ -754,7 +754,7 @@
              6))
   (try
    (assert (= x 42))                   ; This ain't true
-   (catch [e [NameError]] (assert e)))
+   (except [e [NameError]] (assert e)))
   (assert (= y 123)))
 
 
@@ -872,7 +872,7 @@
      (do
        (eval ~@body)
        (assert False "we shouldn't have arrived here"))
-     (catch [e Exception]
+     (except [e Exception]
        (assert (instance? ~exc-type e)
          (.format "Expected exception of type {}, got {}: {}"
                   (. ~exc-type --name--)
@@ -891,7 +891,7 @@
          ; this should fail with a name error
          (eval (quote x) d2)
          (assert False "We shouldn't have arrived here"))
-      (catch [e Exception]
+      (except [e Exception]
         (assert (isinstance e NameError))))))
 
 (defn test-eval-failure []
@@ -991,7 +991,7 @@
   "NATIVE: test requiring macros from python code"
   (try
     (assert (= "this won't happen" (qplah 1 2 3 4)))
-  (catch [NameError]))
+  (except [NameError]))
   (require tests.resources.tlib)
   (assert (= [1 2 3] (qplah 1 2 3))))
 
@@ -1159,7 +1159,7 @@
   "NATIVE: test lambda lists are only parsed in defn"
   (try
    (foo [&rest spam] 1)
-   (catch [NameError] True)
+   (except [NameError] True)
    (else (raise AssertionError))))
 
 (defn test-read []
@@ -1183,7 +1183,7 @@
   (read stdin-buffer)
   (try
     (read stdin-buffer)
-    (catch [e Exception]
+    (except [e Exception]
       (assert (isinstance e EOFError)))))
 
 (defn test-read-str []

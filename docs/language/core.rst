@@ -1072,7 +1072,7 @@ if *from-file* ends before a complete expression can be parsed.
    ...              (do
    ...                (print "OHY" exp)
    ...                (eval exp))))
-   ...     (catch [e EOFError]
+   ...     (except [e EOFError]
    ...            (print "EOF!"))))
    OHY ('print' 'hello')
    hello

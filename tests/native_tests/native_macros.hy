@@ -253,7 +253,7 @@
        (yield i))
     (try
      (yield-from (yield-from-subgenerator-test))
-     (catch [e AssertionError]
+     (except [e AssertionError]
        (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
 

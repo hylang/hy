@@ -827,7 +827,7 @@ class HyASTCompiler(object):
             if not len(e):
                 raise HyTypeError(e, "Empty list not allowed in `try'")
 
-            if e[0] in (HySymbol("except"), HySymbol("catch")):
+            if e[0] == HySymbol("except"):
                 handler_results += self._compile_catch_expression(e, name)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
@@ -905,7 +905,6 @@ class HyASTCompiler(object):
         return accumulated
 
     @builds("except")
-    @builds("catch")
     def magic_internal_form(self, expr):
         raise HyTypeError(expr,
                           "Error: `%s' can't be used like that." % (expr[0]))

@@ -189,7 +189,7 @@
            (try (if (isinstance ~g!iter types.GeneratorType)
                   (setv ~g!message (yield (.send ~g!iter ~g!message)))
                   (setv ~g!message (yield (next ~g!iter))))
-           (catch [~g!e StopIteration]
+           (except [~g!e StopIteration]
              (do (setv ~g!return (if (hasattr ~g!e "value")
                                      (. ~g!e value)
                                      nil))

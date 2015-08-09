@@ -1300,20 +1300,20 @@ or no arguments to re-raise the last ``Exception``.
 try
 ---
 
-The ``try`` form is used to start a ``try`` / ``catch`` block. The form is
+The ``try`` form is used to start a ``try`` / ``except`` block. The form is
 used as follows:
 
 .. code-block:: clj
 
     (try
         (error-prone-function)
-        (catch [e ZeroDivisionError] (print "Division by zero"))
+        (except [e ZeroDivisionError] (print "Division by zero"))
         (else (print "no errors"))
         (finally (print "all done")))
 
-``try`` must contain at least one ``catch`` block, and may optionally include
-an ``else`` or ``finally`` block. If an error is raised with a matching catch
-block during the execution of ``error-prone-function``, that ``catch`` block
+``try`` must contain at least one ``except`` block, and may optionally include
+an ``else`` or ``finally`` block. If an error is raised with a matching except
+block during the execution of ``error-prone-function``, that ``except`` block
 will be executed. If no errors are raised, the ``else`` block is executed. The
 ``finally`` block will be executed last regardless of whether or not an error
 was raised.

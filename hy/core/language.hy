@@ -222,8 +222,8 @@
   "Return True if char `x` parses as an integer"
   (try
     (integer? (int x))
-    (catch [e ValueError] False)
-    (catch [e TypeError] False)))
+    (except [e ValueError] False)
+    (except [e TypeError] False)))
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of seqs, then the second etc."
@@ -414,7 +414,7 @@
       (HyKeyword (+ ":" (hyify value)))
       (try
         (hyify (.__name__ value))
-        (catch [] (HyKeyword (+ ":" (string value))))))))
+        (except [] (HyKeyword (+ ":" (string value))))))))
 
 (defn name [value]
   "Convert the given value to a string. Keyword special character will be stripped.
@@ -425,7 +425,7 @@
       (hyify value)
       (try
         (hyify (. value __name__))
-        (catch [] (string value))))))
+        (except [] (string value))))))
 
 (def *exports*
   '[butlast calling-module-name coll? cons cons? cycle dec distinct disassemble
