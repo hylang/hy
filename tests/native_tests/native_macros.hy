@@ -221,13 +221,6 @@
   (assert (= (lif-not 0 "false" "true") "true")))
 
 
-(defn test-defn-alias []
-  (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)
-  (assert (= (tda-main) :bazinga))
-  (assert (= (tda-a1) :bazinga))
-  (assert (= (tda-a2) :bazinga))
-  (assert (= tda-main tda-a1 tda-a2)))
-
 (defn test-yield-from []
   "NATIVE: testing yield from"
   (defn yield-from-test []
