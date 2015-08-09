@@ -31,21 +31,12 @@
   `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
 
 
-(defmacro defmacro-alias [names lambda-list &rest body]
-  "define one macro with several names"
-  (setv ret `(do))
-  (for* [name names]
-    (.append ret
-             `(defmacro ~name ~lambda-list ~@body)))
-  ret)
-
-
-(defmacro-alias [defn defun] [name lambda-list &rest body]
+(defmacro defn [name lambda-list &rest body]
   "define a function `name` with signature `lambda-list` and body `body`"
   (if (not (= (type name) HySymbol))
-    (macro-error name "defn/defun takes a name as first argument"))
+    (macro-error name "defn takes a name as first argument"))
   (if (not (isinstance lambda-list HyList))
-    (macro-error name "defn/defun takes a parameter list as second argument"))
+    (macro-error name "defn takes a parameter list as second argument"))
   `(setv ~name (fn ~lambda-list ~@body)))
 
 

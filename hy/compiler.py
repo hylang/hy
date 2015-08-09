@@ -748,15 +748,13 @@ class HyASTCompiler(object):
         return ret
 
     @builds("do")
-    @builds("progn")
-    def compile_progn(self, expression):
+    def compile_do(self, expression):
         expression.pop(0)
         return self._compile_branch(expression)
 
-    @builds("throw")
     @builds("raise")
     @checkargs(multiple=[0, 1, 3])
-    def compile_throw_expression(self, expr):
+    def compile_raise_expression(self, expr):
         expr.pop(0)
         ret = Result()
         if expr:
@@ -828,7 +826,7 @@ class HyASTCompiler(object):
             if not len(e):
                 raise HyTypeError(e, "Empty list not allowed in `try'")
 
-            if e[0] in (HySymbol("except"), HySymbol("catch")):
+            if e[0] == HySymbol("except"):
                 handler_results += self._compile_catch_expression(e, name)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
@@ -906,7 +904,6 @@ class HyASTCompiler(object):
         return accumulated
 
     @builds("except")
-    @builds("catch")
     def magic_internal_form(self, expr):
         raise HyTypeError(expr,
                           "Error: `%s' can't be used like that." % (expr[0]))
@@ -2373,7 +2370,7 @@ class HyASTCompiler(object):
 
     @builds("eval_and_compile")
     def compile_eval_and_compile(self, expression):
-        expression[0] = HySymbol("progn")
+        expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
@@ -2382,7 +2379,7 @@ class HyASTCompiler(object):
 
     @builds("eval_when_compile")
     def compile_eval_when_compile(self, expression):
-        expression[0] = HySymbol("progn")
+        expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
