@@ -188,39 +188,35 @@
              :yes)))
 
 
-(defn test-lisp-if []
-  "test that lisp-if works as expected"
+(defn test-lif []
+  "test that lif works as expected"
   ; nil is false
-  (assert (= (lisp-if None "true" "false") "false"))
-  (assert (= (lisp-if nil "true" "false") "false"))
+  (assert (= (lif None "true" "false") "false"))
+  (assert (= (lif nil "true" "false") "false"))
 
   ; But everything else is True!  Even falsey things.
-  (assert (= (lisp-if True "true" "false") "true"))
-  (assert (= (lisp-if False "true" "false") "true"))
-  (assert (= (lisp-if 0 "true" "false") "true"))
-  (assert (= (lisp-if "some-string" "true" "false") "true"))
-  (assert (= (lisp-if "" "true" "false") "true"))
-  (assert (= (lisp-if (+ 1 2 3) "true" "false") "true"))
-
-  ; Just to be sure, test the alias lif
+  (assert (= (lif True "true" "false") "true"))
+  (assert (= (lif False "true" "false") "true"))
+  (assert (= (lif 0 "true" "false") "true"))
+  (assert (= (lif "some-string" "true" "false") "true"))
+  (assert (= (lif "" "true" "false") "true"))
+  (assert (= (lif (+ 1 2 3) "true" "false") "true"))
   (assert (= (lif nil "true" "false") "false"))
   (assert (= (lif 0 "true" "false") "true")))
 
-(defn test-lisp-if-not []
-  "test that lisp-if-not works as expected"
+(defn test-lif-not []
+  "test that lif-not works as expected"
   ; nil is false
-  (assert (= (lisp-if-not None "false" "true") "false"))
-  (assert (= (lisp-if-not nil "false" "true") "false"))
+  (assert (= (lif-not None "false" "true") "false"))
+  (assert (= (lif-not nil "false" "true") "false"))
 
   ; But everything else is True!  Even falsey things.
-  (assert (= (lisp-if-not True "false" "true") "true"))
-  (assert (= (lisp-if-not False "false" "true") "true"))
-  (assert (= (lisp-if-not 0 "false" "true") "true"))
-  (assert (= (lisp-if-not "some-string" "false" "true") "true"))
-  (assert (= (lisp-if-not "" "false" "true") "true"))
-  (assert (= (lisp-if-not (+ 1 2 3) "false" "true") "true"))
-
-  ; Just to be sure, test the alias lif-not
+  (assert (= (lif-not True "false" "true") "true"))
+  (assert (= (lif-not False "false" "true") "true"))
+  (assert (= (lif-not 0 "false" "true") "true"))
+  (assert (= (lif-not "some-string" "false" "true") "true"))
+  (assert (= (lif-not "" "false" "true") "true"))
+  (assert (= (lif-not (+ 1 2 3) "false" "true") "true"))
   (assert (= (lif-not nil "false" "true") "false"))
   (assert (= (lif-not 0 "false" "true") "true")))
 

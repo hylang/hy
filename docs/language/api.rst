@@ -881,47 +881,39 @@ an empty sequence, and an empty dictionary are considered ``False``; everything
 else is considered ``True``.
 
 
-lisp-if / lif and lisp-if-not / lif-not
+lif and lif-not
 ---------------------------------------
 
 .. versionadded:: 0.10.0
 
 .. versionadded:: 0.11.0
-   lisp-if-not / lif-not
+   lif-not
 
-For those that prefer a more Lispy ``if`` clause, we have ``lisp-if``, or
+For those that prefer a more Lispy ``if`` clause, we have, or
 ``lif``. This *only* considers ``None`` / ``nil`` to be false! All other
 "false-ish" Python values are considered true. Conversely, we have
-``lisp-if-not`` and ``lif-not`` in parallel to ``if`` and ``if-not`` which
+``lif-not`` in parallel to ``if`` and ``if-not`` which
 reverses the comparison.
 
 
 .. code-block:: clj
 
-    => (lisp-if True "true" "false")
-    "true"
-    => (lisp-if False "true" "false")
-    "true"
-    => (lisp-if 0 "true" "false")
-    "true"
-    => (lisp-if nil "true" "false")
-    "false"
-    => (lisp-if None "true" "false")
-    "false"
-    => (lisp-if-not nil "true" "false")
-    "true"
-    => (lisp-if-not None "true" "false")
-    "true"
-    => (lisp-if-not False "true" "false")
-    "false"
-
-    ; Equivalent but shorter
     => (lif True "true" "false")
+    "true"
+    => (lif False "true" "false")
+    "true"
+    => (lif 0 "true" "false")
     "true"
     => (lif nil "true" "false")
     "false"
+    => (lif None "true" "false")
+    "false"
+    => (lif-not nil "true" "false")
+    "true"
     => (lif-not None "true" "false")
     "true"
+    => (lif-not False "true" "false")
+    "false"
 
 
 import
