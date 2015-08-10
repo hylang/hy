@@ -484,7 +484,7 @@ def test_for_compile_error():
         assert(False)
 
     try:
-        can_compile("(fn [] (for [x]))")
+        can_compile("(fn [] (for [x] x))")
     except HyTypeError as e:
         assert(e.message == "`for' requires an even number of args.")
     else:
@@ -492,6 +492,13 @@ def test_for_compile_error():
 
     try:
         can_compile("(fn [] (for [x xx]))")
+    except HyTypeError as e:
+        assert(e.message == "`for' requires a body to evaluate")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for [x xx] (else 1)))")
     except HyTypeError as e:
         assert(e.message == "`for' requires a body to evaluate")
     else:
