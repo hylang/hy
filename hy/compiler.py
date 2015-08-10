@@ -2004,6 +2004,10 @@ class HyASTCompiler(object):
         result = self.compile(result)
         ld_name = self.compile(name)
 
+        if isinstance(ld_name.expr, ast.Call):
+            raise HyTypeError(name,
+                              "Can't assign to a callable: `%s'" % str_name)
+
         if result.temp_variables \
            and isinstance(name, HyString) \
            and '.' not in name:

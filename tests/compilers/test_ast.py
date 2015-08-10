@@ -519,3 +519,9 @@ def test_attribute_access():
 def test_cons_correct():
     """Ensure cons gets compiled correctly"""
     can_compile("(cons a b)")
+
+
+def test_bad_setv():
+    """Ensure setv handles error cases"""
+    cant_compile("(setv if 1)")
+    cant_compile("(setv (a b) [1 2])")
