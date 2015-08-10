@@ -75,7 +75,7 @@
 
 (defmacro/g! loop [bindings &rest body]
   ;; Use inside functions like so:
-  ;; (defun factorial [n]
+  ;; (defn factorial [n]
   ;;   (loop [[i n]
   ;;          [acc 1]]
   ;;         (if (= i 0)

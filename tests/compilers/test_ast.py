@@ -111,17 +111,6 @@ def test_ast_good_do():
     can_compile("(do 1)")
 
 
-def test_ast_good_throw():
-    "Make sure AST can compile valid throw"
-    can_compile("(throw)")
-    can_compile("(throw Exception)")
-
-
-def test_ast_bad_throw():
-    "Make sure AST can't compile invalid throw"
-    cant_compile("(throw Exception Exception)")
-
-
 def test_ast_good_raise():
     "Make sure AST can compile valid raise"
     can_compile("(raise)")
@@ -158,26 +147,6 @@ def test_ast_bad_try():
     cant_compile("(try 1 bla bla)")
     cant_compile("(try (do) (else 1) (else 2))")
     cant_compile("(try 1 (else 1))")
-
-
-def test_ast_good_catch():
-    "Make sure AST can compile valid catch"
-    can_compile("(try 1 (catch))")
-    can_compile("(try 1 (catch []))")
-    can_compile("(try 1 (catch [Foobar]))")
-    can_compile("(try 1 (catch [[]]))")
-    can_compile("(try 1 (catch [x FooBar]))")
-    can_compile("(try 1 (catch [x [FooBar BarFoo]]))")
-    can_compile("(try 1 (catch [x [FooBar BarFoo]]))")
-
-
-def test_ast_bad_catch():
-    "Make sure AST can't compile invalid catch"
-    cant_compile("(catch 22)")   # heh
-    cant_compile("(try (catch 1))")
-    cant_compile("(try (catch \"A\"))")
-    cant_compile("(try (catch [1 3]))")
-    cant_compile("(try (catch [x [FooBar] BarBar]))")
 
 
 def test_ast_good_except():

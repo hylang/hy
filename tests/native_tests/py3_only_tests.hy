@@ -22,7 +22,7 @@
   (let [[kwonly-foo-no-default (fn [&kwonly foo] foo)]
         [attempt-to-omit-default (try
                                   (kwonly-foo-no-default)
-                                  (catch [e [Exception]] e))]]
+                                  (except [e [Exception]] e))]]
     ;; works
     (assert (= (apply kwonly-foo-no-default [] {"foo" "quux"}) "quux"))
     ;; raises TypeError with appropriate message if not supplied

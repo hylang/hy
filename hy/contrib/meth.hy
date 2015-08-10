@@ -7,7 +7,7 @@
                                     {"methods" ~methods})]]
                  (with-decorator deco
                    (defn ~name ~params 
-                     (progn ~@code)))))
+                     (do ~@code)))))
 
 ;; Some macro examples
 (defmacro route [name path params &rest code]

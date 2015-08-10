@@ -149,11 +149,11 @@
     `(if (not ~test) ~not-branch ~yes-branch)))
 
 
-(defmacro-alias [lisp-if lif] [test &rest branches]
+(defmacro lif [test &rest branches]
   "Like `if`, but anything that is not None/nil is considered true."
   `(if (is-not ~test nil) ~@branches))
 
-(defmacro-alias [lisp-if-not lif-not] [test &rest branches]
+(defmacro lif-not [test &rest branches]
   "Like `if-not`, but anything that is not None/nil is considered true."
   `(if (is ~test nil) ~@branches))
 
@@ -189,7 +189,7 @@
            (try (if (isinstance ~g!iter types.GeneratorType)
                   (setv ~g!message (yield (.send ~g!iter ~g!message)))
                   (setv ~g!message (yield (next ~g!iter))))
-           (catch [~g!e StopIteration]
+           (except [~g!e StopIteration]
              (do (setv ~g!return (if (hasattr ~g!e "value")
                                      (. ~g!e value)
                                      nil))
@@ -209,16 +209,6 @@
        (if (integer? ~retval)
          (sys.exit ~retval)))))
 
-
-(defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
-  "define one function with several names"
-  (let [[main (first names)]
-        [aliases (rest names)]]
-    (setv ret `(do (defn ~main ~lambda-list ~@body)))
-    (for* [name aliases]
-          (.append ret
-                   `(setv ~name ~main)))
-    ret))
 
 (defreader @ [expr]
   (let [[decorators (cut expr nil -1)]
