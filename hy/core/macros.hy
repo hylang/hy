@@ -210,16 +210,6 @@
          (sys.exit ~retval)))))
 
 
-(defmacro defn-alias [names lambda-list &rest body]
-  "define one function with several names"
-  (let [[main (first names)]
-        [aliases (rest names)]]
-    (setv ret `(do (defn ~main ~lambda-list ~@body)))
-    (for* [name aliases]
-          (.append ret
-                   `(setv ~name ~main)))
-    ret))
-
 (defreader @ [expr]
   (let [[decorators (cut expr nil -1)]
         [fndef (get expr -1)]]

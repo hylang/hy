@@ -31,15 +31,6 @@
   `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
 
 
-(defmacro defmacro-alias [names lambda-list &rest body]
-  "define one macro with several names"
-  (setv ret `(do))
-  (for* [name names]
-    (.append ret
-             `(defmacro ~name ~lambda-list ~@body)))
-  ret)
-
-
 (defmacro defn [name lambda-list &rest body]
   "define a function `name` with signature `lambda-list` and body `body`"
   (if (not (= (type name) HySymbol))
