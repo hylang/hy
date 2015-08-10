@@ -357,7 +357,9 @@ attributes of the new class as two item vectors.
 .. code-block:: clj
 
     (defclass class-name [super-class-1 super-class-2]
-      [[attribute value]])
+      [attribute value]
+
+      (defn method [self] (print "hello!")))
 
 Both values and functions can be bound on the new class as shown by the example
 below:
@@ -365,9 +367,10 @@ below:
 .. code-block:: clj
 
     => (defclass Cat []
-    ...  [[age None]
-    ...   [colour "white"]
-    ...   [speak (fn [self] (print "Meow"))]])
+    ...  [age None
+    ...   colour "white"]
+    ...
+    ...  (defn speak [self] (print "Meow")))
 
     => (def spot (Cat))
     => (setv spot.colour "Black")

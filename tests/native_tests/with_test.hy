@@ -1,16 +1,13 @@
 (defclass WithTest [object]
-  [(--init-- 
-    (fn [self val]
-      (setv self.val val)
-      None))
+  (defn --init-- [self val]
+    (setv self.val val)
+    None)
 
-  (--enter--
-    (fn [self]
-      self.val))
+  (defn --enter-- [self]
+    self.val)
 
-  (--exit--
-    (fn [self type value traceback]
-      (setv self.val None)))])
+  (defn --exit-- [self type value traceback]
+    (setv self.val None)))
 
 (defn test-single-with []
   "NATIVE: test a single with"
