@@ -519,3 +519,11 @@ def test_attribute_access():
 def test_cons_correct():
     """Ensure cons gets compiled correctly"""
     can_compile("(cons a b)")
+
+
+def test_invalid_list_comprehension():
+    """Ensure that invalid list comprehensions do not break the compiler"""
+    cant_compile("(genexpr x [])")
+    cant_compile("(genexpr [x [1 2 3 4]] x)")
+    cant_compile("(list-comp None [])")
+    cant_compile("(list-comp [x [1 2 3]] x)")
