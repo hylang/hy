@@ -17,7 +17,7 @@ Macros
 defn-alias
 ------------------------
 
-The ``defn-alias`` and macro is much like `defn`_,
+The ``defn-alias`` macro is much like ``defn``,
 with the distinction that instead of defining a function with a single
 name, these can also define aliases. Other than taking a list of
 symbols for function names as the first parameter, ``defn-alias``

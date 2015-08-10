@@ -842,7 +842,7 @@ lif and lif-not
 .. versionadded:: 0.11.0
    lif-not
 
-For those that prefer a more Lispy ``if`` clause, we have, or
+For those that prefer a more Lispy ``if`` clause, we have
 ``lif``. This *only* considers ``None`` / ``nil`` to be false! All other
 "false-ish" Python values are considered true. Conversely, we have
 ``lif-not`` in parallel to ``if`` and ``if-not`` which
@@ -1223,7 +1223,7 @@ counted starting from the end of the list. Some example usage:
 raise
 -------------
 
-The or ``raise`` forms can be used to raise an ``Exception`` at
+The ``raise`` form can be used to raise an ``Exception`` at
 runtime. Example usage:
 
 .. code-block:: clj
