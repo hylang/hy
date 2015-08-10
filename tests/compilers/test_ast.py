@@ -551,6 +551,10 @@ def test_defn():
     cant_compile("(defn \"hy\" [] 1)")
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
+    cant_compile("(defn if [] 1)")
+    cant_compile("(defn \"hy\" [] 1)")
+    cant_compile("(defn :hy [] 1)")
+    can_compile("(defn &hy [] 1)")
 
 
 def test_setv_builtins():
