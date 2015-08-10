@@ -541,6 +541,8 @@ def test_bad_setv():
     """Ensure setv handles error cases"""
     cant_compile("(setv if* 1)")
     cant_compile("(setv (a b) [1 2])")
+    cant_compile("(setv if 1)")
+    cant_compile("(setv (a b) [1 2])")
 
 
 def test_defn():
