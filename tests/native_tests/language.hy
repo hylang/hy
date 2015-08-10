@@ -673,6 +673,12 @@
   (assert (= 43 (my-fun 42))))
 
 
+(defn test-defn-lambdakey []
+  "NATIVE: test defn with a &symbol function name"
+  (defn &hy [] 1)
+  (assert (= (&hy) 1)))
+
+
 (defn test-defn-do []
   "NATIVE: test defn evaluation order with do"
   (setv acc [])

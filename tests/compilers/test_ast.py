@@ -519,3 +519,11 @@ def test_attribute_access():
 def test_cons_correct():
     """Ensure cons gets compiled correctly"""
     can_compile("(cons a b)")
+
+
+def test_defn():
+    """Ensure that defn works correctly in various corner cases"""
+    cant_compile("(defn if [] 1)")
+    cant_compile("(defn \"hy\" [] 1)")
+    cant_compile("(defn :hy [] 1)")
+    can_compile("(defn &hy [] 1)")
