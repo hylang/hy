@@ -16,7 +16,7 @@
 (defn parse-rfc822-stream [fd]
   "Parse an RFC822 stream"
   (setv bits {})
-  (setv key null)
+  (setv key None)
   (for [line fd]
     (if (in ":" line)
         (do (setv line (.split line ":" 1))
