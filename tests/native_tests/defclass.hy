@@ -109,3 +109,16 @@
   (assert (= a.y 2))
   (assert foo 2)
   (assert (.greet a) "hello"))
+
+(defn test-defclass-meta []
+  "NATIVE: test defclass support for meta-classes"
+  (global foo)
+  (setv foo 1)
+  (defclass MyMeta [type]
+    (defn --init-- [self &rest args]
+      (global foo)
+      (setv foo "meta")
+      nil))
+
+  (defclass A [object :meta MyMeta])
+  (assert (= foo "meta")))

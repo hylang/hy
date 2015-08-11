@@ -2240,18 +2240,44 @@ class HyASTCompiler(object):
         expressions.pop(0)  # class
 
         class_name = expressions.pop(0)
+        meta = None
 
         if expressions:
             base_list = expressions.pop(0)
             if not isinstance(base_list, HyList):
                 raise HyTypeError(expressions,
                                   "Bases class must be a list")
+            # Pick out the meta class:
+            if HyKeyword(":meta") in base_list:
+                idx = base_list.index(HyKeyword(":meta"))
+                meta = base_list[idx + 1]
+                del(base_list[idx:idx + 2])
             bases_expr, bases, _ = self._compile_collect(base_list)
         else:
             bases_expr = []
             bases = Result()
 
         body = Result()
+
+        class_keywords = []
+        if meta and not PY3:
+            symb = HySymbol("__metaclass__")
+            symb.start_line = meta.start_line
+            symb.start_column = meta.start_column
+            body += self._compile_assign(symb, meta,
+                                         meta.start_line,
+                                         meta.start_column)
+            body += body.expr_as_stmt()
+        if meta and PY3:
+            value = ast.Name(id=ast_str(meta),
+                             arg=ast_str("None"),
+                             ctx=ast.Load(),
+                             lineno=meta.start_line,
+                             col_offset=meta.start_column)
+            class_keywords = [ast.keyword(arg="metaclass",
+                                          value=value,
+                                          lineno=meta.start_line,
+                                          col_offset=meta.start_column)]
 
         # grab the doc string, if there is one
         if expressions and isinstance(expressions[0], HyString):
@@ -2285,7 +2311,7 @@ class HyASTCompiler(object):
             col_offset=expressions.start_column,
             decorator_list=[],
             name=ast_str(class_name),
-            keywords=[],
+            keywords=class_keywords,
             starargs=None,
             kwargs=None,
             bases=bases_expr,
