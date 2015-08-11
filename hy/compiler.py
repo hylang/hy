@@ -461,7 +461,7 @@ class HyASTCompiler(object):
                 except StopIteration:
                     raise HyTypeError(expr,
                                       "Keyword argument {kw} needs "
-                                      "a value.".format(kw=str(expr)))
+                                      "a value.".format(kw=str(expr[1:])))
 
                 compiled_value = self.compile(value)
                 ret += compiled_value

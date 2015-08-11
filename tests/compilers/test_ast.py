@@ -444,7 +444,7 @@ def test_missing_keyword_argument_value():
     try:
         can_compile("((fn [x] x) :x)")
     except HyTypeError as e:
-        assert(e.message == "Keyword argument \ufdd0:x needs a value.")
+        assert(e.message == "Keyword argument :x needs a value.")
     else:
         assert(False)
 
