@@ -551,3 +551,9 @@ def test_defn():
     cant_compile("(defn \"hy\" [] 1)")
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
+
+
+def test_setv_builtins():
+    """Ensure that assigning to a builtin fails"""
+    cant_compile("(setv nil 42)")
+    cant_compile("(defn get [&rest args] 42)")
