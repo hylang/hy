@@ -289,7 +289,6 @@ def t_identifier(p):
         "true": "True",
         "false": "False",
         "nil": "None",
-        "null": "None",
     }
 
     if obj in table:
@@ -307,6 +306,9 @@ def t_identifier(p):
 
         if p.endswith("?") and p != "?":
             p = "is_%s" % (p[:-1])
+
+        if p.endswith("!") and p != "!":
+            p = "%s_bang" % (p[:-1])
 
         return p
 

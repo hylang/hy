@@ -326,6 +326,24 @@ def test_lex_mangling_qmark():
     assert entry == [HySymbol(".is_foo.bar.is_baz")]
 
 
+def test_lex_mangling_bang():
+    """Ensure that identifiers ending with a bang get mangled ok"""
+    entry = tokenize("foo!")
+    assert entry == [HySymbol("foo_bang")]
+    entry = tokenize("!")
+    assert entry == [HySymbol("!")]
+    entry = tokenize("im!foo")
+    assert entry == [HySymbol("im!foo")]
+    entry = tokenize(".foo!")
+    assert entry == [HySymbol(".foo_bang")]
+    entry = tokenize("foo.bar!")
+    assert entry == [HySymbol("foo.bar_bang")]
+    entry = tokenize("foo!.bar")
+    assert entry == [HySymbol("foo_bang.bar")]
+    entry = tokenize(".foo!.bar.baz!")
+    assert entry == [HySymbol(".foo_bang.bar.baz_bang")]
+
+
 def test_simple_cons():
     """Check that cons gets tokenized correctly"""
     entry = tokenize("(a . b)")[0]

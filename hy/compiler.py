@@ -81,7 +81,7 @@ def load_stdlib():
 # keywords in Python 3.*
 def _is_hy_builtin(name, module_name):
     extras = ['True', 'False', 'None',
-              'true', 'false', 'nil', 'null']
+              'true', 'false', 'nil']
     if name in extras or keyword.iskeyword(name):
         return True
     # for non-Hy modules, check for pre-existing name in
@@ -459,8 +459,9 @@ class HyASTCompiler(object):
                 try:
                     value = next(exprs_iter)
                 except StopIteration:
-                    msg = "Keyword argument {kw} needs a value"
-                    raise HyCompileError(msg.format(kw=str(expr)))
+                    raise HyTypeError(expr,
+                                      "Keyword argument {kw} needs "
+                                      "a value.".format(kw=str(expr[1:])))
 
                 compiled_value = self.compile(value)
                 ret += compiled_value
@@ -2010,6 +2011,10 @@ class HyASTCompiler(object):
 
         result = self.compile(result)
         ld_name = self.compile(name)
+
+        if isinstance(ld_name.expr, ast.Call):
+            raise HyTypeError(name,
+                              "Can't assign to a callable: `%s'" % str_name)
 
         if result.temp_variables \
            and isinstance(name, HyString) \

@@ -54,8 +54,6 @@
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv nil 1))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv null 1))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn defclass [] (print "hello")))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn get [] (print "hello")))
@@ -228,7 +226,7 @@
   "NATIVE: test if cond sorta works."
   (cond
    [(= 1 2) (assert (is true false))]
-   [(is null null) (setv x true) (assert x)]))
+   [(is None None) (setv x true) (assert x)]))
 
 
 (defn test-index []
@@ -671,6 +669,12 @@
   (defn my-fun [x]
     (+ x 1))
   (assert (= 43 (my-fun 42))))
+
+
+(defn test-defn-lambdakey []
+  "NATIVE: test defn with a &symbol function name"
+  (defn &hy [] 1)
+  (assert (= (&hy) 1)))
 
 
 (defn test-defn-do []
