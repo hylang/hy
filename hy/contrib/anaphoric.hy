@@ -121,3 +121,27 @@
 (defmacro ap-compose [&rest forms]
   "Returns a function which is the composition of several forms."
   `(fn [var] (ap-pipe var ~@forms)))
+
+(defmacro xi [function &rest body]
+  "Returns a function with parameters implicitly determined by the presence in
+   the body of xi parameters. An xi symbol designates the ith parameter
+   (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself.
+   This is not a replacement for lambda. The xi forms cannot be nested. "
+  (setv flatbody (flatten body))
+  `(lambda [;; generate all xi symbols up to the maximum found in body
+            ~@(genexpr (HySymbol (+ "x"
+                                    (str i)))
+                       [i (range 1
+                                 ;; find the maximum xi
+                                 (inc (max (genexpr (int (cdr a))
+                                                    [a flatbody]
+                                                    (and (symbol? a)
+                                                         (.startswith a 'x)
+                                                         (.isdigit (cdr a))))
+                                           :default 0)))])
+            ;; generate the &rest paremeter only if 'xi is present in body
+            ~@(if (in 'xi flatbody)
+                '(&rest xi)
+                '())]
+     (~function ~@body)))
+
