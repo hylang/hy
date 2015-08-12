@@ -108,6 +108,15 @@ def hy_eval(hytree, namespace, module_name):
     foo.start_column = 0
     foo.end_column = 0
     replace_hy_obj(hytree, foo)
+
+    try:
+        checktype = basestring
+    except NameError:
+        checktype = str
+
+    if not isinstance(module_name, checktype):
+        raise HyTypeError(foo, "Module name must be a string")
+
     _ast, expr = hy_compile(hytree, module_name, get_expr=True)
 
     # Spoof the positions in the generated ast...
@@ -118,6 +127,9 @@ def hy_eval(hytree, namespace, module_name):
     for node in ast.walk(expr):
         node.lineno = 1
         node.col_offset = 1
+
+    if not isinstance(namespace, dict):
+        raise HyTypeError(foo, "Globals must be a dictionary")
 
     # Two-step eval: eval() the body of the exec call
     eval(ast_compile(_ast, "<eval_body>", "exec"), namespace)
