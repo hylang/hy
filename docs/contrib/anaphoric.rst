@@ -231,7 +231,7 @@ Returns a function which applies several forms in series from left to right. The
 xi
 ==
 
-Usage ``(xi function body ...)``
+Usage ``(xi body ...)``
 
 Returns a function with parameters implicitly determined by the presence in the body of xi parameters. An xi symbol designates the ith parameter (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself. This is not a replacement for lambda. The xi forms cannot be nested. 
 
