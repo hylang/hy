@@ -439,6 +439,16 @@ def test_lambda_list_keywords_mixed():
                     "  (list x xs kwxs kwoxs))")
 
 
+def test_missing_keyword_argument_value():
+    """Ensure the compiler chokes on missing keyword argument values."""
+    try:
+        can_compile("((fn [x] x) :x)")
+    except HyTypeError as e:
+        assert(e.message == "Keyword argument :x needs a value.")
+    else:
+        assert(False)
+
+
 def test_ast_unicode_strings():
     """Ensure we handle unicode strings correctly"""
 
@@ -521,7 +531,16 @@ def test_cons_correct():
     can_compile("(cons a b)")
 
 
+
 def test_bad_setv():
     """Ensure setv handles error cases"""
     cant_compile("(setv if 1)")
     cant_compile("(setv (a b) [1 2])")
+
+
+def test_defn():
+    """Ensure that defn works correctly in various corner cases"""
+    cant_compile("(defn if [] 1)")
+    cant_compile("(defn \"hy\" [] 1)")
+    cant_compile("(defn :hy [] 1)")
+    can_compile("(defn &hy [] 1)")
