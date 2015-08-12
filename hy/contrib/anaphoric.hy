@@ -122,7 +122,7 @@
   "Returns a function which is the composition of several forms."
   `(fn [var] (ap-pipe var ~@forms)))
 
-(defmacro xi [function &rest body]
+(defmacro xi [&rest body]
   "Returns a function with parameters implicitly determined by the presence in
    the body of xi parameters. An xi symbol designates the ith parameter
    (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself.
@@ -143,5 +143,5 @@
             ~@(if (in 'xi flatbody)
                 '(&rest xi)
                 '())]
-     (~function ~@body)))
+     (~@body)))
 

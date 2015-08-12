@@ -134,4 +134,8 @@
   (assert-equal ((xi identity [x3 x1]) 1 2 3) [3 1])
   ;; test nesting
   (assert-equal ((xi identity [x1 (, x2 [x3] "Hy" [xi])]) 1 2 3 4 5)
-                [1 (, 2 [3] "Hy" [(, 4 5)])]))
+                [1 (, 2 [3] "Hy" [(, 4 5)])])
+  ;; test arg as function
+  (assert-equal ((xi x1 2 4) +) 6)
+  (assert-equal ((xi x1 2 4) -) -2)
+  (assert-equal ((xi x1 2 4) /) 0.5))
