@@ -119,6 +119,12 @@ def hy_eval(hytree, namespace, module_name):
         node.lineno = 1
         node.col_offset = 1
 
+    if not isinstance(namespace, dict):
+        raise HyTypeError(expr, "Globals must be a dictionary, is {}".format(type(namespace)))
+
+    if not isinstance(module_name, str):
+        raise HyTypeError(expr, "Module name must be a string")
+
     # Two-step eval: eval() the body of the exec call
     eval(ast_compile(_ast, "<eval_body>", "exec"), namespace)
 

@@ -729,15 +729,11 @@ class HyASTCompiler(object):
 
         elist = [HySymbol("hy_eval")] + [expr[0]]
         if len(expr) >= 2:
-            if not isinstance(expr[1], (HyDict, HySymbol)):
-                raise HyTypeError(expr, "Globals must be a dictionary")
             elist.append(expr[1])
         else:
             elist.append(HyExpression([HySymbol("locals")]))
 
         if len(expr) == 3:
-            if not isinstance(expr[2], HyString):
-                raise HyTypeError(expr, "Module name must be a string")
             elist.append(expr[2])
         else:
             elist.append(HyString(self.module_name))
