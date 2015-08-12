@@ -133,12 +133,12 @@
                                     (str i)))
                        [i (range 1
                                  ;; find the maximum xi
-                                 (inc (max (genexpr (int (cdr a))
-                                                    [a flatbody]
-                                                    (and (symbol? a)
-                                                         (.startswith a 'x)
-                                                         (.isdigit (cdr a))))
-                                           :default 0)))])
+                                 (inc (max (+ (list-comp (int (cdr a))
+                                                         [a flatbody]
+                                                         (and (symbol? a)
+                                                              (.startswith a 'x)
+                                                              (.isdigit (cdr a))))
+                                              [0]))))])
             ;; generate the &rest paremeter only if 'xi is present in body
             ~@(if (in 'xi flatbody)
                 '(&rest xi)
