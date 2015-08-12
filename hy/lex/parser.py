@@ -289,7 +289,6 @@ def t_identifier(p):
         "true": "True",
         "false": "False",
         "nil": "None",
-        "null": "None",
     }
 
     if obj in table:
