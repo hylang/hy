@@ -607,14 +607,14 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with [[fd (open "README.md" "r")]] (assert fd))
-  (with [[(open "README.md" "r")]] (do)))
+  (with [fd (open "README.md" "r")] (assert fd))
+  (with [(open "README.md" "r")] (do)))
 
 
 (defn test-with-return []
   "NATIVE: test that with returns stuff"
   (defn read-file [filename]
-    (with [[fd (open filename "r")]] (.read fd)))
+    (with [fd (open filename "r")] (.read fd)))
   (assert (!= 0 (len (read-file "README.md")))))
 
 

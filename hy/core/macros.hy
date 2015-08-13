@@ -33,21 +33,21 @@
 
 (defmacro with [args &rest body]
   "shorthand for nested with* loops:
-  (with [[x foo] [y bar]] baz) ->
+  (with [x foo y bar] baz) ->
   (with* [x foo]
     (with* [y bar]
       baz))"
 
   (if (not (empty? args))
-    (let [primary (.pop args 0)]
-      (if (isinstance primary HyList)
-        ;;; OK. if we have a list, we can go ahead and unpack that
-        ;;; as the argument to with.
-        `(with* [~@primary] (with ~args ~@body))
-        ;;; OK, let's just give it away. This may not be something we
-        ;;; can do, but that's really the programmer's problem.
-        `(with* [~primary] (with ~args ~@body))))
-      `(do ~@body)))
+    (do
+     (if (>= (len args) 2)
+       (do
+        (setv p1 (.pop args 0)
+              p2 (.pop args 0)
+              primary [p1 p2])
+        `(with* [~@primary] (with ~args ~@body)))
+       `(with* [~@args] ~@body)))
+    `(do ~@body)))
 
 
 (defmacro car [thing]

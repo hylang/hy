@@ -31,5 +31,5 @@
                [[2 [3 [4]] 2 [3 [4]]]]))))
 
 (defn test-macroexpand-all []
-  (assert (= (macroexpand-all '(with [a b c] (for [d c] foo)))
-             '(with* [a] (with* [b] (with* [c] (do (for* [d c] (do foo)))))))))
+  (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
+             '(with* [a 1] (with* [b 2] (with* [c 3] (do (for* [d c] (do foo)))))))))
