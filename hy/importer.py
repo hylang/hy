@@ -33,6 +33,7 @@ import os
 import __future__
 
 from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
+from hy._compat import string_types
 
 
 def ast_compile(ast, filename, mode):
@@ -109,12 +110,7 @@ def hy_eval(hytree, namespace, module_name):
     foo.end_column = 0
     replace_hy_obj(hytree, foo)
 
-    try:
-        checktype = basestring
-    except NameError:
-        checktype = str
-
-    if not isinstance(module_name, checktype):
+    if not isinstance(module_name, string_types):
         raise HyTypeError(foo, "Module name must be a string")
 
     _ast, expr = hy_compile(hytree, module_name, get_expr=True)
