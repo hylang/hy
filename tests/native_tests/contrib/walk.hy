@@ -15,17 +15,17 @@
              walk-form)))
 
 (defn test-walk []
-  (let [[acc '()]]
+  (let [acc '()]
     (assert (= (walk (partial collector acc) identity walk-form)
                [nil nil]))
     (assert (= acc walk-form)))
-  (let [[acc []]]
+  (let [acc []]
     (assert (= (walk identity (partial collector acc) walk-form)
                nil))
     (assert (= acc [walk-form]))))
 
 (defn test-walk-iterators []
-  (let [[acc []]]
+  (let [acc []]
     (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
                      (drop 1 [1 [2 [3 [4]]]]))
                [[2 [3 [4]] 2 [3 [4]]]]))))

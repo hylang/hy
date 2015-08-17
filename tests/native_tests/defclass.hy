@@ -36,7 +36,7 @@
          (+ self.x value))])
   (assert (= B.x 42))
   (assert (= (.y (B) 5) 47))
-  (let [[b (B)]]
+  (let [b (B)]
     (setv B.x 0)
     (assert (= (.y b 1) 1))))
 

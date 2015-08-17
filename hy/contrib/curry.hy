@@ -2,8 +2,8 @@
 
 
 (defn curry [func]
-  (let [[sig (.getargspec inspect func)]
-        [count (len sig.args)]]
+  (let [sig (.getargspec inspect func)
+        count (len sig.args)]
 
     (fn [&rest args]
       (if (< (len args) count)

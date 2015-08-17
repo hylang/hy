@@ -27,7 +27,7 @@
   (reactor.stop))
 
 (defn get-page [url]
-  (let [[d (getPage url)]]
+  (let [d (getPage url)]
     (d.addCallback get-page-size)
     (d.addErrback log-error)
     (d.addCallback finish)))

@@ -39,7 +39,7 @@
       baz))"
 
   (if (not (empty? args))
-    (let [[primary (.pop args 0)]]
+    (let [primary (.pop args 0)]
       (if (isinstance primary HyList)
         ;;; OK. if we have a list, we can go ahead and unpack that
         ;;; as the argument to with.
@@ -115,7 +115,7 @@
    [(empty? args) `(do ~@body ~@belse)]
    [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
    [true
-    (let [[alist (cut args 0 nil 2)]]
+    (let [alist (cut args 0 nil 2)]
       `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
@@ -138,7 +138,7 @@
     (if (isinstance expression HyExpression)
       `(~(first expression) ~f ~@(rest expression))
       `(~expression ~f)))
-  `(let [[~f ~form]]
+  `(let [~f ~form]
      ~@(map build-form expressions)
      ~f))
 
@@ -180,14 +180,25 @@
 
 
 (defmacro with-gensyms [args &rest body]
-  `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
-    ~@body))
+  (setv syms [])
+  (for* [arg args]
+    (.extend syms `[~arg (gensym '~arg)]))
+  `(let ~syms
+     ~@body))
 
 (defmacro defmacro/g! [name args &rest body]
-  (let [[syms (list (distinct (filter (fn [x] (and (hasattr x "startswith") (.startswith x "g!"))) (flatten body))))]]
+  (let [syms (list
+              (distinct
+               (filter (fn [x]
+                         (and (hasattr x "startswith")
+                              (.startswith x "g!")))
+                       (flatten body))))
+        gensyms []]
+    (for* [sym syms]
+      (.extend gensyms `[~sym (gensym (cut '~sym 2))]))
     `(defmacro ~name [~@args]
-       (let ~(HyList (map (fn [x] `[~x (gensym (cut '~x 2))]) syms))
-            ~@body))))
+       (let ~gensyms
+         ~@body))))
 
 
 (if-python2
@@ -211,9 +222,9 @@
 
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
-  (let [[retval (gensym)]
-        [mainfn `(fn [~@args]
-                   ~@body)]]
+  (let [retval (gensym)
+        mainfn `(fn [~@args]
+                  ~@body)]
     `(when (= --name-- "__main__")
        (import sys)
        (setv ~retval (apply ~mainfn sys.argv))
@@ -222,6 +233,6 @@
 
 
 (defreader @ [expr]
-  (let [[decorators (cut expr nil -1)]
-        [fndef (get expr -1)]]
+  (let [decorators (cut expr nil -1)
+        fndef (get expr -1)]
     `(with-decorator ~@decorators ~fndef)))

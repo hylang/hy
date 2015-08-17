@@ -107,8 +107,8 @@
   (import [astor.codegen [to_source]])
   (import [hy.importer [import_buffer_to_ast]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
-      (let [[g (gensym)]]
-        `(let [[~g ~expr]]
+      (let [g (gensym)]
+        `(let [~g ~expr]
            (cond [(pos? ~g) ~pos]
                  [(zero? ~g) ~zero]
                  [(neg? ~g) ~neg]))))
@@ -133,7 +133,7 @@
   (import [hy.importer [import_buffer_to_ast]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
-        `(let [[~a ~expr]]
+        `(let [~a ~expr]
            (cond [(pos? ~a) ~pos]
                  [(zero? ~a) ~zero]
                  [(neg? ~a) ~neg]))))
@@ -155,7 +155,7 @@
   (import [astor.codegen [to_source]])
   (import [hy.importer [import_buffer_to_ast]])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
-        `(let [[~g!res ~expr]]
+        `(let [~g!res ~expr]
            (cond [(pos? ~g!res) ~pos]
                  [(zero? ~g!res) ~zero]
                  [(neg? ~g!res) ~neg])))
