@@ -1977,7 +1977,6 @@ class HyASTCompiler(object):
 
     @builds("def")
     @builds("setv")
-    @checkargs(min=2)
     def compile_def_expression(self, expression):
         expression.pop(0)
         if len(expression) == 2:
