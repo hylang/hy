@@ -34,6 +34,11 @@
   (assert (= #{} (set))))
 
 
+(defn test-setv-empty []
+  "NATIVE: test setv works with no arguments"
+  (assert (is (setv) nil)))
+
+
 (defn test-setv-get []
   "NATIVE: test setv works on a get expression"
   (setv foo [0 1 2])
