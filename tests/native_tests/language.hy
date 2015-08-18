@@ -1092,7 +1092,8 @@
   (del (get test 4))
   (assert (= test [0 1 2 3]))
   (del (get test 2))
-  (assert (= test [0 1 3])))
+  (assert (= test [0 1 3]))
+  (assert (= (del) nil)))
 
 
 (defn test-macroexpand []
