@@ -880,18 +880,6 @@
   (assert (= None (eval (quote (print ""))))))
 
 
-(defmacro assert-raise [exc-type &rest body]
-  `(try
-     (do
-       (eval ~@body)
-       (assert False "we shouldn't have arrived here"))
-     (except [e Exception]
-       (assert (instance? ~exc-type e)
-         (.format "Expected exception of type {}, got {}: {}"
-                  (. ~exc-type --name--)
-                  (. (type e) --name--)
-                  (str e))))))
-
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
   (assert (= 'bar (eval (quote foo) {'foo 'bar})))
@@ -910,10 +898,11 @@
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
   (import [hy.errors [HyTypeError]])
-  (assert-raise HyTypeError '(eval))
-  (assert-raise HyTypeError '(eval "snafu"))
-  (assert-raise HyTypeError '(eval 'false []))
-  (assert-raise HyTypeError '(eval 'false {} 1)))
+  ; yo dawg
+  (try (eval '(eval)) (except [e HyTypeError]) (else (assert False)))
+  (try (eval '(eval "snafu")) (except [e HyTypeError]) (else (assert False)))
+  (try (eval 'false []) (except [e HyTypeError]) (else (assert False)))
+  (try (eval 'false {} 1) (except [e HyTypeError]) (else (assert False))))
 
 
 (defn test-import-syntax []
