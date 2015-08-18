@@ -1977,10 +1977,15 @@ class HyASTCompiler(object):
 
     @builds("def")
     @builds("setv")
-    @checkargs(min=2)
     def compile_def_expression(self, expression):
-        expression.pop(0)
-        if len(expression) == 2:
+        root = expression.pop(0)
+        if not expression:
+            result = Result()
+            result += ast.Name(id='None', ctx=ast.Load(),
+                               lineno=root.start_line,
+                               col_offset=root.start_column)
+            return result
+        elif len(expression) == 2:
             return self._compile_assign(expression[0], expression[1],
                                         expression.start_line,
                                         expression.start_column)
