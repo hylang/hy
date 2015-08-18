@@ -67,26 +67,29 @@
      bar
      (if baz
        quux))"
-  (setv branches (iter branches))
-  (setv branch (next branches))
-  (defn check-branch [branch]
-    "check `cond` branch for validity, return the corresponding `if` expr"
-    (if (not (= (type branch) HyList))
-      (macro-error branch "cond branches need to be a list"))
-    (if (< (len branch) 2)
-      (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
-    (setv test (car branch))
-    (setv thebranch (cdr branch))
-    `(if ~test (do ~@thebranch)))
+  (if (empty? branches)
+    nil
+    (do
+     (setv branches (iter branches))
+     (setv branch (next branches))
+     (defn check-branch [branch]
+       "check `cond` branch for validity, return the corresponding `if` expr"
+       (if (not (= (type branch) HyList))
+         (macro-error branch "cond branches need to be a list"))
+       (if (< (len branch) 2)
+         (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
+       (setv test (car branch))
+       (setv thebranch (cdr branch))
+       `(if ~test (do ~@thebranch)))
 
-  (setv root (check-branch branch))
-  (setv latest-branch root)
+     (setv root (check-branch branch))
+     (setv latest-branch root)
 
-  (for* [branch branches]
-    (setv cur-branch (check-branch branch))
-    (.append latest-branch cur-branch)
-    (setv latest-branch cur-branch))
-  root)
+     (for* [branch branches]
+       (setv cur-branch (check-branch branch))
+       (.append latest-branch cur-branch)
+       (setv latest-branch cur-branch))
+     root)))
 
 
 (defmacro for [args &rest body]
