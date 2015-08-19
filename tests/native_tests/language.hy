@@ -231,7 +231,8 @@
   "NATIVE: test if cond sorta works."
   (cond
    [(= 1 2) (assert (is true false))]
-   [(is None None) (setv x true) (assert x)]))
+   [(is None None) (setv x true) (assert x)])
+  (assert (= (cond) nil)))
 
 
 (defn test-index []
