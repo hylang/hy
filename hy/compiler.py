@@ -1294,9 +1294,15 @@ class HyASTCompiler(object):
         return ret
 
     @builds("del")
-    @checkargs(min=1)
     def compile_del_expression(self, expr):
-        expr.pop(0)
+        root = expr.pop(0)
+        if not expr:
+            result = Result()
+            result += ast.Name(id='None', ctx=ast.Load(),
+                               lineno=root.start_line,
+                               col_offset=root.start_column)
+            return result
+
         ld_targets, ret, _ = self._compile_collect(expr)
 
         del_targets = []
