@@ -370,6 +370,7 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
+        self.allow_builtins = False
         self.anon_fn_count = 0
         self.anon_var_count = 0
         self.imports = defaultdict(set)
@@ -2012,7 +2013,8 @@ class HyASTCompiler(object):
                         start_line, start_column):
 
         str_name = "%s" % name
-        if _is_hy_builtin(str_name, self.module_name):
+        if _is_hy_builtin(str_name, self.module_name) and \
+           not self.allow_builtins:
             raise HyTypeError(name,
                               "Can't assign to a builtin: `%s'" % str_name)
 
@@ -2282,6 +2284,8 @@ class HyASTCompiler(object):
                                          docstring.start_column)
             body += body.expr_as_stmt()
 
+        allow_builtins = self.allow_builtins
+        self.allow_builtins = True
         if expressions and isinstance(expressions[0], HyList) \
            and not isinstance(expressions[0], HyExpression):
             expr = expressions.pop(0)
@@ -2293,6 +2297,8 @@ class HyASTCompiler(object):
 
         for expression in expressions:
             body += self.compile(macroexpand(expression, self.module_name))
+
+        self.allow_builtins = allow_builtins
 
         if not body.stmts:
             body += ast.Pass(lineno=expressions.start_line,
