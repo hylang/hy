@@ -98,8 +98,14 @@ def test_lex_symbols():
 
 def test_lex_strings():
     """ Make sure that strings are valid expressions"""
-    objs = tokenize("\"foo\" ")
+    objs = tokenize('"foo"')
     assert objs == [HyString("foo")]
+    # Make sure backslash-escaped newlines work (see issue #831)
+    objs = tokenize(r"""
+"a\
+bc"
+""")
+    assert objs == [HyString("abc")]
 
 
 def test_lex_integers():
