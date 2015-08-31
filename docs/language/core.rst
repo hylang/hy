@@ -436,6 +436,25 @@ themselves as an iterator when ``(iter x)`` is called. Contrast with
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
 
+.. _keyword?-fn:
+
+keyword?
+--------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(keyword? foo)``
+
+Check whether *foo* is a :ref:`keyword<HyKeyword>`.
+
+.. code-block:: hy
+
+   => (keyword? :foo)
+   True
+
+   => (setv foo 1)
+   => (keyword? foo)
+   False
 
 .. _list*-fn:
 
