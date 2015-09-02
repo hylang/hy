@@ -32,7 +32,7 @@
 
 
 (defmacro with [args &rest body]
-  "shorthand for nested for* loops:
+  "shorthand for nested with* loops:
   (with [[x foo] [y bar]] baz) ->
   (with* [x foo]
     (with* [y bar]
@@ -73,10 +73,11 @@
     "check `cond` branch for validity, return the corresponding `if` expr"
     (if (not (= (type branch) HyList))
       (macro-error branch "cond branches need to be a list"))
-    (if (!= (len branch) 2)
-      (macro-error branch "cond branches need two items: a test and a code branch"))
-    (setv (, test thebranch) branch)
-    `(if ~test ~thebranch))
+    (if (< (len branch) 2)
+      (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
+    (setv test (car branch))
+    (setv thebranch (cdr branch))
+    `(if ~test (do ~@thebranch)))
 
   (setv root (check-branch branch))
   (setv latest-branch root)
@@ -96,16 +97,23 @@
   (for* [x foo]
     (for* [y bar]
       baz))"
-  (cond 
+  (setv body (list body))
+  (if (empty? body)
+    (macro-error None "`for' requires a body to evaluate"))
+  (setv lst (get body -1))
+  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
+                [(body.pop)]
+                []))
+  (cond
    [(odd? (len args))
     (macro-error args "`for' requires an even number of args.")]
    [(empty? body)
     (macro-error None "`for' requires a body to evaluate")]
-   [(empty? args) `(do ~@body)]
-   [(= (len args) 2)  `(for* [~@args] ~@body)]
-   [true 
+   [(empty? args) `(do ~@body ~@belse)]
+   [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
+   [true
     (let [[alist (cut args 0 nil 2)]]
-      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
+      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
 (defmacro -> [head &rest rest]
@@ -149,11 +157,11 @@
     `(if (not ~test) ~not-branch ~yes-branch)))
 
 
-(defmacro-alias [lisp-if lif] [test &rest branches]
+(defmacro lif [test &rest branches]
   "Like `if`, but anything that is not None/nil is considered true."
   `(if (is-not ~test nil) ~@branches))
 
-(defmacro-alias [lisp-if-not lif-not] [test &rest branches]
+(defmacro lif-not [test &rest branches]
   "Like `if-not`, but anything that is not None/nil is considered true."
   `(if (is ~test nil) ~@branches))
 
@@ -189,7 +197,7 @@
            (try (if (isinstance ~g!iter types.GeneratorType)
                   (setv ~g!message (yield (.send ~g!iter ~g!message)))
                   (setv ~g!message (yield (next ~g!iter))))
-           (catch [~g!e StopIteration]
+           (except [~g!e StopIteration]
              (do (setv ~g!return (if (hasattr ~g!e "value")
                                      (. ~g!e value)
                                      nil))
@@ -209,16 +217,6 @@
        (if (integer? ~retval)
          (sys.exit ~retval)))))
 
-
-(defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
-  "define one function with several names"
-  (let [[main (first names)]
-        [aliases (rest names)]]
-    (setv ret `(do (defn ~main ~lambda-list ~@body)))
-    (for* [name aliases]
-          (.append ret
-                   `(setv ~name ~main)))
-    ret))
 
 (defreader @ [expr]
   (let [[decorators (cut expr nil -1)]

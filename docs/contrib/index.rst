@@ -11,3 +11,4 @@ Contents:
    loop
    multi
    flow
+   alias

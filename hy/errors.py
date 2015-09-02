@@ -116,6 +116,6 @@ class HyMacroExpansionError(HyTypeError):
 class HyIOError(HyError, IOError):
     """
     Trivial subclass of IOError and HyError, to distinguish between
-    IOErrors thrown by Hy itself as opposed to Hy programs.
+    IOErrors raised by Hy itself as opposed to Hy programs.
     """
     pass

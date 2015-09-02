@@ -81,7 +81,7 @@ def load_stdlib():
 # keywords in Python 3.*
 def _is_hy_builtin(name, module_name):
     extras = ['True', 'False', 'None',
-              'true', 'false', 'nil', 'null']
+              'true', 'false', 'nil']
     if name in extras or keyword.iskeyword(name):
         return True
     # for non-Hy modules, check for pre-existing name in
@@ -459,8 +459,9 @@ class HyASTCompiler(object):
                 try:
                     value = next(exprs_iter)
                 except StopIteration:
-                    msg = "Keyword argument {kw} needs a value"
-                    raise HyCompileError(msg.format(kw=str(expr)))
+                    raise HyTypeError(expr,
+                                      "Keyword argument {kw} needs "
+                                      "a value.".format(kw=str(expr[1:])))
 
                 compiled_value = self.compile(value)
                 ret += compiled_value
@@ -728,15 +729,11 @@ class HyASTCompiler(object):
 
         elist = [HySymbol("hy_eval")] + [expr[0]]
         if len(expr) >= 2:
-            if not isinstance(expr[1], (HyDict, HySymbol)):
-                raise HyTypeError(expr, "Globals must be a dictionary")
             elist.append(expr[1])
         else:
             elist.append(HyExpression([HySymbol("locals")]))
 
         if len(expr) == 3:
-            if not isinstance(expr[2], HyString):
-                raise HyTypeError(expr, "Module name must be a string")
             elist.append(expr[2])
         else:
             elist.append(HyString(self.module_name))
@@ -748,15 +745,13 @@ class HyASTCompiler(object):
         return ret
 
     @builds("do")
-    @builds("progn")
-    def compile_progn(self, expression):
+    def compile_do(self, expression):
         expression.pop(0)
         return self._compile_branch(expression)
 
-    @builds("throw")
     @builds("raise")
     @checkargs(multiple=[0, 1, 3])
-    def compile_throw_expression(self, expr):
+    def compile_raise_expression(self, expr):
         expr.pop(0)
         ret = Result()
         if expr:
@@ -828,7 +823,7 @@ class HyASTCompiler(object):
             if not len(e):
                 raise HyTypeError(e, "Empty list not allowed in `try'")
 
-            if e[0] in (HySymbol("except"), HySymbol("catch")):
+            if e[0] == HySymbol("except"):
                 handler_results += self._compile_catch_expression(e, name)
                 handlers.append(handler_results.stmts.pop())
             elif e[0] == HySymbol("else"):
@@ -906,7 +901,6 @@ class HyASTCompiler(object):
         return accumulated
 
     @builds("except")
-    @builds("catch")
     def magic_internal_form(self, expr):
         raise HyTypeError(expr,
                           "Error: `%s' can't be used like that." % (expr[0]))
@@ -1476,8 +1470,15 @@ class HyASTCompiler(object):
         # (list-comp expr (target iter) cond?)
         expr.pop(0)
         expression = expr.pop(0)
+        gen_gen = expr[0]
+
+        if not isinstance(gen_gen, HyList):
+            raise HyTypeError(gen_gen, "Generator expression must be a list.")
 
         gen_res, gen = self._compile_generator_iterables(expr)
+
+        if len(gen) == 0:
+            raise HyTypeError(gen_gen, "Generator expression cannot be empty.")
 
         compiled_expression = self.compile(expression)
         ret = compiled_expression + gen_res
@@ -1972,10 +1973,15 @@ class HyASTCompiler(object):
 
     @builds("def")
     @builds("setv")
-    @checkargs(min=2)
     def compile_def_expression(self, expression):
-        expression.pop(0)
-        if len(expression) == 2:
+        root = expression.pop(0)
+        if not expression:
+            result = Result()
+            result += ast.Name(id='None', ctx=ast.Load(),
+                               lineno=root.start_line,
+                               col_offset=root.start_column)
+            return result
+        elif len(expression) == 2:
             return self._compile_assign(expression[0], expression[1],
                                         expression.start_line,
                                         expression.start_column)
@@ -2006,6 +2012,10 @@ class HyASTCompiler(object):
 
         result = self.compile(result)
         ld_name = self.compile(name)
+
+        if isinstance(ld_name.expr, ast.Call):
+            raise HyTypeError(name,
+                              "Can't assign to a callable: `%s'" % str_name)
 
         if result.temp_variables \
            and isinstance(name, HyString) \
@@ -2238,15 +2248,15 @@ class HyASTCompiler(object):
 
     @builds("defclass")
     @checkargs(min=1)
-    def compile_class_expression(self, expression):
-        expression.pop(0)  # class
+    def compile_class_expression(self, expressions):
+        expressions.pop(0)  # class
 
-        class_name = expression.pop(0)
+        class_name = expressions.pop(0)
 
-        if expression:
-            base_list = expression.pop(0)
+        if expressions:
+            base_list = expressions.pop(0)
             if not isinstance(base_list, HyList):
-                raise HyTypeError(expression,
+                raise HyTypeError(expressions,
                                   "Bases class must be a list")
             bases_expr, bases, _ = self._compile_collect(base_list)
         else:
@@ -2256,8 +2266,8 @@ class HyASTCompiler(object):
         body = Result()
 
         # grab the doc string, if there is one
-        if expression and isinstance(expression[0], HyString):
-            docstring = expression.pop(0)
+        if expressions and isinstance(expressions[0], HyString):
+            docstring = expressions.pop(0)
             symb = HySymbol("__doc__")
             symb.start_line = docstring.start_line
             symb.start_column = docstring.start_column
@@ -2266,31 +2276,25 @@ class HyASTCompiler(object):
                                          docstring.start_column)
             body += body.expr_as_stmt()
 
-        if expression:
-            try:
-                body_expression = iter(expression.pop(0))
-            except TypeError:
-                raise HyTypeError(
-                    expression,
-                    "Wrong argument type for defclass attributes definition.")
-            for b in body_expression:
-                if isinstance(b, HyExpression):
-                    b = macroexpand(b, self.module_name)
-                if len(b) != 2:
-                    raise HyTypeError(
-                        expression,
-                        "Wrong number of argument in defclass attribute.")
-                body += self._compile_assign(b[0], b[1],
-                                             b.start_line, b.start_column)
-                body += body.expr_as_stmt()
+        if expressions and isinstance(expressions[0], HyList) \
+           and not isinstance(expressions[0], HyExpression):
+            expr = expressions.pop(0)
+            body += self.compile(
+                HyExpression([
+                    HySymbol("setv")
+                ] + expr).replace(expr)
+            )
+
+        for expression in expressions:
+            body += self.compile(macroexpand(expression, self.module_name))
 
         if not body.stmts:
-            body += ast.Pass(lineno=expression.start_line,
-                             col_offset=expression.start_column)
+            body += ast.Pass(lineno=expressions.start_line,
+                             col_offset=expressions.start_column)
 
         return bases + ast.ClassDef(
-            lineno=expression.start_line,
-            col_offset=expression.start_column,
+            lineno=expressions.start_line,
+            col_offset=expressions.start_column,
             decorator_list=[],
             name=ast_str(class_name),
             keywords=[],
@@ -2373,7 +2377,7 @@ class HyASTCompiler(object):
 
     @builds("eval_and_compile")
     def compile_eval_and_compile(self, expression):
-        expression[0] = HySymbol("progn")
+        expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
@@ -2382,7 +2386,7 @@ class HyASTCompiler(object):
 
     @builds("eval_when_compile")
     def compile_eval_when_compile(self, expression):
-        expression[0] = HySymbol("progn")
+        expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)

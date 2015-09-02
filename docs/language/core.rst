@@ -672,21 +672,22 @@ Returns ``True`` if *x* is odd. Raises ``TypeError`` if
    False
 
 
-.. _pos?-fn:
+.. _partition-fn:
 
 partition
 ---------
 
 Usage: ``(partition n coll)``
 
-Chunks coll into tuples of length n. The remainder, if any, is not included.
+Chunks coll into tuples of length *n*. The remainder, if any, is not included.
 
 .. code-block:: hy
 
    => (list (partition 3 (range 10)))
    [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
 
-.. _partition-fn:
+
+.. _pos?-fn:
 
 pos?
 ----
@@ -1071,7 +1072,7 @@ if *from-file* ends before a complete expression can be parsed.
    ...              (do
    ...                (print "OHY" exp)
    ...                (eval exp))))
-   ...     (catch [e EOFError]
+   ...     (except [e EOFError]
    ...            (print "EOF!"))))
    OHY ('print' 'hello')
    hello
