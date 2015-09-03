@@ -596,14 +596,6 @@
   (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
   (assert-equal res [1 2 3 4]))
 
-(defn test-zipwith []
-  "NATIVE: testing the zipwith function"
-  (import operator)
-  (setv res (zipwith operator.add [1 2 3] [3 2 1]))
-  (assert-equal (list res) [4 4 4])
-  (setv res (zipwith operator.sub [3 7 9] [1 2 4]))
-  (assert-equal (list res) [2 5 5]))
-
 (defn test-doto []
   "NATIVE: testing doto macro"
   (setv collection [])
@@ -629,3 +621,12 @@
   "NATIVE: testing import of __init__.hy"
   (import tests.resources.bin)
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
+
+(defn test-accumulate []
+  "NATIVE: testing the accumulate function"
+  (assert-equal (list (accumulate ["a" "b" "c"]))
+                ["a" "ab" "abc"])
+  (assert-equal (list (accumulate [1 2 3 4 5]))
+                [1 3 6 10 15])
+  (assert-equal (list (accumulate [1 -2 -3 -4 -5] -))
+                [1 3 6 10 15]))
