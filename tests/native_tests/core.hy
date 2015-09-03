@@ -473,14 +473,27 @@
 (defn test-partition []
   "NATIVE: testing the partition function"
   (setv ten (range 10))
-  (assert-equal (list (partition 3 ten))
+  ;; no remainder
+  (assert-equal (list (partition ten 3))
                 [(, 0 1 2) (, 3 4 5) (, 6 7 8)])
-  (assert-equal (list (partition 2 ten))
+  ;; pair by default
+  (assert-equal (list (partition ten))
                 [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)])
-  (assert-equal (list (partition 1 ten))
+  ;; length 1 is valid
+  (assert-equal (list (partition ten 1))
                 [(, 0) (, 1) (, 2) (, 3) (, 4) (, 5) (, 6) (, 7) (, 8) (, 9)])
-  (assert-equal (list (partition 0 ten)) [])
-  (assert-equal (list (partition -1 ten)) []))
+  ;; tuples of length < 1 don't crash
+  (assert-equal (list (partition ten 0)) [])
+  (assert-equal (list (partition ten -1)) [])
+  ;; keep remainder with a fillvalue
+  (assert-equal (list (partition ten 3 :fillvalue "x"))
+                [(, 0 1 2) (, 3 4 5) (, 6 7 8) (, 9 "x" "x")])
+  ;; skip elements with step > n
+  (assert-equal (list (partition ten 2 3))
+                [(, 0 1) (, 3 4) (, 6 7)])
+  ;; overlap with step < n
+  (assert-equal (list (partition (range 5) 2 1))
+                [(, 0 1) (, 1 2) (, 2 3) (, 3 4)]))
 
 (defn test-pos []
   "NATIVE: testing the pos? function"

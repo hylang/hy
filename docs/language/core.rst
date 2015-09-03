@@ -671,21 +671,37 @@ Returns ``True`` if *x* is odd. Raises ``TypeError`` if
    => (odd? 0)
    False
 
-
 .. _partition-fn:
 
 partition
 ---------
 
-Usage: ``(partition n coll)``
+Usage: ``(partition coll [n] [step] [fillvalue])``
 
-Chunks coll into tuples of length *n*. The remainder, if any, is not included.
+Chunks *coll* into *n*-tuples (pairs by default).
 
 .. code-block:: hy
 
-   => (list (partition 3 (range 10)))
-   [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
+   => (list (partition (range 10)))  ; n=2
+   [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)]
 
+The *step* defaults to *n*, but can be more to skip elements, or less for a sliding window with overlap.
+
+.. code-block:: hy
+
+   => (list (partition (range 10) 2 3))
+   [(, 0 1) (, 3 4) (, 6 7)]
+   => (list (partition (range 5) 2 1))
+   [(, 0 1) (, 1 2) (, 2 3) (, 3 4)])
+
+The remainder, if any, is not included unless a *fillvalue* is specified.
+
+.. code-block:: hy
+
+   => (list (partition (range 10) 3))
+   [(, 0 1 2) (, 3 4 5) (, 6 7 8)]
+   => (list (partition (range 10) 3 :fillvalue "x"))
+   [(, 0 1 2) (, 3 4 5) (, 6 7 8) (, 9 "x" "x")]
 
 .. _pos?-fn:
 

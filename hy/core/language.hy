@@ -314,9 +314,17 @@
   (_numeric-check n)
   (= (% n 2) 1))
 
-(defn partition [n coll]
-  "Chunks coll into tuples of length n. The remainder, if any, is not included."
-  (apply zip (* n (, (iter coll)))))
+(def -sentinel (object))
+(defn partition [coll &optional [n 2] step [fillvalue -sentinel]]
+  "Chunks coll into n-tuples (pairs by default). The remainder, if any, is not
+   included unless a fillvalue is specified. The step defaults to n, but can be
+   more to skip elements, or less for a sliding window with overlap."
+  (setv
+   step (or step n)
+   slices (genexpr (itertools.islice coll start nil step) [start (range n)]))
+  (if (is fillvalue -sentinel)
+    (apply zip slices)
+    (apply zip-longest slices {"fillvalue" fillvalue})))
 
 (defn pos? [n]
   "Return true if n is > 0"
