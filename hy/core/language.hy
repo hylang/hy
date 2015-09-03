@@ -93,7 +93,7 @@
 
 (if-python2
  (def
-   filterfalse itertools.ifilterfalse
+   remove itertools.ifilterfalse
    zip-longest itertools.izip_longest
    ;; not builtin in Python3
    reduce reduce
@@ -104,7 +104,7 @@
    range xrange
    zip itertools.izip)
  (def
-   filterfalse itertools.filterfalse
+   remove itertools.filterfalse
    zip-longest itertools.zip_longest
    ;; was builtin in Python2
    reduce functools.reduce
@@ -130,7 +130,6 @@
   drop-while itertools.dropwhile
   group-by itertools.groupby
   islice itertools.islice
-  remove filterfalse
   take-while itertools.takewhile
   tee itertools.tee)
 
@@ -456,11 +455,10 @@
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     compress cons cons? count cycle dec distinct disassemble drop drop-last
-    drop-while empty? even? every? first filter filterfalse flatten float?
-    fraction gensym group-by identity inc input instance? integer integer?
-    integer-char? interleave interpose islice iterable? iterate iterator?
-    keyword keyword? last list* macroexpand macroexpand-1 map merge-with
-    multicombinations name neg? nil? none? nth numeric? odd? partition
-    permutations pos? product range read read-str remove repeat repeatedly rest
-    reduce second some string string? symbol? take take-nth take-while tee zero?
-    zip zip-longest])
+    drop-while empty? even? every? first filter flatten float? fraction gensym
+    group-by identity inc input instance? integer integer? integer-char?
+    interleave interpose islice iterable? iterate iterator? keyword keyword?
+    last list* macroexpand macroexpand-1 map merge-with multicombinations name
+    neg? nil? none? nth numeric? odd? partition permutations pos? product range
+    read read-str remove repeat repeatedly rest reduce second some string
+    string? symbol? take take-nth take-while tee zero? zip zip-longest])
