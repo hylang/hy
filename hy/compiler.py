@@ -1994,7 +1994,8 @@ class HyASTCompiler(object):
                                         expression.start_column)
         elif len(expression) % 2 != 0:
             raise HyTypeError(expression,
-                              "setv needs an even number of arguments")
+                              "`{}' needs an even number of arguments".format(
+                                  root))
         else:
             result = Result()
             exprs = []
@@ -2152,7 +2153,8 @@ class HyASTCompiler(object):
         arglist = expression.pop(0)
         if not isinstance(arglist, HyList):
             raise HyTypeError(expression,
-                              "First argument to (fn) must be a list")
+                              "First argument to `{}' must be a list".format(
+                                  called_as))
 
         (ret, args, defaults, stararg,
          kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)

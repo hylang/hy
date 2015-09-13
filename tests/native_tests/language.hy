@@ -75,17 +75,30 @@
   (setv y 0 x 1 y x)
   (assert y)
   (try (eval '(setv a 1 b))
-       (except [e [TypeError]] (assert (in "setv needs an even number of arguments" (str e))))))
+       (except [e [TypeError]] (assert (in "`setv' needs an even number of arguments" (str e))))))
 
 
 (defn test-fn-corner-cases []
   "NATIVE: tests that fn/defn handles corner cases gracefully"
   (try (eval '(fn "foo"))
-       (except [e [Exception]] (assert (in "to (fn) must be a list"
+       (except [e [Exception]] (assert (in "to `fn' must be a list"
                                           (str e)))))
   (try (eval '(defn foo "foo"))
        (except [e [Exception]]
          (assert (in "takes a parameter list as second" (str e))))))
+
+
+(defn test-alias-names-in-errors []
+  "NATIVE: tests that native aliases show the correct names in errors"
+  (try (eval '(lambda))
+       (except [e [Exception]] (assert (in "lambda" (str e)))))
+  (try (eval '(fn))
+       (except [e [Exception]] (assert (in "fn" (str e)))))
+  (try (eval '(setv 1 2 3))
+       (except [e [Exception]] (assert (in "setv" (str e)))))
+  (try (eval '(def 1 2 3))
+       (except [e [Exception]] (assert (in "def" (str e))))))
+
 
 (defn test-for-loop []
   "NATIVE: test for loops"
