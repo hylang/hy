@@ -31,6 +31,21 @@ languages.
     that symbols with dashes will shadow their underscore equivalents, and vice
     versa.
 
+Notes on Syntax
+===============
+
+integers
+--------
+
+.. versionadded:: 0.11.1
+
+In addition to regular numbers, standard notation from Python 3 for non-base 10
+integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
+
+.. code-block:: clj
+    
+    (print 0x80 0b11101 0o102 30)
+
 
 Built-Ins
 =========
