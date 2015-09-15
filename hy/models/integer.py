@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.models import HyObject, _wrappers
-from hy._compat import long_type
+from hy._compat import long_type, str_type
 
 import sys
 
@@ -32,7 +32,19 @@ class HyInteger(HyObject, long_type):
     """
 
     def __new__(cls, number, *args, **kwargs):
-        number = long_type(number)
+        if isinstance(number, str_type):
+            bases = {"0x": 16, "0o": 8, "0b": 2}
+            for leader, base in bases.items():
+                if number.startswith(leader):
+                    # We've got a string, known leader, set base.
+                    number = long_type(number, base=base)
+                    break
+            else:
+                # We've got a string, no known leader; base 10.
+                number = long_type(number, base=10)
+        else:
+            # We've got a non-string; convert straight.
+            number = long_type(number)
         return super(HyInteger, cls).__new__(cls, number)
 
 
