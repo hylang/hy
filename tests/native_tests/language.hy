@@ -12,6 +12,21 @@
   (assert (isinstance sys.argv list)))
 
 
+(defn test-hex []
+  "NATIVE: test hex"
+  (assert (= 0x80 128)))
+
+
+(defn test-octal []
+  "NATIVE: test octal"
+  (assert (= 0o1232 666)))
+
+
+(defn test-binary []
+  "NATIVE: test binary"
+  (assert (= 0b1011101 93)))
+
+
 (defn test-fractions []
   "NATIVE: test fractions"
   (assert (= 1/2 (fraction 1 2))))
