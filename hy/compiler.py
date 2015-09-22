@@ -1002,8 +1002,8 @@ class HyASTCompiler(object):
     def compile_if(self, expression):
         expression.pop(0)
         cond = self.compile(expression.pop(0))
-
         body = self.compile(expression.pop(0))
+
         orel = Result()
         nested = root = False
         if expression:
@@ -1015,6 +1015,28 @@ class HyASTCompiler(object):
                 nested = True
                 self.temp_if = self.temp_if or self.get_anon_var()
             orel = self.compile(orel_expr)
+
+        if not cond.stmts and isinstance(cond.force_expr, ast.Name):
+            name = cond.force_expr.id
+            branch = None
+            if name == 'True':
+                branch = body
+            elif name in ('False', 'None'):
+                branch = orel
+            if branch is not None:
+                if self.temp_if and branch.stmts:
+                    name = ast.Name(id=ast_str(self.temp_if),
+                                    arg=ast_str(self.temp_if),
+                                    ctx=ast.Store(),
+                                    lineno=expression.start_line,
+                                    col_offset=expression.start_column)
+
+                    branch += ast.Assign(targets=[name],
+                                         value=body.force_expr,
+                                         lineno=expression.start_line,
+                                         col_offset=expression.start_column)
+
+                return branch
 
         # We want to hoist the statements from the condition
         ret = cond
