@@ -1,4 +1,4 @@
-;; Tests where the emited code relies on Python 3.
+;; Tests where the emitted code relies on Python 3.
 ;; Conditionally included in nosetests runs.
 
 (import [hy._compat [PY33]])
