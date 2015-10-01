@@ -309,7 +309,10 @@
   (assert (= (apply sumit [] {"a" 1 "b" 1 "c" 2}) 4))
   (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3))
   (defn noargs [] [1 2 3])
-  (assert (= (apply noargs) [1 2 3])))
+  (assert (= (apply noargs) [1 2 3]))
+  (defn sumit-mangle [an-a a-b a-c a-d] (+ an-a a-b a-c a-d))
+  (def Z "a_d")
+  (assert (= (apply sumit-mangle [] {"an-a" 1 :a-b 2 'a-c 3 Z 4}) 10)))
 
 
 (defn test-apply-with-methods []

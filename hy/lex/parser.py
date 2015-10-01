@@ -45,6 +45,22 @@ pg = ParserGenerator(
 )
 
 
+def hy_symbol_mangle(p):
+    if p.startswith("*") and p.endswith("*") and p not in ("*", "**"):
+        p = p[1:-1].upper()
+
+    if "-" in p and p != "-":
+        p = p.replace("-", "_")
+
+    if p.endswith("?") and p != "?":
+        p = "is_%s" % (p[:-1])
+
+    if p.endswith("!") and p != "!":
+        p = "%s_bang" % (p[:-1])
+
+    return p
+
+
 def set_boundaries(fun):
     @wraps(fun)
     def wrapped(p):
@@ -297,22 +313,7 @@ def t_identifier(p):
     if obj.startswith(":"):
         return HyKeyword(obj)
 
-    def mangle(p):
-        if p.startswith("*") and p.endswith("*") and p not in ("*", "**"):
-            p = p[1:-1].upper()
-
-        if "-" in p and p != "-":
-            p = p.replace("-", "_")
-
-        if p.endswith("?") and p != "?":
-            p = "is_%s" % (p[:-1])
-
-        if p.endswith("!") and p != "!":
-            p = "%s_bang" % (p[:-1])
-
-        return p
-
-    obj = ".".join([mangle(part) for part in obj.split(".")])
+    obj = ".".join([hy_symbol_mangle(part) for part in obj.split(".")])
 
     return HySymbol(obj)
 

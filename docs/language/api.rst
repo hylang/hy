@@ -115,8 +115,10 @@ it appends it as the last argument. The following code demonstrates this:
 apply
 -----
 
-``apply`` is used to apply an optional list of arguments and an optional
-dictionary of kwargs to a function.
+``apply`` is used to apply an optional list of arguments and an
+optional dictionary of kwargs to a function. The symbol mangling
+transformations will be applied to all keys in the dictionary of
+kwargs, provided the dictionary and its keys are defined in-place.
 
 Usage: ``(apply fn-name [args] [kwargs])``
 
@@ -142,6 +144,8 @@ Examples:
     (apply total-purchase [] {"price" 10 "amount" 15 "vat" 1.05})
     ;=> 165.375
 
+    (apply total-purchase [] {:price 10 :amount 15 :vat 1.05})
+    ;=> 165.375
 
 and
 ---

@@ -38,6 +38,8 @@ from hy.models.cons import HyCons
 
 from hy.errors import HyCompileError, HyTypeError
 
+from hy.lex.parser import hy_symbol_mangle
+
 import hy.macros
 from hy._compat import (
     str_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
@@ -1640,7 +1642,21 @@ class HyASTCompiler(object):
                 ret = stargs + ret
 
         if expr:
-            kwargs = self.compile(expr.pop(0))
+            kwargs = expr.pop(0)
+            if isinstance(kwargs, HyDict):
+                new_kwargs = []
+                for k, v in kwargs.items():
+                    if isinstance(k, HySymbol):
+                        pass
+                    elif isinstance(k, HyString):
+                        k = HyString(hy_symbol_mangle(str_type(k))).replace(k)
+                    elif isinstance(k, HyKeyword):
+                        sym = hy_symbol_mangle(str_type(k)[2:])
+                        k = HyString(sym).replace(k)
+                    new_kwargs += [k, v]
+                kwargs = HyDict(new_kwargs).replace(kwargs)
+
+            kwargs = self.compile(kwargs)
             if PY35:
                 kwargs_expr = kwargs.force_expr
                 ret.expr.keywords.append(
