@@ -27,6 +27,7 @@
 (import functools)
 (import collections)
 (import [fractions [Fraction :as fraction]])
+(import operator)  ; shadow not available yet
 (import sys)
 (if-python2
   (import [StringIO [StringIO]])
@@ -91,41 +92,73 @@
          (.add seen val))))))
 
 (if-python2
-  (do
-    (setv filterfalse itertools.ifilterfalse)
-    (setv zip_longest itertools.izip_longest)
-    (setv filter itertools.ifilter)
-    (setv map itertools.imap)
-    (setv zip itertools.izip)
-    (setv range xrange)
-    (setv input raw_input)
-    (setv reduce reduce))
-  (do
-    (setv reduce functools.reduce)
-    (setv filterfalse itertools.filterfalse)
-    (setv zip_longest itertools.zip_longest)
-    ; Someone can import these directly from `hy.core.language`;
-    ; we'll make some duplicates.
-    (setv filter filter)
-    (setv map map)
-    (setv zip zip)
-    (setv range range)
-    (setv input input)))
+ (def
+   remove itertools.ifilterfalse
+   zip-longest itertools.izip_longest
+   ;; not builtin in Python3
+   reduce reduce
+   ;; hy is more like Python3
+   filter itertools.ifilter
+   input raw_input
+   map itertools.imap
+   range xrange
+   zip itertools.izip)
+ (def
+   remove itertools.filterfalse
+   zip-longest itertools.zip_longest
+   ;; was builtin in Python2
+   reduce functools.reduce
+   ;; Someone can import these directly from `hy.core.language`;
+   ;; we'll make some duplicates.
+   filter filter
+   input input
+   map map
+   range range
+   zip zip))
 
-(setv cycle itertools.cycle)
-(setv repeat itertools.repeat)
-(setv drop-while itertools.dropwhile)
-(setv take-while itertools.takewhile)
-(setv zipwith map)
-(setv remove filterfalse)
+;; infinite iterators
+(def
+  count itertools.count
+  cycle itertools.cycle
+  repeat itertools.repeat)
+
+;; shortest-terminating iterators
+(def
+  *map itertools.starmap
+  chain itertools.chain
+  compress itertools.compress
+  drop-while itertools.dropwhile
+  group-by itertools.groupby
+  islice itertools.islice
+  take-while itertools.takewhile
+  tee itertools.tee)
+
+;; combinatoric iterators
+(def
+  combinations itertools.combinations
+  multicombinations itertools.combinations_with_replacement
+  permutations itertools.permutations
+  product itertools.product)
+
+;; also from itertools, but not in Python2, and without func option until 3.3
+(defn accumulate [iterable &optional [func operator.add]]
+  "accumulate(iterable[, func]) --> accumulate object
+
+   Return series of accumulated sums (or other binary function results)."
+  (setv it (iter iterable)
+        total (next it))
+  (yield total)
+  (for* [element it]
+    (setv total (func total element))
+    (yield total)))
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
-  (itertools.islice coll count nil))
+  (islice coll count nil))
 
 (defn drop-last [n coll]
   "Return a sequence of all but the last n elements in coll."
-  (let [[iters (itertools.tee coll)]]
+  (let [[iters (tee coll)]]
     (map first (apply zip [(get iters 0)
                            (drop n (get iters 1))]))))
 
@@ -196,7 +229,7 @@
 
 (defn first [coll]
   "Return first item from `coll`"
-  (nth coll 0))
+  (next (iter coll) nil))
 
 (defn identity [x]
   "Returns the argument unchanged"
@@ -227,11 +260,11 @@
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of seqs, then the second etc."
-  (itertools.chain.from_iterable (apply zip seqs)))
+  (chain.from-iterable (apply zip seqs)))
 
 (defn interpose [item seq]
   "Return an iterable of the elements of seq separated by item"
-  (drop 1 (interleave (itertools.repeat item) seq)))
+  (drop 1 (interleave (repeat item) seq)))
 
 (defn iterable? [x]
   "Return true if x is iterable"
@@ -249,7 +282,7 @@
 
 (defn last [coll]
   "Return last item from `coll`"
-  (get (list coll) -1))
+  (get (tuple coll) -1))
 
 (defn list* [hd &rest tl]
   "Return a dotted list construed from the elements of the argument"
@@ -363,7 +396,7 @@
 (defn take [count coll]
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
-  (itertools.islice coll nil count))
+  (islice coll nil count))
 
 (defn take-nth [n coll]
   "Return every nth member of coll
@@ -397,17 +430,9 @@
       (else (if parsed (break)))))
     parsed)
 
-
 (defn read-str [input]
   "Reads and tokenizes first line of input"
   (read :from-file (StringIO input)))
-
-
-(defn zipwith [func &rest lists]
-  "Zip the contents of several lists and map a function to the result"
-  (do
-    (import functools)
-    (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
 
 (defn hyify [text]
   "Convert text to match hy identifier"
@@ -436,11 +461,12 @@
         (except [] (string value))))))
 
 (def *exports*
-  '[butlast calling-module-name coll? cons cons? cycle dec distinct disassemble
-    drop drop-last drop-while empty? even? every? first filter filterfalse
-    flatten float? fraction gensym identity inc input instance? integer integer?
-    integer-char? interleave interpose iterable? iterate iterator? keyword
-    keyword? last list* macroexpand macroexpand-1 map merge-with name neg? nil?
-    none? nth numeric? odd? partition pos? range read read-str remove repeat
-    repeatedly rest reduce second some string string? symbol? take take-nth
-    take-while zero? zip zip_longest zipwith])
+  '[*map accumulate butlast calling-module-name chain coll? combinations
+    compress cons cons? count cycle dec distinct disassemble drop drop-last
+    drop-while empty? even? every? first filter flatten float? fraction gensym
+    group-by identity inc input instance? integer integer? integer-char?
+    interleave interpose islice iterable? iterate iterator? keyword keyword?
+    last list* macroexpand macroexpand-1 map merge-with multicombinations name
+    neg? nil? none? nth numeric? odd? partition permutations pos? product range
+    read read-str remove repeat repeatedly rest reduce second some string
+    string? symbol? take take-nth take-while tee zero? zip zip-longest])

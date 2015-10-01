@@ -1253,21 +1253,3 @@ Returns an iterator from *coll* as long as *pred* returns ``True``.
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
 
-.. _zipwith-fn:
-
-zipwith
--------
-
-.. versionadded:: 0.9.13
-
-Usage: ``(zipwith fn coll ...)``
-
-Equivalent to ``zip``, but uses a multi-argument function instead of creating
-a tuple. If ``zipwith`` is called with N collections, then *fn* must accept
-N arguments.
-
-.. code-block:: hy
-
-   => (import operator)
-   => (list (zipwith operator.add [1 2 3] [4 5 6]))
-   [5, 7, 9]
