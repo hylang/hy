@@ -2259,6 +2259,22 @@ class HyASTCompiler(object):
     @builds("defclass")
     @checkargs(min=1)
     def compile_class_expression(self, expressions):
+        def rewire_init(expr):
+            new_args = []
+            if expr[0] == HySymbol("setv"):
+                pairs = expr[1:]
+                while len(pairs) > 0:
+                    k, v = (pairs.pop(0), pairs.pop(0))
+                    if k == HySymbol("__init__"):
+                        v.append(HySymbol("None"))
+                    new_args.append(k)
+                    new_args.append(v)
+                expr = HyExpression([
+                    HySymbol("setv")
+                ] + new_args).replace(expr)
+
+            return expr
+
         expressions.pop(0)  # class
 
         class_name = expressions.pop(0)
@@ -2291,14 +2307,14 @@ class HyASTCompiler(object):
         if expressions and isinstance(expressions[0], HyList) \
            and not isinstance(expressions[0], HyExpression):
             expr = expressions.pop(0)
-            body += self.compile(
-                HyExpression([
-                    HySymbol("setv")
-                ] + expr).replace(expr)
-            )
+            expr = HyExpression([
+                HySymbol("setv")
+            ] + expr).replace(expr)
+            body += self.compile(rewire_init(expr))
 
         for expression in expressions:
-            body += self.compile(macroexpand(expression, self.module_name))
+            expr = rewire_init(macroexpand(expression, self.module_name))
+            body += self.compile(expr)
 
         self.allow_builtins = allow_builtins
 
