@@ -1,6 +1,6 @@
 (defn test-shadow-addition []
   "NATIVE: test shadow addition"
-  (let [[x +]]
+  (let [x +]
     (assert (try
              (x)
              (except [TypeError] True)
@@ -21,7 +21,7 @@
 
 (defn test-shadow-subtraction []
   "NATIVE: test shadow subtraction"
-  (let [[x -]]
+  (let [x -]
     (assert (try
              (x)
              (except [TypeError] True)
@@ -33,7 +33,7 @@
 
 (defn test-shadow-multiplication []
   "NATIVE: test shadow multiplication"
-  (let [[x *]]
+  (let [x *]
     (assert (= (x) 1))
     (assert (= (x 3) 3))
     (assert (= (x 3 3) 9))))
@@ -41,7 +41,7 @@
 
 (defn test-shadow-division []
   "NATIVE: test shadow division"
-  (let [[x /]]
+  (let [x /]
     (assert (try
              (x)
              (except [TypeError] True)
@@ -71,12 +71,12 @@
                 [1 1]
                 [2 2]]]
       (assert (= (apply x args) (not (apply y args))))))
-  (let [[s-lt <]
-        [s-gt >]
-        [s-le <=]
-        [s-ge >=]
-        [s-eq =]
-        [s-ne !=]]
+  (let [s-lt <
+        s-gt >
+        s-le <=
+        s-ge >=
+        s-eq =
+        s-ne !=]
     (assert (apply s-lt [1 2 3]))
     (assert (not (apply s-lt [3 2 1])))
     (assert (apply s-gt [3 2 1]))

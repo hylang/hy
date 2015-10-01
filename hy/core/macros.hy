@@ -33,21 +33,21 @@
 
 (defmacro with [args &rest body]
   "shorthand for nested with* loops:
-  (with [[x foo] [y bar]] baz) ->
+  (with [x foo y bar] baz) ->
   (with* [x foo]
     (with* [y bar]
       baz))"
 
   (if (not (empty? args))
-    (let [[primary (.pop args 0)]]
-      (if (isinstance primary HyList)
-        ;;; OK. if we have a list, we can go ahead and unpack that
-        ;;; as the argument to with.
-        `(with* [~@primary] (with ~args ~@body))
-        ;;; OK, let's just give it away. This may not be something we
-        ;;; can do, but that's really the programmer's problem.
-        `(with* [~primary] (with ~args ~@body))))
-      `(do ~@body)))
+    (do
+     (if (>= (len args) 2)
+       (do
+        (setv p1 (.pop args 0)
+              p2 (.pop args 0)
+              primary [p1 p2])
+        `(with* [~@primary] (with ~args ~@body)))
+       `(with* [~@args] ~@body)))
+    `(do ~@body)))
 
 
 (defmacro car [thing]
@@ -115,7 +115,7 @@
    [(empty? args) `(do ~@body ~@belse)]
    [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
    [true
-    (let [[alist (cut args 0 nil 2)]]
+    (let [alist (cut args 0 nil 2)]
       `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
@@ -138,7 +138,7 @@
     (if (isinstance expression HyExpression)
       `(~(first expression) ~f ~@(rest expression))
       `(~expression ~f)))
-  `(let [[~f ~form]]
+  `(let [~f ~form]
      ~@(map build-form expressions)
      ~f))
 
@@ -180,14 +180,25 @@
 
 
 (defmacro with-gensyms [args &rest body]
-  `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
-    ~@body))
+  (setv syms [])
+  (for* [arg args]
+    (.extend syms `[~arg (gensym '~arg)]))
+  `(let ~syms
+     ~@body))
 
 (defmacro defmacro/g! [name args &rest body]
-  (let [[syms (list (distinct (filter (fn [x] (and (hasattr x "startswith") (.startswith x "g!"))) (flatten body))))]]
+  (let [syms (list
+              (distinct
+               (filter (fn [x]
+                         (and (hasattr x "startswith")
+                              (.startswith x "g!")))
+                       (flatten body))))
+        gensyms []]
+    (for* [sym syms]
+      (.extend gensyms `[~sym (gensym (cut '~sym 2))]))
     `(defmacro ~name [~@args]
-       (let ~(HyList (map (fn [x] `[~x (gensym (cut '~x 2))]) syms))
-            ~@body))))
+       (let ~gensyms
+         ~@body))))
 
 
 (if-python2
@@ -211,9 +222,9 @@
 
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
-  (let [[retval (gensym)]
-        [mainfn `(fn [~@args]
-                   ~@body)]]
+  (let [retval (gensym)
+        mainfn `(fn [~@args]
+                  ~@body)]
     `(when (= --name-- "__main__")
        (import sys)
        (setv ~retval (apply ~mainfn sys.argv))
@@ -222,6 +233,6 @@
 
 
 (defreader @ [expr]
-  (let [[decorators (cut expr nil -1)]
-        [fndef (get expr -1)]]
+  (let [decorators (cut expr nil -1)
+        fndef (get expr -1)]
     `(with-decorator ~@decorators ~fndef)))

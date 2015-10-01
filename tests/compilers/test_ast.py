@@ -321,20 +321,18 @@ def test_ast_invalid_for():
 
 def test_ast_valid_let():
     "Make sure AST can compile valid let"
-    can_compile("(let [])")
     can_compile("(let [a b])")
-    can_compile("(let [[a 1]])")
-    can_compile("(let [[a 1] b])")
+    can_compile("(let [a 1])")
+    can_compile("(let [a 1 b nil])")
 
 
 def test_ast_invalid_let():
     "Make sure AST can't compile invalid let"
     cant_compile("(let 1)")
     cant_compile("(let [1])")
-    cant_compile("(let [[a 1 2]])")
-    cant_compile("(let [[]])")
-    cant_compile("(let [[a]])")
-    cant_compile("(let [[1]])")
+    cant_compile("(let [a 1 2])")
+    cant_compile("(let [a])")
+    cant_compile("(let [1])")
 
 
 def test_ast_expression_basics():

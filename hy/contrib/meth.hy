@@ -3,11 +3,11 @@
 
 (defmacro route-with-methods [name path methods params &rest code]
   "Same as route but with an extra methods array to specify HTTP methods"
-  `(let [[deco (apply app.route [~path]
-                                    {"methods" ~methods})]]
-                 (with-decorator deco
-                   (defn ~name ~params 
-                     (do ~@code)))))
+  `(let [deco (apply app.route [~path]
+                     {"methods" ~methods})]
+     (with-decorator deco
+       (defn ~name ~params
+         (do ~@code)))))
 
 ;; Some macro examples
 (defmacro route [name path params &rest code]

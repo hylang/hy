@@ -213,17 +213,17 @@ Examples of usage:
 
 .. code-block:: clj
 
-  =>(let [[collection {}]]
+  =>(let [collection {}]
   ... (assoc collection "Dog" "Bark")
   ... (print collection))
   {u'Dog': u'Bark'}
 
-  =>(let [[collection {}]]
+  =>(let [collection {}]
   ... (assoc collection "Dog" "Bark" "Cat" "Meow")
   ... (print collection))
   {u'Cat': u'Meow', u'Dog': u'Bark'}
 
-  =>(let [[collection [1 2 3 4]]]
+  =>(let [collection [1 2 3 4]]
   ... (assoc collection 2 None)
   ... (print collection))
   [1, 2, None, 4]
@@ -463,8 +463,8 @@ Parameters may have the following keywords in front of them:
     .. code-block:: clj
 
         => (defn zig-zag-sum [&rest numbers]
-             (let [[odd-numbers (list-comp x [x numbers] (odd? x))]
-	           [even-numbers (list-comp x [x numbers] (even? x))]]
+             (let [odd-numbers (list-comp x [x numbers] (odd? x))
+	           even-numbers (list-comp x [x numbers] (even? x))]
                (- (sum odd-numbers) (sum even-numbers))))
 
         => (zig-zag-sum)
@@ -486,7 +486,7 @@ Parameters may have the following keywords in front of them:
     .. code-block:: clj
 
         => (defn compare [a b &kwonly keyfn [reverse false]]
-        ...  (let [[result (keyfn a b)]]
+        ...  (let [result (keyfn a b)]
         ...    (if (not reverse)
         ...      result
         ...      (- result))))
@@ -786,8 +786,8 @@ list. Example usage:
 
 .. code-block:: clj
 
-   => (let [[animals {"dog" "bark" "cat" "meow"}]
-   ...      [numbers ["zero" "one" "two" "three"]]]
+   => (let [animals {"dog" "bark" "cat" "meow"}
+   ...      numbers ["zero" "one" "two" "three"]]
    ...  (print (get animals "dog"))
    ...  (print (get numbers 2)))
    bark
@@ -988,30 +988,24 @@ example showcases this behaviour:
 
 .. code-block:: clj
 
-    => (let [[x 5]] (print x)
-    ...  (let [[x 6]] (print x))
+    => (let [x 5] (print x)
+    ...  (let [x 6] (print x))
     ...  (print x))
     5
     6
     5
 
-The ``let`` macro takes two parameters: a vector defining *variables* and the
-*body* which gets executed. *variables* is a vector where each element is either
-a single variable or a vector defining a variable value pair. In the case of a
-single variable, it is assigned value ``None``; otherwise, the supplied value is
-used.
-
-.. code-block:: clj
-
-    => (let [x [y 5]] (print x y))
-    None 5
+The ``let`` macro takes two parameters: a vector defining *variables*
+and the *body* which gets executed. *variables* is a vector of
+variable and value pairs.
 
 Note that the variable assignments are executed one by one, from left to right.
 The following example takes advantage of this:
 
 .. code-block:: clj
 
-    => (let [[x 5] [y (+ x 1)]] (print x y))
+    => (let [x 5 
+             y (+ x 1)] (print x y))
     5 6
 
 
@@ -1050,15 +1044,15 @@ to modify variables through nested ``let`` or ``fn`` scopes:
 
 .. code-block:: clj
 
-    (let [[x 0]]
+    (let [x 0]
       (for [y (range 10)]
-        (let [[z (inc y)]]
+        (let [z (inc y)]
           (nonlocal x)  ; allow the setv to "jump scope" to resolve x
           (setv x (+ x y))))
       x)
 
     (defn some-function []
-      (let [[x 0]]
+      (let [x 0]
         (register-some-callback
           (fn [stuff]
             (nonlocal x)
@@ -1369,18 +1363,18 @@ manner. The archetypical example of using ``with`` is when processing files.
 
 .. code-block:: clj
 
-    (with [[arg (expr)]] block)
+    (with [arg (expr)] block)
 
-    (with [[(expr)]] block)
+    (with [(expr)] block)
 
-    (with [[arg (expr)] [(expr)]] block)
+    (with [arg (expr) (expr)] block)
 
 The following example will open the ``NEWS`` file and print its content to the
 screen. The file is automatically closed after it has been processed.
 
 .. code-block:: clj
 
-    (with [[f (open "NEWS")]] (print (.read f)))
+    (with [f (open "NEWS")] (print (.read f)))
 
 
 with-decorator
@@ -1467,9 +1461,9 @@ expands to:
 
 .. code-block:: hy
 
-   (let [[a (gensym)
-         [b (gensym)
-         [c (gensym)]]
+   (let [a (gensym)
+         b (gensym)
+         c (gensym)]
      ...)
 
 .. seealso::

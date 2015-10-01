@@ -355,7 +355,7 @@
   (try (do) (except [IOError]) (except))
 
   ;; Test correct (raise)
-  (let [[passed false]]
+  (let [passed false]
     (try
      (try
       (raise IndexError)
@@ -365,7 +365,7 @@
     (assert passed))
 
   ;; Test incorrect (raise)
-  (let [[passed false]]
+  (let [passed false]
     (try
      (raise)
      ;; Python 2 raises TypeError
@@ -374,16 +374,15 @@
        (setv passed true)))
     (assert passed))
 
-
   ;; Test (finally)
-  (let [[passed false]]
+  (let [passed false]
     (try
      (do)
      (finally (setv passed true)))
     (assert passed))
 
   ;; Test (finally) + (raise)
-  (let [[passed false]]
+  (let [passed false]
     (try
      (raise Exception)
      (except)
@@ -392,8 +391,8 @@
 
 
   ;; Test (finally) + (raise) + (else)
-  (let [[passed false]
-        [not-elsed true]]
+  (let [passed false
+        not-elsed true]
     (try
      (raise Exception)
      (except)
@@ -460,13 +459,13 @@
      (setv foobar42ofthebaz 42)
      (assert (= foobar42ofthebaz 42))))
 
-  (let [[passed false]]
+  (let [passed false]
     (try
      (try (do) (except) (else (bla)))
      (except [NameError] (setv passed true)))
     (assert passed))
 
-  (let [[x 0]]
+  (let [x 0]
     (try
      (raise IOError)
      (except [IOError]
@@ -474,7 +473,7 @@
      (else (setv x 44)))
     (assert (= x 45)))
 
-  (let [[x 0]]
+  (let [x 0]
     (try
      (raise KeyError)
      (except []
@@ -482,7 +481,7 @@
      (else (setv x 44)))
     (assert (= x 45)))
 
-  (let [[x 0]]
+  (let [x 0]
     (try
      (try
       (raise KeyError)
@@ -561,7 +560,7 @@
 (defn test-yield-in-try []
   "NATIVE: test yield in try"
   (defn gen []
-    (let [[x 1]]
+    (let [x 1]
     (try (yield x)
          (finally (print x)))))
   (setv output (list (gen)))
@@ -608,14 +607,14 @@
 
 (defn test-context []
   "NATIVE: test with"
-  (with [[fd (open "README.md" "r")]] (assert fd))
-  (with [[(open "README.md" "r")]] (do)))
+  (with [fd (open "README.md" "r")] (assert fd))
+  (with [(open "README.md" "r")] (do)))
 
 
 (defn test-with-return []
   "NATIVE: test that with returns stuff"
   (defn read-file [filename]
-    (with [[fd (open filename "r")]] (.read fd)))
+    (with [fd (open filename "r")] (.read fd)))
   (assert (!= 0 (len (read-file "README.md")))))
 
 
@@ -631,13 +630,13 @@
 
 (defn test-for-else []
   "NATIVE: test for else"
-  (let [[x 0]]
+  (let [x 0]
     (for* [a [1 2]]
       (setv x (+ x a))
       (else (setv x (+ x 50))))
     (assert (= x 53)))
 
-  (let [[x 0]]
+  (let [x 0]
     (for* [a [1 2]]
       (setv x (+ x a))
       (else))
@@ -751,28 +750,28 @@
 (defn test-let []
   "NATIVE: test let works rightish"
   ;; TODO: test sad paths for let
-  (assert (= (let [[x 1] [y 2] [z 3]] (+ x y z)) 6))
-  (assert (= (let [[x 1] a [y 2] b] (if a 1 2)) 2))
-  (assert (= (let [x] x) nil))
-  (assert (= (let [[x "x not bound"]] (setv x "x bound by setv") x)
+  (assert (= (let [x 1 y 2 z 3] (+ x y z)) 6))
+  (assert (= (let [x 1 a nil y 2 b nil] (if a 1 2)) 2))
+  (assert (= (let [x nil] x) nil))
+  (assert (= (let [x "x not bound"] (setv x "x bound by setv") x)
              "x bound by setv"))
-  (assert (= (let [[x "let nests scope correctly"]]
-               (let [y] x))
+  (assert (= (let [x "let nests scope correctly"]
+               (let [y nil] x))
              "let nests scope correctly"))
-  (assert (= (let [[x 999999]]
-               (let [[x "x being rebound"]] x))
+  (assert (= (let [x 999999]
+               (let [x "x being rebound"] x))
              "x being rebound"))
-  (assert (= (let [[x "x not being rebound"]]
-               (let [[x 2]] nil)
+  (assert (= (let [x "x not being rebound"]
+               (let [x 2] nil)
                x)
              "x not being rebound"))
-  (assert (= (let [[x (set [3 2 1 3 2])] [y x] [z y]] z) (set [1 2 3])))
+  (assert (= (let [x (set [3 2 1 3 2]) y x z y] z) (set [1 2 3])))
   (import math)
-  (let [[cos math.cos]
-        [foo-cos (fn [x] (cos x))]]
+  (let [cos math.cos
+        foo-cos (fn [x] (cos x))]
     (assert (= (cos math.pi) -1.0))
     (assert (= (foo-cos (- math.pi)) -1.0))
-    (let [[cos (fn [_] "cos has been locally rebound")]]
+    (let [cos (fn [_] "cos has been locally rebound")]
       (assert (= (cos cos) "cos has been locally rebound"))
       (assert (= (-> math.pi (/ 3) foo-cos (round 2)) 0.5)))
     (setv cos (fn [_] "cos has been rebound by setv"))
@@ -792,9 +791,9 @@
 (defn test-let-scope []
   "NATIVE: test let works rightish"
   (setv y 123)
-  (assert (= (let [[x 1]
-                   [y 2]
-                   [z 3]]
+  (assert (= (let [x 1
+                   y 2
+                   z 3]
                (+ x y z))
              6))
   (try
@@ -805,31 +804,31 @@
 
 (defn test-symbol-utf-8 []
   "NATIVE: test symbol encoded"
-  (let [[♥ "love"]
-        [⚘ "flower"]]
+  (let [♥ "love"
+        ⚘ "flower"]
     (assert (= (+ ⚘ ♥) "flowerlove"))))
 
 
 (defn test-symbol-dash []
   "NATIVE: test symbol encoded"
-  (let [[♥-♥ "doublelove"]
-        [-_- "what?"]]
+  (let [♥-♥ "doublelove"
+        -_- "what?"]
     (assert (= ♥-♥ "doublelove"))
     (assert (= -_- "what?"))))
 
 
 (defn test-symbol-question-mark []
   "NATIVE: test foo? -> is_foo behavior"
-  (let [[foo? "nachos"]]
+  (let [foo? "nachos"]
     (assert (= is_foo "nachos"))))
 
 
 (defn test-and []
   "NATIVE: test the and function"
-  (let [[and123 (and 1 2 3)]
-        [and-false (and 1 False 3)]
-        [and-true (and)]
-        [and-single (and 1)]]
+  (let [and123 (and 1 2 3)
+        and-false (and 1 False 3)
+        and-true (and)
+        and-single (and 1)]
     (assert (= and123 3))
     (assert (= and-false False))
     (assert (= and-true True))
@@ -842,11 +841,11 @@
 
 (defn test-or []
   "NATIVE: test the or function"
-  (let [[or-all-true (or 1 2 3 True "string")]
-        [or-some-true (or False "hello")]
-        [or-none-true (or False False)]
-        [or-false (or)]
-        [or-single (or 1)]]
+  (let [or-all-true (or 1 2 3 True "string")
+        or-some-true (or False "hello")
+        or-none-true (or False False)
+        or-false (or)
+        or-single (or 1)]
     (assert (= or-all-true 1))
     (assert (= or-some-true "hello"))
     (assert (= or-none-true False))
@@ -861,12 +860,12 @@
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
                                 ; thanks, algernon
-  (assert (= 1 (let [[x 1]
-                     [y 2]]
+  (assert (= 1 (let [x 1
+                     y 2]
                  (if true
                    2)
                  1)))
-  (assert (= 1 (let [[x 1] [y 2]]
+  (assert (= 1 (let [x 1 y 2]
                  (do)
                  (do)
                  ((fn [] 1))))))
@@ -915,9 +914,9 @@
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
   (assert (= 'bar (eval (quote foo) {'foo 'bar})))
-  (assert (= 1 (let [[d {}]] (eval '(setv x 1) d) (eval (quote x) d))))
-  (let [[d1 {}]
-        [d2 {}]]
+  (assert (= 1 (let [d {}] (eval '(setv x 1) d) (eval (quote x) d))))
+  (let [d1 {}
+        d2 {}]
     (eval '(setv x 1) d1)
     (try
       (do
@@ -998,7 +997,7 @@
 
 (defn test-if-let-mixing []
   "NATIVE: test that we can now mix if and let"
-  (assert (= 0 (if true (let [[x 0]] x) 42))))
+  (assert (= 0 (if true (let [x 0] x) 42))))
 
 (defn test-if-in-if []
   "NATIVE: test that we can use if in if"

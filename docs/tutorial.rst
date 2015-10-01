@@ -335,7 +335,7 @@ Python's context managers (``with`` statements) are used like this:
 
 .. code-block:: clj
 
-     (with [[f (open "/tmp/data.in")]]
+     (with [f (open "/tmp/data.in")]
        (print (.read f)))
 
 which is equivalent to::
