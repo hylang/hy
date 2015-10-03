@@ -468,9 +468,9 @@ def test_ast_unicode_strings():
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     try:
-        can_compile("(fn [] (= 1))")
+        can_compile("(fn [] (in [1 2 3]))")
     except HyTypeError as e:
-        assert(e.message == "`=' needs at least 2 arguments, got 1.")
+        assert(e.message == "`in' needs at least 2 arguments, got 1.")
     else:
         assert(False)
 

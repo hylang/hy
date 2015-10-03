@@ -1811,18 +1811,7 @@ class HyASTCompiler(object):
                               values=[value.force_expr for value in values])
         return ret
 
-    @builds("=")
-    @builds("!=")
-    @builds("<")
-    @builds("<=")
-    @builds(">")
-    @builds(">=")
-    @builds("is")
-    @builds("in")
-    @builds("is_not")
-    @builds("not_in")
-    @checkargs(min=2)
-    def compile_compare_op_expression(self, expression):
+    def _compile_compare_op_expression(self, expression):
         ops = {"=": ast.Eq, "!=": ast.NotEq,
                "<": ast.Lt, "<=": ast.LtE,
                ">": ast.Gt, ">=": ast.GtE,
@@ -1841,6 +1830,32 @@ class HyASTCompiler(object):
                                  comparators=exprs[1:],
                                  lineno=e.start_line,
                                  col_offset=e.start_column)
+
+    @builds("=")
+    @builds("!=")
+    @builds("<")
+    @builds("<=")
+    @builds(">")
+    @builds(">=")
+    @checkargs(min=1)
+    def compile_compare_op_expression(self, expression):
+        if len(expression) == 2:
+            rval = "True"
+            if expression[0] == "!=":
+                rval = "False"
+            return ast.Name(id=rval,
+                            ctx=ast.Load(),
+                            lineno=expression.start_line,
+                            col_offset=expression.start_column)
+        return self._compile_compare_op_expression(expression)
+
+    @builds("is")
+    @builds("in")
+    @builds("is_not")
+    @builds("not_in")
+    @checkargs(min=2)
+    def compile_compare_op_expression_coll(self, expression):
+        return self._compile_compare_op_expression(expression)
 
     @builds("%")
     @builds("**")
