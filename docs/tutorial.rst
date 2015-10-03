@@ -503,6 +503,64 @@ In Hy:
      address (models.TextField)
      notes (models.TextField)])
 
+Macros
+======
+
+One really powerful feature of Hy are macros. They are small functios that are
+used to generate code (or data). When program written in Hy is started, the
+macros are executed and their output is placed in program source. After this,
+the program starts executing normally. Very simple example:
+
+.. code-block:: clj
+
+  => (defmacro hello [person]
+  ...  `(print "Hello there," ~person))
+  => (Hello "Tuukka")
+  Hello there, Tuukka
+
+The thing to notice here is that hello macro doesn't output anything on
+screen. Instead it creates piece of code that is then executed and prints on
+screen. Macro writes a piece of program that looks like this (provided that
+we used "Tuukka" as parameter:
+
+.. code-block:: clj
+
+  (print "Hello there," Tuukka)
+
+We can also manipulate code with macros:
+
+.. code-block:: clj
+
+  => (defmacro rev [code]
+  ...  (let [op (last code) params (list (butlast code))]
+  ...  `(~op ~@params)))
+  => (rev (1 2 3 +))
+  6
+
+The code that was generated with this macro just switched around some the
+elements, so by the time program started executing, it actually red:
+
+.. code-block:: clj
+
+  (+ 1 2 3)
+
+Sometimes it's nice to have a very short name for macro that doesn't take much
+space or use extra parentheses. Reader macros can be pretty useful in these
+situations (and since Hy operates well with unicode, we aren't running out of
+characters that soon):
+
+.. code-block:: clj
+
+  => (defreader ↻ [code]
+  ...  (let [op (last code) params (list (butlast code))]
+  ...  `(~op ~@params)))
+  => #↻(1 2 3 +)
+  6
+
+Macros are useful when one wished to extend the Hy or write their own
+language on top of that. Many features of Hy are macros, like ``when``,
+``cond`` and ``->``.
+
 Hy <-> Python interop
 =====================
 
