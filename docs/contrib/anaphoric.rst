@@ -13,14 +13,11 @@ concise and easy to read.
 
     -- Wikipedia (http://en.wikipedia.org/wiki/Anaphoric_macro)
 
-Macros
-======
-
 
 .. _ap-if:
 
 ap-if
--------
+=====
 
 Usage: ``(ap-if (foo) (print it))``
 
@@ -31,7 +28,7 @@ true and false branches.
 .. _ap-each:
 
 ap-each
--------
+=======
 
 Usage: ``(ap-each [1 2 3 4 5] (print it))``
 
@@ -228,3 +225,24 @@ Returns a function which applies several forms in series from left to right. The
    => (def op (ap-compose (+ it 1) (* it 3)))
    => (op 2)
    9
+
+.. _xi
+
+xi
+==
+
+Usage ``(xi body ...)``
+
+Returns a function with parameters implicitly determined by the presence in the body of xi parameters. An xi symbol designates the ith parameter (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself. This is not a replacement for lambda. The xi forms cannot be nested. 
+
+This is similar to Clojure's anonymous function literals (``#()``).
+
+.. code-block:: hy
+
+   => ((xi identity [x1 x5 [x2 x3] xi x4]) 1 2 3 4 5 6 7 8)
+   [1, 5, [2, 3,] (6, 7, 8), 4]
+   => (def add-10 (xi + 10 x1))
+   => (add-10 6)
+   16
+   
+

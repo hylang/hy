@@ -26,7 +26,7 @@
 
 (defn + [&rest args]
   "Shadow + operator for when we need to import / map it against something"
-  (let [[count (len args)]]
+  (let [count (len args)]
     (if (zero? count)
       (raise (TypeError "Need at least 1 argument to add/concatenate"))
       (if (= count 1)
@@ -36,7 +36,7 @@
 
 (defn - [&rest args]
   "Shadow - operator for when we need to import / map it against something"
-  (let [[count (len args)]]
+  (let [count (len args)]
     (if (= count 0)
       (raise (TypeError "Need at least 1 argument to subtract"))
       (if (= count 1)
@@ -53,7 +53,7 @@
 
 (defn / [&rest args]
   "Shadow / operator for when we need to import / map it against something"
-  (let [[count (len args)]]
+  (let [count (len args)]
     (if (= count 0)
       (raise (TypeError "Need at least 1 argument to divide"))
       (if (= count 1)

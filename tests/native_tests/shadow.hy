@@ -1,10 +1,10 @@
 (defn test-shadow-addition []
   "NATIVE: test shadow addition"
-  (let [[x +]]
+  (let [x +]
     (assert (try
              (x)
-             (catch [TypeError] True)
-             (else (throw AssertionError))))
+             (except [TypeError] True)
+             (else (raise AssertionError))))
     (assert (= (x 1 2 3 4) 10))
     (assert (= (x 1 2 3 4 5) 15))
     ; with strings
@@ -21,11 +21,11 @@
 
 (defn test-shadow-subtraction []
   "NATIVE: test shadow subtraction"
-  (let [[x -]]
+  (let [x -]
     (assert (try
              (x)
-             (catch [TypeError] True)
-             (else (throw AssertionError))))
+             (except [TypeError] True)
+             (else (raise AssertionError))))
     (assert (= (x 1) -1))
     (assert (= (x 2 1) 1))
     (assert (= (x 2 1 1) 0))))
@@ -33,7 +33,7 @@
 
 (defn test-shadow-multiplication []
   "NATIVE: test shadow multiplication"
-  (let [[x *]]
+  (let [x *]
     (assert (= (x) 1))
     (assert (= (x 3) 3))
     (assert (= (x 3 3) 9))))
@@ -41,11 +41,11 @@
 
 (defn test-shadow-division []
   "NATIVE: test shadow division"
-  (let [[x /]]
+  (let [x /]
     (assert (try
              (x)
-             (catch [TypeError] True)
-             (else (throw AssertionError))))
+             (except [TypeError] True)
+             (else (raise AssertionError))))
     (assert (= (x 1) 1))
     (assert (= (x 8 2) 4))
     (assert (= (x 8 2 2) 2))
@@ -57,12 +57,12 @@
   (for [x [< <= = != >= >]]
      (assert (try
               (x)
-              (catch [TypeError] True)
-              (else (throw AssertionError))))
+              (except [TypeError] True)
+              (else (raise AssertionError))))
      (assert (try
               (x 1)
-              (catch [TypeError] True)
-              (else (throw AssertionError)))))
+              (except [TypeError] True)
+              (else (raise AssertionError)))))
   (for [(, x y) [[< >=]
                  [<= >]
                  [= !=]]]
@@ -71,12 +71,12 @@
                 [1 1]
                 [2 2]]]
       (assert (= (apply x args) (not (apply y args))))))
-  (let [[s-lt <]
-        [s-gt >]
-        [s-le <=]
-        [s-ge >=]
-        [s-eq =]
-        [s-ne !=]]
+  (let [s-lt <
+        s-gt >
+        s-le <=
+        s-ge >=
+        s-eq =
+        s-ne !=]
     (assert (apply s-lt [1 2 3]))
     (assert (not (apply s-lt [3 2 1])))
     (assert (apply s-gt [3 2 1]))

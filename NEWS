@@ -7,7 +7,7 @@ Changes from 0.10.1
    * yield-from support for Python 2
    * with-decorator can now be applied to classes.
    * assert now accepts an optional assertion message.
-   * Comparision operators can now be used with map, filter, and reduce.
+   * Comparison operators can now be used with map, filter, and reduce.
    * new last function
    * new drop-last function
    * new lisp-if-not/lif-not macro
@@ -73,7 +73,7 @@ Changes from 0.10.0
   [ Misc. Fixes ]
   * Symbols like true, false, none can't be assigned
   * Set sys.argv default to [''] like Python does
-  * REPL displays the the python version and platform at startup
+  * REPL displays the python version and platform at startup
   * Dockerfile added for https://registry.hub.docker.com/_/hylang/
 
   [ Contrib changes ]
@@ -328,7 +328,7 @@ Changes from Hy 0.9.7
       expand things in quotes.
     * kwapply now works with symbols as well as raw dicts. (ND)
     * Try / Except will now return properly again. (PT)
-    * Bare-names sprinked around the AST won't show up anymore (ND)
+    * Bare-names sprinkled around the AST won't show up anymore (ND)
 
   [ Language Changes ]
 

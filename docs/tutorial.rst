@@ -335,7 +335,7 @@ Python's context managers (``with`` statements) are used like this:
 
 .. code-block:: clj
 
-     (with [[f (open "/tmp/data.in")]]
+     (with [f (open "/tmp/data.in")]
        (print (.read f)))
 
 which is equivalent to::
@@ -477,17 +477,14 @@ In Hy:
 
   (defclass FooBar [object]
     "Yet Another Example Class"
-    [[--init--
-      (fn [self x]
-        (setv self.x x)
-        ; Currently needed for --init-- because __init__ needs None
-        ; Hopefully this will go away :)
-        None)]
 
-     [get-x
-      (fn [self]
-        "Return our copy of x"
-        self.x)]])
+    (defn --init-- [self x]
+      (setv self.x x)
+      None)
+
+    (defn get-x [self]
+      "Return our copy of x"
+      self.x))
 
 
 You can also do class-level attributes.  In Python::
@@ -502,9 +499,9 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [[name (models.CharField :max-length 255})]
-     [address (models.TextField)]
-     [notes (models.TextField)]])
+    [name (models.CharField :max-length 255})
+     address (models.TextField)
+     notes (models.TextField)])
 
 Hy <-> Python interop
 =====================

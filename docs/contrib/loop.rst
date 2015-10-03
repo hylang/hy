@@ -37,7 +37,7 @@ loop
 ``loop`` establishes a recursion point. With ``loop``, ``recur``
 rebinds the variables set in the recursion point and sends code
 execution back to that recursion point. If ``recur`` is used in a
-non-tail position, an exception is thrown.
+non-tail position, an exception is raised.
 
 Usage: `(loop bindings &rest body)`
 

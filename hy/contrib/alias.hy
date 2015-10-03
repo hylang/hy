@@ -1,4 +1,5 @@
 ;; Copyright (c) 2014, 2015 Gergely Nagy
+;; Copyright (c) 2014, 2015 Paul Tagliamonte <paultag@debian.org>
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -18,16 +19,21 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
-(defn Botsbuildbots () (Botsbuildbots))
+(defmacro defmacro-alias [names lambda-list &rest body]
+  "define one macro with several names"
+  (setv ret `(do))
+  (for* [name names]
+    (.append ret
+             `(defmacro ~name ~lambda-list ~@body)))
+  ret)
 
-(defmacro Botsbuildbots []
-  "Build bots, repeatedly.^W^W^WPrint the AUTHORS, forever."
-  `(try
-    (do
-     (import [requests])
 
-     (let [r (requests.get
-              "https://raw.githubusercontent.com/hylang/hy/master/AUTHORS")]
-       (repeat r.text)))
-    (except [e ImportError]
-      (repeat "Botsbuildbots requires `requests' to function."))))
+(defmacro defn-alias [names lambda-list &rest body]
+  "define one function with several names"
+  (let [main (first names)
+        aliases (rest names)]
+    (setv ret `(do (defn ~main ~lambda-list ~@body)))
+    (for* [name aliases]
+      (.append ret
+               `(setv ~name ~main)))
+    ret))

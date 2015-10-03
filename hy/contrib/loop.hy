@@ -58,7 +58,7 @@
 
 
 (defmacro/g! fnr [signature &rest body]
-  (let [[new-body (recursive-replace 'recur g!recur-fn body)]]
+  (let [new-body (recursive-replace 'recur g!recur-fn body)]
     `(do
       (import [hy.contrib.loop [--trampoline--]])
       (with-decorator
@@ -75,7 +75,7 @@
 
 (defmacro/g! loop [bindings &rest body]
   ;; Use inside functions like so:
-  ;; (defun factorial [n]
+  ;; (defn factorial [n]
   ;;   (loop [[i n]
   ;;          [acc 1]]
   ;;         (if (= i 0)
@@ -85,7 +85,7 @@
   ;; If recur is used in a non-tail-call position, None is returned, which
   ;; causes chaos. Fixing this to detect if recur is in a tail-call position
   ;; and erroring if not is a giant TODO.
-  (let [[fnargs (map (fn [x] (first x)) bindings)]
-        [initargs (map second bindings)]]
+  (let [fnargs (map (fn [x] (first x)) bindings)
+        initargs (map second bindings)]
     `(do (defnr ~g!recur-fn [~@fnargs] ~@body)
          (~g!recur-fn ~@initargs))))

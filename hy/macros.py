@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from inspect import getargspec, formatargspec
 from hy.models import replace_hy_obj, wrap_value
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
@@ -122,6 +123,16 @@ def load_macros(module_name):
         _import(module)
 
 
+def make_emtpy_fn_copy(fn):
+    argspec = getargspec(fn)
+    formatted_args = formatargspec(*argspec)
+    fn_str = 'lambda {}: None'.format(
+        formatted_args.lstrip('(').rstrip(')'))
+
+    empty_fn = eval(fn_str)
+    return empty_fn
+
+
 def macroexpand(tree, module_name):
     """Expand the toplevel macros for the `tree`.
 
@@ -155,6 +166,14 @@ def macroexpand_1(tree, module_name):
             if m is None:
                 m = _hy_macros[None].get(fn)
             if m is not None:
+                try:
+                    m_copy = make_emtpy_fn_copy(m)
+                    m_copy(*ntree[1:])
+                except TypeError as e:
+                    msg = "expanding `" + str(tree[0]) + "': "
+                    msg += str(e).replace("<lambda>()", "", 1).strip()
+                    raise HyMacroExpansionError(tree, msg)
+
                 try:
                     obj = wrap_value(m(*ntree[1:]))
 

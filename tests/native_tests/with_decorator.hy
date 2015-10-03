@@ -13,7 +13,7 @@
 
 (with-decorator bardec
   (defclass cls []
-    [[my_attr 456]]))
+    [my_attr 456]))
 
 (defn test-decorator-clobbing []
   "NATIVE: Tests whether nested decorators work"
