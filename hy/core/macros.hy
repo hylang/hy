@@ -32,22 +32,22 @@
 
 
 (defmacro with [args &rest body]
-  "shorthand for nested for* loops:
-  (with [[x foo] [y bar]] baz) ->
+  "shorthand for nested with* loops:
+  (with [x foo y bar] baz) ->
   (with* [x foo]
     (with* [y bar]
       baz))"
 
   (if (not (empty? args))
-    (let [[primary (.pop args 0)]]
-      (if (isinstance primary HyList)
-        ;;; OK. if we have a list, we can go ahead and unpack that
-        ;;; as the argument to with.
-        `(with* [~@primary] (with ~args ~@body))
-        ;;; OK, let's just give it away. This may not be something we
-        ;;; can do, but that's really the programmer's problem.
-        `(with* [~primary] (with ~args ~@body))))
-      `(do ~@body)))
+    (do
+     (if (>= (len args) 2)
+       (do
+        (setv p1 (.pop args 0)
+              p2 (.pop args 0)
+              primary [p1 p2])
+        `(with* [~@primary] (with ~args ~@body)))
+       `(with* [~@args] ~@body)))
+    `(do ~@body)))
 
 
 (defmacro car [thing]
@@ -57,7 +57,7 @@
 
 (defmacro cdr [thing]
   "Get all the elements of a thing, except the first"
-  `(slice ~thing 1))
+  `(cut ~thing 1))
 
 
 (defmacro cond [&rest branches]
@@ -67,25 +67,29 @@
      bar
      (if baz
        quux))"
-  (setv branches (iter branches))
-  (setv branch (next branches))
-  (defn check-branch [branch]
-    "check `cond` branch for validity, return the corresponding `if` expr"
-    (if (not (= (type branch) HyList))
-      (macro-error branch "cond branches need to be a list"))
-    (if (!= (len branch) 2)
-      (macro-error branch "cond branches need two items: a test and a code branch"))
-    (setv (, test thebranch) branch)
-    `(if ~test ~thebranch))
+  (if (empty? branches)
+    nil
+    (do
+     (setv branches (iter branches))
+     (setv branch (next branches))
+     (defn check-branch [branch]
+       "check `cond` branch for validity, return the corresponding `if` expr"
+       (if (not (= (type branch) HyList))
+         (macro-error branch "cond branches need to be a list"))
+       (if (< (len branch) 2)
+         (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
+       (setv test (car branch))
+       (setv thebranch (cdr branch))
+       `(if ~test (do ~@thebranch)))
 
-  (setv root (check-branch branch))
-  (setv latest-branch root)
+     (setv root (check-branch branch))
+     (setv latest-branch root)
 
-  (for* [branch branches]
-    (setv cur-branch (check-branch branch))
-    (.append latest-branch cur-branch)
-    (setv latest-branch cur-branch))
-  root)
+     (for* [branch branches]
+       (setv cur-branch (check-branch branch))
+       (.append latest-branch cur-branch)
+       (setv latest-branch cur-branch))
+     root)))
 
 
 (defmacro for [args &rest body]
@@ -96,16 +100,23 @@
   (for* [x foo]
     (for* [y bar]
       baz))"
-  (cond 
+  (setv body (list body))
+  (if (empty? body)
+    (macro-error None "`for' requires a body to evaluate"))
+  (setv lst (get body -1))
+  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
+                [(body.pop)]
+                []))
+  (cond
    [(odd? (len args))
     (macro-error args "`for' requires an even number of args.")]
    [(empty? body)
     (macro-error None "`for' requires a body to evaluate")]
-   [(empty? args) `(do ~@body)]
-   [(= (len args) 2)  `(for* [~@args] ~@body)]
-   [true 
-    (let [[alist (slice args 0 nil 2)]]
-      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] ~@body))]))
+   [(empty? args) `(do ~@body ~@belse)]
+   [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
+   [true
+    (let [alist (cut args 0 nil 2)]
+      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
 (defmacro -> [head &rest rest]
@@ -127,7 +138,7 @@
     (if (isinstance expression HyExpression)
       `(~(first expression) ~f ~@(rest expression))
       `(~expression ~f)))
-  `(let [[~f ~form]]
+  `(let [~f ~form]
      ~@(map build-form expressions)
      ~f))
 
@@ -149,11 +160,11 @@
     `(if (not ~test) ~not-branch ~yes-branch)))
 
 
-(defmacro-alias [lisp-if lif] [test &rest branches]
+(defmacro lif [test &rest branches]
   "Like `if`, but anything that is not None/nil is considered true."
   `(if (is-not ~test nil) ~@branches))
 
-(defmacro-alias [lisp-if-not lif-not] [test &rest branches]
+(defmacro lif-not [test &rest branches]
   "Like `if-not`, but anything that is not None/nil is considered true."
   `(if (is ~test nil) ~@branches))
 
@@ -169,14 +180,25 @@
 
 
 (defmacro with-gensyms [args &rest body]
-  `(let ~(HyList (map (fn [x] `[~x (gensym '~x)]) args))
-    ~@body))
+  (setv syms [])
+  (for* [arg args]
+    (.extend syms `[~arg (gensym '~arg)]))
+  `(let ~syms
+     ~@body))
 
 (defmacro defmacro/g! [name args &rest body]
-  (let [[syms (list (distinct (filter (fn [x] (and (hasattr x "startswith") (.startswith x "g!"))) (flatten body))))]]
+  (let [syms (list
+              (distinct
+               (filter (fn [x]
+                         (and (hasattr x "startswith")
+                              (.startswith x "g!")))
+                       (flatten body))))
+        gensyms []]
+    (for* [sym syms]
+      (.extend gensyms `[~sym (gensym (cut '~sym 2))]))
     `(defmacro ~name [~@args]
-       (let ~(HyList (map (fn [x] `[~x (gensym (slice '~x 2))]) syms))
-            ~@body))))
+       (let ~gensyms
+         ~@body))))
 
 
 (if-python2
@@ -189,7 +211,7 @@
            (try (if (isinstance ~g!iter types.GeneratorType)
                   (setv ~g!message (yield (.send ~g!iter ~g!message)))
                   (setv ~g!message (yield (next ~g!iter))))
-           (catch [~g!e StopIteration]
+           (except [~g!e StopIteration]
              (do (setv ~g!return (if (hasattr ~g!e "value")
                                      (. ~g!e value)
                                      nil))
@@ -200,9 +222,9 @@
 
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
-  (let [[retval (gensym)]
-        [mainfn `(fn [~@args]
-                   ~@body)]]
+  (let [retval (gensym)
+        mainfn `(fn [~@args]
+                  ~@body)]
     `(when (= --name-- "__main__")
        (import sys)
        (setv ~retval (apply ~mainfn sys.argv))
@@ -210,24 +232,7 @@
          (sys.exit ~retval)))))
 
 
-(defmacro-alias [defn-alias defun-alias] [names lambda-list &rest body]
-  "define one function with several names"
-  (let [[main (first names)]
-        [aliases (rest names)]]
-    (setv ret `(do (defn ~main ~lambda-list ~@body)))
-    (for* [name aliases]
-          (.append ret
-                   `(setv ~name ~main)))
-    ret))
-
-(defmacro Botsbuildbots []
-  "Build bots, repeatedly.^W^W^WPrint the AUTHORS, forever."
-  `(try
-    (do
-     (import [requests])
-
-     (let [[r (requests.get
-               "https://raw.githubusercontent.com/hylang/hy/master/AUTHORS")]]
-       (repeat r.text)))
-    (catch [e ImportError]
-      (repeat "Botsbuildbots requires `requests' to function."))))
+(defreader @ [expr]
+  (let [decorators (cut expr nil -1)
+        fndef (get expr -1)]
+    `(with-decorator ~@decorators ~fndef)))

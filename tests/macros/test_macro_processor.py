@@ -6,6 +6,7 @@ from hy.models.string import HyString
 from hy.models.list import HyList
 from hy.models.symbol import HySymbol
 from hy.models.expression import HyExpression
+from hy.errors import HyMacroExpansionError
 
 
 @macro("test")
@@ -35,3 +36,13 @@ def test_preprocessor_expression():
     obj = HyList([HyString("one"), HyString("two")])
     obj = tokenize('(shill ["one" "two"])')[0][1]
     assert obj == macroexpand(obj, '')
+
+
+def test_preprocessor_exceptions():
+    """ Test that macro expansion raises appropriate exceptions"""
+    try:
+        macroexpand(tokenize('(defn)')[0], __name__)
+        assert False
+    except HyMacroExpansionError as e:
+        assert "_hy_anon_fn_" not in str(e)
+        assert "TypeError" not in str(e)

@@ -98,14 +98,27 @@ def test_lex_symbols():
 
 def test_lex_strings():
     """ Make sure that strings are valid expressions"""
-    objs = tokenize("\"foo\" ")
+    objs = tokenize('"foo"')
     assert objs == [HyString("foo")]
+    # Make sure backslash-escaped newlines work (see issue #831)
+    objs = tokenize(r"""
+"a\
+bc"
+""")
+    assert objs == [HyString("abc")]
 
 
 def test_lex_integers():
     """ Make sure that integers are valid expressions"""
     objs = tokenize("42 ")
     assert objs == [HyInteger(42)]
+
+
+def test_lex_fractions():
+    """ Make sure that fractions are valid expressions"""
+    objs = tokenize("1/2")
+    assert objs == [HyExpression([HySymbol("fraction"), HyInteger(1),
+                                  HyInteger(2)])]
 
 
 def test_lex_expression_float():
@@ -317,6 +330,24 @@ def test_lex_mangling_qmark():
     assert entry == [HySymbol("is_foo.bar")]
     entry = tokenize(".foo?.bar.baz?")
     assert entry == [HySymbol(".is_foo.bar.is_baz")]
+
+
+def test_lex_mangling_bang():
+    """Ensure that identifiers ending with a bang get mangled ok"""
+    entry = tokenize("foo!")
+    assert entry == [HySymbol("foo_bang")]
+    entry = tokenize("!")
+    assert entry == [HySymbol("!")]
+    entry = tokenize("im!foo")
+    assert entry == [HySymbol("im!foo")]
+    entry = tokenize(".foo!")
+    assert entry == [HySymbol(".foo_bang")]
+    entry = tokenize("foo.bar!")
+    assert entry == [HySymbol("foo.bar_bang")]
+    entry = tokenize("foo!.bar")
+    assert entry == [HySymbol("foo_bang.bar")]
+    entry = tokenize(".foo!.bar.baz!")
+    assert entry == [HySymbol(".foo_bang.bar.baz_bang")]
 
 
 def test_simple_cons():

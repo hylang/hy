@@ -289,7 +289,7 @@ def cmdline_handler(scriptname, argv):
     parser.add_argument('args', nargs=argparse.REMAINDER,
                         help=argparse.SUPPRESS)
 
-    # stash the hy exectuable in case we need it later
+    # stash the hy executable in case we need it later
     # mimics Python sys.executable
     hy.executable = argv[0]
 

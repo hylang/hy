@@ -50,7 +50,7 @@ partial_string = r'''(?x)
     "  # start string
     (?:
        | [^"\\]             # non-quote or backslash
-       | \\.                # or escaped single character
+       | \\(.|\n)           # or escaped single character or newline
        | \\x[0-9a-fA-F]{2}  # or escaped raw character
        | \\u[0-9a-fA-F]{4}  # or unicode escape
        | \\U[0-9a-fA-F]{8}  # or long unicode escape

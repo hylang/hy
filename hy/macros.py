@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from inspect import getargspec, formatargspec
 from hy.models import replace_hy_obj, wrap_value
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
@@ -60,7 +61,7 @@ def macro(name):
 
 
 def reader(name):
-    """Decorator to define a macro called `name`.
+    """Decorator to define a reader macro called `name`.
 
     This stores the macro `name` in the namespace for the module where it is
     defined.
@@ -68,7 +69,7 @@ def reader(name):
     If the module where it is defined is in `hy.core`, then the macro is stored
     in the default `None` namespace.
 
-    This function is called from the `defmacro` special form in the compiler.
+    This function is called from the `defreader` special form in the compiler.
 
     """
     def _(fn):
@@ -122,6 +123,16 @@ def load_macros(module_name):
         _import(module)
 
 
+def make_emtpy_fn_copy(fn):
+    argspec = getargspec(fn)
+    formatted_args = formatargspec(*argspec)
+    fn_str = 'lambda {}: None'.format(
+        formatted_args.lstrip('(').rstrip(')'))
+
+    empty_fn = eval(fn_str)
+    return empty_fn
+
+
 def macroexpand(tree, module_name):
     """Expand the toplevel macros for the `tree`.
 
@@ -156,6 +167,14 @@ def macroexpand_1(tree, module_name):
                 m = _hy_macros[None].get(fn)
             if m is not None:
                 try:
+                    m_copy = make_emtpy_fn_copy(m)
+                    m_copy(*ntree[1:])
+                except TypeError as e:
+                    msg = "expanding `" + str(tree[0]) + "': "
+                    msg += str(e).replace("<lambda>()", "", 1).strip()
+                    raise HyMacroExpansionError(tree, msg)
+
+                try:
                     obj = wrap_value(m(*ntree[1:]))
 
                 except HyTypeError as e:
@@ -176,14 +195,15 @@ def reader_macroexpand(char, tree, module_name):
     """Expand the reader macro "char" with argument `tree`."""
     load_macros(module_name)
 
-    if char not in _hy_reader[module_name]:
-        raise HyTypeError(
-            char,
-            "`{0}' is not a reader macro in module '{1}'".format(
+    reader_macro = _hy_reader[module_name].get(char)
+    if reader_macro is None:
+        try:
+            reader_macro = _hy_reader[None][char]
+        except KeyError:
+            raise HyTypeError(
                 char,
-                module_name,
-            ),
-        )
+                "`{0}' is not a defined reader macro.".format(char)
+            )
 
-    expr = _hy_reader[module_name][char](tree)
+    expr = reader_macro(tree)
     return replace_hy_obj(wrap_value(expr), tree)

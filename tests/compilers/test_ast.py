@@ -111,17 +111,6 @@ def test_ast_good_do():
     can_compile("(do 1)")
 
 
-def test_ast_good_throw():
-    "Make sure AST can compile valid throw"
-    can_compile("(throw)")
-    can_compile("(throw Exception)")
-
-
-def test_ast_bad_throw():
-    "Make sure AST can't compile invalid throw"
-    cant_compile("(throw Exception Exception)")
-
-
 def test_ast_good_raise():
     "Make sure AST can compile valid raise"
     can_compile("(raise)")
@@ -158,26 +147,6 @@ def test_ast_bad_try():
     cant_compile("(try 1 bla bla)")
     cant_compile("(try (do) (else 1) (else 2))")
     cant_compile("(try 1 (else 1))")
-
-
-def test_ast_good_catch():
-    "Make sure AST can compile valid catch"
-    can_compile("(try 1 (catch))")
-    can_compile("(try 1 (catch []))")
-    can_compile("(try 1 (catch [Foobar]))")
-    can_compile("(try 1 (catch [[]]))")
-    can_compile("(try 1 (catch [x FooBar]))")
-    can_compile("(try 1 (catch [x [FooBar BarFoo]]))")
-    can_compile("(try 1 (catch [x [FooBar BarFoo]]))")
-
-
-def test_ast_bad_catch():
-    "Make sure AST can't compile invalid catch"
-    cant_compile("(catch 22)")   # heh
-    cant_compile("(try (catch 1))")
-    cant_compile("(try (catch \"A\"))")
-    cant_compile("(try (catch [1 3]))")
-    cant_compile("(try (catch [x [FooBar] BarBar]))")
 
 
 def test_ast_good_except():
@@ -250,8 +219,8 @@ def test_ast_good_defclass():
 def test_ast_bad_defclass():
     "Make sure AST can't compile invalid defclass"
     cant_compile("(defclass)")
-    cant_compile("(defclass a null)")
-    cant_compile("(defclass a null null)")
+    cant_compile("(defclass a None)")
+    cant_compile("(defclass a None None)")
 
 
 def test_ast_good_lambda():
@@ -291,18 +260,18 @@ def test_ast_bad_get():
     cant_compile("(get 1)")
 
 
-def test_ast_good_slice():
-    "Make sure AST can compile valid slice"
-    can_compile("(slice x)")
-    can_compile("(slice x y)")
-    can_compile("(slice x y z)")
-    can_compile("(slice x y z t)")
+def test_ast_good_cut():
+    "Make sure AST can compile valid cut"
+    can_compile("(cut x)")
+    can_compile("(cut x y)")
+    can_compile("(cut x y z)")
+    can_compile("(cut x y z t)")
 
 
-def test_ast_bad_slice():
-    "Make sure AST can't compile invalid slice"
-    cant_compile("(slice)")
-    cant_compile("(slice 1 2 3 4 5)")
+def test_ast_bad_cut():
+    "Make sure AST can't compile invalid cut"
+    cant_compile("(cut)")
+    cant_compile("(cut 1 2 3 4 5)")
 
 
 def test_ast_good_take():
@@ -352,20 +321,18 @@ def test_ast_invalid_for():
 
 def test_ast_valid_let():
     "Make sure AST can compile valid let"
-    can_compile("(let [])")
     can_compile("(let [a b])")
-    can_compile("(let [[a 1]])")
-    can_compile("(let [[a 1] b])")
+    can_compile("(let [a 1])")
+    can_compile("(let [a 1 b nil])")
 
 
 def test_ast_invalid_let():
     "Make sure AST can't compile invalid let"
     cant_compile("(let 1)")
     cant_compile("(let [1])")
-    cant_compile("(let [[a 1 2]])")
-    cant_compile("(let [[]])")
-    cant_compile("(let [[a]])")
-    cant_compile("(let [[1]])")
+    cant_compile("(let [a 1 2])")
+    cant_compile("(let [a])")
+    cant_compile("(let [1])")
 
 
 def test_ast_expression_basics():
@@ -470,6 +437,16 @@ def test_lambda_list_keywords_mixed():
                     "  (list x xs kwxs kwoxs))")
 
 
+def test_missing_keyword_argument_value():
+    """Ensure the compiler chokes on missing keyword argument values."""
+    try:
+        can_compile("((fn [x] x) :x)")
+    except HyTypeError as e:
+        assert(e.message == "Keyword argument :x needs a value.")
+    else:
+        assert(False)
+
+
 def test_ast_unicode_strings():
     """Ensure we handle unicode strings correctly"""
 
@@ -515,7 +492,7 @@ def test_for_compile_error():
         assert(False)
 
     try:
-        can_compile("(fn [] (for [x]))")
+        can_compile("(fn [] (for [x] x))")
     except HyTypeError as e:
         assert(e.message == "`for' requires an even number of args.")
     else:
@@ -523,6 +500,13 @@ def test_for_compile_error():
 
     try:
         can_compile("(fn [] (for [x xx]))")
+    except HyTypeError as e:
+        assert(e.message == "`for' requires a body to evaluate")
+    else:
+        assert(False)
+
+    try:
+        can_compile("(fn [] (for [x xx] (else 1)))")
     except HyTypeError as e:
         assert(e.message == "`for' requires a body to evaluate")
     else:
@@ -543,3 +527,39 @@ def test_attribute_access():
 def test_cons_correct():
     """Ensure cons gets compiled correctly"""
     can_compile("(cons a b)")
+
+
+def test_invalid_list_comprehension():
+    """Ensure that invalid list comprehensions do not break the compiler"""
+    cant_compile("(genexpr x [])")
+    cant_compile("(genexpr [x [1 2 3 4]] x)")
+    cant_compile("(list-comp None [])")
+    cant_compile("(list-comp [x [1 2 3]] x)")
+
+
+def test_bad_setv():
+    """Ensure setv handles error cases"""
+    cant_compile("(setv if 1)")
+    cant_compile("(setv (a b) [1 2])")
+
+
+def test_defn():
+    """Ensure that defn works correctly in various corner cases"""
+    cant_compile("(defn if [] 1)")
+    cant_compile("(defn \"hy\" [] 1)")
+    cant_compile("(defn :hy [] 1)")
+    can_compile("(defn &hy [] 1)")
+
+
+def test_setv_builtins():
+    """Ensure that assigning to a builtin fails, unless in a class"""
+    cant_compile("(setv nil 42)")
+    cant_compile("(defn get [&rest args] 42)")
+    can_compile("(defclass A [] (defn get [self] 42))")
+    can_compile("""
+    (defclass A []
+      (defn get [self] 42)
+      (defclass B []
+        (defn get [self] 42))
+      (defn if [self] 0))
+    """)

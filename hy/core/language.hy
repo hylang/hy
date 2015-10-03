@@ -26,7 +26,12 @@
 (import itertools)
 (import functools)
 (import collections)
+(import [fractions [Fraction :as fraction]])
+(import operator)  ; shadow not available yet
 (import sys)
+(if-python2
+  (import [StringIO [StringIO]])
+  (import [io [StringIO]]))
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models.cons [HyCons]]
         [hy.models.symbol [HySymbol]]
@@ -79,49 +84,82 @@
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
-  (let [[seen (set)] [citer (iter coll)]]
-    (for* [val citer]
-      (if (not_in val seen)
-        (do
-         (yield val)
-         (.add seen val))))))
+  (let [seen (set)
+        citer (iter coll)]
+  (for* [val citer]
+    (if (not_in val seen)
+      (do
+       (yield val)
+       (.add seen val))))))
 
 (if-python2
-  (do
-    (setv filterfalse itertools.ifilterfalse)
-    (setv zip_longest itertools.izip_longest)
-    (setv filter itertools.ifilter)
-    (setv map itertools.imap)
-    (setv zip itertools.izip)
-    (setv range xrange)
-    (setv input raw_input)
-    (setv reduce reduce))
-  (do
-    (setv reduce functools.reduce)
-    (setv filterfalse itertools.filterfalse)
-    (setv zip_longest itertools.zip_longest)
-    ; Someone can import these directly from `hy.core.language`;
-    ; we'll make some duplicates.
-    (setv filter filter)
-    (setv map map)
-    (setv zip zip)
-    (setv range range)
-    (setv input input)))
+ (def
+   remove itertools.ifilterfalse
+   zip-longest itertools.izip_longest
+   ;; not builtin in Python3
+   reduce reduce
+   ;; hy is more like Python3
+   filter itertools.ifilter
+   input raw_input
+   map itertools.imap
+   range xrange
+   zip itertools.izip)
+ (def
+   remove itertools.filterfalse
+   zip-longest itertools.zip_longest
+   ;; was builtin in Python2
+   reduce functools.reduce
+   ;; Someone can import these directly from `hy.core.language`;
+   ;; we'll make some duplicates.
+   filter filter
+   input input
+   map map
+   range range
+   zip zip))
 
-(setv cycle itertools.cycle)
-(setv repeat itertools.repeat)
-(setv drop-while itertools.dropwhile)
-(setv take-while itertools.takewhile)
-(setv zipwith map)
-(setv remove filterfalse)
+;; infinite iterators
+(def
+  count itertools.count
+  cycle itertools.cycle
+  repeat itertools.repeat)
+
+;; shortest-terminating iterators
+(def
+  *map itertools.starmap
+  chain itertools.chain
+  compress itertools.compress
+  drop-while itertools.dropwhile
+  group-by itertools.groupby
+  islice itertools.islice
+  take-while itertools.takewhile
+  tee itertools.tee)
+
+;; combinatoric iterators
+(def
+  combinations itertools.combinations
+  multicombinations itertools.combinations_with_replacement
+  permutations itertools.permutations
+  product itertools.product)
+
+;; also from itertools, but not in Python2, and without func option until 3.3
+(defn accumulate [iterable &optional [func operator.add]]
+  "accumulate(iterable[, func]) --> accumulate object
+
+   Return series of accumulated sums (or other binary function results)."
+  (setv it (iter iterable)
+        total (next it))
+  (yield total)
+  (for* [element it]
+    (setv total (func total element))
+    (yield total)))
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
-  (itertools.islice coll count nil))
+  (islice coll count nil))
 
 (defn drop-last [n coll]
   "Return a sequence of all but the last n elements in coll."
-  (let [[iters (itertools.tee coll)]]
+  (let [iters (tee coll)]
     (map first (apply zip [(get iters 0)
                            (drop n (get iters 1))]))))
 
@@ -173,7 +211,7 @@
 (setv _gensym_lock (Lock))
 
 (defn gensym [&optional [g "G"]]
-  (let [[new_symbol None]]
+  (let [new_symbol None]
     (global _gensym_counter)
     (global _gensym_lock)
     (.acquire _gensym_lock)
@@ -192,7 +230,7 @@
 
 (defn first [coll]
   "Return first item from `coll`"
-  (nth coll 0))
+  (next (iter coll) nil))
 
 (defn identity [x]
   "Returns the argument unchanged"
@@ -218,16 +256,16 @@
   "Return True if char `x` parses as an integer"
   (try
     (integer? (int x))
-    (catch [e ValueError] False)
-    (catch [e TypeError] False)))
+    (except [e ValueError] False)
+    (except [e TypeError] False)))
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of seqs, then the second etc."
-  (itertools.chain.from_iterable (apply zip seqs)))
+  (chain.from-iterable (apply zip seqs)))
 
 (defn interpose [item seq]
   "Return an iterable of the elements of seq separated by item"
-  (drop 1 (interleave (itertools.repeat item) seq)))
+  (drop 1 (interleave (repeat item) seq)))
 
 (defn iterable? [x]
   "Return true if x is iterable"
@@ -245,7 +283,7 @@
 
 (defn last [coll]
   "Return last item from `coll`"
-  (get (list coll) -1))
+  (get (tuple coll) -1))
 
 (defn list* [hd &rest tl]
   "Return a dotted list construed from the elements of the argument"
@@ -273,15 +311,16 @@
    from the latter (left-to-right) will be combined with the mapping in
    the result by calling (f val-in-result val-in-latter)."
   (if (any maps)
-    (let [[merge-entry (fn [m e]
-			 (let [[k (get e 0)] [v (get e 1)]]
-			   (if (in k m)
-			     (assoc m k (f (get m k) v))
-			     (assoc m k v)))
-			 m)]
-	  [merge2 (fn [m1 m2]
-		    (reduce merge-entry (.items m2) (or m1 {})))]]
-      (reduce merge2 maps))))
+    (let [merge-entry (fn [m e]
+                        (let [k (get e 0)
+                              v (get e 1)]
+                        (if (in k m)
+                          (assoc m k (f (get m k) v))
+                          (assoc m k v)))
+          m)
+      merge2 (fn [m1 m2]
+               (reduce merge-entry (.items m2) (or m1 {})))]
+    (reduce merge2 maps))))
 
 (defn neg? [n]
   "Return true if n is < 0"
@@ -309,6 +348,18 @@
   "Return true if n is an odd number"
   (_numeric-check n)
   (= (% n 2) 1))
+
+(def -sentinel (object))
+(defn partition [coll &optional [n 2] step [fillvalue -sentinel]]
+  "Chunks coll into n-tuples (pairs by default). The remainder, if any, is not
+   included unless a fillvalue is specified. The step defaults to n, but can be
+   more to skip elements, or less for a sliding window with overlap."
+  (setv
+   step (or step n)
+   slices (genexpr (itertools.islice coll start nil step) [start (range n)]))
+  (if (is fillvalue -sentinel)
+    (apply zip slices)
+    (apply zip-longest slices {"fillvalue" fillvalue})))
 
 (defn pos? [n]
   "Return true if n is > 0"
@@ -347,18 +398,19 @@
 (defn take [count coll]
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
-  (itertools.islice coll nil count))
+  (islice coll nil count))
 
 (defn take-nth [n coll]
   "Return every nth member of coll
      raises ValueError for (not (pos? n))"
   (if (pos? n)
-    (let [[citer (iter coll)] [skip (dec n)]]
-      (for* [val citer]
-        (yield val)
-        (for* [_ (range skip)]
-          (next citer))))
-    (raise (ValueError "n must be positive"))))
+    (let [citer (iter coll)
+          skip (dec n)]
+    (for* [val citer]
+      (yield val)
+      (for* [_ (range skip)]
+        (next citer))))
+  (raise (ValueError "n must be positive"))))
 
 (defn zero? [n]
   "Return true if n is 0"
@@ -373,7 +425,7 @@
   (while true
     (def inn (str (.readline from-file)))
     (if (= inn eof)
-      (throw (EOFError "Reached end of file" )))
+      (raise (EOFError "Reached end of file" )))
     (setv buff (+ buff inn))
     (try
       (def parsed (first (tokenize buff)))
@@ -381,13 +433,9 @@
       (else (if parsed (break)))))
     parsed)
 
-(defun Botsbuildbots () (Botsbuildbots))
-
-(defn zipwith [func &rest lists]
-  "Zip the contents of several lists and map a function to the result"
-  (do
-    (import functools)
-    (map (functools.partial (fn [f args] (apply f args)) func) (apply zip lists))))
+(defn read-str [input]
+  "Reads and tokenizes first line of input"
+  (read :from-file (StringIO input)))
 
 (defn hyify [text]
   "Convert text to match hy identifier"
@@ -402,26 +450,26 @@
       (HyKeyword (+ ":" (hyify value)))
       (try
         (hyify (.__name__ value))
-        (catch [] (HyKeyword (+ ":" (string value))))))))
+        (except [] (HyKeyword (+ ":" (string value))))))))
 
 (defn name [value]
   "Convert the given value to a string. Keyword special character will be stripped.
   String will be used as is. Even objects with the __name__ magic will work"
   (if (and (string? value) (value.startswith *keyword-prefix*))
-    (hyify (slice value 2))
+    (hyify (cut value 2))
     (if (string? value)
       (hyify value)
       (try
         (hyify (. value __name__))
-        (catch [] (string value))))))
+        (except [] (string value))))))
 
-(def *exports* '[Botsbuildbots
-                 butlast calling-module-name coll? cons cons? cycle
-                 dec distinct disassemble drop drop-last drop-while empty? even?
-                 every? first filter filterfalse flatten float? gensym identity
-                 inc input instance? integer integer? integer-char? interleave
-                 interpose iterable? iterate iterator? keyword keyword? last list*
-                 macroexpand macroexpand-1 map merge-with name neg? nil? none?
-                 nth numeric? odd? pos? range read remove repeat repeatedly
-                 rest reduce second some string string? symbol? take take-nth
-                 take-while zero? zip zip_longest zipwith])
+(def *exports*
+  '[*map accumulate butlast calling-module-name chain coll? combinations
+    compress cons cons? count cycle dec distinct disassemble drop drop-last
+    drop-while empty? even? every? first filter flatten float? fraction gensym
+    group-by identity inc input instance? integer integer? integer-char?
+    interleave interpose islice iterable? iterate iterator? keyword keyword?
+    last list* macroexpand macroexpand-1 map merge-with multicombinations name
+    neg? nil? none? nth numeric? odd? partition permutations pos? product range
+    read read-str remove repeat repeatedly rest reduce second some string
+    string? symbol? take take-nth take-while tee zero? zip zip-longest])

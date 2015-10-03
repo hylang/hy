@@ -61,8 +61,8 @@ Layout & Indentation
      ;; Good (and preferred)
      (defn fib [n]
        (if (<= n 2)
-         n
-         (+ (fib (- n 1)) (fib (- n 2)))))
+           n
+           (+ (fib (- n 1)) (fib (- n 2)))))
 
      ;; Still okay
      (defn fib [n]
@@ -89,8 +89,8 @@ Layout & Indentation
     ;; Good (and preferred)
     (defn fib [n]
       (if (<= n 2)
-        n
-        (+ (fib (- n 1)) (fib (- n 2)))))
+          n
+          (+ (fib (- n 1)) (fib (- n 2)))))
 
     ;; Hysterically ridiculous
     (defn fib [n]
@@ -105,8 +105,8 @@ Layout & Indentation
 
   .. code-block:: clj
 
-     (let [[foo (bar)]
-           [qux (baz)]]
+     (let [foo (bar)]
+           qux (baz)]
         (foo qux))
 
 

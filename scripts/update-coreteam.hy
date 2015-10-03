@@ -33,5 +33,5 @@
 (setv filename (os.path.abspath (os.path.join os.path.pardir
                                               "docs" "coreteam.rst")))
 
-(with [[fobj (open filename "w+")]]
+(with [fobj (open filename "w+")]
   (fobj.write (+ (.join "\n" result) "\n")))

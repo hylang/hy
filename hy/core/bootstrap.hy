@@ -31,42 +31,25 @@
   `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
 
 
-(defmacro defmacro-alias [names lambda-list &rest body]
-  "define one macro with several names"
-  (setv ret `(do))
-  (for* [name names]
-    (.append ret
-             `(defmacro ~name ~lambda-list ~@body)))
-  ret)
-
-
-(defmacro-alias [defn defun] [name lambda-list &rest body]
+(defmacro defn [name lambda-list &rest body]
   "define a function `name` with signature `lambda-list` and body `body`"
   (if (not (= (type name) HySymbol))
-    (macro-error name "defn/defun takes a name as first argument"))
+    (macro-error name "defn takes a name as first argument"))
   (if (not (isinstance lambda-list HyList))
-    (macro-error name "defn/defun takes a parameter list as second argument"))
+    (macro-error name "defn takes a parameter list as second argument"))
   `(setv ~name (fn ~lambda-list ~@body)))
 
 
 (defmacro let [variables &rest body]
   "Execute `body` in the lexical context of `variables`"
-  (setv macroed_variables [])
   (if (not (isinstance variables HyList))
     (macro-error variables "let lexical context must be a list"))
-  (for* [variable variables]
-    (if (isinstance variable HyList)
-      (do
-       (if (!= (len variable) 2)
-         (macro-error variable "let variable assignments must contain two items"))
-       (.append macroed-variables `(setv ~(get variable 0) ~(get variable 1))))
-      (if (isinstance variable HySymbol)
-        (.append macroed-variables `(setv ~variable None))
-        (macro-error variable "let lexical context element must be a list or symbol"))))
-  `((fn []
-     ~@macroed-variables
-     ~@body)))
-
+  (if (= (len variables) 0)
+    `((fn []
+        ~@body))
+    `((fn []
+        (setv ~@variables)
+        ~@body))))
 
 (defmacro if-python2 [python2-form python3-form]
   "If running on python2, execute python2-form, else, execute python3-form"
