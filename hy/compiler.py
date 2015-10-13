@@ -2371,6 +2371,9 @@ class HyASTCompiler(object):
             raise HyTypeError(name, ("received a `%s' instead of a symbol "
                                      "for macro name" % type(name).__name__))
         name = HyString(name).replace(name)
+        for kw in ("&kwonly", "&kwargs"):
+            if kw in expression[0]:
+                raise HyTypeError(name, "macros cannot use %s" % kw)
         new_expression = HyExpression([
             HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.macro"), name]),

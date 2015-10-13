@@ -1,3 +1,5 @@
+(import [hy.errors [HyTypeError]])
+
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
   (quasiquote (do (unquote-splice (list (reversed body))))))
@@ -47,6 +49,20 @@
 
 (defmacro bar [x y]
   (foo x y))
+
+(defn test-macro-kw []
+  "NATIVE: test that an error is raised when &kwonly or &kwargs is used in a macro"
+  (try
+    (eval '(defmacro f [&kwonly a b]))
+    (except [e HyTypeError]
+      (assert (= e.message "macros cannot use &kwonly")))
+    (else (assert false)))
+
+  (try
+    (eval '(defmacro f [&kwargs kw]))
+    (except [e HyTypeError]
+      (assert (= e.message "macros cannot use &kwargs")))
+    (else (assert false))))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"
