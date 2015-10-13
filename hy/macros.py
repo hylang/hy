@@ -18,14 +18,20 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from inspect import getargspec, formatargspec
 from hy.models import replace_hy_obj, wrap_value
 from hy.models.expression import HyExpression
 from hy.models.string import HyString
 
 from hy.errors import HyTypeError, HyMacroExpansionError
+from hy._compat import PY3
+
+if PY3:
+    from inspect import getfullargspec as getargspec
+else:
+    from inspect import getargspec
 
 from collections import defaultdict
+import ast
 
 CORE_MACROS = [
     "hy.core.bootstrap",
@@ -123,13 +129,42 @@ def load_macros(module_name):
         _import(module)
 
 
-def make_emtpy_fn_copy(fn):
-    argspec = getargspec(fn)
-    formatted_args = formatargspec(*argspec)
-    fn_str = 'lambda {}: None'.format(
-        formatted_args.lstrip('(').rstrip(')'))
+def make_empty_fn_copy(fn):
+    try:
+        argspec = getargspec(fn)
+    except:
+        return lambda *_: None
 
-    empty_fn = eval(fn_str)
+    none = ast.Name(id='None', ctx=ast.Load())
+    nonify = lambda _: none
+    if not PY3:
+        def argify(arg):
+            return ast.Name(id=arg, ctx=ast.Param())
+
+        fargs = ast.arguments(args=map(argify, argspec.args),
+                              vararg=argspec.varargs,
+                              kwarg=argspec.keywords,
+                              defaults=map(nonify, argspec.defaults or []))
+    else:
+        def argify(arg):
+            if arg is None:
+                return None
+            return ast.arg(arg=arg, annotation=None)
+
+        fargs = ast.arguments(args=list(map(argify, argspec.args)),
+                              vararg=argify(argspec.varargs),
+                              kwarg=argify(argspec.varkw),
+                              defaults=list(map(nonify,
+                                                argspec.defaults or [])),
+                              kwonlyargs=list(map(argify,
+                                                  argspec.kwonlyargs or [])),
+                              kw_defaults=list(map(nonify,
+                                                   argspec.kwonlydefaults or []
+                                                   )))
+    func = ast.Lambda(args=fargs, body=none)
+    expr = ast.Expression(func)
+    expr = ast.fix_missing_locations(expr)
+    empty_fn = eval(compile(expr, '<hy>', 'eval'))
     return empty_fn
 
 
@@ -167,7 +202,7 @@ def macroexpand_1(tree, module_name):
                 m = _hy_macros[None].get(fn)
             if m is not None:
                 try:
-                    m_copy = make_emtpy_fn_copy(m)
+                    m_copy = make_empty_fn_copy(m)
                     m_copy(*ntree[1:])
                 except TypeError as e:
                     msg = "expanding `" + str(tree[0]) + "': "
