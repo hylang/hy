@@ -590,21 +590,22 @@ class HyASTCompiler(object):
 
         return ret, args, defaults, varargs, kwonlyargs, kwonlydefaults, kwargs
 
-    def _storeize(self, name, func=None):
+    def _storeize(self, expr, name, func=None):
         """Return a new `name` object with an ast.Store() context"""
         if not func:
             func = ast.Store
 
         if isinstance(name, Result):
             if not name.is_expr():
-                raise TypeError("Can't assign / delete a non-expression")
+                raise HyTypeError(expr,
+                                  "Can't assign or delete a non-expression")
             name = name.expr
 
         if isinstance(name, (ast.Tuple, ast.List)):
             typ = type(name)
             new_elts = []
             for x in name.elts:
-                new_elts.append(self._storeize(x, func))
+                new_elts.append(self._storeize(expr, x, func))
             new_name = typ(elts=new_elts)
         elif isinstance(name, ast.Name):
             new_name = ast.Name(id=name.id, arg=name.arg)
@@ -613,7 +614,9 @@ class HyASTCompiler(object):
         elif isinstance(name, ast.Attribute):
             new_name = ast.Attribute(value=name.value, attr=name.attr)
         else:
-            raise TypeError("Can't assign / delete a %s object" % type(name))
+            raise HyTypeError(expr,
+                              "Can't assign or delete a %s" %
+                              type(expr).__name__)
 
         new_name.ctx = func()
         ast.copy_location(new_name, name)
@@ -953,7 +956,7 @@ class HyASTCompiler(object):
                 name = ast_str(name)
             else:
                 # Python2 requires an ast.Name, set to ctx Store.
-                name = self._storeize(self.compile(name))
+                name = self._storeize(name, self.compile(name))
         else:
             name = None
 
@@ -1343,11 +1346,13 @@ class HyASTCompiler(object):
                                col_offset=root.start_column)
             return result
 
-        ld_targets, ret, _ = self._compile_collect(expr)
-
         del_targets = []
-        for target in ld_targets:
-            del_targets.append(self._storeize(target, ast.Del))
+        ret = Result()
+        for target in expr:
+            compiled_target = self.compile(target)
+            ret += compiled_target
+            del_targets.append(self._storeize(target, compiled_target,
+                                              ast.Del))
 
         return ret + ast.Delete(
             lineno=expr.start_line,
@@ -1436,7 +1441,7 @@ class HyASTCompiler(object):
 
         thing = None
         if args != []:
-            thing = self._storeize(self.compile(args.pop(0)))
+            thing = self._storeize(args[0], self.compile(args.pop(0)))
 
         body = self._compile_branch(expr)
 
@@ -1498,7 +1503,7 @@ class HyASTCompiler(object):
         gen = []
         for target, iterable in paired_gens:
             comp_target = self.compile(target)
-            target = self._storeize(comp_target)
+            target = self._storeize(target, comp_target)
             gen_res += self.compile(iterable)
             gen.append(ast.comprehension(
                 target=target,
@@ -1963,7 +1968,7 @@ class HyASTCompiler(object):
 
         op = ops[expression[0]]
 
-        target = self._storeize(self.compile(expression[1]))
+        target = self._storeize(expression[1], self.compile(expression[1]))
         ret = self.compile(expression[2])
 
         ret += ast.AugAssign(
@@ -2099,7 +2104,7 @@ class HyASTCompiler(object):
            and '.' not in name:
             result.rename(name)
         else:
-            st_name = self._storeize(ld_name)
+            st_name = self._storeize(name, ld_name)
             result += ast.Assign(
                 lineno=start_line,
                 col_offset=start_column,
@@ -2127,7 +2132,7 @@ class HyASTCompiler(object):
             raise HyTypeError(expression,
                               "for requires two forms in the list")
 
-        target = self._storeize(self.compile(target_name))
+        target = self._storeize(target_name, self.compile(target_name))
 
         ret = Result()
 

@@ -1,7 +1,8 @@
 (import [tests.resources [kwtest function-with-a-dash]]
         [os.path [exists isdir isfile]]
         [sys :as systest]
-        [operator [or_]])
+        [operator [or_]]
+        [hy.errors [HyTypeError]])
 (import sys)
 
 (import [hy._compat [PY33 PY34 PY35]])
@@ -60,6 +61,7 @@
   (setv (get foo 0) 12)
   (assert (= (get foo 0) 12)))
 
+
 (defn test-setv-builtin []
   "NATIVE: test that setv doesn't work on builtins"
   (try (eval '(setv False 1))
@@ -91,6 +93,37 @@
   (assert y)
   (try (eval '(setv a 1 b))
        (except [e [TypeError]] (assert (in "`setv' needs an even number of arguments" (str e))))))
+
+
+(defn test-store-errors []
+  "NATIVE: test that setv raises the correct errors when given wrong argument types"
+  (try
+    (do
+      (eval '(setv (do 1 2) 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a non-expression"))))
+
+  (try
+    (do
+      (eval '(setv 1 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a HyInteger"))))
+
+  (try
+    (do
+      (eval '(setv {1 2} 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a HyDict"))))
+
+  (try
+    (do
+      (eval '(del 1 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a HyInteger")))))
 
 
 (defn test-fn-corner-cases []
@@ -939,7 +972,6 @@
 
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
-  (import [hy.errors [HyTypeError]])
   ; yo dawg
   (try (eval '(eval)) (except [e HyTypeError]) (else (assert False)))
   (try (eval '(eval "snafu")) (except [e HyTypeError]) (else (assert False)))
