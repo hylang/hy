@@ -208,15 +208,26 @@
 
 (defn test-noteq []
   "NATIVE: not eq"
-  (assert (!= 2 3)))
+  (assert (!= 2 3))
+  (assert (not (!= 1))))
+
+
+(defn test-eq []
+  "NATIVE: eq"
+  (assert (= 1 1))
+  (assert (= 1)))
 
 
 (defn test-numops []
   "NATIVE: test numpos"
   (assert (> 5 4 3 2 1))
+  (assert (> 1))
   (assert (< 1 2 3 4 5))
+  (assert (< 1))
   (assert (<= 5 5 5 5 ))
-  (assert (>= 5 5 5 5 )))
+  (assert (<= 1))
+  (assert (>= 5 5 5 5 ))
+  (assert (>= 1)))
 
 
 (defn test-is []
