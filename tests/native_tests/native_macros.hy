@@ -190,11 +190,11 @@
 
 (defn test-lif []
   "test that lif works as expected"
-  ; nil is false
+  ;; nil is false
   (assert (= (lif None "true" "false") "false"))
   (assert (= (lif nil "true" "false") "false"))
 
-  ; But everything else is True!  Even falsey things.
+  ;; But everything else is True!  Even falsey things.
   (assert (= (lif True "true" "false") "true"))
   (assert (= (lif False "true" "false") "true"))
   (assert (= (lif 0 "true" "false") "true"))
@@ -202,7 +202,14 @@
   (assert (= (lif "" "true" "false") "true"))
   (assert (= (lif (+ 1 2 3) "true" "false") "true"))
   (assert (= (lif nil "true" "false") "false"))
-  (assert (= (lif 0 "true" "false") "true")))
+  (assert (= (lif 0 "true" "false") "true"))
+
+  ;; Test ellif [sic]
+  (assert (= (lif nil 0
+                  nil 1
+                  0 2
+                  3)
+             2)))
 
 (defn test-lif-not []
   "test that lif-not works as expected"

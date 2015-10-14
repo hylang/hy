@@ -159,20 +159,25 @@
   ret)
 
 
-(defmacro if-not [test not-branch &optional [yes-branch nil]]
+(defmacro if-not [test not-branch &optional yes-branch]
   "Like `if`, but execute the first branch when the test fails"
-  (if (nil? yes-branch)
-    `(if (not ~test) ~not-branch)
-    `(if (not ~test) ~not-branch ~yes-branch)))
+  `(if* (not ~test) ~not-branch ~yes-branch))
 
 
-(defmacro lif [test &rest branches]
+(defmacro lif [&rest args]
   "Like `if`, but anything that is not None/nil is considered true."
-  `(if (is-not ~test nil) ~@branches))
+  (setv n (len args))
+  (if* n
+       (if* (= n 1)
+            (get args 0)
+            `(if* (is-not ~(get args 0) nil)
+                  ~(get args 1)
+                  (lif ~@(cut args 2))))))
 
-(defmacro lif-not [test &rest branches]
+
+(defmacro lif-not [test not-branch &optional yes-branch]
   "Like `if-not`, but anything that is not None/nil is considered true."
-  `(if (is ~test nil) ~@branches))
+  `(if* (is ~test nil) ~not-branch ~yes-branch))
 
 
 (defmacro when [test &rest body]
