@@ -274,6 +274,32 @@
   (assert (= (cond) nil)))
 
 
+(defn test-if []
+  "NATIVE: test if if works."
+  ;; with an odd number of args, the last argument is the default case
+  (assert (= 1 (if 1)))
+  (assert (= 1 (if 0 -1
+                     1)))
+  ;; with an even number of args, the default is nil
+  (assert (is nil (if)))
+  (assert (is nil (if 0 1)))
+  ;; test deeper nesting
+  (assert (= 42
+             (if 0 0
+                 nil 1
+                 "" 2
+                 1 42
+                 1 43)))
+  ;; test shortcutting
+  (setv x nil)
+  (if 0 (setv x 0)
+      "" (setv x "")
+      42 (setv x 42)
+      43 (setv x 43)
+         (setv x "default"))
+  (assert (= x 42)))
+
+
 (defn test-index []
   "NATIVE: Test that dict access works"
   (assert (= (get {"one" "two"} "one") "two"))

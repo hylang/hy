@@ -999,7 +999,7 @@ class HyASTCompiler(object):
             name=name,
             body=body)
 
-    @builds("if")
+    @builds("if*")
     @checkargs(min=2, max=3)
     def compile_if(self, expression):
         expression.pop(0)
@@ -1011,7 +1011,7 @@ class HyASTCompiler(object):
         if expression:
             orel_expr = expression.pop(0)
             if isinstance(orel_expr, HyExpression) and isinstance(orel_expr[0],
-               HySymbol) and orel_expr[0] == 'if':
+               HySymbol) and orel_expr[0] == 'if*':
                 # Nested ifs: don't waste temporaries
                 root = self.temp_if is None
                 nested = True

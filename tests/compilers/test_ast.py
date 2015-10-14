@@ -73,15 +73,15 @@ def test_ast_bad_type():
 
 
 def test_ast_bad_if():
-    "Make sure AST can't compile invalid if"
-    cant_compile("(if)")
-    cant_compile("(if foobar)")
-    cant_compile("(if 1 2 3 4 5)")
+    "Make sure AST can't compile invalid if*"
+    cant_compile("(if*)")
+    cant_compile("(if* foobar)")
+    cant_compile("(if* 1 2 3 4 5)")
 
 
 def test_ast_valid_if():
-    "Make sure AST can't compile invalid if"
-    can_compile("(if foo bar)")
+    "Make sure AST can compile valid if*"
+    can_compile("(if* foo bar)")
 
 
 def test_ast_valid_unary_op():
@@ -539,13 +539,13 @@ def test_invalid_list_comprehension():
 
 def test_bad_setv():
     """Ensure setv handles error cases"""
-    cant_compile("(setv if 1)")
+    cant_compile("(setv if* 1)")
     cant_compile("(setv (a b) [1 2])")
 
 
 def test_defn():
     """Ensure that defn works correctly in various corner cases"""
-    cant_compile("(defn if [] 1)")
+    cant_compile("(defn if* [] 1)")
     cant_compile("(defn \"hy\" [] 1)")
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
@@ -561,5 +561,5 @@ def test_setv_builtins():
       (defn get [self] 42)
       (defclass B []
         (defn get [self] 42))
-      (defn if [self] 0))
+      (defn if* [self] 0))
     """)
