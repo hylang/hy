@@ -40,6 +40,15 @@
   `(setv ~name (fn ~lambda-list ~@body)))
 
 
+(defmacro defasync [name lambda-list &rest body]
+  "define an async function `name` with signature `lambda-list` and body `body`"
+  (if (not (= (type name) HySymbol))
+    (macro-error name "defasync takes a name as first argument"))
+  (if (not (isinstance lambda-list HyList))
+    (macro-error name "defasync takes a parameter list as second argument"))
+  `(setv ~name (async-fn ~lambda-list ~@body)))
+
+
 (defmacro let [variables &rest body]
   "Execute `body` in the lexical context of `variables`"
   (if (not (isinstance variables HyList))
