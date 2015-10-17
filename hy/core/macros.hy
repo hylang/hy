@@ -120,7 +120,10 @@
 
 
 (defmacro -> [head &rest rest]
-  ;; TODO: fix the docstring by someone who understands this
+  "Threads the head through the rest of the forms. Inserts
+   head as the second item in the first form of rest. If
+   there are more forms, inserts the first form as the
+   second item in the second form of rest, etc."
   (setv ret head)
   (for* [node rest]
     (if (not (isinstance node HyExpression))
@@ -143,7 +146,10 @@
      ~f))
 
 (defmacro ->> [head &rest rest]
-  ;; TODO: fix the docstring by someone who understands this
+  "Threads the head through the rest of the forms. Inserts
+   head as the last item in the first form of rest. If there
+   are more forms, inserts the first form as the last item
+   in the second form of rest, etc."
   (setv ret head)
   (for* [node rest]
     (if (not (isinstance node HyExpression))
