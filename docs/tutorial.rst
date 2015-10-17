@@ -556,9 +556,20 @@ characters that soon):
   => #↻(1 2 3 +)
   6
 
-Macros are useful when one wished to extend the Hy or write their own
+Macros are useful when one wishes to extend the Hy or write their own
 language on top of that. Many features of Hy are macros, like ``when``,
 ``cond`` and ``->``.
+
+To use macros defined in a different module, it is not enough to
+``import`` the module, because importing happens at run-time, while we
+would need macros at compile-time. Instead of importing the module
+with macros, it must be ``require``d:
+
+.. code-block:: clj
+
+   => (require tutorial.macros)
+   => (rev (1 2 3 +))
+   6
 
 Hy <-> Python interop
 =====================
