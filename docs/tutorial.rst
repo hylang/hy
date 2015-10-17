@@ -479,8 +479,7 @@ In Hy:
     "Yet Another Example Class"
 
     (defn --init-- [self x]
-      (setv self.x x)
-      None)
+      (setv self.x x))
 
     (defn get-x [self]
       "Return our copy of x"
@@ -615,7 +614,7 @@ To use keyword arguments, you can use in ``greetings.py``::
     (import greetings)
     (.greet greetings "Foo")
     (.greet greetings "Foo" "Darth")
-    (apply (. greetings greet) ["Foo"] {"title" "Lord"})
+    (apply (. greetings greet) ["Foo"] {:title "Lord"})
 
 Which would output::
 
