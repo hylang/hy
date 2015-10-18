@@ -13,6 +13,9 @@ concise and easy to read.
 
     -- Wikipedia (http://en.wikipedia.org/wiki/Anaphoric_macro)
 
+To use these macros you need to require the hy.contrib.anaphoric module like so:
+
+``(require hy.contrib.anaphoric)``
 
 .. _ap-if:
 
@@ -233,7 +236,7 @@ xi
 
 Usage ``(xi body ...)``
 
-Returns a function with parameters implicitly determined by the presence in the body of xi parameters. An xi symbol designates the ith parameter (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself. This is not a replacement for lambda. The xi forms cannot be nested. 
+Returns a function with parameters implicitly determined by the presence in the body of xi parameters. An xi symbol designates the ith parameter (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself. This is not a replacement for lambda. The xi forms cannot be nested.
 
 This is similar to Clojure's anonymous function literals (``#()``).
 
@@ -244,5 +247,3 @@ This is similar to Clojure's anonymous function literals (``#()``).
    => (def add-10 (xi + 10 x1))
    => (add-10 6)
    16
-   
-
