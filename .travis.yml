@@ -1,13 +1,20 @@
 sudo: false
 language: python
 python:
-  - "pypy"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-cache: pip
-# command to run tests
-script: make travis
+  - 3.5
+env:
+  - TOXENV=py27
+  - TOXENV=py33
+  - TOXENV=py34
+  - TOXENV=py35
+  - TOXENV=pypy
+  - TOXENV=flake8
+install: pip install tox
+script: tox
+cache:
+  directories:
+    - .tox
+    - $HOME/.cache/pip
 after_success: make coveralls
 notifications:
   email:

@@ -67,14 +67,6 @@ endif
 	$(pip) install coveralls
 	$(pip) install --allow-all-external -e .
 
-travis: python
-	$(nose) -s --with-coverage --cover-package hy
-ifeq (PyPy,$(findstring PyPy,$(shell python -V 2>&1 | tail -1)))
-	@echo "skipping flake8 on pypy"
-else
-	flake8 hy bin tests
-endif
-
 coveralls:
 	$(coveralls)
 
