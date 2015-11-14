@@ -1502,7 +1502,7 @@ infinite series without consuming infinite amount of memory.
 .. code-block:: clj
 
     => (defn multiply [bases coefficients]
-    ...  (for [[(, base coefficient) (zip bases coefficients)]]
+    ...  (for [(, base coefficient) (zip bases coefficients)]
     ...   (yield (* base coefficient))))
 
     => (multiply (range 5) (range 5))
