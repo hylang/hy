@@ -1502,7 +1502,7 @@ infinite series without consuming infinite amount of memory.
 .. code-block:: clj
 
     => (defn multiply [bases coefficients]
-    ...  (for [[(, base coefficient) (zip bases coefficients)]]
+    ...  (for [(, base coefficient) (zip bases coefficients)]
     ...   (yield (* base coefficient))))
 
     => (multiply (range 5) (range 5))
@@ -1514,7 +1514,7 @@ infinite series without consuming infinite amount of memory.
     => (import random)
     => (defn random-numbers [low high]
     ...  (while True (yield (.randint random low high))))
-    => (list-comp x [x (take 15 (random-numbers 1 50))])])
+    => (list-comp x [x (take 15 (random-numbers 1 50))])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
 
 
