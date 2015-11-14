@@ -514,7 +514,7 @@ the program starts executing normally. Very simple example:
 
   => (defmacro hello [person]
   ...  `(print "Hello there," ~person))
-  => (Hello "Tuukka")
+  => (hello "Tuukka")
   Hello there, Tuukka
 
 The thing to notice here is that hello macro doesn't output anything on
