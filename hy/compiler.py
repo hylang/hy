@@ -377,6 +377,7 @@ class HyASTCompiler(object):
         self.anon_var_count = 0
         self.imports = defaultdict(set)
         self.module_name = module_name
+        self.temp_if = None
         if not module_name.startswith("hy.core"):
             # everything in core needs to be explicit.
             load_stdlib()
@@ -589,21 +590,22 @@ class HyASTCompiler(object):
 
         return ret, args, defaults, varargs, kwonlyargs, kwonlydefaults, kwargs
 
-    def _storeize(self, name, func=None):
+    def _storeize(self, expr, name, func=None):
         """Return a new `name` object with an ast.Store() context"""
         if not func:
             func = ast.Store
 
         if isinstance(name, Result):
             if not name.is_expr():
-                raise TypeError("Can't assign / delete a non-expression")
+                raise HyTypeError(expr,
+                                  "Can't assign or delete a non-expression")
             name = name.expr
 
         if isinstance(name, (ast.Tuple, ast.List)):
             typ = type(name)
             new_elts = []
             for x in name.elts:
-                new_elts.append(self._storeize(x, func))
+                new_elts.append(self._storeize(expr, x, func))
             new_name = typ(elts=new_elts)
         elif isinstance(name, ast.Name):
             new_name = ast.Name(id=name.id, arg=name.arg)
@@ -612,7 +614,9 @@ class HyASTCompiler(object):
         elif isinstance(name, ast.Attribute):
             new_name = ast.Attribute(value=name.value, attr=name.attr)
         else:
-            raise TypeError("Can't assign / delete a %s object" % type(name))
+            raise HyTypeError(expr,
+                              "Can't assign or delete a %s" %
+                              type(expr).__name__)
 
         new_name.ctx = func()
         ast.copy_location(new_name, name)
@@ -952,7 +956,7 @@ class HyASTCompiler(object):
                 name = ast_str(name)
             else:
                 # Python2 requires an ast.Name, set to ctx Store.
-                name = self._storeize(self.compile(name))
+                name = self._storeize(name, self.compile(name))
         else:
             name = None
 
@@ -998,16 +1002,46 @@ class HyASTCompiler(object):
             name=name,
             body=body)
 
-    @builds("if")
+    @builds("if*")
     @checkargs(min=2, max=3)
     def compile_if(self, expression):
         expression.pop(0)
         cond = self.compile(expression.pop(0))
-
         body = self.compile(expression.pop(0))
+
         orel = Result()
+        nested = root = False
         if expression:
-            orel = self.compile(expression.pop(0))
+            orel_expr = expression.pop(0)
+            if isinstance(orel_expr, HyExpression) and isinstance(orel_expr[0],
+               HySymbol) and orel_expr[0] == 'if*':
+                # Nested ifs: don't waste temporaries
+                root = self.temp_if is None
+                nested = True
+                self.temp_if = self.temp_if or self.get_anon_var()
+            orel = self.compile(orel_expr)
+
+        if not cond.stmts and isinstance(cond.force_expr, ast.Name):
+            name = cond.force_expr.id
+            branch = None
+            if name == 'True':
+                branch = body
+            elif name in ('False', 'None'):
+                branch = orel
+            if branch is not None:
+                if self.temp_if and branch.stmts:
+                    name = ast.Name(id=ast_str(self.temp_if),
+                                    arg=ast_str(self.temp_if),
+                                    ctx=ast.Store(),
+                                    lineno=expression.start_line,
+                                    col_offset=expression.start_column)
+
+                    branch += ast.Assign(targets=[name],
+                                         value=body.force_expr,
+                                         lineno=expression.start_line,
+                                         col_offset=expression.start_column)
+
+                return branch
 
         # We want to hoist the statements from the condition
         ret = cond
@@ -1015,7 +1049,7 @@ class HyASTCompiler(object):
         if body.stmts or orel.stmts:
             # We have statements in our bodies
             # Get a temporary variable for the result storage
-            var = self.get_anon_var()
+            var = self.temp_if or self.get_anon_var()
             name = ast.Name(id=ast_str(var), arg=ast_str(var),
                             ctx=ast.Store(),
                             lineno=expression.start_line,
@@ -1028,10 +1062,12 @@ class HyASTCompiler(object):
                                col_offset=expression.start_column)
 
             # and of the else clause
-            orel += ast.Assign(targets=[name],
-                               value=orel.force_expr,
-                               lineno=expression.start_line,
-                               col_offset=expression.start_column)
+            if not nested or not orel.stmts or (not root and
+               var != self.temp_if):
+                orel += ast.Assign(targets=[name],
+                                   value=orel.force_expr,
+                                   lineno=expression.start_line,
+                                   col_offset=expression.start_column)
 
             # Then build the if
             ret += ast.If(test=ret.force_expr,
@@ -1054,6 +1090,10 @@ class HyASTCompiler(object):
                              orelse=orel.force_expr,
                              lineno=expression.start_line,
                              col_offset=expression.start_column)
+
+        if root:
+            self.temp_if = None
+
         return ret
 
     @builds("break")
@@ -1306,11 +1346,13 @@ class HyASTCompiler(object):
                                col_offset=root.start_column)
             return result
 
-        ld_targets, ret, _ = self._compile_collect(expr)
-
         del_targets = []
-        for target in ld_targets:
-            del_targets.append(self._storeize(target, ast.Del))
+        ret = Result()
+        for target in expr:
+            compiled_target = self.compile(target)
+            ret += compiled_target
+            del_targets.append(self._storeize(target, compiled_target,
+                                              ast.Del))
 
         return ret + ast.Delete(
             lineno=expr.start_line,
@@ -1399,7 +1441,7 @@ class HyASTCompiler(object):
 
         thing = None
         if args != []:
-            thing = self._storeize(self.compile(args.pop(0)))
+            thing = self._storeize(args[0], self.compile(args.pop(0)))
 
         body = self._compile_branch(expr)
 
@@ -1461,7 +1503,7 @@ class HyASTCompiler(object):
         gen = []
         for target, iterable in paired_gens:
             comp_target = self.compile(target)
-            target = self._storeize(comp_target)
+            target = self._storeize(target, comp_target)
             gen_res += self.compile(iterable)
             gen.append(ast.comprehension(
                 target=target,
@@ -1774,18 +1816,7 @@ class HyASTCompiler(object):
                               values=[value.force_expr for value in values])
         return ret
 
-    @builds("=")
-    @builds("!=")
-    @builds("<")
-    @builds("<=")
-    @builds(">")
-    @builds(">=")
-    @builds("is")
-    @builds("in")
-    @builds("is_not")
-    @builds("not_in")
-    @checkargs(min=2)
-    def compile_compare_op_expression(self, expression):
+    def _compile_compare_op_expression(self, expression):
         ops = {"=": ast.Eq, "!=": ast.NotEq,
                "<": ast.Lt, "<=": ast.LtE,
                ">": ast.Gt, ">=": ast.GtE,
@@ -1804,6 +1835,32 @@ class HyASTCompiler(object):
                                  comparators=exprs[1:],
                                  lineno=e.start_line,
                                  col_offset=e.start_column)
+
+    @builds("=")
+    @builds("!=")
+    @builds("<")
+    @builds("<=")
+    @builds(">")
+    @builds(">=")
+    @checkargs(min=1)
+    def compile_compare_op_expression(self, expression):
+        if len(expression) == 2:
+            rval = "True"
+            if expression[0] == "!=":
+                rval = "False"
+            return ast.Name(id=rval,
+                            ctx=ast.Load(),
+                            lineno=expression.start_line,
+                            col_offset=expression.start_column)
+        return self._compile_compare_op_expression(expression)
+
+    @builds("is")
+    @builds("in")
+    @builds("is_not")
+    @builds("not_in")
+    @checkargs(min=2)
+    def compile_compare_op_expression_coll(self, expression):
+        return self._compile_compare_op_expression(expression)
 
     @builds("%")
     @builds("**")
@@ -1911,7 +1968,7 @@ class HyASTCompiler(object):
 
         op = ops[expression[0]]
 
-        target = self._storeize(self.compile(expression[1]))
+        target = self._storeize(expression[1], self.compile(expression[1]))
         ret = self.compile(expression[2])
 
         ret += ast.AugAssign(
@@ -2047,7 +2104,7 @@ class HyASTCompiler(object):
            and '.' not in name:
             result.rename(name)
         else:
-            st_name = self._storeize(ld_name)
+            st_name = self._storeize(name, ld_name)
             result += ast.Assign(
                 lineno=start_line,
                 col_offset=start_column,
@@ -2075,7 +2132,7 @@ class HyASTCompiler(object):
             raise HyTypeError(expression,
                               "for requires two forms in the list")
 
-        target = self._storeize(self.compile(target_name))
+        target = self._storeize(target_name, self.compile(target_name))
 
         ret = Result()
 

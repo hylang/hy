@@ -823,26 +823,47 @@ keyword, the second function would have raised a ``NameError``.
     (set-a 5)
     (print-a)
 
-if / if-not
------------
+if / if* / if-not
+-----------------
 
 .. versionadded:: 0.10.0
    if-not
 
-``if`` is used to conditionally select code to be executed. It has to contain a
-condition block and the block to be executed if the condition block evaluates
-to ``True``. Optionally, it may contain a final block that is executed in case
-the evaluation of the condition is ``False``.
+``if / if* / if-not`` respect Python *truthiness*, that is, a *test* fails if it
+evaluates to a "zero" (including values of ``len`` zero, ``nil``, and
+``false``), and passes otherwise, but values with a ``__bool__`` method
+(``__nonzero__`` in Python 2) can overrides this.
 
-``if-not`` is similar, but the second block will be executed when the condition
-fails while the third and final block is executed when the test succeeds -- the
-opposite order of ``if``.
+The ``if`` macro is for conditionally selecting an expression for evaluation.
+The result of the selected expression becomes the result of the entire ``if``
+form. ``if`` can select a group of expressions with the help of a ``do`` block.
+
+``if`` takes any number of alternating *test* and *then* expressions, plus an
+optional *else* expression at the end, which defaults to ``nil``. ``if`` checks
+each *test* in turn, and selects the *then* corresponding to the first passed
+test. ``if`` does not evaluate any expressions following its selection, similar
+to the ``if/elif/else`` control structure from Python. If no tests pass, ``if``
+selects *else*.
+
+The ``if*`` special form is restricted to 2 or 3 arguments, but otherwise works
+exactly like ``if`` (which expands to nested ``if*`` forms), so there is
+generally no reason to use it directly.
+
+``if-not`` is similar to ``if*`` but the second expression will be executed
+when the condition fails while the third and final expression is executed when
+the test succeeds -- the opposite order of ``if*``. The final expression is
+again optional and defaults to ``nil``.
 
 Example usage:
 
 .. code-block:: clj
 
-    (if (money-left? account)
+    (print (if (< n 0.0) "negative"
+               (= n 0.0) "zero"
+               (> n 0.0) "positive"
+               "not a number"))
+
+    (if* (money-left? account)
       (print "let's go shopping")
       (print "let's go and work"))
 
@@ -850,9 +871,6 @@ Example usage:
       (print "let's go and work")
       (print "let's go shopping"))
 
-Python truthiness is respected. ``None``, ``False``, zero of any numeric type,
-an empty sequence, and an empty dictionary are considered ``False``; everything
-else is considered ``True``.
 
 
 lif and lif-not
@@ -1484,7 +1502,7 @@ infinite series without consuming infinite amount of memory.
 .. code-block:: clj
 
     => (defn multiply [bases coefficients]
-    ...  (for [[(, base coefficient) (zip bases coefficients)]]
+    ...  (for [(, base coefficient) (zip bases coefficients)]
     ...   (yield (* base coefficient))))
 
     => (multiply (range 5) (range 5))
@@ -1496,7 +1514,7 @@ infinite series without consuming infinite amount of memory.
     => (import random)
     => (defn random-numbers [low high]
     ...  (while True (yield (.randint random low high))))
-    => (list-comp x [x (take 15 (random-numbers 1 50))])])
+    => (list-comp x [x (take 15 (random-numbers 1 50))])
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
 
 

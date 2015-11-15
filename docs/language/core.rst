@@ -436,6 +436,26 @@ themselves as an iterator when ``(iter x)`` is called. Contrast with
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
 
+.. _keyword-fn:
+
+keyword
+-------
+
+.. versionadded:: 0.10.1
+
+Usage: ``(keyword "foo")``
+
+Create a keyword from the given value. Strings, numbers, and even
+objects with the `__name__` magic will work.
+
+.. code-block:: hy
+
+   => (keyword "foo")
+   u'\ufdd0:foo'
+
+   => (keyword 1)
+   u'\ufdd0:1'
+
 .. _keyword?-fn:
 
 keyword?
@@ -535,6 +555,24 @@ calling ``(f val-in-result val-in-latter)``.
     => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
     {u'a': 11L, u'c': 30L, u'b': 20L}
 
+
+.. _name-fn:
+
+name
+----
+
+.. versionadded:: 0.10.1
+
+Usage: ``(name :keyword)``
+
+Convert the given value to a string. Keyword special character will be
+stripped. Strings will be used as is. Even objects with the `__name__`
+magic will work.
+
+.. code-block:: hy
+
+   => (name :foo)
+   u'foo'
 
 .. _neg?-fn:
 

@@ -1,7 +1,8 @@
 (import [tests.resources [kwtest function-with-a-dash]]
         [os.path [exists isdir isfile]]
         [sys :as systest]
-        [operator [or_]])
+        [operator [or_]]
+        [hy.errors [HyTypeError]])
 (import sys)
 
 (import [hy._compat [PY33 PY34 PY35]])
@@ -60,6 +61,7 @@
   (setv (get foo 0) 12)
   (assert (= (get foo 0) 12)))
 
+
 (defn test-setv-builtin []
   "NATIVE: test that setv doesn't work on builtins"
   (try (eval '(setv False 1))
@@ -91,6 +93,37 @@
   (assert y)
   (try (eval '(setv a 1 b))
        (except [e [TypeError]] (assert (in "`setv' needs an even number of arguments" (str e))))))
+
+
+(defn test-store-errors []
+  "NATIVE: test that setv raises the correct errors when given wrong argument types"
+  (try
+    (do
+      (eval '(setv (do 1 2) 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a non-expression"))))
+
+  (try
+    (do
+      (eval '(setv 1 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a HyInteger"))))
+
+  (try
+    (do
+      (eval '(setv {1 2} 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a HyDict"))))
+
+  (try
+    (do
+      (eval '(del 1 1))
+      (assert false))
+    (except [e HyTypeError]
+      (assert (= e.message "Can't assign or delete a HyInteger")))))
 
 
 (defn test-fn-corner-cases []
@@ -208,15 +241,26 @@
 
 (defn test-noteq []
   "NATIVE: not eq"
-  (assert (!= 2 3)))
+  (assert (!= 2 3))
+  (assert (not (!= 1))))
+
+
+(defn test-eq []
+  "NATIVE: eq"
+  (assert (= 1 1))
+  (assert (= 1)))
 
 
 (defn test-numops []
   "NATIVE: test numpos"
   (assert (> 5 4 3 2 1))
+  (assert (> 1))
   (assert (< 1 2 3 4 5))
+  (assert (< 1))
   (assert (<= 5 5 5 5 ))
-  (assert (>= 5 5 5 5 )))
+  (assert (<= 1))
+  (assert (>= 5 5 5 5 ))
+  (assert (>= 1)))
 
 
 (defn test-is []
@@ -261,6 +305,32 @@
    [(= 1 2) (assert (is true false))]
    [(is None None) (setv x true) (assert x)])
   (assert (= (cond) nil)))
+
+
+(defn test-if []
+  "NATIVE: test if if works."
+  ;; with an odd number of args, the last argument is the default case
+  (assert (= 1 (if 1)))
+  (assert (= 1 (if 0 -1
+                     1)))
+  ;; with an even number of args, the default is nil
+  (assert (is nil (if)))
+  (assert (is nil (if 0 1)))
+  ;; test deeper nesting
+  (assert (= 42
+             (if 0 0
+                 nil 1
+                 "" 2
+                 1 42
+                 1 43)))
+  ;; test shortcutting
+  (setv x nil)
+  (if 0 (setv x 0)
+      "" (setv x "")
+      42 (setv x 42)
+      43 (setv x 43)
+         (setv x "default"))
+  (assert (= x 42)))
 
 
 (defn test-index []
@@ -928,7 +998,6 @@
 
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
-  (import [hy.errors [HyTypeError]])
   ; yo dawg
   (try (eval '(eval)) (except [e HyTypeError]) (else (assert False)))
   (try (eval '(eval "snafu")) (except [e HyTypeError]) (else (assert False)))

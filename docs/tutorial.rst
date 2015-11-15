@@ -479,8 +479,7 @@ In Hy:
     "Yet Another Example Class"
 
     (defn --init-- [self x]
-      (setv self.x x)
-      None)
+      (setv self.x x))
 
     (defn get-x [self]
       "Return our copy of x"
@@ -515,7 +514,7 @@ the program starts executing normally. Very simple example:
 
   => (defmacro hello [person]
   ...  `(print "Hello there," ~person))
-  => (Hello "Tuukka")
+  => (hello "Tuukka")
   Hello there, Tuukka
 
 The thing to notice here is that hello macro doesn't output anything on
@@ -557,9 +556,20 @@ characters that soon):
   => #↻(1 2 3 +)
   6
 
-Macros are useful when one wished to extend the Hy or write their own
+Macros are useful when one wishes to extend the Hy or write their own
 language on top of that. Many features of Hy are macros, like ``when``,
 ``cond`` and ``->``.
+
+To use macros defined in a different module, it is not enough to
+``import`` the module, because importing happens at run-time, while we
+would need macros at compile-time. Instead of importing the module
+with macros, it must be ``require``d:
+
+.. code-block:: clj
+
+   => (require tutorial.macros)
+   => (rev (1 2 3 +))
+   6
 
 Hy <-> Python interop
 =====================
@@ -604,7 +614,7 @@ To use keyword arguments, you can use in ``greetings.py``::
     (import greetings)
     (.greet greetings "Foo")
     (.greet greetings "Foo" "Darth")
-    (apply (. greetings greet) ["Foo"] {"title" "Lord"})
+    (apply (. greetings greet) ["Foo"] {:title "Lord"})
 
 Which would output::
 
