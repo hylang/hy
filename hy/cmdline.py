@@ -179,16 +179,18 @@ require("hy.cmdline", "__main__")
 SIMPLE_TRACEBACKS = True
 
 
-def run_command(source):
+def pretty_error(func, *args, **kw):
     try:
-        import_buffer_to_module("__main__", source)
+        return func(*args, **kw)
     except (HyTypeError, LexException) as e:
         if SIMPLE_TRACEBACKS:
             sys.stderr.write(str(e))
-            return 1
+            sys.exit(1)
         raise
-    except Exception:
-        raise
+
+
+def run_command(source):
+    pretty_error(import_buffer_to_module, "__main__", source)
     return 0
 
 
@@ -206,15 +208,7 @@ def run_module(mod_name):
 
 def run_file(filename):
     from hy.importer import import_file_to_module
-    try:
-        import_file_to_module("__main__", filename)
-    except (HyTypeError, LexException) as e:
-        if SIMPLE_TRACEBACKS:
-            sys.stderr.write(str(e))
-            return 1
-        raise
-    except Exception:
-        raise
+    pretty_error(import_file_to_module, "__main__", filename)
     return 0
 
 
@@ -359,8 +353,8 @@ def hyc_main():
 
     for file in options.files:
         try:
-            write_hy_as_pyc(file)
             print("Compiling %s" % file)
+            pretty_error(write_hy_as_pyc, file)
         except IOError as x:
             sys.stderr.write("hyc: Can't open file '%s': [Errno %d] %s\n" %
                              (x.filename, x.errno, x.strerror))
@@ -391,7 +385,7 @@ def hy2py_main():
         parser.exit(1, parser.format_help())
 
     if options.with_source:
-        hst = import_file_to_hst(options.args[0])
+        hst = pretty_error(import_file_to_hst, options.args[0])
         # need special printing on Windows in case the
         # codepage doesn't support utf-8 characters
         if PY3 and platform.system() == "Windows":
@@ -405,7 +399,7 @@ def hy2py_main():
         print()
         print()
 
-    _ast = import_file_to_ast(options.args[0], module_name)
+    _ast = pretty_error(import_file_to_ast, options.args[0], module_name)
     if options.with_ast:
         if PY3 and platform.system() == "Windows":
             _print_for_windows(astor.dump(_ast))
