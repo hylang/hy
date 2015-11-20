@@ -123,7 +123,7 @@ def load_macros(module_name):
         _import(module)
 
 
-def make_emtpy_fn_copy(fn):
+def make_empty_fn_copy(fn):
     argspec = getargspec(fn)
     formatted_args = formatargspec(*argspec)
     fn_str = 'lambda {}: None'.format(
@@ -167,7 +167,7 @@ def macroexpand_1(tree, module_name):
                 m = _hy_macros[None].get(fn)
             if m is not None:
                 try:
-                    m_copy = make_emtpy_fn_copy(m)
+                    m_copy = make_empty_fn_copy(m)
                     m_copy(*ntree[1:])
                 except TypeError as e:
                     msg = "expanding `" + str(tree[0]) + "': "
