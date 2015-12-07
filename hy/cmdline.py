@@ -32,6 +32,7 @@ import code
 import ast
 import sys
 import os
+import readline
 
 import astor.codegen
 
