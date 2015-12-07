@@ -7,3 +7,6 @@ tox
 Pygments>=1.6
 Sphinx
 sphinx_rtd_theme
+
+# for interactive shell history
+readline
