@@ -87,6 +87,7 @@ class HyREPL(code.InteractiveConsole):
         self.spy = spy
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)
+        readline.parse_and_bind("tab: complete")
 
     def runsource(self, source, filename='<input>', symbol='single'):
         global SIMPLE_TRACEBACKS
