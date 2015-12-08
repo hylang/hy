@@ -974,7 +974,7 @@ class HyASTCompiler(object):
                                    col_offset=expr.start_column,
                                    ctx=ast.Load())
             else:
-                # [] → all exceptions catched
+                # [] → all exceptions caught
                 _type = Result()
         elif isinstance(exceptions_list, HySymbol):
             _type = self.compile(exceptions_list)

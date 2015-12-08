@@ -177,7 +177,7 @@ A cons cell is a 2-item object, containing a ``car`` (head) and a
 building block, and S-expressions are actually represented as linked
 lists of cons cells. This is not the case in Hy, as the usual
 expressions are made of Python lists wrapped in a
-``HyExpression``. However, the ``HyCons`` mimicks the behavior of
+``HyExpression``. However, the ``HyCons`` mimics the behavior of
 "usual" Lisp variants thusly:
 
  - ``(cons something nil)`` is ``(HyExpression [something])``

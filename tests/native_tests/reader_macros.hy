@@ -2,7 +2,7 @@
 
 
 (defn test-reader-macro []
-  "Test a basic redaer macro"
+  "Test a basic reader macro"
   (defreader ^ [expr]
     expr)
 
@@ -55,7 +55,7 @@
   (assert (= (, (, 2 3 4) {"quux" 5 "baz" 6})
              (foo 1 2 3 :quux 4 :baz 5)))
 
-  ;; @wraps preserved the doctstring and __name__
+  ;; @wraps preserved the docstring and __name__
   (assert (= "foo" (. foo --name--)))
   (assert (= "Bar." (. foo --doc--)))
 
