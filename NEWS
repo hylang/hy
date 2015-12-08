@@ -60,7 +60,7 @@ Changes from 0.10.0
   * nth returns default value when out of bounds
   * merge-with added
   * doto macro added
-  * keyword? to findout keywords
+  * keyword? to find out keywords
   * setv no longer allows "." in names
   
   [Internals ]
