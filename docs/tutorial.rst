@@ -306,6 +306,13 @@ Comments start with semicolons:
   ; (print "but this will not")
   (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
+Hashbang (``#!``) syntax is supported:
+
+.. code-block:: clj
+
+   #! /usr/bin/env hy
+   (print "Make me executable, and run me!")
+
 Looping is not hard but has a kind of special structure.  In Python,
 we might do::
 
