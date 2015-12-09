@@ -532,7 +532,7 @@ class HyASTCompiler(object):
                     raise HyTypeError(expr,
                                       "There can only be one "
                                       "&rest argument")
-                varargs = str(expr)
+                varargs = expr
             elif lambda_keyword == "&key":
                 if type(expr) != HyDict:
                     raise HyTypeError(expr,
@@ -586,7 +586,7 @@ class HyASTCompiler(object):
                     raise HyTypeError(expr,
                                       "There can only be one "
                                       "&kwargs argument")
-                kwargs = str(expr)
+                kwargs = expr
 
         return ret, args, defaults, varargs, kwonlyargs, kwonlydefaults, kwargs
 
@@ -2262,10 +2262,14 @@ class HyASTCompiler(object):
             # list because it's really just an internal parsing thing.
 
             if kwargs:
-                kwargs = ast.arg(arg=kwargs, annotation=None)
+                kwargs = ast.arg(arg=ast_str(kwargs), annotation=None,
+                                 lineno=kwargs.start_line,
+                                 col_offset=kwargs.start_column)
 
             if stararg:
-                stararg = ast.arg(arg=stararg, annotation=None)
+                stararg = ast.arg(arg=ast_str(stararg), annotation=None,
+                                  lineno=stararg.start_line,
+                                  col_offset=stararg.start_column)
 
             # Let's find a better home for these guys.
         else:
@@ -2279,6 +2283,12 @@ class HyASTCompiler(object):
                                        ctx=ast.Param(), lineno=x.start_line,
                                        col_offset=x.start_column)
                               for x in kwonlyargs]
+
+            if kwargs:
+                kwargs = ast_str(kwargs)
+
+            if stararg:
+                stararg = ast_str(stararg)
 
         args = ast.arguments(
             args=args,
