@@ -927,6 +927,15 @@
   (assert (= a 1)))
 
 
+(defn test-xor []
+  "NATIVE: test the xor macro"
+  (let [xor-both-true (xor true true)
+        xor-both-false (xor false false)
+        xor-true-false (xor true false)]
+    (assert (= xor-both-true false))
+    (assert (= xor-both-false false))
+    (assert (= xor-true-false true))))
+
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
                                 ; thanks, algernon

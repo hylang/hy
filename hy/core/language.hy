@@ -463,6 +463,11 @@
         (hyify (. value __name__))
         (except [] (string value))))))
 
+(defn xor [a b]
+  "Perform exclusive or between two parameters"
+  (or (and a (not b))
+      (and b (not a))))
+
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     compress cons cons? count cycle dec distinct disassemble drop drop-last
@@ -472,4 +477,4 @@
     last list* macroexpand macroexpand-1 map merge-with multicombinations name
     neg? nil? none? nth numeric? odd? partition permutations pos? product range
     read read-str remove repeat repeatedly rest reduce second some string
-    string? symbol? take take-nth take-while tee zero? zip zip-longest])
+    string? symbol? take take-nth take-while xor tee zero? zip zip-longest])
