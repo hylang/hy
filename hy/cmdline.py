@@ -97,7 +97,7 @@ class HyREPL(code.InteractiveConsole):
             if e.source is None:
                 e.source = source
                 e.filename = filename
-            sys.stderr.write(str(e))
+            print(e, file=sys.stderr)
             return False
 
         try:
@@ -110,7 +110,7 @@ class HyREPL(code.InteractiveConsole):
                 e.source = source
                 e.filename = filename
             if SIMPLE_TRACEBACKS:
-                sys.stderr.write(str(e))
+                print(e, file=sys.stderr)
             else:
                 self.showtraceback()
             return False
@@ -184,7 +184,7 @@ def pretty_error(func, *args, **kw):
         return func(*args, **kw)
     except (HyTypeError, LexException) as e:
         if SIMPLE_TRACEBACKS:
-            sys.stderr.write(str(e))
+            print(e, file=sys.stderr)
             sys.exit(1)
         raise
 
@@ -201,8 +201,8 @@ def run_module(mod_name):
         sys.argv = [pth] + sys.argv
         return run_file(pth)
 
-    sys.stderr.write("{0}: module '{1}' not found.\n".format(hy.__appname__,
-                                                             mod_name))
+    print("{0}: module '{1}' not found.\n".format(hy.__appname__, mod_name),
+          file=sys.stderr)
     return 1
 
 
@@ -328,8 +328,8 @@ def cmdline_handler(scriptname, argv):
             try:
                 return run_file(options.args[0])
             except HyIOError as e:
-                sys.stderr.write("hy: Can't open file '%s': [Errno %d] %s\n" %
-                                 (e.filename, e.errno, e.strerror))
+                print("hy: Can't open file '{0}': [Errno {1}] {2}\n".format(
+                    e.filename, e.errno, e.strerror), file=sys.stderr)
                 sys.exit(e.errno)
 
     # User did NOTHING!
@@ -356,8 +356,8 @@ def hyc_main():
             print("Compiling %s" % file)
             pretty_error(write_hy_as_pyc, file)
         except IOError as x:
-            sys.stderr.write("hyc: Can't open file '%s': [Errno %d] %s\n" %
-                             (x.filename, x.errno, x.strerror))
+            print("hyc: Can't open file '{0}': [Errno {1}] {2}\n".format(
+                x.filename, x.errno, x.strerror), file=sys.stderr)
             sys.exit(x.errno)
 
 
