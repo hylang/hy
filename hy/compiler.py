@@ -1989,7 +1989,7 @@ class HyASTCompiler(object):
     @builds(HyExpression)
     def compile_expression(self, expression):
         # Perform macro expansions
-        expression = macroexpand(expression, self.module_name)
+        expression = macroexpand(expression, self)
         if not isinstance(expression, HyExpression):
             # Go through compile again if the type changed.
             return self.compile(expression)
@@ -2396,7 +2396,7 @@ class HyASTCompiler(object):
             body += self.compile(rewire_init(expr))
 
         for expression in expressions:
-            expr = rewire_init(macroexpand(expression, self.module_name))
+            expr = rewire_init(macroexpand(expression, self))
             body += self.compile(expr)
 
         self.allow_builtins = allow_builtins
@@ -2482,10 +2482,7 @@ class HyASTCompiler(object):
                 "Trying to expand a reader macro using `{0}' instead "
                 "of string".format(type(str_char).__name__),
             )
-
-        module = self.module_name
-        expr = reader_macroexpand(str_char, expression.pop(0), module)
-
+        expr = reader_macroexpand(str_char, expression.pop(0), self)
         return self.compile(expr)
 
     @builds("eval_and_compile")

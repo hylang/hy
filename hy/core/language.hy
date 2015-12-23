@@ -37,6 +37,7 @@
         [hy.models.symbol [HySymbol]]
         [hy.models.keyword [HyKeyword *keyword-prefix*]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
+(import [hy.compiler [HyASTCompiler]])
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -296,14 +297,14 @@
   (import hy.macros)
 
   (setv name (calling-module-name))
-  (hy.macros.macroexpand form name))
+  (hy.macros.macroexpand form (HyASTCompiler name)))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of form"
   (import hy.macros)
 
   (setv name (calling-module-name))
-  (hy.macros.macroexpand-1 form name))
+  (hy.macros.macroexpand-1 form (HyASTCompiler name)))
 
 (defn merge-with [f &rest maps]
   "Returns a map that consists of the rest of the maps joined onto
