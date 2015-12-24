@@ -1,3 +1,15 @@
+Changes from 0.11.0
+
+   Huge thanks to tianon for this one! This is our first release of a "stable"
+   branch - 0.11.0. 0.12.0 is still on its way, this is just to make sure
+   nothing's broken for folks using distributed copies of Hy.
+
+   [ Bug Fixes ]
+   * Fix breakage related PEP 448 on Python 3.5
+   * Add Python 3.5 to tox tests
+   * Fix breakage related to Python 3.5.1 by ensuring we hold onto positional
+     information in the AST while compiling.
+
 Changes from 0.10.1
 
    [ Language Changes ]
