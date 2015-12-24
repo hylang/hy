@@ -522,7 +522,7 @@ class HyASTCompiler(object):
                     raise HyTypeError(expr,
                                       "There can only be one "
                                       "&rest argument")
-                varargs = str(expr)
+                varargs = expr
             elif lambda_keyword == "&key":
                 if type(expr) != HyDict:
                     raise HyTypeError(expr,
@@ -558,7 +558,7 @@ class HyASTCompiler(object):
                     raise HyTypeError(expr,
                                       "There can only be one "
                                       "&kwargs argument")
-                kwargs = str(expr)
+                kwargs = expr
 
         return ret, args, defaults, varargs, kwargs
 
@@ -1554,12 +1554,28 @@ class HyASTCompiler(object):
             stargs = expr.pop(0)
             if stargs is not None:
                 stargs = self.compile(stargs)
-                ret.expr.starargs = stargs.force_expr
+                if PY35:
+                    stargs_expr = stargs.force_expr
+                    ret.expr.args.append(
+                        ast.Starred(stargs_expr, ast.Load(),
+                                    lineno=stargs_expr.lineno,
+                                    col_offset=stargs_expr.col_offset)
+                    )
+                else:
+                    ret.expr.starargs = stargs.force_expr
                 ret = stargs + ret
 
         if expr:
             kwargs = self.compile(expr.pop(0))
-            ret.expr.kwargs = kwargs.force_expr
+            if PY35:
+                kwargs_expr = kwargs.force_expr
+                ret.expr.keywords.append(
+                    ast.keyword(None, kwargs_expr,
+                                lineno=kwargs_expr.lineno,
+                                col_offset=kwargs_expr.col_offset)
+                )
+            else:
+                ret.expr.kwargs = kwargs.force_expr
             ret = kwargs + ret
 
         return ret
@@ -1975,10 +1991,14 @@ class HyASTCompiler(object):
             # list because it's really just an internal parsing thing.
 
             if kwargs:
-                kwargs = ast.arg(arg=kwargs, annotation=None)
+                kwargs = ast.arg(arg=ast_str(kwargs), annotation=None,
+                                 lineno=kwargs.start_line,
+                                 col_offset=kwargs.start_column)
 
             if stararg:
-                stararg = ast.arg(arg=stararg, annotation=None)
+                stararg = ast.arg(arg=ast_str(stararg), annotation=None,
+                                  lineno=stararg.start_line,
+                                  col_offset=stararg.start_column)
 
             # Let's find a better home for these guys.
         else:
@@ -1986,6 +2006,12 @@ class HyASTCompiler(object):
                              ctx=ast.Param(),
                              lineno=x.start_line,
                              col_offset=x.start_column) for x in args]
+
+            if kwargs:
+                kwargs = ast_str(kwargs)
+
+            if stararg:
+                stararg = ast_str(stararg)
 
         args = ast.arguments(
             args=args,
