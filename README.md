@@ -32,7 +32,7 @@ It's really awesome.
 
 Oh, and lisps are neat.
 
-![Cuddles the Hacker](http://i.imgur.com/QbPMXTN.png)
+![Cuddles the Hacker](https://i.imgur.com/QbPMXTN.png)
 
 (fan art from the one and only [doctormo](http://doctormo.deviantart.com/art/Cuddles-the-Hacker-372184766))
 
