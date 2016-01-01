@@ -2309,7 +2309,10 @@ class HyASTCompiler(object):
             return ret
 
         if body.expr:
-            if body.contains_yield:
+            if body.contains_yield and not PY33:
+                # Prior to PEP 380 (introduced in Python 3.3)
+                # generators may not have a value in a return
+                # statement.
                 body += body.expr_as_stmt()
             else:
                 body += ast.Return(value=body.expr,
