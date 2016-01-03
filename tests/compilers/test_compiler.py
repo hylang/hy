@@ -26,6 +26,8 @@ from hy import compiler
 from hy.models.expression import HyExpression
 from hy.models.list import HyList
 from hy.models.symbol import HySymbol
+from hy.models.integer import HyInteger
+from hy._compat import PY33
 
 if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
     import unittest2 as unittest
@@ -98,3 +100,37 @@ class HyASTCompilerTest(unittest.TestCase):
         expr = ret.expr
         self.assertIsInstance(expr, ast.Name)
         self.assertEqual(expr.id, "c")
+
+    def test_compiler_yield_return(self):
+        """
+        Check that the compiler correctly generates return statements for
+        a generator function. In Python versions prior to 3.3, the return
+        statement in a generator can't take a value, so the final expression
+        should not generate a return statement. From 3.3 onwards a return
+        value should be generated.
+        """
+        ret = self.c.compile_function_def(
+            self._make_expression(HySymbol("fn"),
+                                  HyList(),
+                                  HyExpression([HySymbol("yield"),
+                                                HyInteger(2)]),
+                                  HyExpression([HySymbol("+"),
+                                                HyInteger(1),
+                                                HyInteger(1)])))
+
+        self.assertEqual(len(ret.stmts), 1)
+        stmt = ret.stmts[0]
+        self.assertIsInstance(stmt, ast.FunctionDef)
+        body = stmt.body
+        self.assertEquals(len(body), 2)
+        self.assertIsInstance(body[0], ast.Expr)
+        self.assertIsInstance(body[0].value, ast.Yield)
+
+        if PY33:
+            # From 3.3+, the final statement becomes a return value
+            self.assertIsInstance(body[1], ast.Return)
+            self.assertIsInstance(body[1].value, ast.BinOp)
+        else:
+            # In earlier versions, the expression is not returned
+            self.assertIsInstance(body[1], ast.Expr)
+            self.assertIsInstance(body[1].value, ast.BinOp)
