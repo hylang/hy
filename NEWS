@@ -107,7 +107,7 @@ Changes from 0.9.12
    Many thanks to algernon for working on adderall, which helped
    push Hy further this cycle. Adderall is an implementation of miniKanren
    in Hy. If you're interested in using Adderall, check out hydiomatic,
-   which prettfies Hy source using Adderall rules.
+   which prettifies Hy source using Adderall rules.
    
    This release saw an increase of about 11 contributors for a point
    release, you guys rock!
