@@ -2583,11 +2583,6 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     `last_expression` is the.
     """
 
-    if hasattr(sys, "subversion"):
-        implementation = sys.subversion[0].lower()
-    elif hasattr(sys, "implementation"):
-        implementation = sys.implementation.name.lower()
-
     body = []
     expr = None
 
@@ -2606,12 +2601,6 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
         body = compiler.imports_as_stmts(spoof_tree) + result.stmts
 
     ret = root(body=body)
-
-    # PyPy _really_ doesn't like the ast going backwards...
-    if implementation != "cpython":
-        for node in ast.walk(ret):
-            node.lineno = 1
-            node.col_offset = 1
 
     if get_expr:
         expr = ast.Expression(body=expr)
