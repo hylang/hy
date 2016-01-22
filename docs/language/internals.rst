@@ -386,7 +386,7 @@ A first pass might be something like:
              [(zero? obscure-name) ~zero-form]
              [(neg? obscure-name) ~neg-form])))
 
-where ``obsure-name`` is an attempt to pick some variable name as not to
+where ``obscure-name`` is an attempt to pick some variable name as not to
 conflict with other code. But of course, while well-intentioned,
 this is no guarantee.
 
