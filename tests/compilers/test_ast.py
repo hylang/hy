@@ -372,6 +372,7 @@ def test_ast_lambda_lists():
     cant_compile('(fn [&key {"a" b} &key {"foo" bar}] [a foo])')
     cant_compile('(fn [&optional a &key {"foo" bar}] [a foo])')
     cant_compile('(fn [&optional [a b c]] a)')
+    cant_compile('(fn [&optional [1 2]] (list 1 2))')
 
 
 def test_ast_print():
@@ -402,6 +403,7 @@ def test_lambda_list_keywords_key():
     """ Ensure we can compile functions with &key."""
     can_compile("(fn (x &key {foo True}) (list x foo))")
     cant_compile("(fn (x &key {bar \"baz\"} &key {foo 42}) (list x bar foo))")
+    cant_compile("(fn (x &key {1 2 3 4}) (list x))")
 
 
 def test_lambda_list_keywords_kwargs():

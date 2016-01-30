@@ -547,6 +547,10 @@ class HyASTCompiler(object):
                     # defining keyword arguments.
                     it = iter(expr)
                     for k, v in zip(it, it):
+                        if not isinstance(k, HyString):
+                            raise HyTypeError(expr,
+                                              "Only strings can be used "
+                                              "as parameter names")
                         args.append(k)
                         ret += self.compile(v)
                         defaults.append(ret.force_expr)
@@ -560,6 +564,10 @@ class HyASTCompiler(object):
                 else:
                     k = expr
                     v = HySymbol("None").replace(k)
+                if not isinstance(k, HyString):
+                    raise HyTypeError(expr,
+                                      "Only strings can be used as "
+                                      "parameter names")
                 args.append(k)
                 ret += self.compile(v)
                 defaults.append(ret.force_expr)
