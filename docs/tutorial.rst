@@ -119,7 +119,7 @@ processing"; this means that the structure of the program is
 actually lists of lists.  (If you're familiar with Python lists,
 imagine the entire same structure as above but with square brackets
 instead, any you'll be able to see the structure above as both a
-program and a datastructure.)  This is easier to understand with more
+program and a data structure.)  This is easier to understand with more
 examples, so let's write a simple Python program, test it, and then
 show the equivalent Hy program::
 
@@ -168,7 +168,7 @@ There are some advantages to having a code structure that's actually a
 very simple data structure as the core of Lisp is based on.  For one
 thing, it means that your programs are easy to parse and that the
 entire actual structure of the program is very clearly exposed to you.
-(There's an extra step in hy where the structure you see is converted
+(There's an extra step in Hy where the structure you see is converted
 to Python's own representations ... in "purer" Lisps such as Common
 Lisp or Emacs Lisp, the data structure you see in the code and the
 data structure that is executed is much more literally close.)
@@ -258,6 +258,7 @@ In Hy, you would do:
 
 .. code-block:: clj
 
+   (setv somevar 33)
    (cond
     [(> somevar 50)
      (print "That variable is too big!")]
@@ -570,7 +571,7 @@ language on top of that. Many features of Hy are macros, like ``when``,
 To use macros defined in a different module, it is not enough to
 ``import`` the module, because importing happens at run-time, while we
 would need macros at compile-time. Instead of importing the module
-with macros, it must be ``require``d:
+with macros, ``require`` must be used:
 
 .. code-block:: clj
 
