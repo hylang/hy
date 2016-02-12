@@ -258,6 +258,7 @@ In Hy, you would do:
 
 .. code-block:: clj
 
+   (setv somevar 33)
    (cond
     [(> somevar 50)
      (print "That variable is too big!")]
