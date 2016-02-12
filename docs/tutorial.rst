@@ -570,7 +570,7 @@ language on top of that. Many features of Hy are macros, like ``when``,
 To use macros defined in a different module, it is not enough to
 ``import`` the module, because importing happens at run-time, while we
 would need macros at compile-time. Instead of importing the module
-with macros, it must be ``require``:
+with macros, ``require`` must be used:
 
 .. code-block:: clj
 
