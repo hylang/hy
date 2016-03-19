@@ -6,7 +6,7 @@ Hy
 [![Version](https://img.shields.io/pypi/v/hy.svg)](https://pypi.python.org/pypi/hy)
 [![Coverage Status](https://img.shields.io/coveralls/hylang/hy/master.svg)](https://coveralls.io/r/hylang/hy)
 
-![XKCD #224](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)
+[![XKCD #224](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)](https://xkcd.com/224/)
 
 Lisp and Python should love each other. Let's make it happen. [Try it](http://try-hy.appspot.com/).
 
