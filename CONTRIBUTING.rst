@@ -11,6 +11,8 @@ Pull requests are great! We love them; here is a quick guide:
 
 - All incoming features should be accompanied with tests.
 
+- Generally there is no need to open an issue before submitting a PR.
+
 - Before you submit a PR, please run the tests and check your code
   against the style guide. You can do both of these things at once::
 
