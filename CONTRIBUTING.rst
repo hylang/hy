@@ -11,7 +11,13 @@ Pull requests are great! We love them; here is a quick guide:
 
 - All incoming features should be accompanied with tests.
 
-- Generally there is no need to open an issue before submitting a PR.
+- If you are contributing a major change to the Hy language (e.g. changing
+  the behavior of or removing functions or macros), or you're unsure of
+  the proposed change, please open an issue in the `issue tracker`_ before
+  submitting the PR. This will allow others to give feedback on your idea,
+  and it will avoid constant changes or wasted work. For other PRs (such as
+  documentation fixes or code cleanup), you can directly open the PR without
+  first opening a corresponding issue.
 
 - Before you submit a PR, please run the tests and check your code
   against the style guide. You can do both of these things at once::
@@ -84,3 +90,4 @@ version 1.1.0, available at
 http://contributor-covenant.org/version/1/1/0/.
 
 .. _Contributor Covenant: http://contributor-covenant.org
+.. _issue tracker: https://github.com/hylang/hy/issues
