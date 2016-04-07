@@ -6,8 +6,9 @@ helps in making Hy more awesome.
 
 Pull requests are great! We love them; here is a quick guide:
 
-- Fork the repo and create a topic branch for a feature/fix. Avoid
+- [Fork the repo](https://help.github.com/articles/fork-a-repo/) and create a topic branch for a feature/fix. Avoid
   making changes directly on the master branch.
+  (If you're new to Git: [Start Here](http://rogerdudler.github.io/git-guide/))
 
 - All incoming features should be accompanied with tests.
 
