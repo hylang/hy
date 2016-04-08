@@ -6,8 +6,9 @@ helps in making Hy more awesome.
 
 Pull requests are great! We love them; here is a quick guide:
 
-- Fork the repo and create a topic branch for a feature/fix. Avoid
+- `Fork the repo`_ and create a topic branch for a feature/fix. Avoid
   making changes directly on the master branch.
+  (If you're new to Git: `Start Here`_)
 
 - All incoming features should be accompanied with tests.
 
@@ -91,3 +92,5 @@ http://contributor-covenant.org/version/1/1/0/.
 
 .. _Contributor Covenant: http://contributor-covenant.org
 .. _issue tracker: https://github.com/hylang/hy/issues
+.. _Fork the Repo: https://help.github.com/articles/fork-a-repo/
+.. _Start Here: http://rogerdudler.github.io/git-guide/)
