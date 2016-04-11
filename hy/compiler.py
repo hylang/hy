@@ -1106,6 +1106,11 @@ class HyASTCompiler(object):
     @builds("if*")
     @checkargs(min=2, max=3)
     def compile_if(self, expression):
+        """The if* special form is restricted to 2 or 3 arguments, but otherwise works
+        exactly like if (which expands to nested if* forms), so there is
+        generally no reason to use it directly.
+
+        """
         expression.pop(0)
         cond = self.compile(expression.pop(0))
         body = self.compile(expression.pop(0))
