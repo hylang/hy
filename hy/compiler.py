@@ -1356,6 +1356,15 @@ class HyASTCompiler(object):
     @builds("yield_from")
     @checkargs(max=1)
     def compile_yield_from_expression(self, expr):
+        """yield-from is used to call a subgenerator.
+
+        This is useful if you want your coroutine to be able to delegate its
+        processes to another coroutine, say, if using something fancy like
+        asyncio.
+
+        yield-from only supported in python 3.3+!
+
+        """
         if not PY33:
             raise HyCompileError(
                 "yield-from only supported in python 3.3+!")
