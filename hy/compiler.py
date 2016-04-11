@@ -1700,6 +1700,19 @@ class HyASTCompiler(object):
     @builds("with_decorator")
     @checkargs(min=1)
     def compile_decorate_expression(self, expr):
+        """with-decorator is used to wrap a function with another.
+
+        The function performing the decoration should accept a single value:
+        the function being decorated, and return a new function.
+        with-decorator takes a minimum of two parameters: the function
+        performing decoration and the function being decorated. More than one
+        decorator function can be applied; they will be applied in order from
+        outermost to innermost, ie. the first decorator will be the outermost
+        one, and so on. Decorators with arguments are called just like a
+        function call.
+
+        """
+
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
         if not fn.stmts or not (isinstance(fn.stmts[-1], ast.FunctionDef) or
