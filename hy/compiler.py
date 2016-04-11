@@ -710,6 +710,29 @@ class HyASTCompiler(object):
     @builds("quasiquote")
     @checkargs(exact=1)
     def compile_quote(self, entries):
+        """quote returns the form passed to it without evaluating it.
+           quote can alternatively be written using the apostrophe (') symbol.
+
+        => (setv x '(print "Hello World"))
+        => x
+        (u'print' u'Hello World')
+
+        => (eval x)
+        Hello World
+
+        quasiquote allows you to quote a form, but also selectively evaluate
+           expressions. Expressions inside a quasiquote can be selectively
+           evaluated using unquote (~). The evaluated form can also be spliced
+           using unquote-splice (~@). Quasiquote can be also written using the
+           backquote (`) symbol.
+
+        => (setv qux '(bar baz))
+        => `(foo ~qux)
+        (u'foo' (u'bar' u'baz'))
+
+        => `(foo ~@qux)
+        (u'foo' u'bar' u'baz')
+        """
         if entries[0] == "quote":
             # Never allow unquoting
             level = float("inf")
