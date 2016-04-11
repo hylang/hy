@@ -2612,6 +2612,7 @@ class HyASTCompiler(object):
 
     @builds(HyList)
     def compile_list(self, expression):
+        """TODO: HyList docstring."""
         elts, ret, _ = self._compile_collect(expression)
         ret += ast.List(elts=elts,
                         ctx=ast.Load(),
