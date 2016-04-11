@@ -2367,6 +2367,7 @@ class HyASTCompiler(object):
     @builds_if("@=", PY35)
     @checkargs(2)
     def compile_augassign_expression(self, expression):
+        """Augmenting operators."""
         ops = {"+=": ast.Add,
                "/=": ast.Div,
                "//=": ast.FloorDiv,
