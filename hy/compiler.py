@@ -2225,6 +2225,9 @@ class HyASTCompiler(object):
     @builds(">=")
     @checkargs(min=1)
     def compile_compare_op_expression(self, expression):
+        """Comparison operators.
+
+        """
         if len(expression) == 2:
             rval = "True"
             if expression[0] == "!=":
