@@ -2070,6 +2070,14 @@ class HyASTCompiler(object):
     @builds("~")
     @checkargs(1)
     def compile_unary_operator(self, expression):
+        """not is used in logical expressions.
+
+        It takes a single parameter and returns a reversed truth value. If
+        True is given as a parameter, False will be returned, and vice-versa.
+
+        ~ is the bitwise NOT.
+
+        """
         ops = {"not": ast.Not,
                "~": ast.Invert}
         operator = expression.pop(0)
