@@ -1216,6 +1216,19 @@ class HyASTCompiler(object):
 
     @builds("continue")
     def compile_continue_expression(self, expr):
+        """continue returns execution to the start of a loop.
+
+        In the following example, (side-effect1) is called for each iteration.
+        (side-effect2), however, is only called on every other value in the
+        list.
+
+        (for [x collection]
+          (side-effect1 x)
+          (if (% x 2)
+          (continue))
+          (side-effect2 x))
+
+        """
         ret = ast.Continue(lineno=expr.start_line,
                            col_offset=expr.start_column)
 
