@@ -2472,6 +2472,11 @@ class HyASTCompiler(object):
     @builds("def")
     @builds("setv")
     def compile_def_expression(self, expression):
+        """def and setv are used to bind a value, object, or function to a symbol.
+
+        They can be used to assign multiple variables at once:
+
+        """
         root = expression.pop(0)
         if not expression:
             result = Result()
