@@ -2244,6 +2244,18 @@ class HyASTCompiler(object):
     @builds("not_in")
     @checkargs(min=2)
     def compile_compare_op_expression_coll(self, expression):
+        """Collection operators
+
+        => (setv a nil)
+        => (is a nil)
+        True
+
+        => (in 2 [1 2 3])
+        True
+
+        => (not-in 4 [1 2 3])
+        True
+        """
         return self._compile_compare_op_expression(expression)
 
     @builds("%")
