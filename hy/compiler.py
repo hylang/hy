@@ -2650,6 +2650,17 @@ class HyASTCompiler(object):
     @builds("fn")
     @checkargs(min=1)
     def compile_function_def(self, expression):
+        """lambda and fn can be used to define an anonymous function.
+
+        The parameters are similar to defn: the first parameter is vector of
+        parameters and the rest is the body of the function. lambda returns a
+        new function.
+
+        Just as in normal function definitions, if the first element of the
+        body is a string, it serves as a docstring. This is useful for giving
+        class methods docstrings.
+
+        """
         called_as = expression.pop(0)
 
         arglist = expression.pop(0)
