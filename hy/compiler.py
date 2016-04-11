@@ -1007,6 +1007,9 @@ class HyASTCompiler(object):
 
     @builds("except")
     def magic_internal_form(self, expr):
+        """TODO:
+
+        """
         raise HyTypeError(expr,
                           "Error: `%s' can't be used like that." % (expr[0]))
 
