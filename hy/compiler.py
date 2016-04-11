@@ -1628,6 +1628,18 @@ class HyASTCompiler(object):
     @builds("cut")
     @checkargs(min=1, max=4)
     def compile_cut_expression(self, expr):
+        """cut can be used to take a subset of a list and create a new list from it.
+
+        The form takes at least one parameter specifying the list to cut. Two
+        optional parameters can be used to give the start and end position of
+        the subset. If they are not supplied, the default value of None will
+        be used instead. The third optional parameter is used to control step
+        between the elements.
+
+        cut follows the same rules as its Python counterpart. Negative indices
+        are counted starting from the end of the list.
+
+        """
         expr.pop(0)  # index
         val = self.compile(expr.pop(0))  # target
 
