@@ -2268,6 +2268,22 @@ class HyASTCompiler(object):
     @builds_if("@", PY35)
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
+        """Math operators
+
+        +   add
+        /   division
+        //  floor division
+        *   multiplication
+        -   subtraction
+        %   modulus
+        **  power
+        <<  left shift
+        >>  right shift
+        |   bitwise or
+        ^   bitwise xor
+        &   bitwise and
+
+        """
         ops = {"+": ast.Add,
                "/": ast.Div,
                "//": ast.FloorDiv,
