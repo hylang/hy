@@ -1858,6 +1858,15 @@ class HyASTCompiler(object):
     @builds("set_comp")
     @checkargs(min=2, max=3)
     def compile_set_comprehension(self, expr):
+        """set-comp is used to create sets.
+
+        It takes two or three parameters. The first parameter is for
+        controlling the return value, while the second is used to select items
+        from a sequence. The third and optional parameter can be used to
+        filter out some of the items in the sequence based on a conditional
+        expression.
+
+        """
         if PY27:
             ret = self.compile_list_comprehension(expr)
             expr = ret.expr
