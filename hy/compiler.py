@@ -1300,6 +1300,14 @@ class HyASTCompiler(object):
     @builds("nonlocal")
     @checkargs(min=1)
     def compile_nonlocal_expression(self, expr):
+        """nonlocal can be used to mark a symbol as not local to the current scope.
+
+        The parameters are the names of symbols to mark as nonlocal. This is
+        necessary to modify variables through nested let or fn scopes.
+
+        Only supported in Python 3.
+
+        """
         if not PY3:
             raise HyCompileError(
                 "nonlocal only supported in python 3!")
