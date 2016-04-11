@@ -2622,6 +2622,7 @@ class HyASTCompiler(object):
 
     @builds(HySet)
     def compile_set(self, expression):
+        """TODO: HySet docstring."""
         elts, ret, _ = self._compile_collect(expression)
         if PY27:
             ret += ast.Set(elts=elts,
