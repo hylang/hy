@@ -1386,6 +1386,34 @@ class HyASTCompiler(object):
 
     @builds("import")
     def compile_import_expression(self, expr):
+        """import is used to import modules, like in Python.
+
+        ;; Imports each of these modules
+        ;;
+        ;; Python:
+        ;; import sys
+        ;; import os.path
+        (import sys os.path)
+
+        ;; Import from a module
+        ;;
+        ;; Python: from os.path import exists, isdir, isfile
+        (import [os.path [exists isdir isfile]])
+
+        ;; Import with an alias
+        ;;
+        ;; Python: import sys as systest
+        (import [sys :as systest])
+
+        ;; You can list as many imports as you like of different types.
+        (import [tests.resources [kwtest function-with-a-dash]]
+        [os.path [exists isdir isfile]]
+        [sys :as systest])
+
+        ;; Import all module functions into current namespace
+        (import [sys [*]])
+
+        """
         def _compile_import(expr, module, names=None, importer=ast.Import):
             if not names:
                 names = [ast.alias(name=ast_str(module), asname=None)]
