@@ -873,6 +873,18 @@ class HyASTCompiler(object):
 
     @builds("try")
     def compile_try_expression(self, expr):
+        """The try form is used to start a try / except block.
+
+        => (try
+        ...  (/ 1 0)
+        ...  (except [e ZeroDivisionError] (print "Division by zero"))
+        ...  (else (print "no errors"))
+        ...  (finally (print "all done")))
+        Division by zero
+        all done
+
+        """
+
         expr.pop(0)  # try
 
         try:
