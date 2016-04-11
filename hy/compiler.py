@@ -1329,6 +1329,12 @@ class HyASTCompiler(object):
     @builds("yield")
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
+        """yield is used to create a generator object that returns one or more values.
+
+        The generator is iterable and therefore can be used in loops, list
+        comprehensions and other similar constructs.
+
+        """
         expr.pop(0)
         if PY33:
             ret = Result(contains_yield=False)
