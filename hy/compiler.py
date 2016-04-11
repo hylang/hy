@@ -2785,6 +2785,33 @@ class HyASTCompiler(object):
     @builds("defclass")
     @checkargs(min=1)
     def compile_class_expression(self, expressions):
+        """New classes are declared with defclass.
+
+        It can takes two optional parameters: a vector defining a possible
+        super classes and another vector containing attributes of the new
+        class as two item vectors.
+
+        (defclass class-name [super-class-1 super-class-2]
+          [attribute value]
+
+          (defn method [self] (print "hello!")))
+
+        Both values and functions can be bound on the new class as shown by
+        the example below:
+
+        => (defclass Cat []
+        ...  [age None
+        ...   colour "white"]
+        ...
+        ...  (defn speak [self] (print "Meow")))
+
+        => (def spot (Cat))
+        => (setv spot.colour "Black")
+        'Black'
+        => (.speak spot)
+        Meow
+
+        """
         def rewire_init(expr):
             new_args = []
             if expr[0] == HySymbol("setv"):
