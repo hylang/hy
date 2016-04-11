@@ -2990,6 +2990,7 @@ class HyASTCompiler(object):
 
     @builds(HyCons)
     def compile_cons(self, cons):
+        """HyCons: Raises a HyTypeError."""
         raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
     @builds(HyInteger)
