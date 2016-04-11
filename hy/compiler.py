@@ -1237,6 +1237,15 @@ class HyASTCompiler(object):
     @builds("assert")
     @checkargs(min=1, max=2)
     def compile_assert_expression(self, expr):
+        """assert is used to verify conditions while the program is running.
+
+        If the condition is not met, an AssertionError is raised. assert may
+        take one or two parameters. The first parameter is the condition to
+        check, and it should evaluate to either True or False. The second
+        parameter, optional, is a label for the assert, and is the string that
+        will be raised with the AssertionError.
+
+        """
         expr.pop(0)  # assert
         e = expr.pop(0)
         if len(expr) == 1:
