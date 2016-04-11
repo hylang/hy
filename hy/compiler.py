@@ -2319,6 +2319,9 @@ class HyASTCompiler(object):
     @builds("/")
     @builds("//")
     def compile_maths_expression_mul(self, expression):
+        """Math operators.
+
+        """
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
