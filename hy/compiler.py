@@ -2091,10 +2091,16 @@ class HyASTCompiler(object):
 
     @builds("require")
     def compile_require(self, expression):
-        """
+        """require is used to import macros from a given module.
+
+        It takes at least one parameter specifying the module which macros
+        should be imported. Multiple modules can be imported with a single
+        require.
+
         TODO: keep track of what we've imported in this run and then
         "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
+
         """
         expression.pop(0)
         for entry in expression:
