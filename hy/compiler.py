@@ -1926,6 +1926,18 @@ class HyASTCompiler(object):
 
     @builds("genexpr")
     def compile_genexpr(self, expr):
+        """genexpr is used to create generator expressions.
+
+        It takes two or three parameters. The first parameter is the
+        expression controlling the return value, while the second is used to
+        select items from a list. The third and optional parameter can be used
+        to filter out some of the items in the list based on a conditional
+        expression. genexpr is similar to list-comp, except it returns an
+        iterable that evaluates values one by one instead of evaluating them
+        immediately.
+
+        """
+
         ret = self.compile_list_comprehension(expr)
         expr = ret.expr
         ret.expr = ast.GeneratorExp(
@@ -1938,6 +1950,16 @@ class HyASTCompiler(object):
     @builds("apply")
     @checkargs(min=1, max=3)
     def compile_apply_expression(self, expr):
+        """apply is used to apply an optional list of arguments and an optional
+        dictionary of kwargs to a function.
+
+        The symbol mangling transformations will be applied to all keys in the
+        dictionary of kwargs, provided the dictionary and its keys are defined
+        in-place.
+
+        Usage: (apply fn-name [args] [kwargs])
+
+        """
         expr.pop(0)  # apply
 
         ret = Result()
