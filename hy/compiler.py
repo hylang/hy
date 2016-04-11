@@ -2340,6 +2340,7 @@ class HyASTCompiler(object):
     @builds("-")
     @checkargs(min=1)
     def compile_maths_expression_sub(self, expression):
+        """Subtraction operator"""
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
