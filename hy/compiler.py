@@ -2953,6 +2953,7 @@ class HyASTCompiler(object):
     @builds("dispatch_reader_macro")
     @checkargs(exact=2)
     def compile_dispatch_reader_macro(self, expression):
+        """TODO: docstring"""
         expression.pop(0)  # dispatch-reader-macro
         str_char = expression.pop(0)
         if not type(str_char) == HyString:
