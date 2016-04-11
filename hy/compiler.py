@@ -2405,6 +2405,7 @@ class HyASTCompiler(object):
 
     @builds(HyExpression)
     def compile_expression(self, expression):
+        """Build a HyExpression."""
         # Perform macro expansions
         expression = macroexpand(expression, self)
         if not isinstance(expression, HyExpression):
