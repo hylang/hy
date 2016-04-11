@@ -1481,6 +1481,19 @@ class HyASTCompiler(object):
     @builds("get")
     @checkargs(min=2)
     def compile_index_expression(self, expr):
+        """get is used to access single elements in lists and dictionaries.
+
+        get takes two parameters: the data structure and the index or key of
+        the item. It will then return the corresponding value from the
+        dictionary or the list.
+
+        get raises a KeyError if a dictionary is queried for a non-existing
+        key.
+
+        get raises an IndexError if a list or a tuple is queried for an index
+        that is out of bounds.
+
+        """
         expr.pop(0)  # index
 
         val = self.compile(expr.pop(0))
