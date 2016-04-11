@@ -2540,6 +2540,7 @@ class HyASTCompiler(object):
     @builds("for*")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
+        """TODO: docstring"""
         expression.pop(0)  # for
 
         args = expression.pop(0)
