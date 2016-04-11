@@ -1263,6 +1263,26 @@ class HyASTCompiler(object):
     @builds("global")
     @checkargs(min=1)
     def compile_global_expression(self, expr):
+        """global can be used to mark a symbol as global.
+
+        This allows the programmer to assign a value to a global symbol.
+        Reading a global symbol does not require the global keyword – only
+        assigning it does.
+
+        => (defn set-a [value]
+        ...   (global a)
+        ...   (setv a value))
+
+        => (defn print-a []
+        ...   (print a))
+
+        => (set-a 5)
+        5L
+        => (print-a)
+        5
+
+        """
+
         expr.pop(0)  # global
         names = []
         while len(expr) > 0:
