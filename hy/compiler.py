@@ -2926,6 +2926,10 @@ class HyASTCompiler(object):
     @builds("defreader")
     @checkargs(min=2)
     def compile_reader(self, expression):
+        """defreader defines a reader macro, enabling you to restructure or modify
+        syntax.
+
+        """
         expression.pop(0)
         name = expression.pop(0)
         NOT_READERS = [":", "&"]
