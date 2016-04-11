@@ -1204,6 +1204,11 @@ class HyASTCompiler(object):
 
     @builds("break")
     def compile_break_expression(self, expr):
+        """break is used to break out from a loop.
+
+        It terminates the loop immediately.
+
+        """
         ret = ast.Break(lineno=expr.start_line,
                         col_offset=expr.start_column)
 
