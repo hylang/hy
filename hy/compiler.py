@@ -2111,6 +2111,19 @@ class HyASTCompiler(object):
     @builds("and")
     @builds("or")
     def compile_logical_or_and_and_operator(self, expression):
+        """and is used in logical expressions.
+
+        It takes at least two parameters. If all parameters evaluate to True,
+        the last parameter is returned. In any other case, the first false
+        value will be returned.
+
+        or is used in logical expressions.
+
+        It takes at least two parameters. It will return the first non-false
+        parameter. If no such value exists, the last parameter will be
+        returned.
+
+        """
         ops = {"and": (ast.And, "True"),
                "or": (ast.Or, "None")}
         operator = expression.pop(0)
