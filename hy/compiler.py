@@ -2995,6 +2995,7 @@ class HyASTCompiler(object):
 
     @builds(HyInteger)
     def compile_integer(self, number):
+        """Compile an Integer."""
         return ast.Num(n=long_type(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
