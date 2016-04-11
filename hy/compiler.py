@@ -3016,6 +3016,7 @@ class HyASTCompiler(object):
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
+        """Compile a symbol."""
         if "." in symbol:
             glob, local = symbol.rsplit(".", 1)
             glob = HySymbol(glob).replace(symbol)
