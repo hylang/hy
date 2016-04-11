@@ -3002,6 +3002,7 @@ class HyASTCompiler(object):
 
     @builds(HyFloat)
     def compile_float(self, number):
+        """Compile a float number."""
         return ast.Num(n=float(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
