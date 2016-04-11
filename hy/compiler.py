@@ -776,6 +776,17 @@ class HyASTCompiler(object):
     @builds("eval")
     @checkargs(min=1, max=3)
     def compile_eval(self, expr):
+        """eval evaluates a quoted expression and returns the value.
+
+        (eval quoted-form [&optional [globals (locals)] [module_name]])
+
+        The optional second and third arguments specify the dictionary of
+        globals to use and the module name. The globals dictionary defaults to
+        (local) and the module name defaults to the name of the current
+        module.
+
+        """
+
         expr.pop(0)
 
         if not isinstance(expr[0], (HyExpression, HySymbol)):
