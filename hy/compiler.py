@@ -1823,6 +1823,15 @@ class HyASTCompiler(object):
     @builds("list_comp")
     @checkargs(min=2, max=3)
     def compile_list_comprehension(self, expr):
+        """list-comp performs list comprehensions.
+
+        It takes two or three parameters. The first parameter is the
+        expression controlling the return value, while the second is used to
+        select items from a list. The third and optional parameter can be used
+        to filter out some of the items in the list based on a conditional
+        expression.
+
+        """
         # (list-comp expr (target iter) cond?)
         expr.pop(0)
         expression = expr.pop(0)
