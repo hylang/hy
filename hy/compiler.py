@@ -746,6 +746,30 @@ class HyASTCompiler(object):
     @builds("unquote")
     @builds("unquote_splicing")
     def compile_unquote(self, expr):
+        """Within a quasiquoted form, unquote forces evaluation of a symbol.
+           unquote is aliased to the tilde (~) symbol.
+
+        => (setv Name "Cuddles")
+        => (quasiquote (= name (unquote Name)))
+        (u'=' u'name' u'Cuddles')
+
+        => `(= name ~Name)
+        (u'=' u'name' u'Cuddles')
+
+        unquote-splice forces the evaluation of a symbol within a quasiquoted
+        form, much like unquote. unquote-splice can only be used when the
+        symbol being unquoted contains an iterable value, as it “splices” that
+        iterable into the quasiquoted form. unquote-splice is aliased to the
+        ~@ symbol.
+
+        => (def nums [1 2 3 4])
+        => (quasiquote (+ (unquote-splice nums)))
+        (u'+' 1L 2L 3L 4L)
+        => `(+ ~@nums)
+        (u'+' 1L 2L 3L 4L)
+
+        """
+
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
 
