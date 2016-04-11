@@ -3056,6 +3056,7 @@ class HyASTCompiler(object):
 
     @builds(HyDict)
     def compile_dict(self, m):
+        """Compile a dictionary."""
         keyvalues, ret, _ = self._compile_collect(m)
 
         ret += ast.Dict(lineno=m.start_line,
