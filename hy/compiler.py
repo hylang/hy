@@ -1876,6 +1876,15 @@ class HyASTCompiler(object):
     @builds("dict_comp")
     @checkargs(min=3, max=4)
     def compile_dict_comprehension(self, expr):
+        """dict-comp is used to create dictionaries.
+
+        It takes three or four parameters. The first two parameters are for
+        controlling the return value (key-value pair) while the third is used
+        to select items from a sequence. The fourth and optional parameter can
+        be used to filter out some of the items in the sequence based on a
+        conditional expression.
+
+        """
         if PY27:
             expr.pop(0)  # dict-comp
             key = expr.pop(0)
