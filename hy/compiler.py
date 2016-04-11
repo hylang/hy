@@ -2902,6 +2902,11 @@ class HyASTCompiler(object):
     @builds("defmacro")
     @checkargs(min=1)
     def compile_macro(self, expression):
+        """defmacro is used to define macros.
+
+        The general format is (defmacro name [parameters] expr).
+
+        """
         expression.pop(0)
         name = expression.pop(0)
         if not isinstance(name, HySymbol):
