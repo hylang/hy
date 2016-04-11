@@ -811,6 +811,19 @@ class HyASTCompiler(object):
 
     @builds("do")
     def compile_do(self, expression):
+        """do is used to evaluate each of its arguments and return the last one.
+
+        Return values from every other than the last argument are discarded.
+        It can be used in lambda or list-comp to perform more complex logic as
+        shown in one of the following examples.
+
+        => (if true
+        ... (do (print "Side effects rock!")
+        ...     (print "Yeah, really!")))
+        Side effects rock!
+        Yeah, really!
+
+        """
         expression.pop(0)
         return self._compile_branch(expression)
 
