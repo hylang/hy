@@ -3009,6 +3009,7 @@ class HyASTCompiler(object):
 
     @builds(HyComplex)
     def compile_complex(self, number):
+        """Compile a complex number."""
         return ast.Num(n=complex(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
