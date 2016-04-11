@@ -1780,6 +1780,11 @@ class HyASTCompiler(object):
 
     @builds(",")
     def compile_tuple(self, expr):
+        """tuple operator.
+
+        Returns a tuple of the arguments.
+
+        """
         expr.pop(0)
         elts, ret, _ = self._compile_collect(expr)
         ret += ast.Tuple(elts=elts,
