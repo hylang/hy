@@ -3042,6 +3042,7 @@ class HyASTCompiler(object):
 
     @builds(HyString)
     def compile_string(self, string):
+        """Compile a string."""
         return ast.Str(s=str_type(string),
                        lineno=string.start_line,
                        col_offset=string.start_column)
