@@ -364,7 +364,7 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
                         "`%%s' needs %s arguments, got %%d" % choices)
 
             return fn(self, expression)
-
+        checker.__doc__ = fn.__doc__
         return checker
     return _dec
 
