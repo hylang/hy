@@ -830,6 +830,21 @@ class HyASTCompiler(object):
     @builds("raise")
     @checkargs(multiple=[0, 1, 3])
     def compile_raise_expression(self, expr):
+        """The raise form can be used to raise an Exception at runtime.
+
+        raise can accept a single argument (an Exception class or instance) or
+        no arguments to re-raise the last Exception.
+
+        (raise)
+        ; re-rase the last exception
+
+        (raise IOError)
+        ; raise an IOError
+
+        (raise (IOError "foobar"))
+        ; raise an IOError("foobar")
+
+        """
         expr.pop(0)
         ret = Result()
         if expr:
