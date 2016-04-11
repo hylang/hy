@@ -1668,6 +1668,14 @@ class HyASTCompiler(object):
     @builds("assoc")
     @checkargs(min=3, even=False)
     def compile_assoc_expression(self, expr):
+        """assoc is used to associate a key with a value in a dictionary or to set an
+        index of a list to a value.
+
+        It takes at least three parameters: the data structure to be modified,
+        a key or index, and a value. If more than three parameters are used,
+        it will associate in pairs.
+
+        """
         expr.pop(0)  # assoc
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
