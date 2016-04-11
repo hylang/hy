@@ -1725,6 +1725,7 @@ class HyASTCompiler(object):
     @builds("with*")
     @checkargs(min=2)
     def compile_with_expression(self, expr):
+        """TODO: what does this do?"""
         expr.pop(0)  # with*
 
         args = expr.pop(0)
