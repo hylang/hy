@@ -3049,6 +3049,7 @@ class HyASTCompiler(object):
 
     @builds(HyKeyword)
     def compile_keyword(self, keyword):
+        """Compile a keyword."""
         return ast.Str(s=str_type(keyword),
                        lineno=keyword.start_line,
                        col_offset=keyword.start_column)
