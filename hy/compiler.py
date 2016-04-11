@@ -2591,6 +2591,9 @@ class HyASTCompiler(object):
     @builds("while")
     @checkargs(min=2)
     def compile_while_expression(self, expr):
+        """while is used to execute one or more blocks as long as a condition is met.
+
+        """
         expr.pop(0)  # "while"
         ret = self.compile(expr.pop(0))
 
