@@ -987,7 +987,8 @@
   (setv x (quote 42))
   (assert (= x (eval x)))
   (assert (= 27 (eval (+ (quote (*)) (* [(quote 3)] 3)))))
-  (assert (= None (eval (quote (print ""))))))
+  (assert (= None (eval (quote (print "")))))
+  (assert (= sys (eval (quote sys))))) ; issue #1041
 
 
 (defn test-eval-globals []
