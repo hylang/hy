@@ -37,6 +37,15 @@
   (assert (= (, 1 2 3) a)))
 
 
+(defn test-reader-macro-string-name []
+  "Test if defreader accepts a string as a macro name."
+
+  (defreader "." [expr]
+    expr)
+
+  (assert (= #."works" "works")))
+
+
 (defn test-builtin-decorator-reader []
   (defn increment-arguments [func]
     "Increments each argument passed to the decorated function."

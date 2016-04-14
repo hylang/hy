@@ -2467,7 +2467,7 @@ class HyASTCompiler(object):
         NOT_READERS = [":", "&"]
         if name in NOT_READERS or len(name) > 1:
             raise NameError("%s can't be used as a macro reader symbol" % name)
-        if not isinstance(name, HySymbol):
+        if not isinstance(name, HySymbol) and not isinstance(name, HyString):
             raise HyTypeError(name,
                               ("received a `%s' instead of a symbol "
                                "for reader macro name" % type(name).__name__))
