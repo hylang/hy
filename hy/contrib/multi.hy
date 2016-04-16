@@ -1,5 +1,6 @@
 ;; Hy Arity-overloading
 ;; Copyright (c) 2014 Morten Linderud <mcfoxax@gmail.com>
+;; Copyright (c) 2016 Tuukka Turto <tuukka.turto@oktaeder.net>
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a
 ;; copy of this software and associated documentation files (the "Software"),
@@ -19,23 +20,37 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
-(import [collections [defaultdict]])
-(import [hy.models.string [HyString]])
+(defn multi-decorator [dispatch-fn]
+  (setv inner (fn [&rest args &kwargs kwargs]
+                (setv dispatch-key (apply dispatch-fn args kwargs))
+                (if (in dispatch-key inner.--multi--)
+                  (apply (get inner.--multi-- dispatch-key) args kwargs)
+                  (apply inner.--multi-default-- args kwargs))))
+  (setv inner.--multi-- {})
+  (setv inner.--doc-- dispatch-fn.--doc--)
+  (setv inner.--multi-default-- (fn [&rest args &kwargs kwargs] nil))
+  inner)
 
-
-(defmacro defmulti [name &rest bodies]
-  (def comment (HyString))
-  (if (= (type (first bodies)) HyString)
-    (do (def comment (car bodies))
-        (def bodies (cdr bodies))))
-
-  (def ret `(do))
-  
-  (.append ret '(import [hy.contrib.dispatch [MultiDispatch]]))
+(defn method-decorator [dispatch-fn &optional [dispatch-key nil]]
+  (setv apply-decorator
+        (fn [func]
+          (if (is dispatch-key nil)
+            (setv dispatch-fn.--multi-default-- func)
+           (assoc dispatch-fn.--multi-- dispatch-key func))
+          dispatch-fn))
+  apply-decorator)
  
-  (for [body bodies]
-    (def let-binds (car body))
-    (def body (cdr body))
-    (.append ret 
-        `(with-decorator MultiDispatch (defn ~name ~let-binds ~comment ~@body))))
-  ret)
+(defmacro defmulti [name params &rest body]
+  `(do (import [hy.contrib.multi [multi-decorator]])
+       (with-decorator multi-decorator
+         (defn ~name ~params ~@body))))
+
+(defmacro defmethod [name multi-key params &rest body]
+  `(do (import [hy.contrib.multi [method-decorator]])
+       (with-decorator (method-decorator ~name ~multi-key)
+         (defn ~name ~params ~@body))))
+
+(defmacro default-method [name params &rest body]
+  `(do (import [hy.contrib.multi [method-decorator]])
+       (with-decorator (method-decorator ~name)
+         (defn ~name ~params ~@body))))
