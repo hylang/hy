@@ -50,7 +50,7 @@ if sys.version_info[:2] < (2, 7):
     install_requires.append('argparse>=1.2.1')
     install_requires.append('importlib>=1.0.2')
 if os.name == 'nt':
-    install_requires.append('pyreadline==2.0')
+    install_requires.append('pyreadline>=2.1')
 
 setup(
     name=PKG,
@@ -89,6 +89,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",

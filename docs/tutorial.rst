@@ -119,7 +119,7 @@ processing"; this means that the structure of the program is
 actually lists of lists.  (If you're familiar with Python lists,
 imagine the entire same structure as above but with square brackets
 instead, any you'll be able to see the structure above as both a
-program and a datastructure.)  This is easier to understand with more
+program and a data structure.)  This is easier to understand with more
 examples, so let's write a simple Python program, test it, and then
 show the equivalent Hy program::
 
@@ -168,7 +168,7 @@ There are some advantages to having a code structure that's actually a
 very simple data structure as the core of Lisp is based on.  For one
 thing, it means that your programs are easy to parse and that the
 entire actual structure of the program is very clearly exposed to you.
-(There's an extra step in hy where the structure you see is converted
+(There's an extra step in Hy where the structure you see is converted
 to Python's own representations ... in "purer" Lisps such as Common
 Lisp or Emacs Lisp, the data structure you see in the code and the
 data structure that is executed is much more literally close.)
@@ -258,6 +258,7 @@ In Hy, you would do:
 
 .. code-block:: clj
 
+   (setv somevar 33)
    (cond
     [(> somevar 50)
      (print "That variable is too big!")]
@@ -305,6 +306,13 @@ Comments start with semicolons:
   (print "this will run")
   ; (print "but this will not")
   (+ 1 2 3)  ; we'll execute the addition, but not this comment!
+
+Hashbang (``#!``) syntax is supported:
+
+.. code-block:: clj
+
+   #! /usr/bin/env hy
+   (print "Make me executable, and run me!")
 
 Looping is not hard but has a kind of special structure.  In Python,
 we might do::
@@ -505,22 +513,22 @@ In Hy:
 Macros
 ======
 
-One really powerful feature of Hy are macros. They are small functios that are
+One really powerful feature of Hy are macros. They are small functions that are
 used to generate code (or data). When program written in Hy is started, the
-macros are executed and their output is placed in program source. After this,
+macros are executed and their output is placed in the program source. After this,
 the program starts executing normally. Very simple example:
 
 .. code-block:: clj
 
   => (defmacro hello [person]
   ...  `(print "Hello there," ~person))
-  => (Hello "Tuukka")
+  => (hello "Tuukka")
   Hello there, Tuukka
 
 The thing to notice here is that hello macro doesn't output anything on
 screen. Instead it creates piece of code that is then executed and prints on
-screen. Macro writes a piece of program that looks like this (provided that
-we used "Tuukka" as parameter:
+screen. This macro writes a piece of program that looks like this (provided that
+we used "Tuukka" as parameter):
 
 .. code-block:: clj
 
@@ -536,14 +544,14 @@ We can also manipulate code with macros:
   => (rev (1 2 3 +))
   6
 
-The code that was generated with this macro just switched around some the
-elements, so by the time program started executing, it actually red:
+The code that was generated with this macro just switched around some of the
+elements, so by the time program started executing, it actually reads:
 
 .. code-block:: clj
 
   (+ 1 2 3)
 
-Sometimes it's nice to have a very short name for macro that doesn't take much
+Sometimes it's nice to have a very short name for a macro that doesn't take much
 space or use extra parentheses. Reader macros can be pretty useful in these
 situations (and since Hy operates well with unicode, we aren't running out of
 characters that soon):
@@ -556,14 +564,14 @@ characters that soon):
   => #↻(1 2 3 +)
   6
 
-Macros are useful when one wishes to extend the Hy or write their own
+Macros are useful when one wishes to extend Hy or write their own
 language on top of that. Many features of Hy are macros, like ``when``,
 ``cond`` and ``->``.
 
 To use macros defined in a different module, it is not enough to
 ``import`` the module, because importing happens at run-time, while we
 would need macros at compile-time. Instead of importing the module
-with macros, it must be ``require``d:
+with macros, ``require`` must be used:
 
 .. code-block:: clj
 

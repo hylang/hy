@@ -6,7 +6,7 @@ Hy
 [![Version](https://img.shields.io/pypi/v/hy.svg)](https://pypi.python.org/pypi/hy)
 [![Coverage Status](https://img.shields.io/coveralls/hylang/hy/master.svg)](https://coveralls.io/r/hylang/hy)
 
-![XKCD #224](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)
+[![XKCD #224](https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png)](https://xkcd.com/224/)
 
 Lisp and Python should love each other. Let's make it happen. [Try it](http://try-hy.appspot.com/).
 
@@ -32,7 +32,7 @@ It's really awesome.
 
 Oh, and lisps are neat.
 
-![Cuddles the Hacker](http://i.imgur.com/QbPMXTN.png)
+![Cuddles the Hacker](https://i.imgur.com/QbPMXTN.png)
 
 (fan art from the one and only [doctormo](http://doctormo.deviantart.com/art/Cuddles-the-Hacker-372184766))
 
@@ -46,3 +46,4 @@ Project
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
 * [Contributor Guidelines & Code of Conduct](https://github.com/hylang/hy/blob/master/CONTRIBUTING.rst)
+* IRC: Join #hy on [freenode](https://webchat.freenode.net/)

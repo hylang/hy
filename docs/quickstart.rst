@@ -31,13 +31,18 @@ Quickstart
 
 7. Open up an elite programming editor and type::
 
+       #! /usr/bin/env hy
        (print "I was going to code in Python syntax, but then I got Hy.")
 
 8. Save as ``awesome.hy``.
-9. And run your first Hy program::
+9. Make it executable::
 
-        hy awesome.hy
+        chmod +x awesome.hy
 
-10. Take a deep breath so as to not hyperventilate.
-11. Smile villainously and sneak off to your hydeaway and do
+10. And run your first Hy program::
+
+        ./awesome.hy
+
+11. Take a deep breath so as to not hyperventilate.
+12. Smile villainously and sneak off to your hydeaway and do
     unspeakable things.

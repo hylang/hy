@@ -18,9 +18,10 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
-;;;; some simple helpers
-
+(import [hy.errors [HyMacroExpansionError]])
 (require hy.contrib.anaphoric)
+
+;;;; some simple helpers
 
 (defn assert-true [x]
   (assert (= True x)))
@@ -35,7 +36,10 @@
 (defn test-ap-if []
   "NATIVE: testing anaphoric if"
   (ap-if true (assert-true it))
-  (ap-if false true (assert-false it)))
+  (ap-if false true (assert-false it))
+  (try (macroexpand '(ap-if true))
+       (except [HyMacroExpansionError] true)
+       (else (assert false))))
 
 (defn test-ap-each []
   "NATIVE: testing anaphoric each"
