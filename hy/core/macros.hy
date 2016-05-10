@@ -219,36 +219,36 @@
        (try
          (setv ~g!y (next ~g!i))
          (except [~g!e StopIteration]
-                 (setv ~g!r (. ~g!e value)))
+           (setv ~g!r (next (iter (. ~g!e args)) nil)))
          (else
-           (while 1
+           (while True
              (try
                (setv ~g!s (yield ~g!y))
                (except [~g!e GeneratorExit]
-                       (try
-                         (setv ~g!m (. ~g!i close))
-                         (except [AttributeError] pass)
-                         (else (~g!m)))
-                       (raise ~g!e))
+                 (try
+                   (setv ~g!m (. ~g!i close))
+                   (except [AttributeError] pass)
+                   (else (~g!m)))
+                 (raise ~g!e))
                (except [~g!e BaseException]
-                       (setv ~g!x (sys.exc_info))
-                       (try
-                         (setv ~g!m (. ~g!i throw))
-                         (except [AttributeError] (raise ~g!e))
-                         (else
-                           (try
-                             (setv ~g!y (apply ~g!m ~g!x))
-                             (except [~g!e StopIteration]
-                                     (setv ~g!r (. ~g!e value))
-                                     (break))))))
+                 (setv ~g!x (sys.exc_info))
+                 (try
+                   (setv ~g!m (. ~g!i throw))
+                   (except [AttributeError] (raise ~g!e))
+                   (else
+                     (try
+                       (setv ~g!y (apply ~g!m ~g!x))
+                       (except [~g!e StopIteration]
+                         (setv ~g!r (next (iter (. ~g!e args)) nil))
+                         (break))))))
                (else
                  (try
                    (if (is ~g!s nil)
                      (setv ~g!y (next ~g!i))
                      (setv ~g!y ((. ~g!i send) ~g!s)))
                    (except [~g!e StopIteration]
-                           (setv ~g!r (. ~g!e value))
-                           (break))))))))
+                     (setv ~g!r (next (iter (. ~g!e args)) nil))
+                     (break))))))))
        ~g!r))
   nil)
 
