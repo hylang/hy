@@ -32,7 +32,7 @@ Do this:
 
        $ . venv/bin/activate
 
-   or use `virtualenvwrapper <http://virtualenvwrapper.readthedocs.io/en/latest/#introduction>`_
+   or use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.io/en/latest/#introduction>`_
    to create and manage your virtual environment::
 
        $ mkvirtualenv hy
