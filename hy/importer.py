@@ -36,9 +36,12 @@ from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
 from importlib import machinery
-from importlib import _bootstrap as bootstrap
-from importlib._bootstrap import SOURCE_SUFFIXES as PY_SOURCE_SUFFIXES
+from importlib.machinery import SOURCE_SUFFIXES as PY_SOURCE_SUFFIXES
 from pkgutil import iter_importer_modules
+try:
+    from importlib._bootstrap import _get_supported_file_loaders
+except:
+    from importlib._bootstrap_external import _get_supported_file_loaders
 
 HY_SOURCE_SUFFIXES = ['.hy']
 
@@ -270,7 +273,7 @@ def _install():
 
     filefinder, fpos = filefinder[0]
 
-    supported_loaders = bootstrap._get_supported_file_loaders()
+    supported_loaders = _get_supported_file_loaders()
     sourceloader = [(l, i) for i, l in enumerate(supported_loaders)
                     if repr(l[0]).find('importlib.SourceFileLoader') != -1]
     if not sourceloader:
