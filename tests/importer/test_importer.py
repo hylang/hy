@@ -1,7 +1,8 @@
-from hy.importer import import_file_to_module, import_buffer_to_ast, MetaLoader
+from hy.importer import import_file_to_module, import_buffer_to_ast
 from hy.errors import HyTypeError
 import os
 import ast
+
 
 def test_basics():
     "Make sure the basics of the importer work"
@@ -26,4 +27,3 @@ def test_import_error_reporting():
 
     assert _import_error_test() == "Error reported"
     assert _import_error_test() is not None
-

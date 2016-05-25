@@ -10,11 +10,16 @@ import os.path
 import pkgutil
 import inspect
 
-# Test that the iter_modules mechanism now works and 
-# Python gives us both py and hy files found in a 
+
+# Test that the iter_modules mechanism now works and
+# Python gives us both py and hy files found in a
 # module
 def test_finder():
-    path = os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), 'test_module')
+    path = os.path.join(
+        os.path.dirname(
+            os.path.abspath(
+                inspect.getfile(
+                    inspect.currentframe()))), 'test_module')
 
     def _hy_anon_fn_1(pkg):
         return pkg[1]

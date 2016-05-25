@@ -35,10 +35,8 @@ import __future__
 from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
-from importlib.machinery import SourceFileLoader, FileFinder, all_suffixes
-from importlib._bootstrap import (_get_supported_file_loaders, _path_stat,
-                                  _path_isfile, _path_isdir, _relax_case,
-                                  _path_join, _verbose_message)
+from importlib import machinery
+from importlib import _bootstrap as bootstrap
 from importlib._bootstrap import SOURCE_SUFFIXES as PY_SOURCE_SUFFIXES
 from pkgutil import iter_importer_modules
 
@@ -179,7 +177,7 @@ def _call_with_frames_removed(f, *args, **kwds):
     return f(*args, **kwds)
 
 
-class HySourceFileLoader(SourceFileLoader):
+class HySourceFileLoader(machinery.SourceFileLoader):
     """Override the get_code method.  Falls back on the SourceFileLoader
        if it's a Python file, which will generate pyc files as needed,
        or works its way into the Hy version.  This method does not yet
@@ -191,7 +189,7 @@ class HySourceFileLoader(SourceFileLoader):
     def get_code(self, fullname):
         source_path = self.get_filename(fullname)
         if source_path.endswith(tuple(PY_SOURCE_SUFFIXES)):
-            return super(SourceFileLoader, self).get_code(fullname)
+            return super(HySourceFileLoader, self).get_code(fullname)
 
         if source_path.endswith(tuple(HY_SOURCE_SUFFIXES)):
             ast = hy_compile(import_file_to_hst(source_path), fullname)
@@ -202,61 +200,61 @@ class HySourceFileLoader(SourceFileLoader):
 
 
 # Provide a working namespace for our new FileFinder.
-class HyFileFinder(FileFinder):
-    pass
+class HyFileFinder(machinery.FileFinder):
 
+    # Taken from inspect.py and modified to support Hy suffixes.
+    @staticmethod
+    def getmodulename(path):
+        fname = os.path.basename(path)
+        suffixes = [(-len(suffix), suffix)
+                    for suffix in machinery.all_suffixes() + HY_SOURCE_SUFFIXES]
+        suffixes.sort()  # try longest suffixes first, in case they overlap
+        for neglen, suffix in suffixes:
+            if fname.endswith(suffix):
+                return fname[:neglen]
+        return None
 
-# Taken from inspect.py and modified to support Hy suffixes.
-def getmodulename(path):
-    fname = os.path.basename(path)
-    suffixes = [(-len(suffix), suffix)
-                for suffix in all_suffixes() + HY_SOURCE_SUFFIXES]
-    suffixes.sort()  # try longest suffixes first, in case they overlap
-    for neglen, suffix in suffixes:
-        if fname.endswith(suffix):
-            return fname[:neglen]
-    return None
+    # Taken from pkgutil.py and modified to support Hy suffixes.
+    @staticmethod
+    def iter_modules(importer, prefix=''):
+        if importer.path is None or not os.path.isdir(importer.path):
+            return
 
+        yielded = {}
+        try:
+            filenames = os.listdir(importer.path)
+        except OSError:
+            # ignore unreadable directories like import does
+            filenames = []
+        filenames.sort()  # handle packages before same-named modules
 
-# Taken from pkgutil.py and modified to support Hy suffixes.
-def _iter_hy_file_finder_modules(importer, prefix=''):
-    if importer.path is None or not os.path.isdir(importer.path):
-        return
+        for fn in filenames:
+            modname = HyFileFinder.getmodulename(fn)
+            if modname == '__init__' or modname in yielded:
+                continue
 
-    yielded = {}
-    try:
-        filenames = os.listdir(importer.path)
-    except OSError:
-        # ignore unreadable directories like import does
-        filenames = []
-    filenames.sort()  # handle packages before same-named modules
+            path = os.path.join(importer.path, fn)
+            ispkg = False
 
-    for fn in filenames:
-        modname = getmodulename(fn)
-        if modname == '__init__' or modname in yielded:
-            continue
+            if not modname and os.path.isdir(path) and '.' not in fn:
+                modname = fn
+                try:
+                    dircontents = os.listdir(path)
+                except OSError:
+                    # ignore unreadable directories like import does
+                    dircontents = []
+                for fn in dircontents:
+                    subname = HyFileFinder.getmodulename(fn)
+                    if subname == '__init__':
+                        ispkg = True
+                        break
+                else:
+                    continue    # not a package
 
-        path = os.path.join(importer.path, fn)
-        ispkg = False
-
-        if not modname and os.path.isdir(path) and '.' not in fn:
-            modname = fn
-            try:
-                dircontents = os.listdir(path)
-            except OSError:
-                # ignore unreadable directories like import does
-                dircontents = []
-            for fn in dircontents:
-                subname = getmodulename(fn)
-                if subname == '__init__':
-                    ispkg = True
-                    break
-            else:
-                continue    # not a package
-
-        if modname and '.' not in modname:
-            yielded[modname] = 1
-            yield prefix + modname, ispkg
+            if modname and '.' not in modname:
+                yielded[modname] = 1
+                yield prefix + modname, ispkg
+        pass
 
 
 # Monkeypatch both path_hooks and iter_importer_modules to make our
@@ -271,8 +269,8 @@ def _install():
         return
 
     filefinder, fpos = filefinder[0]
-    supported_loaders = _get_supported_file_loaders()
 
+    supported_loaders = bootstrap._get_supported_file_loaders()
     sourceloader = [(l, i) for i, l in enumerate(supported_loaders)
                     if repr(l[0]).find('importlib.SourceFileLoader') != -1]
     if not sourceloader:
@@ -280,9 +278,8 @@ def _install():
 
     sourceloader, spos = sourceloader[0]
     supported_loaders[spos] = (HySourceFileLoader, ['.py', '.hy'])
-
     sys.path_hooks[fpos] = HyFileFinder.path_hook(*supported_loaders)
-    iter_importer_modules.register(HyFileFinder, _iter_hy_file_finder_modules)
+    iter_importer_modules.register(HyFileFinder, HyFileFinder.iter_modules)
 
 _install()
 sys.path.insert(0, "")
