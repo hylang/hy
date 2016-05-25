@@ -35,6 +35,15 @@ import __future__
 from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
+from importlib.machinery import SourceFileLoader, FileFinder, all_suffixes
+from importlib._bootstrap import (_get_supported_file_loaders, _path_stat,
+                                  _path_isfile, _path_isdir, _relax_case,
+                                  _path_join, _verbose_message)
+from importlib._bootstrap import SOURCE_SUFFIXES as PY_SOURCE_SUFFIXES
+from pkgutil import iter_importer_modules
+
+HY_SOURCE_SUFFIXES = ['.hy']
+
 
 def ast_compile(ast, filename, mode):
     """Compile AST.
@@ -163,63 +172,117 @@ def write_hy_as_pyc(fname):
         fc.write(MAGIC)
 
 
-class MetaLoader(object):
-    def __init__(self, path):
-        self.path = path
-
-    def is_package(self, fullname):
-        dirpath = "/".join(fullname.split("."))
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            composed_path = "%s/%s/__init__.hy" % (pth, dirpath)
-            if os.path.exists(composed_path):
-                return True
-        return False
-
-    def load_module(self, fullname):
-        if fullname in sys.modules:
-            return sys.modules[fullname]
-
-        if not self.path:
-            return
-
-        sys.modules[fullname] = None
-        mod = import_file_to_module(fullname,
-                                    self.path)
-
-        ispkg = self.is_package(fullname)
-
-        mod.__file__ = self.path
-        mod.__loader__ = self
-        mod.__name__ = fullname
-
-        if ispkg:
-            mod.__path__ = []
-            mod.__package__ = fullname
-        else:
-            mod.__package__ = fullname.rpartition('.')[0]
-
-        sys.modules[fullname] = mod
-        return mod
+def _call_with_frames_removed(f, *args, **kwds):
+    # Hack.  This function name and signature is hard-coded into
+    # Python's import.c.  The name and signature trigger importlib to
+    # remove itself from any stacktraces.  See import.c for details.
+    return f(*args, **kwds)
 
 
-class MetaImporter(object):
-    def find_on_path(self, fullname):
-        fls = ["%s/__init__.hy", "%s.hy"]
-        dirpath = "/".join(fullname.split("."))
+class HySourceFileLoader(SourceFileLoader):
+    """Override the get_code method.  Falls back on the SourceFileLoader
+       if it's a Python file, which will generate pyc files as needed,
+       or works its way into the Hy version.  This method does not yet
+       address the generation of .pyc/.pyo files from .hy files."""
 
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            for fp in fls:
-                composed_path = fp % ("%s/%s" % (pth, dirpath))
-                if os.path.exists(composed_path):
-                    return composed_path
+    # TODO: Address the generation of .pyc/.pyo files from .hy files.
+    # See importlib/_bootstrap.py for details is SourceFileLoader of
+    # how that's done.
+    def get_code(self, fullname):
+        source_path = self.get_filename(fullname)
+        if source_path.endswith(tuple(PY_SOURCE_SUFFIXES)):
+            return super(SourceFileLoader, self).get_code(fullname)
 
-    def find_module(self, fullname, path=None):
-        path = self.find_on_path(fullname)
-        if path:
-            return MetaLoader(path)
+        if source_path.endswith(tuple(HY_SOURCE_SUFFIXES)):
+            ast = hy_compile(import_file_to_hst(source_path), fullname)
+            flags = (__future__.CO_FUTURE_DIVISION |
+                     __future__.CO_FUTURE_PRINT_FUNCTION)
+            return _call_with_frames_removed(compile, ast, source_path,
+                                             'exec', flags)
 
 
-sys.meta_path.insert(0, MetaImporter())
+# Provide a working namespace for our new FileFinder.
+class HyFileFinder(FileFinder):
+    pass
+
+
+# Taken from inspect.py and modified to support Hy suffixes.
+def getmodulename(path):
+    fname = os.path.basename(path)
+    suffixes = [(-len(suffix), suffix)
+                for suffix in all_suffixes() + HY_SOURCE_SUFFIXES]
+    suffixes.sort()  # try longest suffixes first, in case they overlap
+    for neglen, suffix in suffixes:
+        if fname.endswith(suffix):
+            return fname[:neglen]
+    return None
+
+
+# Taken from pkgutil.py and modified to support Hy suffixes.
+def _iter_hy_file_finder_modules(importer, prefix=''):
+    if importer.path is None or not os.path.isdir(importer.path):
+        return
+
+    yielded = {}
+    try:
+        filenames = os.listdir(importer.path)
+    except OSError:
+        # ignore unreadable directories like import does
+        filenames = []
+    filenames.sort()  # handle packages before same-named modules
+
+    for fn in filenames:
+        modname = getmodulename(fn)
+        if modname == '__init__' or modname in yielded:
+            continue
+
+        path = os.path.join(importer.path, fn)
+        ispkg = False
+
+        if not modname and os.path.isdir(path) and '.' not in fn:
+            modname = fn
+            try:
+                dircontents = os.listdir(path)
+            except OSError:
+                # ignore unreadable directories like import does
+                dircontents = []
+            for fn in dircontents:
+                subname = getmodulename(fn)
+                if subname == '__init__':
+                    ispkg = True
+                    break
+            else:
+                continue    # not a package
+
+        if modname and '.' not in modname:
+            yielded[modname] = 1
+            yield prefix + modname, ispkg
+
+
+# Monkeypatch both path_hooks and iter_importer_modules to make our
+# '.hy' modules recognizable to the module iterator functions.  This
+# is probably horribly fragile, but there doesn't seem to be a more
+# robust way of doing it at the moment, and these names are stable
+# from python 2.7 up.
+def _install():
+    filefinder = [(f, i) for i, f in enumerate(sys.path_hooks)
+                  if repr(f).find('path_hook_for_FileFinder') != -1]
+    if not filefinder:
+        return
+
+    filefinder, fpos = filefinder[0]
+    supported_loaders = _get_supported_file_loaders()
+
+    sourceloader = [(l, i) for i, l in enumerate(supported_loaders)
+                    if repr(l[0]).find('importlib.SourceFileLoader') != -1]
+    if not sourceloader:
+        return
+
+    sourceloader, spos = sourceloader[0]
+    supported_loaders[spos] = (HySourceFileLoader, ['.py', '.hy'])
+
+    sys.path_hooks[fpos] = HyFileFinder.path_hook(*supported_loaders)
+    iter_importer_modules.register(HyFileFinder, _iter_hy_file_finder_modules)
+
+_install()
 sys.path.insert(0, "")
