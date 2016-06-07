@@ -36,7 +36,7 @@ Pull requests are great! We love them; here is a quick guide:
   + Try sticking to the 50 character limit for the first line of Git
     commit messages.
 
-  + For more detail/explainations, follow this up with a blank line and
+  + For more detail/explanations, follow this up with a blank line and
     continue describing the commit in detail.
 
 - Finally, add yourself to the AUTHORS file (as a separate commit): you
