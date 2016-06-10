@@ -141,7 +141,7 @@ is ``True``, the function prints Python code instead.
    print('Hello World!')
 
 
-.. _emtpy?-fn:
+.. _empty?-fn:
 
 empty?
 ------
