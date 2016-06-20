@@ -31,10 +31,11 @@
         [hy._compat [PY33 PY34]])
 
 (defmacro as-> [head name &rest rest]
-  "Becomes ordered assignments to the provided name. The previous result
-  is thus available in each form. Returns the final result, and leaves the name
-  bound to it in the local scope. This behaves like the threading macros, but
-  requires you to specify the threading point per form via the name."
+  "Expands to sequence of assignments to the provided name, starting with head.
+  The previous result is thus available in the subsequent form. Returns the
+  final result, and leaves the name bound to it in the local scope. This behaves
+  much like the other threading macros, but requires you to specify the threading
+  point per form via the name instead of always the first or last arument."
   `(do (setv
          ~name ~head
          ~@(interleave (repeat name) rest))
