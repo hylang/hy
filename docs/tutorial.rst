@@ -267,7 +267,7 @@ In Hy, you would do:
     [true
      (print "That variable is jussssst right!")])
 
-What you'll notice is that ``cond`` switches off between a some statement
+What you'll notice is that ``cond`` switches off between a statement
 that is executed and checked conditionally for true or falseness, and
 then a bit of code to execute if it turns out to be true.  You'll also
 notice that the ``else`` is implemented at the end simply by checking
