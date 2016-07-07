@@ -130,10 +130,7 @@ def load_macros(module_name):
 
 
 def make_empty_fn_copy(fn):
-    try:
-        argspec = getargspec(fn)
-    except:
-        return lambda *_: None
+    argspec = getargspec(fn)
 
     none = ast.Name(id='None', ctx=ast.Load())
     nonify = lambda _: none
