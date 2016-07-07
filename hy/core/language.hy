@@ -37,6 +37,7 @@
         [hy.models.symbol [HySymbol]]
         [hy.models.keyword [HyKeyword *keyword-prefix*]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
+(import [hy.compiler [HyASTCompiler]])
 
 (defn _numeric-check [x]
   (if (not (numeric? x))
@@ -296,14 +297,14 @@
   (import hy.macros)
 
   (setv name (calling-module-name))
-  (hy.macros.macroexpand form name))
+  (hy.macros.macroexpand form (HyASTCompiler name)))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of form"
   (import hy.macros)
 
   (setv name (calling-module-name))
-  (hy.macros.macroexpand-1 form name))
+  (hy.macros.macroexpand-1 form (HyASTCompiler name)))
 
 (defn merge-with [f &rest maps]
   "Returns a map that consists of the rest of the maps joined onto
@@ -463,6 +464,11 @@
         (hyify (. value __name__))
         (except [] (string value))))))
 
+(defn xor [a b]
+  "Perform exclusive or between two parameters"
+  (or (and a (not b))
+      (and b (not a))))
+
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     compress cons cons? count cycle dec distinct disassemble drop drop-last
@@ -472,4 +478,4 @@
     last list* macroexpand macroexpand-1 map merge-with multicombinations name
     neg? nil? none? nth numeric? odd? partition permutations pos? product range
     read read-str remove repeat repeatedly rest reduce second some string
-    string? symbol? take take-nth take-while tee zero? zip zip-longest])
+    string? symbol? take take-nth take-while xor tee zero? zip zip-longest])

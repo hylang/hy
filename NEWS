@@ -60,7 +60,7 @@ Changes from 0.10.0
   * nth returns default value when out of bounds
   * merge-with added
   * doto macro added
-  * keyword? to findout keywords
+  * keyword? to find out keywords
   * setv no longer allows "." in names
   
   [Internals ]
@@ -107,7 +107,7 @@ Changes from 0.9.12
    Many thanks to algernon for working on adderall, which helped
    push Hy further this cycle. Adderall is an implementation of miniKanren
    in Hy. If you're interested in using Adderall, check out hydiomatic,
-   which prettfies Hy source using Adderall rules.
+   which prettifies Hy source using Adderall rules.
    
    This release saw an increase of about 11 contributors for a point
    release, you guys rock!
@@ -280,7 +280,7 @@ Changes from Hy 0.9.10
     * Clarified rest / cdr, cleaned up require
     * Make with return the last expression from its branch
     * Fix yielding to not suck (#151)
-    * Make assoc accept multiple values, also added a even/odd check for
+    * Make assoc accept multiple values, also added an even/odd check for
       checkargs
     * Added ability to parse doc strings set in defclass declarations,
     * Provide bin scripts for both Windows and *nix

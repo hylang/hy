@@ -9,7 +9,7 @@ Hy Style Guide
 The Hy style guide intends to be a set of ground rules for the Hyve
 (yes, the Hy community prides itself in appending Hy to everything)
 to write idiomatic Hy code. Hy derives a lot from Clojure & Common
-Lisp, while always maintaining Python interopability.
+Lisp, while always maintaining Python interoperability.
 
 
 Prelude
@@ -105,7 +105,7 @@ Layout & Indentation
 
   .. code-block:: clj
 
-     (let [foo (bar)]
+     (let [foo (bar)
            qux (baz)]
         (foo qux))
 

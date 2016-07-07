@@ -6,10 +6,19 @@ helps in making Hy more awesome.
 
 Pull requests are great! We love them; here is a quick guide:
 
-- Fork the repo and create a topic branch for a feature/fix. Avoid
+- `Fork the repo`_ and create a topic branch for a feature/fix. Avoid
   making changes directly on the master branch.
+  (If you're new to Git: `Start Here`_)
 
 - All incoming features should be accompanied with tests.
+
+- If you are contributing a major change to the Hy language (e.g. changing
+  the behavior of or removing functions or macros), or you're unsure of
+  the proposed change, please open an issue in the `issue tracker`_ before
+  submitting the PR. This will allow others to give feedback on your idea,
+  and it will avoid constant changes or wasted work. For other PRs (such as
+  documentation fixes or code cleanup), you can directly open the PR without
+  first opening a corresponding issue.
 
 - Before you submit a PR, please run the tests and check your code
   against the style guide. You can do both of these things at once::
@@ -27,7 +36,7 @@ Pull requests are great! We love them; here is a quick guide:
   + Try sticking to the 50 character limit for the first line of Git
     commit messages.
 
-  + For more detail/explainations, follow this up with a blank line and
+  + For more detail/explanations, follow this up with a blank line and
     continue describing the commit in detail.
 
 - Finally, add yourself to the AUTHORS file (as a separate commit): you
@@ -82,3 +91,6 @@ version 1.1.0, available at
 http://contributor-covenant.org/version/1/1/0/.
 
 .. _Contributor Covenant: http://contributor-covenant.org
+.. _issue tracker: https://github.com/hylang/hy/issues
+.. _Fork the Repo: https://help.github.com/articles/fork-a-repo/
+.. _Start Here: http://rogerdudler.github.io/git-guide/)

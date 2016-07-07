@@ -25,8 +25,6 @@ import traceback
 
 from clint.textui import colored
 
-from hy._compat import PY3
-
 
 class HyError(Exception):
     """
@@ -101,12 +99,9 @@ class HyTypeError(TypeError):
 
         result += colored.yellow("%s: %s\n\n" %
                                  (self.__class__.__name__,
-                                  self.message))
+                                  self.message.encode('utf-8')))
 
-        if not PY3:
-            return result.encode('utf-8')
-        else:
-            return result
+        return result
 
 
 class HyMacroExpansionError(HyTypeError):

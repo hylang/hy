@@ -532,7 +532,7 @@ class HyASTCompiler(object):
                     raise HyTypeError(expr,
                                       "There can only be one "
                                       "&rest argument")
-                varargs = str(expr)
+                varargs = expr
             elif lambda_keyword == "&key":
                 if type(expr) != HyDict:
                     raise HyTypeError(expr,
@@ -547,6 +547,10 @@ class HyASTCompiler(object):
                     # defining keyword arguments.
                     it = iter(expr)
                     for k, v in zip(it, it):
+                        if not isinstance(k, HyString):
+                            raise HyTypeError(expr,
+                                              "Only strings can be used "
+                                              "as parameter names")
                         args.append(k)
                         ret += self.compile(v)
                         defaults.append(ret.force_expr)
@@ -560,6 +564,10 @@ class HyASTCompiler(object):
                 else:
                     k = expr
                     v = HySymbol("None").replace(k)
+                if not isinstance(k, HyString):
+                    raise HyTypeError(expr,
+                                      "Only strings can be used as "
+                                      "parameter names")
                 args.append(k)
                 ret += self.compile(v)
                 defaults.append(ret.force_expr)
@@ -586,7 +594,7 @@ class HyASTCompiler(object):
                     raise HyTypeError(expr,
                                       "There can only be one "
                                       "&kwargs argument")
-                kwargs = str(expr)
+                kwargs = expr
 
         return ret, args, defaults, varargs, kwonlyargs, kwonlydefaults, kwargs
 
@@ -974,7 +982,7 @@ class HyASTCompiler(object):
                                    col_offset=expr.start_column,
                                    ctx=ast.Load())
             else:
-                # [] → all exceptions catched
+                # [] → all exceptions caught
                 _type = Result()
         elif isinstance(exceptions_list, HySymbol):
             _type = self.compile(exceptions_list)
@@ -1989,7 +1997,7 @@ class HyASTCompiler(object):
     @builds(HyExpression)
     def compile_expression(self, expression):
         # Perform macro expansions
-        expression = macroexpand(expression, self.module_name)
+        expression = macroexpand(expression, self)
         if not isinstance(expression, HyExpression):
             # Go through compile again if the type changed.
             return self.compile(expression)
@@ -2262,10 +2270,14 @@ class HyASTCompiler(object):
             # list because it's really just an internal parsing thing.
 
             if kwargs:
-                kwargs = ast.arg(arg=kwargs, annotation=None)
+                kwargs = ast.arg(arg=ast_str(kwargs), annotation=None,
+                                 lineno=kwargs.start_line,
+                                 col_offset=kwargs.start_column)
 
             if stararg:
-                stararg = ast.arg(arg=stararg, annotation=None)
+                stararg = ast.arg(arg=ast_str(stararg), annotation=None,
+                                  lineno=stararg.start_line,
+                                  col_offset=stararg.start_column)
 
             # Let's find a better home for these guys.
         else:
@@ -2279,6 +2291,12 @@ class HyASTCompiler(object):
                                        ctx=ast.Param(), lineno=x.start_line,
                                        col_offset=x.start_column)
                               for x in kwonlyargs]
+
+            if kwargs:
+                kwargs = ast_str(kwargs)
+
+            if stararg:
+                stararg = ast_str(stararg)
 
         args = ast.arguments(
             args=args,
@@ -2299,7 +2317,10 @@ class HyASTCompiler(object):
             return ret
 
         if body.expr:
-            if body.contains_yield:
+            if body.contains_yield and not PY33:
+                # Prior to PEP 380 (introduced in Python 3.3)
+                # generators may not have a value in a return
+                # statement.
                 body += body.expr_as_stmt()
             else:
                 body += ast.Return(value=body.expr,
@@ -2386,7 +2407,7 @@ class HyASTCompiler(object):
             body += self.compile(rewire_init(expr))
 
         for expression in expressions:
-            expr = rewire_init(macroexpand(expression, self.module_name))
+            expr = rewire_init(macroexpand(expression, self))
             body += self.compile(expr)
 
         self.allow_builtins = allow_builtins
@@ -2428,6 +2449,9 @@ class HyASTCompiler(object):
             raise HyTypeError(name, ("received a `%s' instead of a symbol "
                                      "for macro name" % type(name).__name__))
         name = HyString(name).replace(name)
+        for kw in ("&kwonly", "&kwargs", "&key"):
+            if kw in expression[0]:
+                raise HyTypeError(name, "macros cannot use %s" % kw)
         new_expression = HyExpression([
             HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.macro"), name]),
@@ -2446,7 +2470,7 @@ class HyASTCompiler(object):
         NOT_READERS = [":", "&"]
         if name in NOT_READERS or len(name) > 1:
             raise NameError("%s can't be used as a macro reader symbol" % name)
-        if not isinstance(name, HySymbol):
+        if not isinstance(name, HySymbol) and not isinstance(name, HyString):
             raise HyTypeError(name,
                               ("received a `%s' instead of a symbol "
                                "for reader macro name" % type(name).__name__))
@@ -2472,10 +2496,7 @@ class HyASTCompiler(object):
                 "Trying to expand a reader macro using `{0}' instead "
                 "of string".format(type(str_char).__name__),
             )
-
-        module = self.module_name
-        expr = reader_macroexpand(str_char, expression.pop(0), module)
-
+        expr = reader_macroexpand(str_char, expression.pop(0), self)
         return self.compile(expr)
 
     @builds("eval_and_compile")
@@ -2573,11 +2594,6 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     `last_expression` is the.
     """
 
-    if hasattr(sys, "subversion"):
-        implementation = sys.subversion[0].lower()
-    elif hasattr(sys, "implementation"):
-        implementation = sys.implementation.name.lower()
-
     body = []
     expr = None
 
@@ -2596,12 +2612,6 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
         body = compiler.imports_as_stmts(spoof_tree) + result.stmts
 
     ret = root(body=body)
-
-    # PyPy _really_ doesn't like the ast going backwards...
-    if implementation != "cpython":
-        for node in ast.walk(ret):
-            node.lineno = 1
-            node.col_offset = 1
 
     if get_expr:
         expr = ast.Expression(body=expr)

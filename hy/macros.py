@@ -58,6 +58,8 @@ def macro(name):
 
     """
     def _(fn):
+        argspec = getargspec(fn)
+        fn._hy_macro_pass_compiler = argspec.keywords is not None
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
@@ -173,22 +175,22 @@ def make_empty_fn_copy(fn):
     return empty_fn
 
 
-def macroexpand(tree, module_name):
+def macroexpand(tree, compiler):
     """Expand the toplevel macros for the `tree`.
 
     Load the macros from the given `module_name`, then expand the (top-level)
     macros in `tree` until it stops changing.
 
     """
-    load_macros(module_name)
+    load_macros(compiler.module_name)
     old = None
     while old != tree:
         old = tree
-        tree = macroexpand_1(tree, module_name)
+        tree = macroexpand_1(tree, compiler)
     return tree
 
 
-def macroexpand_1(tree, module_name):
+def macroexpand_1(tree, compiler):
     """Expand the toplevel macro from `tree` once, in the context of
     `module_name`."""
     if isinstance(tree, HyExpression):
@@ -201,22 +203,25 @@ def macroexpand_1(tree, module_name):
         ntree = HyExpression(tree[:])
         ntree.replace(tree)
 
+        opts = {}
+
         if isinstance(fn, HyString):
-            m = _hy_macros[module_name].get(fn)
+            m = _hy_macros[compiler.module_name].get(fn)
             if m is None:
                 m = _hy_macros[None].get(fn)
             if m is not None:
+                if m._hy_macro_pass_compiler:
+                    opts['compiler'] = compiler
+
                 try:
                     m_copy = make_empty_fn_copy(m)
-                    m_copy(*ntree[1:])
+                    m_copy(*ntree[1:], **opts)
                 except TypeError as e:
                     msg = "expanding `" + str(tree[0]) + "': "
                     msg += str(e).replace("<lambda>()", "", 1).strip()
                     raise HyMacroExpansionError(tree, msg)
-
                 try:
-                    obj = wrap_value(m(*ntree[1:]))
-
+                    obj = wrap_value(m(*ntree[1:], **opts))
                 except HyTypeError as e:
                     if e.expression is None:
                         e.expression = tree
@@ -226,16 +231,15 @@ def macroexpand_1(tree, module_name):
                     raise HyMacroExpansionError(tree, msg)
                 replace_hy_obj(obj, tree)
                 return obj
-
         return ntree
     return tree
 
 
-def reader_macroexpand(char, tree, module_name):
+def reader_macroexpand(char, tree, compiler):
     """Expand the reader macro "char" with argument `tree`."""
-    load_macros(module_name)
+    load_macros(compiler.module_name)
 
-    reader_macro = _hy_reader[module_name].get(char)
+    reader_macro = _hy_reader[compiler.module_name].get(char)
     if reader_macro is None:
         try:
             reader_macro = _hy_reader[None][char]

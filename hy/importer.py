@@ -45,12 +45,12 @@ def ast_compile(ast, filename, mode):
 
 
 def import_buffer_to_hst(buf):
-    """Import content from buf and return an Hy AST."""
+    """Import content from buf and return a Hy AST."""
     return tokenize(buf + "\n")
 
 
 def import_file_to_hst(fpath):
-    """Import content from fpath and return an Hy AST."""
+    """Import content from fpath and return a Hy AST."""
     try:
         with open(fpath, 'r', encoding='utf-8') as f:
             return import_buffer_to_hst(f.read())

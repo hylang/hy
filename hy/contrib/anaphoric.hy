@@ -25,8 +25,9 @@
 ;;; These macros make writing functional programs more concise
 
 
-(defmacro ap-if (test-form &rest args)
-  `(let [it ~test-form] (if it ~@args)))
+(defmacro ap-if [test-form then-form &optional else-form]
+  `(let [it ~test-form]
+     (if it ~then-form ~else-form)))
 
 
 (defmacro ap-each [lst &rest body]
@@ -35,7 +36,7 @@
 
 
 (defmacro ap-each-while [lst form &rest body]
-  "Evalutate the body form for each element in the list while the
+  "Evaluate the body form for each element in the list while the
   predicate form evaluates to True."
   `(let [p (lambda [it] ~form)]
      (for [it ~lst]
@@ -140,7 +141,7 @@
                                                               (.startswith a 'x)
                                                               (.isdigit (cdr a))))
                                               [0]))))])
-            ;; generate the &rest paremeter only if 'xi is present in body
+            ;; generate the &rest parameter only if 'xi is present in body
             ~@(if (in 'xi flatbody)
                 '(&rest xi)
                 '())]
