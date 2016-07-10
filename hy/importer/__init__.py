@@ -179,3 +179,5 @@ def _compile_hy(source_text, filename, fullname, *extra):
         raise
 
 polyloader.install(_compile_hy, ['hy'])
+if '' not in sys.path:
+    sys.path.insert(0, '')
