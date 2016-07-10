@@ -23,6 +23,7 @@ from hy.compiler import hy_compile, HyTypeError
 from hy.models import HyObject, replace_hy_obj
 from hy.lex import tokenize, LexException
 from hy.errors import HyIOError
+from hy.importer import polyloader
 
 from io import open
 import marshal
@@ -34,7 +35,6 @@ import __future__
 
 from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
-
 
 def ast_compile(ast, filename, mode):
     """Compile AST.
@@ -163,63 +163,19 @@ def write_hy_as_pyc(fname):
         fc.write(MAGIC)
 
 
-class MetaLoader(object):
-    def __init__(self, path):
-        self.path = path
+def _compile_hy(source_text, filename, fullname, *extra):
+    try:
+        flags = (__future__.CO_FUTURE_DIVISION |
+                 __future__.CO_FUTURE_PRINT_FUNCTION)
+        return compile(hy_compile(import_buffer_to_hst(source_text.decode('utf-8')), fullname),
+                       filename, "exec")
+    except (HyTypeError, LexException) as e:
+        if e.source is None:
+            with open(fpath, 'rt') as fp:
+                e.source = fp.read()
+            e.filename = fpath
+        raise
+    except Exception:
+        raise
 
-    def is_package(self, fullname):
-        dirpath = "/".join(fullname.split("."))
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            composed_path = "%s/%s/__init__.hy" % (pth, dirpath)
-            if os.path.exists(composed_path):
-                return True
-        return False
-
-    def load_module(self, fullname):
-        if fullname in sys.modules:
-            return sys.modules[fullname]
-
-        if not self.path:
-            return
-
-        sys.modules[fullname] = None
-        mod = import_file_to_module(fullname,
-                                    self.path)
-
-        ispkg = self.is_package(fullname)
-
-        mod.__file__ = self.path
-        mod.__loader__ = self
-        mod.__name__ = fullname
-
-        if ispkg:
-            mod.__path__ = []
-            mod.__package__ = fullname
-        else:
-            mod.__package__ = fullname.rpartition('.')[0]
-
-        sys.modules[fullname] = mod
-        return mod
-
-
-class MetaImporter(object):
-    def find_on_path(self, fullname):
-        fls = ["%s/__init__.hy", "%s.hy"]
-        dirpath = "/".join(fullname.split("."))
-
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            for fp in fls:
-                composed_path = fp % ("%s/%s" % (pth, dirpath))
-                if os.path.exists(composed_path):
-                    return composed_path
-
-    def find_module(self, fullname, path=None):
-        path = self.find_on_path(fullname)
-        if path:
-            return MetaLoader(path)
-
-
-sys.meta_path.insert(0, MetaImporter())
-sys.path.insert(0, "")
+polyloader.install(_compile_hy, ['hy'])

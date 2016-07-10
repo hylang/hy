@@ -195,11 +195,12 @@ def run_command(source):
 
 
 def run_module(mod_name):
-    from hy.importer import MetaImporter
-    pth = MetaImporter().find_on_path(mod_name)
-    if pth is not None:
-        sys.argv = [pth] + sys.argv
-        return run_file(pth)
+    import pkgutil
+    mod = next((mod for mod in pkgutil.walk_packages() if mod[1] == mod_name), None)
+    if mod is not None:
+        loader = mod[0].find_module(mod_name)
+        sys.argv = [loader.path] + sys.argv
+        return run_file(loader.path)
 
     print("{0}: module '{1}' not found.\n".format(hy.__appname__, mod_name),
           file=sys.stderr)
