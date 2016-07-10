@@ -1,6 +1,5 @@
-from hy.importer import import_file_to_module, import_buffer_to_ast, MetaLoader
+from hy.importer import import_file_to_module, import_buffer_to_ast
 from hy.errors import HyTypeError
-import os
 import ast
 
 
@@ -17,12 +16,9 @@ def test_stringer():
 
 
 def test_imports():
-    path = os.getcwd() + "/tests/resources/importer/a.hy"
-    testLoader = MetaLoader(path)
-
     def _import_test():
         try:
-            return testLoader.load_module("tests.resources.importer.a")
+            import tests.resources.importer.a  # NOQA
         except:
             return "Error"
 
