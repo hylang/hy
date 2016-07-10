@@ -218,7 +218,6 @@ class PolyFileFinder(FileFinder):
 
 
 def _poly_file_finder_modules(importer, prefix=''):
-    print("RUNNING!")
     if importer.path is None or not os.path.isdir(importer.path):
         return
 

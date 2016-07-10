@@ -171,9 +171,9 @@ def _compile_hy(source_text, filename, fullname, *extra):
                        filename, "exec")
     except (HyTypeError, LexException) as e:
         if e.source is None:
-            with open(fpath, 'rt') as fp:
+            with open(filename, 'rt') as fp:
                 e.source = fp.read()
-            e.filename = fpath
+            e.filename = filename
         raise
     except Exception:
         raise
