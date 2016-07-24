@@ -168,7 +168,7 @@ def _compile_hy(source_text, filename, fullname, *extra):
         flags = (__future__.CO_FUTURE_DIVISION |
                  __future__.CO_FUTURE_PRINT_FUNCTION)
         return compile(hy_compile(import_buffer_to_hst(source_text.decode('utf-8')), fullname),
-                       filename, "exec")
+                       filename, "exec", flags)
     except (HyTypeError, LexException) as e:
         if e.source is None:
             with open(filename, 'rt') as fp:
