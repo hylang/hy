@@ -6,9 +6,9 @@ __email__ = 'elf.sternberg@gmail.com'
 __version__ = '0.1.0'
 
 if sys.version_info[0:2] >= (2, 6):
-    from ._python2 import install, reset
+    from ._python2 import install, reset  # NOQA
 
 if sys.version_info[0] >= 3:
-    from ._python3 import install, reset
+    from ._python3 import install, reset  # NOQA
 
 __all__ = ['install', 'reset']

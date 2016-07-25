@@ -1,6 +1,5 @@
 from hy.importer import import_file_to_module, import_buffer_to_ast
 from hy.errors import HyTypeError
-import os
 import ast
 
 
@@ -19,7 +18,7 @@ def test_stringer():
 def test_imports():
     def _import_test():
         try:
-            import tests.resources.importer.a
+            import tests.resources.importer.a  # NOQA
         except:
             return "Error"
 

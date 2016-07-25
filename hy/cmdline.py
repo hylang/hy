@@ -196,7 +196,8 @@ def run_command(source):
 
 def run_module(mod_name):
     import pkgutil
-    mod = next((mod for mod in pkgutil.walk_packages() if mod[1] == mod_name), None)
+    mod = next((mod for mod in pkgutil.walk_packages()
+                if mod[1] == mod_name), None)
     if mod is not None:
         loader = mod[0].find_module(mod_name)
         sys.argv = [loader.path] + sys.argv

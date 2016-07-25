@@ -5,35 +5,43 @@ import pkgutil
 import types
 import _imp
 
+
+# Python 3 refactored importlib several times, resulting in
+# critical pieces of infrastructure moving around or being
+# renamed.  All the NOQA here is to help flake8 get past the
+# "redefinition" complaints.
+
 if sys.version_info[0:2] in [(3, 3), (3, 4)]:
-    from importlib._bootstrap import (cache_from_source, SourceFileLoader,
-                                      FileFinder, _verbose_message, 
-                                      _get_supported_file_loaders, _relax_case,
-                                      _w_long, _code_type)
+    from importlib._bootstrap import (  # NOQA
+        cache_from_source, SourceFileLoader,  # NOQA
+        FileFinder, _verbose_message,  # NOQA
+        _get_supported_file_loaders, _relax_case,  # NOQA
+        _w_long, _code_type)  # NOQA
 
 
 if sys.version_info[0:2] in [(3, 3)]:
-    from importlib._bootstrap import _MAGIC_BYTES as MAGIC_NUMBER
+    from importlib._bootstrap import _MAGIC_BYTES as MAGIC_NUMBER  # NOQA
 
 if sys.version_info[0:2] == (3, 4):
-    from importlib._bootstrap import _validate_bytecode_header, MAGIC_NUMBER
+    from importlib._bootstrap import _validate_bytecode_header, MAGIC_NUMBER  # NOQA
 
 if sys.version_info[0:2] >= (3, 5):
-    from importlib.machinery import SourceFileLoader, FileFinder
-    from importlib._bootstrap import _verbose_message
-    from importlib._bootstrap_external import (_w_long, _code_type, cache_from_source,
-                                               _validate_bytecode_header,
-                                               MAGIC_NUMBER, _relax_case,
-                                               _get_supported_file_loaders)
-    
+    from importlib.machinery import SourceFileLoader, FileFinder  # NOQA
+    from importlib._bootstrap import _verbose_message  # NOQA
+    from importlib._bootstrap_external import (  # NOQA
+        _w_long, _code_type, cache_from_source,  # NOQA
+        _validate_bytecode_header,  # NOQA
+        MAGIC_NUMBER, _relax_case,  # NOQA
+        _get_supported_file_loaders)  # NOQA
+
 SEP = os.sep
 EXS = os.extsep
-FLS = [('%s' + SEP + '__init__' + EXS + '%s', True), 
+FLS = [('%s' + SEP + '__init__' + EXS + '%s', True),
        ('%s' + EXS + '%s', False)]
 
 
 def _suffixer(loaders):
-    return [(suffix, loader) 
+    return [(suffix, loader)
             for (loader, suffixes) in loaders
             for suffix in suffixes]
 
@@ -47,8 +55,8 @@ class _PolySourceFileLoader(SourceFileLoader):
                                              path, st)
         self_module = sys.modules[__name__]
         if hasattr(self_module, '_validate_bytecode_header'):
-            return _validate_bytecode_header(data, source_stats = st,
-                                             name = fullname, path = path)
+            return _validate_bytecode_header(data, source_stats=st,
+                                             name=fullname, path=path)
         raise ImportError("No bytecode handler found loading.")
 
     # All this just to change one line.
@@ -72,29 +80,36 @@ class _PolySourceFileLoader(SourceFileLoader):
                     pass
                 else:
                     try:
-                        bytes_data = self._poly_bytes_from_bytecode(fullname, data,
-                                                                    bytecode_path,
-                                                                    st)
+                        bytes_data = self._poly_bytes_from_bytecode(
+                            fullname, data,
+                            bytecode_path,
+                            st)
                     except (ImportError, EOFError):
                         pass
                     else:
-                        _verbose_message('{} matches {}', bytecode_path,
-                                        source_path)
+                        _verbose_message(
+                            '{} matches {}',
+                            bytecode_path,
+                            source_path)
                         found = marshal.loads(bytes_data)
                         if isinstance(found, _code_type):
                             _imp._fix_co_filename(found, source_path)
-                            _verbose_message('code object from {}',
-                                            bytecode_path)
+                            _verbose_message(
+                                'code object from {}',
+                                bytecode_path)
                             return found
                         else:
                             msg = "Non-code object in {}"
-                            raise ImportError(msg.format(bytecode_path),
-                                              name=fullname, path=bytecode_path)
+                            raise ImportError(
+                                msg.format(bytecode_path),
+                                name=fullname,
+                                path=bytecode_path)
         source_bytes = self.get_data(source_path)
         code_object = self._compiler(source_bytes, source_path, fullname)
         _verbose_message('code object from {}', source_path)
-        if (not sys.dont_write_bytecode and bytecode_path is not None and
-            source_mtime is not None):
+        if (not sys.dont_write_bytecode and
+                bytecode_path is not None and
+                source_mtime is not None):
             data = bytearray(MAGIC_NUMBER)
             data.extend(_w_long(source_mtime))
             data.extend(_w_long(len(source_bytes)))
@@ -105,16 +120,16 @@ class _PolySourceFileLoader(SourceFileLoader):
             except NotImplementedError:
                 pass
         return code_object
-        
+
 
 class PolyFileFinder(FileFinder):
     '''The poly version of FileFinder supports the addition of loaders
-       after initialization.  That's pretty much the whole point of the 
+       after initialization.  That's pretty much the whole point of the
        PolyLoader mechanism.'''
 
     _native_loaders = []
     _custom_loaders = []
-    
+
     def __init__(self, path):
         # Base (directory) path
         self.path = path or '.'
@@ -125,7 +140,7 @@ class PolyFileFinder(FileFinder):
     @property
     def _loaders(self):
         return self._custom_loaders + list(self._native_loaders)
-        
+
     @classmethod
     def _install(cls, compiler, suffixes):
         if not suffixes:
@@ -133,24 +148,28 @@ class PolyFileFinder(FileFinder):
         if isinstance(suffixes, str):
             suffixes = [suffixes]
         suffixset = set(suffixes)
-        overlap = suffixset.intersection(set([suf[0] for suf in cls._native_loaders]))
+        overlap = suffixset.intersection(
+            set([suf[0] for suf in cls._native_loaders]))
         if overlap:
-            raise RuntimeError("Override of native Python extensions is not permitted.")
+            r = "Override of native Python extensions is not permitted."
+            raise RuntimeError(r)
         overlap = suffixset.intersection(
             set([loader[0] for loader in cls._custom_loaders]))
         if overlap:
             # Fail silently
             return
 
-        newloaderclassname = (suffixes[0].lower().capitalize() + 
-                              str(_PolySourceFileLoader).rpartition('.')[2][1:])
+        newloaderclassname = (
+            suffixes[0].lower().capitalize() +
+            str(_PolySourceFileLoader).rpartition('.')[2][1:])
         if isinstance(compiler, types.FunctionType):
-            newloader = type(newloaderclassname, (_PolySourceFileLoader,), 
-                             dict(_compiler = staticmethod(compiler)))
+            newloader = type(newloaderclassname, (_PolySourceFileLoader,),
+                             dict(_compiler=staticmethod(compiler)))
         else:
-            newloader = type(newloaderclassname, (_PolySourceFileLoader,), 
-                             dict(_compiler = compiler))
-        cls._custom_loaders += [(EXS + suffix, newloader) for suffix in suffixset]
+            newloader = type(newloaderclassname, (_PolySourceFileLoader,),
+                             dict(_compiler=compiler))
+        cls._custom_loaders += [(EXS + suffix, newloader)
+                                for suffix in suffixset]
 
     @classmethod
     def getmodulename(cls, path):
@@ -210,6 +229,7 @@ class PolyFileFinder(FileFinder):
     @classmethod
     def path_hook(cls, *loader_details):
         cls._native_loaders = loader_details
+
         def path_hook_for_PolyFileFinder(path):
             if not os.path.isdir(path):
                 raise ImportError("only directories are supported", path=path)
@@ -255,16 +275,19 @@ def _poly_file_finder_modules(importer, prefix=''):
         if modname and '.' not in modname:
             yielded[modname] = 1
             yield prefix + modname, ispkg
- 
+
 
 def install(compiler, suffixes):
     filefinder = [(f, i) for i, f in enumerate(sys.path_hooks)
                   if repr(f).find('.path_hook_for_FileFinder') != -1]
     if filefinder:
         filefinder, fpos = filefinder[0]
-        sys.path_hooks[fpos] = PolyFileFinder.path_hook(*(_suffixer(_get_supported_file_loaders())))
+        sys.path_hooks[fpos] = PolyFileFinder.path_hook(
+            *(_suffixer(_get_supported_file_loaders())))
         sys.path_importer_cache = {}
-        pkgutil.iter_importer_modules.register(PolyFileFinder, _poly_file_finder_modules)
+        pkgutil.iter_importer_modules.register(
+            PolyFileFinder,
+            _poly_file_finder_modules)
 
     PolyFileFinder._install(compiler, suffixes)
 

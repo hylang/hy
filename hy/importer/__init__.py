@@ -36,6 +36,7 @@ import __future__
 from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
+
 def ast_compile(ast, filename, mode):
     """Compile AST.
     Like Python's compile, but with some special flags."""
@@ -167,8 +168,10 @@ def _compile_hy(source_text, filename, fullname, *extra):
     try:
         flags = (__future__.CO_FUTURE_DIVISION |
                  __future__.CO_FUTURE_PRINT_FUNCTION)
-        return compile(hy_compile(import_buffer_to_hst(source_text.decode('utf-8')), fullname),
-                       filename, "exec", flags)
+        return compile(
+            hy_compile(
+                import_buffer_to_hst(source_text.decode('utf-8')), fullname),
+            filename, "exec", flags)
     except (HyTypeError, LexException) as e:
         if e.source is None:
             with open(filename, 'rt') as fp:

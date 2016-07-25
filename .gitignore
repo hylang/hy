@@ -9,3 +9,5 @@ dist
 build/
 .noseids
 *~
+\#*
+.\#*

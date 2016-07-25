@@ -10,10 +10,11 @@ from collections import namedtuple
 
 SEP = os.sep
 EXS = os.extsep
-FLS = [('%s' + SEP + '__init__' + EXS + '%s', True), 
+FLS = [('%s' + SEP + '__init__' + EXS + '%s', True),
        ('%s' + EXS + '%s', False)]
 
 Loader = namedtuple('Loader', 'suffix compiler')
+
 
 class PolyLoader():
     def __init__(self, fullname, path, is_pkg):
@@ -26,7 +27,8 @@ class PolyLoader():
             return sys.modules[fullname]
 
         if fullname != self.fullname:
-            raise ImportError("Load confusion: %s vs %s." % (fullname, self.fullname))
+            raise ImportError("Load confusion: %s vs %s." %
+                              (fullname, self.fullname))
 
         matches = [loader for loader in PolyFinder._loader_handlers
                    if self.path.endswith(loader.suffix)]
@@ -80,16 +82,18 @@ class PolyFinder(object):
         path = os.path.realpath(self.path)
         for (fp, ispkg) in FLS:
             for loader in self._loader_handlers:
-                composed_path = fp % (('%s' + SEP + '%s') % (path, subname), loader.suffix)
+                composed_path = fp % (('%s' + SEP + '%s') %
+                                      (path, subname), loader.suffix)
                 if os.path.isdir(composed_path):
-                    raise IOError("Invalid: Directory name ends in recognized suffix")
+                    r = "Invalid: Directory name ends in recognized suffix"
+                    raise IOError(r)
                 if os.path.isfile(composed_path):
                     return PolyLoader(fullname, composed_path, ispkg)
 
         # Fall back onto Python's own methods.
         try:
             file, filename, etc = imp.find_module(subname, [path])
-        except ImportError as e:
+        except ImportError as e:  # NOQA
             return None
         return pkgutil.ImpLoader(fullname, file, filename, etc)
 
@@ -101,9 +105,11 @@ class PolyFinder(object):
         if isinstance(suffixes, basestring):
             suffixes = [suffixes]
         suffixes = set(suffixes)
-        overlap = suffixes.intersection(set([suf[0] for suf in imp.get_suffixes()]))
+        overlap = suffixes.intersection(
+            set([suf[0] for suf in imp.get_suffixes()]))
         if overlap:
-            raise RuntimeError("Override of native Python extensions is not permitted.")
+            r = "Override of native Python extensions is not permitted."
+            raise RuntimeError(r)
         overlap = suffixes.intersection(
             set([loader.suffix for loader in cls._loader_handlers]))
         if overlap:
@@ -114,8 +120,10 @@ class PolyFinder(object):
     @classmethod
     def getmodulename(cls, path):
         filename = os.path.basename(path)
-        suffixes = ([(-len(suf[0]), suf[0]) for suf in imp.get_suffixes()] +
-                    [(-(len(suf[0]) + 1), EXS + suf[0]) for suf in cls._loader_handlers])
+        suffixes = ([(-len(suf[0]), suf[0])
+                     for suf in imp.get_suffixes()] +
+                    [(-(len(suf[0]) + 1), EXS + suf[0])
+                     for suf in cls._loader_handlers])
         suffixes.sort()
         for neglen, suffix in suffixes:
             if filename[neglen:] == suffix:
