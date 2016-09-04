@@ -22,7 +22,7 @@ languages.
     string. For example, ``foo`` will become ``FOO``.
 
   * UTF-8 entities will be encoded using
-    `punycode <http://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
+    `punycode <https://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
     ``hy_``. For instance, ``⚘`` will become ``hy_w7h``, ``♥`` will become
     ``hy_g6h``, and ``i♥u`` will become ``hy_iu_t0x``.
 

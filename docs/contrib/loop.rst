@@ -24,7 +24,7 @@ tail-call optimization (TCO) in their Hy code.
     position to be implemented as efficiently as goto statements, thus
     allowing efficient structured programming.
 
-    -- Wikipedia (http://en.wikipedia.org/wiki/Tail_call)
+    -- Wikipedia (https://en.wikipedia.org/wiki/Tail_call)
 
 Macros
 ======
