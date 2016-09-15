@@ -364,7 +364,7 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
                         "`%%s' needs %s arguments, got %%d" % choices)
 
             return fn(self, expression)
-
+        checker.__doc__ = fn.__doc__
         return checker
     return _dec
 
@@ -718,6 +718,29 @@ class HyASTCompiler(object):
     @builds("quasiquote")
     @checkargs(exact=1)
     def compile_quote(self, entries):
+        """quote returns the form passed to it without evaluating it.
+           quote can alternatively be written using the apostrophe (') symbol.
+
+        => (setv x '(print "Hello World"))
+        => x
+        (u'print' u'Hello World')
+
+        => (eval x)
+        Hello World
+
+        quasiquote allows you to quote a form, but also selectively evaluate
+           expressions. Expressions inside a quasiquote can be selectively
+           evaluated using unquote (~). The evaluated form can also be spliced
+           using unquote-splice (~@). Quasiquote can be also written using the
+           backquote (`) symbol.
+
+        => (setv qux '(bar baz))
+        => `(foo ~qux)
+        (u'foo' (u'bar' u'baz'))
+
+        => `(foo ~@qux)
+        (u'foo' u'bar' u'baz')
+        """
         if entries[0] == "quote":
             # Never allow unquoting
             level = float("inf")
@@ -731,12 +754,47 @@ class HyASTCompiler(object):
     @builds("unquote")
     @builds("unquote_splicing")
     def compile_unquote(self, expr):
+        """Within a quasiquoted form, unquote forces evaluation of a symbol.
+           unquote is aliased to the tilde (~) symbol.
+
+        => (setv Name "Cuddles")
+        => (quasiquote (= name (unquote Name)))
+        (u'=' u'name' u'Cuddles')
+
+        => `(= name ~Name)
+        (u'=' u'name' u'Cuddles')
+
+        unquote-splice forces the evaluation of a symbol within a quasiquoted
+        form, much like unquote. unquote-splice can only be used when the
+        symbol being unquoted contains an iterable value, as it “splices” that
+        iterable into the quasiquoted form. unquote-splice is aliased to the
+        ~@ symbol.
+
+        => (def nums [1 2 3 4])
+        => (quasiquote (+ (unquote-splice nums)))
+        (u'+' 1L 2L 3L 4L)
+        => `(+ ~@nums)
+        (u'+' 1L 2L 3L 4L)
+
+        """
+
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
 
     @builds("eval")
     @checkargs(min=1, max=3)
     def compile_eval(self, expr):
+        """eval evaluates a quoted expression and returns the value.
+
+        (eval quoted-form [&optional [globals (locals)] [module_name]])
+
+        The optional second and third arguments specify the dictionary of
+        globals to use and the module name. The globals dictionary defaults to
+        (local) and the module name defaults to the name of the current
+        module.
+
+        """
+
         expr.pop(0)
 
         if not isinstance(expr[0], (HyExpression, HySymbol)):
@@ -761,12 +819,40 @@ class HyASTCompiler(object):
 
     @builds("do")
     def compile_do(self, expression):
+        """do is used to evaluate each of its arguments and return the last one.
+
+        Return values from every other than the last argument are discarded.
+        It can be used in lambda or list-comp to perform more complex logic as
+        shown in one of the following examples.
+
+        => (if true
+        ... (do (print "Side effects rock!")
+        ...     (print "Yeah, really!")))
+        Side effects rock!
+        Yeah, really!
+
+        """
         expression.pop(0)
         return self._compile_branch(expression)
 
     @builds("raise")
     @checkargs(multiple=[0, 1, 3])
     def compile_raise_expression(self, expr):
+        """The raise form can be used to raise an Exception at runtime.
+
+        raise can accept a single argument (an Exception class or instance) or
+        no arguments to re-raise the last Exception.
+
+        (raise)
+        ; re-rase the last exception
+
+        (raise IOError)
+        ; raise an IOError
+
+        (raise (IOError "foobar"))
+        ; raise an IOError("foobar")
+
+        """
         expr.pop(0)
         ret = Result()
         if expr:
@@ -795,6 +881,18 @@ class HyASTCompiler(object):
 
     @builds("try")
     def compile_try_expression(self, expr):
+        """The try form is used to start a try / except block.
+
+        => (try
+        ...  (/ 1 0)
+        ...  (except [e ZeroDivisionError] (print "Division by zero"))
+        ...  (else (print "no errors"))
+        ...  (finally (print "all done")))
+        Division by zero
+        all done
+
+        """
+
         expr.pop(0)  # try
 
         try:
@@ -917,6 +1015,9 @@ class HyASTCompiler(object):
 
     @builds("except")
     def magic_internal_form(self, expr):
+        """TODO:
+
+        """
         raise HyTypeError(expr,
                           "Error: `%s' can't be used like that." % (expr[0]))
 
@@ -1013,6 +1114,11 @@ class HyASTCompiler(object):
     @builds("if*")
     @checkargs(min=2, max=3)
     def compile_if(self, expression):
+        """The if* special form is restricted to 2 or 3 arguments, but otherwise works
+        exactly like if (which expands to nested if* forms), so there is
+        generally no reason to use it directly.
+
+        """
         expression.pop(0)
         cond = self.compile(expression.pop(0))
         body = self.compile(expression.pop(0))
@@ -1106,6 +1212,11 @@ class HyASTCompiler(object):
 
     @builds("break")
     def compile_break_expression(self, expr):
+        """break is used to break out from a loop.
+
+        It terminates the loop immediately.
+
+        """
         ret = ast.Break(lineno=expr.start_line,
                         col_offset=expr.start_column)
 
@@ -1113,6 +1224,19 @@ class HyASTCompiler(object):
 
     @builds("continue")
     def compile_continue_expression(self, expr):
+        """continue returns execution to the start of a loop.
+
+        In the following example, (side-effect1) is called for each iteration.
+        (side-effect2), however, is only called on every other value in the
+        list.
+
+        (for [x collection]
+          (side-effect1 x)
+          (if (% x 2)
+          (continue))
+          (side-effect2 x))
+
+        """
         ret = ast.Continue(lineno=expr.start_line,
                            col_offset=expr.start_column)
 
@@ -1121,6 +1245,15 @@ class HyASTCompiler(object):
     @builds("assert")
     @checkargs(min=1, max=2)
     def compile_assert_expression(self, expr):
+        """assert is used to verify conditions while the program is running.
+
+        If the condition is not met, an AssertionError is raised. assert may
+        take one or two parameters. The first parameter is the condition to
+        check, and it should evaluate to either True or False. The second
+        parameter, optional, is a label for the assert, and is the string that
+        will be raised with the AssertionError.
+
+        """
         expr.pop(0)  # assert
         e = expr.pop(0)
         if len(expr) == 1:
@@ -1138,6 +1271,26 @@ class HyASTCompiler(object):
     @builds("global")
     @checkargs(min=1)
     def compile_global_expression(self, expr):
+        """global can be used to mark a symbol as global.
+
+        This allows the programmer to assign a value to a global symbol.
+        Reading a global symbol does not require the global keyword – only
+        assigning it does.
+
+        => (defn set-a [value]
+        ...   (global a)
+        ...   (setv a value))
+
+        => (defn print-a []
+        ...   (print a))
+
+        => (set-a 5)
+        5L
+        => (print-a)
+        5
+
+        """
+
         expr.pop(0)  # global
         names = []
         while len(expr) > 0:
@@ -1155,6 +1308,14 @@ class HyASTCompiler(object):
     @builds("nonlocal")
     @checkargs(min=1)
     def compile_nonlocal_expression(self, expr):
+        """nonlocal can be used to mark a symbol as not local to the current scope.
+
+        The parameters are the names of symbols to mark as nonlocal. This is
+        necessary to modify variables through nested let or fn scopes.
+
+        Only supported in Python 3.
+
+        """
         if not PY3:
             raise HyCompileError(
                 "nonlocal only supported in python 3!")
@@ -1176,6 +1337,12 @@ class HyASTCompiler(object):
     @builds("yield")
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
+        """yield is used to create a generator object that returns one or more values.
+
+        The generator is iterable and therefore can be used in loops, list
+        comprehensions and other similar constructs.
+
+        """
         expr.pop(0)
         if PY33:
             ret = Result(contains_yield=False)
@@ -1197,6 +1364,15 @@ class HyASTCompiler(object):
     @builds("yield_from")
     @checkargs(max=1)
     def compile_yield_from_expression(self, expr):
+        """yield-from is used to call a subgenerator.
+
+        This is useful if you want your coroutine to be able to delegate its
+        processes to another coroutine, say, if using something fancy like
+        asyncio.
+
+        yield-from only supported in python 3.3+!
+
+        """
         if not PY33:
             raise HyCompileError(
                 "yield-from only supported in python 3.3+!")
@@ -1218,6 +1394,34 @@ class HyASTCompiler(object):
 
     @builds("import")
     def compile_import_expression(self, expr):
+        """import is used to import modules, like in Python.
+
+        ;; Imports each of these modules
+        ;;
+        ;; Python:
+        ;; import sys
+        ;; import os.path
+        (import sys os.path)
+
+        ;; Import from a module
+        ;;
+        ;; Python: from os.path import exists, isdir, isfile
+        (import [os.path [exists isdir isfile]])
+
+        ;; Import with an alias
+        ;;
+        ;; Python: import sys as systest
+        (import [sys :as systest])
+
+        ;; You can list as many imports as you like of different types.
+        (import [tests.resources [kwtest function-with-a-dash]]
+        [os.path [exists isdir isfile]]
+        [sys :as systest])
+
+        ;; Import all module functions into current namespace
+        (import [sys [*]])
+
+        """
         def _compile_import(expr, module, names=None, importer=ast.Import):
             if not names:
                 names = [ast.alias(name=ast_str(module), asname=None)]
@@ -1285,6 +1489,19 @@ class HyASTCompiler(object):
     @builds("get")
     @checkargs(min=2)
     def compile_index_expression(self, expr):
+        """get is used to access single elements in lists and dictionaries.
+
+        get takes two parameters: the data structure and the index or key of
+        the item. It will then return the corresponding value from the
+        dictionary or the list.
+
+        get raises a KeyError if a dictionary is queried for a non-existing
+        key.
+
+        get raises an IndexError if a list or a tuple is queried for an index
+        that is out of bounds.
+
+        """
         expr.pop(0)  # index
 
         val = self.compile(expr.pop(0))
@@ -1306,6 +1523,29 @@ class HyASTCompiler(object):
     @builds(".")
     @checkargs(min=1)
     def compile_attribute_access(self, expr):
+        """. is used to perform attribute access on objects.
+
+        It uses a small DSL to allow quick access to attributes and items in a
+        nested data structure.
+
+        For instance,
+
+        (. foo bar baz [(+ 1 2)] frob)
+        Compiles down to:
+
+        foo.bar.baz[1 + 2].frob
+
+        . compiles its first argument (in the example, foo) as the object on
+        which to do the attribute dereference. It uses bare symbols as
+        attributes to access (in the example, bar, baz, frob), and compiles
+        the contents of lists (in the example, [(+ 1 2)]) for indexation.
+        Other arguments raise a compilation error.
+
+        Access to unknown attributes raises an AttributeError. Access to
+        unknown keys raises an IndexError (on lists and tuples) or a KeyError
+        (on dictionaries).
+
+        """
         expr.pop(0)  # dot
 
         ret = self.compile(expr.pop(0))
@@ -1346,6 +1586,32 @@ class HyASTCompiler(object):
 
     @builds("del")
     def compile_del_expression(self, expr):
+        """del removes an object from the current namespace.
+
+        => (setv foo 42)
+        => (del foo)
+        => foo
+        Traceback (most recent call last):
+        File "<console>", line 1, in <module>
+        NameError: name 'foo' is not defined
+
+        del can also remove objects from mappings, lists, and more.
+
+        => (setv test (list (range 10)))
+        => test
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        => (del (cut test 2 4)) ;; remove items from 2 to 4 excluded
+        => test
+        [0, 1, 4, 5, 6, 7, 8, 9]
+        => (setv dic {"foo" "bar"})
+        => dic
+        {"foo": "bar"}
+        => (del (get dic "foo"))
+        => dic
+        {}
+
+        """
+
         root = expr.pop(0)
         if not expr:
             result = Result()
@@ -1370,6 +1636,18 @@ class HyASTCompiler(object):
     @builds("cut")
     @checkargs(min=1, max=4)
     def compile_cut_expression(self, expr):
+        """cut can be used to take a subset of a list and create a new list from it.
+
+        The form takes at least one parameter specifying the list to cut. Two
+        optional parameters can be used to give the start and end position of
+        the subset. If they are not supplied, the default value of None will
+        be used instead. The third optional parameter is used to control step
+        between the elements.
+
+        cut follows the same rules as its Python counterpart. Negative indices
+        are counted starting from the end of the list.
+
+        """
         expr.pop(0)  # index
         val = self.compile(expr.pop(0))  # target
 
@@ -1398,6 +1676,14 @@ class HyASTCompiler(object):
     @builds("assoc")
     @checkargs(min=3, even=False)
     def compile_assoc_expression(self, expr):
+        """assoc is used to associate a key with a value in a dictionary or to set an
+        index of a list to a value.
+
+        It takes at least three parameters: the data structure to be modified,
+        a key or index, and a value. If more than three parameters are used,
+        it will associate in pairs.
+
+        """
         expr.pop(0)  # assoc
         # (assoc foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
@@ -1422,6 +1708,19 @@ class HyASTCompiler(object):
     @builds("with_decorator")
     @checkargs(min=1)
     def compile_decorate_expression(self, expr):
+        """with-decorator is used to wrap a function with another.
+
+        The function performing the decoration should accept a single value:
+        the function being decorated, and return a new function.
+        with-decorator takes a minimum of two parameters: the function
+        performing decoration and the function being decorated. More than one
+        decorator function can be applied; they will be applied in order from
+        outermost to innermost, ie. the first decorator will be the outermost
+        one, and so on. Decorators with arguments are called just like a
+        function call.
+
+        """
+
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
         if not fn.stmts or not (isinstance(fn.stmts[-1], ast.FunctionDef) or
@@ -1434,6 +1733,7 @@ class HyASTCompiler(object):
     @builds("with*")
     @checkargs(min=2)
     def compile_with_expression(self, expr):
+        """TODO: what does this do?"""
         expr.pop(0)  # with*
 
         args = expr.pop(0)
@@ -1488,6 +1788,11 @@ class HyASTCompiler(object):
 
     @builds(",")
     def compile_tuple(self, expr):
+        """tuple operator.
+
+        Returns a tuple of the arguments.
+
+        """
         expr.pop(0)
         elts, ret, _ = self._compile_collect(expr)
         ret += ast.Tuple(elts=elts,
@@ -1526,6 +1831,15 @@ class HyASTCompiler(object):
     @builds("list_comp")
     @checkargs(min=2, max=3)
     def compile_list_comprehension(self, expr):
+        """list-comp performs list comprehensions.
+
+        It takes two or three parameters. The first parameter is the
+        expression controlling the return value, while the second is used to
+        select items from a list. The third and optional parameter can be used
+        to filter out some of the items in the list based on a conditional
+        expression.
+
+        """
         # (list-comp expr (target iter) cond?)
         expr.pop(0)
         expression = expr.pop(0)
@@ -1552,6 +1866,15 @@ class HyASTCompiler(object):
     @builds("set_comp")
     @checkargs(min=2, max=3)
     def compile_set_comprehension(self, expr):
+        """set-comp is used to create sets.
+
+        It takes two or three parameters. The first parameter is for
+        controlling the return value, while the second is used to select items
+        from a sequence. The third and optional parameter can be used to
+        filter out some of the items in the sequence based on a conditional
+        expression.
+
+        """
         if PY27:
             ret = self.compile_list_comprehension(expr)
             expr = ret.expr
@@ -1570,6 +1893,15 @@ class HyASTCompiler(object):
     @builds("dict_comp")
     @checkargs(min=3, max=4)
     def compile_dict_comprehension(self, expr):
+        """dict-comp is used to create dictionaries.
+
+        It takes three or four parameters. The first two parameters are for
+        controlling the return value (key-value pair) while the third is used
+        to select items from a sequence. The fourth and optional parameter can
+        be used to filter out some of the items in the sequence based on a
+        conditional expression.
+
+        """
         if PY27:
             expr.pop(0)  # dict-comp
             key = expr.pop(0)
@@ -1602,6 +1934,18 @@ class HyASTCompiler(object):
 
     @builds("genexpr")
     def compile_genexpr(self, expr):
+        """genexpr is used to create generator expressions.
+
+        It takes two or three parameters. The first parameter is the
+        expression controlling the return value, while the second is used to
+        select items from a list. The third and optional parameter can be used
+        to filter out some of the items in the list based on a conditional
+        expression. genexpr is similar to list-comp, except it returns an
+        iterable that evaluates values one by one instead of evaluating them
+        immediately.
+
+        """
+
         ret = self.compile_list_comprehension(expr)
         expr = ret.expr
         ret.expr = ast.GeneratorExp(
@@ -1614,6 +1958,16 @@ class HyASTCompiler(object):
     @builds("apply")
     @checkargs(min=1, max=3)
     def compile_apply_expression(self, expr):
+        """apply is used to apply an optional list of arguments and an optional
+        dictionary of kwargs to a function.
+
+        The symbol mangling transformations will be applied to all keys in the
+        dictionary of kwargs, provided the dictionary and its keys are defined
+        in-place.
+
+        Usage: (apply fn-name [args] [kwargs])
+
+        """
         expr.pop(0)  # apply
 
         ret = Result()
@@ -1724,6 +2078,14 @@ class HyASTCompiler(object):
     @builds("~")
     @checkargs(1)
     def compile_unary_operator(self, expression):
+        """not is used in logical expressions.
+
+        It takes a single parameter and returns a reversed truth value. If
+        True is given as a parameter, False will be returned, and vice-versa.
+
+        ~ is the bitwise NOT.
+
+        """
         ops = {"not": ast.Not,
                "~": ast.Invert}
         operator = expression.pop(0)
@@ -1737,10 +2099,16 @@ class HyASTCompiler(object):
 
     @builds("require")
     def compile_require(self, expression):
-        """
+        """require is used to import macros from a given module.
+
+        It takes at least one parameter specifying the module which macros
+        should be imported. Multiple modules can be imported with a single
+        require.
+
         TODO: keep track of what we've imported in this run and then
         "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
+
         """
         expression.pop(0)
         for entry in expression:
@@ -1751,6 +2119,19 @@ class HyASTCompiler(object):
     @builds("and")
     @builds("or")
     def compile_logical_or_and_and_operator(self, expression):
+        """and is used in logical expressions.
+
+        It takes at least two parameters. If all parameters evaluate to True,
+        the last parameter is returned. In any other case, the first false
+        value will be returned.
+
+        or is used in logical expressions.
+
+        It takes at least two parameters. It will return the first non-false
+        parameter. If no such value exists, the last parameter will be
+        returned.
+
+        """
         ops = {"and": (ast.And, "True"),
                "or": (ast.Or, "None")}
         operator = expression.pop(0)
@@ -1852,6 +2233,9 @@ class HyASTCompiler(object):
     @builds(">=")
     @checkargs(min=1)
     def compile_compare_op_expression(self, expression):
+        """Comparison operators.
+
+        """
         if len(expression) == 2:
             rval = "True"
             if expression[0] == "!=":
@@ -1868,6 +2252,18 @@ class HyASTCompiler(object):
     @builds("not_in")
     @checkargs(min=2)
     def compile_compare_op_expression_coll(self, expression):
+        """Collection operators
+
+        => (setv a nil)
+        => (is a nil)
+        True
+
+        => (in 2 [1 2 3])
+        True
+
+        => (not-in 4 [1 2 3])
+        True
+        """
         return self._compile_compare_op_expression(expression)
 
     @builds("%")
@@ -1880,6 +2276,22 @@ class HyASTCompiler(object):
     @builds_if("@", PY35)
     @checkargs(min=2)
     def compile_maths_expression(self, expression):
+        """Math operators
+
+        +   add
+        /   division
+        //  floor division
+        *   multiplication
+        -   subtraction
+        %   modulus
+        **  power
+        <<  left shift
+        >>  right shift
+        |   bitwise or
+        ^   bitwise xor
+        &   bitwise and
+
+        """
         ops = {"+": ast.Add,
                "/": ast.Div,
                "//": ast.FloorDiv,
@@ -1915,6 +2327,9 @@ class HyASTCompiler(object):
     @builds("/")
     @builds("//")
     def compile_maths_expression_mul(self, expression):
+        """Math operators.
+
+        """
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
@@ -1933,6 +2348,7 @@ class HyASTCompiler(object):
     @builds("-")
     @checkargs(min=1)
     def compile_maths_expression_sub(self, expression):
+        """Subtraction operator"""
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
@@ -1959,6 +2375,7 @@ class HyASTCompiler(object):
     @builds_if("@=", PY35)
     @checkargs(2)
     def compile_augassign_expression(self, expression):
+        """Augmenting operators."""
         ops = {"+=": ast.Add,
                "/=": ast.Div,
                "//=": ast.FloorDiv,
@@ -1996,6 +2413,7 @@ class HyASTCompiler(object):
 
     @builds(HyExpression)
     def compile_expression(self, expression):
+        """Build a HyExpression."""
         # Perform macro expansions
         expression = macroexpand(expression, self)
         if not isinstance(expression, HyExpression):
@@ -2062,6 +2480,11 @@ class HyASTCompiler(object):
     @builds("def")
     @builds("setv")
     def compile_def_expression(self, expression):
+        """def and setv are used to bind a value, object, or function to a symbol.
+
+        They can be used to assign multiple variables at once:
+
+        """
         root = expression.pop(0)
         if not expression:
             result = Result()
@@ -2125,6 +2548,7 @@ class HyASTCompiler(object):
     @builds("for*")
     @checkargs(min=1)
     def compile_for_expression(self, expression):
+        """TODO: docstring"""
         expression.pop(0)  # for
 
         args = expression.pop(0)
@@ -2175,6 +2599,9 @@ class HyASTCompiler(object):
     @builds("while")
     @checkargs(min=2)
     def compile_while_expression(self, expr):
+        """while is used to execute one or more blocks as long as a condition is met.
+
+        """
         expr.pop(0)  # "while"
         ret = self.compile(expr.pop(0))
 
@@ -2193,6 +2620,7 @@ class HyASTCompiler(object):
 
     @builds(HyList)
     def compile_list(self, expression):
+        """TODO: HyList docstring."""
         elts, ret, _ = self._compile_collect(expression)
         ret += ast.List(elts=elts,
                         ctx=ast.Load(),
@@ -2202,6 +2630,7 @@ class HyASTCompiler(object):
 
     @builds(HySet)
     def compile_set(self, expression):
+        """TODO: HySet docstring."""
         elts, ret, _ = self._compile_collect(expression)
         if PY27:
             ret += ast.Set(elts=elts,
@@ -2229,6 +2658,17 @@ class HyASTCompiler(object):
     @builds("fn")
     @checkargs(min=1)
     def compile_function_def(self, expression):
+        """lambda and fn can be used to define an anonymous function.
+
+        The parameters are similar to defn: the first parameter is vector of
+        parameters and the rest is the body of the function. lambda returns a
+        new function.
+
+        Just as in normal function definitions, if the first element of the
+        body is a string, it serves as a docstring. This is useful for giving
+        class methods docstrings.
+
+        """
         called_as = expression.pop(0)
 
         arglist = expression.pop(0)
@@ -2353,6 +2793,33 @@ class HyASTCompiler(object):
     @builds("defclass")
     @checkargs(min=1)
     def compile_class_expression(self, expressions):
+        """New classes are declared with defclass.
+
+        It can takes two optional parameters: a vector defining a possible
+        super classes and another vector containing attributes of the new
+        class as two item vectors.
+
+        (defclass class-name [super-class-1 super-class-2]
+          [attribute value]
+
+          (defn method [self] (print "hello!")))
+
+        Both values and functions can be bound on the new class as shown by
+        the example below:
+
+        => (defclass Cat []
+        ...  [age None
+        ...   colour "white"]
+        ...
+        ...  (defn speak [self] (print "Meow")))
+
+        => (def spot (Cat))
+        => (setv spot.colour "Black")
+        'Black'
+        => (.speak spot)
+        Meow
+
+        """
         def rewire_init(expr):
             new_args = []
             if expr[0] == HySymbol("setv"):
@@ -2443,6 +2910,11 @@ class HyASTCompiler(object):
     @builds("defmacro")
     @checkargs(min=1)
     def compile_macro(self, expression):
+        """defmacro is used to define macros.
+
+        The general format is (defmacro name [parameters] expr).
+
+        """
         expression.pop(0)
         name = expression.pop(0)
         if not isinstance(name, HySymbol):
@@ -2465,6 +2937,10 @@ class HyASTCompiler(object):
     @builds("defreader")
     @checkargs(min=2)
     def compile_reader(self, expression):
+        """defreader defines a reader macro, enabling you to restructure or modify
+        syntax.
+
+        """
         expression.pop(0)
         name = expression.pop(0)
         NOT_READERS = [":", "&"]
@@ -2488,6 +2964,7 @@ class HyASTCompiler(object):
     @builds("dispatch_reader_macro")
     @checkargs(exact=2)
     def compile_dispatch_reader_macro(self, expression):
+        """TODO: docstring"""
         expression.pop(0)  # dispatch-reader-macro
         str_char = expression.pop(0)
         if not type(str_char) == HyString:
@@ -2501,6 +2978,9 @@ class HyASTCompiler(object):
 
     @builds("eval_and_compile")
     def compile_eval_and_compile(self, expression):
+        """TODO: docstring
+
+        """
         expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
@@ -2510,6 +2990,9 @@ class HyASTCompiler(object):
 
     @builds("eval_when_compile")
     def compile_eval_when_compile(self, expression):
+        """TODO: docstring
+
+        """
         expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
@@ -2518,28 +3001,33 @@ class HyASTCompiler(object):
 
     @builds(HyCons)
     def compile_cons(self, cons):
+        """HyCons: Raises a HyTypeError."""
         raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
     @builds(HyInteger)
     def compile_integer(self, number):
+        """Compile an Integer."""
         return ast.Num(n=long_type(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
     @builds(HyFloat)
     def compile_float(self, number):
+        """Compile a float number."""
         return ast.Num(n=float(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
     @builds(HyComplex)
     def compile_complex(self, number):
+        """Compile a complex number."""
         return ast.Num(n=complex(number),
                        lineno=number.start_line,
                        col_offset=number.start_column)
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
+        """Compile a symbol."""
         if "." in symbol:
             glob, local = symbol.rsplit(".", 1)
             glob = HySymbol(glob).replace(symbol)
@@ -2565,18 +3053,21 @@ class HyASTCompiler(object):
 
     @builds(HyString)
     def compile_string(self, string):
+        """Compile a string."""
         return ast.Str(s=str_type(string),
                        lineno=string.start_line,
                        col_offset=string.start_column)
 
     @builds(HyKeyword)
     def compile_keyword(self, keyword):
+        """Compile a keyword."""
         return ast.Str(s=str_type(keyword),
                        lineno=keyword.start_line,
                        col_offset=keyword.start_column)
 
     @builds(HyDict)
     def compile_dict(self, m):
+        """Compile a dictionary."""
         keyvalues, ret, _ = self._compile_collect(m)
 
         ret += ast.Dict(lineno=m.start_line,
