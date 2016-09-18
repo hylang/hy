@@ -398,7 +398,27 @@
 
 (defn test-dotted []
   "NATIVE: test dotted invocation"
-  (assert (= (.join " " ["one" "two"]) "one two")))
+  (assert (= (.join " " ["one" "two"]) "one two"))
+
+  (defclass X [object] [])
+  (defclass M [object]
+    [meth (fn [self &rest args]
+      (.join " " (+ (, "meth") args)))])
+
+  (setv x (X))
+  (setv m (M))
+
+  (assert (= (.meth m) "meth"))
+  (assert (= (.meth m "foo" "bar") "meth foo bar"))
+
+  (setv x.p m)
+  (assert (= (.p.meth x) "meth"))
+  (assert (= (.p.meth x "foo" "bar") "meth foo bar"))
+
+  (setv x.a (X))
+  (setv x.a.b m)
+  (assert (= (.a.b.meth x) "meth"))
+  (assert (= (.a.b.meth x "foo" "bar") "meth foo bar")))
 
 
 (defn test-do []
