@@ -928,13 +928,38 @@
 
 
 (defn test-xor []
-  "NATIVE: test the xor macro"
-  (let [xor-both-true (xor true true)
-        xor-both-false (xor false false)
-        xor-true-false (xor true false)]
-    (assert (= xor-both-true false))
-    (assert (= xor-both-false false))
-    (assert (= xor-true-false true))))
+  "NATIVE: test the xor function"
+
+  ;; Simple truth table.
+  (assert (not (xor false false)))
+  (assert (xor false true))
+  (assert (xor true false))
+  (assert (not (xor true true)))
+
+  ;; When possible, return input values, not just booleans.
+  (assert (is (xor 0 0) 0))
+  (assert (is (xor 0 False) False))
+  (assert (is (xor False 0) 0))
+
+  (assert (is (xor 0 1) 1))
+  (assert (is (xor 1 0) 1))
+  (assert (is (xor 1 1) None))
+
+  ;; Zero-argument case.
+  (assert (is (xor) None))
+
+  ;; One-argument case: act like the identity function, or 'or'.
+  (assert (is (xor 0) 0))
+  (assert (is (xor 1) 1))
+  (assert (is (xor "phooey") "phooey"))
+
+  ;; Three or more arguments.
+  ;; If an odd number of inputs are true, return the last true input.
+  (assert (is (xor 1 2 3) 3))
+  (assert (is (xor None 1 0 2 3 0 0) 3))
+  ;; Otherwise, return the last false input (if there is one).
+  (assert (is (xor 1 2 0 3 4) 0))
+  (assert (is (xor 1 2 3 4) None)))
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
