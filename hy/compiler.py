@@ -1910,7 +1910,6 @@ class HyASTCompiler(object):
                              col_offset=child.start_column)
         return ret
 
-    @builds("+")
     @builds("*")
     @builds("/")
     @builds("//")
@@ -1918,8 +1917,7 @@ class HyASTCompiler(object):
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
-            id_op = {"+": HyInteger(0), "*": HyInteger(1), "/": HyInteger(1),
-                     "//": HyInteger(1)}
+            id_op = {"*": HyInteger(1), "/": HyInteger(1), "//": HyInteger(1)}
 
             op = expression.pop(0)
             arg = expression.pop(0) if expression else id_op[op]
@@ -1930,19 +1928,33 @@ class HyASTCompiler(object):
             ]).replace(expression)
             return self.compile_maths_expression(expr)
 
-    @builds("-")
-    @checkargs(min=1)
-    def compile_maths_expression_sub(self, expression):
+    def compile_maths_expression_additive(self, expression):
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
-            arg = expression[1]
+            op = {"+": ast.UAdd, "-": ast.USub}[expression.pop(0)]()
+            arg = expression.pop(0)
             ret = self.compile(arg)
-            ret += ast.UnaryOp(op=ast.USub(),
+            ret += ast.UnaryOp(op=op,
                                operand=ret.force_expr,
                                lineno=arg.start_line,
                                col_offset=arg.start_column)
             return ret
+
+    @builds("+")
+    def compile_maths_expression_add(self, expression):
+        if len(expression) == 1:
+            # Nullary +
+            return ast.Num(n=long_type(0),
+                           lineno=expression.start_line,
+                           col_offset=expression.start_column)
+        else:
+            return self.compile_maths_expression_additive(expression)
+
+    @builds("-")
+    @checkargs(min=1)
+    def compile_maths_expression_sub(self, expression):
+        return self.compile_maths_expression_additive(expression)
 
     @builds("+=")
     @builds("/=")

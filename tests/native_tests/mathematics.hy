@@ -28,6 +28,18 @@
                  (assert (= 0 (+)))))
 
 
+(defn test-add-unary []
+  "NATIVE: test that unary + calls __pos__"
+
+  (defclass X [object]
+    [__pos__ (fn [self] "called __pos__")])
+  (assert (= (+ (X)) "called __pos__"))
+
+  ; Make sure the shadowed version works, too.
+  (setv f +)
+  (assert (= (f (X)) "called __pos__")))
+
+
 (setv test_div (fn []
                  "NATIVE: Test division"
                  (assert (= 25 (/ 100 2 2)))
