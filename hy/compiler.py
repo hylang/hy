@@ -1516,7 +1516,8 @@ class HyASTCompiler(object):
             gen.append(ast.comprehension(
                 target=target,
                 iter=gen_res.force_expr,
-                ifs=[]))
+                ifs=[],
+                is_async=False))
 
         if cond.expr:
             gen[-1].ifs.append(cond.expr)
