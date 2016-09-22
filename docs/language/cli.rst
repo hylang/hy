@@ -35,7 +35,7 @@ Command Line Options
 
 .. cmdoption:: --spy
 
-   Print equivalent Python code before executing. For example::
+   Print equivalent Python code before executing in REPL. For example::
 
     => (defn salutationsnm [name] (print (+ "Hy " name "!")))
     def salutationsnm(name):
