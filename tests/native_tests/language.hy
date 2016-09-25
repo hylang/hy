@@ -410,15 +410,18 @@
 
   (assert (= (.meth m) "meth"))
   (assert (= (.meth m "foo" "bar") "meth foo bar"))
+  (assert (= (apply .meth [m "foo" "bar"]) "meth foo bar"))
 
   (setv x.p m)
   (assert (= (.p.meth x) "meth"))
   (assert (= (.p.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (apply .p.meth [x "foo" "bar"]) "meth foo bar"))
 
   (setv x.a (X))
   (setv x.a.b m)
   (assert (= (.a.b.meth x) "meth"))
-  (assert (= (.a.b.meth x "foo" "bar") "meth foo bar")))
+  (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (apply .a.b.meth [x "foo" "bar"]) "meth foo bar")))
 
 
 (defn test-do []
