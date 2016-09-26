@@ -965,6 +965,8 @@ that ``import`` can be used.
             [sys :as systest])
 
     ;; Import all module functions into current namespace
+    ;;
+    ;; Python: from sys import *
     (import [sys [*]])
 
 
