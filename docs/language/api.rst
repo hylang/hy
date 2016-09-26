@@ -953,11 +953,20 @@ that ``import`` can be used.
     (import [sys :as systest])
 
     ;; You can list as many imports as you like of different types.
+    ;;
+    ;; Python:
+    ;; from tests.resources import kwtest, function_with_a_dash
+    ;; from os.path import exists, isdir as is_dir, isfile as is_file
+    ;; import sys as systest
     (import [tests.resources [kwtest function-with-a-dash]]
-            [os.path [exists isdir isfile]]
+            [os.path [exists
+	              isdir :as dir?
+		      isfile :as file?]]
             [sys :as systest])
 
     ;; Import all module functions into current namespace
+    ;;
+    ;; Python: from sys import *
     (import [sys [*]])
 
 
