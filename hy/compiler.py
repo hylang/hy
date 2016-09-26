@@ -2029,10 +2029,10 @@ class HyASTCompiler(object):
                 if len(expression) < 2:
                     raise HyTypeError(expression,
                                       "attribute access requires object")
-                foo = HyExpression(
+
+                func = self.compile(HyExpression(
                     [HySymbol(".").replace(fn), expression.pop(1)] +
-                    attrs)
-                func = self.compile(foo)
+                    attrs))
 
                 # And get the method
                 func += ast.Attribute(lineno=fn.start_line,
