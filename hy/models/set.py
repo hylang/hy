@@ -18,19 +18,16 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from hy.models import _wrappers, wrap_value
 from hy.models.list import HyList
-from functools import reduce
 
 
 class HySet(HyList):
     """
-    Hy set (actually a list that pretends to be a set)
+    Hy set (just a representation of a set)
     """
-
-    def __init__(self, items):
-        items = sorted(items)
-        items = list(reduce(lambda r, v: v in r and r or r+[v], items, []))
-        super(HySet, self).__init__(items)
 
     def __repr__(self):
         return "#{%s}" % (" ".join([repr(x) for x in self]))
+
+_wrappers[set] = lambda s: HySet(wrap_value(x) for x in s)
