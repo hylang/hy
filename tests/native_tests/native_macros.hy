@@ -39,6 +39,9 @@
 (defmacro a-dict [] {1 2})
 (assert (= (a-dict) {1 2}))
 
+(defmacro a-set [] #{1 2})
+(assert (= (a-set) #{1 2}))
+
 (defmacro a-none [])
 (assert (= (a-none) None))
 
