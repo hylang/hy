@@ -274,7 +274,7 @@ def cmdline_handler(scriptname, argv):
     parser.add_argument("--spy", action="store_true",
                         help="print equivalent Python code before executing")
 
-    parser.add_argument("-v", action="version", version=VERSION)
+    parser.add_argument("-v", "--version", action="version", version=VERSION)
 
     parser.add_argument("--show-tracebacks", action="store_true",
                         help="show complete tracebacks for Hy exceptions")
