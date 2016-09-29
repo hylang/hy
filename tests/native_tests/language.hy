@@ -157,13 +157,13 @@
     (setv count2 (+ count2 x)))
   (assert (= count1 15))
   (assert (= count2 15))
-  (setv count 0)
+  (setv n 0)
   (for [x [1 2 3 4 5]
         y [1 2 3 4 5]]
-    (setv count (+ count x y))
+    (setv n (+ n x y))
     (else
-      (+= count 1)))
-  (assert (= count 151))
+      (+= n 1)))
+  (assert (= n 151))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
              (list-comp y [x [[1] [2 3]] y x])))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
@@ -212,12 +212,12 @@
 
 (defn test-while-loop []
   "NATIVE: test while loops?"
-  (setv count 5)
+  (setv n 5)
   (setv fact 1)
-  (while (> count 0)
-    (setv fact (* fact count))
-    (setv count (- count 1)))
-  (assert (= count 0))
+  (while (> n 0)
+    (setv fact (* fact n))
+    (setv n (- n 1)))
+  (assert (= n 0))
   (assert (= fact 120)))
 
 
