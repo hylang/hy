@@ -174,11 +174,6 @@
   "NATIVE: test nesting for loops harder"
   ;; This test and feature is dedicated to @nedbat.
 
-  ;; let's ensure empty iterating is an implicit do
-  (setv t 0)
-  (for [] (setv t 1))
-  (assert (= t 1))
-
   ;; OK. This first test will ensure that the else is hooked up to the
   ;; for when we break out of it.
   (for [x (range 2)
@@ -210,8 +205,34 @@
   (assert (= flag 2)))
 
 
+(defn test-empty-for []
+  "NATIVE: test empty for loops"
+
+  (setv s "")
+  (for [x []]
+    (+= s "a"))
+  (assert (= s ""))
+
+  (setv s "")
+  (for [x []]
+    (+= s "a")
+    (else (+= s "b")))
+  (assert (= s "b"))
+
+  (setv s "")
+  (for []
+    (+= s "a"))
+  (assert (= s ""))
+
+  (setv s "")
+  (for []
+    (+= s "a")
+    (else (+= s "b")))
+  (assert (= s "b")))
+
+
 (defn test-while-loop []
-  "NATIVE: test while loops?"
+  "NATIVE: test while loops"
   (setv n 5)
   (setv fact 1)
   (while (> n 0)

@@ -112,7 +112,8 @@
     (macro-error args "`for' requires an even number of args.")]
    [(empty? body)
     (macro-error None "`for' requires a body to evaluate")]
-   [(empty? args) `(do ~@body ~@belse)]
+   [(empty? args)
+    (if belse `(do ~@(get belse 0 (slice 1 None))))]
    [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
    [true
     (let [alist (cut args 0 nil 2)]
