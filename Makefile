@@ -23,7 +23,7 @@ all:
 	@echo ""
 
 docs:
-	make -C docs html
+	$(MAKE) -C docs html
 
 upload: r
 	python setup.py sdist upload
@@ -72,10 +72,10 @@ coveralls:
 
 clean:
 	@find . -name "*.pyc" -exec rm {} \;
-	@find -name __pycache__ -delete
+	@find . -name __pycache__ -delete
 	@${RM} -r -f .tox
 	@${RM} -r -f dist
 	@${RM} -r -f *.egg-info
 	@${RM} -r -f docs/_build
 
-.PHONY: docs
+.PHONY: all docs upload full venv dev test tox flake clear d diff r python coveralls clean
