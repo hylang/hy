@@ -35,8 +35,9 @@
 
 (defn assert-requires-num [f]
   (for [x ["foo" [] None]]
-    (assert-true (try (do (f x) False)
-                 (except [e [TypeError]] True)))))
+    (try (f x)
+         (except [TypeError] True)
+         (else (assert False)))))
 
 (defn test-coll? []
   "NATIVE: testing coll?"
