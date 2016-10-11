@@ -33,6 +33,11 @@
 (defn assert-nil [x]
   (assert (is x nil)))
 
+(defn assert-requires-num [f]
+  (for [x ["foo" [] None]]
+    (assert-true (try (do (f x) False)
+                 (except [e [TypeError]] True)))))
+
 (defn test-coll? []
   "NATIVE: testing coll?"
   (assert-true (coll? [1 2 3]))
@@ -66,12 +71,7 @@
   (assert-equal 0 (dec 1))
   (assert-equal -1 (dec 0))
   (assert-equal 0 (dec (dec 2)))
-  (try (do (dec "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (dec []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (dec None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num dec))
 
 (defn test-setv []
   "NATIVE: testing setv mutation"
@@ -173,12 +173,7 @@
   (assert-true (even? -2))
   (assert-false (even? 1))
   (assert-true (even? 0))
-  (try (even? "foo")
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (even? [])
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (even? None)
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num even?))
 
 (defn test-every? []
   "NATIVE: testing the every? function"
@@ -263,12 +258,11 @@
   "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
   (assert-equal 0 (inc -1))
-  (try (do (inc "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (inc []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (inc None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num inc)
+
+  (defclass X [object]
+    [__add__ (fn [self other] (.format "__add__ got {}" other))])
+  (assert-equal (inc (X)) "__add__ got 1"))
 
 (defn test-instance []
   "NATIVE: testing instance? function"
@@ -394,24 +388,13 @@
   (assert-true (neg? -2))
   (assert-false (neg? 1))
   (assert-false (neg? 0))
-  (try (do (neg? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (neg? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (neg? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num neg?))
 
 (defn test-zero []
   "NATIVE: testing the zero? function"
   (assert-false (zero? -2))
   (assert-false (zero? 1))
-  (assert-true (zero? 0))
-  (try (do (zero? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (zero? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (zero? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-true (zero? 0)))
 
 (defn test-none []
   "NATIVE: testing for `is None`"
@@ -463,12 +446,7 @@
   (assert-true (odd? -3))
   (assert-true (odd? 1))
   (assert-false (odd? 0))
-  (try (do (odd? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (odd? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (odd? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num odd?))
 
 (defn test-partition []
   "NATIVE: testing the partition function"
@@ -500,12 +478,7 @@
   (assert-true (pos? 2))
   (assert-false (pos? -1))
   (assert-false (pos? 0))
-  (try (do (pos? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (pos? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (pos? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num pos?))
 
 (defn test-remove []
   "NATIVE: testing the remove function"
