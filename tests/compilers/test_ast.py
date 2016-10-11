@@ -397,6 +397,7 @@ def test_lambda_list_keywords_rest():
     """ Ensure we can compile functions with lambda list keywords."""
     can_compile("(fn (x &rest xs) (print xs))")
     cant_compile("(fn (x &rest xs &rest ys) (print xs))")
+    can_compile("(fn (&optional a &rest xs) (print xs))")
 
 
 def test_lambda_list_keywords_key():
@@ -410,6 +411,7 @@ def test_lambda_list_keywords_kwargs():
     """ Ensure we can compile functions with &kwargs."""
     can_compile("(fn (x &kwargs kw) (list x kw))")
     cant_compile("(fn (x &kwargs xs &kwargs ys) (list x xs ys))")
+    can_compile("(fn (&optional x &kwargs kw) (list x kw))")
 
 
 def test_lambda_list_keywords_kwonly():
