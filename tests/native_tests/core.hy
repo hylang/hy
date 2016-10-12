@@ -19,6 +19,8 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
+(import [hy._compat [PY3]])
+
 ;;;; some simple helpers
 
 (defn assert-true [x]
@@ -389,7 +391,8 @@
   (assert-true (neg? -2))
   (assert-false (neg? 1))
   (assert-false (neg? 0))
-  (assert-requires-num neg?))
+  (when PY3
+    (assert-requires-num neg?)))
 
 (defn test-zero []
   "NATIVE: testing the zero? function"
@@ -479,7 +482,8 @@
   (assert-true (pos? 2))
   (assert-false (pos? -1))
   (assert-false (pos? 0))
-  (assert-requires-num pos?))
+  (when PY3
+    (assert-requires-num pos?)))
 
 (defn test-remove []
   "NATIVE: testing the remove function"
