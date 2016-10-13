@@ -26,6 +26,8 @@ import subprocess
 
 from setuptools import find_packages, setup
 
+os.chdir(os.path.split(os.path.abspath(__file__))[0])
+
 PKG = "hy"
 VERSIONFILE = os.path.join(PKG, "version.py")
 try:
