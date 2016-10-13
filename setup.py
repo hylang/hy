@@ -31,8 +31,10 @@ os.chdir(os.path.split(os.path.abspath(__file__))[0])
 PKG = "hy"
 VERSIONFILE = os.path.join(PKG, "version.py")
 try:
-    __version__ = subprocess.check_output([
-        "git", "describe", "--tags", "--dirty"]).decode('ASCII').strip()
+    __version__ = (subprocess.check_output
+        (["git", "describe", "--tags", "--dirty"])
+        .decode('ASCII').strip()
+        .replace('-', '+', 1).replace('-', '.'))
     with open(VERSIONFILE, "wt") as o:
         o.write("__version__ = {!r}\n".format(__version__))
 except subprocess.CalledProcessError:
