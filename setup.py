@@ -22,24 +22,19 @@
 import os
 import re
 import sys
+import subprocess
 
 from setuptools import find_packages, setup
 
 PKG = "hy"
 VERSIONFILE = os.path.join(PKG, "version.py")
-verstr = "unknown"
 try:
-    verstrline = open(VERSIONFILE, "rt").read()
-except EnvironmentError:
-    pass  # Okay, there is no version file.
-else:
-    VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    mo = re.search(VSRE, verstrline, re.M)
-    if mo:
-        __version__ = mo.group(1)
-    else:
-        msg = "if %s.py exists, it is required to be well-formed" % VERSIONFILE
-        raise RuntimeError(msg)
+    __version__ = subprocess.check_output([
+        "git", "describe", "--tags", "--dirty"]).decode('ASCII').strip()
+    with open(VERSIONFILE, "wt") as o:
+        o.write("__version__ = {!r}\n".format(__version__))
+except subprocess.CalledProcessError:
+    __version__ = "unknown"
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play

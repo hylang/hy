@@ -1,3 +1,4 @@
+/hy/version.py
 *.pyc
 *swp
 *hy*egg*

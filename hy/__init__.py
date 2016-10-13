@@ -19,7 +19,11 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-from hy.version import __version__, __appname__  # NOQA
+__appname__ = 'hy'
+try:
+    from hy.version import __version__
+except ImportError:
+    __version__ = 'unknown'
 
 
 from hy.models.expression import HyExpression  # NOQA
