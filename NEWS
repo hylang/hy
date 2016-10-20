@@ -1,30 +1,29 @@
 Changes from 0.11.0
 
 This release brings some quite significant changes on the language and as a
-result very large portion of previously written Hy programs will require
+result very large portions of previously written Hy programs will require
 changes. At the same time, documentation and error messages were improved,
 hopefully making the language easier to use.
 
    [ Language Changes ]
    * New syntax for let, with and defclass
    * defmacro will raise an error on &kwonly, &kwargs and &key arguments
-   * Keyword arguments to functions are required to be strings
-   * slice replaced with cut
+   * Keyword argument labels to functions are required to be strings
+   * slice replaced with cut to stop overloading the python built-in
    * removed throw, catch, progn, defun, lisp-if, lisp-if-not and filterfalse
    * global now takes multiple arguments
    * Nonlocal keyword (Python 3 only)
-   * Set literals
-   * Keyword-only arguments
+   * Set literals (#{1 2 3})
+   * Keyword-only arguments (Python 3 only)
    * Setv can assign multiple variables at once
    * Empty form allowed for setv, del and cond
-   * One-argument division and rationals
+   * One-argument division, rationals and comparison operators (=, !=, <, >, <=, >=)
    * partition form for chunking collection to n-sized tuples
    * defn-alias and demacro-alias moved into hy.contrib.alias
-   * Implicit nil in --init-- method
-   * for and cond can take multi-expression body
-   * Hex and octel support for integer literals
+   * Nil is returned instead of the last form in --init--
+   * for and cond can take a multi-expression body
+   * Hex and octal support for integer literals
    * Apply now mangles strings and keywords according to Hy mangling rules
-   * One arity comparison operators
    * Variadic if
    * defreader can use strings as macro names
    * as-> macro added
