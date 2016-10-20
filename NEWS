@@ -43,7 +43,6 @@ hopefully making the language easier to use.
    * Allow specification of global table and module name for (eval ...)
    * General documentation improvements
    * Contrib.walk: Coerce non-list iterables into list form
-   * *args and **kwargs no longer have own args in Python 3.5
    * Flow macros (case and switch)
    * ap-pipe and ap-compose macros
    * #@ reader macro for with-decorator
