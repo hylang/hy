@@ -47,6 +47,7 @@
 (defn test-sets []
   "NATIVE: test sets work right"
   (assert (= #{1 2 3 4} (| #{1 2} #{3 4})))
+  (assert (= (type #{1 2 3 4}) set))
   (assert (= #{} (set))))
 
 

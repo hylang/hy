@@ -39,10 +39,6 @@
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.compiler [HyASTCompiler]])
 
-(defn _numeric-check [x]
-  (if (not (numeric? x))
-    (raise (TypeError (.format "{0!r} is not a number" x)))))
-
 (defn butlast [coll]
   "Returns coll except of last element."
   (drop-last 1 coll))
@@ -66,7 +62,6 @@
 
 (defn dec [n]
   "Decrement n by 1"
-  (_numeric-check n)
   (- n 1))
 
 (defn disassemble [tree &optional [codegen false]]
@@ -170,7 +165,6 @@
 
 (defn even? [n]
   "Return true if n is an even number"
-  (_numeric-check n)
   (= (% n 2) 0))
 
 (defn every? [pred coll]
@@ -239,7 +233,6 @@
 
 (defn inc [n]
   "Increment n by 1"
-  (_numeric-check n)
   (+ n 1))
 
 (defn instance? [klass x]
@@ -325,7 +318,6 @@
 
 (defn neg? [n]
   "Return true if n is < 0"
-  (_numeric-check n)
   (< n 0))
 
 (defn none? [x]
@@ -347,7 +339,6 @@
 
 (defn odd? [n]
   "Return true if n is an odd number"
-  (_numeric-check n)
   (= (% n 2) 1))
 
 (def -sentinel (object))
@@ -364,7 +355,6 @@
 
 (defn pos? [n]
   "Return true if n is > 0"
-  (_numeric_check n)
   (> n 0))
 
 (defn rest [coll]
@@ -415,7 +405,6 @@
 
 (defn zero? [n]
   "Return true if n is 0"
-  (_numeric_check n)
   (= n 0))
 
 (defn read [&optional [from-file sys.stdin]

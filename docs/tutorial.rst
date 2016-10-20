@@ -267,7 +267,7 @@ In Hy, you would do:
     [true
      (print "That variable is jussssst right!")])
 
-What you'll notice is that ``cond`` switches off between a some statement
+What you'll notice is that ``cond`` switches off between a statement
 that is executed and checked conditionally for true or falseness, and
 then a bit of code to execute if it turns out to be true.  You'll also
 notice that the ``else`` is implemented at the end simply by checking
@@ -292,7 +292,7 @@ You can do the following:
    (if (try-some-thing)
      (do
        (print "this is if true")
-       (print "and why not, let's keep talking about how true it is!))
+       (print "and why not, let's keep talking about how true it is!"))
      (print "this one's still simply just false"))
 
 You can see that we used ``do`` to wrap multiple statements.  If you're

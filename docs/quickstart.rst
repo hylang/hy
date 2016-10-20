@@ -13,7 +13,7 @@ Quickstart
 1. Create a `Virtual Python Environment
    <https://pypi.python.org/pypi/virtualenv>`_.
 2. Activate your Virtual Python Environment.
-3. Install `hy from PyPI <https://pypi.python.org/pypi/hy>`_ with ``pip install hy``.
+3. Install `hy from GitHub <https://github.com/hylang/hy>`_ with ``$ pip install git+https://github.com/hylang/hy.git``.
 4. Start a REPL with ``hy``.
 5. Type stuff in the REPL::
 

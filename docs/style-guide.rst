@@ -105,7 +105,7 @@ Layout & Indentation
 
   .. code-block:: clj
 
-     (let [foo (bar)]
+     (let [foo (bar)
            qux (baz)]
         (foo qux))
 
