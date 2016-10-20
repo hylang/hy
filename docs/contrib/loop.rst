@@ -24,7 +24,7 @@ tail-call optimization (TCO) in their Hy code.
     position to be implemented as efficiently as goto statements, thus
     allowing efficient structured programming.
 
-    -- Wikipedia (http://en.wikipedia.org/wiki/Tail_call)
+    -- Wikipedia (https://en.wikipedia.org/wiki/Tail_call)
 
 Macros
 ======
@@ -39,7 +39,7 @@ rebinds the variables set in the recursion point and sends code
 execution back to that recursion point. If ``recur`` is used in a
 non-tail position, an exception is raised.
 
-Usage: `(loop bindings &rest body)`
+Usage: ``(loop bindings &rest body)``
 
 Example:
 

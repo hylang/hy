@@ -5,4 +5,4 @@ hyset = HySet([3, 1, 2, 2])
 
 
 def test_set():
-    assert hyset == [1, 2, 3]
+    assert hyset == [3, 1, 2, 2]

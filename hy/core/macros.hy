@@ -30,6 +30,16 @@
         [hy.models.symbol [HySymbol]]
         [hy._compat [PY33 PY34]])
 
+(defmacro as-> [head name &rest rest]
+  "Expands to sequence of assignments to the provided name, starting with head.
+  The previous result is thus available in the subsequent form. Returns the
+  final result, and leaves the name bound to it in the local scope. This behaves
+  much like the other threading macros, but requires you to specify the threading
+  point per form via the name instead of always the first or last arument."
+  `(do (setv
+         ~name ~head
+         ~@(interleave (repeat name) rest))
+     ~name))
 
 (defmacro with [args &rest body]
   "shorthand for nested with* loops:

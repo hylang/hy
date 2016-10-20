@@ -30,7 +30,7 @@
     (if (zero? count)
       (raise (TypeError "Need at least 1 argument to add/concatenate"))
       (if (= count 1)
-        (get args 0)
+        (operator.pos (get args 0))
         (reduce operator.add args)))))
 
 

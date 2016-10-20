@@ -292,7 +292,7 @@ You can do the following:
    (if (try-some-thing)
      (do
        (print "this is if true")
-       (print "and why not, let's keep talking about how true it is!))
+       (print "and why not, let's keep talking about how true it is!"))
      (print "this one's still simply just false"))
 
 You can see that we used ``do`` to wrap multiple statements.  If you're
