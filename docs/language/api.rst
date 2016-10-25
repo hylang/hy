@@ -206,30 +206,29 @@ point per form via the name instead of always the first or last arument.
   ...                          :name "Sir Joseph Cooke Verco"}}])
 
   ;; retrieve name of first entry      
-  => (as-> (first data) x
-  ...      (:name x))
+  => (as-> (first data) assigned-name
+  ...      (:name assigned-name))
   'hooded cuttlefish'
 
   ;; retrieve species of first entry
-  => (as-> (first data) x
-  ...      (:classification x)
-  ...      (:species x))
+  => (as-> (first data) assigned-name
+  ...      (:classification assigned-name)
+  ...      (:species assigned-name))
   'Sepia prashadi'
 
   ;; find out who discovered slender cuttlefish
   => (as-> (filter (fn [entry] (= (:name entry)
-  ...                           "slender cuttlefish")) data) x
-  ...      (first x)
-  ...      (:discovered x)
-  ...      (:name x))
+  ...                           "slender cuttlefish")) data) assigned-name
+  ...      (first assigned-name)
+  ...      (:discovered assigned-name)
+  ...      (:name assigned-name))
   'Sir Joseph Cooke Verco'
 
 .. note::
 
-  In these examples, REPL will report a tupple as result: 
-  ('Sepia prashadi', 'Sepia prashadi'), but the actual value returned is just
-  a single value 'Sepia prashadi'.  Tuples are omitted from the examples in
-  sake of preserving space.
+  In these examples, the REPL will report a tuple (e.g. `('Sepia prashadi', 
+  'Sepia prashadi')`) as the result, but only a single value is actually
+  returned.
 
 
 assert
