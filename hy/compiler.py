@@ -503,19 +503,13 @@ class HyASTCompiler(object):
         for expr in exprs:
 
             if expr in ll_keywords:
-                if expr == "&rest" and lambda_keyword is None:
-                    lambda_keyword = expr
-                elif expr == "&optional":
+                if expr == "&optional":
                     if len(defaults) > 0:
                         raise HyTypeError(expr,
                                           "There can only be &optional "
                                           "arguments or one &key argument")
                     lambda_keyword = expr
-                elif expr == "&key":
-                    lambda_keyword = expr
-                elif expr == "&kwonly":
-                    lambda_keyword = expr
-                elif expr == "&kwargs":
+                elif expr in ("&rest", "&key", "&kwonly", "&kwargs"):
                     lambda_keyword = expr
                 else:
                     raise HyTypeError(expr,
