@@ -40,6 +40,7 @@ hopefully making the language easier to use.
    * &rest can be used after &optional
 
    [ Misc. Improvements ]
+   * Version information includes SHA1 of current commit
    * Improved Python 3.5 support
    * Allow specification of global table and module name for (eval ...)
    * General documentation improvements
