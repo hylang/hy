@@ -588,6 +588,29 @@
              ["X" "B" "C" "D"])))
 
 
+(defn test-as-threading []
+  "NATIVE: test as threading macro"
+  (setv data [{:name "hooded cuttlefish"
+               :classification {:subgenus "Acanthosepion"
+                                :species "Sepia prashadi"}
+               :discovered {:year 1936
+                            :name "Ronald Winckworth"}}
+              {:name "slender cuttlefish"
+               :classification {:subgenus "Doratosepion"
+                                :species "Sepia braggi"}
+               :discovered {:year 1907
+                            :name "Sir Joseph Cooke Verco"}}])
+  (assert (= (as-> (first data) x
+                   (:name x))
+             "hooded cuttlefish"))
+  (assert (= (as-> (filter (fn [entry] (= (:name entry)
+                           "slender cuttlefish")) data) x
+                   (first x)
+                   (:discovered x)
+                   (:name x))
+             "Sir Joseph Cooke Verco")))
+
+
 (defn test-assoc []
   "NATIVE: test assoc"
   (setv vals {"one" "two"})

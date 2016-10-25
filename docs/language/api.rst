@@ -179,6 +179,59 @@ other case, the first false value will be returned. Example usage:
     False
 
 
+as->
+----
+
+.. versionadded:: 0.12.0
+
+Expands to sequence of assignments to the provided name, starting with head.
+The previous result is thus available in the subsequent form. Returns the final
+result, and leaves the name bound to it in the local scope. This behaves much
+like the other threading macros, but requires you to specify the threading
+point per form via the name instead of always the first or last arument.
+
+.. code-block:: clj
+
+  ;; create data for our cuttlefish database
+
+  => (setv data [{:name "hooded cuttlefish"
+  ...             :classification {:subgenus "Acanthosepion"
+  ...                              :species "Sepia prashadi"}
+  ...             :discovered {:year 1936
+  ...                          :name "Ronald Winckworth"}}
+  ...            {:name "slender cuttlefish"
+  ...             :classification {:subgenus "Doratosepion"
+  ...                              :species "Sepia braggi"}
+  ...             :discovered {:year 1907
+  ...                          :name "Sir Joseph Cooke Verco"}}])
+
+  ;; retrieve name of first entry      
+  => (as-> (first data) x
+  ...      (:name x))
+  'hooded cuttlefish'
+
+  ;; retrieve species of first entry
+  => (as-> (first data) x
+  ...      (:classification x)
+  ...      (:species x))
+  'Sepia prashadi'
+
+  ;; find out who discovered slender cuttlefish
+  => (as-> (filter (fn [entry] (= (:name entry)
+  ...                           "slender cuttlefish")) data) x
+  ...      (first x)
+  ...      (:discovered x)
+  ...      (:name x))
+  'Sir Joseph Cooke Verco'
+
+.. note::
+
+  In these examples, REPL will report a tupple as result: 
+  ('Sepia prashadi', 'Sepia prashadi'), but the actual value returned is just
+  a single value 'Sepia prashadi'.  Tuples are omitted from the examples in
+  sake of preserving space.
+
+
 assert
 ------
 
