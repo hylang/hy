@@ -173,8 +173,8 @@ def ideas_macro():
 
 """)])
 
-require("hy.cmdline", "__console__")
-require("hy.cmdline", "__main__")
+require("hy.cmdline", "__console__", all_names=True)
+require("hy.cmdline", "__main__", all_names=True)
 
 SIMPLE_TRACEBACKS = True
 

@@ -1,4 +1,4 @@
-(require hy.contrib.meth)
+(require [hy.contrib.meth [route post-route put-route delete-route]])
 
 (defclass FakeMeth []
   "Mocking decorator class"

@@ -17,4 +17,5 @@
 
 
 (defmacro defnc [name args &rest body]
-  `(def ~name (fnc [~@args] ~@body)))
+  `(do (require hy.contrib.curry)
+       (def ~name (hy.contrib.curry.fnc [~@args] ~@body))))
