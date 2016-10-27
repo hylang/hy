@@ -1743,20 +1743,20 @@ class HyASTCompiler(object):
                 __import__(entry)
                 require(entry, self.module_name, all_names=True,
                         prefix=entry)
-            elif (isinstance(entry, HyList) and len(entry) == 2
-                    and entry[1] == ["*"]):
-                # e.g., (require [foo [*]])
-                module = entry[0]
-                __import__(module)
-                require(module, self.module_name, all_names=True)
             elif isinstance(entry, HyList) and len(entry) == 2:
-                # e.g., (require [foo [bar baz bing]])
+                # e.g., (require [foo [bar baz bing]]) or (require [foo [*]])
                 module, names = entry
                 if not isinstance(names, HyList):
                     raise HyTypeError(names,
                                       "(require) name lists should be HyLists")
                 __import__(module)
-                require(module, self.module_name, names=names)
+                if '*' in names:
+                    if len(names) != 1:
+                        raise HyTypeError(names, "* in a (require) name list "
+                                                 "must be on its own")
+                    require(module, self.module_name, all_names=True)
+                else:
+                    require(module, self.module_name, names=names)
             elif (isinstance(entry, HyList) and len(entry) == 3
                     and entry[1] == HyKeyword(":as")):
                 # e.g., (require [foo :as bar])
