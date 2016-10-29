@@ -192,6 +192,16 @@ point per form via the name instead of always the first or last argument.
 
 .. code-block:: clj
 
+  ;; example how -> and as-> relate
+
+  => (as-> 0 it
+  ...      (inc it)
+  ...      (inc it))
+  2
+
+  => (-> 0 inc inc)
+  2
+
   ;; create data for our cuttlefish database
 
   => (setv data [{:name "hooded cuttlefish"
@@ -206,23 +216,34 @@ point per form via the name instead of always the first or last argument.
   ...                          :name "Sir Joseph Cooke Verco"}}])
 
   ;; retrieve name of first entry      
-  => (as-> (first data) assigned-name
-  ...      (:name assigned-name))
+  => (as-> (first data) it
+  ...      (:name it))
   'hooded cuttlefish'
 
   ;; retrieve species of first entry
-  => (as-> (first data) assigned-name
-  ...      (:classification assigned-name)
-  ...      (:species assigned-name))
+  => (as-> (first data) it
+  ...      (:classification it)
+  ...      (:species it))
   'Sepia prashadi'
 
   ;; find out who discovered slender cuttlefish
   => (as-> (filter (fn [entry] (= (:name entry)
-  ...                           "slender cuttlefish")) data) assigned-name
-  ...      (first assigned-name)
-  ...      (:discovered assigned-name)
-  ...      (:name assigned-name))
+  ...                           "slender cuttlefish")) data) it
+  ...      (first it)
+  ...      (:discovered it)
+  ...      (:name it))
   'Sir Joseph Cooke Verco'
+
+  ;; more convoluted example to load web page and retrieve data from it
+  => (import [urllib.request [urlopen]])
+  => (as-> (urlopen "http://docs.hylang.org/en/stable/") it
+  ...      (.read it)
+  ...      (.decode it "utf-8")
+  ...      (drop (.index it "Welcome") it)
+  ...      (take 30 it)
+  ...      (list it)
+  ...      (.join "" it))
+  'Welcome to Hy’s documentation!
 
 .. note::
 
