@@ -25,7 +25,7 @@ Example:
 
 .. code-block:: hy
 
-    (require hy.contrib.flow)
+    (require [hy.contrib.flow [case]])
 
     (defn temp-commenter [temp]
         (case temp
@@ -48,7 +48,7 @@ Example:
 
 .. code-block:: hy
 
-    (require hy.contrib.flow)
+    (require [hy.contrib.flow [switch]])
 
     (defn temp-commenter [temp]
         (switch temp
