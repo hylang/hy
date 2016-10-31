@@ -533,7 +533,6 @@ def test_attribute_empty():
     cant_compile(".")
     cant_compile("foo.")
     cant_compile(".foo")
-    cant_compile("2.foo")
     cant_compile('"bar".foo')
     cant_compile('[2].foo')
 
