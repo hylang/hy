@@ -1214,7 +1214,7 @@ require
 parameters in all the same formats as ``import``. The ``require`` form itself
 produces no code in the final program: its effect is purely at compile-time, for
 the benefit of macro expansion. Specifically, ``require`` imports each named
-module and then makes available each requested macro in the current module.
+module and then makes each requested macro available in the current module.
 
 The following are all equivalent ways to call a macro named ``foo`` in the module ``mymodule``:
 
@@ -1271,7 +1271,7 @@ repexpr]])``, but a less error-prone approach is to change the definition of
         (require mymodule)
         (mymodule.repexpr ~n (raw-input "Gimme some input: "))))
 
-It's wise to use ``(require mymodule)`` rather than ``(require [mymodule
+It's wise to use ``(require mymodule)`` here rather than ``(require [mymodule
 [repexpr]])`` to avoid accidentally shadowing a function named ``repexpr`` in
 the main program.
 
