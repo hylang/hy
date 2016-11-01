@@ -1232,6 +1232,9 @@ The following are all equivalent ways to call a macro named ``foo`` in the modul
     (require [mymodule [*]])
     (foo 1)
 
+    (require [mymodule [foo :as bar]])
+    (bar 1)
+
 Macros that call macros
 ~~~~~~~~~~~~~~~~~~~~~~~
 

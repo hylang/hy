@@ -85,30 +85,33 @@ def reader(name):
 
 
 def require(source_module, target_module,
-            all_names=False, names=[], prefix=""):
-    """Load the macros from `source_module` whose symbols are
-    listed in `names` (or all names, if `all_names` is true) in the
-    namespace of `target_module`. If `prefix` is nonempty, it
-    is prepended to the name of each imported macro. (This means
-    you get macros named things like "mymacromodule.mymacro",
-    which looks like an attribute of a module, although it's
-    actually just a symbol with a period in its name.)
+            all_macros=False, assignments={}, prefix=""):
+    """Load macros from `source_module` in the namespace of
+    `target_module`. `assignments` maps old names to new names, but is
+    ignored if `all_macros` is true. If `prefix` is nonempty, it is
+    prepended to the name of each imported macro. (This means you get
+    macros named things like "mymacromodule.mymacro", which looks like
+    an attribute of a module, although it's actually just a symbol
+    with a period in its name.)
 
     This function is called from the `require` special form in the compiler.
 
     """
+
     seen_names = set()
     if prefix:
         prefix += "."
 
     for d in _hy_macros, _hy_reader:
         for name, macro in d[source_module].items():
-            if all_names or name in names:
+            seen_names.add(name)
+            if all_macros:
                 d[target_module][prefix + name] = macro
-                seen_names.add(name)
+            elif name in assignments:
+                d[target_module][prefix + assignments[name]] = macro
 
-    if not all_names:
-        unseen = frozenset(names).difference(seen_names)
+    if not all_macros:
+        unseen = frozenset(assignments.keys()).difference(seen_names)
         if unseen:
             raise ImportError("cannot require names: " + repr(list(unseen)))
 

@@ -255,6 +255,8 @@ def test_ast_require():
     can_compile("(require [tests.resources.tlib [qplah parald]])")
     can_compile("(require [tests.resources.tlib [*]])")
     can_compile("(require [tests.resources.tlib :as foobar])")
+    can_compile("(require [tests.resources.tlib [qplah :as quiz]])")
+    can_compile("(require [tests.resources.tlib [qplah :as quiz parald]])")
     cant_compile("(require [tests.resources.tlib])")
     cant_compile("(require [tests.resources.tlib [* qplah]])")
     cant_compile("(require [tests.resources.tlib [qplah *]])")

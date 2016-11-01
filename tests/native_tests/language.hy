@@ -1122,6 +1122,11 @@
   (try (parald 1 2 3 4)
        (except [NameError] True)
        (else (assert False)))
+  (require [tests.resources.tlib [parald :as p]])
+  (assert (= (p 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
   (require [tests.resources.tlib [*]])
   (assert (= (parald 1 2 3) [9 1 2 3])))
 
