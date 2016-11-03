@@ -267,7 +267,7 @@ In Hy, you would do:
     [true
      (print "That variable is jussssst right!")])
 
-What you'll notice is that ``cond`` switches off between a some statement
+What you'll notice is that ``cond`` switches off between a statement
 that is executed and checked conditionally for true or falseness, and
 then a bit of code to execute if it turns out to be true.  You'll also
 notice that the ``else`` is implemented at the end simply by checking
@@ -292,7 +292,7 @@ You can do the following:
    (if (try-some-thing)
      (do
        (print "this is if true")
-       (print "and why not, let's keep talking about how true it is!))
+       (print "and why not, let's keep talking about how true it is!"))
      (print "this one's still simply just false"))
 
 You can see that we used ``do`` to wrap multiple statements.  If you're
@@ -568,15 +568,18 @@ Macros are useful when one wishes to extend Hy or write their own
 language on top of that. Many features of Hy are macros, like ``when``,
 ``cond`` and ``->``.
 
-To use macros defined in a different module, it is not enough to
-``import`` the module, because importing happens at run-time, while we
-would need macros at compile-time. Instead of importing the module
-with macros, ``require`` must be used:
+What if you want to use a macro that's defined in a different
+module? The special form ``import`` won't help, because it merely
+translates to a Python ``import`` statement that's executed at
+run-time, and macros are expanded at compile-time, that is,
+during the translate from Hy to Python. Instead, use ``require``,
+which imports the module and makes macros available at
+compile-time. ``require`` uses the same syntax as ``import``.
 
 .. code-block:: clj
 
    => (require tutorial.macros)
-   => (rev (1 2 3 +))
+   => (tutorial.macros.rev (1 2 3 +))
    6
 
 Hy <-> Python interop

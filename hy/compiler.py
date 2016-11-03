@@ -503,19 +503,13 @@ class HyASTCompiler(object):
         for expr in exprs:
 
             if expr in ll_keywords:
-                if expr == "&rest" and lambda_keyword is None:
-                    lambda_keyword = expr
-                elif expr == "&optional":
+                if expr == "&optional":
                     if len(defaults) > 0:
                         raise HyTypeError(expr,
                                           "There can only be &optional "
                                           "arguments or one &key argument")
                     lambda_keyword = expr
-                elif expr == "&key":
-                    lambda_keyword = expr
-                elif expr == "&kwonly":
-                    lambda_keyword = expr
-                elif expr == "&kwargs":
+                elif expr in ("&rest", "&key", "&kwonly", "&kwargs"):
                     lambda_keyword = expr
                 else:
                     raise HyTypeError(expr,
@@ -1516,7 +1510,8 @@ class HyASTCompiler(object):
             gen.append(ast.comprehension(
                 target=target,
                 iter=gen_res.force_expr,
-                ifs=[]))
+                ifs=[],
+                is_async=False))
 
         if cond.expr:
             gen[-1].ifs.append(cond.expr)
@@ -1742,10 +1737,45 @@ class HyASTCompiler(object):
         "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
         """
-        expression.pop(0)
-        for entry in expression:
-            __import__(entry)  # Import it fo' them macros.
-            require(entry, self.module_name)
+        for entry in expression[1:]:
+            if isinstance(entry, HySymbol):
+                # e.g., (require foo)
+                __import__(entry)
+                require(entry, self.module_name, all_macros=True,
+                        prefix=entry)
+            elif isinstance(entry, HyList) and len(entry) == 2:
+                # e.g., (require [foo [bar baz :as MyBaz bing]])
+                # or (require [foo [*]])
+                module, names = entry
+                if not isinstance(names, HyList):
+                    raise HyTypeError(names,
+                                      "(require) name lists should be HyLists")
+                __import__(module)
+                if '*' in names:
+                    if len(names) != 1:
+                        raise HyTypeError(names, "* in a (require) name list "
+                                                 "must be on its own")
+                    require(module, self.module_name, all_macros=True)
+                else:
+                    assignments = {}
+                    while names:
+                        if len(names) > 1 and names[1] == HyKeyword(":as"):
+                            k, _, v = names[:3]
+                            del names[:3]
+                            assignments[k] = v
+                        else:
+                            symbol = names.pop(0)
+                            assignments[symbol] = symbol
+                    require(module, self.module_name, assignments=assignments)
+            elif (isinstance(entry, HyList) and len(entry) == 3
+                    and entry[1] == HyKeyword(":as")):
+                # e.g., (require [foo :as bar])
+                module, _, prefix = entry
+                __import__(module)
+                require(module, self.module_name, all_macros=True,
+                        prefix=prefix)
+            else:
+                raise HyTypeError(entry, "unrecognized (require) syntax")
         return Result()
 
     @builds("and")
@@ -1910,7 +1940,6 @@ class HyASTCompiler(object):
                              col_offset=child.start_column)
         return ret
 
-    @builds("+")
     @builds("*")
     @builds("/")
     @builds("//")
@@ -1918,8 +1947,7 @@ class HyASTCompiler(object):
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
-            id_op = {"+": HyInteger(0), "*": HyInteger(1), "/": HyInteger(1),
-                     "//": HyInteger(1)}
+            id_op = {"*": HyInteger(1), "/": HyInteger(1), "//": HyInteger(1)}
 
             op = expression.pop(0)
             arg = expression.pop(0) if expression else id_op[op]
@@ -1930,19 +1958,33 @@ class HyASTCompiler(object):
             ]).replace(expression)
             return self.compile_maths_expression(expr)
 
-    @builds("-")
-    @checkargs(min=1)
-    def compile_maths_expression_sub(self, expression):
+    def compile_maths_expression_additive(self, expression):
         if len(expression) > 2:
             return self.compile_maths_expression(expression)
         else:
-            arg = expression[1]
+            op = {"+": ast.UAdd, "-": ast.USub}[expression.pop(0)]()
+            arg = expression.pop(0)
             ret = self.compile(arg)
-            ret += ast.UnaryOp(op=ast.USub(),
+            ret += ast.UnaryOp(op=op,
                                operand=ret.force_expr,
                                lineno=arg.start_line,
                                col_offset=arg.start_column)
             return ret
+
+    @builds("+")
+    def compile_maths_expression_add(self, expression):
+        if len(expression) == 1:
+            # Nullary +
+            return ast.Num(n=long_type(0),
+                           lineno=expression.start_line,
+                           col_offset=expression.start_column)
+        else:
+            return self.compile_maths_expression_additive(expression)
+
+    @builds("-")
+    @checkargs(min=1)
+    def compile_maths_expression_sub(self, expression):
+        return self.compile_maths_expression_additive(expression)
 
     @builds("+=")
     @builds("/=")
@@ -2449,6 +2491,9 @@ class HyASTCompiler(object):
             raise HyTypeError(name, ("received a `%s' instead of a symbol "
                                      "for macro name" % type(name).__name__))
         name = HyString(name).replace(name)
+        for kw in ("&kwonly", "&kwargs", "&key"):
+            if kw in expression[0]:
+                raise HyTypeError(name, "macros cannot use %s" % kw)
         new_expression = HyExpression([
             HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.macro"), name]),

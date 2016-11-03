@@ -45,12 +45,12 @@ def ast_compile(ast, filename, mode):
 
 
 def import_buffer_to_hst(buf):
-    """Import content from buf and return an Hy AST."""
+    """Import content from buf and return a Hy AST."""
     return tokenize(buf + "\n")
 
 
 def import_file_to_hst(fpath):
-    """Import content from fpath and return an Hy AST."""
+    """Import content from fpath and return a Hy AST."""
     try:
         with open(fpath, 'r', encoding='utf-8') as f:
             return import_buffer_to_hst(f.read())
@@ -87,6 +87,15 @@ def import_file_to_module(module_name, fpath):
         sys.modules.pop(module_name, None)
         raise
     return mod
+
+
+def import_file_to_globals(env, module_name, fpath):
+    """ Import content from fpath and puts it into the dict provided
+    (e.g., for use in a REPL)
+    """
+    mod = import_file_to_module(module_name, fpath)
+    for k, v in mod.__dict__.items():
+        env[k] = v
 
 
 def import_buffer_to_module(module_name, buf):

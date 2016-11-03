@@ -1,4 +1,4 @@
-(require hy.contrib.alias)
+(require [hy.contrib.alias [defn-alias]])
 
 (defn test-defn-alias []
   (defn-alias [tda-main tda-a1 tda-a2] [] :bazinga)

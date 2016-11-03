@@ -11,11 +11,11 @@ concise and easy to read.
     deliberately captures some form supplied to the macro which may be
     referred to by an anaphor (an expression referring to another).
 
-    -- Wikipedia (http://en.wikipedia.org/wiki/Anaphoric_macro)
+    -- Wikipedia (https://en.wikipedia.org/wiki/Anaphoric_macro)
 
 To use these macros you need to require the hy.contrib.anaphoric module like so:
 
-``(require hy.contrib.anaphoric)``
+``(require [hy.contrib.anaphoric [*]])``
 
 .. _ap-if:
 

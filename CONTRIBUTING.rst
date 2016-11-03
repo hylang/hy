@@ -7,7 +7,9 @@ helps in making Hy more awesome.
 Pull requests are great! We love them; here is a quick guide:
 
 - `Fork the repo`_ and create a topic branch for a feature/fix. Avoid
-  making changes directly on the master branch.
+  making changes directly on the master branch. If you would like to 
+  contribute but don't know how to begin, the `good-first-bug`_ label 
+  of the `issue tracker`_ is the place to go. 
   (If you're new to Git: `Start Here`_)
 
 - All incoming features should be accompanied with tests.
@@ -36,7 +38,7 @@ Pull requests are great! We love them; here is a quick guide:
   + Try sticking to the 50 character limit for the first line of Git
     commit messages.
 
-  + For more detail/explainations, follow this up with a blank line and
+  + For more detail/explanations, follow this up with a blank line and
     continue describing the commit in detail.
 
 - Finally, add yourself to the AUTHORS file (as a separate commit): you
@@ -93,4 +95,5 @@ http://contributor-covenant.org/version/1/1/0/.
 .. _Contributor Covenant: http://contributor-covenant.org
 .. _issue tracker: https://github.com/hylang/hy/issues
 .. _Fork the Repo: https://help.github.com/articles/fork-a-repo/
-.. _Start Here: http://rogerdudler.github.io/git-guide/)
+.. _Start Here: http://rogerdudler.github.io/git-guide/
+.. _good-first-bug: http://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug

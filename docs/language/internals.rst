@@ -170,7 +170,7 @@ Cons Cells
 cells`_.  Cons cells are especially useful to mimic features of "usual"
 LISP variants such as Scheme or Common Lisp.
 
-.. _cons cells: http://en.wikipedia.org/wiki/Cons
+.. _cons cells: https://en.wikipedia.org/wiki/Cons
 
 A cons cell is a 2-item object, containing a ``car`` (head) and a
 ``cdr`` (tail). In some Lisp variants, the cons cell is the fundamental

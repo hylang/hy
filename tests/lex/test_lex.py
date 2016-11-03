@@ -230,6 +230,16 @@ def test_sets():
         HyExpression([HySymbol("baz"), HySymbol("quux")])
     ])]
 
+    # Duplicate items in a literal set should be okay (and should
+    # be preserved).
+    objs = tokenize("#{1 2 1 1 2 1}")
+    assert objs == [HySet([HyInteger(n) for n in [1, 2, 1, 1, 2, 1]])]
+    assert len(objs[0]) == 6
+
+    # https://github.com/hylang/hy/issues/1120
+    objs = tokenize("#{a 1}")
+    assert objs == [HySet([HySymbol("a"), HyInteger(1)])]
+
 
 def test_nospace():
     """ Ensure we can tokenize without spaces if we have to """

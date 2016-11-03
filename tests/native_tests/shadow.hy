@@ -8,13 +8,9 @@
     (assert (= (x 1 2 3 4) 10))
     (assert (= (x 1 2 3 4 5) 15))
     ; with strings
-    (assert (= (x "a")
-               "a"))
     (assert (= (x "a" "b" "c")
                "abc"))
     ; with lists
-    (assert (= (x ["a"])
-               ["a"]))
     (assert (= (x ["a"] ["b"] ["c"])
                ["a" "b" "c"]))))
 

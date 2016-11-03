@@ -2,7 +2,7 @@
 defmulti
 ========
 
-.. versionadded:: 0.10.0
+.. versionadded:: 0.11.0
 
 ``defmulti``, ``defmethod`` and ``default-method`` lets you define
 multimethods where a dispatching function is used to select between different
@@ -11,7 +11,7 @@ on the code by `Adam Bard`_.
 
 .. code-block:: clj
 
-    => (require hy.contrib.multi)
+    => (require [hy.contrib.multi [defmulti defmethod]])
     => (defmulti area [shape]
     ...  "calculate area of a shape"
     ...  (:type shape))
@@ -59,7 +59,7 @@ different implementations can narrow them down.
 
 .. code-block:: clj
 
-    => (require hy.contrib.multi)
+    => (require [hy.contrib.multi [defmulti defmethod]])
     => (defmulti fun [&rest args]
     ...  (len args))
 
