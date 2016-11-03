@@ -70,7 +70,8 @@
 (defmacro defnr [name lambda-list &rest body]
   (if (not (= (type name) HySymbol))
     (macro-error name "defnr takes a name as first argument"))
-  `(setv ~name (fnr ~lambda-list ~@body)))
+  `(do (require hy.contrib.loop)
+       (setv ~name (hy.contrib.loop.fnr ~lambda-list ~@body))))
 
 
 (defmacro/g! loop [bindings &rest body]
@@ -87,5 +88,6 @@
   ;; and erroring if not is a giant TODO.
   (let [fnargs (map (fn [x] (first x)) bindings)
         initargs (map second bindings)]
-    `(do (defnr ~g!recur-fn [~@fnargs] ~@body)
+    `(do (require hy.contrib.loop)
+         (hy.contrib.loop.defnr ~g!recur-fn [~@fnargs] ~@body)
          (~g!recur-fn ~@initargs))))

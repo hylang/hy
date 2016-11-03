@@ -15,7 +15,7 @@ concise and easy to read.
 
 To use these macros you need to require the hy.contrib.anaphoric module like so:
 
-``(require hy.contrib.anaphoric)``
+``(require [hy.contrib.anaphoric [*]])``
 
 .. _ap-if:
 

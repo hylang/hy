@@ -19,7 +19,7 @@
 ;; DEALINGS IN THE SOFTWARE.
 
 (import [hy.errors [HyMacroExpansionError]])
-(require hy.contrib.anaphoric)
+(require [hy.contrib.anaphoric [*]])
 
 ;;;; some simple helpers
 

@@ -45,7 +45,7 @@ Example:
 
 .. code-block:: hy
 
-    (require hy.contrib.loop)
+    (require [hy.contrib.loop [loop]])
 
     (defn factorial [n]
       (loop [[i n] [acc 1]]

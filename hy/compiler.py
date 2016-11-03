@@ -1737,10 +1737,45 @@ class HyASTCompiler(object):
         "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
         """
-        expression.pop(0)
-        for entry in expression:
-            __import__(entry)  # Import it fo' them macros.
-            require(entry, self.module_name)
+        for entry in expression[1:]:
+            if isinstance(entry, HySymbol):
+                # e.g., (require foo)
+                __import__(entry)
+                require(entry, self.module_name, all_macros=True,
+                        prefix=entry)
+            elif isinstance(entry, HyList) and len(entry) == 2:
+                # e.g., (require [foo [bar baz :as MyBaz bing]])
+                # or (require [foo [*]])
+                module, names = entry
+                if not isinstance(names, HyList):
+                    raise HyTypeError(names,
+                                      "(require) name lists should be HyLists")
+                __import__(module)
+                if '*' in names:
+                    if len(names) != 1:
+                        raise HyTypeError(names, "* in a (require) name list "
+                                                 "must be on its own")
+                    require(module, self.module_name, all_macros=True)
+                else:
+                    assignments = {}
+                    while names:
+                        if len(names) > 1 and names[1] == HyKeyword(":as"):
+                            k, _, v = names[:3]
+                            del names[:3]
+                            assignments[k] = v
+                        else:
+                            symbol = names.pop(0)
+                            assignments[symbol] = symbol
+                    require(module, self.module_name, assignments=assignments)
+            elif (isinstance(entry, HyList) and len(entry) == 3
+                    and entry[1] == HyKeyword(":as")):
+                # e.g., (require [foo :as bar])
+                module, _, prefix = entry
+                __import__(module)
+                require(module, self.module_name, all_macros=True,
+                        prefix=prefix)
+            else:
+                raise HyTypeError(entry, "unrecognized (require) syntax")
         return Result()
 
     @builds("and")

@@ -1210,16 +1210,84 @@ alternatively be written using the apostrophe (``'``) symbol.
 require
 -------
 
-``require`` is used to import macros from a given module. It takes at least one
-parameter specifying the module which macros should be imported. Multiple
-modules can be imported with a single ``require``.
+``require`` is used to import macros from one or more given modules. It allows
+parameters in all the same formats as ``import``. The ``require`` form itself
+produces no code in the final program: its effect is purely at compile-time, for
+the benefit of macro expansion. Specifically, ``require`` imports each named
+module and then makes each requested macro available in the current module.
 
-The following example will import macros from ``module-1`` and ``module-2``:
+The following are all equivalent ways to call a macro named ``foo`` in the module ``mymodule``:
 
 .. code-block:: clj
 
-    (require module-1 module-2)
+    (require mymodule)
+    (mymodule.foo 1)
 
+    (require [mymodule :as M])
+    (M.foo 1)
+
+    (require [mymodule [foo]])
+    (foo 1)
+
+    (require [mymodule [*]])
+    (foo 1)
+
+    (require [mymodule [foo :as bar]])
+    (bar 1)
+
+Macros that call macros
+~~~~~~~~~~~~~~~~~~~~~~~
+
+One aspect of ``require`` that may be surprising is what happens when one
+macro's expansion calls another macro. Suppose ``mymodule.hy`` looks like this:
+
+.. code-block:: clj
+
+    (defmacro repexpr [n expr]
+      ; Evaluate the expression n times
+      ; and collect the results in a list.
+      `(list (map (fn [_] ~expr) (range ~n))))
+
+    (defmacro foo [n]
+      `(repexpr ~n (input "Gimme some input: ")))
+
+And then, in your main program, you write:
+
+.. code-block:: clj
+
+    (require [mymodule [foo]])
+
+    (print (mymodule.foo 3))
+
+Running this raises ``NameError: name 'repexpr' is not defined``, even though
+writing ``(print (foo 3))`` in ``mymodule`` works fine. The trouble is that your
+main program doesn't have the macro ``repexpr`` available, since it wasn't
+imported (and imported under exactly that name, as opposed to a qualified name).
+You could do ``(require [mymodule [*]])`` or ``(require [mymodule [foo
+repexpr]])``, but a less error-prone approach is to change the definition of
+``foo`` to require whatever sub-macros it needs:
+
+.. code-block:: clj
+
+    (defmacro foo [n]
+      `(do
+        (require mymodule)
+        (mymodule.repexpr ~n (raw-input "Gimme some input: "))))
+
+It's wise to use ``(require mymodule)`` here rather than ``(require [mymodule
+[repexpr]])`` to avoid accidentally shadowing a function named ``repexpr`` in
+the main program.
+
+Qualified macro names
+~~~~~~~~~~~~~~~~~~~~~
+
+Note that in the current implementation, there's a trick in qualified macro
+names, like ``mymodule.foo`` and ``M.foo`` in the above example. These names
+aren't actually attributes of module objects; they're just identifiers with
+periods in them. In fact, ``mymodule`` and ``M`` aren't defined by these
+``require`` forms, even at compile-time. None of this will hurt you unless try
+to do introspection of the current module's set of defined macros, which isn't
+really supported anyway.
 
 rest / cdr
 ----------

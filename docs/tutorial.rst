@@ -568,15 +568,18 @@ Macros are useful when one wishes to extend Hy or write their own
 language on top of that. Many features of Hy are macros, like ``when``,
 ``cond`` and ``->``.
 
-To use macros defined in a different module, it is not enough to
-``import`` the module, because importing happens at run-time, while we
-would need macros at compile-time. Instead of importing the module
-with macros, ``require`` must be used:
+What if you want to use a macro that's defined in a different
+module? The special form ``import`` won't help, because it merely
+translates to a Python ``import`` statement that's executed at
+run-time, and macros are expanded at compile-time, that is,
+during the translate from Hy to Python. Instead, use ``require``,
+which imports the module and makes macros available at
+compile-time. ``require`` uses the same syntax as ``import``.
 
 .. code-block:: clj
 
    => (require tutorial.macros)
-   => (rev (1 2 3 +))
+   => (tutorial.macros.rev (1 2 3 +))
    6
 
 Hy <-> Python interop
