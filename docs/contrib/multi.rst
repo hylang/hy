@@ -11,7 +11,7 @@ on the code by `Adam Bard`_.
 
 .. code-block:: clj
 
-    => (require [hy.contrib.multi [defmulti defmethod]])
+    => (require [hy.contrib.multi [defmulti defmethod default-method]])
     => (defmulti area [shape]
     ...  "calculate area of a shape"
     ...  (:type shape))

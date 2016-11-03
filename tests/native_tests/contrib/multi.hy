@@ -19,8 +19,7 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
-(require [hy.contrib.multi [defmulti]])
-
+(require [hy.contrib.multi [defmulti defmethod default-method]])
 
 (defn test-different-signatures []
   "NATIVE: Test multimethods with different signatures"
