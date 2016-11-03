@@ -71,9 +71,9 @@
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv None 1))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv false 1))
+  (try (eval '(setv F 1))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv true 0))
+  (try (eval '(setv T 0))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv nil 1))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
@@ -101,28 +101,28 @@
   (try
     (do
       (eval '(setv (do 1 2) 1))
-      (assert false))
+      (assert F))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a non-expression"))))
 
   (try
     (do
       (eval '(setv 1 1))
-      (assert false))
+      (assert F))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyInteger"))))
 
   (try
     (do
       (eval '(setv {1 2} 1))
-      (assert false))
+      (assert F))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyDict"))))
 
   (try
     (do
       (eval '(del 1 1))
-      (assert false))
+      (assert F))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyInteger")))))
 
@@ -224,8 +224,8 @@
 (defn test-not []
   "NATIVE: test not"
   (assert (not (= 1 2)))
-  (assert (= true (not false)))
-  (assert (= false (not 42))) )
+  (assert (= T (not F)))
+  (assert (= F (not 42))) )
 
 
 (defn test-inv []
@@ -274,14 +274,14 @@
 
 (defn test-branching []
   "NATIVE: test if branching"
-  (if true
+  (if T
     (assert (= 1 1))
     (assert (= 2 1))))
 
 
 (defn test-branching-with-do []
   "NATIVE: test if branching (multiline)"
-  (if false
+  (if F
     (assert (= 2 1))
     (do
      (assert (= 1 1))
@@ -291,7 +291,7 @@
 (defn test-branching-expr-count-with-do []
   "NATIVE: make sure we execute the right number of expressions in the branch"
   (setv counter 0)
-  (if false
+  (if F
     (assert (= 2 1))
     (do
      (setv counter (+ counter 1))
@@ -303,8 +303,8 @@
 (defn test-cond []
   "NATIVE: test if cond sorta works."
   (cond
-   [(= 1 2) (assert (is true false))]
-   [(is None None) (setv x true) (assert x)])
+   [(= 1 2) (assert (is T F))]
+   [(is None None) (setv x T) (assert x)])
   (assert (= (cond) nil)))
 
 
@@ -359,9 +359,9 @@
 
 (defn test-imported-bits []
   "NATIVE: test the imports work"
-  (assert (is (exists ".") true))
-  (assert (is (isdir ".") true))
-  (assert (is (isfile ".") false)))
+  (assert (is (exists ".") T))
+  (assert (is (isdir ".") T))
+  (assert (is (isfile ".") F)))
 
 
 (defn test-kwargs []
@@ -409,7 +409,7 @@
 (defn test-bare-try [] (try
     (try (raise ValueError))
   (except [ValueError])
-  (else (assert false))))
+  (else (assert F))))
 
 
 (defn test-exceptions []
@@ -426,70 +426,70 @@
   (try (do) (except [IOError]) (except))
 
   ;; Test correct (raise)
-  (let [passed false]
+  (let [passed F]
     (try
      (try
       (raise IndexError)
       (except [IndexError] (raise)))
      (except [IndexError]
-       (setv passed true)))
+       (setv passed T)))
     (assert passed))
 
   ;; Test incorrect (raise)
-  (let [passed false]
+  (let [passed F]
     (try
      (raise)
      ;; Python 2 raises TypeError
      ;; Python 3 raises RuntimeError
      (except [[TypeError RuntimeError]]
-       (setv passed true)))
+       (setv passed T)))
     (assert passed))
 
   ;; Test (finally)
-  (let [passed false]
+  (let [passed F]
     (try
      (do)
-     (finally (setv passed true)))
+     (finally (setv passed T)))
     (assert passed))
 
   ;; Test (finally) + (raise)
-  (let [passed false]
+  (let [passed F]
     (try
      (raise Exception)
      (except)
-     (finally (setv passed true)))
+     (finally (setv passed T)))
     (assert passed))
 
 
   ;; Test (finally) + (raise) + (else)
-  (let [passed false
-        not-elsed true]
+  (let [passed F
+        not-elsed T]
     (try
      (raise Exception)
      (except)
-     (else (setv not-elsed false))
-     (finally (setv passed true)))
+     (else (setv not-elsed F))
+     (finally (setv passed T)))
     (assert passed)
     (assert not-elsed))
 
   (try
    (raise (KeyError))
-   (except [[IOError]] (assert false))
+   (except [[IOError]] (assert F))
    (except [e [KeyError]] (assert e)))
 
   (try
    (raise (KeyError))
-   (except [[IOError]] (assert false))
+   (except [[IOError]] (assert F))
    (except [e [KeyError]] (assert e)))
 
   (try
    (get [1] 3)
-   (except [IndexError] (assert true))
+   (except [IndexError] (assert T))
    (except [IndexError] (do)))
 
   (try
    (print foobar42ofthebaz)
-   (except [IndexError] (assert false))
+   (except [IndexError] (assert F))
    (except [NameError] (do)))
 
   (try
@@ -530,10 +530,10 @@
      (setv foobar42ofthebaz 42)
      (assert (= foobar42ofthebaz 42))))
 
-  (let [passed false]
+  (let [passed F]
     (try
      (try (do) (except) (else (bla)))
-     (except [NameError] (setv passed true)))
+     (except [NameError] (setv passed T)))
     (assert passed))
 
   (let [x 0]
@@ -625,7 +625,7 @@
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
-  (if true (do) (do))
+  (if T (do) (do))
   (assert (= 1 1)))
 
 
@@ -874,7 +874,7 @@
 
 (defn test-if-mangler []
   "NATIVE: test that we return ifs"
-  (assert (= true (if true true true))))
+  (assert (= T (if T T T))))
 
 
 (defn test-nested-mangles []
@@ -953,19 +953,19 @@
 
 (defn test-xor []
   "NATIVE: test the xor macro"
-  (let [xor-both-true (xor true true)
-        xor-both-false (xor false false)
-        xor-true-false (xor true false)]
-    (assert (= xor-both-true false))
-    (assert (= xor-both-false false))
-    (assert (= xor-true-false true))))
+  (let [xor-both-true (xor T T)
+        xor-both-false (xor F F)
+        xor-true-false (xor T F)]
+    (assert (= xor-both-true F))
+    (assert (= xor-both-false F))
+    (assert (= xor-true-false T))))
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
                                 ; thanks, algernon
   (assert (= 1 (let [x 1
                      y 2]
-                 (if true
+                 (if T
                    2)
                  1)))
   (assert (= 1 (let [x 1 y 2]
@@ -992,9 +992,9 @@
   (for [x (range 10)]
     (if (in "foo" "foobar")
       (do
-       (if true true true))
+       (if T T T))
       (do
-       (if false false false)))))
+       (if F F F)))))
 
 
 (defn test-eval []
@@ -1034,8 +1034,8 @@
   ; yo dawg
   (try (eval '(eval)) (except [e HyTypeError]) (else (assert False)))
   (try (eval '(eval "snafu")) (except [e HyTypeError]) (else (assert False)))
-  (try (eval 'false []) (except [e HyTypeError]) (else (assert False)))
-  (try (eval 'false {} 1) (except [e HyTypeError]) (else (assert False))))
+  (try (eval 'F []) (except [e HyTypeError]) (else (assert False)))
+  (try (eval 'F {} 1) (except [e HyTypeError]) (else (assert False))))
 
 
 (defn test-import-syntax []
@@ -1099,7 +1099,7 @@
 
 (defn test-if-let-mixing []
   "NATIVE: test that we can now mix if and let"
-  (assert (= 0 (if true (let [x 0] x) 42))))
+  (assert (= 0 (if T (let [x 0] x) 42))))
 
 (defn test-if-in-if []
   "NATIVE: test that we can use if in if"
@@ -1140,8 +1140,8 @@
   (try (parald 1 2 3 4)
        (except [NameError] True)
        (else (assert False)))
-  (require [tests.resources.tlib :as T])
-  (assert (= (T.parald 1 2 3) [9 1 2 3]))
+  (require [tests.resources.tlib :as TL])
+  (assert (= (TL.parald 1 2 3) [9 1 2 3]))
   (try (parald 1 2 3 4)
        (except [NameError] True)
        (else (assert False)))
@@ -1286,7 +1286,7 @@
                "Module(\n    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
                "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
-  (assert (= (disassemble '(do (leaky) (leaky) (macros)) true)
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)) T)
              "leaky()\nleaky()\nmacros()")))
 
 

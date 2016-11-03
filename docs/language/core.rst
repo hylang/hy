@@ -137,7 +137,7 @@ is ``True``, the function prints Python code instead.
     body=[
         Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
 
-   => (disassemble '(print "Hello World!") true)
+   => (disassemble '(print "Hello World!") T)
    print('Hello World!')
 
 
@@ -898,12 +898,12 @@ as an example of how to use some of these functions.
    (defn fib []
      (setv a 0)
      (setv b 1)
-     (while true
+     (while T
        (yield a)
        (setv (, a b) (, b (+ a b)))))
 
 
-Note the ``(while true ...)`` loop. If we run this in the REPL,
+Note the ``(while T ...)`` loop. If we run this in the REPL,
 
 .. code-block:: hy
 
@@ -1140,7 +1140,7 @@ if *from-file* ends before a complete expression can be parsed.
    => ;   (print "hyfriends!")
    => (with [f (open "example.hy")]
    ...   (try
-   ...     (while true
+   ...     (while T
    ...            (let [exp (read f)]
    ...              (do
    ...                (print "OHY" exp)

@@ -288,7 +288,7 @@ Second Stage Expression-Dispatch
 
 The only special case is the ``HyExpression``, since we need to create different
 AST depending on the special form in question. For instance, when we hit an
-``(if true true false)``, we need to generate a ``ast.If``, and properly
+``(if T T F)``, we need to generate a ``ast.If``, and properly
 compile the sub-nodes. This is where the ``@builds()`` with a String as an
 argument comes in.
 
@@ -321,7 +321,7 @@ In Python, doing something like:
 features, such as ``if``, ``for``, or ``while`` are statements.
 
 Since they have no "value" to Python, this makes working in Hy hard, since
-doing something like ``(print (if true true false))`` is not just common, it's
+doing something like ``(print (if T T F))`` is not just common, it's
 expected.
 
 As a result, we auto-mangle things using a ``Result`` object, where we offer
@@ -331,7 +331,7 @@ assignment to things while running.
 
 As example, the Hy::
 
-    (print (if true true false))
+    (print (if T T F))
 
 Will turn into::
 

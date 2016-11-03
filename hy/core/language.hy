@@ -64,7 +64,7 @@
   "Decrement n by 1"
   (- n 1))
 
-(defn disassemble [tree &optional [codegen false]]
+(defn disassemble [tree &optional [codegen F]]
   "Return the python AST for a quoted Hy tree as a string.
    If the second argument is true, generate python code instead."
   (import astor)
@@ -250,8 +250,8 @@
   "Return True if char `x` parses as an integer"
   (try
     (integer? (int x))
-    (except [e ValueError] False)
-    (except [e TypeError] False)))
+    (except [ValueError] F)
+    (except [TypeError] F)))
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of seqs, then the second etc."
@@ -267,7 +267,7 @@
 
 (defn iterate [f x]
   (setv val x)
-  (while true
+  (while T
     (yield val)
     (setv val (f val))))
 
@@ -363,7 +363,7 @@
 
 (defn repeatedly [func]
   "Yield result of running func repeatedly"
-  (while true
+  (while T
     (yield (func))))
 
 (defn second [coll]
@@ -412,7 +412,7 @@
   "Read from input and returns a tokenized string.
    Can take a given input buffer to read from"
   (def buff "")
-  (while true
+  (while T
     (def inn (str (.readline from-file)))
     (if (= inn eof)
       (raise (EOFError "Reached end of file" )))

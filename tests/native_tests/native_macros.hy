@@ -59,19 +59,19 @@
     (eval '(defmacro f [&kwonly a b]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &kwonly")))
-    (else (assert false)))
+    (else (assert F)))
 
   (try
     (eval '(defmacro f [&kwargs kw]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &kwargs")))
-    (else (assert false)))
+    (else (assert F)))
 
   (try
     (eval '(defmacro f [&key {"kw" "xyz"}]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &key")))
-    (else (assert false))))
+    (else (assert F))))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"

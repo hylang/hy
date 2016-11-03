@@ -35,11 +35,11 @@
 
 (defn test-ap-if []
   "NATIVE: testing anaphoric if"
-  (ap-if true (assert-true it))
-  (ap-if false true (assert-false it))
-  (try (macroexpand '(ap-if true))
-       (except [HyMacroExpansionError] true)
-       (else (assert false))))
+  (ap-if T (assert-true it))
+  (ap-if F T (assert-false it))
+  (try (macroexpand '(ap-if T))
+       (except [HyMacroExpansionError] T)
+       (else (assert F))))
 
 (defn test-ap-each []
   "NATIVE: testing anaphoric each"

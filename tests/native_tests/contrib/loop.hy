@@ -19,15 +19,15 @@
   (try
    (setv n (non-tco-sum 100 10000))
    (except [e RuntimeError]
-     (assert true))
+     (assert T))
    (else
-    (assert false)))
+    (assert F)))
 
   ;; tco-sum should not fail
   (try
    (setv n (tco-sum 100 10000))
    (except [e RuntimeError]
-     (assert false))
+     (assert F))
    (else
     (assert (= n 10100)))))
 
@@ -41,6 +41,6 @@
   (try
    (bad-recur 3)
    (except [e TypeError]
-     (assert true))
+     (assert T))
    (else
-    (assert false))))
+    (assert F))))
