@@ -35,7 +35,7 @@
   The previous result is thus available in the subsequent form. Returns the
   final result, and leaves the name bound to it in the local scope. This behaves
   much like the other threading macros, but requires you to specify the threading
-  point per form via the name instead of always the first or last arument."
+  point per form via the name instead of always the first or last argument."
   `(do (setv
          ~name ~head
          ~@(interleave (repeat name) rest))

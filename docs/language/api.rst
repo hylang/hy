@@ -179,6 +179,79 @@ other case, the first false value will be returned. Example usage:
     False
 
 
+as->
+----
+
+.. versionadded:: 0.12.0
+
+Expands to sequence of assignments to the provided name, starting with head.
+The previous result is thus available in the subsequent form. Returns the final
+result, and leaves the name bound to it in the local scope. This behaves much
+like the other threading macros, but requires you to specify the threading
+point per form via the name instead of always the first or last argument.
+
+.. code-block:: clj
+
+  ;; example how -> and as-> relate
+
+  => (as-> 0 it
+  ...      (inc it)
+  ...      (inc it))
+  2
+
+  => (-> 0 inc inc)
+  2
+
+  ;; create data for our cuttlefish database
+
+  => (setv data [{:name "hooded cuttlefish"
+  ...             :classification {:subgenus "Acanthosepion"
+  ...                              :species "Sepia prashadi"}
+  ...             :discovered {:year 1936
+  ...                          :name "Ronald Winckworth"}}
+  ...            {:name "slender cuttlefish"
+  ...             :classification {:subgenus "Doratosepion"
+  ...                              :species "Sepia braggi"}
+  ...             :discovered {:year 1907
+  ...                          :name "Sir Joseph Cooke Verco"}}])
+
+  ;; retrieve name of first entry      
+  => (as-> (first data) it
+  ...      (:name it))
+  'hooded cuttlefish'
+
+  ;; retrieve species of first entry
+  => (as-> (first data) it
+  ...      (:classification it)
+  ...      (:species it))
+  'Sepia prashadi'
+
+  ;; find out who discovered slender cuttlefish
+  => (as-> (filter (fn [entry] (= (:name entry)
+  ...                           "slender cuttlefish")) data) it
+  ...      (first it)
+  ...      (:discovered it)
+  ...      (:name it))
+  'Sir Joseph Cooke Verco'
+
+  ;; more convoluted example to load web page and retrieve data from it
+  => (import [urllib.request [urlopen]])
+  => (as-> (urlopen "http://docs.hylang.org/en/stable/") it
+  ...      (.read it)
+  ...      (.decode it "utf-8")
+  ...      (drop (.index it "Welcome") it)
+  ...      (take 30 it)
+  ...      (list it)
+  ...      (.join "" it))
+  'Welcome to Hy’s documentation!
+
+.. note::
+
+  In these examples, the REPL will report a tuple (e.g. `('Sepia prashadi', 
+  'Sepia prashadi')`) as the result, but only a single value is actually
+  returned.
+
+
 assert
 ------
 
