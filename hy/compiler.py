@@ -2059,19 +2059,24 @@ class HyASTCompiler(object):
 
             if fn.startswith("."):
                 # (.split "test test") -> "test test".split()
+                # (.a.b.c x) -> (.c (. x a b)) ->  x.a.b.c()
 
-                # Get the attribute name
-                ofn = fn
-                fn = HySymbol(ofn[1:])
-                fn.replace(ofn)
+                # Get the method name (the last named attribute
+                # in the chain of attributes)
+                attrs = [HySymbol(a).replace(fn) for a in fn.split(".")[1:]]
+                fn = attrs.pop()
 
-                # Get the object we want to take an attribute from
+                # Get the object we're calling the method on
+                # (extracted with the attribute access DSL)
                 if len(expression) < 2:
                     raise HyTypeError(expression,
                                       "attribute access requires object")
-                func = self.compile(expression.pop(1))
 
-                # And get the attribute
+                func = self.compile(HyExpression(
+                    [HySymbol(".").replace(fn), expression.pop(1)] +
+                    attrs))
+
+                # And get the method
                 func += ast.Attribute(lineno=fn.start_line,
                                       col_offset=fn.start_column,
                                       value=func.force_expr,
