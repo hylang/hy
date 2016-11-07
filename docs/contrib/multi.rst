@@ -9,7 +9,7 @@ args and/or kwargs. Inspired by Clojure's take on ``defn``.
 
 .. code-block:: clj
 
-    => (require hy.contrib.multi)
+    => (require [hy.contrib.multi [defmulti]])
     =>   (defmulti fun
     ...     ([a] "a")
     ...     ([a b] "a b")

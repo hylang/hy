@@ -1,4 +1,4 @@
-(require hy.contrib.loop)
+(require [hy.contrib.loop [loop]])
 (import sys)
 
 (defn tco-sum [x y]

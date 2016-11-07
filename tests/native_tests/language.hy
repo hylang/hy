@@ -399,7 +399,30 @@
 
 (defn test-dotted []
   "NATIVE: test dotted invocation"
-  (assert (= (.join " " ["one" "two"]) "one two")))
+  (assert (= (.join " " ["one" "two"]) "one two"))
+
+  (defclass X [object] [])
+  (defclass M [object]
+    [meth (fn [self &rest args]
+      (.join " " (+ (, "meth") args)))])
+
+  (setv x (X))
+  (setv m (M))
+
+  (assert (= (.meth m) "meth"))
+  (assert (= (.meth m "foo" "bar") "meth foo bar"))
+  (assert (= (apply .meth [m "foo" "bar"]) "meth foo bar"))
+
+  (setv x.p m)
+  (assert (= (.p.meth x) "meth"))
+  (assert (= (.p.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (apply .p.meth [x "foo" "bar"]) "meth foo bar"))
+
+  (setv x.a (X))
+  (setv x.a.b m)
+  (assert (= (.a.b.meth x) "meth"))
+  (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (apply .a.b.meth [x "foo" "bar"]) "meth foo bar")))
 
 
 (defn test-do []
@@ -586,6 +609,29 @@
   "NATIVE: test threading macro"
   (assert (= (-> "a b c d" .upper (.replace "A" "X") .split)
              ["X" "B" "C" "D"])))
+
+
+(defn test-as-threading []
+  "NATIVE: test as threading macro"
+  (setv data [{:name "hooded cuttlefish"
+               :classification {:subgenus "Acanthosepion"
+                                :species "Sepia prashadi"}
+               :discovered {:year 1936
+                            :name "Ronald Winckworth"}}
+              {:name "slender cuttlefish"
+               :classification {:subgenus "Doratosepion"
+                                :species "Sepia braggi"}
+               :discovered {:year 1907
+                            :name "Sir Joseph Cooke Verco"}}])
+  (assert (= (as-> (first data) x
+                   (:name x))
+             "hooded cuttlefish"))
+  (assert (= (as-> (filter (fn [entry] (= (:name entry)
+                           "slender cuttlefish")) data) x
+                   (first x)
+                   (:discovered x)
+                   (:name x))
+             "Sir Joseph Cooke Verco")))
 
 
 (defn test-assoc []
@@ -1101,11 +1147,34 @@
 
 (defn test-require []
   "NATIVE: test requiring macros from python code"
-  (try
-    (assert (= "this won't happen" (qplah 1 2 3 4)))
-  (except [NameError]))
+  (try (qplah 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib [qplah]])
+  (assert (= (qplah 1 2 3) [8 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
   (require tests.resources.tlib)
-  (assert (= [1 2 3] (qplah 1 2 3))))
+  (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib :as T])
+  (assert (= (T.parald 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib [parald :as p]])
+  (assert (= (p 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib [*]])
+  (assert (= (parald 1 2 3) [9 1 2 3])))
 
 
 (defn test-require-native []
@@ -1125,7 +1194,7 @@
                   (assert (= x [3 2 1]))
                   "success")
               (except [NameError] "failure"))))
-  (require tests.native_tests.native_macros)
+  (require [tests.native_tests.native_macros [rev]])
   (assert (= "success"
              (try
               (do (setv x [])

@@ -1,4 +1,4 @@
-(require hy.contrib.curry)
+(require [hy.contrib.curry [defnc]])
 
 
 (defnc s [x y z] ((x z) (y z)))  ; λxyz.xz(yz)

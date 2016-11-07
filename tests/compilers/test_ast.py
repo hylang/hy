@@ -249,6 +249,20 @@ def test_ast_good_import_from():
     can_compile("(import [x [y]])")
 
 
+def test_ast_require():
+    "Make sure AST respects (require) syntax"
+    can_compile("(require tests.resources.tlib)")
+    can_compile("(require [tests.resources.tlib [qplah parald]])")
+    can_compile("(require [tests.resources.tlib [*]])")
+    can_compile("(require [tests.resources.tlib :as foobar])")
+    can_compile("(require [tests.resources.tlib [qplah :as quiz]])")
+    can_compile("(require [tests.resources.tlib [qplah :as quiz parald]])")
+    cant_compile("(require [tests.resources.tlib])")
+    cant_compile("(require [tests.resources.tlib [* qplah]])")
+    cant_compile("(require [tests.resources.tlib [qplah *]])")
+    cant_compile("(require [tests.resources.tlib [* *]])")
+
+
 def test_ast_good_get():
     "Make sure AST can compile valid get"
     can_compile("(get x y)")
