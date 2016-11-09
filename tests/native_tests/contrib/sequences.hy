@@ -85,3 +85,27 @@
   (assert (= (list (take 9 fibonacci))
              [0 1 1 2 3 5 8 13 21])
           "taking 8 elements of fibonacci didn't match"))
+
+(defn test-nested-functions []
+  "NATIVE: test that defining nested functions is possible"
+  (defseq primes [n]
+    "infinite sequence of prime numbers"
+    (defn divisible? [n prevs]
+      "is n divisible by any item in prevs?"
+      (any (map (fn [x]
+                  (not (% n x)))
+                prevs)))
+    (defn previous-primes [n]
+      "previous prime numbers"
+      (take (dec n) primes))
+    (defn next-possible-prime [n]
+      "next possible prime after nth prime"
+      (inc (get primes (dec n))))
+    (cond [(= n 0) 2]
+          [true (do (setv guess (next-possible-prime n))
+                    (while (divisible? guess (previous-primes n))
+                      (setv guess (inc guess)))
+                    guess)]))
+  (assert (= (list (take 10 primes))
+             [2 3 5 7 11 13 17 19 23 29])
+          "prime sequence didn't match"))

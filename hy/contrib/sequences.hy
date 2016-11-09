@@ -67,11 +67,11 @@
               "string representation of this sequence"
               (.--str-- self))])
 
-(defmacro seq [param seq-code]
-  `(Sequence (fn ~param ~seq-code)))
+(defmacro seq [param &rest seq-code]
+  `(Sequence (fn ~param (do ~@seq-code))))
  
-(defmacro defseq [seq-name param seq-code]
-  `(def ~seq-name (seq ~param ~seq-code)))
+(defmacro defseq [seq-name param &rest seq-code]
+  `(def ~seq-name (seq ~param (do ~@seq-code))))
 
 (defn end-sequence []
   "raise IndexError exception to signal end of sequence"

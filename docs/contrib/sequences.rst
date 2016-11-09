@@ -26,6 +26,7 @@ the sequence:
 .. code-block:: hy
 
    (seq [n]
+        "sequence of 5 integers"
         (cond [(< n 5) n]
               [true (end-sequence)]))
 
@@ -40,6 +41,7 @@ is defined as:
 .. code-block:: hy
 
    (defseq fibonacci [n]
+     "infinite sequence of fibonacci numbers"
      (cond [(= n 0) 0]
            [(= n 1) 1]
            [true (+ (get fibonacci (- n 1))
