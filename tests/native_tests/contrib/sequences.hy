@@ -33,14 +33,15 @@
   (defseq shorty [n]
     (cond [(< n 10) n]
           [true (end-sequence)]))
+  (setv 0-to-9 (list (range 10)))
   (assert (= (get shorty 0)
-             (get (range 10) 0))
+             (get 0-to-9 0))
           "getting first element failed")
   (assert (= (get shorty 5)
-             (get (range 10) 5))
+             (get 0-to-9 5))
           "getting 5th element failed")
   (assert (= (get shorty -1)
-             (get (range 10) -1))
+             (get 0-to-9 -1))
           "getting element -1 failed"))
 
 (defn test-slicing-sequence []
@@ -48,20 +49,21 @@
   (defseq shorty [n]
     (cond [(< n 10) n]
           [true (end-sequence)]))
+  (setv 0-to-9 (list (range 10)))
   (assert (= (first shorty)
-             (first (range 10)))
+             (first 0-to-9))
           "getting first failed")
   (assert (= (list (rest shorty))
-             (list (rest (range 10))))
+             (list (rest 0-to-9)))
           "getting rest failed")
   (assert (= (list (cut shorty 2 6))
-             (list (cut (range 10) 2 6)))
+             (list (cut 0-to-9 2 6)))
           "cutting 2-6 failed")
   (assert (= (list (cut shorty 2 8 2))
-             (list (cut (range 10) 2 8 2)))
+             (list (cut 0-to-9 2 8 2)))
           "cutting 2-8-2 failed")
   (assert (= (list (cut shorty 8 2 -2))
-             (list (cut (range 10) 8 2 -2)))
+             (list (cut 0-to-9 8 2 -2)))
           "negative cut failed"))
 
 (defn test-recursive-sequence []
