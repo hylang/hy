@@ -971,7 +971,12 @@
   ; short circuiting
   (setv a 1)
   (or 1 (setv a 2))
-  (assert (= a 1)))
+  (assert (= a 1))
+  ; issue #1151
+  (setv a (or 1 (do 2 2)))
+  (assert (= a 1))
+  (setv a (or 0 (do 2 2)))
+  (assert (= a 2)))
 
 
 (defn test-xor []
