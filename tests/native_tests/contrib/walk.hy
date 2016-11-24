@@ -8,7 +8,7 @@
 
 (defn collector [acc x]
   (.append acc x)
-  nil)
+  None)
 
 (defn test-walk-identity []
   (assert (= (walk identity identity walk-form)
@@ -17,11 +17,11 @@
 (defn test-walk []
   (let [acc '()]
     (assert (= (walk (partial collector acc) identity walk-form)
-               [nil nil]))
+               [None None]))
     (assert (= acc walk-form)))
   (let [acc []]
     (assert (= (walk identity (partial collector acc) walk-form)
-               nil))
+               None))
     (assert (= acc [walk-form]))))
 
 (defn test-walk-iterators []

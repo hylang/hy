@@ -392,7 +392,7 @@ Some example usage:
 
 .. code-block:: clj
 
-    => (if true
+    => (if True
     ...  (do (print "Side effects rock!")
     ...      (print "Yeah, really!")))
     Side effects rock!
@@ -589,7 +589,7 @@ Parameters may have the following keywords in front of them:
         => (apply compare ["lisp" "python"]
         ...        {"keyfn" (fn [x y]
         ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))
-        ...         "reverse" true})
+        ...         "reverse" True})
         4
 
     .. code-block:: python
@@ -922,8 +922,8 @@ if / if* / if-not
    if-not
 
 ``if / if* / if-not`` respect Python *truthiness*, that is, a *test* fails if it
-evaluates to a "zero" (including values of ``len`` zero, ``nil``, and
-``false``), and passes otherwise, but values with a ``__bool__`` method
+evaluates to a "zero" (including values of ``len`` zero, ``None``, and
+``False``), and passes otherwise, but values with a ``__bool__`` method
 (``__nonzero__`` in Python 2) can overrides this.
 
 The ``if`` macro is for conditionally selecting an expression for evaluation.
@@ -931,7 +931,7 @@ The result of the selected expression becomes the result of the entire ``if``
 form. ``if`` can select a group of expressions with the help of a ``do`` block.
 
 ``if`` takes any number of alternating *test* and *then* expressions, plus an
-optional *else* expression at the end, which defaults to ``nil``. ``if`` checks
+optional *else* expression at the end, which defaults to ``None``. ``if`` checks
 each *test* in turn, and selects the *then* corresponding to the first passed
 test. ``if`` does not evaluate any expressions following its selection, similar
 to the ``if/elif/else`` control structure from Python. If no tests pass, ``if``
@@ -944,7 +944,7 @@ generally no reason to use it directly.
 ``if-not`` is similar to ``if*`` but the second expression will be executed
 when the condition fails while the third and final expression is executed when
 the test succeeds -- the opposite order of ``if*``. The final expression is
-again optional and defaults to ``nil``.
+again optional and defaults to ``None``.
 
 Example usage:
 
@@ -974,7 +974,7 @@ lif and lif-not
    lif-not
 
 For those that prefer a more Lispy ``if`` clause, we have
-``lif``. This *only* considers ``None`` / ``nil`` to be false! All other
+``lif``. This *only* considers ``None`` to be false! All other
 "false-ish" Python values are considered true. Conversely, we have
 ``lif-not`` in parallel to ``if`` and ``if-not`` which
 reverses the comparison.
@@ -988,12 +988,8 @@ reverses the comparison.
     "true"
     => (lif 0 "true" "false")
     "true"
-    => (lif nil "true" "false")
-    "false"
     => (lif None "true" "false")
     "false"
-    => (lif-not nil "true" "false")
-    "true"
     => (lif-not None "true" "false")
     "true"
     => (lif-not False "true" "false")

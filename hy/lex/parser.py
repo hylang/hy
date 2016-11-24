@@ -301,15 +301,6 @@ def t_identifier(p):
         except ValueError:
             pass
 
-    table = {
-        "true": "True",
-        "false": "False",
-        "nil": "None",
-    }
-
-    if obj in table:
-        return HySymbol(table[obj])
-
     if obj.startswith(":"):
         return HyKeyword(obj)
 
