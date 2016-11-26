@@ -224,20 +224,42 @@
 
 (if-python2
   (defmacro/g! yield-from [expr]
-    `(do (import types)
-         (setv ~g!iter (iter ~expr))
-         (setv ~g!return nil)
-         (setv ~g!message nil)
-         (while true
-           (try (if (isinstance ~g!iter types.GeneratorType)
-                  (setv ~g!message (yield (.send ~g!iter ~g!message)))
-                  (setv ~g!message (yield (next ~g!iter))))
-           (except [~g!e StopIteration]
-             (do (setv ~g!return (if (hasattr ~g!e "value")
-                                     (. ~g!e value)
-                                     nil))
-               (break)))))
-           ~g!return))
+    `(do
+       (setv ~g!i (iter ~expr))
+       (try
+         (setv ~g!y (next ~g!i))
+         (except [~g!e StopIteration]
+           (setv ~g!r (next (iter (. ~g!e args)) nil)))
+         (else
+           (while True
+             (try
+               (setv ~g!s (yield ~g!y))
+               (except [~g!e GeneratorExit]
+                 (try
+                   (setv ~g!m (. ~g!i close))
+                   (except [AttributeError] pass)
+                   (else (~g!m)))
+                 (raise ~g!e))
+               (except [~g!e BaseException]
+                 (setv ~g!x (sys.exc_info))
+                 (try
+                   (setv ~g!m (. ~g!i throw))
+                   (except [AttributeError] (raise ~g!e))
+                   (else
+                     (try
+                       (setv ~g!y (apply ~g!m ~g!x))
+                       (except [~g!e StopIteration]
+                         (setv ~g!r (next (iter (. ~g!e args)) nil))
+                         (break))))))
+               (else
+                 (try
+                   (if (is ~g!s nil)
+                     (setv ~g!y (next ~g!i))
+                     (setv ~g!y ((. ~g!i send) ~g!s)))
+                   (except [~g!e StopIteration]
+                     (setv ~g!r (next (iter (. ~g!e args)) nil))
+                     (break))))))))
+       ~g!r))
   nil)
 
 
