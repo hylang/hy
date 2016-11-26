@@ -570,10 +570,10 @@
   (setv res (list (take-nth 3 [1 2 3 None 5 6])))
   (assert-equal res [1 None])
   ;; using 0 should raise ValueError
-  (let [passed false]
+  (let [passed F]
     (try
      (setv res (list (take-nth 0 [1 2 3 4 5 6 7])))
-     (except [ValueError] (setv passed true)))
+     (except [ValueError] (setv passed T)))
     (assert passed)))
 
 (defn test-take-while []

@@ -102,7 +102,7 @@ def test_ast_invalid_unary_op():
 def test_ast_bad_while():
     "Make sure AST can't compile invalid while"
     cant_compile("(while)")
-    cant_compile("(while (true))")
+    cant_compile("(while (T))")
 
 
 def test_ast_good_do():

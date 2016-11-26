@@ -302,8 +302,8 @@ def t_identifier(p):
             pass
 
     table = {
-        "true": "True",
-        "false": "False",
+        "T": "True",
+        "F": "False",
         "nil": "None",
     }
 

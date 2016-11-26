@@ -34,6 +34,13 @@ languages.
 Notes on Syntax
 ===============
 
+logical values
+--------------
+
+``True``, ``False``, and ``None`` have the same meaning as in Python.
+In addition, ``True`` may be written as ``T``, ``False`` as ``F``, and
+``None`` as ``nil``.
+
 integers
 --------
 
@@ -392,7 +399,7 @@ Some example usage:
 
 .. code-block:: clj
 
-    => (if true
+    => (if T
     ...  (do (print "Side effects rock!")
     ...      (print "Yeah, really!")))
     Side effects rock!
@@ -589,7 +596,7 @@ Parameters may have the following keywords in front of them:
         => (apply compare ["lisp" "python"]
         ...        {"keyfn" (fn [x y]
         ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))
-        ...         "reverse" true})
+        ...         "reverse" T})
         4
 
     .. code-block:: python

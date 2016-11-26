@@ -124,7 +124,7 @@
     (macro-error None "`for' requires a body to evaluate")]
    [(empty? args) `(do ~@body ~@belse)]
    [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
-   [true
+   [T
     (let [alist (cut args 0 nil 2)]
       `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
@@ -228,7 +228,7 @@
          (setv ~g!iter (iter ~expr))
          (setv ~g!return nil)
          (setv ~g!message nil)
-         (while true
+         (while T
            (try (if (isinstance ~g!iter types.GeneratorType)
                   (setv ~g!message (yield (.send ~g!iter ~g!message)))
                   (setv ~g!message (yield (next ~g!iter))))

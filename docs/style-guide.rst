@@ -138,13 +138,13 @@ Coding Style
      (def *limit* 400000)
 
      (defn fibs [a b]
-       (while true
+       (while T
          (yield a)
          (setv (, a b) (, b (+ a b)))))
 
      ;; Bad (and not preferred)
      (defn fibs [a b]
-       (while true
+       (while T
          (yield a)
          (def (, a b) (, b (+ a b)))))
 
