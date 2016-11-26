@@ -453,10 +453,22 @@
         (hyify (. value __name__))
         (except [] (string value))))))
 
-(defn xor [a b]
-  "Perform exclusive or between two parameters"
-  (or (and a (not b))
-      (and b (not a))))
+(defn xor [&rest args]
+  "Perform exclusive or.
+   - When an odd number of inputs are true, return the last true input.
+   - When an even number of inputs are true, return the last false input
+     (or None for no inputs)."
+  (setv odd? False)
+  (setv last-false None)
+  (for* [arg args]
+    (if arg
+      (do
+        (setv odd? (not odd?))
+        (setv last-true arg))
+      (setv last-false arg)))
+  (if odd?
+    last-true
+    last-false))
 
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
