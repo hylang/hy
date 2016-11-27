@@ -10,7 +10,8 @@ hopefully making the language easier to use.
    * defmacro will raise an error on &kwonly, &kwargs and &key arguments
    * Keyword argument labels to functions are required to be strings
    * slice replaced with cut to stop overloading the python built-in
-   * removed throw, catch, progn, defun, lisp-if, lisp-if-not and filterfalse
+   * removed reduntant throw, catch, progn, defun, lisp-if, lisp-if-not,
+     filterfalse, true, false and nil
    * global now takes multiple arguments
    * Nonlocal keyword (Python 3 only)
    * Set literals (#{1 2 3})
@@ -20,7 +21,7 @@ hopefully making the language easier to use.
    * One-argument division, rationals and comparison operators (=, !=, <, >, <=, >=)
    * partition form for chunking collection to n-sized tuples
    * defn-alias and demacro-alias moved into hy.contrib.alias
-   * Nil is returned instead of the last form in --init--
+   * None is returned instead of the last form in --init--
    * for and cond can take a multi-expression body
    * Hex and octal support for integer literals
    * Apply now mangles strings and keywords according to Hy mangling rules
