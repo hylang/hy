@@ -59,19 +59,19 @@
     (eval '(defmacro f [&kwonly a b]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &kwonly")))
-    (else (assert false)))
+    (else (assert False)))
 
   (try
     (eval '(defmacro f [&kwargs kw]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &kwargs")))
-    (else (assert false)))
+    (else (assert False)))
 
   (try
     (eval '(defmacro f [&key {"kw" "xyz"}]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &key")))
-    (else (assert false))))
+    (else (assert False))))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"
@@ -208,16 +208,15 @@
              :no))
   (assert (= (if-not False :yes :no)
              :yes))
-  (assert (nil? (if-not True :yes)))
+  (assert (none? (if-not True :yes)))
   (assert (= (if-not False :yes)
              :yes)))
 
 
 (defn test-lif []
   "test that lif works as expected"
-  ;; nil is false
+  ;; None is false
   (assert (= (lif None "true" "false") "false"))
-  (assert (= (lif nil "true" "false") "false"))
 
   ;; But everything else is True!  Even falsey things.
   (assert (= (lif True "true" "false") "true"))
@@ -226,21 +225,20 @@
   (assert (= (lif "some-string" "true" "false") "true"))
   (assert (= (lif "" "true" "false") "true"))
   (assert (= (lif (+ 1 2 3) "true" "false") "true"))
-  (assert (= (lif nil "true" "false") "false"))
+  (assert (= (lif None "true" "false") "false"))
   (assert (= (lif 0 "true" "false") "true"))
 
   ;; Test ellif [sic]
-  (assert (= (lif nil 0
-                  nil 1
+  (assert (= (lif None 0
+                  None 1
                   0 2
                   3)
              2)))
 
 (defn test-lif-not []
   "test that lif-not works as expected"
-  ; nil is false
+  ; None is false
   (assert (= (lif-not None "false" "true") "false"))
-  (assert (= (lif-not nil "false" "true") "false"))
 
   ; But everything else is True!  Even falsey things.
   (assert (= (lif-not True "false" "true") "true"))
@@ -249,7 +247,7 @@
   (assert (= (lif-not "some-string" "false" "true") "true"))
   (assert (= (lif-not "" "false" "true") "true"))
   (assert (= (lif-not (+ 1 2 3) "false" "true") "true"))
-  (assert (= (lif-not nil "false" "true") "false"))
+  (assert (= (lif-not None "false" "true") "false"))
   (assert (= (lif-not 0 "false" "true") "true")))
 
 
