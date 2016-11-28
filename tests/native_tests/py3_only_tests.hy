@@ -15,9 +15,9 @@
 (defn test-kwonly []
   "NATIVE: test keyword-only arguments"
   ;; keyword-only with default works
-  (let [kwonly-foo-default-false (fn [&kwonly [foo false]] foo)]
-    (assert (= (apply kwonly-foo-default-false) false))
-    (assert (= (apply kwonly-foo-default-false [] {"foo" true}) true)))
+  (let [kwonly-foo-default-false (fn [&kwonly [foo False]] foo)]
+    (assert (= (apply kwonly-foo-default-false) False))
+    (assert (= (apply kwonly-foo-default-false [] {"foo" True}) True)))
   ;; keyword-only without default ...
   (let [kwonly-foo-no-default (fn [&kwonly foo] foo)
         attempt-to-omit-default (try

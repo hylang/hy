@@ -10,9 +10,9 @@
 
 (defn test-quoted-hoistable []
   "NATIVE: check whether quote works on hoisted things"
-  (setv f (quote (if true true true)))
+  (setv f (quote (if True True True)))
   (assert (= (car f) (quote if)))
-  (assert (= (cdr f) (quote (true true true)))))
+  (assert (= (cdr f) (quote (True True True)))))
 
 
 (defn test-quoted-macroexpand []

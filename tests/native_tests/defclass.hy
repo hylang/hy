@@ -43,10 +43,10 @@
 
 (defn test-defclass-dynamic-inheritance []
   "NATIVE: test defclass with dynamic inheritance"
-  (defclass A [((fn [] (if true list dict)))]
+  (defclass A [((fn [] (if True list dict)))]
     [x 42])
   (assert (isinstance (A) list))
-  (defclass A [((fn [] (if false list dict)))]
+  (defclass A [((fn [] (if False list dict)))]
     [x 42])
   (assert (isinstance (A) dict)))
 
@@ -58,7 +58,7 @@
   (try
    (do
     (x)
-    (assert false))
+    (assert False))
    (except [NameError])))
 
 (defn test-defclass-docstring []
@@ -110,8 +110,8 @@
   (assert foo 2)
   (assert (.greet a) "hello"))
 
-(defn test-defclass-implicit-nil-for-init []
-  "NATIVE: test that defclass adds an implicit nil to --init--"
+(defn test-defclass-implicit-none-for-init []
+  "NATIVE: test that defclass adds an implicit None to --init--"
   (defclass A []
     [--init-- (fn [self] (setv self.x 1) 42)])
   (defclass B []

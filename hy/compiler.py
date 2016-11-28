@@ -82,8 +82,7 @@ def load_stdlib():
 # are assignable in Python 2.* but become
 # keywords in Python 3.*
 def _is_hy_builtin(name, module_name):
-    extras = ['True', 'False', 'None',
-              'true', 'false', 'nil']
+    extras = ['True', 'False', 'None']
     if name in extras or keyword.iskeyword(name):
         return True
     # for non-Hy modules, check for pre-existing name in

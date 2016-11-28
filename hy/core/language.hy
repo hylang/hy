@@ -64,7 +64,7 @@
   "Decrement n by 1"
   (- n 1))
 
-(defn disassemble [tree &optional [codegen false]]
+(defn disassemble [tree &optional [codegen False]]
   "Return the python AST for a quoted Hy tree as a string.
    If the second argument is true, generate python code instead."
   (import astor)
@@ -151,7 +151,7 @@
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest"
-  (islice coll count nil))
+  (islice coll count None))
 
 (defn drop-last [n coll]
   "Return a sequence of all but the last n elements in coll."
@@ -225,7 +225,7 @@
 
 (defn first [coll]
   "Return first item from `coll`"
-  (next (iter coll) nil))
+  (next (iter coll) None))
 
 (defn identity [x]
   "Returns the argument unchanged"
@@ -250,8 +250,8 @@
   "Return True if char `x` parses as an integer"
   (try
     (integer? (int x))
-    (except [e ValueError] False)
-    (except [e TypeError] False)))
+    (except [ValueError] False)
+    (except [TypeError] False)))
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of seqs, then the second etc."
@@ -267,7 +267,7 @@
 
 (defn iterate [f x]
   (setv val x)
-  (while true
+  (while True
     (yield val)
     (setv val (f val))))
 
@@ -324,17 +324,13 @@
   "Return true if x is None"
   (is x None))
 
-(defn nil? [x]
-  "Return true if x is nil (None)"
-  (is x None))
-
 (defn numeric? [x]
   (import numbers)
   (instance? numbers.Number x))
 
-(defn nth [coll n &optional [default nil]]
+(defn nth [coll n &optional [default None]]
   "Return nth item in collection or sequence, counting from 0.
-   Return nil if out of bounds unless specified otherwise."
+   Return None if out of bounds unless specified otherwise."
   (next (drop n coll) default))
 
 (defn odd? [n]
@@ -348,7 +344,7 @@
    more to skip elements, or less for a sliding window with overlap."
   (setv
    step (or step n)
-   slices (genexpr (itertools.islice coll start nil step) [start (range n)]))
+   slices (genexpr (itertools.islice coll start None step) [start (range n)]))
   (if (is fillvalue -sentinel)
     (apply zip slices)
     (apply zip-longest slices {"fillvalue" fillvalue})))
@@ -363,7 +359,7 @@
 
 (defn repeatedly [func]
   "Yield result of running func repeatedly"
-  (while true
+  (while True
     (yield (func))))
 
 (defn second [coll]
@@ -371,8 +367,8 @@
   (nth coll 1))
 
 (defn some [pred coll]
-  "Return the first logical true value of (pred x) for any x in coll, else nil"
-  (first (filter nil (map pred coll))))
+  "Return the first logical true value of (pred x) for any x in coll, else None"
+  (first (filter None (map pred coll))))
 
 (defn string [x]
   "Cast x as current string implementation"
@@ -389,7 +385,7 @@
 (defn take [count coll]
   "Take `count` elements from `coll`, or the whole set if the total
     number of entries in `coll` is less than `count`."
-  (islice coll nil count))
+  (islice coll None count))
 
 (defn take-nth [n coll]
   "Return every nth member of coll
@@ -412,7 +408,7 @@
   "Read from input and returns a tokenized string.
    Can take a given input buffer to read from"
   (def buff "")
-  (while true
+  (while True
     (def inn (str (.readline from-file)))
     (if (= inn eof)
       (raise (EOFError "Reached end of file" )))
@@ -465,6 +461,6 @@
     group-by identity inc input instance? integer integer? integer-char?
     interleave interpose islice iterable? iterate iterator? keyword keyword?
     last list* macroexpand macroexpand-1 map merge-with multicombinations name
-    neg? nil? none? nth numeric? odd? partition permutations pos? product range
+    neg? none? nth numeric? odd? partition permutations pos? product range
     read read-str remove repeat repeatedly rest reduce second some string
     string? symbol? take take-nth take-while xor tee zero? zip zip-longest])
