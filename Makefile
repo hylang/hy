@@ -47,7 +47,7 @@ tox: venv
 	tox
 
 flake:
-	flake8 hy tests
+	flake8 hy tests --ignore=E121,E123,E126,E226,E24,E704,W503,E305
 
 clear:
 	clear

@@ -15,3 +15,4 @@
 * `Clinton N. Dreisbach <https://github.com/cndreisbach>`_
 * `han semaj <https://github.com/microamp>`_
 * `Zack M. Davis <https://github.com/zackmdavis>`_
+* `Kodi Arfer <https://github.com/Kodiologist>`_

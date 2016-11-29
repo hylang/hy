@@ -90,7 +90,7 @@ Checks whether *foo* is a :ref:`cons cell <hycons>`.
    => (cons? a)
    True
 
-   => (cons? nil)
+   => (cons? None)
    False
 
    => (cons? [1 2 3])
@@ -137,7 +137,7 @@ is ``True``, the function prints Python code instead.
     body=[
         Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
 
-   => (disassemble '(print "Hello World!") true)
+   => (disassemble '(print "Hello World!") True)
    print('Hello World!')
 
 
@@ -595,36 +595,6 @@ Returns ``True`` if *x* is less than zero. Raises ``TypeError`` if
    => (neg? 0)
    False
 
-
-.. _nil?-fn:
-
-nil?
-----
-
-Usage: ``(nil? x)``
-
-Returns ``True`` if *x* is ``nil`` / ``None``.
-
-.. code-block:: hy
-
-   => (nil? nil)
-   True
-
-   => (nil? None)
-   True
-
-   => (nil? 0)
-   False
-
-   => (setf x nil)
-   => (nil? x)
-   True
-
-   => ;; list.append always returns None
-   => (nil? (.append [1 2 3] 4))
-   True
-
-
 .. _none?-fn:
 
 none?
@@ -656,10 +626,10 @@ Returns ``True`` if *x* is ``None``.
 nth
 ---
 
-Usage: ``(nth coll n &optional [default nil])``
+Usage: ``(nth coll n &optional [default None])``
 
 Returns the *n*-th item in a collection, counting from 0. Return the
-default value, ``nil``, if out of bounds (unless specified otherwise).
+default value, ``None``, if out of bounds (unless specified otherwise).
 Raises ``ValueError`` if *n* is negative.
 
 .. code-block:: hy
@@ -670,7 +640,7 @@ Raises ``ValueError`` if *n* is negative.
    => (nth [1 2 4 7] 3)
    7
 
-   => (nil? (nth [1 2 4 7] 5))
+   => (none? (nth [1 2 4 7] 5))
    True
 
    => (nth [1 2 4 7] 5 "default")
@@ -807,23 +777,23 @@ some
 Usage: ``(some pred coll)``
 
 Returns the first logically-true value of ``(pred x)`` for any ``x`` in
-*coll*, otherwise ``nil``. Return ``nil`` if *coll* is empty.
+*coll*, otherwise ``None``. Return ``None`` if *coll* is empty.
 
 .. code-block:: hy
 
    => (some even? [2 4 6])
    True
 
-   => (nil? (some even? [1 3 5]))
+   => (none? (some even? [1 3 5]))
    True
 
-   => (nil? (some identity [0 "" []]))
+   => (none? (some identity [0 "" []]))
    True
 
    => (some identity [0 "non-empty-string" []])
    'non-empty-string'
 
-   => (nil? (some even? []))
+   => (none? (some even? []))
    True
 
 
@@ -898,12 +868,12 @@ as an example of how to use some of these functions.
    (defn fib []
      (setv a 0)
      (setv b 1)
-     (while true
+     (while True
        (yield a)
        (setv (, a b) (, b (+ a b)))))
 
 
-Note the ``(while true ...)`` loop. If we run this in the REPL,
+Note the ``(while True ...)`` loop. If we run this in the REPL,
 
 .. code-block:: hy
 
@@ -1140,7 +1110,7 @@ if *from-file* ends before a complete expression can be parsed.
    => ;   (print "hyfriends!")
    => (with [f (open "example.hy")]
    ...   (try
-   ...     (while true
+   ...     (while True
    ...            (let [exp (read f)]
    ...              (do
    ...                (print "OHY" exp)
