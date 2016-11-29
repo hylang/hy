@@ -2,6 +2,38 @@
 defmulti
 ========
 
+defn
+----
+.. versionadded:: 0.10.0
+
+``defn`` lets you arity-overload a function by the given number of
+args and/or kwargs. This version of ``defn`` works with regular syntax and
+with the arity overloaded one. Inspired by Clojures take on ``defn``.
+
+.. code-block:: clj
+
+    => (require [hy.contrib.multi [defn]])
+    => (defn fun
+    ...  ([a] "a")
+    ...  ([a b] "a b")
+    ...  ([a b c] "a b c"))
+
+    => (fun 1)
+    "a"
+    => (fun 1 2)
+    "a b"
+    => (fun 1 2 3)
+    "a b c"
+
+    => (defn add [a b] 
+    ...  (+ a b))
+    => (add 1 2)
+    3
+
+
+defmulti
+--------
+
 .. versionadded:: 0.12.0
 
 ``defmulti``, ``defmethod`` and ``default-method`` lets you define

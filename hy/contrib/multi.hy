@@ -20,6 +20,11 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
+(import [collections [defaultdict]]
+        [hy.models.expression [HyExpression]]
+        [hy.models.list [HyList]]
+        [hy.models.string [HyString]])
+
 (defn multi-decorator [dispatch-fn]
   (setv inner (fn [&rest args &kwargs kwargs]
                 (setv dispatch-key (apply dispatch-fn args kwargs))
@@ -54,3 +59,28 @@
   `(do (import [hy.contrib.multi [method-decorator]])
        (with-decorator (method-decorator ~name)
          (defn ~name ~params ~@body))))
+
+(defmacro defn [name &rest bodies]
+  (def arity-overloaded? (fn [bodies]
+                           (if (isinstance (first bodies) HyString)
+                             (arity-overloaded? (rest bodies))
+                             (isinstance (first bodies) HyExpression))))
+
+  (if (arity-overloaded? bodies)
+    (do
+     (def comment (HyString))
+     (if (= (type (first bodies)) HyString)
+       (do (def comment (car bodies))
+           (def bodies (cdr bodies))))
+     (def ret `(do))
+     (.append ret '(import [hy.contrib.dispatch [MultiDispatch]]))
+     (for [body bodies]
+       (def let-binds (car body))
+       (def body (cdr body))
+       (.append ret 
+                `(with-decorator MultiDispatch (defn ~name ~let-binds ~comment ~@body))))
+     ret)
+    (do
+     (setv lambda-list (first bodies))
+     (setv body (rest bodies))
+     `(setv ~name (fn ~lambda-list ~@body)))))

@@ -19,7 +19,7 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
-(require [hy.contrib.multi [defmulti defmethod default-method]])
+(require [hy.contrib.multi [defmulti defmethod default-method defn]])
 
 (defn test-different-signatures []
   "NATIVE: Test multimethods with different signatures"
@@ -90,3 +90,38 @@
     "bar was called")
 
   (assert (= (fun :type "foo" :extra "extra") "foo was called")))
+
+(defn test-basic-multi []
+  "NATIVE: Test a basic arity overloaded defn"
+  (defn fun
+    ([] "Hello!")
+    ([a] a)
+    ([a b] "a b")
+    ([a b c] "a b c"))
+
+  (assert (= (fun) "Hello!"))
+  (assert (= (fun "a") "a"))
+  (assert (= (fun "a" "b") "a b"))
+  (assert (= (fun "a" "b" "c") "a b c")))
+
+
+(defn test-kw-args []
+  "NATIVE: Test if kwargs are handled correctly for arity overloading"
+  (defn fun
+    ([a] a)
+    ([&optional [a "nop"] [b "p"]] (+ a b)))
+   
+  (assert (= (fun 1) 1))
+  (assert (= (apply fun [] {"a" "t"}) "t"))
+  (assert (= (apply fun ["hello "] {"b" "world"}) "hello world"))
+  (assert (= (apply fun [] {"a" "hello " "b" "world"}) "hello world")))
+
+
+(defn test-docs []
+  "NATIVE: Test if docs are properly handled for arity overloading"
+  (defn fun
+    "docs"
+    ([a] (print a))
+    ([a b] (print b)))
+  
+  (assert (= fun.--doc-- "docs")))
