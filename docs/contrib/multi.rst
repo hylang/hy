@@ -2,7 +2,7 @@
 defmulti
 ========
 
-.. versionadded:: 0.11.0
+.. versionadded:: 0.12.0
 
 ``defmulti``, ``defmethod`` and ``default-method`` lets you define
 multimethods where a dispatching function is used to select between different
