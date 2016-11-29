@@ -26,9 +26,10 @@ from hy.errors import HyTypeError, HyMacroExpansionError
 from hy._compat import PY3, PY34
 
 if PY3:
-    from inspect import getfullargspec as getargspec
+    from inspect import getfullargspec, getargspec
 else:
     from inspect import getargspec
+    getfullargspec = getargspec
 
 from collections import defaultdict
 import ast
@@ -132,7 +133,7 @@ def load_macros(module_name):
 
 
 def make_empty_fn_copy(fn):
-    argspec = getargspec(fn)
+    argspec = getfullargspec(fn)
 
     none = ast.Name(id='None', ctx=ast.Load())
     nonify = lambda _: none
