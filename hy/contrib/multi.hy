@@ -28,13 +28,13 @@
                   (apply inner.--multi-default-- args kwargs))))
   (setv inner.--multi-- {})
   (setv inner.--doc-- dispatch-fn.--doc--)
-  (setv inner.--multi-default-- (fn [&rest args &kwargs kwargs] nil))
+  (setv inner.--multi-default-- (fn [&rest args &kwargs kwargs] None))
   inner)
 
-(defn method-decorator [dispatch-fn &optional [dispatch-key nil]]
+(defn method-decorator [dispatch-fn &optional [dispatch-key None]]
   (setv apply-decorator
         (fn [func]
-          (if (is dispatch-key nil)
+          (if (is dispatch-key None)
             (setv dispatch-fn.--multi-default-- func)
            (assoc dispatch-fn.--multi-- dispatch-key func))
           dispatch-fn))
