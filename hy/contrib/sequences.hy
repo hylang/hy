@@ -24,8 +24,7 @@
               "initialize a new sequence with a function to compute values"
               (setv (. self func) func)
               (setv (. self cache) [])
-              (setv (. self high-water) -1)
-              nil)
+              (setv (. self high-water) -1))
    --getitem-- (fn [self n]
                  "get nth item of sequence"
                  (if (hasattr n "start")
@@ -43,7 +42,7 @@
    --iter-- (fn [self]
               "create iterator for this sequence"
               (setv index 0)
-              (try (while true
+              (try (while True
                      (yield (get self index))
                      (setv index (inc index)))
                    (except [_ IndexError]
@@ -51,7 +50,7 @@
    --len-- (fn [self]
              "length of the sequence, dangerous for infinite sequences"
              (setv index (. self high-water))
-             (try (while true          
+             (try (while True          
                     (get self index)
                     (setv index (inc index)))
                   (except [_ IndexError]

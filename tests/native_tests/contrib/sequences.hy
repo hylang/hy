@@ -32,7 +32,7 @@
   "NATIVE: test indexing sequence"
   (defseq shorty [n]
     (cond [(< n 10) n]
-          [true (end-sequence)]))
+          [True (end-sequence)]))
   (setv 0-to-9 (list (range 10)))
   (assert (= (get shorty 0)
              (get 0-to-9 0))
@@ -48,7 +48,7 @@
   "NATIVE: test slicing sequence"
   (defseq shorty [n]
     (cond [(< n 10) n]
-          [true (end-sequence)]))
+          [True (end-sequence)]))
   (setv 0-to-9 (list (range 10)))
   (assert (= (first shorty)
              (first 0-to-9))
@@ -71,7 +71,7 @@
   (defseq fibonacci [n]
     (cond [(= n 0) 0]
           [(= n 1) 1]
-          [true (+ (get fibonacci (- n 1))
+          [True (+ (get fibonacci (- n 1))
                    (get fibonacci (- n 2)))]))
   (assert (= (first fibonacci)
              0)
@@ -102,7 +102,7 @@
       "next possible prime after nth prime"
       (inc (get primes (dec n))))
     (cond [(= n 0) 2]
-          [true (do (setv guess (next-possible-prime n))
+          [True (do (setv guess (next-possible-prime n))
                     (while (divisible? guess (previous-primes n))
                       (setv guess (inc guess)))
                     guess)]))
