@@ -1,10 +1,8 @@
 (defn test-when []
   "NATIVE: test when"
-  (assert (= (when true 1) 1))
-  (assert (= (when true 1 2) 2))
-  (assert (= (when true 1 3) 3))
-  (assert (= (when false 2) None))
+  (assert (= (when True 1) 1))
+  (assert (= (when True 1 2) 2))
+  (assert (= (when True 1 3) 3))
+  (assert (= (when False 2) None))
   (assert (= (when (= 1 2) 42) None))
-  (assert (= (when false 2) nil))
-  (assert (= (when (= 1 2) 42) nil))
   (assert (= (when (= 2 2) 42) 42)))

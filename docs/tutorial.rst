@@ -264,14 +264,14 @@ In Hy, you would do:
      (print "That variable is too big!")]
     [(< somevar 10)
      (print "That variable is too small!")]
-    [true
+    [True
      (print "That variable is jussssst right!")])
 
 What you'll notice is that ``cond`` switches off between a statement
 that is executed and checked conditionally for true or falseness, and
 then a bit of code to execute if it turns out to be true.  You'll also
 notice that the ``else`` is implemented at the end simply by checking
-for ``true`` -- that's because ``true`` will always be true, so if we get
+for ``True`` -- that's because ``True`` will always be true, so if we get
 this far, we'll always run that one!
 
 You might notice above that if you have code like:

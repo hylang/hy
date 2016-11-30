@@ -102,7 +102,7 @@ def test_ast_invalid_unary_op():
 def test_ast_bad_while():
     "Make sure AST can't compile invalid while"
     cant_compile("(while)")
-    cant_compile("(while (true))")
+    cant_compile("(while (True))")
 
 
 def test_ast_good_do():
@@ -175,7 +175,7 @@ def test_ast_good_assert():
     can_compile("(assert 1 \"Assert label\")")
     can_compile("(assert 1 (+ \"spam \" \"eggs\"))")
     can_compile("(assert 1 12345)")
-    can_compile("(assert 1 nil)")
+    can_compile("(assert 1 None)")
     can_compile("(assert 1 (+ 2 \"incoming eggsception\"))")
 
 
@@ -337,7 +337,7 @@ def test_ast_valid_let():
     "Make sure AST can compile valid let"
     can_compile("(let [a b])")
     can_compile("(let [a 1])")
-    can_compile("(let [a 1 b nil])")
+    can_compile("(let [a 1 b None])")
 
 
 def test_ast_invalid_let():
@@ -542,6 +542,15 @@ def test_attribute_access():
     cant_compile("(. foo bar baz [0] quux {frob})")
 
 
+def test_attribute_empty():
+    """Ensure using dot notation with a non-expression is an error"""
+    cant_compile(".")
+    cant_compile("foo.")
+    cant_compile(".foo")
+    cant_compile('"bar".foo')
+    cant_compile('[2].foo')
+
+
 def test_cons_correct():
     """Ensure cons gets compiled correctly"""
     can_compile("(cons a b)")
@@ -571,7 +580,7 @@ def test_defn():
 
 def test_setv_builtins():
     """Ensure that assigning to a builtin fails, unless in a class"""
-    cant_compile("(setv nil 42)")
+    cant_compile("(setv None 42)")
     cant_compile("(defn get [&rest args] 42)")
     can_compile("(defclass A [] (defn get [self] 42))")
     can_compile("""

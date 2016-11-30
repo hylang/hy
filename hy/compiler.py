@@ -82,8 +82,7 @@ def load_stdlib():
 # are assignable in Python 2.* but become
 # keywords in Python 3.*
 def _is_hy_builtin(name, module_name):
-    extras = ['True', 'False', 'None',
-              'true', 'false', 'nil']
+    extras = ['True', 'False', 'None']
     if name in extras or keyword.iskeyword(name):
         return True
     # for non-Hy modules, check for pre-existing name in
@@ -2589,6 +2588,19 @@ class HyASTCompiler(object):
     def compile_symbol(self, symbol):
         if "." in symbol:
             glob, local = symbol.rsplit(".", 1)
+
+            if not glob:
+                raise HyTypeError(symbol, 'cannot access attribute on '
+                                          'anything other than a name '
+                                          '(in order to get attributes of'
+                                          'expressions, use '
+                                          '`(. <expression> {attr})` or '
+                                          '`(.{attr} <expression>)`)'.format(
+                                              attr=local))
+
+            if not local:
+                raise HyTypeError(symbol, 'cannot access empty attribute')
+
             glob = HySymbol(glob).replace(symbol)
             ret = self.compile_symbol(glob)
 
