@@ -542,6 +542,15 @@ def test_attribute_access():
     cant_compile("(. foo bar baz [0] quux {frob})")
 
 
+def test_attribute_empty():
+    """Ensure using dot notation with a non-expression is an error"""
+    cant_compile(".")
+    cant_compile("foo.")
+    cant_compile(".foo")
+    cant_compile('"bar".foo')
+    cant_compile('[2].foo')
+
+
 def test_cons_correct():
     """Ensure cons gets compiled correctly"""
     can_compile("(cons a b)")
