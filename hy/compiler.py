@@ -1806,16 +1806,17 @@ class HyASTCompiler(object):
                                  ctx=ast.Load(),
                                  lineno=root_line,
                                  col_offset=root_column)
+            temp_variables = [name, expr_name]
 
             def make_assign(value, node=None):
                 if node is None:
                     line, column = root_line, root_column
                 else:
                     line, column = node.lineno, node.col_offset
-                return ast.Assign(targets=[ast.Name(id=var,
-                                                    ctx=ast.Store(),
-                                                    lineno=line,
-                                                    col_offset=column)],
+                positioned_name = ast.Name(id=var, ctx=ast.Store(),
+                                           lineno=line, col_offset=column)
+                temp_variables.append(positioned_name)
+                return ast.Assign(targets=[positioned_name],
                                   value=value,
                                   lineno=line,
                                   col_offset=column)
@@ -1845,7 +1846,7 @@ class HyASTCompiler(object):
                                       orelse=[]))
                 current = current[-1].body
             ret = sum(root, ret)
-            ret += Result(expr=expr_name, temp_variables=[expr_name, name])
+            ret += Result(expr=expr_name, temp_variables=temp_variables)
         else:
             ret += ast.BoolOp(op=opnode(),
                               lineno=root_line,
