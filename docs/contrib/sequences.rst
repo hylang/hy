@@ -6,9 +6,9 @@ Lazy sequences
 
 The Sequences module contains few macros for declaring sequences that are
 evaluated only as much as the client code requests elements. Compared to
-generators, they allow accessing same the element multiple times. Since they 
-cache calculated values, they aren't suited for infinite sequences. However, 
-the implementation allows for recursive definition of sequences, without 
+generators, they allow accessing same the element multiple times. Since they
+cache calculated values, they aren't suited for infinite sequences. However,
+the implementation allows for recursive definition of sequences, without
 resulting recursive computation.
 
 To use these macros, you need to require them and import other types like:
@@ -20,7 +20,7 @@ To use these macros, you need to require them and import other types like:
 
 The simplest sequence can be defined as ``(seq [n] n)``. This defines a
 sequence that starts as ``[0 1 2 3 ...]`` and continues forever. In order to
-define a finite sequence, ``end-sequence`` needs to be called to signal the end 
+define a finite sequence, ``end-sequence`` needs to be called to signal the end
 of the sequence:
 
 .. code-block:: hy
@@ -32,8 +32,8 @@ of the sequence:
 
 This creates following sequence: ``[0 1 2 3 4]``. For such a sequence, ``len``
 returns the amount of items in the sequence and negative indexing is supported.
-Because both of thse require evaluating the whole sequence, calling such a 
-function would take forever (or at least until available memory has been 
+Because both of thse require evaluating the whole sequence, calling such a
+function would take forever (or at least until available memory has been
 exhausted).
 
 Sequences can be defined recursively. The canonical example of fibonacci numbers

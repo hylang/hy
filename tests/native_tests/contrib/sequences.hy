@@ -77,7 +77,7 @@
              0)
           "first element of fibonacci didn't match")
   (assert (= (second fibonacci)
-             1)          
+             1)
           "second element of fibonacci didn't match")
   (assert (= (get fibonacci 40)
              102334155)

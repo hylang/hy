@@ -50,7 +50,7 @@
    --len-- (fn [self]
              "length of the sequence, dangerous for infinite sequences"
              (setv index (. self high-water))
-             (try (while True          
+             (try (while True
                     (get self index)
                     (setv index (inc index)))
                   (except [_ IndexError]
@@ -68,7 +68,7 @@
 
 (defmacro seq [param &rest seq-code]
   `(Sequence (fn ~param (do ~@seq-code))))
- 
+
 (defmacro defseq [seq-name param &rest seq-code]
   `(def ~seq-name (seq ~param (do ~@seq-code))))
 
