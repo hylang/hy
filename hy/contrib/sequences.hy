@@ -28,10 +28,11 @@
    --getitem-- (fn [self n]
                  "get nth item of sequence"
                  (if (hasattr n "start")
-                   (if n.step
-                     (genexpr (get self x) [x (range n.start n.stop n.step)])
-                     (genexpr (get self x) [x (range n.start n.stop 1)]))
+                   (genexpr (get self x) [x (range n.start n.stop
+                                                   (or n.step 1))])
                    (do (when (neg? n)
+                         ; Call (len) to force the whole
+                         ; sequence to be evaluated.
                          (len self))
                        (if (<= n (. self high-water))
                          (get (. self cache) n)
@@ -55,10 +56,11 @@
                     (setv index (inc index)))
                   (except [_ IndexError]
                     (len (. self cache)))))
+   max-items-in-repr 10
    --str-- (fn [self]
              "string representation of this sequence"
-             (setv items (list (take 11 self)))
-             (.format (if (= (len items) 11)
+             (setv items (list (take (inc self.max-items-in-repr) self)))
+             (.format (if (> (len items) self.max-items-in-repr)
                         "[{0}, ...]"
                         "[{0}]")
                       (.join ", " (map str items))))
