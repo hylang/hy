@@ -14,3 +14,4 @@ Contents:
    multi
    sequences
    walk
+   future

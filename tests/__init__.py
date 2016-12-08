@@ -22,6 +22,7 @@ from .native_tests.contrib.multi import *  # noqa
 from .native_tests.contrib.curry import *  # noqa
 from .native_tests.contrib.botsbuildbots import *  # noqa
 from .native_tests.contrib.sequences import *  # noqa
+from .native_tests.tailrec import *  # noqa
 
 if PY3:
     from .native_tests.py3_only_tests import *  # noqa
