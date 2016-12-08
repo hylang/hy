@@ -39,7 +39,7 @@
     ((type form) (outer (HyExpression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
-   [true (outer form)]))
+   [True (outer form)]))
 
 (defn postwalk [f form]
   "Performs depth-first, post-order traversal of form. Calls f on each

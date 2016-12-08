@@ -22,24 +22,23 @@
 import os
 import re
 import sys
+import subprocess
 
 from setuptools import find_packages, setup
 
+os.chdir(os.path.split(os.path.abspath(__file__))[0])
+
 PKG = "hy"
 VERSIONFILE = os.path.join(PKG, "version.py")
-verstr = "unknown"
 try:
-    verstrline = open(VERSIONFILE, "rt").read()
-except EnvironmentError:
-    pass  # Okay, there is no version file.
-else:
-    VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    mo = re.search(VSRE, verstrline, re.M)
-    if mo:
-        __version__ = mo.group(1)
-    else:
-        msg = "if %s.py exists, it is required to be well-formed" % VERSIONFILE
-        raise RuntimeError(msg)
+    __version__ = (subprocess.check_output
+        (["git", "describe", "--tags", "--dirty"])
+        .decode('ASCII').strip()
+        .replace('-', '+', 1).replace('-', '.'))
+    with open(VERSIONFILE, "wt") as o:
+        o.write("__version__ = {!r}\n".format(__version__))
+except subprocess.CalledProcessError:
+    __version__ = "unknown"
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
@@ -52,6 +51,8 @@ if sys.version_info[:2] < (2, 7):
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 
+ver = sys.version_info[0]
+
 setup(
     name=PKG,
     version=__version__,
@@ -59,8 +60,11 @@ setup(
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
+            'hy%d = hy.cmdline:hy_main' % ver,
             'hyc = hy.cmdline:hyc_main',
+            'hyc%d = hy.cmdline:hyc_main' % ver,
             'hy2py = hy.cmdline:hy2py_main',
+            'hy2py%d = hy.cmdline:hy2py_main' % ver,
         ]
     },
     packages=find_packages(exclude=['tests*']),

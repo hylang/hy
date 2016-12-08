@@ -47,12 +47,13 @@
 (defn test-sets []
   "NATIVE: test sets work right"
   (assert (= #{1 2 3 4} (| #{1 2} #{3 4})))
+  (assert (= (type #{1 2 3 4}) set))
   (assert (= #{} (set))))
 
 
 (defn test-setv-empty []
   "NATIVE: test setv works with no arguments"
-  (assert (is (setv) nil)))
+  (assert (is (setv) None)))
 
 
 (defn test-setv-get []
@@ -69,12 +70,6 @@
   (try (eval '(setv True 0))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(setv None 1))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv false 1))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv true 0))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv nil 1))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn defclass [] (print "hello")))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
@@ -100,28 +95,28 @@
   (try
     (do
       (eval '(setv (do 1 2) 1))
-      (assert false))
+      (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a non-expression"))))
 
   (try
     (do
       (eval '(setv 1 1))
-      (assert false))
+      (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyInteger"))))
 
   (try
     (do
       (eval '(setv {1 2} 1))
-      (assert false))
+      (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyDict"))))
 
   (try
     (do
       (eval '(del 1 1))
-      (assert false))
+      (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyInteger")))))
 
@@ -223,8 +218,8 @@
 (defn test-not []
   "NATIVE: test not"
   (assert (not (= 1 2)))
-  (assert (= true (not false)))
-  (assert (= false (not 42))) )
+  (assert (= True (not False)))
+  (assert (= False (not 42))) )
 
 
 (defn test-inv []
@@ -265,22 +260,22 @@
 
 (defn test-is []
   "NATIVE: test is can deal with None"
-  (setv a nil)
-  (assert (is a nil))
+  (setv a None)
+  (assert (is a None))
   (assert (is-not a "b"))
   (assert (none? a)))
 
 
 (defn test-branching []
   "NATIVE: test if branching"
-  (if true
+  (if True
     (assert (= 1 1))
     (assert (= 2 1))))
 
 
 (defn test-branching-with-do []
   "NATIVE: test if branching (multiline)"
-  (if false
+  (if False
     (assert (= 2 1))
     (do
      (assert (= 1 1))
@@ -290,7 +285,7 @@
 (defn test-branching-expr-count-with-do []
   "NATIVE: make sure we execute the right number of expressions in the branch"
   (setv counter 0)
-  (if false
+  (if False
     (assert (= 2 1))
     (do
      (setv counter (+ counter 1))
@@ -302,9 +297,9 @@
 (defn test-cond []
   "NATIVE: test if cond sorta works."
   (cond
-   [(= 1 2) (assert (is true false))]
-   [(is None None) (setv x true) (assert x)])
-  (assert (= (cond) nil)))
+   [(= 1 2) (assert (is True False))]
+   [(is None None) (setv x True) (assert x)])
+  (assert (= (cond) None)))
 
 
 (defn test-if []
@@ -313,18 +308,18 @@
   (assert (= 1 (if 1)))
   (assert (= 1 (if 0 -1
                      1)))
-  ;; with an even number of args, the default is nil
-  (assert (is nil (if)))
-  (assert (is nil (if 0 1)))
+  ;; with an even number of args, the default is None
+  (assert (is None (if)))
+  (assert (is None (if 0 1)))
   ;; test deeper nesting
   (assert (= 42
              (if 0 0
-                 nil 1
+                 None 1
                  "" 2
                  1 42
                  1 43)))
   ;; test shortcutting
-  (setv x nil)
+  (setv x None)
   (if 0 (setv x 0)
       "" (setv x "")
       42 (setv x 42)
@@ -358,9 +353,9 @@
 
 (defn test-imported-bits []
   "NATIVE: test the imports work"
-  (assert (is (exists ".") true))
-  (assert (is (isdir ".") true))
-  (assert (is (isfile ".") false)))
+  (assert (is (exists ".") True))
+  (assert (is (isdir ".") True))
+  (assert (is (isfile ".") False)))
 
 
 (defn test-kwargs []
@@ -398,7 +393,30 @@
 
 (defn test-dotted []
   "NATIVE: test dotted invocation"
-  (assert (= (.join " " ["one" "two"]) "one two")))
+  (assert (= (.join " " ["one" "two"]) "one two"))
+
+  (defclass X [object] [])
+  (defclass M [object]
+    [meth (fn [self &rest args]
+      (.join " " (+ (, "meth") args)))])
+
+  (setv x (X))
+  (setv m (M))
+
+  (assert (= (.meth m) "meth"))
+  (assert (= (.meth m "foo" "bar") "meth foo bar"))
+  (assert (= (apply .meth [m "foo" "bar"]) "meth foo bar"))
+
+  (setv x.p m)
+  (assert (= (.p.meth x) "meth"))
+  (assert (= (.p.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (apply .p.meth [x "foo" "bar"]) "meth foo bar"))
+
+  (setv x.a (X))
+  (setv x.a.b m)
+  (assert (= (.a.b.meth x) "meth"))
+  (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (apply .a.b.meth [x "foo" "bar"]) "meth foo bar")))
 
 
 (defn test-do []
@@ -408,7 +426,7 @@
 (defn test-bare-try [] (try
     (try (raise ValueError))
   (except [ValueError])
-  (else (assert false))))
+  (else (assert False))))
 
 
 (defn test-exceptions []
@@ -425,70 +443,70 @@
   (try (do) (except [IOError]) (except))
 
   ;; Test correct (raise)
-  (let [passed false]
+  (let [passed False]
     (try
      (try
       (raise IndexError)
       (except [IndexError] (raise)))
      (except [IndexError]
-       (setv passed true)))
+       (setv passed True)))
     (assert passed))
 
   ;; Test incorrect (raise)
-  (let [passed false]
+  (let [passed False]
     (try
      (raise)
      ;; Python 2 raises TypeError
      ;; Python 3 raises RuntimeError
      (except [[TypeError RuntimeError]]
-       (setv passed true)))
+       (setv passed True)))
     (assert passed))
 
   ;; Test (finally)
-  (let [passed false]
+  (let [passed False]
     (try
      (do)
-     (finally (setv passed true)))
+     (finally (setv passed True)))
     (assert passed))
 
   ;; Test (finally) + (raise)
-  (let [passed false]
+  (let [passed False]
     (try
      (raise Exception)
      (except)
-     (finally (setv passed true)))
+     (finally (setv passed True)))
     (assert passed))
 
 
   ;; Test (finally) + (raise) + (else)
-  (let [passed false
-        not-elsed true]
+  (let [passed False
+        not-elsed True]
     (try
      (raise Exception)
      (except)
-     (else (setv not-elsed false))
-     (finally (setv passed true)))
+     (else (setv not-elsed False))
+     (finally (setv passed True)))
     (assert passed)
     (assert not-elsed))
 
   (try
    (raise (KeyError))
-   (except [[IOError]] (assert false))
+   (except [[IOError]] (assert False))
    (except [e [KeyError]] (assert e)))
 
   (try
    (raise (KeyError))
-   (except [[IOError]] (assert false))
+   (except [[IOError]] (assert False))
    (except [e [KeyError]] (assert e)))
 
   (try
    (get [1] 3)
-   (except [IndexError] (assert true))
+   (except [IndexError] (assert True))
    (except [IndexError] (do)))
 
   (try
    (print foobar42ofthebaz)
-   (except [IndexError] (assert false))
+   (except [IndexError] (assert False))
    (except [NameError] (do)))
 
   (try
@@ -529,10 +547,10 @@
      (setv foobar42ofthebaz 42)
      (assert (= foobar42ofthebaz 42))))
 
-  (let [passed false]
+  (let [passed False]
     (try
      (try (do) (except) (else (bla)))
-     (except [NameError] (setv passed true)))
+     (except [NameError] (setv passed True)))
     (assert passed))
 
   (let [x 0]
@@ -587,6 +605,29 @@
              ["X" "B" "C" "D"])))
 
 
+(defn test-as-threading []
+  "NATIVE: test as threading macro"
+  (setv data [{:name "hooded cuttlefish"
+               :classification {:subgenus "Acanthosepion"
+                                :species "Sepia prashadi"}
+               :discovered {:year 1936
+                            :name "Ronald Winckworth"}}
+              {:name "slender cuttlefish"
+               :classification {:subgenus "Doratosepion"
+                                :species "Sepia braggi"}
+               :discovered {:year 1907
+                            :name "Sir Joseph Cooke Verco"}}])
+  (assert (= (as-> (first data) x
+                   (:name x))
+             "hooded cuttlefish"))
+  (assert (= (as-> (filter (fn [entry] (= (:name entry)
+                           "slender cuttlefish")) data) x
+                   (first x)
+                   (:discovered x)
+                   (:name x))
+             "Sir Joseph Cooke Verco")))
+
+
 (defn test-assoc []
   "NATIVE: test assoc"
   (setv vals {"one" "two"})
@@ -601,7 +642,7 @@
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
-  (if true (do) (do))
+  (if True (do) (do))
   (assert (= 1 1)))
 
 
@@ -640,7 +681,7 @@
 (defn test-first []
   "NATIVE: test firsty things"
   (assert (= (first [1 2 3 4 5]) 1))
-  (assert (is (first []) nil))
+  (assert (is (first []) None))
   (assert (= (car [1 2 3 4 5]) 1)))
 
 
@@ -821,18 +862,18 @@
   "NATIVE: test let works rightish"
   ;; TODO: test sad paths for let
   (assert (= (let [x 1 y 2 z 3] (+ x y z)) 6))
-  (assert (= (let [x 1 a nil y 2 b nil] (if a 1 2)) 2))
-  (assert (= (let [x nil] x) nil))
+  (assert (= (let [x 1 a None y 2 b None] (if a 1 2)) 2))
+  (assert (= (let [x None] x) None))
   (assert (= (let [x "x not bound"] (setv x "x bound by setv") x)
              "x bound by setv"))
   (assert (= (let [x "let nests scope correctly"]
-               (let [y nil] x))
+               (let [y None] x))
              "let nests scope correctly"))
   (assert (= (let [x 999999]
                (let [x "x being rebound"] x))
              "x being rebound"))
   (assert (= (let [x "x not being rebound"]
-               (let [x 2] nil)
+               (let [x 2] None)
                x)
              "x not being rebound"))
   (assert (= (let [x (set [3 2 1 3 2]) y x z y] z) (set [1 2 3])))
@@ -850,7 +891,7 @@
 
 (defn test-if-mangler []
   "NATIVE: test that we return ifs"
-  (assert (= true (if true true true))))
+  (assert (= True (if True True True))))
 
 
 (defn test-nested-mangles []
@@ -908,6 +949,28 @@
   (and 0 (setv a 2))
   (assert (= a 1)))
 
+(defn test-and-#1151-do []
+  (setv a (and 0 (do 2 3)))
+  (assert (= a 0))
+  (setv a (and 1 (do 2 3)))
+  (assert (= a 3)))
+
+(defn test-and-#1151-for []
+  (setv l [])
+  (setv x (and 0 (for [n [1 2]] (.append l n))))
+  (assert (= x 0))
+  (assert (= l []))
+  (setv x (and 15 (for [n [1 2]] (.append l n))))
+  (assert (= l [1 2])))
+
+(defn test-and-#1151-del []
+  (setv l ["a" "b"])
+  (setv x (and 0 (del (get l 1))))
+  (assert (= x 0))
+  (assert (= l ["a" "b"]))
+  (setv x (and 15 (del (get l 1))))
+  (assert (= l ["a"])))
+
 
 (defn test-or []
   "NATIVE: test the or function"
@@ -919,29 +982,50 @@
     (assert (= or-all-true 1))
     (assert (= or-some-true "hello"))
     (assert (= or-none-true False))
-    (assert (= or-false nil))
+    (assert (= or-false None))
     (assert (= or-single 1)))
   ; short circuiting
   (setv a 1)
   (or 1 (setv a 2))
   (assert (= a 1)))
 
+(defn test-or-#1151-do []
+  (setv a (or 1 (do 2 3)))
+  (assert (= a 1))
+  (setv a (or 0 (do 2 3)))
+  (assert (= a 3)))
+
+(defn test-or-#1151-for []
+  (setv l [])
+  (setv x (or 15 (for [n [1 2]] (.append l n))))
+  (assert (= x 15))
+  (assert (= l []))
+  (setv x (or 0 (for [n [1 2]] (.append l n))))
+  (assert (= l [1 2])))
+
+(defn test-or-#1151-del []
+  (setv l ["a" "b"])
+  (setv x (or 15 (del (get l 1))))
+  (assert (= x 15))
+  (assert (= l ["a" "b"]))
+  (setv x (or 0 (del (get l 1))))
+  (assert (= l ["a"])))
 
 (defn test-xor []
   "NATIVE: test the xor macro"
-  (let [xor-both-true (xor true true)
-        xor-both-false (xor false false)
-        xor-true-false (xor true false)]
-    (assert (= xor-both-true false))
-    (assert (= xor-both-false false))
-    (assert (= xor-true-false true))))
+  (let [xor-both-true (xor True True)
+        xor-both-false (xor False False)
+        xor-true-false (xor True False)]
+    (assert (= xor-both-true False))
+    (assert (= xor-both-false False))
+    (assert (= xor-true-false True))))
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
                                 ; thanks, algernon
   (assert (= 1 (let [x 1
                      y 2]
-                 (if true
+                 (if True
                    2)
                  1)))
   (assert (= 1 (let [x 1 y 2]
@@ -968,9 +1052,9 @@
   (for [x (range 10)]
     (if (in "foo" "foobar")
       (do
-       (if true true true))
+       (if True True True))
       (do
-       (if false false false)))))
+       (if False False False)))))
 
 
 (defn test-eval []
@@ -1010,8 +1094,8 @@
   ; yo dawg
   (try (eval '(eval)) (except [e HyTypeError]) (else (assert False)))
   (try (eval '(eval "snafu")) (except [e HyTypeError]) (else (assert False)))
-  (try (eval 'false []) (except [e HyTypeError]) (else (assert False)))
-  (try (eval 'false {} 1) (except [e HyTypeError]) (else (assert False))))
+  (try (eval 'False []) (except [e HyTypeError]) (else (assert False)))
+  (try (eval 'False {} 1) (except [e HyTypeError]) (else (assert False))))
 
 
 (defn test-import-syntax []
@@ -1075,7 +1159,7 @@
 
 (defn test-if-let-mixing []
   "NATIVE: test that we can now mix if and let"
-  (assert (= 0 (if true (let [x 0] x) 42))))
+  (assert (= 0 (if True (let [x 0] x) 42))))
 
 (defn test-if-in-if []
   "NATIVE: test that we can use if in if"
@@ -1100,11 +1184,34 @@
 
 (defn test-require []
   "NATIVE: test requiring macros from python code"
-  (try
-    (assert (= "this won't happen" (qplah 1 2 3 4)))
-  (except [NameError]))
+  (try (qplah 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib [qplah]])
+  (assert (= (qplah 1 2 3) [8 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
   (require tests.resources.tlib)
-  (assert (= [1 2 3] (qplah 1 2 3))))
+  (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib :as T])
+  (assert (= (T.parald 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib [parald :as p]])
+  (assert (= (p 1 2 3) [9 1 2 3]))
+  (try (parald 1 2 3 4)
+       (except [NameError] True)
+       (else (assert False)))
+  (require [tests.resources.tlib [*]])
+  (assert (= (parald 1 2 3) [9 1 2 3])))
 
 
 (defn test-require-native []
@@ -1124,7 +1231,7 @@
                   (assert (= x [3 2 1]))
                   "success")
               (except [NameError] "failure"))))
-  (require tests.native_tests.native_macros)
+  (require [tests.native_tests.native_macros [rev]])
   (assert (= "success"
              (try
               (do (setv x [])
@@ -1191,7 +1298,7 @@
   (assert (= test [0 1 2 3]))
   (del (get test 2))
   (assert (= test [0 1 3]))
-  (assert (= (del) nil)))
+  (assert (= (del) None)))
 
 
 (defn test-macroexpand []
@@ -1209,7 +1316,7 @@
 
 (defn test-merge-with []
   "NATIVE: test merge-with"
-  (assert (= (merge-with + {} {}) nil))
+  (assert (= (merge-with + {} {}) None))
   (assert (= (merge-with + {"a" 10 "b" 20} {}) {"a" 10 "b" 20}))
   (assert (= (merge-with + {} {"a" 10 "b" 20}) {"a" 10 "b" 20}))
   (assert (= (merge-with + {"a" 10 "b" 20} {"a" 1 "c" 30})
@@ -1239,7 +1346,7 @@
                "Module(\n    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
                "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
-  (assert (= (disassemble '(do (leaky) (leaky) (macros)) true)
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
              "leaky()\nleaky()\nmacros()")))
 
 

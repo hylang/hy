@@ -19,6 +19,8 @@
 ;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
+(import [hy._compat [PY3]])
+
 ;;;; some simple helpers
 
 (defn assert-true [x]
@@ -30,8 +32,14 @@
 (defn assert-equal [x y]
   (assert (= x y)))
 
-(defn assert-nil [x]
-  (assert (is x nil)))
+(defn assert-none [x]
+  (assert (is x None)))
+
+(defn assert-requires-num [f]
+  (for [x ["foo" [] None]]
+    (try (f x)
+         (except [TypeError] True)
+         (else (assert False)))))
 
 (defn test-coll? []
   "NATIVE: testing coll?"
@@ -66,12 +74,7 @@
   (assert-equal 0 (dec 1))
   (assert-equal -1 (dec 0))
   (assert-equal 0 (dec (dec 2)))
-  (try (do (dec "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (dec []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (dec None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num dec))
 
 (defn test-setv []
   "NATIVE: testing setv mutation"
@@ -127,7 +130,7 @@
   (setv res (list (drop 0 [1 2 3 4 5])))
   (assert-equal res [1 2 3 4 5])
   (try (do (list (drop -1 [1 2 3 4 5])) (assert False))
-       (except [e [ValueError]] nil))
+       (except [e [ValueError]] None))
   (setv res (list (drop 6 (iter [1 2 3 4 5]))))
   (assert-equal res [])
   (setv res (list (take 5 (drop 2 (iterate inc 0)))))
@@ -173,12 +176,7 @@
   (assert-true (even? -2))
   (assert-false (even? 1))
   (assert-true (even? 0))
-  (try (even? "foo")
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (even? [])
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (even? None)
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num even?))
 
 (defn test-every? []
   "NATIVE: testing the every? function"
@@ -263,12 +261,11 @@
   "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
   (assert-equal 0 (inc -1))
-  (try (do (inc "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (inc []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (inc None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num inc)
+
+  (defclass X [object]
+    [__add__ (fn [self other] (.format "__add__ got {}" other))])
+  (assert-equal (inc (X)) "__add__ got 1"))
 
 (defn test-instance []
   "NATIVE: testing instance? function"
@@ -394,24 +391,14 @@
   (assert-true (neg? -2))
   (assert-false (neg? 1))
   (assert-false (neg? 0))
-  (try (do (neg? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (neg? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (neg? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (when PY3
+    (assert-requires-num neg?)))
 
 (defn test-zero []
   "NATIVE: testing the zero? function"
   (assert-false (zero? -2))
   (assert-false (zero? 1))
-  (assert-true (zero? 0))
-  (try (do (zero? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (zero? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (zero? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-true (zero? 0)))
 
 (defn test-none []
   "NATIVE: testing for `is None`"
@@ -421,32 +408,23 @@
   (assert-false (none? 0))
   (assert-false (none? "")))
 
-(defn test-nil? []
-  "NATIVE: testing for `is nil`"
-  (assert-true (nil? nil))
-  (assert-true (nil? None))
-  (setv f nil)
-  (assert-true (nil? f))
-  (assert-false (nil? 0))
-  (assert-false (nil? "")))
-
 (defn test-nth []
   "NATIVE: testing the nth function"
   (assert-equal 2 (nth [1 2 4 7] 1))
   (assert-equal 7 (nth [1 2 4 7] 3))
-  (assert-nil (nth [1 2 4 7] 5))
+  (assert-none (nth [1 2 4 7] 5))
   (assert-equal (nth [1 2 4 7] 5 "some default value")
                 "some default value")  ; with default specified
   (try (do (nth [1 2 4 7] -1) (assert False))
-       (except [e [ValueError]] nil))
+       (except [e [ValueError]] None))
   ;; now for iterators
   (assert-equal 2 (nth (iter [1 2 4 7]) 1))
   (assert-equal 7 (nth (iter [1 2 4 7]) 3))
-  (assert-nil (nth (iter [1 2 4 7]) 5))
+  (assert-none (nth (iter [1 2 4 7]) 5))
   (assert-equal (nth (iter [1 2 4 7]) 5 "some default value")
                 "some default value")  ; with default specified
   (try (do (nth (iter [1 2 4 7]) -1) (assert False))
-       (except [e [ValueError]] nil))
+       (except [e [ValueError]] None))
   (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
 
 (defn test-numeric? []
@@ -463,12 +441,7 @@
   (assert-true (odd? -3))
   (assert-true (odd? 1))
   (assert-false (odd? 0))
-  (try (do (odd? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (odd? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (odd? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (assert-requires-num odd?))
 
 (defn test-partition []
   "NATIVE: testing the partition function"
@@ -500,12 +473,8 @@
   (assert-true (pos? 2))
   (assert-false (pos? -1))
   (assert-false (pos? 0))
-  (try (do (pos? "foo") (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (pos? []) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e)))))
-  (try (do (pos? None) (assert False))
-       (except [e [TypeError]] (assert (in "not a number" (str e))))))
+  (when PY3
+    (assert-requires-num pos?)))
 
 (defn test-remove []
   "NATIVE: testing the remove function"
@@ -540,16 +509,16 @@
 (defn test-some []
   "NATIVE: testing the some function"
   (assert-true (some even? [2 4 6]))
-  (assert-nil (some even? [1 3 5]))
+  (assert-none (some even? [1 3 5]))
   (assert-true (some even? [1 2 3]))
-  (assert-nil (some even? []))
+  (assert-none (some even? []))
   ; 0, "" (empty string) and [] (empty list) are all logical false
-  (assert-nil (some identity [0 "" []]))
+  (assert-none (some identity [0 "" []]))
   ; non-empty string is logical true
   (assert-equal (some identity [0 "this string is non-empty" []])
                 "this string is non-empty")
-  ; nil if collection is empty
-  (assert-nil (some even? [])))
+  ; None if collection is empty
+  (assert-none (some even? [])))
 
 (defn test-string? []
   "NATIVE: testing string?"
@@ -568,7 +537,7 @@
   (setv res (list (take 0 (repeat "s"))))
   (assert-equal res [])
   (try (do (list (take -1 (repeat "s"))) (assert False))
-       (except [e [ValueError]] nil))
+       (except [e [ValueError]] None))
   (setv res (list (take 6 [1 2 None 4])))
   (assert-equal res [1 2 None 4]))
 
@@ -592,10 +561,10 @@
   (setv res (list (take-nth 3 [1 2 3 None 5 6])))
   (assert-equal res [1 None])
   ;; using 0 should raise ValueError
-  (let [passed false]
+  (let [passed False]
     (try
      (setv res (list (take-nth 0 [1 2 3 4 5 6 7])))
-     (except [ValueError] (setv passed true)))
+     (except [ValueError] (setv passed True)))
     (assert passed)))
 
 (defn test-take-while []
@@ -628,7 +597,7 @@
   (assert (not (keyword? "foo")))
   (assert (not (keyword? ":foo")))
   (assert (not (keyword? 1)))
-  (assert (not (keyword? nil))))
+  (assert (not (keyword? None))))
 
 (defn test-import-init-hy []
   "NATIVE: testing import of __init__.hy"

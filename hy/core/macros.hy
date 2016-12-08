@@ -30,6 +30,16 @@
         [hy.models.symbol [HySymbol]]
         [hy._compat [PY33 PY34]])
 
+(defmacro as-> [head name &rest rest]
+  "Expands to sequence of assignments to the provided name, starting with head.
+  The previous result is thus available in the subsequent form. Returns the
+  final result, and leaves the name bound to it in the local scope. This behaves
+  much like the other threading macros, but requires you to specify the threading
+  point per form via the name instead of always the first or last argument."
+  `(do (setv
+         ~name ~head
+         ~@(interleave (repeat name) rest))
+     ~name))
 
 (defmacro with [args &rest body]
   "shorthand for nested with* loops:
@@ -68,7 +78,7 @@
      (if baz
        quux))"
   (if (empty? branches)
-    nil
+    None
     (do
      (setv branches (iter branches))
      (setv branch (next branches))
@@ -114,8 +124,8 @@
     (macro-error None "`for' requires a body to evaluate")]
    [(empty? args) `(do ~@body ~@belse)]
    [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
-   [true
-    (let [alist (cut args 0 nil 2)]
+   [True
+    (let [alist (cut args 0 None 2)]
       `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
 
 
@@ -165,19 +175,19 @@
 
 
 (defmacro lif [&rest args]
-  "Like `if`, but anything that is not None/nil is considered true."
+  "Like `if`, but anything that is not None is considered true."
   (setv n (len args))
   (if* n
        (if* (= n 1)
             (get args 0)
-            `(if* (is-not ~(get args 0) nil)
+            `(if* (is-not ~(get args 0) None)
                   ~(get args 1)
                   (lif ~@(cut args 2))))))
 
 
 (defmacro lif-not [test not-branch &optional yes-branch]
-  "Like `if-not`, but anything that is not None/nil is considered true."
-  `(if* (is ~test nil) ~not-branch ~yes-branch))
+  "Like `if-not`, but anything that is not None is considered true."
+  `(if* (is ~test None) ~not-branch ~yes-branch))
 
 
 (defmacro when [test &rest body]
@@ -224,19 +234,19 @@
   (defmacro/g! yield-from [expr]
     `(do (import types)
          (setv ~g!iter (iter ~expr))
-         (setv ~g!return nil)
-         (setv ~g!message nil)
-         (while true
+         (setv ~g!return None)
+         (setv ~g!message None)
+         (while True
            (try (if (isinstance ~g!iter types.GeneratorType)
                   (setv ~g!message (yield (.send ~g!iter ~g!message)))
                   (setv ~g!message (yield (next ~g!iter))))
            (except [~g!e StopIteration]
              (do (setv ~g!return (if (hasattr ~g!e "value")
                                      (. ~g!e value)
-                                     nil))
+                                     None))
                (break)))))
            ~g!return))
-  nil)
+  None)
 
 
 (defmacro defmain [args &rest body]
@@ -252,6 +262,6 @@
 
 
 (defreader @ [expr]
-  (let [decorators (cut expr nil -1)
+  (let [decorators (cut expr None -1)
         fndef (get expr -1)]
     `(with-decorator ~@decorators ~fndef)))

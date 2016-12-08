@@ -9,19 +9,23 @@
        (defn ~name ~params
          (do ~@code)))))
 
+(defn rwm [name path method params code]
+  `(do (require hy.contrib.meth)
+       (hy.contrib.meth.route-with-methods ~name ~path ~method ~params ~@code)))
+
 ;; Some macro examples
 (defmacro route [name path params &rest code]
   "Get request"
-  `(route-with-methods ~name ~path ["GET"] ~params ~@code))
+  (rwm name path ["GET"] params code))
 
 (defmacro post-route [name path params &rest code]
   "Post request"
-  `(route-with-methods ~name ~path ["POST"] ~params ~@code))
+  (rwm name path ["POST"] params code))
 
 (defmacro put-route [name path params &rest code]
   "Put request"
-  `(route-with-methods ~name ~path ["PUT"] ~params ~@code))
+  (rwm name path ["PUT"] params code))
 
 (defmacro delete-route [name path params &rest code]
   "Delete request"
-  `(route-with-methods ~name ~path ["DELETE"] ~params ~@code))
+  (rwm name path ["DELETE"] params code))

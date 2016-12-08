@@ -82,8 +82,7 @@ def load_stdlib():
 # are assignable in Python 2.* but become
 # keywords in Python 3.*
 def _is_hy_builtin(name, module_name):
-    extras = ['True', 'False', 'None',
-              'true', 'false', 'nil']
+    extras = ['True', 'False', 'None']
     if name in extras or keyword.iskeyword(name):
         return True
     # for non-Hy modules, check for pre-existing name in
@@ -503,19 +502,13 @@ class HyASTCompiler(object):
         for expr in exprs:
 
             if expr in ll_keywords:
-                if expr == "&rest" and lambda_keyword is None:
-                    lambda_keyword = expr
-                elif expr == "&optional":
+                if expr == "&optional":
                     if len(defaults) > 0:
                         raise HyTypeError(expr,
                                           "There can only be &optional "
                                           "arguments or one &key argument")
                     lambda_keyword = expr
-                elif expr == "&key":
-                    lambda_keyword = expr
-                elif expr == "&kwonly":
-                    lambda_keyword = expr
-                elif expr == "&kwargs":
+                elif expr in ("&rest", "&key", "&kwonly", "&kwargs"):
                     lambda_keyword = expr
                 else:
                     raise HyTypeError(expr,
@@ -1743,10 +1736,45 @@ class HyASTCompiler(object):
         "unimport" it after we've completed `thing' so that we don't pollute
         other envs.
         """
-        expression.pop(0)
-        for entry in expression:
-            __import__(entry)  # Import it fo' them macros.
-            require(entry, self.module_name)
+        for entry in expression[1:]:
+            if isinstance(entry, HySymbol):
+                # e.g., (require foo)
+                __import__(entry)
+                require(entry, self.module_name, all_macros=True,
+                        prefix=entry)
+            elif isinstance(entry, HyList) and len(entry) == 2:
+                # e.g., (require [foo [bar baz :as MyBaz bing]])
+                # or (require [foo [*]])
+                module, names = entry
+                if not isinstance(names, HyList):
+                    raise HyTypeError(names,
+                                      "(require) name lists should be HyLists")
+                __import__(module)
+                if '*' in names:
+                    if len(names) != 1:
+                        raise HyTypeError(names, "* in a (require) name list "
+                                                 "must be on its own")
+                    require(module, self.module_name, all_macros=True)
+                else:
+                    assignments = {}
+                    while names:
+                        if len(names) > 1 and names[1] == HyKeyword(":as"):
+                            k, _, v = names[:3]
+                            del names[:3]
+                            assignments[k] = v
+                        else:
+                            symbol = names.pop(0)
+                            assignments[symbol] = symbol
+                    require(module, self.module_name, assignments=assignments)
+            elif (isinstance(entry, HyList) and len(entry) == 3
+                    and entry[1] == HyKeyword(":as")):
+                # e.g., (require [foo :as bar])
+                module, _, prefix = entry
+                __import__(module)
+                require(module, self.module_name, all_macros=True,
+                        prefix=prefix)
+            else:
+                raise HyTypeError(entry, "unrecognized (require) syntax")
         return Result()
 
     @builds("and")
@@ -1778,16 +1806,17 @@ class HyASTCompiler(object):
                                  ctx=ast.Load(),
                                  lineno=root_line,
                                  col_offset=root_column)
+            temp_variables = [name, expr_name]
 
             def make_assign(value, node=None):
                 if node is None:
                     line, column = root_line, root_column
                 else:
                     line, column = node.lineno, node.col_offset
-                return ast.Assign(targets=[ast.Name(id=var,
-                                                    ctx=ast.Store(),
-                                                    lineno=line,
-                                                    col_offset=column)],
+                positioned_name = ast.Name(id=var, ctx=ast.Store(),
+                                           lineno=line, col_offset=column)
+                temp_variables.append(positioned_name)
+                return ast.Assign(targets=[positioned_name],
                                   value=value,
                                   lineno=line,
                                   col_offset=column)
@@ -1817,7 +1846,7 @@ class HyASTCompiler(object):
                                       orelse=[]))
                 current = current[-1].body
             ret = sum(root, ret)
-            ret += Result(expr=expr_name, temp_variables=[expr_name, name])
+            ret += Result(expr=expr_name, temp_variables=temp_variables)
         else:
             ret += ast.BoolOp(op=opnode(),
                               lineno=root_line,
@@ -2030,19 +2059,24 @@ class HyASTCompiler(object):
 
             if fn.startswith("."):
                 # (.split "test test") -> "test test".split()
+                # (.a.b.c x) -> (.c (. x a b)) ->  x.a.b.c()
 
-                # Get the attribute name
-                ofn = fn
-                fn = HySymbol(ofn[1:])
-                fn.replace(ofn)
+                # Get the method name (the last named attribute
+                # in the chain of attributes)
+                attrs = [HySymbol(a).replace(fn) for a in fn.split(".")[1:]]
+                fn = attrs.pop()
 
-                # Get the object we want to take an attribute from
+                # Get the object we're calling the method on
+                # (extracted with the attribute access DSL)
                 if len(expression) < 2:
                     raise HyTypeError(expression,
                                       "attribute access requires object")
-                func = self.compile(expression.pop(1))
 
-                # And get the attribute
+                func = self.compile(HyExpression(
+                    [HySymbol(".").replace(fn), expression.pop(1)] +
+                    attrs))
+
+                # And get the method
                 func += ast.Attribute(lineno=fn.start_line,
                                       col_offset=fn.start_column,
                                       value=func.force_expr,
@@ -2555,6 +2589,19 @@ class HyASTCompiler(object):
     def compile_symbol(self, symbol):
         if "." in symbol:
             glob, local = symbol.rsplit(".", 1)
+
+            if not glob:
+                raise HyTypeError(symbol, 'cannot access attribute on '
+                                          'anything other than a name '
+                                          '(in order to get attributes of'
+                                          'expressions, use '
+                                          '`(. <expression> {attr})` or '
+                                          '`(.{attr} <expression>)`)'.format(
+                                              attr=local))
+
+            if not local:
+                raise HyTypeError(symbol, 'cannot access empty attribute')
+
             glob = HySymbol(glob).replace(symbol)
             ret = self.compile_symbol(glob)
 
