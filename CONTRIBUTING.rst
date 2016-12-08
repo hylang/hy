@@ -12,6 +12,12 @@ Pull requests are great! We love them; here is a quick guide:
   of the `issue tracker`_ is the place to go. 
   (If you're new to Git: `Start Here`_)
 
+- Before contributing make sure you check the docs. There are two versions of docs available:
+
+  + `latest`_, for use with the bleeding-edge GitHub version.
+
+  + `stable`_, for use with the PyPI version.
+
 - All incoming features should be accompanied with tests.
 
 - If you are contributing a major change to the Hy language (e.g. changing
@@ -97,3 +103,6 @@ http://contributor-covenant.org/version/1/1/0/.
 .. _Fork the Repo: https://help.github.com/articles/fork-a-repo/
 .. _Start Here: http://rogerdudler.github.io/git-guide/
 .. _good-first-bug: http://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug
+.. _latest: http://hylang.org/
+.. _stable: http://docs.hylang.org/en/stable/
+
