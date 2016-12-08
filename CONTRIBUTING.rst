@@ -12,9 +12,9 @@ Pull requests are great! We love them; here is a quick guide:
   of the `issue tracker`_ is the place to go. 
   (If you're new to Git: `Start Here`_)
   
-- Before contributing make sure you checkout the docs. There are two versions of docs available 
+- Before contributing make sure you check the docs. There are two versions of docs available:
 
-  + `latest`_, for use with bleeding-edge github version.
+  + `latest`_, for use with the bleeding-edge GitHub version.
 
   + `stable`_, for use with the PyPI version.
 
