@@ -10,6 +10,7 @@ Contents:
    alias
    anaphoric
    flow
+   future
    loop
    multi
    sequences
