@@ -384,7 +384,7 @@ def hy2py_main():
     options = parser.parse_args(sys.argv[1:])
 
     stdin_text = None
-    if not options.FILE or options.FILE == '-':
+    if options.FILE is None or options.FILE == '-':
         stdin_text = sys.stdin.read()
 
     if options.with_source:
