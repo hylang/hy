@@ -12,4 +12,5 @@ Contents:
    flow
    loop
    multi
+   namedlet
    walk
