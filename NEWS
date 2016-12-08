@@ -29,6 +29,8 @@ hopefully making the language easier to use.
    * defreader can use strings as macro names
    * as-> macro added
    * require syntax changed and now supports same features as import
+   * defmulti changed to work with dispatching function
+   * old defmulti renamed to defn
 
    [ Bug Fixes ]
    * Better error when for doesn't have body
