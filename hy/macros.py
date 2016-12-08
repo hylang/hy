@@ -52,8 +52,13 @@ def macro(name):
 
     """
     def _(fn):
-        argspec = getargspec(fn)
-        fn._hy_macro_pass_compiler = argspec.keywords is not None
+        try:
+            argspec = getargspec(fn)
+            fn._hy_macro_pass_compiler = argspec.keywords is not None
+        except Exception as ex:
+            # ugly hack, because I don't know what is going on here
+            fn._hy_macro_pass_compiler = False
+
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
@@ -175,7 +180,7 @@ def macroexpand_1(tree, compiler):
                 m = _hy_macros[None].get(fn)
             if m is not None:
                 if m._hy_macro_pass_compiler:
-                    opts['compiler'] = compiler
+                   opts['compiler'] = compiler
                 try:
                     obj = wrap_value(m(*ntree[1:], **opts))
                 except HyTypeError as e:
