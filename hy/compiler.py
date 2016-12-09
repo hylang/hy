@@ -2068,12 +2068,25 @@ class HyASTCompiler(object):
 
                 # Get the object we're calling the method on
                 # (extracted with the attribute access DSL)
-                if len(expression) < 2:
-                    raise HyTypeError(expression,
-                                      "attribute access requires object")
-
+                i = 1
+                if len(expression) != 2:
+                    # If the expression has only one object,
+                    # always use that as the callee.
+                    # Otherwise, hunt for the first thing that
+                    # isn't a keyword argument or its value.
+                    while i < len(expression):
+                        if isinstance(expression[i], HyKeyword):
+                            # Skip the keyword argument and its value.
+                            i += 1
+                        else:
+                            # Use expression[i].
+                            break
+                        i += 1
+                    else:
+                        raise HyTypeError(expression,
+                                          "attribute access requires object")
                 func = self.compile(HyExpression(
-                    [HySymbol(".").replace(fn), expression.pop(1)] +
+                    [HySymbol(".").replace(fn), expression.pop(i)] +
                     attrs))
 
                 # And get the method
