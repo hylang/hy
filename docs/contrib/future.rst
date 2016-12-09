@@ -5,9 +5,9 @@ __future__ features
 .. versionadded:: 0.12.0
 
 Importing from ``__future__`` allows you to add features to
-Hy that are not yet in the main language, due to slowing or
-being harder to debug.
-   
+Hy that are not yet in the main language, due to perfomance issues
+or being harder to debug.
+
 
 .. _tailrec:
 
@@ -68,3 +68,7 @@ Example:
 
     (print (even 1000))
 
+The ``TailRec`` extension is in ``future`` due to the extra overhead to all
+function calls, even non-recursive ones. It also mangles the call-stack
+(unavoidably, since we're trying to avoid stack overflow),
+making programs harder to debug.
