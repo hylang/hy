@@ -2437,7 +2437,10 @@ class HyASTCompiler(object):
             if body[0] == "progn" or body[0] == "do":
                 body[-1], changed = self.make_tail_rec(body[-1])
                 return body, changed
-            elif body[0] in _compile_table.keys() or '.' in body[0]:
+            elif (isinstance(body[0], HyExpression)
+                  or body[0] in _compile_table.keys()
+                  or '.' in body[0]
+                  or body[0] in ['let', '_>', 'with']):
                 # Bail on all keywords in hy and other special forms
                 return body, False
             else:
