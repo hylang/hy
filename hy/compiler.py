@@ -1231,7 +1231,7 @@ class HyASTCompiler(object):
                 self.tail_rec = True
                 TRInd = iexpr[1].index("TailRec")
                 iexpr[1].pop(TRInd)
-                if(len(iexpr[1]) == 0):
+                if len(iexpr[1]) == 0:
                     continue
             if not isinstance(iexpr, (HySymbol, HyList)):
                 raise HyTypeError(iexpr, "(import) requires a Symbol "
