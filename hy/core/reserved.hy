@@ -29,8 +29,8 @@
 
   The result of the first call is cached."
   (global _cache)
-  (if (not _cache) (do
-    (setv unmangle (. (get sys.modules "hy.lex.parser") hy_symbol_unmangle))
+  (if (is _cache None) (do
+    (setv unmangle (. sys.modules ["hy.lex.parser"] hy_symbol_unmangle))
     (setv _cache (frozenset (map unmangle (+
       hy.core.language.*exports*
       hy.core.shadow.*exports*
