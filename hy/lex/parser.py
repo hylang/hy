@@ -60,6 +60,7 @@ def hy_symbol_mangle(p):
 
     return p
 
+
 def hy_symbol_unmangle(p):
     # hy_symbol_mangle is one-way, so this can't be perfect.
     # But it can be useful till we have a way to get the original
@@ -78,7 +79,7 @@ def hy_symbol_unmangle(p):
         p = p.replace("_", "-")
 
     if (all([c.isalpha() and c.isupper() or c == '_' for c in p]) and
-      any([c.isalpha() for c in p])):
+            any([c.isalpha() for c in p])):
         p = '*' + p.lower() + '*'
 
     return p
