@@ -617,7 +617,8 @@
   (import [hy.core.reserved [names]])
   (assert (is (type (names)) frozenset))
   (assert (in "and" (names)))
-  (assert (in "False" (names)))
+  (when PY3
+    (assert (in "False" (names))))
   (assert (in "pass" (names)))
   (assert (in "class" (names)))
   (assert (in "defclass" (names)))
