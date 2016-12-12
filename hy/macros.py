@@ -55,8 +55,9 @@ def macro(name):
         try:
             argspec = getargspec(fn)
             fn._hy_macro_pass_compiler = argspec.keywords is not None
-        except Exception as ex:
-            # ugly hack, because I don't know what is going on here
+        except Exception:
+            # Exception might be raised if fn has arguments with invalid
+            # names (from point of view of Python)
             fn._hy_macro_pass_compiler = False
 
         module_name = fn.__module__
@@ -159,7 +160,7 @@ def make_empty_fn_copy(fn):
             formatted_args.lstrip('(').rstrip(')'))
         empty_fn = eval(fn_str)
 
-    except Exception as e:
+    except Exception:
 
         def empty_fn(*args, **kwargs):
             None
@@ -203,7 +204,7 @@ def macroexpand_1(tree, compiler):
                 m = _hy_macros[None].get(fn)
             if m is not None:
                 if m._hy_macro_pass_compiler:
-                   opts['compiler'] = compiler
+                    opts['compiler'] = compiler
 
                 try:
                     m_copy = make_empty_fn_copy(m)
