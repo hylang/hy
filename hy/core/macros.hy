@@ -222,8 +222,8 @@
          ~@body))))
 
 (defmacro defmacro! [name args &rest body]
-  "like defmacro/g! plus args that start with o! will automatically evaluate
-   once only and be bound to the equivalent g!"
+  "Like defmacro/g! plus automatic once-only evaluation for o!
+   parameters, which are available as the equivalent g! symbol."
   (setv os (list-comp s [s args] (.startswith s "o!"))
         gs (list-comp (HySymbol (+ "g!" (cut s 2))) [s os]))
   `(defmacro/g! ~name ~args

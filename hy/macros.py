@@ -56,8 +56,8 @@ def macro(name):
             argspec = getargspec(fn)
             fn._hy_macro_pass_compiler = argspec.keywords is not None
         except Exception:
-            # Exception might be raised if fn has arguments with invalid
-            # names (from point of view of Python)
+            # An exception might be raised if fn has arguments with
+            # names that are invalid in Python.
             fn._hy_macro_pass_compiler = False
 
         module_name = fn.__module__
@@ -147,11 +147,10 @@ def load_macros(module_name):
 
 def make_empty_fn_copy(fn):
     try:
-        # this might fail if fn has parameters with funny names, like o!n
-        # in such a case, generic function is returned that ensures that
-        # the program can continue running. In such a cases, error message
-        # that might get raised later on while expanding a macro might not
-        # make sense at all
+        # This might fail if fn has parameters with funny names, like o!n. In
+        # such a case, we return a generic function that ensures the program
+        # can continue running. Unfortunately, the error message that might get
+        # raised later on while expanding a macro might not make sense at all.
 
         argspec = getargspec(fn)
         formatted_args = formatargspec(*argspec)
