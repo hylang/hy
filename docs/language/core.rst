@@ -1261,3 +1261,22 @@ Returns an iterator from *coll* as long as *pred* returns ``True``.
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
 
+
+Other Built-Ins
+===============
+
+hy.core.reserved
+----------------
+
+Usage: ``(hy.core.reserved.names)``
+
+This module can be used to get a list (actually, a ``frozenset``) of the
+names of Hy's built-in functions, macros, and special forms. The output
+also includes all Python reserved words. All names are in unmangled form
+(e.g., ``list-comp`` rather than ``list_comp``).
+
+.. code-block:: hy
+
+   => (import hy)
+   => (in "defclass" (hy.core.reserved.names))
+   True
