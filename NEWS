@@ -66,6 +66,7 @@ hopefully making the language easier to use.
    * ap-if requires then branch
    * Parameters for numeric operations (inc, dec, odd?, even?, etc.) aren't type checked
    * import_file_to_globals added for use in emacs inferior lisp mode
+   * hy.core.reserved added for querying reserved words
 
 Changes from 0.10.1
 
