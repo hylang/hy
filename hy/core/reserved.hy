@@ -37,7 +37,5 @@
       (list (.keys (get hy.macros._hy_macros None)))
       keyword.kwlist
       (list-comp k [k (.keys hy.compiler.-compile-table)]
-       (if-python2
-         (isinstance k (, str unicode))
-         (isinstance k str)))))))))
+        (isinstance k hy._compat.string-types))))))))
   _cache)
