@@ -696,6 +696,35 @@ For example, ``g!a`` would become ``(gensym "a")``.
 
    Section :ref:`using-gensym`
 
+.. _defmacro!:
+
+defmacro!
+---------
+
+``defmacro!`` is like ``defmacro/g!``, plus automatic once-only evaluation for
+``o!`` parameters, which are available as the equivalent ``g!`` symbol.
+
+For example,
+
+.. code-block:: clj
+
+    => (defn expensive-get-number [] (print "spam") 14)
+    => (defmacro triple-1 [n] `(+ n n n))
+    => (triple-1 (expensive-get-number))  ; evals n three times!
+    spam
+    spam
+    spam
+    42
+    => (defmacro/g! triple-2 [n] `(do (setv ~g!n ~n) (+ ~g!n ~g!n ~g!n)))
+    => (triple-2 (expensive-get-number))  ; avoid repeats with a gensym
+    spam
+    42
+    => (defmacro! triple-3 [o!n] `(+ ~g!n ~g!n ~g!n))
+    => (triple-3 (expensive-get-number))  ; easier with defmacro!
+    spam
+    42
+
+
 defreader
 ---------
 

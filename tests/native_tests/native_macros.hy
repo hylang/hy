@@ -202,6 +202,42 @@
   (setv macro2 "(defmacro/g! two-point-zero [] `(+ (float 1) 1.0))")
   (assert (import_buffer_to_ast macro2 "foo")))
 
+(defn test-defmacro! []
+  ;; defmacro! must do everything defmacro/g! can
+  (import ast)
+  (import [astor.codegen [to_source]])
+  (import [hy.importer [import_buffer_to_ast]])
+  (setv macro1 "(defmacro! nif [expr pos zero neg]
+        `(let [[~g!res ~expr]]
+           (cond [(pos? ~g!res) ~pos]
+                 [(zero? ~g!res) ~zero]
+                 [(neg? ~g!res) ~neg])))
+
+    (print (nif (inc -1) 1 0 -1))
+    ")
+  ;; expand the macro twice, should use a different
+  ;; gensym each time
+  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv s1 (to_source _ast1))
+  (setv s2 (to_source _ast2))
+  (assert (in ":res_" s1))
+  (assert (in ":res_" s2))
+  (assert (not (= s1 s2)))
+
+  ;; defmacro/g! didn't like numbers initially because they
+  ;; don't have a startswith method and blew up during expansion
+  (setv macro2 "(defmacro! two-point-zero [] `(+ (float 1) 1.0))")
+  (assert (import_buffer_to_ast macro2 "foo"))
+
+  (defmacro! foo! [o!foo] `(do ~g!foo ~g!foo))
+  ;; test that o! becomes g!
+  (assert (= "Hy" (foo! "Hy")))
+  ;; test that o! is evaluated once only
+  (setv foo 40)
+  (foo! (+= foo 1))
+  (assert (= 41 foo)))
+
 
 (defn test-if-not []
   (assert (= (if-not True :yes :no)

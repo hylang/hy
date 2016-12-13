@@ -221,6 +221,14 @@
        (let ~gensyms
          ~@body))))
 
+(defmacro defmacro! [name args &rest body]
+  "like defmacro/g! plus args that start with o! will automatically evaluate
+   once only and be bound to the equivalent g!"
+  (setv os (list-comp s [s args] (.startswith s "o!"))
+        gs (list-comp (HySymbol (+ "g!" (cut s 2))) [s os]))
+  `(defmacro/g! ~name ~args
+     `(do (setv ~@(interleave ~gs ~os))
+          ~@~body)))
 
 (if-python2
   (defmacro/g! yield-from [expr]
