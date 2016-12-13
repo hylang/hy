@@ -1,4 +1,4 @@
-
+from hy.importer import hy_eval
 from hy.macros import macro, macroexpand
 from hy.lex import tokenize
 
@@ -50,3 +50,17 @@ def test_preprocessor_exceptions():
     except HyMacroExpansionError as e:
         assert "_hy_anon_fn_" not in str(e)
         assert "TypeError" not in str(e)
+
+
+def test_argument_names():
+    """
+    Test that macros, defined with odd argument names (such as @), when called,
+    do not crash the compiler.
+    """
+    hy_eval(tokenize('(defmacro f [@])'), globals(), '<test>')
+
+    try:
+        macroexpand(tokenize('(f)')[0], __name__)
+        assert False
+    except HyMacroExpansionError as e:
+        assert "expanding `f': takes exactly 1 argument (0 given)" in str(e)
