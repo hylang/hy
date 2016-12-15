@@ -32,6 +32,7 @@ hopefully making the language easier to use.
    * defmulti changed to work with dispatching function
    * old defmulti renamed to defn
    * Lazy sequences added to contrib
+   * defmacro! added for once-only evaluation for parameters
 
    [ Bug Fixes ]
    * Better error when for doesn't have body
