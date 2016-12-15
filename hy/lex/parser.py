@@ -61,6 +61,30 @@ def hy_symbol_mangle(p):
     return p
 
 
+def hy_symbol_unmangle(p):
+    # hy_symbol_mangle is one-way, so this can't be perfect.
+    # But it can be useful till we have a way to get the original
+    # symbol (https://github.com/hylang/hy/issues/360).
+
+    from hy._compat import str_type
+    p = str_type(p)
+
+    if p.endswith("_bang") and p != "_bang":
+        p = p[:-len("_bang")] + "!"
+
+    if p.startswith("is_") and p != "is_":
+        p = p[len("is_"):] + "?"
+
+    if "_" in p and p != "_":
+        p = p.replace("_", "-")
+
+    if (all([c.isalpha() and c.isupper() or c == '_' for c in p]) and
+            any([c.isalpha() for c in p])):
+        p = '*' + p.lower() + '*'
+
+    return p
+
+
 def set_boundaries(fun):
     @wraps(fun)
     def wrapped(p):

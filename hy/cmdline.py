@@ -40,7 +40,8 @@ import hy
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 from hy.compiler import hy_compile, HyTypeError
 from hy.importer import (ast_compile, import_buffer_to_module,
-                         import_file_to_ast, import_file_to_hst)
+                         import_file_to_ast, import_file_to_hst,
+                         import_buffer_to_ast, import_buffer_to_hst)
 from hy.completer import completion
 from hy.completer import Completer
 
@@ -366,9 +367,12 @@ def hy2py_main():
     import platform
     module_name = "<STDIN>"
 
-    options = dict(prog="hy2py", usage="%(prog)s [options] FILE",
+    options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
                    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = argparse.ArgumentParser(**options)
+    parser.add_argument("FILE", type=str, nargs='?',
+                        help="Input Hy code (use STDIN if \"-\" or "
+                             "not provided)")
     parser.add_argument("--with-source", "-s", action="store_true",
                         help="Show the parsed source structure")
     parser.add_argument("--with-ast", "-a", action="store_true",
@@ -376,16 +380,17 @@ def hy2py_main():
     parser.add_argument("--without-python", "-np", action="store_true",
                         help=("Do not show the Python code generated "
                               "from the AST"))
-    parser.add_argument('args', nargs=argparse.REMAINDER,
-                        help=argparse.SUPPRESS)
 
     options = parser.parse_args(sys.argv[1:])
 
-    if not options.args:
-        parser.exit(1, parser.format_help())
+    stdin_text = None
+    if options.FILE is None or options.FILE == '-':
+        stdin_text = sys.stdin.read()
 
     if options.with_source:
-        hst = pretty_error(import_file_to_hst, options.args[0])
+        hst = (pretty_error(import_file_to_hst, options.FILE)
+               if stdin_text is None
+               else pretty_error(import_buffer_to_hst, stdin_text))
         # need special printing on Windows in case the
         # codepage doesn't support utf-8 characters
         if PY3 and platform.system() == "Windows":
@@ -399,7 +404,9 @@ def hy2py_main():
         print()
         print()
 
-    _ast = pretty_error(import_file_to_ast, options.args[0], module_name)
+    _ast = (pretty_error(import_file_to_ast, options.FILE, module_name)
+            if stdin_text is None
+            else pretty_error(import_buffer_to_ast, stdin_text, module_name))
     if options.with_ast:
         if PY3 and platform.system() == "Windows":
             _print_for_windows(astor.dump(_ast))

@@ -624,7 +624,7 @@ is the equivalent of::
 
    if __name__ == "__main__":
        import sys
-       retval = main(*sys.arg)
+       retval = main(*sys.argv)
 
        if isinstance(retval, int):
            sys.exit(retval)
@@ -632,12 +632,28 @@ is the equivalent of::
 Note that as you can see above, if you return an integer from this
 function, this will be used as the exit status for your script.
 (Python defaults to exit status 0 otherwise, which means everything's
-okay!)
+okay!) Since ``(sys.exit 0)`` is not run explicitly in the case of a
+non-integer return from ``defmain``, it's a good idea to put ``(defmain)``
+as the last piece of code in your file.
 
-(Since ``(sys.exit 0)`` is not run explicitly in the case of a non-integer
-return from ``defmain``, it's a good idea to put ``(defmain)`` as the last
-piece of code in your file.)
+If you want fancy command-line arguments, you can use the standard Python
+module ``argparse`` in the usual way:
 
+.. code-block:: clj
+
+    (import argparse)
+
+    (defmain [&rest _]
+      (setv parser (argparse.ArgumentParser))
+      (.add-argument parser "STRING"
+        :help "string to replicate")
+      (.add-argument parser "-n" :type int :default 3
+        :help "number of copies")
+      (setv args (parser.parse_args))
+
+      (print (* args.STRING args.n))
+
+      0)
 
 .. _defmacro:
 
@@ -679,6 +695,35 @@ For example, ``g!a`` would become ``(gensym "a")``.
 .. seealso::
 
    Section :ref:`using-gensym`
+
+.. _defmacro!:
+
+defmacro!
+---------
+
+``defmacro!`` is like ``defmacro/g!`` plus automatic once-only evaluation for
+``o!`` parameters, which are available as the equivalent ``g!`` symbol.
+
+For example,
+
+.. code-block:: clj
+
+    => (defn expensive-get-number [] (print "spam") 14)
+    => (defmacro triple-1 [n] `(+ n n n))
+    => (triple-1 (expensive-get-number))  ; evals n three times
+    spam
+    spam
+    spam
+    42
+    => (defmacro/g! triple-2 [n] `(do (setv ~g!n ~n) (+ ~g!n ~g!n ~g!n)))
+    => (triple-2 (expensive-get-number))  ; avoid repeats with a gensym
+    spam
+    42
+    => (defmacro! triple-3 [o!n] `(+ ~g!n ~g!n ~g!n))
+    => (triple-3 (expensive-get-number))  ; easier with defmacro!
+    spam
+    42
+
 
 defreader
 ---------

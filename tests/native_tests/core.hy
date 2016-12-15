@@ -612,3 +612,17 @@
                 [1 3 6 10 15])
   (assert-equal (list (accumulate [1 -2 -3 -4 -5] -))
                 [1 3 6 10 15]))
+
+(defn test-reserved []
+  (import [hy.core.reserved [names]])
+  (assert (is (type (names)) frozenset))
+  (assert (in "and" (names)))
+  (when PY3
+    (assert (in "False" (names))))
+  (assert (in "pass" (names)))
+  (assert (in "class" (names)))
+  (assert (in "defclass" (names)))
+  (assert (in "->" (names)))
+  (assert (in "keyword?" (names)))
+  (assert (not-in "foo" (names)))
+  (assert (not-in "hy" (names))))
