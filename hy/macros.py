@@ -52,8 +52,14 @@ def macro(name):
 
     """
     def _(fn):
-        argspec = getargspec(fn)
-        fn._hy_macro_pass_compiler = argspec.keywords is not None
+        try:
+            argspec = getargspec(fn)
+            fn._hy_macro_pass_compiler = argspec.keywords is not None
+        except Exception:
+            # An exception might be raised if fn has arguments with
+            # names that are invalid in Python.
+            fn._hy_macro_pass_compiler = False
+
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
@@ -140,12 +146,24 @@ def load_macros(module_name):
 
 
 def make_empty_fn_copy(fn):
-    argspec = getargspec(fn)
-    formatted_args = formatargspec(*argspec)
-    fn_str = 'lambda {}: None'.format(
-        formatted_args.lstrip('(').rstrip(')'))
+    try:
+        # This might fail if fn has parameters with funny names, like o!n. In
+        # such a case, we return a generic function that ensures the program
+        # can continue running. Unfortunately, the error message that might get
+        # raised later on while expanding a macro might not make sense at all.
 
-    empty_fn = eval(fn_str)
+        argspec = getargspec(fn)
+        formatted_args = formatargspec(*argspec)
+
+        fn_str = 'lambda {}: None'.format(
+            formatted_args.lstrip('(').rstrip(')'))
+        empty_fn = eval(fn_str)
+
+    except Exception:
+
+        def empty_fn(*args, **kwargs):
+            None
+
     return empty_fn
 
 
@@ -194,6 +212,7 @@ def macroexpand_1(tree, compiler):
                     msg = "expanding `" + str(tree[0]) + "': "
                     msg += str(e).replace("<lambda>()", "", 1).strip()
                     raise HyMacroExpansionError(tree, msg)
+
                 try:
                     obj = wrap_value(m(*ntree[1:], **opts))
                 except HyTypeError as e:
