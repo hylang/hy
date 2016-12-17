@@ -5,7 +5,7 @@ In order to begin contributing code to the hylang project, ensure that you
 have completed the following steps to set up your development environment.
 
 - Clone the project to a local git repository. Let's assume you've got a
-   handle on that.
+  handle on that.
 
 - Create a virtual environment that will contain the python dependencies
   hylang uses. Starting with Python 3.3, the correct way to do this is::
