@@ -12,5 +12,6 @@ Contents:
    flow
    loop
    multi
+   profile
    sequences
    walk
