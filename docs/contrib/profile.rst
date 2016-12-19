@@ -4,7 +4,7 @@ Profile
 
 .. versionadded:: 0.10.0
 
-The ``profile`` macros make debugging where bottlenecks exist easier..
+The ``profile`` macros make it easier to find bottlenecks.
 
 
 Macros
