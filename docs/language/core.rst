@@ -61,10 +61,9 @@ comp
 
 Usage: ``(comp f g)``
 
-Compose zero or more functions to a new function. The new function will chain
-given functions together: ``((comp g f) x)`` is thus equivalent to
-``(g (f x))``. If ``comp`` is called without parameters, ``identity`` will be
-returned.
+Compose zero or more functions into a new function. The new function will
+chain the given functions together, so ``((comp g f) x)`` is equivalent to
+``(g (f x))``. Called without arguments, ``comp`` returns ``identity``.
 
 .. code-block:: hy
 
@@ -86,8 +85,8 @@ complement
 
 Usage: ``(complement f)``
 
-Returns a new function that inverts truth value of supplied function ``f``
-when called.
+Returns a new function that returns the same thing as ``f``, but logically
+inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
 
 .. code-block:: hy
 
@@ -153,7 +152,7 @@ constantly
 Usage ``(constantly 42)``
 
 Create a new function that always returns the given value, regardless of
-parameters given to it.
+the arguments given to it.
 
 .. code-block:: hy
 
