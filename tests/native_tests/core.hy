@@ -646,4 +646,5 @@
   "NATIVE: test comp"
   (assert-true ((comp odd? inc second) [1 2 3 4 5]))
   (assert-true (= 1 ((comp first) [1 2 3])))
-  (assert-true ((comp even? inc +) 1 2 3 4 5)))
+  (assert-true ((comp even? inc +) 1 2 3 4 5))
+  (assert-true (= 5 ((comp) 5))))

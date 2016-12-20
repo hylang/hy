@@ -61,15 +61,20 @@ comp
 
 Usage: ``(comp f g)``
 
-Compose one or more functions to a new function. The new function will chain
+Compose zero or more functions to a new function. The new function will chain
 given functions together: ``((comp g f) x)`` is thus equivalent to
-``(g (f x))``.
+``(g (f x))``. If ``comp`` is called without parameters, ``identity`` will be
+returned.
 
 .. code-block:: hy
 
-   => (def example (comp str +
+   => (def example (comp str +))
    => (example 1 2 3)
    "6"
+
+   => (def simple (comp))
+   => (simple "hello")
+   "hello"
 
 
 .. _complement:

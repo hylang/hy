@@ -47,13 +47,15 @@
   "Checks whether item is a collection"
   (and (iterable? coll) (not (string? coll))))
 
-(defn comp [f &rest fs]
+(defn comp [&rest fs]
   "function composition"
   (defn compose-2 [f g]
     "compose 2 functions"
     (fn [&rest args &kwargs kwargs]
       (f (apply g args kwargs))))
-  (reduce compose-2 fs f))
+  (if fs
+    (reduce compose-2 (list (rest fs)) (first fs))
+    identity))
 
 (defn complement [f]
   "Create a function that reverses truth value of another function"
