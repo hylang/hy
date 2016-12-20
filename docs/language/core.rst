@@ -62,12 +62,12 @@ comp
 Usage: ``(comp f g)``
 
 Compose one or more functions to a new function. The new function will chain
-given functions together: ``((comp f g) foo)`` is thus equivalent to
-``(g (f foo))``.
+given functions together: ``((comp g f) x)`` is thus equivalent to
+``(g (f x))``.
 
 .. code-block:: hy
 
-   => (def example (comp + str))
+   => (def example (comp str +
    => (example 1 2 3)
    "6"
 
