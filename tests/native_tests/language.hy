@@ -1047,6 +1047,19 @@
   (assert (= (get {:foo "bar" ":foo" "quux"} :foo) "bar"))
   (assert (= (get {:foo "bar" ":foo" "quux"} ":foo") "quux")))
 
+
+(defn test-empty-keyword []
+  "NATIVE: test that the empty keyword is recognized"
+  (assert (= : :))
+  (assert (keyword? :))
+  (assert (!= : ":"))
+  (assert (= (name :) ""))
+
+  (defn f [&kwargs kwargs]
+    (list (.items kwargs)))
+  (assert (= (f : 3) [(, "" 3)])))
+
+
 (defn test-nested-if []
   "NATIVE: test nested if"
   (for [x (range 10)]
