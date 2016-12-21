@@ -54,7 +54,7 @@
     (fn [&rest args &kwargs kwargs]
       (f (apply g args kwargs))))
   (if fs
-    (reduce compose-2 (list (rest fs)) (first fs))
+    (reduce compose-2 fs)
     identity))
 
 (defn complement [f]
