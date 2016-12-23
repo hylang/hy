@@ -1280,3 +1280,22 @@ also includes all Python reserved words. All names are in unmangled form
    => (import hy)
    => (in "defclass" (hy.core.reserved.names))
    True
+
+
+Included itertools
+==================
+
+All of Python's itertools are available, however some of the names have been
+changed:
+
+- `starmap` has been changed to `*map`
+
+
+  - `combinations_with_replacement` has been changed to `multicombinations`
+
+  - `groupby` has been changed to`group-by`
+
+  - `takewhile` has been changed to `take-while`
+
+  Please refer to the `Python documentation
+  <https://docs.python.org/3/library/itertools.html>`_ for more information.
