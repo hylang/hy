@@ -54,6 +54,51 @@ Returns ``True`` if *x* is iterable and not a string.
    False
 
 
+.. _comp:
+
+comp
+----
+
+Usage: ``(comp f g)``
+
+Compose zero or more functions into a new function. The new function will
+chain the given functions together, so ``((comp g f) x)`` is equivalent to
+``(g (f x))``. Called without arguments, ``comp`` returns ``identity``.
+
+.. code-block:: hy
+
+   => (def example (comp str +))
+   => (example 1 2 3)
+   "6"
+
+   => (def simple (comp))
+   => (simple "hello")
+   "hello"
+
+
+.. _complement:
+
+complement
+----------
+
+.. versionadded:: 0.12.0
+
+Usage: ``(complement f)``
+
+Returns a new function that returns the same thing as ``f``, but logically
+inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
+
+.. code-block:: hy
+
+   => (def inverse (complement identity))
+   => (inverse True)
+   False
+   => (inverse 1)
+   False
+   => (inverse False)
+   True
+
+
 cons
 ----
 
@@ -95,6 +140,30 @@ Checks whether *foo* is a :ref:`cons cell <hycons>`.
 
    => (cons? [1 2 3])
    False
+
+
+.. _constantly:
+
+constantly
+----------
+
+.. versionadded:: 0.12.0
+
+Usage ``(constantly 42)``
+
+Create a new function that always returns the given value, regardless of
+the arguments given to it.
+
+.. code-block:: hy
+
+   => (def answer (constantly 42))
+   => (answer)
+   42
+   => (answer 1 2 3)
+   42
+   => (answer 1 :foo 2)
+   42
+
 
 .. _dec-fn:
 

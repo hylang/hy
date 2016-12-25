@@ -47,6 +47,24 @@
   "Checks whether item is a collection"
   (and (iterable? coll) (not (string? coll))))
 
+(defn comp [&rest fs]
+  "Function composition"
+  (if (not fs) identity
+      (= 1 (len fs)) (first fs)
+      (do (setv rfs (reversed fs)
+                first-f (next rfs)
+                fs (tuple rfs))
+          (fn [&rest args &kwargs kwargs]
+            (setv res (apply first-f args kwargs))
+            (for* [f fs]
+              (setv res (f res)))
+            res))))
+
+(defn complement [f]
+  "Create a function that reverses truth value of another function"
+  (fn [&rest args &kwargs kwargs]
+    (not (apply f args kwargs))))
+
 (defn cons [a b]
   "Return a fresh cons cell with car = a and cdr = b"
   (HyCons a b))
@@ -54,6 +72,11 @@
 (defn cons? [c]
   "Check whether c can be used as a cons object"
   (instance? HyCons c))
+
+(defn constantly [value]
+  "Create a function that always returns the same value"
+  (fn [&rest args &kwargs kwargs]
+    value))
 
 (defn keyword? [k]
   "Check whether k is a keyword"
@@ -456,11 +479,12 @@
 
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
-    compress cons cons? count cycle dec distinct disassemble drop drop-last
-    drop-while empty? even? every? first filter flatten float? fraction gensym
-    group-by identity inc input instance? integer integer? integer-char?
-    interleave interpose islice iterable? iterate iterator? keyword keyword?
-    last list* macroexpand macroexpand-1 map merge-with multicombinations name
-    neg? none? nth numeric? odd? partition permutations pos? product range
-    read read-str remove repeat repeatedly rest reduce second some string
-    string? symbol? take take-nth take-while xor tee zero? zip zip-longest])
+    comp complement compress cons cons? constantly count cycle dec distinct
+    disassemble drop drop-last drop-while empty? even? every? first filter
+    flatten float? fraction gensym group-by identity inc input instance?
+    integer integer? integer-char? interleave interpose islice iterable? 
+    iterate iterator? keyword keyword? last list* macroexpand macroexpand-1 
+    map merge-with multicombinations name neg? none? nth numeric? odd? 
+    partition permutations pos? product range read read-str remove repeat 
+    repeatedly rest reduce second some string string? symbol? take take-nth 
+    take-while xor tee zero? zip zip-longest])
