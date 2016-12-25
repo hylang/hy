@@ -505,6 +505,31 @@ themselves as an iterator when ``(iter x)`` is called. Contrast with
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
 
+
+.. _juxt-fn:
+
+juxt
+----
+
+.. versionadded:: 0.12.0
+
+Usage: ``(juxt f &rest fs)``
+
+Return a function that apply a set of functions to same arguments
+and collect the result into a list.
+
+.. code-block:: hy
+
+   => ((juxt min max sum) (range 1 101))
+   [1, 100, 5050]
+
+   => (dict (map (juxt identity ord) "abcdef"))
+   {'f': 102, 'd': 100, 'b': 98, 'e': 101, 'c': 99, 'a': 97}
+
+   => (setv [total difference product quotient] ((juxt + - * /) 24 3))
+   [27, 21, 72, 8.0]
+
+
 .. _keyword-fn:
 
 keyword
