@@ -33,6 +33,7 @@ hopefully making the language easier to use.
    * old defmulti renamed to defn
    * Lazy sequences added to contrib
    * defmacro! added for once-only evaluation for parameters
+   * comp, constantly and complement added
 
    [ Bug Fixes ]
    * Better error when for doesn't have body
