@@ -48,14 +48,17 @@
   (and (iterable? coll) (not (string? coll))))
 
 (defn comp [&rest fs]
-  "function composition"
-  (defn compose-2 [f g]
-    "compose 2 functions"
-    (fn [&rest args &kwargs kwargs]
-      (f (apply g args kwargs))))
-  (if fs
-    (reduce compose-2 fs)
-    identity))
+  "Function composition"
+  (if (not fs) identity
+      (= 1 (len fs)) (first fs)
+      (do (setv rfs (reversed fs)
+                first-f (next rfs)
+                fs (tuple rfs))
+          (fn [&rest args &kwargs kwargs]
+            (setv res (apply first-f args kwargs))
+            (for* [f fs]
+              (setv res (f res)))
+            res))))
 
 (defn complement [f]
   "Create a function that reverses truth value of another function"
