@@ -630,7 +630,7 @@
 (defn test-complement []
   "NATIVE: test complement"
   (def helper (complement identity))
-  
+
   (assert-true (helper False))
   (assert-false (helper True)))
 
