@@ -9,6 +9,3 @@ dist
 .coverage
 build/
 .noseids
-*~
-\#*
-.\#*
