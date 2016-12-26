@@ -284,14 +284,14 @@ fraction
 Returns a Python object of type ``fractions.Fraction``.
 
 .. code-block:: hy
-   
+
    => (fraction 1 2)
    Fraction(1, 2)
 
 Note that Hy has a built-in fraction literal that does the same thing:
 
 .. code-block:: hy
-   
+
    => 1/2
    Fraction(1, 2)
 
@@ -504,6 +504,31 @@ themselves as an iterator when ``(iter x)`` is called. Contrast with
    => ;; create an iterator from the dict
    => (iterator? (iter {:a 1 :b 2 :c 3}))
    True
+
+
+.. _juxt-fn:
+
+juxt
+----
+
+.. versionadded:: 0.12.0
+
+Usage: ``(juxt f &rest fs)``
+
+Return a function that applies each of the supplied functions to a
+single set of arguments and collects the results into a list.
+
+.. code-block:: hy
+
+   => ((juxt min max sum) (range 1 101))
+   [1, 100, 5050]
+
+   => (dict (map (juxt identity ord) "abcdef"))
+   {'f': 102, 'd': 100, 'b': 98, 'e': 101, 'c': 99, 'a': 97}
+
+   => ((juxt + - * /) 24 3)
+   [27, 21, 72, 8.0]
+
 
 .. _keyword-fn:
 

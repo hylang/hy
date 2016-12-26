@@ -630,7 +630,7 @@
 (defn test-complement []
   "NATIVE: test complement"
   (def helper (complement identity))
-  
+
   (assert-true (helper False))
   (assert-false (helper True)))
 
@@ -649,3 +649,10 @@
   (assert-true ((comp even? inc +) 1 2 3 4 5))
   (assert-true (= 5 ((comp) 5)))
   (assert (is (comp) identity)))
+
+(defn test-juxt []
+  "NATIVE: test juxt"
+  (assert-equal ((juxt min max sum) [1 2 3 4 5 6])
+                [1 6 21])
+  (assert-equal ((juxt identity) 42)
+                [42]))

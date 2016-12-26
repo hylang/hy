@@ -298,6 +298,13 @@
   "Return true if x is an iterator"
   (isinstance x collections.Iterator))
 
+(defn juxt [f &rest fs]
+  "Return a function that apply a set of functions to same arguments and
+   collect the result into a list."
+  (setv fs (cons f fs))
+  (fn [&rest args &kwargs kwargs]
+    (list-comp (apply f args kwargs) [f fs])))
+
 (defn last [coll]
   "Return last item from `coll`"
   (get (tuple coll) -1))
@@ -482,9 +489,9 @@
     comp complement compress cons cons? constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? even? every? first filter
     flatten float? fraction gensym group-by identity inc input instance?
-    integer integer? integer-char? interleave interpose islice iterable? 
-    iterate iterator? keyword keyword? last list* macroexpand macroexpand-1 
-    map merge-with multicombinations name neg? none? nth numeric? odd? 
-    partition permutations pos? product range read read-str remove repeat 
-    repeatedly rest reduce second some string string? symbol? take take-nth 
-    take-while xor tee zero? zip zip-longest])
+    integer integer? integer-char? interleave interpose islice iterable?
+    iterate iterator? juxt keyword keyword? last list* macroexpand
+    macroexpand-1 map merge-with multicombinations name neg? none? nth
+    numeric? odd? partition permutations pos? product range read read-str
+    remove repeat repeatedly rest reduce second some string string? symbol?
+    take take-nth take-while xor tee zero? zip zip-longest])
