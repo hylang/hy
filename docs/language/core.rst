@@ -515,8 +515,8 @@ juxt
 
 Usage: ``(juxt f &rest fs)``
 
-Return a function that apply a set of functions to same arguments
-and collect the result into a list.
+Return a function that applies each of the supplied functions to a
+single set of arguments and collects the results into a list.
 
 .. code-block:: hy
 
@@ -526,7 +526,7 @@ and collect the result into a list.
    => (dict (map (juxt identity ord) "abcdef"))
    {'f': 102, 'd': 100, 'b': 98, 'e': 101, 'c': 99, 'a': 97}
 
-   => (setv [total difference product quotient] ((juxt + - * /) 24 3))
+   => ((juxt + - * /) 24 3)
    [27, 21, 72, 8.0]
 
 
