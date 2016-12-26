@@ -34,5 +34,6 @@ Contents:
    tutorial
    style-guide
    language/index
+   extra/index
    contrib/index
    hacking
