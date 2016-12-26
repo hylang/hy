@@ -13,9 +13,9 @@ concise and easy to read.
 
     -- Wikipedia (https://en.wikipedia.org/wiki/Anaphoric_macro)
 
-To use these macros you need to require the hy.contrib.anaphoric module like so:
+To use these macros you need to require the ``hy.extra.anaphoric`` module like so:
 
-``(require [hy.contrib.anaphoric [*]])``
+``(require [hy.extra.anaphoric [*]])``
 
 .. _ap-if:
 
