@@ -25,6 +25,35 @@
         [hy.models.list [HyList]]
         [hy.models.string [HyString]])
 
+(defclass MultiDispatch [object] [
+
+  _fns (defaultdict dict)
+
+  __init__ (fn [self f]
+    (setv self.f f)
+    (setv self.__doc__ f.__doc__)
+    (unless (in f.__name__ (.keys (get self._fns f.__module__)))
+      (setv (get self._fns f.__module__ f.__name__) {}))
+    (setv values f.__code__.co_varnames)
+    (setv (get self._fns f.__module__ f.__name__ values) f))
+
+  fn? (fn [self v args kwargs]
+    "Compare the given (checked fn) to the called fn"
+    (setv com (+ (list args) (list (.keys kwargs))))
+    (and
+      (= (len com) (len v))
+      (.issubset (frozenset (.keys kwargs)) com)))
+
+  __call__ (fn [self &rest args &kwargs kwargs]
+    (setv output None)
+    (for [[i f] (.items (get self._fns self.f.__module__ self.f.__name__))]
+      (when (.fn? self i args kwargs)
+        (setv output (apply f args kwargs))
+        (break)))
+    (if output
+      output
+      (raise (TypeError "No matching functions with this signature"))))])
+
 (defn multi-decorator [dispatch-fn]
   (setv inner (fn [&rest args &kwargs kwargs]
                 (setv dispatch-key (apply dispatch-fn args kwargs))
@@ -73,7 +102,7 @@
        (do (def comment (car bodies))
            (def bodies (cdr bodies))))
      (def ret `(do))
-     (.append ret '(import [hy.contrib.dispatch [MultiDispatch]]))
+     (.append ret '(import [hy.contrib.multi [MultiDispatch]]))
      (for [body bodies]
        (def let-binds (car body))
        (def body (cdr body))
