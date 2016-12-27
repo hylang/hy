@@ -299,8 +299,8 @@
   (isinstance x collections.Iterator))
 
 (defn juxt [f &rest fs]
-  "Return a function that apply a set of functions to same arguments and
-   collect the result into a list."
+  "Return a function that applies each of the supplied functions to a single
+   set of arguments and collects the results into a list."
   (setv fs (cons f fs))
   (fn [&rest args &kwargs kwargs]
     (list-comp (apply f args kwargs) [f fs])))
