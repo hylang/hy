@@ -1,3 +1,42 @@
+Development Quickstart
+======================
+
+In order to begin contributing code to the hylang project, ensure that you
+have completed the following steps to set up your development environment.
+
+- Clone the project to a local git repository. Let's assume you've got a
+  handle on that.
+
+- Create a virtual environment that will contain the python dependencies
+  hylang uses. Starting with Python 3.3, the correct way to do this is::
+
+    $ python -m venv hylang_environment
+    $ source hylang_environment/bin/activate
+
+  In older versions of Python, and in many common distrobutions, this can
+  equivalently be done with::
+
+    $ virtualenv hylang_environment
+    $ source hylang_environment/bin/activate
+
+  How you name and use your virtual environment is up to you, you just need to
+  have one.
+
+- Install the core dependencies required for development as described in setup.py::
+
+    $ python setup.py develop
+
+- Install the additional tooling required for running unit tests, generating
+  docs, etc.::
+
+    $ pip install -r requirements-dev.txt
+
+- Verify that the unit tests run successfully (and documentation is generated, etc.)::
+
+    $ make d
+
+You should now have a working development environment.
+
 Contributor Guidelines
 ======================
 
