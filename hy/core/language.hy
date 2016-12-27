@@ -266,7 +266,7 @@
   (long-type x))
 
 (defn integer? [x]
-  "Return True if x in an integer"
+  "Return True if x is an integer"
   (isinstance x (, int long-type)))
 
 (defn integer-char? [x]
