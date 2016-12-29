@@ -20,7 +20,6 @@ from .native_tests.contrib.meth import *  # noqa
 from .native_tests.contrib.walk import *  # noqa
 from .native_tests.contrib.multi import *  # noqa
 from .native_tests.contrib.curry import *  # noqa
-from .native_tests.contrib.botsbuildbots import *  # noqa
 from .native_tests.contrib.sequences import *  # noqa
 
 if PY3:
