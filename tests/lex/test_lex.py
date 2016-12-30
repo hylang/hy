@@ -264,7 +264,7 @@ def test_escapes():
     entry = tokenize("(foo \"foo\\n\")")[0]
     assert entry[1] == "foo\n"
 
-    entry = tokenize("(foo \"foo\s\")")[0]
+    entry = tokenize("(foo \"foo\\s\")")[0]
     assert entry[1] == "foo\\s"
 
 

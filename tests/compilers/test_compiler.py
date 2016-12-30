@@ -42,7 +42,7 @@ class CompilerTest(unittest.TestCase):
         self.assert_(callable(compiler.builds("foo_bar")))
         self.assert_(callable(compiler.builds("-")))
         self.assertRaisesRegexp(TypeError,
-                                "\*post\* translated strings",
+                                r"\*post\* translated strings",
                                 compiler.builds, "foobar-with-dash-")
 
 

@@ -144,7 +144,7 @@ def koan_macro():
 @macro("ideas")
 def ideas_macro():
     return HyExpression([HySymbol('print'),
-                         HyString("""
+                         HyString(r"""
 
     => (import [sh [figlet]])
     => (figlet "Hi, Hy!")
