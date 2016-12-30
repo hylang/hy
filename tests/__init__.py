@@ -14,13 +14,10 @@ from .native_tests.core import *  # noqa
 from .native_tests.reader_macros import *  # noqa
 from .native_tests.shadow import *  # noqa
 from .native_tests.with_test import *  # noqa
-from .native_tests.contrib.anaphoric import *  # noqa
+from .native_tests.extra.anaphoric import *  # noqa
 from .native_tests.contrib.loop import *  # noqa
-from .native_tests.contrib.meth import *  # noqa
 from .native_tests.contrib.walk import *  # noqa
 from .native_tests.contrib.multi import *  # noqa
-from .native_tests.contrib.curry import *  # noqa
-from .native_tests.contrib.botsbuildbots import *  # noqa
 from .native_tests.contrib.sequences import *  # noqa
 
 if PY3:
