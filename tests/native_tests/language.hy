@@ -397,26 +397,32 @@
 
   (defclass X [object] [])
   (defclass M [object]
-    [meth (fn [self &rest args]
-      (.join " " (+ (, "meth") args)))])
+    [meth (fn [self &rest args &kwargs kwargs]
+      (.join " " (+ (, "meth") args
+        (tuple (map (fn [k] (get kwargs k)) (sorted (.keys kwargs)))))))])
 
   (setv x (X))
   (setv m (M))
 
   (assert (= (.meth m) "meth"))
   (assert (= (.meth m "foo" "bar") "meth foo bar"))
+  (assert (= (.meth :b "1" :a "2" m "foo" "bar") "meth foo bar 2 1"))
   (assert (= (apply .meth [m "foo" "bar"]) "meth foo bar"))
 
   (setv x.p m)
   (assert (= (.p.meth x) "meth"))
   (assert (= (.p.meth x "foo" "bar") "meth foo bar"))
+  (assert (= (.p.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
   (assert (= (apply .p.meth [x "foo" "bar"]) "meth foo bar"))
 
   (setv x.a (X))
   (setv x.a.b m)
   (assert (= (.a.b.meth x) "meth"))
   (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
-  (assert (= (apply .a.b.meth [x "foo" "bar"]) "meth foo bar")))
+  (assert (= (.a.b.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
+  (assert (= (apply .a.b.meth [x "foo" "bar"]) "meth foo bar"))
+
+  (assert (is (.isdigit :foo) False)))
 
 
 (defn test-do []
