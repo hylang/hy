@@ -34,6 +34,7 @@ hopefully making the language easier to use.
    * Lazy sequences added to contrib
    * defmacro! added for once-only evaluation for parameters
    * comp, constantly, complement and juxt added
+   * keyword arguments allowed in method calls before the object
 
    [ Bug Fixes ]
    * Better error when for doesn't have body
