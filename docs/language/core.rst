@@ -26,8 +26,7 @@ Returns an iterator of all but the last item in *coll*.
    => (list (butlast []))
    []
 
-   => (import itertools)
-   => (list (take 5 (butlast (itertools.count 10))))
+   => (list (take 5 (butlast (count 10))))
    [10, 11, 12, 13, 14]
 
 
@@ -1088,8 +1087,7 @@ Returns an iterator of all but the last *n* items in *coll*. Raises
    => (list (drop-last 100 (range 100)))
    []
 
-   => (import itertools)
-   => (list (take 5 (drop-last 100 (itertools.count 10))))
+   => (list (take 5 (drop-last 100 (count 10))))
    [10, 11, 12, 13, 14]
 
 
@@ -1374,3 +1372,25 @@ also includes all Python reserved words. All names are in unmangled form
    => (import hy)
    => (in "defclass" (hy.core.reserved.names))
    True
+
+
+Included itertools
+==================
+
+count cycle repeat accumulate chain compress drop-while remove group-by islice *map take-while tee zip-longest product permutations combinations multicombinations
+---------
+
+All of Python's `itertools <https://docs.python.org/3/library/itertools.html>`_
+are available. Some of their names have been changed:
+
+  - ``starmap`` has been changed to ``*map``
+
+  - ``combinations_with_replacement`` has been changed to ``multicombinations``
+
+  - ``groupby`` has been changed to ``group-by``
+
+  - ``takewhile`` has been changed to ``take-while``
+  
+  - ``dropwhile`` has been changed to ``drop-while``
+  
+  - ``filterfalse`` has been changed to ``remove``
