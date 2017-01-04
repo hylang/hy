@@ -1285,17 +1285,23 @@ also includes all Python reserved words. All names are in unmangled form
 Included itertools
 ==================
 
+count cycle repeat accumulate chain compress drop-while remove group-by islice *map take-while tee zip-longest product permutations combinations multicombinations
+---------
+
 All of Python's itertools are available, however some of the names have been
 changed:
 
-- `starmap` has been changed to `*map`
-
+  - `starmap` has been changed to `*map`
 
   - `combinations_with_replacement` has been changed to `multicombinations`
 
   - `groupby` has been changed to`group-by`
 
   - `takewhile` has been changed to `take-while`
+  
+  - `dropwhile` has been changed to `drop-while`
+  
+  - `filterfalse` has been changed to `remove`
 
   Please refer to the `Python documentation
   <https://docs.python.org/3/library/itertools.html>`_ for more information.
