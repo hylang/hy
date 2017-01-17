@@ -1,3 +1,79 @@
+Changes from 0.11.0
+
+This release brings some quite significant changes on the language and as a
+result very large portions of previously written Hy programs will require
+changes. At the same time, documentation and error messages were improved,
+hopefully making the language easier to use.
+
+   [ Language Changes ]
+   * New syntax for let, with and defclass
+   * defmacro will raise an error on &kwonly, &kwargs and &key arguments
+   * Keyword argument labels to functions are required to be strings
+   * slice replaced with cut to stop overloading the python built-in
+   * removed reduntant throw, catch, progn, defun, lisp-if, lisp-if-not,
+     filterfalse, true, false and nil
+   * global now takes multiple arguments
+   * Nonlocal keyword (Python 3 only)
+   * Set literals (#{1 2 3})
+   * Keyword-only arguments (Python 3 only)
+   * Setv can assign multiple variables at once
+   * Empty form allowed for setv, del and cond
+   * One-argument division, rationals and comparison operators (=, !=, <, >, <=, >=)
+   * partition form for chunking collection to n-sized tuples
+   * defn-alias and demacro-alias moved into hy.contrib.alias
+   * None is returned instead of the last form in --init--
+   * for and cond can take a multi-expression body
+   * Hex and octal support for integer literals
+   * Apply now mangles strings and keywords according to Hy mangling rules
+   * Variadic if
+   * defreader can use strings as macro names
+   * as-> macro added
+   * require syntax changed and now supports same features as import
+   * defmulti changed to work with dispatching function
+   * old defmulti renamed to defn
+   * Lazy sequences added to contrib
+   * defmacro! added for once-only evaluation for parameters
+   * comp, constantly, complement and juxt added
+   * keyword arguments allowed in method calls before the object
+
+   [ Bug Fixes ]
+   * Better error when for doesn't have body
+   * Better error detection with list comprehensions in Python 2.7
+   * Setting value to callable will raise an error
+   * defclass can have properties / methods with built-in names
+   * Better error messages on invalid macro arguments
+   * Better error messages with hy2py and hyc
+   * Cmdline error to string conversion.
+   * In python 3.3+, generator functions always return a value
+   * &rest can be used after &optional
+
+   [ Misc. Improvements ]
+   * Version information includes SHA1 of current commit
+   * Improved Python 3.5 support
+   * Allow specification of global table and module name for (eval ...)
+   * General documentation improvements
+   * Contrib.walk: Coerce non-list iterables into list form
+   * Flow macros (case and switch)
+   * ap-pipe and ap-compose macros
+   * #@ reader macro for with-decorator
+   * Type check `eval` parameters
+   * `and` and `or` short-circuit
+   * `and` and `or` accept zero or more arguments
+   * read-str for tokenizing a line
+   * botsbuildbots moved to contrib
+   * Trailing bangs on symbols are mangled
+   * xi forms (anonymous function literals)
+   * if form optimizations in some cases
+   * xor operator
+   * Overhauled macros to allow macros to ref the Compiler
+   * ap-if requires then branch
+   * Parameters for numeric operations (inc, dec, odd?, even?, etc.) aren't type checked
+   * import_file_to_globals added for use in emacs inferior lisp mode
+   * hy.core.reserved added for querying reserved words
+   * hy2py can use standard input instead of a file
+   * alias, curry, flow and meth removed from contrib
+   * contrib.anaphoric moved to hy.extra
+
 Changes from 0.10.1
 
    [ Language Changes ]
