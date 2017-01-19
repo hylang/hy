@@ -812,6 +812,15 @@ defaults to the name of the current module.
    => (eval '(print "Hello World"))
    "Hello World"
 
+If you want to evaluate a string, use ``read-str`` to convert it to a
+form first:
+
+.. code-block:: clj
+
+   => (eval (read-str "(+ 1 1)"))
+   2
+
+
 eval-and-compile
 ----------------
 
