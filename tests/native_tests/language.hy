@@ -1019,12 +1019,23 @@
 
 (defn test-xor []
   "NATIVE: test the xor macro"
-  (let [xor-both-true (xor True True)
-        xor-both-false (xor False False)
-        xor-true-false (xor True False)]
-    (assert (= xor-both-true False))
-    (assert (= xor-both-false False))
-    (assert (= xor-true-false True))))
+
+  ; Test each cell of the truth table.
+  (assert (is (xor False  False) False))
+  (assert (is (xor False True)  True))
+  (assert (is (xor True  False) True))
+  (assert (is (xor True  True)  False))
+
+  ; Same thing, but with numbers.
+  (assert (is (xor 0 0) 0))
+  (assert (is (xor 0 1) 1))
+  (assert (is (xor 1 0) 1))
+  (assert (is (xor 1 1) False))
+
+  ; Of two distinct false values, the second is returned.
+  (assert (is (xor False 0) 0))
+  (assert (is (xor 0 False) False)))
+
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"

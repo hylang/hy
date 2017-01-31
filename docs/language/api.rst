@@ -1713,20 +1713,15 @@ xor
 
 .. versionadded:: 0.12.0
 
-``xor`` is used in logical expressions to perform exclusive or. It takes two
-parameters. It returns ``True`` if only of the parameters is ``True``. In all
-other cases ``False`` is returned. Example usage:
+``xor`` performs the logical operation of exclusive OR. It takes two arguments.
+If exactly one argument is true, that argument is returned. If neither is true,
+the second argument is returned (which will necessarily be false). Otherwise,
+when both arguments are true, the value ``False`` is returned.
 
 .. code-block:: clj
 
-    => (xor True False)
-    True
-
-    => (xor True True)
-    False
-
-    => (xor [] [0])
-    True
+    => [(xor 0 0) (xor 0 1) (xor 1 0) (xor 1 1)]
+    [0, 1, 1, False]
 
 
 yield
