@@ -481,8 +481,9 @@
 
 (defn xor [a b]
   "Perform exclusive or between two parameters"
-  (or (and a (not b))
-      (and b (not a))))
+  (if (and a b)
+    False
+    (or a b)))
 
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
