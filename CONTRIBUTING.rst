@@ -47,6 +47,9 @@ Pull requests are great! We love them; here is a quick guide:
   + For more detail/explanations, follow this up with a blank line and
     continue describing the commit in detail.
 
+- Unless your change is very small, like a documentation wording
+  improvement, add an item describing it to the NEWS file.
+
 - Finally, add yourself to the AUTHORS file (as a separate commit): you
   deserve it :)
 
