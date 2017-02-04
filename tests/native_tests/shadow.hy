@@ -50,6 +50,7 @@
 
 (defn test-shadow-compare []
   "NATIVE: test shadow compare"
+
   (for [x [< <= = != >= >]]
      (assert (try
               (x)
@@ -59,6 +60,7 @@
               (x 1)
               (except [TypeError] True)
               (else (raise AssertionError)))))
+
   (for [(, x y) [[< >=]
                  [<= >]
                  [= !=]]]
@@ -67,6 +69,7 @@
                 [1 1]
                 [2 2]]]
       (assert (= (apply x args) (not (apply y args))))))
+
   (let [s-lt <
         s-gt >
         s-le <=
@@ -84,4 +87,15 @@
     (assert (apply s-eq [1 1 1 1 1]))
     (assert (not (apply s-eq [1 1 2 1 1])))
     (assert (apply s-ne [1 2 3 4 5]))
-    (assert (not (apply s-ne [1 1 2 3 4])))))
+    (assert (not (apply s-ne [1 1 2 3 4]))))
+
+  ; Make sure chained comparisons use `and`, not `&`.
+  ; https://github.com/hylang/hy/issues/1191
+  (defclass C [object] [
+    __init__ (fn [self x]
+      (setv self.x x))
+    __lt__ (fn [self other]
+      self.x)])
+  (assert (= (< (C "a") (C "b") (C "c")) "b"))
+  (setv f <)
+  (assert (= (f (C "a") (C "b") (C "c")) "b")))

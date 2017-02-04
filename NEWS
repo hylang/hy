@@ -3,6 +3,10 @@ Changes from 0.12.1
    [ Language Changes ]
    * xor: If exactly one argument is true, return it
 
+   [ Bug Fixes ]
+   * Shadowed comparison operators now use `and` instead of `&`
+     for chained comparisons
+
 Changes from 0.12.0
 
    [ Bug Fixes ]
