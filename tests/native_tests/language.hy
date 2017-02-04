@@ -462,9 +462,9 @@
   (setv passed False)
   (try
    (raise)
-   ;; Python 2 raises TypeError
+   ;; Python 2 raises IndexError here (due to the previous test)
    ;; Python 3 raises RuntimeError
-   (except [[TypeError RuntimeError]]
+   (except [[IndexError RuntimeError]]
      (setv passed True)))
   (assert passed)
 
