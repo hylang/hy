@@ -41,22 +41,12 @@
 
 (defmacro defn [name lambda-list &rest body]
   "define a function `name` with signature `lambda-list` and body `body`"
-  (if (not (= (type name) HySymbol))
+  (import hy)
+  (if (not (= (type name) hy.HySymbol))
     (macro-error name "defn takes a name as first argument"))
-  (if (not (isinstance lambda-list HyList))
+  (if (not (isinstance lambda-list hy.HyList))
     (macro-error name "defn takes a parameter list as second argument"))
   `(setv ~name (fn ~lambda-list ~@body)))
-
-(defmacro let [variables &rest body]
-  "Execute `body` in the lexical context of `variables`"
-  (if (not (isinstance variables HyList))
-    (macro-error variables "let lexical context must be a list"))
-  (if (= (len variables) 0)
-    `((fn []
-        ~@body))
-    `((fn []
-        (setv ~@variables)
-        ~@body))))
 
 (defmacro if-python2 [python2-form python3-form]
   "If running on python2, execute python2-form, else, execute python3-form"
