@@ -15,20 +15,20 @@
              walk-form)))
 
 (defn test-walk []
-  (let [acc '()]
-    (assert (= (walk (partial collector acc) identity walk-form)
-               [None None]))
-    (assert (= acc walk-form)))
-  (let [acc []]
-    (assert (= (walk identity (partial collector acc) walk-form)
-               None))
-    (assert (= acc [walk-form]))))
+  (setv acc '())
+  (assert (= (walk (partial collector acc) identity walk-form)
+             [None None]))
+  (assert (= acc walk-form))
+  (setv acc [])
+  (assert (= (walk identity (partial collector acc) walk-form)
+             None))
+  (assert (= acc [walk-form])))
 
 (defn test-walk-iterators []
-  (let [acc []]
-    (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
-                     (drop 1 [1 [2 [3 [4]]]]))
-               [[2 [3 [4]] 2 [3 [4]]]]))))
+  (setv acc [])
+  (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
+                   (drop 1 [1 [2 [3 [4]]]]))
+             [[2 [3 [4]] 2 [3 [4]]]])))
 
 (defn test-macroexpand-all []
   (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
