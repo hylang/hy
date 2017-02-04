@@ -419,14 +419,13 @@
 (defn take-nth [n coll]
   "Return every nth member of coll
      raises ValueError for (not (pos? n))"
-  (if (pos? n)
-    (do
-      (setv citer (iter coll) skip (dec n))
-      (for* [val citer]
-        (yield val)
-        (for* [_ (range skip)]
-          (next citer))))
-    (raise (ValueError "n must be positive"))))
+  (if (not (pos? n))
+    (raise (ValueError "n must be positive")))
+  (setv citer (iter coll) skip (dec n))
+  (for* [val citer]
+    (yield val)
+    (for* [_ (range skip)]
+      (next citer))))
 
 (defn zero? [n]
   "Return true if n is 0"
