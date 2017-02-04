@@ -103,13 +103,12 @@
 (defn distinct [coll]
   "Return a generator from the original collection with duplicates
    removed"
-  (let [seen (set)
-        citer (iter coll)]
+  (setv seen (set) citer (iter coll))
   (for* [val citer]
     (if (not_in val seen)
       (do
        (yield val)
-       (.add seen val))))))
+       (.add seen val)))))
 
 (if-python2
  (def
@@ -178,9 +177,9 @@
 
 (defn drop-last [n coll]
   "Return a sequence of all but the last n elements in coll."
-  (let [iters (tee coll)]
-    (map first (apply zip [(get iters 0)
-                           (drop n (get iters 1))]))))
+  (setv iters (tee coll))
+  (map first (apply zip [(get iters 0)
+                         (drop n (get iters 1))])))
 
 (defn empty? [coll]
   "Return True if `coll` is empty"
@@ -229,14 +228,14 @@
 (setv _gensym_lock (Lock))
 
 (defn gensym [&optional [g "G"]]
-  (let [new_symbol None]
-    (global _gensym_counter)
-    (global _gensym_lock)
-    (.acquire _gensym_lock)
-    (try (do (setv _gensym_counter (inc _gensym_counter))
-             (setv new_symbol (HySymbol (.format ":{0}_{1}" g _gensym_counter))))
-         (finally (.release _gensym_lock)))
-    new_symbol))
+  (setv new_symbol None)
+  (global _gensym_counter)
+  (global _gensym_lock)
+  (.acquire _gensym_lock)
+  (try (do (setv _gensym_counter (inc _gensym_counter))
+           (setv new_symbol (HySymbol (.format ":{0}_{1}" g _gensym_counter))))
+       (finally (.release _gensym_lock)))
+  new_symbol)
 
 (defn calling-module-name [&optional [n 1]]
   "Get the name of the module calling `n` levels up the stack from the
@@ -335,16 +334,16 @@
    from the latter (left-to-right) will be combined with the mapping in
    the result by calling (f val-in-result val-in-latter)."
   (if (any maps)
-    (let [merge-entry (fn [m e]
-                        (let [k (get e 0)
-                              v (get e 1)]
-                        (if (in k m)
-                          (assoc m k (f (get m k) v))
-                          (assoc m k v)))
-          m)
-      merge2 (fn [m1 m2]
-               (reduce merge-entry (.items m2) (or m1 {})))]
-    (reduce merge2 maps))))
+    (do
+      (defn merge-entry [m e]
+        (setv k (get e 0) v (get e 1))
+        (if (in k m)
+          (assoc m k (f (get m k) v))
+          (assoc m k v))
+        m)
+      (defn merge2 [m1 m2]
+        (reduce merge-entry (.items m2) (or m1 {})))
+      (reduce merge2 maps))))
 
 (defn neg? [n]
   "Return true if n is < 0"
@@ -421,13 +420,13 @@
   "Return every nth member of coll
      raises ValueError for (not (pos? n))"
   (if (pos? n)
-    (let [citer (iter coll)
-          skip (dec n)]
-    (for* [val citer]
-      (yield val)
-      (for* [_ (range skip)]
-        (next citer))))
-  (raise (ValueError "n must be positive"))))
+    (do
+      (setv citer (iter coll) skip (dec n))
+      (for* [val citer]
+        (yield val)
+        (for* [_ (range skip)]
+          (next citer))))
+    (raise (ValueError "n must be positive"))))
 
 (defn zero? [n]
   "Return true if n is 0"
