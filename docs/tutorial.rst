@@ -585,7 +585,12 @@ compile-time. ``require`` uses the same syntax as ``import``.
 Hy <-> Python interop
 =====================
 
-By importing Hy, you can use Hy directly from Python!
+Using Hy from Python
+--------------------
+
+Hy has to be installed.
+
+You can use Hy modules in Python!
 
 If you save the following in ``greetings.hy``:
 
@@ -593,7 +598,7 @@ If you save the following in ``greetings.hy``:
 
     (defn greet [name] (print "hello from hy," name))
 
-Then you can use it directly from python, by importing hy before importing
+Then you can use it directly from Python, by importing Hy before importing
 the module. In Python::
 
     import hy
@@ -601,21 +606,30 @@ the module. In Python::
 
     greetings.greet("Foo")
 
-You can also declare a function in python (or even a class!) and use it in Hy!
+You can also compile your module with ``hyc``. Then you can import it directly (Hy still has to be installed)::
+
+    import greetings
+
+    greetings.greet("Foo")
+
+Using Python from Hy
+--------------------
+
+You can also use any Python module in Hy!
 
 If you save the following in ``greetings.py`` in Python::
 
     def greet(name):
         print("hello, %s" % (name))
 
-You can use it in Hy:
+You can use it in Hy (see :ref:`import`):
 
 .. code-block:: clj
 
     (import greetings)
     (.greet greetings "foo")
 
-To use keyword arguments, you can use in ``greetings.py``::
+Even keywords arguments work fine. In ``greetings.py``::
 
     def greet(name, title="Sir"):
         print("Greetings, %s %s" % (title,name))

@@ -1049,6 +1049,7 @@ reverses the comparison.
     => (lif-not False "true" "false")
     "false"
 
+.. _import:
 
 import
 ------
