@@ -1763,4 +1763,4 @@ yield-from
 ``yield-from`` is used to call a subgenerator.  This is useful if you
 want your coroutine to be able to delegate its processes to another
 coroutine, say, if using something fancy like
-`asyncio <http://docs.python.org/3.4/library/asyncio.html>`_.
+`asyncio <https://docs.python.org/3.4/library/asyncio.html>`_.
