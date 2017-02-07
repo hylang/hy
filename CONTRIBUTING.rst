@@ -105,7 +105,7 @@ http://contributor-covenant.org/version/1/1/0/.
 .. _issue tracker: https://github.com/hylang/hy/issues
 .. _Fork the Repo: https://help.github.com/articles/fork-a-repo/
 .. _Start Here: http://rogerdudler.github.io/git-guide/
-.. _good-first-bug: http://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug
+.. _good-first-bug: https://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug
 .. _latest: http://hylang.org/
 .. _stable: http://docs.hylang.org/en/stable/
 

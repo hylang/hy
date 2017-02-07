@@ -221,6 +221,6 @@ Thanks
   Survival Guide`_
 + The `Clojure Style Guide`_
 
-.. _`Hy Survival Guide`: http://notes.pault.ag/hy-survival-guide/
+.. _`Hy Survival Guide`: https://notes.pault.ag/hy-survival-guide/
 .. _`Clojure Style Guide`: https://github.com/bbatsov/clojure-style-guide
 .. _`@paultag`: https://github.com/paultag
