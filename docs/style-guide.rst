@@ -101,15 +101,6 @@ Layout & Indentation
     )  ; GAH, BURN IT WITH FIRE
 
 
-+ Vertically align ``let`` blocks.
-
-  .. code-block:: clj
-
-     (let [foo (bar)
-           qux (baz)]
-        (foo qux))
-
-
 + Inline comments shall be two spaces from the end of the code; they
   must always have a space between the comment character and the start
   of the comment. Also, try to not comment the obvious.

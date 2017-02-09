@@ -286,17 +286,20 @@ Examples of usage:
 
 .. code-block:: clj
 
-  =>(let [collection {}]
+  =>(do
+  ... (setv collection {})
   ... (assoc collection "Dog" "Bark")
   ... (print collection))
   {u'Dog': u'Bark'}
 
-  =>(let [collection {}]
+  =>(do
+  ... (setv collection {})
   ... (assoc collection "Dog" "Bark" "Cat" "Meow")
   ... (print collection))
   {u'Cat': u'Meow', u'Dog': u'Bark'}
 
-  =>(let [collection [1 2 3 4]]
+  =>(do
+  ... (setv collection [1 2 3 4])
   ... (assoc collection 2 None)
   ... (print collection))
   [1, 2, None, 4]
@@ -555,9 +558,9 @@ Parameters may have the following keywords in front of them:
     .. code-block:: clj
 
         => (defn zig-zag-sum [&rest numbers]
-             (let [odd-numbers (list-comp x [x numbers] (odd? x))
-	           even-numbers (list-comp x [x numbers] (even? x))]
-               (- (sum odd-numbers) (sum even-numbers))))
+             (setv odd-numbers (list-comp x [x numbers] (odd? x))
+	           even-numbers (list-comp x [x numbers] (even? x)))
+             (- (sum odd-numbers) (sum even-numbers)))
 
         => (zig-zag-sum)
         0
@@ -578,10 +581,10 @@ Parameters may have the following keywords in front of them:
     .. code-block:: clj
 
         => (defn compare [a b &kwonly keyfn [reverse false]]
-        ...  (let [result (keyfn a b)]
-        ...    (if (not reverse)
-        ...      result
-        ...      (- result))))
+        ...  (setv result (keyfn a b))
+        ...  (if (not reverse)
+        ...    result
+        ...    (- result)))
         => (apply compare ["lisp" "python"]
         ...        {"keyfn" (fn [x y]
         ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))})
@@ -932,8 +935,9 @@ list. Example usage:
 
 .. code-block:: clj
 
-   => (let [animals {"dog" "bark" "cat" "meow"}
-   ...      numbers ["zero" "one" "two" "three"]]
+   => (do
+   ...  (setv animals {"dog" "bark" "cat" "meow"}
+   ...        numbers ["zero" "one" "two" "three"])
    ...  (print (get animals "dog"))
    ...  (print (get numbers 2)))
    bark
@@ -1148,36 +1152,6 @@ last
     6
 
 
-let
----
-
-``let`` is used to create lexically scoped variables. They are created at the
-beginning of the ``let`` form and cease to exist after the form. The following
-example showcases this behaviour:
-
-.. code-block:: clj
-
-    => (let [x 5] (print x)
-    ...  (let [x 6] (print x))
-    ...  (print x))
-    5
-    6
-    5
-
-The ``let`` macro takes two parameters: a vector defining *variables*
-and the *body* which gets executed. *variables* is a vector of
-variable and value pairs.
-
-Note that the variable assignments are executed one by one, from left to right.
-The following example takes advantage of this:
-
-.. code-block:: clj
-
-    => (let [x 5 
-             y (+ x 1)] (print x y))
-    5 6
-
-
 list-comp
 ---------
 
@@ -1209,30 +1183,20 @@ nonlocal
 
 ``nonlocal`` can be used to mark a symbol as not local to the current scope.
 The parameters are the names of symbols to mark as nonlocal.  This is necessary
-to modify variables through nested ``let`` or ``fn`` scopes:
+to modify variables through nested ``fn`` scopes:
 
 .. code-block:: clj
 
-    (let [x 0]
-      (for [y (range 10)]
-        (let [z (inc y)]
-          (nonlocal x)  ; allow the setv to "jump scope" to resolve x
-          (setv x (+ x y))))
-      x)
-
     (defn some-function []
-      (let [x 0]
-        (register-some-callback
-          (fn [stuff]
-            (nonlocal x)
-            (setv x stuff)))))
+      (setv x 0)
+      (register-some-callback
+        (fn [stuff]
+          (nonlocal x)
+          (setv x stuff))))
 
-In the first example, without the call to ``(nonlocal x)``, this code would
-result in an UnboundLocalError being raised during the call to ``setv``.
-
-In the second example, without the call to ``(nonlocal x)``, the inner function
-would redefine ``x`` to ``stuff`` inside its local scope instead of overwriting
-the ``x`` in the outer function
+Without the call to ``(nonlocal x)``, the inner function would redefine ``x`` to
+``stuff`` inside its local scope instead of overwriting the ``x`` in the outer
+function.
 
 See `PEP3104 <https://www.python.org/dev/peps/pep-3104/>`_ for further
 information.
@@ -1698,9 +1662,10 @@ expands to:
 
 .. code-block:: hy
 
-   (let [a (gensym)
-         b (gensym)
-         c (gensym)]
+   (do
+     (setv a (gensym)
+           b (gensym)
+           c (gensym))
      ...)
 
 .. seealso::

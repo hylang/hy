@@ -381,7 +381,8 @@ A first pass might be something like:
 .. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
-     `(let [obscure-name ~expr]
+     `(do
+       (setv obscure-name ~expr)
        (cond [(pos? obscure-name) ~pos-form]
              [(zero? obscure-name) ~zero-form]
              [(neg? obscure-name) ~neg-form])))
@@ -396,15 +397,16 @@ such an occasion. A much better version of ``nif`` would be:
 .. code-block:: hy
 
    (defmacro nif [expr pos-form zero-form neg-form]
-     (let [g (gensym)]
-       `(let [~g ~expr]
-          (cond [(pos? ~g) ~pos-form]
-                [(zero? ~g) ~zero-form]
-                [(neg? ~g) ~neg-form]))))
+     (setv g (gensym))
+     `(do
+        (setv ~g ~expr)
+        (cond [(pos? ~g) ~pos-form]
+              [(zero? ~g) ~zero-form]
+              [(neg? ~g) ~neg-form])))
 
 This is an easy case, since there is only one symbol. But if there is
 a need for several gensym's there is a second macro :ref:`with-gensyms` that
-basically expands to a series of ``let`` statements:
+basically expands to a ``setv`` form:
 
 .. code-block:: hy
 
@@ -415,9 +417,10 @@ expands to:
 
 .. code-block:: hy
 
-   (let [a (gensym)
-         b (gensym)
-         c (gensym)]
+   (do
+     (setv a (gensym)
+           b (gensym)
+           c (gensym))
      ...)
 
 so our re-written ``nif`` would look like:
@@ -426,10 +429,10 @@ so our re-written ``nif`` would look like:
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (with-gensyms [g]
-       `(let [~g ~expr]
-          (cond [(pos? ~g) ~pos-form]
-                [(zero? ~g) ~zero-form]
-                [(neg? ~g) ~neg-form]))))
+       `(setv [~g ~expr])
+       `(cond [(pos? ~g) ~pos-form]
+              [(zero? ~g) ~zero-form]
+              [(neg? ~g) ~neg-form])))
 
 Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
@@ -440,10 +443,11 @@ Our final version of ``nif``, built with ``defmacro/g!`` becomes:
 .. code-block:: hy
 
    (defmacro/g! nif [expr pos-form zero-form neg-form]
-     `(let [~g!res ~expr]
+     `(do
+        (setv ~g!res ~expr)
         (cond [(pos? ~g!res) ~pos-form]
               [(zero? ~g!res) ~zero-form]
-              [(neg? ~g!res) ~neg-form]))))
+              [(neg? ~g!res) ~neg-form])))
 
 
 
