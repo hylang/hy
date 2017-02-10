@@ -588,8 +588,6 @@ Hy <-> Python interop
 Using Hy from Python
 --------------------
 
-Hy has to be installed.
-
 You can use Hy modules in Python!
 
 If you save the following in ``greetings.hy``:
@@ -602,12 +600,6 @@ Then you can use it directly from Python, by importing Hy before importing
 the module. In Python::
 
     import hy
-    import greetings
-
-    greetings.greet("Foo")
-
-You can also compile your module with ``hyc``. Then you can import it directly (Hy still has to be installed)::
-
     import greetings
 
     greetings.greet("Foo")
@@ -629,26 +621,7 @@ You can use it in Hy (see :ref:`import`):
     (import greetings)
     (.greet greetings "foo")
 
-Even keywords arguments work fine. In ``greetings.py``::
-
-    def greet(name, title="Sir"):
-        print("Greetings, %s %s" % (title,name))
-
-.. code-block:: clj
-
-    (import greetings)
-    (.greet greetings "Foo")
-    (.greet greetings "Foo" "Darth")
-    (apply (. greetings greet) ["Foo"] {:title "Lord"})
-
-Which would output::
-
-  Greetings, Sir Foo
-
-  Greetings, Darth Foo
-
-  Greetings, Lord Foo
-
+More information on :doc:`../language/interop`.
 
 
 Protips!
