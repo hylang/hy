@@ -8,7 +8,6 @@ Tutorial
 ..  - How do I do array ranges?  e.g. x[5:] or y[2:10]
 ..  - Blow your mind with macros!
 ..  - Where's my banana???
-..  - Mention that you can import .hy files in .py files and vice versa!
 
 Welcome to the Hy tutorial!
 
