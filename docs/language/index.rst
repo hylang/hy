@@ -8,6 +8,7 @@ Contents:
    :maxdepth: 3
 
    cli
+   interop
    api
    core
    readermacros
