@@ -864,37 +864,6 @@
   (assert (= (fn-test) None)))
 
 
-(defn test-let []
-  "NATIVE: test let works rightish"
-  ;; TODO: test sad paths for let
-  (assert (= (let [x 1 y 2 z 3] (+ x y z)) 6))
-  (assert (= (let [x 1 a None y 2 b None] (if a 1 2)) 2))
-  (assert (= (let [x None] x) None))
-  (assert (= (let [x "x not bound"] (setv x "x bound by setv") x)
-             "x bound by setv"))
-  (assert (= (let [x "let nests scope correctly"]
-               (let [y None] x))
-             "let nests scope correctly"))
-  (assert (= (let [x 999999]
-               (let [x "x being rebound"] x))
-             "x being rebound"))
-  (assert (= (let [x "x not being rebound"]
-               (let [x 2] None)
-               x)
-             "x not being rebound"))
-  (assert (= (let [x (set [3 2 1 3 2]) y x z y] z) (set [1 2 3])))
-  (import math)
-  (let [cos math.cos
-        foo-cos (fn [x] (cos x))]
-    (assert (= (cos math.pi) -1.0))
-    (assert (= (foo-cos (- math.pi)) -1.0))
-    (let [cos (fn [_] "cos has been locally rebound")]
-      (assert (= (cos cos) "cos has been locally rebound"))
-      (assert (= (-> math.pi (/ 3) foo-cos (round 2)) 0.5)))
-    (setv cos (fn [_] "cos has been rebound by setv"))
-    (assert (= (foo-cos foo-cos) "cos has been rebound by setv"))))
-
-
 (defn test-if-mangler []
   "NATIVE: test that we return ifs"
   (assert (= True (if True True True))))
@@ -903,20 +872,6 @@
 (defn test-nested-mangles []
   "NATIVE: test that we can use macros in mangled code"
   (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
-
-
-(defn test-let-scope []
-  "NATIVE: test let works rightish"
-  (setv y 123)
-  (assert (= (let [x 1
-                   y 2
-                   z 3]
-               (+ x y z))
-             6))
-  (try
-   (assert (= x 42))                   ; This ain't true
-   (except [e [NameError]] (assert e)))
-  (assert (= y 123)))
 
 
 (defn test-symbol-utf-8 []
@@ -1040,16 +995,12 @@
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
-                                ; thanks, algernon
-  (assert (= 1 (let [x 1
-                     y 2]
-                 (if True
-                   2)
-                 1)))
-  (assert (= 1 (let [x 1 y 2]
-                 (do)
-                 (do)
-                 ((fn [] 1))))))
+                                ; thanks, kirbyfan64
+  (defn f []
+    (if True (setv x 1) 2)
+    1)
+
+  (assert (= 1 (f))))
 
 
 (defn test-keyword []
@@ -1186,10 +1137,6 @@
     xxx
     (assert False))
    (except [NameError])))
-
-(defn test-if-let-mixing []
-  "NATIVE: test that we can now mix if and let"
-  (assert (= 0 (if True (let [x 0] x) 42))))
 
 (defn test-if-in-if []
   "NATIVE: test that we can use if in if"
