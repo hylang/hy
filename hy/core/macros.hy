@@ -125,8 +125,8 @@
    [(empty? args) `(do ~@body ~@belse)]
    [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
    [True
-    (let [alist (cut args 0 None 2)]
-      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))]))
+    (setv alist (cut args 0 None 2))
+    `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse)]))
 
 
 (defmacro -> [head &rest rest]
@@ -151,7 +151,8 @@
     (if (isinstance expression HyExpression)
       `(~(first expression) ~f ~@(rest expression))
       `(~expression ~f)))
-  `(let [~f ~form]
+  `(do
+     (setv ~f ~form)
      ~@(map build-form expressions)
      ~f))
 
@@ -203,23 +204,24 @@
 (defmacro with-gensyms [args &rest body]
   (setv syms [])
   (for* [arg args]
-    (.extend syms `[~arg (gensym '~arg)]))
-  `(let ~syms
-     ~@body))
+    (.extend syms [arg `(gensym '~arg)]))
+  `(do
+    (setv ~@syms)
+    ~@body))
 
 (defmacro defmacro/g! [name args &rest body]
-  (let [syms (list
+  (setv syms (list
               (distinct
                (filter (fn [x]
                          (and (hasattr x "startswith")
                               (.startswith x "g!")))
                        (flatten body))))
-        gensyms []]
-    (for* [sym syms]
-      (.extend gensyms `[~sym (gensym (cut '~sym 2))]))
-    `(defmacro ~name [~@args]
-       (let ~gensyms
-         ~@body))))
+        gensyms [])
+  (for* [sym syms]
+    (.extend gensyms [sym `(gensym ~(cut sym 2))]))
+  `(defmacro ~name [~@args]
+     (setv ~@gensyms)
+     ~@body))
 
 (defmacro defmacro! [name args &rest body]
   "Like defmacro/g! plus automatic once-only evaluation for o!
@@ -251,17 +253,15 @@
 
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
-  (let [retval (gensym)
-        mainfn `(fn [~@args]
-                  ~@body)]
-    `(when (= --name-- "__main__")
-       (import sys)
-       (setv ~retval (apply ~mainfn sys.argv))
-       (if (integer? ~retval)
-         (sys.exit ~retval)))))
+  (setv retval (gensym))
+  `(when (= --name-- "__main__")
+     (import sys)
+     (setv ~retval (apply (fn [~@args] ~@body) sys.argv))
+     (if (integer? ~retval)
+       (sys.exit ~retval))))
 
 
 (defreader @ [expr]
-  (let [decorators (cut expr None -1)
-        fndef (get expr -1)]
-    `(with-decorator ~@decorators ~fndef)))
+  (setv decorators (cut expr None -1)
+        fndef (get expr -1))
+  `(with-decorator ~@decorators ~fndef))

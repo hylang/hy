@@ -58,13 +58,13 @@
 
 
 (defmacro/g! fnr [signature &rest body]
-  (let [new-body (recursive-replace 'recur g!recur-fn body)]
-    `(do
-      (import [hy.contrib.loop [--trampoline--]])
-      (with-decorator
-        --trampoline--
-        (def ~g!recur-fn (fn [~@signature] ~@new-body)))
-      ~g!recur-fn)))
+  (setv new-body (recursive-replace 'recur g!recur-fn body))
+  `(do
+    (import [hy.contrib.loop [--trampoline--]])
+    (with-decorator
+      --trampoline--
+      (def ~g!recur-fn (fn [~@signature] ~@new-body)))
+    ~g!recur-fn))
 
 
 (defmacro defnr [name lambda-list &rest body]
@@ -86,8 +86,8 @@
   ;; If recur is used in a non-tail-call position, None is returned, which
   ;; causes chaos. Fixing this to detect if recur is in a tail-call position
   ;; and erroring if not is a giant TODO.
-  (let [fnargs (map (fn [x] (first x)) bindings)
-        initargs (map second bindings)]
-    `(do (require hy.contrib.loop)
-         (hy.contrib.loop.defnr ~g!recur-fn [~@fnargs] ~@body)
-         (~g!recur-fn ~@initargs))))
+  (setv fnargs (map (fn [x] (first x)) bindings)
+        initargs (map second bindings))
+  `(do (require hy.contrib.loop)
+       (hy.contrib.loop.defnr ~g!recur-fn [~@fnargs] ~@body)
+       (~g!recur-fn ~@initargs)))

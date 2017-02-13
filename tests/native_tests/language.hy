@@ -449,51 +449,51 @@
   (try (do) (except [IOError]) (except))
 
   ;; Test correct (raise)
-  (let [passed False]
-    (try
-     (try
-      (raise IndexError)
-      (except [IndexError] (raise)))
-     (except [IndexError]
-       (setv passed True)))
-    (assert passed))
+  (setv passed False)
+  (try
+   (try
+    (raise IndexError)
+    (except [IndexError] (raise)))
+   (except [IndexError]
+     (setv passed True)))
+  (assert passed)
 
   ;; Test incorrect (raise)
-  (let [passed False]
-    (try
-     (raise)
-     ;; Python 2 raises TypeError
-     ;; Python 3 raises RuntimeError
-     (except [[TypeError RuntimeError]]
-       (setv passed True)))
-    (assert passed))
+  (setv passed False)
+  (try
+   (raise)
+   ;; Python 2 raises IndexError here (due to the previous test)
+   ;; Python 3 raises RuntimeError
+   (except [[IndexError RuntimeError]]
+     (setv passed True)))
+  (assert passed)
 
   ;; Test (finally)
-  (let [passed False]
-    (try
-     (do)
-     (finally (setv passed True)))
-    (assert passed))
+  (setv passed False)
+  (try
+   (do)
+   (finally (setv passed True)))
+  (assert passed)
 
   ;; Test (finally) + (raise)
-  (let [passed False]
-    (try
-     (raise Exception)
-     (except)
-     (finally (setv passed True)))
-    (assert passed))
+  (setv passed False)
+  (try
+   (raise Exception)
+   (except)
+   (finally (setv passed True)))
+  (assert passed)
 
 
   ;; Test (finally) + (raise) + (else)
-  (let [passed False
-        not-elsed True]
-    (try
-     (raise Exception)
-     (except)
-     (else (setv not-elsed False))
-     (finally (setv passed True)))
-    (assert passed)
-    (assert not-elsed))
+  (setv passed False
+        not-elsed True)
+  (try
+   (raise Exception)
+   (except)
+   (else (setv not-elsed False))
+   (finally (setv passed True)))
+  (assert passed)
+  (assert not-elsed)
 
   (try
    (raise (KeyError))
@@ -553,37 +553,37 @@
      (setv foobar42ofthebaz 42)
      (assert (= foobar42ofthebaz 42))))
 
-  (let [passed False]
-    (try
-     (try (do) (except) (else (bla)))
-     (except [NameError] (setv passed True)))
-    (assert passed))
+  (setv passed False)
+  (try
+   (try (do) (except) (else (bla)))
+   (except [NameError] (setv passed True)))
+  (assert passed)
 
-  (let [x 0]
-    (try
-     (raise IOError)
-     (except [IOError]
-       (setv x 45))
-     (else (setv x 44)))
-    (assert (= x 45)))
+  (setv x 0)
+  (try
+   (raise IOError)
+   (except [IOError]
+     (setv x 45))
+   (else (setv x 44)))
+  (assert (= x 45))
 
-  (let [x 0]
-    (try
-     (raise KeyError)
-     (except []
-       (setv x 45))
-     (else (setv x 44)))
-    (assert (= x 45)))
+  (setv x 0)
+  (try
+   (raise KeyError)
+   (except []
+     (setv x 45))
+   (else (setv x 44)))
+  (assert (= x 45))
 
-  (let [x 0]
-    (try
-     (try
-      (raise KeyError)
-      (except [IOError]
-        (setv x 45))
-      (else (setv x 44)))
-     (except))
-    (assert (= x 0))))
+  (setv x 0)
+  (try
+   (try
+    (raise KeyError)
+    (except [IOError]
+      (setv x 45))
+    (else (setv x 44)))
+   (except))
+  (assert (= x 0)))
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"
@@ -677,9 +677,9 @@
 (defn test-yield-in-try []
   "NATIVE: test yield in try"
   (defn gen []
-    (let [x 1]
+    (setv x 1)
     (try (yield x)
-         (finally (print x)))))
+         (finally (print x))))
   (setv output (list (gen)))
   (assert (= [1] output)))
 
@@ -747,17 +747,17 @@
 
 (defn test-for-else []
   "NATIVE: test for else"
-  (let [x 0]
-    (for* [a [1 2]]
-      (setv x (+ x a))
-      (else (setv x (+ x 50))))
-    (assert (= x 53)))
+  (setv x 0)
+  (for* [a [1 2]]
+    (setv x (+ x a))
+    (else (setv x (+ x 50))))
+  (assert (= x 53))
 
-  (let [x 0]
-    (for* [a [1 2]]
-      (setv x (+ x a))
-      (else))
-    (assert (= x 3))))
+  (setv x 0)
+  (for* [a [1 2]]
+    (setv x (+ x a))
+    (else))
+  (assert (= x 3)))
 
 
 (defn test-list-comprehensions []
@@ -864,37 +864,6 @@
   (assert (= (fn-test) None)))
 
 
-(defn test-let []
-  "NATIVE: test let works rightish"
-  ;; TODO: test sad paths for let
-  (assert (= (let [x 1 y 2 z 3] (+ x y z)) 6))
-  (assert (= (let [x 1 a None y 2 b None] (if a 1 2)) 2))
-  (assert (= (let [x None] x) None))
-  (assert (= (let [x "x not bound"] (setv x "x bound by setv") x)
-             "x bound by setv"))
-  (assert (= (let [x "let nests scope correctly"]
-               (let [y None] x))
-             "let nests scope correctly"))
-  (assert (= (let [x 999999]
-               (let [x "x being rebound"] x))
-             "x being rebound"))
-  (assert (= (let [x "x not being rebound"]
-               (let [x 2] None)
-               x)
-             "x not being rebound"))
-  (assert (= (let [x (set [3 2 1 3 2]) y x z y] z) (set [1 2 3])))
-  (import math)
-  (let [cos math.cos
-        foo-cos (fn [x] (cos x))]
-    (assert (= (cos math.pi) -1.0))
-    (assert (= (foo-cos (- math.pi)) -1.0))
-    (let [cos (fn [_] "cos has been locally rebound")]
-      (assert (= (cos cos) "cos has been locally rebound"))
-      (assert (= (-> math.pi (/ 3) foo-cos (round 2)) 0.5)))
-    (setv cos (fn [_] "cos has been rebound by setv"))
-    (assert (= (foo-cos foo-cos) "cos has been rebound by setv"))))
-
-
 (defn test-if-mangler []
   "NATIVE: test that we return ifs"
   (assert (= True (if True True True))))
@@ -905,51 +874,38 @@
   (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
 
 
-(defn test-let-scope []
-  "NATIVE: test let works rightish"
-  (setv y 123)
-  (assert (= (let [x 1
-                   y 2
-                   z 3]
-               (+ x y z))
-             6))
-  (try
-   (assert (= x 42))                   ; This ain't true
-   (except [e [NameError]] (assert e)))
-  (assert (= y 123)))
-
-
 (defn test-symbol-utf-8 []
   "NATIVE: test symbol encoded"
-  (let [♥ "love"
-        ⚘ "flower"]
-    (assert (= (+ ⚘ ♥) "flowerlove"))))
+  (setv ♥ "love"
+        ⚘ "flower")
+  (assert (= (+ ⚘ ♥) "flowerlove")))
 
 
 (defn test-symbol-dash []
   "NATIVE: test symbol encoded"
-  (let [♥-♥ "doublelove"
-        -_- "what?"]
-    (assert (= ♥-♥ "doublelove"))
-    (assert (= -_- "what?"))))
+  (setv ♥-♥ "doublelove"
+        -_- "what?")
+  (assert (= ♥-♥ "doublelove"))
+  (assert (= -_- "what?")))
 
 
 (defn test-symbol-question-mark []
   "NATIVE: test foo? -> is_foo behavior"
-  (let [foo? "nachos"]
-    (assert (= is_foo "nachos"))))
+  (setv foo? "nachos")
+  (assert (= is_foo "nachos")))
 
 
 (defn test-and []
   "NATIVE: test the and function"
-  (let [and123 (and 1 2 3)
+  
+  (setv and123 (and 1 2 3)
         and-false (and 1 False 3)
         and-true (and)
-        and-single (and 1)]
-    (assert (= and123 3))
-    (assert (= and-false False))
-    (assert (= and-true True))
-    (assert (= and-single 1)))
+        and-single (and 1))
+  (assert (= and123 3))
+  (assert (= and-false False))
+  (assert (= and-true True))
+  (assert (= and-single 1))
   ; short circuiting
   (setv a 1)
   (and 0 (setv a 2))
@@ -980,16 +936,16 @@
 
 (defn test-or []
   "NATIVE: test the or function"
-  (let [or-all-true (or 1 2 3 True "string")
+  (setv or-all-true (or 1 2 3 True "string")
         or-some-true (or False "hello")
         or-none-true (or False False)
         or-false (or)
-        or-single (or 1)]
-    (assert (= or-all-true 1))
-    (assert (= or-some-true "hello"))
-    (assert (= or-none-true False))
-    (assert (= or-false None))
-    (assert (= or-single 1)))
+        or-single (or 1))
+  (assert (= or-all-true 1))
+  (assert (= or-some-true "hello"))
+  (assert (= or-none-true False))
+  (assert (= or-false None))
+  (assert (= or-single 1))
   ; short circuiting
   (setv a 1)
   (or 1 (setv a 2))
@@ -1039,16 +995,12 @@
 
 (defn test-if-return-branching []
   "NATIVE: test the if return branching"
-                                ; thanks, algernon
-  (assert (= 1 (let [x 1
-                     y 2]
-                 (if True
-                   2)
-                 1)))
-  (assert (= 1 (let [x 1 y 2]
-                 (do)
-                 (do)
-                 ((fn [] 1))))))
+                                ; thanks, kirbyfan64
+  (defn f []
+    (if True (setv x 1) 2)
+    1)
+
+  (assert (= 1 (f))))
 
 
 (defn test-keyword []
@@ -1107,17 +1059,16 @@
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
   (assert (= 'bar (eval (quote foo) {'foo 'bar})))
-  (assert (= 1 (let [d {}] (eval '(setv x 1) d) (eval (quote x) d))))
-  (let [d1 {}
-        d2 {}]
-    (eval '(setv x 1) d1)
-    (try
-      (do
-         ; this should fail with a name error
-         (eval (quote x) d2)
-         (assert False "We shouldn't have arrived here"))
-      (except [e Exception]
-        (assert (isinstance e NameError))))))
+  (assert (= 1 (do (setv d {}) (eval '(setv x 1) d) (eval (quote x) d))))
+  (setv d1 {}  d2 {})
+  (eval '(setv x 1) d1)
+  (try
+    (do
+       ; this should fail with a name error
+       (eval (quote x) d2)
+       (assert False "We shouldn't have arrived here"))
+    (except [e Exception]
+      (assert (isinstance e NameError)))))
 
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
@@ -1186,10 +1137,6 @@
     xxx
     (assert False))
    (except [NameError])))
-
-(defn test-if-let-mixing []
-  "NATIVE: test that we can now mix if and let"
-  (assert (= 0 (if True (let [x 0] x) 42))))
 
 (defn test-if-in-if []
   "NATIVE: test that we can use if in if"

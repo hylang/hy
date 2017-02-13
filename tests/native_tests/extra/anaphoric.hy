@@ -59,7 +59,7 @@
                 [3 6 9])
   (assert-equal (list (ap-map (* it 3) []))
                 [])
-  (assert-equal (let [v 1 f 1] (list (ap-map (it v f) [(fn [a b] (+ a b))])))
+  (assert-equal (do (setv v 1 f 1) (list (ap-map (it v f) [(fn [a b] (+ a b))])))
                 [2]))
 
 (defn test-ap-map-when []
@@ -83,9 +83,9 @@
 
 (defn test-ap-dotimes []
   "NATIVE: testing anaphoric dotimes"
-  (assert-equal (let [n []] (ap-dotimes 3 (.append n 3)) n)
+  (assert-equal (do (setv n []) (ap-dotimes 3 (.append n 3)) n)
 		[3 3 3])
-  (assert-equal (let [n []] (ap-dotimes 3 (.append n it)) n)
+  (assert-equal (do (setv n []) (ap-dotimes 3 (.append n it)) n)
 		[0 1 2]))
 
 (defn test-ap-first []

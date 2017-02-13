@@ -1203,10 +1203,9 @@ if *from-file* ends before a complete expression can be parsed.
    => (with [f (open "example.hy")]
    ...   (try
    ...     (while True
-   ...            (let [exp (read f)]
-   ...              (do
-   ...                (print "OHY" exp)
-   ...                (eval exp))))
+   ...            (setv exp (read f))
+   ...            (print "OHY" exp)
+   ...            (eval exp))
    ...     (except [e EOFError]
    ...            (print "EOF!"))))
    OHY ('print' 'hello')

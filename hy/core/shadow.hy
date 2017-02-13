@@ -26,22 +26,22 @@
 
 (defn + [&rest args]
   "Shadow + operator for when we need to import / map it against something"
-  (let [count (len args)]
-    (if (zero? count)
-      (raise (TypeError "Need at least 1 argument to add/concatenate"))
-      (if (= count 1)
-        (operator.pos (get args 0))
-        (reduce operator.add args)))))
+  (if
+    (= (len args) 1)
+      (operator.pos (get args 0))
+    args
+      (reduce operator.add args)
+    (raise (TypeError "Need at least 1 argument to add/concatenate"))))
 
 
 (defn - [&rest args]
   "Shadow - operator for when we need to import / map it against something"
-  (let [count (len args)]
-    (if (= count 0)
-      (raise (TypeError "Need at least 1 argument to subtract"))
-      (if (= count 1)
-        (- (get args 0))
-        (reduce operator.sub args)))))
+  (if
+    (= (len args) 1)
+      (- (get args 0))
+    args
+      (reduce operator.sub args)
+    (raise (TypeError "Need at least 1 argument to subtract"))))
 
 
 (defn * [&rest args]
@@ -53,12 +53,12 @@
 
 (defn / [&rest args]
   "Shadow / operator for when we need to import / map it against something"
-  (let [count (len args)]
-    (if (= count 0)
-      (raise (TypeError "Need at least 1 argument to divide"))
-      (if (= count 1)
-        (operator.truediv 1 (get args 0))
-        (reduce operator.truediv args)))))
+  (if
+    (= (len args) 1)
+      (operator.truediv 1 (get args 0))
+    args
+      (reduce operator.truediv args)
+    (raise (TypeError "Need at least 1 argument to divide"))))
 
 
 (defn comp-op [op args]

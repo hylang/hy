@@ -538,8 +538,8 @@ We can also manipulate code with macros:
 .. code-block:: clj
 
   => (defmacro rev [code]
-  ...  (let [op (last code) params (list (butlast code))]
-  ...  `(~op ~@params)))
+  ...  (setv op (last code) params (list (butlast code)))
+  ...  `(~op ~@params))
   => (rev (1 2 3 +))
   6
 
@@ -558,8 +558,8 @@ characters that soon):
 .. code-block:: clj
 
   => (defreader ↻ [code]
-  ...  (let [op (last code) params (list (butlast code))]
-  ...  `(~op ~@params)))
+  ...  (setv op (last code) params (list (butlast code)))
+  ...  `(~op ~@params))
   => #↻(1 2 3 +)
   6
 

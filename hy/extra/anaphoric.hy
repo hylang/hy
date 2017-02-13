@@ -26,8 +26,9 @@
 
 
 (defmacro ap-if [test-form then-form &optional else-form]
-  `(let [it ~test-form]
-     (if it ~then-form ~else-form)))
+  `(do
+    (setv it ~test-form)
+    (if it ~then-form ~else-form)))
 
 
 (defmacro ap-each [lst &rest body]
@@ -38,38 +39,44 @@
 (defmacro ap-each-while [lst form &rest body]
   "Evaluate the body form for each element in the list while the
   predicate form evaluates to True."
-  `(let [p (lambda [it] ~form)]
+  (setv p (gensym))
+  `(do
+     (defn ~p [it] ~form)
      (for [it ~lst]
-       (if (p it)
+       (if (~p it)
          ~@body
          (break)))))
 
 
 (defmacro ap-map [form lst]
   "Yield elements evaluated in the form for each element in the list."
-  (let [v (gensym 'v)
-        f (gensym 'f)]
-    `(let [~f (lambda [it] ~form)]
-       (for [~v ~lst]
-         (yield (~f ~v))))))
+  (setv v (gensym 'v)  f (gensym 'f))
+  `((fn []
+     (defn ~f [it] ~form)
+     (for [~v ~lst]
+       (yield (~f ~v))))))
 
 
 (defmacro ap-map-when [predfn rep lst]
   "Yield elements evaluated for each element in the list when the
   predicate function returns True."
-  `(let [f (lambda [it] ~rep)]
+  (setv f (gensym))
+  `((fn []
+     (defn ~f [it] ~rep)
      (for [it ~lst]
        (if (~predfn it)
-         (yield (f it))
-         (yield it)))))
+         (yield (~f it))
+         (yield it))))))
 
 
 (defmacro ap-filter [form lst]
   "Yield elements returned when the predicate form evaluates to True."
-  `(let [pred (lambda [it] ~form)]
+  (setv pred (gensym))
+  `((fn []
+     (defn ~pred [it] ~form)
      (for [val ~lst]
-       (if (pred val)
-         (yield val)))))
+       (if (~pred val)
+         (yield val))))))
 
 
 (defmacro ap-reject [form lst]
@@ -80,14 +87,15 @@
 (defmacro ap-dotimes [n &rest body]
   "Execute body for side effects `n' times, with it bound from 0 to n-1"
   (unless (numeric? n)
-    (raise (TypeError (.format "{0!r} is not a number" n))))
+    (raise (TypeError (.format "{!r} is not a number" n))))
   `(ap-each (range ~n) ~@body))
 
 
 (defmacro ap-first [predfn lst]
   "Yield the first element that passes `predfn`"
   (with-gensyms [n]
-    `(let [~n None]
+    `(do
+       (setv ~n None)
        (ap-each ~lst (when ~predfn (setv ~n it) (break)))
        ~n)))
 
@@ -95,7 +103,8 @@
 (defmacro ap-last [predfn lst]
   "Yield the last element that passes `predfn`"
   (with-gensyms [n]
-    `(let [~n None]
+    `(do
+       (setv ~n None)
        (ap-each ~lst (none? ~n)
                 (when ~predfn
                   (setv ~n it)))
@@ -104,20 +113,18 @@
 
 (defmacro ap-reduce [form lst &optional [initial-value None]]
   "Anaphoric form of reduce, `acc' and `it' can be used for a form"
-  (if (none? initial-value)
-    `(let [acc (car ~lst)]
-       (ap-each (cdr ~lst) (setv acc ~form))
-       acc)
-    `(let [acc ~initial-value]
-       (ap-each ~lst (setv acc ~form))
-       acc)))
+  `(do
+    (setv acc ~(if (none? initial-value) `(car ~lst) initial-value))
+    (ap-each ~(if (none? initial-value) `(cdr ~lst) lst)
+      (setv acc ~form))
+    acc))
 
 
 (defmacro ap-pipe [var &rest forms]
   "Pushes a value through several forms.
   (Anaphoric version of -> and ->>)"
   (if (empty? forms) var
-      `(ap-pipe (let [it ~var] ~(first forms)) ~@(rest forms))))
+      `(ap-pipe (do (setv it ~var) ~(first forms)) ~@(rest forms))))
 
 
 (defmacro ap-compose [&rest forms]
