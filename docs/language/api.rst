@@ -18,7 +18,7 @@ These rules help ensure that Hy code is idiomatic and interfaceable in both
 languages.
 
 
-  * Symbols in earmufs will be translated to the upper-cased version of that
+  * Symbols in earmuffs will be translated to the upper-cased version of that
     string. For example, ``foo`` will become ``FOO``.
 
   * UTF-8 entities will be encoded using
@@ -34,10 +34,8 @@ languages.
 Notes on Syntax
 ===============
 
-integers
---------
-
-.. versionadded:: 0.11.1
+numeric literals
+----------------
 
 In addition to regular numbers, standard notation from Python 3 for non-base 10
 integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
@@ -46,6 +44,13 @@ integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
     
     (print 0x80 0b11101 0o102 30)
 
+Underscores and commas can appear anywhere in a numeric literal. They have no
+effect on the value of the literal, but they're useful for visually separating
+digits.
+
+.. code-block:: clj
+
+    (print 10,000,000,000 10_000_000_000)
 
 Built-Ins
 =========
