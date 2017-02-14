@@ -19,6 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.models import HyObject, _wrappers
+from hy._compat import string_types
 
 
 class HyComplex(HyObject, complex):
@@ -28,6 +29,8 @@ class HyComplex(HyObject, complex):
     """
 
     def __new__(cls, number, *args, **kwargs):
+        if isinstance(number, string_types):
+            number = number.replace("_", "").replace(",", "")
         number = complex(number)
         return super(HyComplex, cls).__new__(cls, number)
 

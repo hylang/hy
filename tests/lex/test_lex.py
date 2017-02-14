@@ -143,6 +143,32 @@ def test_lex_expression_complex():
     assert objs == [HyExpression([HySymbol("foo"), HySymbol("j")])]
 
 
+def test_lex_digit_separators():
+
+    assert tokenize("1_000_000") == [HyInteger(1000000)]
+    assert tokenize("1,000,000") == [HyInteger(1000000)]
+    assert tokenize("1,000_000") == [HyInteger(1000000)]
+    assert tokenize("1_000,000") == [HyInteger(1000000)]
+
+    assert tokenize("0x_af") == [HyInteger(0xaf)]
+    assert tokenize("0x,af") == [HyInteger(0xaf)]
+    assert tokenize("0b_010") == [HyInteger(0b010)]
+    assert tokenize("0b,010") == [HyInteger(0b010)]
+    assert tokenize("0o_373") == [HyInteger(0o373)]
+    assert tokenize("0o,373") == [HyInteger(0o373)]
+
+    assert tokenize('1_2.3,4') == [HyFloat(12.34)]
+    assert tokenize('1_2e3,4') == [HyFloat(12e34)]
+    assert (tokenize("1,2/3_4") ==
+            [HyExpression([HySymbol("fraction"),
+             HyInteger(12), HyInteger(34)])])
+    assert tokenize("1,0_00j") == [HyComplex(1000j)]
+
+    assert tokenize(",,,,___,__1__,,__,,2__,,,__") == [HyInteger(12)]
+    assert (tokenize(",,,,___,__1__,,__,,2__,q,__") ==
+            [HySymbol(",,,,___,__1__,,__,,2__,q,__")])
+
+
 def test_lex_line_counting():
     """ Make sure we can count lines / columns """
     entry = tokenize("(foo (one two))")[0]

@@ -3,6 +3,7 @@ Changes from 0.12.1
    [ Language Changes ]
    * `let` has been removed. Python's scoping rules do not make a proper
      implementation of it possible. Use `setv` instead.
+   * Commas and underscores are allowed in numeric literals
    * xor: If exactly one argument is true, return it
 
    [ Bug Fixes ]
