@@ -96,17 +96,16 @@ _wrappers[bool] = lambda x: HySymbol("True") if x else HySymbol("False")
 _wrappers[type(None)] = lambda foo: HySymbol("None")
 
 
-KEYWORD_PREFIX = "\uFDD0"
-
-
 class HyKeyword(HyObject, str_type):
     """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
     depending on the Python version.
     """
 
+    PREFIX = "\uFDD0"
+
     def __new__(cls, value):
-        if not value.startswith(KEYWORD_PREFIX):
-            value = KEYWORD_PREFIX + value
+        if not value.startswith(cls.PREFIX):
+            value = cls.PREFIX + value
 
         obj = str_type.__new__(cls, value)
         return obj

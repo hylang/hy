@@ -33,7 +33,7 @@
   (import [StringIO [StringIO]])
   (import [io [StringIO]]))
 (import [hy._compat [long-type]]) ; long for python2, int for python3
-(import [hy.models [HyCons HySymbol HyKeyword *keyword-prefix*]])
+(import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.compiler [HyASTCompiler]])
 
@@ -456,7 +456,7 @@
 (defn keyword [value]
   "Create a keyword from the given value. Strings numbers and even objects
   with the __name__ magic will work"
-  (if (and (string? value) (value.startswith *keyword-prefix*))
+  (if (and (string? value) (value.startswith HyKeyword.PREFIX))
     (hyify value)
     (if (string? value)
       (HyKeyword (+ ":" (hyify value)))
@@ -467,7 +467,7 @@
 (defn name [value]
   "Convert the given value to a string. Keyword special character will be stripped.
   String will be used as is. Even objects with the __name__ magic will work"
-  (if (and (string? value) (value.startswith *keyword-prefix*))
+  (if (and (string? value) (value.startswith HyKeyword.PREFIX))
     (hyify (cut value 2))
     (if (string? value)
       (hyify value)
