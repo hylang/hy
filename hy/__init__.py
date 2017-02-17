@@ -26,17 +26,7 @@ except ImportError:
     __version__ = 'unknown'
 
 
-from hy.models.expression import HyExpression  # NOQA
-from hy.models.integer import HyInteger  # NOQA
-from hy.models.keyword import HyKeyword  # NOQA
-from hy.models.complex import HyComplex  # NOQA
-from hy.models.string import HyString  # NOQA
-from hy.models.symbol import HySymbol  # NOQA
-from hy.models.float import HyFloat  # NOQA
-from hy.models.dict import HyDict  # NOQA
-from hy.models.list import HyList  # NOQA
-from hy.models.set import HySet  # NOQA
-from hy.models.cons import HyCons  # NOQA
+from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HySymbol, HyFloat, HyDict, HyList, HySet, HyCons  # NOQA
 
 
 import hy.importer  # NOQA

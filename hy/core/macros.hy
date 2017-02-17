@@ -26,8 +26,7 @@
 ;;; They are automatically required in every module, except inside hy.core
 
 
-(import [hy.models.list [HyList]]
-        [hy.models.symbol [HySymbol]]
+(import [hy.models [HyList HySymbol]]
         [hy._compat [PY33 PY34]])
 
 (defmacro as-> [head name &rest rest]

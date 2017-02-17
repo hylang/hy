@@ -23,10 +23,7 @@ import ast
 import sys
 
 from hy import compiler
-from hy.models.expression import HyExpression
-from hy.models.list import HyList
-from hy.models.symbol import HySymbol
-from hy.models.integer import HyInteger
+from hy.models import HyExpression, HyList, HySymbol, HyInteger
 from hy._compat import PY33
 
 if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:

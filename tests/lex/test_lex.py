@@ -19,17 +19,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models.expression import HyExpression
-from hy.models.integer import HyInteger
-from hy.models.float import HyFloat
-from hy.models.complex import HyComplex
-from hy.models.symbol import HySymbol
-from hy.models.string import HyString
-from hy.models.dict import HyDict
-from hy.models.list import HyList
-from hy.models.set import HySet
-from hy.models.cons import HyCons
-
+from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
+                       HyString, HyDict, HyList, HySet, HyCons)
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 
 

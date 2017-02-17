@@ -33,9 +33,7 @@
   (import [StringIO [StringIO]])
   (import [io [StringIO]]))
 (import [hy._compat [long-type]]) ; long for python2, int for python3
-(import [hy.models.cons [HyCons]]
-        [hy.models.symbol [HySymbol]]
-        [hy.models.keyword [HyKeyword *keyword-prefix*]])
+(import [hy.models [HyCons HySymbol HyKeyword *keyword-prefix*]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.compiler [HyASTCompiler]])
 

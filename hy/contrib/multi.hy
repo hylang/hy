@@ -21,9 +21,7 @@
 ;; DEALINGS IN THE SOFTWARE.
 
 (import [collections [defaultdict]]
-        [hy.models.expression [HyExpression]]
-        [hy.models.list [HyList]]
-        [hy.models.string [HyString]])
+        [hy [HyExpression HyList HyString]])
 
 (defclass MultiDispatch [object] [
 

@@ -44,7 +44,7 @@ Hy parser.
 HyList
 ~~~~~~
 
-``hy.models.list.HyList`` is the base class of "iterable" Hy models. Its
+``hy.models.HyList`` is the base class of "iterable" Hy models. Its
 basic use is to represent bracketed ``[]`` lists, which, when used as a
 top-level expression, translate to Python list literals in the
 compilation phase.
@@ -58,7 +58,7 @@ objects in a macro, for instance.
 HyExpression
 ~~~~~~~~~~~~
 
-``hy.models.expression.HyExpression`` inherits :ref:`HyList` for
+``hy.models.HyExpression`` inherits :ref:`HyList` for
 parenthesized ``()`` expressions. The compilation result of those
 expressions depends on the first element of the list: the compiler
 dispatches expressions between compiler special-forms, user-defined
@@ -69,7 +69,7 @@ macros, and regular Python function calls.
 HyDict
 ~~~~~~
 
-``hy.models.dict.HyDict`` inherits :ref:`HyList` for curly-bracketed ``{}``
+``hy.models.HyDict`` inherits :ref:`HyList` for curly-bracketed ``{}``
 expressions, which compile down to a Python dictionary literal.
 
 The decision of using a list instead of a dict as the base class for
@@ -101,7 +101,7 @@ the following order:
 HyString
 ~~~~~~~~
 
-``hy.models.string.HyString`` is the base class of string-equivalent Hy
+``hy.models.HyString`` is the base class of string-equivalent Hy
 models. It also represents double-quoted string literals, ``""``, which
 compile down to unicode string literals in Python. ``HyStrings`` inherit
 unicode objects in Python 2, and string objects in Python 3 (and are
@@ -118,12 +118,12 @@ strings.
 Numeric Models
 ~~~~~~~~~~~~~~
 
-``hy.models.integer.HyInteger`` represents integer literals (using the
+``hy.models.HyInteger`` represents integer literals (using the
 ``long`` type on Python 2, and ``int`` on Python 3).
 
-``hy.models.float.HyFloat`` represents floating-point literals.
+``hy.models.HyFloat`` represents floating-point literals.
 
-``hy.models.complex.HyComplex`` represents complex literals.
+``hy.models.HyComplex`` represents complex literals.
 
 Numeric models are parsed using the corresponding Python routine, and
 valid numeric python literals will be turned into their Hy counterpart.
@@ -133,7 +133,7 @@ valid numeric python literals will be turned into their Hy counterpart.
 HySymbol
 ~~~~~~~~
 
-``hy.models.symbol.HySymbol`` is the model used to represent symbols
+``hy.models.HySymbol`` is the model used to represent symbols
 in the Hy language. It inherits :ref:`HyString`.
 
 ``HySymbol`` objects are mangled in the parsing phase, to help Python
@@ -153,7 +153,7 @@ source code. Such a mechanism is used by :ref:`gensym` to generate
 HyKeyword
 ~~~~~~~~~
 
-``hy.models.keyword.HyKeyword`` represents keywords in Hy. Keywords are
+``hy.models.HyKeyword`` represents keywords in Hy. Keywords are
 symbols starting with a ``:``. The class inherits :ref:`HyString`.
 
 To distinguish :ref:`HyKeywords <HyKeyword>` from :ref:`HySymbols
@@ -166,7 +166,7 @@ literal before storage.
 Cons Cells
 ==========
 
-``hy.models.cons.HyCons`` is a representation of Python-friendly `cons
+``hy.models.HyCons`` is a representation of Python-friendly `cons
 cells`_.  Cons cells are especially useful to mimic features of "usual"
 LISP variants such as Scheme or Common Lisp.
 

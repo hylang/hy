@@ -23,18 +23,8 @@ from functools import wraps
 
 from rply import ParserGenerator
 
-from hy.models.complex import HyComplex
-from hy.models.cons import HyCons
-from hy.models.dict import HyDict
-from hy.models.expression import HyExpression
-from hy.models.float import HyFloat
-from hy.models.integer import HyInteger
-from hy.models.keyword import HyKeyword
-from hy.models.list import HyList
-from hy.models.set import HySet
-from hy.models.string import HyString
-from hy.models.symbol import HySymbol
-
+from hy.models import (HyComplex, HyCons, HyDict, HyExpression, HyFloat,
+                       HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol)
 from .lexer import lexer
 from .exceptions import LexException, PrematureEndOfInput
 
