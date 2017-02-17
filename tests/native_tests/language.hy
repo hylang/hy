@@ -1363,7 +1363,7 @@
   (if-python2
     (import [StringIO [StringIO]])
     (import [io [StringIO]]))
-  (import [hy.models.expression [HyExpression]])
+  (import [hy.models [HyExpression]])
 
   (def stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
   (assert (= (eval (read stdin-buffer)) 4))

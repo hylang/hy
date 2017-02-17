@@ -48,9 +48,7 @@ from hy.completer import Completer
 from hy.errors import HyIOError
 
 from hy.macros import macro, require
-from hy.models.expression import HyExpression
-from hy.models.string import HyString
-from hy.models.symbol import HySymbol
+from hy.models import HyExpression, HyString, HySymbol
 
 from hy._compat import builtins, PY3
 
