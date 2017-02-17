@@ -111,6 +111,12 @@ class HyKeyword(HyObject, str_type):
         return obj
 
 
+def strip_digit_separators(number):
+    return (number.replace("_", "").replace(",", "")
+            if isinstance(number, string_types)
+            else number)
+
+
 class HyInteger(HyObject, long_type):
     """
     Internal representation of a Hy Integer. May raise a ValueError as if
@@ -120,7 +126,7 @@ class HyInteger(HyObject, long_type):
 
     def __new__(cls, number, *args, **kwargs):
         if isinstance(number, string_types):
-            number = number.replace("_", "").replace(",", "")
+            number = strip_digit_separators(number)
             bases = {"0x": 16, "0o": 8, "0b": 2}
             for leader, base in bases.items():
                 if number.startswith(leader):
@@ -148,9 +154,7 @@ class HyFloat(HyObject, float):
     """
 
     def __new__(cls, number, *args, **kwargs):
-        if isinstance(number, string_types):
-            number = number.replace("_", "").replace(",", "")
-        number = float(number)
+        number = float(strip_digit_separators(number))
         return super(HyFloat, cls).__new__(cls, number)
 
 _wrappers[float] = HyFloat
@@ -163,9 +167,7 @@ class HyComplex(HyObject, complex):
     """
 
     def __new__(cls, number, *args, **kwargs):
-        if isinstance(number, string_types):
-            number = number.replace("_", "").replace(",", "")
-        number = complex(number)
+        number = complex(strip_digit_separators(number))
         return super(HyComplex, cls).__new__(cls, number)
 
 _wrappers[complex] = HyComplex
