@@ -55,6 +55,11 @@ import keyword
 
 from collections import defaultdict
 
+if PY3:
+    import builtins
+else:
+    import __builtin__ as builtins
+
 
 _compile_time_ns = {}
 
@@ -75,7 +80,11 @@ def load_stdlib():
     for module in hy.core.STDLIB:
         mod = importlib.import_module(module)
         for e in mod.EXPORTS:
-            _stdlib[e] = module
+            if getattr(mod, e) is not getattr(builtins, e, ''):
+                # Don't bother putting a name in _stdlib if it
+                # points to a builtin with the same name. This
+                # prevents pointless imports.
+                _stdlib[e] = module
 
 
 # True, False and None included here since they

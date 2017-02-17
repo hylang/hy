@@ -263,6 +263,21 @@ def test_ast_require():
     cant_compile("(require [tests.resources.tlib [* *]])")
 
 
+def test_ast_no_pointless_imports():
+    def contains_import_from(code):
+        return any([isinstance(node, ast.ImportFrom)
+                   for node in hy_compile(tokenize(code), "__main__").body])
+    # `reduce` is a builtin in Python 2, but not Python 3.
+    # The version of `map` that returns an iterator is a builtin in
+    # Python 3, but not Python 2.
+    if PY3:
+        assert contains_import_from("reduce")
+        assert not contains_import_from("map")
+    else:
+        assert not contains_import_from("reduce")
+        assert contains_import_from("map")
+
+
 def test_ast_good_get():
     "Make sure AST can compile valid get"
     can_compile("(get x y)")
