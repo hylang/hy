@@ -225,13 +225,13 @@ def test_ast_bad_defclass():
 
 def test_ast_good_lambda():
     "Make sure AST can compile valid lambda"
-    can_compile("(lambda [])")
-    can_compile("(lambda [] 1)")
+    can_compile("(fn [])")
+    can_compile("(fn [] 1)")
 
 
 def test_ast_bad_lambda():
     "Make sure AST can't compile invalid lambda"
-    cant_compile("(lambda)")
+    cant_compile("(fn)")
 
 
 def test_ast_good_yield():

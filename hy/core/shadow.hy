@@ -65,7 +65,7 @@
   "Helper for shadow comparison operators"
   (if (< (len args) 2)
     (raise (TypeError "Need at least 2 arguments to compare"))
-    (reduce (lambda [x y] (and x y))
+    (reduce (fn [x y] (and x y))
             (list-comp (op x y)
                        [(, x y) (zip args (cut args 1))]))))
 (defn < [&rest args]

@@ -164,11 +164,11 @@ def ideas_macro():
 
 
 ;;; filtering a list w/ a lambda
-(filter (lambda [x] (= (% x 2) 0)) (range 0 10))
+(filter (fn [x] (= (% x 2) 0)) (range 0 10))
 
 
 ;;; swaggin' functional bits (Python rulez)
-(max (map (lambda [x] (len x)) ["hi" "my" "name" "is" "paul"]))
+(max (map (fn [x] (len x)) ["hi" "my" "name" "is" "paul"]))
 
 """)])
 

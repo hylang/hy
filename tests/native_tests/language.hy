@@ -75,7 +75,7 @@
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
   (try (eval '(defn get [] (print "hello")))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(defn lambda [] (print "hello")))
+  (try (eval '(defn fn [] (print "hello")))
        (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
 
 
@@ -133,10 +133,6 @@
 
 (defn test-alias-names-in-errors []
   "NATIVE: tests that native aliases show the correct names in errors"
-  (try (eval '(lambda))
-       (except [e [Exception]] (assert (in "lambda" (str e)))))
-  (try (eval '(fn))
-       (except [e [Exception]] (assert (in "fn" (str e)))))
   (try (eval '(setv 1 2 3))
        (except [e [Exception]] (assert (in "setv" (str e)))))
   (try (eval '(def 1 2 3))
@@ -343,11 +339,11 @@
              "level")))
 
 
-(defn test-lambda []
-  "NATIVE: test lambda operator"
-  (setv square (lambda [x] (* x x)))
+(defn test-fn []
+  "NATIVE: test fn operator"
+  (setv square (fn [x] (* x x)))
   (assert (= 4 (square 2)))
-  (setv lambda_list (lambda [test &rest args] (, test args)))
+  (setv lambda_list (fn [test &rest args] (, test args)))
   (assert (= (, 1 (, 2 3)) (lambda_list 1 2 3))))
 
 
@@ -1424,7 +1420,7 @@
 (defmacro identify-keywords [&rest elts]
   `(list
     (map
-     (lambda (x) (if (is-keyword x) "keyword" "other"))
+     (fn (x) (if (is-keyword x) "keyword" "other"))
      ~elts)))
 
 (defn test-keywords-and-macros []

@@ -406,8 +406,8 @@ do
 
 ``do`` is used to evaluate each of its arguments and return the
 last one. Return values from every other than the last argument are discarded.
-It can be used in ``lambda`` or ``list-comp`` to perform more complex logic as
-shown in one of the following examples.
+It can be used in ``list-comp`` to perform more complex logic as shown in one
+of the following examples.
 
 Some example usage:
 
@@ -1116,13 +1116,15 @@ that ``import`` can be used.
     (import [sys [*]])
 
 
-lambda / fn
+fn
 -----------
 
-``lambda`` and ``fn`` can be used to define an anonymous function. The parameters are
-similar to ``defn``: the first parameter is vector of parameters and the rest is the
-body of the function. ``lambda`` returns a new function. In the following example, an
-anonymous function is defined and passed to another function for filtering output.
+``fn``, like Python's ``lambda``, can be used to define an anonymous function.
+Unlike Python's ``lambda``, the body of the function can comprise several
+statements. The parameters are similar to ``defn``: the first parameter is
+vector of parameters and the rest is the body of the function. ``fn`` returns a
+new function. In the following example, an anonymous function is defined and
+passed to another function for filtering output.
 
 .. code-block:: clj
 

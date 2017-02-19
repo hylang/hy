@@ -1,6 +1,6 @@
 (defn test-decorated-1line-function []
   (defn foodec [func]
-    (lambda [] (+ (func) 1)))
+    (fn [] (+ (func) 1)))
   (with-decorator foodec
     (defn tfunction []
       (* 2 2)))
@@ -9,7 +9,7 @@
 
 (defn test-decorated-multiline-function []
   (defn bazdec [func]
-    (lambda [] (+ (func) "x")))
+    (fn [] (+ (func) "x")))
   (with-decorator bazdec
     (defn f []
       (setv intermediate "i")
@@ -30,7 +30,7 @@
 
 (defn test-decorated-setv []
   (defn d [func]
-    (lambda [] (+ (func) "z")))
+    (fn [] (+ (func) "z")))
   (with-decorator d
     (setv f (fn [] "hello")))
   (assert (= (f) "helloz")))

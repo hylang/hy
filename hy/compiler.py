@@ -2301,7 +2301,6 @@ class HyASTCompiler(object):
                             col_offset=expression.start_column)
         return ret
 
-    @builds("lambda")
     @builds("fn")
     @checkargs(min=1)
     def compile_function_def(self, expression):
