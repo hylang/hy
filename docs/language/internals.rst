@@ -113,6 +113,12 @@ Hy literal strings can span multiple lines, and are considered by the
 parser as a single unit, respecting the Python escapes for unicode
 strings.
 
+HyBytes
+~~~~~~~
+
+``hy.models.HyBytes`` is like ``HyString``, but for sequences of bytes.
+It inherits from ``bytes`` on Python 3 and ``str`` on Python 2.
+
 .. _hy_numeric_models:
 
 Numeric Models

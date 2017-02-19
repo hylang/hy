@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from __future__ import unicode_literals
-from hy._compat import PY3, str_type, long_type, string_types
+from hy._compat import PY3, str_type, bytes_type, long_type, string_types
 
 
 class HyObject(object):
@@ -82,6 +82,16 @@ class HyString(HyObject, str_type):
     pass
 
 _wrappers[str_type] = HyString
+
+
+class HyBytes(HyObject, bytes_type):
+    """
+    Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending
+    on the Python version.
+    """
+    pass
+
+_wrappers[bytes_type] = HyBytes
 
 
 class HySymbol(HyString):

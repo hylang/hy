@@ -46,7 +46,7 @@ lg.add('HASHREADER', r'#[^{]')
 # A regexp which matches incomplete strings, used to support
 # multi-line strings in the interpreter
 partial_string = r'''(?x)
-    (?:u|r|ur|ru)? # prefix
+    (?:u|r|ur|ru|b|br|rb)? # prefix
     "  # start string
     (?:
        | [^"\\]             # non-quote or backslash

@@ -30,6 +30,9 @@
 (defmacro a-string [] "foo")
 (assert (= (a-string) "foo"))
 
+(defmacro a-bytes [] b"foo")
+(assert (= (a-bytes) b"foo"))
+
 (defmacro a-list [] [1 2])
 (assert (= (a-list) [1 2]))
 

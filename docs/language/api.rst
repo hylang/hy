@@ -52,6 +52,19 @@ digits.
 
     (print 10,000,000,000 10_000_000_000)
 
+string literals
+---------------
+
+Unlike Python, Hy allows only double-quoted strings. The single-quote character
+is reserved for preventing the evaluation of a form, as in most Lisps.
+
+Whether running under Python 2 or Python 3, Hy treats string literals as
+sequences of Unicode characters by default, and allows you to prefix a literal
+with ``b`` to treat it as a sequence of bytes. So when running under Python 3,
+Hy translates ``"foo"`` and ``b"foo"`` to the identical Python code, but when
+running under Python 2, ``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is
+translated to ``"foo"``.
+
 Built-Ins
 =========
 
