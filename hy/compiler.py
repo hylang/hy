@@ -2305,13 +2305,12 @@ class HyASTCompiler(object):
     @builds("fn")
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        called_as = expression.pop(0)
+        expression.pop(0)
 
         arglist = expression.pop(0)
         if not isinstance(arglist, HyList):
             raise HyTypeError(expression,
-                              "First argument to `{}' must be a list".format(
-                                  called_as))
+                              "First argument to `fn' must be a list")
 
         (ret, args, defaults, stararg,
          kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)
@@ -2383,7 +2382,7 @@ class HyASTCompiler(object):
             defaults=defaults)
 
         body = self._compile_branch(expression)
-        if not body.stmts and called_as == "lambda":
+        if not body.stmts:
             ret += ast.Lambda(
                 lineno=expression.start_line,
                 col_offset=expression.start_column,
@@ -2529,7 +2528,6 @@ class HyASTCompiler(object):
             if kw in expression[0]:
                 raise HyTypeError(name, "macros cannot use %s" % kw)
         new_expression = HyExpression([
-            HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.macro"), name]),
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)
@@ -2552,7 +2550,6 @@ class HyASTCompiler(object):
                                "for reader macro name" % type(name).__name__))
         name = HyString(name).replace(name)
         new_expression = HyExpression([
-            HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.reader"), name]),
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)

@@ -57,24 +57,6 @@ class HyASTCompilerTest(unittest.TestCase):
     def setUp(self):
         self.c = compiler.HyASTCompiler('test')
 
-    def test_fn_compiler_empty_function(self):
-        ret = self.c.compile_function_def(
-            self._make_expression(HySymbol("fn"), HyList()))
-        self.assertEqual(ret.imports, {})
-
-        self.assertEqual(len(ret.stmts), 1)
-        stmt = ret.stmts[0]
-        self.assertIsInstance(stmt, ast.FunctionDef)
-        self.assertIsInstance(stmt.args, ast.arguments)
-        self.assertEqual(stmt.args.vararg, None)
-        self.assertEqual(stmt.args.kwarg, None)
-        self.assertEqual(stmt.args.defaults, [])
-        self.assertEqual(stmt.decorator_list, [])
-        self.assertEqual(len(stmt.body), 1)
-        self.assertIsInstance(stmt.body[0], ast.Pass)
-
-        self.assertIsInstance(ret.expr, ast.Name)
-
     def test_compiler_bare_names(self):
         """
         Check that the compiler doesn't drop bare names from code branches

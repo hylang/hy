@@ -369,9 +369,11 @@ def test_ast_expression_basics():
 
 def test_ast_anon_fns_basics():
     """ Ensure anon fns work. """
-    code = can_compile("(fn (x) (* x x))").body[0]
+    code = can_compile("(fn (x) (* x x))").body[0].value
+    assert type(code) == ast.Lambda
+    code = can_compile("(fn (x) (print \"multiform\") (* x x))").body[0]
     assert type(code) == ast.FunctionDef
-    code = can_compile("(fn (x))").body[0]
+    can_compile("(fn (x))")
     cant_compile("(fn)")
 
 
@@ -430,7 +432,7 @@ def test_lambda_list_keywords_kwargs():
 def test_lambda_list_keywords_kwonly():
     """Ensure we can compile functions with &kwonly if we're on Python
     3, or fail with an informative message on Python 2."""
-    kwonly_demo = "(fn [&kwonly a [b 2]] (print a b))"
+    kwonly_demo = "(fn [&kwonly a [b 2]] (print 1) (print a b))"
     if PY3:
         code = can_compile(kwonly_demo)
         for i, kwonlyarg_name in enumerate(('a', 'b')):
