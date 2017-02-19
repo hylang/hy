@@ -1,19 +1,40 @@
-(defn foodec [func]
-  (lambda [] (+ 1 1)))
+(defn test-decorated-1line-function []
+  (defn foodec [func]
+    (lambda [] (+ (func) 1)))
+  (with-decorator foodec
+    (defn tfunction []
+      (* 2 2)))
+  (assert (= (tfunction) 5)))
 
 
-(with-decorator foodec
-  (defn tfunction []
-    (* 2 2)))
+(defn test-decorated-multiline-function []
+  (defn bazdec [func]
+    (lambda [] (+ (func) "x")))
+  (with-decorator bazdec
+    (defn f []
+      (setv intermediate "i")
+      (+ intermediate "b")))
+  (assert (= (f) "ibx")))
 
 
-(defn bardec [cls]
-  (setv cls.my_attr 123)
-  cls)
+(defn test-decorated-class []
+  (defn bardec [cls]
+    (setv cls.attr2 456)
+    cls)
+  (with-decorator bardec
+    (defclass cls []
+      [attr1 123]))
+  (assert (= cls.attr1 123))
+  (assert (= cls.attr2 456)))
 
-(with-decorator bardec
-  (defclass cls []
-    [my_attr 456]))
+
+(defn test-decorated-setv []
+  (defn d [func]
+    (lambda [] (+ (func) "z")))
+  (with-decorator d
+    (setv f (fn [] "hello")))
+  (assert (= (f) "helloz")))
+
 
 (defn test-decorator-clobbing []
   "NATIVE: Tests whether nested decorators work"
@@ -24,8 +45,3 @@
       (with-decorator dec2
         (defn f [] 1)))
     (assert (= (f) 4))))
-
-(defn test-decorators []
-  "NATIVE: test decorators."
-  (assert (= (tfunction) 2))
-  (assert (= cls.my_attr 123)))

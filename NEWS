@@ -6,6 +6,7 @@ Changes from 0.12.1
    * Added bytestring literals, which create `bytes` objects under Python 3
      and `str` objects under Python 2
    * Commas and underscores are allowed in numeric literals
+   * with-decorator: Allow a `setv` form as the form to be decorated
    * xor: If exactly one argument is true, return it
 
    [ Bug Fixes ]
