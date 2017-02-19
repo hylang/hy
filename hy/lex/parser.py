@@ -18,13 +18,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import sys
 from functools import wraps
+from ast import literal_eval
 
 from rply import ParserGenerator
 
-from hy.models import (HyComplex, HyCons, HyDict, HyExpression, HyFloat,
-                       HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol)
+from hy._compat import PY3, str_type
+from hy.models import (HyBytes, HyComplex, HyCons, HyDict, HyExpression,
+                       HyFloat, HyInteger, HyKeyword, HyList, HySet, HyString,
+                       HySymbol)
 from .lexer import lexer
 from .exceptions import LexException, PrematureEndOfInput
 
@@ -55,8 +57,6 @@ def hy_symbol_unmangle(p):
     # hy_symbol_mangle is one-way, so this can't be perfect.
     # But it can be useful till we have a way to get the original
     # symbol (https://github.com/hylang/hy/issues/360).
-
-    from hy._compat import str_type
     p = str_type(p)
 
     if p.endswith("_bang") and p != "_bang":
@@ -258,12 +258,19 @@ def t_empty_list(p):
     return HyList([])
 
 
-if sys.version_info[0] >= 3:
+if PY3:
     def uni_hystring(s):
-        return HyString(eval(s))
+        return HyString(literal_eval(s))
+
+    def hybytes(s):
+        return HyBytes(literal_eval('b'+s))
+
 else:
     def uni_hystring(s):
-        return HyString(eval('u'+s))
+        return HyString(literal_eval('u'+s))
+
+    def hybytes(s):
+        return HyBytes(literal_eval(s))
 
 
 @pg.production("string : STRING")
@@ -273,11 +280,16 @@ def t_string(p):
     s = p[0].value[:-1]
     # get the header
     header, s = s.split('"', 1)
-    # remove unicode marker
+    # remove unicode marker (this is redundant because Hy string
+    # literals already, by default, generate Unicode literals
+    # under Python 2)
     header = header.replace("u", "")
+    # remove bytes marker, since we'll need to exclude it for Python 2
+    is_bytestring = "b" in header
+    header = header.replace("b", "")
     # build python string
     s = header + '"""' + s + '"""'
-    return uni_hystring(s)
+    return (hybytes if is_bytestring else uni_hystring)(s)
 
 
 @pg.production("string : PARTIAL_STRING")

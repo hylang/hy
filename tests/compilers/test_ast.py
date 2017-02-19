@@ -482,6 +482,15 @@ def test_ast_unicode_strings():
     assert _compile_string("\xc3\xa9") == "\xc3\xa9"
 
 
+def test_ast_unicode_vs_bytes():
+    def f(x): return hy_compile(tokenize(x), "__main__").body[0].value.s
+    assert f('"hello"') == u"hello"
+    assert type(f('"hello"')) is (str if PY3 else unicode)  # noqa
+    assert f('b"hello"') == (eval('b"hello"') if PY3 else "hello")
+    assert type(f('b"hello"')) == (bytes if PY3 else str)
+    assert f('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+
+
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     try:

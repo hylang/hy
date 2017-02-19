@@ -25,14 +25,15 @@
 # DEALINGS IN THE SOFTWARE.
 
 from hy.models import (HyExpression, HyKeyword, HyInteger, HyComplex, HyString,
-                       HySymbol, HyFloat, HyList, HySet, HyDict, HyCons)
+                       HyBytes, HySymbol, HyFloat, HyList, HySet, HyDict,
+                       HyCons)
 from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
+    str_type, bytes_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
 from hy.macros import require, macroexpand, reader_macroexpand
 import hy.importer
 
@@ -2640,6 +2641,13 @@ class HyASTCompiler(object):
         return ast.Str(s=str_type(string),
                        lineno=string.start_line,
                        col_offset=string.start_column)
+
+    @builds(HyBytes)
+    def compile_bytes(self, bytestring):
+        f = ast.Bytes if PY3 else ast.Str
+        return f(s=bytes_type(bytestring),
+                 lineno=bytestring.start_line,
+                 col_offset=bytestring.start_column)
 
     @builds(HyKeyword)
     def compile_keyword(self, keyword):

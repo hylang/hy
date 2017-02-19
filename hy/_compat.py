@@ -50,6 +50,11 @@ else:
     str_type = unicode  # NOQA
 
 if PY3:
+    bytes_type = bytes
+else:
+    bytes_type = str
+
+if PY3:
     long_type = int
 else:
     long_type = long  # NOQA
