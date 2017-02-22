@@ -1417,12 +1417,28 @@ class HyASTCompiler(object):
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
-        if not fn.stmts or not (isinstance(fn.stmts[-1], ast.FunctionDef) or
-                                isinstance(fn.stmts[-1], ast.ClassDef)):
+        if fn.stmts and isinstance(fn.stmts[-1], (ast.FunctionDef,
+                                                  ast.ClassDef)):
+            decorators, ret, _ = self._compile_collect(expr)
+            fn.stmts[-1].decorator_list = (decorators +
+                                           fn.stmts[-1].decorator_list)
+            return ret + fn
+        elif fn.stmts and isinstance(fn.stmts[-1], ast.Assign):
+            # E.g., (with-decorator foo (setv f (fn [] 5)))
+            # We can't use Python's decorator syntax, but we can get the
+            # same effect.
+            decorators, ret, _ = self._compile_collect(expr)
+            for d in decorators:
+                fn.stmts[-1].value = ast.Call(func=d,
+                                              args=[fn.stmts[-1].value],
+                                              keywords=[],
+                                              starargs=None,
+                                              kwargs=None,
+                                              lineno=expr.start_line,
+                                              col_offset=expr.start_column)
+            return fn
+        else:
             raise HyTypeError(expr, "Decorated a non-function")
-        decorators, ret, _ = self._compile_collect(expr)
-        fn.stmts[-1].decorator_list = decorators + fn.stmts[-1].decorator_list
-        return ret + fn
 
     @builds("with*")
     @checkargs(min=2)
@@ -2285,17 +2301,15 @@ class HyASTCompiler(object):
                             col_offset=expression.start_column)
         return ret
 
-    @builds("lambda")
     @builds("fn")
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        called_as = expression.pop(0)
+        expression.pop(0)
 
         arglist = expression.pop(0)
         if not isinstance(arglist, HyList):
             raise HyTypeError(expression,
-                              "First argument to `{}' must be a list".format(
-                                  called_as))
+                              "First argument to `fn' must be a list")
 
         (ret, args, defaults, stararg,
          kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)
@@ -2367,7 +2381,7 @@ class HyASTCompiler(object):
             defaults=defaults)
 
         body = self._compile_branch(expression)
-        if not body.stmts and called_as == "lambda":
+        if not body.stmts:
             ret += ast.Lambda(
                 lineno=expression.start_line,
                 col_offset=expression.start_column,
@@ -2513,7 +2527,6 @@ class HyASTCompiler(object):
             if kw in expression[0]:
                 raise HyTypeError(name, "macros cannot use %s" % kw)
         new_expression = HyExpression([
-            HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.macro"), name]),
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)
@@ -2536,7 +2549,6 @@ class HyASTCompiler(object):
                                "for reader macro name" % type(name).__name__))
         name = HyString(name).replace(name)
         new_expression = HyExpression([
-            HySymbol("with_decorator"),
             HyExpression([HySymbol("hy.macros.reader"), name]),
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)

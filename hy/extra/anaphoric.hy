@@ -135,9 +135,9 @@
   "Returns a function with parameters implicitly determined by the presence in
    the body of xi parameters. An xi symbol designates the ith parameter
    (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself.
-   This is not a replacement for lambda. The xi forms cannot be nested. "
+   This is not a replacement for fn. The xi forms cannot be nested. "
   (setv flatbody (flatten body))
-  `(lambda [;; generate all xi symbols up to the maximum found in body
+  `(fn [;; generate all xi symbols up to the maximum found in body
             ~@(genexpr (HySymbol (+ "x"
                                     (str i)))
                        [i (range 1
