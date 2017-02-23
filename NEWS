@@ -9,6 +9,7 @@ Changes from 0.12.1
    * Commas and underscores are allowed in numeric literals
    * with-decorator: Allow a `setv` form as the form to be decorated
    * xor: If exactly one argument is true, return it
+   * hy.core.reserved is now hy.extra.reserved
 
    [ Bug Fixes ]
    * Shadowed comparison operators now use `and` instead of `&`
