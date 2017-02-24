@@ -946,20 +946,25 @@ written without accidental variable name clashes.
 get
 ---
 
-``get`` is used to access single elements in lists and dictionaries. ``get``
-takes two parameters: the *data structure* and the *index* or *key* of the
-item. It will then return the corresponding value from the dictionary or the
-list. Example usage:
+``get`` is used to access single elements in collections. ``get`` takes at
+least two parameters: the *data structure* and the *index* or *key* of the
+item. It will then return the corresponding value from the collection. If
+multiple *index* or *key* values are provided, they are used to access
+successive elements in a nested structure. Example usage:
 
 .. code-block:: clj
 
    => (do
    ...  (setv animals {"dog" "bark" "cat" "meow"}
-   ...        numbers ["zero" "one" "two" "three"])
+   ...        numbers (, "zero" "one" "two" "three")
+   ...        nested [0 1 ["a" "b" "c"] 3 4])
    ...  (print (get animals "dog"))
-   ...  (print (get numbers 2)))
+   ...  (print (get numbers 2))
+   ...  (print (get nested 2 1)))
+
    bark
    two
+   b
 
 .. note:: ``get`` raises a KeyError if a dictionary is queried for a
           non-existing key.
