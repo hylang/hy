@@ -950,7 +950,7 @@ get
 takes at least two parameters: the *data structure* and the *index* or *key* 
 of the item. It will then return the corresponding value from the dictionary 
 or the list. If multiple *index* or *key* values are provided, they are used
-to access single element in a nested structure. Example usage:
+to access successive elements in a nested structure. Example usage:
 
 .. code-block:: clj
 
