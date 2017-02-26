@@ -455,9 +455,11 @@
   ;; length 1 is valid
   (assert-equal (list (partition ten 1))
                 [(, 0) (, 1) (, 2) (, 3) (, 4) (, 5) (, 6) (, 7) (, 8) (, 9)])
-  ;; tuples of length < 1 don't crash
+  ;; length 0 returns an empty sequence
   (assert-equal (list (partition ten 0)) [])
-  (assert-equal (list (partition ten -1)) [])
+  ;; negative length raises ValueError
+  (try (do (partition ten -1) (assert False))
+       (except [ValueError]))
   ;; keep remainder with a fillvalue
   (assert-equal (list (partition ten 3 :fillvalue "x"))
                 [(, 0 1 2) (, 3 4 5) (, 6 7 8) (, 9 "x" "x")])
@@ -466,7 +468,13 @@
                 [(, 0 1) (, 3 4) (, 6 7)])
   ;; overlap with step < n
   (assert-equal (list (partition (range 5) 2 1))
-                [(, 0 1) (, 1 2) (, 2 3) (, 3 4)]))
+                [(, 0 1) (, 1 2) (, 2 3) (, 3 4)])
+  ;; tee the input as necessary
+  ;; https://github.com/hylang/hy/issues/1237
+  (assert-equal (list (take 4 (partition (cycle [1 2 3]) 3)))
+                [(, 1 2 3) (, 1 2 3) (, 1 2 3) (, 1 2 3)])
+  (assert-equal (list (partition (iter (range 10))))
+                [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)]))
 
 (defn test-pos []
   "NATIVE: testing the pos? function"

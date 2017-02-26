@@ -13,6 +13,7 @@ Changes from 0.12.1
    [ Bug Fixes ]
    * Shadowed comparison operators now use `and` instead of `&`
      for chained comparisons
+   * partition no longer prematurely exhausts input iterators
 
 Changes from 0.12.0
 
