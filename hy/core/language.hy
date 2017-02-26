@@ -371,7 +371,9 @@
    more to skip elements, or less for a sliding window with overlap."
   (setv
    step (or step n)
-   slices (genexpr (itertools.islice coll start None step) [start (range n)]))
+   coll-clones (tee coll n)
+   slices (genexpr (islice (get coll-clones start) start None step)
+                   [start (range n)]))
   (if (is fillvalue -sentinel)
     (apply zip slices)
     (apply zip-longest slices {"fillvalue" fillvalue})))
