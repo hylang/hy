@@ -111,10 +111,10 @@ Returns a fresh :ref:`cons cell <hycons>` with car *a* and cdr *b*.
 
    => (setv a (cons 'hd 'tl))
 
-   => (= 'hd (car a))
+   => (= 'hd (get a 0))
    True
 
-   => (= 'tl (cdr a))
+   => (= 'tl (cut a 1))
    True
 
 

@@ -59,16 +59,6 @@
     `(do ~@body)))
 
 
-(defmacro car [thing]
-  "Get the first element of a list/cons"
-  `(get ~thing 0))
-
-
-(defmacro cdr [thing]
-  "Get all the elements of a thing, except the first"
-  `(cut ~thing 1))
-
-
 (defmacro cond [&rest branches]
   "shorthand for nested ifs:
    (cond [foo bar] [baz quux]) ->
