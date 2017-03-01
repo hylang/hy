@@ -83,7 +83,7 @@ def import_file_to_module(module_name, fpath):
                 e.source = fp.read()
             e.filename = fpath
         raise
-    except Exception:
+    except Exception as e:
         sys.modules.pop(module_name, None)
         raise
     return mod
@@ -205,17 +205,32 @@ class MetaLoader(object):
         if ispkg:
             mod.__path__ = []
             mod.__package__ = fullname
+        if fullname[0] == ".":
+            mod.__name__ = "something.test1"
+            mod.__package__ = os.path.dirname(self.path).split("/")[-1]
         else:
             mod.__package__ = fullname.rpartition('.')[0]
 
+
         sys.modules[fullname] = mod
+        print("----")
+        print(fullname)
+        print(dir(mod))
+        print(sys.modules[fullname].__name__)
+        print(sys.modules[fullname].__file__)
+        print(sys.modules[fullname].__package__)
         return mod
 
 
 class MetaImporter(object):
+
+    modules = []
+
+
     def find_on_path(self, fullname):
         fls = ["%s/__init__.hy", "%s.hy"]
         dirpath = "/".join(fullname.split("."))
+        self.modules.append(dirpath)
 
         for pth in sys.path:
             pth = os.path.abspath(pth)
@@ -223,6 +238,10 @@ class MetaImporter(object):
                 composed_path = fp % ("%s/%s" % (pth, dirpath))
                 if os.path.exists(composed_path):
                     return composed_path
+            for mod in self.modules:
+                composed_path = fp % ("%s%s" % (mod, dirpath))
+                if os.path.exists(composed_path):
+                    return os.path.realpath(composed_path)
 
     def find_module(self, fullname, path=None):
         path = self.find_on_path(fullname)
