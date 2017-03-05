@@ -1380,7 +1380,16 @@
 
 (defn test-read-str []
   "NATIVE: test read-str"
-  (assert (= (read-str "(print 1)") '(print 1))))
+  (assert (= (read-str "(print 1)") '(print 1)))
+  (assert (is (type (read-str "(print 1)")) (type '(print 1))))
+
+  ; Watch out for false values: https://github.com/hylang/hy/issues/1243
+  (assert (= (read-str "\"\"") '""))
+  (assert (is (type (read-str "\"\"")) (type '"")))
+  (assert (= (read-str "[]") '[]))
+  (assert (is (type (read-str "[]")) (type '[])))
+  (assert (= (read-str "0") '0))
+  (assert (is (type (read-str "0")) (type '0))))
 
 (defn test-keyword-creation []
   "NATIVE: Test keyword creation"
