@@ -24,9 +24,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from hy.models import (HyExpression, HyKeyword, HyInteger, HyComplex, HyString,
-                       HyBytes, HySymbol, HyFloat, HyList, HySet, HyDict,
-                       HyCons)
+from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
+                       HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
+                       HyDict, HyCons)
 from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex.parser import hy_symbol_mangle
@@ -2689,7 +2689,10 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     body = []
     expr = None
 
-    if tree:
+    if not (isinstance(tree, HyObject) or type(tree) is list):
+        raise HyCompileError("tree must be a HyObject or a list")
+
+    if isinstance(tree, HyObject) or tree:
         compiler = HyASTCompiler(module_name)
         result = compiler.compile(tree)
         expr = result.force_expr
@@ -2697,10 +2700,9 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
         if not get_expr:
             result += result.expr_as_stmt()
 
-        if isinstance(tree, list):
-            spoof_tree = tree[0]
-        else:
-            spoof_tree = tree
+        # We need to test that the type is *exactly* `list` because we don't
+        # want to do `tree[0]` on HyList or such.
+        spoof_tree = tree[0] if type(tree) is list else tree
         body = compiler.imports_as_stmts(spoof_tree) + result.stmts
 
     ret = root(body=body)
