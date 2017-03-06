@@ -168,7 +168,7 @@ def parse_fstring(fstring, pos):
                                            "or 'a'", pos.lineno, pos.colno)
                     extra = extra[2:]
                 elif extra[0] == ':':
-                    spec = extra[1:]
+                    spec = HyFString(parse_fstring(extra[1:], pos))
                     break
                 else:
                     raise LexException("f-string: expecting '}'", pos.lineno,

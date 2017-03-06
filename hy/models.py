@@ -93,9 +93,9 @@ class HyFormat(HyObject):
         self.conv = conv
         self.spec = spec
 
-
     def replace(self, other):
         replace_hy_obj(self.expr, other)
+        replace_hy_obj(self.spec, other)
         HyObject.replace(self, other)
 
 

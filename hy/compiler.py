@@ -2657,28 +2657,33 @@ class HyASTCompiler(object):
 
     @builds(HyFormat)
     def compile_format(self, fm):
-        ret = self.compile(fm.expr)
+        expr = self.compile(fm.expr)
+        ret = Result() + expr
+
+        if fm.spec is None:
+            spec = None
+        else:
+            spec = self.compile(fm.spec)
+            ret += spec
 
         if PY36:
             conv = ord(fm.conv) if fm.conv is not None else -1
-            if fm.spec is None:
-                spec = None
-            else:
-                spec = ast.Str(s=fm.spec, lineno=fm.start_line,
-                               col_offset=fm.start_column)
-            return ast.FormattedValue(value=ret.force_expr,
-                                      conversion=conv,
-                                      format_spec=spec,
-                                      lineno=fm.start_line,
-                                      col_offset=fm.start_column)
+            return ret + ast.FormattedValue(value=expr.force_expr,
+                                            conversion=conv,
+                                            format_spec=spec and \
+                                                        spec.force_expr,
+                                            lineno=fm.start_line,
+                                            col_offset=fm.start_column)
 
         else:
-            spec = ast.Str(s=fm.spec or '', lineno=fm.start_line,
-                           col_offset=fm.start_column)
+            args = [expr.force_expr]
+            if spec is not None:
+                args.append(spec.force_expr)
+
             call = ast.Call(func=ast.Name(id='format', ctx=ast.Load(),
                                           lineno=fm.start_line,
                                           col_offset=fm.start_column),
-                            args=[ret.force_expr, spec],
+                            args=args,
                             keywords=[],
                             starargs=None,
                             kwargs=None,
