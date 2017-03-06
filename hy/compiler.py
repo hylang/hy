@@ -2670,8 +2670,8 @@ class HyASTCompiler(object):
             conv = ord(fm.conv) if fm.conv is not None else -1
             return ret + ast.FormattedValue(value=expr.force_expr,
                                             conversion=conv,
-                                            format_spec=spec and \
-                                                        spec.force_expr,
+                                            format_spec=spec and
+                                                spec.force_expr,  # NOQA
                                             lineno=fm.start_line,
                                             col_offset=fm.start_column)
 
