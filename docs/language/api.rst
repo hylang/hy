@@ -850,16 +850,26 @@ eval-when-compile
 -----------------
 
 
-first / car
------------
+first
+-----
 
-``first`` and ``car`` are macros for accessing the first element of a collection:
+``first`` is a function for accessing the first element of a collection.
 
 .. code-block:: clj
 
     => (first (range 10))
     0
 
+It is implemented as ``(next (iter coll) None)``, so it works with any
+iterable, and if given an empty iterable, it will return ``None`` instead of
+raising an exception.
+
+.. code-block:: clj
+
+    => (first (repeat 10))
+    10
+    => (first [])
+    None
 
 for
 ---
@@ -1402,17 +1412,23 @@ periods in them. In fact, ``mymodule`` and ``M`` aren't defined by these
 to do introspection of the current module's set of defined macros, which isn't
 really supported anyway.
 
-rest / cdr
-----------
+rest
+----
 
-``rest`` and ``cdr`` return the collection passed as an argument without the
-first element:
+``rest`` takes the given collection and returns an iterable of all but the
+first element.
 
 .. code-block:: clj
 
-    => (rest (range 10))
+    => (list (rest (range 10)))
     [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+Given an empty collection, it returns an empty iterable.
+
+.. code-block:: clj
+
+    => (list (rest []))
+    []
 
 set-comp
 --------

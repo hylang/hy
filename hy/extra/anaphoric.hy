@@ -114,8 +114,8 @@
 (defmacro ap-reduce [form lst &optional [initial-value None]]
   "Anaphoric form of reduce, `acc' and `it' can be used for a form"
   `(do
-    (setv acc ~(if (none? initial-value) `(car ~lst) initial-value))
-    (ap-each ~(if (none? initial-value) `(cdr ~lst) lst)
+    (setv acc ~(if (none? initial-value) `(get ~lst 0) initial-value))
+    (ap-each ~(if (none? initial-value) `(cut ~lst 1) lst)
       (setv acc ~form))
     acc))
 
@@ -142,11 +142,11 @@
                                     (str i)))
                        [i (range 1
                                  ;; find the maximum xi
-                                 (inc (max (+ (list-comp (int (cdr a))
+                                 (inc (max (+ (list-comp (int (cut a 1))
                                                          [a flatbody]
                                                          (and (symbol? a)
                                                               (.startswith a 'x)
-                                                              (.isdigit (cdr a))))
+                                                              (.isdigit (cut a 1))))
                                               [0]))))])
             ;; generate the &rest parameter only if 'xi is present in body
             ~@(if (in 'xi flatbody)

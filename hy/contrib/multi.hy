@@ -87,6 +87,9 @@
        (with-decorator (method-decorator ~name)
          (defn ~name ~params ~@body))))
 
+(defn head-tail [l]
+  (, (get l 0) (cut l 1)))
+
 (defmacro defn [name &rest bodies]
   (def arity-overloaded? (fn [bodies]
                            (if (isinstance (first bodies) HyString)
@@ -97,17 +100,14 @@
     (do
      (def comment (HyString))
      (if (= (type (first bodies)) HyString)
-       (do (def comment (car bodies))
-           (def bodies (cdr bodies))))
+       (def [comment bodies] (head-tail bodies)))
      (def ret `(do))
      (.append ret '(import [hy.contrib.multi [MultiDispatch]]))
      (for [body bodies]
-       (def let-binds (car body))
-       (def body (cdr body))
+       (def [let-binds body] (head-tail body))
        (.append ret 
                 `(with-decorator MultiDispatch (defn ~name ~let-binds ~comment ~@body))))
      ret)
     (do
-     (setv lambda-list (first bodies))
-     (setv body (rest bodies))
+     (setv [lambda-list body] (head-tail bodies))
      `(setv ~name (fn ~lambda-list ~@body)))))

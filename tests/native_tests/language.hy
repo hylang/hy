@@ -681,10 +681,11 @@
 
 
 (defn test-first []
-  "NATIVE: test firsty things"
+  "NATIVE: test first"
   (assert (= (first [1 2 3 4 5]) 1))
-  (assert (is (first []) None))
-  (assert (= (car [1 2 3 4 5]) 1)))
+  (assert (= (first (range 10)) 0))
+  (assert (= (first (repeat 10)) 10))
+  (assert (is (first []) None)))
 
 
 (defn test-cut []
@@ -710,7 +711,9 @@
 
 (defn test-rest []
   "NATIVE: test rest"
-  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5])))
+  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5]))
+  (assert (= (list (take 3 (rest (iterate inc 8)))) [9 10 11]))
+  (assert (= (list (rest [])) [])))
 
 
 (defn test-importas []

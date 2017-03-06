@@ -59,16 +59,6 @@
     `(do ~@body)))
 
 
-(defmacro car [thing]
-  "Get the first element of a list/cons"
-  `(get ~thing 0))
-
-
-(defmacro cdr [thing]
-  "Get all the elements of a thing, except the first"
-  `(cut ~thing 1))
-
-
 (defmacro cond [&rest branches]
   "shorthand for nested ifs:
    (cond [foo bar] [baz quux]) ->
@@ -87,8 +77,8 @@
          (macro-error branch "cond branches need to be a list"))
        (if (< (len branch) 2)
          (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
-       (setv test (car branch))
-       (setv thebranch (cdr branch))
+       (setv test (first branch))
+       (setv thebranch (cut branch 1))
        `(if ~test (do ~@thebranch)))
 
      (setv root (check-branch branch))
