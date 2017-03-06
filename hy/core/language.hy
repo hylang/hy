@@ -435,17 +435,17 @@
                       [eof ""]]
   "Read from input and returns a tokenized string.
    Can take a given input buffer to read from"
-  (def buff "")
+  (setv buff "")
   (while True
-    (def inn (str (.readline from-file)))
+    (setv inn (string (.readline from-file)))
     (if (= inn eof)
-      (raise (EOFError "Reached end of file" )))
-    (setv buff (+ buff inn))
+      (raise (EOFError "Reached end of file")))
+    (+= buff inn)
     (try
-      (def parsed (first (tokenize buff)))
+      (setv parsed (first (tokenize buff)))
       (except [e [PrematureEndOfInput IndexError]])
-      (else (if parsed (break)))))
-    parsed)
+      (else (break))))
+  parsed)
 
 (defn read-str [input]
   "Reads and tokenizes first line of input"
