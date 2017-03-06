@@ -33,7 +33,7 @@ import ast
 import sys
 import os
 
-import astor.codegen
+import astor
 
 import hy
 
@@ -77,7 +77,7 @@ def print_python_code(_ast):
     # astor cannot handle ast.Interactive, so disguise it as a module
     _ast_for_print = ast.Module()
     _ast_for_print.body = _ast.body
-    print(astor.codegen.to_source(_ast_for_print))
+    print(astor.to_source(_ast_for_print))
 
 
 class HyREPL(code.InteractiveConsole):

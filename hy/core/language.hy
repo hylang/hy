@@ -94,8 +94,8 @@
   (fake-source-positions tree)
   (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
   ((if codegen
-            astor.codegen.to_source
-            astor.dump)
+            astor.to_source
+            astor.dump_tree)
           compiled))
 
 (defn distinct [coll]
