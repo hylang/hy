@@ -26,14 +26,15 @@
 
 from hy.models import (HyExpression, HyKeyword, HyInteger, HyComplex, HyString,
                        HyBytes, HySymbol, HyFloat, HyList, HySet, HyDict,
-                       HyCons)
+                       HyCons, HyFormat, HyFString)
 from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, bytes_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
+    str_type, bytes_type, long_type, PY27, PY33, PY3, PY34, PY35, PY36,
+    raise_empty)
 from hy.macros import require, macroexpand, reader_macroexpand
 import hy.importer
 
@@ -2653,6 +2654,81 @@ class HyASTCompiler(object):
         return ast.Str(s=str_type(string),
                        lineno=string.start_line,
                        col_offset=string.start_column)
+
+    @builds(HyFormat)
+    def compile_format(self, fm):
+        ret = self.compile(fm.expr)
+
+        if PY36:
+            conv = ord(fm.conv) if fm.conv is not None else -1
+            if fm.spec is None:
+                spec = None
+            else:
+                spec = ast.Str(s=fm.spec, lineno=fm.start_line,
+                               col_offset=fm.start_column)
+            return ast.FormattedValue(value=ret.force_expr,
+                                      conversion=conv,
+                                      format_spec=spec,
+                                      lineno=fm.start_line,
+                                      col_offset=fm.start_column)
+
+        else:
+            spec = ast.Str(s=fm.spec or '', lineno=fm.start_line,
+                           col_offset=fm.start_column)
+            call = ast.Call(func=ast.Name(id='format', ctx=ast.Load(),
+                                          lineno=fm.start_line,
+                                          col_offset=fm.start_column),
+                            args=[ret.force_expr, spec],
+                            keywords=[],
+                            starargs=None,
+                            kwargs=None,
+                            lineno=fm.start_line,
+                            col_offset=fm.start_column)
+
+            if fm.conv is not None:
+                converters = {
+                    's': 'str',
+                    'r': 'repr',
+                    'a': 'ascii'
+                }
+
+                call = ast.Call(func=ast.Name(id=converters[fm.conv],
+                                              ctx=ast.Load(),
+                                              lineno=fm.start_line,
+                                              col_offset=fm.start_column),
+                                args=[call],
+                                keywords=[],
+                                starargs=None,
+                                kwargs=None,
+                                lineno=fm.start_line,
+                                col_offset=fm.start_column)
+
+            return ret + call
+
+    @builds(HyFString)
+    def compile_fstring(self, fstring):
+        compiled_exprs, ret, _ = self._compile_collect(fstring.parts)
+
+        if len(fstring.parts) == 1:
+            return ret + compiled_exprs[0]
+        elif PY36:
+            return ret + ast.JoinedStr(values=compiled_exprs,
+                                       lineno=fstring.start_line,
+                                       col_offset=fstring.start_column)
+        else:
+            # Compile into several addition operations:
+            # f'a{b}c' -> 'a' + format(b, '') + 'c'
+
+            outer = compiled_exprs[0]
+            for expr in compiled_exprs[1:]:
+                outer = ast.BinOp(left=outer,
+                                  op=ast.Add(lineno=fstring.start_line,
+                                             col_offset=fstring.start_column),
+                                  right=expr,
+                                  lineno=fstring.start_line,
+                                  col_offset=fstring.start_column)
+
+            return ret + outer
 
     @builds(HyBytes)
     def compile_bytes(self, bytestring):

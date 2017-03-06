@@ -84,6 +84,37 @@ class HyString(HyObject, str_type):
 _wrappers[str_type] = HyString
 
 
+class HyFormat(HyObject):
+    """
+    Generic Hy formatting string object, akin to Python 3.6's FormattedValue.
+    """
+    def __init__(self, expr, conv, spec):
+        self.expr = expr
+        self.conv = conv
+        self.spec = spec
+
+
+    def replace(self, other):
+        replace_hy_obj(self.expr, other)
+        HyObject.replace(self, other)
+
+
+class HyFString(HyObject):
+    """
+    The Hy variant of a Python f-string. Stores all the string parts as a list
+    of HyStrings and HyFormats.
+    """
+
+    def __init__(self, parts):
+        self.parts = parts
+
+    def replace(self, other):
+        for part in self.parts:
+            replace_hy_obj(part, other)
+
+        HyObject.replace(self, other)
+
+
 class HyBytes(HyObject, bytes_type):
     """
     Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending

@@ -21,12 +21,13 @@
 from functools import wraps
 from ast import literal_eval
 
+from rply.errors import LexingError
 from rply import ParserGenerator
 
 from hy._compat import PY3, str_type
 from hy.models import (HyBytes, HyComplex, HyCons, HyDict, HyExpression,
                        HyFloat, HyInteger, HyKeyword, HyList, HySet, HyString,
-                       HySymbol)
+                       HyFormat, HyFString, HySymbol)
 from .lexer import lexer
 from .exceptions import LexException, PrematureEndOfInput
 
@@ -73,6 +74,123 @@ def hy_symbol_unmangle(p):
         p = '*' + p.lower() + '*'
 
     return p
+
+
+def parse_fstring(fstring, pos):
+    # Avoid a circular import.
+    from hy.importer import import_buffer_to_hst
+
+    maybe_fpart = False
+    i = 0
+    fparts = []
+    buf = []
+
+    def flush():
+        if not buf:
+            return
+
+        s = literal_eval('"""' + ''.join(buf) + '"""')
+        fparts.append(HyString(s))
+        buf[:] = []
+
+    while i < len(fstring):
+        c = fstring[i]
+        if c == '{':
+            if maybe_fpart:
+                buf.append('{')
+                maybe_fpart = False
+            else:
+                maybe_fpart = True
+            i += 1
+        elif maybe_fpart:
+            maybe_fpart = False
+            # Lex the remainder of the string to try and find the end.
+            try:
+                depth = 1
+                end_idx = None
+                has_extra = False
+                for tok in lexer.lex(fstring[i:]):
+                    if tok.name in ('LPAREN', 'LBRACKET', 'LCURLY'):
+                        depth += 1
+                    elif tok.name in ('RPAREN', 'RBRACKET', 'RCURLY'):
+                        if tok.name == 'RCURLY' and depth == 0:
+                            break
+                        depth -= 1
+                    elif tok.name == 'IDENTIFIER':
+                        offs1 = tok.value.find('!')
+                        offs2 = tok.value.find(':')
+                        if (offs1 != -1 or offs2 != -1) and depth == 1:
+                            # Normally, you could grab the min to get the first
+                            # offset. However, if any of the offsets are -1,
+                            # that will return -1, so it should be
+                            # special-cased.
+                            if offs1 == -1 or offs2 == -1:
+                                offs = max(offs1, offs2)
+                            else:
+                                offs = min(offs1, offs2)
+
+                            end_idx = tok.source_pos.idx + offs + i
+                            has_extra = True
+
+                true_end_idx = tok.source_pos.idx + i
+                if end_idx is None:
+                    end_idx = true_end_idx
+
+                if depth:
+                    raise LexException("f-string: expecting '}'", pos.lineno,
+                                       pos.colno)
+                else:
+                    fpart = fstring[i:end_idx]
+                    if has_extra:
+                        extra = fstring[end_idx:true_end_idx]
+                    else:
+                        extra = ''
+            except LexingError as ex:
+                # Re-raise with proper position.
+                errpos = ex.source_pos
+                ex.message += ' (inside f-string, at %d:%d)' % (errpos.lineno,
+                                                                errpos.colno)
+                ex.source_pos = pos
+                raise ex
+
+            if not fpart:
+                raise LexException('f-string: empty expression not allowed',
+                                   pos.lineno, pos.colno)
+
+            conv = None
+            spec = None
+            while extra:
+                if extra[0] == '!' and conv is None:
+                    conv = extra[1:2]
+                    if not (set('sra') & {conv}):
+                        raise LexException("f-string: invalid conversion "
+                                           "character: expected 's', 'r', "
+                                           "or 'a'", pos.lineno, pos.colno)
+                    extra = extra[2:]
+                elif extra[0] == ':':
+                    spec = extra[1:]
+                    break
+                else:
+                    raise LexException("f-string: expecting '}'", pos.lineno,
+                                       pos.colno)
+
+            flush()
+
+            do = HyExpression([HyString('do')] + import_buffer_to_hst(fpart))
+            fparts.append(HyFormat(do, conv, spec))
+            i += true_end_idx-i+1
+        else:
+            buf.append(c)
+            i += 1
+
+    flush()
+
+    for part in fparts:
+        part.start_line = part.end_line = pos.lineno
+        part.start_column = part.end_column = pos.colno
+        # Fill in the nested models.
+        part.replace(part)
+    return fparts
 
 
 def set_boundaries(fun):
@@ -287,9 +405,15 @@ def t_string(p):
     # remove bytes marker, since we'll need to exclude it for Python 2
     is_bytestring = "b" in header
     header = header.replace("b", "")
-    # build python string
-    s = header + '"""' + s + '"""'
-    return (hybytes if is_bytestring else uni_hystring)(s)
+
+    is_fstring = 'f' in header
+    if is_fstring:
+        header = header.replace("f", "")
+        return HyFString(parse_fstring(s, p[0].source_pos))
+    else:
+        # build python string
+        s = header + '"""' + s + '"""'
+        return (hybytes if is_bytestring else uni_hystring)(s)
 
 
 @pg.production("string : PARTIAL_STRING")
