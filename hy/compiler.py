@@ -1485,6 +1485,7 @@ class HyASTCompiler(object):
                                            optional_vars=thing)]
 
         ret = ctx + the_with
+        ret.contains_yield = ret.contains_yield or body.contains_yield
         # And make our expression context our temp variable
         expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
                              ctx=ast.Load(),
