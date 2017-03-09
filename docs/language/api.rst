@@ -730,7 +730,7 @@ For example,
 .. code-block:: clj
 
     => (defn expensive-get-number [] (print "spam") 14)
-    => (defmacro triple-1 [n] `(+ n n n))
+    => (defmacro triple-1 [n] `(+ ~n ~n ~n))
     => (triple-1 (expensive-get-number))  ; evals n three times
     spam
     spam
