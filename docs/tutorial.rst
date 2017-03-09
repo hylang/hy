@@ -476,6 +476,11 @@ like::
           Return our copy of x
           """
           return self.x
+          
+And we might use it like::
+
+  bar = FooBar(1)
+  print bar.get_x()
 
 
 In Hy:
@@ -491,7 +496,20 @@ In Hy:
     (defn get-x [self]
       "Return our copy of x"
       self.x))
+      
+And we can use it like:
 
+.. code-block:: clj
+
+  (setv bar (FooBar 1))
+  (print (bar.get-x))
+  
+Or using the leading dot syntax!
+
+.. code-block:: clj
+
+  (print (.get-x (FooBar 1)))
+      
 
 You can also do class-level attributes.  In Python::
 
