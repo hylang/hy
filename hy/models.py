@@ -28,12 +28,24 @@ class HyObject(object):
     Hy lexing Objects at once.
     """
 
-    def replace(self, other):
+    def replace(self, other, relative=False):
         if isinstance(other, HyObject):
             for attr in ["start_line", "end_line",
                          "start_column", "end_column"]:
-                if not hasattr(self, attr) and hasattr(other, attr):
-                    setattr(self, attr, getattr(other, attr))
+                if hasattr(other, attr):
+                    if not hasattr(self, attr):
+                        setattr(self, attr, getattr(other, attr))
+                    elif relative:
+                        # print type(self), attr, getattr(self, attr), getattr(other, attr),
+                        # print(type(self), attr, getattr(self, attr), getattr(other, attr), end=' ')
+                        if 'line' in attr:
+                            setattr(self, attr,
+                                    getattr(other, attr) + \
+                                    getattr(self, attr) - 1)
+                        elif 'column' in attr and self.start_line == 1:
+                            setattr(self, attr,
+                                    getattr(other, attr) + getattr(self, attr))
+                        # print(getattr(self, attr))
         else:
             raise TypeError("Can't replace a non Hy object with a Hy object")
 
@@ -59,15 +71,15 @@ def wrap_value(x):
         return wrapper(x)
 
 
-def replace_hy_obj(obj, other):
+def replace_hy_obj(obj, other, relative=False):
 
     if isinstance(obj, HyObject):
-        return obj.replace(other)
+        return obj.replace(other, relative)
 
     wrapped_obj = wrap_value(obj)
 
     if isinstance(wrapped_obj, HyObject):
-        return wrapped_obj.replace(other)
+        return wrapped_obj.replace(other, relative)
     else:
         raise TypeError("Don't know how to wrap a %s object to a HyObject"
                         % type(obj))
@@ -93,10 +105,10 @@ class HyFormat(HyObject):
         self.conv = conv
         self.spec = spec
 
-    def replace(self, other):
-        replace_hy_obj(self.expr, other)
-        replace_hy_obj(self.spec, other)
-        HyObject.replace(self, other)
+    def replace(self, other, relative=False):
+        replace_hy_obj(self.expr, other, relative)
+        replace_hy_obj(self.spec, other, relative)
+        HyObject.replace(self, other, relative)
 
 
 class HyFString(HyObject):
@@ -108,11 +120,11 @@ class HyFString(HyObject):
     def __init__(self, parts):
         self.parts = parts
 
-    def replace(self, other):
+    def replace(self, other, relative=False):
         for part in self.parts:
-            replace_hy_obj(part, other)
+            replace_hy_obj(part, other, relative)
 
-        HyObject.replace(self, other)
+        HyObject.replace(self, other, relative)
 
 
 class HyBytes(HyObject, bytes_type):
@@ -219,11 +231,11 @@ class HyList(HyObject, list):
     Hy List. Basically just a list.
     """
 
-    def replace(self, other):
+    def replace(self, other, relative=False):
         for x in self:
-            replace_hy_obj(x, other)
+            replace_hy_obj(x, other, relative)
 
-        HyObject.replace(self, other)
+        HyObject.replace(self, other, relative)
         return self
 
     def __add__(self, other):
@@ -351,13 +363,13 @@ class HyCons(HyObject):
             for i in iterator:
                 yield i
 
-    def replace(self, other):
+    def replace(self, other, relative=False):
         if self.car is not None:
-            replace_hy_obj(self.car, other)
+            replace_hy_obj(self.car, other, relative)
         if self.cdr is not None:
-            replace_hy_obj(self.cdr, other)
+            replace_hy_obj(self.cdr, other, relative)
 
-        HyObject.replace(self, other)
+        HyObject.replace(self, other, relative)
 
     def __repr__(self):
         if isinstance(self.cdr, self.__class__):

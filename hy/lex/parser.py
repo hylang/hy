@@ -20,7 +20,7 @@
 
 from functools import wraps
 from ast import literal_eval
-import copy
+import copy, contextlib
 
 from rply.errors import LexingError
 from rply import ParserGenerator
@@ -84,14 +84,16 @@ class FStringParser(object):
         self.fstring = fstring
         self.i = 0
         self.pos = copy.copy(pos)
+        self.bufpos = None
 
-        # XXX: For some mysterious reason, rply gives us the lineno of the
-        # END of the f-string instead of the beginning.
-        self.pos.lineno -= fstring.count('\n')
+        # XXX: For some mysterious reason, rply under Python 2 gives us the
+        # lineno of the END of the f-string instead of the beginning.
+        if not PY3:
+            self.pos.lineno -= fstring.count('\n')
 
     def update_pos(self, txt):
         import traceback
-        # print self.pos.lineno, self.pos.colno, repr(txt), ''.join(traceback.format_stack())
+        #print self.pos.lineno, self.pos.colno, repr(txt)#, ''.join(traceback.format_stack())
         if '\n' in txt:
             self.pos.lineno += txt.count('\n')
             self.pos.colno = 0
@@ -102,25 +104,59 @@ class FStringParser(object):
             return
 
         s = literal_eval('"""' + ''.join(self.buf) + '"""')
-        self.add_part(HyString(s))
+        self.add_part(HyString(s), self.bufpos)
         self.buf[:] = []
 
     def buf_push(self, txt):
         self.update_pos(txt)
+
+        if self.bufpos is None:
+            self.bufpos = copy.copy(self.pos)
         self.buf.extend(txt)
 
-    def add_part(self, part):
-        part.start_line = part.end_line = self.pos.lineno
-        part.start_column = part.end_column = self.pos.colno
-        part.replace(part)
+    def add_part(self, part, pos):
+        # print(type(part), pos.lineno, pos.colno)
+
+        part.start_line = part.end_line = pos.lineno
+        part.start_column = part.end_column = pos.colno
+        part.replace(part, relative=True)
+
+        # Since relative updates the main model in addition to the children,
+        # the main one needs to be reset again.
+        part.start_line = part.end_line = pos.lineno
+        part.start_column = part.end_column = pos.colno
+
         self.fparts.append(part)
 
     def expect_rb(self):
         raise LexException("f-string: expecting '}'", self.pos.lineno,
                            self.pos.colno)
 
-    def parse_fpart(self):
+    @contextlib.contextmanager
+    def adjusted_error(self, ex_type):
         try:
+            yield
+        except ex_type as ex:
+            # Re-raise with proper position.
+            if isinstance(ex, (HyTypeError, LexException)):
+                elineno, ecolno = ex.lineno, ex.colno
+            elif isinstance(ex, LexingError):
+                elineno, ecolno = ex.source_pos.lineno, ex.source_pos.colno
+
+            ex.message += ' (inside f-string, at %d:%d)' % (elineno, ecolno)
+
+            if isinstance(ex, LexException):
+                if ex.lineno == 1:
+                    print(self.pos.colno, ex.colno)
+                    ex.colno += self.pos.colno
+                ex.lineno += self.pos.lineno - 1
+                ex.source = None
+            elif isinstance(ex, LexingError):
+                ex.source_pos = self.pos
+            raise ex
+
+    def parse_fpart(self):
+        with self.adjusted_error(LexingError):
             # The depth is tracked to avoid cutting through an expression.
             depth = 1
             end_idx = None
@@ -168,14 +204,6 @@ class FStringParser(object):
 
             return fpart, extra, true_end_idx - self.i + 1
 
-        except LexingError as ex:
-            # Re-raise with proper position.
-            errpos = ex.source_pos
-            ex.message += ' (inside f-string, at %d:%d)' % (errpos.lineno,
-                                                            errpos.colno)
-            ex.source_pos = self.pos
-            raise ex
-
     def parse_extra(self, extra):
         conv = None
         spec = None
@@ -216,13 +244,16 @@ class FStringParser(object):
             elif maybe_fpart:
                 maybe_fpart = False
                 self.flush()
+                start_pos = copy.copy(self.pos)
 
                 fpart, extra, length = self.parse_fpart()
+
+                with self.adjusted_error(LexException):
+                    exprs = import_buffer_to_hst(fpart)
                 self.update_pos(fpart)
 
                 conv, spec = self.parse_extra(extra)
 
-                exprs = import_buffer_to_hst(fpart)
                 if not exprs:
                     raise LexException('f-string: empty expression not '
                                        'allowed',
@@ -230,7 +261,7 @@ class FStringParser(object):
                 if len(exprs) != 1:
                     self.expect_rb()
 
-                self.add_part(HyFormat(exprs[0], conv, spec))
+                self.add_part(HyFormat(exprs[0], conv, spec), start_pos)
                 self.i += length
             else:
                 self.buf_push(c)
