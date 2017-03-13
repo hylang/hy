@@ -20,6 +20,7 @@
 
 from functools import wraps
 from ast import literal_eval
+import copy
 
 from rply.errors import LexingError
 from rply import ParserGenerator
@@ -76,121 +77,167 @@ def hy_symbol_unmangle(p):
     return p
 
 
-def parse_fstring(fstring, pos):
-    # Avoid a circular import.
-    from hy.importer import import_buffer_to_hst
+class FStringParser(object):
+    def __init__(self, fstring, pos):
+        self.fparts = []
+        self.buf = []
+        self.fstring = fstring
+        self.i = 0
+        self.pos = copy.copy(pos)
 
-    maybe_fpart = False
-    i = 0
-    fparts = []
-    buf = []
+    def update_pos(self, txt):
+        if '\n' in txt:
+            self.pos.lineno += txt.count('\n')
+            self.pos.colno = 0
+        self.pos.colno += len(txt.rsplit('\n', 1)[-1])
 
-    def flush():
-        if not buf:
+    def flush(self):
+        if not self.buf:
             return
 
-        s = literal_eval('"""' + ''.join(buf) + '"""')
-        fparts.append(HyString(s))
-        buf[:] = []
+        buftxt = ''.join(self.buf)
+        self.update_pos(buftxt)
+        s = literal_eval('"""' + buftxt + '"""')
+        self.add_part(HyString(s))
+        self.buf[:] = []
 
-    while i < len(fstring):
-        c = fstring[i]
-        if c == '{':
-            if maybe_fpart:
-                buf.append('{')
-                maybe_fpart = False
-            else:
-                maybe_fpart = True
-            i += 1
-        elif maybe_fpart:
-            maybe_fpart = False
-            # Lex the remainder of the string to try and find the end.
-            try:
-                depth = 1
-                end_idx = None
-                has_extra = False
-                for tok in lexer.lex(fstring[i:]):
-                    if tok.name in ('LPAREN', 'LBRACKET', 'LCURLY'):
-                        depth += 1
-                    elif tok.name in ('RPAREN', 'RBRACKET', 'RCURLY'):
-                        if tok.name == 'RCURLY' and depth == 0:
-                            break
-                        depth -= 1
-                    elif tok.name == 'IDENTIFIER':
-                        offs1 = tok.value.find('!')
-                        offs2 = tok.value.find(':')
-                        if (offs1 != -1 or offs2 != -1) and depth == 1:
-                            # Normally, you could grab the min to get the first
-                            # offset. However, if any of the offsets are -1,
-                            # that will return -1, so it should be
-                            # special-cased.
-                            if offs1 == -1 or offs2 == -1:
-                                offs = max(offs1, offs2)
-                            else:
-                                offs = min(offs1, offs2)
+    def buf_push(self, txt):
+        self.update_pos(txt)
+        self.buf.extend(txt)
 
-                            end_idx = tok.source_pos.idx + offs + i
-                            has_extra = True
-
-                true_end_idx = tok.source_pos.idx + i
-                if end_idx is None:
-                    end_idx = true_end_idx
-
-                if depth:
-                    raise LexException("f-string: expecting '}'", pos.lineno,
-                                       pos.colno)
-                else:
-                    fpart = fstring[i:end_idx]
-                    if has_extra:
-                        extra = fstring[end_idx:true_end_idx]
-                    else:
-                        extra = ''
-            except LexingError as ex:
-                # Re-raise with proper position.
-                errpos = ex.source_pos
-                ex.message += ' (inside f-string, at %d:%d)' % (errpos.lineno,
-                                                                errpos.colno)
-                ex.source_pos = pos
-                raise ex
-
-            if not fpart:
-                raise LexException('f-string: empty expression not allowed',
-                                   pos.lineno, pos.colno)
-
-            conv = None
-            spec = None
-            while extra:
-                if extra[0] == '!' and conv is None:
-                    conv = extra[1:2]
-                    if not (set('sra') & {conv}):
-                        raise LexException("f-string: invalid conversion "
-                                           "character: expected 's', 'r', "
-                                           "or 'a'", pos.lineno, pos.colno)
-                    extra = extra[2:]
-                elif extra[0] == ':':
-                    spec = HyFString(parse_fstring(extra[1:], pos))
-                    break
-                else:
-                    raise LexException("f-string: expecting '}'", pos.lineno,
-                                       pos.colno)
-
-            flush()
-
-            do = HyExpression([HyString('do')] + import_buffer_to_hst(fpart))
-            fparts.append(HyFormat(do, conv, spec))
-            i += true_end_idx-i+1
-        else:
-            buf.append(c)
-            i += 1
-
-    flush()
-
-    for part in fparts:
-        part.start_line = part.end_line = pos.lineno
-        part.start_column = part.end_column = pos.colno
-        # Fill in the nested models.
+    def add_part(self, part):
+        part.start_line = part.end_line = self.pos.lineno
+        part.start_column = part.end_column = self.pos.colno
         part.replace(part)
-    return fparts
+        self.fparts.append(part)
+
+    def expect_rb(self):
+        raise LexException("f-string: expecting '}'", self.pos.lineno,
+                           self.pos.colno)
+
+    def parse_fpart(self):
+        try:
+            # The depth is tracked to avoid cutting through an expression.
+            depth = 1
+            end_idx = None
+            has_extra = False
+            for tok in lexer.lex(self.fstring[self.i:]):
+                if tok.name in ('LPAREN', 'LBRACKET', 'LCURLY'):
+                    depth += 1
+                elif tok.name in ('RPAREN', 'RBRACKET', 'RCURLY'):
+                    depth -= 1
+                    if tok.name == 'RCURLY' and depth == 0:
+                        break
+                elif tok.name == 'IDENTIFIER':
+                    # When lexing an f-string containing a format specifier
+                    # conversion, it will be lexed as an identifier. The
+                    # problem is that it makes it hard to tell between an
+                    # f-string end and a normal identifier.
+
+                    # The fix is to special-case: ! and : only work after an
+                    # identifier when there's a space first. E.g.:
+                    # f'{a!b}' is an identifier 'a!b', but f'{a !b}' has a
+                    # format conversion.
+
+                    # TL;DR: identifiers are hard.
+
+                    if depth == 1 and tok.value[0] in '!:':
+                        end_idx = tok.source_pos.idx + self.i
+                        has_extra = True
+
+            if depth:
+                # The string ended, but a } was never encountered.
+                self.expect_rb()
+
+            # end_idx tracks the end of the expression part of the f-string,
+            # while true_end_idx tracks the end of the entire f-string.
+
+            true_end_idx = tok.source_pos.idx + self.i
+            if end_idx is None:
+                end_idx = true_end_idx
+
+            fpart = self.fstring[self.i:end_idx]
+            if has_extra:
+                extra = self.fstring[end_idx:true_end_idx]
+            else:
+                extra = ''
+
+            return fpart, extra, true_end_idx - self.i + 1
+
+        except LexingError as ex:
+            # Re-raise with proper position.
+            errpos = ex.source_pos
+            ex.message += ' (inside f-string, at %d:%d)' % (errpos.lineno,
+                                                            errpos.colno)
+            ex.source_pos = self.pos
+            raise ex
+
+    def parse_extra(self, extra):
+        conv = None
+        spec = None
+
+        while extra:
+            if extra[0] == '!' and conv is None:
+                conv = extra[1:2]
+                if conv not in 'sra':
+                    raise LexException("f-string: invalid conversion character"
+                                       ": expected 's', 'r', or 'a'",
+                                       self.pos.lineno, self.pos.colno)
+                extra = extra[2:]
+                self.pos.colno += 2
+            elif extra[0] == ':':
+                self.update_pos(extra)
+                spec = HyFString(parse_fstring(extra[1:], self.pos))
+                break
+            else:
+                self.expect_rb()
+
+        return conv, spec
+
+    def parse(self):
+        # Avoid a circular import.
+        from hy.importer import import_buffer_to_hst
+
+        maybe_fpart = False
+        while self.i < len(self.fstring):
+            c = self.fstring[self.i]
+            if c == '{':
+                if maybe_fpart:
+                    self.buf_push('{')
+                    maybe_fpart = False
+                else:
+                    maybe_fpart = True
+                    self.pos.colno += 1
+                self.i += 1
+            elif maybe_fpart:
+                maybe_fpart = False
+                self.flush()
+
+                fpart, extra, length = self.parse_fpart()
+                self.update_pos(fpart)
+
+                conv, spec = self.parse_extra(extra)
+
+                exprs = import_buffer_to_hst(fpart)
+                if not exprs:
+                    raise LexException('f-string: empty expression not '
+                                       'allowed',
+                                       self.pos.lineno, self.pos.colno)
+                if len(exprs) != 1:
+                    self.expect_rb()
+
+                self.add_part(HyFormat(exprs[0], conv, spec))
+                self.i += length
+            else:
+                self.buf_push(c)
+                self.i += 1
+
+        self.flush()
+        return self.fparts
+
+
+def parse_fstring(fstring, pos):
+    return FStringParser(fstring, pos).parse()
 
 
 def set_boundaries(fun):
