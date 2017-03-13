@@ -85,7 +85,13 @@ class FStringParser(object):
         self.i = 0
         self.pos = copy.copy(pos)
 
+        # XXX: For some mysterious reason, rply gives us the lineno of the
+        # END of the f-string instead of the beginning.
+        self.pos.lineno -= fstring.count('\n')
+
     def update_pos(self, txt):
+        import traceback
+        # print self.pos.lineno, self.pos.colno, repr(txt), ''.join(traceback.format_stack())
         if '\n' in txt:
             self.pos.lineno += txt.count('\n')
             self.pos.colno = 0
@@ -95,9 +101,7 @@ class FStringParser(object):
         if not self.buf:
             return
 
-        buftxt = ''.join(self.buf)
-        self.update_pos(buftxt)
-        s = literal_eval('"""' + buftxt + '"""')
+        s = literal_eval('"""' + ''.join(self.buf) + '"""')
         self.add_part(HyString(s))
         self.buf[:] = []
 
