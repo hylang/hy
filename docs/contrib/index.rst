@@ -16,3 +16,4 @@ Contents:
    profile
    sequences
    walk
+   hy_repr
