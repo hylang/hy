@@ -2156,16 +2156,9 @@ class HyASTCompiler(object):
                                   root))
         else:
             result = Result()
-            exprs = []
             for tgt, target in zip(expression[::2], expression[1::2]):
-                item = self._compile_assign(tgt, target,
-                                            tgt.start_line, tgt.start_column)
-                result += item
-                exprs.append(item.force_expr)
-
-            result += ast.Tuple(elts=exprs, lineno=expression.start_line,
-                                col_offset=expression.start_column,
-                                ctx=ast.Load())
+                result += self._compile_assign(tgt, target, tgt.start_line,
+                                               tgt.start_column)
             return result
 
     def _compile_assign(self, name, result,
@@ -2196,7 +2189,6 @@ class HyASTCompiler(object):
                 targets=[st_name],
                 value=result.force_expr)
 
-        result += ld_name
         return result
 
     @builds("for*")
