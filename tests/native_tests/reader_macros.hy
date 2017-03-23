@@ -49,8 +49,8 @@
 (defn test-builtin-decorator-reader []
   (defn increment-arguments [func]
     "Increments each argument passed to the decorated function."
-    #@((wraps func)
-       (defn wrapper [&rest args &kwargs kwargs]
+    ((wraps func)
+       (fn [&rest args &kwargs kwargs]
          (apply func
                 (map inc args)
                 (dict-comp k (inc v) [[k v] (.items kwargs)])))))

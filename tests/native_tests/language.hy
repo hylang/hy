@@ -51,11 +51,6 @@
   (assert (= #{} (set))))
 
 
-(defn test-setv-empty []
-  "NATIVE: test setv works with no arguments"
-  (assert (is (setv) None)))
-
-
 (defn test-setv-get []
   "NATIVE: test setv works on a get expression"
   (setv foo [0 1 2])
@@ -81,14 +76,48 @@
 
 (defn test-setv-pairs []
   "NATIVE: test that setv works on pairs of arguments"
-  (assert (= (setv a 1 b 2) (, 1 2)))
+  (setv a 1 b 2)
   (assert (= a 1))
   (assert (= b 2))
   (setv y 0 x 1 y x)
-  (assert y)
+  (assert (= y 1))
   (try (eval '(setv a 1 b))
        (except [e [TypeError]] (assert (in "`setv' needs an even number of arguments" (str e))))))
 
+
+(defn test-setv-returns-none []
+  "NATIVE: test that setv always returns None"
+
+  (assert (none? (setv)))
+  (assert (none? (setv x 1)))
+  (assert (= x 1))
+  (assert (none? (setv x 2)))
+  (assert (= x 2))
+  (assert (none? (setv y 2  z 3)))
+  (assert (= y 2))
+  (assert (= z 3))
+  (assert (none? (setv [y z] [7 8])))
+  (assert (= y 7))
+  (assert (= z 8))
+  (assert (none? (setv (, y z) [9 10])))
+  (assert (= y 9))
+  (assert (= z 10))
+
+  (setv p 11)
+  (setv p (setv q 12))
+  (assert (= q 12))
+  (assert (none? p))
+
+  ; https://github.com/hylang/hy/issues/1052
+  (assert (none? (setv (get {} "x") 42)))
+  (setv l [])
+  (defclass Foo [object]
+    [__setattr__ (fn [self attr val]
+      (.append l [attr val]))])
+  (setv x (Foo))
+  (assert (none? (setv x.eggs "ham")))
+  (assert (not (hasattr x "eggs")))
+  (assert (= l [["eggs" "ham"]])))
 
 (defn test-store-errors []
   "NATIVE: test that setv raises the correct errors when given wrong argument types"
