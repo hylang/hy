@@ -109,6 +109,11 @@ def test_bin_hy_stdin_as_arrow():
     assert re.match(r"=>\s+2L?\s+=>", output)
 
 
+def test_bin_hy_stdin_error_underline_alignment():
+    _, err = run_cmd("hy", "(defmacro mabcdefghi [x] x)\n(mabcdefghi)")
+    assert "\n  (mabcdefghi)\n  ^----------^" in err
+
+
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
     assert "[1, 2]" in output.replace('L', '')

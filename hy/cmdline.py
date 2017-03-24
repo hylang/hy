@@ -103,7 +103,9 @@ class HyREPL(code.InteractiveConsole):
                 tokens = tokenize(source)
             except PrematureEndOfInput:
                 return True
-            tokens = tokenize("(do " + source + "\n)")
+            do = HyExpression([HySymbol('do')] + tokens)
+            do.start_line = do.end_line = do.start_column = do.end_column = 1
+            do.replace(do)
         except LexException as e:
             if e.source is None:
                 e.source = source
@@ -119,7 +121,7 @@ class HyREPL(code.InteractiveConsole):
                     new_ast = ast.Module(main_ast.body +
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
-            value = hy_eval(tokens[0], self.locals, "__console__",
+            value = hy_eval(do, self.locals, "__console__",
                             ast_callback)
         except HyTypeError as e:
             if e.source is None:
