@@ -103,6 +103,12 @@ def test_bin_hy_stdin_assignment():
     assert "BY" not in output
 
 
+def test_bin_hy_stdin_as_arrow():
+    # https://github.com/hylang/hy/issues/1255
+    output, _ = run_cmd("hy", "(as-> 0 it (inc it) (inc it))")
+    assert re.match(r"=>\s+2L?\s+=>", output)
+
+
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
     assert "[1, 2]" in output.replace('L', '')
