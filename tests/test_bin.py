@@ -23,10 +23,15 @@
 # DEALINGS IN THE SOFTWARE.
 import os
 import subprocess
+import re
 from hy._compat import PY3
 
 
 hy_dir = os.environ.get('HY_DIR', '')
+
+
+def hr(s=""):
+    return "hy --repl-output-fn=hy.contrib.hy-repr.hy-repr " + s
 
 
 def run_cmd(cmd, stdin_data=None, expect=0):
@@ -57,6 +62,61 @@ def test_bin_hy():
 def test_bin_hy_stdin():
     output, _ = run_cmd("hy", '(koan)')
     assert "monk" in output
+
+    output, _ = run_cmd("hy --spy", '(koan)')
+    assert "monk" in output
+    assert "\\n  Ummon" in output
+
+    # --spy should work even when an exception is thrown
+    output, _ = run_cmd("hy --spy", '(foof)')
+    assert "foof()" in output
+
+
+def test_bin_hy_stdin_multiline():
+    output, _ = run_cmd("hy", '(+ "a" "b"\n"c" "d")')
+    assert "'abcd'" in output
+
+
+def test_bin_hy_stdin_comments():
+    _, err_empty = run_cmd("hy", '')
+
+    output, err = run_cmd("hy", '(+ "a" "b") ; "c"')
+    assert "'ab'" in output
+    assert err == err_empty
+
+    _, err = run_cmd("hy", '; 1')
+    assert err == err_empty
+
+
+def test_bin_hy_stdin_assignment():
+    # If the last form is an assignment, don't print the value.
+
+    output, _ = run_cmd("hy", '(setv x (+ "A" "Z"))')
+    assert "AZ" not in output
+
+    output, _ = run_cmd("hy", '(setv x (+ "A" "Z")) (+ "B" "Y")')
+    assert "AZ" not in output
+    assert "BY" in output
+
+    output, _ = run_cmd("hy", '(+ "B" "Y") (setv x (+ "A" "Z"))')
+    assert "AZ" not in output
+    assert "BY" not in output
+
+
+def test_bin_hy_stdin_hy_repr():
+    output, _ = run_cmd("hy", '(+ [1] [2])')
+    assert "[1, 2]" in output.replace('L', '')
+
+    output, _ = run_cmd(hr(), '(+ [1] [2])')
+    assert "[1 2]" in output
+
+    output, _ = run_cmd(hr("--spy"), '(+ [1] [2])')
+    assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
+    assert "[1 2]" in output
+
+    # --spy should work even when an exception is thrown
+    output, _ = run_cmd(hr("--spy"), '(+ [1] [2] (foof))')
+    assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
 
 
 def test_bin_hy_cmd():

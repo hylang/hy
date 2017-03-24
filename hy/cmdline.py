@@ -32,14 +32,16 @@ import code
 import ast
 import sys
 import os
+import importlib
 
 import astor.codegen
 
 import hy
 
 from hy.lex import LexException, PrematureEndOfInput, tokenize
-from hy.compiler import hy_compile, HyTypeError
-from hy.importer import (ast_compile, import_buffer_to_module,
+from hy.lex.parser import hy_symbol_mangle
+from hy.compiler import HyTypeError
+from hy.importer import (hy_eval, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst,
                          import_buffer_to_ast, import_buffer_to_hst)
 from hy.completer import completion
@@ -73,25 +75,35 @@ builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
 
 
-def print_python_code(_ast):
-    # astor cannot handle ast.Interactive, so disguise it as a module
-    _ast_for_print = ast.Module()
-    _ast_for_print.body = _ast.body
-    print(astor.codegen.to_source(_ast_for_print))
-
-
 class HyREPL(code.InteractiveConsole):
-    def __init__(self, spy=False, locals=None, filename="<input>"):
+    def __init__(self, spy=False, output_fn=None, locals=None,
+                 filename="<input>"):
+
         self.spy = spy
+
+        if output_fn is None:
+            self.output_fn = repr
+        elif callable(output_fn):
+            self.output_fn = output_fn
+        else:
+            f = hy_symbol_mangle(output_fn)
+            if "." in output_fn:
+                module, f = f.rsplit(".", 1)
+                self.output_fn = getattr(importlib.import_module(module), f)
+            else:
+                self.output_fn = __builtins__[f]
+
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)
 
     def runsource(self, source, filename='<input>', symbol='single'):
         global SIMPLE_TRACEBACKS
         try:
-            tokens = tokenize(source)
-        except PrematureEndOfInput:
-            return True
+            try:
+                tokens = tokenize(source)
+            except PrematureEndOfInput:
+                return True
+            tokens = tokenize("(do " + source + "\n)")
         except LexException as e:
             if e.source is None:
                 e.source = source
@@ -100,10 +112,15 @@ class HyREPL(code.InteractiveConsole):
             return False
 
         try:
-            _ast = hy_compile(tokens, "__console__", root=ast.Interactive)
-            if self.spy:
-                print_python_code(_ast)
-            code = ast_compile(_ast, filename, symbol)
+            def ast_callback(main_ast, expr_ast):
+                if self.spy:
+                    # Mush the two AST chunks into a single module for
+                    # conversion into Python.
+                    new_ast = ast.Module(main_ast.body +
+                                         [ast.Expr(expr_ast.body)])
+                    print(astor.to_source(new_ast))
+            value = hy_eval(tokens[0], self.locals, "__console__",
+                            ast_callback)
         except HyTypeError as e:
             if e.source is None:
                 e.source = source
@@ -117,7 +134,12 @@ class HyREPL(code.InteractiveConsole):
             self.showtraceback()
             return False
 
-        self.runcode(code)
+        if value is not None:
+            # Make the last non-None value available to
+            # the user as `_`.
+            self.locals['_'] = value
+            # Print the value.
+            print(self.output_fn(value))
         return False
 
 
@@ -211,7 +233,7 @@ def run_file(filename):
     return 0
 
 
-def run_repl(hr=None, spy=False):
+def run_repl(hr=None, **kwargs):
     import platform
     sys.ps1 = "=> "
     sys.ps2 = "... "
@@ -221,7 +243,7 @@ def run_repl(hr=None, spy=False):
     with completion(Completer(namespace)):
 
         if not hr:
-            hr = HyREPL(spy, namespace)
+            hr = HyREPL(locals=namespace, **kwargs)
 
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
@@ -236,8 +258,8 @@ def run_repl(hr=None, spy=False):
     return 0
 
 
-def run_icommand(source, spy=False):
-    hr = HyREPL(spy)
+def run_icommand(source, **kwargs):
+    hr = HyREPL(**kwargs)
     if os.path.exists(source):
         with open(source, "r") as f:
             source = f.read()
@@ -272,7 +294,9 @@ def cmdline_handler(scriptname, argv):
         help="program passed in as a string, then stay in REPL")
     parser.add_argument("--spy", action="store_true",
                         help="print equivalent Python code before executing")
-
+    parser.add_argument("--repl-output-fn",
+                        help="function for printing REPL output "
+                             "(e.g., hy.contrib.hy-repr.hy-repr)")
     parser.add_argument("-v", "--version", action="version", version=VERSION)
 
     parser.add_argument("--show-tracebacks", action="store_true",
@@ -315,7 +339,8 @@ def cmdline_handler(scriptname, argv):
 
     if options.icommand:
         # User did "hy -i ..."
-        return run_icommand(options.icommand, spy=options.spy)
+        return run_icommand(options.icommand, spy=options.spy,
+                            output_fn=options.repl_output_fn)
 
     if options.args:
         if options.args[0] == "-":
@@ -332,7 +357,7 @@ def cmdline_handler(scriptname, argv):
                 sys.exit(e.errno)
 
     # User did NOTHING!
-    return run_repl(spy=options.spy)
+    return run_repl(spy=options.spy, output_fn=options.repl_output_fn)
 
 
 # entry point for cmd line script "hy"
