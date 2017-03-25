@@ -24,7 +24,7 @@ Changes from 0.12.1
 
    [ Misc. Improvements ]
    * New contrib module `hy-repr`
-   * Added a command-line option --hy-repr
+   * Added a command-line option --repl-output-fn
 
 Changes from 0.12.0
 
