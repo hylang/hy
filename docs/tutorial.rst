@@ -193,7 +193,6 @@ Hy.  Let's experiment with this in the hy interpreter::
   [1, 2, 3]
   => {"dog" "bark"
   ... "cat" "meow"}
-  ...
   {'dog': 'bark', 'cat': 'meow'}
   => (, 1 2 3)
   (1, 2, 3)
@@ -203,6 +202,20 @@ Hy.  Let's experiment with this in the hy interpreter::
   Fraction(1, 2)
 
 Notice the last two lines: Hy has a fraction literal like Clojure.
+
+If you start Hy like this (a shell alias might be helpful)::
+
+  $ hy --repl-output-fn=hy.contrib.hy-repr.hy-repr
+
+the interactive mode will use :ref:`_hy-repr-fn` instead of Python's
+native ``repr`` function to print out values, so you'll see values in
+Hy syntax rather than Python syntax::
+
+  => [1 2 3]
+  [1 2 3]
+  => {"dog" "bark"
+  ... "cat" "meow"}
+  {"dog" "bark" "cat" "meow"}
 
 If you are familiar with other Lisps, you may be interested that Hy
 supports the Common Lisp method of quoting:

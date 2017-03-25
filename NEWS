@@ -22,6 +22,10 @@ Changes from 0.12.1
      returns.
    * `setv` no longer unnecessarily tries to get attributes
 
+   [ Misc. Improvements ]
+   * New contrib module `hy-repr`
+   * Added a command-line option --hy-repr
+
 Changes from 0.12.0
 
    [ Bug Fixes ]

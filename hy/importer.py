@@ -111,7 +111,7 @@ def import_buffer_to_module(module_name, buf):
     return mod
 
 
-def hy_eval(hytree, namespace, module_name):
+def hy_eval(hytree, namespace, module_name, ast_callback=None):
     foo = HyObject()
     foo.start_line = 0
     foo.end_line = 0
@@ -132,6 +132,9 @@ def hy_eval(hytree, namespace, module_name):
     for node in ast.walk(expr):
         node.lineno = 1
         node.col_offset = 1
+
+    if ast_callback:
+        ast_callback(_ast, expr)
 
     if not isinstance(namespace, dict):
         raise HyTypeError(foo, "Globals must be a dictionary")
