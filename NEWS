@@ -8,7 +8,6 @@ Changes from 0.12.1
      and `str` objects under Python 2
    * Commas and underscores are allowed in numeric literals
    * `setv` always returns None
-   * with-decorator: Allow a `setv` form as the form to be decorated
    * xor: If exactly one argument is true, return it
    * hy.core.reserved is now hy.extra.reserved
 

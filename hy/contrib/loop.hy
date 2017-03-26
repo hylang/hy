@@ -63,7 +63,7 @@
     (import [hy.contrib.loop [--trampoline--]])
     (with-decorator
       --trampoline--
-      (def ~g!recur-fn (fn [~@signature] ~@new-body)))
+      (defn ~g!recur-fn [~@signature] ~@new-body))
     ~g!recur-fn))
 
 

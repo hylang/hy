@@ -110,4 +110,4 @@
      ret)
     (do
      (setv [lambda-list body] (head-tail bodies))
-     `(setv ~name (fn ~lambda-list ~@body)))))
+     `(setv ~name (fn* ~lambda-list ~@body)))))
