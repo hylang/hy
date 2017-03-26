@@ -1686,10 +1686,6 @@ will be 4 (``1+1 + 1+1``).
     => (addition 1 1)
     8
 
-In addition to ``defn`` forms, ``with-decorator`` can be used with ``defclass``
-and ``setv`` forms. In the latter case, the generated Python code uses an
-ordinary function call rather than decorator syntax.
-
 #@
 ~~
 

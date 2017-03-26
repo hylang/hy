@@ -1417,28 +1417,12 @@ class HyASTCompiler(object):
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop(-1))
-        if fn.stmts and isinstance(fn.stmts[-1], (ast.FunctionDef,
-                                                  ast.ClassDef)):
-            decorators, ret, _ = self._compile_collect(expr)
-            fn.stmts[-1].decorator_list = (decorators +
-                                           fn.stmts[-1].decorator_list)
-            return ret + fn
-        elif fn.stmts and isinstance(fn.stmts[-1], ast.Assign):
-            # E.g., (with-decorator foo (setv f (fn [] 5)))
-            # We can't use Python's decorator syntax, but we can get the
-            # same effect.
-            decorators, ret, _ = self._compile_collect(expr)
-            for d in decorators:
-                fn.stmts[-1].value = ast.Call(func=d,
-                                              args=[fn.stmts[-1].value],
-                                              keywords=[],
-                                              starargs=None,
-                                              kwargs=None,
-                                              lineno=expr.start_line,
-                                              col_offset=expr.start_column)
-            return fn
-        else:
+        if not fn.stmts or not isinstance(fn.stmts[-1], (ast.FunctionDef,
+                                                         ast.ClassDef)):
             raise HyTypeError(expr, "Decorated a non-function")
+        decorators, ret, _ = self._compile_collect(expr)
+        fn.stmts[-1].decorator_list = decorators + fn.stmts[-1].decorator_list
+        return ret + fn
 
     @builds("with*")
     @checkargs(min=2)

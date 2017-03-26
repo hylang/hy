@@ -28,14 +28,6 @@
   (assert (= cls.attr2 456)))
 
 
-(defn test-decorated-setv []
-  (defn d [func]
-    (fn [] (+ (func) "z")))
-  (with-decorator d
-    (setv f (fn [] "hello")))
-  (assert (= (f) "helloz")))
-
-
 (defn test-decorator-clobbing []
   "NATIVE: Tests whether nested decorators work"
   (do
