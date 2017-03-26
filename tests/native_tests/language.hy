@@ -900,6 +900,19 @@
   (assert (= 43 (my-fun 42))))
 
 
+(defn test-defn-dunder-name []
+  "NATIVE: test that defn preserves __name__"
+
+  (defn phooey [x]
+    (+ x 1))
+  (assert (= phooey.__name__ "phooey"))
+
+  (defn mooey [x]
+    (+= x 1)
+    x)
+  (assert (= mooey.__name__ "mooey")))
+
+
 (defn test-mangles []
   "NATIVE: test mangles"
   (assert (= 2 ((fn [] (+ 1 1))))))

@@ -2297,9 +2297,13 @@ class HyASTCompiler(object):
         return ret
 
     @builds("fn")
+    @builds("fn*")
+    # The starred version is for internal use (particularly, in the
+    # definition of `defn`). It ensures that a FunctionDef is
+    # produced rather than a Lambda.
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        expression.pop(0)
+        force_functiondef = expression.pop(0) == "fn*"
 
         arglist = expression.pop(0)
         if not isinstance(arglist, HyList):
@@ -2376,7 +2380,7 @@ class HyASTCompiler(object):
             defaults=defaults)
 
         body = self._compile_branch(expression)
-        if not body.stmts:
+        if not force_functiondef and not body.stmts:
             ret += ast.Lambda(
                 lineno=expression.start_line,
                 col_offset=expression.start_column,
