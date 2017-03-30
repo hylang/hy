@@ -114,6 +114,23 @@ def test_bin_hy_stdin_error_underline_alignment():
     assert "\n  (mabcdefghi)\n  ^----------^" in err
 
 
+def test_bin_hy_stdin_except_do():
+    # https://github.com/hylang/hy/issues/533
+
+    output, _ = run_cmd("hy", '(try (/ 1 0) (except [ZeroDivisionError] "hello"))')  # noqa
+    assert "hello" in output
+
+    output, _ = run_cmd("hy", '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))')  # noqa
+    assert "aaa" not in output
+    assert "bbb" not in output
+    assert "ccc" in output
+
+    output, _ = run_cmd("hy", '(if True (do "xxx" "yyy" "zzz"))')
+    assert "xxx" not in output
+    assert "yyy" not in output
+    assert "zzz" in output
+
+
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
     assert "[1, 2]" in output.replace('L', '')
