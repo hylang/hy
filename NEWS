@@ -21,6 +21,7 @@ Changes from 0.12.1
    * A `yield` inside of a `with` statement will properly suppress implicit
      returns.
    * `setv` no longer unnecessarily tries to get attributes
+   * `loop` no longer replaces string literals equal to "recur"
 
    [ Misc. Improvements ]
    * New contrib module `hy-repr`

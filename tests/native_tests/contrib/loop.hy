@@ -44,3 +44,7 @@
      (assert True))
    (else
     (assert False))))
+
+(defn test-recur-string []
+  "test that `loop` doesn't touch a string named `recur`"
+  (assert (= (loop [] (+ "recur" "1")) "recur1")))
