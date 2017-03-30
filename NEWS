@@ -7,12 +7,19 @@ Changes from 0.12.1
    * Added bytestring literals, which create `bytes` objects under Python 3
      and `str` objects under Python 2
    * Commas and underscores are allowed in numeric literals
+   * Many more operators (e.g., `**`, `//`, `not`, `in`) can be used
+     as first-class functions
+   * The semantics of binary operators when applied to fewer or more
+     than two arguments have been made more logical
+   * `(** a b c d)` is now equivalent to `(** a (** b (** c d)))`,
+     not `(** (** (** a b) c) d)`
    * `setv` always returns None
    * with-decorator: Allow a `setv` form as the form to be decorated
    * xor: If exactly one argument is true, return it
    * hy.core.reserved is now hy.extra.reserved
 
    [ Bug Fixes ]
+   * All shadowed operators have the same arities as real operators
    * Shadowed comparison operators now use `and` instead of `&`
      for chained comparisons
    * partition no longer prematurely exhausts input iterators

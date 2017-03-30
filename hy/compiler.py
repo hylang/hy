@@ -371,7 +371,7 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
-        self.allow_builtins = False
+        self.allow_builtins = module_name.startswith("hy.core")
         self.anon_fn_count = 0
         self.anon_var_count = 0
         self.imports = defaultdict(set)
@@ -1892,7 +1892,7 @@ class HyASTCompiler(object):
                                  col_offset=e.start_column)
 
     @builds("=")
-    @builds("!=")
+    @builds("is")
     @builds("<")
     @builds("<=")
     @builds(">")
@@ -1900,33 +1900,25 @@ class HyASTCompiler(object):
     @checkargs(min=1)
     def compile_compare_op_expression(self, expression):
         if len(expression) == 2:
-            rval = "True"
-            if expression[0] == "!=":
-                rval = "False"
-            return ast.Name(id=rval,
+            return ast.Name(id="True",
                             ctx=ast.Load(),
                             lineno=expression.start_line,
                             col_offset=expression.start_column)
         return self._compile_compare_op_expression(expression)
 
-    @builds("is")
-    @builds("in")
+    @builds("!=")
     @builds("is_not")
-    @builds("not_in")
     @checkargs(min=2)
     def compile_compare_op_expression_coll(self, expression):
         return self._compile_compare_op_expression(expression)
 
-    @builds("%")
-    @builds("**")
-    @builds("<<")
-    @builds(">>")
-    @builds("|")
-    @builds("^")
-    @builds("&")
-    @builds_if("@", PY35)
-    @checkargs(min=2)
-    def compile_maths_expression(self, expression):
+    @builds("in")
+    @builds("not_in")
+    @checkargs(2)
+    def compile_compare_op_expression_binary(self, expression):
+        return self._compile_compare_op_expression(expression)
+
+    def _compile_maths_expression(self, expression):
         ops = {"+": ast.Add,
                "/": ast.Div,
                "//": ast.FloorDiv,
@@ -1942,14 +1934,18 @@ class HyASTCompiler(object):
         if PY35:
             ops.update({"@": ast.MatMult})
 
-        inv = expression.pop(0)
-        op = ops[inv]
+        op = ops[expression.pop(0)]
+        right_associative = op == ast.Pow
 
+        if right_associative:
+            expression = expression[::-1]
         ret = self.compile(expression.pop(0))
         for child in expression:
             left_expr = ret.force_expr
             ret += self.compile(child)
             right_expr = ret.force_expr
+            if right_associative:
+                left_expr, right_expr = right_expr, left_expr
             ret += ast.BinOp(left=left_expr,
                              op=op(),
                              right=right_expr,
@@ -1957,27 +1953,46 @@ class HyASTCompiler(object):
                              col_offset=child.start_column)
         return ret
 
-    @builds("*")
-    @builds("/")
+    @builds("**")
     @builds("//")
+    @builds("<<")
+    @builds(">>")
+    @builds("&")
+    @checkargs(min=2)
+    def compile_maths_expression_2_or_more(self, expression):
+        return self._compile_maths_expression(expression)
+
+    @builds("%")
+    @builds("^")
+    @checkargs(2)
+    def compile_maths_expression_exactly_2(self, expression):
+        return self._compile_maths_expression(expression)
+
+    @builds("*")
+    @builds("|")
     def compile_maths_expression_mul(self, expression):
-        if len(expression) > 2:
-            return self.compile_maths_expression(expression)
+        id_elem = {"*": 1, "|": 0}[expression[0]]
+        if len(expression) == 1:
+            return ast.Num(n=long_type(id_elem),
+                           lineno=expression.start_line,
+                           col_offset=expression.start_column)
+        elif len(expression) == 2:
+            return self.compile(expression[1])
         else:
-            id_op = {"*": HyInteger(1), "/": HyInteger(1), "//": HyInteger(1)}
+            return self._compile_maths_expression(expression)
 
-            op = expression.pop(0)
-            arg = expression.pop(0) if expression else id_op[op]
-            expr = HyExpression([
-                HySymbol(op),
-                id_op[op],
-                arg
-            ]).replace(expression)
-            return self.compile_maths_expression(expr)
+    @builds("/")
+    @checkargs(min=1)
+    def compile_maths_expression_div(self, expression):
+        if len(expression) == 2:
+            expression = HyExpression([HySymbol("/"),
+                                       HyInteger(1),
+                                       expression[1]]).replace(expression)
+        return self._compile_maths_expression(expression)
 
-    def compile_maths_expression_additive(self, expression):
+    def _compile_maths_expression_additive(self, expression):
         if len(expression) > 2:
-            return self.compile_maths_expression(expression)
+            return self._compile_maths_expression(expression)
         else:
             op = {"+": ast.UAdd, "-": ast.USub}[expression.pop(0)]()
             arg = expression.pop(0)
@@ -1988,6 +2003,17 @@ class HyASTCompiler(object):
                                col_offset=arg.start_column)
             return ret
 
+    @builds("&")
+    @builds_if("@", PY35)
+    @checkargs(min=1)
+    def compile_maths_expression_unary_idempotent(self, expression):
+        if len(expression) == 2:
+            # Used as a unary operator, this operator simply
+            # returns its argument.
+            return self.compile(expression[1])
+        else:
+            return self._compile_maths_expression(expression)
+
     @builds("+")
     def compile_maths_expression_add(self, expression):
         if len(expression) == 1:
@@ -1996,12 +2022,12 @@ class HyASTCompiler(object):
                            lineno=expression.start_line,
                            col_offset=expression.start_column)
         else:
-            return self.compile_maths_expression_additive(expression)
+            return self._compile_maths_expression_additive(expression)
 
     @builds("-")
     @checkargs(min=1)
     def compile_maths_expression_sub(self, expression):
-        return self.compile_maths_expression_additive(expression)
+        return self._compile_maths_expression_additive(expression)
 
     @builds("+=")
     @builds("/=")
