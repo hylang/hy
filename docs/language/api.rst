@@ -55,8 +55,13 @@ digits.
 string literals
 ---------------
 
-Unlike Python, Hy allows only double-quoted strings. The single-quote character
-is reserved for preventing the evaluation of a form, as in most Lisps.
+Unlike Python, Hy allows only double-quoted strings (e.g., ``"hello"``). The
+single-quote character ``'`` is reserved for preventing the evaluation of a
+form (e.g., ``'(+ 1 1)``), as in most Lisps.
+
+Python's so-called triple-quoted strings (e.g., ``'''hello'''`` and
+``"""hello"""``) aren't supported. However, in Hy, unlike Python, any string
+literal can contain newlines.
 
 Whether running under Python 2 or Python 3, Hy treats string literals as
 sequences of Unicode characters by default, and allows you to prefix a literal
@@ -64,6 +69,22 @@ with ``b`` to treat it as a sequence of bytes. So when running under Python 3,
 Hy translates ``"foo"`` and ``b"foo"`` to the identical Python code, but when
 running under Python 2, ``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is
 translated to ``"foo"``.
+
+.. _syntax-keywords:
+
+keywords
+--------
+
+An identifier headed by a colon, such as ``:foo``, is a keyword. Keywords
+evaluate to a string preceded by the Unicode non-character code point U+FDD0,
+like ``"\ufdd0:foo"``, so ``:foo`` and ``":foo"`` aren't equal. However, if a
+literal keyword appears in a function call, it's used to indicate a keyword
+argument rather than passed in as a value. For example, ``(f :foo 3)`` calls
+the function ``f`` with the keyword argument named ``foo`` set to ``3``. Hence,
+trying to call a function on a literal keyword may fail: ``(f :foo)`` yields
+the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
+the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
+argument, as in ``(f :arg :foo)``.
 
 Built-Ins
 =========

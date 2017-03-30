@@ -160,12 +160,7 @@ HyKeyword
 ~~~~~~~~~
 
 ``hy.models.HyKeyword`` represents keywords in Hy. Keywords are
-symbols starting with a ``:``. The class inherits :ref:`HyString`.
-
-To distinguish :ref:`HyKeywords <HyKeyword>` from :ref:`HySymbols
-<HySymbol>`, without the possibility of (involuntary) clashes, the
-private-use unicode character ``"\uFDD0"`` is prepended to the keyword
-literal before storage.
+symbols starting with a ``:``. See :ref:`syntax-keywords`.
 
 .. _hycons:
 
