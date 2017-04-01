@@ -54,6 +54,12 @@ Command Line Options
 
    .. versionadded:: 0.9.12
 
+.. cmdoption:: --repl-output-fn
+
+   Format REPL output using specific function (e.g., hy.contrib.hy-repr.hy-repr)
+
+   .. versionadded:: 0.13.0
+
 .. cmdoption:: -v
 
    Print the Hy version number and exit.
