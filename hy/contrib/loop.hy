@@ -24,6 +24,8 @@
 ;;; The loop/recur macro allows you to construct functions that use tail-call
 ;;; optimization to allow arbitrary levels of recursion.
 
+(import [hy.contrib.walk [prewalk]])
+
 (defn --trampoline-- [f]
   "Wrap f function and make it tail-call optimized."
   ;; Takes the function "f" and returns a wrapper that may be used for tail-
@@ -47,18 +49,11 @@
       (assoc active 0 False)
       result)))
 
-(defn recursive-replace [old-term new-term body]
-  "Recurses through lists of lists looking for old-term and replacing it with new-term."
-  ((type body)
-   (list-comp (cond
-               [(= term old-term) new-term]
-               [(instance? hy.HyList term)
-                (recursive-replace old-term new-term term)]
-               [True term]) [term body])))
-
 
 (defmacro/g! fnr [signature &rest body]
-  (setv new-body (recursive-replace 'recur g!recur-fn body))
+  (setv new-body (prewalk
+    (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
+    body))
   `(do
     (import [hy.contrib.loop [--trampoline--]])
     (with-decorator
