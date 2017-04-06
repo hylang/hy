@@ -89,15 +89,6 @@ def import_file_to_module(module_name, fpath):
     return mod
 
 
-def import_file_to_globals(env, module_name, fpath):
-    """ Import content from fpath and puts it into the dict provided
-    (e.g., for use in a REPL)
-    """
-    mod = import_file_to_module(module_name, fpath)
-    for k, v in mod.__dict__.items():
-        env[k] = v
-
-
 def import_buffer_to_module(module_name, buf):
     try:
         _ast = import_buffer_to_ast(buf, module_name)
