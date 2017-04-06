@@ -108,6 +108,18 @@
   (assert (= q 12))
   (assert (none? p))
 
+  (assert (none? (setv x (defn phooey [] (setv p 1) (+ p 6)))))
+  (assert (none? (setv x (defclass C))))
+  (assert (none? (setv x (for [i (range 3)] i (inc i)))))
+  (assert (none? (setv x (assert True))))
+
+  (assert (none? (setv x (with [(open "README.md" "r")] 3))))
+  (assert (= x 3))
+  (assert (none? (setv x (try (/ 1 2) (except [ZeroDivisionError] "E1")))))
+  (assert (= x .5))
+  (assert (none? (setv x (try (/ 1 0) (except [ZeroDivisionError] "E2")))))
+  (assert (= x "E2"))
+
   ; https://github.com/hylang/hy/issues/1052
   (assert (none? (setv (get {} "x") 42)))
   (setv l [])
@@ -118,6 +130,7 @@
   (assert (none? (setv x.eggs "ham")))
   (assert (not (hasattr x "eggs")))
   (assert (= l [["eggs" "ham"]])))
+
 
 (defn test-store-errors []
   "NATIVE: test that setv raises the correct errors when given wrong argument types"

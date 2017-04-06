@@ -2181,6 +2181,8 @@ class HyASTCompiler(object):
            and isinstance(name, HyString) \
            and '.' not in name:
             result.rename(name)
+            # Throw away .expr to ensure that (setv ...) returns None.
+            result.expr = None
         else:
             st_name = self._storeize(name, ld_name)
             result += ast.Assign(
