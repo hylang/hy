@@ -24,12 +24,12 @@ from hy.errors import HyError
 
 class LexException(HyError):
     """Error during the Lexing of a Hython expression."""
-    def __init__(self, message, lineno, colno):
+    def __init__(self, message, lineno, colno, source=None):
         super(LexException, self).__init__(message)
         self.message = message
         self.lineno = lineno
         self.colno = colno
-        self.source = None
+        self.source = source
         self.filename = '<stdin>'
 
     def __str__(self):

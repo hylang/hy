@@ -63,6 +63,17 @@ def test_unbalanced_exception():
         pass
 
 
+def test_lex_single_quote_err():
+    "Ensure tokenizing \"' \" throws a LexException that can be stringified"
+    # https://github.com/hylang/hy/issues/1252
+    try:
+        tokenize("' ")
+    except LexException as e:
+        assert "Could not identify the next token" in str(e)
+    else:
+        assert False
+
+
 def test_lex_expression_symbols():
     """ Make sure that expressions produce symbols """
     objs = tokenize("(foo bar)")
