@@ -92,8 +92,8 @@ class FStringParser(object):
             self.pos.lineno -= fstring.count('\n')
 
     def update_pos(self, txt):
-        import traceback
-        #print self.pos.lineno, self.pos.colno, repr(txt)#, ''.join(traceback.format_stack())
+        # import traceback
+        # print self.pos.lineno, self.pos.colno, repr(txt)#, ''.join(traceback.format_stack())
         if '\n' in txt:
             self.pos.lineno += txt.count('\n')
             self.pos.colno = 0
