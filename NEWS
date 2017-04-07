@@ -23,6 +23,7 @@ Changes from 0.12.1
    * `setv` no longer unnecessarily tries to get attributes
    * `loop` no longer replaces string literals equal to "recur"
    * The REPL now prints the correct value of `do` and `try` forms
+   * Fixed a crash when tokenizing a single quote followed by whitespace
 
    [ Misc. Improvements ]
    * New contrib module `hy-repr`
