@@ -26,6 +26,7 @@ import runpy
 import subprocess
 
 from setuptools import find_packages, setup
+from setuptools.command.install import install
 
 os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
@@ -48,6 +49,17 @@ long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
+class Install(install):
+    def run(self):
+        # Import each Hy module to ensure it's compiled.
+        import os, importlib
+        for dirpath, _, filenames in os.walk("hy"):
+            for filename in filenames:
+                if filename.endswith(".hy"):
+                    importlib.import_module(
+                        dirpath.replace("/", ".") + "." + filename[:-len(".hy")])
+        install.run(self)
+
 install_requires = ['rply>=0.7.0', 'astor>=0.5', 'clint>=0.4']
 if sys.version_info[:2] < (2, 7):
     install_requires.append('argparse>=1.2.1')
@@ -61,6 +73,7 @@ setup(
     name=PKG,
     version=__version__,
     install_requires=install_requires,
+    cmdclass=dict(install=Install),
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
@@ -73,9 +86,9 @@ setup(
     },
     packages=find_packages(exclude=['tests*']),
     package_data={
-        'hy.contrib': ['*.hy'],
-        'hy.core': ['*.hy'],
-        'hy.extra': ['*.hy'],
+        'hy.contrib': ['*.hy', '__pycache__/*'],
+        'hy.core': ['*.hy', '__pycache__/*'],
+        'hy.extra': ['*.hy', '__pycache__/*'],
     },
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
