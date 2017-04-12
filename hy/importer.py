@@ -86,14 +86,16 @@ def import_file_to_module(module_name, fpath, loader=None):
     try:
         source_mtime = int(os.stat(fpath).st_mtime)
         with open(bytecode_path, 'rb') as bc_f:
-            # To get the bytecode file's internal timestamp, take the 4 bytes
-            # after the first 4 bytes and interpret them as a little-endian
-            # 32-bit integer.
-            bytecode_mtime = struct.unpack('<i', bc_f.read(8)[4:])[0]
+            # The first 4 bytes are the magic number for the version of Python
+            # that compiled this bytecode.
+            bytecode_magic = bc_f.read(4)
+            # The next 4 bytes, interpreted as a little-endian 32-bit integer,
+            # are the mtime of the corresponding source file.
+            bytecode_mtime, = struct.unpack('<i', bc_f.read(4))
     except (IOError, OSError):
         pass
     else:
-        if bytecode_mtime >= source_mtime:
+        if bytecode_magic == MAGIC and bytecode_mtime >= source_mtime:
             # It's a cache hit. Load the byte-compiled version.
             if PY3:
                 # As of Python 3.6, imp.load_compiled still exists, but it's
