@@ -61,9 +61,6 @@ class Install(install):
         install.run(self)
 
 install_requires = ['rply>=0.7.0', 'astor>=0.5', 'clint>=0.4']
-if sys.version_info[:2] < (2, 7):
-    install_requires.append('argparse>=1.2.1')
-    install_requires.append('importlib>=1.0.2')
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 
@@ -106,7 +103,6 @@ setup(
         "Programming Language :: Lisp",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.3",
