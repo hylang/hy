@@ -5,7 +5,7 @@
         [hy.errors [HyTypeError]])
 (import sys)
 
-(import [hy._compat [PY33 PY34 PY35]])
+(import [hy._compat [PY3 PY34 PY35]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -649,7 +649,7 @@
 (defn test-yield-with-return []
   "NATIVE: test yield with return"
   (defn gen [] (yield 3) "goodbye")
-  (if PY33
+  (if PY3
     (do (setv gg (gen))
         (assert (= 3 (next gg)))
         (try (next gg)

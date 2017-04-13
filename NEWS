@@ -1,6 +1,7 @@
 Changes from 0.12.1
 
    [ Language Changes ]
+   * Pythons 2.6, 3.0, 3.1, and 3.2 are no longer supported
    * `let` has been removed. Python's scoping rules do not make a proper
      implementation of it possible. Use `setv` instead.
    * `lambda` has been removed, but `fn` now does exactly what `lambda` did

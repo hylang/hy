@@ -33,7 +33,7 @@ from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, bytes_type, long_type, PY33, PY3, PY34, PY35, raise_empty)
+    str_type, bytes_type, long_type, PY3, PY34, PY35, raise_empty)
 from hy.macros import require, macroexpand, sharp_macroexpand
 import hy.importer
 
@@ -861,7 +861,7 @@ class HyASTCompiler(object):
 
         ret = handler_results
 
-        if PY33:
+        if PY3:
             # Python 3.3 features a merge of TryExcept+TryFinally into Try.
             return ret + ast.Try(
                 lineno=expr.start_line,
@@ -1170,10 +1170,7 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        if PY33:
-            ret = Result(contains_yield=False)
-        else:
-            ret = Result(contains_yield=True)
+        ret = Result(contains_yield=(not PY3))
 
         value = None
         if expr != []:
@@ -1190,7 +1187,7 @@ class HyASTCompiler(object):
     @builds("yield_from")
     @checkargs(max=1)
     def compile_yield_from_expression(self, expr):
-        if not PY33:
+        if not PY3:
             raise HyCompileError(
                 "yield-from only supported in python 3.3+!")
 
@@ -1464,7 +1461,7 @@ class HyASTCompiler(object):
                             optional_vars=thing,
                             body=body.stmts)
 
-        if PY33:
+        if PY3:
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
@@ -2367,7 +2364,7 @@ class HyASTCompiler(object):
             return ret
 
         if body.expr:
-            if body.contains_yield and not PY33:
+            if body.contains_yield and not PY3:
                 # Prior to PEP 380 (introduced in Python 3.3)
                 # generators may not have a value in a return
                 # statement.
