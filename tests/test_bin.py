@@ -25,6 +25,7 @@ import os
 import subprocess
 import re
 from hy._compat import PY3
+from hy.importer import get_bytecode_path
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -53,6 +54,16 @@ def run_cmd(cmd, stdin_data=None, expect=0):
         stderr += p.stderr.read().decode('utf-8')
     assert p.returncode == expect
     return stdout, stderr
+
+
+def rm(fpath):
+    try:
+        os.remove(fpath)
+    except (IOError, OSError):
+        try:
+            os.rmdir(fpath)
+        except (IOError, OSError):
+            pass
 
 
 def test_bin_hy():
@@ -190,9 +201,11 @@ def test_bin_hyc():
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
 
-    output, _ = run_cmd("hyc tests/resources/argparse_ex.hy")
+    path = "tests/resources/argparse_ex.hy"
+    output, _ = run_cmd("hyc " + path)
     assert "Compiling" in output
-    assert os.path.exists("tests/resources/argparse_ex.pyc")
+    assert os.path.exists(get_bytecode_path(path))
+    rm(get_bytecode_path(path))
 
 
 def test_bin_hyc_missing_file():
@@ -241,6 +254,41 @@ def test_bin_hy_main_exitvalue():
 def test_bin_hy_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
+
+
+def test_bin_hy_byte_compile():
+
+    modname = "tests.resources.bin.bytecompile"
+    fpath = modname.replace(".", "/") + ".hy"
+
+    for can_byte_compile in [True, False]:
+        for cmd in ["hy " + fpath,
+                    "hy -m " + modname,
+                    "hy -c '(import {})'".format(modname)]:
+
+            rm(get_bytecode_path(fpath))
+
+            if not can_byte_compile:
+                # Keep Hy from being able to byte-compile the module by
+                # creating a directory at the target location.
+                os.mkdir(get_bytecode_path(fpath))
+
+            # Whether or not we can byte-compile the module, we should be able
+            # to run it.
+            output, _ = run_cmd(cmd)
+            assert "Hello from macro" in output
+            assert "The macro returned: boink" in output
+
+            if can_byte_compile:
+                # That should've byte-compiled the module.
+                assert os.path.exists(get_bytecode_path(fpath))
+
+            # When we run the same command again, and we've byte-compiled the
+            # module, the byte-compiled version should be run instead of the
+            # source, in which case the macro shouldn't be run.
+            output, _ = run_cmd(cmd)
+            assert ("Hello from macro" in output) ^ can_byte_compile
+            assert "The macro returned: boink" in output
 
 
 def test_bin_hy_module_main():

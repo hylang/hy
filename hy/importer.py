@@ -25,14 +25,17 @@ from hy.lex import tokenize, LexException
 from hy.errors import HyIOError
 
 from io import open
+import re
 import marshal
+import struct
 import imp
 import sys
+import platform
 import ast
 import os
 import __future__
 
-from hy._compat import PY3, PY33, MAGIC, builtins, long_type, wr_long
+from hy._compat import PY3, PY33, PY34, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
 
@@ -68,34 +71,83 @@ def import_file_to_ast(fpath, module_name):
     return hy_compile(import_file_to_hst(fpath), module_name)
 
 
-def import_file_to_module(module_name, fpath):
-    """Import content from fpath and puts it into a Python module.
+def import_file_to_module(module_name, fpath, loader=None):
+    """Import Hy source from fpath and put it into a Python module.
 
-    Returns the module."""
+    If there's an up-to-date byte-compiled version of this module, load that
+    instead. Otherwise, byte-compile the module once we're done loading it, if
+    we can.
+
+    Return the module."""
+
+    module = None
+
+    bytecode_path = get_bytecode_path(fpath)
     try:
-        _ast = import_file_to_ast(fpath, module_name)
-        mod = imp.new_module(module_name)
-        mod.__file__ = fpath
-        eval(ast_compile(_ast, fpath, "exec"), mod.__dict__)
-    except (HyTypeError, LexException) as e:
-        if e.source is None:
-            with open(fpath, 'rt') as fp:
-                e.source = fp.read()
-            e.filename = fpath
-        raise
-    except Exception:
-        sys.modules.pop(module_name, None)
-        raise
-    return mod
+        source_mtime = int(os.stat(fpath).st_mtime)
+        with open(bytecode_path, 'rb') as bc_f:
+            # The first 4 bytes are the magic number for the version of Python
+            # that compiled this bytecode.
+            bytecode_magic = bc_f.read(4)
+            # The next 4 bytes, interpreted as a little-endian 32-bit integer,
+            # are the mtime of the corresponding source file.
+            bytecode_mtime, = struct.unpack('<i', bc_f.read(4))
+    except (IOError, OSError):
+        pass
+    else:
+        if bytecode_magic == MAGIC and bytecode_mtime >= source_mtime:
+            # It's a cache hit. Load the byte-compiled version.
+            if PY3:
+                # As of Python 3.6, imp.load_compiled still exists, but it's
+                # deprecated. So let's use SourcelessFileLoader instead.
+                from importlib.machinery import SourcelessFileLoader
+                module = (SourcelessFileLoader(module_name, bytecode_path).
+                          load_module(module_name))
+            else:
+                module = imp.load_compiled(module_name, bytecode_path)
 
+    if not module:
+        # It's a cache miss, so load from source.
+        sys.modules[module_name] = None
+        try:
+            _ast = import_file_to_ast(fpath, module_name)
+            module = imp.new_module(module_name)
+            module.__file__ = fpath
+            code = ast_compile(_ast, fpath, "exec")
+            if not (platform.python_implementation() == 'PyPy' and
+                    'nosetests' in sys.argv[0] and
+                    is_package(module_name)):
+                # Nose can generate spurious errors in this specific situation.
+                try:
+                    write_code_as_pyc(fpath, code)
+                except (IOError, OSError):
+                    # We failed to save the bytecode, probably because of a
+                    # permissions issue. The user only asked to import the
+                    # file, so don't bug them about it.
+                    pass
+            eval(code, module.__dict__)
+        except (HyTypeError, LexException) as e:
+            if e.source is None:
+                with open(fpath, 'rt') as fp:
+                    e.source = fp.read()
+                e.filename = fpath
+            raise
+        except Exception:
+            sys.modules.pop(module_name, None)
+            raise
+        sys.modules[module_name] = module
+        module.__file__ = fpath
+        module.__name__ = module_name
 
-def import_file_to_globals(env, module_name, fpath):
-    """ Import content from fpath and puts it into the dict provided
-    (e.g., for use in a REPL)
-    """
-    mod = import_file_to_module(module_name, fpath)
-    for k, v in mod.__dict__.items():
-        env[k] = v
+    if loader:
+        module.__loader__ = loader
+    if is_package(module_name):
+        module.__path__ = []
+        module.__package__ = module_name
+    else:
+        module.__package__ = module_name.rpartition('.')[0]
+
+    return module
 
 
 def import_buffer_to_module(module_name, buf):
@@ -147,46 +199,33 @@ def hy_eval(hytree, namespace, module_name, ast_callback=None):
 
 
 def write_hy_as_pyc(fname):
-    with open(fname, 'U') as f:
-        try:
-            st = os.fstat(f.fileno())
-        except AttributeError:
-            st = os.stat(fname)
-        timestamp = long_type(st.st_mtime)
-
     _ast = import_file_to_ast(fname,
                               os.path.basename(os.path.splitext(fname)[0]))
     code = ast_compile(_ast, fname, "exec")
-    cfile = "%s.pyc" % fname[:-len(".hy")]
+    write_code_as_pyc(fname, code)
 
-    open_ = builtins.open
 
-    with open_(cfile, 'wb') as fc:
-        if PY3:
-            fc.write(b'\0\0\0\0')
-        else:
-            fc.write('\0\0\0\0')
+def write_code_as_pyc(fname, code):
+    st = os.stat(fname)
+    timestamp = long_type(st.st_mtime)
+
+    cfile = get_bytecode_path(fname)
+    try:
+        os.makedirs(os.path.dirname(cfile))
+    except (IOError, OSError):
+        pass
+
+    with builtins.open(cfile, 'wb') as fc:
+        fc.write(MAGIC)
         wr_long(fc, timestamp)
         if PY33:
             wr_long(fc, st.st_size)
         marshal.dump(code, fc)
-        fc.flush()
-        fc.seek(0, 0)
-        fc.write(MAGIC)
 
 
 class MetaLoader(object):
     def __init__(self, path):
         self.path = path
-
-    def is_package(self, fullname):
-        dirpath = "/".join(fullname.split("."))
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            composed_path = "%s/%s/__init__.hy" % (pth, dirpath)
-            if os.path.exists(composed_path):
-                return True
-        return False
 
     def load_module(self, fullname):
         if fullname in sys.modules:
@@ -195,24 +234,7 @@ class MetaLoader(object):
         if not self.path:
             return
 
-        sys.modules[fullname] = None
-        mod = import_file_to_module(fullname,
-                                    self.path)
-
-        ispkg = self.is_package(fullname)
-
-        mod.__file__ = self.path
-        mod.__loader__ = self
-        mod.__name__ = fullname
-
-        if ispkg:
-            mod.__path__ = []
-            mod.__package__ = fullname
-        else:
-            mod.__package__ = fullname.rpartition('.')[0]
-
-        sys.modules[fullname] = mod
-        return mod
+        return import_file_to_module(fullname, self.path, self)
 
 
 class MetaImporter(object):
@@ -235,3 +257,24 @@ class MetaImporter(object):
 
 sys.meta_path.insert(0, MetaImporter())
 sys.path.insert(0, "")
+
+
+def is_package(module_name):
+    mpath = os.path.join(*module_name.split("."))
+    for path in map(os.path.abspath, sys.path):
+        if os.path.exists(os.path.join(path, mpath, "__init__.hy")):
+            return True
+    return False
+
+
+def get_bytecode_path(source_path):
+    if PY34:
+        import importlib.util
+        return importlib.util.cache_from_source(source_path)
+    elif hasattr(imp, "cache_from_source"):
+        return imp.cache_from_source(source_path)
+    else:
+        # If source_path has a file extension, replace it with ".pyc".
+        # Otherwise, just append ".pyc".
+        d, f = os.path.split(source_path)
+        return os.path.join(d, re.sub(r"(?:\.[^.]+)?\Z", ".pyc", f))
