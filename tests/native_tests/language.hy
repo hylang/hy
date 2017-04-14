@@ -253,57 +253,6 @@
   (assert (= fact 120)))
 
 
-(defn test-not []
-  "NATIVE: test not"
-  (assert (not (= 1 2)))
-  (assert (= True (not False)))
-  (assert (= False (not 42))) )
-
-
-(defn test-inv []
-  "NATIVE: test inv"
-  (assert (= (~ 1) -2))
-  (assert (= (~ -2) 1)))
-
-
-(defn test-in []
-  "NATIVE: test in"
-  (assert (in "a" ["a" "b" "c" "d"]))
-  (assert (not-in "f" ["a" "b" "c" "d"])))
-
-
-(defn test-noteq []
-  "NATIVE: not eq"
-  (assert (!= 2 3))
-  (assert (not (!= 1))))
-
-
-(defn test-eq []
-  "NATIVE: eq"
-  (assert (= 1 1))
-  (assert (= 1)))
-
-
-(defn test-numops []
-  "NATIVE: test numpos"
-  (assert (> 5 4 3 2 1))
-  (assert (> 1))
-  (assert (< 1 2 3 4 5))
-  (assert (< 1))
-  (assert (<= 5 5 5 5 ))
-  (assert (<= 1))
-  (assert (>= 5 5 5 5 ))
-  (assert (>= 1)))
-
-
-(defn test-is []
-  "NATIVE: test is can deal with None"
-  (setv a None)
-  (assert (is a None))
-  (assert (is-not a "b"))
-  (assert (none? a)))
-
-
 (defn test-branching []
   "NATIVE: test if branching"
   (if True
