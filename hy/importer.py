@@ -136,9 +136,9 @@ def import_file_to_module(module_name, fpath, loader=None):
             sys.modules.pop(module_name, None)
             raise
         sys.modules[module_name] = module
-        module.__file__ = fpath
         module.__name__ = module_name
 
+    module.__file__ = fpath
     if loader:
         module.__loader__ = loader
     if is_package(module_name):
