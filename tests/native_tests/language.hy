@@ -1049,6 +1049,23 @@
       (do
        (if False False False)))))
 
+(defn test-exec []
+  "NATIVE: test exec"
+  ;; python2 'exec' affects local scope by default, but python3
+  ;; affects a local dictionary argument
+  (if-python2
+   (do
+     (exec "test_val=1")
+     (assert (= test-val 1))
+     (exec "def test_fun(): return 10")
+     (assert (= (test-fun) 10)))
+   ())
+  ;; The local dict form should work for python2 and 3
+  (setv local-dict (locals))
+  (exec "other_val=1" (globals) local-dict)
+  (assert (= 1 (get local-dict "other_val")))
+  (exec "def other_fun(): return 10" (globals) local-dict)
+  (assert (= 10 ((get local-dict "other_fun")))))
 
 (defn test-eval []
   "NATIVE: test eval"

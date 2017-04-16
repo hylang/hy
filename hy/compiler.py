@@ -2580,6 +2580,27 @@ class HyASTCompiler(object):
         expr = reader_macroexpand(str_char, expression.pop(0), self)
         return self.compile(expr)
 
+    if not PY3:
+        @builds("exec")
+        @checkargs(min=1, max=3)
+        def compile_exec(self, expression):
+            expression.pop(0)  # "exec"
+            body = self.compile(expression.pop(0)).expr
+            if len(expression) > 0:
+                global_vars = self.compile(expression.pop(0)).expr
+                if len(expression) > 0:
+                    local_vars = self.compile(expression.pop(0)).expr
+                else:
+                    local_vars = None
+            else:
+                global_vars = local_vars = None
+            ret = ast.Exec(lineno=expression.start_line,
+                           col_offset=expression.start_column,
+                           body=body,
+                           globals=global_vars,
+                           locals=local_vars)
+            return ret
+
     @builds("eval_and_compile")
     def compile_eval_and_compile(self, expression):
         expression[0] = HySymbol("do")
