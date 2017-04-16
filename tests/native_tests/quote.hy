@@ -1,4 +1,4 @@
-(import hy)
+(import [hy [HyExpression HySymbol HyString HyBytes]])
 
 
 (defn test-quote []
@@ -6,6 +6,13 @@
   (setv q (quote (a b c)))
   (assert (= (len q) 3))
   (assert (= q [(quote a) (quote b) (quote c)])))
+
+
+(defn test-basic-quoting []
+  (assert (= (type (quote (foo bar))) HyExpression))
+  (assert (= (type (quote foo)) HySymbol))
+  (assert (= (type (quote "string")) HyString))
+  (assert (= (type (quote b"string")) HyBytes)))
 
 
 (defn test-quoted-hoistable []
