@@ -2,7 +2,8 @@
         [os.path [exists isdir isfile]]
         [sys :as systest]
         [operator [or_]]
-        [hy.errors [HyTypeError]])
+        [hy.errors [HyTypeError]]
+        pytest)
 (import sys)
 
 (import [hy._compat [PY3 PY34 PY35]])
@@ -1161,12 +1162,27 @@
 
 
 (defn test-try-except-return []
-  "NATIVE: test we can return from in a try except"
+  "NATIVE: test that we can return from an `except` form"
   (assert (= ((fn [] (try xxx (except [NameError] (+ 1 1))))) 2))
   (setv foo (try xxx (except [NameError] (+ 1 1))))
   (assert (= foo 2))
   (setv foo (try (+ 2 2) (except [NameError] (+ 1 1))))
   (assert (= foo 4)))
+
+
+#@(pytest.mark.xfail
+(defn test-try-else-return []
+  "NATIVE: test that we can return from the `else` clause of a `try`"
+  ; https://github.com/hylang/hy/issues/798
+  (assert (= "ef" ((fn []
+    (try (+ "a" "b")
+      (except [NameError] (+ "c" "d"))
+      (else (+ "e" "f")))))))
+  (setv foo
+    (try (+ "A" "B")
+      (except [NameError] (+ "C" "D"))
+      (else (+ "E" "F"))))
+  (assert (= foo "EF"))))
 
 
 (defn test-require []
@@ -1288,6 +1304,13 @@
   (assert (= (macroexpand '(-> (a b) (-> (c d) (e f))))
              '(e (c (a b) d) f))))
 
+#@(pytest.mark.xfail
+(defn test-macroexpand-with-named-import []
+  ; https://github.com/hylang/hy/issues/1207
+  (defmacro m-with-named-import []
+    (import [math [pow]])
+    (pow 2 3))
+  (assert (= (macroexpand '(m-with-named-import)) (** 2 3)))))
 
 (defn test-macroexpand-1 []
   "Test macroexpand-1 on ->"
