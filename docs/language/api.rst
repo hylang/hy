@@ -1627,18 +1627,18 @@ manner. The archetypical example of using ``with`` is when processing files.
 
 .. code-block:: clj
 
-    (with [arg (expr)] block)
+    (with [[arg (expr) ...]] block)
 
-    (with [(expr)] block)
+    (with [[(expr)]] block)
 
-    (with [arg (expr) (expr)] block)
+    (with [[arg (expr) (expr)]] block)
 
 The following example will open the ``NEWS`` file and print its content to the
 screen. The file is automatically closed after it has been processed.
 
 .. code-block:: clj
 
-    (with [f (open "NEWS")] (print (.read f)))
+    (with [[f (open "NEWS")]] (print (.read f)))
 
 
 with-decorator
