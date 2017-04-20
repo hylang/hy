@@ -11,5 +11,4 @@ Contents:
    interop
    api
    core
-   readermacros
    internals

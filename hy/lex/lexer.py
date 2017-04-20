@@ -41,7 +41,7 @@ lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
 lg.add('HASHBANG', r'#!.*[^\r\n]')
-lg.add('HASHREADER', r'#[^{]')
+lg.add('HASHOTHER', r'#[^{]')
 
 # A regexp which matches incomplete strings, used to support
 # multi-line strings in the interpreter

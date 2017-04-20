@@ -320,10 +320,10 @@ def test_complex():
     assert entry == HySymbol("j")
 
 
-def test_reader_macro():
-    """Ensure reader macros are handles properly"""
+def test_sharp_macro():
+    """Ensure sharp macros are handled properly"""
     entry = tokenize("#^()")
-    assert entry[0][0] == HySymbol("dispatch_reader_macro")
+    assert entry[0][0] == HySymbol("dispatch_sharp_macro")
     assert entry[0][1] == HyString("^")
     assert len(entry[0]) == 3
 

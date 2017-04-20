@@ -250,7 +250,7 @@
        (sys.exit ~retval))))
 
 
-(defreader @ [expr]
+(defsharp @ [expr]
   (setv decorators (cut expr None -1)
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))
