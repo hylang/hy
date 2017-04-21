@@ -767,25 +767,39 @@ For example,
     42
 
 
-defreader
----------
+defsharp
+--------
 
-.. versionadded:: 0.9.12
+.. versionadded:: 0.13.0
 
-``defreader`` defines a reader macro, enabling you to restructure or
-modify syntax.
+``defsharp`` defines a sharp macro. A sharp macro is a unary macro that has the
+same semantics as an ordinary macro defined with ``defmacro``, but can be
+called without parentheses and with less whitespace. The name of a sharp macro
+must be exactly one character long. It is called with the syntax ``#cFORM``,
+where ``#`` is a literal sharp sign (hence the term "sharp macro"), ``c`` is
+the name of the macro, and ``FORM`` is any form. Whitspace is forbidden between
+``#`` and ``c``. Whitespace is allowed between ``c`` and ``FORM``, but not
+required.
 
 .. code-block:: clj
 
-    => (defreader ^ [expr] (print expr))
-    => #^(1 2 3 4)
-    (1 2 3 4)
-    => #^"Hello"
-    "Hello"
+    => (defsharp ♣ [expr] `[~expr ~expr])
+    <function <lambda> at 0x7f76d0271158>
+    => #♣5
+    [5, 5]
+    => (setv x 0)
+    => #♣(+= x 1)
+    [None, None]
+    => x
+    2
 
-.. seealso::
+In this example, if you used ``(defmacro ♣ ...)`` instead of ``(defsharp
+♣ ...)``, you would call the macro as ``(♣ 5)`` or ``(♣ (+= x 1))``.
 
-    Section :ref:`Reader Macros <reader-macros>`
+The syntax for calling sharp macros is similar to that of reader macros a la
+Common Lisp's ``SET-MACRO-CHARACTER``. In fact, before Hy 0.13.0, sharp macros
+were called "reader macros", and defined with ``defreader`` rather than
+``defsharp``. True reader macros are not (yet) implemented in Hy.
 
 del
 ---
@@ -1691,8 +1705,8 @@ will be 4 (``1+1 + 1+1``).
 
 .. versionadded:: 0.12.0
 
-The :ref:`reader macro<reader-macros>` ``#@`` can be used as a shorthand
-for ``with-decorator``. With ``#@``, the previous example becomes:
+The sharp macro ``#@`` can be used as a shorthand for ``with-decorator``. With
+``#@``, the previous example becomes:
 
 .. code-block:: clj
 

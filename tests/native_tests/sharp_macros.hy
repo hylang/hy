@@ -1,34 +1,34 @@
 (import [functools [wraps]])
 
 
-(defn test-reader-macro []
-  "Test a basic reader macro"
-  (defreader ^ [expr]
+(defn test-sharp-macro []
+  "Test a basic sharp macro"
+  (defsharp ^ [expr]
     expr)
 
   (assert (= #^"works" "works")))
 
 
-(defn test-reader-macro-expr []
+(defn test-sharp-macro-expr []
   "Test basic exprs like lists and arrays"
-  (defreader n [expr]
+  (defsharp n [expr]
     (get expr 1))
 
   (assert (= #n[1 2] 2))
   (assert (= #n(1 2) 2)))
 
 
-(defn test-reader-macro-override []
+(defn test-sharp-macro-override []
   "Test if we can override function symbols"
-  (defreader + [n]
+  (defsharp + [n]
     (+ n 1))
 
   (assert (= #+2 3)))
 
 
-(defn test-reader-macros-macros []
-  "Test if defreader is actually a macro"
-  (defreader t [expr]
+(defn test-sharp-macros-macros []
+  "Test if defsharp is actually a macro"
+  (defsharp t [expr]
     `(, ~@expr))
 
   (def a #t[1 2 3])
@@ -37,16 +37,16 @@
   (assert (= (, 1 2 3) a)))
 
 
-(defn test-reader-macro-string-name []
-  "Test if defreader accepts a string as a macro name."
+(defn test-sharp-macro-string-name []
+  "Test if defsharp accepts a string as a macro name."
 
-  (defreader "." [expr]
+  (defsharp "." [expr]
     expr)
 
   (assert (= #."works" "works")))
 
 
-(defn test-builtin-decorator-reader []
+(defn test-builtin-decorator-sharp []
   (defn increment-arguments [func]
     "Increments each argument passed to the decorated function."
     ((wraps func)
@@ -68,7 +68,7 @@
   (assert (= "foo" (. foo --name--)))
   (assert (= "Bar." (. foo --doc--)))
 
-  ;; We can use the #@ reader macro to apply more than one decorator
+  ;; We can use the #@ sharp macro to apply more than one decorator
   #@(increment-arguments
      increment-arguments
      (defn double-foo [&rest args &kwargs kwargs]

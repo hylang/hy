@@ -34,7 +34,7 @@ from hy.lex.parser import hy_symbol_mangle
 import hy.macros
 from hy._compat import (
     str_type, bytes_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
-from hy.macros import require, macroexpand, reader_macroexpand
+from hy.macros import require, macroexpand, sharp_macroexpand
 import hy.importer
 
 import traceback
@@ -2544,21 +2544,20 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("defreader")
+    @builds("defsharp")
     @checkargs(min=2)
-    def compile_reader(self, expression):
+    def compile_sharp_macro(self, expression):
         expression.pop(0)
         name = expression.pop(0)
-        NOT_READERS = [":", "&"]
-        if name in NOT_READERS or len(name) > 1:
-            raise NameError("%s can't be used as a macro reader symbol" % name)
+        if name == ":" or name == "&" or len(name) > 1:
+            raise NameError("%s can't be used as a sharp macro name" % name)
         if not isinstance(name, HySymbol) and not isinstance(name, HyString):
             raise HyTypeError(name,
                               ("received a `%s' instead of a symbol "
-                               "for reader macro name" % type(name).__name__))
+                               "for sharp macro name" % type(name).__name__))
         name = HyString(name).replace(name)
         new_expression = HyExpression([
-            HyExpression([HySymbol("hy.macros.reader"), name]),
+            HyExpression([HySymbol("hy.macros.sharp"), name]),
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)
 
@@ -2566,18 +2565,18 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("dispatch_reader_macro")
+    @builds("dispatch_sharp_macro")
     @checkargs(exact=2)
-    def compile_dispatch_reader_macro(self, expression):
-        expression.pop(0)  # dispatch-reader-macro
+    def compile_dispatch_sharp_macro(self, expression):
+        expression.pop(0)  # dispatch-sharp-macro
         str_char = expression.pop(0)
         if not type(str_char) == HyString:
             raise HyTypeError(
                 str_char,
-                "Trying to expand a reader macro using `{0}' instead "
+                "Trying to expand a sharp macro using `{0}' instead "
                 "of string".format(type(str_char).__name__),
             )
-        expr = reader_macroexpand(str_char, expression.pop(0), self)
+        expr = sharp_macroexpand(str_char, expression.pop(0), self)
         return self.compile(expr)
 
     @builds("eval_and_compile")
