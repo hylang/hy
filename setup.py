@@ -53,11 +53,20 @@ class Install(install):
     def run(self):
         # Import each Hy module to ensure it's compiled.
         import os, importlib
+        postpone_filenames = ('macros.hy')
+        import_modules_later = []
         for dirpath, _, filenames in os.walk("hy"):
             for filename in filenames:
                 if filename.endswith(".hy"):
-                    importlib.import_module(
-                        dirpath.replace("/", ".") + "." + filename[:-len(".hy")])
+                    module_to_import = dirpath.replace(
+                        "/", ".") + "." + filename[:-len(".hy")]
+                    if filename in postpone_filenames:
+                        import_modules_later.append(module_to_import)
+                        continue
+                    importlib.import_module(module_to_import)
+
+        for iml in import_modules_later:
+            importlib.import_module(iml)
         install.run(self)
 
 install_requires = ['rply>=0.7.0', 'astor>=0.5', 'clint>=0.4']
