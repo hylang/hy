@@ -4,6 +4,9 @@ Changes from 0.12.1
    * `let` has been removed. Python's scoping rules do not make a proper
      implementation of it possible. Use `setv` instead.
    * `lambda` has been removed, but `fn` now does exactly what `lambda` did
+   * `defreader` has been renamed to `defsharp`; what were previously called
+     "reader macros", which were never true reader macros, are now called
+     "sharp macros"
    * Importing or executing a Hy file automatically byte-compiles it, or loads
      a byte-compiled version if it exists and is up to date. This brings big
      speed boosts, even for one-liners, because Hy no longer needs to recompile
