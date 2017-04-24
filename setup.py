@@ -57,7 +57,8 @@ class Install(install):
             for filename in sorted(filenames):
                 if filename.endswith(".hy"):
                     importlib.import_module(
-                        dirpath.replace("/", ".") + "." + filename[:-len(".hy")])
+                        dirpath.replace("/", ".").replace("\\", ".") +
+                        "." + filename[:-len(".hy")])
         install.run(self)
 
 install_requires = ['rply>=0.7.0', 'astor>=0.5', 'clint>=0.4']
