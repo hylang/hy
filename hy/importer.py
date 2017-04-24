@@ -35,7 +35,7 @@ import ast
 import os
 import __future__
 
-from hy._compat import PY3, PY33, PY34, MAGIC, builtins, long_type, wr_long
+from hy._compat import PY3, PY34, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
 
@@ -218,7 +218,7 @@ def write_code_as_pyc(fname, code):
     with builtins.open(cfile, 'wb') as fc:
         fc.write(MAGIC)
         wr_long(fc, timestamp)
-        if PY33:
+        if PY3:
             wr_long(fc, st.st_size)
         marshal.dump(code, fc)
 

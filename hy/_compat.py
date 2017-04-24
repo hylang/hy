@@ -38,31 +38,14 @@ except ImportError:
                        (x >> 24) & 0xff]))
 import sys
 
-PY27 = sys.version_info >= (2, 7)
 PY3 = sys.version_info[0] >= 3
-PY33 = sys.version_info >= (3, 3)
 PY34 = sys.version_info >= (3, 4)
 PY35 = sys.version_info >= (3, 5)
 
-if PY3:
-    str_type = str
-else:
-    str_type = unicode  # NOQA
-
-if PY3:
-    bytes_type = bytes
-else:
-    bytes_type = str
-
-if PY3:
-    long_type = int
-else:
-    long_type = long  # NOQA
-
-if PY3:
-    string_types = str,
-else:
-    string_types = basestring,  # NOQA
+str_type     = str   if PY3 else unicode      # NOQA
+bytes_type   = bytes if PY3 else str          # NOQA
+long_type    = int   if PY3 else long         # NOQA
+string_types = str   if PY3 else basestring   # NOQA
 
 if PY3:
     exec('def raise_empty(t, *args): raise t(*args) from None')

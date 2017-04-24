@@ -33,7 +33,7 @@ from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, bytes_type, long_type, PY27, PY33, PY3, PY34, PY35, raise_empty)
+    str_type, bytes_type, long_type, PY3, PY34, PY35, raise_empty)
 from hy.macros import require, macroexpand, sharp_macroexpand
 import hy.importer
 
@@ -861,7 +861,7 @@ class HyASTCompiler(object):
 
         ret = handler_results
 
-        if PY33:
+        if PY3:
             # Python 3.3 features a merge of TryExcept+TryFinally into Try.
             return ret + ast.Try(
                 lineno=expr.start_line,
@@ -1170,10 +1170,7 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         expr.pop(0)
-        if PY33:
-            ret = Result(contains_yield=False)
-        else:
-            ret = Result(contains_yield=True)
+        ret = Result(contains_yield=(not PY3))
 
         value = None
         if expr != []:
@@ -1190,7 +1187,7 @@ class HyASTCompiler(object):
     @builds("yield_from")
     @checkargs(max=1)
     def compile_yield_from_expression(self, expr):
-        if not PY33:
+        if not PY3:
             raise HyCompileError(
                 "yield-from only supported in python 3.3+!")
 
@@ -1464,7 +1461,7 @@ class HyASTCompiler(object):
                             optional_vars=thing,
                             body=body.stmts)
 
-        if PY33:
+        if PY3:
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
@@ -1547,53 +1544,36 @@ class HyASTCompiler(object):
     @builds("set_comp")
     @checkargs(min=2, max=3)
     def compile_set_comprehension(self, expr):
-        if PY27:
-            ret = self.compile_list_comprehension(expr)
-            expr = ret.expr
-            ret.expr = ast.SetComp(
-                lineno=expr.lineno,
-                col_offset=expr.col_offset,
-                elt=expr.elt,
-                generators=expr.generators)
+        ret = self.compile_list_comprehension(expr)
+        expr = ret.expr
+        ret.expr = ast.SetComp(
+            lineno=expr.lineno,
+            col_offset=expr.col_offset,
+            elt=expr.elt,
+            generators=expr.generators)
 
-            return ret
-
-        expr[0] = HySymbol("list_comp").replace(expr[0])
-        expr = HyExpression([HySymbol("set"), expr]).replace(expr)
-        return self.compile(expr)
+        return ret
 
     @builds("dict_comp")
     @checkargs(min=3, max=4)
     def compile_dict_comprehension(self, expr):
-        if PY27:
-            expr.pop(0)  # dict-comp
-            key = expr.pop(0)
-            value = expr.pop(0)
+        expr.pop(0)  # dict-comp
+        key = expr.pop(0)
+        value = expr.pop(0)
 
-            gen_res, gen = self._compile_generator_iterables(expr)
+        gen_res, gen = self._compile_generator_iterables(expr)
 
-            compiled_key = self.compile(key)
-            compiled_value = self.compile(value)
-            ret = compiled_key + compiled_value + gen_res
-            ret += ast.DictComp(
-                lineno=expr.start_line,
-                col_offset=expr.start_column,
-                key=compiled_key.force_expr,
-                value=compiled_value.force_expr,
-                generators=gen)
+        compiled_key = self.compile(key)
+        compiled_value = self.compile(value)
+        ret = compiled_key + compiled_value + gen_res
+        ret += ast.DictComp(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            key=compiled_key.force_expr,
+            value=compiled_value.force_expr,
+            generators=gen)
 
-            return ret
-
-        # In Python 2.6, turn (dict-comp key value [foo]) into
-        # (dict (list-comp (, key value) [foo]))
-
-        expr[0] = HySymbol("list_comp").replace(expr[0])
-        expr[1:3] = [HyExpression(
-            [HySymbol(",")] +
-            expr[1:3]
-        ).replace(expr[1])]
-        expr = HyExpression([HySymbol("dict"), expr]).replace(expr)
-        return self.compile(expr)
+        return ret
 
     @builds("genexpr")
     def compile_genexpr(self, expr):
@@ -2284,26 +2264,10 @@ class HyASTCompiler(object):
     @builds(HySet)
     def compile_set(self, expression):
         elts, ret, _ = self._compile_collect(expression)
-        if PY27:
-            ret += ast.Set(elts=elts,
-                           ctx=ast.Load(),
-                           lineno=expression.start_line,
-                           col_offset=expression.start_column)
-        else:
-            ret += ast.Call(func=ast.Name(id='set',
-                                          ctx=ast.Load(),
-                                          lineno=expression.start_line,
-                                          col_offset=expression.start_column),
-                            args=[
-                                ast.List(elts=elts,
-                                         ctx=ast.Load(),
-                                         lineno=expression.start_line,
-                                         col_offset=expression.start_column)],
-                            keywords=[],
-                            starargs=None,
-                            kwargs=None,
-                            lineno=expression.start_line,
-                            col_offset=expression.start_column)
+        ret += ast.Set(elts=elts,
+                       ctx=ast.Load(),
+                       lineno=expression.start_line,
+                       col_offset=expression.start_column)
         return ret
 
     @builds("fn")
@@ -2400,7 +2364,7 @@ class HyASTCompiler(object):
             return ret
 
         if body.expr:
-            if body.contains_yield and not PY33:
+            if body.contains_yield and not PY3:
                 # Prior to PEP 380 (introduced in Python 3.3)
                 # generators may not have a value in a return
                 # statement.

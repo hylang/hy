@@ -24,7 +24,7 @@ import sys
 
 from hy import compiler
 from hy.models import HyExpression, HyList, HySymbol, HyInteger
-from hy._compat import PY33
+from hy._compat import PY3
 
 if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
     import unittest2 as unittest
@@ -105,7 +105,7 @@ class HyASTCompilerTest(unittest.TestCase):
         self.assertIsInstance(body[0], ast.Expr)
         self.assertIsInstance(body[0].value, ast.Yield)
 
-        if PY33:
+        if PY3:
             # From 3.3+, the final statement becomes a return value
             self.assertIsInstance(body[1], ast.Return)
             self.assertIsInstance(body[1].value, ast.BinOp)
