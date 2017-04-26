@@ -1315,8 +1315,7 @@
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"
-  (assert (= (calling-module-name -1) "hy.core.language"))
-  (assert (= (calling-module-name 0) "tests.native_tests.language")))
+  (assert (= (calling-module-name -1) "hy.core.language")))
 
 
 (defn test-disassemble []

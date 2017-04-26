@@ -2,7 +2,6 @@ pip_url=https://bootstrap.pypa.io/get-pip.py
 python=python
 pip=pip
 coveralls=coveralls
-nose=nosetests
 
 all:
 	@echo "No default step. Use setup.py"
@@ -41,7 +40,7 @@ endif
 dev: test flake
 
 test: venv
-	nosetests -sv
+	pytest
 
 tox: venv
 	tox

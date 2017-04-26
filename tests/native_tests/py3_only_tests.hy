@@ -1,8 +1,5 @@
 ;; Tests where the emitted code relies on Python 3.
-;; Conditionally included in nosetests runs.
-
-(import [hy.errors [HyCompileError]])
-
+;; conftest.py skips this file when running on Python 2.
 
 
 (defn test-exception-cause []

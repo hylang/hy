@@ -55,7 +55,7 @@ goto :EOF
 if "%1" == "test" (
 :test
     call :venv
-    nosetests -sv
+    pytest -sv
 goto :EOF
 )
 

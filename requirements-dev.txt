@@ -1,6 +1,6 @@
 -r requirements-travis.txt
 # test tools
-nose
+pytest
 tox
 
 # documentation
