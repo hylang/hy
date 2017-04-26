@@ -1,4 +1,4 @@
-(import [hy.extra.reserved [names] hy._compat [PY3]])
+(import [hy.extra.reserved [names]] [hy._compat [PY3]])
 
 (defn test-reserved []
   (assert (is (type (names)) frozenset))

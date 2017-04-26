@@ -62,12 +62,11 @@ Do this:
 Test!
 =====
 
-Tests are located in ``tests/``. We use `nose
-<https://nose.readthedocs.io/en/latest/>`_.
+Tests are located in ``tests/``. We use `pytest <http://pytest.org>`_.
 
 To run the tests::
 
-    $ nosetests
+    $ pytest
 
 Write tests---tests are good!
 

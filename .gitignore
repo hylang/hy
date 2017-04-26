@@ -8,4 +8,4 @@
 dist
 .coverage
 build/
-.noseids
+/.cache

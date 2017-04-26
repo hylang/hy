@@ -30,7 +30,6 @@ import marshal
 import struct
 import imp
 import sys
-import platform
 import ast
 import os
 import __future__
@@ -114,17 +113,13 @@ def import_file_to_module(module_name, fpath, loader=None):
             module = imp.new_module(module_name)
             module.__file__ = fpath
             code = ast_compile(_ast, fpath, "exec")
-            if not (platform.python_implementation() == 'PyPy' and
-                    'nosetests' in sys.argv[0] and
-                    is_package(module_name)):
-                # Nose can generate spurious errors in this specific situation.
-                try:
-                    write_code_as_pyc(fpath, code)
-                except (IOError, OSError):
-                    # We failed to save the bytecode, probably because of a
-                    # permissions issue. The user only asked to import the
-                    # file, so don't bug them about it.
-                    pass
+            try:
+                write_code_as_pyc(fpath, code)
+            except (IOError, OSError):
+                # We failed to save the bytecode, probably because of a
+                # permissions issue. The user only asked to import the
+                # file, so don't bug them about it.
+                pass
             eval(code, module.__dict__)
         except (HyTypeError, LexException) as e:
             if e.source is None:
@@ -136,9 +131,9 @@ def import_file_to_module(module_name, fpath, loader=None):
             sys.modules.pop(module_name, None)
             raise
         sys.modules[module_name] = module
-        module.__file__ = fpath
         module.__name__ = module_name
 
+    module.__file__ = fpath
     if loader:
         module.__loader__ = loader
     if is_package(module_name):

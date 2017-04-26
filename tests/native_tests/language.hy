@@ -2,7 +2,8 @@
         [os.path [exists isdir isfile]]
         [sys :as systest]
         [operator [or_]]
-        [hy.errors [HyTypeError]])
+        [hy.errors [HyTypeError]]
+        pytest)
 (import sys)
 
 (import [hy._compat [PY3 PY34 PY35]])
@@ -686,20 +687,6 @@
   (assert (= (cut [1 2 3 4 5]) [1 2 3 4 5])))
 
 
-(defn test-take []
-  "NATIVE: test take"
-  (assert (= (take 0 [2 3]) []))
-  (assert (= (take 1 [2 3]) [2]))
-  (assert (= (take 2 [2 3]) [2 3])))
-
-
-(defn test-drop []
-  "NATIVE: test drop"
-  (assert (= (list (drop 0 [2 3])) [2 3]))
-  (assert (= (list (drop 1 [2 3])) [3]))
-  (assert (= (list (drop 2 [2 3])) [])))
-
-
 (defn test-rest []
   "NATIVE: test rest"
   (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5]))
@@ -1175,12 +1162,27 @@
 
 
 (defn test-try-except-return []
-  "NATIVE: test we can return from in a try except"
+  "NATIVE: test that we can return from an `except` form"
   (assert (= ((fn [] (try xxx (except [NameError] (+ 1 1))))) 2))
   (setv foo (try xxx (except [NameError] (+ 1 1))))
   (assert (= foo 2))
   (setv foo (try (+ 2 2) (except [NameError] (+ 1 1))))
   (assert (= foo 4)))
+
+
+#@(pytest.mark.xfail
+(defn test-try-else-return []
+  "NATIVE: test that we can return from the `else` clause of a `try`"
+  ; https://github.com/hylang/hy/issues/798
+  (assert (= "ef" ((fn []
+    (try (+ "a" "b")
+      (except [NameError] (+ "c" "d"))
+      (else (+ "e" "f")))))))
+  (setv foo
+    (try (+ "A" "B")
+      (except [NameError] (+ "C" "D"))
+      (else (+ "E" "F"))))
+  (assert (= foo "EF"))))
 
 
 (defn test-require []
@@ -1252,13 +1254,6 @@
   (assert (= "test" (:foo {:foo "test"}))))
 
 
-(defn test-take []
-  "NATIVE: test the take operator"
-  (assert (= [1 2 3] (list (take 3 [1 2 3]))))
-  (assert (= [1 2 3] (list (take 4 [1 2 3]))))
-  (assert (= [1 2] (list (take 2 [1 2 4])))))
-
-
 (defn test-break-breaking []
   "NATIVE: test checking if break actually breaks"
   (defn holy-grail [] (for [x (range 10)] (if (= x 5) (break))) x)
@@ -1309,6 +1304,13 @@
   (assert (= (macroexpand '(-> (a b) (-> (c d) (e f))))
              '(e (c (a b) d) f))))
 
+#@(pytest.mark.xfail
+(defn test-macroexpand-with-named-import []
+  ; https://github.com/hylang/hy/issues/1207
+  (defmacro m-with-named-import []
+    (import [math [pow]])
+    (pow 2 3))
+  (assert (= (macroexpand '(m-with-named-import)) (** 2 3)))))
 
 (defn test-macroexpand-1 []
   "Test macroexpand-1 on ->"
@@ -1336,8 +1338,7 @@
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"
-  (assert (= (calling-module-name -1) "hy.core.language"))
-  (assert (= (calling-module-name 0) "tests.native_tests.language")))
+  (assert (= (calling-module-name -1) "hy.core.language")))
 
 
 (defn test-disassemble []

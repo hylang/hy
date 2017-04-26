@@ -1,23 +1,18 @@
 sudo: false
 language: python
-matrix:
-  include:
-    - python: 3.5
-      env: TOXENV=py35
-    - python: 3.6-dev
-      env: TOXENV=py36
-env:
-  - TOXENV=py27
-  - TOXENV=py33
-  - TOXENV=py34
-  - TOXENV=pypy
-  - TOXENV=flake8
-install: pip install tox
-script: tox
-cache:
-  directories:
-    - .tox
-    - $HOME/.cache/pip
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - pypy
+install:
+  - pip install --upgrade pytest
+  - pip install -r requirements-travis.txt
+  - pip install -e .
+script: pytest
+cache: pip
 after_success: make coveralls
 notifications:
   email:
