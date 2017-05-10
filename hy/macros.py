@@ -210,18 +210,18 @@ def macroexpand_1(tree, compiler):
     return tree
 
 
-def sharp_macroexpand(char, tree, compiler):
-    """Expand the sharp macro "char" with argument `tree`."""
+def sharp_macroexpand(tag, tree, compiler):
+    """Expand the sharp macro "tag" with argument `tree`."""
     load_macros(compiler.module_name)
 
-    sharp_macro = _hy_sharp[compiler.module_name].get(char)
+    sharp_macro = _hy_sharp[compiler.module_name].get(tag)
     if sharp_macro is None:
         try:
-            sharp_macro = _hy_sharp[None][char]
+            sharp_macro = _hy_sharp[None][tag]
         except KeyError:
             raise HyTypeError(
-                char,
-                "`{0}' is not a defined sharp macro.".format(char)
+                tag,
+                "`{0}' is not a defined sharp macro.".format(tag)
             )
 
     expr = sharp_macro(tree)

@@ -582,7 +582,7 @@ elements, so by the time program started executing, it actually reads:
   (+ 1 2 3)
 
 Sometimes it's nice to be able to call a one-parameter macro without
-parentheses. Sharp macros allow this. The name of a sharp macro must be only
+parentheses. Sharp macros allow this. The name of a sharp macro is typically
 one character long, but since Hy operates well with Unicode, we aren't running
 out of characters that soon:
 

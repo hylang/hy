@@ -2470,7 +2470,7 @@ class HyASTCompiler(object):
     def compile_sharp_macro(self, expression):
         expression.pop(0)
         name = expression.pop(0)
-        if name == ":" or name == "&" or len(name) > 1:
+        if name == ":" or name == "&":
             raise NameError("%s can't be used as a sharp macro name" % name)
         if not isinstance(name, HySymbol) and not isinstance(name, HyString):
             raise HyTypeError(name,
@@ -2490,14 +2490,15 @@ class HyASTCompiler(object):
     @checkargs(exact=2)
     def compile_dispatch_sharp_macro(self, expression):
         expression.pop(0)  # dispatch-sharp-macro
-        str_char = expression.pop(0)
-        if not type(str_char) == HyString:
+        tag = expression.pop(0)
+        if not type(tag) == HyString:
             raise HyTypeError(
-                str_char,
+                tag,
                 "Trying to expand a sharp macro using `{0}' instead "
-                "of string".format(type(str_char).__name__),
+                "of string".format(type(tag).__name__),
             )
-        expr = sharp_macroexpand(str_char, expression.pop(0), self)
+        tag = HyString(hy_symbol_mangle(str(tag))).replace(tag)
+        expr = sharp_macroexpand(tag, expression.pop(0), self)
         return self.compile(expr)
 
     @builds("eval_and_compile")

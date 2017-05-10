@@ -785,19 +785,15 @@ defsharp
 .. versionadded:: 0.13.0
 
 ``defsharp`` defines a sharp macro. A sharp macro is a unary macro that has the
-same semantics as an ordinary macro defined with ``defmacro``, but can be
-called without parentheses and with less whitespace. The name of a sharp macro
-must be exactly one character long. It is called with the syntax ``#cFORM``,
-where ``#`` is a literal sharp sign (hence the term "sharp macro"), ``c`` is
-the name of the macro, and ``FORM`` is any form. Whitspace is forbidden between
-``#`` and ``c``. Whitespace is allowed between ``c`` and ``FORM``, but not
-required.
+same semantics as an ordinary macro defined with ``defmacro``. It is called with
+the syntax ``#tag FORM``, where ``tag`` is the name of the macro, and ``FORM``
+is any form. The ``tag`` is often only one character, but it can be any symbol.
 
 .. code-block:: clj
 
     => (defsharp ♣ [expr] `[~expr ~expr])
     <function <lambda> at 0x7f76d0271158>
-    => #♣5
+    => #♣ 5
     [5, 5]
     => (setv x 0)
     => #♣(+= x 1)

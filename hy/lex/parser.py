@@ -200,7 +200,8 @@ def term_unquote_splice(p):
 @pg.production("term : HASHOTHER term")
 @set_quote_boundaries
 def hash_other(p):
-    st = p[0].getstr()[1]
+    # p == [(Token('HASHOTHER', '#foo'), bar)]
+    st = p[0].getstr()[1:]
     str_object = HyString(st)
     expr = p[1]
     return HyExpression([HySymbol("dispatch_sharp_macro"), str_object, expr])
