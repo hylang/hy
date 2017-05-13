@@ -793,30 +793,29 @@ class HyASTCompiler(object):
 
         body = body.stmts
 
-        orelse = []
-        finalbody = []
-        handlers = []
+        if not all(expr):
+            raise HyTypeError(expr, "Empty list not allowed in `try'")
         handler_results = Result()
-
-        for e in expr:
-            if not len(e):
-                raise HyTypeError(e, "Empty list not allowed in `try'")
-
-            if e[0] == HySymbol("except"):
-                handler_results += self._compile_catch_expression(e, name)
-                handlers.append(handler_results.stmts.pop())
-            elif e[0] == HySymbol("else"):
-                orelse = self.try_except_helper(e, HySymbol("else"), orelse)
-            elif e[0] == HySymbol("finally"):
-                finalbody = self.try_except_helper(e, HySymbol("finally"),
-                                                   finalbody)
-            else:
-                raise HyTypeError(e, "Unknown expression in `try'")
+        handlers = []
+        while expr and expr[0][0] == HySymbol("except"):
+            handler_results += self._compile_catch_expression(expr.pop(0),
+                                                              name)
+            handlers.append(handler_results.stmts.pop())
+        orelse = []
+        if expr and expr[0][0] == HySymbol("else"):
+            orelse = self.try_except_helper(expr.pop(0), HySymbol("else"))
+        finalbody = []
+        if expr and expr[0][0] == HySymbol("finally"):
+            finalbody = self.try_except_helper(expr.pop(0), HySymbol("finally"))
+        if expr:
+            if expr[0][0] in ("except", "else", "finally"):
+                raise HyTypeError(expr, "Incorrect order of `except'/`else'/`finally' in `try'")
+            raise HyTypeError(expr, "Unknown expression in `try'")
 
         # Using (else) without (except) is verboten!
         if orelse and not handlers:
             raise HyTypeError(
-                e,
+                expr,
                 "`try' cannot have `else' without `except'")
 
         # (try) or (try BODY)
@@ -868,16 +867,10 @@ class HyASTCompiler(object):
             body=body,
             orelse=orelse) + returnable
 
-    def try_except_helper(self, hy_obj, symbol, accumulated):
-        if accumulated:
-            raise HyTypeError(
-                hy_obj,
-                "`try' cannot have more than one `%s'" % symbol)
-        else:
-            accumulated = self._compile_branch(hy_obj[1:])
-            accumulated += accumulated.expr_as_stmt()
-            accumulated = accumulated.stmts
-        return accumulated
+    def try_except_helper(self, hy_obj, symbol):
+        x = self._compile_branch(hy_obj[1:])
+        x += x.expr_as_stmt()
+        return x.stmts
 
     @builds("except")
     def magic_internal_form(self, expr):
