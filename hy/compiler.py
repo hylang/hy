@@ -769,13 +769,8 @@ class HyASTCompiler(object):
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
 
-        try:
-            body = expr.pop(0)
-        except IndexError:
-            body = []
-
         # (try something…)
-        body = self.compile(body)
+        body = self.compile(expr.pop(0) if expr else [])
 
         var = self.get_anon_var()
         name = ast.Name(id=ast_str(var), arg=ast_str(var),
@@ -797,9 +792,6 @@ class HyASTCompiler(object):
                            col_offset=expr.start_column)
 
         body = body.stmts
-        if not body:
-            body = [ast.Pass(lineno=expr.start_line,
-                             col_offset=expr.start_column)]
 
         orelse = []
         finalbody = []
@@ -895,10 +887,7 @@ class HyASTCompiler(object):
     def _compile_catch_expression(self, expr, var):
         catch = expr.pop(0)  # catch
 
-        try:
-            exceptions = expr.pop(0)
-        except IndexError:
-            exceptions = HyList()
+        exceptions = expr.pop(0) if expr else HyList()
 
         # exceptions catch should be either:
         # [[list of exceptions]]
@@ -920,6 +909,7 @@ class HyASTCompiler(object):
 
         # [variable [list of exceptions]]
         # let's pop variable and use it as name
+        name = None
         if len(exceptions) == 2:
             name = exceptions.pop(0)
             if not isinstance(name, HySymbol):
@@ -937,13 +927,8 @@ class HyASTCompiler(object):
             else:
                 # Python2 requires an ast.Name, set to ctx Store.
                 name = self._storeize(name, self.compile(name))
-        else:
-            name = None
 
-        try:
-            exceptions_list = exceptions.pop(0)
-        except IndexError:
-            exceptions_list = []
+        exceptions_list = exceptions.pop(0) if exceptions else []
 
         if isinstance(exceptions_list, list):
             if len(exceptions_list):
