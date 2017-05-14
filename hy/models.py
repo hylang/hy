@@ -3,6 +3,7 @@
 # license. See the LICENSE.
 
 from __future__ import unicode_literals
+from math import isnan, isinf
 from hy._compat import PY3, str_type, bytes_type, long_type, string_types
 from fractions import Fraction
 
@@ -142,15 +143,24 @@ if not PY3:  # do not add long on python3
     _wrappers[long_type] = HyInteger
 
 
+def check_inf_nan_cap(arg, value):
+    if isinstance(arg, string_types):
+        if isinf(value) and "Inf" not in arg:
+            raise ValueError('Inf must be capitalized as "Inf"')
+        if isnan(value) and "NaN" not in arg:
+            raise ValueError('NaN must be capitalized as "NaN"')
+
+
 class HyFloat(HyObject, float):
     """
     Internal representation of a Hy Float. May raise a ValueError as if
     float(foo) was called, given HyFloat(foo).
     """
 
-    def __new__(cls, number, *args, **kwargs):
-        number = float(strip_digit_separators(number))
-        return super(HyFloat, cls).__new__(cls, number)
+    def __new__(cls, num, *args, **kwargs):
+        value = super(HyFloat, cls).__new__(cls, strip_digit_separators(num))
+        check_inf_nan_cap(num, value)
+        return value
 
 _wrappers[float] = HyFloat
 
@@ -161,9 +171,18 @@ class HyComplex(HyObject, complex):
     complex(foo) was called, given HyComplex(foo).
     """
 
-    def __new__(cls, number, *args, **kwargs):
-        number = complex(strip_digit_separators(number))
-        return super(HyComplex, cls).__new__(cls, number)
+    def __new__(cls, num, *args, **kwargs):
+        value = super(HyComplex, cls).__new__(cls, strip_digit_separators(num))
+        if isinstance(num, string_types):
+            p1, _, p2 = num.lstrip("+-").replace("-", "+").partition("+")
+            if p2:
+                check_inf_nan_cap(p1, value.real)
+                check_inf_nan_cap(p2, value.imag)
+            elif "j" in p1:
+                check_inf_nan_cap(p1, value.imag)
+            else:
+                check_inf_nan_cap(p1, value.real)
+        return value
 
 _wrappers[complex] = HyComplex
 

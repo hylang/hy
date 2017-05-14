@@ -2,6 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+from math import isnan
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
                        HyString, HyDict, HyList, HySet, HyCons)
 from hy.lex import LexException, PrematureEndOfInput, tokenize
@@ -91,6 +92,22 @@ def test_lex_expression_float():
     assert objs == [HyExpression([HySymbol("foo"), HyFloat(1.e7)])]
 
 
+def test_lex_nan_and_inf():
+
+    assert isnan(tokenize("NaN")[0])
+    assert tokenize("Nan") == [HySymbol("Nan")]
+    assert tokenize("nan") == [HySymbol("nan")]
+    assert tokenize("NAN") == [HySymbol("NAN")]
+
+    assert tokenize("Inf") == [HyFloat(float("inf"))]
+    assert tokenize("inf") == [HySymbol("inf")]
+    assert tokenize("INF") == [HySymbol("INF")]
+
+    assert tokenize("-Inf") == [HyFloat(float("-inf"))]
+    assert tokenize("-inf") == [HySymbol("_inf")]
+    assert tokenize("-INF") == [HySymbol("_INF")]
+
+
 def test_lex_expression_complex():
     """ Make sure expressions can produce complex """
 
@@ -102,6 +119,11 @@ def test_lex_expression_complex():
     assert t("-0.5j") == f(HyComplex(-0.5j))
     assert t("1.e7j") == f(HyComplex(1e7j))
     assert t("j") == f(HySymbol("j"))
+    assert isnan(t("NaNj")[0][1].imag)
+    assert t("nanj") == f(HySymbol("nanj"))
+    assert t("Inf+Infj") == f(HyComplex(complex(float("inf"), float("inf"))))
+    assert t("Inf-Infj") == f(HyComplex(complex(float("inf"), float("-inf"))))
+    assert t("Inf-INFj") == f(HySymbol("Inf_INFj"))
 
 
 def test_lex_digit_separators():

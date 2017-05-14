@@ -52,6 +52,9 @@ digits.
 
     (print 10,000,000,000 10_000_000_000)
 
+Unlike Python, Hy provides literal forms for NaN and infinity: `NaN`, `Inf`,
+and `-Inf`.
+
 string literals
 ---------------
 
