@@ -93,14 +93,15 @@ def test_lex_expression_float():
 
 def test_lex_expression_complex():
     """ Make sure expressions can produce complex """
-    objs = tokenize("(foo 2.j)")
-    assert objs == [HyExpression([HySymbol("foo"), HyComplex(2.j)])]
-    objs = tokenize("(foo -0.5j)")
-    assert objs == [HyExpression([HySymbol("foo"), HyComplex(-0.5j)])]
-    objs = tokenize("(foo 1.e7j)")
-    assert objs == [HyExpression([HySymbol("foo"), HyComplex(1.e7j)])]
-    objs = tokenize("(foo j)")
-    assert objs == [HyExpression([HySymbol("foo"), HySymbol("j")])]
+
+    def t(x): return tokenize("(foo {})".format(x))
+
+    def f(x): return [HyExpression([HySymbol("foo"), x])]
+
+    assert t("2.j") == f(HyComplex(2.j))
+    assert t("-0.5j") == f(HyComplex(-0.5j))
+    assert t("1.e7j") == f(HyComplex(1e7j))
+    assert t("j") == f(HySymbol("j"))
 
 
 def test_lex_digit_separators():
