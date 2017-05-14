@@ -1174,20 +1174,34 @@
   (assert (= foo 4)))
 
 
-#@(pytest.mark.xfail
 (defn test-try-else-return []
   "NATIVE: test that we can return from the `else` clause of a `try`"
   ; https://github.com/hylang/hy/issues/798
+
   (assert (= "ef" ((fn []
     (try (+ "a" "b")
       (except [NameError] (+ "c" "d"))
       (else (+ "e" "f")))))))
+
   (setv foo
     (try (+ "A" "B")
       (except [NameError] (+ "C" "D"))
       (else (+ "E" "F"))))
-  (assert (= foo "EF"))))
+  (assert (= foo "EF"))
 
+  ; Check that the lvalue isn't assigned in the main `try` body
+  ; there's an `else`.
+  (setv x 1)
+  (setv y 0)
+  (setv x
+    (try (+ "G" "H")
+      (except [NameError] (+ "I" "J"))
+      (else
+        (setv y 1)
+        (assert (= x 1))
+        (+ "K" "L"))))
+  (assert (= x "KL"))
+  (assert (= y 1)))
 
 (defn test-require []
   "NATIVE: test requiring macros from python code"

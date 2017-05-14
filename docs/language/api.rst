@@ -1538,23 +1538,37 @@ or no arguments to re-raise the last ``Exception``.
 try
 ---
 
-The ``try`` form is used to start a ``try`` / ``except`` block. The form is
-used as follows:
+The ``try`` form is used to catch exceptions (``except``) and run cleanup
+actions (``finally``).
 
 .. code-block:: clj
 
     (try
-        (error-prone-function)
-        (except [e ZeroDivisionError] (print "Division by zero"))
-        (else (print "no errors"))
-        (finally (print "all done")))
+      (error-prone-function)
+      (except [ZeroDivisionError]
+        (print "Division by zero"))
+      (except [[IndexError KeyboardInterrupt]]
+        (print "Index error or Ctrl-C"))
+      (except [e ValueError]
+        (print "ValueError:" (repr e)))
+      (except [e [TabError PermissionError ReferenceError]]
+        (print "Some sort of error:" (repr e)))
+      (else
+        (print "No errors"))
+      (finally
+        (print "All done")))
 
-``try`` must contain at least one ``except`` block, and may optionally include
-an ``else`` or ``finally`` block. If an error is raised with a matching except
-block during the execution of ``error-prone-function``, that ``except`` block
-will be executed. If no errors are raised, the ``else`` block is executed. The
-``finally`` block will be executed last regardless of whether or not an error
-was raised.
+The first argument of ``try`` is its body. (To put more than one form in the
+body, use ``do``.) Then comes any number of ``except`` clauses, then optionally
+an ``else`` clause, then optionally a ``finally`` clause. If an exception is
+raised with a matching ``except`` clause during the execution of the body, that
+``except`` clause will be executed. If no exceptions are raised, the ``else``
+clause is executed. The ``finally`` clause will be executed last regardless of
+whether an exception was raised.
+
+The return value of ``try`` is the last form of the ``except`` clause that was
+run, or the last form of ``else`` if no exception was raised, or the ``try``
+body if there is no ``else`` clause.
 
 
 unless
