@@ -786,13 +786,6 @@ class HyASTCompiler(object):
         returnable = Result(expr=expr_name, temp_variables=[expr_name, name],
                             contains_yield=body.contains_yield)
 
-        body += ast.Assign(targets=[name],
-                           value=body.force_expr,
-                           lineno=expr.start_line,
-                           col_offset=expr.start_column)
-
-        body = body.stmts
-
         if not all(expr):
             raise HyTypeError(expr, "Empty list not allowed in `try'")
         handler_results = Result()
@@ -803,13 +796,22 @@ class HyASTCompiler(object):
             handlers.append(handler_results.stmts.pop())
         orelse = []
         if expr and expr[0][0] == HySymbol("else"):
-            orelse = self.try_except_helper(expr.pop(0), HySymbol("else"))
+            orelse = self._compile_branch(expr.pop(0)[1:])
+            orelse += ast.Assign(targets=[name],
+                                 value=orelse.force_expr,
+                                 lineno=expr.start_line,
+                                 col_offset=expr.start_column)
+            orelse += orelse.expr_as_stmt()
+            orelse = orelse.stmts
         finalbody = []
         if expr and expr[0][0] == HySymbol("finally"):
-            finalbody = self.try_except_helper(expr.pop(0), HySymbol("finally"))
+            finalbody = self._compile_branch(expr.pop(0)[1:])
+            finalbody += finalbody.expr_as_stmt()
+            finalbody = finalbody.stmts
         if expr:
             if expr[0][0] in ("except", "else", "finally"):
-                raise HyTypeError(expr, "Incorrect order of `except'/`else'/`finally' in `try'")
+                raise HyTypeError(expr, "Incorrect order "
+                                  "of `except'/`else'/`finally' in `try'")
             raise HyTypeError(expr, "Unknown expression in `try'")
 
         # Using (else) without (except) is verboten!
@@ -830,6 +832,14 @@ class HyASTCompiler(object):
                                 col_offset=expr.start_column)])]
 
         ret = handler_results
+
+        body += body.expr_as_stmt() if orelse else ast.Assign(
+            targets=[name],
+            value=body.force_expr,
+            lineno=expr.start_line,
+            col_offset=expr.start_column)
+        body = body.stmts or [ast.Pass(lineno=expr.start_line,
+                                       col_offset=expr.start_column)]
 
         if PY3:
             # Python 3.3 features a merge of TryExcept+TryFinally into Try.
@@ -866,11 +876,6 @@ class HyASTCompiler(object):
             handlers=handlers,
             body=body,
             orelse=orelse) + returnable
-
-    def try_except_helper(self, hy_obj, symbol):
-        x = self._compile_branch(hy_obj[1:])
-        x += x.expr_as_stmt()
-        return x.stmts
 
     @builds("except")
     def magic_internal_form(self, expr):
