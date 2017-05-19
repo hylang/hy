@@ -705,7 +705,7 @@ Returns ``True`` if *x* is ``None``.
    => (none? 0)
    False
 
-   => (setf x None)
+   => (setv x None)
    => (none? x)
    True
 
