@@ -1,3 +1,7 @@
+# Copyright 2017 the authors.
+# This file is part of Hy, which is free software licensed under the Expat
+# license. See the LICENSE.
+
 from hy._compat import long_type, str_type
 from hy.models import (wrap_value, replace_hy_obj, HyString, HyInteger, HyList,
                        HyDict, HySet, HyExpression, HyCons)

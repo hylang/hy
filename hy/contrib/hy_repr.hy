@@ -1,3 +1,7 @@
+;; Copyright 2017 the authors.
+;; This file is part of Hy, which is free software licensed under the Expat
+;; license. See the LICENSE.
+
 (import [hy._compat [PY3 str-type bytes-type long-type]])
 (import [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyList HyDict HySet HyString HyBytes]])
 

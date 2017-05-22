@@ -28,6 +28,18 @@ Pull requests are great! We love them; here is a quick guide:
   documentation fixes or code cleanup), you can directly open the PR without
   first opening a corresponding issue.
 
+- Every Python or Hy file in the source tree that is potentially copyrightable
+  should have the following header (but with ``;;`` in place of ``#`` for Hy
+  files)::
+
+      # Copyright [current year] the authors.
+      # This file is part of Hy, which is free software licensed under the Expat
+      # license. See the LICENSE.
+
+  As a rule of thumb, a file can be considered potentially copyrightable if it
+  includes at least 10 lines that contain something other than comments or
+  whitespace. If in doubt, include the header.
+
 - Before you submit a PR, please run the tests and check your code
   against the style guide. You can do both of these things at once::
 

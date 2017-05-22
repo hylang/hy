@@ -1,3 +1,7 @@
+# Copyright 2017 the authors.
+# This file is part of Hy, which is free software licensed under the Expat
+# license. See the LICENSE.
+
 from hy.macros import macroexpand
 from hy.compiler import HyTypeError, HyASTCompiler
 from hy.lex import tokenize
