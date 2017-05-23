@@ -3,31 +3,16 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import os
-import re
-import sys
-import runpy
-import subprocess
+import sys, os
 
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
+from get_version import __version__
+
 os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
 PKG = "hy"
-VERSIONFILE = os.path.join(PKG, "version.py")
-try:
-    __version__ = (subprocess.check_output
-        (["git", "describe", "--tags", "--dirty"])
-        .decode('ASCII').strip()
-        .replace('-', '+', 1).replace('-', '.'))
-    with open(VERSIONFILE, "wt") as o:
-        o.write("__version__ = {!r}\n".format(__version__))
-except (subprocess.CalledProcessError, OSError):
-    if os.path.exists(VERSIONFILE):
-        __version__ = runpy.run_path(VERSIONFILE)['__version__']
-    else:
-        __version__ = "unknown"
 
 long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
