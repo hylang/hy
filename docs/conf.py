@@ -2,7 +2,7 @@
 #
 # This file is execfile()d with the current directory set to its containing dir.
 
-import os, sys, time
+import os, sys, time, cgi
 sys.path.append(os.path.abspath(".."))
 
 from get_version import __version__ as hy_version
@@ -27,6 +27,9 @@ copyright = u'%s the authors' % time.strftime('%Y')
 version = ".".join(hy_version.split(".")[:-1])
 # The full version, including alpha/beta/rc tags.
 release = hy_version
+hy_descriptive_version = cgi.escape(hy_version)
+if "+" in hy_version:
+    hy_descriptive_version += " <strong style='color: red;'>(unstable)</strong>"
 
 exclude_patterns = ['_build', 'coreteam.rst']
 
@@ -43,3 +46,6 @@ html_static_path = ['_static']
 
 html_use_smartypants = False
 html_show_sphinx = False
+
+html_context = dict(
+    hy_descriptive_version = hy_descriptive_version)
