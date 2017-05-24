@@ -460,5 +460,4 @@ Checking Macro Arguments and Raising Exceptions
 Hy Compiler Built-Ins
 =====================
 
-.. todo::
-    Write this.
+.. TODO: Write this.

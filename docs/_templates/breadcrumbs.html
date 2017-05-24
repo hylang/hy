@@ -1,0 +1,5 @@
+{% extends "!breadcrumbs.html" %}
+{% block breadcrumbs_aside %}
+  <li style="margin-left: 1em">Hy version {{ hy_descriptive_version }}</li>
+  {{ super() }}
+{% endblock %}

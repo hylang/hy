@@ -40,9 +40,10 @@ Project
 -------
 
 * Code: https://github.com/hylang/hy
-* Docs (latest, for use with bleeding-edge github version): http://hylang.org/
-* Docs (stable, for use with the PyPI version): http://docs.hylang.org/en/stable/
-* Quickstart: http://hylang.org/en/latest/quickstart.html
+* Documentation:
+  * stable, for use with the latest stable release: http://hylang.org/
+  * master, for use with the latest revision on GitHub: http://docs.hylang.org/en/master
+* Quickstart: http://hylang.org/en/stable/quickstart.html
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
 * [Contributor Guidelines & Code of Conduct](https://github.com/hylang/hy/blob/master/CONTRIBUTING.rst)
