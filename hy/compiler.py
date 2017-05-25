@@ -718,7 +718,21 @@ class HyASTCompiler(object):
         if len(expr) >= 2:
             elist.append(expr[1])
         else:
-            elist.append(HyExpression([HySymbol("locals")]))
+            dct = HySymbol(self.get_anon_var())
+            it = HySymbol(self.get_anon_var())
+
+            # Merge globals and locals, with locals taking precedence.
+            # Equivalent to (genexpr i [dct [(globals) (locals)] i (.items d)]).
+            genexpr_arg = HyList([HySymbol(dct),
+                                  HyList([HyExpression([HySymbol("globals")]),
+                                          HyExpression([HySymbol("locals")])]),
+                                  HySymbol(it),
+                                  HyExpression([HySymbol(".items"), dct])])
+
+            elist.append(HyExpression([HySymbol("dict"),
+                                       HyExpression([HySymbol("genexpr"),
+                                                     it,
+                                                     genexpr_arg])]))
 
         if len(expr) == 3:
             elist.append(expr[2])
