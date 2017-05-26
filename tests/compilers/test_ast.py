@@ -113,8 +113,6 @@ def test_ast_bad_raise():
 
 def test_ast_good_try():
     "Make sure AST can compile valid try"
-    can_compile("(try)")
-    can_compile("(try 1)")
     can_compile("(try 1 (except) (else 1))")
     can_compile("(try 1 (finally 1))")
     can_compile("(try 1 (except) (finally 1))")
@@ -125,8 +123,11 @@ def test_ast_good_try():
 
 def test_ast_bad_try():
     "Make sure AST can't compile invalid try"
+    cant_compile("(try)")
+    cant_compile("(try 1)")
     cant_compile("(try 1 bla)")
     cant_compile("(try 1 bla bla)")
+    cant_compile("(try (do bla bla))")
     cant_compile("(try (do) (else 1) (else 2))")
     cant_compile("(try 1 (else 1))")
     cant_compile("(try 1 (else 1) (except))")

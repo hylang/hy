@@ -819,17 +819,11 @@ class HyASTCompiler(object):
             raise HyTypeError(
                 expr,
                 "`try' cannot have `else' without `except'")
-
-        # (try) or (try BODY)
-        # Generate a default handler for Python >= 3.3 and pypy
-        if not handlers and not finalbody and not orelse:
-            handlers = [ast.ExceptHandler(
-                lineno=expr.start_line,
-                col_offset=expr.start_column,
-                type=None,
-                name=None,
-                body=[ast.Raise(lineno=expr.start_line,
-                                col_offset=expr.start_column)])]
+        # Likewise a bare (try) or (try BODY).
+        if not (handlers or finalbody):
+            raise HyTypeError(
+                expr,
+                "`try' must have an `except' or `finally' clause")
 
         ret = handler_results
 
@@ -838,6 +832,7 @@ class HyASTCompiler(object):
             value=body.force_expr,
             lineno=expr.start_line,
             col_offset=expr.start_column)
+
         body = body.stmts or [ast.Pass(lineno=expr.start_line,
                                        col_offset=expr.start_column)]
 

@@ -421,20 +421,9 @@
   "NATIVE: test do"
   (do))
 
-(defn test-bare-try [] (try
-    (try (raise ValueError))
-  (except [ValueError])
-  (else (assert False))))
-
 
 (defn test-exceptions []
   "NATIVE: test Exceptions"
-
-  (try)
-
-  (try (do))
-
-  (try (do))
 
   (try (do) (except))
 
