@@ -12,6 +12,7 @@ Changes from 0.12.1
      follow all `except`s, and `finally` must come last). This is only a
      syntactic change; the elements were already run in Python order even when
      defined out of order.
+   * `try` now requires an `except` or `finally` clause, as in Python
    * Importing or executing a Hy file automatically byte-compiles it, or loads
      a byte-compiled version if it exists and is up to date. This brings big
      speed boosts, even for one-liners, because Hy no longer needs to recompile
