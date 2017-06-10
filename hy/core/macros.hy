@@ -56,10 +56,10 @@
        (if (not (= (type branch) HyList))
          (macro-error branch "cond branches need to be a list"))
        (if (< (len branch) 2)
-         (macro-error branch "cond branches need at least two items: a test and one or more code branches"))
-       (setv test (first branch))
-       (setv thebranch (cut branch 1))
-       `(if ~test (do ~@thebranch)))
+         (do
+           (setv g (gensym))
+           `(if (do (setv ~g ~(first branch)) ~g) ~g))
+         `(if ~(first branch) (do ~@(cut branch 1)))))
 
      (setv root (check-branch branch))
      (setv latest-branch root)

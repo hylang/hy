@@ -32,6 +32,7 @@ Changes from 0.12.1
      `(try 1 (except [ValueError] 2) (else 3))` returns `3`.
    * xor: If exactly one argument is true, return it
    * hy.core.reserved is now hy.extra.reserved
+   * cond now supports single argument branches
 
    [ Bug Fixes ]
    * All shadowed operators have the same arities as real operators

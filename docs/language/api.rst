@@ -374,6 +374,18 @@ shows the relationship between the macro and its expansion:
     (if condition-1 result-1
       (if condition-2 result-2))
 
+If only the condition is given in a branch, then the condition is also used as
+the result. The expansion of this single argument version is demonstrated
+below:
+
+.. code-block:: clj
+
+    (cond [condition-1]
+          [condition-2])
+
+    (if condition-1 condition-1
+      (if condition-2 condition-2))
+
 As shown below, only the first matching result block is executed.
 
 .. code-block:: clj
