@@ -88,10 +88,6 @@ To build the docs in HTML::
 
 Write docs---docs are good! Even this doc!
 
-
-Contributing
-============
-
 .. include:: ../CONTRIBUTING.rst
 
 Core Team

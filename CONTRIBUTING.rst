@@ -1,80 +1,137 @@
 Contributor Guidelines
 ======================
 
-Contributions are welcome & greatly appreciated, every little bit
-helps in making Hy more awesome.
+Contributions are welcome and greatly appreciated. Every little bit
+helps in making Hy better. Potential contributions include:
 
-Pull requests are great! We love them; here is a quick guide:
+- Reporting bugs
+- Fixing bugs
+- Requesting features
+- Adding features
+- Writing tests for outstanding bugs or untested features
 
-- `Fork the repo`_ and create a topic branch for a feature/fix. Avoid
-  making changes directly on the master branch. If you would like to 
-  contribute but don't know how to begin, the `good-first-bug`_ label 
-  of the `issue tracker`_ is the place to go. 
-  (If you're new to Git: `Start Here`_)
+  - You can mark tests that Hy can't pass yet as xfail_.
+- Cleaning up the code
+- Improving the documentation
+- Answering questions on `the IRC channel`_, `the mailing list`_, or
+  `Stack Overflow`_
+- Evangelizing for Hy in your organization, user group, conference, or
+  bus stop
 
-- Before contributing make sure you check the docs. There are two versions of docs available:
+Issues
+~~~~~~
 
-  + `master`_, for use with the bleeding-edge GitHub version.
+To report bugs or request features, search the `issue tracker`_ to
+check for a duplicate. (If you're reporting a bug, make sure you can
+reproduce it with the very latest, bleeding-edge version of Hy from
+the ``master`` branch on GitHub. Bugs in stable versions of Hy are
+fixed on ``master`` before the fix makes it into a new stable
+release.) Then make a new issue.
 
-  + `stable`_, for use with the PyPI version.
+It's totally acceptable to create an issue when you're unsure whether
+something is a bug or not. We'll help you figure it out.
 
-- All incoming features should be accompanied with tests.
+Use the same issue tracker to report problems with the documentation.
 
-- If you are contributing a major change to the Hy language (e.g. changing
-  the behavior of or removing functions or macros), or you're unsure of
-  the proposed change, please open an issue in the `issue tracker`_ before
-  submitting the PR. This will allow others to give feedback on your idea,
-  and it will avoid constant changes or wasted work. For other PRs (such as
-  documentation fixes or code cleanup), you can directly open the PR without
-  first opening a corresponding issue.
+Pull requests
+~~~~~~~~~~~~~
 
-- Every Python or Hy file in the source tree that is potentially copyrightable
-  should have the following header (but with ``;;`` in place of ``#`` for Hy
-  files)::
+Submit proposed changes to the code or documentation as pull requests
+(PRs) on GitHub_. Git can be intimidating and confusing to the
+uninitiated. `This getting-started guide`_ may be helpful. But if
+you're overwhelmed by Git or GitHub or the rules below, don't sweat
+it; we want to keep the barrier to contribution low, so we're happy to
+help you with these finicky things, or do them for you if necessary.
+
+Deciding what to do
+-------------------
+
+Issues tagged good-first-bug_ are expected to be relatively easy to
+fix, so they may be good targets for your first PR for Hy.
+
+If you're proposing a major change to the Hy language, or you're
+unsure of the proposed change, create an issue to discuss it before
+you write any code. This will allow others to give feedback on your
+idea, and possibly avoid wasted work.
+
+File headers
+------------
+
+Every Python or Hy file in the source tree that is potentially
+copyrightable should have the following header (but with ``;;`` in
+place of ``#`` for Hy files)::
 
       # Copyright [current year] the authors.
       # This file is part of Hy, which is free software licensed under the Expat
       # license. See the LICENSE.
 
-  As a rule of thumb, a file can be considered potentially copyrightable if it
-  includes at least 10 lines that contain something other than comments or
-  whitespace. If in doubt, include the header.
+As a rule of thumb, a file can be considered potentially copyrightable
+if it includes at least 10 lines that contain something other than
+comments or whitespace. If in doubt, include the header.
 
-- Before you submit a PR, please run the tests and check your code
-  against the style guide. You can do both of these things at once::
+Commit formatting
+-----------------
 
-    $ make d
+Many PRs are small enough that only one commit is necessary, but
+bigger ones should be organized into logical units as separate
+commits. PRs should be free of merge commits and commits that fix or
+revert other commits in the same PR (``git rebase`` is your friend).
 
-- Make commits into logical units, so that it is easier to track &
-  navigate later. Before submitting a PR, try squashing the commits
-  into changesets that are easy to come back to later. Also, make sure
-  you don't leave spurious whitespace in the changesets; this avoids
-  creation of whitespace fix commits later.
+Avoid committing spurious whitespace changes.
 
-- As far as commit messages go, try to adhere to the following:
+Format commit messages as follows. The first line should describe the
+overall change in 50 characters or less. If you wish to add more
+information, separate it from the first line with a blank line.
 
-  + Try sticking to the 50 character limit for the first line of Git
-    commit messages.
+Testing
+-------
 
-  + For more detail/explanations, follow this up with a blank line and
-    continue describing the commit in detail.
+New features and bug fixes should be tested. If you've caused an
+xfail_ test to start passing, remove the xfail mark. If you're
+testing a bug that has a GitHub issue, include a comment with the URL
+of the issue.
 
-- Unless your change is very small, like a documentation wording
-  improvement, add an item describing it to the NEWS file.
+No PR may be merged if it causes any tests to fail. You can run the
+test suite and check the style of your code with ``make d``. You can
+purge the byte-compiled versions of the test files with ``git
+clean -dfx tests/`` You can run the tests while skipping the slow
+tests in ``test_bin.py`` with ``pytest --ignore=tests/test_bin.py``.
 
-- Finally, add yourself to the AUTHORS file (as a separate commit): you
-  deserve it :)
+NEWS and AUTHORS
+----------------
 
-- All incoming changes need to be acked by 2 different members of
-  Hylang's core team. Additional review is clearly welcome, but we need
-  a minimum of 2 signoffs for any change.
+If you're making user-visible changes to the code, add one or more
+items describing it to the NEWS file.
 
-- If a core member is sending in a PR, please find 2 core members that doesn't
-  include the PR submitter. The idea here is that one can work with the PR
-  author, and a second acks the entire change set.
+Finally, add yourself to the AUTHORS file (as a separate commit): you
+deserve it. :)
 
-- For documentation & other trivial changes, we're good to merge after one
-  ACK. We've got low coverage, so it'd be great to keep that barrier low.
+The PR itself
+-------------
+
+PRs should ask to merge a new branch that you created for the PR into
+hylang/hy's ``master`` branch, and they should have as their origin
+the most recent commit possible.
+
+If the PR fulfills one or more issues, then the body text of the PR
+(or the commit message for any of its commits) should say "Fixes
+#123" or "Closes #123" for each affected issue number. Use this exact
+(case-insensitive) wording, because when a PR containing such text is
+merged, GitHub automatically closes the mentioned issues, which is
+handy. Conversely, avoid this exact language if you want to mention
+an issue without closing it (because e.g. you've partly but not
+entirely fixed a bug).
+
+Before any PR is merged, it must be approved by one or more members of
+Hy's core team, none of whom may be the author of the PR. Changes to
+the documentation, or trivial changes to code, need to be approved by
+**one** member. All other PRs need to be approved by **two** members.
+
+Anybody may perform the merge. Merging should create a merge commit
+(don't squash, because that would remove separation between logically
+separate commits, and don't fast-forward, because that would throw
+away the history of the commits as a separate branch), which should
+include the PR number in the commit message.
 
 Contributor Code of Conduct
 ===========================
@@ -115,9 +172,10 @@ http://contributor-covenant.org/version/1/1/0/.
 
 .. _Contributor Covenant: http://contributor-covenant.org
 .. _issue tracker: https://github.com/hylang/hy/issues
-.. _Fork the Repo: https://help.github.com/articles/fork-a-repo/
-.. _Start Here: http://rogerdudler.github.io/git-guide/
+.. _GitHub: https://github.com/hylang/hy
+.. _This getting-started guide: http://rogerdudler.github.io/git-guide/
 .. _good-first-bug: https://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug
-.. _master: http://docs.hylang.org/en/master/
-.. _stable: http://hylang.org/
-
+.. _the IRC channel: irc://freenode.net/hy
+.. _the mailing list: https://groups.google.com/forum/#!forum/hylang-discuss
+.. _Stack Overflow: https://stackoverflow.com/questions/tagged/hy
+.. _xfail: https://docs.pytest.org/en/latest/skipping.html#mark-a-test-function-as-expected-to-fail
