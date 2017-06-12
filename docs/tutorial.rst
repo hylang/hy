@@ -562,7 +562,7 @@ we used "Tuukka" as parameter):
 
 .. code-block:: clj
 
-  (print "Hello there," Tuukka)
+  (print "Hello there," "Tuukka")
 
 We can also manipulate code with macros:
 
