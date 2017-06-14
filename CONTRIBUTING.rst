@@ -24,7 +24,7 @@ check for a duplicate. (If you're reporting a bug, make sure you can
 reproduce it with the very latest, bleeding-edge version of Hy from
 the ``master`` branch on GitHub. Bugs in stable versions of Hy are
 fixed on ``master`` before the fix makes it into a new stable
-release.) If there aren't any, then you can make a new issue.
+release.) If there aren't any duplicates, then you can make a new issue.
 
 It's totally acceptable to create an issue when you're unsure whether
 something is a bug or not. We'll help you figure it out.
@@ -50,7 +50,7 @@ fix, so they may be good targets for your first PR for Hy.
 If you're proposing a major change to the Hy language, or you're
 unsure of the proposed change, create an issue to discuss it before
 you write any code. This will allow others to give feedback on your
-idea, and it can possibly avoid wasted work.
+idea, and it can avoid wasted work.
 
 File headers
 ------------
@@ -117,18 +117,18 @@ If the PR fulfills one or more issues, then the body text of the PR
 (case-insensitive) wording, because when a PR containing such text is
 merged, GitHub automatically closes the mentioned issues, which is
 handy. Conversely, avoid this exact language if you want to mention
-an issue without closing it (e.g. because you've partly but not
+an issue without closing it (because e.g. you've partly but not
 entirely fixed a bug).
 
-Before any PR is merged, it must be approved by members of Hy's core team,
-excluding the PR's author. Changes to the documentation, or trivial changes
+Before any PR is merged, it must be approved by members of Hy's core team
+other than the PR's author. Changes to the documentation, or trivial changes
 to code, need to be approved by **one** member; all other PRs need to be
 approved by **two** members.
 
 Anybody on the team may perform the merge. Merging should create a merge commit
-(don't squash unless necessary, because that would remove separation between
-ogically separate commits, and don't fast-forward, because that would throw
-away the history of the commits as a separate branch)which should
+(don't squash unnecessarily, because that would remove separation between
+logically separate commits, and don't fast-forward, because that would throw
+away the history of the commits as a separate branch), which should
 include the PR number in the commit message.
 
 Contributor Code of Conduct
