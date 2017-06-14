@@ -4,29 +4,27 @@ Contributor Guidelines
 Contributions are welcome and greatly appreciated. Every little bit
 helps in making Hy better. Potential contributions include:
 
-- Reporting bugs
-- Fixing bugs
-- Requesting features
-- Adding features
-- Writing tests for outstanding bugs or untested features
-
+- Reporting and fixing bugs.
+- Requesting features.
+- Adding features.
+- Writing tests for outstanding bugs or untested features.
   - You can mark tests that Hy can't pass yet as xfail_.
-- Cleaning up the code
-- Improving the documentation
+- Cleaning up the code.
+- Improving the documentation.
 - Answering questions on `the IRC channel`_, `the mailing list`_, or
-  `Stack Overflow`_
+  `Stack Overflow`_.
 - Evangelizing for Hy in your organization, user group, conference, or
-  bus stop
+  bus stop.
 
 Issues
 ~~~~~~
 
-To report bugs or request features, search the `issue tracker`_ to
+In order to report bugs or request features, search the `issue tracker`_ to
 check for a duplicate. (If you're reporting a bug, make sure you can
 reproduce it with the very latest, bleeding-edge version of Hy from
 the ``master`` branch on GitHub. Bugs in stable versions of Hy are
 fixed on ``master`` before the fix makes it into a new stable
-release.) Then make a new issue.
+release.) If there aren't any, then you can make a new issue.
 
 It's totally acceptable to create an issue when you're unsure whether
 something is a bug or not. We'll help you figure it out.
@@ -38,10 +36,10 @@ Pull requests
 
 Submit proposed changes to the code or documentation as pull requests
 (PRs) on GitHub_. Git can be intimidating and confusing to the
-uninitiated. `This getting-started guide`_ may be helpful. But if
-you're overwhelmed by Git or GitHub or the rules below, don't sweat
-it; we want to keep the barrier to contribution low, so we're happy to
-help you with these finicky things, or do them for you if necessary.
+uninitiated. `This getting-started guide`_ may be helpful. However, if
+you're overwhelmed by Git, GitHub, or the rules below, don't sweat
+it. We want to keep the barrier to contribution low, so we're happy to
+help you with these finicky things or do them for you if necessary.
 
 Deciding what to do
 -------------------
@@ -52,7 +50,7 @@ fix, so they may be good targets for your first PR for Hy.
 If you're proposing a major change to the Hy language, or you're
 unsure of the proposed change, create an issue to discuss it before
 you write any code. This will allow others to give feedback on your
-idea, and possibly avoid wasted work.
+idea, and it can possibly avoid wasted work.
 
 File headers
 ------------
@@ -79,9 +77,9 @@ revert other commits in the same PR (``git rebase`` is your friend).
 
 Avoid committing spurious whitespace changes.
 
-Format commit messages as follows. The first line should describe the
-overall change in 50 characters or less. If you wish to add more
-information, separate it from the first line with a blank line.
+The first line of a commit message should describe the overall change in 50
+characters or less. If you wish to add more information, separate it from the
+first line with a blank line.
 
 Testing
 -------
@@ -92,10 +90,10 @@ testing a bug that has a GitHub issue, include a comment with the URL
 of the issue.
 
 No PR may be merged if it causes any tests to fail. You can run the
-test suite and check the style of your code with ``make d``. You can
-purge the byte-compiled versions of the test files with ``git
-clean -dfx tests/`` You can run the tests while skipping the slow
-tests in ``test_bin.py`` with ``pytest --ignore=tests/test_bin.py``.
+test suite and check the style of your code with ``make d``. The byte-compiled
+versions of the test files can be purged using ``git clean -dfx tests/``.
+If you want to run the tests while skipping the slow ones in ``test_bin.py``,
+use ``pytest --ignore=tests/test_bin.py``.
 
 NEWS and AUTHORS
 ----------------
@@ -119,18 +117,18 @@ If the PR fulfills one or more issues, then the body text of the PR
 (case-insensitive) wording, because when a PR containing such text is
 merged, GitHub automatically closes the mentioned issues, which is
 handy. Conversely, avoid this exact language if you want to mention
-an issue without closing it (because e.g. you've partly but not
+an issue without closing it (e.g. because you've partly but not
 entirely fixed a bug).
 
-Before any PR is merged, it must be approved by one or more members of
-Hy's core team, none of whom may be the author of the PR. Changes to
-the documentation, or trivial changes to code, need to be approved by
-**one** member. All other PRs need to be approved by **two** members.
+Before any PR is merged, it must be approved by members of Hy's core team,
+excluding the PR's author. Changes to the documentation, or trivial changes
+to code, need to be approved by **one** member; all other PRs need to be
+approved by **two** members.
 
-Anybody may perform the merge. Merging should create a merge commit
-(don't squash, because that would remove separation between logically
-separate commits, and don't fast-forward, because that would throw
-away the history of the commits as a separate branch), which should
+Anybody on the team may perform the merge. Merging should create a merge commit
+(don't squash unless necessary, because that would remove separation between
+ogically separate commits, and don't fast-forward, because that would throw
+away the history of the commits as a separate branch)which should
 include the PR number in the commit message.
 
 Contributor Code of Conduct
