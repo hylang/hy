@@ -17,8 +17,9 @@ or being harder to debug.
 
 The ``(import [__future__ [TailRec]])`` command
 gives programmers a simple way to use tail-call optimization
-(TCO) in their Hy code, with no need for trampoline or recur.
-Supports mutually recursive functions.
+(TCO) in their Hy code, with no need for workaround patterns
+like `trampoline<https://en.wikipedia.org/wiki/Trampoline_(computing)#High-level_programming>`_
+or using a recur function. Supports mutually recursive functions.
 
     A tail call is a subroutine call that happens inside another
     procedure as its final action; it may produce a return value which
@@ -37,7 +38,7 @@ Supports mutually recursive functions.
     position to be implemented as efficiently as goto statements, thus
     allowing efficient structured programming.
 
-    -- Wikipedia (http://en.wikipedia.org/wiki/Tail_call)
+    -- `Tail call on Wikipedia<http://en.wikipedia.org/wiki/Tail_call>`_
 
 Example:
 
