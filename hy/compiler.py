@@ -2241,7 +2241,8 @@ class HyASTCompiler(object):
     # produced rather than a Lambda.
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        force_functiondef = expression.pop(0) == "fn*"
+        called_as = expression.pop(0)
+        force_functiondef = called_as == "fn*"
 
         arglist = expression.pop(0)
         if not isinstance(arglist, HyList):
