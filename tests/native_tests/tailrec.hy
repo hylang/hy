@@ -16,7 +16,7 @@
                 acc
                 (facthelper (- n 1) (* n acc))))
          (facthelper n 1))
-        (assert (< 0 (fact 1000)))))
+         (assert (< 0 (fact 1000)))))
 
 (defn test-copy-string []
     "Testing whether tail recursion can compile functions with '.' in the body"
