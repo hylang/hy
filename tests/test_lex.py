@@ -129,6 +129,21 @@ def test_lex_digit_separators():
             [HySymbol(",,,,___,__1__,,__,,2__,q,__")])
 
 
+def test_lex_bad_attrs():
+    with lexe(): tokenize("1.foo")
+    with lexe(): tokenize("0.foo")
+    with lexe(): tokenize("1.5.foo")
+    with lexe(): tokenize("1e3.foo")
+    with lexe(): tokenize("5j.foo")
+    with lexe(): tokenize("3+5j.foo")
+    with lexe(): tokenize("3.1+5.1j.foo")
+    assert tokenize("j.foo")
+    with lexe(): tokenize("3/4.foo")
+    assert tokenize("a/1.foo")
+    assert tokenize("1/a.foo")
+    with lexe(): tokenize(":hello.foo")
+
+
 def test_lex_line_counting():
     """ Make sure we can count lines / columns """
     entry = tokenize("(foo (one two))")[0]
