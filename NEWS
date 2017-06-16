@@ -26,23 +26,23 @@ Changes from 0.12.1
      than two arguments have been made more logical
    * `(** a b c d)` is now equivalent to `(** a (** b (** c d)))`,
      not `(** (** (** a b) c) d)`
-   * `setv` always returns None
+   * `setv` always returns `None`
    * When a `try` form executes an `else` clause, the return value for the
      `try` form is taken from `else` instead of the `try` body. For example,
      `(try 1 (except [ValueError] 2) (else 3))` returns `3`.
-   * xor: If exactly one argument is true, return it
-   * hy.core.reserved is now hy.extra.reserved
-   * cond now supports single argument branches
+   * `xor`: If exactly one argument is true, return it
+   * `hy.core.reserved` is now `hy.extra.reserved`
+   * `cond` now supports single argument branches
 
    [ Bug Fixes ]
    * All shadowed operators have the same arities as real operators
    * Shadowed comparison operators now use `and` instead of `&`
      for chained comparisons
-   * partition no longer prematurely exhausts input iterators
-   * read and read-str no longer raise an error when the input
+   * `partition` no longer prematurely exhausts input iterators
+   * `read` and `read-str` no longer raise an error when the input
      parses to a false value (e.g., the empty string)
    * A `yield` inside of a `with` statement will properly suppress implicit
-     returns.
+     returns
    * `setv` no longer unnecessarily tries to get attributes
    * `loop` no longer replaces string literals equal to "recur"
    * The REPL now prints the correct value of `do` and `try` forms
@@ -50,7 +50,7 @@ Changes from 0.12.1
 
    [ Misc. Improvements ]
    * New contrib module `hy-repr`
-   * Added a command-line option --repl-output-fn
+   * Added a command-line option `--repl-output-fn`
 
 Changes from 0.12.0
 

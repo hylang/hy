@@ -57,6 +57,9 @@ setup(
         'hy.core': ['*.hy', '__pycache__/*'],
         'hy.extra': ['*.hy', '__pycache__/*'],
     },
+    data_files=[
+        ('get_version', ['get_version.py'])
+    ],
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,
@@ -78,6 +81,7 @@ setup(
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",
