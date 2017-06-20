@@ -9,6 +9,7 @@ import subprocess
 import re
 from hy._compat import PY3
 from hy.importer import get_bytecode_path
+import pytest
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -240,39 +241,38 @@ def test_bin_hy_no_main():
     assert "This Should Still Work" in output
 
 
-def test_bin_hy_byte_compile():
+@pytest.mark.parametrize('can_byte_compile', [True, False])
+@pytest.mark.parametrize('cmd_fmt', [
+    'hy {fpath}', 'hy -m {modname}', "hy -c '(import {modname})'"])
+def test_bin_hy_byte_compile(can_byte_compile, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
+    cmd = cmd_fmt.format(**locals())
 
-    for can_byte_compile in [True, False]:
-        for cmd in ["hy " + fpath,
-                    "hy -m " + modname,
-                    "hy -c '(import {})'".format(modname)]:
+    rm(get_bytecode_path(fpath))
 
-            rm(get_bytecode_path(fpath))
+    if not can_byte_compile:
+        # Keep Hy from being able to byte-compile the module by
+        # creating a directory at the target location.
+        os.mkdir(get_bytecode_path(fpath))
 
-            if not can_byte_compile:
-                # Keep Hy from being able to byte-compile the module by
-                # creating a directory at the target location.
-                os.mkdir(get_bytecode_path(fpath))
+    # Whether or not we can byte-compile the module, we should be able
+    # to run it.
+    output, _ = run_cmd(cmd)
+    assert "Hello from macro" in output
+    assert "The macro returned: boink" in output
 
-            # Whether or not we can byte-compile the module, we should be able
-            # to run it.
-            output, _ = run_cmd(cmd)
-            assert "Hello from macro" in output
-            assert "The macro returned: boink" in output
+    if can_byte_compile:
+        # That should've byte-compiled the module.
+        assert os.path.exists(get_bytecode_path(fpath))
 
-            if can_byte_compile:
-                # That should've byte-compiled the module.
-                assert os.path.exists(get_bytecode_path(fpath))
-
-            # When we run the same command again, and we've byte-compiled the
-            # module, the byte-compiled version should be run instead of the
-            # source, in which case the macro shouldn't be run.
-            output, _ = run_cmd(cmd)
-            assert ("Hello from macro" in output) ^ can_byte_compile
-            assert "The macro returned: boink" in output
+    # When we run the same command again, and we've byte-compiled the
+    # module, the byte-compiled version should be run instead of the
+    # source, in which case the macro shouldn't be run.
+    output, _ = run_cmd(cmd)
+    assert ("Hello from macro" in output) ^ can_byte_compile
+    assert "The macro returned: boink" in output
 
 
 def test_bin_hy_module_main():
