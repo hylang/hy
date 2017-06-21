@@ -1128,13 +1128,9 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("yield_from")
+    @builds_if("yield_from", PY3)
     @checkargs(max=1)
     def compile_yield_from_expression(self, expr):
-        if not PY3:
-            raise HyCompileError(
-                "yield-from only supported in python 3.3+!")
-
         expr.pop(0)
         ret = Result(contains_yield=True)
 
