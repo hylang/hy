@@ -40,11 +40,11 @@ class Completer(object):
                      builtins.__dict__,
                      hy.macros._hy_macros[None],
                      namespace]
-        self.sharp_path = [hy.macros._hy_sharp[None]]
+        self.tag_path = [hy.macros._hy_tag[None]]
         if '__name__' in namespace:
             module_name = namespace['__name__']
             self.path.append(hy.macros._hy_macros[module_name])
-            self.sharp_path.append(hy.macros._hy_sharp[module_name])
+            self.tag_path.append(hy.macros._hy_tag[module_name])
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer
@@ -81,10 +81,10 @@ class Completer(object):
                         matches.append(k)
         return matches
 
-    def sharp_matches(self, text):
+    def tag_matches(self, text):
         text = text[1:]
         matches = []
-        for p in self.sharp_path:
+        for p in self.tag_path:
             for k in p.keys():
                 if isinstance(k, string_types):
                     if k.startswith(text):
@@ -93,7 +93,7 @@ class Completer(object):
 
     def complete(self, text, state):
         if text.startswith("#"):
-            matches = self.sharp_matches(text)
+            matches = self.tag_matches(text)
         elif "." in text:
             matches = self.attr_matches(text)
         else:

@@ -5,34 +5,34 @@
 (import [functools [wraps]])
 
 
-(defn test-sharp-macro []
-  "Test a basic sharp macro"
-  (defsharp ^ [expr]
+(defn test-tag-macro []
+  "Test a basic tag macro"
+  (deftag ^ [expr]
     expr)
 
   (assert (= #^"works" "works")))
 
 
-(defn test-sharp-macro-expr []
+(defn test-tag-macro-expr []
   "Test basic exprs like lists and arrays"
-  (defsharp n [expr]
+  (deftag n [expr]
     (get expr 1))
 
   (assert (= #n[1 2] 2))
   (assert (= #n(1 2) 2)))
 
 
-(defn test-sharp-macro-override []
+(defn test-tag-macro-override []
   "Test if we can override function symbols"
-  (defsharp + [n]
+  (deftag + [n]
     (+ n 1))
 
   (assert (= #+2 3)))
 
 
-(defn test-sharp-macros-macros []
-  "Test if defsharp is actually a macro"
-  (defsharp t [expr]
+(defn test-tag-macros-macros []
+  "Test if deftag is actually a macro"
+  (deftag t [expr]
     `(, ~@expr))
 
   (def a #t[1 2 3])
@@ -41,16 +41,16 @@
   (assert (= (, 1 2 3) a)))
 
 
-(defn test-sharp-macro-string-name []
-  "Test if defsharp accepts a string as a macro name."
+(defn test-tag-macro-string-name []
+  "Test if deftag accepts a string as a macro name."
 
-  (defsharp "." [expr]
+  (deftag "." [expr]
     expr)
 
   (assert (= #."works" "works")))
 
 
-(defn test-builtin-decorator-sharp []
+(defn test-builtin-decorator-tag []
   (defn increment-arguments [func]
     "Increments each argument passed to the decorated function."
     ((wraps func)
@@ -72,7 +72,7 @@
   (assert (= "foo" (. foo --name--)))
   (assert (= "Bar." (. foo --doc--)))
 
-  ;; We can use the #@ sharp macro to apply more than one decorator
+  ;; We can use the #@ tag macro to apply more than one decorator
   #@(increment-arguments
      increment-arguments
      (defn double-foo [&rest args &kwargs kwargs]
