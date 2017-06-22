@@ -3,7 +3,7 @@
 # license. See the LICENSE.
 
 from inspect import getargspec, formatargspec
-from hy.models import replace_hy_obj, wrap_value, HyExpression, HyString
+from hy.models import replace_hy_obj, HyExpression, HyString
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
@@ -196,7 +196,7 @@ def macroexpand_1(tree, compiler):
                     raise HyMacroExpansionError(tree, msg)
 
                 try:
-                    obj = wrap_value(m(*ntree[1:], **opts))
+                    obj = m(*ntree[1:], **opts)
                 except HyTypeError as e:
                     if e.expression is None:
                         e.expression = tree
@@ -225,4 +225,4 @@ def tag_macroexpand(tag, tree, compiler):
             )
 
     expr = tag_macro(tree)
-    return replace_hy_obj(wrap_value(expr), tree)
+    return replace_hy_obj(expr, tree)
