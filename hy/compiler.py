@@ -12,7 +12,8 @@ from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, bytes_type, long_type, PY3, PY34, PY35, raise_empty)
+    str_type, string_types, bytes_type, long_type, PY3, PY34, PY35,
+    raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
 
@@ -108,6 +109,17 @@ def builds_if(_type, condition):
         return builds(_type)
     else:
         return lambda fn: fn
+
+
+def spoof_positions(obj):
+    if not hasattr(obj, "start_column"):
+        obj.start_column = 0
+    if not hasattr(obj, "start_line"):
+        obj.start_line = 0
+    if (hasattr(obj, "__iter__") and
+            not isinstance(obj, (string_types, bytes_type))):
+        for x in obj:
+            spoof_positions(x)
 
 
 class Result(object):
@@ -378,23 +390,23 @@ class HyASTCompiler(object):
         ret = Result()
         for module, names in self.imports.items():
             if None in names:
-                ret += self.compile([
-                    HyExpression([
+                e = HyExpression([
                         HySymbol("import"),
                         HySymbol(module),
                     ]).replace(expr)
-                ])
+                spoof_positions(e)
+                ret += self.compile(e)
             names = sorted(name for name in names if name)
             if names:
-                ret += self.compile([
-                    HyExpression([
+                e = HyExpression([
                         HySymbol("import"),
                         HyList([
                             HySymbol(module),
                             HyList([HySymbol(name) for name in names])
                         ])
                     ]).replace(expr)
-                ])
+                spoof_positions(e)
+                ret += self.compile(e)
         self.imports = defaultdict(set)
         return ret.stmts
 
@@ -602,12 +614,6 @@ class HyASTCompiler(object):
         ast.copy_location(new_name, name)
         return new_name
 
-    @builds(list)
-    def compile_raw_list(self, entries):
-        ret = self._compile_branch(entries)
-        ret += ret.expr_as_stmt()
-        return ret
-
     def _render_quoted_form(self, form, level):
         """
         Render a quoted form as a new HyExpression.
@@ -741,6 +747,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("try")
+    @checkargs(min=2)
     def compile_try_expression(self, expr):
         expr.pop(0)  # try
 
@@ -2594,21 +2601,17 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     body = []
     expr = None
 
-    if not (isinstance(tree, HyObject) or type(tree) is list):
-        raise HyCompileError("tree must be a HyObject or a list")
+    if not isinstance(tree, HyObject):
+        raise HyCompileError("tree must be a HyObject")
 
-    if isinstance(tree, HyObject) or tree:
-        compiler = HyASTCompiler(module_name)
-        result = compiler.compile(tree)
-        expr = result.force_expr
+    compiler = HyASTCompiler(module_name)
+    result = compiler.compile(tree)
+    expr = result.force_expr
 
-        if not get_expr:
-            result += result.expr_as_stmt()
+    if not get_expr:
+        result += result.expr_as_stmt()
 
-        # We need to test that the type is *exactly* `list` because we don't
-        # want to do `tree[0]` on HyList or such.
-        spoof_tree = tree[0] if type(tree) is list else tree
-        body = compiler.imports_as_stmts(spoof_tree) + result.stmts
+    body = compiler.imports_as_stmts(tree) + result.stmts
 
     ret = root(body=body)
 

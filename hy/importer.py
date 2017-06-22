@@ -3,7 +3,7 @@
 # license. See the LICENSE.
 
 from hy.compiler import hy_compile, HyTypeError
-from hy.models import HyObject, replace_hy_obj
+from hy.models import HyObject, HyExpression, HySymbol, replace_hy_obj
 from hy.lex import tokenize, LexException
 from hy.errors import HyIOError
 
@@ -32,7 +32,7 @@ def ast_compile(ast, filename, mode):
 
 def import_buffer_to_hst(buf):
     """Import content from buf and return a Hy AST."""
-    return tokenize(buf + "\n")
+    return HyExpression([HySymbol("do")] + tokenize(buf + "\n"))
 
 
 def import_file_to_hst(fpath):
