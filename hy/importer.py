@@ -14,6 +14,7 @@ import struct
 import imp
 import sys
 import ast
+import inspect
 import os
 import __future__
 
@@ -142,7 +143,14 @@ def import_buffer_to_module(module_name, buf):
     return mod
 
 
-def hy_eval(hytree, namespace, module_name, ast_callback=None):
+def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
+    if namespace is None:
+        frame = inspect.stack()[1][0]
+        namespace = inspect.getargvalues(frame).locals
+    if module_name is None:
+        m = inspect.getmodule(inspect.stack()[1][0])
+        module_name = '__eval__' if m is None else m.__name__
+
     foo = HyObject()
     foo.start_line = 0
     foo.end_line = 0

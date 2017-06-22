@@ -19,6 +19,7 @@
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.compiler [HyASTCompiler]])
+(import [hy.importer [hy-eval :as eval]])
 
 (defn butlast [coll]
   "Returns coll except of last element."
@@ -469,7 +470,7 @@
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? even? every? first filter
+    disassemble drop drop-last drop-while empty? eval even? every? first filter
     flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list* macroexpand

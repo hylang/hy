@@ -706,31 +706,6 @@ class HyASTCompiler(object):
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
 
-    @builds("eval")
-    @checkargs(min=1, max=3)
-    def compile_eval(self, expr):
-        expr.pop(0)
-
-        if not isinstance(expr[0], (HyExpression, HySymbol)):
-            raise HyTypeError(expr, "expression expected as first argument")
-
-        elist = [HySymbol("hy_eval")] + [expr[0]]
-        if len(expr) >= 2:
-            elist.append(expr[1])
-        else:
-            elist.append(HyExpression([HySymbol("locals")]))
-
-        if len(expr) == 3:
-            elist.append(expr[2])
-        else:
-            elist.append(HyString(self.module_name))
-
-        ret = self.compile(HyExpression(elist).replace(expr))
-
-        ret.add_imports("hy.importer", ["hy_eval"])
-
-        return ret
-
     @builds("do")
     def compile_do(self, expression):
         expression.pop(0)

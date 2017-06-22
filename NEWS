@@ -4,6 +4,7 @@ Changes from 0.13.0
    * Single-character "sharp macros" changed to "tag macros", which can have
      longer names
    * Periods are no longer allowed in keywords
+   * `eval` is now a function instead of a special form
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

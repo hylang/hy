@@ -1087,10 +1087,11 @@
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
   ; yo dawg
-  (try (eval '(eval)) (except [e HyTypeError]) (else (assert False)))
-  (try (eval '(eval "snafu")) (except [e HyTypeError]) (else (assert False)))
+  (import [hy.compiler [HyCompileError]])
+  (try (eval '(eval)) (except [e TypeError]) (else (assert False)))
+  (try (eval '(eval "snafu")) (except [e HyCompileError]) (else (assert False)))
   (try (eval 'False []) (except [e HyTypeError]) (else (assert False)))
-  (try (eval 'False {} 1) (except [e HyTypeError]) (else (assert False))))
+  (try (eval 'False {} 1) (except [e TypeError]) (else (assert False))))
 
 
 (defn test-import-syntax []
