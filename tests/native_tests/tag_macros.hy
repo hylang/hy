@@ -13,6 +13,51 @@
   (assert (= #^"works" "works")))
 
 
+(defn test-long-tag-macro []
+  "Test a tag macro with a name longer than one character"
+  (deftag foo [expr]
+    `['foo ~expr])
+  (assert (= #foo'bar ['foo 'bar]))
+  (assert (= #foo"baz" ['foo "baz"]))
+  (assert (= #foo(- 44 2) ['foo 42]))
+  (assert (= #foo(, 42) ['foo (, 42)]))
+  (assert (= #foo[42] ['foo [42]]))
+  (assert (= #foo{4 2} ['foo {4 2}])))
+
+(defn test-hyphenated-tag-macro []
+  "Test if hyphens translate properly"
+  (deftag foo-bar [x]
+    `['foo ~x 'bar])
+  (assert (= #foo-bar 42) ['foo 42 'bar])
+  (assert (= #foo_bar 42) ['foo 42 'bar])
+  (deftag spam_eggs [x]
+    `['spam ~x 'eggs])
+  (assert (= #spam-eggs 42 ['spam 42 'eggs]))
+  (assert (= #spam_eggs 42 ['spam 42 'eggs])))
+
+
+(defn test-tag-macro-whitespace []
+  "Test whitespace after a tag macro"
+  (deftag foo [expr]
+    `['foo ~expr])
+  (assert (= #foo 42) ['foo 42])
+  (assert (= #foo (- 44 2) ['foo 42]))
+  (deftag b [x]
+    `['bar ~x])
+  (assert (= #b 42) ['bar 42])
+  ; # is allowed in tags, so this must be separated
+  (assert (= #b #{42} ['bar #{42}]))
+  ; multiple tags must likewise be separated
+  (assert (= #b #foo 42 ['bar ['foo 42]]))
+  ; newlines are also whitespace
+  (assert (= #foo
+
+             42 ['foo 42]))
+  (assert (= #foo; a semicolon/comment should count as whitespace
+             42
+             ['foo 42])))
+
+
 (defn test-tag-macro-expr []
   "Test basic exprs like lists and arrays"
   (deftag n [expr]
