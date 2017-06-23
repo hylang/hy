@@ -13,7 +13,7 @@ from hy.lex.parser import hy_symbol_mangle
 import hy.macros
 from hy._compat import (
     str_type, bytes_type, long_type, PY3, PY34, PY35, raise_empty)
-from hy.macros import require, macroexpand, sharp_macroexpand
+from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
 
 import traceback
@@ -2465,20 +2465,20 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("defsharp")
+    @builds("deftag")
     @checkargs(min=2)
-    def compile_sharp_macro(self, expression):
+    def compile_tag_macro(self, expression):
         expression.pop(0)
         name = expression.pop(0)
-        if name == ":" or name == "&" or len(name) > 1:
-            raise NameError("%s can't be used as a sharp macro name" % name)
+        if name == ":" or name == "&":
+            raise NameError("%s can't be used as a tag macro name" % name)
         if not isinstance(name, HySymbol) and not isinstance(name, HyString):
             raise HyTypeError(name,
                               ("received a `%s' instead of a symbol "
-                               "for sharp macro name" % type(name).__name__))
+                               "for tag macro name" % type(name).__name__))
         name = HyString(name).replace(name)
         new_expression = HyExpression([
-            HyExpression([HySymbol("hy.macros.sharp"), name]),
+            HyExpression([HySymbol("hy.macros.tag"), name]),
             HyExpression([HySymbol("fn")] + expression),
         ]).replace(expression)
 
@@ -2486,18 +2486,19 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("dispatch_sharp_macro")
+    @builds("dispatch_tag_macro")
     @checkargs(exact=2)
-    def compile_dispatch_sharp_macro(self, expression):
-        expression.pop(0)  # dispatch-sharp-macro
-        str_char = expression.pop(0)
-        if not type(str_char) == HyString:
+    def compile_dispatch_tag_macro(self, expression):
+        expression.pop(0)  # dispatch-tag-macro
+        tag = expression.pop(0)
+        if not type(tag) == HyString:
             raise HyTypeError(
-                str_char,
-                "Trying to expand a sharp macro using `{0}' instead "
-                "of string".format(type(str_char).__name__),
+                tag,
+                "Trying to expand a tag macro using `{0}' instead "
+                "of string".format(type(tag).__name__),
             )
-        expr = sharp_macroexpand(str_char, expression.pop(0), self)
+        tag = HyString(hy_symbol_mangle(str(tag))).replace(tag)
+        expr = tag_macroexpand(tag, expression.pop(0), self)
         return self.compile(expr)
 
     @builds("eval_and_compile")

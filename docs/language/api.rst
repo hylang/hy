@@ -779,25 +779,21 @@ For example,
     42
 
 
-defsharp
+deftag
 --------
 
 .. versionadded:: 0.13.0
 
-``defsharp`` defines a sharp macro. A sharp macro is a unary macro that has the
-same semantics as an ordinary macro defined with ``defmacro``, but can be
-called without parentheses and with less whitespace. The name of a sharp macro
-must be exactly one character long. It is called with the syntax ``#cFORM``,
-where ``#`` is a literal sharp sign (hence the term "sharp macro"), ``c`` is
-the name of the macro, and ``FORM`` is any form. Whitspace is forbidden between
-``#`` and ``c``. Whitespace is allowed between ``c`` and ``FORM``, but not
-required.
+``deftag`` defines a tag macro. A tag macro is a unary macro that has the
+same semantics as an ordinary macro defined with ``defmacro``. It is called with
+the syntax ``#tag FORM``, where ``tag`` is the name of the macro, and ``FORM``
+is any form. The ``tag`` is often only one character, but it can be any symbol.
 
 .. code-block:: clj
 
-    => (defsharp ♣ [expr] `[~expr ~expr])
+    => (deftag ♣ [expr] `[~expr ~expr])
     <function <lambda> at 0x7f76d0271158>
-    => #♣5
+    => #♣ 5
     [5, 5]
     => (setv x 0)
     => #♣(+= x 1)
@@ -805,13 +801,13 @@ required.
     => x
     2
 
-In this example, if you used ``(defmacro ♣ ...)`` instead of ``(defsharp
+In this example, if you used ``(defmacro ♣ ...)`` instead of ``(deftag
 ♣ ...)``, you would call the macro as ``(♣ 5)`` or ``(♣ (+= x 1))``.
 
-The syntax for calling sharp macros is similar to that of reader macros a la
-Common Lisp's ``SET-MACRO-CHARACTER``. In fact, before Hy 0.13.0, sharp macros
+The syntax for calling tag macros is similar to that of reader macros a la
+Common Lisp's ``SET-MACRO-CHARACTER``. In fact, before Hy 0.13.0, tag macros
 were called "reader macros", and defined with ``defreader`` rather than
-``defsharp``. True reader macros are not (yet) implemented in Hy.
+``deftag``. True reader macros are not (yet) implemented in Hy.
 
 del
 ---
@@ -1731,7 +1727,7 @@ will be 4 (``1+1 + 1+1``).
 
 .. versionadded:: 0.12.0
 
-The sharp macro ``#@`` can be used as a shorthand for ``with-decorator``. With
+The tag macro ``#@`` can be used as a shorthand for ``with-decorator``. With
 ``#@``, the previous example becomes:
 
 .. code-block:: clj

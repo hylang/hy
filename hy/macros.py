@@ -18,7 +18,7 @@ EXTRA_MACROS = [
 ]
 
 _hy_macros = defaultdict(dict)
-_hy_sharp = defaultdict(dict)
+_hy_tag = defaultdict(dict)
 
 
 def macro(name):
@@ -50,8 +50,8 @@ def macro(name):
     return _
 
 
-def sharp(name):
-    """Decorator to define a sharp macro called `name`.
+def tag(name):
+    """Decorator to define a tag macro called `name`.
 
     This stores the macro `name` in the namespace for the module where it is
     defined.
@@ -59,14 +59,14 @@ def sharp(name):
     If the module where it is defined is in `hy.core`, then the macro is stored
     in the default `None` namespace.
 
-    This function is called from the `defsharp` special form in the compiler.
+    This function is called from the `deftag` special form in the compiler.
 
     """
     def _(fn):
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
-        _hy_sharp[module_name][name] = fn
+        _hy_tag[module_name][name] = fn
 
         return fn
     return _
@@ -90,7 +90,7 @@ def require(source_module, target_module,
     if prefix:
         prefix += "."
 
-    for d in _hy_macros, _hy_sharp:
+    for d in _hy_macros, _hy_tag:
         for name, macro in d[source_module].items():
             seen_names.add(name)
             if all_macros:
@@ -210,19 +210,19 @@ def macroexpand_1(tree, compiler):
     return tree
 
 
-def sharp_macroexpand(char, tree, compiler):
-    """Expand the sharp macro "char" with argument `tree`."""
+def tag_macroexpand(tag, tree, compiler):
+    """Expand the tag macro "tag" with argument `tree`."""
     load_macros(compiler.module_name)
 
-    sharp_macro = _hy_sharp[compiler.module_name].get(char)
-    if sharp_macro is None:
+    tag_macro = _hy_tag[compiler.module_name].get(tag)
+    if tag_macro is None:
         try:
-            sharp_macro = _hy_sharp[None][char]
+            tag_macro = _hy_tag[None][tag]
         except KeyError:
             raise HyTypeError(
-                char,
-                "`{0}' is not a defined sharp macro.".format(char)
+                tag,
+                "`{0}' is not a defined tag macro.".format(tag)
             )
 
-    expr = sharp_macro(tree)
+    expr = tag_macro(tree)
     return replace_hy_obj(wrap_value(expr), tree)

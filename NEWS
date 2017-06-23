@@ -1,3 +1,9 @@
+Changes from 0.13.0
+
+   [ Language Changes ]
+   * Single-character "sharp macros" changed to "tag macros", which can have
+     longer names
+
 Changes from 0.12.1
 
    [ Language Changes ]

@@ -12,6 +12,7 @@ lg = LexerGenerator()
 # i.e. a space or a closing brace/paren/curly
 end_quote = r'(?![\s\)\]\}])'
 
+identifier = r'[^()\[\]{}\'"\s;]+'
 
 lg.add('LPAREN', r'\(')
 lg.add('RPAREN', r'\)')
@@ -25,7 +26,7 @@ lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
 lg.add('HASHBANG', r'#!.*[^\r\n]')
-lg.add('HASHOTHER', r'#[^{]')
+lg.add('HASHOTHER', r'#%s' % identifier)
 
 # A regexp which matches incomplete strings, used to support
 # multi-line strings in the interpreter
@@ -44,7 +45,7 @@ partial_string = r'''(?x)
 lg.add('STRING', r'%s"' % partial_string)
 lg.add('PARTIAL_STRING', partial_string)
 
-lg.add('IDENTIFIER', r'[^()\[\]{}\'"\s;]+')
+lg.add('IDENTIFIER', identifier)
 
 
 lg.ignore(r';.*(?=\r|\n|$)')
