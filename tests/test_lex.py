@@ -5,56 +5,31 @@
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
                        HyString, HyDict, HyList, HySet, HyCons)
 from hy.lex import LexException, PrematureEndOfInput, tokenize
+import pytest
+
+def peoi(): return pytest.raises(PrematureEndOfInput)
+def lexe(): return pytest.raises(LexException)
 
 
 def test_lex_exception():
     """ Ensure tokenize throws a fit on a partial input """
-    try:
-        tokenize("(foo")
-        assert True is False
-    except PrematureEndOfInput:
-        pass
-    try:
-        tokenize("{foo bar")
-        assert True is False
-    except PrematureEndOfInput:
-        pass
-    try:
-        tokenize("(defn foo [bar]")
-        assert True is False
-    except PrematureEndOfInput:
-        pass
-    try:
-        tokenize("(foo \"bar")
-        assert True is False
-    except PrematureEndOfInput:
-        pass
+    with peoi(): tokenize("(foo")
+    with peoi(): tokenize("{foo bar")
+    with peoi(): tokenize("(defn foo [bar]")
+    with peoi(): tokenize("(foo \"bar")
 
 
 def test_unbalanced_exception():
     """Ensure the tokenization fails on unbalanced expressions"""
-    try:
-        tokenize("(bar))")
-        assert True is False
-    except LexException:
-        pass
-
-    try:
-        tokenize("(baz [quux]])")
-        assert True is False
-    except LexException:
-        pass
+    with lexe(): tokenize("(bar))")
+    with lexe(): tokenize("(baz [quux]])")
 
 
 def test_lex_single_quote_err():
     "Ensure tokenizing \"' \" throws a LexException that can be stringified"
     # https://github.com/hylang/hy/issues/1252
-    try:
-        tokenize("' ")
-    except LexException as e:
-        assert "Could not identify the next token" in str(e)
-    else:
-        assert False
+    with lexe() as e: tokenize("' ")
+    assert "Could not identify the next token" in str(e.value)
 
 
 def test_lex_expression_symbols():
@@ -152,6 +127,21 @@ def test_lex_digit_separators():
     assert tokenize(",,,,___,__1__,,__,,2__,,,__") == [HyInteger(12)]
     assert (tokenize(",,,,___,__1__,,__,,2__,q,__") ==
             [HySymbol(",,,,___,__1__,,__,,2__,q,__")])
+
+
+def test_lex_bad_attrs():
+    with lexe(): tokenize("1.foo")
+    with lexe(): tokenize("0.foo")
+    with lexe(): tokenize("1.5.foo")
+    with lexe(): tokenize("1e3.foo")
+    with lexe(): tokenize("5j.foo")
+    with lexe(): tokenize("3+5j.foo")
+    with lexe(): tokenize("3.1+5.1j.foo")
+    assert tokenize("j.foo")
+    with lexe(): tokenize("3/4.foo")
+    assert tokenize("a/1.foo")
+    assert tokenize("1/a.foo")
+    with lexe(): tokenize(":hello.foo")
 
 
 def test_lex_line_counting():

@@ -288,6 +288,24 @@ def t_partial_string(p):
 def t_identifier(p):
     obj = p[0].value
 
+    val = symbol_like(obj)
+    if val is not None:
+        return val
+
+    if "." in obj and symbol_like(obj.split(".", 1)[0]) is not None:
+        # E.g., `5.attr` or `:foo.attr`
+        raise LexException(
+            'Cannot access attribute on anything other than a name (in '
+            'order to get attributes of expressions, use '
+            '`(. <expression> <attr>)` or `(.<attr> <expression>)`)',
+            p[0].source_pos.lineno, p[0].source_pos.colno)
+
+    return HySymbol(".".join(hy_symbol_mangle(x) for x in obj.split(".")))
+
+
+def symbol_like(obj):
+    "Try to interpret `obj` as a number or keyword."
+
     try:
         return HyInteger(obj)
     except ValueError:
@@ -312,12 +330,8 @@ def t_identifier(p):
         except ValueError:
             pass
 
-    if obj.startswith(":"):
+    if obj.startswith(":") and "." not in obj:
         return HyKeyword(obj)
-
-    obj = ".".join([hy_symbol_mangle(part) for part in obj.split(".")])
-
-    return HySymbol(obj)
 
 
 @pg.error

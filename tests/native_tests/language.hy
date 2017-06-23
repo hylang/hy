@@ -1446,7 +1446,6 @@
   (assert (= (keyword 'foo) :foo))
   (assert (= (keyword 'foo-bar) :foo-bar))
   (assert (= (keyword 1) :1))
-  (assert (= (keyword 1.0) :1.0))
   (assert (= (keyword :foo_bar) :foo-bar)))
 
 (defn test-name-conversion []
