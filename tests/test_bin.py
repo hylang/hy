@@ -23,9 +23,10 @@ def run_cmd(cmd, stdin_data=None, expect=0):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
+                         universal_newlines=True,
                          shell=True)
     if stdin_data is not None:
-        p.stdin.write(stdin_data.encode('ASCII'))
+        p.stdin.write(stdin_data)
         p.stdin.flush()
         p.stdin.close()
     # Read stdout and stderr otherwise if the PIPE buffer is full, we might
@@ -33,8 +34,8 @@ def run_cmd(cmd, stdin_data=None, expect=0):
     stdout = ""
     stderr = ""
     while p.poll() is None:
-        stdout += p.stdout.read().decode('utf-8')
-        stderr += p.stderr.read().decode('utf-8')
+        stdout += p.stdout.read()
+        stderr += p.stderr.read()
     assert p.returncode == expect
     return stdout, stderr
 
