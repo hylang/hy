@@ -18,7 +18,7 @@
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
-(import [hy.compiler [HyASTCompiler]])
+(import [hy.compiler [HyASTCompiler spoof-positions]])
 (import [hy.importer [hy-eval :as eval]])
 
 (defn butlast [coll]
@@ -75,8 +75,8 @@
   (import astor)
   (import hy.compiler)
 
-  (fake-source-positions tree)
-  (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
+  (spoof-positions tree)
+  (setv compiled (hy.compiler.hy-compile tree (calling-module-name)))
   ((if codegen
             astor.codegen.to_source
             astor.dump)
@@ -174,15 +174,6 @@
 (defn every? [pred coll]
   "Return true if (pred x) is logical true for every x in coll, else false"
   (all (map pred coll)))
-
-(defn fake-source-positions [tree]
-  "Fake the source positions for a given tree"
-  (if (coll? tree)
-    (for* [subtree tree]
-          (fake-source-positions subtree)))
-  (for* [attr '[start-line end-line start-column end-column]]
-        (if (not (hasattr tree attr))
-          (setattr tree attr 1))))
 
 (defn flatten [coll]
   "Return a single flat list expanding all members of coll"

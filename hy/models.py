@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 from hy._compat import PY3, str_type, bytes_type, long_type, string_types
+from fractions import Fraction
 
 
 class HyObject(object):
@@ -229,6 +230,8 @@ class HyExpression(HyList):
         return "(%s)" % (" ".join([repr(x) for x in self]))
 
 _wrappers[HyExpression] = lambda e: HyExpression(wrap_value(x) for x in e)
+_wrappers[Fraction] = lambda e: HyExpression(
+    [HySymbol("fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
 
 
 class HySet(HyList):

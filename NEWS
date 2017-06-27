@@ -5,6 +5,9 @@ Changes from 0.13.0
      longer names
    * Periods are no longer allowed in keywords
    * `eval` is now a function instead of a special form
+   * The compiler now automatically promotes values to Hy model objects
+     as necessary, so you can write ``(eval `(+ 1 ~n))`` instead of
+     ``(eval `(+ 1 ~(HyInteger n)))``
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

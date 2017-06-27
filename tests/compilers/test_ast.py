@@ -48,8 +48,10 @@ def cant_compile(expr):
 
 def test_ast_bad_type():
     "Make sure AST breakage can happen"
+    class C:
+        pass
     try:
-        hy_compile("foo", "__main__")
+        hy_compile(C(), "__main__")
         assert True is False
     except HyCompileError:
         pass

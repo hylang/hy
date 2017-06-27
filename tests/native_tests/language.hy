@@ -5,6 +5,7 @@
 (import [tests.resources [kwtest function-with-a-dash]]
         [os.path [exists isdir isfile]]
         [sys :as systest]
+        re
         [operator [or_]]
         [hy.errors [HyTypeError]]
         pytest)
@@ -1087,11 +1088,42 @@
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
   ; yo dawg
-  (import [hy.compiler [HyCompileError]])
   (try (eval '(eval)) (except [e TypeError]) (else (assert False)))
-  (try (eval '(eval "snafu")) (except [e HyCompileError]) (else (assert False)))
+  (defclass C)
+  (try (eval (C)) (except [e TypeError]) (else (assert False)))
   (try (eval 'False []) (except [e HyTypeError]) (else (assert False)))
   (try (eval 'False {} 1) (except [e TypeError]) (else (assert False))))
+
+
+(defn test-eval-quasiquote []
+  ; https://github.com/hylang/hy/issues/1174
+
+  (for [x [
+      None False True
+      5 5.1
+      1/2
+      5j 5.1j 2+1j 1.2+3.4j
+      "" b""
+      "apple bloom" b"apple bloom" "⚘" b"\x00"
+      :mykeyword
+      [] #{} {}
+      [1 2 3] #{1 2 3} {"a" 1 "b" 2}]]
+    (assert (= (eval `(identity ~x)) x))
+    (assert (= (eval x) x)))
+
+  ; Tuples wrap to HyLists, not HyExpressions.
+  (assert (= (eval (,)) []))
+  (assert (= (eval (, 1 2 3)) [1 2 3]))
+
+  (assert (= (eval `(+ "a" ~(+ "b" "c"))) "abc"))
+
+  (setv l ["a" "b"])
+  (setv n 1)
+  (assert (= (eval `(get ~l ~n) "b")))
+
+  (setv d {"a" 1 "b" 2})
+  (setv k "b")
+  (assert (= (eval `(get ~d ~k)) 2)))
 
 
 (defn test-import-syntax []
@@ -1367,7 +1399,9 @@
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
                "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
-             "leaky()\nleaky()\nmacros()")))
+             "leaky()\nleaky()\nmacros()"))
+  (assert (= (re.sub r"[L() ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
+             "2+40")))
 
 
 (defn test-attribute-access []
