@@ -9,6 +9,7 @@ import subprocess
 import re
 from hy._compat import PY3
 from hy.importer import get_bytecode_path
+import pytest
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -18,13 +19,18 @@ def hr(s=""):
     return "hy --repl-output-fn=hy.contrib.hy-repr.hy-repr " + s
 
 
-def run_cmd(cmd, stdin_data=None, expect=0):
+def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
+    env = None
+    if dontwritebytecode:
+        env = dict(os.environ)
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
     p = subprocess.Popen(os.path.join(hy_dir, cmd),
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          universal_newlines=True,
-                         shell=True)
+                         shell=True,
+                         env=env)
     if stdin_data is not None:
         p.stdin.write(stdin_data)
         p.stdin.flush()
@@ -240,39 +246,42 @@ def test_bin_hy_no_main():
     assert "This Should Still Work" in output
 
 
-def test_bin_hy_byte_compile():
+@pytest.mark.parametrize('scenario', [
+    "normal", "prevent_by_force", "prevent_by_env"])
+@pytest.mark.parametrize('cmd_fmt', [
+    'hy {fpath}', 'hy -m {modname}', "hy -c '(import {modname})'"])
+def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
+    cmd = cmd_fmt.format(**locals())
 
-    for can_byte_compile in [True, False]:
-        for cmd in ["hy " + fpath,
-                    "hy -m " + modname,
-                    "hy -c '(import {})'".format(modname)]:
+    rm(get_bytecode_path(fpath))
 
-            rm(get_bytecode_path(fpath))
+    if scenario == "prevent_by_force":
+        # Keep Hy from being able to byte-compile the module by
+        # creating a directory at the target location.
+        os.mkdir(get_bytecode_path(fpath))
 
-            if not can_byte_compile:
-                # Keep Hy from being able to byte-compile the module by
-                # creating a directory at the target location.
-                os.mkdir(get_bytecode_path(fpath))
+    # Whether or not we can byte-compile the module, we should be able
+    # to run it.
+    output, _ = run_cmd(cmd, dontwritebytecode=scenario == "prevent_by_env")
+    assert "Hello from macro" in output
+    assert "The macro returned: boink" in output
 
-            # Whether or not we can byte-compile the module, we should be able
-            # to run it.
-            output, _ = run_cmd(cmd)
-            assert "Hello from macro" in output
-            assert "The macro returned: boink" in output
+    if scenario == "normal":
+        # That should've byte-compiled the module.
+        assert os.path.exists(get_bytecode_path(fpath))
+    elif scenario == "prevent_by_env":
+        # No byte-compiled version should've been created.
+        assert not os.path.exists(get_bytecode_path(fpath))
 
-            if can_byte_compile:
-                # That should've byte-compiled the module.
-                assert os.path.exists(get_bytecode_path(fpath))
-
-            # When we run the same command again, and we've byte-compiled the
-            # module, the byte-compiled version should be run instead of the
-            # source, in which case the macro shouldn't be run.
-            output, _ = run_cmd(cmd)
-            assert ("Hello from macro" in output) ^ can_byte_compile
-            assert "The macro returned: boink" in output
+    # When we run the same command again, and we've byte-compiled the
+    # module, the byte-compiled version should be run instead of the
+    # source, in which case the macro shouldn't be run.
+    output, _ = run_cmd(cmd)
+    assert ("Hello from macro" in output) ^ (scenario == "normal")
+    assert "The macro returned: boink" in output
 
 
 def test_bin_hy_module_main():
