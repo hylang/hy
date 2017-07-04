@@ -144,6 +144,19 @@ def import_buffer_to_module(module_name, buf):
 
 
 def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
+    """``eval`` evaluates a quoted expression and returns the value. The optional
+    second and third arguments specify the dictionary of globals to use and the
+    module name. The globals dictionary defaults to ``(local)`` and the module
+    name defaults to the name of the current module.
+
+       => (eval '(print "Hello World"))
+       "Hello World"
+
+    If you want to evaluate a string, use ``read-str`` to convert it to a
+    form first:
+
+       => (eval (read-str "(+ 1 1)"))
+       2"""
     if namespace is None:
         frame = inspect.stack()[1][0]
         namespace = inspect.getargvalues(frame).locals
