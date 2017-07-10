@@ -2,8 +2,10 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY3 str-type bytes-type long-type]])
-(import [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyList HyDict HySet HyString HyBytes]])
+(import
+  [math [isnan]]
+  [hy._compat [PY3 str-type bytes-type long-type]]
+  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
 (defn hy-repr [obj]
   (setv seen (set))
@@ -72,8 +74,14 @@
         (.format "(int {})" (repr x))
       (and (not PY3) (in t [long_type HyInteger]))
         (.rstrip (repr x) "L")
-      (is t complex)
-        (.strip (repr x) "()")
+      (and (in t [float HyFloat]) (isnan x))
+        "NaN"
+      (= x Inf)
+        "Inf"
+      (= x -Inf)
+        "-Inf"
+      (in t [complex HyComplex])
+        (.replace (.replace (.strip (repr x) "()") "inf" "Inf") "nan" "NaN")
       (is t fraction)
         (.format "{}/{}" (f x.numerator q) (f x.denominator q))
       ; else

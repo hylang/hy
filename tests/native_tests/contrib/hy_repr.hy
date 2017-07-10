@@ -3,16 +3,17 @@
 ;; license. See the LICENSE.
 
 (import
+  [math [isnan]]
   [hy.contrib.hy-repr [hy-repr]])
 
 (defn test-hy-repr-roundtrip-from-value []
   ; Test that a variety of values round-trip properly.
   (setv values [
     None False True
-    5 5.1 '5 '5.1
+    5 5.1 '5 '5.1 Inf -Inf
     (int 5)
     1/2
-    5j 5.1j 2+1j 1.2+3.4j
+    5j 5.1j 2+1j 1.2+3.4j Inf-Infj
     "" b""
     '"" 'b""
     "apple bloom" b"apple bloom" "⚘"
@@ -32,10 +33,17 @@
   (for [original-val values]
     (setv evaled (eval (read-str (hy-repr original-val))))
     (assert (= evaled original-val))
-    (assert (is (type evaled) (type original-val)))))
+    (assert (is (type evaled) (type original-val))))
+  (assert (isnan (eval (read-str (hy-repr NaN))))))
 
 (defn test-hy-repr-roundtrip-from-str []
   (setv strs [
+    "'Inf"
+    "'-Inf"
+    "'NaN"
+    "1+2j"
+    "NaN+NaNj"
+    "'NaN+NaNj"
     "[1 2 3]"
     "'[1 2 3]"
     "[1 'a 3]"
