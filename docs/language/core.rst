@@ -230,6 +230,30 @@ Returns ``True`` if *coll* is empty. Equivalent to ``(= 0 (len coll))``.
    False
 
 
+.. _eval-fn:
+
+eval
+----
+
+``eval`` evaluates a quoted expression and returns the value. The optional
+second and third arguments specify the dictionary of globals to use and the
+module name. The globals dictionary defaults to ``(local)`` and the module name
+defaults to the name of the current module.
+
+.. code-block:: clj
+
+   => (eval '(print "Hello World"))
+   "Hello World"
+
+If you want to evaluate a string, use ``read-str`` to convert it to a
+form first:
+
+.. code-block:: clj
+
+   => (eval (read-str "(+ 1 1)"))
+   2
+
+
 .. _every?-fn:
 
 every?

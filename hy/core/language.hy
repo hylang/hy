@@ -18,7 +18,8 @@
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
-(import [hy.compiler [HyASTCompiler]])
+(import [hy.compiler [HyASTCompiler spoof-positions]])
+(import [hy.importer [hy-eval :as eval]])
 
 (defn butlast [coll]
   "Returns coll except of last element."
@@ -74,8 +75,8 @@
   (import astor)
   (import hy.compiler)
 
-  (fake-source-positions tree)
-  (setv compiled (hy.compiler.hy_compile tree (calling-module-name)))
+  (spoof-positions tree)
+  (setv compiled (hy.compiler.hy-compile tree (calling-module-name)))
   ((if codegen
             astor.codegen.to_source
             astor.dump)
@@ -173,15 +174,6 @@
 (defn every? [pred coll]
   "Return true if (pred x) is logical true for every x in coll, else false"
   (all (map pred coll)))
-
-(defn fake-source-positions [tree]
-  "Fake the source positions for a given tree"
-  (if (coll? tree)
-    (for* [subtree tree]
-          (fake-source-positions subtree)))
-  (for* [attr '[start-line end-line start-column end-column]]
-        (if (not (hasattr tree attr))
-          (setattr tree attr 1))))
 
 (defn flatten [coll]
   "Return a single flat list expanding all members of coll"
@@ -469,7 +461,7 @@
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? even? every? first filter
+    disassemble drop drop-last drop-while empty? eval even? every? first filter
     flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list* macroexpand

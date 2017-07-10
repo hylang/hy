@@ -15,7 +15,7 @@ import astor.codegen
 
 import hy
 
-from hy.lex import LexException, PrematureEndOfInput, tokenize
+from hy.lex import LexException, PrematureEndOfInput
 from hy.lex.parser import hy_symbol_mangle
 from hy.compiler import HyTypeError
 from hy.importer import (hy_eval, import_buffer_to_module,
@@ -77,12 +77,9 @@ class HyREPL(code.InteractiveConsole):
         global SIMPLE_TRACEBACKS
         try:
             try:
-                tokens = tokenize(source)
+                do = import_buffer_to_hst(source)
             except PrematureEndOfInput:
                 return True
-            do = HyExpression([HySymbol('do')] + tokens)
-            do.start_line = do.end_line = do.start_column = do.end_column = 1
-            do.replace(do)
         except LexException as e:
             if e.source is None:
                 e.source = source

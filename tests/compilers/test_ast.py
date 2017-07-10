@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 from hy import HyString
 from hy.models import HyObject
 from hy.compiler import hy_compile
+from hy.importer import import_buffer_to_hst
 from hy.errors import HyCompileError, HyTypeError
 from hy.lex.exceptions import LexException
-from hy.lex import tokenize
 from hy._compat import PY3
 
 import ast
@@ -25,12 +25,12 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def can_compile(expr):
-    return hy_compile(tokenize(expr), "__main__")
+    return hy_compile(import_buffer_to_hst(expr), "__main__")
 
 
 def cant_compile(expr):
     try:
-        hy_compile(tokenize(expr), "__main__")
+        hy_compile(import_buffer_to_hst(expr), "__main__")
         assert False
     except HyTypeError as e:
         # Anything that can't be compiled should raise a user friendly
@@ -48,8 +48,10 @@ def cant_compile(expr):
 
 def test_ast_bad_type():
     "Make sure AST breakage can happen"
+    class C:
+        pass
     try:
-        hy_compile("foo", "__main__")
+        hy_compile(C(), "__main__")
         assert True is False
     except HyCompileError:
         pass
@@ -252,7 +254,7 @@ def test_ast_require():
 def test_ast_no_pointless_imports():
     def contains_import_from(code):
         return any([isinstance(node, ast.ImportFrom)
-                   for node in hy_compile(tokenize(code), "__main__").body])
+                   for node in can_compile(code).body])
     # `reduce` is a builtin in Python 2, but not Python 3.
     # The version of `map` that returns an iterator is a builtin in
     # Python 3, but not Python 2.
@@ -460,7 +462,7 @@ def test_ast_unicode_strings():
         hy_s.start_line = hy_s.end_line = 0
         hy_s.start_column = hy_s.end_column = 0
 
-        code = hy_compile([hy_s], "__main__")
+        code = hy_compile(hy_s, "__main__")
 
         # code == ast.Module(body=[ast.Expr(value=ast.Str(s=xxx))])
         return code.body[0].value.s
@@ -471,7 +473,7 @@ def test_ast_unicode_strings():
 
 
 def test_ast_unicode_vs_bytes():
-    def f(x): return hy_compile(tokenize(x), "__main__").body[0].value.s
+    def f(x): return can_compile(x).body[0].value.s
     assert f('"hello"') == u"hello"
     assert type(f('"hello"')) is (str if PY3 else unicode)  # noqa
     assert f('b"hello"') == (eval('b"hello"') if PY3 else "hello")
