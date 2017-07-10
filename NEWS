@@ -1,6 +1,7 @@
 Changes from 0.13.0
 
    [ Language Changes ]
+   * `yield-from` is no longer supported under Python 2
    * Single-character "sharp macros" changed to "tag macros", which can have
      longer names
    * Periods are no longer allowed in keywords

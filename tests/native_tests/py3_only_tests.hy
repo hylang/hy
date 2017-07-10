@@ -35,3 +35,29 @@
   (assert (= (apply function-of-various-args
                     [1 2 3 4] {"foo" 5 "bar" 6 "quux" 7})
              (, 1 2 (, 3 4)  5 {"bar" 6 "quux" 7}))))
+
+
+(defn test-yield-from []
+  "NATIVE: testing yield from"
+  (defn yield-from-test []
+    (for* [i (range 3)]
+      (yield i))
+    (yield-from [1 2 3]))
+  (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
+
+
+(defn test-yield-from-exception-handling []
+  "NATIVE: Ensure exception handling in yield from works right"
+  (defn yield-from-subgenerator-test []
+    (yield 1)
+    (yield 2)
+    (yield 3)
+    (assert 0))
+  (defn yield-from-test []
+    (for* [i (range 3)]
+       (yield i))
+    (try
+     (yield-from (yield-from-subgenerator-test))
+     (except [e AssertionError]
+       (yield 4))))
+  (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))

@@ -201,24 +201,6 @@
      `(do (setv ~@(interleave ~gs ~os))
           ~@~body)))
 
-(if-python2
-  (defmacro/g! yield-from [expr]
-    `(do (import types)
-         (setv ~g!iter (iter ~expr))
-         (setv ~g!return None)
-         (setv ~g!message None)
-         (while True
-           (try (if (isinstance ~g!iter types.GeneratorType)
-                  (setv ~g!message (yield (.send ~g!iter ~g!message)))
-                  (setv ~g!message (yield (next ~g!iter))))
-           (except [~g!e StopIteration]
-             (do (setv ~g!return (if (hasattr ~g!e "value")
-                                     (. ~g!e value)
-                                     None))
-               (break)))))
-           ~g!return))
-  None)
-
 
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the if __main__ dance"
