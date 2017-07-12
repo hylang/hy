@@ -212,8 +212,6 @@ class Result(object):
                         ctx=ast.Load(),
                         lineno=lineno,
                         col_offset=col_offset)
-        # XXX: Likely raise Exception here - this will assertionfail
-        #      pypy since the ast will be out of numerical order.
 
     def expr_as_stmt(self):
         """Convert the Result's expression context to a statement
