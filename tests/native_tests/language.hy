@@ -169,6 +169,14 @@
       (assert (= e.message "Can't assign or delete a HyInteger")))))
 
 
+(defn test-no-str-as-sym []
+  "Don't treat strings as symbols in the calling position"
+  (with [(pytest.raises TypeError)] ("setv" True 3))  ; A special form
+  (with [(pytest.raises TypeError)] ("abs" -2))       ; A function
+  (with [(pytest.raises TypeError)] ("when" 1 2))     ; A macro
+  None)  ; Avoid https://github.com/hylang/hy/issues/1320
+
+
 (defn test-fn-corner-cases []
   "NATIVE: tests that fn/defn handles corner cases gracefully"
   (try (eval '(fn "foo"))
