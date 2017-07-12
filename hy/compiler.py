@@ -2004,7 +2004,7 @@ class HyASTCompiler(object):
         if isinstance(fn, HyKeyword):
             return self._compile_keyword_call(expression)
 
-        if isinstance(fn, HyString):
+        if isinstance(fn, HySymbol):
             ret = self.compile_atom(fn, expression)
             if ret:
                 return ret
@@ -2240,7 +2240,7 @@ class HyASTCompiler(object):
                 args[i] = var = HySymbol(self.get_anon_var())
                 expression = HyExpression([
                     HyExpression([
-                        HyString("setv"), arg, var
+                        HySymbol("setv"), arg, var
                     ])]
                 ) + expression
                 expression = expression.replace(arg[0])

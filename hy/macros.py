@@ -3,7 +3,7 @@
 # license. See the LICENSE.
 
 from inspect import getargspec, formatargspec
-from hy.models import replace_hy_obj, HyExpression, HyString
+from hy.models import replace_hy_obj, HyExpression, HySymbol
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
@@ -179,7 +179,7 @@ def macroexpand_1(tree, compiler):
 
         opts = {}
 
-        if isinstance(fn, HyString):
+        if isinstance(fn, HySymbol):
             m = _hy_macros[compiler.module_name].get(fn)
             if m is None:
                 m = _hy_macros[None].get(fn)

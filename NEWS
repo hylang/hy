@@ -14,6 +14,7 @@ Changes from 0.13.0
    * Numeric literals are no longer parsed as symbols when followed by a dot
      and a symbol
    * Hy now respects the environment variable PYTHONDONTWRITEBYTECODE
+   * String literals should no longer be interpreted as special forms or macros
 
 Changes from 0.12.1
 
