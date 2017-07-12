@@ -588,3 +588,8 @@ def test_setv_builtins():
         (defn get [self] 42))
       (defn if* [self] 0))
     """)
+
+
+def test_lots_of_comment_lines():
+    # https://github.com/hylang/hy/issues/1313
+    can_compile(1000 * ";\n")
