@@ -29,7 +29,7 @@
     (setv output None)
     (for [[i f] (.items (get self._fns self.f.__module__ self.f.__name__))]
       (when (.fn? self i args kwargs)
-        (setv output (apply f args kwargs))
+        (setv output (f #* args #** kwargs))
         (break)))
     (if output
       output
@@ -37,10 +37,10 @@
 
 (defn multi-decorator [dispatch-fn]
   (setv inner (fn [&rest args &kwargs kwargs]
-                (setv dispatch-key (apply dispatch-fn args kwargs))
+                (setv dispatch-key (dispatch-fn #* args #** kwargs))
                 (if (in dispatch-key inner.--multi--)
-                  (apply (get inner.--multi-- dispatch-key) args kwargs)
-                  (apply inner.--multi-default-- args kwargs))))
+                  ((get inner.--multi-- dispatch-key) #* args #** kwargs)
+                  (inner.--multi-default-- #* args #** kwargs))))
   (setv inner.--multi-- {})
   (setv inner.--doc-- dispatch-fn.--doc--)
   (setv inner.--multi-default-- (fn [&rest args &kwargs kwargs] None))

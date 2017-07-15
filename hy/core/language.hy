@@ -37,7 +37,7 @@
                 first-f (next rfs)
                 fs (tuple rfs))
           (fn [&rest args &kwargs kwargs]
-            (setv res (apply first-f args kwargs))
+            (setv res (first-f #* args #** kwargs))
             (for* [f fs]
               (setv res (f res)))
             res))))
@@ -45,7 +45,7 @@
 (defn complement [f]
   "Create a function that reverses truth value of another function"
   (fn [&rest args &kwargs kwargs]
-    (not (apply f args kwargs))))
+    (not (f #* args #** kwargs))))
 
 (defn cons [a b]
   "Return a fresh cons cell with car = a and cdr = b"
@@ -160,8 +160,8 @@
 (defn drop-last [n coll]
   "Return a sequence of all but the last n elements in coll."
   (setv iters (tee coll))
-  (map first (apply zip [(get iters 0)
-                         (drop n (get iters 1))])))
+  (map first (zip #* [(get iters 0)
+                      (drop n (get iters 1))])))
 
 (defn empty? [coll]
   "Return True if `coll` is empty"
@@ -250,7 +250,7 @@
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of seqs, then the second etc."
-  (chain.from-iterable (apply zip seqs)))
+  (chain.from-iterable (zip #* seqs)))
 
 (defn interpose [item seq]
   "Return an iterable of the elements of seq separated by item"
@@ -275,7 +275,7 @@
    set of arguments and collects the results into a list."
   (setv fs (cons f fs))
   (fn [&rest args &kwargs kwargs]
-    (list-comp (apply f args kwargs) [f fs])))
+    (list-comp (f #* args #** kwargs) [f fs])))
 
 (defn last [coll]
   "Return last item from `coll`"
@@ -285,7 +285,7 @@
   "Return a dotted list construed from the elements of the argument"
   (if (not tl)
     hd
-    (cons hd (apply list* tl))))
+    (cons hd (list* #* tl))))
 
 (defn macroexpand [form]
   "Return the full macro expansion of form"
@@ -350,8 +350,8 @@
    slices (genexpr (islice (get coll-clones start) start None step)
                    [start (range n)]))
   (if (is fillvalue -sentinel)
-    (apply zip slices)
-    (apply zip-longest slices {"fillvalue" fillvalue})))
+    (zip #* slices)
+    (zip-longest #* slices :fillvalue fillvalue)))
 
 (defn pos? [n]
   "Return true if n is > 0"

@@ -207,7 +207,7 @@
   (setv retval (gensym))
   `(when (= --name-- "__main__")
      (import sys)
-     (setv ~retval (apply (fn [~@args] ~@body) sys.argv))
+     (setv ~retval ((fn [~@args] ~@body) #* sys.argv))
      (if (integer? ~retval)
        (sys.exit ~retval))))
 
