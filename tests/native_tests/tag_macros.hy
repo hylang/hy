@@ -100,9 +100,8 @@
     "Increments each argument passed to the decorated function."
     ((wraps func)
        (fn [&rest args &kwargs kwargs]
-         (apply func
-                (map inc args)
-                (dict-comp k (inc v) [[k v] (.items kwargs)])))))
+         (func #* (map inc args)
+               #** (dict-comp k (inc v) [[k v] (.items kwargs)])))))
 
   #@(increment-arguments
      (defn foo [&rest args &kwargs kwargs]

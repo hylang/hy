@@ -288,8 +288,3 @@
   (assert (is (f 3 [1 2]) (!= f-name "in")))
   (assert (is (f 2 [1 2]) (= f-name "in")))
   (forbid (f 2 [1 2] [3 4])))
-
-#@(pytest.mark.xfail
-(defn test-apply-op []
-  ; https://github.com/hylang/hy/issues/647
-  (assert (= (eval '(apply + ["a" "b" "c"])) "abc"))))
