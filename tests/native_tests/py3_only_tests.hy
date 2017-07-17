@@ -37,6 +37,16 @@
              (, 1 2 (, 3 4)  5 {"bar" 6 "quux" 7}))))
 
 
+(defn test-extended-unpacking-1star-lvalues []
+  (setv [x #*y] [1 2 3 4])
+  (assert (= x 1))
+  (assert (= y [2 3 4]))
+  (setv [a #*b c] "ghijklmno")
+  (assert (= a "g"))
+  (assert (= b (list "hijklmn")))
+  (assert (= c "o")))
+
+
 (defn test-yield-from []
   "NATIVE: testing yield from"
   (defn yield-from-test []

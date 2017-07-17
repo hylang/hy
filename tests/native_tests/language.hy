@@ -369,6 +369,18 @@
   (assert (is (isfile ".") False)))
 
 
+(defn test-star-unpacking []
+  ; Python 3-only forms of unpacking are in py3_only_tests.hy
+  (setv l [1 2 3])
+  (setv d {"a" "x" "b" "y"})
+  (defn fun [&optional x1 x2 x3 x4 a b c] [x1 x2 x3 x4 a b c])
+  (assert (= (fun 5 #* l) [5 1 2 3 None None None]))
+  (assert (= (+ #* l) 6))
+  (assert (= (fun 5 #** d) [5 None None None "x" "y" None]))
+  (assert (= (fun 5 #* l #** d) [5 1 2 3 "x" "y" None])))
+
+
+
 (defn test-kwargs []
   "NATIVE: test kwargs things."
   (assert (= (apply kwtest [] {"one" "two"}) {"one" "two"}))
