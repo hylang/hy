@@ -2,6 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+import re
 from functools import wraps
 from ast import literal_eval
 
@@ -297,6 +298,24 @@ def t_string(p):
 def t_partial_string(p):
     # Any unterminated string requires more input
     raise PrematureEndOfInput("Premature end of input")
+
+
+@pg.production("string : QSTRING")
+@set_boundaries
+def t_qstring(p):
+    # Remove the leading "#q".
+    s = p[0].value[2:]
+    # Remove the delimiters.
+    if s.startswith('<'):
+        m = re.match('<([^>]+)', s)
+        s = s[1 + len(m.group(1)) + 1 : -len(m.group(1))]
+    else:
+        s = s[1:-1]
+    # Remove any leading newline.
+    if s.startswith('\n'):
+        s = s[1:]
+    # The rest is interpreted as a raw Unicode string.
+    return HyString(s)
 
 
 @pg.production("identifier : IDENTIFIER")
