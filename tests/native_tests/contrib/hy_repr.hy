@@ -28,8 +28,8 @@
     [1 2 3] (, 1 2 3) #{1 2 3} (frozenset #{1 2 3})
     '[1 2 3] '(, 1 2 3) '#{1 2 3} '(frozenset #{1 2 3})
     {"a" 1 "b" 2 "a" 3} '{"a" 1 "b" 2 "a" 3}
-    [1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"}]
-    '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"}]])
+    [1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
+    '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"} (f #* a #** b)]])
   (for [original-val values]
     (setv evaled (eval (read-str (hy-repr original-val))))
     (assert (= evaled original-val))
@@ -59,7 +59,8 @@
     "{1 20}"
     "'{1 10 1 20}"
     "'asymbol"
-    ":akeyword"])
+    ":akeyword"
+    "'(f #* args #** kwargs)"])
   (for [original-str strs]
     (setv rep (hy-repr (eval (read-str original-str))))
     (assert (= rep original-str))))

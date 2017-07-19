@@ -37,6 +37,10 @@
               (+ "~" (f (second x) q))
             (= (first x) 'unquote_splice)
               (+ "~@" (f (second x) q))
+            (= (first x) 'unpack_iterable)
+              (+ "#* " (f (second x) q))
+            (= (first x) 'unpack_mapping)
+              (+ "#** " (f (second x) q))
             ; else
               (+ "(" (catted) ")"))
           (+ "(" (catted) ")"))
