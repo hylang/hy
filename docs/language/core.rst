@@ -1216,9 +1216,9 @@ if *from-file* ends before a complete expression can be parsed.
 
    => (import io)
    => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
-   => (eval (apply read [] {"from_file" buffer}))
+   => (eval (read :from_file buffer))
    4
-   => (eval (apply read [] {"from_file" buffer}))
+   => (eval (read :from_file buffer))
    1
 
    => ; assuming "example.hy" contains:

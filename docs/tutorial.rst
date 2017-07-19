@@ -423,8 +423,7 @@ The same thing in Hy::
   => (optional-arg 1 2 3 4)
   [1 2 3 4]
 
-If you're running a version of Hy past 0.10.1 (eg, git master),
-there's also a nice new keyword argument syntax::
+You can call keyword arguments like this::
 
   => (optional-arg :keyword1 1
   ...              :pos2 2
@@ -432,21 +431,13 @@ there's also a nice new keyword argument syntax::
   ...              :keyword2 4)
   [3, 2, 1, 4]
 
-Otherwise, you can always use `apply`.  But what's `apply`?
-
-Are you familiar with passing in `*args` and `**kwargs` in Python?::
-
-  >>> args = [1 2]
-  >>> kwargs = {"keyword2": 3
-  ...           "keyword1": 4}
-  >>> optional_arg(*args, **kwargs)
-
-We can reproduce this with `apply`::
+You can unpack arguments with the syntax ``#* args`` and ``#** kwargs``,
+similar to `*args` and `**kwargs` in Python::
 
   => (setv args [1 2])
   => (setv kwargs {"keyword2" 3
   ...              "keyword1" 4})
-  => (apply optional-arg args kwargs)
+  => (optional-arg #* args #** kwargs)
   [1, 2, 4, 3]
 
 There's also a dictionary-style keyword arguments construction that
@@ -460,7 +451,7 @@ looks like:
 The difference here is that since it's a dictionary, you can't rely on
 any specific ordering to the arguments.
 
-Hy also supports ``*args`` and ``**kwargs``.  In Python::
+Hy also supports ``*args`` and ``**kwargs`` in parameter lists.  In Python::
 
   def some_func(foo, bar, *args, **kwargs):
     import pprint
