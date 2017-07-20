@@ -10,7 +10,7 @@
   `(do
      (import [pycallgraph [PyCallGraph]]
              [pycallgraph.output [GraphvizOutput]])
-     (with* [(PyCallGraph :output (GraphvizOutput)))]
+     (with* [(PyCallGraph :output (GraphvizOutput))]
            ~@body)))
 
 
