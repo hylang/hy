@@ -84,12 +84,12 @@
   "NATIVE: test macro calling a plain function"
   (assert (= 3 (bar 1 2))))
 
-(defn test-optional-and-apply-in-macro []
+(defn test-optional-and-unpacking-in-macro []
   ; https://github.com/hylang/hy/issues/1154
   (defn f [&rest args]
     (+ "f:" (repr args)))
   (defmacro mac [&optional x]
-   `(apply f [~x]))
+   `(f #* [~x]))
   (assert (= (mac) "f:(None,)")))
 
 (defn test-midtree-yield []

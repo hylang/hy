@@ -27,7 +27,7 @@
     (when (not (first active))
       (assoc active 0 True)
       (while (> (len accumulated) 0)
-        (setv result (apply f (.pop accumulated))))
+        (setv result (f #* (.pop accumulated))))
       (assoc active 0 False)
       result)))
 

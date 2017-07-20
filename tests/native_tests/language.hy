@@ -369,37 +369,25 @@
   (assert (is (isfile ".") False)))
 
 
+(defn test-star-unpacking []
+  ; Python 3-only forms of unpacking are in py3_only_tests.hy
+  (setv l [1 2 3])
+  (setv d {"a" "x" "b" "y"})
+  (defn fun [&optional x1 x2 x3 x4 a b c] [x1 x2 x3 x4 a b c])
+  (assert (= (fun 5 #* l) [5 1 2 3 None None None]))
+  (assert (= (+ #* l) 6))
+  (assert (= (fun 5 #** d) [5 None None None "x" "y" None]))
+  (assert (= (fun 5 #* l #** d) [5 1 2 3 "x" "y" None])))
+
+
+
 (defn test-kwargs []
   "NATIVE: test kwargs things."
-  (assert (= (apply kwtest [] {"one" "two"}) {"one" "two"}))
+  (assert (= (kwtest :one "two") {"one" "two"}))
   (setv mydict {"one" "three"})
-  (assert (= (apply kwtest [] mydict) mydict))
-  (assert (= (apply kwtest [] ((fn [] {"one" "two"}))) {"one" "two"})))
+  (assert (= (kwtest #** mydict) mydict))
+  (assert (= (kwtest #** ((fn [] {"one" "two"}))) {"one" "two"})))
 
-
-(defn test-apply []
-  "NATIVE: test working with args and functions"
-  (defn sumit [a b c] (+ a b c))
-  (assert (= (apply sumit [1] {"b" 2 "c" 3}) 6))
-  (assert (= (apply sumit [1 2 2]) 5))
-  (assert (= (apply sumit [] {"a" 1 "b" 1 "c" 2}) 4))
-  (assert (= (apply sumit ((fn [] [1 1])) {"c" 1}) 3))
-  (defn noargs [] [1 2 3])
-  (assert (= (apply noargs) [1 2 3]))
-  (defn sumit-mangle [an-a a-b a-c a-d] (+ an-a a-b a-c a-d))
-  (def Z "a_d")
-  (assert (= (apply sumit-mangle [] {"an-a" 1 :a-b 2 'a-c 3 Z 4}) 10)))
-
-
-(defn test-apply-with-methods []
-  "NATIVE: test apply to call a method"
-  (setv str "foo {bar}")
-  (assert (= (apply .format [str] {"bar" "baz"})
-             (apply .format ["foo {0}" "baz"])
-             "foo baz"))
-  (setv lst ["a {0} {1} {foo} {bar}" "b" "c"])
-  (assert (= (apply .format lst {"foo" "d" "bar" "e"})
-             "a b c d e")))
 
 
 (defn test-dotted []
@@ -418,20 +406,20 @@
   (assert (= (.meth m) "meth"))
   (assert (= (.meth m "foo" "bar") "meth foo bar"))
   (assert (= (.meth :b "1" :a "2" m "foo" "bar") "meth foo bar 2 1"))
-  (assert (= (apply .meth [m "foo" "bar"]) "meth foo bar"))
+  (assert (= (.meth m #* ["foo" "bar"]) "meth foo bar"))
 
   (setv x.p m)
   (assert (= (.p.meth x) "meth"))
   (assert (= (.p.meth x "foo" "bar") "meth foo bar"))
   (assert (= (.p.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
-  (assert (= (apply .p.meth [x "foo" "bar"]) "meth foo bar"))
+  (assert (= (.p.meth x #* ["foo" "bar"]) "meth foo bar"))
 
   (setv x.a (X))
   (setv x.a.b m)
   (assert (= (.a.b.meth x) "meth"))
   (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
   (assert (= (.a.b.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
-  (assert (= (apply .a.b.meth [x "foo" "bar"]) "meth foo bar"))
+  (assert (= (.a.b.meth x #* ["foo" "bar"]) "meth foo bar"))
 
   (assert (is (.isdigit :foo) False)))
 
@@ -1173,8 +1161,8 @@
   "NATIVE: test &key function arguments"
   (defn foo [&key {"a" None "b" 1}] [a b])
   (assert (= (foo) [None 1]))
-  (assert (= (apply foo [] {"a" 2}) [2 1]))
-  (assert (= (apply foo [] {"b" 42}) [None 42])))
+  (assert (= (foo :a 2) [2 1]))
+  (assert (= (foo :b 42) [None 42])))
 
 
 (defn test-optional-arguments []

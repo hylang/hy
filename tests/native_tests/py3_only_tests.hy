@@ -16,15 +16,15 @@
   "NATIVE: test keyword-only arguments"
   ;; keyword-only with default works
   (defn kwonly-foo-default-false [&kwonly [foo False]] foo)
-  (assert (= (apply kwonly-foo-default-false) False))
-  (assert (= (apply kwonly-foo-default-false [] {"foo" True}) True))
+  (assert (= (kwonly-foo-default-false) False))
+  (assert (= (kwonly-foo-default-false :foo True) True))
   ;; keyword-only without default ...
   (defn kwonly-foo-no-default [&kwonly foo] foo)
   (setv attempt-to-omit-default (try
                                 (kwonly-foo-no-default)
                                 (except [e [Exception]] e)))
   ;; works
-  (assert (= (apply kwonly-foo-no-default [] {"foo" "quux"}) "quux"))
+  (assert (= (kwonly-foo-no-default :foo "quux") "quux"))
   ;; raises TypeError with appropriate message if not supplied
   (assert (isinstance attempt-to-omit-default TypeError))
   (assert (in "missing 1 required keyword-only argument: 'foo'"
@@ -32,9 +32,18 @@
   ;; keyword-only with other arg types works
   (defn function-of-various-args [a b &rest args &kwonly foo &kwargs kwargs]
     (, a b args foo kwargs))
-  (assert (= (apply function-of-various-args
-                    [1 2 3 4] {"foo" 5 "bar" 6 "quux" 7})
+  (assert (= (function-of-various-args 1 2 3 4 :foo 5 :bar 6 :quux 7)
              (, 1 2 (, 3 4)  5 {"bar" 6 "quux" 7}))))
+
+
+(defn test-extended-unpacking-1star-lvalues []
+  (setv [x #*y] [1 2 3 4])
+  (assert (= x 1))
+  (assert (= y [2 3 4]))
+  (setv [a #*b c] "ghijklmno")
+  (assert (= a "g"))
+  (assert (= b (list "hijklmn")))
+  (assert (= c "o")))
 
 
 (defn test-yield-from []

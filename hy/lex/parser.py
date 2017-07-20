@@ -197,6 +197,22 @@ def term_unquote_splice(p):
     return HyExpression([HySymbol("unquote_splice"), p[1]])
 
 
+@pg.production("term : HASHSTARS term")
+@set_quote_boundaries
+def term_hashstars(p):
+    n_stars = len(p[0].getstr()[1:])
+    if n_stars == 1:
+        sym = "unpack_iterable"
+    elif n_stars == 2:
+        sym = "unpack_mapping"
+    else:
+        raise LexException(
+            "Too many stars in `#*` construct (if you want to unpack a symbol "
+            "beginning with a star, separate it with whitespace)",
+            p[0].source_pos.lineno, p[0].source_pos.colno)
+    return HyExpression([HySymbol(sym), p[1]])
+
+
 @pg.production("term : HASHOTHER term")
 @set_quote_boundaries
 def hash_other(p):

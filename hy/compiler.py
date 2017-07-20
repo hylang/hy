@@ -359,6 +359,13 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
     return _dec
 
 
+def is_unpack(kind, x):
+    return (isinstance(x, HyExpression)
+            and len(x) > 0
+            and isinstance(x[0], HySymbol)
+            and x[0] == "unpack_" + kind)
+
+
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
@@ -441,7 +448,8 @@ class HyASTCompiler(object):
 
         raise HyCompileError(Exception("Unknown type: `%s'" % _type))
 
-    def _compile_collect(self, exprs, with_kwargs=False):
+    def _compile_collect(self, exprs, with_kwargs=False, dict_display=False,
+                         oldpy_unpack=False):
         """Collect the expression contexts from a list of compiled expression.
 
         This returns a list of the expression contexts, and the sum of the
@@ -451,10 +459,39 @@ class HyASTCompiler(object):
         compiled_exprs = []
         ret = Result()
         keywords = []
+        oldpy_starargs = None
+        oldpy_kwargs = None
 
         exprs_iter = iter(exprs)
         for expr in exprs_iter:
-            if with_kwargs and isinstance(expr, HyKeyword):
+
+            if not PY35 and oldpy_unpack and is_unpack("iterable", expr):
+                if oldpy_starargs:
+                    raise HyTypeError(expr, "Pythons < 3.5 allow only one "
+                                            "`unpack-iterable` per call")
+                oldpy_starargs = self.compile(expr[1])
+                ret += oldpy_starargs
+                oldpy_starargs = oldpy_starargs.force_expr
+
+            elif is_unpack("mapping", expr):
+                ret += self.compile(expr[1])
+                if PY35:
+                    if dict_display:
+                        compiled_exprs.append(None)
+                        compiled_exprs.append(ret.force_expr)
+                    elif with_kwargs:
+                        keywords.append(ast.keyword(
+                            arg=None,
+                            value=ret.force_expr,
+                            lineno=expr.start_line,
+                            col_offset=expr.start_column))
+                elif oldpy_unpack:
+                    if oldpy_kwargs:
+                        raise HyTypeError(expr, "Pythons < 3.5 allow only one "
+                                                "`unpack-mapping` per call")
+                    oldpy_kwargs = ret.force_expr
+
+            elif with_kwargs and isinstance(expr, HyKeyword):
                 try:
                     value = next(exprs_iter)
                 except StopIteration:
@@ -474,11 +511,15 @@ class HyASTCompiler(object):
                                             value=compiled_value.force_expr,
                                             lineno=expr.start_line,
                                             col_offset=expr.start_column))
+
             else:
                 ret += self.compile(expr)
                 compiled_exprs.append(ret.force_expr)
 
-        return compiled_exprs, ret, keywords
+        if oldpy_unpack:
+            return compiled_exprs, ret, keywords, oldpy_starargs, oldpy_kwargs
+        else:
+            return compiled_exprs, ret, keywords
 
     def _compile_branch(self, exprs):
         return _branch(self.compile(expr) for expr in exprs)
@@ -610,6 +651,9 @@ class HyASTCompiler(object):
             new_name = ast.Subscript(value=name.value, slice=name.slice)
         elif isinstance(name, ast.Attribute):
             new_name = ast.Attribute(value=name.value, attr=name.attr)
+        elif PY3 and isinstance(name, ast.Starred):
+            new_name = ast.Starred(
+                value=self._storeize(expr, name.value, func))
         else:
             raise HyTypeError(expr,
                               "Can't assign or delete a %s" %
@@ -716,6 +760,23 @@ class HyASTCompiler(object):
     def compile_unquote(self, expr):
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
+
+    @builds("unpack_iterable")
+    @checkargs(exact=1)
+    def compile_unpack_iterable(self, expr):
+        if not PY3:
+            raise HyTypeError(expr, "`unpack-iterable` isn't allowed here")
+        ret = self.compile(expr[1])
+        ret += ast.Starred(value=ret.force_expr,
+                           lineno=expr.start_line,
+                           col_offset=expr.start_column,
+                           ctx=ast.Load())
+        return ret
+
+    @builds("unpack_mapping")
+    @checkargs(exact=1)
+    def compile_unpack_mapping(self, expr):
+        raise HyTypeError(expr, "`unpack-mapping` isn't allowed here")
 
     @builds("do")
     def compile_do(self, expression):
@@ -1526,115 +1587,6 @@ class HyASTCompiler(object):
             generators=expr.generators)
         return ret
 
-    @builds("apply")
-    @checkargs(min=1, max=3)
-    def compile_apply_expression(self, expr):
-        expr.pop(0)  # apply
-
-        ret = Result()
-
-        fun = expr.pop(0)
-
-        # We actually defer the compilation of the function call to
-        # @builds(HyExpression), allowing us to work on method calls
-        call = HyExpression([fun]).replace(fun)
-
-        if isinstance(fun, HySymbol) and fun.startswith("."):
-            # (apply .foo lst) needs to work as lst[0].foo(*lst[1:])
-            if not expr:
-                raise HyTypeError(
-                    expr, "apply of a method needs to have an argument"
-                )
-
-            # We need to grab the arguments, and split them.
-
-            # Assign them to a variable if they're not one already
-            if type(expr[0]) == HyList:
-                if len(expr[0]) == 0:
-                    raise HyTypeError(
-                        expr, "apply of a method needs to have an argument"
-                    )
-                call.append(expr[0].pop(0))
-            else:
-                if isinstance(expr[0], HySymbol):
-                    tempvar = expr[0]
-                else:
-                    tempvar = HySymbol(self.get_anon_var()).replace(expr[0])
-                    assignment = HyExpression(
-                        [HySymbol("setv"), tempvar, expr[0]]
-                    ).replace(expr[0])
-
-                    # and add the assignment to our result
-                    ret += self.compile(assignment)
-
-                # The first argument is the object on which to call the method
-                # So we translate (apply .foo args) to (.foo (get args 0))
-                call.append(HyExpression(
-                    [HySymbol("get"), tempvar, HyInteger(0)]
-                ).replace(tempvar))
-
-                # We then pass the other arguments to the function
-                expr[0] = HyExpression(
-                    [HySymbol("cut"), tempvar, HyInteger(1)]
-                ).replace(expr[0])
-
-        ret += self.compile(call)
-
-        if not isinstance(ret.expr, ast.Call):
-            raise HyTypeError(
-                fun, "compiling the application of `{}' didn't return a "
-                "function call, but `{}'".format(fun, type(ret.expr).__name__)
-            )
-        if ret.expr.starargs or ret.expr.kwargs:
-            raise HyTypeError(
-                expr, "compiling the function application returned a function "
-                "call with arguments"
-            )
-
-        if expr:
-            stargs = expr.pop(0)
-            if stargs is not None:
-                stargs = self.compile(stargs)
-                if PY35:
-                    stargs_expr = stargs.force_expr
-                    ret.expr.args.append(
-                        ast.Starred(stargs_expr, ast.Load(),
-                                    lineno=stargs_expr.lineno,
-                                    col_offset=stargs_expr.col_offset)
-                    )
-                else:
-                    ret.expr.starargs = stargs.force_expr
-                ret = stargs + ret
-
-        if expr:
-            kwargs = expr.pop(0)
-            if isinstance(kwargs, HyDict):
-                new_kwargs = []
-                for k, v in kwargs.items():
-                    if isinstance(k, HySymbol):
-                        pass
-                    elif isinstance(k, HyString):
-                        k = HyString(hy_symbol_mangle(str_type(k))).replace(k)
-                    elif isinstance(k, HyKeyword):
-                        sym = hy_symbol_mangle(str_type(k)[2:])
-                        k = HyString(sym).replace(k)
-                    new_kwargs += [k, v]
-                kwargs = HyDict(new_kwargs).replace(kwargs)
-
-            kwargs = self.compile(kwargs)
-            if PY35:
-                kwargs_expr = kwargs.force_expr
-                ret.expr.keywords.append(
-                    ast.keyword(None, kwargs_expr,
-                                lineno=kwargs_expr.lineno,
-                                col_offset=kwargs_expr.col_offset)
-                )
-            else:
-                ret.expr.kwargs = kwargs.force_expr
-            ret = kwargs + ret
-
-        return ret
-
     @builds("not")
     @builds("~")
     @checkargs(1)
@@ -2001,9 +1953,15 @@ class HyASTCompiler(object):
             return self._compile_keyword_call(expression)
 
         if isinstance(fn, HySymbol):
-            ret = self.compile_atom(fn, expression)
-            if ret:
-                return ret
+            # First check if `fn` is a special form, unless it has an
+            # `unpack_iterable` in it, since Python's operators (`+`,
+            # etc.) can't unpack. An exception to this exception is that
+            # tuple literals (`,`) can unpack.
+            if fn == "," or not (
+                    any(is_unpack("iterable", x) for x in expression[1:])):
+                ret = self.compile_atom(fn, expression)
+                if ret:
+                    return ret
 
             if fn.startswith("."):
                 # (.split "test test") -> "test test".split()
@@ -2054,14 +2012,14 @@ class HyASTCompiler(object):
         else:
             with_kwargs = True
 
-        args, ret, kwargs = self._compile_collect(expression[1:],
-                                                  with_kwargs)
+        args, ret, keywords, oldpy_starargs, oldpy_kwargs = self._compile_collect(
+            expression[1:], with_kwargs, oldpy_unpack=True)
 
         ret += ast.Call(func=func.expr,
                         args=args,
-                        keywords=kwargs,
-                        starargs=None,
-                        kwargs=None,
+                        keywords=keywords,
+                        starargs=oldpy_starargs,
+                        kwargs=oldpy_kwargs,
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
 
@@ -2583,7 +2541,7 @@ class HyASTCompiler(object):
 
     @builds(HyDict)
     def compile_dict(self, m):
-        keyvalues, ret, _ = self._compile_collect(m)
+        keyvalues, ret, _ = self._compile_collect(m, dict_display=True)
 
         ret += ast.Dict(lineno=m.start_line,
                         col_offset=m.start_column,

@@ -7,7 +7,7 @@
 import os
 import subprocess
 import re
-from hy._compat import PY3
+from hy._compat import PY3, PY35
 from hy.importer import get_bytecode_path
 import pytest
 
@@ -210,12 +210,13 @@ def test_hy2py():
             if f.endswith(".hy"):
                 if f == "py3_only_tests.hy" and not PY3:
                     continue
-                else:
-                    i += 1
-                    output, err = run_cmd("hy2py -s -a " +
-                                          os.path.join(dirpath, f))
-                    assert len(output) > 1, f
-                    assert len(err) == 0, f
+                if f == "py35_only_tests.hy" and not PY35:
+                    continue
+                i += 1
+                output, err = run_cmd("hy2py -s -a " +
+                                      os.path.join(dirpath, f))
+                assert len(output) > 1, f
+                assert len(err) == 0, f
     assert i
 
 

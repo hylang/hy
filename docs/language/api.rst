@@ -154,41 +154,6 @@ it appends it as the last argument. The following code demonstrates this:
     5 10
 
 
-apply
------
-
-``apply`` is used to apply an optional list of arguments and an
-optional dictionary of kwargs to a function. The symbol mangling
-transformations will be applied to all keys in the dictionary of
-kwargs, provided the dictionary and its keys are defined in-place.
-
-Usage: ``(apply fn-name [args] [kwargs])``
-
-Examples:
-
-.. code-block:: clj
-
-    (defn thunk []
-      "hy there")
-
-    (apply thunk)
-    ;=> "hy there"
-
-    (defn total-purchase [price amount &optional [fees 1.05] [vat 1.1]]
-      (* price amount fees vat))
-
-    (apply total-purchase [10 15])
-    ;=> 173.25
-
-    (apply total-purchase [10 15] {"vat" 1.05})
-    ;=> 165.375
-
-    (apply total-purchase [] {"price" 10 "amount" 15 "vat" 1.05})
-    ;=> 165.375
-
-    (apply total-purchase [] {:price 10 :amount 15 :vat 1.05})
-    ;=> 165.375
-
 and
 ---
 
@@ -596,8 +561,8 @@ Parameters may have the following keywords in front of them:
         parameter_1 1
         parameter_2 2
 
-        ; to avoid the mangling of '-' to '_', use apply:
-        => (apply print-parameters [] {"parameter-1" 1 "parameter-2" 2})
+        ; to avoid the mangling of '-' to '_', use unpacking:
+        => (print-parameters #** {"parameter-1" 1 "parameter-2" 2})
         parameter-1 1
         parameter-2 2
 
@@ -634,19 +599,19 @@ Parameters may have the following keywords in front of them:
 
     .. code-block:: clj
 
-        => (defn compare [a b &kwonly keyfn [reverse false]]
+        => (defn compare [a b &kwonly keyfn [reverse False]]
         ...  (setv result (keyfn a b))
         ...  (if (not reverse)
         ...    result
         ...    (- result)))
-        => (apply compare ["lisp" "python"]
-        ...        {"keyfn" (fn [x y]
-        ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))})
+        => (compare "lisp" "python"
+        ...         :keyfn (fn [x y]
+        ...                  (reduce - (map (fn [s] (ord (first s))) [x y]))))
         -4
-        => (apply compare ["lisp" "python"]
-        ...        {"keyfn" (fn [x y]
+        => (compare "lisp" "python"
+        ...         :keyfn (fn [x y]
         ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))
-        ...         "reverse" True})
+        ...         :reverse True)
         4
 
     .. code-block:: python
@@ -1574,6 +1539,49 @@ the given conditional is ``False``. The following shows the expansion of this ma
     (if conditional
       None
       (do statement))
+
+
+unpack-iterable, unpack-mapping
+-------------------------------
+
+``unpack-iterable`` and ``unpack-mapping`` allow an iterable or mapping
+object (respectively) to provide positional or keywords arguments
+(respectively) to a function.
+
+.. code-block:: clj
+
+    => (defn f [a b c d] [a b c d])
+    => (f (unpack-iterable [1 2]) (unpack-mapping {"c" 3 "d" 4}))
+    [1, 2, 3, 4]
+
+``unpack-iterable`` is usually written with the shorthand ``#*``, and
+``unpack-mapping`` with ``#**``.
+
+.. code-block:: clj
+
+    => (f #* [1 2] #** {"c" 3 "d" 4})
+    [1, 2, 3, 4]
+
+With Python 3, you can unpack in an assignment list (:pep:`3132`).
+
+.. code-block:: clj
+
+    => (setv [a #* b c] [1 2 3 4 5])
+    => [a b c]
+    [1, [2, 3, 4], 5]
+
+With Python 3.5 or greater, unpacking is allowed in more contexts than just
+function calls, and you can unpack more than once in the same expression
+(:pep:`448`).
+
+.. code-block:: clj
+
+    => [#* [1 2] #* [3 4]]
+    [1, 2, 3, 4]
+    => {#** {1 2} #** {3 4}}
+    {1: 2, 3: 4}
+    => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
+    [1, 2, 3, 4]
 
 
 unquote

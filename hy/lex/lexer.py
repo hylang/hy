@@ -26,6 +26,7 @@ lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
 lg.add('HASHBANG', r'#!.*[^\r\n]')
+lg.add('HASHSTARS', r'#\*+')
 lg.add('HASHOTHER', r'#%s' % identifier)
 
 # A regexp which matches incomplete strings, used to support

@@ -95,9 +95,9 @@
     ([&optional [a "nop"] [b "p"]] (+ a b)))
    
   (assert (= (fun 1) 1))
-  (assert (= (apply fun [] {"a" "t"}) "t"))
-  (assert (= (apply fun ["hello "] {"b" "world"}) "hello world"))
-  (assert (= (apply fun [] {"a" "hello " "b" "world"}) "hello world")))
+  (assert (= (fun :a "t") "t"))
+  (assert (= (fun "hello " :b "world") "hello world"))
+  (assert (= (fun :a "hello " :b "world") "hello world")))
 
 
 (defn test-docs []
