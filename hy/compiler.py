@@ -372,6 +372,7 @@ class HyASTCompiler(object):
         self.allow_builtins = module_name.startswith("hy.core")
         self.anon_fn_count = 0
         self.anon_var_count = 0
+        self.tail_rec = False
         self.imports = defaultdict(set)
         self.module_name = module_name
         self.temp_if = None
@@ -1224,6 +1225,12 @@ class HyASTCompiler(object):
         while len(expr) > 0:
             iexpr = expr.pop(0)
 
+            if iexpr[0] == "__future__" and "TailRec" in iexpr[1]:
+                self.tail_rec = True
+                TRInd = iexpr[1].index("TailRec")
+                iexpr[1].pop(TRInd)
+                if len(iexpr[1]) == 0:
+                    continue
             if not isinstance(iexpr, (HySymbol, HyList)):
                 raise HyTypeError(iexpr, "(import) requires a Symbol "
                                   "or a List.")
@@ -2176,7 +2183,8 @@ class HyASTCompiler(object):
     # produced rather than a Lambda.
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        force_functiondef = expression.pop(0) == "fn*"
+        called_as = expression.pop(0)
+        force_functiondef = called_as == "fn*"
 
         arglist = expression.pop(0)
         if not isinstance(arglist, HyList):
@@ -2269,6 +2277,18 @@ class HyASTCompiler(object):
                 # statement.
                 body += body.expr_as_stmt()
             else:
+                if self.tail_rec:
+                    expression[-1], changed = self.make_tail_rec(
+                        expression[-1])
+                    if changed:
+                        new_expression = HyExpression([
+                            HySymbol("with_decorator"),
+                            HySymbol("HyTailRec"),
+                            HyExpression([
+                                called_as,
+                                arglist] + expression)
+                        ]).replace(expression)
+                        return self.compile(new_expression)
                 body += ast.Return(value=body.expr,
                                    lineno=body.expr.lineno,
                                    col_offset=body.expr.col_offset)
@@ -2295,6 +2315,37 @@ class HyASTCompiler(object):
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
 
         return ret
+
+    def expr_to_tail_call(self, expr):
+        "Takes an expression, and returns a TailCall of that expression"
+        return HyExpression([
+            HySymbol("raise"),
+            HyExpression([HySymbol("HyTailCall")] + expr),
+        ]).replace(expr)
+
+    def make_tail_rec(self, body):
+        """ Takes the body of an expression, and returns a tail recursive
+            TailCall form of the body """
+        if isinstance(body, HyExpression):
+            # Only compile expression, names and symbols should just stand
+            if body[0] == "if":
+                body[2], changed2 = self.make_tail_rec(body[2])
+                changed3 = False
+                if len(body) == 4:
+                    body[3], changed3 = self.make_tail_rec(body[3])
+                return body, (changed2 or changed3)
+            if body[0] == "progn" or body[0] == "do":
+                body[-1], changed = self.make_tail_rec(body[-1])
+                return body, changed
+            elif (isinstance(body[0], HyExpression)
+                  or body[0] in _compile_table.keys()
+                  or '.' in body[0]
+                  or body[0] in ['let', '_>', 'with']):
+                # Bail on all keywords in hy and other special forms
+                return body, False
+            else:
+                return self.expr_to_tail_call(body), True
+        return body, False
 
     @builds("defclass")
     @checkargs(min=1)

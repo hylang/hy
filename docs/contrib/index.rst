@@ -17,3 +17,4 @@ Contents:
    sequences
    walk
    hy_repr
+   future
