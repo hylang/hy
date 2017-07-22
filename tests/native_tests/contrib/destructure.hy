@@ -6,6 +6,30 @@
 (import [hy.contrib.destructure [destructure]])
 (require [hy.contrib.destructure [=:]])
 
+(defn test-iter []
+  ;; empty
+  (=: () [])
+  ;; basic
+  (=: (a b c) [1 2 3])
+  (assert (= (, a b c) (, 1 2 3)))
+  ;; nested
+  (=: (a (b (c (d))) e) [11 [22 [33 [44]]] 55])
+  (assert (= (, a b c d e) (, 11 22 33 44 55)))
+  ;; :&
+  (=: [a b :& the-rest] "abcdefg")
+  (assert (= (, a b (tuple the-rest))
+             (, "a" "b" (, "c" "d" "e" "f" "g"))))
+  ;; infinite
+  (=: (a b c) (cycle [1 2]))
+  (assert (= (, a b c)
+             (, 1 2 1)))
+  ;; infinite :&
+  (=: (a b c :& the-rest) (count))
+  (assert (= (, a b c)
+             (, 0 1 2)))
+  (assert (= (next the-rest) 3))
+  (assert (= (list (take 5 the-rest) [4 5 6 7 8]))))
+
 (defn test-list []
   ;; empty
   (=: [] [])
@@ -20,8 +44,8 @@
   (assert (= (, a b c) (, 0 1 2)))
   (assert (= full [0 1 2 3 4 5]))
   ;; :& and :as
-  (=: [a b :& rest :as full] "abcdefg")
-  (assert (= (, a b rest) (, "a" "b" "cdefg")))
+  (=: [a b :& the-rest :as full] "abcdefg")
+  (assert (= (, a b the-rest) (, "a" "b" "cdefg")))
   (assert (= full "abcdefg")))
 
 (defn test-dict []
@@ -67,7 +91,7 @@
   (=: {[{:from ["count" "type"]}
         {y-count "count"} :as cells] "cells"
        [style color] "format"
-       [X :& rest] "options"
+       [X :& the-rest] "options"
        foo "foo"
        :or {foo 42  options "a"}
        :as full}
@@ -76,7 +100,7 @@
   (assert (= y-count 6))
   (assert (= cells (get data "cells")))
   (assert (= (, style color) (, "pretty" "purple")))
-  (assert (= (, X rest)) (, "x" "yzq"))
+  (assert (= (, X the-rest)) (, "x" "yzq"))
   (assert (= foo 42))
   (assert (= full data)))
 
@@ -96,5 +120,8 @@
         None)
   (with [(pytest.raises SyntaxError)]
         (destructure '{:as a :as b} {})
+        None)
+  (with [(pytest.raises SyntaxError)]
+        (destructure '(:& a :& b) {})
         None)
   None)

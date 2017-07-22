@@ -14,12 +14,14 @@
   Destructuring bind.
   The binds may be nested.
   :as and :& are magic in [] binds. See dest-list.
+  :& is magic in () binds. See dest-iter.
   :as, :or and :from are magic in {} binds. See des-dict.
   "
-  (defn test [x] (isinstance binds x))
-  (if (test HySymbol) [binds expr]
-      (test HyDict) (dest-dict binds expr)
-      (test HyList) (dest-list binds expr)
+  (defn is-a [x] (isinstance binds x))
+  (if (is-a HySymbol) [binds expr]
+      (is-a HyDict) (dest-dict binds expr)
+      (is-a HyExpression) (dest-iter binds expr)
+      (is-a HyList) (dest-list binds expr)
       (raise (SyntaxError (+ "Malformed destructure. Unknown binding form:\n"
                              (repr binds))))))
 
@@ -39,7 +41,7 @@
   For example, try ``(dest-dict {x :a  y :b} {:a 1  :b 2})``
   Use the ``:from [foo :bar \"baz\"]`` option to
   bind a symbol, keyword, or string to the same name.
-  For example, try ``(dest-dict {:from [:a :b c]} {:a 1  :b 2 'c 3})``
+  For example, try ``(dest-dict '{:from [:a :b c]} {:a 1  :b 2 'c 3})``
   Use the ``:as foo`` option to bind the whole mapping to ``foo``.
   Use the ``:or {foo 42}`` option to to bind ``foo`` to ``42``
   if ``foo`` is requested, but not present in expr.
@@ -62,24 +64,24 @@
                                     (.get default target [])
                                     []))])
   (for [(, target lookup) (partition binds)]
-    (defn test [x] (_check seen x target))
-    (if (test ':or) (continue)
-        (test ':as) (append [lookup ddict])
-        (test ':from) (append
-                       (chain.from-iterable
-                        (genexpr (expand-lookup (-> key name HySymbol) key)
-                                 [key lookup])))
+    (defn found [x] (_check seen x target))
+    (if (found ':or) (continue)
+        (found ':as) (append [lookup ddict])
+        (found ':from) (append
+                        (chain.from-iterable
+                         (genexpr (expand-lookup (-> key name HySymbol) key)
+                                  [key lookup])))
         (append (destructure #* (expand-lookup target lookup)))))
   ret)
 
 (defn dest-list [binds expr]
   "
-  Destructuring bind for sequences.
+  Destructuring bind for random-access sequences.
   The binding forms may be nested.
   Targets from binds are assigned in order from the expr.
   Use ``:& bar`` option in binds to bind the remaining iterable to ``bar``
   Use ``:as foo`` option in binds to bind the whole iterable to ``foo``.
-  For example, try ``(dest-list [a b [c :& d :as q] :as full] [1 2 [3 4 5]])``
+  For example, try ``(dest-list '[a b [c :& d :as q] :as full] [1 2 [3 4 5]])``
   "
   (setv dlist (gensym 'dlist)
         ret [dlist expr]
@@ -88,10 +90,28 @@
         seen #{}
         i 0)
   (for [target ibinds]
-    (defn test [x] (_check seen x target))
-    (if (test ':as) (append [(next ibinds) dlist])
-        (test ':&) (append `[~(next ibinds) (cut ~dlist ~i)])
+    (defn found [x] (_check seen x target))
+    (if (found ':as) (append [(next ibinds) dlist])
+        (found ':&) (append `[~(next ibinds) (cut ~dlist ~i)])
         (do (append (destructure target `(get ~dlist ~i)))
             (+= i 1))))
   ret)
 
+(defn dest-iter [binds expr]
+  "
+  Destructuring bind for iterables.
+  The binding forms may be nested.
+  This is safe for infinite iterators.
+  Targets are assigned in order by pulling the next item from the iterator.
+  Use the ``:&`` option to also return the remaining iterator.
+  For example, try ``(dest-iter '(a b c :& more) (count))``.
+  "
+  (setv diter (gensym 'diter)
+        ret [diter `(iter ~expr)]
+        append ret.extend
+        ibinds (iter binds)
+        seen #{})
+  (for [target ibinds]
+    (if (_check seen ':& target) (append [(next ibinds) diter])
+        (append (destructure target `(next ~diter)))))
+  ret)
