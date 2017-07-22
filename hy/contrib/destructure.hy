@@ -6,7 +6,8 @@
 
 (defmacro =: [&rest pairs]
   "Assignment with destructuring for both mappings and iterables."
-  `(setv ~@(chain.from-iterable (genexpr (destructure binds expr) [(, binds expr) (partition pairs)]))))
+  `(setv ~@(chain.from-iterable (genexpr (destructure binds expr)
+                                         [(, binds expr) (partition pairs)]))))
 
 (defn destructure [binds expr]
   "
@@ -15,11 +16,20 @@
   :as and :& are magic in [] binds. See dest-list.
   :as, :or and :from are magic in {} binds. See des-dict.
   "
-  (if (isinstance binds HySymbol) [binds expr]
-      (isinstance binds HyDict) (dest-dict binds expr)
-      (isinstance binds HyList) (dest-list binds expr)
+  (defn test [x] (isinstance binds x))
+  (if (test HySymbol) [binds expr]
+      (test HyDict) (dest-dict binds expr)
+      (test HyList) (dest-list binds expr)
       (raise (SyntaxError (+ "Malformed destructure. Unknown binding form:\n"
                              (repr binds))))))
+
+(defn _check [seen magic target]
+  (if (= magic target)
+    (if (in magic seen)
+      (raise (SyntaxError (.format "Duplicate :{0} in destructure."
+                                   (name magic))))
+      (do (.add seen magic)
+          True))))
 
 (defn dest-dict [binds expr]
   "
@@ -37,6 +47,8 @@
   (setv ddict (gensym 'ddict)
         ;; First, assign expr to a gensym to avoid multiple evaluation.
         ret [ddict expr]
+        append ret.extend
+        seen #{}
         default (dict-comp k [v]  ; optional, so wrapped for splicing.
                            [(, k v) (partition
                                      ;; find :or's HyDict, if present.
@@ -45,31 +57,20 @@
                                                [x (partition binds)]
                                                (= (first x) ':or))
                                       {}))]))
+  (defn expand-lookup [target key]
+    [target `(.get ~ddict '~key ~@(if (isinstance target HySymbol)
+                                    (.get default target [])
+                                    []))])
   (for [(, target lookup) (partition binds)]
-    (if (= :or target) (continue)
-        (= :as target) (.extend ret [lookup ddict])
-
-        (= :from target)
-        (.extend ret (chain.from-iterable
-                      (genexpr [(symbolfy key)  ; implied target
-                                `(.get ~ddict
-                                       '~key  ; lookup
-                                       ;; append :or default, if present.
-                                       ~@(.get default (symbolfy key) []))]
-                               [key lookup])))
-
-        (.extend ret (destructure  ; recursion
-                      target
-                      `(.get ~ddict
-                             '~lookup
-                             ;; append :or default, if applicable
-                             ~@(if (isinstance target HySymbol)
-                                 (.get default target [])
-                                 []))))))
+    (defn test [x] (_check seen x target))
+    (if (test ':or) (continue)
+        (test ':as) (append [lookup ddict])
+        (test ':from) (append
+                       (chain.from-iterable
+                        (genexpr (expand-lookup (-> key name HySymbol) key)
+                                 [key lookup])))
+        (append (destructure #* (expand-lookup target lookup)))))
   ret)
-
-(defn symbolfy [s]
-  (-> s name HySymbol)) ;; TODO: mangling?
 
 (defn dest-list [binds expr]
   "
@@ -82,12 +83,15 @@
   "
   (setv dlist (gensym 'dlist)
         ret [dlist expr]
+        append ret.extend
         ibinds (iter binds)
+        seen #{}
         i 0)
-  (for [n ibinds]
-    (if (= :as n) (.extend ret [(next ibinds) dlist])
-        (= :& n) (.extend ret `[~(next ibinds) (cut ~dlist ~i)])
-        (do (.extend ret (destructure n `(get ~dlist ~i)))
+  (for [target ibinds]
+    (defn test [x] (_check seen x target))
+    (if (test ':as) (append [(next ibinds) dlist])
+        (test ':&) (append `[~(next ibinds) (cut ~dlist ~i)])
+        (do (append (destructure target `(get ~dlist ~i)))
             (+= i 1))))
   ret)
 

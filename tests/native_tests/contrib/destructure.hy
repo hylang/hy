@@ -2,9 +2,11 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
+(import pytest)
+(import [hy.contrib.destructure [destructure]])
 (require [hy.contrib.destructure [=:]])
 
-(defn test-binds-list []
+(defn test-list []
   ;; empty
   (=: [] [])
   ;; basic
@@ -22,7 +24,7 @@
   (assert (= (, a b rest) (, "a" "b" "cdefg")))
   (assert (= full "abcdefg")))
 
-(defn test-binds-dict []
+(defn test-dict []
   ;; empty
   (=: {} {})
   ;; basic
@@ -57,7 +59,7 @@
   (assert (= (, a b c) (, "a" "b" "c")))
   (assert (= full {'a "a"  :b "b"  "c" "c"})))
 
-(defn test-binds-both []
+(defn test-both []
   (=: data {"cells" [{"type" "x"  "count" 3}
                      {"type" "y"  "count" 6}]
             "format" ["pretty" "purple"]
@@ -77,3 +79,22 @@
   (assert (= (, X rest)) (, "x" "yzq"))
   (assert (= foo 42))
   (assert (= full data)))
+
+;; TODO: remove None workaround after #1320 fix.
+(defn test-errors []
+  (with [(pytest.raises SyntaxError)]
+        (destructure '[:as a :as b] [])
+        None)
+  (with [(pytest.raises SyntaxError)]
+        (destructure '[:& a :& b] [])
+        None)
+  (with [(pytest.raises SyntaxError)]
+        (destructure '{:from [] :from []} {})
+        None)
+  (with [(pytest.raises SyntaxError)]
+        (destructure '{:or {} :or {}} {})
+        None)
+  (with [(pytest.raises SyntaxError)]
+        (destructure '{:as a :as b} {})
+        None)
+  None)
