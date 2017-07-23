@@ -90,23 +90,13 @@ def set_quote_boundaries(fun):
     return wrapped
 
 
-@pg.production("main : HASHBANG real_main")
-def main_hashbang(p):
-    return p[1]
-
-
-@pg.production("main : real_main")
+@pg.production("main : list_contents")
 def main(p):
     return p[0]
 
 
-@pg.production("real_main : list_contents")
-def real_main(p):
-    return p[0]
-
-
-@pg.production("real_main : $end")
-def real_main_empty(p):
+@pg.production("main : $end")
+def main_empty(p):
     return []
 
 

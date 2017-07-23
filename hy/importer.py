@@ -39,7 +39,10 @@ def import_file_to_hst(fpath):
     """Import content from fpath and return a Hy AST."""
     try:
         with open(fpath, 'r', encoding='utf-8') as f:
-            return import_buffer_to_hst(f.read())
+            buf = f.read()
+        # Strip the shebang line, if there is one.
+        buf = re.sub(r'\A#!.*', '', buf)
+        return import_buffer_to_hst(buf)
     except IOError as e:
         raise HyIOError(e.errno, e.strerror, e.filename)
 

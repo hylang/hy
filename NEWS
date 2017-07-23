@@ -18,6 +18,8 @@ Changes from 0.13.0
      and a symbol
    * Hy now respects the environment variable PYTHONDONTWRITEBYTECODE
    * String literals should no longer be interpreted as special forms or macros
+   * Tag macros (née sharp macros) whose names begin with `!` are no longer
+     mistaken for shebang lines
 
 Changes from 0.12.1
 
