@@ -34,12 +34,12 @@
         (assert (= t2 2))
         (assert (= t3 3))))
 
-  (defn test-quince-with []
-    "NATIVE: test four withs, one with no args"
-    (with [t1 (WithTest 1)
-           t2 (WithTest 2)
-           t3 (WithTest 3)
-           _ (WithTest 4)]
-          (assert (= t1 1))
-          (assert (= t2 2))
-          (assert (= t3 3))))
+(defn test-quince-with []
+  "NATIVE: test four withs, one with no args"
+  (with [t1 (WithTest 1)
+         t2 (WithTest 2)
+         t3 (WithTest 3)
+         _ (WithTest 4)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3))))
