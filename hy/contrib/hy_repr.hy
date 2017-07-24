@@ -80,9 +80,9 @@
         (.rstrip (repr x) "L")
       (and (in t [float HyFloat]) (isnan x))
         "NaN"
-      (= x Inf)
+      (and (in t [float HyFloat]) (= x Inf))
         "Inf"
-      (= x -Inf)
+      (and (in t [float HyFloat]) (= x -Inf))
         "-Inf"
       (in t [complex HyComplex])
         (.replace (.replace (.strip (repr x) "()") "inf" "Inf") "nan" "NaN")
