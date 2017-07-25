@@ -36,6 +36,15 @@
   (assert (= #spam_eggs 42 ['spam 42 'eggs])))
 
 
+(defn test-bang-tag-macro []
+  "Test tag macros whose names start with `!`"
+  ; https://github.com/hylang/hy/issues/1334
+  (deftag !a [x] `["foo" ~x])
+  (assert (= #!a 3 ["foo" 3]))
+  (deftag ! [x] `["bar" ~x])
+  (assert (= #! 4 ["bar" 4])))
+
+
 (defn test-tag-macro-whitespace []
   "Test whitespace after a tag macro"
   (deftag foo [expr]

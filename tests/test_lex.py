@@ -301,12 +301,6 @@ def test_unicode_escapes():
     assert [ord(x) for x in entry] == [97, 172, 4660, 8364, 32768]
 
 
-def test_hashbang():
-    """ Ensure we can escape things """
-    entry = tokenize("#!this is a comment\n")
-    assert entry == []
-
-
 def test_complex():
     """Ensure we tokenize complex numbers properly"""
     # This is a regression test for #143
