@@ -17,10 +17,35 @@
 
 (defmacro =: [&rest pairs]
   "Assignment with destructuring for both mappings and iterables."
-  `(setv ~@(chain-comp (destructure binds expr)
-                       [(, binds expr) (partition pairs)])))
+  (setv gsyms [])
+  `(do
+    (setv ~@(chain-comp (destructure binds expr gsyms)
+                        [(, binds expr) (partition pairs)]))
+    (del ~@gsyms)))
 
-(defn destructure [binds expr]
+(defmacro dict=: [&rest pairs]
+  "Destructure into dict"
+  (setv gsyms []
+        ret (gensym 'dict=:))
+  `(do
+    (setv ~ret {}
+          ~@(chain-comp
+             [(if (in k gsyms)
+                k
+                `(get ~ret '~k))
+              v]
+             [(, k v)
+              (partition
+               (chain-comp (destructure binds expr gsyms)
+                           [(, binds expr) (partition pairs)]))]))
+    (del ~@gsyms)
+    ~ret))
+
+(defn vals@ [coll keys]
+  "return a list of values corresponding to keys in coll"
+  (list-comp (get coll k) [k keys]))
+
+(defn destructure [binds expr &optional gsyms]
   "
   Destructuring bind.
 
@@ -31,9 +56,9 @@
   "
   (defn is-a [x] (isinstance binds x))
   (if (is-a HySymbol) [binds expr]
-      (is-a HyDict) (dest-dict binds expr)
-      (is-a HyExpression) (dest-iter binds expr)
-      (is-a HyList) (dest-list binds expr)
+      (is-a HyDict) (dest-dict binds expr gsyms)
+      (is-a HyExpression) (dest-iter binds expr gsyms)
+      (is-a HyList) (dest-list binds expr gsyms)
       (raise (SyntaxError (+ "Malformed destructure. Unknown binding form:\n"
                              (repr binds))))))
 
@@ -55,7 +80,7 @@
 (defn quoted [s]
   `(quote ~s))
 
-(defn dest-dict [binds expr]
+(defn dest-dict [binds expr &optional gsyms]
   "
   Destructuring bind for mappings.
 
@@ -71,7 +96,7 @@
   Use the ``:or {foo 42}`` option to to bind ``foo`` to ``42`` if
  ``foo`` is requested, but not present in expr.
   "
-  (setv ddict (gensym 'ddict)
+  (setv ddict (gensym 'destructure-dict)
         ;; First, assign expr to a gensym to avoid multiple evaluation.
         ret [ddict expr]
         append ret.extend
@@ -85,6 +110,7 @@
                                                (= (first x)
                                                   ':or))
                                       (,)))]))
+  (unless (is gsyms None) (.append gsyms ddict))
   (defn expand-lookup [target key]
     [target `(.get ~ddict #* [~key ~@(if (isinstance target HySymbol)
                                        (.get default target (,))
@@ -98,10 +124,10 @@
         (_found :strs) (get-as str)
         (_found :keys) (get-as to-keyword)
         (_found :syms) (get-as quoted)
-        (append (destructure #* (expand-lookup target lookup)))))
+        (append (destructure #* (+ (expand-lookup target lookup) [gsyms])))))
   ret)
 
-(defn dest-list [binds expr]
+(defn dest-list [binds expr &optional gsyms]
   "
   Destructuring bind for random-access sequences.
 
@@ -111,20 +137,21 @@
   Use ``:as foo`` option in binds to bind the whole iterable to ``foo``.
   For example, try ``(dest-list '[a b [c :& d :as q] :as full] [1 2 [3 4 5]])``
   "
-  (setv dlist (gensym 'dlist)
+  (setv dlist (gensym 'destructure-list)
         ret [dlist expr]
         append ret.extend
         ibinds (iter binds)
         seen #{}
         i 0)
+  (unless (is gsyms None) (.append gsyms dlist))
   (for [target ibinds]
     (if (_found :as) (append [(next ibinds) dlist])
         (_found :&) (append `[~(next ibinds) (cut ~dlist ~i)])
-        (do (append (destructure target `(get ~dlist ~i)))
+        (do (append (destructure target `(get ~dlist ~i) gsyms))
             (+= i 1))))
   ret)
 
-(defn dest-iter [binds expr]
+(defn dest-iter [binds expr &optional gsyms]
   "
   Destructuring bind for iterables.
 
@@ -134,12 +161,13 @@
   Use the ``:&`` option to also return the remaining iterator.
   For example, try ``(dest-iter '(a b c :& more) (count))``.
   "
-  (setv diter (gensym 'diter)
+  (setv diter (gensym 'destructure-iter)
         ret [diter `(iter ~expr)]
         append ret.extend
         ibinds (iter binds)
         seen #{})
+  (unless (is gsyms None) (.append gsyms diter))
   (for [target ibinds]
     (if (_found :&) (append [(next ibinds) diter])
-        (append (destructure target `(next ~diter)))))
+        (append (destructure target `(next ~diter) gsyms))))
   ret)

@@ -3,8 +3,8 @@
 ;; license. See the LICENSE.
 
 (import pytest)
-(import [hy.contrib.destructure [destructure]])
-(require [hy.contrib.destructure [=:]])
+(import [hy.contrib.destructure [destructure vals@]])
+(require [hy.contrib.destructure [=: dict=:]])
 
 (defn test-iter []
   ;; empty
@@ -21,6 +21,19 @@
   (=: [a b :& the-rest] "abcdefg")
   (assert (= (, a b (tuple the-rest))
              (, "a" "b" (, "c" "d" "e" "f" "g"))))
+  ;; dict=:
+  (assert (= (dict=: (a (b (c)) d)
+                     [1 [2 [3 4 5] 6] 7 8])
+             {"a" 1  "b" 2  "c" 3  "d" 7}))
+  ;; dict=: :&
+  (=: D (dict=: (a (b (c :& inner)) d :& outer)
+                [1 [2 [3 4 5] 6] 7 8]))
+  (assert (= (vals@ D "abcd")
+             [1 2 3 7]))
+  (assert (= (list (get D "inner"))
+             [4 5]))
+  (assert (= (list (get D "outer"))
+             [8]))
   ;; infinite
   (=: (a b c) (cycle [1 2]))
   (assert (= (, a b c)
@@ -55,6 +68,7 @@
   (assert (= (, a b the-rest)
              (, "a" "b" "cdefg")))
   (assert (= full "abcdefg")))
+
 
 (defn test-dict []
   ;; empty
@@ -131,6 +145,43 @@
   (assert (= foo 42))
   (assert (= full data)))
 
+(defn test-dict=: []
+  (=: data {"cells" [{"type" "x"  "count" 3}
+                     {"type" "y"  "count" 6}]
+            "format" ["pretty" "purple"]
+            "options" "xyzq"})
+  (=: destructured
+      (dict=: {[{:strs [count type]}
+                {y-count "count"}  :as cells] "cells"
+               [style color] "format"
+               [X :& the-rest] "options"
+               foo "foo"
+               :or {foo 42  options "a"}
+               :as full}
+              data))
+  ;; (import pdb)(pdb.set-trace)
+  (=: expected
+      {'full {'cells [{'type "x"
+                       'count 3}
+                      {'type "y"
+                       'count 6}]
+              'format ["pretty"
+                       "purple"]
+              'options "xyzq"}
+       'foo 42
+       'the_rest "yzq"
+       'X "x"
+       'color "purple"
+       'style "pretty"
+       'cells [{'type "x"
+                'count 3}
+               {'type "y"
+                'count 6}]
+       'y_count 6
+       'type "x"
+       'count 3})
+  (assert (= destructured expected)))
+
 ;; TODO: remove None workaround after #1320 fix.
 (defn test-errors []
   (with [(pytest.raises SyntaxError)]
@@ -158,3 +209,18 @@
         (destructure '(:& a :& b) {})
         None)
   None)
+
+(defn main []
+  (test-iter)
+  (test-list)
+  (test-dict)
+  (test-both)
+  (test-dict=:)
+  (test-errors))
+
+(defmain [&rest args]
+  (main))
+
+
+
+
