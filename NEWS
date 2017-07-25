@@ -23,6 +23,7 @@ Changes from 0.13.0
      mistaken for shebang lines
    * Fixed a bug where REPL history wasn't saved if you quit the REPL with
      `(quit)` or `(exit)`
+   * `exec` now works under Python 2
 
 Changes from 0.12.1
 

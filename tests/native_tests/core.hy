@@ -170,6 +170,49 @@
   (assert-false (every? even? [2 4 5]))
   (assert-true (every? even? [])))
 
+(setv globalvar 1)
+(defn test-exec []
+  (setv localvar 1)
+  (setv code "
+result['localvar in locals'] = 'localvar' in locals()
+result['localvar in globals'] = 'localvar' in globals()
+result['globalvar in locals'] = 'globalvar' in locals()
+result['globalvar in globals'] = 'globalvar' in globals()
+result['x in locals'] = 'x' in locals()
+result['x in globals'] = 'x' in globals()
+result['y in locals'] = 'y' in locals()
+result['y in globals'] = 'y' in globals()")
+
+  (setv result {})
+  (exec code)
+  (assert-true (get result "localvar in locals"))
+  (assert-false (get result "localvar in globals"))
+  (assert-false (get result "globalvar in locals"))
+  (assert-true (get result "globalvar in globals"))
+  (assert-false (or
+    (get result "x in locals") (get result "x in globals")
+    (get result "y in locals") (get result "y in globals")))
+
+  (setv result {})
+  (exec code {"x" 1 "result" result})
+  (assert-false (or
+    (get result "localvar in locals") (get result "localvar in globals")
+    (get result "globalvar in locals") (get result "globalvar in globals")))
+  (assert-true (and
+    (get result "x in locals") (get result "x in globals")))
+  (assert-false (or
+    (get result "y in locals") (get result "y in globals")))
+
+  (setv result {})
+  (exec code {"x" 1 "result" result} {"y" 1})
+  (assert-false (or
+    (get result "localvar in locals") (get result "localvar in globals")
+    (get result "globalvar in locals") (get result "globalvar in globals")))
+  (assert-false (get result "x in locals"))
+  (assert-true (get result "x in globals"))
+  (assert-true (get result "y in locals"))
+  (assert-false (get result "y in globals")))
+
 (defn test-filter []
   "NATIVE: testing the filter function"
   (setv res (list (filter pos? [ 1 2 3 -4 5])))

@@ -778,6 +778,19 @@ class HyASTCompiler(object):
     def compile_unpack_mapping(self, expr):
         raise HyTypeError(expr, "`unpack-mapping` isn't allowed here")
 
+    @builds_if("exec*", not PY3)
+    # Under Python 3, `exec` is a function rather than a statement type, so Hy
+    # doesn't need a special form for it.
+    @checkargs(min=1, max=3)
+    def compile_exec(self, expr):
+        expr.pop(0)
+        return ast.Exec(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            body=self.compile(expr.pop(0)).force_expr,
+            globals=self.compile(expr.pop(0)).force_expr if expr else None,
+            locals=self.compile(expr.pop(0)).force_expr if expr else None)
+
     @builds("do")
     def compile_do(self, expression):
         expression.pop(0)

@@ -281,6 +281,19 @@ otherwise ``False``. Return ``True`` if *coll* is empty.
    True
 
 
+.. _exec-fn:
+
+exec
+----
+
+Equivalent to Python 3's built-in function :py:func:`exec`.
+
+.. code-block:: clj
+
+    => (exec "print(a + b)" {"a" 1} {"b" 2})
+    3
+
+
 .. _float?-fn:
 
 float?
