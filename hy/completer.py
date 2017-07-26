@@ -124,7 +124,8 @@ def completion(completer=None):
 
         readline.parse_and_bind(readline_bind)
 
-    yield
-
-    if docomplete:
-        readline.write_history_file(history)
+    try:
+        yield
+    finally:
+        if docomplete:
+            readline.write_history_file(history)
