@@ -21,6 +21,8 @@ Changes from 0.13.0
    * String literals should no longer be interpreted as special forms or macros
    * Tag macros (née sharp macros) whose names begin with `!` are no longer
      mistaken for shebang lines
+   * Fixed a bug where REPL history wasn't saved if you quit the REPL with
+     `(quit)` or `(exit)`
 
 Changes from 0.12.1
 
