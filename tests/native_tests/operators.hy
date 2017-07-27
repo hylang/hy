@@ -288,3 +288,11 @@
   (assert (is (f 3 [1 2]) (!= f-name "in")))
   (assert (is (f 2 [1 2]) (= f-name "in")))
   (forbid (f 2 [1 2] [3 4])))
+
+
+(op-and-shadow-test [get]
+  (forbid (f))
+  (forbid (f "hello"))
+  (assert (= (f "hello" 1) "e"))
+  (assert (= (f [[1 2 3] [4 5 6] [7 8 9]] 1 2) 6))
+  (assert (= (f {"x" {"y" {"z" 12}}} "x" "y" "z") 12)))
