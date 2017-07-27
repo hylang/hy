@@ -12,6 +12,7 @@ Changes from 0.13.0
      as necessary, so you can write ``(eval `(+ 1 ~n))`` instead of
      ``(eval `(+ 1 ~(HyInteger n)))``
    * Literal `Inf`s and `NaN`s must now be capitalized like that
+   * `get` is available as a function
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

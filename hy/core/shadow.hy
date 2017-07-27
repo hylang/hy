@@ -138,11 +138,18 @@
 (defn not-in [x y]
   (not-in x y))
 
+(defn get [coll key1 &rest keys]
+  (setv coll (get coll key1))
+  (for* [k keys]
+    (setv coll (get coll k)))
+  coll)
+
 (setv *exports* [
   '+ '- '* '** '/ '// '% '@
   '<< '>> '& '| '^ '~
   '< '> '<= '>= '= '!=
   'and 'or 'not
-  'is 'is-not 'in 'not-in])
+  'is 'is-not 'in 'not-in
+  'get])
 (if (not PY35)
   (.remove *exports* '@))
