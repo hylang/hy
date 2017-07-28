@@ -86,16 +86,14 @@
   (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
                 [(body.pop)]
                 []))
-  (cond
-   [(odd? (len args))
-    (macro-error args "`for' requires an even number of args.")]
-   [(empty? body)
-    (macro-error None "`for' requires a body to evaluate")]
-   [(empty? args) `(do ~@body ~@belse)]
-   [(= (len args) 2) `(for* [~@args] (do ~@body) ~@belse)]
-   [True
-    (setv alist (cut args 0 None 2))
-    `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse)]))
+  (if
+    (odd? (len args)) (macro-error args "`for' requires an even number of args.")
+    (empty? body)     (macro-error None "`for' requires a body to evaluate")
+    (empty? args)     `(do ~@body ~@belse)
+    (= (len args) 2)  `(for* [~@args] (do ~@body) ~@belse)
+    (do
+      (setv alist (cut args 0 None 2))
+      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))))
 
 
 (defmacro -> [head &rest rest]
