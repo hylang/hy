@@ -301,19 +301,6 @@ def test_ast_good_drop():
     can_compile("(drop 1 [2 3])")
 
 
-def test_ast_good_assoc():
-    "Make sure AST can compile valid assoc"
-    can_compile("(assoc x y z)")
-
-
-def test_ast_bad_assoc():
-    "Make sure AST can't compile invalid assoc"
-    cant_compile("(assoc)")
-    cant_compile("(assoc 1)")
-    cant_compile("(assoc 1 2)")
-    cant_compile("(assoc 1 2 3 4)")
-
-
 def test_ast_bad_with():
     "Make sure AST can't compile invalid with"
     cant_compile("(with*)")

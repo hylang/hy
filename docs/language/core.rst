@@ -6,6 +6,41 @@ Hy Core
 Core Functions
 ==============
 
+.. _assoc-fn:
+
+assoc
+-----
+
+``assoc`` is used to associate a key with a value in a dictionary or to set an
+index of a list to a value. It takes at least three parameters: the *data
+structure* to be modified, a *key* or *index*, and a *value*. If more than
+three parameters are used, it will associate in pairs.
+
+Examples of usage:
+
+.. code-block:: clj
+
+  =>(do
+  ... (setv collection {})
+  ... (assoc collection "Dog" "Bark")
+  ... (print collection))
+  {u'Dog': u'Bark'}
+
+  =>(do
+  ... (setv collection {})
+  ... (assoc collection "Dog" "Bark" "Cat" "Meow")
+  ... (print collection))
+  {u'Cat': u'Meow', u'Dog': u'Bark'}
+
+  =>(do
+  ... (setv collection [1 2 3 4])
+  ... (assoc collection 2 None)
+  ... (print collection))
+  [1, 2, None, 4]
+
+.. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
+
+
 .. _butlast-fn:
 
 butlast

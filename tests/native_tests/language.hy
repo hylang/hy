@@ -628,11 +628,33 @@
   (assoc vals "two" "three")
   (assert (= (get vals "two") "three")))
 
+
 (defn test-multiassoc []
   "NATIVE: test assoc multiple values"
   (setv vals {"one" "two"})
   (assoc vals "two" "three" "four" "five")
   (assert (and (= (get vals "two") "three") (= (get vals "four") "five") (= (get vals "one") "two"))))
+
+
+(defn test-assoc-slice []
+  (import string)
+  (setv l (list string.ascii-lowercase))
+  (assoc l (slice 2 11 3) "XXX")
+  (assert (= (.join "" l) "abXdeXghXjklmnopqrstuvwxyz")))
+
+
+(defn test-assoc-eval-lvalue-once []
+  "`assoc` only evaluates its lvalue once"
+  ; https://github.com/hylang/hy/issues/1068
+  (setv counter [])
+  (setv d {})
+  (defn f []
+    (.append counter 1)
+    d)
+  (assoc (f)  "a" 1  "b" 2  "c" 3)
+  (assert (= d {"a" 1  "b" 2  "c" 3}))
+  (assert (= counter [1])))
+
 
 (defn test-pass []
   "NATIVE: Test pass worksish"
