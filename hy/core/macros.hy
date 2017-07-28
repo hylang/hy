@@ -98,6 +98,29 @@
     `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse)]))
 
 
+(defmacro assoc [target key val &rest args]
+  "shorthand for consecutive dictionary/list associations:
+  (assoc x 1 10  2 20  3 30) ->
+  (setv temp_var x) ; `temp_var' is created by `gensym'.
+  (assoc* temp_var 1 10)
+  (assoc* temp_var 2 20)
+  (assoc* temp_var 3 30)
+  "
+  (cond
+    [(empty? args)
+     `(assoc* ~target ~key ~val)]
+    [(odd? (len args))
+     (macro-error (nth args 0) "`assoc' requires an even number of args.")]
+    [True
+     (setv a (iter args)
+           t (gensym))
+     `(do
+        (setv ~t ~target)
+        (assoc* ~t ~key ~val)
+        ~@(map (fn [l] `(assoc* ~t ~(nth l 0) ~(nth l 1)))
+               (zip a a)))]))
+
+
 (defmacro -> [head &rest rest]
   "Threads the head through the rest of the forms. Inserts
    head as the second item in the first form of rest. If

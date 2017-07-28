@@ -1386,11 +1386,11 @@ class HyASTCompiler(object):
                             step=step.expr),
             ctx=ast.Load())
 
-    @builds("assoc")
+    @builds("assoc*")
     @checkargs(min=3, even=False)
     def compile_assoc_expression(self, expr):
-        expr.pop(0)  # assoc
-        # (assoc foo bar baz)  => foo[bar] = baz
+        expr.pop(0)  # assoc*
+        # (assoc* foo bar baz)  => foo[bar] = baz
         target = self.compile(expr.pop(0))
         ret = target
         i = iter(expr)
