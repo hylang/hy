@@ -593,3 +593,27 @@ def test_setv_builtins():
 def test_lots_of_comment_lines():
     # https://github.com/hylang/hy/issues/1313
     can_compile(1000 * ";\n")
+
+
+def test_exec_star():
+
+    code = can_compile('(exec* "print(5)")').body[0]
+    assert type(code) == (ast.Expr if PY3 else ast.Exec)
+    if not PY3:
+        assert code.body.s == "print(5)"
+        assert code.globals is None
+        assert code.locals is None
+
+    code = can_compile('(exec* "print(a)" {"a" 3})').body[0]
+    assert type(code) == (ast.Expr if PY3 else ast.Exec)
+    if not PY3:
+        assert code.body.s == "print(a)"
+        assert code.globals.keys[0].s == "a"
+        assert code.locals is None
+
+    code = can_compile('(exec* "print(a + b)" {"a" "x"} {"b" "y"})').body[0]
+    assert type(code) == (ast.Expr if PY3 else ast.Exec)
+    if not PY3:
+        assert code.body.s == "print(a + b)"
+        assert code.globals.keys[0].s == "a"
+        assert code.locals.keys[0].s == "b"

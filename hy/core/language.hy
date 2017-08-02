@@ -117,6 +117,24 @@
    range range
    zip zip))
 
+(if-python2
+  (defn exec [$code &optional $globals $locals]
+    "Execute Python code.
+
+    The parameter names contain weird characters to discourage calling this
+    function with keyword arguments, which isn't supported by Python 3's
+    `exec`."
+    (if
+      (none? $globals) (do
+        (setv frame (._getframe sys (int 1)))
+        (try
+          (setv $globals frame.f_globals  $locals frame.f_locals)
+          (finally (del frame))))
+      (none? $locals)
+        (setv $locals $globals))
+    (exec* $code $globals $locals))
+  (def exec exec))
+
 ;; infinite iterators
 (def
   count itertools.count
@@ -461,8 +479,8 @@
 (def *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? eval even? every? first filter
-    flatten float? fraction gensym group-by identity inc input instance?
+    disassemble drop drop-last drop-while empty? eval even? every? exec first
+    filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list* macroexpand
     macroexpand-1 map merge-with multicombinations name neg? none? nth
