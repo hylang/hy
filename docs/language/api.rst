@@ -1604,19 +1604,31 @@ unquote-splice
 --------------
 
 ``unquote-splice`` forces the evaluation of a symbol within a quasiquoted form,
-much like ``unquote``. ``unquote-splice`` can only be used when the symbol
+much like ``unquote``. ``unquote-splice`` can be used when the symbol
 being unquoted contains an iterable value, as it "splices" that iterable into
-the quasiquoted form. ``unquote-splice`` is aliased to the ``~@`` symbol.
+the quasiquoted form. ``unquote-splice`` can also be used when the value
+evaluates to a false value such as ``None``, ``False``, or ``0``, in which
+case the value is treated as an empty list and thus does not splice anything
+into the form. ``unquote-splice`` is aliased to the ``~@`` syntax.
 
 .. code-block:: clj
 
     (def nums [1 2 3 4])
     (quasiquote (+ (unquote-splice nums)))
-    ;=> (u'+' 1L 2L 3L 4L)
+    ;=> ('+' 1 2 3 4)
 
     `(+ ~@nums)
-    ;=> (u'+' 1L 2L 3L 4L)
+    ;=> ('+' 1 2 3 4)
 
+    `[1 2 ~@(if (< (nth nums 0) 0) nums)]
+    ;=> ('+' 1 2)
+
+Here, the last example evaluates to ``('+' 1 2)``, since the condition
+``(< (nth nums 0) 0)`` is ``False``, which makes this ``if`` expression
+evaluate to ``None``, because the ``if`` expression here does not have an
+else clause. ``unquote-splice`` then evaluates this as an empty value,
+leaving no effects on the list it is enclosed in, therefore resulting in
+``('+' 1 2)``.
 
 when
 ----

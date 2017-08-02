@@ -707,7 +707,9 @@ class HyASTCompiler(object):
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    to_add = HyExpression([HySymbol("list"), f_contents])
+                    to_add = HyExpression([
+                        HySymbol("list"),
+                        HyExpression([HySymbol("or"), f_contents, HyList()])])
                 else:
                     to_add = HyList([f_contents])
 

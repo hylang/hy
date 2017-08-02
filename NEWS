@@ -1,6 +1,7 @@
 Changes from 0.13.0
 
    [ Language Changes ]
+   * The unquote-splice or ~@ form now accepts any false value as empty.
    * `yield-from` is no longer supported under Python 2
    * `apply` has been replaced with Python-style unpacking operators `#*` and
      `#**` (e.g., `(f #* args #** kwargs)`)
