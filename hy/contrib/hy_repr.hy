@@ -66,7 +66,7 @@
       (or (is t HyKeyword) (and (is t str-type) (.startswith x HyKeyword.PREFIX)))
         (cut x 1)
       (in t [str-type HyString bytes-type HyBytes]) (do
-        (setv r (.lstrip (repr x) "ub"))
+        (setv r (.lstrip (base-repr x) "ub"))
         (+ (if (in t [bytes-type HyBytes]) "b" "") (if (.startswith "\"" r)
           ; If Python's built-in repr produced a double-quoted string, use
           ; that.
@@ -75,9 +75,9 @@
           ; convert it.
           (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\""))))
       (and (not PY3) (is t int))
-        (.format "(int {})" (repr x))
+        (.format "(int {})" (base-repr x))
       (and (not PY3) (in t [long_type HyInteger]))
-        (.rstrip (repr x) "L")
+        (.rstrip (base-repr x) "L")
       (and (in t [float HyFloat]) (isnan x))
         "NaN"
       (and (in t [float HyFloat]) (= x Inf))
@@ -85,9 +85,18 @@
       (and (in t [float HyFloat]) (= x -Inf))
         "-Inf"
       (in t [complex HyComplex])
-        (.replace (.replace (.strip (repr x) "()") "inf" "Inf") "nan" "NaN")
+        (.replace (.replace (.strip (base-repr x) "()") "inf" "Inf") "nan" "NaN")
       (is t fraction)
         (.format "{}/{}" (f x.numerator q) (f x.denominator q))
       ; else
-        (repr x))))
+        (base-repr x))))
   (f obj False))
+
+(defn base-repr [x]
+  (unless (instance? HyObject x)
+    (return (repr x)))
+  ; Call (.repr x) using the first class of x that doesn't inherit from
+  ; HyObject.
+  (.__repr__
+    (next (genexpr t [t (. (type x) __mro__)] (not (issubclass t HyObject))))
+    x))

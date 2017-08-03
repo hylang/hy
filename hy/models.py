@@ -25,6 +25,9 @@ class HyObject(object):
 
         return self
 
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, super(HyObject, self).__repr__())
+
 
 _wrappers = {}
 
@@ -57,6 +60,10 @@ def replace_hy_obj(obj, other):
     else:
         raise TypeError("Don't know how to wrap a %s object to a HyObject"
                         % type(obj))
+
+
+def repr_indent(obj):
+    return repr(obj).replace('\n','\n  ')
 
 
 class HyString(HyObject, str_type):
@@ -105,6 +112,9 @@ class HyKeyword(HyObject, str_type):
 
         obj = str_type.__new__(cls, value)
         return obj
+
+    def __repr__(self):
+        return "HyKeyword(%s)" % (repr(self[1:]))
 
 
 def strip_digit_separators(number):
@@ -213,7 +223,12 @@ class HyList(HyObject, list):
         return ret
 
     def __repr__(self):
-        return "[%s]" % (" ".join([repr(x) for x in self]))
+        if self:
+            return "%s([\n  %s])" % (
+                self.__class__.__name__,
+                ",\n  ".join([repr_indent(x) for x in self]))
+        else:
+            return self.__class__.__name__ + "()"
 
 _wrappers[list] = lambda l: HyList(wrap_value(x) for x in l)
 _wrappers[tuple] = lambda t: HyList(wrap_value(x) for x in t)
@@ -225,7 +240,16 @@ class HyDict(HyList):
     """
 
     def __repr__(self):
-        return "{%s}" % (" ".join([repr(x) for x in self]))
+        if self:
+            pairs = []
+            for k, v in zip(self[::2],self[1::2]):
+                k, v = repr_indent(k), repr_indent(v)
+                pairs.append("%s, %s," % (k, v))
+            if len(self) % 2 == 1:
+                pairs.append("%s  # odd\n" % repr_indent(self[-1]))
+            return "HyDict([\n  %s])" % ("\n  ".join(pairs),)
+        else:
+            return "HyDict()"
 
     def keys(self):
         return self[0::2]
@@ -244,9 +268,6 @@ class HyExpression(HyList):
     Hy S-Expression. Basically just a list.
     """
 
-    def __repr__(self):
-        return "(%s)" % (" ".join([repr(x) for x in self]))
-
 _wrappers[HyExpression] = lambda e: HyExpression(wrap_value(x) for x in e)
 _wrappers[Fraction] = lambda e: HyExpression(
     [HySymbol("fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
@@ -256,9 +277,6 @@ class HySet(HyList):
     """
     Hy set (just a representation of a set)
     """
-
-    def __repr__(self):
-        return "#{%s}" % (" ".join([repr(x) for x in self]))
 
 _wrappers[set] = lambda s: HySet(wrap_value(x) for x in s)
 
@@ -335,9 +353,9 @@ class HyCons(HyObject):
 
     def __repr__(self):
         if isinstance(self.cdr, self.__class__):
-            return "(%s %s)" % (repr(self.car), repr(self.cdr)[1:-1])
+            return "<HyCons (%s %s)>" % (repr(self.car), repr(self.cdr)[9:-2])
         else:
-            return "(%s . %s)" % (repr(self.car), repr(self.cdr))
+            return "<HyCons (%s . %s)>" % (repr(self.car), repr(self.cdr))
 
     def __eq__(self, other):
         return (
