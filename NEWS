@@ -25,6 +25,7 @@ Changes from 0.13.0
    * Fixed a bug where REPL history wasn't saved if you quit the REPL with
      `(quit)` or `(exit)`
    * `exec` now works under Python 2
+   * No TypeError from multi-arity defn returning values evaluating to None
 
 Changes from 0.12.1
 

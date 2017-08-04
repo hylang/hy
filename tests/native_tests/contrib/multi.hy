@@ -26,6 +26,22 @@
   (assert (= (fun "a" "b") "a b"))
   (assert (= (fun "a" "b" "c") "a b c")))
 
+(defn test-different-signatures-defn []
+  "NATIVE: Test defn with different signatures"
+  (defn fun
+    ([] "")
+    ([a] "a")
+    ([a b] "a b"))
+
+  (assert (= (fun) ""))
+  (assert (= (fun "a") "a"))
+  (assert (= (fun "a" "b") "a b"))
+  (try
+    (do
+      (fun "a" "b" "c")
+      (assert False))
+    (except [e Exception]
+      (assert (isinstance e TypeError)))))
 
 (defn test-basic-dispatch []
   "NATIVE: Test basic dispatch"
