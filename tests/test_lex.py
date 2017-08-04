@@ -4,7 +4,7 @@
 
 from math import isnan
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
-                       HyString, HyDict, HyList, HySet, HyCons)
+                       HyString, HyDict, HyList, HySet, HyCons, HyKeyword)
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 import pytest
 
@@ -423,3 +423,72 @@ def test_cons_list():
     entry = tokenize("(a b . {})")[0]
     assert entry == HyDict([HySymbol("a"), HySymbol("b")])
     assert type(entry) == HyDict
+
+def test_discard():
+    """Check that discarded terms are removed properly."""
+    # empty
+    assert tokenize("") == []
+    # single
+    assert tokenize("#_1") == []
+    # multiple
+    assert tokenize("#_1 #_2") == []
+    assert tokenize("#_1 #_2 #_3") == []
+    # nested discard
+    assert tokenize("#_ #_1 2") == []
+    assert tokenize("#_ #_ #_1 2 3") == []
+    # trailing
+    assert tokenize("0") == [0]
+    assert tokenize("0 #_1") == [0]
+    assert tokenize("0 #_1 #_2") == [0]
+    # leading
+    assert tokenize("2") == [2]
+    assert tokenize("#_1 2") == [2]
+    assert tokenize("#_0 #_1 2") == [2]
+    assert tokenize("#_ #_0 1 2") == [2]
+    # both
+    assert tokenize("#_1 2 #_3") == [2]
+    assert tokenize("#_0 #_1 2 #_ #_3 4") == [2]
+    # inside
+    assert tokenize("0 #_1 2") == [0, 2]
+    assert tokenize("0 #_1 #_2 3") == [0, 3]
+    assert tokenize("0 #_ #_1 2 3") == [0, 3]
+    # in HyList
+    assert tokenize("[]") == [HyList([])]
+    assert tokenize("[#_1]") == [HyList([])]
+    assert tokenize("[#_1 #_2]") == [HyList([])]
+    assert tokenize("[#_ #_1 2]") == [HyList([])]
+    assert tokenize("[0]") == [HyList([HyInteger(0)])]
+    assert tokenize("[0 #_1]") == [HyList([HyInteger(0)])]
+    assert tokenize("[0 #_1 #_2]") == [HyList([HyInteger(0)])]
+    assert tokenize("[2]") == [HyList([HyInteger(2)])]
+    assert tokenize("[#_1 2]") == [HyList([HyInteger(2)])]
+    assert tokenize("[#_0 #_1 2]") == [HyList([HyInteger(2)])]
+    assert tokenize("[#_ #_0 1 2]") == [HyList([HyInteger(2)])]
+    # in HySet
+    assert tokenize("#{}") == [HySet()]
+    assert tokenize("#{#_1}") == [HySet()]
+    assert tokenize("#{0 #_1}") == [HySet([HyInteger(0)])]
+    assert tokenize("#{#_1 0}") == [HySet([HyInteger(0)])]
+    # in HyDict
+    assert tokenize("{}") == [HyDict()]
+    assert tokenize("{#_1}") == [HyDict()]
+    assert tokenize("{#_0 1 2}") == [HyDict([HyInteger(1), HyInteger(2)])]
+    assert tokenize("{1 #_0 2}") == [HyDict([HyInteger(1), HyInteger(2)])]
+    assert tokenize("{1 2 #_0}") == [HyDict([HyInteger(1), HyInteger(2)])]
+    # in HyExpression
+    assert tokenize("()") == [HyExpression()]
+    assert tokenize("(#_foo)") == [HyExpression()]
+    assert tokenize("(#_foo bar)") == [HyExpression([HySymbol("bar")])]
+    assert tokenize("(foo #_bar)") == [HyExpression([HySymbol("foo")])]
+    assert tokenize("(foo :bar 1)") == [HyExpression([HySymbol("foo"), HyKeyword(":bar"), HyInteger(1)])]
+    assert tokenize("(foo #_:bar 1)") == [HyExpression([HySymbol("foo"), HyInteger(1)])]
+    assert tokenize("(foo :bar #_1)") == [HyExpression([HySymbol("foo"), HyKeyword(":bar")])]
+    # discard term with nesting
+    assert tokenize("[1 2 #_[a b c [d e [f g] h]] 3 4]") == [
+        HyList([HyInteger(1), HyInteger(2), HyInteger(3), HyInteger(4)])
+    ]
+    # discard with other prefix syntax
+    assert tokenize("a #_'b c") == [HySymbol("a"), HySymbol("c")]
+    assert tokenize("a '#_b c") == [HySymbol("a"), HyExpression([HySymbol("quote"), HySymbol("c")])]
+    assert tokenize("a '#_b #_c d") == [HySymbol("a"), HyExpression([HySymbol("quote"), HySymbol("d")])]
+    assert tokenize("a '#_ #_b c d") == [HySymbol("a"), HyExpression([HySymbol("quote"), HySymbol("d")])]
