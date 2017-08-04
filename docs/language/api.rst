@@ -89,6 +89,31 @@ the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
 
+discard prefix
+--------------
+
+Hy supports the Extensible Data Notation discard prefix, like Clojure.
+Any form prefixed with ``#_`` is discarded instead of compiled.
+This completely removes the form so it doesn't evaluate to anything,
+not even None.
+It's often more useful than linewise comments for commenting out a
+form, because it respects code structure even when part of another
+form is on the same line. For example:
+
+.. code-block:: clj
+
+   => (print "Hy" "cruel" "World!")
+   Hy cruel World!
+   => (print "Hy" #_"cruel" "World!")
+   Hy World!
+   => (+ 1 1 (print "Math is hard!"))
+   Math is hard!
+   Traceback (most recent call last):
+      ...
+   TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
+   => (+ 1 1 #_(print "Math is hard!"))
+   2
+
 Built-Ins
 =========
 
@@ -326,6 +351,30 @@ as the user enters *k*.
     (while True (if (= "k" (raw-input "? "))
                   (break)
                   (print "Try again")))
+
+
+comment
+----
+
+The ``comment`` macro ignores its body and always expands to ``None``.
+Unlike linewise comments, the body of the ``comment`` macro must
+be grammatically valid Hy, so the compiler can tell where the comment ends.
+Besides the semicolon linewise comments,
+Hy also has the ``#_`` discard prefix syntax to discard the next form.
+This is completely discarded and doesn't expand to anything, not even ``None``.
+
+.. code-block:: clj
+
+   => (print (comment <h1>Suprise!</h1>
+   ...                <p>You'd be surprised what's grammatically valid in Hy.</p>
+   ...                <p>(Keep delimiters in balance, and you're mostly good to go.)</p>)
+   ...        "Hy")
+   None Hy
+   => (print #_(comment <h1>Suprise!</h1>
+   ...                  <p>You'd be surprised what's grammatically valid in Hy.</p>
+   ...                  <p>(Keep delimiters in balance, and you're mostly good to go.)</p>))
+   ...        "Hy")
+   Hy
 
 
 cond

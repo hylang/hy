@@ -13,6 +13,8 @@ Changes from 0.13.0
      ``(eval `(+ 1 ~(HyInteger n)))``
    * Literal `Inf`s and `NaN`s must now be capitalized like that
    * `get` is available as a function
+   * new `comment` macro
+   * support EDN `#_` syntax to discard the next term
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot
