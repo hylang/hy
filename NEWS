@@ -31,6 +31,8 @@ Changes from 0.13.0
    [ Misc. Improvements ]
    * `read`, `read_str`, and `eval` are exposed and documented as top-level
      functions in the `hy` module
+   * Fixed a crash when `with` suppresses an exception. `with` now returns
+     `None` in this case.
 
 Changes from 0.12.1
 
