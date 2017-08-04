@@ -26,13 +26,13 @@
       (.issubset (frozenset (.keys kwargs)) com)))
 
   __call__ (fn [self &rest args &kwargs kwargs]
-    (setv output None)
+    (setv func None)
     (for [[i f] (.items (get self._fns self.f.__module__ self.f.__name__))]
       (when (.fn? self i args kwargs)
-        (setv output (f #* args #** kwargs))
+        (setv func f)
         (break)))
-    (if output
-      output
+    (if func
+      (func #* args #** kwargs)
       (raise (TypeError "No matching functions with this signature"))))])
 
 (defn multi-decorator [dispatch-fn]
