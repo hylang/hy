@@ -46,5 +46,7 @@ Project
 * Quickstart: http://hylang.org/en/stable/quickstart.html
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
-* [Contributor Guidelines & Code of Conduct](https://github.com/hylang/hy/blob/master/CONTRIBUTING.rst)
+* [Hacking on Hy](http://docs.hylang.org/en/master/hacking.html)
+  * [Contributor Guidelines](http://docs.hylang.org/en/master/hacking.html#contributor-guidelines)
+  * [Code of Conduct](http://docs.hylang.org/en/master/hacking.html#contributor-code-of-conduct)
 * IRC: Join #hy on [freenode](https://webchat.freenode.net/)
