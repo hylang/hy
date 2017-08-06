@@ -27,6 +27,10 @@ Changes from 0.13.0
    * `exec` now works under Python 2
    * No TypeError from multi-arity defn returning values evaluating to None
 
+   [ Misc. Improvements ]
+   * `read`, `read_str`, and `eval` are exposed and documented as top-level
+     functions in the `hy` module
+
 Changes from 0.12.1
 
    [ Language Changes ]
