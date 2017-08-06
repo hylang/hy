@@ -10,3 +10,7 @@ from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, H
 
 import hy.importer  # NOQA
 # we import for side-effects.
+
+
+from hy.core.language import read, read_str  # NOQA
+from hy.importer import hy_eval as eval  # NOQA

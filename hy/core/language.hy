@@ -426,8 +426,8 @@
 
 (defn read [&optional [from-file sys.stdin]
                       [eof ""]]
-  "Read from input and returns a tokenized string.
-   Can take a given input buffer to read from"
+  "Read from input and returns a tokenized string. Can take a given input buffer
+   to read from, and a single byte as EOF (defaults to an empty string)"
   (setv buff "")
   (while True
     (setv inn (string (.readline from-file)))
