@@ -617,3 +617,10 @@ def test_exec_star():
         assert code.body.s == "print(a + b)"
         assert code.globals.keys[0].s == "a"
         assert code.locals.keys[0].s == "b"
+
+
+def test_compiler_macro_tag_try():
+    """Check that try forms within defmacro/deftag are compiled correctly"""
+    # https://github.com/hylang/hy/issues/1350
+    can_compile("(defmacro foo [] (try None (except [] None)) `())")
+    can_compile("(deftag foo [] (try None (except [] None)) `())")

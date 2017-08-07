@@ -26,6 +26,7 @@ Changes from 0.13.0
      `(quit)` or `(exit)`
    * `exec` now works under Python 2
    * No TypeError from multi-arity defn returning values evaluating to None
+   * try form now possible in defmacro/deftag
 
    [ Misc. Improvements ]
    * `read`, `read_str`, and `eval` are exposed and documented as top-level
