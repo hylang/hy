@@ -26,7 +26,7 @@ from hy.completer import Completer
 
 from hy.errors import HyIOError
 
-from hy.macros import macro, require_macro
+from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
 
 from hy._compat import builtins, PY3
@@ -170,8 +170,8 @@ def ideas_macro():
 
 """)])
 
-require_macro("hy.cmdline", "__console__", all_macros=True)
-require_macro("hy.cmdline", "__main__", all_macros=True)
+require("hy.cmdline", "__console__", all_macros=True)
+require("hy.cmdline", "__main__", all_macros=True)
 
 SIMPLE_TRACEBACKS = True
 

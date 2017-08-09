@@ -1,0 +1,40 @@
+(defclass Py2HyReturnException [Exception]
+  (defn __init__ [self retvalue]
+    (setv self.retvalue retvalue)))
+(try
+  (import [__builtin__ :as builtins])
+  (except [e Py2HyReturnException]
+    (raise e))
+  (except [ImportError]
+    (import [builtins])))
+(try
+  (import [py_compile [MAGIC wr_long]])
+  (except [e Py2HyReturnException]
+    (raise e))
+  (except [ImportError]
+    (import [importlib.util [MAGIC_NUMBER :as MAGIC]])
+    (defn wr_long [f x]
+      "Internal; write a 32-bit int to a file in little-endian order."
+      (f.write (bytes [(bitand x 255) (bitand (>> x 8) 255) (bitand (>> x 16) 255) (bitand (>> x 24) 255)])))))
+(import [sys])
+(setv PY3 (>= (get sys.version_info 0) 3))
+(setv PY34 (>= sys.version_info (, 3 4)))
+(setv PY35 (>= sys.version_info (, 3 5)))
+(setv str_type (if PY3
+                  str
+                  unicode))
+(setv bytes_type (if PY3
+                    bytes
+                    str))
+(setv long_type (if PY3
+                   int
+                   long))
+(setv string_types (if PY3
+                      str
+                      basestring))
+(if PY3
+  (do
+    (exec "def raise_empty(t, *args): raise t(*args) from None"))
+  (do
+    (defn raise_empty [t &rest args]
+      (raise (t (unpack_iterable args))))))

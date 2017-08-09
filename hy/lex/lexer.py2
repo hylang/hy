@@ -1,0 +1,31 @@
+from rply import LexerGenerator
+
+
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+lg = LexerGenerator()
+end_quote = '(?![\\s\\)\\]\\}])'
+identifier = '[^()\\[\\]{}\\\'"\\s;]+'
+lg.add('LPAREN', '\\(')
+lg.add('RPAREN', '\\)')
+lg.add('LBRACKET', '\\[')
+lg.add('RBRACKET', '\\]')
+lg.add('LCURLY', '\\{')
+lg.add('RCURLY', '\\}')
+lg.add('HLCURLY', '#\\{')
+lg.add('QUOTE', ("\\'%s" % end_quote))
+lg.add('QUASIQUOTE', ('`%s' % end_quote))
+lg.add('UNQUOTESPLICE', ('~@%s' % end_quote))
+lg.add('UNQUOTE', ('~%s' % end_quote))
+lg.add('HASHSTARS', '#\\*+')
+lg.add('HASHOTHER', ('#%s' % identifier))
+partial_string = '(?x)\n    (?:u|r|ur|ru|b|br|rb)? # prefix\n    "  # start string\n    (?:\n       | [^"\\\\]             # non-quote or backslash\n       | \\\\(.|\\n)           # or escaped single character or newline\n       | \\\\x[0-9a-fA-F]{2}  # or escaped raw character\n       | \\\\u[0-9a-fA-F]{4}  # or unicode escape\n       | \\\\U[0-9a-fA-F]{8}  # or long unicode escape\n    )* # one or more times\n'
+lg.add('STRING', ('%s"' % partial_string))
+lg.add('PARTIAL_STRING', partial_string)
+lg.add('IDENTIFIER', identifier)
+lg.ignore(';.*(?=\\r|\\n|$)')
+lg.ignore('\\s+')
+lexer = lg.build()

@@ -1,0 +1,101 @@
+import traceback
+
+
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+from clint.textui import colored
+
+
+class HyError(Exception):
+    __doc__ = '\n    Generic Hy error. All internal Exceptions will be subclassed from this\n    Exception.\n    '
+
+
+class HyCompileError(HyError):
+
+    def __init__(self, exception, traceback=None):
+        self.exception = exception
+        self.traceback = traceback
+        return None
+
+    def __str__(self):
+        try:
+            if isinstance(self.exception, HyTypeError):
+                raise Py2HyReturnException(str(self.exception))
+                _hy_anon_var_1 = None
+            else:
+                _hy_anon_var_1 = None
+            if self.traceback:
+                tb = ''.join(traceback.format_tb(self.traceback)).strip()
+                _hy_anon_var_2 = None
+            else:
+                tb = 'No traceback available. 😟'
+                _hy_anon_var_2 = None
+            raise Py2HyReturnException(('Internal Compiler Bug 😱\n⤷ %s: %s\nCompilation traceback:\n%s' % (self.exception.__class__.__name__, self.exception, tb)))
+            _hy_anon_var_3 = None
+        except Py2HyReturnException as e:
+            _hy_anon_var_3 = e.retvalue
+        return _hy_anon_var_3
+
+
+class HyTypeError(TypeError):
+
+    def __init__(self, expression, message):
+        super(HyTypeError, self).__init__(message)
+        self.expression = expression
+        self.message = message
+        self.source = None
+        self.filename = None
+        return None
+
+    def __str__(self):
+        line = self.expression.start_line
+        start = self.expression.start_column
+        end = self.expression.end_column
+        source = []
+        if (self.source is not None):
+            source = self.source.split('\n')[slice((line - 1), self.expression.end_line, None)]
+            if (line == self.expression.end_line):
+                length = (end - start)
+                _hy_anon_var_4 = None
+            else:
+                length = (len(source[0]) - start)
+                _hy_anon_var_4 = None
+            _hy_anon_var_5 = _hy_anon_var_4
+        else:
+            _hy_anon_var_5 = None
+        result = ''
+        result += ('  File "%s", line %d, column %d\n\n' % (self.filename, line, start))
+        if (len(source) == 1):
+            result += ('  %s\n' % colored.red(source[0]))
+            result += ('  %s%s\n' % ((' ' * (start - 1)), colored.green((('^' + ('-' * (length - 1))) + '^'))))
+            _hy_anon_var_6 = None
+        else:
+            _hy_anon_var_6 = None
+        if (len(source) > 1):
+            result += ('  %s\n' % colored.red(source[0]))
+            result += ('  %s%s\n' % ((' ' * (start - 1)), colored.green(('^' + ('-' * length)))))
+            if (len(source) > 2):
+                for line in source[slice(1, (- 1), None)]:
+                    result += ('  %s\n' % colored.red(''.join(line)))
+                    result += ('  %s\n' % colored.green(('-' * len(line))))
+                _hy_anon_var_7 = None
+            else:
+                _hy_anon_var_7 = None
+            result += ('  %s\n' % colored.red(''.join(source[(- 1)])))
+            result += ('  %s\n' % colored.green((('-' * (end - 1)) + '^')))
+            _hy_anon_var_8 = None
+        else:
+            _hy_anon_var_8 = None
+        result += colored.yellow(('%s: %s\n\n' % (self.__class__.__name__, self.message.encode('utf-8'))))
+        return result
+
+
+class HyMacroExpansionError(HyTypeError):
+    pass
+
+
+class HyIOError(HyError, IOError):
+    __doc__ = '\n    Trivial subclass of IOError and HyError, to distinguish between\n    IOErrors raised by Hy itself as opposed to Hy programs.\n    '

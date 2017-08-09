@@ -1,0 +1,345 @@
+from hy.core.language import eval
+from hy.compiler import hy_compile, HyTypeError
+
+
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+from hy.models import HyObject, HyExpression, HySymbol, replace_hy_obj
+from hy.lex import tokenize, LexException
+from hy.errors import HyIOError
+from io import open
+import re
+import marshal
+import struct
+import imp
+import sys
+import ast
+import inspect
+import os
+import __future__
+from hy._compat import PY3, PY34, MAGIC, builtins, long_type, wr_long
+from hy._compat import string_types
+
+def ast_compile(ast, filename, mode):
+    "Compile AST.\n    Like Python's compile, but with some special flags."
+    flags = (__future__.CO_FUTURE_DIVISION | __future__.CO_FUTURE_PRINT_FUNCTION)
+    return compile(ast, filename, mode, flags)
+
+def import_buffer_to_hst(buf):
+    'Import content from buf and return a Hy AST.'
+    return HyExpression(([HySymbol('do')] + tokenize((buf + '\n'))))
+
+def import_file_to_hst(fpath):
+    'Import content from fpath and return a Hy AST.'
+    try:
+        try:
+            with open(fpath, 'r', encoding='utf-8') as f:
+                buf = f.read()
+                _hy_anon_var_1 = None
+            buf = re.sub('\\A#!.*', '', buf)
+            raise Py2HyReturnException(import_buffer_to_hst(buf))
+            _hy_anon_var_2 = None
+        except Py2HyReturnException as e:
+            raise e
+            _hy_anon_var_2 = None
+        except IOError as e:
+            raise HyIOError(e.errno, e.strerror, e.filename)
+            _hy_anon_var_2 = None
+        _hy_anon_var_3 = _hy_anon_var_2
+    except Py2HyReturnException as e:
+        _hy_anon_var_3 = e.retvalue
+    return _hy_anon_var_3
+
+def import_buffer_to_ast(buf, module_name):
+    ' Import content from buf and return a Python AST.'
+    return hy_compile(import_buffer_to_hst(buf), module_name)
+
+def import_file_to_ast(fpath, module_name):
+    'Import content from fpath and return a Python AST.'
+    return hy_compile(import_file_to_hst(fpath), module_name)
+
+def import_file_to_module(module_name, fpath, loader=None):
+    "Import Hy source from fpath and put it into a Python module.\n\n    If there's an up-to-date byte-compiled version of this module, load that\n    instead. Otherwise, byte-compile the module once we're done loading it, if\n    we can.\n\n    Return the module."
+    try:
+        module = None
+        bytecode_path = get_bytecode_path(fpath)
+        try:
+            source_mtime = int(os.stat(fpath).st_mtime)
+            with open(bytecode_path, 'rb') as bc_f:
+                bytecode_magic = bc_f.read(4)
+                _py2hy_anon_var_G_1235 = struct.unpack('<i', bc_f.read(4))
+                bytecode_mtime = _py2hy_anon_var_G_1235[0]
+                _hy_anon_var_4 = None
+        except Py2HyReturnException as e:
+            raise e
+            _hy_anon_var_5 = None
+        except (IOError, OSError):
+            _hy_anon_var_5 = None
+        else:
+            if ((bytecode_magic == MAGIC) and (bytecode_mtime >= source_mtime)):
+                if PY3:
+                    from importlib.machinery import SourcelessFileLoader
+                    module = SourcelessFileLoader(module_name, bytecode_path).load_module(module_name)
+                    _hy_anon_var_6 = None
+                else:
+                    module = imp.load_compiled(module_name, bytecode_path)
+                    _hy_anon_var_6 = None
+                _hy_anon_var_7 = _hy_anon_var_6
+            else:
+                _hy_anon_var_7 = None
+            _hy_anon_var_5 = _hy_anon_var_7
+        if (not module):
+            sys.modules[module_name] = None
+            try:
+                _ast = import_file_to_ast(fpath, module_name)
+                module = imp.new_module(module_name)
+                module.__file__ = fpath
+                code = ast_compile(_ast, fpath, 'exec')
+                if (not os.environ.get('PYTHONDONTWRITEBYTECODE')):
+                    try:
+                        _hy_anon_var_8 = write_code_as_pyc(fpath, code)
+                    except Py2HyReturnException as e:
+                        raise e
+                        _hy_anon_var_8 = None
+                    except (IOError, OSError):
+                        _hy_anon_var_8 = None
+                    _hy_anon_var_9 = _hy_anon_var_8
+                else:
+                    _hy_anon_var_9 = None
+                _hy_anon_var_10 = eval(code, module.__dict__)
+            except Py2HyReturnException as e:
+                raise e
+                _hy_anon_var_10 = None
+            except (HyTypeError, LexException) as e:
+                if (e.source is None):
+                    with open(fpath, 'rt') as fp:
+                        e.source = fp.read()
+                        _hy_anon_var_11 = None
+                    e.filename = fpath
+                    _hy_anon_var_12 = None
+                else:
+                    _hy_anon_var_12 = None
+                raise
+                _hy_anon_var_10 = None
+            except Exception:
+                sys.modules.pop(module_name, None)
+                raise
+                _hy_anon_var_10 = None
+            sys.modules[module_name] = module
+            module.__name__ = module_name
+            _hy_anon_var_13 = None
+        else:
+            _hy_anon_var_13 = None
+        module.__file__ = fpath
+        if loader:
+            module.__loader__ = loader
+            _hy_anon_var_14 = None
+        else:
+            _hy_anon_var_14 = None
+        if is_package(module_name):
+            module.__path__ = []
+            module.__package__ = module_name
+            _hy_anon_var_15 = None
+        else:
+            module.__package__ = module_name.rpartition('.')[0]
+            _hy_anon_var_15 = None
+        raise Py2HyReturnException(module)
+        _hy_anon_var_16 = None
+    except Py2HyReturnException as e:
+        _hy_anon_var_16 = e.retvalue
+    return _hy_anon_var_16
+
+def import_buffer_to_module(module_name, buf):
+    try:
+        try:
+            _ast = import_buffer_to_ast(buf, module_name)
+            mod = imp.new_module(module_name)
+            _hy_anon_var_17 = eval(ast_compile(_ast, '', 'exec'), mod.__dict__)
+        except Py2HyReturnException as e:
+            raise e
+            _hy_anon_var_17 = None
+        except (HyTypeError, LexException) as e:
+            if (e.source is None):
+                e.source = buf
+                e.filename = '<stdin>'
+                _hy_anon_var_18 = None
+            else:
+                _hy_anon_var_18 = None
+            raise
+            _hy_anon_var_17 = None
+        raise Py2HyReturnException(mod)
+        _hy_anon_var_19 = None
+    except Py2HyReturnException as e:
+        _hy_anon_var_19 = e.retvalue
+    return _hy_anon_var_19
+
+def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
+    '``eval`` evaluates a quoted expression and returns the value. The optional\n    second and third arguments specify the dictionary of globals to use and the\n    module name. The globals dictionary defaults to ``(local)`` and the module\n    name defaults to the name of the current module.\n\n       => (eval \'(print "Hello World"))\n       "Hello World"\n\n    If you want to evaluate a string, use ``read-str`` to convert it to a\n    form first:\n\n       => (eval (read-str "(+ 1 1)"))\n       2'
+    if (namespace is None):
+        frame = inspect.stack()[1][0]
+        namespace = inspect.getargvalues(frame).locals
+        _hy_anon_var_20 = None
+    else:
+        _hy_anon_var_20 = None
+    if (module_name is None):
+        m = inspect.getmodule(inspect.stack()[1][0])
+        module_name = ('__eval__' if (m is None) else m.__name__)
+        _hy_anon_var_21 = None
+    else:
+        _hy_anon_var_21 = None
+    foo = HyObject()
+    foo.start_line = 0
+    foo.end_line = 0
+    foo.start_column = 0
+    foo.end_column = 0
+    replace_hy_obj(hytree, foo)
+    if (not isinstance(module_name, string_types)):
+        raise HyTypeError(foo, 'Module name must be a string')
+        _hy_anon_var_22 = None
+    else:
+        _hy_anon_var_22 = None
+    _py2hy_anon_var_G_1237 = hy_compile(hytree, module_name, get_expr=True)
+    _ast = _py2hy_anon_var_G_1237[0]
+    expr = _py2hy_anon_var_G_1237[1]
+    for node in ast.walk(_ast):
+        node.lineno = 1
+        node.col_offset = 1
+    for node in ast.walk(expr):
+        node.lineno = 1
+        node.col_offset = 1
+    (ast_callback(_ast, expr) if ast_callback else None)
+    if (not isinstance(namespace, dict)):
+        raise HyTypeError(foo, 'Globals must be a dictionary')
+        _hy_anon_var_23 = None
+    else:
+        _hy_anon_var_23 = None
+    eval(ast_compile(_ast, '<eval_body>', 'exec'), namespace)
+    return eval(ast_compile(expr, '<eval>', 'eval'), namespace)
+
+def write_hy_as_pyc(fname):
+    _ast = import_file_to_ast(fname, os.path.basename(os.path.splitext(fname)[0]))
+    code = ast_compile(_ast, fname, 'exec')
+    return write_code_as_pyc(fname, code)
+
+def write_code_as_pyc(fname, code):
+    try:
+        st = os.stat(fname)
+        timestamp = long_type(st.st_mtime)
+        cfile = get_bytecode_path(fname)
+        try:
+            _hy_anon_var_24 = os.makedirs(os.path.dirname(cfile))
+        except Py2HyReturnException as e:
+            raise e
+            _hy_anon_var_24 = None
+        except (IOError, OSError):
+            _hy_anon_var_24 = None
+        with builtins.open(cfile, 'wb') as fc:
+            fc.write(MAGIC)
+            wr_long(fc, timestamp)
+            (wr_long(fc, st.st_size) if PY3 else None)
+            _hy_anon_var_25 = marshal.dump(code, fc)
+        _hy_anon_var_26 = _hy_anon_var_25
+    except Py2HyReturnException as e:
+        _hy_anon_var_26 = e.retvalue
+    return _hy_anon_var_26
+
+
+class MetaLoader(object):
+
+    def __init__(self, path):
+        self.path = path
+        return None
+
+    def load_module(self, fullname):
+        try:
+            if (fullname in sys.modules):
+                raise Py2HyReturnException(sys.modules[fullname])
+                _hy_anon_var_27 = None
+            else:
+                _hy_anon_var_27 = None
+            if (not self.path):
+                raise Py2HyReturnException(None)
+                _hy_anon_var_28 = None
+            else:
+                _hy_anon_var_28 = None
+            raise Py2HyReturnException(import_file_to_module(fullname, self.path, self))
+            _hy_anon_var_29 = None
+        except Py2HyReturnException as e:
+            _hy_anon_var_29 = e.retvalue
+        return _hy_anon_var_29
+
+
+class MetaImporter(object):
+
+    def find_on_path(self, fullname):
+        try:
+            fls = ['%s/__init__.hy', '%s.hy']
+            dirpath = '/'.join(fullname.split('.'))
+            for pth in sys.path:
+                pth = os.path.abspath(pth)
+                for fp in fls:
+                    composed_path = (fp % ('%s/%s' % (pth, dirpath)))
+                    if os.path.exists(composed_path):
+                        raise Py2HyReturnException(composed_path)
+                        _hy_anon_var_30 = None
+                    else:
+                        _hy_anon_var_30 = None
+            _hy_anon_var_31 = None
+        except Py2HyReturnException as e:
+            _hy_anon_var_31 = e.retvalue
+        return _hy_anon_var_31
+
+    def find_module(self, fullname, path=None):
+        try:
+            path = self.find_on_path(fullname)
+            if path:
+                raise Py2HyReturnException(MetaLoader(path))
+                _hy_anon_var_32 = None
+            else:
+                _hy_anon_var_32 = None
+            _hy_anon_var_33 = _hy_anon_var_32
+        except Py2HyReturnException as e:
+            _hy_anon_var_33 = e.retvalue
+        return _hy_anon_var_33
+sys.meta_path.insert(0, MetaImporter())
+sys.path.insert(0, '')
+
+def is_package(module_name):
+    try:
+        mpath = os.path.join(*module_name.split('.'))
+        for path in map(os.path.abspath, sys.path):
+            if os.path.exists(os.path.join(path, mpath, '__init__.hy')):
+                raise Py2HyReturnException(True)
+                _hy_anon_var_34 = None
+            else:
+                _hy_anon_var_34 = None
+        raise Py2HyReturnException(False)
+        _hy_anon_var_35 = None
+    except Py2HyReturnException as e:
+        _hy_anon_var_35 = e.retvalue
+    return _hy_anon_var_35
+
+def get_bytecode_path(source_path):
+    try:
+        if PY34:
+            import importlib.util
+            raise Py2HyReturnException(importlib.util.cache_from_source(source_path))
+            _hy_anon_var_37 = None
+        else:
+            if hasattr(imp, 'cache_from_source'):
+                raise Py2HyReturnException(imp.cache_from_source(source_path))
+                _hy_anon_var_36 = None
+            else:
+                _py2hy_anon_var_G_1239 = os.path.split(source_path)
+                d = _py2hy_anon_var_G_1239[0]
+                f = _py2hy_anon_var_G_1239[1]
+                raise Py2HyReturnException(os.path.join(d, re.sub('(?:\\.[^.]+)?\\Z', '.pyc', f)))
+                _hy_anon_var_36 = None
+            _hy_anon_var_37 = _hy_anon_var_36
+        _hy_anon_var_38 = _hy_anon_var_37
+    except Py2HyReturnException as e:
+        _hy_anon_var_38 = e.retvalue
+    return _hy_anon_var_38

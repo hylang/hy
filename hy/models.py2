@@ -1,0 +1,367 @@
+from hy.core.language import string
+from __future__ import unicode_literals
+
+
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+from math import isnan, isinf
+from hy._compat import PY3, str_type, bytes_type, long_type, string_types
+from fractions import Fraction
+
+
+class HyObject(object):
+    __doc__ = '\n    Generic Hy Object model. This is helpful to inject things into all the\n    Hy lexing Objects at once.\n    '
+
+    def replace(self, other):
+        if isinstance(other, HyObject):
+            for attr in ['start_line', 'end_line', 'start_column', 'end_column']:
+                (setattr(self, attr, getattr(other, attr)) if ((not hasattr(self, attr)) and hasattr(other, attr)) else None)
+            _hy_anon_var_1 = None
+        else:
+            raise TypeError("Can't replace a non Hy object with a Hy object")
+            _hy_anon_var_1 = None
+        return self
+_wrappers = {}
+
+def wrap_value(x):
+    'Wrap `x` into the corresponding Hy type.\n\n    This allows replace_hy_obj to convert a non Hy object to a Hy object.\n\n    This also allows a macro to return an unquoted expression transparently.\n\n    '
+    try:
+        wrapper = _wrappers.get(type(x))
+        if (wrapper is None):
+            raise Py2HyReturnException(x)
+            _hy_anon_var_2 = None
+        else:
+            raise Py2HyReturnException(wrapper(x))
+            _hy_anon_var_2 = None
+        _hy_anon_var_3 = _hy_anon_var_2
+    except Py2HyReturnException as e:
+        _hy_anon_var_3 = e.retvalue
+    return _hy_anon_var_3
+
+def replace_hy_obj(obj, other):
+    try:
+        if isinstance(obj, HyObject):
+            raise Py2HyReturnException(obj.replace(other))
+            _hy_anon_var_4 = None
+        else:
+            _hy_anon_var_4 = None
+        wrapped_obj = wrap_value(obj)
+        if isinstance(wrapped_obj, HyObject):
+            raise Py2HyReturnException(wrapped_obj.replace(other))
+            _hy_anon_var_5 = None
+        else:
+            raise TypeError(("Don't know how to wrap a %s object to a HyObject" % type(obj)))
+            _hy_anon_var_5 = None
+        _hy_anon_var_6 = _hy_anon_var_5
+    except Py2HyReturnException as e:
+        _hy_anon_var_6 = e.retvalue
+    return _hy_anon_var_6
+
+
+class HyString(HyObject, str_type):
+    __doc__ = "\n    Generic Hy String object. Helpful to store string literals from Hy\n    scripts. It's either a ``str`` or a ``unicode``, depending on the\n    Python version.\n    "
+_wrappers[str_type] = HyString
+
+
+class HyBytes(HyObject, bytes_type):
+    __doc__ = "\n    Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending\n    on the Python version.\n    "
+_wrappers[bytes_type] = HyBytes
+
+
+class HySymbol(HyString):
+    __doc__ = '\n    Hy Symbol. Basically a String.\n    '
+
+    def __init__(self, string):
+        self += string
+        return None
+_wrappers[bool] = (lambda x: (HySymbol('True') if x else HySymbol('False')))
+_wrappers[type(None)] = (lambda foo: HySymbol('None'))
+
+
+class HyKeyword(HyObject, str_type):
+    __doc__ = "Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,\n    depending on the Python version.\n    "
+    PREFIX = '\ufdd0'
+
+    def __new__(cls, value):
+        if (not value.startswith(cls.PREFIX)):
+            value = (cls.PREFIX + value)
+            _hy_anon_var_7 = None
+        else:
+            _hy_anon_var_7 = None
+        obj = str_type.__new__(cls, value)
+        return obj
+
+def strip_digit_separators(number):
+    return (number.replace('_', '').replace(',', '') if isinstance(number, string_types) else number)
+
+
+class HyInteger(HyObject, long_type):
+    __doc__ = '\n    Internal representation of a Hy Integer. May raise a ValueError as if\n    int(foo) was called, given HyInteger(foo). On python 2.x long will\n    be used instead\n    '
+
+    def __new__(cls, number, *args, **kwargs):
+        if isinstance(number, string_types):
+            number = strip_digit_separators(number)
+            bases = {'0x': 16, '0o': 8, '0b': 2, }
+            for [leader, base] in bases.items():
+                if number.startswith(leader):
+                    number = long_type(number, base=base)
+                    break
+                    _hy_anon_var_8 = None
+                else:
+                    _hy_anon_var_8 = None
+            _hy_anon_var_9 = None
+        else:
+            number = long_type(number)
+            _hy_anon_var_9 = None
+        return super(HyInteger, cls).__new__(cls, number)
+_wrappers[int] = HyInteger
+if (not PY3):
+    _wrappers[long_type] = HyInteger
+    _hy_anon_var_10 = None
+else:
+    _hy_anon_var_10 = None
+
+def check_inf_nan_cap(arg, value):
+    if isinstance(arg, string_types):
+        if (isinf(value) and ('Inf' not in arg)):
+            raise ValueError('Inf must be capitalized as "Inf"')
+            _hy_anon_var_11 = None
+        else:
+            _hy_anon_var_11 = None
+        if (isnan(value) and ('NaN' not in arg)):
+            raise ValueError('NaN must be capitalized as "NaN"')
+            _hy_anon_var_12 = None
+        else:
+            _hy_anon_var_12 = None
+        _hy_anon_var_13 = _hy_anon_var_12
+    else:
+        _hy_anon_var_13 = None
+    return _hy_anon_var_13
+
+
+class HyFloat(HyObject, float):
+    __doc__ = '\n    Internal representation of a Hy Float. May raise a ValueError as if\n    float(foo) was called, given HyFloat(foo).\n    '
+
+    def __new__(cls, num, *args, **kwargs):
+        value = super(HyFloat, cls).__new__(cls, strip_digit_separators(num))
+        check_inf_nan_cap(num, value)
+        return value
+_wrappers[float] = HyFloat
+
+
+class HyComplex(HyObject, complex):
+    __doc__ = '\n    Internal representation of a Hy Complex. May raise a ValueError as if\n    complex(foo) was called, given HyComplex(foo).\n    '
+
+    def __new__(cls, num, *args, **kwargs):
+        value = super(HyComplex, cls).__new__(cls, strip_digit_separators(num))
+        if isinstance(num, string_types):
+            _py2hy_anon_var_G_1238 = num.lstrip('+-').replace('-', '+').partition('+')
+            p1 = _py2hy_anon_var_G_1238[0]
+            p2 = _py2hy_anon_var_G_1238[2]
+            if p2:
+                check_inf_nan_cap(p1, value.real)
+                _hy_anon_var_14 = check_inf_nan_cap(p2, value.imag)
+            else:
+                _hy_anon_var_14 = (check_inf_nan_cap(p1, value.imag) if ('j' in p1) else check_inf_nan_cap(p1, value.real))
+            _hy_anon_var_15 = _hy_anon_var_14
+        else:
+            _hy_anon_var_15 = None
+        return value
+_wrappers[complex] = HyComplex
+
+
+class HyList(HyObject, list):
+    __doc__ = '\n    Hy List. Basically just a list.\n    '
+
+    def replace(self, other):
+        for x in self:
+            replace_hy_obj(x, other)
+        HyObject.replace(self, other)
+        return self
+
+    def __add__(self, other):
+        return self.__class__(super(HyList, self).__add__(other))
+
+    def __getslice__(self, start, end):
+        return self.__class__(super(HyList, self).__getslice__(start, end))
+
+    def __getitem__(self, item):
+        try:
+            ret = super(HyList, self).__getitem__(item)
+            if isinstance(item, slice):
+                raise Py2HyReturnException(self.__class__(ret))
+                _hy_anon_var_16 = None
+            else:
+                _hy_anon_var_16 = None
+            raise Py2HyReturnException(ret)
+            _hy_anon_var_17 = None
+        except Py2HyReturnException as e:
+            _hy_anon_var_17 = e.retvalue
+        return _hy_anon_var_17
+
+    def __repr__(self):
+        return ('[%s]' % ' '.join([repr(x) for x in self]))
+_wrappers[list] = (lambda l: HyList((wrap_value(x) for x in l)))
+_wrappers[tuple] = (lambda t: HyList((wrap_value(x) for x in t)))
+
+
+class HyDict(HyList):
+    __doc__ = '\n    HyDict (just a representation of a dict)\n    '
+
+    def __repr__(self):
+        return ('{%s}' % ' '.join([repr(x) for x in self]))
+
+    def keys(self):
+        return self[slice(0, None, 2)]
+
+    def values(self):
+        return self[slice(1, None, 2)]
+
+    def items(self):
+        return list(zip(self.keys(), self.values()))
+_wrappers[dict] = (lambda d: HyDict((wrap_value(x) for x in sum(d.items(), ()))))
+
+
+class HyExpression(HyList):
+    __doc__ = '\n    Hy S-Expression. Basically just a list.\n    '
+
+    def __repr__(self):
+        return ('(%s)' % ' '.join([repr(x) for x in self]))
+_wrappers[HyExpression] = (lambda e: HyExpression((wrap_value(x) for x in e)))
+_wrappers[Fraction] = (lambda e: HyExpression([HySymbol('fraction'), wrap_value(e.numerator), wrap_value(e.denominator)]))
+
+
+class HySet(HyList):
+    __doc__ = '\n    Hy set (just a representation of a set)\n    '
+
+    def __repr__(self):
+        return ('#{%s}' % ' '.join([repr(x) for x in self]))
+_wrappers[set] = (lambda s: HySet((wrap_value(x) for x in s)))
+
+
+class HyCons(HyObject):
+    __doc__ = '\n    HyCons: a cons object.\n\n    Building a HyCons of something and a HyList really builds a HyList\n    '
+    __slots__ = ['car', 'cdr']
+
+    def __new__(cls, car, cdr):
+        try:
+            if isinstance(cdr, list):
+                if (type(cdr) == HyExpression):
+                    if ((len(cdr) > 0) and (type(cdr[0]) == HySymbol)):
+                        if (cdr[0] in ('unquote', 'unquote_splice')):
+                            raise Py2HyReturnException(super(HyCons, cls).__new__(cls))
+                            _hy_anon_var_18 = None
+                        else:
+                            _hy_anon_var_18 = None
+                        _hy_anon_var_19 = _hy_anon_var_18
+                    else:
+                        _hy_anon_var_19 = None
+                    _hy_anon_var_20 = _hy_anon_var_19
+                else:
+                    _hy_anon_var_20 = None
+                raise Py2HyReturnException(cdr.__class__(([wrap_value(car)] + cdr)))
+                _hy_anon_var_22 = None
+            else:
+                if (cdr is None):
+                    raise Py2HyReturnException(HyExpression([wrap_value(car)]))
+                    _hy_anon_var_21 = None
+                else:
+                    raise Py2HyReturnException(super(HyCons, cls).__new__(cls))
+                    _hy_anon_var_21 = None
+                _hy_anon_var_22 = _hy_anon_var_21
+            _hy_anon_var_23 = _hy_anon_var_22
+        except Py2HyReturnException as e:
+            _hy_anon_var_23 = e.retvalue
+        return _hy_anon_var_23
+
+    def __init__(self, car, cdr):
+        self.car = wrap_value(car)
+        self.cdr = wrap_value(cdr)
+        return None
+
+    def __getitem__(self, n):
+        try:
+            if (n == 0):
+                raise Py2HyReturnException(self.car)
+                _hy_anon_var_24 = None
+            else:
+                _hy_anon_var_24 = None
+            if (n == slice(1, None)):
+                raise Py2HyReturnException(self.cdr)
+                _hy_anon_var_25 = None
+            else:
+                _hy_anon_var_25 = None
+            raise IndexError('Can only get the car ([0]) or the cdr ([1:]) of a HyCons')
+            _hy_anon_var_26 = None
+        except Py2HyReturnException as e:
+            _hy_anon_var_26 = e.retvalue
+        return _hy_anon_var_26
+
+    def __setitem__(self, n, new):
+        try:
+            if (n == 0):
+                self.car = new
+                raise Py2HyReturnException(None)
+                _hy_anon_var_27 = None
+            else:
+                _hy_anon_var_27 = None
+            if (n == slice(1, None)):
+                self.cdr = new
+                raise Py2HyReturnException(None)
+                _hy_anon_var_28 = None
+            else:
+                _hy_anon_var_28 = None
+            raise IndexError('Can only set the car ([0]) or the cdr ([1:]) of a HyCons')
+            _hy_anon_var_29 = None
+        except Py2HyReturnException as e:
+            _hy_anon_var_29 = e.retvalue
+        return _hy_anon_var_29
+
+    def __iter__(self):
+        try:
+            yield self.car
+            try:
+                iterator = (i for i in self.cdr)
+            except Py2HyReturnException as e:
+                raise e
+                _hy_anon_var_30 = None
+            except TypeError:
+                if (self.cdr is not None):
+                    yield self.cdr
+                    raise TypeError('Iteration on malformed cons')
+                    _hy_anon_var_31 = None
+                else:
+                    _hy_anon_var_31 = None
+                _hy_anon_var_30 = _hy_anon_var_31
+            else:
+                for i in iterator:
+                    yield i
+                _hy_anon_var_30 = None
+            _hy_anon_var_32 = _hy_anon_var_30
+        except Py2HyReturnException as e:
+            _hy_anon_var_32 = e.retvalue
+        return _hy_anon_var_32
+
+    def replace(self, other):
+        (replace_hy_obj(self.car, other) if (self.car is not None) else None)
+        (replace_hy_obj(self.cdr, other) if (self.cdr is not None) else None)
+        return HyObject.replace(self, other)
+
+    def __repr__(self):
+        try:
+            if isinstance(self.cdr, self.__class__):
+                raise Py2HyReturnException(('(%s %s)' % (repr(self.car), repr(self.cdr)[slice(1, (- 1), None)])))
+                _hy_anon_var_33 = None
+            else:
+                raise Py2HyReturnException(('(%s . %s)' % (repr(self.car), repr(self.cdr))))
+                _hy_anon_var_33 = None
+            _hy_anon_var_34 = _hy_anon_var_33
+        except Py2HyReturnException as e:
+            _hy_anon_var_34 = e.retvalue
+        return _hy_anon_var_34
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and (self.car == other.car) and (self.cdr == other.cdr))

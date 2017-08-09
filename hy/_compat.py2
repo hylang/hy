@@ -1,0 +1,42 @@
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+try:
+    import __builtin__ as builtins
+    _hy_anon_var_1 = None
+except Py2HyReturnException as e:
+    raise e
+    _hy_anon_var_1 = None
+except ImportError:
+    import builtins
+    _hy_anon_var_1 = None
+try:
+    from py_compile import MAGIC, wr_long
+    _hy_anon_var_2 = None
+except Py2HyReturnException as e:
+    raise e
+    _hy_anon_var_2 = None
+except ImportError:
+    from importlib.util import MAGIC_NUMBER as MAGIC
+
+    def wr_long(f, x):
+        'Internal; write a 32-bit int to a file in little-endian order.'
+        return f.write(bytes([bitand(x, 255), bitand((x >> 8), 255), bitand((x >> 16), 255), bitand((x >> 24), 255)]))
+    _hy_anon_var_2 = None
+import sys
+PY3 = (sys.version_info[0] >= 3)
+PY34 = (sys.version_info >= (3, 4))
+PY35 = (sys.version_info >= (3, 5))
+str_type = (str if PY3 else unicode)
+bytes_type = (bytes if PY3 else str)
+long_type = (int if PY3 else long)
+string_types = (str if PY3 else basestring)
+if PY3:
+    _hy_anon_var_3 = exec('def raise_empty(t, *args): raise t(*args) from None')
+else:
+
+    def raise_empty(t, *args):
+        raise t(*args)
+    _hy_anon_var_3 = None
