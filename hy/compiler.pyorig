@@ -14,7 +14,7 @@ import hy.macros
 from hy._compat import (
     str_type, string_types, bytes_type, long_type, PY3, PY34, PY35,
     raise_empty)
-from hy.macros import require_macro, macroexpand, tag_macroexpand
+from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
 
 import traceback
@@ -1628,7 +1628,8 @@ class HyASTCompiler(object):
             if isinstance(entry, HySymbol):
                 # e.g., (require foo)
                 __import__(entry)
-                require_macro(entry, self.module_name, all_macros=True, prefix=entry)
+                require_macro(entry, self.module_name, all_macros=True,
+                        prefix=entry)
             elif isinstance(entry, HyList) and len(entry) == 2:
                 # e.g., (require [foo [bar baz :as MyBaz bing]])
                 # or (require [foo [*]])

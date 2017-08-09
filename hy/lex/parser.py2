@@ -1,0 +1,356 @@
+from functools import wraps
+
+
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+from ast import literal_eval
+from rply import ParserGenerator
+from hy._compat import PY3, str_type
+from hy.models import HyBytes, HyComplex, HyCons, HyDict, HyExpression, HyFloat, HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol
+from lexer import lexer
+from exceptions import LexException, PrematureEndOfInput
+pg = ParserGenerator(([rule.name for rule in lexer.rules] + ['$end']), cache_id='hy_parser')
+
+def hy_symbol_mangle(p):
+    if (p.startswith('*') and p.endswith('*') and (p not in ('*', '**'))):
+        p = p[slice(1, (- 1), None)].upper()
+        _hy_anon_var_1 = None
+    else:
+        _hy_anon_var_1 = None
+    if (('-' in p) and (p != '-')):
+        p = p.replace('-', '_')
+        _hy_anon_var_2 = None
+    else:
+        _hy_anon_var_2 = None
+    if (p.endswith('?') and (p != '?')):
+        p = ('is_%s' % p[slice(None, (- 1), None)])
+        _hy_anon_var_3 = None
+    else:
+        _hy_anon_var_3 = None
+    if (p.endswith('!') and (p != '!')):
+        p = ('%s_bang' % p[slice(None, (- 1), None)])
+        _hy_anon_var_4 = None
+    else:
+        _hy_anon_var_4 = None
+    return p
+
+def hy_symbol_unmangle(p):
+    p = str_type(p)
+    if (p.endswith('_bang') and (p != '_bang')):
+        p = (p[slice(None, (- len('_bang')), None)] + '!')
+        _hy_anon_var_5 = None
+    else:
+        _hy_anon_var_5 = None
+    if (p.startswith('is_') and (p != 'is_')):
+        p = (p[slice(len('is_'), None, None)] + '?')
+        _hy_anon_var_6 = None
+    else:
+        _hy_anon_var_6 = None
+    if (('_' in p) and (p != '_')):
+        p = p.replace('_', '-')
+        _hy_anon_var_7 = None
+    else:
+        _hy_anon_var_7 = None
+    if (all([((c.isalpha() and c.isupper()) or (c == '_')) for c in p]) and any([c.isalpha() for c in p])):
+        p = (('*' + p.lower()) + '*')
+        _hy_anon_var_8 = None
+    else:
+        _hy_anon_var_8 = None
+    return p
+
+def set_boundaries(fun):
+
+    @wraps(fun)
+    def wrapped(p):
+        start = p[0].source_pos
+        end = p[(- 1)].source_pos
+        ret = fun(p)
+        ret.start_line = start.lineno
+        ret.start_column = start.colno
+        if (start is not end):
+            ret.end_line = end.lineno
+            ret.end_column = end.colno
+            _hy_anon_var_9 = None
+        else:
+            ret.end_line = start.lineno
+            ret.end_column = (start.colno + len(p[0].value))
+            _hy_anon_var_9 = None
+        return ret
+    return wrapped
+
+def set_quote_boundaries(fun):
+
+    @wraps(fun)
+    def wrapped(p):
+        start = p[0].source_pos
+        ret = fun(p)
+        ret.start_line = start.lineno
+        ret.start_column = start.colno
+        ret.end_line = p[(- 1)].end_line
+        ret.end_column = p[(- 1)].end_column
+        return ret
+    return wrapped
+
+@pg.production('main : list_contents')
+def main(p):
+    return p[0]
+
+@pg.production('main : $end')
+def main_empty(p):
+    return []
+
+def reject_spurious_dots(*items):
+    'Reject the spurious dots from items'
+    for list in items:
+        for tok in list:
+            if ((tok == '.') and (type(tok) == HySymbol)):
+                raise LexException('Malformed dotted list', tok.start_line, tok.start_column)
+                _hy_anon_var_10 = None
+            else:
+                _hy_anon_var_10 = None
+
+@pg.production('paren : LPAREN list_contents RPAREN')
+@set_boundaries
+def paren(p):
+    try:
+        cont = p[1]
+        if ((len(cont) >= 3) and isinstance(cont[(- 2)], HySymbol) and (cont[(- 2)] == '.')):
+            reject_spurious_dots(cont[slice(None, (- 2), None)], cont[slice((- 1), None, None)])
+            if (len(cont) == 3):
+                raise Py2HyReturnException(HyCons(cont[0], cont[2]))
+                _hy_anon_var_11 = None
+            else:
+                raise Py2HyReturnException(HyCons(cont[0], paren([p[0], cont[slice(1, None, None)], p[2]])))
+                _hy_anon_var_11 = None
+            _hy_anon_var_12 = _hy_anon_var_11
+        else:
+            _hy_anon_var_12 = None
+        reject_spurious_dots(cont[slice(1, None, None)])
+        raise Py2HyReturnException(HyExpression(p[1]))
+        _hy_anon_var_13 = None
+    except Py2HyReturnException as e:
+        _hy_anon_var_13 = e.retvalue
+    return _hy_anon_var_13
+
+@pg.production('paren : LPAREN RPAREN')
+@set_boundaries
+def empty_paren(p):
+    return HyExpression([])
+
+@pg.production('list_contents : term list_contents')
+def list_contents(p):
+    return ([p[0]] + p[1])
+
+@pg.production('list_contents : term')
+def list_contents_single(p):
+    return [p[0]]
+
+@pg.production('term : identifier')
+@pg.production('term : paren')
+@pg.production('term : dict')
+@pg.production('term : list')
+@pg.production('term : set')
+@pg.production('term : string')
+def term(p):
+    return p[0]
+
+@pg.production('term : QUOTE term')
+@set_quote_boundaries
+def term_quote(p):
+    return HyExpression([HySymbol('quote'), p[1]])
+
+@pg.production('term : QUASIQUOTE term')
+@set_quote_boundaries
+def term_quasiquote(p):
+    return HyExpression([HySymbol('quasiquote'), p[1]])
+
+@pg.production('term : UNQUOTE term')
+@set_quote_boundaries
+def term_unquote(p):
+    return HyExpression([HySymbol('unquote'), p[1]])
+
+@pg.production('term : UNQUOTESPLICE term')
+@set_quote_boundaries
+def term_unquote_splice(p):
+    return HyExpression([HySymbol('unquote_splice'), p[1]])
+
+@pg.production('term : HASHSTARS term')
+@set_quote_boundaries
+def term_hashstars(p):
+    n_stars = len(p[0].getstr()[slice(1, None, None)])
+    if (n_stars == 1):
+        sym = 'unpack_iterable'
+        _hy_anon_var_15 = None
+    else:
+        if (n_stars == 2):
+            sym = 'unpack_mapping'
+            _hy_anon_var_14 = None
+        else:
+            raise LexException('Too many stars in `#*` construct (if you want to unpack a symbol beginning with a star, separate it with whitespace)', p[0].source_pos.lineno, p[0].source_pos.colno)
+            _hy_anon_var_14 = None
+        _hy_anon_var_15 = _hy_anon_var_14
+    return HyExpression([HySymbol(sym), p[1]])
+
+@pg.production('term : HASHOTHER term')
+@set_quote_boundaries
+def hash_other(p):
+    st = p[0].getstr()[slice(1, None, None)]
+    str_object = HyString(st)
+    expr = p[1]
+    return HyExpression([HySymbol('dispatch_tag_macro'), str_object, expr])
+
+@pg.production('set : HLCURLY list_contents RCURLY')
+@set_boundaries
+def t_set(p):
+    return HySet(p[1])
+
+@pg.production('set : HLCURLY RCURLY')
+@set_boundaries
+def empty_set(p):
+    return HySet([])
+
+@pg.production('dict : LCURLY list_contents RCURLY')
+@set_boundaries
+def t_dict(p):
+    return HyDict(p[1])
+
+@pg.production('dict : LCURLY RCURLY')
+@set_boundaries
+def empty_dict(p):
+    return HyDict([])
+
+@pg.production('list : LBRACKET list_contents RBRACKET')
+@set_boundaries
+def t_list(p):
+    return HyList(p[1])
+
+@pg.production('list : LBRACKET RBRACKET')
+@set_boundaries
+def t_empty_list(p):
+    return HyList([])
+if PY3:
+
+    def uni_hystring(s):
+        return HyString(literal_eval(s))
+
+    def hybytes(s):
+        return HyBytes(literal_eval(('b' + s)))
+    _hy_anon_var_16 = None
+else:
+
+    def uni_hystring(s):
+        return HyString(literal_eval(('u' + s)))
+
+    def hybytes(s):
+        return HyBytes(literal_eval(s))
+    _hy_anon_var_16 = None
+
+@pg.production('string : STRING')
+@set_boundaries
+def t_string(p):
+    s = p[0].value[slice(None, (- 1), None)]
+    _py2hy_anon_var_G_1236 = s.split('"', 1)
+    header = _py2hy_anon_var_G_1236[0]
+    s = _py2hy_anon_var_G_1236[1]
+    header = header.replace('u', '')
+    is_bytestring = ('b' in header)
+    header = header.replace('b', '')
+    s = (((header + '"""') + s) + '"""')
+    return (hybytes if is_bytestring else uni_hystring)(s)
+
+@pg.production('string : PARTIAL_STRING')
+def t_partial_string(p):
+    raise PrematureEndOfInput('Premature end of input')
+
+@pg.production('identifier : IDENTIFIER')
+@set_boundaries
+def t_identifier(p):
+    try:
+        obj = p[0].value
+        val = symbol_like(obj)
+        if (val is not None):
+            raise Py2HyReturnException(val)
+            _hy_anon_var_17 = None
+        else:
+            _hy_anon_var_17 = None
+        if (('.' in obj) and (symbol_like(obj.split('.', 1)[0]) is not None)):
+            raise LexException('Cannot access attribute on anything other than a name (in order to get attributes of expressions, use `(. <expression> <attr>)` or `(.<attr> <expression>)`)', p[0].source_pos.lineno, p[0].source_pos.colno)
+            _hy_anon_var_18 = None
+        else:
+            _hy_anon_var_18 = None
+        raise Py2HyReturnException(HySymbol('.'.join((hy_symbol_mangle(x) for x in obj.split('.')))))
+        _hy_anon_var_19 = None
+    except Py2HyReturnException as e:
+        _hy_anon_var_19 = e.retvalue
+    return _hy_anon_var_19
+
+def symbol_like(obj):
+    'Try to interpret `obj` as a number or keyword.'
+    try:
+        try:
+            raise Py2HyReturnException(HyInteger(obj))
+            _hy_anon_var_20 = None
+        except Py2HyReturnException as e:
+            raise e
+            _hy_anon_var_20 = None
+        except ValueError:
+            _hy_anon_var_20 = None
+        if ('/' in obj):
+            try:
+                _py2hy_anon_var_G_1238 = obj.split('/')
+                lhs = _py2hy_anon_var_G_1238[0]
+                rhs = _py2hy_anon_var_G_1238[1]
+                raise Py2HyReturnException(HyExpression([HySymbol('fraction'), HyInteger(lhs), HyInteger(rhs)]))
+                _hy_anon_var_21 = None
+            except Py2HyReturnException as e:
+                raise e
+                _hy_anon_var_21 = None
+            except ValueError:
+                _hy_anon_var_21 = None
+            _hy_anon_var_22 = _hy_anon_var_21
+        else:
+            _hy_anon_var_22 = None
+        try:
+            raise Py2HyReturnException(HyFloat(obj))
+            _hy_anon_var_23 = None
+        except Py2HyReturnException as e:
+            raise e
+            _hy_anon_var_23 = None
+        except ValueError:
+            _hy_anon_var_23 = None
+        if (obj != 'j'):
+            try:
+                raise Py2HyReturnException(HyComplex(obj))
+                _hy_anon_var_24 = None
+            except Py2HyReturnException as e:
+                raise e
+                _hy_anon_var_24 = None
+            except ValueError:
+                _hy_anon_var_24 = None
+            _hy_anon_var_25 = _hy_anon_var_24
+        else:
+            _hy_anon_var_25 = None
+        if (obj.startswith(':') and ('.' not in obj)):
+            raise Py2HyReturnException(HyKeyword(obj))
+            _hy_anon_var_26 = None
+        else:
+            _hy_anon_var_26 = None
+        _hy_anon_var_27 = _hy_anon_var_26
+    except Py2HyReturnException as e:
+        _hy_anon_var_27 = e.retvalue
+    return _hy_anon_var_27
+
+@pg.error
+def error_handler(token):
+    tokentype = token.gettokentype()
+    if (tokentype == '$end'):
+        raise PrematureEndOfInput('Premature end of input')
+        _hy_anon_var_28 = None
+    else:
+        raise LexException(("Ran into a %s where it wasn't expected." % tokentype), token.source_pos.lineno, token.source_pos.colno)
+        _hy_anon_var_28 = None
+    return _hy_anon_var_28
+parser = pg.build()

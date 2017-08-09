@@ -1,0 +1,51 @@
+from hy.errors import HyError
+
+
+class Py2HyReturnException(Exception):
+
+    def __init__(self, retvalue):
+        self.retvalue = retvalue
+        return None
+
+
+class LexException(HyError):
+    __doc__ = 'Error during the Lexing of a Hython expression.'
+
+    def __init__(self, message, lineno, colno, source=None):
+        super(LexException, self).__init__(message)
+        self.message = message
+        self.lineno = lineno
+        self.colno = colno
+        self.source = source
+        self.filename = '<stdin>'
+        return None
+
+    def __str__(self):
+        from hy.errors import colored
+        line = self.lineno
+        start = self.colno
+        result = ''
+        source = self.source.split('\n')
+        if ((line > 0) and (start > 0)):
+            result += ('  File "%s", line %d, column %d\n\n' % (self.filename, line, start))
+            if (len(self.source) > 0):
+                source_line = source[(line - 1)]
+                _hy_anon_var_1 = None
+            else:
+                source_line = ''
+                _hy_anon_var_1 = None
+            result += ('  %s\n' % colored.red(source_line))
+            result += ('  %s%s\n' % ((' ' * (start - 1)), colored.green('^')))
+            _hy_anon_var_2 = None
+        else:
+            _hy_anon_var_2 = None
+        result += colored.yellow(('LexException: %s\n\n' % self.message))
+        return result
+
+
+class PrematureEndOfInput(LexException):
+    __doc__ = 'We got a premature end of input'
+
+    def __init__(self, message):
+        super(PrematureEndOfInput, self).__init__(message, (- 1), (- 1))
+        return None
