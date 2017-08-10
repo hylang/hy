@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # Copyright 2017 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
@@ -44,6 +45,10 @@ def cant_compile(expr):
         assert isinstance(e.exception, HyTypeError)
         assert e.traceback
         return e
+
+
+def s(x):
+    return can_compile(x).body[0].value.s
 
 
 def test_ast_bad_type():
@@ -473,12 +478,54 @@ def test_ast_unicode_strings():
 
 
 def test_ast_unicode_vs_bytes():
-    def f(x): return can_compile(x).body[0].value.s
-    assert f('"hello"') == u"hello"
-    assert type(f('"hello"')) is (str if PY3 else unicode)  # noqa
-    assert f('b"hello"') == (eval('b"hello"') if PY3 else "hello")
-    assert type(f('b"hello"')) == (bytes if PY3 else str)
-    assert f('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+    assert s('"hello"') == u"hello"
+    assert type(s('"hello"')) is (str if PY3 else unicode)  # noqa
+    assert s('b"hello"') == (eval('b"hello"') if PY3 else "hello")
+    assert type(s('b"hello"')) == (bytes if PY3 else str)
+    assert s('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+
+
+def test_ast_qstring_plain():
+    assert s('#q" hello world "') == ' hello world '
+    assert s(r'#q" h\ello wo\r\ld "') == r' h\ello wo\r\ld '
+    assert s('#qXliteral\nnewlineX') == 'literal\nnewline'
+    assert s(r'#qXbackslash\nthingX') == r'backslash\nthing'
+    assert s('#qXtrailing backslash\\X') == 'trailing backslash\\'
+    assert s('#q\\backslash delims\\') == 'backslash delims'
+    assert s(r'#qX ; not a comment X') == ' ; not a comment '
+    assert s(r'''#qX "ain't" X''') == ''' "ain't" '''
+    assert s(r"#q'single quotes'") == 'single quotes'
+    assert s(r"#q😈Unicode😈") == 'Unicode'
+
+
+def test_ast_qstring_balanced():
+    assert s(r'#q[bracketed]') == 'bracketed'
+    assert s(r'#q[inner [ open ] brackets]') == 'inner [ open ] brackets'
+    assert (s(r'#q[more  [[ inner ] ]  [brackets]]') ==
+            'more  [[ inner ] ]  [brackets]')
+    assert s(r'#q[ other () {} \  stuff ]') == r' other () {} \  stuff '
+    assert s(r'#q(parens)') == 'parens'
+    assert s(r'#q{braces}') == 'braces'
+    assert s(r'#q⁅funny brackets⁆') == 'funny brackets'
+    assert s(r'#q⸨funny brackets⸩') == 'funny brackets'
+    assert s(r'#q“funny quotes”') == 'funny quotes'
+    assert s(r'#q«funny quotes»') == 'funny quotes'
+    assert s(r'#q«nested «funny» quotes»') == 'nested «funny» quotes'
+
+
+def test_ast_qstring_pointy():
+    assert s(r'#q<my delim>pointy stringmy delim') == 'pointy string'
+    assert s(r'#q<foozle>aa foozli bb foozle') == 'aa foozli bb '
+    assert s(r'#q<(>unbalanced(') == 'unbalanced'
+    assert s(r'#q<(]1💯@[)} {a!>hello world(]1💯@[)} {a!') == 'hello world'
+    assert (s(r'''#q<X>
+Remove the leading newline, please.
+X''') == 'Remove the leading newline, please.\n')
+    assert (s(r'''#q<X>
+
+
+Only one leading newline should be removed.
+X''') == '\n\nOnly one leading newline should be removed.\n')
 
 
 def test_compile_error():
