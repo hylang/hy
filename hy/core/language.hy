@@ -21,6 +21,12 @@
 (import [hy.compiler [HyASTCompiler spoof-positions]])
 (import [hy.importer [hy-eval :as eval]])
 
+(defn assoc [coll &rest kvs]
+  (if (odd? (len kvs))
+    (raise (TypeError "`assoc` takes an odd number of arguments")))
+  (for* [[k v] (partition kvs)]
+    (setv (get coll k) v)))
+
 (defn butlast [coll]
   "Returns coll except of last element."
   (drop-last 1 coll))
@@ -328,9 +334,7 @@
     (do
       (defn merge-entry [m e]
         (setv k (get e 0) v (get e 1))
-        (if (in k m)
-          (assoc m k (f (get m k) v))
-          (assoc m k v))
+        (assoc m k (if (in k m) (f (get m k) v) v))
         m)
       (defn merge2 [m1 m2]
         (reduce merge-entry (.items m2) (or m1 {})))
@@ -477,7 +481,7 @@
     (or a b)))
 
 (def *exports*
-  '[*map accumulate butlast calling-module-name chain coll? combinations
+  '[*map accumulate assoc butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first
     filter flatten float? fraction gensym group-by identity inc input instance?
