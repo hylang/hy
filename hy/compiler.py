@@ -322,21 +322,25 @@ def _raise_wrong_args_number(expression, error):
                                len(expression)))
 
 
+def _nargs(n):
+    return "%d argument%s" % (n, ("" if n == 1 else "s"))
+
+
 def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
     def _dec(fn):
         def checker(self, expression):
             if exact is not None and (len(expression) - 1) != exact:
                 _raise_wrong_args_number(
-                    expression, "`%%s' needs %d arguments, got %%d" % exact)
+                    expression, "`%%s' needs %s, got %%d" % _nargs(exact))
             if min is not None and (len(expression) - 1) < min:
                 _raise_wrong_args_number(
                     expression,
-                    "`%%s' needs at least %d arguments, got %%d." % (min))
+                    "`%%s' needs at least %s, got %%d." % _nargs(min))
 
             if max is not None and (len(expression) - 1) > max:
                 _raise_wrong_args_number(
                     expression,
-                    "`%%s' needs at most %d arguments, got %%d" % (max))
+                    "`%%s' needs at most %s, got %%d" % _nargs(max))
 
             is_even = not((len(expression) - 1) % 2)
             if even is not None and is_even != even:
