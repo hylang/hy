@@ -23,6 +23,7 @@ import codecs
 import ast
 import sys
 import keyword
+import copy
 
 from collections import defaultdict
 
@@ -2392,7 +2393,8 @@ class HyASTCompiler(object):
         """Compile-time hack: we want to get our new macro now
         We must provide __name__ in the namespace to make the Python
         compiler set the __module__ attribute of the macro function."""
-        hy.importer.hy_eval(expression,
+
+        hy.importer.hy_eval(copy.deepcopy(expression),
                             compile_time_ns(self.module_name),
                             self.module_name)
 
