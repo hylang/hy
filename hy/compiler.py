@@ -2316,6 +2316,16 @@ class HyASTCompiler(object):
 
         return ret
 
+    @builds("return")
+    @checkargs(max=1)
+    def compile_return(self, expr):
+        ret = Result()
+        if len(expr) > 1:
+            ret += self.compile(expr[1])
+        return ret + ast.Return(value=ret.force_expr,
+                                lineno=expr.start_line,
+                                col_offset=expr.start_column)
+
     @builds("defclass")
     @checkargs(min=1)
     def compile_class_expression(self, expressions):
