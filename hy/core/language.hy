@@ -328,9 +328,9 @@
     (do
       (defn merge-entry [m e]
         (setv k (get e 0) v (get e 1))
-        (if (in k m)
-          (assoc m k (f (get m k) v))
-          (assoc m k v))
+        (setv (get m k) (if (in k m)
+                          (f (get m k) v)
+                          v))
         m)
       (defn merge2 [m1 m2]
         (reduce merge-entry (.items m2) (or m1 {})))
