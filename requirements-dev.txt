@@ -1,9 +1,9 @@
 -r requirements-travis.txt
+
 # test tools
-pytest
 tox
 
 # documentation
-Pygments>=1.6
+Pygments >= 1.6
 Sphinx
 sphinx_rtd_theme
