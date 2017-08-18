@@ -120,7 +120,7 @@ imagine the entire same structure as above but with square brackets
 instead, any you'll be able to see the structure above as both a
 program and a data structure.)  This is easier to understand with more
 examples, so let's write a simple Python program, test it, and then
-show the equivalent Hy program::
+show the equivalent Hy program. In case you're using Hy with Python 2.x::
 
   def simple_conversation():
       print "Hello!  I'd like to get to know you.  Tell me about yourself!"
@@ -130,6 +130,8 @@ show the equivalent Hy program::
 
   simple_conversation()
 
+In case of Python 3.x, ``raw_input`` does not exist. Use ``input`` instead. 
+
 If we ran this program, it might go like::
 
   Hello!  I'd like to get to know you.  Tell me about yourself!
@@ -137,7 +139,7 @@ If we ran this program, it might go like::
   What is your age? 38
   Hello Gary!  I see you are 38 years old.
 
-Now let's look at the equivalent Hy program:
+Now let's look at the equivalent Hy program if you're using Python 2.x:
 
 .. code-block:: clj
 
@@ -149,6 +151,8 @@ Now let's look at the equivalent Hy program:
                  age " years old.")))
 
    (simple-conversation)
+
+In case you're using Python 3.x, replace ``raw-input`` by just ``input``.
 
 If you look at the above program, as long as you remember that the
 first element in each list of the program is the function (or
