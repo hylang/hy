@@ -1452,29 +1452,36 @@ class HyASTCompiler(object):
             raise HyTypeError(expr,
                               "with expects a list, received `{0}'".format(
                                   type(args).__name__))
-        if len(args) < 1:
-            raise HyTypeError(expr, "with needs [[arg (expr)]] or [[(expr)]]]")
-
-        args.reverse()
-        ctx = self.compile(args.pop(0))
+        if len(args) not in (1, 2):
+            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
 
         thing = None
-        if args != []:
+        if len(args) == 2:
             thing = self._storeize(args[0], self.compile(args.pop(0)))
+        ctx = self.compile(args.pop(0))
 
         body = self._compile_branch(expr)
 
+        # Store the result of the body in a tempvar
         var = self.get_anon_var()
         name = ast.Name(id=ast_str(var), arg=ast_str(var),
                         ctx=ast.Store(),
                         lineno=expr.start_line,
                         col_offset=expr.start_column)
-
-        # Store the result of the body in a tempvar
         body += ast.Assign(targets=[name],
                            value=body.force_expr,
                            lineno=expr.start_line,
                            col_offset=expr.start_column)
+        # Initialize the tempvar to None in case the `with` exits
+        # early with an exception.
+        initial_assign = ast.Assign(targets=[name],
+                                    value=ast.Name(
+                                        id=ast_str("None"),
+                                        ctx=ast.Load(),
+                                        lineno=expr.start_line,
+                                        col_offset=expr.start_column),
+                                    lineno=expr.start_line,
+                                    col_offset=expr.start_column)
 
         the_with = ast.With(context_expr=ctx.force_expr,
                             lineno=expr.start_line,
@@ -1486,7 +1493,7 @@ class HyASTCompiler(object):
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
-        ret = ctx + the_with
+        ret = Result(stmts = [initial_assign]) + ctx + the_with
         ret.contains_yield = ret.contains_yield or body.contains_yield
         # And make our expression context our temp variable
         expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
@@ -1494,7 +1501,10 @@ class HyASTCompiler(object):
                              lineno=expr.start_line,
                              col_offset=expr.start_column)
 
-        ret += Result(expr=expr_name, temp_variables=[expr_name, name])
+        ret += Result(expr=expr_name)
+        # We don't give the Result any temp_vars because we don't want
+        # Result.rename to touch `name`. Otherwise, initial_assign will
+        # clobber any preexisting value of the renamed-to variable.
 
         return ret
 
