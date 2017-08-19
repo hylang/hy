@@ -678,3 +678,7 @@ result['y in globals'] = 'y' in globals()")
                 [1 6 21])
   (assert-equal ((juxt identity) 42)
                 [42]))
+
+(defn test-comment []
+  (assert-none (comment <h1>This is merely a comment.</h1>
+                        <p> Move along. (Nothing to see here.)</p>)))
