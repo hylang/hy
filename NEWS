@@ -27,6 +27,8 @@ Changes from 0.13.0
    * `exec` now works under Python 2
    * No TypeError from multi-arity defn returning values evaluating to None
    * try form now possible in defmacro/deftag
+   * Fixed a crash when `with` suppresses an exception. `with` now returns
+     `None` in this case.
 
    [ Misc. Improvements ]
    * `read`, `read_str`, and `eval` are exposed and documented as top-level

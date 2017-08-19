@@ -1678,6 +1678,13 @@ screen. The file is automatically closed after it has been processed.
 
     (with [f (open "NEWS")] (print (.read f)))
 
+``with`` returns the value of its last form, unless it suppresses an exception
+(because the context manager's ``__exit__`` method returned true), in which
+case it returns ``None``. So, the previous example could also be written
+
+.. code-block:: clj
+
+    (print (with [f (open "NEWS")] (.read f)))
 
 with-decorator
 --------------
