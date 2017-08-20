@@ -353,9 +353,13 @@ class HyCons(HyObject):
 
     def __repr__(self):
         if isinstance(self.cdr, self.__class__):
-            return "<HyCons (%s %s)>" % (repr(self.car), repr(self.cdr)[9:-2])
+            return "<HyCons (\n  %s%s" % (
+                repr(self.car).replace('\n', '\n  '),
+                repr(self.cdr)[9:])
         else:
-            return "<HyCons (%s . %s)>" % (repr(self.car), repr(self.cdr))
+            return "<HyCons (\n  %s\n. %s)>" % (
+                repr(self.car).replace('\n', '\n  '),
+                repr(self.cdr).replace('\n', '\n  '))
 
     def __eq__(self, other):
         return (
