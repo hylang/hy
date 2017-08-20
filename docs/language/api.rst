@@ -1469,6 +1469,38 @@ Given an empty collection, it returns an empty iterable.
     => (list (rest []))
     []
 
+return
+-------
+
+``return`` compiles to a :py:keyword:`return` statement. It exits the
+current function, returning its argument if provided with one or
+``None`` if not.
+
+.. code-block:: hy
+
+    => (defn f [x] (for [n (range 10)] (when (> n x) (return n))))
+    => (f 3.9)
+    4
+
+Note that in Hy, ``return`` is necessary much less often than in Python,
+since the last form of a function is returned automatically. Hence, an
+explicit ``return`` is only necessary to exit a function early.
+
+.. code-block:: hy
+
+    => (defn f [x] (setv y 10) (+ x y))
+    => (f 4)
+    14
+
+To get Python's behavior of returning ``None`` when execution reaches
+the end of a function, put ``None`` there yourself.
+
+.. code-block:: hy
+
+    => (defn f [x] (setv y 10) (+ x y) None)
+    => (print (f 4))
+    None
+
 set-comp
 --------
 
