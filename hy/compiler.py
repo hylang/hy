@@ -1471,7 +1471,7 @@ class HyASTCompiler(object):
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
-        ret = Result(stmts = [initial_assign]) + ctx + the_with
+        ret = Result(stmts=[initial_assign]) + ctx + the_with
         ret.contains_yield = ret.contains_yield or body.contains_yield
         # And make our expression context our temp variable
         expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
@@ -2020,14 +2020,14 @@ class HyASTCompiler(object):
         else:
             with_kwargs = True
 
-        args, ret, keywords, oldpy_starargs, oldpy_kwargs = self._compile_collect(
+        args, ret, keywords, oldpy_star, oldpy_kw = self._compile_collect(
             expression[1:], with_kwargs, oldpy_unpack=True)
 
         ret += ast.Call(func=func.expr,
                         args=args,
                         keywords=keywords,
-                        starargs=oldpy_starargs,
-                        kwargs=oldpy_kwargs,
+                        starargs=oldpy_star,
+                        kwargs=oldpy_kw,
                         lineno=expression.start_line,
                         col_offset=expression.start_column)
 
