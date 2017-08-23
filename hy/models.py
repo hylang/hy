@@ -63,7 +63,7 @@ def replace_hy_obj(obj, other):
 
 
 def repr_indent(obj):
-    return repr(obj).replace('\n','\n  ')
+    return repr(obj).replace("\n", "\n  ")
 
 
 class HyString(HyObject, str_type):
@@ -226,7 +226,7 @@ class HyList(HyObject, list):
         if self:
             return "%s([\n  %s])" % (
                 self.__class__.__name__,
-                ",\n  ".join([repr_indent(x) for x in self]))
+                ",\n  ".join([repr_indent(e) for e in self]))
         else:
             return self.__class__.__name__ + "()"
 
@@ -352,14 +352,14 @@ class HyCons(HyObject):
         HyObject.replace(self, other)
 
     def __repr__(self):
-        if isinstance(self.cdr, self.__class__):
-            return "<HyCons (\n  %s%s" % (
-                repr(self.car).replace('\n', '\n  '),
-                repr(self.cdr)[9:])
-        else:
-            return "<HyCons (\n  %s\n. %s)>" % (
-                repr(self.car).replace('\n', '\n  '),
-                repr(self.cdr).replace('\n', '\n  '))
+        lines = ["<HyCons ("]
+        while True:
+            lines.append("  " + repr_indent(self.car))
+            if not isinstance(self.cdr, HyCons):
+                break
+            self = self.cdr
+        lines.append(". %s)>" % (repr_indent(self.cdr),))
+        return '\n'.join(lines)
 
     def __eq__(self, other):
         return (
