@@ -5,6 +5,8 @@
 import re, os, sys, time, cgi
 sys.path.append(os.path.abspath(".."))
 
+extensions = ['sphinx.ext.intersphinx']
+
 from get_version import __version__ as hy_version
 # Read the Docs might dirty its checkout, so strip the dirty flag.
 hy_version = re.sub('[+.]dirty\Z', '', hy_version)
@@ -48,3 +50,7 @@ html_show_sphinx = False
 
 html_context = dict(
     hy_descriptive_version = hy_descriptive_version)
+
+intersphinx_mapping = dict(
+    py2 = ('https://docs.python.org/2', None),
+    py  = ('https://docs.python.org/3', None))

@@ -1,6 +1,7 @@
 Changes from 0.13.0
 
    [ Language Changes ]
+   * The unquote-splice or ~@ form now accepts any false value as empty.
    * `yield-from` is no longer supported under Python 2
    * `apply` has been replaced with Python-style unpacking operators `#*` and
      `#**` (e.g., `(f #* args #** kwargs)`)
@@ -13,6 +14,9 @@ Changes from 0.13.0
      ``(eval `(+ 1 ~(HyInteger n)))``
    * Literal `Inf`s and `NaN`s must now be capitalized like that
    * `get` is available as a function
+   * new `comment` macro
+   * support EDN `#_` syntax to discard the next term
+   * `return` has been implemented as a special form
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot
@@ -23,6 +27,15 @@ Changes from 0.13.0
      mistaken for shebang lines
    * Fixed a bug where REPL history wasn't saved if you quit the REPL with
      `(quit)` or `(exit)`
+   * `exec` now works under Python 2
+   * No TypeError from multi-arity defn returning values evaluating to None
+   * try form now possible in defmacro/deftag
+   * Fixed a crash when `with` suppresses an exception. `with` now returns
+     `None` in this case.
+
+   [ Misc. Improvements ]
+   * `read`, `read_str`, and `eval` are exposed and documented as top-level
+     functions in the `hy` module
 
 Changes from 0.12.1
 

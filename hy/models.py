@@ -171,18 +171,17 @@ class HyComplex(HyObject, complex):
     complex(foo) was called, given HyComplex(foo).
     """
 
-    def __new__(cls, num, *args, **kwargs):
-        value = super(HyComplex, cls).__new__(cls, strip_digit_separators(num))
-        if isinstance(num, string_types):
-            p1, _, p2 = num.lstrip("+-").replace("-", "+").partition("+")
+    def __new__(cls, real, imag=0, *args, **kwargs):
+        if isinstance(real, string_types):
+            value = super(HyComplex, cls).__new__(
+                cls, strip_digit_separators(real)
+            )
+            p1, _, p2 = real.lstrip("+-").replace("-", "+").partition("+")
+            check_inf_nan_cap(p1, value.imag if "j" in p1 else value.real)
             if p2:
-                check_inf_nan_cap(p1, value.real)
                 check_inf_nan_cap(p2, value.imag)
-            elif "j" in p1:
-                check_inf_nan_cap(p1, value.imag)
-            else:
-                check_inf_nan_cap(p1, value.real)
-        return value
+            return value
+        return super(HyComplex, cls).__new__(cls, real, imag)
 
 _wrappers[complex] = HyComplex
 

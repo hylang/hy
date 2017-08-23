@@ -89,6 +89,31 @@ the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
 
+discard prefix
+--------------
+
+Hy supports the Extensible Data Notation discard prefix, like Clojure.
+Any form prefixed with ``#_`` is discarded instead of compiled.
+This completely removes the form so it doesn't evaluate to anything,
+not even None.
+It's often more useful than linewise comments for commenting out a
+form, because it respects code structure even when part of another
+form is on the same line. For example:
+
+.. code-block:: clj
+
+   => (print "Hy" "cruel" "World!")
+   Hy cruel World!
+   => (print "Hy" #_"cruel" "World!")
+   Hy World!
+   => (+ 1 1 (print "Math is hard!"))
+   Math is hard!
+   Traceback (most recent call last):
+      ...
+   TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
+   => (+ 1 1 #_(print "Math is hard!"))
+   2
+
 Built-Ins
 =========
 
@@ -326,6 +351,30 @@ as the user enters *k*.
     (while True (if (= "k" (raw-input "? "))
                   (break)
                   (print "Try again")))
+
+
+comment
+----
+
+The ``comment`` macro ignores its body and always expands to ``None``.
+Unlike linewise comments, the body of the ``comment`` macro must
+be grammatically valid Hy, so the compiler can tell where the comment ends.
+Besides the semicolon linewise comments,
+Hy also has the ``#_`` discard prefix syntax to discard the next form.
+This is completely discarded and doesn't expand to anything, not even ``None``.
+
+.. code-block:: clj
+
+   => (print (comment <h1>Suprise!</h1>
+   ...                <p>You'd be surprised what's grammatically valid in Hy.</p>
+   ...                <p>(Keep delimiters in balance, and you're mostly good to go.)</p>)
+   ...        "Hy")
+   None Hy
+   => (print #_(comment <h1>Suprise!</h1>
+   ...                  <p>You'd be surprised what's grammatically valid in Hy.</p>
+   ...                  <p>(Keep delimiters in balance, and you're mostly good to go.)</p>))
+   ...        "Hy")
+   Hy
 
 
 cond
@@ -1420,6 +1469,38 @@ Given an empty collection, it returns an empty iterable.
     => (list (rest []))
     []
 
+return
+-------
+
+``return`` compiles to a :py:keyword:`return` statement. It exits the
+current function, returning its argument if provided with one or
+``None`` if not.
+
+.. code-block:: hy
+
+    => (defn f [x] (for [n (range 10)] (when (> n x) (return n))))
+    => (f 3.9)
+    4
+
+Note that in Hy, ``return`` is necessary much less often than in Python,
+since the last form of a function is returned automatically. Hence, an
+explicit ``return`` is only necessary to exit a function early.
+
+.. code-block:: hy
+
+    => (defn f [x] (setv y 10) (+ x y))
+    => (f 4)
+    14
+
+To get Python's behavior of returning ``None`` when execution reaches
+the end of a function, put ``None`` there yourself.
+
+.. code-block:: hy
+
+    => (defn f [x] (setv y 10) (+ x y) None)
+    => (print (f 4))
+    None
+
 set-comp
 --------
 
@@ -1604,19 +1685,31 @@ unquote-splice
 --------------
 
 ``unquote-splice`` forces the evaluation of a symbol within a quasiquoted form,
-much like ``unquote``. ``unquote-splice`` can only be used when the symbol
+much like ``unquote``. ``unquote-splice`` can be used when the symbol
 being unquoted contains an iterable value, as it "splices" that iterable into
-the quasiquoted form. ``unquote-splice`` is aliased to the ``~@`` symbol.
+the quasiquoted form. ``unquote-splice`` can also be used when the value
+evaluates to a false value such as ``None``, ``False``, or ``0``, in which
+case the value is treated as an empty list and thus does not splice anything
+into the form. ``unquote-splice`` is aliased to the ``~@`` syntax.
 
 .. code-block:: clj
 
     (def nums [1 2 3 4])
     (quasiquote (+ (unquote-splice nums)))
-    ;=> (u'+' 1L 2L 3L 4L)
+    ;=> ('+' 1 2 3 4)
 
     `(+ ~@nums)
-    ;=> (u'+' 1L 2L 3L 4L)
+    ;=> ('+' 1 2 3 4)
 
+    `[1 2 ~@(if (< (nth nums 0) 0) nums)]
+    ;=> ('+' 1 2)
+
+Here, the last example evaluates to ``('+' 1 2)``, since the condition
+``(< (nth nums 0) 0)`` is ``False``, which makes this ``if`` expression
+evaluate to ``None``, because the ``if`` expression here does not have an
+else clause. ``unquote-splice`` then evaluates this as an empty value,
+leaving no effects on the list it is enclosed in, therefore resulting in
+``('+' 1 2)``.
 
 when
 ----
@@ -1666,6 +1759,13 @@ screen. The file is automatically closed after it has been processed.
 
     (with [f (open "NEWS")] (print (.read f)))
 
+``with`` returns the value of its last form, unless it suppresses an exception
+(because the context manager's ``__exit__`` method returned true), in which
+case it returns ``None``. So, the previous example could also be written
+
+.. code-block:: clj
+
+    (print (with [f (open "NEWS")] (.read f)))
 
 with-decorator
 --------------

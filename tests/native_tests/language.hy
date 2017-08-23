@@ -849,6 +849,66 @@
   (assert (= mooey.__name__ "mooey")))
 
 
+(defn test-return []
+
+  ; `return` in main line
+  (defn f [x]
+    (return (+ x "a"))
+    (+ x "b"))
+  (assert (= (f "q") "qa"))
+
+  ; Nullary `return`
+  (defn f [x]
+    (return)
+    5)
+  (assert (none? (f "q")))
+
+  ; `return` in `when`
+  (defn f [x]
+    (when (< x 3)
+      (return [x 1]))
+    [x 2])
+  (assert (= (f 2) [2 1]))
+  (assert (= (f 4) [4 2]))
+
+  ; `return` in a loop
+  (setv accum [])
+  (defn f [x]
+    (while True
+      (when (zero? x)
+        (return))
+      (.append accum x)
+      (-= x 1))
+    (.append accum "this should never be appended")
+    1)
+  (assert (none? (f 5)))
+  (assert (= accum [5 4 3 2 1]))
+
+  ; `return` of a `do`
+  (setv accum [])
+  (defn f []
+    (return (do
+      (.append accum 1)
+      3))
+    4)
+  (assert (= (f) 3))
+  (assert (= accum [1]))
+
+  ; `return` of an `if` that will need to be compiled to a statement
+  (setv accum [])
+  (defn f [x]
+    (return (if (= x 1)
+      (do
+        (.append accum 1)
+        "a")
+      (do
+        (.append accum 2)
+        "b")))
+    "c")
+  (assert (= (f 2) "b"))
+  (assert (= accum [2])))
+
+
 (defn test-mangles []
   "NATIVE: test mangles"
   (assert (= 2 ((fn [] (+ 1 1))))))

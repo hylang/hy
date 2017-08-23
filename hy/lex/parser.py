@@ -153,6 +153,17 @@ def list_contents_single(p):
     return [p[0]]
 
 
+@pg.production("list_contents : DISCARD term discarded_list_contents")
+def list_contents_empty(p):
+    return []
+
+
+@pg.production("discarded_list_contents : DISCARD term discarded_list_contents")
+@pg.production("discarded_list_contents :")
+def discarded_list_contents(p):
+    pass
+
+
 @pg.production("term : identifier")
 @pg.production("term : paren")
 @pg.production("term : dict")
@@ -161,6 +172,11 @@ def list_contents_single(p):
 @pg.production("term : string")
 def term(p):
     return p[0]
+
+
+@pg.production("term : DISCARD term term")
+def term_discard(p):
+    return p[2]
 
 
 @pg.production("term : QUOTE term")

@@ -23,6 +23,7 @@ import codecs
 import ast
 import sys
 import keyword
+import copy
 
 from collections import defaultdict
 
@@ -321,21 +322,25 @@ def _raise_wrong_args_number(expression, error):
                                len(expression)))
 
 
+def _nargs(n):
+    return "%d argument%s" % (n, ("" if n == 1 else "s"))
+
+
 def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
     def _dec(fn):
         def checker(self, expression):
             if exact is not None and (len(expression) - 1) != exact:
                 _raise_wrong_args_number(
-                    expression, "`%%s' needs %d arguments, got %%d" % exact)
+                    expression, "`%%s' needs %s, got %%d" % _nargs(exact))
             if min is not None and (len(expression) - 1) < min:
                 _raise_wrong_args_number(
                     expression,
-                    "`%%s' needs at least %d arguments, got %%d." % (min))
+                    "`%%s' needs at least %s, got %%d." % _nargs(min))
 
             if max is not None and (len(expression) - 1) > max:
                 _raise_wrong_args_number(
                     expression,
-                    "`%%s' needs at most %d arguments, got %%d" % (max))
+                    "`%%s' needs at most %s, got %%d" % _nargs(max))
 
             is_even = not((len(expression) - 1) % 2)
             if even is not None and is_even != even:
@@ -707,7 +712,9 @@ class HyASTCompiler(object):
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    to_add = HyExpression([HySymbol("list"), f_contents])
+                    to_add = HyExpression([
+                        HySymbol("list"),
+                        HyExpression([HySymbol("or"), f_contents, HyList()])])
                 else:
                     to_add = HyList([f_contents])
 
@@ -777,6 +784,19 @@ class HyASTCompiler(object):
     @checkargs(exact=1)
     def compile_unpack_mapping(self, expr):
         raise HyTypeError(expr, "`unpack-mapping` isn't allowed here")
+
+    @builds_if("exec*", not PY3)
+    # Under Python 3, `exec` is a function rather than a statement type, so Hy
+    # doesn't need a special form for it.
+    @checkargs(min=1, max=3)
+    def compile_exec(self, expr):
+        expr.pop(0)
+        return ast.Exec(
+            lineno=expr.start_line,
+            col_offset=expr.start_column,
+            body=self.compile(expr.pop(0)).force_expr,
+            globals=self.compile(expr.pop(0)).force_expr if expr else None,
+            locals=self.compile(expr.pop(0)).force_expr if expr else None)
 
     @builds("do")
     def compile_do(self, expression):
@@ -1432,29 +1452,36 @@ class HyASTCompiler(object):
             raise HyTypeError(expr,
                               "with expects a list, received `{0}'".format(
                                   type(args).__name__))
-        if len(args) < 1:
-            raise HyTypeError(expr, "with needs [[arg (expr)]] or [[(expr)]]]")
-
-        args.reverse()
-        ctx = self.compile(args.pop(0))
+        if len(args) not in (1, 2):
+            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
 
         thing = None
-        if args != []:
+        if len(args) == 2:
             thing = self._storeize(args[0], self.compile(args.pop(0)))
+        ctx = self.compile(args.pop(0))
 
         body = self._compile_branch(expr)
 
+        # Store the result of the body in a tempvar
         var = self.get_anon_var()
         name = ast.Name(id=ast_str(var), arg=ast_str(var),
                         ctx=ast.Store(),
                         lineno=expr.start_line,
                         col_offset=expr.start_column)
-
-        # Store the result of the body in a tempvar
         body += ast.Assign(targets=[name],
                            value=body.force_expr,
                            lineno=expr.start_line,
                            col_offset=expr.start_column)
+        # Initialize the tempvar to None in case the `with` exits
+        # early with an exception.
+        initial_assign = ast.Assign(targets=[name],
+                                    value=ast.Name(
+                                        id=ast_str("None"),
+                                        ctx=ast.Load(),
+                                        lineno=expr.start_line,
+                                        col_offset=expr.start_column),
+                                    lineno=expr.start_line,
+                                    col_offset=expr.start_column)
 
         the_with = ast.With(context_expr=ctx.force_expr,
                             lineno=expr.start_line,
@@ -1466,7 +1493,7 @@ class HyASTCompiler(object):
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
                                            optional_vars=thing)]
 
-        ret = ctx + the_with
+        ret = Result(stmts = [initial_assign]) + ctx + the_with
         ret.contains_yield = ret.contains_yield or body.contains_yield
         # And make our expression context our temp variable
         expr_name = ast.Name(id=ast_str(var), arg=ast_str(var),
@@ -1474,7 +1501,10 @@ class HyASTCompiler(object):
                              lineno=expr.start_line,
                              col_offset=expr.start_column)
 
-        ret += Result(expr=expr_name, temp_variables=[expr_name, name])
+        ret += Result(expr=expr_name)
+        # We don't give the Result any temp_vars because we don't want
+        # Result.rename to touch `name`. Otherwise, initial_assign will
+        # clobber any preexisting value of the renamed-to variable.
 
         return ret
 
@@ -2296,6 +2326,16 @@ class HyASTCompiler(object):
 
         return ret
 
+    @builds("return")
+    @checkargs(max=1)
+    def compile_return(self, expr):
+        ret = Result()
+        if len(expr) > 1:
+            ret += self.compile(expr[1])
+        return ret + ast.Return(value=ret.force_expr,
+                                lineno=expr.start_line,
+                                col_offset=expr.start_column)
+
     @builds("defclass")
     @checkargs(min=1)
     def compile_class_expression(self, expressions):
@@ -2377,7 +2417,8 @@ class HyASTCompiler(object):
         """Compile-time hack: we want to get our new macro now
         We must provide __name__ in the namespace to make the Python
         compiler set the __module__ attribute of the macro function."""
-        hy.importer.hy_eval(expression,
+
+        hy.importer.hy_eval(copy.deepcopy(expression),
                             compile_time_ns(self.module_name),
                             self.module_name)
 

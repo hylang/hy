@@ -25,6 +25,7 @@ lg.add('QUOTE', r'\'%s' % end_quote)
 lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
+lg.add('DISCARD', r'#_')
 lg.add('HASHSTARS', r'#\*+')
 lg.add('HASHOTHER', r'#%s' % identifier)
 

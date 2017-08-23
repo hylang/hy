@@ -2,9 +2,10 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+import copy
 from hy._compat import long_type, str_type
 from hy.models import (wrap_value, replace_hy_obj, HyString, HyInteger, HyList,
-                       HyDict, HySet, HyExpression, HyCons)
+                       HyDict, HySet, HyExpression, HyCons, HyComplex, HyFloat)
 
 
 def test_wrap_long_type():
@@ -125,3 +126,17 @@ def test_cons_replacing():
         assert True is False
     except IndexError:
         pass
+
+
+def test_number_model_copy():
+    i = HyInteger(42)
+    assert (i == copy.copy(i))
+    assert (i == copy.deepcopy(i))
+
+    f = HyFloat(42.)
+    assert (f == copy.copy(f))
+    assert (f == copy.deepcopy(f))
+
+    c = HyComplex(42j)
+    assert (c == copy.copy(c))
+    assert (c == copy.deepcopy(c))

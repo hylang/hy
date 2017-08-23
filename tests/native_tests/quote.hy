@@ -74,17 +74,17 @@
 (defn test-unquote-splice []
   "NATIVE: test splicing unquotes"
   (setv q (quote (c d e)))
-  (setv qq (quasiquote (a b (unquote-splice q) f (unquote-splice q))))
-  (assert (= (len qq) 9))
-  (assert (= qq (quote (a b c d e f c d e)))))
+  (setv qq `(a b ~@q f ~@q ~@0 ~@False ~@None g ~@(when False 1) h))
+  (assert (= (len qq) 11))
+  (assert (= qq (quote (a b c d e f c d e g h)))))
 
 
 (defn test-nested-quasiquote []
   "NATIVE: test nested quasiquotes"
-  (setv qq (quasiquote (1 (quasiquote (unquote (+ 1 (unquote (+ 2 3))))) 4)))
-  (setv q (quote (1 (quasiquote (unquote (+ 1 5))) 4)))
+  (setv qq `(1 `~(+ 1 ~(+ 2 3) ~@None) 4))
+  (setv q (quote (1 `~(+ 1 5) 4)))
   (assert (= (len q) 3))
-  (assert (= (get qq 1) (quote (quasiquote (unquote (+ 1 5))))))
+  (assert (= (get qq 1) (quote `~(+ 1 5))))
   (assert (= q qq)))
 
 

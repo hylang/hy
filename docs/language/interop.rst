@@ -131,5 +131,17 @@ argument::
     test()
     bar
 
+Evaluating strings of Hy code from Python
+-----------------------------------------
 
+Evaluating a string (or ``file`` object) containing a Hy expression requires
+two separate steps. First, use the ``read_str`` function (or ``read`` for a
+``file`` object) to turn the expression into a Hy model::
 
+    >>> import hy
+    >>> expr = hy.read_str("(- (/ (+ 1 3 88) 2) 8)")
+
+Then, use the ``eval`` function to evaluate it::
+
+    >>> hy.eval(expr)
+    38.0
