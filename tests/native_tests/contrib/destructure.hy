@@ -182,33 +182,23 @@
        'count 3})
   (assert (= destructured expected)))
 
-;; TODO: remove None workaround after #1320 fix.
 (defn test-errors []
   (with [(pytest.raises SyntaxError)]
-        (destructure '[:as a :as b] [])
-        None)
+        (destructure '[:as a :as b] []))
   (with [(pytest.raises SyntaxError)]
-        (destructure '[:& a :& b] [])
-        None)
+        (destructure '[:& a :& b] []))
   (with [(pytest.raises SyntaxError)]
-        (destructure '{:strs [] :strs []} {})
-        None)
+        (destructure '{:strs [] :strs []} {}))
   (with [(pytest.raises SyntaxError)]
-        (destructure '{:syms [] :syms []} {})
-        None)
+        (destructure '{:syms [] :syms []} {}))
   (with [(pytest.raises SyntaxError)]
-        (destructure '{:keys [] :keys []} {})
-        None)
+        (destructure '{:keys [] :keys []} {}))
   (with [(pytest.raises SyntaxError)]
-        (destructure '{:or {} :or {}} {})
-        None)
+        (destructure '{:or {} :or {}} {}))
   (with [(pytest.raises SyntaxError)]
-        (destructure '{:as a :as b} {})
-        None)
+        (destructure '{:as a :as b} {}))
   (with [(pytest.raises SyntaxError)]
-        (destructure '(:& a :& b) {})
-        None)
-  None)
+        (destructure '(:& a :& b) {})))
 
 (defn main []
   (test-iter)

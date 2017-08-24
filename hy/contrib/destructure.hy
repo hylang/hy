@@ -112,9 +112,10 @@
                                       (,)))]))
   (unless (is gsyms None) (.append gsyms ddict))
   (defn expand-lookup [target key]
+    ;; Runtime unpacking avoids interpreting a keyword ~key as a kwarg.
+    ;; This might not be necessary in the future, see hylang/hy#846
     [target `(.get ~ddict #* [~key ~@(if (isinstance target HySymbol)
-                                       (.get default target (,))
-                                       (,))])])
+                                       (.get default target))])])
   (for [(, target lookup) (partition binds)]
     (defn get-as [to-key]
       (append (chain-comp (expand-lookup target (to-key target))
