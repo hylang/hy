@@ -20,6 +20,22 @@
          ~@(interleave (repeat name) rest))
      ~name))
 
+
+(defmacro assoc [coll k1 v1 &rest other-kvs]
+  (if (odd? (len other-kvs))
+    (macro-error (last other-kvs)
+                 "`assoc` takes an odd number of arguments"))
+  (setv c (if other-kvs
+            (gensym "c")
+            coll))
+  `(setv ~@(+ (if other-kvs
+                [c coll]
+                [])
+              #* (genexpr [`(get ~c ~k) v]
+                          [[k v] (partition (+ (, k1 v1)
+                                               other-kvs))]))))
+
+
 (defmacro with [args &rest body]
   "shorthand for nested with* loops:
   (with [x foo y bar] baz) ->

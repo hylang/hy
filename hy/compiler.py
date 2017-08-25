@@ -1406,30 +1406,6 @@ class HyASTCompiler(object):
                             step=step.expr),
             ctx=ast.Load())
 
-    @builds("assoc")
-    @checkargs(min=3, even=False)
-    def compile_assoc_expression(self, expr):
-        expr.pop(0)  # assoc
-        # (assoc foo bar baz)  => foo[bar] = baz
-        target = self.compile(expr.pop(0))
-        ret = target
-        i = iter(expr)
-        for (key, val) in ((self.compile(x), self.compile(y))
-                           for (x, y) in zip(i, i)):
-
-            ret += key + val + ast.Assign(
-                lineno=expr.start_line,
-                col_offset=expr.start_column,
-                targets=[
-                    ast.Subscript(
-                        lineno=expr.start_line,
-                        col_offset=expr.start_column,
-                        value=target.force_expr,
-                        slice=ast.Index(value=key.force_expr),
-                        ctx=ast.Store())],
-                value=val.force_expr)
-        return ret
-
     @builds("with_decorator")
     @checkargs(min=1)
     def compile_decorate_expression(self, expr):
