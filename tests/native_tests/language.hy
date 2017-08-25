@@ -1425,13 +1425,12 @@
   (assert (= (macroexpand '(-> (a b) (-> (c d) (e f))))
              '(e (c (a b) d) f))))
 
-#@(pytest.mark.xfail
 (defn test-macroexpand-with-named-import []
   ; https://github.com/hylang/hy/issues/1207
   (defmacro m-with-named-import []
     (import [math [pow]])
     (pow 2 3))
-  (assert (= (macroexpand '(m-with-named-import)) (** 2 3)))))
+  (assert (= (macroexpand '(m-with-named-import)) (** 2 3))))
 
 (defn test-macroexpand-1 []
   "Test macroexpand-1 on ->"
