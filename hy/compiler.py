@@ -380,7 +380,6 @@ class HyASTCompiler(object):
 
     def __init__(self, module_name):
         self.allow_builtins = module_name.startswith("hy.core")
-        self.anon_fn_count = 0
         self.anon_var_count = 0
         self.imports = defaultdict(set)
         self.module_name = module_name
@@ -392,10 +391,6 @@ class HyASTCompiler(object):
     def get_anon_var(self):
         self.anon_var_count += 1
         return "_hy_anon_var_%s" % self.anon_var_count
-
-    def get_anon_fn(self):
-        self.anon_fn_count += 1
-        return "_hy_anon_fn_%d" % self.anon_fn_count
 
     def update_imports(self, result):
         """Retrieve the imports from the result object"""
@@ -1947,7 +1942,7 @@ class HyASTCompiler(object):
         if not body.stmts:
             body += asty.Pass(expression)
 
-        name = self.get_anon_fn()
+        name = self.get_anon_var()
 
         ret += asty.FunctionDef(expression,
                                 name=name,
