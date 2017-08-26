@@ -39,6 +39,15 @@ Compound Models
 Parenthesized and bracketed lists are parsed as compound models by the
 Hy parser.
 
+Hy uses pretty-printing reprs for its compound models by default.
+If this is causing issues,
+it can be turned off globally by setting ``hy.models.PRETTY`` to ``False``,
+or temporarily by using the ``hy.models.pretty`` context manager.
+
+Hy also attempts to color pretty reprs using ``clint.textui.colored``.
+This module has a flag to disable coloring,
+and a method ``clean`` to strip colored strings of their color tags.
+
 .. _hylist:
 
 HyList

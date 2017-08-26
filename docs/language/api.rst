@@ -869,7 +869,7 @@ doto
 .. code-block:: clj
 
   => (doto [] (.append 1) (.append 2) .reverse)
-  [2 1]
+  [2, 1]
 
 .. code-block:: clj
 
@@ -878,7 +878,7 @@ doto
   => (.append collection 2)
   => (.reverse collection)
   => collection
-  [2 1]
+  [2, 1]
 
 
 eval-and-compile
@@ -1362,9 +1362,10 @@ alternatively be written using the apostrophe (``'``) symbol.
 .. code-block:: clj
 
     => (setv x '(print "Hello World"))
-    ; variable x is set to expression & not evaluated
-    => x
-    (u'print' u'Hello World')
+    => x  ; varible x is set to unevaluated expression
+    HyExpression([
+      HySymbol('print'),
+      HyString('Hello World')])
     => (eval x)
     Hello World
 
@@ -1673,12 +1674,17 @@ is aliased to the tilde (``~``) symbol.
 
 .. code-block:: clj
 
-    (def name "Cuddles")
-    (quasiquote (= name (unquote name)))
-    ;=> (u'=' u'name' u'Cuddles')
-
-    `(= name ~name)
-    ;=> (u'=' u'name' u'Cuddles')
+    => (setv nickname "Cuddles")
+    => (quasiquote (= nickname (unquote nickname)))
+    HyExpression([
+      HySymbol('='),
+      HySymbol('nickname'),
+      'Cuddles'])
+    => `(= nickname ~nickname)
+    HyExpression([
+      HySymbol('='),
+      HySymbol('nickname'),
+      'Cuddles'])
 
 
 unquote-splice
@@ -1694,15 +1700,25 @@ into the form. ``unquote-splice`` is aliased to the ``~@`` syntax.
 
 .. code-block:: clj
 
-    (def nums [1 2 3 4])
-    (quasiquote (+ (unquote-splice nums)))
-    ;=> ('+' 1 2 3 4)
-
-    `(+ ~@nums)
-    ;=> ('+' 1 2 3 4)
-
-    `[1 2 ~@(if (< (nth nums 0) 0) nums)]
-    ;=> ('+' 1 2)
+    => (setv nums [1 2 3 4])
+    => (quasiquote (+ (unquote-splice nums)))
+    HyExpression([
+      HySymbol('+'),
+      1,
+      2,
+      3,
+      4])
+    => `(+ ~@nums)
+    HyExpression([
+      HySymbol('+'),
+      1,
+      2,
+      3,
+      4])
+    => `[1 2 ~@(if (neg? (first nums)) nums)]
+    HyList([
+      HyInteger(1),
+      HyInteger(2)])
 
 Here, the last example evaluates to ``('+' 1 2)``, since the condition
 ``(< (nth nums 0) 0)`` is ``False``, which makes this ``if`` expression

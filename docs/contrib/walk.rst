@@ -22,12 +22,18 @@ Example:
 
 .. code-block:: hy
 
-   => (import [hy.contrib.walk [walk]])
-   => (setv a '(a b c d e f))
-   => (walk ord identity a)
-   (97 98 99 100 101 102)
-   => (walk ord first a)
-   97
+    => (import [hy.contrib.walk [walk]])
+    => (setv a '(a b c d e f))
+    => (walk ord identity a)
+    HyExpression([
+      97,
+      98,
+      99,
+      100,
+      101,
+      102])
+    => (walk ord first a)
+    97
 
 postwalk
 ---------
@@ -41,25 +47,73 @@ each sub-form, uses ``f`` 's return value in place of the original.
 
 .. code-block:: hy
 
-   => (import [hy.contrib.walk [postwalk]])
-   => (def trail '([1 2 3] [4 [5 6 [7]]]))
-   => (defn walking [x]
-        (print "Walking:" x)
-        x )
-   => (postwalk walking trail)
-   Walking: 1
-   Walking: 2
-   Walking: 3
-   Walking: (1 2 3)
-   Walking: 4
-   Walking: 5
-   Walking: 6
-   Walking: 7
-   Walking: (7)
-   Walking: (5 6 [7])
-   Walking: (4 [5 6 [7]])
-   Walking: ([1 2 3] [4 [5 6 [7]]])
-   ([1 2 3] [4 [5 6 [7]]])
+    => (import [hy.contrib.walk [postwalk]])
+    => (def trail '([1 2 3] [4 [5 6 [7]]]))
+    => (defn walking [x]
+    ...  (print "Walking:" x :sep "\n")
+    ...  x)
+    => (postwalk walking trail)
+    Walking:
+    1
+    Walking:
+    2
+    Walking:
+    3
+    Walking:
+    HyExpression([
+      HyInteger(1),
+      HyInteger(2),
+      HyInteger(3)])
+    Walking:
+    4
+    Walking:
+    5
+    Walking:
+    6
+    Walking:
+    7
+    Walking:
+    HyExpression([
+      HyInteger(7)])
+    Walking:
+    HyExpression([
+      HyInteger(5),
+      HyInteger(6),
+      HyList([
+        HyInteger(7)])])
+    Walking:
+    HyExpression([
+      HyInteger(4),
+      HyList([
+        HyInteger(5),
+        HyInteger(6),
+        HyList([
+          HyInteger(7)])])])
+    Walking:
+    HyExpression([
+      HyList([
+        HyInteger(1),
+        HyInteger(2),
+        HyInteger(3)]),
+      HyList([
+        HyInteger(4),
+        HyList([
+          HyInteger(5),
+          HyInteger(6),
+          HyList([
+            HyInteger(7)])])])])
+    HyExpression([
+      HyList([
+        HyInteger(1),
+        HyInteger(2),
+        HyInteger(3)]),
+      HyList([
+        HyInteger(4),
+        HyList([
+          HyInteger(5),
+          HyInteger(6),
+          HyList([
+            HyInteger(7)])])])])
 
 prewalk
 --------
@@ -73,22 +127,70 @@ each sub-form, uses ``f`` 's return value in place of the original.
 
 .. code-block:: hy
 
-   => (import [hy.contrib.walk [prewalk]])
-   => (def trail '([1 2 3] [4 [5 6 [7]]]))
-   => (defn walking [x]
-        (print "Walking:" x)
-        x )
-   => (prewalk walking trail)
-   Walking: ([1 2 3] [4 [5 6 [7]]])
-   Walking: [1 2 3]
-   Walking: 1
-   Walking: 2
-   Walking: 3
-   Walking: [4 [5 6 [7]]]
-   Walking: 4
-   Walking: [5 6 [7]]
-   Walking: 5
-   Walking: 6
-   Walking: [7]
-   Walking: 7
-   ([1 2 3] [4 [5 6 [7]]])
+    => (import [hy.contrib.walk [prewalk]])
+    => (def trail '([1 2 3] [4 [5 6 [7]]]))
+    => (defn walking [x]
+    ...  (print "Walking:" x :sep "\n")
+    ...  x)
+    => (prewalk walking trail)
+    Walking:
+    HyExpression([
+      HyList([
+        HyInteger(1),
+        HyInteger(2),
+        HyInteger(3)]),
+      HyList([
+        HyInteger(4),
+        HyList([
+          HyInteger(5),
+          HyInteger(6),
+          HyList([
+            HyInteger(7)])])])])
+    Walking:
+    HyList([
+      HyInteger(1),
+      HyInteger(2),
+      HyInteger(3)])
+    Walking:
+    1
+    Walking:
+    2
+    Walking:
+    3
+    Walking:
+    HyList([
+      HyInteger(4),
+      HyList([
+        HyInteger(5),
+        HyInteger(6),
+        HyList([
+          HyInteger(7)])])])
+    Walking:
+    4
+    Walking:
+    HyList([
+      HyInteger(5),
+      HyInteger(6),
+      HyList([
+        HyInteger(7)])])
+    Walking:
+    5
+    Walking:
+    6
+    Walking:
+    HyList([
+      HyInteger(7)])
+    Walking:
+    7
+    HyExpression([
+      HyList([
+        HyInteger(1),
+        HyInteger(2),
+        HyInteger(3)]),
+      HyList([
+        HyInteger(4),
+        HyList([
+          HyInteger(5),
+          HyInteger(6),
+          HyList([
+            HyInteger(7)])])])])
