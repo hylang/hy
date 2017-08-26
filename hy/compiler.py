@@ -1123,6 +1123,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("break")
+    @checkargs(0)
     def compile_break_expression(self, expr):
         ret = ast.Break(lineno=expr.start_line,
                         col_offset=expr.start_column)
@@ -1130,6 +1131,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("continue")
+    @checkargs(0)
     def compile_continue_expression(self, expr):
         ret = ast.Continue(lineno=expr.start_line,
                            col_offset=expr.start_column)
