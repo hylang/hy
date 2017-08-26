@@ -336,6 +336,13 @@ def test_ast_invalid_for():
     cant_compile("(for* [a 1] (else 1 2))")
 
 
+def test_nullary_break_continue():
+    can_compile("(while 1 (break))")
+    cant_compile("(while 1 (break 1))")
+    can_compile("(while 1 (continue))")
+    cant_compile("(while 1 (continue 1))")
+
+
 def test_ast_expression_basics():
     """ Ensure basic AST expression conversion works. """
     code = can_compile("(foo bar)").body[0]
