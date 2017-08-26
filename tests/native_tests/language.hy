@@ -11,7 +11,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY3 PY34 PY35]])
+(import [hy._compat [PY3 PY35]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"

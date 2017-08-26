@@ -12,7 +12,7 @@ from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, string_types, bytes_type, long_type, PY3, PY34, PY35,
+    str_type, string_types, bytes_type, long_type, PY3, PY35,
     raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
@@ -2207,7 +2207,7 @@ class HyASTCompiler(object):
                 ) + expression
                 expression = expression.replace(arg[0])
 
-        if PY34:
+        if PY3:
             # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
             args = [ast.arg(arg=ast_str(x),
