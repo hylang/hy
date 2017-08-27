@@ -6,8 +6,8 @@ python:
   - "3.5"
   - "3.6"
   - pypy
+  - pypy3
 install:
-  - pip install --upgrade pytest
   - pip install -r requirements-travis.txt
   - pip install -e .
 script: pytest
