@@ -2,12 +2,13 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+from __future__ import unicode_literals
+
 from functools import wraps
-from ast import literal_eval
 
 from rply import ParserGenerator
 
-from hy._compat import PY3, str_type
+from hy._compat import str_type
 from hy.models import (HyBytes, HyComplex, HyCons, HyDict, HyExpression,
                        HyFloat, HyInteger, HyKeyword, HyList, HySet, HyString,
                        HySymbol)
@@ -265,38 +266,13 @@ def t_empty_list(p):
     return HyList([])
 
 
-if PY3:
-    def uni_hystring(s):
-        return HyString(literal_eval(s))
-
-    def hybytes(s):
-        return HyBytes(literal_eval('b'+s))
-
-else:
-    def uni_hystring(s):
-        return HyString(literal_eval('u'+s))
-
-    def hybytes(s):
-        return HyBytes(literal_eval(s))
-
-
 @pg.production("string : STRING")
 @set_boundaries
 def t_string(p):
-    # remove trailing quote
-    s = p[0].value[:-1]
-    # get the header
-    header, s = s.split('"', 1)
-    # remove unicode marker (this is redundant because Hy string
-    # literals already, by default, generate Unicode literals
-    # under Python 2)
-    header = header.replace("u", "")
-    # remove bytes marker, since we'll need to exclude it for Python 2
-    is_bytestring = "b" in header
-    header = header.replace("b", "")
-    # build python string
-    s = header + '"""' + s + '"""'
-    return (hybytes if is_bytestring else uni_hystring)(s)
+    # Replace the single double quotes with triple double quotes to allow
+    # embedded newlines.
+    s = eval(p[0].value.replace('"', '"""', 1)[:-1] + '"""')
+    return (HyString if isinstance(s, str_type) else HyBytes)(s)
 
 
 @pg.production("string : PARTIAL_STRING")
