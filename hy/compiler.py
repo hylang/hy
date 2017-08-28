@@ -24,6 +24,7 @@ import ast
 import sys
 import keyword
 import copy
+import inspect
 
 from collections import defaultdict
 
@@ -436,7 +437,13 @@ class HyASTCompiler(object):
 
     def compile_atom(self, atom_type, atom):
         if atom_type in _compile_table:
-            ret = _compile_table[atom_type](self, atom)
+            # _compile_table[atom_type] is a method for compiling this
+            # type of atom, so call it. If it has an extra parameter,
+            # pass in `atom_type`.
+            arity = len(inspect.getargspec(_compile_table[atom_type])[0])
+            ret = (_compile_table[atom_type](self, atom, atom_type)
+                   if arity == 3
+                   else _compile_table[atom_type](self, atom))
             if not isinstance(ret, Result):
                 ret = Result() + ret
             return ret
@@ -1716,7 +1723,7 @@ class HyASTCompiler(object):
             return self.compile(expression)
 
         if expression == []:
-            return self.compile_list(expression)
+            return self.compile_list(expression, HyList)
 
         fn = expression[0]
         func = None
@@ -1900,16 +1907,6 @@ class HyASTCompiler(object):
         ret.contains_yield = body.contains_yield
 
         return ret
-
-    @builds(HyList)
-    def compile_list(self, expression):
-        elts, ret, _ = self._compile_collect(expression)
-        return ret + asty.List(expression, elts=elts, ctx=ast.Load())
-
-    @builds(HySet)
-    def compile_set(self, expression):
-        elts, ret, _ = self._compile_collect(expression)
-        return ret + asty.Set(expression, elts=elts, ctx=ast.Load())
 
     @builds("fn")
     @builds("fn*")
@@ -2178,16 +2175,13 @@ class HyASTCompiler(object):
         raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
     @builds(HyInteger)
-    def compile_integer(self, number):
-        return asty.Num(number, n=long_type(number))
-
     @builds(HyFloat)
-    def compile_float(self, number):
-        return asty.Num(number, n=float(number))
-
     @builds(HyComplex)
-    def compile_complex(self, number):
-        return asty.Num(number, n=complex(number))
+    def compile_numeric_literal(self, number, building):
+        f = {HyInteger: long_type,
+             HyFloat: float,
+             HyComplex: complex}[building]
+        return asty.Num(number, n=f(number))
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
@@ -2222,13 +2216,18 @@ class HyASTCompiler(object):
 
     @builds(HyString)
     @builds(HyKeyword)
-    def compile_string(self, string):
-        return asty.Str(string, s=str_type(string))
-
     @builds(HyBytes)
-    def compile_bytes(self, bytestring):
-        f = asty.Bytes if PY3 else asty.Str
-        return f(bytestring, s=bytes_type(bytestring))
+    def compile_string(self, string, building):
+        node = asty.Bytes if PY3 and building is HyBytes else asty.Str
+        f = bytes_type if building is HyBytes else str_type
+        return node(string, s=f(string))
+
+    @builds(HyList)
+    @builds(HySet)
+    def compile_list(self, expression, building):
+        elts, ret, _ = self._compile_collect(expression)
+        node = {HyList: asty.List, HySet: asty.Set}[building]
+        return ret + node(expression, elts=elts, ctx=ast.Load())
 
     @builds(HyDict)
     def compile_dict(self, m):
