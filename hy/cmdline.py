@@ -115,7 +115,12 @@ class HyREPL(code.InteractiveConsole):
             # the user as `_`.
             self.locals['_'] = value
             # Print the value.
-            print(self.output_fn(value))
+            try:
+                output = self.output_fn(value)
+            except Exception:
+                self.showtraceback()
+                return False
+            print(output)
         return False
 
 
