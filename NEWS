@@ -34,6 +34,7 @@ Changes from 0.13.0
    * Fixed a crash when `macroexpand`ing a macro with a named import
    * Fixed a crash when `with` suppresses an exception. `with` now returns
      `None` in this case.
+   * Fixed a crash when --repl-output-fn raises an exception
    * `assoc` now evaluates its arguments only once each
    * `break` and `continue` now raise an error when given arguments
      instead of silently ignoring them

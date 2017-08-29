@@ -132,6 +132,16 @@ def test_bin_hy_stdin_except_do():
     assert "zzz" in output
 
 
+def test_bin_hy_stdin_bad_repr():
+    # https://github.com/hylang/hy/issues/1389
+    output, err = run_cmd("hy", """
+         (defclass BadRepr [] (defn __repr__ [self] (/ 0)))
+         (BadRepr)
+         (+ "A" "Z")""")
+    assert "ZeroDivisionError" in err
+    assert "AZ" in output
+
+
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
     assert "[1, 2]" in output.replace('L', '')
