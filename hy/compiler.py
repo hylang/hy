@@ -91,26 +91,18 @@ def ast_str(foobar):
     return "hy_%s" % (str(foobar).replace("-", "_"))
 
 
-def builds(_type):
-
-    unpythonic_chars = ["-"]
-    really_ok = ["-"]
-    if any(x in unpythonic_chars for x in str_type(_type)):
-        if _type not in really_ok:
-            raise TypeError("Dear Hypster: `build' needs to be *post* "
-                            "translated strings... `%s' sucks." % (_type))
+def builds(*types, **kwargs):
+    # A decorator that adds the decorated method to _compile_table for
+    # compiling `types`, but only if kwargs['iff'] (if provided) is
+    # true.
+    if not kwargs.get('iff', True):
+        return lambda fn: fn
 
     def _dec(fn):
-        _compile_table[_type] = fn
+        for t in types:
+            _compile_table[t] = fn
         return fn
     return _dec
-
-
-def builds_if(_type, condition):
-    if condition:
-        return builds(_type)
-    else:
-        return lambda fn: fn
 
 
 def spoof_positions(obj):
@@ -762,8 +754,7 @@ class HyASTCompiler(object):
         return imports, HyExpression([HySymbol(name),
                                       form]).replace(form), False
 
-    @builds("quote")
-    @builds("quasiquote")
+    @builds("quote", "quasiquote")
     @checkargs(exact=1)
     def compile_quote(self, entries):
         if entries[0] == "quote":
@@ -776,8 +767,7 @@ class HyASTCompiler(object):
         ret.add_imports("hy", imports)
         return ret
 
-    @builds("unquote")
-    @builds("unquote_splicing")
+    @builds("unquote", "unquote_splicing")
     def compile_unquote(self, expr):
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])
@@ -796,7 +786,7 @@ class HyASTCompiler(object):
     def compile_unpack_mapping(self, expr):
         raise HyTypeError(expr, "`unpack-mapping` isn't allowed here")
 
-    @builds_if("exec*", not PY3)
+    @builds("exec*", iff=(not PY3))
     # Under Python 3, `exec` is a function rather than a statement type, so Hy
     # doesn't need a special form for it.
     @checkargs(min=1, max=3)
@@ -1106,13 +1096,10 @@ class HyASTCompiler(object):
         return ret + asty.Assert(expr, test=e, msg=msg)
 
     @builds("global")
-    @builds("nonlocal")
+    @builds("nonlocal", iff=PY3)
     @checkargs(min=1)
     def compile_global_or_nonlocal(self, expr):
         form = expr.pop(0)
-        if form == "nonlocal" and not PY3:
-            raise HyCompileError(
-                "nonlocal only supported in python 3!")
         names = []
         while len(expr) > 0:
             identifier = expr.pop(0)
@@ -1126,7 +1113,7 @@ class HyASTCompiler(object):
         return node(expr, names=names)
 
     @builds("yield")
-    @builds_if("yield_from", PY3)
+    @builds("yield_from", iff=PY3)
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         ret = Result(contains_yield=(not PY3))
@@ -1377,9 +1364,7 @@ class HyASTCompiler(object):
 
         return gen_res + cond, gen
 
-    @builds("list_comp")
-    @builds("set_comp")
-    @builds("genexpr")
+    @builds("list_comp", "set_comp", "genexpr")
     @checkargs(min=2, max=3)
     def compile_comprehension(self, expr):
         # (list-comp expr (target iter) cond?)
@@ -1418,8 +1403,7 @@ class HyASTCompiler(object):
             value=value.force_expr,
             generators=gen)
 
-    @builds("not")
-    @builds("~")
+    @builds("not", "~")
     @checkargs(1)
     def compile_unary_operator(self, expression):
         ops = {"not": ast.Not,
@@ -1480,8 +1464,7 @@ class HyASTCompiler(object):
                 raise HyTypeError(entry, "unrecognized (require) syntax")
         return Result()
 
-    @builds("and")
-    @builds("or")
+    @builds("and", "or")
     def compile_logical_or_and_and_operator(self, expression):
         ops = {"and": (ast.And, "True"),
                "or": (ast.Or, "None")}
@@ -1548,26 +1531,19 @@ class HyASTCompiler(object):
         return ret + asty.Compare(
             e, left=exprs[0], ops=ops, comparators=exprs[1:])
 
-    @builds("=")
-    @builds("is")
-    @builds("<")
-    @builds("<=")
-    @builds(">")
-    @builds(">=")
+    @builds("=", "is", "<", "<=", ">", ">=")
     @checkargs(min=1)
     def compile_compare_op_expression(self, expression):
         if len(expression) == 2:
             return asty.Name(expression, id="True", ctx=ast.Load())
         return self._compile_compare_op_expression(expression)
 
-    @builds("!=")
-    @builds("is_not")
+    @builds("!=", "is_not")
     @checkargs(min=2)
     def compile_compare_op_expression_coll(self, expression):
         return self._compile_compare_op_expression(expression)
 
-    @builds("in")
-    @builds("not_in")
+    @builds("in", "not_in")
     @checkargs(2)
     def compile_compare_op_expression_binary(self, expression):
         return self._compile_compare_op_expression(expression)
@@ -1602,23 +1578,17 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("**")
-    @builds("//")
-    @builds("<<")
-    @builds(">>")
-    @builds("&")
+    @builds("**", "//", "<<", ">>", "&")
     @checkargs(min=2)
     def compile_maths_expression_2_or_more(self, expression):
         return self._compile_maths_expression(expression)
 
-    @builds("%")
-    @builds("^")
+    @builds("%", "^")
     @checkargs(2)
     def compile_maths_expression_exactly_2(self, expression):
         return self._compile_maths_expression(expression)
 
-    @builds("*")
-    @builds("|")
+    @builds("*", "|")
     def compile_maths_expression_mul(self, expression):
         id_elem = {"*": 1, "|": 0}[expression[0]]
         if len(expression) == 1:
@@ -1647,7 +1617,7 @@ class HyASTCompiler(object):
                 expression, op=op, operand=ret.force_expr)
 
     @builds("&")
-    @builds_if("@", PY35)
+    @builds("@", iff=PY35)
     @checkargs(min=1)
     def compile_maths_expression_unary_idempotent(self, expression):
         if len(expression) == 2:
@@ -1670,19 +1640,9 @@ class HyASTCompiler(object):
     def compile_maths_expression_sub(self, expression):
         return self._compile_maths_expression_additive(expression)
 
-    @builds("+=")
-    @builds("/=")
-    @builds("//=")
-    @builds("*=")
-    @builds("_=")
-    @builds("%=")
-    @builds("**=")
-    @builds("<<=")
-    @builds(">>=")
-    @builds("|=")
-    @builds("^=")
-    @builds("&=")
-    @builds_if("@=", PY35)
+    @builds("+=", "/=", "//=", "*=", "_=", "%=", "**=", "<<=", ">>=", "|=",
+            "^=", "&=")
+    @builds("@=", iff=PY35)
     @checkargs(2)
     def compile_augassign_expression(self, expression):
         ops = {"+=": ast.Add,
@@ -1793,8 +1753,7 @@ class HyASTCompiler(object):
             expression, func=func.expr, args=args, keywords=keywords,
             starargs=oldpy_star, kwargs=oldpy_kw)
 
-    @builds("def")
-    @builds("setv")
+    @builds("def", "setv")
     def compile_def_expression(self, expression):
         root = expression.pop(0)
         if not expression:
@@ -1908,8 +1867,7 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("fn")
-    @builds("fn*")
+    @builds("fn", "fn*")
     # The starred version is for internal use (particularly, in the
     # definition of `defn`). It ensures that a FunctionDef is
     # produced rather than a Lambda.
@@ -2174,9 +2132,7 @@ class HyASTCompiler(object):
     def compile_cons(self, cons):
         raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
-    @builds(HyInteger)
-    @builds(HyFloat)
-    @builds(HyComplex)
+    @builds(HyInteger, HyFloat, HyComplex)
     def compile_numeric_literal(self, number, building):
         f = {HyInteger: long_type,
              HyFloat: float,
@@ -2214,16 +2170,13 @@ class HyASTCompiler(object):
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
-    @builds(HyString)
-    @builds(HyKeyword)
-    @builds(HyBytes)
+    @builds(HyString, HyKeyword, HyBytes)
     def compile_string(self, string, building):
         node = asty.Bytes if PY3 and building is HyBytes else asty.Str
         f = bytes_type if building is HyBytes else str_type
         return node(string, s=f(string))
 
-    @builds(HyList)
-    @builds(HySet)
+    @builds(HyList, HySet)
     def compile_list(self, expression, building):
         elts, ret, _ = self._compile_collect(expression)
         node = {HyList: asty.List, HySet: asty.Set}[building]

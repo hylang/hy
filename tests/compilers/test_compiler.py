@@ -9,18 +9,6 @@ from hy.models import HyExpression, HyList, HySymbol, HyInteger
 from hy._compat import PY3
 
 
-def test_builds_with_dash():
-    assert callable(compiler.builds("foobar"))
-    assert callable(compiler.builds("foo_bar"))
-    assert callable(compiler.builds("-"))
-    try:
-        compiler.builds("foobar-with-dash-")
-    except TypeError as e:
-        assert "*post* translated strings" in str(e)
-    else:
-        assert False
-
-
 def make_expression(*args):
     h = HyExpression(args)
     h.start_line = 1
