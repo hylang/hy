@@ -5,11 +5,15 @@
 # license. See the LICENSE.
 
 import os
-import subprocess
+from pipes import quote
 import re
-from hy._compat import PY3, PY35
-from hy.importer import get_bytecode_path
+import shlex
+import subprocess
+
 import pytest
+
+from hy._compat import PY3, PY35, builtins
+from hy.importer import get_bytecode_path
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -24,12 +28,14 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
     if dontwritebytecode:
         env = dict(os.environ)
         env["PYTHONDONTWRITEBYTECODE"] = "1"
-    p = subprocess.Popen(os.path.join(hy_dir, cmd),
+    cmd = shlex.split(cmd)
+    cmd[0] = os.path.join(hy_dir, cmd[0])
+    p = subprocess.Popen(cmd,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          universal_newlines=True,
-                         shell=True,
+                         shell=False,
                          env=env)
     if stdin_data is not None:
         p.stdin.write(stdin_data)
@@ -223,18 +229,22 @@ def test_hy2py():
                 if f == "py35_only_tests.hy" and not PY35:
                     continue
                 i += 1
-                output, err = run_cmd("hy2py -s -a " +
-                                      os.path.join(dirpath, f))
+                output, err = run_cmd("hy2py -s -a " + quote(os.path.join(dirpath, f)))
                 assert len(output) > 1, f
                 assert len(err) == 0, f
     assert i
 
 
 def test_bin_hy_builtins():
+    # hy.cmdline replaces builtins.exit and builtins.quit
+    # for use by hy's repl.
     import hy.cmdline  # NOQA
-
-    assert str(exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
-    assert str(quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
+    # this test will fail if run from IPython because IPython deletes
+    # builtins.exit and builtins.quit
+    assert str(builtins.exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
+    assert type(builtins.exit) is hy.cmdline.HyQuitter
+    assert str(builtins.quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
+    assert type(builtins.quit) is hy.cmdline.HyQuitter
 
 
 def test_bin_hy_main():
