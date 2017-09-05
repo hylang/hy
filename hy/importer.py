@@ -98,7 +98,7 @@ def import_file_to_module(module_name, fpath, loader=None):
         try:
             _ast = import_file_to_ast(fpath, module_name)
             module = imp.new_module(module_name)
-            module.__file__ = fpath
+            module.__file__ = os.path.normpath(fpath)
             code = ast_compile(_ast, fpath, "exec")
             if not os.environ.get('PYTHONDONTWRITEBYTECODE'):
                 try:
@@ -121,7 +121,7 @@ def import_file_to_module(module_name, fpath, loader=None):
         sys.modules[module_name] = module
         module.__name__ = module_name
 
-    module.__file__ = fpath
+    module.__file__ = os.path.normpath(fpath)
     if loader:
         module.__loader__ = loader
     if is_package(module_name):
