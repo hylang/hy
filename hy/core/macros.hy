@@ -232,6 +232,7 @@ Such 'o!' params are availible within `body` as the equivalent 'g!' symbol."
 
 
 (deftag @ [expr]
+  "with-decorator tag macro"
   (setv decorators (cut expr None -1)
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))
@@ -239,3 +240,41 @@ Such 'o!' params are availible within `body` as the equivalent 'g!' symbol."
 (defmacro comment [&rest body]
   "Ignores body and always expands to None"
   None)
+
+(defmacro doc [symbol]
+  "macro documentation
+
+   Gets help for a macro function available in this module.
+   Use ``require`` to make other macros available.
+
+   Use ``#doc foo`` instead for help with tag macro ``#foo``.
+   Use ``(help foo)`` instead for help with runtime objects."
+  `(try
+     (help (. (__import__ "hy")
+              macros
+              _hy_macros
+              [__name__]
+              ['~symbol]))
+     (except [KeyError]
+       (help (. (__import__ "hy")
+                macros
+                _hy_macros
+                [None]
+                ['~symbol])))))
+
+(deftag doc [symbol]
+  "tag macro documentation
+
+   Gets help for a tag macro function available in this module."
+  `(try
+     (help (. (__import__ "hy")
+              macros
+              _hy_tag
+              [__name__]
+              ['~symbol]))
+     (except [KeyError]
+       (help (. (__import__ "hy")
+                macros
+                _hy_tag
+                [None]
+                ['~symbol])))))
