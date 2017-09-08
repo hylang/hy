@@ -1197,6 +1197,12 @@
   (assert (= (eval `(get ~d ~k)) 2)))
 
 
+(defn test-quote-bracket-string-delim []
+  (assert (= (. '#[my delim[hello world]my delim] brackets) "my delim"))
+  (assert (= (. '#[[squid]] brackets) ""))
+  (assert (none? (. '"squid" brackets))))
+
+
 (defn test-import-syntax []
   "NATIVE: test the import syntax."
 

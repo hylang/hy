@@ -65,7 +65,10 @@ class HyString(HyObject, str_type):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
-    pass
+    def __new__(cls, s=None, brackets=None):
+        value = super(HyString, cls).__new__(cls, s)
+        value.brackets = brackets
+        return value
 
 _wrappers[str_type] = HyString
 

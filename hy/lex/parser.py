@@ -287,9 +287,7 @@ bracket_string_re = next(r.re for r in lexer.rules if r.name == 'BRACKETSTRING')
 def t_bracket_string(p):
     m = bracket_string_re.match(p[0].value)
     delim, content = m.groups()
-    s = HyString(content)
-    s.brackets = delim
-    return s
+    return HyString(content, brackets=delim)
 
 
 @pg.production("identifier : IDENTIFIER")
