@@ -102,7 +102,7 @@ HyString
 ~~~~~~~~
 
 ``hy.models.HyString`` is the base class of string-equivalent Hy
-models. It also represents double-quoted string literals, ``""``, which
+models. It also represents string literals (including bracket strings), which
 compile down to unicode string literals in Python. ``HyStrings`` inherit
 unicode objects in Python 2, and string objects in Python 3 (and are
 therefore not encoding-dependent).
@@ -112,6 +112,12 @@ therefore not encoding-dependent).
 Hy literal strings can span multiple lines, and are considered by the
 parser as a single unit, respecting the Python escapes for unicode
 strings.
+
+``HyString``\s have an attribute ``brackets`` that stores the custom
+delimiter used for a bracket string (e.g., ``"=="`` for ``#[==[hello
+world]==]`` and the empty string for ``#[[hello world]]``).
+``HyString``\s that are not produced by bracket strings have their
+``brackets`` set to ``None``.
 
 HyBytes
 ~~~~~~~
