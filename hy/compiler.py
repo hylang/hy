@@ -2146,12 +2146,20 @@ class HyASTCompiler(object):
         expr.pop(0)  # "while"
         ret = self.compile(expr.pop(0))
 
+        orel = Result()
+        # (while cond body (else …))
+        if expr and expr[-1][0] == HySymbol("else"):
+            else_expr = expr.pop()
+            for else_body in else_expr[1:]:
+                orel += self.compile(else_body)
+                orel += orel.expr_as_stmt()
+
         body = self._compile_branch(expr)
         body += body.expr_as_stmt()
 
         ret += ast.While(test=ret.force_expr,
                          body=body.stmts,
-                         orelse=[],
+                         orelse=orel.stmts,
                          lineno=expr.start_line,
                          col_offset=expr.start_column)
 
