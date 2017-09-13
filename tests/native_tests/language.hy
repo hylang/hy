@@ -1592,3 +1592,14 @@
   "Make sure argument destructuring works"
   (defn f [[a b] [c]] (, a b c))
   (assert (= (f [1 2] [3]) (, 1 2 3))))
+
+#@(pytest.mark.xfail
+(defn test-assert-multistatements []
+  ; https://github.com/hylang/hy/issues/1390
+  (setv s (set))
+  (defn f [x]
+    (.add s x)
+    False)
+  (with [(pytest.raises AssertionError)]
+    (assert (do (f 1) (f 2)) (do (f 3) (f 4))))
+  (assert (= s #{1 2 3 4}))))
