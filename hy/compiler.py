@@ -2116,12 +2116,8 @@ class HyASTCompiler(object):
         # (for* [] body (else …))
         if expression and expression[-1][0] == HySymbol("else"):
             else_expr = expression.pop()
-            if len(else_expr) > 2:
-                raise HyTypeError(
-                    else_expr,
-                    "`else' statement in `for' is too long")
-            elif len(else_expr) == 2:
-                orel += self.compile(else_expr[1])
+            for else_body in else_expr[1:]:
+                orel += self.compile(else_body)
                 orel += orel.expr_as_stmt()
 
         ret += self.compile(iterable)

@@ -210,6 +210,17 @@
     (else
       (+= count 1)))
   (assert (= count 151))
+
+  (setv count 0)
+  ; multiple statements in the else branch should work
+  (for [x [1 2 3 4 5]
+        y [1 2 3 4 5]]
+    (setv count (+ count x y))
+    (else
+      (+= count 1)
+      (+= count 10)))
+
+  (assert (= count 161))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
              (list-comp y [x [[1] [2 3]] y x])))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
