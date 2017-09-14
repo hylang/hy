@@ -324,6 +324,7 @@ def test_ast_bad_with():
 def test_ast_valid_while():
     "Make sure AST can't compile invalid while"
     can_compile("(while foo bar)")
+    can_compile("(while foo bar (else baz))")
 
 
 def test_ast_valid_for():

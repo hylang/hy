@@ -266,6 +266,39 @@
   (assert (= count 0))
   (assert (= fact 120)))
 
+(defn test-while-loop-else []
+  (setv count 5)
+  (setv fact 1)
+  (setv myvariable 18)
+  (while (> count 0)
+    (setv fact (* fact count))
+    (setv count (- count 1))
+    (else (setv myvariable 26)))
+  (assert (= count 0))
+  (assert (= fact 120))
+  (assert (= myvariable 26))
+
+  ; multiple statements in a while loop should work
+  (setv count 5)
+  (setv fact 1)
+  (setv myvariable 18)
+  (setv myothervariable 15)
+  (while (> count 0)
+    (setv fact (* fact count))
+    (setv count (- count 1))
+    (else (setv myvariable 26)
+          (setv myothervariable 24)))
+  (assert (= count 0))
+  (assert (= fact 120))
+  (assert (= myvariable 26))
+  (assert (= myothervariable 24))
+
+  ; else clause shouldn't get run after a break
+  (while True
+    (break)
+    (else (setv myvariable 53)))
+  (assert (= myvariable 26)))
+
 
 (defn test-branching []
   "NATIVE: test if branching"

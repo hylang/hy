@@ -18,6 +18,7 @@ Changes from 0.13.0
    * new `comment` macro
    * support EDN `#_` syntax to discard the next term
    * `return` has been implemented as a special form
+   * `while` loops may now contain an `else` clause, like `for` loops
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot
