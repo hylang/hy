@@ -69,6 +69,17 @@ bc"
     assert objs == [HyString("abc")]
 
 
+def test_lex_bracket_strings():
+
+    objs = tokenize("#[my delim[hello world]my delim]")
+    assert objs == [HyString("hello world")]
+    assert objs[0].brackets == "my delim"
+
+    objs = tokenize("#[[squid]]")
+    assert objs == [HyString("squid")]
+    assert objs[0].brackets == ""
+
+
 def test_lex_integers():
     """ Make sure that integers are valid expressions"""
     objs = tokenize("42 ")

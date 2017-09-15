@@ -52,26 +52,47 @@ digits.
 
     (print 10,000,000,000 10_000_000_000)
 
-Unlike Python, Hy provides literal forms for NaN and infinity: `NaN`, `Inf`,
-and `-Inf`.
+Unlike Python, Hy provides literal forms for NaN and infinity: ``NaN``,
+``Inf``, and ``-Inf``.
 
 string literals
 ---------------
 
-Unlike Python, Hy allows only double-quoted strings (e.g., ``"hello"``). The
-single-quote character ``'`` is reserved for preventing the evaluation of a
-form (e.g., ``'(+ 1 1)``), as in most Lisps.
+Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
+strings like Python. The single-quote character ``'`` is reserved for
+preventing the evaluation of a form (e.g., ``'(+ 1 1)``), as in most Lisps.
 
 Python's so-called triple-quoted strings (e.g., ``'''hello'''`` and
 ``"""hello"""``) aren't supported. However, in Hy, unlike Python, any string
-literal can contain newlines.
+literal can contain newlines. Furthermore, Hy supports an alternative form of
+string literal called a "bracket string" similar to Lua's long brackets.
+Bracket strings have customizable delimiters, like the here-documents of other
+languages. A bracket string begins with ``#[FOO[`` and ends with ``]FOO]``,
+where ``FOO`` is any string not containing ``[`` or ``]``, including the empty
+string. For example::
 
-Whether running under Python 2 or Python 3, Hy treats string literals as
-sequences of Unicode characters by default, and allows you to prefix a literal
-with ``b`` to treat it as a sequence of bytes. So when running under Python 3,
-Hy translates ``"foo"`` and ``b"foo"`` to the identical Python code, but when
-running under Python 2, ``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is
-translated to ``"foo"``.
+   => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
+   "That's very kind of yuo [sic]" Tom wrote back.
+   => (print #[==[1 + 1 = 2]==])
+   1 + 1 = 2
+
+A bracket string can contain newlines, but if it begins with one, the newline
+is removed, so you can begin the content of a bracket string on the line
+following the opening delimiter with no effect on the content. Any leading
+newlines past the first are preserved.
+
+Plain string literals support :ref:`a variety of backslash escapes
+<py:strings>`. To create a "raw string" that interprets all backslashes
+literally, prefix the string with ``r``, as in ``r"slash\not"``. Bracket
+strings are always raw strings and don't allow the ``r`` prefix.
+
+Whether running under Python 2 or Python 3, Hy treats all string literals as
+sequences of Unicode characters by default, and allows you to prefix a plain
+string literal (but not a bracket string) with ``b`` to treat it as a sequence
+of bytes. So when running under Python 3, Hy translates ``"foo"`` and
+``b"foo"`` to the identical Python code, but when running under Python 2,
+``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is translated to
+``"foo"``.
 
 .. _syntax-keywords:
 

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # Copyright 2017 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
@@ -44,6 +45,10 @@ def cant_compile(expr):
         assert isinstance(e.exception, HyTypeError)
         assert e.traceback
         return e
+
+
+def s(x):
+    return can_compile(x).body[0].value.s
 
 
 def test_ast_bad_type():
@@ -481,12 +486,31 @@ def test_ast_unicode_strings():
 
 
 def test_ast_unicode_vs_bytes():
-    def f(x): return can_compile(x).body[0].value.s
-    assert f('"hello"') == u"hello"
-    assert type(f('"hello"')) is (str if PY3 else unicode)  # noqa
-    assert f('b"hello"') == (eval('b"hello"') if PY3 else "hello")
-    assert type(f('b"hello"')) == (bytes if PY3 else str)
-    assert f('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+    assert s('"hello"') == u"hello"
+    assert type(s('"hello"')) is (str if PY3 else unicode)  # noqa
+    assert s('b"hello"') == (eval('b"hello"') if PY3 else "hello")
+    assert type(s('b"hello"')) is (bytes if PY3 else str)
+    assert s('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+
+
+def test_ast_bracket_string():
+    assert s(r'#[[empty delims]]') == 'empty delims'
+    assert s(r'#[my delim[fizzle]my delim]') == 'fizzle'
+    assert s(r'#[[]]') == ''
+    assert s(r'#[my delim[]my delim]') == ''
+    assert type(s('#[X[hello]X]')) is (str if PY3 else unicode)  # noqa
+    assert s(r'#[X[raw\nstring]X]') == 'raw\\nstring'
+    assert s(r'#[foozle[aa foozli bb ]foozle]') == 'aa foozli bb '
+    assert s(r'#[([unbalanced](]') == 'unbalanced'
+    assert s(r'#[(1💯@)} {a![hello world](1💯@)} {a!]') == 'hello world'
+    assert (s(r'''#[X[
+Remove the leading newline, please.
+]X]''') == 'Remove the leading newline, please.\n')
+    assert (s(r'''#[X[
+
+
+Only one leading newline should be removed.
+]X]''') == '\n\nOnly one leading newline should be removed.\n')
 
 
 def test_compile_error():

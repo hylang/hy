@@ -281,6 +281,15 @@ def t_partial_string(p):
     raise PrematureEndOfInput("Premature end of input")
 
 
+bracket_string_re = next(r.re for r in lexer.rules if r.name == 'BRACKETSTRING')
+@pg.production("string : BRACKETSTRING")
+@set_boundaries
+def t_bracket_string(p):
+    m = bracket_string_re.match(p[0].value)
+    delim, content = m.groups()
+    return HyString(content, brackets=delim)
+
+
 @pg.production("identifier : IDENTIFIER")
 @set_boundaries
 def t_identifier(p):

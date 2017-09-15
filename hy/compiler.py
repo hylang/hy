@@ -745,6 +745,12 @@ class HyASTCompiler(object):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
 
+        elif isinstance(form, HyString):
+            x = [HySymbol(name), form]
+            if form.brackets is not None:
+                x.extend([HyKeyword(":brackets"), form.brackets])
+            return imports, HyExpression(x).replace(form), False
+
         return imports, HyExpression([HySymbol(name),
                                       form]).replace(form), False
 

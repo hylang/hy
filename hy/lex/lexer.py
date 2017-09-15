@@ -27,6 +27,12 @@ lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
 lg.add('DISCARD', r'#_')
 lg.add('HASHSTARS', r'#\*+')
+lg.add('BRACKETSTRING', r'''(?x)
+    \# \[ ( [^\[\]]* ) \[    # Opening delimiter
+    \n?                      # A single leading newline will be ignored
+    ((?:\n|.)*?)             # Content of the string
+    \] \1 \]                 # Closing delimiter
+    ''')
 lg.add('HASHOTHER', r'#%s' % identifier)
 
 # A regexp which matches incomplete strings, used to support
