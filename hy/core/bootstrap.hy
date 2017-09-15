@@ -13,9 +13,9 @@
         args (list args)
         result (if* (% n 2) (.pop args) `None))
 
-    (while args
-      (setv then-branch (.pop args)
-            cond (.pop args))
+  (while args
+    (setv then-branch (.pop args)
+          cond (.pop args))
     (setv result `(if* ~cond ~then-branch ~result)))
 
   result)

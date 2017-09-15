@@ -306,6 +306,20 @@
   (assert (= (lif-not 0 "false" "true") "true")))
 
 
+(defn test-if-elif []
+  "test that sequential ifs get compiled to elifs"
+  (import ast)
+  (import [astor.codegen [to-source]])
+  (import [hy.importer [import-buffer-to-ast]])
+
+  (setv source "(if 1 11 2 (setv x 22) 3 33)")
+
+  (setv source (to-source (import-buffer-to-ast source "foo")))
+  (print source)
+  ; Make sure 1) there's a compiled elif present and 2) only one anon var is generated
+  (assert (and (in "elif" source) (not-in "_hy_anon_var_2" source))))
+
+
 (defn test-defmain []
   "NATIVE: make sure defmain is clean"
   (global --name--)
