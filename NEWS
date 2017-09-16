@@ -41,6 +41,8 @@ Changes from 0.13.0
    * `assoc` now evaluates its arguments only once each
    * `break` and `continue` now raise an error when given arguments
      instead of silently ignoring them
+   * Multiple expressions are now allowed in the else clause of
+     a for loop
 
    [ Misc. Improvements ]
    * `read`, `read_str`, and `eval` are exposed and documented as top-level

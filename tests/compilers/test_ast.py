@@ -337,11 +337,6 @@ def test_ast_valid_for():
     can_compile("(for [a 2] (print a))")
 
 
-def test_ast_invalid_for():
-    "Make sure AST can't compile invalid for"
-    cant_compile("(for* [a 1] (else 1 2))")
-
-
 def test_nullary_break_continue():
     can_compile("(while 1 (break))")
     cant_compile("(while 1 (break 1))")
