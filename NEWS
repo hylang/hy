@@ -44,6 +44,7 @@ Changes from 0.13.0
      instead of silently ignoring them
    * Multiple expressions are now allowed in the else clause of
      a for loop
+   * Argument destructuring no longer interferes with function docstrings.
 
    [ Misc. Improvements ]
    * `read`, `read_str`, and `eval` are exposed and documented as top-level

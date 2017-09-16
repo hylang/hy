@@ -1660,3 +1660,24 @@
     [_42 6])
   (setv x (XYZ))
   (assert (= (. x _42) 6)))
+
+(defn test-docstrings []
+  "Make sure docstrings in functions work and don't clash with return values"
+  (defn f [] "docstring" 5)
+  (assert (= (. f __doc__) "docstring"))
+
+  ; destructuring and the implicit variables it creates
+  ; shouldn't interfere with docstrings
+  ; (https://github.com/hylang/hy/issues/1409)
+  (defn f2 [[a b]] "docstring" 5)
+  (assert (= (. f2 __doc__) "docstring"))
+
+  ; a single string is the return value, not a docstring
+  ; (https://github.com/hylang/hy/issues/1402)
+  (defn f3 [] "not a docstring")
+  (assert (none? (. f3 __doc__)))
+  (assert (= (f3) "not a docstring"))
+
+  (defn f4 [[a b]] "not a docstring")
+  (assert (none? (. f4 __doc__)))
+  (assert (= (f4 [1 2]) "not a docstring")))
