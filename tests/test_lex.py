@@ -158,9 +158,11 @@ def test_lex_digit_separators():
              HyInteger(12), HyInteger(34)])])
     assert tokenize("1,0_00j") == [HyComplex(1000j)]
 
-    assert tokenize(",,,,___,__1__,,__,,2__,,,__") == [HyInteger(12)]
-    assert (tokenize(",,,,___,__1__,,__,,2__,q,__") ==
-            [HySymbol(",,,,___,__1__,,__,,2__,q,__")])
+    assert tokenize("1,,,,___,____,,__,,2__,,,__") == [HyInteger(12)]
+    assert (tokenize("_1,,,,___,____,,__,,2__,,,__") ==
+            [HySymbol("_1,,,,___,____,,__,,2__,,,__")])
+    assert (tokenize("1,,,,___,____,,__,,2__,q,__") ==
+            [HySymbol("1,,,,___,____,,__,,2__,q,__")])
 
 
 def test_lex_bad_attrs():

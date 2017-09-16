@@ -111,8 +111,10 @@ class HyKeyword(HyObject, str_type):
 
 
 def strip_digit_separators(number):
-    return (number.replace("_", "").replace(",", "")
-            if isinstance(number, string_types)
+    # Don't strip a _ or , if it's the first character, as _42 and
+    # ,42 aren't valid numbers
+    return (number[0] + number[1:].replace("_", "").replace(",", "")
+            if isinstance(number, string_types) and len(number) > 1
             else number)
 
 
