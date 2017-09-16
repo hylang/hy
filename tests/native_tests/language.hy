@@ -1653,3 +1653,10 @@
   (with [(pytest.raises AssertionError)]
     (assert (do (f 1) (f 2)) (do (f 3) (f 4))))
   (assert (= s #{1 2 3 4}))))
+
+(defn test-underscore_variables []
+  ; https://github.com/hylang/hy/issues/1340
+  (defclass XYZ []
+    [_42 6])
+  (setv x (XYZ))
+  (assert (= (. x _42) 6)))

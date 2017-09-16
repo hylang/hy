@@ -44,9 +44,9 @@ integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
     
     (print 0x80 0b11101 0o102 30)
 
-Underscores and commas can appear anywhere in a numeric literal. They have no
-effect on the value of the literal, but they're useful for visually separating
-digits.
+Underscores and commas can appear anywhere in a numeric literal except the very
+beginning. They have no effect on the value of the literal, but they're useful
+for visually separating digits.
 
 .. code-block:: clj
 
