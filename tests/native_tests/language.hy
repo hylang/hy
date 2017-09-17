@@ -515,10 +515,16 @@
 
   (try (do) (except [IOError]) (except))
 
+  ; test that multiple expressions in a try get evaluated
+  (setv value 0)
+  (try (+= value 1) (+= value 2)  (except [IOError]) (except))
+  (assert (= value 3))
+
   ;; Test correct (raise)
   (setv passed False)
   (try
    (try
+    (do)
     (raise IndexError)
     (except [IndexError] (raise)))
    (except [IndexError]
@@ -650,7 +656,25 @@
       (setv x 45))
     (else (setv x 44)))
    (except))
-  (assert (= x 0)))
+  (assert (= x 0))
+
+  ; test that [except ...] and ("except" ...) aren't treated like (except ...),
+  ; and that the code there is evaluated normally
+  (setv x 0)
+  (try
+    (+= x 1)
+    ("except" [IOError]  (+= x 1))
+    (except))
+
+  (assert (= x 2))
+
+  (setv x 0)
+  (try
+    (+= x 1)
+    [except [IOError]  (+= x 1)]
+    (except))
+
+  (assert (= x 2)))
 
 (defn test-earmuffs []
   "NATIVE: Test earmuffs"

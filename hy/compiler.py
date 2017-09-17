@@ -843,8 +843,14 @@ class HyASTCompiler(object):
         expr = copy.deepcopy(expr)
         expr.pop(0)  # try
 
-        # (try something…)
-        body = self.compile(expr.pop(0) if expr else [])
+        # (try something somethingelse…)
+        body = Result()
+        # Check against HyExpression and HySymbol to avoid incorrectly
+        # matching [except ...] or ("except" ...)
+        while expr and not (isinstance(expr[0], HyExpression)
+                            and isinstance(expr[0][0], HySymbol)
+                            and expr[0][0] in ("except", "else", "finally")):
+            body += self.compile(expr.pop(0))
 
         var = self.get_anon_var()
         name = asty.Name(expr, id=ast_str(var), ctx=ast.Store())
