@@ -618,17 +618,29 @@ arguments. If the argument list only has one element, return it.
 
 .. code-block:: hy
 
-   => (list* 1 2 3 4)
-   (1 2 3 . 4)
-
-   => (list* 1 2 3 [4])
-   [1, 2, 3, 4]
-
-   => (list* 1)
-   1
-
-   => (cons? (list* 1 2 3 4))
-   True
+    => (list* 1 2 3 4)
+    <HyCons (
+      HyInteger(1)
+      HyInteger(2)
+      HyInteger(3)
+    . HyInteger(4))>
+    => (list* 1 2 3 [4])
+    [HyInteger(1), HyInteger(2), HyInteger(3), 4]
+    => (list* 1)
+    1
+    => (cons? (list* 1 2 3 4))
+    True
+    => (list* 1 10  2 20 '{})
+    HyDict([
+      HyInteger(1), HyInteger(10),
+      HyInteger(2), HyInteger(20)])
+    => (list* 1 10  2 20 {})
+    <HyCons (
+      HyInteger(1)
+      HyInteger(10)
+      HyInteger(2)
+      HyInteger(20)
+    . HyDict())>
 
 .. _macroexpand-fn:
 
@@ -643,11 +655,23 @@ Returns the full macro expansion of *form*.
 
 .. code-block:: hy
 
-   => (macroexpand '(-> (a b) (x y)))
-   (u'x' (u'a' u'b') u'y')
-
-   => (macroexpand '(-> (a b) (-> (c d) (e f))))
-   (u'e' (u'c' (u'a' u'b') u'd') u'f')
+    => (macroexpand '(-> (a b) (x y)))
+    HyExpression([
+      HySymbol('x'),
+      HyExpression([
+        HySymbol('a'),
+        HySymbol('b')]),
+      HySymbol('y')])
+    => (macroexpand '(-> (a b) (-> (c d) (e f))))
+    HyExpression([
+      HySymbol('e'),
+      HyExpression([
+        HySymbol('c'),
+        HyExpression([
+          HySymbol('a'),
+          HySymbol('b')]),
+        HySymbol('d')]),
+      HySymbol('f')])
 
 .. _macroexpand-1-fn:
 
@@ -662,8 +686,18 @@ Returns the single step macro expansion of *form*.
 
 .. code-block:: hy
 
-   => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
-   (u'_>' (u'a' u'b') (u'c' u'd') (u'e' u'f'))
+    => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
+    HyExpression([
+      HySymbol('_>'),
+      HyExpression([
+        HySymbol('a'),
+        HySymbol('b')]),
+      HyExpression([
+        HySymbol('c'),
+        HySymbol('d')]),
+      HyExpression([
+        HySymbol('e'),
+        HySymbol('f')])])
 
 
 .. _merge-with-fn:
@@ -839,26 +873,26 @@ Chunks *coll* into *n*-tuples (pairs by default).
 
 .. code-block:: hy
 
-   => (list (partition (range 10)))  ; n=2
-   [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)]
+    => (list (partition (range 10)))  ; n=2
+    [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9)]
 
 The *step* defaults to *n*, but can be more to skip elements, or less for a sliding window with overlap.
 
 .. code-block:: hy
 
-   => (list (partition (range 10) 2 3))
-   [(, 0 1) (, 3 4) (, 6 7)]
-   => (list (partition (range 5) 2 1))
-   [(, 0 1) (, 1 2) (, 2 3) (, 3 4)])
+    => (list (partition (range 10) 2 3))
+    [(0, 1), (3, 4), (6, 7)]
+    => (list (partition (range 5) 2 1))
+    [(0, 1), (1, 2), (2, 3), (3, 4)]
 
 The remainder, if any, is not included unless a *fillvalue* is specified.
 
 .. code-block:: hy
 
-   => (list (partition (range 10) 3))
-   [(, 0 1 2) (, 3 4 5) (, 6 7 8)]
-   => (list (partition (range 10) 3 :fillvalue "x"))
-   [(, 0 1 2) (, 3 4 5) (, 6 7 8) (, 9 "x" "x")]
+    => (list (partition (range 10) 3))
+    [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
+    => (list (partition (range 10) 3 :fillvalue "x"))
+    [(0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 'x', 'x')]
 
 .. _pos?-fn:
 
@@ -1220,36 +1254,43 @@ if *from-file* ends before a complete expression can be parsed.
 
 .. code-block:: hy
 
-   => (read)
-   (+ 2 2)
-   ('+' 2 2)
-   => (eval (read))
-   (+ 2 2)
-   4
+    => (read)
+    (+ 2 2)
+    HyExpression([
+      HySymbol('+'),
+      HyInteger(2),
+      HyInteger(2)])
+    => (eval (read))
+    (+ 2 2)
+    4
+    => (import io)
+    => (setv buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
+    => (eval (read :from_file buffer))
+    4
+    => (eval (read :from_file buffer))
+    1
 
-   => (import io)
-   => (def buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
-   => (eval (read :from_file buffer))
-   4
-   => (eval (read :from_file buffer))
-   1
-
-   => ; assuming "example.hy" contains:
-   => ;   (print "hello")
-   => ;   (print "hyfriends!")
-   => (with [f (open "example.hy")]
-   ...   (try
-   ...     (while True
-   ...            (setv exp (read f))
-   ...            (print "OHY" exp)
-   ...            (eval exp))
-   ...     (except [e EOFError]
-   ...            (print "EOF!"))))
-   OHY ('print' 'hello')
-   hello
-   OHY ('print' 'hyfriends!')
-   hyfriends!
-   EOF!
+    => (with [f (open "example.hy" "w")]
+    ...  (.write f "(print 'hello)\n(print \"hyfriends!\")"))
+    35
+    => (with [f (open "example.hy")]
+    ...  (try (while True
+    ...         (setv exp (read f))
+    ...         (print "OHY" exp)
+    ...         (eval exp))
+    ...       (except [e EOFError]
+    ...         (print "EOF!"))))
+    OHY HyExpression([
+      HySymbol('print'),
+      HyExpression([
+        HySymbol('quote'),
+        HySymbol('hello')])])
+    hello
+    OHY HyExpression([
+      HySymbol('print'),
+      HyString('hyfriends!')])
+    hyfriends!
+    EOF!
 
 read-str
 --------
@@ -1261,11 +1302,12 @@ string:
 
 .. code-block:: hy
 
-   => (read-str "(print 1)")
-   (u'print' 1L)
-   => (eval (read-str "(print 1)"))
-   1
-   =>
+    => (read-str "(print 1)")
+    HyExpression([
+      HySymbol('print'),
+      HyInteger(1)])
+    => (eval (read-str "(print 1)"))
+    1
 
 .. _remove-fn:
 
@@ -1409,3 +1451,4 @@ are available. Some of their names have been changed:
   - ``dropwhile`` has been changed to ``drop-while``
   
   - ``filterfalse`` has been changed to ``remove``
+
