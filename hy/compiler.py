@@ -1881,6 +1881,10 @@ class HyASTCompiler(object):
         force_functiondef = expression.pop(0) == "fn*"
 
         arglist = expression.pop(0)
+        docstring = None
+        if len(expression) > 1 and isinstance(expression[0], str_type):
+            docstring = expression.pop(0)
+
         if not isinstance(arglist, HyList):
             raise HyTypeError(expression,
                               "First argument to `fn' must be a list")
@@ -1900,6 +1904,11 @@ class HyASTCompiler(object):
                     ])]
                 ) + expression
                 expression = expression.replace(arg[0])
+
+        # Docstrings must come at the start, so ensure that happens even if we
+        # generate anonymous variables.
+        if docstring is not None:
+            expression.insert(0, docstring)
 
         if PY3:
             # Python 3.4+ requires that args are an ast.arg object, rather
