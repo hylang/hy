@@ -633,7 +633,7 @@ arguments. If the argument list only has one element, return it.
     => (list* 1 10  2 20 '{})
     HyDict([
       HyInteger(1), HyInteger(10),
-      HyInteger(2), HyInteger(20),])
+      HyInteger(2), HyInteger(20)])
     => (list* 1 10  2 20 {})
     <HyCons (
       HyInteger(1)

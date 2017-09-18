@@ -213,27 +213,27 @@ PRETTY_STRINGS.update({
     '{{1j 2j} {1j 2j [][1j]} {[1j][] 1j 2j} {[1j][1j]}}':
         """HyDict([
   HyDict([
-    HyComplex(1j), HyComplex(2j),]),
+    HyComplex(1j), HyComplex(2j)]),
   HyDict([
     HyComplex(1j), HyComplex(2j),
     HyList(),
     HyList([
       HyComplex(1j)])
-    ,])
+    ])
   ,
   HyDict([
     HyList([
       HyComplex(1j)]),
     HyList()
     ,
-    HyComplex(1j), HyComplex(2j),]),
+    HyComplex(1j), HyComplex(2j)]),
   HyDict([
     HyList([
       HyComplex(1j)]),
     HyList([
       HyComplex(1j)])
-    ,])
-  ,])"""})
+    ])
+  ])"""})
 
 
 def test_compound_model_repr():
