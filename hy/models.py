@@ -378,9 +378,7 @@ class HyCons(HyObject):
         try:
             iterator = (i for i in self.cdr)
         except TypeError:
-            if self.cdr is not None:
-                yield self.cdr
-                raise TypeError("Iteration on malformed cons")
+            raise StopIteration(self.cdr)
         else:
             for i in iterator:
                 yield i
