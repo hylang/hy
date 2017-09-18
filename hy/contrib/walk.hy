@@ -161,7 +161,7 @@ as can nested let forms.
                ;; else expand if applicable
                (if (and (in form bound-symbols)
                         (not-in form protected-symbols))
-                   `(get ~g!let ~(name form))
+                   (HySymbol (+ g!let "::" form))
                    form))]
           ;; We have to treat special forms differently.
           ;; Quotation should suppress symbol expansion,
@@ -232,15 +232,10 @@ as can nested let forms.
           [True form]))
   (expand-symbols #{}
                    `(do
-                      (setv ~g!let {}
-                            ~@bindings)
+                      (setv ~@bindings)
                       ~@body)))
 
 #_[special cases for let
-   ;; this means we can't use a list for our let scope
-   ;; we're using a dict instead.
-   'del',
-
    ;; Symbols containing a dot should be converted to this form.
    ;; attrs should not get expanded,
    ;; but [] lookups should.

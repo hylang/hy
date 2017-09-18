@@ -135,8 +135,8 @@
          (do
            foo
            (assert False))
-         (except [ke LookupError]
-           (setv error ke)))
+         (except [ne NameError]
+           (setv error ne)))
        (setv foo 16)
        (assert (= foo 16))
        (setv [foo bar baz] [1 2 3])
@@ -152,6 +152,14 @@
     (let [done (odd? x)]
          (if done (break))))
   (assert (= x 1)))
+
+(defn test-let-continue []
+  (let [foo []]
+       (for [x (range 10)]
+         (let [odd (odd? x)]
+              (if odd (continue))
+              (.append foo x)))
+       (assert (= foo [0 2 4 6 8]))))
 
 (defn test-let-yield []
   (defn grind []
@@ -231,16 +239,15 @@
         &rest 12]
        (defn foo [a b &rest xs]
          (-= a 1)
-         (-= c 1)
          (setv xs (list xs))
          (.append xs 42)
          (, &rest a b c xs))
        (assert (= xs 6))
        (assert (= a 88))
        (assert (= (foo 1 2 3 4)
-                  (, 12 0 2 63 [3 4 42])))
+                  (, 12 0 2 64 [3 4 42])))
        (assert (= xs 6))
-       (assert (= c 63))
+       (assert (= c 64))
        (assert (= a 88))))
 
 (defn test-let-kwargs []
@@ -275,12 +282,17 @@
                   (, 10 20 30)))
        (assert (= (, a b d)
                   (, 1 6 2)))))
-;; TODO
-;; test-let-continue
-;; test-let-closure
-;; test-let-global
+
+(defn test-let-closure []
+  (let [count [0]]
+       (defn +count [&optional [x 1]]
+         (+= (get count 0) x)
+         (get count 0)))
+  ;; let bindings can still exist outside of a let body
+  (assert (= 1 (+count)))
+  (assert (= 2 (+count)))
+  (assert (= 42 (+count 40))))
 
 ;; TODO
-;;; Python 3 only
-;; test-let-nonlocal
-;; test-let-kwonly
+;; test-let-global
+
