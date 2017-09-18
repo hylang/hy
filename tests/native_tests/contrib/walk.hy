@@ -293,6 +293,21 @@
   (assert (= 2 (+count)))
   (assert (= 42 (+count 40))))
 
-;; TODO
-;; test-let-global
+(defn test-let-global []
+  (setv (get (globals)
+             'let-global)
+        "global")
+  (let [let-global 1]
+       (assert (= let-global 1))
+       (defn foo []
+         (assert (= let-global 1))
+         (global let-global)
+         (assert (= let-global "global"))
+         (setv let-global "mutated")
+         (assert (= let-global "mutated")))
+       (foo)
+       (assert (= let-global 1))
+       (assert (= (get (globals)
+                       'let-global)
+                  "mutated"))))
 

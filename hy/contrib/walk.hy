@@ -170,7 +170,6 @@ as can nested let forms.
            (setv head (first form))
            (setv tail (cut form 1))
            (cond [(in head '[fn fn*])
-                  ;; TODO: handle globals, locals
                   (setv body (cut tail 1)
                         protected #{}
                         fn-bindings `[])
@@ -218,6 +217,9 @@ as can nested let forms.
                                                     form)))
                               identity
                               tail))]
+                 [(= head 'global)
+                  (.update protected-symbols (set tail))
+                  form]
                  [(in head '[import quote]) form]
                  [(= head 'defclass)
                   ;; don't expand the name of the class
