@@ -8,13 +8,17 @@
 
 (defmacro if [&rest args]
   "if with elif"
-  (setv n (len args))
-  (if* n
-       (if* (= n 1)
-            (get args 0)
-            `(if* ~(get args 0)
-                  ~(get args 1)
-                  (if ~@(cut args 2))))))
+
+  (setv n (len args)
+        args (list args)
+        result (if* (% n 2) (.pop args) `None))
+
+  (while args
+    (setv then-branch (.pop args)
+          cond (.pop args))
+    (setv result `(if* ~cond ~then-branch ~result)))
+
+  result)
 
 (defmacro macro-error [location reason]
   "error out properly within a macro"
