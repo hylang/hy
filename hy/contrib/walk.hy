@@ -93,6 +93,169 @@ Arguments without a header are under None.
       (.append (get sections header) arg)))
   sections)
 
+(defclass SymbolExpander[]
+  (defn expand-symbols [self form &optional protected quote-level]
+    (if (none? protected)
+        (setv protected self.protected))
+    (if (none? quote-level)
+        (setv quote-level self.quote-level))
+    (.expand (SymbolExpander form self.expander protected quote-level)))
+
+  (defn __init__ [self form expander
+                  &optional
+                  [protected (frozenset)]
+                  [quote-level 0]]
+    (setv self.form form
+          self.expander expander
+          self.protected protected
+          self.quote-level quote-level))
+
+  (defn traverse [self form &optional protected quote-level]
+    (if (none? protected)
+        (setv protected self.protected))
+    (if (none? quote-level)
+        (setv quote-level self.quote-level))
+    (walk (partial self.expand-symbols
+                   :protected protected
+                   :quote-level quote-level)
+          identity
+          form))
+
+  ;; manages quote levels
+  (defn +quote [self &optional [x 1]]
+    `(~(self.head) ~@(self.traverse (self.tail)
+                                    :quote-level (+ self.quote-level x))))
+
+  (defn handle-dot [self]
+    `(. ~@(walk (fn [form]
+                  (if (symbol? form)
+                      form  ; don't expand attrs
+                      (self.expand-symbols form)))
+                identity
+                (self.tail))))
+
+  (defn head [self]
+    (first self.form))
+
+  (defn tail [self]
+    (cut self.form 1))
+
+  (defn handle-except [self]
+    (setv tail (self.tail))
+    ;; protect the "as" name binding the exception
+    `(~(self.head) ~@(self.traverse tail (| self.protected
+                                            (if (and tail
+                                                     (-> tail
+                                                         first
+                                                         len
+                                                         (= 2)))
+                                                #{(first (first tail))}
+                                                #{})))))
+  (defn handle-args-list [self]
+    (setv protected #{}
+          argslist `[])
+    (for [[header section] (-> self (.tail) first lambda-list .items)]
+      (if header (.append argslist header))
+      (cond [(in header [None '&rest '&kwargs])
+             (.update protected (-> section flatten set))
+             (.extend argslist section)]
+            [(in header '[&optional &kwonly])
+             (for [pair section]
+               (cond [(coll? pair)
+                      (.add protected (first pair))
+                      (.append argslist
+                               `[~(first pair)
+                                 ~(self.expand-symbols (second pair))])]
+                     [True
+                      (.add protected pair)
+                      (.append argslist pair)]))]
+            [(= header '&key)
+             (setv &key-dict '{})
+             (for [[k v] (-> section first partition)]
+               (.add protected k)
+               (.append &key-dict k)
+               (.append &key-dict (self.expand-symbols v)))
+             (.append argslist &key-dict)]))
+    (, protected argslist))
+
+  (defn handle-fn [self]
+    (setv [protected argslist] (self.handle-args-list))
+    `(~(self.head) ~argslist
+      ~@(self.traverse (cut (self.tail) 1)(| protected self.protected))))
+
+  ;; don't expand symbols in quotations
+  (defn handle-quoted [self]
+    (if (call? self.form)
+        (if (in (self.head) '[unquote unquote-splice]) (self.+quote -1)
+            (= (self.head) 'quasiquote) (self.+quote)
+            (self.handle-coll))
+        (if (coll? self.form)
+            (self.handle-coll)
+            (self.handle-base))))
+
+  ;; convert dotted names to the standard special form
+  (defn convert-dotted-symbol [self]
+    (self.expand-symbols `(. ~@(map HySymbol (.split self.form '.)))))
+
+  (defn expand-symbol [self]
+    (if (not-in self.form self.protected)
+        (self.expander self.form)
+        (self.handle-base)))
+
+  (defn handle-symbol [self]
+    (if (and self.form
+             (not (.startswith self.form '.))
+             (in '. self.form))
+        (self.convert-dotted-symbol)
+        (self.expand-symbol)))
+
+  (defn handle-global [self]
+    (.update self.protected (set (self.tail)))
+    (self.handle-base))
+
+  (defn handle-defclass [self]
+    ;; don't expand the name of the class
+    `(~(self.head) ~(first (self.tail))
+      ~@(self.traverse (cut (self.tail) 1))))
+
+  (defn handle-special-form [self]
+    ;; don't expand other special form symbols in head position
+    `(~(self.head) ~@(self.traverse (self.tail))))
+
+  (defn handle-base [self]
+    self.form)
+
+  (defn handle-coll [self]
+    ;; recursion
+    (self.traverse self.form))
+
+  ;; We have to treat special forms differently.
+  ;; Quotation should suppress symbol expansion,
+  ;; and local bindings should shadow those made by let.
+  (defn handle-call [self]
+    (setv head (first self.form))
+    (if (in head '[fn fn*]) (self.handle-fn)
+        (in head '[import quote]) (self.handle-base)
+        (= head 'except) (self.handle-except)
+        (= head ".") (self.handle-dot)
+        (= head 'global) (self.handle-global)
+        (= head 'defclass) (self.handle-defclass)
+        (= head 'quasiquote) (self.+quote)
+        ;; must be checked last!
+        (in head special-forms) (self.handle-special-form)
+        ;; Not a special form. Traverse it like a coll
+        (self.handle-coll)))
+
+  (defn expand [self]
+    "the main entry point. Call this to do  the expansion"
+    (setv form self.form)
+    (if self.quote-level (self.handle-quoted)
+        (symbol? form) (self.handle-symbol)
+        (call? form) (self.handle-call)
+        (coll? form) (self.handle-coll)
+        ;; recursive base case--it's an atom. Put it back.
+        (self.handle-base))))
+
 (defmacro let [bindings &rest body]
   "
 sets up lexical bindings in its body
@@ -120,122 +283,19 @@ as can nested let forms.
   ;; pre-expanding the body means we only have to worry about a small number
   ;; of special forms
   (setv body (macroexpand-all body)
-        bound-symbols (cut bindings None None 2)
-        quote-level [0])
+        bound-symbols (cut bindings None None 2))
   (for [k bound-symbols]
     (if-not (symbol? k)
             (macro-error k "let can only bind to symbols")
             (if (in '. k)
                 (macro-error k "let binding symbols may not contain a dot"))))
-  ;; sets up the recursion call
-  (defn expand-symbols [protected-symbols form]
-    (defn traverse [form &optional [protected-symbols protected-symbols]]
-      (walk (partial expand-symbols protected-symbols)
-            identity
-            form))
-    ;; manages quote levels
-    (defn +quote [&optional [x 1]]
-      (setv head (first form))
-      (+= (get quote-level 0) x)
-      (setv res (traverse (cut form 1)))
-      (-= (get quote-level 0) x)
-      `(~head ~@res))
-    (cond [(get quote-level 0)  ; don't expand symbols in quotations
-           (if (call? form)
-               (cond [(in (first form) '[unquote unquote-splice])
-                      (+quote -1)]
-                     [(= (first form) 'quasiquote)
-                      (+quote)]
-                     [True (traverse form)])
-               (if (coll? form)
-                   (traverse form)
-                   form))]
-          ;; symbol expansions happen here.
-          [(symbol? form)
-           (if (and form
-                    (not (.startswith form '.))
-                    (in '. form))
-               ;; convert dotted names to the standard special form
-               (expand-symbols protected-symbols
-                               `(. ~@(map HySymbol (.split form '.))))
-               ;; else expand if applicable
-               (if (and (in form bound-symbols)
-                        (not-in form protected-symbols))
-                   (HySymbol (+ g!let "::" form))
-                   form))]
-          ;; We have to treat special forms differently.
-          ;; Quotation should suppress symbol expansion,
-          ;; and local bindings should shadow those made by let.
-          [(call? form)
-           (setv head (first form))
-           (setv tail (cut form 1))
-           (cond [(in head '[fn fn*])
-                  (setv body (cut tail 1)
-                        protected #{}
-                        fn-bindings `[])
-                  (for [[header section] (-> tail first lambda-list .items)]
-                    (if header (.append fn-bindings header))
-                    (cond [(in header [None '&rest '&kwargs])
-                           (.update protected (-> section flatten set))
-                           (.extend fn-bindings section)]
-                          [(in header '[&optional &kwonly])
-                           (for [pair section]
-                             (cond [(coll? pair)
-                                    (.add protected (first pair))
-                                    (.append fn-bindings
-                                             `[~(first pair)
-                                               ~(expand-symbols protected-symbols
-                                                                (second pair))])]
-                                   [True
-                                    (.add protected pair)
-                                    (.append fn-bindings pair)]))]
-                          [(= header '&key)
-                           (setv &key-dict '{})
-                           (for [[k v] (-> section first partition)]
-                             (.add protected k)
-                             (.append &key-dict k)
-                             (.append &key-dict (expand-symbols protected-symbols
-                                                                v)))
-                           (.append fn-bindings &key-dict)]))
-                  `(~head ~fn-bindings
-                    ~@(traverse body (| protected protected-symbols)))]
-                 [(= head 'except)
-                  ;; protect the "as" name binding the exception
-                  `(~head ~@(traverse tail (| protected-symbols
-                                              (if (and tail
-                                                       (-> tail
-                                                           first
-                                                           len
-                                                           (= 2)))
-                                                  #{(first (first tail))}
-                                                  #{}))))]
-                 [(= head ".")
-                  `(. ~@(walk (fn [form]
-                                (if (symbol? form)
-                                    form  ; don't expand attrs
-                                    (expand-symbols protected-symbols
-                                                    form)))
-                              identity
-                              tail))]
-                 [(= head 'global)
-                  (.update protected-symbols (set tail))
-                  form]
-                 [(in head '[import quote]) form]
-                 [(= head 'defclass)
-                  ;; don't expand the name of the class
-                  `(~head ~(first tail) ~@(traverse (cut tail 1)))]
-                 [(= head 'quasiquote) (+quote)]
-                 ;; don't expand other special form symbols in head position
-                 [(in head special-forms) `(~head ~@(traverse tail))]
-                 ;; Not a special form. Traverse it like a coll
-                 [True (traverse form)])]
-          [(coll? form) (traverse form)]
-          ;; recursive base case--it's an atom. Put it back.
-          [True form]))
-  (expand-symbols #{}
-                   `(do
-                      (setv ~@bindings)
-                      ~@body)))
+  (.expand (SymbolExpander `(do
+                              (setv ~@bindings)
+                              ~@body)
+                           (fn [symbol]
+                             (if (in symbol bound-symbols)
+                                 (HySymbol (+ g!let "::" symbol))
+                                 symbol)))))
 
 #_[special cases for let
    ;; Symbols containing a dot should be converted to this form.
