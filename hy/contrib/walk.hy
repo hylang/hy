@@ -93,29 +93,35 @@ Arguments without a header are under None.
       (.append (get sections header) arg)))
   sections)
 
+
+(defn symbolexpand [form expander
+                    &optional
+                    [protected (frozenset)]
+                    [quote-level 0]]
+  (.expand (SymbolExpander form expander protected quote-level)))
+
 (defclass SymbolExpander[]
+
+  (defn __init__ [self form expander protected quote-level]
+    (setv self.form form
+          self.expander expander
+          self.protected protected
+          self.quote-level quote-level))
+
   (defn expand-symbols [self form &optional protected quote-level]
     (if (none? protected)
         (setv protected self.protected))
     (if (none? quote-level)
         (setv quote-level self.quote-level))
-    (.expand (SymbolExpander form self.expander protected quote-level)))
-
-  (defn __init__ [self form expander
-                  &optional
-                  [protected (frozenset)]
-                  [quote-level 0]]
-    (setv self.form form
-          self.expander expander
-          self.protected protected
-          self.quote-level quote-level))
+    (symbolexpand form self.expander protected quote-level))
 
   (defn traverse [self form &optional protected quote-level]
     (if (none? protected)
         (setv protected self.protected))
     (if (none? quote-level)
         (setv quote-level self.quote-level))
-    (walk (partial self.expand-symbols
+    (walk (partial symbolexpand
+                   :expander self.expander
                    :protected protected
                    :quote-level quote-level)
           identity
@@ -256,6 +262,26 @@ Arguments without a header are under None.
         ;; recursive base case--it's an atom. Put it back.
         (self.handle-base))))
 
+(defmacro smacrolet [bindings &rest body]
+  "
+symbol macro let.
+
+Replaces symbols in body, but only where it would be a valid let binding.
+The bindings pairs the target symbol and the expansion form for that symbol.
+"
+  (if (odd? (len bindings))
+      (macro-error bindings "bindings must be paired"))
+  (for [k (cut bindings None None 2)]
+    (if-not (symbol? k)
+            (macro-error k "bind targets must be symbols")
+            (if (in '. k)
+                (macro-error k "binding target may not contain a dot"))))
+  (setv bindings (dict (partition bindings))
+        body (macroexpand-all body))
+  (symbolexpand `(do ~@body)
+                (fn [symbol]
+                  (.get bindings symbol symbol))))
+
 (defmacro let [bindings &rest body]
   "
 sets up lexical bindings in its body
@@ -276,26 +302,22 @@ if you must avoid this hoisting.
 Function arguments can shadow let bindings in their body,
 as can nested let forms.
 "
-  ;; I'd use defmacro/g!, but it loses the docstring hylang/hy#1424
-  (setv g!let (gensym 'let))
+  (setv g!let (gensym 'let)
+        symbols (cut bindings None None 2))
   (if (odd? (len bindings))
       (macro-error bindings "let bindings must be paired"))
-  ;; pre-expanding the body means we only have to worry about a small number
-  ;; of special forms
-  (setv body (macroexpand-all body)
-        bound-symbols (cut bindings None None 2))
-  (for [k bound-symbols]
+  (for [k symbols]
     (if-not (symbol? k)
-            (macro-error k "let can only bind to symbols")
-            (if (in '. k)
-                (macro-error k "let binding symbols may not contain a dot"))))
-  (.expand (SymbolExpander `(do
-                              (setv ~@bindings)
-                              ~@body)
-                           (fn [symbol]
-                             (if (in symbol bound-symbols)
-                                 (HySymbol (+ g!let "::" symbol))
-                                 symbol)))))
+            (macro-error k "let can only bind to symbols")))
+  (macroexpand
+    `(smacrolet [~@(interleave symbols
+                               (genexpr (HySymbol (+ g!let "::" symbol))
+                                        [symbol symbols]))]
+                (do
+                  (setv ~@bindings)
+                  ~@body))))
+
+;; (defmacro macrolet [])
 
 #_[special cases for let
    ;; Symbols containing a dot should be converted to this form.
