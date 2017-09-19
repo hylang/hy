@@ -2081,22 +2081,15 @@ class HyASTCompiler(object):
         expr = tag_macroexpand(tag, expression.pop(0), self)
         return self.compile(expr)
 
-    @builds("eval_and_compile")
-    def compile_eval_and_compile(self, expression):
+    @builds("eval_and_compile", "eval_when_compile")
+    def compile_eval_and_compile(self, expression, building):
         expression[0] = HySymbol("do")
         hy.importer.hy_eval(expression,
                             compile_time_ns(self.module_name),
                             self.module_name)
-        expression.pop(0)
-        return self._compile_branch(expression)
-
-    @builds("eval_when_compile")
-    def compile_eval_when_compile(self, expression):
-        expression[0] = HySymbol("do")
-        hy.importer.hy_eval(expression,
-                            compile_time_ns(self.module_name),
-                            self.module_name)
-        return Result()
+        return (self._compile_branch(expression[1:])
+                if building == "eval_and_compile"
+                else Result())
 
     @builds(HyCons)
     def compile_cons(self, cons):
