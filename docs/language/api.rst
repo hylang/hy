@@ -940,10 +940,38 @@ doto
 eval-and-compile
 ----------------
 
+``eval-and-compile`` is a special form that takes any number of forms. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice.
+
+One possible use of ``eval-and-compile`` is to make a function available both at compile-time (so a macro can call it while expanding) and run-time (so it can be called like any other function)::
+
+    (eval-and-compile
+      (defn add [x y]
+        (+ x y)))
+
+    (defmacro m [x]
+      (add x 2))
+
+    (print (m 3))     ; prints 5
+    (print (add 3 6)) ; prints 9
+
+Had the ``defn`` not been wrapped in ``eval-and-compile``, ``m`` wouldn't be able to call ``add``, because when the compiler was expanding ``(m 3)``, ``add`` wouldn't exist yet.
 
 eval-when-compile
 -----------------
 
+``eval-when-compile`` is like ``eval-and-compile``, but the code isn't executed at run-time. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function).
+
+.. code-block:: clj
+
+    (eval-when-compile
+      (defn add [x y]
+        (+ x y)))
+
+    (defmacro m [x]
+      (add x 2))
+
+    (print (m 3))     ; prints 5
+    (print (add 3 6)) ; raises NameError: name 'add' is not defined
 
 first
 -----
