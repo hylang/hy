@@ -5,7 +5,9 @@
 
 (import [hy [HyExpression HyDict]]
         [functools [partial]]
-        [collections [OrderedDict]])
+        [collections [OrderedDict]]
+        [hy.macros [macroexpand :as mexpand]]
+        [hy.compiler [HyASTCompiler]])
 
 (defn walk [inner outer form]
   "Traverses form, an arbitrary data structure. Applies inner to each
@@ -40,9 +42,10 @@
   (and (instance? HyExpression form)
        form))
 
-(defn macroexpand-all [form]
+(defn macroexpand-all [form &optional module-name]
   "Recursively performs all possible macroexpansions in form."
-  (setv quote-level [0])  ; TODO: make nonlocal after dropping Python2
+  (setv module-name (or module-name (calling-module-name))
+        quote-level [0])  ; TODO: make nonlocal after dropping Python2
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
@@ -56,17 +59,17 @@
       (-= (get quote-level 0) x)
       `(~head ~@res))
     (if (call? form)
-      (cond [(get quote-level 0)
-             (cond [(in (first form) '[unquote unquote-splice])
-                    (+quote -1)]
-                   [(= (first form) 'quasiquote) (+quote)]
-                   [True (traverse form)])]
-            [(= (first form) 'quote) form]
-            [(= (first form) 'quasiquote) (+quote)]
-            [True (traverse (macroexpand form))])
-      (if (coll? form)
-        (traverse form)
-        form)))
+        (cond [(get quote-level 0)
+               (cond [(in (first form) '[unquote unquote-splice])
+                      (+quote -1)]
+                     [(= (first form) 'quasiquote) (+quote)]
+                     [True (traverse form)])]
+              [(= (first form) 'quote) form]
+              [(= (first form) 'quasiquote) (+quote)]
+              [True (traverse (mexpand form (HyASTCompiler module-name)))])
+        (if (coll? form)
+            (traverse form)
+            form)))
   (expand form))
 
 (setv special-forms (list-comp k
@@ -262,7 +265,7 @@ Arguments without a header are under None.
         ;; recursive base case--it's an atom. Put it back.
         (self.handle-base))))
 
-(defmacro smacrolet [bindings &rest body]
+(defmacro smacrolet [bindings &optional module-name &rest body]
   "
 symbol macro let.
 
@@ -277,7 +280,7 @@ The bindings pairs the target symbol and the expansion form for that symbol.
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot"))))
   (setv bindings (dict (partition bindings))
-        body (macroexpand-all body))
+        body (macroexpand-all body (or module-name (calling-module-name))))
   (symbolexpand `(do ~@body)
                 (fn [symbol]
                   (.get bindings symbol symbol))))
@@ -302,20 +305,23 @@ if you must avoid this hoisting.
 Function arguments can shadow let bindings in their body,
 as can nested let forms.
 "
-  (setv g!let (gensym 'let)
-        symbols (cut bindings None None 2))
   (if (odd? (len bindings))
       (macro-error bindings "let bindings must be paired"))
-  (for [k symbols]
+  (setv g!let (gensym 'let)
+        replacements (OrderedDict)
+        values [])
+  (defn expander [symbol]
+    (.get replacements symbol symbol))
+  (for [[k v] (partition bindings)]
     (if-not (symbol? k)
-            (macro-error k "let can only bind to symbols")))
-  (macroexpand
-    `(smacrolet [~@(interleave symbols
-                               (genexpr (HySymbol (+ g!let "::" symbol))
-                                        [symbol symbols]))]
-                (do
-                  (setv ~@bindings)
-                  ~@body))))
+            (macro-error k "bind targets must be symbols")
+            (if (in '. k)
+                (macro-error k "binding target may not contain a dot")))
+    (.append values (symbolexpand v expander))
+    (assoc replacements k (HySymbol (+ g!let "::" k))))
+  `(do
+     (setv ~@(interleave (.values replacements) values))
+     ~@(symbolexpand (macroexpand-all body) expander)))
 
 ;; (defmacro macrolet [])
 

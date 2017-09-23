@@ -5,6 +5,8 @@
 (import [hy.contrib.walk [*]])
 (require [hy.contrib.walk [*]])
 
+(import pytest)
+
 (def walk-form '(print {"foo" "bar"
                         "array" [1 2 3 [4]]
                         "something" (+ 1 2 3 4)
@@ -35,7 +37,13 @@
                    (drop 1 [1 [2 [3 [4]]]]))
              [[2 [3 [4]] 2 [3 [4]]]])))
 
+(defmacro foo-walk []
+  42)
+
 (defn test-macroexpand-all []
+  ;; make sure a macro from the current module works
+  (assert (= (macroexpand-all '(foo-walk))
+             42))
   (assert (= (macroexpand-all '(with [a 1]))
              '(with* [a 1] (do))))
   (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
@@ -74,6 +82,7 @@
   (assert (not-in "q" (.keys (vars)))))
 
 (defn test-let-sequence []
+  ;; assignments happen in sequence, not parallel.
   (let [a "a"
         b "b"
         ab (+ a b)]
@@ -81,6 +90,20 @@
        (let [c "c"
              abc (+ ab c)]
             (assert (= abc "abc")))))
+
+(defn test-let-early []
+  (setv a "a")
+  (let [q (+ a "x")
+        a 2  ; should not affect q
+        b 3]
+       (assert (= q "ax"))
+       (let [q (* a b)
+             a (+ a b)
+             b (* a b)]
+            (assert (= q 6))
+            (assert (= a 5))
+            (assert (= b 15))))
+  (assert (= a "a")))
 
 (defn test-let-special []
   ;; special forms in function position still work as normal
@@ -310,4 +333,25 @@
        (assert (= (get (globals)
                        'let-global)
                   "mutated"))))
+
+(defmacro triple [a]
+  (setv g!a (gensym a))
+  `(do
+     (setv ~g!a ~a)
+     (+ ~g!a ~g!a ~g!a)))
+
+(defmacro ap-triple []
+  '(+ a a a))
+
+#@(pytest.mark.xfail
+    (defn test-let-macros []
+      (let [a 1
+            b (triple a)
+            c (ap-triple)]
+           (assert (= (triple a)
+                      3))
+           (assert (= (ap-triple)
+                      3))
+           (assert (= b 3))
+           (assert (= c 3)))))
 
