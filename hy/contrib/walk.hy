@@ -37,6 +37,7 @@
   sub-form, uses f's return value in place of the original."
   (walk (partial prewalk f) identity (f form)))
 
+;; TODO: move to hy.core?
 (defn call? [form]
   "Checks whether form is a non-empty HyExpression"
   (and (instance? HyExpression form)
@@ -72,6 +73,7 @@
             form)))
   (expand form))
 
+;; TODO: move to hy.extra.reserved?
 (setv special-forms (list-comp k
                                [k (.keys hy.compiler._compile-table)]
                                (isinstance k hy._compat.string-types)))
@@ -317,11 +319,11 @@ as can nested let forms.
             (macro-error k "bind targets must be symbols")
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot")))
-    (.append values (symbolexpand v expander))
+    (.append values (symbolexpand (macroexpand-all v &name) expander))
     (assoc replacements k (HySymbol (+ g!let "::" k))))
   `(do
      (setv ~@(interleave (.values replacements) values))
-     ~@(symbolexpand (macroexpand-all body) expander)))
+     ~@(symbolexpand (macroexpand-all body &name) expander)))
 
 ;; (defmacro macrolet [])
 

@@ -343,15 +343,14 @@
 (defmacro ap-triple []
   '(+ a a a))
 
-#@(pytest.mark.xfail
-    (defn test-let-macros []
-      (let [a 1
-            b (triple a)
-            c (ap-triple)]
-           (assert (= (triple a)
-                      3))
-           (assert (= (ap-triple)
-                      3))
-           (assert (= b 3))
-           (assert (= c 3)))))
+(defn test-let-macros []
+  (let [a 1
+        b (triple a)
+        c (ap-triple)]
+       (assert (= (triple a)
+                  3))
+       (assert (= (ap-triple)
+                  3))
+       (assert (= b 3))
+       (assert (= c 3))))
 

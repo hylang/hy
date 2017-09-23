@@ -2080,6 +2080,7 @@ class HyASTCompiler(object):
         for kw in ("&kwonly", "&kwargs", "&key"):
             if kw in expression[0]:
                 raise HyTypeError(name, "macros cannot use %s" % kw)
+        expression[0].insert(0, HySymbol('&name'))
         new_expression = HyExpression([
             HyExpression([HySymbol("hy.macros.macro"), name]),
             HyExpression([HySymbol("fn")] + expression),
