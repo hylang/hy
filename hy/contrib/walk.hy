@@ -74,6 +74,7 @@
   (expand form))
 
 ;; TODO: move to hy.extra.reserved?
+(import hy)
 (setv special-forms (list-comp k
                                [k (.keys hy.compiler._compile-table)]
                                (isinstance k hy._compat.string-types)))
@@ -246,10 +247,9 @@ Arguments without a header are under None.
   (defn handle-call [self]
     (setv head (first self.form))
     (if (in head '[fn fn*]) (self.handle-fn)
-        (in head '[import quote]) (self.handle-base)
+        (in head '[import require quote]) (self.handle-base)
         (= head 'except) (self.handle-except)
         (= head ".") (self.handle-dot)
-        (= head 'global) (self.handle-global)
         (= head 'defclass) (self.handle-defclass)
         (= head 'quasiquote) (self.+quote)
         ;; must be checked last!
@@ -320,9 +320,10 @@ as can nested let forms.
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot")))
     (.append values (symbolexpand (macroexpand-all v &name) expander))
-    (assoc replacements k (HySymbol (+ g!let "::" k))))
+    (assoc replacements k `(get ~g!let ~(name k))))
   `(do
-     (setv ~@(interleave (.values replacements) values))
+     (setv ~g!let {}
+           ~@(interleave (.values replacements) values))
      ~@(symbolexpand (macroexpand-all body &name) expander)))
 
 ;; (defmacro macrolet [])

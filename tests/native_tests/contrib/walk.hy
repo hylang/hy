@@ -158,8 +158,8 @@
          (do
            foo
            (assert False))
-         (except [ne NameError]
-           (setv error ne)))
+         (except [le LookupError]
+           (setv error le)))
        (setv foo 16)
        (assert (= foo 16))
        (setv [foo bar baz] [1 2 3])
@@ -217,7 +217,10 @@
        ;; the name of the class is just a symbol, even if it's a let binding
        (defclass Foo [quux]  ; let bindings apply in inheritance list
          ;; let bindings apply inside class body
-         (setv x Foo)))
+         (setv x Foo)
+         ;; quux is not local
+         (setv quux "quux"))
+       (assert (= quux "quux")))
   ;; defclass always creates a python-scoped variable, even if it's a let binding name
   (assert (= Foo.x 42)))
 
@@ -307,32 +310,14 @@
                   (, 1 6 2)))))
 
 (defn test-let-closure []
-  (let [count [0]]
+  (let [count 0]
        (defn +count [&optional [x 1]]
-         (+= (get count 0) x)
-         (get count 0)))
+         (+= count x)
+         count))
   ;; let bindings can still exist outside of a let body
   (assert (= 1 (+count)))
   (assert (= 2 (+count)))
   (assert (= 42 (+count 40))))
-
-(defn test-let-global []
-  (setv (get (globals)
-             'let-global)
-        "global")
-  (let [let-global 1]
-       (assert (= let-global 1))
-       (defn foo []
-         (assert (= let-global 1))
-         (global let-global)
-         (assert (= let-global "global"))
-         (setv let-global "mutated")
-         (assert (= let-global "mutated")))
-       (foo)
-       (assert (= let-global 1))
-       (assert (= (get (globals)
-                       'let-global)
-                  "mutated"))))
 
 (defmacro triple [a]
   (setv g!a (gensym a))
@@ -353,4 +338,3 @@
                   3))
        (assert (= b 3))
        (assert (= c 3))))
-

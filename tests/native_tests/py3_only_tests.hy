@@ -72,19 +72,6 @@
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
 
 (require [hy.contrib.walk [let]])
-(defn test-let-nonlocal []
-  (let [a 88
-        c 64]
-       (defn foo [a b]
-         (nonlocal c)
-         (-= a 1)
-         (-= c 1)
-         (, a b c))
-       (assert (= a 88))
-       (assert (= (foo 1 2)
-                  (, 0 2 63)))
-       (assert (= c 63))
-       (assert (= a 88))))
 
 (defn test-let-optional []
   (let [a 1

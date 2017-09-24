@@ -224,10 +224,6 @@ Arguments in nested functions and bindings in nested ``let`` forms can shadow th
     6
     5
 
-The ``global`` special form changes the meaning of names to refer to the
-module-level variables instead of locals, and this change still applies inside a ``let`` form,
-even if a global has the same name as a let binding.
-
 Basic assignments (e.g. ``setv``, ``+=``) will update the local variable named by a let binding,
 when they assign to a let-bound name.
 
@@ -237,9 +233,6 @@ even if it shares the name of a let binding.
 
 Use ``__import__`` and ``type`` (or whatever metaclass) instead,
 if you must avoid this hoisting.
-
-When used in a nested function,
-nonlocal assignments to let-bound variables still require a ``nonlocal`` form.
 
 The ``let`` macro takes two parameters: a list defining *variables*
 and the *body* which gets executed. *variables* is a vector of
@@ -254,4 +247,4 @@ variable and value pairs.
     ...  (print x y))
     5 6
 
-
+It is an error to use a let-bound name in a ``global`` or ``nonlocal`` form.
