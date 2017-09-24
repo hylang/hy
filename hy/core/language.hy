@@ -224,7 +224,7 @@
   (global _gensym_lock)
   (.acquire _gensym_lock)
   (try (do (setv _gensym_counter (inc _gensym_counter))
-           (setv new_symbol (HySymbol (.format ":{0}_{1}" g _gensym_counter))))
+           (setv new_symbol (HySymbol (.format "_;{0}|{1}" g _gensym_counter))))
        (finally (.release _gensym_lock)))
   new_symbol)
 

@@ -163,8 +163,8 @@
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   ;; and make sure there is something new that starts with :G_
-  (assert (in ":G_" s1))
-  (assert (in ":G_" s2))
+  (assert (in "_;G|" s1))
+  (assert (in "_;G|" s2))
   ;; but make sure the two don't match each other
   (assert (not (= s1 s2))))
 
@@ -188,8 +188,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in ":a_" s1))
-  (assert (in ":a_" s2))
+  (assert (in "_;a|" s1))
+  (assert (in "_;a|" s2))
   (assert (not (= s1 s2))))
 
 (defn test-defmacro-g! []
@@ -211,8 +211,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in ":res_" s1))
-  (assert (in ":res_" s2))
+  (assert (in "_;res|" s1))
+  (assert (in "_;res|" s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
@@ -240,8 +240,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in ":res_" s1))
-  (assert (in ":res_" s2))
+  (assert (in "_;res|" s1))
+  (assert (in "_;res|" s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
