@@ -54,9 +54,11 @@ builtins.exit = HyQuitter('exit')
 
 class HyREPL(code.InteractiveConsole):
     def __init__(self, spy=False, output_fn=None, locals=None,
-                 filename="<input>"):
+                 filename="<input>", control_codes=False):
 
         self.spy = spy
+        self.control_codes = control_codes
+        self.control_codes and hy.colorama_deinit()
 
         if output_fn is None:
             self.output_fn = repr
@@ -95,6 +97,7 @@ class HyREPL(code.InteractiveConsole):
                     new_ast = ast.Module(main_ast.body +
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
+                    self.control_codes and print("#cbb4fcbe-b6ba-4812-afa3-4a5ac7b20501")
             value = hy_eval(do, self.locals, "__console__",
                             ast_callback)
         except HyTypeError as e:
@@ -275,6 +278,8 @@ def cmdline_handler(scriptname, argv):
         help="program passed in as a string, then stay in REPL")
     parser.add_argument("--spy", action="store_true",
                         help="print equivalent Python code before executing")
+    parser.add_argument("--control-codes", action="store_true",
+                        help="enable extra control codes in the repl, for external tooling")
     parser.add_argument("--repl-output-fn",
                         help="function for printing REPL output "
                              "(e.g., hy.contrib.hy-repr.hy-repr)")
@@ -321,7 +326,8 @@ def cmdline_handler(scriptname, argv):
     if options.icommand:
         # User did "hy -i ..."
         return run_icommand(options.icommand, spy=options.spy,
-                            output_fn=options.repl_output_fn)
+                            output_fn=options.repl_output_fn,
+                            control_codes=options.control_codes)
 
     if options.args:
         if options.args[0] == "-":
@@ -338,7 +344,8 @@ def cmdline_handler(scriptname, argv):
                 sys.exit(e.errno)
 
     # User did NOTHING!
-    return run_repl(spy=options.spy, output_fn=options.repl_output_fn)
+    return run_repl(spy=options.spy, output_fn=options.repl_output_fn,
+                    control_codes=options.control_codes)
 
 
 # entry point for cmd line script "hy"
