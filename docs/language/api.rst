@@ -1800,13 +1800,61 @@ following shows the expansion of the macro.
 while
 -----
 
-``while`` is used to execute one or more blocks as long as a condition is met.
-The following example will output "Hello world!" to the screen indefinitely:
+``while`` compiles to a :py:keyword:`while` statement. It is used to execute a
+set of forms as long as a condition is met. The first argument to ``while`` is
+the condition, and any remaining forms constitute the body. The following
+example will output "Hello world!" to the screen indefinitely:
 
 .. code-block:: clj
 
     (while True (print "Hello world!"))
 
+The last form of a ``while`` loop can be an ``else`` clause, which is executed
+after the loop terminates, unless it exited abnormally (e.g., with ``break``). So,
+
+.. code-block:: clj
+
+    (setv x 2)
+    (while x
+       (print "In body")
+       (-= x 1)
+       (else
+         (print "In else")))
+
+prints
+
+::
+
+    In body
+    In body
+    In else
+
+If you put a ``break`` or ``continue`` form in the condition of a ``while``
+loop, it will apply to the very same loop rather than an outer loop, even if
+execution is yet to ever reach the loop body. (Hy compiles a ``while`` loop
+with statements in its condition by rewriting it so that the condition is
+actually in the body.) So,
+
+.. code-block:: clj
+
+    (for [x [1]]
+       (print "In outer loop")
+       (while
+         (do
+           (print "In condition")
+           (break)
+           (print "This won't print.")
+           True)
+         (print "This won't print, either."))
+       (print "At end of outer loop"))
+
+prints
+
+::
+
+    In outer loop
+    In condition
+    At end of outer loop
 
 with
 ----
