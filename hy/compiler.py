@@ -111,13 +111,13 @@ def builds_model(*model_types):
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
 class Asty(object):
     def __getattr__(self, name):
-        setattr(Asty, name, lambda self, x, **kwargs: getattr(ast, name)(
+        setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
             lineno=getattr(
                 x, 'start_line', getattr(x, 'lineno', None)),
             col_offset=getattr(
                 x, 'start_column', getattr(x, 'col_offset', None)),
-            **kwargs))
-        return getattr(self, name)
+            **kwargs)))
+        return getattr(Asty, name)
 asty = Asty()
 
 
