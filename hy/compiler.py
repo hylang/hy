@@ -192,6 +192,22 @@ class Result(object):
         self.__used_expr = False
         self._expr = value
 
+    @property
+    def lineno(self):
+        if self._expr is not None:
+            return self._expr.lineno
+        if self.stmts:
+            return self.stmts[-1].lineno
+        return None
+
+    @property
+    def col_offset(self):
+        if self._expr is not None:
+            return self._expr.col_offset
+        if self.stmts:
+            return self.stmts[-1].col_offset
+        return None
+
     def add_imports(self, mod, imports):
         """Autoimport `imports` from `mod`"""
         self.imports[mod].update(imports)
