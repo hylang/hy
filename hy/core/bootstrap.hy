@@ -7,7 +7,7 @@
 ;;; They are automatically required everywhere, even inside hy.core modules.
 
 (defmacro if [&rest args]
-  "if with elif"
+  "Conditionally evaluate alternating test and then expressions."
   (setv n (len args))
   (if* n
        (if* (= n 1)
@@ -17,11 +17,11 @@
                   (if ~@(cut args 2))))))
 
 (defmacro macro-error [location reason]
-  "error out properly within a macro"
+  "Error out properly within a macro at `location` giving `reason`."
   `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
 
 (defmacro defn [name lambda-list &rest body]
-  "define a function `name` with signature `lambda-list` and body `body`"
+  "Define `name` as a function with `lambda-list` signature and body `body`."
   (import hy)
   (if (not (= (type name) hy.HySymbol))
     (macro-error name "defn takes a name as first argument"))

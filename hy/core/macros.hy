@@ -10,11 +10,14 @@
 (import [hy.models [HyList HySymbol]])
 
 (defmacro as-> [head name &rest rest]
-  "Expands to sequence of assignments to the provided name, starting with head.
-  The previous result is thus available in the subsequent form. Returns the
-  final result, and leaves the name bound to it in the local scope. This behaves
-  much like the other threading macros, but requires you to specify the threading
-  point per form via the name instead of always the first or last argument."
+  "Beginning with `head`, expand a sequence of assignments `rest` to `name`.
+
+Each assignment is passed to the subsequent form. Returns the final assignment,
+leaving the name bound to it in the local scope.
+
+This behaves similarly to other threading macros, but requires specifying
+the threading point per-form via the name, rather than fixing to the first
+or last argument."
   `(do (setv
          ~name ~head
          ~@(interleave (repeat name) rest))
@@ -22,6 +25,10 @@
 
 
 (defmacro assoc [coll k1 v1 &rest other-kvs]
+  "Associate key/index value pair(s) to a collection `coll` like a dict or list.
+
+If more than three parameters are given, the remaining args are k/v pairs to
+be associated in pairs."
   (if (odd? (len other-kvs))
     (macro-error (last other-kvs)
                  "`assoc` takes an odd number of arguments"))
@@ -37,12 +44,13 @@
 
 
 (defmacro with [args &rest body]
-  "shorthand for nested with* loops:
+  "Wrap execution of `body` within a context manager given as bracket `args`.
+
+Shorthand for nested with* loops:
   (with [x foo y bar] baz) ->
   (with* [x foo]
     (with* [y bar]
-      baz))"
-
+      baz))."
   (if (not (empty? args))
     (do
      (if (>= (len args) 2)
@@ -56,12 +64,10 @@
 
 
 (defmacro cond [&rest branches]
-  "shorthand for nested ifs:
-   (cond [foo bar] [baz quux]) ->
-   (if foo
-     bar
-     (if baz
-       quux))"
+  "Build a nested if clause with each `branch` a [cond result] bracket pair.
+
+The result in the bracket may be omitted, in which case the condition is also
+used as the result."
   (if (empty? branches)
     None
     (do
@@ -88,13 +94,10 @@
 
 
 (defmacro for [args &rest body]
-  "shorthand for nested for loops:
-  (for [x foo
-        y bar]
-    baz) ->
-  (for* [x foo]
-    (for* [y bar]
-      baz))"
+  "Build a for-loop with `args` as a [element coll] bracket pair and run `body`.
+
+Args may contain multiple pairs, in which case it executes a nested for-loop
+in order of the given pairs."
   (setv body (list body))
   (if (empty? body)
     (macro-error None "`for' requires a body to evaluate"))
@@ -113,10 +116,10 @@
 
 
 (defmacro -> [head &rest rest]
-  "Threads the head through the rest of the forms. Inserts
-   head as the second item in the first form of rest. If
-   there are more forms, inserts the first form as the
-   second item in the second form of rest, etc."
+  "Thread `head` first through the `rest` of the forms.
+
+The result of the first threaded form is inserted into the first position of
+the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
   (for* [node rest]
     (if (not (isinstance node HyExpression))
@@ -127,8 +130,7 @@
 
 
 (defmacro doto [form &rest expressions]
-  "Performs a sequence of potentially mutating actions
-   on an initial object, returning the resulting object"
+  "Perform possibly mutating `expressions` on `form`, returning resulting obj."
   (setv f (gensym))
   (defn build-form [expression]
     (if (isinstance expression HyExpression)
@@ -140,10 +142,10 @@
      ~f))
 
 (defmacro ->> [head &rest rest]
-  "Threads the head through the rest of the forms. Inserts
-   head as the last item in the first form of rest. If there
-   are more forms, inserts the first form as the last item
-   in the second form of rest, etc."
+  "Thread `head` last through the `rest` of the forms.
+
+The result of the first threaded form is inserted into the last position of
+the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
   (for* [node rest]
     (if (not (isinstance node HyExpression))
@@ -185,6 +187,7 @@
 
 
 (defmacro with-gensyms [args &rest body]
+  "Execute `body` with `args` as bracket of names to gensym for use in macros."
   (setv syms [])
   (for* [arg args]
     (.extend syms [arg `(gensym '~arg)]))
@@ -193,6 +196,7 @@
     ~@body))
 
 (defmacro defmacro/g! [name args &rest body]
+  "Like `defmacro`, but symbols prefixed with 'g!' are gensymed."
   (setv syms (list
               (distinct
                (filter (fn [x]
@@ -207,8 +211,9 @@
      ~@body))
 
 (defmacro defmacro! [name args &rest body]
-  "Like defmacro/g! plus automatic once-only evaluation for o!
-   parameters, which are available as the equivalent g! symbol."
+  "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
+
+Such 'o!' params are availible within `body` as the equivalent 'g!' symbol."
   (setv os (list-comp s [s args] (.startswith s "o!"))
         gs (list-comp (HySymbol (+ "g!" (cut s 2))) [s os]))
   `(defmacro/g! ~name ~args
@@ -217,7 +222,7 @@
 
 
 (defmacro defmain [args &rest body]
-  "Write a function named \"main\" and do the if __main__ dance"
+  "Write a function named \"main\" and do the 'if __main__' dance"
   (setv retval (gensym))
   `(when (= --name-- "__main__")
      (import sys)
