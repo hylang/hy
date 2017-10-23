@@ -108,19 +108,23 @@
   (assert-equal (#%(identity (, %1 %2 %3 %4 %5)) 1 2 3 4 5) (, 1 2 3 4 5))
   (assert-equal (#%(identity (, %1 %5 %2 %3 %4)) 1 2 3 4 5) (, 1 5 2 3 4))
   ;; test &rest
-  (assert-equal (#%(sum %&) 1 2 3) 6)
-  (assert-equal (#%(identity (, %1 %&)) 10 1 2 3) (, 10 (, 1 2 3)))
+  (assert-equal (#%(sum %*) 1 2 3) 6)
+  (assert-equal (#%(identity (, %1 %*)) 10 1 2 3) (, 10 (, 1 2 3)))
   ;; no parameters
   (assert-equal (#%(list)) [])
   (assert-equal (#%(identity "Hy!")) "Hy!")
-  (assert-equal (#%(identity "%&")) "%&")
+  (assert-equal (#%(identity "%*")) "%*")
   (assert-equal (#%(+ "Hy " "world!")) "Hy world!")
   ;; test skipped parameters
   (assert-equal (#%(identity [%3 %1]) 1 2 3) [3 1])
   ;; test nesting
-  (assert-equal (#%(identity [%1 (, %2 [%3] "Hy" [%&])]) 1 2 3 4 5)
+  (assert-equal (#%(identity [%1 (, %2 [%3] "Hy" [%*])]) 1 2 3 4 5)
                 [1 (, 2 [3] "Hy" [(, 4 5)])])
   ;; test arg as function
   (assert-equal (#%(%1 2 4) +) 6)
   (assert-equal (#%(%1 2 4) -) -2)
-  (assert-equal (#%(%1 2 4) /) 0.5))
+  (assert-equal (#%(%1 2 4) /) 0.5)
+  ;; test &rest &kwargs
+  (assert-equal (#%(, %* %**) 1 2 :a 'b)
+                (, (, 1 2)
+                   (dict :a 'b))))

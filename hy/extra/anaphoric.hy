@@ -113,24 +113,28 @@
   `(fn [var] (ap-pipe var ~@forms)))
 
 (deftag % [body]
-  "Returns a function with parameters implicitly determined by the presence in
-   the body of %i parameters. A %i symbol designates the ith parameter
-   (1-based, e.g. %1, %2, %3, etc.), or all remaining parameters for %&.
-   Nesting of #%() forms is not recommended."
+  "makes a function with an implicit parameter list from `%` parameters.
+
+   A %i symbol designates the ith parameter (1-based, e.g. `%1 %2 %3` etc.).
+   `%*` and `%**` name the `&rest` and `&kwargs` parameters, respectively.
+   Nesting of `#%()` forms is not recommended."
   (setv flatbody (flatten body))
   `(fn [;; generate all %i symbols up to the maximum found in body
         ~@(genexpr (HySymbol (+ "%"
                                 (str i)))
                    [i (range 1
                              ;; find the maximum %i
-                             (inc (max (+ (list-comp (int (cut a 1))
-                                                     [a flatbody]
-                                                     (and (symbol? a)
-                                                          (.startswith a '%)
-                                                          (.isdigit (cut a 1))))
-                                          [0]))))])
-        ;; generate the &rest parameter only if '%& is present in body
-        ~@(if (in '%& flatbody)
-              '(&rest %&)
-              '())]
+                             (-> (list-comp (int (cut a 1))
+                                            [a flatbody]
+                                            (and (symbol? a)
+                                                 (.startswith a '%)
+                                                 (.isdigit (cut a 1))))
+                                 (+ [0])
+                                 max
+                                 inc))])
+        ;; generate the &rest parameter only if '%* is present in body
+        ~@(if (in '%* flatbody)
+              '(&rest %*))
+        ~@(if (in '%** flatbody)
+              '(&kwargs %**))]
      (~@body)))
