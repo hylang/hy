@@ -99,28 +99,28 @@
   (assert-equal ((ap-compose (+ it 1) (* it 3)) 2) 9)
   (assert-equal ((ap-compose (list (rest it)) (len it)) [4 5 6 7]) 3))
 
-(defn test-xi []
-  "NATIVE: testing xi forms"
+(defn test-tag-fn []
+  "NATIVE: testing #%() forms"
   ;; test ordering
-  (assert-equal ((xi / x1 x2) 2 4) 0.5)
-  (assert-equal ((xi / x2 x1) 2 4) 2)
-  (assert-equal ((xi identity (, x5 x4 x3 x2 x1)) 1 2 3 4 5) (, 5 4 3 2 1))
-  (assert-equal ((xi identity (, x1 x2 x3 x4 x5)) 1 2 3 4 5) (, 1 2 3 4 5))
-  (assert-equal ((xi identity (, x1 x5 x2 x3 x4)) 1 2 3 4 5) (, 1 5 2 3 4))
+  (assert-equal (#%(/ %1 %2) 2 4) 0.5)
+  (assert-equal (#%(/ %2 %1) 2 4) 2)
+  (assert-equal (#%(identity (, %5 %4 %3 %2 %1)) 1 2 3 4 5) (, 5 4 3 2 1))
+  (assert-equal (#%(identity (, %1 %2 %3 %4 %5)) 1 2 3 4 5) (, 1 2 3 4 5))
+  (assert-equal (#%(identity (, %1 %5 %2 %3 %4)) 1 2 3 4 5) (, 1 5 2 3 4))
   ;; test &rest
-  (assert-equal ((xi sum xi) 1 2 3) 6)
-  (assert-equal ((xi identity (, x1 xi)) 10 1 2 3) (, 10 (, 1 2 3)))
+  (assert-equal (#%(sum %&) 1 2 3) 6)
+  (assert-equal (#%(identity (, %1 %&)) 10 1 2 3) (, 10 (, 1 2 3)))
   ;; no parameters
-  (assert-equal ((xi list)) [])
-  (assert-equal ((xi identity "Hy!")) "Hy!")
-  (assert-equal ((xi identity "xi")) "xi")
-  (assert-equal ((xi + "Hy " "world!")) "Hy world!")
+  (assert-equal (#%(list)) [])
+  (assert-equal (#%(identity "Hy!")) "Hy!")
+  (assert-equal (#%(identity "%&")) "%&")
+  (assert-equal (#%(+ "Hy " "world!")) "Hy world!")
   ;; test skipped parameters
-  (assert-equal ((xi identity [x3 x1]) 1 2 3) [3 1])
+  (assert-equal (#%(identity [%3 %1]) 1 2 3) [3 1])
   ;; test nesting
-  (assert-equal ((xi identity [x1 (, x2 [x3] "Hy" [xi])]) 1 2 3 4 5)
+  (assert-equal (#%(identity [%1 (, %2 [%3] "Hy" [%&])]) 1 2 3 4 5)
                 [1 (, 2 [3] "Hy" [(, 4 5)])])
   ;; test arg as function
-  (assert-equal ((xi x1 2 4) +) 6)
-  (assert-equal ((xi x1 2 4) -) -2)
-  (assert-equal ((xi x1 2 4) /) 0.5))
+  (assert-equal (#%(%1 2 4) +) 6)
+  (assert-equal (#%(%1 2 4) -) -2)
+  (assert-equal (#%(%1 2 4) /) 0.5))

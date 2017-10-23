@@ -229,21 +229,24 @@ Returns a function which applies several forms in series from left to right. The
    => (op 2)
    9
 
-.. _xi
+.. _#%
 
-xi
+#%
 ==
 
-Usage ``(xi body ...)``
+Usage ``#%(body ...)``
 
-Returns a function with parameters implicitly determined by the presence in the body of xi parameters. An xi symbol designates the ith parameter (1-based, e.g. x1, x2, x3, etc.), or all remaining parameters for xi itself. This is not a replacement for fn. The xi forms cannot be nested.
+Returns a function with parameters implicitly determined by the presence in
+the body of %i parameters. A %i symbol designates the ith parameter
+(1-based, e.g. ``%1 %2 %3`` etc.), or all remaining parameters for ``%&``.
+Nesting of ``#%()`` forms is not recommended.
 
 This is similar to Clojure's anonymous function literals (``#()``).
 
 .. code-block:: hy
 
-   => ((xi identity [x1 x5 [x2 x3] xi x4]) 1 2 3 4 5 6 7 8)
+   => (#%(identity [%1 %5 [%2 %3] %& %4]) 1 2 3 4 5 6 7 8)
    [1, 5, [2, 3,] (6, 7, 8), 4]
-   => (def add-10 (xi + 10 x1))
+   => (def add-10 #%(+ 10 %1))
    => (add-10 6)
    16
