@@ -7,10 +7,9 @@ import os
 import re
 import sys
 
-import hy.macros
 import hy.compiler
+import hy.macros
 from hy._compat import builtins, string_types
-
 
 docomplete = True
 
@@ -38,6 +37,7 @@ class Completer(object):
             raise TypeError('namespace must be a dictionary')
         self.namespace = namespace
         self.path = [hy.compiler._compile_table,
+                     dir(hy.core.language),
                      builtins.__dict__,
                      hy.macros._hy_macros[None],
                      namespace]
@@ -75,11 +75,12 @@ class Completer(object):
     def global_matches(self, text):
         matches = []
         for p in self.path:
-            for k in p.keys():
+            for k in p:
                 if isinstance(k, string_types):
                     k = k.replace("_", "-")
                     if k.startswith(text):
                         matches.append(k)
+
         return matches
 
     def tag_matches(self, text):
