@@ -5,7 +5,6 @@
 
 ;;; These macros make writing functional programs more concise
 
-
 (defmacro ap-if [test-form then-form &optional else-form]
   `(do
      (setv it ~test-form)
@@ -112,29 +111,32 @@
   "Returns a function which is the composition of several forms."
   `(fn [var] (ap-pipe var ~@forms)))
 
-(deftag % [body]
-  "makes a function with an implicit parameter list from `%` parameters.
+(deftag % [expr]
+  "Makes an expression into a function with an implicit `%` parameter list.
 
-   A %i symbol designates the ith parameter (1-based, e.g. `%1 %2 %3` etc.).
+   A `%i` symbol designates the (1-based) ith parameter (such as `%3`).
+   Only the maximum `%i` determines the number of `%i` parameters--the
+   others need not appear in the expression.
    `%*` and `%**` name the `&rest` and `&kwargs` parameters, respectively.
-   Nesting of `#%()` forms is not recommended."
-  (setv flatbody (flatten body))
-  `(fn [;; generate all %i symbols up to the maximum found in body
-        ~@(genexpr (HySymbol (+ "%"
-                                (str i)))
-                   [i (range 1
-                             ;; find the maximum %i
-                             (-> (list-comp (int (cut a 1))
-                                            [a flatbody]
-                                            (and (symbol? a)
-                                                 (.startswith a '%)
-                                                 (.isdigit (cut a 1))))
-                                 (+ [0])
-                                 max
-                                 inc))])
-        ;; generate the &rest parameter only if '%* is present in body
-        ~@(if (in '%* flatbody)
+
+   Nesting of `#%` forms is not recommended."
+  (setv %symbols (set-comp a
+                           [a (flatten [expr])]
+                           (and (symbol? a)
+                                (.startswith a '%))))
+  `(fn [;; generate all %i symbols up to the maximum found in expr
+        ~@(genexpr (HySymbol (+ "%" (str i)))
+                   [i (range 1 (-> (list-comp (int (cut a 1))
+                                              [a %symbols]
+                                              (.isdigit (cut a 1)))
+                                   (or (, 0))
+                                   max
+                                   inc))])
+        ;; generate the &rest parameter only if '%* is present in expr
+        ~@(if (in '%* %symbols)
               '(&rest %*))
-        ~@(if (in '%** flatbody)
+        ;; similarly for &kwargs and %**
+        ~@(if (in '%** %symbols)
               '(&kwargs %**))]
-     (~@body)))
+     ~expr))
+

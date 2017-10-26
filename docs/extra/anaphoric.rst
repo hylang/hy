@@ -234,20 +234,32 @@ Returns a function which applies several forms in series from left to right. The
 #%
 ==
 
-Usage ``#%(body ...)``
+Usage ``#% expr``
 
-Makes a function with an implicit parameter list from ``%`` parameters.
+Makes an expression into a function with an implicit ``%`` parameter list.
 
-A ``%i`` symbol designates the `i` th parameter (1-based, e.g. ``%1 %2 %3`` etc.).
+A ``%i`` symbol designates the (1-based) *i* th parameter (such as ``%3``).
+Only the maximum ``%i`` determines the number of ``%i`` parameters--the
+others need not appear in the expression.
 ``%*`` and ``%**`` name the ``&rest`` and ``&kwargs`` parameters, respectively.
-Nesting of ``#%()`` forms is not recommended.
-
-This is similar to Clojure's anonymous function literals (``#()``).
 
 .. code-block:: hy
 
-   => (#%(identity [%1 %5 [%2 %3] %* %4]) 1 2 3 4 5 6 7 8)
-   [1, 5, [2, 3,] (6, 7, 8), 4]
-   => (def add-10 #%(+ 10 %1))
-   => (add-10 6)
-   16
+    => (#%[%1 %6 42 [%2 %3] %* %4] 1 2 3 4 555 6 7 8)
+    [1, 6, 42, [2, 3], (7, 8), 4]
+    => (#% %** :foo 2)
+    {"foo": 2}
+
+When used on an s-expression,
+``#%`` is similar to Clojure's anonymous function literals--``#()``.
+
+.. code-block:: hy
+
+    => (setv add-10 #%(+ 10 %1))
+    => (add-10 6)
+    16
+
+``#%`` determines the parameter list by the presence of a ``%*`` or ``%**``
+symbol and by the maximum ``%i`` symbol found *anywhere* in the expression,
+so nesting of ``#%`` forms is not recommended.
+

@@ -127,4 +127,18 @@
   ;; test &rest &kwargs
   (assert-equal (#%(, %* %**) 1 2 :a 'b)
                 (, (, 1 2)
-                   (dict :a 'b))))
+                   (dict :a 'b)))
+  ;; test other expression types
+  (assert-equal (#% %* 1 2 3)
+                (, 1 2 3))
+  (assert-equal (#% %** :foo 2)
+                (dict :foo 2))
+  (assert-equal (#%[%3 %2 %1] 1 2 3)
+                [3 2 1])
+  (assert-equal (#%{%1 %2} 10 100)
+                {10 100})
+  (assert-equal (#% #{%3 %2 %1} 1 3 2)
+                #{3 1 2})  ; sets are not ordered.
+  (assert-equal (#% "%1")
+                "%1"))
+
