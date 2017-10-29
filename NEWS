@@ -22,6 +22,8 @@ Changes from 0.13.0
    * support EDN `#_` syntax to discard the next term
    * `return` has been implemented as a special form
    * `while` loops may now contain an `else` clause, like `for` loops
+   * `xi` from `hy.extra.anaphoric` is now the `#%` tag macro
+   * `#%` works on any expression and has a new `&kwargs` parameter `%**`
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot
