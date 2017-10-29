@@ -2007,14 +2007,15 @@ class HyASTCompiler(object):
         expressions.pop(0)  # class
 
         class_name = expressions.pop(0)
+        if not isinstance(class_name, HySymbol):
+            raise HyTypeError(class_name, "Class name must be a symbol.")
 
         bases_expr = []
         bases = Result()
         if expressions:
             base_list = expressions.pop(0)
             if not isinstance(base_list, HyList):
-                raise HyTypeError(expressions,
-                                  "Bases class must be a list")
+                raise HyTypeError(base_list, "Base classes must be a list.")
             bases_expr, bases, _ = self._compile_collect(base_list)
 
         body = Result()
