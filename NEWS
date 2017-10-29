@@ -46,6 +46,7 @@ Changes from 0.13.0
      instead of silently ignoring them
    * Multiple expressions are now allowed in the else clause of
      a for loop
+   * `else` clauses in `for` and `while` are recognized more reliably
    * Argument destructuring no longer interferes with function docstrings.
 
    [ Misc. Improvements ]

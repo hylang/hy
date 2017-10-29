@@ -376,6 +376,14 @@ def is_unpack(kind, x):
             and x[0] == "unpack_" + kind)
 
 
+def ends_with_else(expr):
+    return (expr and
+            isinstance(expr[-1], HyExpression) and
+            expr[-1] and
+            isinstance(expr[-1][0], HySymbol) and
+            expr[-1][0] == HySymbol("else"))
+
+
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
@@ -1825,7 +1833,7 @@ class HyASTCompiler(object):
 
         orel = Result()
         # (for* [] body (else …))
-        if expression and expression[-1][0] == HySymbol("else"):
+        if ends_with_else(expression):
             else_expr = expression.pop()
             for else_body in else_expr[1:]:
                 orel += self.compile(else_body)
@@ -1854,7 +1862,7 @@ class HyASTCompiler(object):
 
         orel = Result()
         # (while cond body (else …))
-        if expr and expr[-1][0] == HySymbol("else"):
+        if ends_with_else(expr):
             else_expr = expr.pop()
             for else_body in else_expr[1:]:
                 orel += self.compile(else_body)
