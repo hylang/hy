@@ -10,6 +10,7 @@ import sys
 import hy.compiler
 import hy.macros
 from hy._compat import builtins, string_types
+from hy.lex.parser import hy_symbol_unmangle
 
 docomplete = True
 
@@ -77,7 +78,7 @@ class Completer(object):
         for p in self.path:
             for k in p:
                 if isinstance(k, string_types):
-                    k = k.replace("_", "-")
+                    k = hy_symbol_unmangle(k)
                     if k.startswith(text):
                         matches.append(k)
 
