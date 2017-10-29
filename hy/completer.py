@@ -54,8 +54,8 @@ class Completer(object):
 
         if m:
             expr, attr = m.group(1, 3)
-            attr = attr.replace("-", "_")
-            expr = expr.replace("-", "_")
+            attr = hy_symbol_unmangle(attr)
+            expr = hy_symbol_unmangle(expr)
         else:
             return []
 
@@ -63,14 +63,19 @@ class Completer(object):
             obj = eval(expr, self.namespace)
             words = dir(obj)
         except Exception:
-            return []
+            try:
+                obj = eval(expr)
+                words = dir(obj)
+            except Exception:
+                return []
 
         n = len(attr)
         matches = []
-        for w in words:
+        for w in map(hy_symbol_unmangle, words):
             if w[:n] == attr:
                 matches.append("{}.{}".format(
-                    expr.replace("_", "-"), w.replace("_", "-")))
+                    expr,
+                    w))
         return matches
 
     def global_matches(self, text):
