@@ -7,10 +7,10 @@ import os
 import re
 import sys
 
-import hy.macros
 import hy.compiler
+import hy.macros
 from hy._compat import builtins, string_types
-
+from hy.lex.parser import hy_symbol_unmangle
 
 docomplete = True
 
@@ -38,6 +38,7 @@ class Completer(object):
             raise TypeError('namespace must be a dictionary')
         self.namespace = namespace
         self.path = [hy.compiler._compile_table,
+                     dir(hy.core.language),
                      builtins.__dict__,
                      hy.macros._hy_macros[None],
                      namespace]
@@ -53,8 +54,8 @@ class Completer(object):
 
         if m:
             expr, attr = m.group(1, 3)
-            attr = attr.replace("-", "_")
-            expr = expr.replace("-", "_")
+            attr = hy_symbol_unmangle(attr)
+            expr = hy_symbol_unmangle(expr)
         else:
             return []
 
@@ -62,24 +63,30 @@ class Completer(object):
             obj = eval(expr, self.namespace)
             words = dir(obj)
         except Exception:
-            return []
+            try:
+                obj = eval(expr)
+                words = dir(obj)
+            except Exception:
+                return []
 
         n = len(attr)
         matches = []
-        for w in words:
+        for w in map(hy_symbol_unmangle, words):
             if w[:n] == attr:
                 matches.append("{}.{}".format(
-                    expr.replace("_", "-"), w.replace("_", "-")))
+                    expr,
+                    w))
         return matches
 
     def global_matches(self, text):
         matches = []
         for p in self.path:
-            for k in p.keys():
+            for k in p:
                 if isinstance(k, string_types):
-                    k = k.replace("_", "-")
+                    k = hy_symbol_unmangle(k)
                     if k.startswith(text):
                         matches.append(k)
+
         return matches
 
     def tag_matches(self, text):
