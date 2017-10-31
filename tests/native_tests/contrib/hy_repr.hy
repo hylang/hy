@@ -65,6 +65,19 @@
     (setv rep (hy-repr (eval (read-str original-str))))
     (assert (= rep original-str))))
 
+(defn test-hy-repr-no-roundtrip []
+  ; Test one of the corner cases in which hy-repr doesn't
+  ; round-trip: when a HyObject contains a non-HyObject, we
+  ; promote the constituent to a HyObject.
+
+  (setv orig `[a ~5.0])
+  (setv reprd (hy-repr orig))
+  (assert (= reprd "'[a 5.0]"))
+  (setv result (eval (read-str reprd)))
+
+  (assert (is (type (get orig 1)) float))
+  (assert (is (type (get result 1)) HyFloat)))
+
 (defn test-hy-model-constructors []
   (import hy)
   (assert (= (hy-repr (hy.HyInteger 7)) "'7"))
