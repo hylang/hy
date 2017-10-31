@@ -24,6 +24,7 @@ Changes from 0.13.0
    * `while` loops may now contain an `else` clause, like `for` loops
    * `xi` from `hy.extra.anaphoric` is now the `#%` tag macro
    * `#%` works on any expression and has a new `&kwargs` parameter `%**`
+   * new `doc` macro and `#doc` tag macro
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

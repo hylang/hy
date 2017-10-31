@@ -501,6 +501,41 @@ Some example usage:
 ``do`` can accept any number of arguments, from 1 to n.
 
 
+doc / #doc
+----------
+
+Documentation macro and tag macro.
+Gets help for macros or tag macros, respectively.
+
+.. code-block:: clj
+
+    => (doc doc)
+    Help on function (doc) in module hy.core.macros:
+
+    (doc)(symbol)
+        macro documentation
+
+        Gets help for a macro function available in this module.
+        Use ``require`` to make other macros available.
+
+        Use ``#doc foo`` instead for help with tag macro ``#foo``.
+        Use ``(help foo)`` instead for help with runtime objects.
+
+    => (doc comment)
+    Help on function (comment) in module hy.core.macros:
+
+    (comment)(*body)
+        Ignores body and always expands to None
+
+    => #doc doc
+    Help on function #doc in module hy.core.macros:
+
+    #doc(symbol)
+        tag macro documentation
+
+    Gets help for a tag macro function available in this module.
+
+
 def / setv
 ----------
 

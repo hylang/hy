@@ -34,6 +34,7 @@ def macro(name):
 
     """
     def _(fn):
+        fn.__name__ = "({})".format(name)
         try:
             argspec = getargspec(fn)
             fn._hy_macro_pass_compiler = argspec.keywords is not None
@@ -63,6 +64,7 @@ def tag(name):
 
     """
     def _(fn):
+        fn.__name__ = '#{}'.format(name)
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
