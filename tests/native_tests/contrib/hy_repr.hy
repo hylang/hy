@@ -28,7 +28,7 @@
     '(+ 1 2)
     [1 2 3] (, 1 2 3) #{1 2 3} (frozenset #{1 2 3})
     '[1 2 3] '(, 1 2 3) '#{1 2 3} '(frozenset #{1 2 3})
-    {"a" 1 "b" 2 "a" 3} '{"a" 1 "b" 2 "a" 3}
+    {"a" 1  "b" 2  "a" 3} '{"a" 1  "b" 2  "a" 3}
     [1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
     '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"} (f #* a #** b)]])
   (for [original-val values]
@@ -58,7 +58,7 @@
     "'[1 `[~(+ 1 2) ~@(+ [1] [2])] 4]"
     "'[1 `[~(do (print x 'y) 1)] 4]"
     "{1 20}"
-    "'{1 10 1 20}"
+    "'{1 10  1 20}"
     "'asymbol"
     ":akeyword"
     "'(f #* args #** kwargs)"])
@@ -92,7 +92,7 @@
   (assert (= (hy-repr (hy.HyInteger 7)) "'7"))
   (assert (= (hy-repr (hy.HyString "hello")) "'\"hello\""))
   (assert (= (hy-repr (hy.HyList [1 2 3])) "'[1 2 3]"))
-  (assert (= (hy-repr (hy.HyDict [1 2 3])) "'{1 2 3}")))
+  (assert (= (hy-repr (hy.HyDict [1 2 3])) "'{1 2  3}")))
 
 (defn test-hy-repr-self-reference []
 
@@ -105,7 +105,7 @@
   (assert (in (hy-repr x) (list-comp
     ; The ordering of a dictionary isn't guaranteed, so we need
     ; to check for all possible orderings.
-    (+ "{" (.join " " p) "}")
+    (+ "{" (.join "  " p) "}")
     [p (permutations ["1 2" "3 [4 {...}]" "6 7"])]))))
 
 (defn test-hy-repr-custom []

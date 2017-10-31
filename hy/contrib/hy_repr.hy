@@ -44,9 +44,17 @@
 (hy-repr-register tuple (fn [x]
   (+ "(," (if x " " "") (-cat x) ")")))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
-  (+ "{" (-cat (reduce + (.items x))) "}")))
+  (setv text (.join "  " (genexpr
+    (+ (hy-repr k) " " (hy-repr v))
+    [[k v] (.items x)])))
+  (+ "{" text "}")))
 (hy-repr-register HyDict :placeholder "{...}" (fn [x]
-  (+ "{" (-cat x) "}")))
+  (setv text (.join "  " (genexpr
+    (+ (hy-repr k) " " (hy-repr v))
+    [[k v] (partition x)])))
+  (if (% (len x) 2)
+    (+= text (+ "  " (hy-repr (get x -1)))))
+  (+ "{" text "}")))
 (hy-repr-register [set HySet] (fn [x]
   (+ "#{" (-cat x) "}")))
 (hy-repr-register frozenset (fn [x]
