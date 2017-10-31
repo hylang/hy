@@ -4,7 +4,7 @@
 
 (import
   [math [isnan]]
-  [hy.contrib.hy-repr [hy-repr]])
+  [hy.contrib.hy-repr [hy-repr hy-repr-register]])
 
 (defn test-hy-repr-roundtrip-from-value []
   ; Test that a variety of values round-trip properly.
@@ -86,10 +86,24 @@
     (+ "{" (.join " " p) "}")
     [p (permutations ["1 2" "3 [4 {...}]" "6 7"])]))))
 
-(defn test-hy-repr-dunder-method []
-  (defclass C [list] [__hy-repr__ (fn [self] "cuddles")])
-  (assert (= (hy-repr (C)) "cuddles")))
+(defn test-hy-repr-custom []
+
+  (defclass C [object])
+  (hy-repr-register C (fn [x] "cuddles"))
+  (assert (= (hy-repr (C)) "cuddles"))
+
+  (defclass Container [object]
+    [__init__ (fn [self value]
+      (setv self.value value))])
+  (hy-repr-register Container :placeholder "(Container ...)" (fn [x]
+    (+ "(Container " (hy-repr x.value) ")")))
+  (setv container (Container 5))
+  (setv container.value container)
+  (assert (= (hy-repr container) "(Container (Container ...))"))
+  (setv container.value [1 container 3])
+  (assert (= (hy-repr container) "(Container [1 (Container ...) 3])")))
 
 (defn test-hy-repr-fallback []
-  (defclass D [list] [__repr__ (fn [self] "cuddles")])
+  (defclass D [object]
+    [__repr__ (fn [self] "cuddles")])
   (assert (= (hy-repr (D)) "cuddles")))
