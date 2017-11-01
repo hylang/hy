@@ -1550,13 +1550,23 @@
   "NATIVE: Test the disassemble function"
   (if PY35
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-               "Module(\n    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
+               "Module(
+    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-               "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
+               "Module(
+    body=[
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
-             "leaky()\nleaky()\nmacros()"))
+             "leaky()
+leaky()
+macros()
+"))
   (assert (= (re.sub r"[L() ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
-             "2+40")))
+             "2+40\n")))
 
 
 (defn test-attribute-access []

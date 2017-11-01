@@ -79,9 +79,9 @@ If the second argument `codegen` is true, generate python code instead."
   (spoof-positions tree)
   (setv compiled (hy.compiler.hy-compile tree (calling-module-name)))
   ((if codegen
-            astor.codegen.to_source
-            astor.dump)
-          compiled))
+       astor.code-gen.to-source
+       astor.dump-tree)
+    compiled))
 
 (defn distinct [coll]
   "Return a generator from the original collection `coll` with no duplicates."

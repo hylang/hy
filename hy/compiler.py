@@ -27,6 +27,7 @@ import copy
 import inspect
 
 from collections import defaultdict
+from cmath import isnan
 
 if PY3:
     import builtins
@@ -2155,11 +2156,27 @@ class HyASTCompiler(object):
         raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
     @builds(HyInteger, HyFloat, HyComplex)
-    def compile_numeric_literal(self, number, building):
+    def compile_numeric_literal(self, x, building):
         f = {HyInteger: long_type,
              HyFloat: float,
              HyComplex: complex}[building]
-        return asty.Num(number, n=f(number))
+        # Work around https://github.com/berkerpeksag/astor/issues/85 :
+        # astor can't generate Num nodes with NaN, so we have
+        # to build an expression that evaluates to NaN.
+        def nn(number):
+            return asty.Num(x, n=number)
+        if isnan(x):
+            def nan(): return asty.BinOp(
+                  x, left=nn(1e900), op=ast.Sub(), right=nn(1e900))
+            if f is complex:
+                return asty.Call(
+                    x,
+                    func=asty.Name(x, id="complex", ctx=ast.Load()),
+                    keywords=[],
+                    args=[nan() if isnan(x.real) else nn(x.real),
+                          nan() if isnan(x.imag) else nn(x.imag)])
+            return nan()
+        return nn(f(x))
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):

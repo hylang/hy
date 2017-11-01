@@ -72,7 +72,7 @@ def test_bin_hy_stdin():
 
     output, _ = run_cmd("hy --spy", '(koan)')
     assert "monk" in output
-    assert "\\n  Ummon" in output
+    assert "\n  Ummon" in output
 
     # --spy should work even when an exception is thrown
     output, _ = run_cmd("hy --spy", '(foof)')
@@ -195,7 +195,7 @@ def test_bin_hy_icmd_file():
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
-    assert "([] + [])" in output
+    assert "[] + []" in output
 
 
 def test_bin_hy_missing_file():
