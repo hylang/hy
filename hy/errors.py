@@ -87,7 +87,7 @@ class HyTypeError(TypeError):
 
         result += colored.yellow("%s: %s\n\n" %
                                  (self.__class__.__name__,
-                                  self.message.encode('utf-8')))
+                                  self.message))
 
         return result
 

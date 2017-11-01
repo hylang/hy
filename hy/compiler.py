@@ -840,6 +840,7 @@ class HyASTCompiler(object):
     @builds("try")
     @checkargs(min=2)
     def compile_try_expression(self, expr):
+        expr = copy.deepcopy(expr)
         expr.pop(0)  # try
 
         # (try something…)
@@ -1134,6 +1135,7 @@ class HyASTCompiler(object):
 
     @builds("import")
     def compile_import_expression(self, expr):
+        expr = copy.deepcopy(expr)
         def _compile_import(expr, module, names=None, importer=asty.Import):
             if not names:
                 names = [ast.alias(name=ast_str(module), asname=None)]
@@ -2014,14 +2016,15 @@ class HyASTCompiler(object):
         expressions.pop(0)  # class
 
         class_name = expressions.pop(0)
+        if not isinstance(class_name, HySymbol):
+            raise HyTypeError(class_name, "Class name must be a symbol.")
 
         bases_expr = []
         bases = Result()
         if expressions:
             base_list = expressions.pop(0)
             if not isinstance(base_list, HyList):
-                raise HyTypeError(expressions,
-                                  "Bases class must be a list")
+                raise HyTypeError(base_list, "Base classes must be a list.")
             bases_expr, bases, _ = self._compile_collect(base_list)
 
         body = Result()
@@ -2062,62 +2065,6 @@ class HyASTCompiler(object):
             kwargs=None,
             bases=bases_expr,
             body=body.stmts)
-
-    def _compile_time_hack(self, expression):
-        """Compile-time hack: we want to get our new macro now
-        We must provide __name__ in the namespace to make the Python
-        compiler set the __module__ attribute of the macro function."""
-
-        hy.importer.hy_eval(copy.deepcopy(expression),
-                            compile_time_ns(self.module_name),
-                            self.module_name)
-
-        # We really want to have a `hy` import to get hy.macro in
-        ret = self.compile(expression)
-        ret.add_imports('hy', [None])
-        return ret
-
-    @builds("defmacro")
-    @checkargs(min=1)
-    def compile_macro(self, expression):
-        expression.pop(0)
-        name = expression.pop(0)
-        if not isinstance(name, HySymbol):
-            raise HyTypeError(name, ("received a `%s' instead of a symbol "
-                                     "for macro name" % type(name).__name__))
-        name = HyString(name).replace(name)
-        for kw in ("&kwonly", "&kwargs", "&key"):
-            if kw in expression[0]:
-                raise HyTypeError(name, "macros cannot use %s" % kw)
-        new_expression = HyExpression([
-            HyExpression([HySymbol("hy.macros.macro"), name]),
-            HyExpression([HySymbol("fn")] + expression),
-        ]).replace(expression)
-
-        ret = self._compile_time_hack(new_expression)
-
-        return ret
-
-    @builds("deftag")
-    @checkargs(min=2)
-    def compile_tag_macro(self, expression):
-        expression.pop(0)
-        name = expression.pop(0)
-        if name == ":" or name == "&":
-            raise NameError("%s can't be used as a tag macro name" % name)
-        if not isinstance(name, HySymbol) and not isinstance(name, HyString):
-            raise HyTypeError(name,
-                              ("received a `%s' instead of a symbol "
-                               "for tag macro name" % type(name).__name__))
-        name = HyString(name).replace(name)
-        new_expression = HyExpression([
-            HyExpression([HySymbol("hy.macros.tag"), name]),
-            HyExpression([HySymbol("fn")] + expression),
-        ]).replace(expression)
-
-        ret = self._compile_time_hack(new_expression)
-
-        return ret
 
     @builds("dispatch_tag_macro")
     @checkargs(exact=2)

@@ -8,8 +8,8 @@
 
 (defn test-exception-cause []
   (try (raise ValueError :from NameError)
-  (except [e [ValueError]]
-    (assert (= (type (. e __cause__)) NameError)))))
+       (except [e [ValueError]]
+         (assert (= (type (. e __cause__)) NameError)))))
 
 
 (defn test-kwonly []
@@ -21,8 +21,8 @@
   ;; keyword-only without default ...
   (defn kwonly-foo-no-default [&kwonly foo] foo)
   (setv attempt-to-omit-default (try
-                                (kwonly-foo-no-default)
-                                (except [e [Exception]] e)))
+                                  (kwonly-foo-no-default)
+                                  (except [e [Exception]] e)))
   ;; works
   (assert (= (kwonly-foo-no-default :foo "quux") "quux"))
   ;; raises TypeError with appropriate message if not supplied
@@ -64,9 +64,23 @@
     (assert 0))
   (defn yield-from-test []
     (for* [i (range 3)]
-       (yield i))
+      (yield i))
     (try
-     (yield-from (yield-from-subgenerator-test))
-     (except [e AssertionError]
-       (yield 4))))
+      (yield-from (yield-from-subgenerator-test))
+      (except [e AssertionError]
+        (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
+
+(require [hy.contrib.walk [let]])
+
+(defn test-let-optional []
+  (let [a 1
+        b 6
+        d 2]
+       (defn foo [&kwonly [a a] b [c d]]
+         (, a b c))
+       (assert (= (foo :b "b")
+                  (, 1 "b" 2)))
+       (assert (= (foo :b 20 :a 10 :c 30)
+                  (, 10 20 30)))))
+

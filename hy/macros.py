@@ -34,7 +34,7 @@ def macro(name):
 
     """
     def _(fn):
-        fn.__name__ = "({})".format(name)
+        fn.__name__ = '({})'.format(name)
         try:
             argspec = getargspec(fn)
             fn._hy_macro_pass_compiler = argspec.keywords is not None
@@ -191,14 +191,14 @@ def macroexpand_1(tree, compiler):
 
                 try:
                     m_copy = make_empty_fn_copy(m)
-                    m_copy(*ntree[1:], **opts)
+                    m_copy(compiler.module_name, *ntree[1:], **opts)
                 except TypeError as e:
                     msg = "expanding `" + str(tree[0]) + "': "
                     msg += str(e).replace("<lambda>()", "", 1).strip()
                     raise HyMacroExpansionError(tree, msg)
 
                 try:
-                    obj = m(*ntree[1:], **opts)
+                    obj = m(compiler.module_name, *ntree[1:], **opts)
                 except HyTypeError as e:
                     if e.expression is None:
                         e.expression = tree

@@ -6,6 +6,30 @@
 ;;; These macros are the essential hy macros.
 ;;; They are automatically required everywhere, even inside hy.core modules.
 
+(eval-and-compile
+  (import hy)
+  ((hy.macros.macro "defmacro")
+   (fn [&name macro-name lambda-list &rest body]
+     "the defmacro macro"
+     (if* (not (isinstance macro-name hy.models.HySymbol))
+          (raise
+            (hy.errors.HyTypeError
+              macro-name
+              (% "received a `%s' instead of a symbol for macro name"
+                 (. (type name)
+                    __name__)))))
+     (for* [kw '[&kwonly &kwargs &key]]
+       (if* (in kw lambda-list)
+            (raise (hy.errors.HyTypeError macro-name
+                                          (% "macros cannot use %s"
+                                             kw)))))
+     ;; this looks familiar...
+     `(eval-and-compile
+        (import hy)
+        ((hy.macros.macro ~(str macro-name))
+         (fn ~(+ `[&name] lambda-list)
+           ~@body))))))
+
 (defmacro if [&rest args]
   "Conditionally evaluate alternating test and then expressions."
   (setv n (len args))
@@ -15,6 +39,23 @@
             `(if* ~(get args 0)
                   ~(get args 1)
                   (if ~@(cut args 2))))))
+
+(defmacro deftag [tag-name lambda-list &rest body]
+  (if (and (not (isinstance tag-name hy.models.HySymbol))
+           (not (isinstance tag-name hy.models.HyString)))
+      (raise (hy.errors.HyTypeError
+               tag-name
+               (% "received a `%s' instead of a symbol for tag macro name"
+                  (. (type tag-name) __name__)))))
+  (if (or (= tag-name ":")
+          (= tag-name "&"))
+      (raise (NameError (% "%s can't be used as a tag macro name" tag-name))))
+  (setv tag-name (.replace (hy.models.HyString tag-name)
+                           tag-name))
+  `(eval-and-compile
+     (import hy)
+     ((hy.macros.tag ~tag-name)
+      (fn ~lambda-list ~@body))))
 
 (defmacro macro-error [location reason]
   "Error out properly within a macro at `location` giving `reason`."

@@ -10,7 +10,7 @@ Functions
 .. _walk:
 
 walk
------
+----
 
 Usage: `(walk inner outer form)`
 
@@ -36,7 +36,7 @@ Example:
     97
 
 postwalk
----------
+--------
 
 .. _postwalk:
 
@@ -116,7 +116,7 @@ each sub-form, uses ``f`` 's return value in place of the original.
             HyInteger(7)])])])])
 
 prewalk
---------
+-------
 
 .. _prewalk:
 
@@ -194,3 +194,57 @@ each sub-form, uses ``f`` 's return value in place of the original.
           HyInteger(6),
           HyList([
             HyInteger(7)])])])])
+
+macroexpand-all
+---------------
+
+Usage: `(macroexpand-all form &optional module-name)`
+
+Recursively performs all possible macroexpansions in form, using the ``require`` context of ``module-name``.
+`macroexpand-all` assumes the calling module's context if unspecified.
+
+Macros
+======
+
+let
+---
+
+``let`` creates lexically-scoped names for local variables.
+A let-bound name ceases to refer to that local outside the ``let`` form.
+Arguments in nested functions and bindings in nested ``let`` forms can shadow these names.
+
+.. code-block:: hy
+
+    => (let [x 5]  ; creates a new local bound to name 'x
+    ...  (print x)
+    ...  (let [x 6]  ; new local and name binding that shadows 'x
+    ...    (print x))
+    ...  (print x))  ; 'x refers to the first local again
+    5
+    6
+    5
+
+Basic assignments (e.g. ``setv``, ``+=``) will update the local variable named by a let binding,
+when they assign to a let-bound name.
+
+But assignments via ``import`` are always hoisted to normal Python scope, and
+likewise, ``defclass`` will assign the class to the Python scope,
+even if it shares the name of a let binding.
+
+Use ``__import__`` and ``type`` (or whatever metaclass) instead,
+if you must avoid this hoisting.
+
+The ``let`` macro takes two parameters: a list defining *variables*
+and the *body* which gets executed. *variables* is a vector of
+variable and value pairs.
+
+``let`` executes the variable assignments one-by-one, in the order written.
+
+.. code-block:: hy
+
+    => (let [x 5
+    ...      y (+ x 1)]
+    ...  (print x y))
+    5 6
+
+It is an error to use a let-bound name in a ``global`` or ``nonlocal`` form.
