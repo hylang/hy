@@ -219,8 +219,24 @@
     (else
       (+= count 1)
       (+= count 10)))
-
   (assert (= count 161))
+
+  ; don't be fooled by constructs that look like else
+  (setv s "")
+  (setv (get (globals) "else") True)
+  (for [x "abcde"]
+    (+= s x)
+    [else (+= s "_")])
+  (assert (= s "a_b_c_d_e_"))
+
+  (setv s "")
+  (setv (get (globals) "else") True)
+  (with [(pytest.raises TypeError)]
+    (for [x "abcde"]
+      (+= s x)
+      ("else" (+= s "z"))))
+  (assert (= s "az"))
+
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
              (list-comp y [x [[1] [2 3]] y x])))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
@@ -308,7 +324,26 @@
   (while True
     (break)
     (else (setv myvariable 53)))
-  (assert (= myvariable 26)))
+  (assert (= myvariable 26))
+
+  ; don't be fooled by constructs that look like else clauses
+  (setv x 2)
+  (setv a [])
+  (setv (get (globals) "else") True)
+  (while x
+    (.append a x)
+    (-= x 1)
+    [else (.append a "e")])
+  (assert (= a [2 "e" 1 "e"]))
+
+  (setv x 2)
+  (setv a [])
+  (with [(pytest.raises TypeError)]
+    (while x
+      (.append a x)
+      (-= x 1)
+      ("else" (.append a "e"))))
+  (assert (= a [2 "e"])))
 
 
 (defn test-branching []
@@ -1515,13 +1550,23 @@
   "NATIVE: Test the disassemble function"
   (if PY35
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-               "Module(\n    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
+               "Module(
+    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
     (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-               "Module(\n    body=[\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),\n        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
+               "Module(
+    body=[
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
-             "leaky()\nleaky()\nmacros()"))
+             "leaky()
+leaky()
+macros()
+"))
   (assert (= (re.sub r"[L() ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
-             "2+40")))
+             "2+40\n")))
 
 
 (defn test-attribute-access []

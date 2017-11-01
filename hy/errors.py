@@ -43,41 +43,47 @@ class HyTypeError(TypeError):
 
     def __str__(self):
 
-        line = self.expression.start_line
-        start = self.expression.start_column
-        end = self.expression.end_column
-
-        source = []
-        if self.source is not None:
-            source = self.source.split("\n")[line-1:self.expression.end_line]
-
-            if line == self.expression.end_line:
-                length = end - start
-            else:
-                length = len(source[0]) - start
-
         result = ""
 
-        result += '  File "%s", line %d, column %d\n\n' % (self.filename,
-                                                           line,
-                                                           start)
+        if all(getattr(self.expression, x, None) is not None
+               for x in ("start_line", "start_column", "end_column")):
 
-        if len(source) == 1:
-            result += '  %s\n' % colored.red(source[0])
-            result += '  %s%s\n' % (' '*(start-1),
-                                    colored.green('^' + '-'*(length-1) + '^'))
-        if len(source) > 1:
-            result += '  %s\n' % colored.red(source[0])
-            result += '  %s%s\n' % (' '*(start-1),
-                                    colored.green('^' + '-'*length))
-            if len(source) > 2:  # write the middle lines
-                for line in source[1:-1]:
-                    result += '  %s\n' % colored.red("".join(line))
-                    result += '  %s\n' % colored.green("-"*len(line))
+            line = self.expression.start_line
+            start = self.expression.start_column
+            end = self.expression.end_column
 
-            # write the last line
-            result += '  %s\n' % colored.red("".join(source[-1]))
-            result += '  %s\n' % colored.green('-'*(end-1) + '^')
+            source = []
+            if self.source is not None:
+                source = self.source.split("\n")[line-1:self.expression.end_line]
+
+                if line == self.expression.end_line:
+                    length = end - start
+                else:
+                    length = len(source[0]) - start
+
+            result += '  File "%s", line %d, column %d\n\n' % (self.filename,
+                                                               line,
+                                                               start)
+
+            if len(source) == 1:
+                result += '  %s\n' % colored.red(source[0])
+                result += '  %s%s\n' % (' '*(start-1),
+                                        colored.green('^' + '-'*(length-1) + '^'))
+            if len(source) > 1:
+                result += '  %s\n' % colored.red(source[0])
+                result += '  %s%s\n' % (' '*(start-1),
+                                        colored.green('^' + '-'*length))
+                if len(source) > 2:  # write the middle lines
+                    for line in source[1:-1]:
+                        result += '  %s\n' % colored.red("".join(line))
+                        result += '  %s\n' % colored.green("-"*len(line))
+
+                # write the last line
+                result += '  %s\n' % colored.red("".join(source[-1]))
+                result += '  %s\n' % colored.green('-'*(end-1) + '^')
+
+        else:
+            result += '  File "%s", unknown location\n' % self.filename
 
         result += colored.yellow("%s: %s\n\n" %
                                  (self.__class__.__name__,

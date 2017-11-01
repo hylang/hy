@@ -11,7 +11,7 @@ import sys
 import os
 import importlib
 
-import astor.codegen
+import astor.code_gen
 
 import hy
 
@@ -413,17 +413,17 @@ def hy2py_main():
             else pretty_error(import_buffer_to_ast, stdin_text, module_name))
     if options.with_ast:
         if PY3 and platform.system() == "Windows":
-            _print_for_windows(astor.dump(_ast))
+            _print_for_windows(astor.dump_tree(_ast))
         else:
-            print(astor.dump(_ast))
+            print(astor.dump_tree(_ast))
         print()
         print()
 
     if not options.without_python:
         if PY3 and platform.system() == "Windows":
-            _print_for_windows(astor.codegen.to_source(_ast))
+            _print_for_windows(astor.code_gen.to_source(_ast))
         else:
-            print(astor.codegen.to_source(_ast))
+            print(astor.code_gen.to_source(_ast))
 
     parser.exit(0)
 

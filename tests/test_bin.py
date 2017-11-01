@@ -72,7 +72,7 @@ def test_bin_hy_stdin():
 
     output, _ = run_cmd("hy --spy", '(koan)')
     assert "monk" in output
-    assert "\\n  Ummon" in output
+    assert "\n  Ummon" in output
 
     # --spy should work even when an exception is thrown
     output, _ = run_cmd("hy --spy", '(foof)')
@@ -138,6 +138,16 @@ def test_bin_hy_stdin_except_do():
     assert "zzz" in output
 
 
+def test_bin_hy_stdin_unlocatable_hytypeerror():
+    # https://github.com/hylang/hy/issues/1412
+    # The chief test of interest here is the returncode assertion
+    # inside run_cmd.
+    _, err = run_cmd("hy", """
+        (import hy.errors)
+        (raise (hy.errors.HyTypeError '[] (+ "A" "Z")))""")
+    assert "AZ" in err
+
+
 def test_bin_hy_stdin_bad_repr():
     # https://github.com/hylang/hy/issues/1389
     output, err = run_cmd("hy", """
@@ -185,7 +195,7 @@ def test_bin_hy_icmd_file():
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
-    assert "([] + [])" in output
+    assert "[] + []" in output
 
 
 def test_bin_hy_missing_file():

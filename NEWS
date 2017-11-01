@@ -22,6 +22,9 @@ Changes from 0.13.0
    * support EDN `#_` syntax to discard the next term
    * `return` has been implemented as a special form
    * `while` loops may now contain an `else` clause, like `for` loops
+   * `xi` from `hy.extra.anaphoric` is now the `#%` tag macro
+   * `#%` works on any expression and has a new `&kwargs` parameter `%**`
+   * new `doc` macro and `#doc` tag macro
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot
@@ -39,11 +42,14 @@ Changes from 0.13.0
    * Fixed a crash when `with` suppresses an exception. `with` now returns
      `None` in this case.
    * Fixed a crash when --repl-output-fn raises an exception
+   * Fixed a crash when HyTypeError was raised with objects that had no
+     source position
    * `assoc` now evaluates its arguments only once each
    * `break` and `continue` now raise an error when given arguments
      instead of silently ignoring them
    * Multiple expressions are now allowed in the else clause of
      a for loop
+   * `else` clauses in `for` and `while` are recognized more reliably
    * Argument destructuring no longer interferes with function docstrings.
 
    [ Misc. Improvements ]
