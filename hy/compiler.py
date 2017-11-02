@@ -1861,12 +1861,33 @@ class HyASTCompiler(object):
     @checkargs(min=2)
     def compile_while_expression(self, expr):
         expr.pop(0)  # "while"
-        ret = self.compile(expr.pop(0))
+        cond = expr.pop(0)
+        cond_compiled = self.compile(cond)
 
-        orel = Result()
-        # (while cond body (else …))
+        else_expr = None
         if ends_with_else(expr):
             else_expr = expr.pop()
+
+        if cond_compiled.stmts:
+            # We need to ensure the statements for the condition are
+            # executed on every iteration. Rewrite the loop to use a
+            # single anonymous variable as the condition.
+            def e(*x): return HyExpression(x)
+            s = HySymbol
+            cond_var = s(self.get_anon_var())
+            return self.compile(e(
+                s('do'),
+                e(s('setv'), cond_var, 1),
+                e(s('while'), cond_var,
+                  # Cast the condition to a bool in case it's mutable and
+                  # changes its truth value, but use (not (not ...)) instead of
+                  # `bool` in case `bool` has been redefined.
+                  e(s('setv'), cond_var, e(s('not'), e(s('not'), cond))),
+                  e(s('if*'), cond_var, e(s('do'), *expr)),
+                  *([else_expr] if else_expr is not None else []))).replace(expr))  # noqa
+
+        orel = Result()
+        if else_expr is not None:
             for else_body in else_expr[1:]:
                 orel += self.compile(else_body)
                 orel += orel.expr_as_stmt()
@@ -1874,11 +1895,9 @@ class HyASTCompiler(object):
         body = self._compile_branch(expr)
         body += body.expr_as_stmt()
 
-        ret += asty.While(expr,
-                          test=ret.force_expr,
-                          body=body.stmts,
-                          orelse=orel.stmts)
-
+        ret = cond_compiled + asty.While(
+            expr, test=cond_compiled.force_expr,
+            body=body.stmts, orelse=orel.stmts)
         ret.contains_yield = body.contains_yield
 
         return ret
