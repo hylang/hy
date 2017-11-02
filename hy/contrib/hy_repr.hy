@@ -7,6 +7,12 @@
   [hy._compat [PY3 str-type bytes-type long-type]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
+(try
+  (import [_collections_abc [dict-keys dict-values dict-items]])
+  (except [ImportError]
+    (defclass C)
+    (setv [dict-keys dict-values dict-items] [C C C])))
+
 (setv -registry {})
 (defn hy-repr-register [types f &optional placeholder]
   (for [typ (if (instance? list types) types [types])]
@@ -39,8 +45,6 @@
       (when started-quoting
         (setv -quoting False)))))
 
-(hy-repr-register list :placeholder "[...]" (fn [x]
-  (+ "[" (-cat x) "]")))
 (hy-repr-register tuple (fn [x]
   (+ "(," (if x " " "") (-cat x) ")")))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
@@ -55,10 +59,6 @@
   (if (% (len x) 2)
     (+= text (+ "  " (hy-repr (get x -1)))))
   (+ "{" text "}")))
-(hy-repr-register [set HySet] (fn [x]
-  (+ "#{" (-cat x) "}")))
-(hy-repr-register frozenset (fn [x]
-  (+ "(frozenset #{" (-cat x) "})")))
 (hy-repr-register HyExpression (fn [x]
   (setv syntax {
     'quote "'"
@@ -100,6 +100,17 @@
   (.replace (.replace (.strip (-base-repr x) "()") "inf" "Inf") "nan" "NaN")))
 (hy-repr-register fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
+
+(for [[types fmt] (partition [
+    list "[...]"
+    [set HySet] "#{...}"
+    frozenset "(frozenset #{...})"
+    dict-keys "(dict-keys [...])"
+    dict-values "(dict-values [...])"
+    dict-items "(dict-items [...])"])]
+  (defn mkrepr [fmt]
+    (fn [x] (.replace fmt "..." (-cat x) 1)))
+  (hy-repr-register types :placeholder fmt (mkrepr fmt)))
 
 (defn -cat [obj]
   (.join " " (map hy-repr obj)))

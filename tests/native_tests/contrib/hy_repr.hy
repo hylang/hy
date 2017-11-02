@@ -87,6 +87,11 @@
   (assert (= (hy-repr (str ':mykeyword)) ":mykeyword"))
   (assert (= (hy-repr (.encode kw "UTF-8") #[[b"\xef\xb7\x90:hello"]])))))
 
+(when PY3 (defn test-dict-views []
+  (assert (= (hy-repr (.keys {1 2})) "(dict-keys [1])"))
+  (assert (= (hy-repr (.values {1 2})) "(dict-values [2])"))
+  (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])"))))
+
 (defn test-hy-model-constructors []
   (import hy)
   (assert (= (hy-repr (hy.HyInteger 7)) "'7"))
