@@ -1,3 +1,7 @@
+Changes from 0.13.0
+
+   Changed setup.py to require astor 0.5, since 0.6 isn't backwards-compatible.
+
 Changes from 0.12.1
 
    [ Language Changes ]
