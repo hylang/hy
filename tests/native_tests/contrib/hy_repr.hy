@@ -119,6 +119,25 @@
     (assert (= (hy-repr (D.time 1 2 3 4567 :fold 1 :tzinfo D.timezone.utc))
       "(datetime.time 1 2 3 4567 :tzinfo datetime.timezone.utc :fold 1)"))))
 
+(defn test-collections []
+  (import collections)
+  (assert (= (hy-repr (collections.defaultdict :a 8))
+    (if PY3
+      "(defaultdict None {\"a\" 8})"
+      "(defaultdict None {b\"a\" 8})")))
+  (assert (= (hy-repr (collections.defaultdict int :a 8))
+    (if PY3
+      "(defaultdict <class 'int'> {\"a\" 8})"
+      "(defaultdict <type 'int'> {b\"a\" 8})")))
+  (assert (= (hy-repr (collections.Counter [15 15 15 15]))
+    (if PY3
+      "(Counter {15 4})"
+      "(Counter {15 (int 4)})")))
+  (setv C (collections.namedtuple "Fooey" ["cd" "a_b"]))
+  (print C.__mro__)
+  (assert (= (hy-repr (C 11 12))
+    "(Fooey :cd 11 :a_b 12)")))
+
 (defn test-hy-model-constructors []
   (import hy)
   (assert (= (hy-repr (hy.HyInteger 7)) "'7"))
