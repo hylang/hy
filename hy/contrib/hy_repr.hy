@@ -5,7 +5,8 @@
 (import
   [math [isnan]]
   re
-  [hy._compat [PY3 str-type bytes-type long-type]]
+  datetime
+  [hy._compat [PY3 PY36 str-type bytes-type long-type]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
 (try
@@ -102,13 +103,29 @@
 (hy-repr-register fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
-(setv matchobject-type (type (re.match "" "")))
-(hy-repr-register matchobject-type (fn [x]
+(setv -matchobject-type (type (re.match "" "")))
+(hy-repr-register -matchobject-type (fn [x]
   (.format "<{}.{} object; :span {} :match {}>"
-    matchobject-type.__module__
-    matchobject-type.__name__
+    -matchobject-type.__module__
+    -matchobject-type.__name__
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
+
+(hy-repr-register datetime.datetime (fn [x]
+  (.format "(datetime.datetime {}{})"
+    (.strftime x "%Y %-m %-d %-H %-M %-S")
+    (-repr-time-innards x))))
+(hy-repr-register datetime.date (fn [x]
+  (.strftime x "(datetime.date %Y %-m %-d)")))
+(hy-repr-register datetime.time (fn [x]
+  (.format "(datetime.time {}{})"
+    (.strftime x "%-H %-M %-S")
+    (-repr-time-innards x))))
+(defn -repr-time-innards [x]
+  (.rstrip (+ " " (.join " " (filter identity [
+    (if x.microsecond (str-type x.microsecond))
+    (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
+    (if (and PY36 (!= x.fold 0)) (+ ":fold " (hy-repr x.fold)))])))))
 
 (for [[types fmt] (partition [
     list "[...]"
