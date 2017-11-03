@@ -6,6 +6,7 @@
   [math [isnan]]
   re
   datetime
+  collections
   [hy._compat [PY3 PY36 str-type bytes-type long-type]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
@@ -48,7 +49,15 @@
         (setv -quoting False)))))
 
 (hy-repr-register tuple (fn [x]
-  (+ "(," (if x " " "") (-cat x) ")")))
+  (if (hasattr x "_fields")
+    ; It's a named tuple. (We can't use `instance?` or so because
+    ; generated named-tuple classes don't actually inherit from
+    ; collections.namedtuple.)
+    (.format "({} {})"
+      (. (type x) __name__)
+      (.join " " (genexpr (+ ":" k " " (hy-repr v)) [[k v] (zip x._fields x)])))
+    ; Otherwise, print it as a regular tuple.
+    (+ "(," (if x " " "") (-cat x) ")"))))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
   (setv text (.join "  " (genexpr
     (+ (hy-repr k) " " (hy-repr v))
@@ -126,6 +135,14 @@
     (if x.microsecond (str-type x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if (and PY36 (!= x.fold 0)) (+ ":fold " (hy-repr x.fold)))])))))
+
+(hy-repr-register collections.Counter (fn [x]
+  (.format "(Counter {})"
+    (hy-repr (dict x)))))
+(hy-repr-register collections.defaultdict (fn [x]
+  (.format "(defaultdict {} {})"
+    (hy-repr x.default-factory)
+    (hy-repr (dict x)))))
 
 (for [[types fmt] (partition [
     list "[...]"
