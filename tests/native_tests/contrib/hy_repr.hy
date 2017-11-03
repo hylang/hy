@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [hy._compat [PY3]]
+  [hy._compat [PY3 PY36]]
   [math [isnan]]
   [hy.contrib.hy-repr [hy-repr hy-repr-register]])
 
@@ -91,6 +91,33 @@
   (assert (= (hy-repr (.keys {1 2})) "(dict-keys [1])"))
   (assert (= (hy-repr (.values {1 2})) "(dict-values [2])"))
   (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])"))))
+
+(defn test-datetime []
+  (import [datetime :as D])
+
+  (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 0))
+    "(datetime.datetime 2009 1 15 15 27 5)"))
+  (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123))
+    "(datetime.datetime 2009 1 15 15 27 5 123)"))
+  (when PY3
+    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123 :tzinfo D.timezone.utc))
+      "(datetime.datetime 2009 1 15 15 27 5 123 :tzinfo datetime.timezone.utc)")))
+  (when PY36
+    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1))
+      "(datetime.datetime 2009 1 15 15 27 5 :fold 1)"))
+    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1 :tzinfo D.timezone.utc))
+      "(datetime.datetime 2009 1 15 15 27 5 :tzinfo datetime.timezone.utc :fold 1)")))
+
+  (assert (= (hy-repr (D.date 2015 11 3))
+    "(datetime.date 2015 11 3)"))
+
+  (assert (= (hy-repr (D.time 1 2 3))
+    "(datetime.time 1 2 3)"))
+  (assert (= (hy-repr (D.time 1 2 3 4567))
+    "(datetime.time 1 2 3 4567)"))
+  (when PY36
+    (assert (= (hy-repr (D.time 1 2 3 4567 :fold 1 :tzinfo D.timezone.utc))
+      "(datetime.time 1 2 3 4567 :tzinfo datetime.timezone.utc :fold 1)"))))
 
 (defn test-hy-model-constructors []
   (import hy)
