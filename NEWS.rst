@@ -7,6 +7,14 @@ Bug Fixes
 ------------------------------
 * Fix `(return)` so it works correctly to exit a Python 2 generator
 
+Other Breaking Changes
+-----------------------------
+* `hy-repr` uses registered functions instead of methods
+
+Misc. Improvements
+----------------------------
+* `hy-repr` supports more standard types
+
 0.14.0
 ==============================
 
