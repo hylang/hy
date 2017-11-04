@@ -48,7 +48,8 @@ Example:
     (require [hy.contrib.loop [loop]])
 
     (defn factorial [n]
-      (loop [[i n] [acc 1]]
+      (loop [i n
+             acc 1]
         (if (zero? i)
           acc
           (recur (dec i) (* acc i)))))

@@ -8,7 +8,7 @@
 
 (import [hy.contrib.walk [macroexpand-all prewalk]])
 
-(defn --trampoline-- [f]
+(defn __trampoline__ [f]
   "Wrap f function and make it tail-call optimized."
   ;; Takes the function "f" and returns a wrapper that may be used for tail-
   ;; recursive algorithms. Note that the returned function is not side-effect
@@ -40,9 +40,9 @@
                          g!recur-fn x))
                    (macroexpand-all body &name)))
   `(do
-     (import [hy.contrib.loop [--trampoline--]])
+     (import [hy.contrib.loop [__trampoline__]])
      (with-decorator
-       --trampoline--
+       __trampoline__
        (defn ~g!recur-fn [~@signature] ~@new-body))
      ~g!recur-fn))
 
@@ -50,8 +50,8 @@
 (defmacro loop [bindings &rest body]
   " Use inside functions like so:
   (defn factorial [n]
-    (loop [[i n]
-           [acc 1]]
+    (loop [i n
+           acc 1]
           (if (= i 0)
             acc
             (recur (dec i) (* acc i)))))
@@ -60,8 +60,8 @@
   causes chaos. Fixing this to detect if recur is in a tail-call position
   and erroring if not is a giant TODO.
 "
-  (setv fnargs (map (fn [x] (first x)) bindings)
-        initargs (map second bindings))
+  (setv fn-args (cut bindings None None 2)
+        init-args (cut bindings 1 None 2))
   `(do (require hy.contrib.loop)
-       ((hy.contrib.loop.fnr [~@fnargs]
-          ~@body) ~@initargs)))
+       ((hy.contrib.loop.fnr [~@fn-args]
+          ~@body) ~@init-args)))

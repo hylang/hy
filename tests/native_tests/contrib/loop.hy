@@ -6,7 +6,8 @@
 (import sys)
 
 (defn tco-sum [x y]
-  (loop [[x x] [y y]]
+  (loop [x x
+         y y]
         (cond
           [(> y 0) (recur (inc x) (dec y))]
           [(< y 0) (recur (dec x) (inc y))]
@@ -37,7 +38,7 @@
 
 (defn test-recur-in-wrong-loc []
   (defn bad-recur [n]
-    (loop [[i n]]
+    (loop [i n]
           (if (= i 0)
               0
               (inc (recur (dec i))))))
@@ -55,13 +56,13 @@
 
 (defn test-loop-nested []
   (setv xs [])
-  (loop [[i 3]]
+  (loop [i 3]
         ;; failure could cause an infinite loop
         ;; so assert we're not appending too much
         (assert (< (len xs)
                    10))
         (when (pos? i)
-          (loop [[j 2]]
+          (loop [j 2]
                 (when (pos? j)
                   (.append xs [i j])
                   (recur (dec j))))
