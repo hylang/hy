@@ -52,3 +52,23 @@
 (defn test-recur-string []
   "test that `loop` doesn't touch a string named `recur`"
   (assert (= (loop [] (+ "recur" "1")) "recur1")))
+
+(defn test-loop-nested []
+  (setv xs [])
+  (loop [[i 3]]
+        ;; failure could cause an infinite loop
+        ;; so assert we're not appending too much
+        (assert (< (len xs)
+                   10))
+        (when (pos? i)
+          (loop [[j 2]]
+                (when (pos? j)
+                  (.append xs [i j])
+                  (recur (dec j))))
+          (recur (dec i))))
+  (assert (= xs [[3 2]
+                 [3 1]
+                 [2 2]
+                 [2 1]
+                 [1 2]
+                 [1 1]])))
