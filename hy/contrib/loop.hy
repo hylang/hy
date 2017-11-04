@@ -34,19 +34,19 @@
 
 (defmacro/g! fnr [signature &rest body]
   (setv new-body (prewalk
-    (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
-    body))
+                   (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
+                   body))
   `(do
-    (import [hy.contrib.loop [--trampoline--]])
-    (with-decorator
-      --trampoline--
-      (defn ~g!recur-fn [~@signature] ~@new-body))
-    ~g!recur-fn))
+     (import [hy.contrib.loop [--trampoline--]])
+     (with-decorator
+       --trampoline--
+       (defn ~g!recur-fn [~@signature] ~@new-body))
+     ~g!recur-fn))
 
 
 (defmacro defnr [name lambda-list &rest body]
   (if (not (= (type name) HySymbol))
-    (macro-error name "defnr takes a name as first argument"))
+      (macro-error name "defnr takes a name as first argument"))
   `(do (require hy.contrib.loop)
        (setv ~name (hy.contrib.loop.fnr ~lambda-list ~@body))))
 
