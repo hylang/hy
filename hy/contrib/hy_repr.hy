@@ -4,6 +4,7 @@
 
 (import
   [math [isnan]]
+  re
   [hy._compat [PY3 str-type bytes-type long-type]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
@@ -100,6 +101,14 @@
   (.replace (.replace (.strip (-base-repr x) "()") "inf" "Inf") "nan" "NaN")))
 (hy-repr-register fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
+
+(setv matchobject-type (type (re.match "" "")))
+(hy-repr-register matchobject-type (fn [x]
+  (.format "<{}.{} object; :span {} :match {}>"
+    matchobject-type.__module__
+    matchobject-type.__name__
+    (hy-repr (.span x))
+    (hy-repr (.group x 0)))))
 
 (for [[types fmt] (partition [
     list "[...]"

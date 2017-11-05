@@ -113,6 +113,15 @@
     (+ "{" (.join "  " p) "}")
     [p (permutations ["1 2" "3 [4 {...}]" "6 7"])]))))
 
+(defn test-matchobject []
+  (import re)
+  (setv mo (re.search "b+" "aaaabbbccc"))
+  (assert (= (hy-repr mo)
+    (.format
+      #[[<{}.SRE_Match object; :span {} :match "bbb">]]
+      (. (type mo) __module__)
+      (if PY3 "(, 4 7)" "(, (int 4) (int 7))")))))
+
 (defn test-hy-repr-custom []
 
   (defclass C [object])
