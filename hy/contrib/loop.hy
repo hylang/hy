@@ -55,7 +55,7 @@
           (if (= i 0)
             acc
             (recur (dec i) (* acc i)))))
-  
+
   If recur is used in a non-tail-call position, None is returned, which
   causes chaos. Fixing this to detect if recur is in a tail-call position
   and erroring if not is a giant TODO.

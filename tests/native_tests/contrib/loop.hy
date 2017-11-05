@@ -73,3 +73,14 @@
                  [2 1]
                  [1 2]
                  [1 1]])))
+
+(defn test-loop-shadow []
+  (setv xs [])
+  (loop [x 3]
+        (loop [x x]
+              (when (pos? x)
+                (.append xs x)
+                (recur (dec x))))
+        (when (pos? x)
+          (recur (dec x))))
+  (assert (= xs [3 2 1 2 1 1])))
