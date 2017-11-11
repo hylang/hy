@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(require [hy.contrib.loop [loop]])
+(require [hy.contrib.loop [loop fnr defnr]])
 (import sys)
 
 (defn tco-sum [x y]
@@ -28,6 +28,30 @@
     (else
       (assert False)))
 
+  ;; tco-sum should not fail
+  (try
+    (setv n (tco-sum 100 10000))
+    (except [e RuntimeError]
+      (assert False))
+    (else
+      (assert (= n 10100)))))
+
+(defn test-loop-fnr []
+  (assert (= ((fnr [xs]
+                (if (< (len xs)
+                       7)
+                    (recur (+ "x" xs))
+                    xs)
+               "foo"))
+             "xxxxfoo")))
+
+(defnr defnr-tco-sum [x y]
+  (cond
+    [(> y 0) (recur (inc x) (dec y))]
+    [(< y 0) (recur (dec x) (inc y))]
+    [True x]))
+
+(defn test-loop-defnr []
   ;; tco-sum should not fail
   (try
     (setv n (tco-sum 100 10000))

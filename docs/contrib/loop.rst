@@ -29,15 +29,34 @@ tail-call optimization (TCO) in their Hy code.
 Macros
 ======
 
+.. _defnr:
+
+defnr
+-----
+Function definition with tail-call optimized ``recur`` anaphor.
+
+Tail recursion via the ``recur`` anaphor instead of the function name will not
+cause stack overflow.
+
+.. _fnr:
+
+fnr
+---
+Function with tail-call optimized ``recur`` anaphor.
+
+Tail recursion via the ``recur`` anaphor will not cause stack overflow.
+
 .. _loop:
 
 loop
 -----
+Tail-call optimized loop/recur macro.
 
-``loop`` establishes a recursion point. With ``loop``, ``recur``
-rebinds the variables set in the recursion point and sends code
-execution back to that recursion point. If ``recur`` is used in a
-non-tail position, an exception is raised.
+``loop`` declares a new function and immediately calls it with the given
+argument bindings--it establishes a recursion point. Within a ``loop``,
+``recur`` rebinds the variables set in the recursion point and continues
+execution from that recursion point, but without a new stack frame.
+If ``recur`` is used in a non-tail position, an exception is raised.
 
 Usage: ``(loop bindings &rest body)``
 
