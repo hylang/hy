@@ -201,7 +201,7 @@ def term_unquote(p):
 @pg.production("term : UNQUOTESPLICE term")
 @set_quote_boundaries
 def term_unquote_splice(p):
-    return HyExpression([HySymbol("unquote_splice"), p[1]])
+    return HyExpression([HySymbol("unquote-splice"), p[1]])
 
 
 @pg.production("term : HASHSTARS term")
@@ -209,9 +209,9 @@ def term_unquote_splice(p):
 def term_hashstars(p):
     n_stars = len(p[0].getstr()[1:])
     if n_stars == 1:
-        sym = "unpack_iterable"
+        sym = "unpack-iterable"
     elif n_stars == 2:
-        sym = "unpack_mapping"
+        sym = "unpack-mapping"
     else:
         raise LexException(
             "Too many stars in `#*` construct (if you want to unpack a symbol "
@@ -227,7 +227,7 @@ def hash_other(p):
     st = p[0].getstr()[1:]
     str_object = HyString(st)
     expr = p[1]
-    return HyExpression([HySymbol("dispatch_tag_macro"), str_object, expr])
+    return HyExpression([HySymbol("dispatch-tag-macro"), str_object, expr])
 
 
 @pg.production("set : HLCURLY list_contents RCURLY")
@@ -307,7 +307,7 @@ def t_identifier(p):
             '`(. <expression> <attr>)` or `(.<attr> <expression>)`)',
             p[0].source_pos.lineno, p[0].source_pos.colno)
 
-    return HySymbol(".".join(hy_symbol_mangle(x) for x in obj.split(".")))
+    return HySymbol(obj)
 
 
 def symbol_like(obj):
