@@ -115,6 +115,20 @@
   (assert (= x "aabb")))
 
 
+(defn test-python-keyword []
+  (setv if 3)
+  (assert (= if 3))
+  (assert (= hyx_if 3)))
+
+
+(defn test-operator []
+  (setv + 3)
+  (assert (= + 3))
+  (if PY3
+    (assert (= hyx_Δplus_signΔ 3))
+    (assert (= hyx_Xplus_signX 3))))
+
+
 (defn test-late-mangling []
   ; Mangling should only happen during compilation.
   (assert (!= 'foo? 'is_foo))
