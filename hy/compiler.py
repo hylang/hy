@@ -61,20 +61,6 @@ def load_stdlib():
                 _stdlib[e] = module
 
 
-# True, False and None included here since they
-# are assignable in Python 2.* but become
-# keywords in Python 3.*
-def _is_hy_builtin(name, module_name):
-    extras = ['True', 'False', 'None']
-    if name in extras or keyword.iskeyword(name):
-        return True
-    # for non-Hy modules, check for pre-existing name in
-    # _compile_table
-    if not module_name.startswith("hy."):
-        return name in _compile_table
-    return False
-
-
 _compile_table = {}
 
 
@@ -381,7 +367,6 @@ def ends_with_else(expr):
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
-        self.allow_builtins = module_name.startswith("hy.core")
         self.anon_var_count = 0
         self.imports = defaultdict(set)
         self.module_name = module_name
@@ -1778,10 +1763,11 @@ class HyASTCompiler(object):
     def _compile_assign(self, name, result):
 
         str_name = "%s" % name
-        if (_is_hy_builtin(str_name, self.module_name) and
-                not self.allow_builtins):
+        if str_name in (["None"] + (["True", "False"] if PY3 else [])):
+            # Python 2 allows assigning to True and False, although
+            # this is rarely wise.
             raise HyTypeError(name,
-                              "Can't assign to a builtin: `%s'" % str_name)
+                              "Can't assign to `%s'" % str_name)
 
         result = self.compile(result)
         ld_name = self.compile(name)
@@ -2031,8 +2017,6 @@ class HyASTCompiler(object):
             body += self._compile_assign(symb, docstring)
             body += body.expr_as_stmt()
 
-        allow_builtins = self.allow_builtins
-        self.allow_builtins = True
         if expressions and isinstance(expressions[0], HyList) \
            and not isinstance(expressions[0], HyExpression):
             expr = expressions.pop(0)
@@ -2043,8 +2027,6 @@ class HyASTCompiler(object):
 
         for expression in expressions:
             body += self.compile(rewire_init(macroexpand(expression, self)))
-
-        self.allow_builtins = allow_builtins
 
         if not body.stmts:
             body += asty.Pass(expressions)

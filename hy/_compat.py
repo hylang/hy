@@ -18,7 +18,7 @@ except ImportError:
                        (x >> 8) & 0xff,
                        (x >> 16) & 0xff,
                        (x >> 24) & 0xff]))
-import sys
+import sys, keyword
 
 PY3 = sys.version_info[0] >= 3
 PY35 = sys.version_info >= (3, 5)
@@ -35,15 +35,22 @@ else:
         raise t(*args)
 
 def isidentifier(x):
+    if x in ('True', 'False', 'None', 'print'):
+        # `print` is special-cased here because Python 2's
+        # keyword.iskeyword will count it as a keyword, but we
+        # use the __future__ feature print_function, which makes
+        # it a non-keyword.
+        return True
+    if keyword.iskeyword(x):
+        return False
     if PY3:
         return x.isidentifier()
-    else:
-        if x.rstrip() != x:
-            return False
-        import tokenize as T
-        from StringIO import StringIO
-        try:
-            tokens = list(T.generate_tokens(StringIO(x).readline))
-        except T.TokenError:
-            return False
-        return len(tokens) == 2 and tokens[0][0] == T.NAME
+    if x.rstrip() != x:
+        return False
+    import tokenize as T
+    from StringIO import StringIO
+    try:
+        tokens = list(T.generate_tokens(StringIO(x).readline))
+    except T.TokenError:
+        return False
+    return len(tokens) == 2 and tokens[0][0] == T.NAME
