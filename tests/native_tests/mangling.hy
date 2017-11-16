@@ -106,6 +106,15 @@
     (assert (= hyx_Xlatin_capital_letter_xXXskull_and_crossbonesX "treasure"))))
 
 
+(defmacro m---x [form]
+  [form form])
+(defn test-macro []
+  (setv x "")
+  (assert (= (m---x (do (+= x "a") 1)) [1 1]))
+  (assert (= (m___x (do (+= x "b") 2)) [2 2]))
+  (assert (= x "aabb")))
+
+
 (deftag tm---x [form]
   [form form])
 (defn test-tag-macro []
