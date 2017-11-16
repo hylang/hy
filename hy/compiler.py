@@ -80,6 +80,8 @@ def builds(*types, **kwargs):
 
     def _dec(fn):
         for t in types:
+            if isinstance(t, string_types):
+                t = ast_str(t)
             _compile_table[t] = fn
         return fn
     return _dec
@@ -410,6 +412,8 @@ class HyASTCompiler(object):
         return ret.stmts
 
     def compile_atom(self, atom_type, atom):
+        if isinstance(atom_type, string_types):
+            atom_type = ast_str(atom_type)
         if atom_type in _compile_table:
             # _compile_table[atom_type] is a method for compiling this
             # type of atom, so call it. If it has an extra parameter,
@@ -1506,15 +1510,16 @@ class HyASTCompiler(object):
                                values=[value.force_expr for value in values])
         return ret
 
-    def _compile_compare_op_expression(self, expression):
-        ops = {"=": ast.Eq, "!=": ast.NotEq,
-               "<": ast.Lt, "<=": ast.LtE,
-               ">": ast.Gt, ">=": ast.GtE,
-               "is": ast.Is, "is-not": ast.IsNot,
-               "in": ast.In, "not-in": ast.NotIn}
+    ops = {"=": ast.Eq, "!=": ast.NotEq,
+           "<": ast.Lt, "<=": ast.LtE,
+           ">": ast.Gt, ">=": ast.GtE,
+           "is": ast.Is, "is-not": ast.IsNot,
+           "in": ast.In, "not-in": ast.NotIn}
+    ops = {ast_str(k): v for k, v in ops.items()}
 
-        inv = expression.pop(0)
-        ops = [ops[inv]() for _ in range(len(expression) - 1)]
+    def _compile_compare_op_expression(self, expression):
+        inv = ast_str(expression.pop(0))
+        ops = [self.ops[inv]() for _ in range(len(expression) - 1)]
 
         e = expression[0]
         exprs, ret, _ = self._compile_collect(expression)
@@ -2064,7 +2069,7 @@ class HyASTCompiler(object):
                             compile_time_ns(self.module_name),
                             self.module_name)
         return (self._compile_branch(expression[1:])
-                if building == "eval-and-compile"
+                if building == "eval_and_compile"
                 else Result())
 
     @builds(HyCons)
