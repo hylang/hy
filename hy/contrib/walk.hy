@@ -7,6 +7,7 @@
         [functools [partial]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
+        [hy.lex.parser [hy-symbol-mangle]]
         [hy.compiler [HyASTCompiler]])
 
 (defn walk [inner outer form]
@@ -257,7 +258,7 @@ Arguments without a header are under None.
         (= head 'defclass) (self.handle-defclass)
         (= head 'quasiquote) (self.+quote)
         ;; must be checked last!
-        (in head special-forms) (self.handle-special-form)
+        (in (hy-symbol-mangle (string head)) special-forms) (self.handle-special-form)
         ;; Not a special form. Traverse it like a coll
         (self.handle-coll)))
 

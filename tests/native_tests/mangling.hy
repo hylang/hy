@@ -124,6 +124,15 @@
   (assert (= x "aabb")))
 
 
+(defn test-special-form []
+  (setv not-in 1)
+  ; We set the variable to make sure that if this test works, it's
+  ; because we're calling the special form instead of the shadow
+  ; function.
+  (assert (is (not-in 2 [1 2 3]) False))
+  (assert (is (not_in 2 [1 2 3]) False)))
+
+
 (defn test-python-keyword []
   (setv if 3)
   (assert (= if 3))
