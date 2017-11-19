@@ -129,6 +129,27 @@
     (assert (= hyx_Xplus_signX 3))))
 
 
+(defn test-keyword-args []
+
+  (defn f [a a-b foo? ☘]
+    [a a-b foo? ☘])
+  (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2) [1 2 3 4]))
+  (if PY3
+    (assert (= (f :is_foo 3 :hyx_ΔshamrockΔ 4 :a 1 :a_b 2) [1 2 3 4]))
+    (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4])))
+
+  (defn g [&kwargs x]
+    x)
+  (setv sk (.format "hyx_{0}shamrock{0}" (if PY3 "Δ" "X")))
+  (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
+    {"a" 1  "a_b" 2  "is_foo" 3  sk 4}))
+  (if PY3
+    (assert (= (g :is_foo 3 :hyx_ΔshamrockΔ 4 :a 1 :a_b 2)
+      {"a" 1  "a_b" 2  "is_foo" 3  sk 4}))
+    (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
+      {"a" 1  "a_b" 2  "is_foo" 3  sk 4}))))
+
+
 (defn test-late-mangling []
   ; Mangling should only happen during compilation.
   (assert (!= 'foo? 'is_foo))
