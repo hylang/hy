@@ -3,7 +3,9 @@
 # license. See the LICENSE.
 
 from inspect import getargspec, formatargspec
+from hy._compat import PY3
 from hy.models import replace_hy_obj, HyExpression, HySymbol
+from hy.lex.parser import hy_symbol_mangle
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
@@ -64,11 +66,14 @@ def tag(name):
 
     """
     def _(fn):
-        fn.__name__ = '#{}'.format(name)
+        _name = hy_symbol_mangle('#{}'.format(name))
+        if not PY3:
+            _name = _name.encode('UTF-8')
+        fn.__name__ = _name
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
-        _hy_tag[module_name][name] = fn
+        _hy_tag[module_name][hy_symbol_mangle(name)] = fn
 
         return fn
     return _

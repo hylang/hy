@@ -78,18 +78,11 @@ def _is_hy_builtin(name, module_name):
 _compile_table = {}
 
 
-def ast_str(foobar):
-    if PY3:
-        return hy_symbol_mangle(str(foobar))
-
-    try:
-        return str(hy_symbol_mangle(str(foobar)))
-    except UnicodeEncodeError:
-        pass
-
-    enc = codecs.getencoder('punycode')
-    foobar, _ = enc(foobar)
-    return "hy_%s" % str(hy_symbol_mangle(foobar))
+def ast_str(x, piecewise=False):
+    if piecewise:
+        return ".".join(map(ast_str, x.split(".")))
+    x = hy_symbol_mangle(str_type(x))
+    return x if PY3 else x.encode('UTF8')
 
 
 def builds(*types, **kwargs):
@@ -1138,9 +1131,9 @@ class HyASTCompiler(object):
         expr = copy.deepcopy(expr)
         def _compile_import(expr, module, names=None, importer=asty.Import):
             if not names:
-                names = [ast.alias(name=ast_str(module), asname=None)]
+                names = [ast.alias(name=ast_str(module, piecewise=True), asname=None)]
             ret = importer(expr,
-                           module=ast_str(module),
+                           module=ast_str(module, piecewise=True),
                            names=names,
                            level=0)
             return Result() + ret
@@ -1171,7 +1164,7 @@ class HyASTCompiler(object):
                                           "garbage after aliased import")
                     iexpr.pop(0)  # :as
                     alias = iexpr.pop(0)
-                    names = [ast.alias(name=ast_str(module),
+                    names = [ast.alias(name=ast_str(module, piecewise=True),
                                        asname=ast_str(alias))]
                     rimports += _compile_import(expr, ast_str(module), names)
                     continue
@@ -1185,7 +1178,7 @@ class HyASTCompiler(object):
                             alias = ast_str(entry.pop(0))
                         else:
                             alias = None
-                        names.append(ast.alias(name=ast_str(sym),
+                        names.append(ast.alias(name=(str(sym) if sym == "*" else ast_str(sym)),
                                                asname=alias))
 
                     rimports += _compile_import(expr, module,
@@ -2145,7 +2138,7 @@ class HyASTCompiler(object):
                 ctx=ast.Load())
 
         if ast_str(symbol) in _stdlib:
-            self.imports[_stdlib[ast_str(symbol)]].add(symbol)
+            self.imports[_stdlib[ast_str(symbol)]].add(ast_str(symbol))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 

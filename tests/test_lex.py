@@ -337,24 +337,6 @@ def test_lex_comment_382():
     assert entry == [HySymbol("foo")]
 
 
-def test_unmangle():
-    import sys
-    f = sys.modules["hy.lex.parser"].hy_symbol_unmangle
-
-    assert f("FOO") == "*foo*"
-    assert f("<") == "<"
-    assert f("FOOa") == "FOOa"
-
-    assert f("foo_bar") == "foo-bar"
-    assert f("_") == "_"
-
-    assert f("is_foo") == "foo?"
-    assert f("is_") == "is-"
-
-    assert f("foo_bang") == "foo!"
-    assert f("_bang") == "-bang"
-
-
 def test_simple_cons():
     """Check that cons gets tokenized correctly"""
     entry = tokenize("(a . b)")[0]
