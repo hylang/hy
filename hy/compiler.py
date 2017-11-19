@@ -497,10 +497,11 @@ class HyASTCompiler(object):
                 compiled_value = self.compile(value)
                 ret += compiled_value
 
-                # no unicode for py2 in ast names
-                keyword = str(expr[2:])
-                if "-" in keyword and keyword != "-":
-                    keyword = keyword.replace("-", "_")
+                keyword = expr[2:]
+                if not keyword:
+                    raise HyTypeError(expr, "Can't call a function with the "
+                                            "empty keyword")
+                keyword = ast_str(keyword)
 
                 keywords.append(asty.keyword(
                     expr, arg=keyword, value=compiled_value.force_expr))

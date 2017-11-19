@@ -1146,11 +1146,7 @@
   (assert (= : :))
   (assert (keyword? :))
   (assert (!= : ":"))
-  (assert (= (name :) ""))
-
-  (defn f [&kwargs kwargs]
-    (list (.items kwargs)))
-  (assert (= (f : 3) [(, "" 3)])))
+  (assert (= (name :) "")))
 
 
 (defn test-nested-if []
