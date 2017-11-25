@@ -213,7 +213,7 @@ the second form, the second result is inserted into the third form, and so on."
 (defmacro defmacro! [name args &rest body]
   "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
 
-Such 'o!' params are availible within `body` as the equivalent 'g!' symbol."
+Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
   (setv os (list-comp s [s args] (.startswith s "o!"))
         gs (list-comp (HySymbol (+ "g!" (cut s 2))) [s os]))
   `(defmacro/g! ~name ~args
