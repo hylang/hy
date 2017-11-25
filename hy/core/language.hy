@@ -397,7 +397,7 @@ with overlap."
   (first (filter None (map pred coll))))
 
 (defn string [x]
-  "Cast `x` as the current python verion's string implementation."
+  "Cast `x` as the current python version's string implementation."
   (if-python2
    (unicode x)
    (str x)))

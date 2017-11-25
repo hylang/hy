@@ -296,7 +296,7 @@ The bindings pairs the target symbol and the expansion form for that symbol.
 sets up lexical bindings in its body
 
 Bindings are processed sequentially,
-so you can use the result of a earlier binding in a later one.
+so you can use the result of an earlier binding in a later one.
 
 Basic assignments (e.g. setv, +=) will update the let binding,
 if they use the name of a let binding.

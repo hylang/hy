@@ -386,12 +386,12 @@ This is completely discarded and doesn't expand to anything, not even ``None``.
 
 .. code-block:: clj
 
-   => (print (comment <h1>Suprise!</h1>
+   => (print (comment <h1>Surprise!</h1>
    ...                <p>You'd be surprised what's grammatically valid in Hy.</p>
    ...                <p>(Keep delimiters in balance, and you're mostly good to go.)</p>)
    ...        "Hy")
    None Hy
-   => (print #_(comment <h1>Suprise!</h1>
+   => (print #_(comment <h1>Surprise!</h1>
    ...                  <p>You'd be surprised what's grammatically valid in Hy.</p>
    ...                  <p>(Keep delimiters in balance, and you're mostly good to go.)</p>))
    ...        "Hy")
@@ -1446,7 +1446,7 @@ alternatively be written using the apostrophe (``'``) symbol.
 .. code-block:: clj
 
     => (setv x '(print "Hello World"))
-    => x  ; varible x is set to unevaluated expression
+    => x  ; variable x is set to unevaluated expression
     HyExpression([
       HySymbol('print'),
       HyString('Hello World')])
