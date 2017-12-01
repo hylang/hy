@@ -25,6 +25,7 @@ Changes from 0.13.0
    * `xi` from `hy.extra.anaphoric` is now the `#%` tag macro
    * `#%` works on any expression and has a new `&kwargs` parameter `%**`
    * new `doc` macro and `#doc` tag macro
+   * removed redundant brackets in loop/recur
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot
@@ -51,6 +52,7 @@ Changes from 0.13.0
      a for loop
    * `else` clauses in `for` and `while` are recognized more reliably
    * Argument destructuring no longer interferes with function docstrings.
+   * In nested `loop`s, `recur` uses the current loop instead of the outermost.
 
    [ Misc. Improvements ]
    * `read`, `read_str`, and `eval` are exposed and documented as top-level
