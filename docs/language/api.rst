@@ -1666,6 +1666,7 @@ actions (``finally``).
 
     (try
       (error-prone-function)
+      (another-error-prone-function)
       (except [ZeroDivisionError]
         (print "Division by zero"))
       (except [[IndexError KeyboardInterrupt]]
@@ -1679,13 +1680,13 @@ actions (``finally``).
       (finally
         (print "All done")))
 
-The first argument of ``try`` is its body. (To put more than one form in the
-body, use ``do``.) Then comes any number of ``except`` clauses, then optionally
-an ``else`` clause, then optionally a ``finally`` clause. If an exception is
-raised with a matching ``except`` clause during the execution of the body, that
-``except`` clause will be executed. If no exceptions are raised, the ``else``
-clause is executed. The ``finally`` clause will be executed last regardless of
-whether an exception was raised.
+The first argument of ``try`` is its body, which can contain one or more forms.
+Then comes any number of ``except`` clauses, then optionally an ``else``
+clause, then optionally a ``finally`` clause. If an exception is raised with a
+matching ``except`` clause during the execution of the body, that ``except``
+clause will be executed. If no exceptions are raised, the ``else`` clause is
+executed. The ``finally`` clause will be executed last regardless of whether an
+exception was raised.
 
 The return value of ``try`` is the last form of the ``except`` clause that was
 run, or the last form of ``else`` if no exception was raised, or the ``try``
