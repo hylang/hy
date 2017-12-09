@@ -77,7 +77,7 @@ If you save the following in ``greetings.hy``:
 .. code-block:: clj
 
     (setv *this-will-be-in-caps-and-underscores* "See?")
-    (defn greet [name] (Print "hello from hy," name))
+    (defn greet [name] (print "hello from hy," name))
 
 Then you can use it directly from Python, by importing Hy before importing
 the module. In Python::
