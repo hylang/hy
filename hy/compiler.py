@@ -124,13 +124,13 @@ def spoof_positions(obj):
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
 class Asty(object):
     def __getattr__(self, name):
-        setattr(Asty, name, lambda self, x, **kwargs: getattr(ast, name)(
+        setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
             lineno=getattr(
                 x, 'start_line', getattr(x, 'lineno', None)),
             col_offset=getattr(
                 x, 'start_column', getattr(x, 'col_offset', None)),
-            **kwargs))
-        return getattr(self, name)
+            **kwargs)))
+        return getattr(Asty, name)
 asty = Asty()
 
 
@@ -192,6 +192,22 @@ class Result(object):
     def expr(self, value):
         self.__used_expr = False
         self._expr = value
+
+    @property
+    def lineno(self):
+        if self._expr is not None:
+            return self._expr.lineno
+        if self.stmts:
+            return self.stmts[-1].lineno
+        return None
+
+    @property
+    def col_offset(self):
+        if self._expr is not None:
+            return self._expr.col_offset
+        if self.stmts:
+            return self.stmts[-1].col_offset
+        return None
 
     def add_imports(self, mod, imports):
         """Autoimport `imports` from `mod`"""
@@ -370,19 +386,25 @@ def checkargs(exact=None, min=None, max=None, even=None, multiple=None):
     return _dec
 
 
+def eq_sym(x, sym):
+    return isinstance(x, HySymbol) and x == HySymbol(sym)
+
+
+def eq_kw(x, kw):
+    return isinstance(x, HyKeyword) and x == HyKeyword(kw)
+
+
 def is_unpack(kind, x):
     return (isinstance(x, HyExpression)
             and len(x) > 0
-            and isinstance(x[0], HySymbol)
-            and x[0] == "unpack_" + kind)
+            and eq_sym(x[0], "unpack_" + kind))
 
 
 def ends_with_else(expr):
     return (expr and
             isinstance(expr[-1], HyExpression) and
             expr[-1] and
-            isinstance(expr[-1][0], HySymbol) and
-            expr[-1][0] == HySymbol("else"))
+            eq_sym(expr[-1][0], "else"))
 
 
 class HyASTCompiler(object):
@@ -1420,6 +1442,114 @@ class HyASTCompiler(object):
             key=key.force_expr,
             value=value.force_expr,
             generators=gen)
+
+    @builds("compl", "compd", "comps", "compg")
+    @checkargs(min=2)
+    def compile_new_comp(self, expr):
+        node_class = dict(
+            compl=asty.ListComp,
+            compd=asty.DictComp,
+            comps=asty.SetComp,
+            compg=asty.GeneratorExp)[expr.pop(0)]
+
+        # Get the final value (and for dictionary compositions, the final key).
+        elt = self.compile(expr.pop())
+        key = None
+        if node_class is asty.DictComp:
+            key = self.compile(expr.pop())
+
+        # Parse the remaining arguments into a list of parts. Each part is a
+        # :for clause, an :if clause, or an expression.
+        parts = []
+        while expr:
+            part = expr.pop(0)
+            if eq_kw(part, ":for"):
+                if len(expr) < 2:
+                    raise HyTypeError(
+                        part, "Comprehension :for needs 2 arguments")
+                var = expr.pop(0)
+                parts.append(['for',
+                              self._storeize(var, self.compile(var)),
+                              self.compile(expr.pop(0))])
+            elif eq_kw(part, ":if"):
+                if not expr:
+                    raise HyTypeError(
+                        part, "Comprehension :if needs an argument")
+                parts.append(['if', self.compile(expr.pop(0))])
+            else:
+                parts.append(['expr', self.compile(part)])
+
+        # Produce a result.
+        if (elt.stmts or (key is not None and key.stmts) or
+            any(p[0] == 'expr' or (p[2].stmts if p[0] == "for" else p[1].stmts)
+                for p in parts)):
+            # The desired comprehension can't be expressed as a
+            # real Python comprehension. We'll write it as a nested
+            # loop in a function instead.
+            def f(parts):
+                # This function is called recursively to construct
+                # the nested loop.
+                if not parts:
+                    if node_class is asty.DictComp:
+                        ret = key + elt
+                        val = asty.Tuple(
+                            key, ctx=ast.Load(),
+                            elts=[key.force_expr, elt.force_expr])
+                    else:
+                        ret = elt
+                        val = elt.force_expr
+                    return ret + asty.Expr(
+                        elt, value=asty.Yield(elt, value=val))
+                p, parts = parts[0], parts[1:]
+                if p[0] == "for":
+                    return p[2] + asty.For(
+                        p[2], target=p[1], iter=p[2].force_expr, body=f(parts).stmts,
+                        orelse=[])
+                elif p[0] == "if":
+                    return p[1] + asty.If(
+                        p[1], test=p[1].force_expr, body=f(parts).stmts, orelse=[])
+                elif p[0] == "expr":
+                    return p[1] + p[1].expr_as_stmt() + f(parts)
+                else:
+                    raise ValueError("can't happen")
+            fname = self.get_anon_var()
+            ret = Result() + asty.FunctionDef(
+                expr,
+                name=fname,
+                args=ast.arguments(
+                    args=[], vararg=None, kwarg=None,
+                    kwonlyargs=[], kw_defaults=[], defaults=[]),
+                body=f(parts).stmts,
+                decorator_list=[])
+            generator_call = asty.Call(
+                expr,
+                func=asty.Name(expr, id=ast_str(fname), ctx=ast.Load()),
+                args=[], keywords=[], starargs=None, kwargs=None)
+            if node_class is asty.GeneratorExp:
+                return ret + generator_call
+            output_type = {
+                asty.ListComp: "list",
+                asty.DictComp: "dict",
+                asty.SetComp: "set"}[node_class]
+            return ret + asty.Call(
+                expr,
+                func=asty.Name(expr, id=ast_str(output_type), ctx=ast.Load()),
+                args=[generator_call],
+                keywords=[], starargs=None, kwargs=None)
+        else:
+            # Produce a comprehension.
+            generators = []
+            for p in parts:
+                if p[0] == "for":
+                    generators.append(ast.comprehension(
+                        target=p[1], iter=p[2].expr, ifs=[], is_async=0))
+                elif p[0] == "if":
+                    generators[-1].ifs.append(p[1].expr)
+                else:
+                    raise ValueError("can't happen")
+            if node_class is asty.DictComp:
+                return asty.DictComp(expr, key=key.expr, value=elt.expr, generators=generators)
+            return node_class(expr, elt=elt.expr, generators=generators)
 
     @builds("not", "~")
     @checkargs(1)
