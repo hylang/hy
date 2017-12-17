@@ -763,13 +763,13 @@
 (defn test-for-else []
   "NATIVE: test for else"
   (setv x 0)
-  (for* [a [1 2]]
+  (for [a [1 2]]
     (setv x (+ x a))
     (else (setv x (+ x 50))))
   (assert (= x 53))
 
   (setv x 0)
-  (for* [a [1 2]]
+  (for [a [1 2]]
     (setv x (+ x a))
     (else))
   (assert (= x 3)))

@@ -2002,51 +2002,6 @@ class HyASTCompiler(object):
 
         return result
 
-    @builds("for*")
-    @checkargs(min=1)
-    def compile_for_expression(self, expression):
-        expression.pop(0)  # for
-
-        args = expression.pop(0)
-
-        if not isinstance(args, HyList):
-            raise HyTypeError(expression,
-                              "`for` expects a list, received `{0}`".format(
-                                  type(args).__name__))
-
-        try:
-            target_name, iterable = args
-        except ValueError:
-            raise HyTypeError(expression,
-                              "`for` requires two forms in the list")
-
-        target = self._storeize(target_name, self.compile(target_name))
-
-        ret = Result()
-
-        orel = Result()
-        # (for* [] body (else …))
-        if ends_with_else(expression):
-            else_expr = expression.pop()
-            for else_body in else_expr[1:]:
-                orel += self.compile(else_body)
-                orel += orel.expr_as_stmt()
-
-        ret += self.compile(iterable)
-
-        body = self._compile_branch(expression)
-        body += body.expr_as_stmt()
-
-        ret += asty.For(expression,
-                        target=target,
-                        iter=ret.force_expr,
-                        body=body.stmts,
-                        orelse=orel.stmts)
-
-        ret.contains_yield = body.contains_yield
-
-        return ret
-
     @builds("while")
     @checkargs(min=2)
     def compile_while_expression(self, expr):

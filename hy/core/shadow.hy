@@ -159,7 +159,7 @@
 (defn get [coll key1 &rest keys]
   "Access item in `coll` indexed by `key1`, with optional `keys` nested-access."
   (setv coll (get coll key1))
-  (for* [k keys]
+  (for [k keys]
     (setv coll (get coll k)))
   coll)
 
