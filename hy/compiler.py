@@ -2132,7 +2132,7 @@ class HyASTCompiler(object):
             if not glob:
                 raise HyTypeError(symbol, 'cannot access attribute on '
                                           'anything other than a name '
-                                          '(in order to get attributes of'
+                                          '(in order to get attributes of '
                                           'expressions, use '
                                           '`(. <expression> {attr})` or '
                                           '`(.{attr} <expression>)`)'.format(
