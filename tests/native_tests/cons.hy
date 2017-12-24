@@ -39,7 +39,7 @@
   "NATIVE: test the iteration behavior of cons"
   (setv x '(0 1 2 3 4 . 5))
   (setv it (iter x))
-  (for* [i (range 6)]
+  (for [i (range 6)]
     (assert (= i (next it))))
   (assert
    (= 'success
