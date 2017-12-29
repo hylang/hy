@@ -250,6 +250,8 @@ class Result(object):
                 var.arg = new_name
             elif isinstance(var, ast.FunctionDef):
                 var.name = new_name
+            elif PY35 and isinstance(var, ast.AsyncFunctionDef):
+                var.name = new_name
             else:
                 raise TypeError("Don't know how to rename a %s!" % (
                     var.__class__.__name__))
@@ -1139,6 +1141,12 @@ class HyASTCompiler(object):
         node = asty.Yield if expr[0] == "yield" else asty.YieldFrom
         return ret + node(expr, value=ret.force_expr)
 
+    @builds("await", iff=PY35)
+    @checkargs(1)
+    def compile_await_expression(self, expr):
+        ret = Result() + self.compile(expr[1])
+        return ret + asty.Await(expr, value=ret.force_expr)
+
     @builds("import")
     def compile_import_expression(self, expr):
         expr = copy.deepcopy(expr)
@@ -1890,12 +1898,15 @@ class HyASTCompiler(object):
         return ret
 
     @builds("fn", "fn*")
+    @builds("fn/a", iff=PY35)
     # The starred version is for internal use (particularly, in the
     # definition of `defn`). It ensures that a FunctionDef is
     # produced rather than a Lambda.
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        force_functiondef = expression.pop(0) == "fn*"
+        root = expression.pop(0)
+        force_functiondef = root in ("fn*", "fn/a")
+        asyncdef = root == "fn/a"
 
         arglist = expression.pop(0)
         docstring = None
@@ -1904,7 +1915,7 @@ class HyASTCompiler(object):
 
         if not isinstance(arglist, HyList):
             raise HyTypeError(expression,
-                              "First argument to `fn' must be a list")
+                              "First argument to `{}' must be a list".format(root))
 
         (ret, args, defaults, stararg,
          kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)
@@ -1980,11 +1991,12 @@ class HyASTCompiler(object):
 
         name = self.get_anon_var()
 
-        ret += asty.FunctionDef(expression,
-                                name=name,
-                                args=args,
-                                body=body.stmts,
-                                decorator_list=[])
+        node = asty.AsyncFunctionDef if asyncdef else asty.FunctionDef
+        ret += node(expression,
+                    name=name,
+                    args=args,
+                    body=body.stmts,
+                    decorator_list=[])
 
         ast_name = asty.Name(expression, id=name, ctx=ast.Load())
 
