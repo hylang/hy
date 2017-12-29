@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # Copyright 2017 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
@@ -5,10 +6,11 @@
 from __future__ import unicode_literals
 
 from functools import wraps
+import string, re, unicodedata
 
 from rply import ParserGenerator
 
-from hy._compat import str_type
+from hy._compat import PY3, str_type, isidentifier
 from hy.models import (HyBytes, HyComplex, HyCons, HyDict, HyExpression,
                        HyFloat, HyInteger, HyKeyword, HyList, HySet, HyString,
                        HySymbol)
@@ -21,43 +23,57 @@ pg = ParserGenerator(
     cache_id="hy_parser"
 )
 
+mangle_delim = 'Δ' if PY3 else 'X'
 
-def hy_symbol_mangle(p):
-    if p.startswith("*") and p.endswith("*") and p not in ("*", "**"):
-        p = p[1:-1].upper()
+def hy_symbol_mangle(s):
+    assert s
 
-    if "-" in p and p != "-":
-        p = p.replace("-", "_")
+    s = s.replace("-", "_")
+    s2 = s.lstrip('_')
+    leading_underscores = '_' * (len(s) - len(s2))
+    s = s2
 
-    if p.endswith("?") and p != "?":
-        p = "is_%s" % (p[:-1])
+    if s.endswith("?"):
+        s = 'is_' + s[:-1]
+    if not isidentifier(leading_underscores + s):
+        # Replace illegal characters with their Unicode character
+        # names, or hexadecimal if they don't have one.
+        s = 'hyx_' + ''.join(
+            c
+               if c != mangle_delim and isidentifier('S' + c)
+                 # We prepend the "S" because some characters aren't
+                 # allowed at the start of an identifier.
+               else '{0}{1}{0}'.format(mangle_delim,
+                   unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
+                   or 'U{:x}'.format(ord(c)))
+            for c in s)
 
-    if p.endswith("!") and p != "!":
-        p = "%s_bang" % (p[:-1])
+    s = leading_underscores + s
+    assert isidentifier(s)
+    return s
 
-    return p
 
+def hy_symbol_unmangle(s):
+    # hy_symbol_mangle is one-way, so this won't round-trip.
+    s = str_type(s)
 
-def hy_symbol_unmangle(p):
-    # hy_symbol_mangle is one-way, so this can't be perfect.
-    # But it can be useful till we have a way to get the original
-    # symbol (https://github.com/hylang/hy/issues/360).
-    p = str_type(p)
+    s2 = s.lstrip('_')
+    leading_underscores = len(s) - len(s2)
+    s = s2
 
-    if p.endswith("_bang") and p != "_bang":
-        p = p[:-len("_bang")] + "!"
+    if s.startswith('hyx_'):
+        s = re.sub('{0}(U)?([_a-z0-9H]+?){0}'.format(mangle_delim),
+            lambda mo:
+               chr(int(mo.group(2), base=16))
+               if mo.group(1)
+               else unicodedata.lookup(
+                   mo.group(2).replace('_', ' ').replace('H', '-').upper()),
+            s[len('hyx_'):])
+    if s.startswith('is_'):
+        s = s[len("is_"):] + "?"
+    s = s.replace('_', '-')
 
-    if p.startswith("is_") and p != "is_":
-        p = p[len("is_"):] + "?"
-
-    if "_" in p and p != "_":
-        p = p.replace("_", "-")
-
-    if (all([c.isalpha() and c.isupper() or c == '_' for c in p]) and
-            any([c.isalpha() for c in p])):
-        p = '*' + p.lower() + '*'
-
-    return p
+    return '-' * leading_underscores + s
 
 
 def set_boundaries(fun):
@@ -201,7 +217,7 @@ def term_unquote(p):
 @pg.production("term : UNQUOTESPLICE term")
 @set_quote_boundaries
 def term_unquote_splice(p):
-    return HyExpression([HySymbol("unquote_splice"), p[1]])
+    return HyExpression([HySymbol("unquote-splice"), p[1]])
 
 
 @pg.production("term : HASHSTARS term")
@@ -209,9 +225,9 @@ def term_unquote_splice(p):
 def term_hashstars(p):
     n_stars = len(p[0].getstr()[1:])
     if n_stars == 1:
-        sym = "unpack_iterable"
+        sym = "unpack-iterable"
     elif n_stars == 2:
-        sym = "unpack_mapping"
+        sym = "unpack-mapping"
     else:
         raise LexException(
             "Too many stars in `#*` construct (if you want to unpack a symbol "
@@ -227,7 +243,7 @@ def hash_other(p):
     st = p[0].getstr()[1:]
     str_object = HyString(st)
     expr = p[1]
-    return HyExpression([HySymbol("dispatch_tag_macro"), str_object, expr])
+    return HyExpression([HySymbol("dispatch-tag-macro"), str_object, expr])
 
 
 @pg.production("set : HLCURLY list_contents RCURLY")
@@ -307,7 +323,7 @@ def t_identifier(p):
             '`(. <expression> <attr>)` or `(.<attr> <expression>)`)',
             p[0].source_pos.lineno, p[0].source_pos.colno)
 
-    return HySymbol(".".join(hy_symbol_mangle(x) for x in obj.split(".")))
+    return HySymbol(obj)
 
 
 def symbol_like(obj):

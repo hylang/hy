@@ -3,7 +3,10 @@
 # license. See the LICENSE.
 
 from inspect import getargspec, formatargspec
+from hy._compat import PY3
 from hy.models import replace_hy_obj, HyExpression, HySymbol
+from hy.lex.parser import hy_symbol_mangle
+from hy._compat import str_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
@@ -33,6 +36,7 @@ def macro(name):
     This function is called from the `defmacro` special form in the compiler.
 
     """
+    name = hy_symbol_mangle(name)
     def _(fn):
         fn.__name__ = '({})'.format(name)
         try:
@@ -64,11 +68,14 @@ def tag(name):
 
     """
     def _(fn):
-        fn.__name__ = '#{}'.format(name)
+        _name = hy_symbol_mangle('#{}'.format(name))
+        if not PY3:
+            _name = _name.encode('UTF-8')
+        fn.__name__ = _name
         module_name = fn.__module__
         if module_name.startswith("hy.core"):
             module_name = None
-        _hy_tag[module_name][name] = fn
+        _hy_tag[module_name][hy_symbol_mangle(name)] = fn
 
         return fn
     return _
@@ -91,14 +98,15 @@ def require(source_module, target_module,
     seen_names = set()
     if prefix:
         prefix += "."
+    assignments = {hy_symbol_mangle(str_type(k)): v for k, v in assignments.items()}
 
     for d in _hy_macros, _hy_tag:
         for name, macro in d[source_module].items():
             seen_names.add(name)
             if all_macros:
-                d[target_module][prefix + name] = macro
+                d[target_module][hy_symbol_mangle(prefix + name)] = macro
             elif name in assignments:
-                d[target_module][prefix + assignments[name]] = macro
+                d[target_module][hy_symbol_mangle(prefix + assignments[name])] = macro
 
     if not all_macros:
         unseen = frozenset(assignments.keys()).difference(seen_names)
@@ -182,6 +190,7 @@ def macroexpand_1(tree, compiler):
         opts = {}
 
         if isinstance(fn, HySymbol):
+            fn = hy_symbol_mangle(str_type(fn))
             m = _hy_macros[compiler.module_name].get(fn)
             if m is None:
                 m = _hy_macros[None].get(fn)

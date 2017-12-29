@@ -63,12 +63,12 @@ class HyREPL(code.InteractiveConsole):
         elif callable(output_fn):
             self.output_fn = output_fn
         else:
-            f = hy_symbol_mangle(output_fn)
             if "." in output_fn:
-                module, f = f.rsplit(".", 1)
+                parts = [hy_symbol_mangle(x) for x in output_fn.split(".")]
+                module, f = '.'.join(parts[:-1]), parts[-1]
                 self.output_fn = getattr(importlib.import_module(module), f)
             else:
-                self.output_fn = __builtins__[f]
+                self.output_fn = __builtins__[hy_symbol_mangle(output_fn)]
 
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)

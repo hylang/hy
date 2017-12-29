@@ -65,19 +65,19 @@
 
 
 (defn test-setv-builtin []
-  "NATIVE: test that setv doesn't work on builtins"
-  (try (eval '(setv False 1))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(setv True 0))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
+  "NATIVE: test that setv doesn't work on names Python can't assign to
+  and that we can't mangle"
   (try (eval '(setv None 1))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(defn defclass [] (print "hello")))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(defn get [] (print "hello")))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e)))))
-  (try (eval '(defn fn [] (print "hello")))
-       (except [e [TypeError]] (assert (in "Can't assign to a builtin" (str e))))))
+       (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+  (try (eval '(defn None [] (print "hello")))
+       (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+  (when PY3
+    (try (eval '(setv False 1))
+         (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+    (try (eval '(setv True 0))
+         (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+    (try (eval '(defn True [] (print "hello")))
+         (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))))
 
 
 (defn test-setv-pairs []
@@ -223,14 +223,14 @@
 
   ; don't be fooled by constructs that look like else
   (setv s "")
-  (setv (get (globals) "else") True)
+  (setv else True)
   (for [x "abcde"]
     (+= s x)
     [else (+= s "_")])
   (assert (= s "a_b_c_d_e_"))
 
   (setv s "")
-  (setv (get (globals) "else") True)
+  (setv else True)
   (with [(pytest.raises TypeError)]
     (for [x "abcde"]
       (+= s x)
@@ -329,7 +329,7 @@
   ; don't be fooled by constructs that look like else clauses
   (setv x 2)
   (setv a [])
-  (setv (get (globals) "else") True)
+  (setv else True)
   (while x
     (.append a x)
     (-= x 1)
@@ -675,13 +675,6 @@
     (except))
 
   (assert (= x 2)))
-
-(defn test-earmuffs []
-  "NATIVE: Test earmuffs"
-  (setv *foo* "2")
-  (setv foo "3")
-  (assert (= *foo* FOO))
-  (assert (!= *foo* foo)))
 
 
 (defn test-threading []
@@ -1050,27 +1043,6 @@
   (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
 
 
-(defn test-symbol-utf-8 []
-  "NATIVE: test symbol encoded"
-  (setv ♥ "love"
-        ⚘ "flower")
-  (assert (= (+ ⚘ ♥) "flowerlove")))
-
-
-(defn test-symbol-dash []
-  "NATIVE: test symbol encoded"
-  (setv ♥-♥ "doublelove"
-        -_- "what?")
-  (assert (= ♥-♥ "doublelove"))
-  (assert (= -_- "what?")))
-
-
-(defn test-symbol-question-mark []
-  "NATIVE: test foo? -> is_foo behavior"
-  (setv foo? "nachos")
-  (assert (= is_foo "nachos")))
-
-
 (defn test-and []
   "NATIVE: test the and function"
 
@@ -1198,11 +1170,7 @@
   (assert (= : :))
   (assert (keyword? :))
   (assert (!= : ":"))
-  (assert (= (name :) ""))
-
-  (defn f [&kwargs kwargs]
-    (list (.items kwargs)))
-  (assert (= (f : 3) [(, "" 3)])))
+  (assert (= (name :) "")))
 
 
 (defn test-nested-if []

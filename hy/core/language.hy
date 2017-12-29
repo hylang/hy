@@ -87,7 +87,7 @@ If the second argument `codegen` is true, generate python code instead."
   "Return a generator from the original collection `coll` with no duplicates."
   (setv seen (set) citer (iter coll))
   (for* [val citer]
-    (if (not_in val seen)
+    (if (not-in val seen)
       (do
        (yield val)
        (.add seen val)))))
@@ -485,7 +485,7 @@ Even objects with the __name__ magic will work."
     False
     (or a b)))
 
-(def *exports*
+(def EXPORTS
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first

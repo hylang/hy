@@ -163,7 +163,7 @@
     (setv coll (get coll k)))
   coll)
 
-(setv *exports* [
+(setv EXPORTS [
   '+ '- '* '** '/ '// '% '@
   '<< '>> '& '| '^ '~
   '< '> '<= '>= '= '!=
@@ -171,4 +171,4 @@
   'is 'is-not 'in 'not-in
   'get])
 (if (not PY35)
-  (.remove *exports* '@))
+  (.remove EXPORTS '@))

@@ -591,13 +591,11 @@ def test_invalid_list_comprehension():
 
 def test_bad_setv():
     """Ensure setv handles error cases"""
-    cant_compile("(setv if* 1)")
     cant_compile("(setv (a b) [1 2])")
 
 
 def test_defn():
     """Ensure that defn works correctly in various corner cases"""
-    cant_compile("(defn if* [] 1)")
     cant_compile("(defn \"hy\" [] 1)")
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
@@ -606,7 +604,6 @@ def test_defn():
 def test_setv_builtins():
     """Ensure that assigning to a builtin fails, unless in a class"""
     cant_compile("(setv None 42)")
-    cant_compile("(defn get [&rest args] 42)")
     can_compile("(defclass A [] (defn get [self] 42))")
     can_compile("""
     (defclass A []
