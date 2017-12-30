@@ -1830,16 +1830,16 @@ class HyASTCompiler(object):
         return result
 
     @builds("for*")
+    @builds("for/a*", iff=PY35)
     @checkargs(min=1)
     def compile_for_expression(self, expression):
-        expression.pop(0)  # for
+        root = expression.pop(0)
 
         args = expression.pop(0)
-
         if not isinstance(args, HyList):
             raise HyTypeError(expression,
-                              "`for` expects a list, received `{0}`".format(
-                                  type(args).__name__))
+                              "`{0}` expects a list, received `{1}`".format(
+                                  root, type(args).__name__))
 
         try:
             target_name, iterable = args
@@ -1864,11 +1864,12 @@ class HyASTCompiler(object):
         body = self._compile_branch(expression)
         body += body.expr_as_stmt()
 
-        ret += asty.For(expression,
-                        target=target,
-                        iter=ret.force_expr,
-                        body=body.stmts,
-                        orelse=orel.stmts)
+        node = asty.For if root == 'for*' else asty.AsyncFor
+        ret += node(expression,
+                    target=target,
+                    iter=ret.force_expr,
+                    body=body.stmts,
+                    orelse=orel.stmts)
 
         ret.contains_yield = body.contains_yield
 

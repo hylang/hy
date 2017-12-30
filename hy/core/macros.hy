@@ -108,11 +108,7 @@ used as the result."
      root)))
 
 
-(defmacro for [args &rest body]
-  "Build a for-loop with `args` as a [element coll] bracket pair and run `body`.
-
-Args may contain multiple pairs, in which case it executes a nested for-loop
-in order of the given pairs."
+(defmacro _for [node args &rest body]
   (setv body (list body))
   (if (empty? body)
     (macro-error None "`for' requires a body to evaluate"))
@@ -124,10 +120,26 @@ in order of the given pairs."
     (odd? (len args)) (macro-error args "`for' requires an even number of args.")
     (empty? body)     (macro-error None "`for' requires a body to evaluate")
     (empty? args)     `(do ~@body ~@belse)
-    (= (len args) 2)  `(for* [~@args] (do ~@body) ~@belse)
+    (= (len args) 2)  `(~node [~@args] (do ~@body) ~@belse)
     (do
       (setv alist (cut args 0 None 2))
-      `(for* [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))))
+      `(~node [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))))
+
+
+(defmacro for [args &rest body]
+  "Build a for-loop with `args` as a [element coll] bracket pair and run `body`.
+
+Args may contain multiple pairs, in which case it executes a nested for-loop
+in order of the given pairs."
+  `(_for for* ~args ~@body))
+
+
+(defmacro for/a [args &rest body]
+  "Build a for/a-loop with `args` as a [element coll] bracket pair and run `body`.
+
+Args may contain multiple pairs, in which case it executes a nested for/a-loop
+in order of the given pairs."
+  `(_for for/a* ~args ~@body))
 
 
 (defmacro -> [head &rest rest]
