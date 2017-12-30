@@ -1309,17 +1309,19 @@ class HyASTCompiler(object):
         return ret + fn
 
     @builds("with*")
+    @builds("with/a*", iff=PY35)
     @checkargs(min=2)
     def compile_with_expression(self, expr):
-        expr.pop(0)  # with*
+        root = expr.pop(0)
 
         args = expr.pop(0)
         if not isinstance(args, HyList):
             raise HyTypeError(expr,
-                              "with expects a list, received `{0}'".format(
-                                  type(args).__name__))
+                              "{0} expects a list, received `{1}'".format(
+                                  root, type(args).__name__))
         if len(args) not in (1, 2):
-            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
+            raise HyTypeError(expr,
+                              "{0} needs [arg (expr)] or [(expr)]".format(root))
 
         thing = None
         if len(args) == 2:
@@ -1338,10 +1340,11 @@ class HyASTCompiler(object):
             expr, targets=[name], value=asty.Name(
                 expr, id=ast_str("None"), ctx=ast.Load()))
 
-        the_with = asty.With(expr,
-                             context_expr=ctx.force_expr,
-                             optional_vars=thing,
-                             body=body.stmts)
+        node = asty.With if root == "with*" else asty.AsyncWith
+        the_with = node(expr,
+                        context_expr=ctx.force_expr,
+                        optional_vars=thing,
+                        body=body.stmts)
 
         if PY3:
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,

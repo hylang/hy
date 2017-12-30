@@ -43,3 +43,51 @@
     (await (sleep 0))
     [1 2 3])
   (assert (= (run-coroutine coro-test) [1 2 3])))
+
+
+(defclass AsyncWithTest []
+  (defn --init-- [self val]
+    (setv self.val val)
+    None)
+
+  (defn/a --aenter-- [self]
+    self.val)
+
+  (defn/a --aexit-- [self tyle value traceback]
+    (setv self.val None)))
+
+
+(defn test-single-with/a []
+  (run-coroutine
+    (fn/a []
+      (with/a [t (AsyncWithTest 1)]
+        (assert (= t 1))))))
+
+(defn test-two-with/a []
+  (run-coroutine
+    (fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)]
+        (assert (= t1 1))
+        (assert (= t2 2))))))
+
+(defn test-thrice-with/a []
+  (run-coroutine
+    (fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)
+               t3 (AsyncWithTest 3)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3))))))
+
+(defn test-quince-with/a []
+  (run-coroutine
+    (fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)
+               t3 (AsyncWithTest 3)
+               _ (AsyncWithTest 4)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3))))))

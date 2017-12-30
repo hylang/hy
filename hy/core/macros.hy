@@ -43,6 +43,19 @@ be associated in pairs."
                                                other-kvs))]))))
 
 
+(defmacro _with [node args &rest body]
+  (if (not (empty? args))
+    (do
+     (if (>= (len args) 2)
+       (do
+        (setv p1 (.pop args 0)
+              p2 (.pop args 0)
+              primary [p1 p2])
+        `(~node [~@primary] (_with ~node ~args ~@body)))
+       `(~node [~@args] ~@body)))
+    `(do ~@body)))
+
+
 (defmacro with [args &rest body]
   "Wrap execution of `body` within a context manager given as bracket `args`.
 
@@ -51,16 +64,18 @@ Shorthand for nested with* loops:
   (with* [x foo]
     (with* [y bar]
       baz))."
-  (if (not (empty? args))
-    (do
-     (if (>= (len args) 2)
-       (do
-        (setv p1 (.pop args 0)
-              p2 (.pop args 0)
-              primary [p1 p2])
-        `(with* [~@primary] (with ~args ~@body)))
-       `(with* [~@args] ~@body)))
-    `(do ~@body)))
+  `(_with with* ~args ~@body))
+
+
+(defmacro with/a [args &rest body]
+  "Wrap execution of `body` with/ain a context manager given as bracket `args`.
+
+Shorthand for nested with/a* loops:
+  (with/a [x foo y bar] baz) ->
+  (with/a* [x foo]
+    (with/a* [y bar]
+      baz))."
+  `(_with with/a* ~args ~@body))
 
 
 (defmacro cond [&rest branches]
