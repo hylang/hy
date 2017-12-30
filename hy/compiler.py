@@ -1132,20 +1132,20 @@ class HyASTCompiler(object):
         return node(expr, names=names)
 
     @builds("yield")
-    @builds("yield_from", iff=PY3)
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         ret = Result(contains_yield=(not PY3))
         if len(expr) > 1:
             ret += self.compile(expr[1])
-        node = asty.Yield if expr[0] == "yield" else asty.YieldFrom
-        return ret + node(expr, value=ret.force_expr)
+        return ret + asty.Yield(expr, value=ret.force_expr)
 
+    @builds("yield_from", iff=PY3)
     @builds("await", iff=PY35)
     @checkargs(1)
-    def compile_await_expression(self, expr):
+    def compile_yield_from_or_await_expression(self, expr):
         ret = Result() + self.compile(expr[1])
-        return ret + asty.Await(expr, value=ret.force_expr)
+        node = asty.YieldFrom if expr[0] == "yield_from" else asty.Await
+        return ret + node(expr, value=ret.force_expr)
 
     @builds("import")
     def compile_import_expression(self, expr):
