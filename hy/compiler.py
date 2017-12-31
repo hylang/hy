@@ -76,6 +76,9 @@ def _is_hy_builtin(name, module_name):
 
 
 _compile_table = {}
+_decoratables = (ast.FunctionDef, ast.ClassDef)
+if PY35:
+    _decoratables += (ast.AsyncFunctionDef,)
 
 
 def ast_str(foobar):
@@ -249,6 +252,8 @@ class Result(object):
                 var.id = new_name
                 var.arg = new_name
             elif isinstance(var, ast.FunctionDef):
+                var.name = new_name
+            elif PY35 and isinstance(var, ast.AsyncFunctionDef):
                 var.name = new_name
             else:
                 raise TypeError("Don't know how to rename a %s!" % (
@@ -1130,13 +1135,19 @@ class HyASTCompiler(object):
         return node(expr, names=names)
 
     @builds("yield")
-    @builds("yield_from", iff=PY3)
     @checkargs(max=1)
     def compile_yield_expression(self, expr):
         ret = Result(contains_yield=(not PY3))
         if len(expr) > 1:
             ret += self.compile(expr[1])
-        node = asty.Yield if expr[0] == "yield" else asty.YieldFrom
+        return ret + asty.Yield(expr, value=ret.force_expr)
+
+    @builds("yield_from", iff=PY3)
+    @builds("await", iff=PY35)
+    @checkargs(1)
+    def compile_yield_from_or_await_expression(self, expr):
+        ret = Result() + self.compile(expr[1])
+        node = asty.YieldFrom if expr[0] == "yield_from" else asty.Await
         return ret + node(expr, value=ret.force_expr)
 
     @builds("import")
@@ -1293,25 +1304,26 @@ class HyASTCompiler(object):
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop())
-        if not fn.stmts or not isinstance(fn.stmts[-1], (ast.FunctionDef,
-                                                         ast.ClassDef)):
+        if not fn.stmts or not isinstance(fn.stmts[-1], _decoratables):
             raise HyTypeError(expr, "Decorated a non-function")
         decorators, ret, _ = self._compile_collect(expr)
         fn.stmts[-1].decorator_list = decorators + fn.stmts[-1].decorator_list
         return ret + fn
 
     @builds("with*")
+    @builds("with/a*", iff=PY35)
     @checkargs(min=2)
     def compile_with_expression(self, expr):
-        expr.pop(0)  # with*
+        root = expr.pop(0)
 
         args = expr.pop(0)
         if not isinstance(args, HyList):
             raise HyTypeError(expr,
-                              "with expects a list, received `{0}'".format(
-                                  type(args).__name__))
+                              "{0} expects a list, received `{1}'".format(
+                                  root, type(args).__name__))
         if len(args) not in (1, 2):
-            raise HyTypeError(expr, "with needs [arg (expr)] or [(expr)]")
+            raise HyTypeError(expr,
+                              "{0} needs [arg (expr)] or [(expr)]".format(root))
 
         thing = None
         if len(args) == 2:
@@ -1330,10 +1342,11 @@ class HyASTCompiler(object):
             expr, targets=[name], value=asty.Name(
                 expr, id=ast_str("None"), ctx=ast.Load()))
 
-        the_with = asty.With(expr,
-                             context_expr=ctx.force_expr,
-                             optional_vars=thing,
-                             body=body.stmts)
+        node = asty.With if root == "with*" else asty.AsyncWith
+        the_with = node(expr,
+                        context_expr=ctx.force_expr,
+                        optional_vars=thing,
+                        body=body.stmts)
 
         if PY3:
             the_with.items = [ast.withitem(context_expr=ctx.force_expr,
@@ -1819,16 +1832,16 @@ class HyASTCompiler(object):
         return result
 
     @builds("for*")
+    @builds("for/a*", iff=PY35)
     @checkargs(min=1)
     def compile_for_expression(self, expression):
-        expression.pop(0)  # for
+        root = expression.pop(0)
 
         args = expression.pop(0)
-
         if not isinstance(args, HyList):
             raise HyTypeError(expression,
-                              "`for` expects a list, received `{0}`".format(
-                                  type(args).__name__))
+                              "`{0}` expects a list, received `{1}`".format(
+                                  root, type(args).__name__))
 
         try:
             target_name, iterable = args
@@ -1853,11 +1866,12 @@ class HyASTCompiler(object):
         body = self._compile_branch(expression)
         body += body.expr_as_stmt()
 
-        ret += asty.For(expression,
-                        target=target,
-                        iter=ret.force_expr,
-                        body=body.stmts,
-                        orelse=orel.stmts)
+        node = asty.For if root == 'for*' else asty.AsyncFor
+        ret += node(expression,
+                    target=target,
+                    iter=ret.force_expr,
+                    body=body.stmts,
+                    orelse=orel.stmts)
 
         ret.contains_yield = body.contains_yield
 
@@ -1890,12 +1904,15 @@ class HyASTCompiler(object):
         return ret
 
     @builds("fn", "fn*")
+    @builds("fn/a", iff=PY35)
     # The starred version is for internal use (particularly, in the
     # definition of `defn`). It ensures that a FunctionDef is
     # produced rather than a Lambda.
     @checkargs(min=1)
     def compile_function_def(self, expression):
-        force_functiondef = expression.pop(0) == "fn*"
+        root = expression.pop(0)
+        force_functiondef = root in ("fn*", "fn/a")
+        asyncdef = root == "fn/a"
 
         arglist = expression.pop(0)
         docstring = None
@@ -1904,7 +1921,7 @@ class HyASTCompiler(object):
 
         if not isinstance(arglist, HyList):
             raise HyTypeError(expression,
-                              "First argument to `fn' must be a list")
+                              "First argument to `{}' must be a list".format(root))
 
         (ret, args, defaults, stararg,
          kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)
@@ -1980,11 +1997,12 @@ class HyASTCompiler(object):
 
         name = self.get_anon_var()
 
-        ret += asty.FunctionDef(expression,
-                                name=name,
-                                args=args,
-                                body=body.stmts,
-                                decorator_list=[])
+        node = asty.AsyncFunctionDef if asyncdef else asty.FunctionDef
+        ret += node(expression,
+                    name=name,
+                    args=args,
+                    body=body.stmts,
+                    decorator_list=[])
 
         ast_name = asty.Name(expression, id=name, ctx=ast.Load())
 

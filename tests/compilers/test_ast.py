@@ -14,6 +14,7 @@ from hy.lex.exceptions import LexException
 from hy._compat import PY3
 
 import ast
+import pytest
 
 
 def _ast_spotcheck(arg, root, secondary):
@@ -651,3 +652,15 @@ def test_compiler_macro_tag_try():
     # https://github.com/hylang/hy/issues/1350
     can_compile("(defmacro foo [] (try None (except [] None)) `())")
     can_compile("(deftag foo [] (try None (except [] None)) `())")
+
+
+@pytest.mark.skipif(not PY3, reason="Python 3 required")
+def test_ast_good_yield_from():
+    "Make sure AST can compile valid yield-from"
+    can_compile("(yield-from [1 2])")
+
+
+@pytest.mark.skipif(not PY3, reason="Python 3 required")
+def test_ast_bad_yield_from():
+    "Make sure AST can't compile invalid yield-from"
+    cant_compile("(yield-from)")
