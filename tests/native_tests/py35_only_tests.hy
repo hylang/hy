@@ -45,6 +45,16 @@
   (assert (= (run-coroutine coro-test) [1 2 3])))
 
 
+(defn test-decorated-defn/a []
+  (defn decorator [func] (fn/a [] (/ (await (func)) 2)))
+
+  #@(decorator
+      (defn/a coro-test []
+        (await (sleep 0))
+        42))
+  (assert (= (run-coroutine coro-test) 21)))
+
+
 (defclass AsyncWithTest []
   (defn --init-- [self val]
     (setv self.val val)

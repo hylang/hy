@@ -76,6 +76,9 @@ def _is_hy_builtin(name, module_name):
 
 
 _compile_table = {}
+_decoratables = (ast.FunctionDef, ast.ClassDef)
+if PY35:
+    _decoratables += (ast.AsyncFunctionDef,)
 
 
 def ast_str(foobar):
@@ -1301,8 +1304,7 @@ class HyASTCompiler(object):
     def compile_decorate_expression(self, expr):
         expr.pop(0)  # with-decorator
         fn = self.compile(expr.pop())
-        if not fn.stmts or not isinstance(fn.stmts[-1], (ast.FunctionDef,
-                                                         ast.ClassDef)):
+        if not fn.stmts or not isinstance(fn.stmts[-1], _decoratables):
             raise HyTypeError(expr, "Decorated a non-function")
         decorators, ret, _ = self._compile_collect(expr)
         fn.stmts[-1].decorator_list = decorators + fn.stmts[-1].decorator_list
