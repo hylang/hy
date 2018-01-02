@@ -604,6 +604,14 @@ def test_defn():
     can_compile("(defn &hy [] 1)")
 
 
+def test_bad_return():
+    "Make sure returns are properly validated"
+    cant_compile("(return return)")
+    cant_compile("(fn [] return)")
+    cant_compile("(fn* [] return)")
+    cant_compile("(fn* [] (return return))")
+
+
 def test_setv_builtins():
     """Ensure that assigning to a builtin fails, unless in a class"""
     cant_compile("(setv None 42)")
