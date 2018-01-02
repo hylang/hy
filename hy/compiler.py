@@ -64,9 +64,16 @@ def load_stdlib():
 # True, False and None included here since they
 # are assignable in Python 2.* but become
 # keywords in Python 3.*
+_keywords = set(keyword.kwlist)
+if PY3:
+    _keywords = _keywords.difference(('True', 'False', 'None'))
+
+_is_hy_reserved = frozenset(_keywords).__contains__
+
+
 def _is_hy_builtin(name, module_name):
     extras = ['True', 'False', 'None']
-    if name in extras or keyword.iskeyword(name):
+    if name in extras or _is_hy_reserved(name):
         return True
     # for non-Hy modules, check for pre-existing name in
     # _compile_table
