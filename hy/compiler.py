@@ -64,9 +64,16 @@ def load_stdlib():
 # True, False and None included here since they
 # are assignable in Python 2.* but become
 # keywords in Python 3.*
+_keywords = set(keyword.kwlist)
+if PY3:
+    _keywords = _keywords.difference(('True', 'False', 'None'))
+
+_is_hy_reserved = frozenset(_keywords).__contains__
+
+
 def _is_hy_builtin(name, module_name):
     extras = ['True', 'False', 'None']
-    if name in extras or keyword.iskeyword(name):
+    if name in extras or _is_hy_reserved(name):
         return True
     # for non-Hy modules, check for pre-existing name in
     # _compile_table
@@ -1979,7 +1986,12 @@ class HyASTCompiler(object):
             defaults=defaults)
 
         body = self._compile_branch(expression)
+        body_id = getattr(body.expr, "id", None)
         if not force_functiondef and not body.stmts:
+            if _is_hy_reserved(body_id):
+                raise HyTypeError(expression,
+                                  "Can't return a keyword: `%s'" % body_id)
+
             ret += asty.Lambda(expression, args=args, body=body.force_expr)
             return ret
 
@@ -1989,7 +2001,12 @@ class HyASTCompiler(object):
                 # generators may not have a value in a return
                 # statement.
                 body += body.expr_as_stmt()
+            elif body_id == "pass":
+                body += asty.Pass(expression)
             else:
+                if _is_hy_reserved(body_id):
+                    raise HyTypeError(expression,
+                                      "Can't return a keyword: `%s'" % body_id)
                 body += asty.Return(body.expr, value=body.expr)
 
         if not body.stmts:
@@ -2015,6 +2032,11 @@ class HyASTCompiler(object):
     def compile_return(self, expr):
         ret = Result()
         if len(expr) > 1:
+            str_name = "%s" % expr[1]
+            if _is_hy_reserved(str_name):
+                raise HyTypeError(expr[1],
+                                  "Can't return a keyword: `%s'" % str_name)
+
             ret += self.compile(expr[1])
         return ret + asty.Return(expr, value=ret.force_expr)
 
