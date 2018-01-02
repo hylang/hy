@@ -191,7 +191,7 @@
   "NATIVE: tests that native aliases show the correct names in errors"
   (try (eval '(setv 1 2 3))
        (except [e [Exception]] (assert (in "setv" (str e)))))
-  (try (eval '(def 1 2 3))
+  (try (eval '(def 1 2 3 4))
        (except [e [Exception]] (assert (in "def" (str e))))))
 
 

@@ -12,7 +12,7 @@ from hy.lex.parser import hy_symbol_mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, string_types, bytes_type, long_type, PY3, PY35,
+    str_type, string_types, bytes_type, long_type, PY3, PY35, PY36,
     raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
@@ -1784,8 +1784,8 @@ class HyASTCompiler(object):
             expression, func=func.expr, args=args, keywords=keywords,
             starargs=oldpy_star, kwargs=oldpy_kw)
 
-    @builds("def", "setv")
-    def compile_def_expression(self, expression):
+    @builds("setv")
+    def compile_setv_expression(self, expression):
         root = expression.pop(0)
         if not expression:
             return asty.Name(root, id='None', ctx=ast.Load())
@@ -1796,10 +1796,23 @@ class HyASTCompiler(object):
         else:
             result = Result()
             for tgt, target in zip(expression[::2], expression[1::2]):
-                result += self._compile_assign(tgt, target)
+                result += self._compile_assign(tgt, None, target)
             return result
 
-    def _compile_assign(self, name, result):
+    @builds("def")
+    @checkargs(max=3)
+    def compile_def_expression(self, expression):
+        root = expression.pop(0)
+        if not expression:
+            return asty.Name(root, id='None', ctx=ast.Load())
+
+        target = expression.pop(0)
+        annotation = expression.pop(0)
+        value = expression.pop(0) if expression else None
+        result = Result()
+        return result + self._compile_assign(target, annotation, value)
+
+    def _compile_assign(self, name, annotation, value):
 
         str_name = "%s" % name
         if (_is_hy_builtin(str_name, self.module_name) and
@@ -1807,7 +1820,7 @@ class HyASTCompiler(object):
             raise HyTypeError(name,
                               "Can't assign to a builtin: `%s'" % str_name)
 
-        result = self.compile(result)
+        result = self.compile(value) if value is not None else Result()
         ld_name = self.compile(name)
 
         if isinstance(ld_name.expr, ast.Call):
@@ -1822,10 +1835,19 @@ class HyASTCompiler(object):
             result.expr = None
         else:
             st_name = self._storeize(name, ld_name)
-            result += asty.Assign(
-                name if hasattr(name, "start_line") else result,
-                targets=[st_name],
-                value=result.force_expr)
+            if PY36 and annotation:
+                annotation = self.compile(annotation).expr
+                result += asty.AnnAssign(
+                    name if hasattr(name, "start_line") else result,
+                    target=st_name,
+                    value=result.force_expr if value is not None else None,
+                    annotation=annotation,
+                    simple=1)
+            else:
+                result += asty.Assign(
+                    name if hasattr(name, "start_line") else result,
+                    targets=[st_name],
+                    value=result.force_expr)
 
         return result
 
@@ -2057,7 +2079,7 @@ class HyASTCompiler(object):
             symb = HySymbol("__doc__")
             symb.start_line = docstring.start_line
             symb.start_column = docstring.start_column
-            body += self._compile_assign(symb, docstring)
+            body += self._compile_assign(symb, None, docstring)
             body += body.expr_as_stmt()
 
         allow_builtins = self.allow_builtins
