@@ -1789,8 +1789,6 @@ class HyASTCompiler(object):
         root = expression.pop(0)
         if not expression:
             return asty.Name(root, id='None', ctx=ast.Load())
-        elif len(expression) == 2:
-            return self._compile_assign(expression[0], expression[1])
         elif len(expression) % 2 != 0:
             raise HyTypeError(expression,
                               "`{}' needs an even number of arguments".format(
