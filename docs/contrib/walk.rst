@@ -48,7 +48,7 @@ each sub-form, uses ``f`` 's return value in place of the original.
 .. code-block:: hy
 
     => (import [hy.contrib.walk [postwalk]])
-    => (def trail '([1 2 3] [4 [5 6 [7]]]))
+    => (setv trail '([1 2 3] [4 [5 6 [7]]]))
     => (defn walking [x]
     ...  (print "Walking:" x :sep "\n")
     ...  x)
@@ -128,7 +128,7 @@ each sub-form, uses ``f`` 's return value in place of the original.
 .. code-block:: hy
 
     => (import [hy.contrib.walk [prewalk]])
-    => (def trail '([1 2 3] [4 [5 6 [7]]]))
+    => (setv trail '([1 2 3] [4 [5 6 [7]]]))
     => (defn walking [x]
     ...  (print "Walking:" x :sep "\n")
     ...  x)

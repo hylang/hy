@@ -544,7 +544,7 @@ For example:
 
 .. code-block:: clj
 
-    => (def names ["Alice" "Bob" "Charlie"])
+    => (setv names ["Alice" "Bob" "Charlie"])
     => (print names)
     [u'Alice', u'Bob', u'Charlie']
 
@@ -590,7 +590,7 @@ below:
     ...
     ...  (defn speak [self] (print "Meow")))
 
-    => (def spot (Cat))
+    => (setv spot (Cat))
     => (setv spot.colour "Black")
     'Black'
     => (.speak spot)
@@ -1077,8 +1077,8 @@ immediately.
 
 .. code-block:: hy
 
-    => (def collection (range 10))
-    => (def filtered (genexpr x [x collection] (even? x)))
+    => (setv collection (range 10))
+    => (setv filtered (genexpr x [x collection] (even? x)))
     => (list filtered)
     [0, 2, 4, 6, 8]
 
@@ -1295,7 +1295,7 @@ passed to another function for filtering output.
 
 .. code-block:: clj
 
-    => (def people [{:name "Alice" :age 20}
+    => (setv people [{:name "Alice" :age 20}
     ...             {:name "Bob" :age 25}
     ...             {:name "Charlie" :age 50}
     ...             {:name "Dave" :age 5}])
@@ -1359,7 +1359,7 @@ conditional expression. Some examples:
 
 .. code-block:: clj
 
-    => (def collection (range 10))
+    => (setv collection (range 10))
     => (list-comp x [x collection])
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -1653,7 +1653,7 @@ counted starting from the end of the list. Some example usage:
 
 .. code-block:: clj
 
-    => (def collection (range 10))
+    => (setv collection (range 10))
 
     => (cut collection)
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
