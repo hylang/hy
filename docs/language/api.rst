@@ -536,10 +536,10 @@ Gets help for macros or tag macros, respectively.
     Gets help for a tag macro function available in this module.
 
 
-def / setv
-----------
+setv
+----
 
-``def`` and ``setv`` are used to bind a value, object, or function to a symbol.
+``setv`` is used to bind a value, object, or function to a symbol.
 For example:
 
 .. code-block:: clj
@@ -563,6 +563,23 @@ They can be used to assign multiple variables at once:
     => b
     2L
     =>
+
+
+def
+---
+
+``def`` is used to declare a variable with a type annotation, while
+optionally providing a default value.
+For example:
+
+.. code-block:: clj
+
+    => (defclass Person []
+    ...   (def name str)
+    ...   (def age int))
+
+    => (print (tying.get-type-hints (Person)))
+    {'name': <class 'str'>, 'age': <class 'int'>}
 
 
 defclass
@@ -1296,9 +1313,9 @@ passed to another function for filtering output.
 .. code-block:: clj
 
     => (setv people [{:name "Alice" :age 20}
-    ...             {:name "Bob" :age 25}
-    ...             {:name "Charlie" :age 50}
-    ...             {:name "Dave" :age 5}])
+    ...              {:name "Bob" :age 25}
+    ...              {:name "Charlie" :age 50}
+    ...              {:name "Dave" :age 5}])
 
     => (defn display-people [people filter]
     ...  (for [person people] (if (filter person) (print (:name person)))))
