@@ -66,11 +66,11 @@ chain the given functions together, so ``((comp g f) x)`` is equivalent to
 
 .. code-block:: hy
 
-   => (def example (comp str +))
+   => (setv example (comp str +))
    => (example 1 2 3)
    "6"
 
-   => (def simple (comp))
+   => (setv simple (comp))
    => (simple "hello")
    "hello"
 
@@ -89,7 +89,7 @@ inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
 
 .. code-block:: hy
 
-   => (def inverse (complement identity))
+   => (setv inverse (complement identity))
    => (inverse True)
    False
    => (inverse 1)
@@ -155,7 +155,7 @@ the arguments given to it.
 
 .. code-block:: hy
 
-   => (def answer (constantly 42))
+   => (setv answer (constantly 42))
    => (answer)
    42
    => (answer 1 2 3)

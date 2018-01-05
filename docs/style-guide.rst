@@ -120,26 +120,6 @@ Layout & Indentation
 Coding Style
 ============
 
-+ As a convention, try not to use ``def`` for anything other than global
-  variables; use ``setv`` inside functions, loops, etc.
-
-  .. code-block:: clj
-
-     ;; Good (and preferred)
-     (def *limit* 400000)
-
-     (defn fibs [a b]
-       (while True
-         (yield a)
-         (setv (, a b) (, b (+ a b)))))
-
-     ;; Bad (and not preferred)
-     (defn fibs [a b]
-       (while True
-         (yield a)
-         (def (, a b) (, b (+ a b)))))
-
-
 + Do not use s-expression syntax where vector syntax is intended.
   For instance, the fact that the former of these two examples works
   is just because the compiler isn't overly strict. In reality, the
@@ -164,17 +144,17 @@ Coding Style
   .. code-block:: clj
 
      ;; Preferred
-     (def *names*
+     (setv *names*
        (with [f (open "names.txt")]
          (-> (.read f) (.strip) (.replace "\"" "") (.split ",") (sorted))))
 
      ;; Not so good
-     (def *names*
+     (setv *names*
        (with [f (open "names.txt")]
        (sorted (.split "," (.replace "\"" "" (.strip (.read f)))))))
 
      ;; Probably not a good idea
-     (defn square? [x]
+     (setv square? [x]
        (->> 2 (pow (int (sqrt x))) (= x)))
 
 

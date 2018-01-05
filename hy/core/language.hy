@@ -93,7 +93,7 @@ If the second argument `codegen` is true, generate python code instead."
        (.add seen val)))))
 
 (if-python2
- (def
+ (setv
    remove itertools.ifilterfalse
    zip-longest itertools.izip_longest
    ;; not builtin in Python3
@@ -104,7 +104,7 @@ If the second argument `codegen` is true, generate python code instead."
    map itertools.imap
    range xrange
    zip itertools.izip)
- (def
+ (setv
    remove itertools.filterfalse
    zip-longest itertools.zip_longest
    ;; was builtin in Python2
@@ -132,16 +132,16 @@ function with keyword arguments, which isn't supported by Python 3's `exec`."
       (none? $locals)
         (setv $locals $globals))
     (exec* $code $globals $locals))
-  (def exec exec))
+  (setv exec exec))
 
 ;; infinite iterators
-(def
+(setv
   count itertools.count
   cycle itertools.cycle
   repeat itertools.repeat)
 
 ;; shortest-terminating iterators
-(def
+(setv
   *map itertools.starmap
   chain itertools.chain
   compress itertools.compress
@@ -152,7 +152,7 @@ function with keyword arguments, which isn't supported by Python 3's `exec`."
   tee itertools.tee)
 
 ;; combinatoric iterators
-(def
+(setv
   combinations itertools.combinations
   multicombinations itertools.combinations_with_replacement
   permutations itertools.permutations
@@ -359,7 +359,7 @@ If a key occurs in more than one map, the mapping(s) from the latter
   "Check if `n` is an odd number."
   (= (% n 2) 1))
 
-(def -sentinel (object))
+(setv -sentinel (object))
 (defn partition [coll &optional [n 2] step [fillvalue -sentinel]]
   "Chunk `coll` into `n`-tuples (pairs by default).
 
@@ -485,7 +485,7 @@ Even objects with the __name__ magic will work."
     False
     (or a b)))
 
-(def *exports*
+(setv *exports*
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first

@@ -89,7 +89,7 @@
   (deftag t [expr]
     `(, ~@expr))
 
-  (def a #t[1 2 3])
+  (setv a #t[1 2 3])
 
   (assert (= (type a) tuple))
   (assert (= (, 1 2 3) a)))
