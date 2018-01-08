@@ -9,7 +9,7 @@ extensions = ['sphinx.ext.intersphinx']
 
 from get_version import __version__ as hy_version
 # Read the Docs might dirty its checkout, so strip the dirty flag.
-hy_version = re.sub('[+.]dirty\Z', '', hy_version)
+hy_version = re.sub(r'[+.]dirty\Z', '', hy_version)
 
 templates_path = ['_templates']
 source_suffix = '.rst'
