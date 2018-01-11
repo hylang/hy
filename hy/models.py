@@ -179,7 +179,7 @@ if not PY3:  # do not add long on python3
 
 def check_inf_nan_cap(arg, value):
     if isinstance(arg, string_types):
-        if isinf(value) and "Inf" not in arg:
+        if isinf(value) and "i" in arg.lower() and "Inf" not in arg:
             raise ValueError('Inf must be capitalized as "Inf"')
         if isnan(value) and "NaN" not in arg:
             raise ValueError('NaN must be capitalized as "NaN"')

@@ -103,6 +103,12 @@ def test_lex_expression_float():
     assert objs == [HyExpression([HySymbol("foo"), HyFloat(1.e7)])]
 
 
+def test_lex_big_float():
+    # https://github.com/hylang/hy/issues/1448
+    assert tokenize("1e900") == [HyFloat(1e900)]
+    assert tokenize("1e900-1e900j") == [HyComplex(1e900, -1e900)]
+
+
 def test_lex_nan_and_inf():
 
     assert isnan(tokenize("NaN")[0])
