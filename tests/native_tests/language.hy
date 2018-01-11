@@ -346,6 +346,68 @@
   (assert (= a [2 "e"])))
 
 
+(defn test-while-multistatement-condition []
+
+  ; The condition should be executed every iteration, before the body.
+  ; `else` should be executed last.
+  (setv s "")
+  (setv x 2)
+  (while (do (+= s "a") x)
+    (+= s "b")
+    (-= x 1)
+    (else
+      (+= s "z")))
+  (assert (= s "ababaz"))
+
+  ; `else` should still be skipped after `break`.
+  (setv s "")
+  (setv x 2)
+  (while (do (+= s "a") x)
+    (+= s "b")
+    (-= x 1)
+    (when (= x 0)
+      (break))
+    (else
+      (+= s "z")))
+  (assert (= s "abab"))
+
+  ; `continue` should jump to the condition.
+  (setv s "")
+  (setv x 2)
+  (setv continued? False)
+  (while (do (+= s "a") x)
+    (+= s "b")
+    (when (and (= x 1) (not continued?))
+      (+= s "c")
+      (setv continued? True)
+      (continue))
+    (-= x 1)
+    (else
+      (+= s "z")))
+  (assert (= s "ababcabaz"))
+
+  ; `break` in a condition applies to the `while`, not an outer loop.
+  (setv s "")
+  (for [x "123"]
+    (+= s x)
+    (setv y 0)
+    (while (do (when (and (= x "2") (= y 1)) (break)) (< y 3))
+      (+= s "y")
+      (+= y 1)))
+  (assert (= s "1yyy2y3yyy"))
+
+  ; The condition is still tested appropriately if its last variable
+  ; is set to a false value in the loop body.
+  (setv out [])
+  (setv x 0)
+  (setv a [1 1])
+  (while (do (.append out 2) (setv x (and a (.pop a))) x)
+    (setv x 0)
+    (.append out x))
+  (assert (= out [2 0 2 0 2]))
+  (assert (is x a)))
+
+
 (defn test-branching []
   "NATIVE: test if branching"
   (if True
