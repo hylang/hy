@@ -651,14 +651,14 @@ result['y in globals'] = 'y' in globals()")
 
 (defn test-complement []
   "NATIVE: test complement"
-  (def helper (complement identity))
+  (setv helper (complement identity))
 
   (assert-true (helper False))
   (assert-false (helper True)))
 
 (defn test-constantly []
   "NATIVE: test constantly"
-  (def helper (constantly 42))
+  (setv helper (constantly 42))
 
   (assert-true (= (helper) 42))
   (assert-true (= (helper 1 2 3) 42))

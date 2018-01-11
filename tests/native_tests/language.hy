@@ -191,7 +191,7 @@
   "NATIVE: tests that native aliases show the correct names in errors"
   (try (eval '(setv 1 2 3))
        (except [e [Exception]] (assert (in "setv" (str e)))))
-  (try (eval '(def 1 2 3))
+  (try (eval '(def 1 2 3 4))
        (except [e [Exception]] (assert (in "def" (str e))))))
 
 
@@ -1693,17 +1693,17 @@ macros()
     (import [io [StringIO]]))
   (import [hy.models [HyExpression]])
 
-  (def stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
+  (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
   (assert (= (eval (read stdin-buffer)) 4))
   (assert (isinstance (read stdin-buffer) HyExpression))
 
   "Multiline test"
-  (def stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
+  (setv stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
   (assert (= (eval (read stdin-buffer)) 42))
   (assert (= (eval (read stdin-buffer)) 1))
 
   "EOF test"
-  (def stdin-buffer (StringIO "(+ 2 2)"))
+  (setv stdin-buffer (StringIO "(+ 2 2)"))
   (read stdin-buffer)
   (try
     (read stdin-buffer)

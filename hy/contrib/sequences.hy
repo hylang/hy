@@ -55,7 +55,7 @@
   `(Sequence (fn ~param (do ~@seq-code))))
 
 (defmacro defseq [seq-name param &rest seq-code]
-  `(def ~seq-name (Sequence (fn ~param (do ~@seq-code)))))
+  `(setv ~seq-name (Sequence (fn ~param (do ~@seq-code)))))
 
 (defn end-sequence []
   "raise IndexError exception to signal end of sequence"

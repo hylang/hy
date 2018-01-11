@@ -536,15 +536,15 @@ Gets help for macros or tag macros, respectively.
     Gets help for a tag macro function available in this module.
 
 
-def / setv
-----------
+setv
+----
 
-``def`` and ``setv`` are used to bind a value, object, or function to a symbol.
+``setv`` is used to bind a value, object, or function to a symbol.
 For example:
 
 .. code-block:: clj
 
-    => (def names ["Alice" "Bob" "Charlie"])
+    => (setv names ["Alice" "Bob" "Charlie"])
     => (print names)
     [u'Alice', u'Bob', u'Charlie']
 
@@ -563,6 +563,23 @@ They can be used to assign multiple variables at once:
     => b
     2L
     =>
+
+
+def
+---
+
+``def`` is used to declare a variable with a type annotation, while
+optionally providing a default value.
+For example:
+
+.. code-block:: clj
+
+    => (defclass Person []
+    ...   (def name str)
+    ...   (def age int))
+
+    => (print (tying.get-type-hints (Person)))
+    {'name': <class 'str'>, 'age': <class 'int'>}
 
 
 defclass
@@ -590,7 +607,7 @@ below:
     ...
     ...  (defn speak [self] (print "Meow")))
 
-    => (def spot (Cat))
+    => (setv spot (Cat))
     => (setv spot.colour "Black")
     'Black'
     => (.speak spot)
@@ -1077,8 +1094,8 @@ immediately.
 
 .. code-block:: hy
 
-    => (def collection (range 10))
-    => (def filtered (genexpr x [x collection] (even? x)))
+    => (setv collection (range 10))
+    => (setv filtered (genexpr x [x collection] (even? x)))
     => (list filtered)
     [0, 2, 4, 6, 8]
 
@@ -1295,10 +1312,10 @@ passed to another function for filtering output.
 
 .. code-block:: clj
 
-    => (def people [{:name "Alice" :age 20}
-    ...             {:name "Bob" :age 25}
-    ...             {:name "Charlie" :age 50}
-    ...             {:name "Dave" :age 5}])
+    => (setv people [{:name "Alice" :age 20}
+    ...              {:name "Bob" :age 25}
+    ...              {:name "Charlie" :age 50}
+    ...              {:name "Dave" :age 5}])
 
     => (defn display-people [people filter]
     ...  (for [person people] (if (filter person) (print (:name person)))))
@@ -1359,7 +1376,7 @@ conditional expression. Some examples:
 
 .. code-block:: clj
 
-    => (def collection (range 10))
+    => (setv collection (range 10))
     => (list-comp x [x collection])
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -1653,7 +1670,7 @@ counted starting from the end of the list. Some example usage:
 
 .. code-block:: clj
 
-    => (def collection (range 10))
+    => (setv collection (range 10))
 
     => (cut collection)
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
