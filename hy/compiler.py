@@ -562,6 +562,8 @@ class HyASTCompiler(object):
                 nodes[i] = ret.force_expr
 
             index = ast.Slice(lower=nodes[0], upper=nodes[1], step=nodes[2])
+        elif not PY3 and isinstance(sub_expr, HySymbol) and sub_expr == "...":
+            index = ast.Ellipsis()
         else:
             index = ast.Index(self.compile(sub_expr).force_expr)
 
@@ -2172,7 +2174,12 @@ class HyASTCompiler(object):
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
-        if "." in symbol:
+        if symbol == "...":
+            if not PY3:
+                raise HyTypeError(symbol, 'in Python 2, ellipsis is only '
+                                          'supported in slices')
+            return asty.Ellipsis(symbol)
+        elif "." in symbol:
             glob, local = symbol.rsplit(".", 1)
 
             if not glob:

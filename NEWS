@@ -28,6 +28,7 @@ Changes from 0.13.0
    * support for PEP 492 with `fn/a`, `defn/a`, `with/a` and `for/a`
    * remove `def`
    * optimize `slice` inside subscriptions to generate slice AST
+   * add support to understand `...` as `Ellipsis`
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

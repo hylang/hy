@@ -84,3 +84,16 @@
        (assert (= (foo :b 20 :a 10 :c 30)
                   (, 10 20 30)))))
 
+
+(defn test-ellipsis []
+  (assert (= ... Ellipsis)))
+
+
+(defn test-slice []
+  (defclass EllipsisTest []
+    (defn --getitem-- [self [start ellipsis end]]
+      (assert (= ellipsis Ellipsis))
+      (list (range start end))))
+
+  (assert (= (get (EllipsisTest) (, 1 ... 6))
+             [1 2 3 4 5])))

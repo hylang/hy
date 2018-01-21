@@ -86,6 +86,20 @@ def test_compiler_get_index():
     assert slice.value.n == 1
 
 
+def test_compiler_get_ellipsis():
+    e = make_expression(HySymbol('get'), HySymbol('foo'), HySymbol('...'))
+
+    ret = compiler.HyASTCompiler('test').compile_index_expression(e)
+    assert isinstance(ret.expr, ast.Subscript)
+
+    slice = ret.expr.slice
+    if PY3:
+        assert isinstance(slice, ast.Index)
+        assert isinstance(slice.value, ast.Ellipsis)
+    else:
+        assert isinstance(slice, ast.Ellipsis)
+
+
 def test_compiler_get_slice():
     e = make_expression(HySymbol('get'),
                         HySymbol('foo'),
