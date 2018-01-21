@@ -272,6 +272,10 @@ class Result(object):
         if isinstance(other, ast.excepthandler):
             return self + Result(stmts=[other])
 
+        if isinstance(other, ast.slice):
+            raise TypeError("Can't add %r with slice specific syntax %r" % (
+                self, other))
+
         if not isinstance(other, Result):
             raise TypeError("Can't add %r with non-compiler result %r" % (
                 self, other))
