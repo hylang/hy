@@ -272,6 +272,10 @@ class Result(object):
         if isinstance(other, ast.excepthandler):
             return self + Result(stmts=[other])
 
+        if isinstance(other, ast.slice):
+            raise TypeError("Can't add %r with slice specific syntax %r" % (
+                self, other))
+
         if not isinstance(other, Result):
             raise TypeError("Can't add %r with non-compiler result %r" % (
                 self, other))
@@ -2163,7 +2167,12 @@ class HyASTCompiler(object):
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
-        if "." in symbol:
+        if symbol == "...":
+            if not PY3:
+                raise HyTypeError(symbol, 'ellipsis syntax is only supported '
+                                          'for Python 3')
+            return asty.Ellipsis(symbol)
+        elif "." in symbol:
             glob, local = symbol.rsplit(".", 1)
 
             if not glob:
