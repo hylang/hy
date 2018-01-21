@@ -26,6 +26,7 @@ Changes from 0.13.0
    * `#%` works on any expression and has a new `&kwargs` parameter `%**`
    * new `doc` macro and `#doc` tag macro
    * support for PEP 492 with `fn/a`, `defn/a`, `with/a` and `for/a`
+   * add support to understand `...` as `Ellipsis`
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

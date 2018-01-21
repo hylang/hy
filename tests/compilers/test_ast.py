@@ -664,3 +664,9 @@ def test_ast_good_yield_from():
 def test_ast_bad_yield_from():
     "Make sure AST can't compile invalid yield-from"
     cant_compile("(yield-from)")
+
+
+@pytest.mark.skipif(not PY3, reason="Python 3 required")
+def test_ast_ellipsis():
+    "Make sure AST can compile Ellipsis"
+    can_compile("...")

@@ -2163,7 +2163,12 @@ class HyASTCompiler(object):
 
     @builds(HySymbol)
     def compile_symbol(self, symbol):
-        if "." in symbol:
+        if symbol == "...":
+            if not PY3:
+                raise HyTypeError(symbol, 'ellipsis syntax is only supported '
+                                          'for Python 3')
+            return asty.Ellipsis(symbol)
+        elif "." in symbol:
             glob, local = symbol.rsplit(".", 1)
 
             if not glob:
