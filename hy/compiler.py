@@ -129,9 +129,9 @@ class Asty(object):
     def __getattr__(self, name):
         setattr(Asty, name, lambda self, x, **kwargs: getattr(ast, name)(
             lineno=getattr(
-                x, 'start_line', getattr(x, 'lineno', None)),
+                x, 'start_line', getattr(x, 'lineno', 0)),
             col_offset=getattr(
-                x, 'start_column', getattr(x, 'col_offset', None)),
+                x, 'start_column', getattr(x, 'col_offset', 0)),
             **kwargs))
         return getattr(self, name)
 asty = Asty()
