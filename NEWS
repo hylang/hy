@@ -27,6 +27,7 @@ Changes from 0.13.0
    * new `doc` macro and `#doc` tag macro
    * support for PEP 492 with `fn/a`, `defn/a`, `with/a` and `for/a`
    * remove `def`
+   * optimize `slice` inside subscriptions to generate slice AST
 
    [ Bug Fixes ]
    * Numeric literals are no longer parsed as symbols when followed by a dot

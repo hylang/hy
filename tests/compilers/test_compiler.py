@@ -73,3 +73,32 @@ def test_compiler_yield_return():
         # In earlier versions, the expression is not returned
         assert isinstance(body[1], ast.Expr)
         assert isinstance(body[1].value, ast.BinOp)
+
+
+def test_compiler_get_index():
+    e = make_expression(HySymbol('get'), HySymbol('foo'), HyInteger(1))
+
+    ret = compiler.HyASTCompiler('test').compile_index_expression(e)
+    assert isinstance(ret.expr, ast.Subscript)
+
+    slice = ret.expr.slice
+    assert isinstance(slice, ast.Index)
+    assert slice.value.n == 1
+
+
+def test_compiler_get_slice():
+    e = make_expression(HySymbol('get'),
+                        HySymbol('foo'),
+                        HyExpression([HySymbol('slice'),
+                                      HyInteger(1),
+                                      HyInteger(2),
+                                      HyInteger(3)]))
+
+    ret = compiler.HyASTCompiler('test').compile_index_expression(e)
+    assert isinstance(ret.expr, ast.Subscript)
+
+    slice = ret.expr.slice
+    assert isinstance(slice, ast.Slice)
+    assert slice.lower.n == 1
+    assert slice.upper.n == 2
+    assert slice.step.n == 3

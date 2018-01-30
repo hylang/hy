@@ -30,6 +30,10 @@
          (fn ~(+ `[&name] lambda-list)
            ~@body))))))
 
+(defmacro cut [node &rest body]
+  "Take a subset of a list and create a new list from it."
+  `(get ~node (__builtin__slice ~@body)))
+
 (defmacro if [&rest args]
   "Conditionally evaluate alternating test and then expressions."
   (setv n (len args))
@@ -38,7 +42,7 @@
             (get args 0)
             `(if* ~(get args 0)
                   ~(get args 1)
-                  (if ~@(cut args 2))))))
+                  (if ~@(get args (slice 2)))))))
 
 (defmacro deftag [tag-name lambda-list &rest body]
   (if (and (not (isinstance tag-name hy.models.HySymbol))

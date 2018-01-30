@@ -311,6 +311,7 @@ class Result(object):
         )
 
 
+
 def _branch(results):
     """Make a branch out of a list of Result objects
 
@@ -384,6 +385,13 @@ def is_unpack(kind, x):
             and len(x) > 0
             and isinstance(x[0], HySymbol)
             and x[0] == "unpack_" + kind)
+
+
+def is_builtin(kind, x):
+    return (isinstance(x, HyExpression)
+            and len(x) > 0
+            and isinstance(x[0], HySymbol)
+            and x[0] in (kind, "__builtin__" + kind))
 
 
 def ends_with_else(expr):
@@ -544,6 +552,24 @@ class HyASTCompiler(object):
             return compiled_exprs, ret, keywords, oldpy_starargs, oldpy_kwargs
         else:
             return compiled_exprs, ret, keywords
+
+    def _compile_subscript(self, expr, value, sub_expr):
+        if is_builtin("slice", sub_expr):
+            ret = Result()
+            nodes = [None] * 3
+            for i, e in enumerate(sub_expr[1:]):
+                ret += self.compile(e)
+                nodes[i] = ret.force_expr
+
+            index = ast.Slice(lower=nodes[0], upper=nodes[1], step=nodes[2])
+        else:
+            index = ast.Index(self.compile(sub_expr).force_expr)
+
+        return asty.Subscript(
+            expr,
+            value=value,
+            slice=index,
+            ctx=ast.Load())
 
     def _compile_branch(self, exprs):
         return _branch(self.compile(expr) for expr in exprs)
@@ -1222,18 +1248,12 @@ class HyASTCompiler(object):
 
     @builds("get")
     @checkargs(min=2)
-    def compile_index_expression(self, expr):
-        expr.pop(0)  # index
+    def compile_index_expression(self, exprs):
+        exprs.pop(0)  # index
 
-        indices, ret, _ = self._compile_collect(expr[1:])
-        ret += self.compile(expr[0])
-
-        for ix in indices:
-            ret += asty.Subscript(
-                expr,
-                value=ret.force_expr,
-                slice=ast.Index(value=ix),
-                ctx=ast.Load())
+        ret = self.compile(exprs[0])
+        for expr in exprs[1:]:
+            ret += self._compile_subscript(exprs, ret.force_expr, expr)
 
         return ret
 
@@ -1287,21 +1307,6 @@ class HyASTCompiler(object):
                                               ast.Del))
 
         return ret + asty.Delete(expr, targets=del_targets)
-
-    @builds("cut")
-    @checkargs(min=1, max=4)
-    def compile_cut_expression(self, expr):
-        ret = Result()
-        nodes = [None] * 4
-        for i, e in enumerate(expr[1:]):
-            ret += self.compile(e)
-            nodes[i] = ret.force_expr
-
-        return ret + asty.Subscript(
-            expr,
-            value=nodes[0],
-            slice=ast.Slice(lower=nodes[1], upper=nodes[2], step=nodes[3]),
-            ctx=ast.Load())
 
     @builds("with_decorator")
     @checkargs(min=1)
