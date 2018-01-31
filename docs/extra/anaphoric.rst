@@ -225,7 +225,7 @@ Returns a function which applies several forms in series from left to right. The
 
 .. code-block:: hy
 
-   => (def op (ap-compose (+ it 1) (* it 3)))
+   => (setv op (ap-compose (+ it 1) (* it 3)))
    => (op 2)
    9
 

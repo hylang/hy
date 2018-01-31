@@ -1784,7 +1784,7 @@ class HyASTCompiler(object):
             expression, func=func.expr, args=args, keywords=keywords,
             starargs=oldpy_star, kwargs=oldpy_kw)
 
-    @builds("def", "setv")
+    @builds("setv")
     def compile_def_expression(self, expression):
         root = expression.pop(0)
         if not expression:

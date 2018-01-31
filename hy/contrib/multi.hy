@@ -74,20 +74,20 @@
   (, (get l 0) (cut l 1)))
 
 (defmacro defn [name &rest bodies]
-  (def arity-overloaded? (fn [bodies]
-                           (if (isinstance (first bodies) HyString)
-                             (arity-overloaded? (rest bodies))
-                             (isinstance (first bodies) HyExpression))))
+  (setv arity-overloaded? (fn [bodies]
+                            (if (isinstance (first bodies) HyString)
+                                (arity-overloaded? (rest bodies))
+                                (isinstance (first bodies) HyExpression))))
 
   (if (arity-overloaded? bodies)
     (do
-     (def comment (HyString))
+     (setv comment (HyString))
      (if (= (type (first bodies)) HyString)
-       (def [comment bodies] (head-tail bodies)))
-     (def ret `(do))
+       (setv [comment bodies] (head-tail bodies)))
+     (setv ret `(do))
      (.append ret '(import [hy.contrib.multi [MultiDispatch]]))
      (for [body bodies]
-       (def [let-binds body] (head-tail body))
+       (setv [let-binds body] (head-tail body))
        (.append ret 
                 `(with-decorator MultiDispatch (defn ~name ~let-binds ~comment ~@body))))
      ret)
