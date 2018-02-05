@@ -5,7 +5,7 @@
 import ast
 
 from hy import compiler
-from hy.models import HyExpression, HyList, HySymbol, HyInteger
+from hy.models import HyExpression, HyList, HySymbol, HyInteger, HyKeyword
 from hy._compat import PY3
 
 
@@ -103,7 +103,7 @@ def test_compiler_get_ellipsis():
 def test_compiler_get_slice():
     e = make_expression(HySymbol('get'),
                         HySymbol('foo'),
-                        HyExpression([HySymbol('slice'),
+                        HyExpression([HyKeyword(':'),
                                       HyInteger(1),
                                       HyInteger(2),
                                       HyInteger(3)]))
@@ -116,3 +116,43 @@ def test_compiler_get_slice():
     assert slice.lower.n == 1
     assert slice.upper.n == 2
     assert slice.step.n == 3
+
+
+def test_compiler_get_tuple():
+    e = make_expression(HySymbol('get'),
+                        HySymbol('foo'),
+                        HyExpression([HySymbol(','),
+                                      HyInteger(1),
+                                      HyInteger(2)]))
+
+    ret = compiler.HyASTCompiler('test').compile_index_expression(e)
+    assert isinstance(ret.expr, ast.Subscript)
+
+    slice = ret.expr.slice
+    assert isinstance(slice, ast.Index)
+    assert isinstance(slice.value, ast.Tuple)
+    assert slice.value.elts[0].n == 1
+    assert slice.value.elts[1].n == 2
+
+
+def test_compiler_get_ext_slice():
+    e = make_expression(HySymbol('get'),
+                        HySymbol('foo'),
+                        HyExpression([HySymbol(','),
+                                      HyInteger(1),
+                                      HyExpression([HyKeyword(':'),
+                                                    HyInteger(1),
+                                                    HyInteger(2),
+                                                    HyInteger(3)])]))
+
+    ret = compiler.HyASTCompiler('test').compile_index_expression(e)
+    assert isinstance(ret.expr, ast.Subscript)
+
+    slice = ret.expr.slice
+    assert isinstance(slice, ast.ExtSlice)
+    assert isinstance(slice.dims[0], ast.Index)
+    assert slice.dims[0].value.n == 1
+    assert isinstance(slice.dims[1], ast.Slice)
+    assert slice.dims[1].lower.n == 1
+    assert slice.dims[1].upper.n == 2
+    assert slice.dims[1].step.n == 3

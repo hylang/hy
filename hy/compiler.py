@@ -311,7 +311,6 @@ class Result(object):
         )
 
 
-
 def _branch(results):
     """Make a branch out of a list of Result objects
 
@@ -387,11 +386,8 @@ def is_unpack(kind, x):
             and x[0] == "unpack_" + kind)
 
 
-def is_builtin(kind, x):
-    return (isinstance(x, HyExpression)
-            and len(x) > 0
-            and isinstance(x[0], HySymbol)
-            and x[0] in (kind, "__builtin__" + kind))
+def expr_startswith(kind, x):
+    return (isinstance(x, HyExpression) and len(x) > 0 and x[0] == kind)
 
 
 def ends_with_else(expr):
@@ -552,26 +548,6 @@ class HyASTCompiler(object):
             return compiled_exprs, ret, keywords, oldpy_starargs, oldpy_kwargs
         else:
             return compiled_exprs, ret, keywords
-
-    def _compile_subscript(self, expr, value, sub_expr):
-        if is_builtin("slice", sub_expr):
-            ret = Result()
-            nodes = [None] * 3
-            for i, e in enumerate(sub_expr[1:]):
-                ret += self.compile(e)
-                nodes[i] = ret.force_expr
-
-            index = ast.Slice(lower=nodes[0], upper=nodes[1], step=nodes[2])
-        elif not PY3 and isinstance(sub_expr, HySymbol) and sub_expr == "...":
-            index = ast.Ellipsis()
-        else:
-            index = ast.Index(self.compile(sub_expr).force_expr)
-
-        return asty.Subscript(
-            expr,
-            value=value,
-            slice=index,
-            ctx=ast.Load())
 
     def _compile_branch(self, exprs):
         return _branch(self.compile(expr) for expr in exprs)
@@ -1248,14 +1224,69 @@ class HyASTCompiler(object):
 
         return rimports
 
+    def _compile_subscript(self, root, value, exprs):
+        dims = []
+        ret = Result()
+
+        for expr in exprs:
+            if expr_startswith(HyKeyword(":"), expr):
+                if len(expr) > 4:
+                    raise HyTypeError(expr, "slice expected at most "
+                                            "3 arguments")
+
+                nodes = [None] * 3
+                for i, e in enumerate(expr[1:]):
+                    ret += self.compile(e)
+                    nodes[i] = ret.force_expr
+
+                dims.append(
+                    ast.Slice(lower=nodes[0], upper=nodes[1], step=nodes[2]))
+            elif not PY3 and isinstance(expr, HySymbol) and expr == "...":
+                dims.append(ast.Ellipsis())
+            else:
+                ret += self.compile(expr)
+                dims.append(ret.force_expr)
+
+        def box_as_slice(expr):
+            if isinstance(expr, ast.slice):
+                return expr
+            return ast.Index(value=expr)
+
+        # How the subscript is constructed will depend on if any of
+        # the components subclass ast,slice. If they do, then we have
+        # to construct an ExtSlice instead of a Tuple.
+        is_ext_slice = any(isinstance(dim, ast.slice) for dim in dims)
+
+        if len(dims) == 1:
+            index = dims[0]
+        elif is_ext_slice:
+            dims = [box_as_slice(dim) for dim in dims]
+            index = asty.ExtSlice(root, dims=dims)
+        else:
+            index = asty.Tuple(root, elts=dims, ctx=ast.Load())
+
+        return ret + asty.Subscript(
+            root,
+            value=value,
+            slice=box_as_slice(index),
+            ctx=ast.Load())
+
     @builds("get")
     @checkargs(min=2)
     def compile_index_expression(self, exprs):
-        exprs.pop(0)  # index
+        exprs.pop(0)  # get
+
+        def destruct_tuple(x):
+            if expr_startswith(HySymbol(","), x):
+                return x[1:]
+            return [x]
 
         ret = self.compile(exprs[0])
         for expr in exprs[1:]:
-            ret += self._compile_subscript(exprs, ret.force_expr, expr)
+            ret += self._compile_subscript(
+                exprs,
+                ret.force_expr,
+                destruct_tuple(expr))
 
         return ret
 

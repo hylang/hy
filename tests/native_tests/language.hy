@@ -860,6 +860,14 @@
   (assert (is (first []) None)))
 
 
+(defn test-slice []
+  (defclass CutTest []
+    (defn --getitem-- [self index]
+      (assert (= index (slice 1 6)))))
+
+  (get (CutTest) (: 1 6)))
+
+
 (defn test-cut []
   "NATIVE: test cut"
   (assert (= (cut [1 2 3 4 5] 1) [2 3 4 5]))

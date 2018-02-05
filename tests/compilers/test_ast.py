@@ -275,12 +275,17 @@ def test_ast_no_pointless_imports():
 def test_ast_good_get():
     "Make sure AST can compile valid get"
     can_compile("(get x y)")
+    can_compile("(get x (:))")
+    can_compile("(get x (: a b))")
+    can_compile("(get x ...)")
+    can_compile("(get x (, a b c))")
 
 
 def test_ast_bad_get():
     "Make sure AST can't compile invalid get"
     cant_compile("(get)")
     cant_compile("(get 1)")
+    cant_compile("(get x (: a b c d))")
 
 
 def test_ast_good_take():
