@@ -1,7 +1,7 @@
 .. default-role:: code
 
-Changes from 0.13.0
-===================
+0.14.0
+==============================
 
 Removals
 ------------------------------
@@ -77,7 +77,7 @@ Misc. Improvements
      functions in the `hy` module
    * An experimental `let` macro has been added to `hy.contrib.walk`
 
-Changes from 0.12.1
+0.13.0
 ==============================
 
 Language Changes
@@ -135,14 +135,14 @@ Misc. Improvements
    * New contrib module `hy-repr`
    * Added a command-line option `--repl-output-fn`
 
-Changes from 0.12.0
+0.12.1
 ==============================
 
 Bug Fixes
 ------------------------------
    * Allow installation without Git
 
-Changes from 0.11.0
+0.12.0
 ==============================
 
 This release brings some quite significant changes on the language and as a
