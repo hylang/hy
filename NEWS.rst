@@ -77,6 +77,14 @@ Misc. Improvements
      functions in the `hy` module
    * An experimental `let` macro has been added to `hy.contrib.walk`
 
+0.13.1
+==============================
+
+Bug Fixes
+------------------------------
+  * Changed setup.py to require astor 0.5, since 0.6 isn't
+    backwards-compatible.
+
 0.13.0
 ==============================
 
