@@ -15,8 +15,6 @@ Removals
 
 Other Breaking Changes
 ------------------------------
-* `apply` has been replaced with Python-style unpacking operators `#*` and
-  `#**` (e.g., `(f #* args #** kwargs)`)
 * Single-character "sharp macros" are now "tag macros", which can have
   longer names
 * `xi` from `hy.extra.anaphoric` is now a tag macro `#%`
@@ -32,6 +30,8 @@ New Features
   `#[FOO[` and `]FOO]`, where `FOO` is customizable
 * Added support for PEP 492 (`async` and `await`) with `fn/a`, `defn/a`,
   `with/a`, and `for/a`
+* Added Python-style unpacking operators `#*` and  `#**` (e.g.,
+  `(f #* args #** kwargs)`)
 * Added a macro `comment`
 * Added EDN `#_` syntax to discard the next term
 * `while` loops may now contain an `else` clause, like `for` loops
