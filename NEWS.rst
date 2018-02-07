@@ -1,15 +1,20 @@
-Changes from 0.13.0
+.. default-role:: code
 
-   [ Removals ]
+Changes from 0.13.0
+===================
+
+Removals
+------------------------------
    * Python 3.3 is no longer supported
    * `def` is gone; use `setv` instead
    * `apply` is gone; use the new `#*` and `#**` syntax instead
    * `yield-from` is no longer supported under Python 2
    * Periods are no longer allowed in keywords
    * Numeric literals can no longer begin with a comma or underscore
-   * Literal `Inf`s and `NaN`s must now be capitalized like that
+   * Literal `Inf`\s and `NaN`\s must now be capitalized like that
 
-   [ Other Breaking Changes ]
+Other Breaking Changes
+------------------------------
    * `apply` has been replaced with Python-style unpacking operators `#*` and
      `#**` (e.g., `(f #* args #** kwargs)`)
    * Single-character "sharp macros" are now "tag macros", which can have
@@ -17,7 +22,8 @@ Changes from 0.13.0
    * `xi` from `hy.extra.anaphoric` is now a tag macro `#%`
    * `eval` is now a function instead of a special form
 
-   [ New Features ]
+New Features
+------------------------------
    * The compiler now automatically promotes values to Hy model objects
      as necessary, so you can write ``(eval `(+ 1 ~n))`` instead of
      ``(eval `(+ 1 ~(HyInteger n)))``
@@ -34,7 +40,8 @@ Changes from 0.13.0
    * `get` is available as a function
    * `~@` (`unquote-splice`) form now accepts any false value as empty
 
-   [ Bug Fixes ]
+Bug Fixes
+------------------------------
    * Relative imports (PEP 328) are now allowed
    * Numeric literals are no longer parsed as symbols when followed by a dot
      and a symbol
@@ -48,7 +55,7 @@ Changes from 0.13.0
    * No TypeError from multi-arity `defn` returning values evaluating to `None`
    * `try` forms are now possible in `defmacro` and `deftag`
    * Multiple expressions are now allowed in `try`
-   * Fixed a crash when `macroexpand`ing a macro with a named import
+   * Fixed a crash when `macroexpand`\ing a macro with a named import
    * Fixed a crash when `with` suppresses an exception. `with` now returns
      `None` in this case.
    * Fixed a crash when `--repl-output-fn` raises an exception
@@ -64,14 +71,17 @@ Changes from 0.13.0
    * `break` and `continue` now raise an error when given arguments
      instead of silently ignoring them
 
-   [ Misc. Improvements ]
+Misc. Improvements
+------------------------------
    * `read`, `read_str`, and `eval` are exposed and documented as top-level
      functions in the `hy` module
    * An experimental `let` macro has been added to `hy.contrib.walk`
 
 Changes from 0.12.1
+==============================
 
-   [ Language Changes ]
+Language Changes
+------------------------------
    * Pythons 2.6, 3.0, 3.1, and 3.2 are no longer supported
    * `let` has been removed. Python's scoping rules do not make a proper
      implementation of it possible. Use `setv` instead.
@@ -105,7 +115,8 @@ Changes from 0.12.1
    * `hy.core.reserved` is now `hy.extra.reserved`
    * `cond` now supports single argument branches
 
-   [ Bug Fixes ]
+Bug Fixes
+------------------------------
    * All shadowed operators have the same arities as real operators
    * Shadowed comparison operators now use `and` instead of `&`
      for chained comparisons
@@ -119,23 +130,28 @@ Changes from 0.12.1
    * The REPL now prints the correct value of `do` and `try` forms
    * Fixed a crash when tokenizing a single quote followed by whitespace
 
-   [ Misc. Improvements ]
+Misc. Improvements
+------------------------------
    * New contrib module `hy-repr`
    * Added a command-line option `--repl-output-fn`
 
 Changes from 0.12.0
+==============================
 
-   [ Bug Fixes ]
+Bug Fixes
+------------------------------
    * Allow installation without Git
 
 Changes from 0.11.0
+==============================
 
 This release brings some quite significant changes on the language and as a
 result very large portions of previously written Hy programs will require
 changes. At the same time, documentation and error messages were improved,
 hopefully making the language easier to use.
 
-   [ Language Changes ]
+Language Changes
+------------------------------
    * New syntax for let, with and defclass
    * defmacro will raise an error on &kwonly, &kwargs and &key arguments
    * Keyword argument labels to functions are required to be strings
@@ -166,7 +182,8 @@ hopefully making the language easier to use.
    * comp, constantly, complement and juxt added
    * keyword arguments allowed in method calls before the object
 
-   [ Bug Fixes ]
+Bug Fixes
+------------------------------
    * Better error when for doesn't have body
    * Better error detection with list comprehensions in Python 2.7
    * Setting value to callable will raise an error
@@ -177,7 +194,8 @@ hopefully making the language easier to use.
    * In python 3.3+, generator functions always return a value
    * &rest can be used after &optional
 
-   [ Misc. Improvements ]
+Misc. Improvements
+------------------------------
    * Version information includes SHA1 of current commit
    * Improved Python 3.5 support
    * Allow specification of global table and module name for (eval ...)
@@ -205,8 +223,10 @@ hopefully making the language easier to use.
    * contrib.anaphoric moved to hy.extra
 
 Changes from 0.10.1
+==============================
 
-   [ Language Changes ]
+Language Changes
+------------------------------
    * new keyword-argument call syntax
    * Function argument destructuring has been added.
    * Macro expansion inside of class definitions is now supported.
@@ -223,14 +243,16 @@ Changes from 0.10.1
    * Support for the @ matrix-multiplication operator (forthcoming in
      Python 3.5) has been added.
 
-   [ Bug Fixes ]
+Bug Fixes
+------------------------------
    * Nested decorators now work correctly.
    * Importing hy modules under Python >=3.3 has been fixed.
    * Some bugs involving macro unquoting have been fixed.
    * Misleading tracebacks when Hy programs raise IOError have been
      corrected.
 
-   [ Misc. Improvements ]
+Misc. Improvements
+------------------------------
    * attribute completion in REPL
    * new -m command-line flag for running a module
    * new -i command-line flag for running a file
@@ -241,6 +263,7 @@ Changes from 0.10.1
      let form has been improved.
 
 Changes from 0.10.0
+==============================
 
  This release took some time (sorry, all my fault) but it's got a bunch of
  really nice features. We hope you enjoy hacking with Hy as much as we enjoy
@@ -256,7 +279,8 @@ Changes from 0.10.0
 
   - Hy Society
 
-  [ Language Changes ]
+Language Changes
+------------------------------
   * Implement raise :from, Python 3 only.
   * defmain macro
   * name & keyword functions added to core
@@ -269,32 +293,38 @@ Changes from 0.10.0
   * keyword? to find out keywords
   * setv no longer allows "." in names
 
-  [Internals ]
+Internals
+------------------------------
   * Builtins reimplemented in terms of python stdlib
   * gensyms (defmacro/g!) handles non-string types better
 
-  [Tools]
+Tools
+------------------------------
   * Added hy2py to installed scripts
 
-  [ Misc. Fixes ]
+Misc. Fixes
+------------------------------
   * Symbols like true, false, none can't be assigned
   * Set sys.argv default to [''] like Python does
   * REPL displays the python version and platform at startup
   * Dockerfile added for https://registry.hub.docker.com/_/hylang/
 
-  [ Contrib changes ]
+Contrib changes
+------------------------------
   * Fix ap-first and ap-last for failure conditions
 
 
 Changes from 0.9.12
+==============================
 
  0.10.0 - the "oh man I'm late for PyCon" release
 
  Thanks to theanalyst (Abhi) for getting the release notes
  together. You're the best!
-   - Hy Society
+ - Hy Society
 
-  [ Breaking Changes ]
+Breaking Changes
+------------------------------
 
   We're calling this release 0.10 because we broke
   API. Sorry about that. We've removed kwapply in
@@ -303,7 +333,8 @@ Changes from 0.9.12
 
   (apply function-call args kwargs)  ; is the signature
 
-  [Thanks]
+Thanks
+------------------------------
 
    Major shoutout to Clinton Dreisbach for implementing loop/recur.
    As always, massive hugs to olasd for the constant reviews and for
@@ -320,11 +351,12 @@ Changes from 0.9.12
 
     -Hy Society
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
-  * `for' revamped again (Last time, we hope!), this time using a saner
+  * `for` revamped again (Last time, we hope!), this time using a saner
     itertools.product when nesting
-  * `lisp-if'/`lif' added for the lisp-like everything is true if, giving
+  * `lisp-if`/`lif` added for the lisp-like everything is true if, giving
     seasoned lispers a better if check (0 is a value, etc)
   * Reader Macros are macros now!
   * yield-from is now a proper yield from on Python 3. It also now breaks on
@@ -333,24 +365,26 @@ Changes from 0.9.12
   * We finally have a lisp like cons cells
   * Generator expressions, set & dict comprehensions are now supported
   * (.) is a mini DSL for attribute access
-  * `macroexpand' & `macroexpand-1' added to core
-  * `disassemble' added to core, which dumps the AST or equivalent python code
-  * `coll?' added to core to check for a collection
-  * `identity' function added to core
+  * `macroexpand` & `macroexpand-1` added to core
+  * `disassemble` added to core, which dumps the AST or equivalent python code
+  * `coll?` added to core to check for a collection
+  * `identity` function added to core
 
-  [ Misc. Fixes ]
+Misc. Fixes
+------------------------------
   * Lots of doc fixes. Reorganization as well as better docs on Hy internals
   * Universal Wheel Support
   * Pygments > 1.6 supports Hy now. All codeblocks in  docs have been changed
     from clojure to hy
   * Hy REPL supports invoking with --spy & -i options [reword]
-  * `first' and `rest' are functions and not macros anymore
+  * `first` and `rest` are functions and not macros anymore
   * "clean" target added to Makefile
   * hy2py supports a bunch of commandline options to show AST, source etc.
   * Sub-object mangling: every identifier is split along the dots & mangled
     separately
 
-  [ Bug Fixes ]
+Bug Fixes
+------------------------------
   * Empty MacroExpansions work as expected
   * Python 3.4 port. Sorry this wasn't in a 3.4 release time, we forgot to do
     a release. Whoops.
@@ -359,7 +393,8 @@ Changes from 0.9.12
   * Fixed unicode encoding issue in REPL during unicode exceptions
   * Fixed handling of comments at end of input (#382)
 
-  [ Contrib changes ]
+Contrib changes
+------------------------------
   * Curry module added to contrib
   * Loop/recur module added which provides TCO at tail position
   * defmulti has been added - check out more in the docs -- thanks to Foxboron for this one!
@@ -367,6 +402,7 @@ Changes from 0.9.12
 
 
 Changes from Hy 0.9.11
+==============================
 
    tl;dr:
 
@@ -393,7 +429,8 @@ Changes from Hy 0.9.11
       0.9.12's NEWS. Thanks, y'all! (PT)
 
 
-    [ Language Changes ]
+Language Changes
+------------------------------
     * Translate foo? -> is_foo, for better Python interop. (PT)
     * Reader Macros!
     * Operators + and * now can work without arguments
@@ -407,7 +444,8 @@ Changes from Hy 0.9.11
     * Added type coercing to the right integer for the platform
 
 
-    [ Misc. Fixes ]
+Misc. Fixes
+------------------------------
     * Added information about core team members
     * Documentation fixed and extended
     * Add astor to install_requires to fix hy --spy failing on hy 0.9.11.
@@ -423,31 +461,36 @@ Changes from Hy 0.9.11
     * Badges for pypi version and downloads.
 
 
-    [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
     * get allows multiple arguments
 
 
-    [ Bug Fixes ]
+Bug Fixes
+------------------------------
     *  OSX: Fixes for readline Repl problem which caused HyREPL not allowing 'b'
     * Fix REPL completions on OSX
     *  Make HyObject.replace more resilient to prevent compiler breakage.
 
 
-    [ Contrib changes ]
+Contrib changes
+------------------------------
     * Anaphoric macros added to contrib
     * Modified eg/twisted to follow the newer hy syntax
     * Added (experimental) profile module
 
 
 Changes from Hy 0.9.10
+==============================
 
     * Many thanks to Guillermo Vayá (Willyfrog) for preparing this release's
       release notes. Major shout-out. (PT)
 
-    [ Misc. Fixes ]
+Misc. Fixes
+------------------------------
 
      * Many many many documentation fixes
-     * Change virtualenv name to be `hy'
+     * Change virtualenv name to be `hy`
      * Rewrite language.hy not to require hy.core.macros
      * Rewrite the bootstrap macros in hy
      * Cleanup the hy.macros module
@@ -468,7 +511,8 @@ Changes from Hy 0.9.10
      * Finally fixed access to hy.core.macros here. have to explicitly require
        them.
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
     * Slightly cleaner version of drop-while, could use yield-from when ready
     * Added many native core functions
@@ -489,25 +533,30 @@ Changes from Hy 0.9.10
     * Make assoc accept multiple values, also added an even/odd check for
       checkargs
     * Added ability to parse doc strings set in defclass declarations,
-    * Provide bin scripts for both Windows and *nix
+    * Provide bin scripts for both Windows and \*nix
     * Removes setf in favor of setv
 
 Changes from Hy 0.9.9
+==============================
 
-  [ Stupid Fixes ]
+Stupid Fixes
+------------------------------
 
     * I forgot to include hy.core.language in the sdist. (PT)
 
 Changes from Hy 0.9.8
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
     * Macros are now module-specific, and must be required when used. (KH)
     * Added a few more string escapes to the compiler (Thomas Ballinger)
     * Keywords are pseudo-callable again, to get the value out of a dict. (PT)
     * Empty expression is now the same as an empty vector. (Guillermo Vaya)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
     * HyDicts (quoted dicts or internal HST repr) are now lists
       that compiled down to dicts by the Compiler later on. (ND)
@@ -519,7 +568,8 @@ Changes from Hy 0.9.8
     * Importing a broken module's behavior now matches Python's more
       closely. (Morten Linderud)
 
-  [ Misc. Fixes ]
+Misc. Fixes
+------------------------------
 
     * Ensure compiler errors are always "user friendly" (JD)
     * Hy REPL quitter repr adjusted to match Hy syntax (Morten Linderud)
@@ -527,8 +577,10 @@ Changes from Hy 0.9.8
 
 
 Changes from Hy 0.9.7
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
     * Quasi-quoting now exists long with quoting. Macros will also not
       expand things in quotes.
@@ -536,7 +588,8 @@ Changes from Hy 0.9.7
     * Try / Except will now return properly again. (PT)
     * Bare-names sprinkled around the AST won't show up anymore (ND)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
     * Added a new (require) form, to import macros for that module (PT)
     * Native macros exist and work now! (ND)
@@ -544,18 +597,21 @@ Changes from Hy 0.9.7
     * New (defclass) builtin for class definitions (JD)
     * Add unquote-splicing (ND)
 
-  [ Errata ]
+Errata
+------------------------------
 
     * Paul was an idiot and marked the j-related bug as a JD fix, it was
       actually ND. My bad.
 
 Changes from Hy 0.9.6
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
-    * UTF-8 encoded hy symbols are now hy_... rather than __hy_..., it's
+    * UTF-8 encoded hy symbols are now `hy_`... rather than `__hy_`..., it's
       silly to prefex them as such. (PT)
-    * `j' is no longer always interpreted as a complex number; we use it much
+    * `j` is no longer always interpreted as a complex number; we use it much
       more as a symbol. (ND)
     * (decorate-with) has been moved to (with-decorate) (JD)
     * New (unless) macro (JD)
@@ -564,11 +620,12 @@ Changes from Hy 0.9.6
     * New (drop) macro (@eigenhombre)
     * import-from and import-as finally removed. (GN)
     * Allow bodyless functions (JD)
-    * Allow variable without value in `let' declaration (JD)
+    * Allow variable without value in `let` declaration (JD)
     * new (global) builtin (@eal)
     * new lambda-list syntax for function defs, for var-arity, kwargs. (JK)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
     * *HUGE* rewrite of the compiler. Massive thanks go to olasd
       and jd for making this happen. This solves just an insane number
@@ -579,13 +636,15 @@ Changes from Hy 0.9.6
 
 
 Changes from Hy 0.9.5
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
     * .pyc generation routines now work on Python 3. (Vladimir Gorbunov)
     * Allow empty (do) forms (JD)
-    * The `else' form is now supported in `try' statements. (JD)
-    * Allow `(raise)', which, like Python, will re-raise
+    * The `else` form is now supported in `try` statements. (JD)
+    * Allow `(raise)`, which, like Python, will re-raise
       the last Exception. (JD)
     * Strings, bools, symbols are now valid top-level entries. (Konrad Hinsen)
     * UTF-8 strings will no longer get punycode encoded. (ND)
@@ -594,9 +653,9 @@ Changes from Hy 0.9.5
     * Add in the missing operators and AugAssign operators. (JD)
     * (foreach) now supports the (else) form. (JD)
 
-  [ Language Changes ]
+WARNING: WARNING: READ ME: READ ME:
+-----------------------------------
 
-    =============== WARNING: WARNING: READ ME: READ ME: ===================
     From here on out, we will only support "future division" as part of hy.
     This is actually quite a pain for us, but it's going to be quite an
     amazing feature.
@@ -604,7 +663,9 @@ Changes from Hy 0.9.5
     This also normalizes behavior from Py 2 --> Py 3.
 
     Thank you so much, Konrad Hinsen.
-    =======================================================================
+
+Language Changes
+------------------------------
 
     * (pass) has been removed from the language; it's a wart that comes from
       a need to create valid Python syntax without breaking the whitespace
@@ -619,25 +680,28 @@ Changes from Hy 0.9.5
     * Keywords (such as :foo) are now valid and loved. (GN)
 
 Changes from Hy 0.9.4
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
-    * `try' now accepts `else': (JD)
-      (try BODY
-        (except [] BODY)
-        (else BODY))
+    * `try` now accepts `else`: (JD)
+
+      `(try BODY (except [] BODY) (else BODY))`
 
 
 Changes from Hy 0.9.4
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
-    * Statements in the `fn' path early will not return anymore. (PT)
+    * Statements in the `fn` path early will not return anymore. (PT)
     * Added "not" as the inline "not" operator. It's advised to still
       use "not-in" or "is-not" rather than nesting. (JD)
-    * `let' macro added (PT)
+    * `let` macro added (PT)
     * Added "~" as the "invert" operator. (JD)
-    * `catch' now accepts a new format: (JD)
+    * `catch` now accepts a new format: (JD)
         (catch [] BODY)
         (catch [Exception] BODY)
         (catch [e Exception] BODY)
@@ -646,9 +710,10 @@ Changes from Hy 0.9.4
         (with [name context-managed-fn] BODY)
         (with [context-managed-fn] BODY)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
-    * Added `and' and `or' (GN)
+    * Added `and` and `or` (GN)
     * Added the tail threading macro (->>) (PT)
     * UTF encoded symbols are allowed, but mangled. All Hy source is now
       presumed to be UTF-8. (JD + PT)
@@ -656,87 +721,102 @@ Changes from Hy 0.9.4
     * If hoisting (for things like printing the return of an if statement)
       have been added. '(print (if true true true))' (PT)
 
-  [ Documentation ]
+Documentation
+------------------------------
 
     * Initial documentation added to the source tree. (PT)
 
 
 Changes from Hy 0.9.3
+==============================
 
-  [ Syntax Fixes ]
+Syntax Fixes
+------------------------------
 
     * Nested (do) expressions no longer break Hy (PT)
-    * `progn' is now a valid alias for `do' (PT)
-    * `defun' is now a valid alias for `defn' (PT)
+    * `progn` is now a valid alias for `do` (PT)
+    * `defun` is now a valid alias for `defn` (PT)
     * Added two new escapes for \ and " (PT)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
     * Show a traceback when a compile-error bubbles up in the Hy REPL (PT)
-    * `setf' / `setv' added, the behavior of `def` may change in the future.
-    * `print' no longer breaks in Python 3.x (PT)
-    * Added `list-comp' list comprehensions. (PT)
+    * `setf` / `setv` added, the behavior of `def` may change in the future.
+    * `print` no longer breaks in Python 3.x (PT)
+    * Added `list-comp` list comprehensions. (PT)
     * Function hoisting (for things like inline invocation of functions,
       e.g. '((fn [] (print "hi!")))' has been added. (PT)
-    * `while' form added. (ND)
+    * `while` form added. (ND)
         (while [CONDITIONAL] BODY)
 
-  [ Documentation ]
+Documentation
+------------------------------
 
     * Initial docs added. (WKG + CW)
 
 
 Changes from Hy 0.9.2
+==============================
 
-  [ General Enhancements ]
+General Enhancements
+------------------------------
 
-    * hy.__main__ added, `python -m hy' will now allow a hy shim into existing
+    * hy.__main__ added, `python -m hy` will now allow a hy shim into existing
       Python scripts. (PT)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
-    * `import-as' added to allow for importing modules. (Amrut Joshi)
-    * `slice' added to slice up arrays. (PT)
-    * `with-as' added to allow for context managed bits. (PT)
-    * `%' added to do Modulo. (PT)
+    * `import-as` added to allow for importing modules. (Amrut Joshi)
+    * `slice` added to slice up arrays. (PT)
+    * `with-as` added to allow for context managed bits. (PT)
+    * `%` added to do Modulo. (PT)
     * Tuples added with the '(, foo bar)' syntax. (PT)
-    * `car' / `first' added. (PT)
-    * `cdr' / `rest' added. (PT)
+    * `car` / `first` added. (PT)
+    * `cdr` / `rest` added. (PT)
     * hy --> .pyc compiler added. (PT)
     * Completer added for the REPL Readline autocompletion. (PT)
-    * Merge the `meth' macros into hy.contrib. (PT)
+    * Merge the `meth` macros into hy.contrib. (PT)
     * Changed __repr__ to match Hy source conventions. (PT)
     * 2.6 support restored. (PT)
 
 
 Changes from Hy 0.9.1
+==============================
 
-  [ General Enhancements ]
+General Enhancements
+------------------------------
 
     * Hy REPL added. (PT)
     * Doc templates added. (PT)
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
-    * Add `pass' (PT)
-    * Add `yield' (PT)
-    * Moved `for' to a macro, and move `foreach' to old `for'. (PT)
-    * Add the threading macro (`->'). (PT)
+    * Add `pass` (PT)
+    * Add `yield` (PT)
+    * Moved `for` to a macro, and move `foreach` to old `for`. (PT)
+    * Add the threading macro (`->`). (PT)
     * Add "earmufs" in. (tenach)
     * Add comments in (PT)
 
 
 Changes from Hy 0.9.0
+==============================
 
-  [ Language Changes ]
+Language Changes
+------------------------------
 
-    * Add `throw' (PT)
-    * Add `try' (PT)
-    * add `catch' (PT)
+    * Add `throw` (PT)
+    * Add `try` (PT)
+    * add `catch` (PT)
 
 
 Changes from Hy 0.8.2
+==============================
 
-  [ Notes ]
+Notes
+------------------------------
 
     * Complete rewrite of old-hy. (PT)
