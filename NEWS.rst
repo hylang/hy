@@ -98,7 +98,7 @@ Language Changes
   "reader macros", which were never true reader macros, are now called
   "sharp macros"
 * `try` now enforces the usual Python order for its elements (`else` must
-  follow all `except`s, and `finally` must come last). This is only a
+  follow all `except`\s, and `finally` must come last). This is only a
   syntactic change; the elements were already run in Python order even when
   defined out of order.
 * `try` now requires an `except` or `finally` clause, as in Python
