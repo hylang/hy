@@ -29,15 +29,15 @@
               (try (while True
                      (yield (get self index))
                      (setv index (inc index)))
-                   (except [_ IndexError]
-                     (raise StopIteration))))
+                   (except [IndexError]
+                     (return))))
    --len-- (fn [self]
              "length of the sequence, dangerous for infinite sequences"
              (setv index (. self high-water))
              (try (while True
                     (get self index)
                     (setv index (inc index)))
-                  (except [_ IndexError]
+                  (except [IndexError]
                     (len (. self cache)))))
    max-items-in-repr 10
    --str-- (fn [self]

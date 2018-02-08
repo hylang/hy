@@ -422,7 +422,10 @@ Raises ValueError for (not (pos? n))."
   (for* [val citer]
     (yield val)
     (for* [_ (range skip)]
-      (next citer))))
+      (try
+        (next citer)
+        (except [StopIteration]
+          (return))))))
 
 (defn zero? [n]
   "Check if `n` equals 0."
