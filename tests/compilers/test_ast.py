@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from hy import HyString
 from hy.models import HyObject
 from hy.compiler import hy_compile
-from hy.importer import import_buffer_to_hst
+from hy.importer import hy_eval, import_buffer_to_hst
 from hy.errors import HyCompileError, HyTypeError
 from hy.lex.exceptions import LexException
 from hy._compat import PY3
@@ -28,6 +28,10 @@ def _ast_spotcheck(arg, root, secondary):
 
 def can_compile(expr):
     return hy_compile(import_buffer_to_hst(expr), "__main__")
+
+
+def can_eval(expr):
+    return hy_eval(import_buffer_to_hst(expr))
 
 
 def cant_compile(expr):
@@ -664,3 +668,8 @@ def test_ast_good_yield_from():
 def test_ast_bad_yield_from():
     "Make sure AST can't compile invalid yield-from"
     cant_compile("(yield-from)")
+
+
+def test_eval_generator_with_return():
+    """Ensure generators with a return statement works."""
+    can_eval("(fn [] (yield 1) (yield 2) (return))")

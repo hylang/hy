@@ -2040,8 +2040,10 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_return(self, expr):
         ret = Result()
-        if len(expr) > 1:
-            ret += self.compile(expr[1])
+        if len(expr) == 1:
+            return asty.Return(expr, value=None)
+
+        ret += self.compile(expr[1])
         return ret + asty.Return(expr, value=ret.force_expr)
 
     @builds("defclass")

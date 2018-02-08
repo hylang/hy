@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Bug Fixes
+------------------------------
+* Fix `(return)` so it works correctly to exit a Python 2 generator
+
 0.14.0
 ==============================
 
