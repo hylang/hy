@@ -37,19 +37,9 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
                          universal_newlines=True,
                          shell=False,
                          env=env)
-    if stdin_data is not None:
-        p.stdin.write(stdin_data)
-        p.stdin.flush()
-        p.stdin.close()
-    # Read stdout and stderr otherwise if the PIPE buffer is full, we might
-    # wait for ever…
-    stdout = ""
-    stderr = ""
-    while p.poll() is None:
-        stdout += p.stdout.read()
-        stderr += p.stderr.read()
-    assert p.returncode == expect
-    return stdout, stderr
+    output = p.communicate(input=stdin_data)
+    assert p.wait() == expect
+    return output
 
 
 def rm(fpath):
