@@ -1,4 +1,4 @@
-import _pytest
+import pytest
 import hy
 import os
 from hy._compat import PY3, PY35, PY36
@@ -12,7 +12,4 @@ def pytest_collect_file(parent, path):
             and not ("py3_only" in path.basename and not PY3)
             and not ("py35_only" in path.basename and not PY35)
             and not ("py36_only" in path.basename and not PY36)):
-        m = _pytest.python.pytest_pycollect_makemodule(path, parent)
-        # Spoof the module name to avoid hitting an assertion in pytest.
-        m.name = m.name[:-len(".hy")] + ".py"
-        return m
+        return pytest.Module(path, parent)
