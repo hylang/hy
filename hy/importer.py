@@ -18,7 +18,7 @@ import inspect
 import os
 import __future__
 
-from hy._compat import PY3, MAGIC, builtins, long_type, wr_long
+from hy._compat import PY3, PY37, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
 
@@ -220,6 +220,12 @@ def write_code_as_pyc(fname, code):
 
     with builtins.open(cfile, 'wb') as fc:
         fc.write(MAGIC)
+        if PY37:
+            # With PEP 552, the header structure has a new flags field
+            # that we need to fill in. All zeros preserve the legacy
+            # behaviour, but should we implement reproducible builds,
+            # this is where we'd add the information.
+            wr_long(fc, 0)
         wr_long(fc, timestamp)
         if PY3:
             wr_long(fc, st.st_size)
