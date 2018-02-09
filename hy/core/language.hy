@@ -418,11 +418,15 @@ with overlap."
 Raises ValueError for (not (pos? n))."
   (if (not (pos? n))
     (raise (ValueError "n must be positive")))
-  (setv citer (iter coll) skip (dec n))
-  (for* [val citer]
-    (yield val)
-    (for* [_ (range skip)]
-      (next citer))))
+  (if-pypy
+    ;; Workaround PyPy issue #2643
+    (do
+      (setv citer (iter coll) skip (dec n))
+      (for* [val citer]
+        (yield val)
+        (for* [_ (range skip)]
+          (next citer))))
+    (islice coll None None n)))
 
 (defn zero? [n]
   "Check if `n` equals 0."

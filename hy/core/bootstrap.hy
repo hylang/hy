@@ -85,3 +85,10 @@
   (if (< (get sys.version_info 0) 3)
     python2-form
     python3-form))
+
+(defmacro if-pypy [pypy-form default-form]
+  "If running on pypy, execute pypy-form, else, execute the other form"
+  (import platform)
+  (if (= (.python-implementation platform) "PyPy")
+    pypy-form
+    default-form))
