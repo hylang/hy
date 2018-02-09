@@ -2,9 +2,8 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from inspect import getargspec, formatargspec
+import hy.inspect
 from hy.models import replace_hy_obj, HyExpression, HySymbol
-
 from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
@@ -36,8 +35,7 @@ def macro(name):
     def _(fn):
         fn.__name__ = '({})'.format(name)
         try:
-            argspec = getargspec(fn)
-            fn._hy_macro_pass_compiler = argspec.keywords is not None
+            fn._hy_macro_pass_compiler = hy.inspect.has_kwargs(fn)
         except Exception:
             # An exception might be raised if fn has arguments with
             # names that are invalid in Python.
@@ -136,9 +134,7 @@ def make_empty_fn_copy(fn):
         # can continue running. Unfortunately, the error message that might get
         # raised later on while expanding a macro might not make sense at all.
 
-        argspec = getargspec(fn)
-        formatted_args = formatargspec(*argspec)
-
+        formatted_args = hy.inspect.format_args(fn)
         fn_str = 'lambda {}: None'.format(
             formatted_args.lstrip('(').rstrip(')'))
         empty_fn = eval(fn_str)
