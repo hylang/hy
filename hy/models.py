@@ -149,7 +149,25 @@ class HyKeyword(HyObject, str_type):
         return obj
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, repr(self[1:]))
+        return "%s(%r)" % (self.__class__.__name__, self[1:])
+
+    def __str__(self):
+        return self[1:]
+
+    __hy_repr__ = __str__
+
+    def __hash__(self):
+        return str_type.__hash__(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, HyKeyword):
+            return False
+        return str_type.__eq__(self, other)
+
+    def __ne__(self, other):
+        if not isinstance(other, HyKeyword):
+            return True
+        return str_type.__ne__(self, other)
 
 
 def strip_digit_separators(number):

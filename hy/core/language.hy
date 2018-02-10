@@ -62,8 +62,7 @@
 
 (defn keyword? [k]
   "Check whether `k` is a keyword."
-  (and (instance? (type :foo) k)
-       (.startswith k (get :foo 0))))
+  (instance? HyKeyword k))
 
 (defn dec [n]
   "Decrement `n` by 1."
@@ -458,8 +457,8 @@ as EOF (defaults to an empty string)."
   "Create a keyword from `value`.
 
 Strings numbers and even objects with the __name__ magic will work."
-  (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (hyify value)
+  (if (keyword? value)
+    (HyKeyword (hyify (str value)))
     (if (string? value)
       (HyKeyword (+ ":" (hyify value)))
       (try
@@ -471,8 +470,8 @@ Strings numbers and even objects with the __name__ magic will work."
 
 Keyword special character will be stripped. String will be used as is.
 Even objects with the __name__ magic will work."
-  (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (hyify (cut value 2))
+  (if (keyword? value)
+    (hyify (cut (str value) 1))
     (if (string? value)
       (hyify value)
       (try

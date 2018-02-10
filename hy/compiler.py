@@ -768,6 +768,9 @@ class HyASTCompiler(object):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
 
+        elif isinstance(form, HyKeyword):
+            return imports, form, False
+
         elif isinstance(form, HyString):
             x = [HySymbol(name), form]
             if form.brackets is not None:
@@ -2208,7 +2211,18 @@ class HyASTCompiler(object):
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
-    @builds(HyString, HyKeyword, HyBytes)
+    @builds(HyKeyword)
+    def compile_keyword(self, string, building):
+        ret = Result()
+        ret += asty.Call(
+            string,
+            func=asty.Name(string, id="HyKeyword", ctx=ast.Load()),
+            args=[asty.Str(string, s=str_type(string))],
+            keywords=[])
+        ret.add_imports("hy", {"HyKeyword"})
+        return ret
+
+    @builds(HyString, HyBytes)
     def compile_string(self, string, building):
         node = asty.Bytes if PY3 and building is HyBytes else asty.Str
         f = bytes_type if building is HyBytes else str_type
