@@ -560,9 +560,7 @@
   (assert (= (.a.b.meth x) "meth"))
   (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
   (assert (= (.a.b.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
-  (assert (= (.a.b.meth x #* ["foo" "bar"]) "meth foo bar"))
-
-  (assert (is (.isdigit :foo) False)))
+  (assert (= (.a.b.meth x #* ["foo" "bar"]) "meth foo bar")))
 
 
 (defn test-do []

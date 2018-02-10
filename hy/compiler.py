@@ -523,13 +523,13 @@ class HyASTCompiler(object):
                 except StopIteration:
                     raise HyTypeError(expr,
                                       "Keyword argument {kw} needs "
-                                      "a value.".format(kw=str(expr[1:])))
+                                      "a value.".format(kw=expr))
 
                 compiled_value = self.compile(value)
                 ret += compiled_value
 
                 # no unicode for py2 in ast names
-                keyword = str(expr[2:])
+                keyword = str(expr[1:])
                 if "-" in keyword and keyword != "-":
                     keyword = keyword.replace("-", "_")
 
