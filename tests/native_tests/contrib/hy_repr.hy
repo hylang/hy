@@ -79,14 +79,6 @@
   (assert (is (type (get orig 1)) float))
   (assert (is (type (get result 1)) HyFloat)))
 
-(when PY3 (defn test-bytes-keywords []
-  ; Make sure that keyword-like bytes objects aren't hy-repred as if
-  ; they were real keywords.
-  (setv kw :mykeyword)
-  (assert (= (hy-repr kw) ":mykeyword"))
-  (assert (= (hy-repr (str ':mykeyword)) ":mykeyword"))
-  (assert (= (hy-repr (.encode kw "UTF-8") #[[b"\xef\xb7\x90:hello"]])))))
-
 (when PY3 (defn test-dict-views []
   (assert (= (hy-repr (.keys {1 2})) "(dict-keys [1])"))
   (assert (= (hy-repr (.values {1 2})) "(dict-values [2])"))

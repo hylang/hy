@@ -554,7 +554,7 @@
   (assert (= (.a.b.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
   (assert (= (.a.b.meth x #* ["foo" "bar"]) "meth foo bar"))
 
-  (assert (is (.isdigit :foo) False)))
+  (assert (= (.__str__ :foo) ":foo")))
 
 
 (defn test-do []
@@ -1221,8 +1221,11 @@
   "NATIVE: test if keywords are recognised"
 
   (assert (= :foo :foo))
+  (assert (= :foo ':foo))
+  (assert (is (type :foo) (type ':foo)))
   (assert (= (get {:foo "bar"} :foo) "bar"))
   (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
+
 
 (defn test-keyword-clash []
   "NATIVE: test that keywords do not clash with normal strings"
@@ -1648,11 +1651,6 @@ macros()
   (assert (is bar (get foo 1)))
   (setv (. foo [1] test) "hello")
   (assert (= (getattr (. foo [1]) "test") "hello")))
-
-(defn test-keyword-quoting []
-  "NATIVE: test keyword quoting magic"
-  (assert (= :foo "\ufdd0:foo"))
-  (assert (= `:foo "\ufdd0:foo")))
 
 (defn test-only-parse-lambda-list-in-defn []
   "NATIVE: test lambda lists are only parsed in defn"
