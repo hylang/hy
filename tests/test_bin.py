@@ -19,10 +19,6 @@ from hy.importer import get_bytecode_path
 hy_dir = os.environ.get('HY_DIR', '')
 
 
-def hr(s=""):
-    return "hy --repl-output-fn=hy.contrib.hy-repr.hy-repr " + s
-
-
 def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
     env = None
     if dontwritebytecode:
@@ -81,14 +77,14 @@ def test_bin_hy_stdin():
 
 def test_bin_hy_stdin_multiline():
     output, _ = run_cmd("hy", '(+ "a" "b"\n"c" "d")')
-    assert "'abcd'" in output
+    assert '"abcd"' in output
 
 
 def test_bin_hy_stdin_comments():
     _, err_empty = run_cmd("hy", '')
 
     output, err = run_cmd("hy", '(+ "a" "b") ; "c"')
-    assert "'ab'" in output
+    assert '"ab"' in output
     assert err == err_empty
 
     _, err = run_cmd("hy", '; 1')
@@ -160,17 +156,14 @@ def test_bin_hy_stdin_bad_repr():
 
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
-    assert "[1, 2]" in output.replace('L', '')
+    assert "[1 2]" in output.replace('L', '')
 
-    output, _ = run_cmd(hr(), '(+ [1] [2])')
-    assert "[1 2]" in output
-
-    output, _ = run_cmd(hr("--spy"), '(+ [1] [2])')
+    output, _ = run_cmd("hy --spy", '(+ [1] [2])')
     assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
     assert "[1 2]" in output
 
     # --spy should work even when an exception is thrown
-    output, _ = run_cmd(hr("--spy"), '(+ [1] [2] (foof))')
+    output, _ = run_cmd("hy --spy", '(+ [1] [2] (foof))')
     assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
 
 
