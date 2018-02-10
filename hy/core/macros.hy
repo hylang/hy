@@ -113,7 +113,7 @@ used as the result."
   (if (empty? body)
     (macro-error None "`for' requires a body to evaluate"))
   (setv lst (get body -1))
-  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
+  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) `else))
                 [(body.pop)]
                 []))
   (if

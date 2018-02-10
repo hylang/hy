@@ -1309,7 +1309,7 @@
 
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
-  (assert (= 'bar (eval (quote foo) {'foo 'bar})))
+  (assert (= 'bar (eval (quote foo) {"foo" 'bar})))
   (assert (= 1 (do (setv d {}) (eval '(setv x 1) d) (eval (quote x) d))))
   (setv d1 {}  d2 {})
   (eval '(setv x 1) d1)

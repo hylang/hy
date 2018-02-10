@@ -9,6 +9,7 @@ import sys
 
 import hy.macros
 import hy.compiler
+from hy import HySymbol
 from hy._compat import builtins, string_types
 
 
@@ -76,10 +77,14 @@ class Completer(object):
         matches = []
         for p in self.path:
             for k in p.keys():
-                if isinstance(k, string_types):
-                    k = k.replace("_", "-")
-                    if k.startswith(text):
-                        matches.append(k)
+                if not isinstance(k, string_types):
+                    continue
+                elif isinstance(k, HySymbol):
+                    k = str(k)
+                k = k.replace("_", "-")
+                if k.startswith(text):
+                    matches.append(k)
+
         return matches
 
     def tag_matches(self, text):
@@ -87,9 +92,12 @@ class Completer(object):
         matches = []
         for p in self.tag_path:
             for k in p.keys():
-                if isinstance(k, string_types):
-                    if k.startswith(text):
-                        matches.append("#{}".format(k))
+                if not isinstance(k, string_types):
+                    continue
+                elif isinstance(k, HySymbol):
+                    k = str(k)
+                if k.startswith(text):
+                    matches.append("#{}".format(k))
         return matches
 
     def complete(self, text, state):

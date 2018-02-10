@@ -117,6 +117,19 @@ class HySymbol(HyString):
     def __init__(self, string):
         self += string
 
+    def __hash__(self):
+        return str_type.__hash__(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, HySymbol):
+            return False
+        return str_type.__eq__(self, other)
+
+    def __ne__(self, other):
+        if not isinstance(other, HySymbol):
+            return True
+        return str_type.__ne__(self, other)
+
 _wrappers[bool] = lambda x: HySymbol("True") if x else HySymbol("False")
 _wrappers[type(None)] = lambda foo: HySymbol("None")
 
@@ -338,7 +351,7 @@ class HyCons(HyObject):
             # Keep unquotes in the cdr of conses
             if type(cdr) == HyExpression:
                 if len(cdr) > 0 and type(cdr[0]) == HySymbol:
-                    if cdr[0] in ("unquote", "unquote_splice"):
+                    if cdr[0] in (HySymbol("unquote"), HySymbol("unquote_splice")):
                         return super(HyCons, cls).__new__(cls)
 
             return cdr.__class__([wrap_value(car)] + cdr)

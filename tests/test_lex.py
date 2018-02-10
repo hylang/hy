@@ -245,12 +245,13 @@ def test_lex_line_counting_multi_inner():
 def test_dicts():
     """ Ensure that we can tokenize a dict. """
     objs = tokenize("{foo bar bar baz}")
-    assert objs == [HyDict(["foo", "bar", "bar", "baz"])]
+    assert objs == [HyDict([HySymbol("foo"), HySymbol("bar"),
+                            HySymbol("bar"), HySymbol("baz")])]
 
     objs = tokenize("(bar {foo bar bar baz})")
     assert objs == [HyExpression([HySymbol("bar"),
-                                  HyDict(["foo", "bar",
-                                          "bar", "baz"])])]
+                                  HyDict([HySymbol("foo"), HySymbol("bar"),
+                                          HySymbol("bar"), HySymbol("baz")])])]
 
     objs = tokenize("{(foo bar) (baz quux)}")
     assert objs == [HyDict([
@@ -265,7 +266,8 @@ def test_sets():
     assert objs == [HySet([HyInteger(1), HyInteger(2)])]
     objs = tokenize("(bar #{foo bar baz})")
     assert objs == [HyExpression([HySymbol("bar"),
-                                  HySet(["foo", "bar", "baz"])])]
+                                  HySet([HySymbol("foo"), HySymbol("bar"),
+                                         HySymbol("baz")])])]
 
     objs = tokenize("#{(foo bar) (baz quux)}")
     assert objs == [HySet([
