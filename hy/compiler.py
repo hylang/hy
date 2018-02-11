@@ -699,20 +699,17 @@ class HyASTCompiler(object):
         We need to distinguish them as want to concatenate them instead of
         just nesting them.
         """
-        if level == 0:
-            if isinstance(form, HyExpression):
-                if expr_startswith(form, "unquote", "unquote_splice"):
-                    if len(form) != 2:
-                        raise HyTypeError(form,
-                                          ("`%s' needs 1 argument, got %s" %
-                                           form[0], len(form) - 1))
-                    return set(), form[1], (form[0] == HySymbol("unquote_splice"))
-
-        if isinstance(form, HyExpression):
-            if expr_startswith(form, "quasiquote"):
-                level += 1
-            if expr_startswith(form, "unquote", "unquote_splice"):
+        if expr_startswith(form, "unquote", "unquote_splice"):
+            if level == 0:
+                if len(form) != 2:
+                    raise HyTypeError(form,
+                                      ("`%s' needs 1 argument, got %s" %
+                                       form[0], len(form) - 1))
+                return set(), form[1], (form[0] == HySymbol("unquote_splice"))
+            else:
                 level -= 1
+        elif expr_startswith(form, "quasiquote"):
+            level += 1
 
         name = form.__class__.__name__
         imports = set([name])
