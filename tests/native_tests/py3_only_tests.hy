@@ -84,3 +84,26 @@
        (assert (= (foo :b 20 :a 10 :c 30)
                   (, 10 20 30)))))
 
+(defn test-pep-3115 []
+  (defclass member-table [dict]
+    [--init-- (fn [self] (setv self.member-names []))
+
+     --setitem-- (fn [self key value]
+                   (if (not-in key self)
+                       (.append self.member-names key))
+                   (dict.--setitem-- self key value))])
+
+  (defclass OrderedClass [type]
+    [--prepare-- (classmethod (fn [metacls name bases] (member-table)))
+
+     --new-- (fn [cls name bases classdict]
+               (setv result (type.--new-- cls name bases (dict classdict)))
+               (setv result.member-names classdict.member-names)
+               result)])
+
+  (defclass MyClass [:metaclass OrderedClass]
+    [method1 (fn [self] (pass))
+     method2 (fn [self] (pass))])
+
+  (assert (= (. (MyClass) member-names)
+             ["__module__" "__qualname__" "method1" "method2"])))

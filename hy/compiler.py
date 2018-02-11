@@ -2057,11 +2057,12 @@ class HyASTCompiler(object):
 
         bases_expr = []
         bases = Result()
+        keywords = []
         if expressions:
             base_list = expressions.pop(0)
             if not isinstance(base_list, HyList):
                 raise HyTypeError(base_list, "Base classes must be a list.")
-            bases_expr, bases, _ = self._compile_collect(base_list)
+            bases_expr, bases, keywords = self._compile_collect(base_list, with_kwargs=PY3)
 
         body = Result()
 
@@ -2092,7 +2093,7 @@ class HyASTCompiler(object):
             expressions,
             decorator_list=[],
             name=ast_str(class_name),
-            keywords=[],
+            keywords=keywords,
             starargs=None,
             kwargs=None,
             bases=bases_expr,

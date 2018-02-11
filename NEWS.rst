@@ -19,6 +19,8 @@ Other Breaking Changes
 New Features
 ------------------------------
 * Added `mangle` and `unmangle` as core functions
+* `defclass` in Python 3 now supports specifying metaclasses and other
+  keyword arguments
 
 Bug Fixes
 ------------------------------
