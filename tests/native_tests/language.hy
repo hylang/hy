@@ -1812,3 +1812,8 @@ macros()
   (defn f4 [[a b]] "not a docstring")
   (assert (none? (. f4 __doc__)))
   (assert (= (f4 [1 2]) "not a docstring")))
+
+(defn test-relative-import []
+  "Make sure relative imports work properly"
+  (import [..resources [tlib]]))
+  (assert (= (tlib.*secret-message* "Hello World")))

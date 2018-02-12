@@ -1156,10 +1156,17 @@ class HyASTCompiler(object):
         def _compile_import(expr, module, names=None, importer=asty.Import):
             if not names:
                 names = [ast.alias(name=ast_str(module), asname=None)]
+
+            ast_module = ast_str(module)
+            module = ast_module.lstrip(".")
+            level = len(ast_module) - len(module)
+            if not module:
+                module = None
+
             ret = importer(expr,
-                           module=ast_str(module),
+                           module=module,
                            names=names,
-                           level=0)
+                           level=level)
             return Result() + ret
 
         expr.pop(0)  # index
