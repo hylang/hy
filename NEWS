@@ -62,6 +62,8 @@ Changes from 0.13.0
    * `read`, `read_str`, and `eval` are exposed and documented as top-level
      functions in the `hy` module
    * Experimental `let` macro in `hy.contrib.walk`
+   * `hy-repr` supports more standard types, and uses registered functions
+     instead of methods
 
 Changes from 0.12.1
 
