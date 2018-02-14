@@ -68,7 +68,7 @@
     (macro-error name "defn takes a name as first argument"))
   (if (not (isinstance lambda-list hy.HyList))
     (macro-error name "defn takes a parameter list as second argument"))
-  `(setv ~name (fn* ~lambda-list ~@body)))
+  `(setv ~name (fn ~lambda-list ~@body)))
 
 (defmacro defn/a [name lambda-list &rest body]
   "Define `name` as a function with `lambda-list` signature and body `body`."

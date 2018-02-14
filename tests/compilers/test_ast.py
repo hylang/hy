@@ -364,16 +364,6 @@ def test_ast_expression_basics():
     _ast_spotcheck("value.func.id", code, tree)
 
 
-def test_ast_anon_fns_basics():
-    """ Ensure anon fns work. """
-    code = can_compile("(fn (x) (* x x))").body[0].value
-    assert type(code) == ast.Lambda
-    code = can_compile("(fn (x) (print \"multiform\") (* x x))").body[0]
-    assert type(code) == ast.FunctionDef
-    can_compile("(fn (x))")
-    cant_compile("(fn)")
-
-
 def test_ast_non_decoratable():
     """ Ensure decorating garbage breaks """
     cant_compile("(with-decorator (foo) (* x x))")

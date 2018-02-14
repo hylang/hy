@@ -1929,15 +1929,11 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("fn", "fn*")
+    @builds("fn")
     @builds("fn/a", iff=PY35)
-    # The starred version is for internal use (particularly, in the
-    # definition of `defn`). It ensures that a FunctionDef is
-    # produced rather than a Lambda.
     @checkargs(min=1)
     def compile_function_def(self, expression):
         root = expression.pop(0)
-        force_functiondef = root in ("fn*", "fn/a")
         asyncdef = root == "fn/a"
 
         arglist = expression.pop(0)
@@ -2005,10 +2001,6 @@ class HyASTCompiler(object):
             defaults=defaults)
 
         body = self._compile_branch(expression)
-        if not force_functiondef and not body.stmts:
-            ret += asty.Lambda(expression, args=args, body=body.force_expr)
-            return ret
-
         if body.expr:
             if body.contains_yield and not PY3:
                 # Prior to PEP 380 (introduced in Python 3.3)

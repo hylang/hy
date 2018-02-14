@@ -246,7 +246,7 @@ Arguments without a header are under None.
   ;; and local bindings should shadow those made by let.
   (defn handle-call [self]
     (setv head (first self.form))
-    (if (in head '[fn fn*]) (self.handle-fn)
+    (if (in head '[fn fn]) (self.handle-fn)
         (in head '[import
                    require
                    quote
@@ -341,7 +341,6 @@ as can nested let forms.
    ;;; can shadow let bindings with Python locals
    ;; protect its bindings for the lexical scope of its body.
    'fn',
-   'fn*',
    ;; protect as bindings for the lexical scope of its body
    'except',
 
