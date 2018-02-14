@@ -1,4 +1,4 @@
 include AUTHORS
 include LICENSE
-include NEWS
+include NEWS.rst
 include README.md
