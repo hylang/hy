@@ -23,6 +23,7 @@ import sys
 PY3 = sys.version_info[0] >= 3
 PY35 = sys.version_info >= (3, 5)
 PY36 = sys.version_info >= (3, 6)
+PY37 = sys.version_info >= (3, 7)
 
 str_type     = str   if PY3 else unicode      # NOQA
 bytes_type   = bytes if PY3 else str          # NOQA
