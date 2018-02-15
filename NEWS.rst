@@ -164,7 +164,7 @@ Language Changes
 * defmacro will raise an error on &kwonly, &kwargs and &key arguments
 * Keyword argument labels to functions are required to be strings
 * slice replaced with cut to stop overloading the python built-in
-* removed reduntant throw, catch, progn, defun, lisp-if, lisp-if-not,
+* removed redundant throw, catch, progn, defun, lisp-if, lisp-if-not,
   filterfalse, true, false and nil
 * global now takes multiple arguments
 * Nonlocal keyword (Python 3 only)

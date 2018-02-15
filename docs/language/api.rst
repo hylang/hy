@@ -1957,7 +1957,7 @@ with/a
 ------
 
 ``with/a`` behaves like ``with``, but is used to wrap the execution of
-a block within a asynchronous context manager. The context manager can
+a block within an asynchronous context manager. The context manager can
 then set up the local system and tear it down in a controlled manner
 asynchronously.
 
