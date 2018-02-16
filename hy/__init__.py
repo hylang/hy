@@ -8,9 +8,9 @@ except ImportError:
 from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet  # NOQA
 
 
-import hy.importer  # NOQA
+import hy.importlib  # NOQA
 # we import for side-effects.
 
 
 from hy.core.language import read, read_str, mangle, unmangle  # NOQA
-from hy.importer import hy_eval as eval  # NOQA
+from hy.importlib import hy_eval as eval  # NOQA

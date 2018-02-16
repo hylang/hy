@@ -6,18 +6,7 @@ try:
     import __builtin__ as builtins
 except ImportError:
     import builtins  # NOQA
-try:
-    from py_compile import MAGIC, wr_long
-except ImportError:
-    # py_compile.MAGIC removed and imp.get_magic() deprecated in Python 3.4
-    from importlib.util import MAGIC_NUMBER as MAGIC  # NOQA
 
-    def wr_long(f, x):
-        """Internal; write a 32-bit int to a file in little-endian order."""
-        f.write(bytes([x & 0xff,
-                       (x >> 8) & 0xff,
-                       (x >> 16) & 0xff,
-                       (x >> 24) & 0xff]))
 import sys, keyword
 
 PY3 = sys.version_info[0] >= 3
@@ -60,3 +49,8 @@ def isidentifier(x):
     except T.TokenError:
         return False
     return len(tokens) == 2 and tokens[0][0] == T.NAME
+
+try:
+    FileNotFoundError = FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError

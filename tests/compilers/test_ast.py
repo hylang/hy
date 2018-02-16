@@ -7,8 +7,7 @@ from __future__ import unicode_literals
 
 from hy import HyString
 from hy.models import HyObject
-from hy.compiler import hy_compile
-from hy.importer import hy_eval, import_buffer_to_hst
+from hy.importlib import hy_compile, hy_eval, hy_parse
 from hy.errors import HyCompileError, HyTypeError
 from hy.lex.exceptions import LexException
 from hy._compat import PY3
@@ -26,16 +25,16 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def can_compile(expr):
-    return hy_compile(import_buffer_to_hst(expr), "__main__")
+    return hy_compile(hy_parse(expr), "__main__")
 
 
 def can_eval(expr):
-    return hy_eval(import_buffer_to_hst(expr))
+    return hy_eval(can_compile(expr))
 
 
 def cant_compile(expr):
     try:
-        hy_compile(import_buffer_to_hst(expr), "__main__")
+        hy_compile(hy_parse(expr), "__main__")
         assert False
     except HyTypeError as e:
         # Anything that can't be compiled should raise a user friendly

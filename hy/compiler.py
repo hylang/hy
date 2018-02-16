@@ -3,6 +3,8 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+from __future__ import absolute_import
+
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
                        HyDict, HySequence, wrap_value)
@@ -17,7 +19,8 @@ import hy.macros
 from hy._compat import (
     str_type, bytes_type, long_type, PY3, PY35, raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
-import hy.importer
+import hy.importlib
+import hy.inspect
 
 import traceback
 import importlib
@@ -1531,9 +1534,9 @@ class HyASTCompiler(object):
             # Initialize a compile-time namespace for this module.
             self._namespaces[self.module_name] = {
                 'hy': hy, '__name__': self.module_name}
-        hy.importer.hy_eval(new_expr + body,
-                            self._namespaces[self.module_name],
-                            self.module_name)
+        hy.importlib.hy_eval(new_expr + body,
+                             self._namespaces[self.module_name],
+                             self.module_name)
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
                 else Result())

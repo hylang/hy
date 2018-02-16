@@ -22,7 +22,7 @@
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.lex.parser [mangle unmangle]])
 (import [hy.compiler [HyASTCompiler]])
-(import [hy.importer [hy-eval :as eval]])
+(import [hy.importlib [hy-eval :as eval]])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."
