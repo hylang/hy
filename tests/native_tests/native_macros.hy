@@ -145,7 +145,7 @@
 (defn test-gensym-in-macros []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.importlib [hy-parse hy-compile]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (gensym))
       `(do
@@ -158,8 +158,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   ;; and make sure there is something new that starts with _;G|
@@ -171,7 +171,7 @@
 (defn test-with-gensym []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.importlib [hy-parse hy-compile]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
         `(do
@@ -184,8 +184,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   (assert (in (mangle "_;a|") s1))
@@ -195,7 +195,7 @@
 (defn test-defmacro-g! []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.importlib [hy-parse hy-compile]])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -207,8 +207,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   (assert (in "_;res|" s1))
@@ -218,13 +218,13 @@
   ;; defmacro/g! didn't like numbers initially because they
   ;; don't have a startswith method and blew up during expansion
   (setv macro2 "(defmacro/g! two-point-zero [] `(+ (float 1) 1.0))")
-  (assert (import_buffer_to_ast macro2 "foo")))
+  (assert (hy-compile (hy-parse macro2) "foo")))
 
 (defn test-defmacro! []
   ;; defmacro! must do everything defmacro/g! can
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.importlib [hy-parse hy-compile]])
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -236,8 +236,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   (assert (in "_;res|" s1))
@@ -247,7 +247,7 @@
   ;; defmacro/g! didn't like numbers initially because they
   ;; don't have a startswith method and blew up during expansion
   (setv macro2 "(defmacro! two-point-zero [] `(+ (float 1) 1.0))")
-  (assert (import_buffer_to_ast macro2 "foo"))
+  (assert (hy-compile (hy-parse macro2) "foo"))
 
   (defmacro! foo! [o!foo] `(do ~g!foo ~g!foo))
   ;; test that o! becomes g!
