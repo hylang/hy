@@ -3,6 +3,8 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+from __future__ import absolute_import
+
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
                        HyDict, HyCons, wrap_value)
@@ -15,7 +17,7 @@ from hy._compat import (
     str_type, string_types, bytes_type, long_type, PY3, PY35,
     raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
-import hy.importer
+import hy.importlib
 
 import traceback
 import importlib
@@ -2134,9 +2136,9 @@ class HyASTCompiler(object):
     @builds("eval_and_compile", "eval_when_compile")
     def compile_eval_and_compile(self, expression, building):
         expression[0] = HySymbol("do")
-        hy.importer.hy_eval(expression,
-                            compile_time_ns(self.module_name),
-                            self.module_name)
+        hy.importlib.hy_eval(expression,
+                             compile_time_ns(self.module_name),
+                             self.module_name)
         return (self._compile_branch(expression[1:])
                 if building == "eval_and_compile"
                 else Result())

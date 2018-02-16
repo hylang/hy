@@ -19,7 +19,7 @@
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.compiler [HyASTCompiler spoof-positions]])
-(import [hy.importer [hy-eval :as eval]])
+(import [hy.importlib [hy-eval :as eval]])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."

@@ -10,6 +10,7 @@ import ast
 import sys
 import os
 import importlib
+import runpy
 
 import astor.code_gen
 
@@ -18,9 +19,7 @@ import hy
 from hy.lex import LexException, PrematureEndOfInput
 from hy.lex.parser import hy_symbol_mangle
 from hy.compiler import HyTypeError
-from hy.importer import (hy_eval, import_buffer_to_module,
-                         import_file_to_ast, import_file_to_hst,
-                         import_buffer_to_ast, import_buffer_to_hst)
+from hy.importlib import HyLoader, hy_eval
 from hy.completer import completion
 from hy.completer import Completer
 
@@ -77,7 +76,8 @@ class HyREPL(code.InteractiveConsole):
         global SIMPLE_TRACEBACKS
         try:
             try:
-                do = import_buffer_to_hst(source)
+                from .importlib import hy_parse
+                do = hy_parse(source)
             except PrematureEndOfInput:
                 return True
         except LexException as e:
@@ -95,7 +95,7 @@ class HyREPL(code.InteractiveConsole):
                     new_ast = ast.Module(main_ast.body +
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
-            value = hy_eval(do, self.locals, "__console__",
+            value = hy_eval(do, self.locals, "__main__",
                             ast_callback)
         except HyTypeError as e:
             if e.source is None:
@@ -175,7 +175,7 @@ def ideas_macro(ETname):
 
 """)])
 
-require("hy.cmdline", "__console__", all_macros=True)
+# require("hy.cmdline", "__console__", all_macros=True)
 require("hy.cmdline", "__main__", all_macros=True)
 
 SIMPLE_TRACEBACKS = True
@@ -192,26 +192,9 @@ def pretty_error(func, *args, **kw):
 
 
 def run_command(source):
-    pretty_error(import_buffer_to_module, "__main__", source)
-    return 0
-
-
-def run_module(mod_name):
-    from hy.importer import MetaImporter
-    pth = MetaImporter().find_on_path(mod_name)
-    if pth is not None:
-        sys.argv = [pth] + sys.argv
-        return run_file(pth)
-
-    print("{0}: module '{1}' not found.\n".format(hy.__appname__, mod_name),
-          file=sys.stderr)
-    return 1
-
-
-def run_file(filename):
-    from hy.importer import import_file_to_module
-    pretty_error(import_file_to_module, "__main__", filename)
-    return 0
+    from . import importer
+    ast = importer.hy_parse(source)
+    hy_eval(ast)
 
 
 def run_repl(hr=None, **kwargs):
@@ -219,7 +202,7 @@ def run_repl(hr=None, **kwargs):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    namespace = {'__name__': '__console__', '__doc__': ''}
+    namespace = {'__name__': '__main__', '__doc__': ''}
 
     with completion(Completer(namespace)):
 
@@ -290,17 +273,6 @@ def cmdline_handler(scriptname, argv):
     # stash the hy executable in case we need it later
     # mimics Python sys.executable
     hy.executable = argv[0]
-
-    # need to split the args if using "-m"
-    # all args after the MOD are sent to the module
-    # in sys.argv
-    module_args = []
-    if "-m" in argv:
-        mloc = argv.index("-m")
-        if len(argv) > mloc+2:
-            module_args = argv[mloc+2:]
-            argv = argv[:mloc+2]
-
     options = parser.parse_args(argv[1:])
 
     if options.show_tracebacks:
@@ -308,7 +280,7 @@ def cmdline_handler(scriptname, argv):
         SIMPLE_TRACEBACKS = False
 
     # reset sys.argv like Python
-    sys.argv = options.args + module_args or [""]
+    sys.argv[1:] = options.args
 
     if options.command:
         # User did "hy -c ..."
@@ -316,7 +288,8 @@ def cmdline_handler(scriptname, argv):
 
     if options.mod:
         # User did "hy -m ..."
-        return run_module(options.mod)
+        runpy.run_module(options.mod, run_name='__main__', alter_sys=True)
+        return 0
 
     if options.icommand:
         # User did "hy -i ..."
@@ -331,7 +304,8 @@ def cmdline_handler(scriptname, argv):
         else:
             # User did "hy <filename>"
             try:
-                return run_file(options.args[0])
+                runpy.run_path(options.args[0], run_name='__main__')
+                return 0
             except HyIOError as e:
                 print("hy: Can't open file '{0}': [Errno {1}] {2}\n".format(
                     e.filename, e.errno, e.strerror), file=sys.stderr)
@@ -343,6 +317,7 @@ def cmdline_handler(scriptname, argv):
 
 # entry point for cmd line script "hy"
 def hy_main():
+    sys.path.insert(0, "")
     sys.exit(cmdline_handler("hy", sys.argv))
 
 
