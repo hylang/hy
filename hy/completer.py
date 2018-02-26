@@ -9,7 +9,8 @@ import sys
 
 import hy.macros
 import hy.compiler
-from hy._compat import builtins, string_types
+from hy import HySymbol
+from hy._compat import PY3, builtins, string_types
 
 
 docomplete = True
@@ -31,21 +32,30 @@ if docomplete:
         readline_bind = "tab: complete"
 
 
+if PY3:
+    def viewkeys(obj):
+        return obj.keys()
+else:
+    def viewkeys(obj):
+        return obj.viewkeys()
+
+
 class Completer(object):
 
     def __init__(self, namespace={}):
         if not isinstance(namespace, dict):
             raise TypeError('namespace must be a dictionary')
         self.namespace = namespace
-        self.path = [hy.compiler._compile_table,
-                     builtins.__dict__,
-                     hy.macros._hy_macros[None],
-                     namespace]
-        self.tag_path = [hy.macros._hy_tag[None]]
+        self.path = [set(str(x) for x in hy.compiler._compile_table
+                         if isinstance(x, HySymbol)),
+                     viewkeys(builtins.__dict__),
+                     viewkeys(hy.macros._hy_macros[None]),
+                     viewkeys(namespace)]
+        self.tag_path = [hy.macros._hy_tag[None].keys()]
         if '__name__' in namespace:
             module_name = namespace['__name__']
-            self.path.append(hy.macros._hy_macros[module_name])
-            self.tag_path.append(hy.macros._hy_tag[module_name])
+            self.path.append(viewkeys(hy.macros._hy_macros[module_name]))
+            self.tag_path.append(viewkeys(hy.macros._hy_tag[module_name]))
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer
@@ -75,21 +85,20 @@ class Completer(object):
     def global_matches(self, text):
         matches = []
         for p in self.path:
-            for k in p.keys():
-                if isinstance(k, string_types):
-                    k = k.replace("_", "-")
-                    if k.startswith(text):
-                        matches.append(k)
+            for k in p:
+                k = k.replace("_", "-")
+                if k.startswith(text):
+                    matches.append(k)
+
         return matches
 
     def tag_matches(self, text):
         text = text[1:]
         matches = []
         for p in self.tag_path:
-            for k in p.keys():
-                if isinstance(k, string_types):
-                    if k.startswith(text):
-                        matches.append("#{}".format(k))
+            for k in p:
+                if k.startswith(text):
+                    matches.append("#{}".format(k))
         return matches
 
     def complete(self, text, state):

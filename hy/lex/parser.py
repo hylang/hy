@@ -105,7 +105,7 @@ def reject_spurious_dots(*items):
     "Reject the spurious dots from items"
     for list in items:
         for tok in list:
-            if tok == "." and type(tok) == HySymbol:
+            if tok == HySymbol("."):
                 raise LexException("Malformed dotted list",
                                    tok.start_line, tok.start_column)
 
@@ -119,7 +119,7 @@ def paren(p):
     # (a b c . d)
     # that evaluate to nested cons cells of the form
     # (a . (b . (c . d)))
-    if len(cont) >= 3 and isinstance(cont[-2], HySymbol) and cont[-2] == ".":
+    if len(cont) >= 3 and isinstance(cont[-2], HySymbol) and cont[-2] == HySymbol("."):
 
         reject_spurious_dots(cont[:-2], cont[-1:])
 

@@ -560,9 +560,7 @@
   (assert (= (.a.b.meth x) "meth"))
   (assert (= (.a.b.meth x "foo" "bar") "meth foo bar"))
   (assert (= (.a.b.meth :b "1" :a "2" x "foo" "bar") "meth foo bar 2 1"))
-  (assert (= (.a.b.meth x #* ["foo" "bar"]) "meth foo bar"))
-
-  (assert (is (.isdigit :foo) False)))
+  (assert (= (.a.b.meth x #* ["foo" "bar"]) "meth foo bar")))
 
 
 (defn test-do []
@@ -1309,7 +1307,7 @@
 
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
-  (assert (= 'bar (eval (quote foo) {'foo 'bar})))
+  (assert (= 'bar (eval (quote foo) {"foo" 'bar})))
   (assert (= 1 (do (setv d {}) (eval '(setv x 1) d) (eval (quote x) d))))
   (setv d1 {}  d2 {})
   (eval '(setv x 1) d1)
@@ -1673,11 +1671,6 @@ macros()
   (assert (is bar (get foo 1)))
   (setv (. foo [1] test) "hello")
   (assert (= (getattr (. foo [1]) "test") "hello")))
-
-(defn test-keyword-quoting []
-  "NATIVE: test keyword quoting magic"
-  (assert (= :foo "\ufdd0:foo"))
-  (assert (= `:foo "\ufdd0:foo")))
 
 (defn test-only-parse-lambda-list-in-defn []
   "NATIVE: test lambda lists are only parsed in defn"

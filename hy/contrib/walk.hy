@@ -253,7 +253,7 @@ Arguments without a header are under None.
                    eval-and-compile
                    eval-when-compile]) (self.handle-base)
         (= head 'except) (self.handle-except)
-        (= head ".") (self.handle-dot)
+        (= head `.) (self.handle-dot)
         (= head 'defclass) (self.handle-defclass)
         (= head 'quasiquote) (self.+quote)
         ;; must be checked last!

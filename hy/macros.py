@@ -3,8 +3,9 @@
 # license. See the LICENSE.
 
 from inspect import getargspec, formatargspec
-from hy.models import replace_hy_obj, HyExpression, HySymbol
 
+from hy._compat import str_type
+from hy.models import replace_hy_obj, HyExpression, HySymbol
 from hy.errors import HyTypeError, HyMacroExpansionError
 
 from collections import defaultdict
@@ -174,7 +175,7 @@ def macroexpand_1(tree, compiler):
             return tree
 
         fn = tree[0]
-        if fn in ("quote", "quasiquote"):
+        if fn in (HySymbol("quote"), HySymbol("quasiquote")):
             return tree
         ntree = HyExpression(tree[:])
         ntree.replace(tree)
@@ -182,9 +183,9 @@ def macroexpand_1(tree, compiler):
         opts = {}
 
         if isinstance(fn, HySymbol):
-            m = _hy_macros[compiler.module_name].get(fn)
+            m = _hy_macros[compiler.module_name].get(str_type(fn))
             if m is None:
-                m = _hy_macros[None].get(fn)
+                m = _hy_macros[None].get(str_type(fn))
             if m is not None:
                 if m._hy_macro_pass_compiler:
                     opts['compiler'] = compiler
@@ -216,7 +217,7 @@ def tag_macroexpand(tag, tree, compiler):
     """Expand the tag macro "tag" with argument `tree`."""
     load_macros(compiler.module_name)
 
-    tag_macro = _hy_tag[compiler.module_name].get(tag)
+    tag_macro = _hy_tag[compiler.module_name].get(str_type(tag))
     if tag_macro is None:
         try:
             tag_macro = _hy_tag[None][tag]

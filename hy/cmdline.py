@@ -21,8 +21,8 @@ from hy.compiler import HyTypeError
 from hy.importer import (hy_eval, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst,
                          import_buffer_to_ast, import_buffer_to_hst)
-from hy.completer import completion
-from hy.completer import Completer
+from hy.completer import Completer, completion
+from hy.contrib.hy_repr import hy_repr
 
 from hy.errors import HyIOError
 
@@ -59,7 +59,7 @@ class HyREPL(code.InteractiveConsole):
         self.spy = spy
 
         if output_fn is None:
-            self.output_fn = repr
+            self.output_fn = hy_repr
         elif callable(output_fn):
             self.output_fn = output_fn
         else:

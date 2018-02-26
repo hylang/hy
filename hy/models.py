@@ -117,26 +117,56 @@ class HySymbol(HyString):
     def __init__(self, string):
         self += string
 
+    def __hash__(self):
+        return str_type.__hash__(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, HySymbol):
+            return False
+        return str_type.__eq__(self, other)
+
+    def __ne__(self, other):
+        if not isinstance(other, HySymbol):
+            return True
+        return str_type.__ne__(self, other)
+
 _wrappers[bool] = lambda x: HySymbol("True") if x else HySymbol("False")
 _wrappers[type(None)] = lambda foo: HySymbol("None")
 
 
-class HyKeyword(HyObject, str_type):
+class HyKeyword(HyObject):
     """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
     depending on the Python version.
     """
 
-    PREFIX = "\uFDD0"
+    __slots__ = ['_value']
 
-    def __new__(cls, value):
-        if not value.startswith(cls.PREFIX):
-            value = cls.PREFIX + value
-
-        obj = str_type.__new__(cls, value)
-        return obj
+    def __init__(self, value):
+        self._value = value
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, repr(self[1:]))
+        return "%s(%r)" % (self.__class__.__name__, self._value[1:])
+
+    def __str__(self):
+        return self._value
+
+    __hy_repr__ = __str__
+
+    def __getitem__(self, slice):
+        return self._value[slice]
+
+    def __hash__(self):
+        return hash(self._value)
+
+    def __eq__(self, other):
+        if not isinstance(other, HyKeyword):
+            return NotImplemented
+        return self._value == other._value
+
+    def __ne__(self, other):
+        if not isinstance(other, HyKeyword):
+            return NotImplemented
+        return self._value != other._value
 
 
 def strip_digit_separators(number):
@@ -338,7 +368,7 @@ class HyCons(HyObject):
             # Keep unquotes in the cdr of conses
             if type(cdr) == HyExpression:
                 if len(cdr) > 0 and type(cdr[0]) == HySymbol:
-                    if cdr[0] in ("unquote", "unquote_splice"):
+                    if cdr[0] in (HySymbol("unquote"), HySymbol("unquote_splice")):
                         return super(HyCons, cls).__new__(cls)
 
             return cdr.__class__([wrap_value(car)] + cdr)

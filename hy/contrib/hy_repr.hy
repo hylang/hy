@@ -21,7 +21,7 @@
     (defn catted []
       (if old? "..." (.join " " (list-comp (f it q) [it x]))))
     (setv prefix "")
-    (if (and (not q) (instance? HyObject x))
+    (if (and (not q) (not (instance? HyKeyword x)) (instance? HyObject x))
       (setv prefix "'"  q True))
     (+ prefix (if
       (hasattr x "__hy_repr__")
@@ -63,8 +63,6 @@
         (+ "(frozenset #{" (catted) "})")
       (is t HySymbol)
         x
-      (or (is t HyKeyword) (and (is t str-type) (.startswith x HyKeyword.PREFIX)))
-        (cut x 1)
       (in t [str-type HyString bytes-type HyBytes]) (do
         (setv r (.lstrip (base-repr x) "ub"))
         (+ (if (in t [bytes-type HyBytes]) "b" "") (if (.startswith "\"" r)
