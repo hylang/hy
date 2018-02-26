@@ -187,14 +187,6 @@
          (assert (in "takes a parameter list as second" (str e))))))
 
 
-(defn test-alias-names-in-errors []
-  "NATIVE: tests that native aliases show the correct names in errors"
-  (try (eval '(list-comp 1 2 3 4))
-       (except [e [Exception]] (assert (in "list_comp" (str e)))))
-  (try (eval '(set-comp 1 2 3 4))
-       (except [e [Exception]] (assert (in "set_comp" (str e))))))
-
-
 (defn test-for-loop []
   "NATIVE: test for loops"
   (setv count1 0 count2 0)
