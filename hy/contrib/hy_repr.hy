@@ -75,9 +75,9 @@
     'quote "'"
     'quasiquote "`"
     'unquote "~"
-    'unquote_splice "~@"
-    'unpack_iterable "#* "
-    'unpack_mapping "#** "})
+    'unquote-splice "~@"
+    'unpack-iterable "#* "
+    'unpack-mapping "#** "})
   (if (and x (symbol? (first x)) (in (first x) syntax))
     (+ (get syntax (first x)) (hy-repr (second x)))
     (+ "(" (-cat x) ")"))))

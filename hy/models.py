@@ -338,7 +338,7 @@ class HyCons(HyObject):
             # Keep unquotes in the cdr of conses
             if type(cdr) == HyExpression:
                 if len(cdr) > 0 and type(cdr[0]) == HySymbol:
-                    if cdr[0] in ("unquote", "unquote_splice"):
+                    if cdr[0] in ("unquote", "unquote-splice"):
                         return super(HyCons, cls).__new__(cls)
 
             return cdr.__class__([wrap_value(car)] + cdr)

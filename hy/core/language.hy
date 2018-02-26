@@ -87,7 +87,7 @@ If the second argument `codegen` is true, generate python code instead."
   "Return a generator from the original collection `coll` with no duplicates."
   (setv seen (set) citer (iter coll))
   (for* [val citer]
-    (if (not_in val seen)
+    (if (not-in val seen)
       (do
        (yield val)
        (.add seen val)))))
