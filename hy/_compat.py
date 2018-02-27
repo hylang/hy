@@ -35,3 +35,17 @@ if PY3:
 else:
     def raise_empty(t, *args):
         raise t(*args)
+
+def isidentifier(x):
+    if PY3:
+        return x.isidentifier()
+    else:
+        if x.rstrip() != x:
+            return False
+        import tokenize as T
+        from StringIO import StringIO
+        try:
+            tokens = list(T.generate_tokens(StringIO(x).readline))
+        except T.TokenError:
+            return False
+        return len(tokens) == 2 and tokens[0][0] == T.NAME

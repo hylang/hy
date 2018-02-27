@@ -488,7 +488,7 @@ Even objects with the __name__ magic will work."
     False
     (or a b)))
 
-(setv *exports*
+(setv EXPORTS
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first

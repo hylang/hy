@@ -738,13 +738,6 @@
 
   (assert (= x 2)))
 
-(defn test-earmuffs []
-  "NATIVE: Test earmuffs"
-  (setv *foo* "2")
-  (setv foo "3")
-  (assert (= *foo* FOO))
-  (assert (!= *foo* foo)))
-
 
 (defn test-threading []
   "NATIVE: test threading macro"
@@ -1110,27 +1103,6 @@
 (defn test-nested-mangles []
   "NATIVE: test that we can use macros in mangled code"
   (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
-
-
-(defn test-symbol-utf-8 []
-  "NATIVE: test symbol encoded"
-  (setv ♥ "love"
-        ⚘ "flower")
-  (assert (= (+ ⚘ ♥) "flowerlove")))
-
-
-(defn test-symbol-dash []
-  "NATIVE: test symbol encoded"
-  (setv ♥-♥ "doublelove"
-        -_- "what?")
-  (assert (= ♥-♥ "doublelove"))
-  (assert (= -_- "what?")))
-
-
-(defn test-symbol-question-mark []
-  "NATIVE: test foo? -> is_foo behavior"
-  (setv foo? "nachos")
-  (assert (= is_foo "nachos")))
 
 
 (defn test-and []
@@ -1816,4 +1788,4 @@ macros()
 (defn test-relative-import []
   "Make sure relative imports work properly"
   (import [..resources [tlib]])
-  (assert (= tlib.*secret-message* "Hello World")))
+  (assert (= tlib.SECRET-MESSAGE "Hello World")))
