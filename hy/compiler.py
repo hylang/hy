@@ -16,6 +16,7 @@ from hy._compat import (
     raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
+import hy.inspect
 
 import traceback
 import importlib
@@ -24,7 +25,6 @@ import ast
 import sys
 import keyword
 import copy
-import inspect
 
 from collections import defaultdict
 from cmath import isnan
@@ -441,10 +441,11 @@ class HyASTCompiler(object):
             # _compile_table[atom_type] is a method for compiling this
             # type of atom, so call it. If it has an extra parameter,
             # pass in `atom_type`.
-            arity = len(inspect.getargspec(_compile_table[atom_type])[0])
-            ret = (_compile_table[atom_type](self, atom, atom_type)
+            atom_compiler = _compile_table[atom_type]
+            arity = hy.inspect.get_arity(atom_compiler)
+            ret = (atom_compiler(self, atom, atom_type)
                    if arity == 3
-                   else _compile_table[atom_type](self, atom))
+                   else atom_compiler(self, atom))
             if not isinstance(ret, Result):
                 ret = Result() + ret
             return ret
@@ -2040,8 +2041,10 @@ class HyASTCompiler(object):
     @checkargs(max=1)
     def compile_return(self, expr):
         ret = Result()
-        if len(expr) > 1:
-            ret += self.compile(expr[1])
+        if len(expr) == 1:
+            return asty.Return(expr, value=None)
+
+        ret += self.compile(expr[1])
         return ret + asty.Return(expr, value=ret.force_expr)
 
     @builds("defclass")

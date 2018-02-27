@@ -304,11 +304,11 @@ def test_nospace():
 
 def test_escapes():
     """ Ensure we can escape things """
-    entry = tokenize("(foo \"foo\\n\")")[0]
+    entry = tokenize(r"""(foo "foo\n")""")[0]
     assert entry[1] == "foo\n"
 
-    entry = tokenize("(foo \"foo\\s\")")[0]
-    assert entry[1] == "foo\\s"
+    entry = tokenize(r"""(foo r"foo\s")""")[0]
+    assert entry[1] == r"foo\s"
 
 
 def test_unicode_escapes():

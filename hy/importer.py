@@ -2,6 +2,8 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+from __future__ import absolute_import
+
 from hy.compiler import hy_compile, HyTypeError
 from hy.models import HyObject, HyExpression, HySymbol, replace_hy_obj
 from hy.lex import tokenize, LexException
