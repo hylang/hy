@@ -154,9 +154,9 @@
 
 (op-and-shadow-test ~
   (forbid (f))
-  (assert (= (f (chr 0b00101111)
-                (chr 0b11010000))))
-  (forbid (f (chr 0b00101111) (chr 0b11010000))))
+  (assert (= (& (f 0b00101111) 0xFF)
+                   0b11010000))
+  (forbid (f 0b00101111 0b11010000)))
 
 
 (op-and-shadow-test <

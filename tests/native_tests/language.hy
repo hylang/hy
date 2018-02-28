@@ -1815,5 +1815,5 @@ macros()
 
 (defn test-relative-import []
   "Make sure relative imports work properly"
-  (import [..resources [tlib]]))
-  (assert (= (tlib.*secret-message* "Hello World")))
+  (import [..resources [tlib]])
+  (assert (= tlib.*secret-message* "Hello World")))
