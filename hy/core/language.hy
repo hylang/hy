@@ -454,20 +454,16 @@ as EOF (defaults to an empty string)."
   "Reads and tokenizes first line of `input`."
   (read :from-file (StringIO input)))
 
-(defn hyify [text]
-  "Convert `text` to match hy identifier."
-  (.replace (string text) "_" "-"))
-
 (defn keyword [value]
   "Create a keyword from `value`.
 
 Strings numbers and even objects with the __name__ magic will work."
   (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (hyify value)
+    (unmangle value)
     (if (string? value)
-      (HyKeyword (+ ":" (hyify value)))
+      (HyKeyword (+ ":" (unmangle value)))
       (try
-        (hyify (.__name__ value))
+        (unmangle (.__name__ value))
         (except [] (HyKeyword (+ ":" (string value))))))))
 
 (defn name [value]
@@ -476,11 +472,11 @@ Strings numbers and even objects with the __name__ magic will work."
 Keyword special character will be stripped. String will be used as is.
 Even objects with the __name__ magic will work."
   (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (hyify (cut value 2))
+    (unmangle (cut value 2))
     (if (string? value)
-      (hyify value)
+      (unmangle value)
       (try
-        (hyify (. value __name__))
+        (unmangle (. value __name__))
         (except [] (string value))))))
 
 (defn xor [a b]
