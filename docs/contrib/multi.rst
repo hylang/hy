@@ -8,9 +8,7 @@ defn
 
 ``defn`` lets you arity-overload a function by the given number of
 args and/or kwargs. This version of ``defn`` works with regular syntax and
-with the arity overloaded one. Inspired by Clojures take on ``defn``.
-
-.. code-block:: clj
+with the arity overloaded one. Inspired by Clojures take on ``defn``.::
 
     => (require [hy.contrib.multi [defn]])
     => (defn fun
@@ -39,9 +37,7 @@ defmulti
 ``defmulti``, ``defmethod`` and ``default-method`` lets you define
 multimethods where a dispatching function is used to select between different
 implementations of the function. Inspired by Clojure's multimethod and based
-on the code by `Adam Bard`_.
-
-.. code-block:: clj
+on the code by `Adam Bard`_.::
 
     => (require [hy.contrib.multi [defmulti defmethod default-method]])
     => (defmulti area [shape]
@@ -87,9 +83,7 @@ called when no other implementation matches.
 Interfaces of multimethod and different implementation don't have to be
 exactly identical, as long as they're compatible enough. In practice this
 means that multimethod should accept the broadest range of parameters and
-different implementations can narrow them down.
-
-.. code-block:: clj
+different implementations can narrow them down.::
 
     => (require [hy.contrib.multi [defmulti defmethod]])
     => (defmulti fun [&rest args]

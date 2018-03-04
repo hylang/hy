@@ -340,7 +340,9 @@ As example, the Hy::
 
     (print (if True True False))
 
-Will turn into::
+Will turn into
+
+.. code-block:: python
 
     if True:
         _temp_name_here = True
@@ -383,9 +385,7 @@ for a more complete description.) ``nif`` is an example, something like a numeri
 where based on the expression, one of the 3 forms is called depending on if the
 expression is positive, zero or negative.
 
-A first pass might be something like:
-
-.. code-block:: hy
+A first pass might be something like:::
 
    (defmacro nif [expr pos-form zero-form neg-form]
      `(do
@@ -399,9 +399,7 @@ conflict with other code. But of course, while well-intentioned,
 this is no guarantee.
 
 The method :ref:`gensym` is designed to generate a new, unique symbol for just
-such an occasion. A much better version of ``nif`` would be:
-
-.. code-block:: hy
+such an occasion. A much better version of ``nif`` would be:::
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (setv g (gensym))
@@ -413,16 +411,12 @@ such an occasion. A much better version of ``nif`` would be:
 
 This is an easy case, since there is only one symbol. But if there is
 a need for several gensym's there is a second macro :ref:`with-gensyms` that
-basically expands to a ``setv`` form:
-
-.. code-block:: hy
+basically expands to a ``setv`` form:::
 
    (with-gensyms [a b c]
      ...)
 
-expands to:
-
-.. code-block:: hy
+expands to:::
 
    (do
      (setv a (gensym)
@@ -430,9 +424,7 @@ expands to:
            c (gensym))
      ...)
 
-so our re-written ``nif`` would look like:
-
-.. code-block:: hy
+so our re-written ``nif`` would look like:::
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (with-gensyms [g]
@@ -445,9 +437,7 @@ Finally, though we can make a new macro that does all this for us. :ref:`defmacr
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
 remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 
-Our final version of ``nif``, built with ``defmacro/g!`` becomes:
-
-.. code-block:: hy
+Our final version of ``nif``, built with ``defmacro/g!`` becomes:::
 
    (defmacro/g! nif [expr pos-form zero-form neg-form]
      `(do

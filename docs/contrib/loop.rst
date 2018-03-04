@@ -41,9 +41,7 @@ non-tail position, an exception is raised.
 
 Usage: ``(loop bindings &rest body)``
 
-Example:
-
-.. code-block:: hy
+Example:::
 
     (require [hy.contrib.loop [loop]])
 

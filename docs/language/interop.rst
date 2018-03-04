@@ -19,14 +19,14 @@ Using Python from Hy
 
 Using Python from Hy is nice and easy, you just have to :ref:`import` it.
 
-If you have the following in ``greetings.py`` in Python::
+If you have the following in ``greetings.py`` in Python
+
+.. code-block:: python
 
     def greet(name):
         print("hello," name)
 
-You can use it in Hy:
-
-.. code-block:: clj
+You can use it in Hy:::
 
     (import greetings)
     (.greet greetings "foo") ; prints "hello, foo"
@@ -43,9 +43,7 @@ with somebody else, who doesn't like Hy (!), and only uses Python.
 In any case, you need to know how to use Hy from Python. Fear not, for it is
 easy.
 
-If you save the following in ``greetings.hy``:
-
-.. code-block:: clj
+If you save the following in ``greetings.hy``:::
 
     (setv *this-will-be-in-caps-and-underscores* "See?")
     (defn greet [name] (print "hello from hy," name))

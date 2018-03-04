@@ -11,17 +11,13 @@ numeric literals
 ----------------
 
 In addition to regular numbers, standard notation from Python 3 for non-base 10
-integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
-
-.. code-block:: clj
+integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.::
     
     (print 0x80 0b11101 0o102 30)
 
 Underscores and commas can appear anywhere in a numeric literal except the very
 beginning. They have no effect on the value of the literal, but they're useful
-for visually separating digits.
-
-.. code-block:: clj
+for visually separating digits.::
 
     (print 10,000,000,000 10_000_000_000)
 
@@ -139,9 +135,7 @@ This completely removes the form so it doesn't evaluate to anything,
 not even None.
 It's often more useful than linewise comments for commenting out a
 form, because it respects code structure even when part of another
-form is on the same line. For example:
-
-.. code-block:: clj
+form is on the same line. For example:::
 
    => (print "Hy" "cruel" "World!")
    Hy cruel World!

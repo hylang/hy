@@ -46,9 +46,7 @@ ap-each-while
 Usage: ``(ap-each-while list pred body)``
 
 Evaluate the form for each element where the predicate form returns
-``True``.
-
-.. code-block:: hy
+``True``.::
 
    => (ap-each-while [1 2 3 4 5 6] (< it 4) (print it))
    1
@@ -64,9 +62,7 @@ Usage: ``(ap-map form list)``
 
 The anaphoric form of map works just like regular map except that
 instead of a function object it takes a Hy form. The special name
-``it`` is bound to the current object from the list in the iteration.
-
-.. code-block:: hy
+``it`` is bound to the current object from the list in the iteration.::
 
     => (list (ap-map (* it 2) [1 2 3]))
     [2, 4, 6]
@@ -80,9 +76,7 @@ ap-map-when
 Usage: ``(ap-map-when predfn rep list)``
 
 Evaluate a mapping over the list using a predicate function to
-determin when to apply the form.
-
-.. code-block:: hy
+determin when to apply the form.::
 
     => (list (ap-map-when odd? (* it 2) [1 2 3 4]))
     [2, 2, 6, 4]
@@ -100,9 +94,7 @@ Usage: ``(ap-filter form list)``
 
 As with ``ap-map`` we take a special form instead of a function to
 filter the elements of the list. The special name ``it`` is bound to
-the current element in the iteration.
-
-.. code-block:: hy
+the current element in the iteration.::
 
     => (list (ap-filter (> (* it 2) 6) [1 2 3 4 5]))
     [4, 5]
@@ -117,9 +109,7 @@ Usage: ``(ap-reject form list)``
 
 This function does the opposite of ``ap-filter``, it rejects the
 elements passing the predicate . The special name ``it`` is bound to
-the current element in the iteration.
-
-.. code-block:: hy
+the current element in the iteration.::
 
     => (list (ap-reject (> (* it 2) 6) [1 2 3 4 5]))
     [1, 2, 3]
@@ -133,9 +123,7 @@ ap-dotimes
 Usage ``(ap-dotimes n body)``
 
 This function evaluates the body *n* times, with the special
-variable ``it`` bound from *0* to *1-n*. It is useful for side-effects.
-
-.. code-block:: hy
+variable ``it`` bound from *0* to *1-n*. It is useful for side-effects.::
 
     => (setv n [])
     => (ap-dotimes 3 (.append n it))
@@ -152,9 +140,7 @@ Usage ``(ap-first predfn list)``
 
 This function returns the first element that passes the predicate or
 ``None``, with the special variable ``it`` bound to the current element in
-iteration.
-
-.. code-block:: hy
+iteration.::
 
    =>(ap-first (> it 5) (range 10))
    6
@@ -169,9 +155,7 @@ Usage ``(ap-last predfn list)``
 
 This function returns the last element that passes the predicate or
 ``None``, with the special variable ``it`` bound to the current element in
-iteration.
-
-.. code-block:: hy
+iteration.::
 
    =>(ap-last (> it 5) (range 10))
    9
@@ -189,9 +173,7 @@ elements in the body and applying the result and the 3rd element
 etc. until the list is exhausted. Optionally an initial value can be
 supplied so the function will be applied to initial value and the
 first element instead. This exposes the element being iterated as
-``it`` and the current accumulated value as ``acc``.
-
-.. code-block:: hy
+``it`` and the current accumulated value as ``acc``.::
 
    =>(ap-reduce (+ it acc) (range 10))
    45
@@ -204,9 +186,7 @@ ap-pipe
 
 Usage ``(ap-pipe value form1 form2 ...)``
 
-Applies several forms in series to a value from left to right. The special variable ``ìt`` in each form is replaced by the result of the previous form.
-
-.. code-block:: hy
+Applies several forms in series to a value from left to right. The special variable ``ìt`` in each form is replaced by the result of the previous form.::
 
    => (ap-pipe 3 (+ it 1) (/ 5 it))
    1.25
@@ -217,19 +197,17 @@ Applies several forms in series to a value from left to right. The special varia
 .. _ap-compose:
 
 ap-compose
-=========
+==========
 
 Usage ``(ap-compose form1 form2 ...)``
 
-Returns a function which applies several forms in series from left to right. The special variable ``ìt`` in each form is replaced by the result of the previous form.
-
-.. code-block:: hy
+Returns a function which applies several forms in series from left to right. The special variable ``ìt`` in each form is replaced by the result of the previous form.::
 
    => (setv op (ap-compose (+ it 1) (* it 3)))
    => (op 2)
    9
 
-.. _#%
+.. _#%:
 
 #%
 ==
@@ -241,9 +219,7 @@ Makes an expression into a function with an implicit ``%`` parameter list.
 A ``%i`` symbol designates the (1-based) *i* th parameter (such as ``%3``).
 Only the maximum ``%i`` determines the number of ``%i`` parameters--the
 others need not appear in the expression.
-``%*`` and ``%**`` name the ``&rest`` and ``&kwargs`` parameters, respectively.
-
-.. code-block:: hy
+``%*`` and ``%**`` name the ``&rest`` and ``&kwargs`` parameters, respectively.::
 
     => (#%[%1 %6 42 [%2 %3] %* %4] 1 2 3 4 555 6 7 8)
     [1, 6, 42, [2, 3], (7, 8), 4]
@@ -251,9 +227,7 @@ others need not appear in the expression.
     {"foo": 2}
 
 When used on an s-expression,
-``#%`` is similar to Clojure's anonymous function literals--``#()``.
-
-.. code-block:: hy
+``#%`` is similar to Clojure's anonymous function literals--``#()``.::
 
     => (setv add-10 #%(+ 10 %1))
     => (add-10 6)

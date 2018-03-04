@@ -21,9 +21,7 @@ hy-repr
 Usage: ``(hy-repr x)``
 
 This function is Hy's equivalent of Python's built-in ``repr``.
-It returns a string representing the input object in Hy syntax.
-
-.. code-block:: hy
+It returns a string representing the input object in Hy syntax.::
 
    => (hy-repr [1 2 3])
    '[1 2 3]'
@@ -43,9 +41,7 @@ hy-repr-register
 Usage: ``(hy-repr-register the-type fun)``
 
 ``hy-repr-register`` lets you set the function that ``hy-repr`` calls to
-represent a type.
-
-.. code-block:: hy
+represent a type.::
 
     => (defclass C)
     => (hy-repr-register C (fn [x] "cuddles"))
@@ -62,9 +58,7 @@ automatically detect self-references, even deeply nested ones, and
 output ``"..."`` for them instead of calling the usual registered
 function. To use a placeholder other than ``"..."``, pass a string of
 your choice to the keyword argument ``:placeholder`` of
-``hy-repr-register``.
-
-.. code-block:: hy
+``hy-repr-register``.::
 
    (defclass Container [object]
      [__init__ (fn [self value]

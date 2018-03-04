@@ -13,9 +13,7 @@ butlast
 
 Usage: ``(butlast coll)``
 
-Returns an iterator of all but the last item in *coll*.
-
-.. code-block:: hy
+Returns an iterator of all but the last item in *coll*.::
 
    => (list (butlast (range 10)))
    [0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -39,9 +37,7 @@ coll?
 
 Usage: ``(coll? x)``
 
-Returns ``True`` if *x* is iterable and not a string.
-
-.. code-block:: hy
+Returns ``True`` if *x* is iterable and not a string.::
 
    => (coll? [1 2 3 4])
    True
@@ -62,9 +58,7 @@ Usage: ``(comp f g)``
 
 Compose zero or more functions into a new function. The new function will
 chain the given functions together, so ``((comp g f) x)`` is equivalent to
-``(g (f x))``. Called without arguments, ``comp`` returns ``identity``.
-
-.. code-block:: hy
+``(g (f x))``. Called without arguments, ``comp`` returns ``identity``.::
 
    => (setv example (comp str +))
    => (example 1 2 3)
@@ -85,9 +79,7 @@ complement
 Usage: ``(complement f)``
 
 Returns a new function that returns the same thing as ``f``, but logically
-inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
-
-.. code-block:: hy
+inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.::
 
    => (setv inverse (complement identity))
    => (inverse True)
@@ -105,9 +97,7 @@ cons
 
 Usage: ``(cons a b)``
 
-Returns a fresh :ref:`cons cell <hycons>` with car *a* and cdr *b*.
-
-.. code-block:: hy
+Returns a fresh :ref:`cons cell <hycons>` with car *a* and cdr *b*.::
 
    => (setv a (cons 'hd 'tl))
 
@@ -125,9 +115,7 @@ cons?
 
 Usage: ``(cons? foo)``
 
-Checks whether *foo* is a :ref:`cons cell <hycons>`.
-
-.. code-block:: hy
+Checks whether *foo* is a :ref:`cons cell <hycons>`.::
 
    => (setv a (cons 'hd 'tl))
 
@@ -151,9 +139,7 @@ constantly
 Usage ``(constantly 42)``
 
 Create a new function that always returns the given value, regardless of
-the arguments given to it.
-
-.. code-block:: hy
+the arguments given to it.::
 
    => (setv answer (constantly 42))
    => (answer)
@@ -172,9 +158,7 @@ dec
 Usage: ``(dec x)``
 
 Returns one less than *x*. Equivalent to ``(- x 1)``. Raises ``TypeError``
-if ``(not (numeric? x))``.
-
-.. code-block:: hy
+if ``(not (numeric? x))``.::
 
    => (dec 3)
    2
@@ -196,9 +180,7 @@ disassemble
 Usage: ``(disassemble tree &optional [codegen false])``
 
 Dump the Python AST for given Hy *tree* to standard output. If *codegen*
-is ``True``, the function prints Python code instead.
-
-.. code-block:: hy
+is ``True``, the function prints Python code instead.::
 
    => (disassemble '(print "Hello World!"))
    Module(
@@ -216,9 +198,7 @@ empty?
 
 Usage: ``(empty? coll)``
 
-Returns ``True`` if *coll* is empty. Equivalent to ``(= 0 (len coll))``.
-
-.. code-block:: hy
+Returns ``True`` if *coll* is empty. Equivalent to ``(= 0 (len coll))``.::
 
    => (empty? [])
    True
@@ -238,17 +218,13 @@ eval
 ``eval`` evaluates a quoted expression and returns the value. The optional
 second and third arguments specify the dictionary of globals to use and the
 module name. The globals dictionary defaults to ``(local)`` and the module name
-defaults to the name of the current module.
-
-.. code-block:: clj
+defaults to the name of the current module.::
 
    => (eval '(print "Hello World"))
    "Hello World"
 
 If you want to evaluate a string, use ``read-str`` to convert it to a
-form first:
-
-.. code-block:: clj
+form first:::
 
    => (eval (read-str "(+ 1 1)"))
    2
@@ -264,9 +240,7 @@ every?
 Usage: ``(every? pred coll)``
 
 Returns ``True`` if ``(pred x)`` is logical true for every *x* in *coll*,
-otherwise ``False``. Return ``True`` if *coll* is empty.
-
-.. code-block:: hy
+otherwise ``False``. Return ``True`` if *coll* is empty.::
 
    => (every? even? [2 4 6])
    True
@@ -286,9 +260,7 @@ otherwise ``False``. Return ``True`` if *coll* is empty.
 exec
 ----
 
-Equivalent to Python 3's built-in function :py:func:`exec`.
-
-.. code-block:: clj
+Equivalent to Python 3's built-in function :py:func:`exec`.::
 
     => (exec "print(a + b)" {"a" 1} {"b" 2})
     3
@@ -301,9 +273,7 @@ float?
 
 Usage: ``(float? x)``
 
-Returns ``True`` if *x* is a float.
-
-.. code-block:: hy
+Returns ``True`` if *x* is a float.::
 
    => (float? 3.2)
    True
@@ -317,16 +287,12 @@ Returns ``True`` if *x* is a float.
 fraction
 --------
 
-Returns a Python object of type ``fractions.Fraction``.
-
-.. code-block:: hy
+Returns a Python object of type ``fractions.Fraction``.::
 
    => (fraction 1 2)
    Fraction(1, 2)
 
-Note that Hy has a built-in fraction literal that does the same thing:
-
-.. code-block:: hy
+Note that Hy has a built-in fraction literal that does the same thing:::
 
    => 1/2
    Fraction(1, 2)
@@ -340,9 +306,7 @@ even?
 Usage: ``(even? x)``
 
 Returns ``True`` if *x* is even. Raises ``TypeError`` if
-``(not (numeric? x))``.
-
-.. code-block:: hy
+``(not (numeric? x))``.::
 
    => (even? 2)
    True
@@ -361,9 +325,7 @@ identity
 
 Usage: ``(identity x)``
 
-Returns the argument supplied to the function.
-
-.. code-block:: hy
+Returns the argument supplied to the function.::
 
    => (identity 4)
    4
@@ -380,9 +342,7 @@ inc
 Usage: ``(inc x)``
 
 Returns one more than *x*. Equivalent to ``(+ x 1)``. Raises ``TypeError``
-if ``(not (numeric? x))``.
-
-.. code-block:: hy
+if ``(not (numeric? x))``.::
 
    => (inc 3)
    4
@@ -401,9 +361,7 @@ instance?
 
 Usage: ``(instance? class x)``
 
-Returns ``True`` if *x* is an instance of *class*.
-
-.. code-block:: hy
+Returns ``True`` if *x* is an instance of *class*.::
 
    => (instance? float 1.0)
    True
@@ -427,9 +385,7 @@ integer?
 Usage: ``(integer? x)``
 
 Returns `True` if *x* is an integer. For Python 2, this is
-either ``int`` or ``long``. For Python 3, this is ``int``.
-
-.. code-block:: hy
+either ``int`` or ``long``. For Python 3, this is ``int``.::
 
    => (integer? 3)
    True
@@ -448,9 +404,7 @@ interleave
 Usage: ``(interleave seq1 seq2 ...)``
 
 Returns an iterable of the first item in each of the sequences,
-then the second, etc.
-
-.. code-block:: hy
+then the second, etc.::
 
    => (list (interleave (range 5) (range 100 105)))
    [0, 100, 1, 101, 2, 102, 3, 103, 4, 104]
@@ -468,9 +422,7 @@ interpose
 
 Usage: ``(interpose item seq)``
 
-Returns an iterable of the elements of the sequence separated by the item.
-
-.. code-block:: hy
+Returns an iterable of the elements of the sequence separated by the item.::
 
    => (list (interpose "!" "abcd"))
    ['a', '!', 'b', '!', 'c', '!', 'd']
@@ -487,9 +439,7 @@ iterable?
 Usage: ``(iterable? x)``
 
 Returns ``True`` if *x* is iterable. Iterable objects return a new iterator
-when ``(iter x)`` is called. Contrast with :ref:`iterator?-fn`.
-
-.. code-block:: hy
+when ``(iter x)`` is called. Contrast with :ref:`iterator?-fn`.::
 
    => ;; works for strings
    => (iterable? (str "abcde"))
@@ -521,9 +471,7 @@ Usage: ``(iterator? x)``
 
 Returns ``True`` if *x* is an iterator. Iterators are objects that return
 themselves as an iterator when ``(iter x)`` is called. Contrast with
-:ref:`iterable?-fn`.
-
-.. code-block:: hy
+:ref:`iterable?-fn`.::
 
    => ;; doesn't work for a list
    => (iterator? [1 2 3 4 5])
@@ -552,9 +500,7 @@ juxt
 Usage: ``(juxt f &rest fs)``
 
 Return a function that applies each of the supplied functions to a
-single set of arguments and collects the results into a list.
-
-.. code-block:: hy
+single set of arguments and collects the results into a list.::
 
    => ((juxt min max sum) (range 1 101))
    [1, 100, 5050]
@@ -576,9 +522,7 @@ keyword
 Usage: ``(keyword "foo")``
 
 Create a keyword from the given value. Strings, numbers, and even
-objects with the `__name__` magic will work.
-
-.. code-block:: hy
+objects with the `__name__` magic will work.::
 
    => (keyword "foo")
    u'\ufdd0:foo'
@@ -595,9 +539,7 @@ keyword?
 
 Usage: ``(keyword? foo)``
 
-Check whether *foo* is a :ref:`keyword<HyKeyword>`.
-
-.. code-block:: hy
+Check whether *foo* is a :ref:`keyword<HyKeyword>`.::
 
    => (keyword? :foo)
    True
@@ -614,9 +556,7 @@ list*
 Usage: ``(list* head &rest tail)``
 
 Generates a chain of nested cons cells (a dotted list) containing the
-arguments. If the argument list only has one element, return it.
-
-.. code-block:: hy
+arguments. If the argument list only has one element, return it.::
 
     => (list* 1 2 3 4)
     <HyCons (
@@ -651,9 +591,7 @@ macroexpand
 
 Usage: ``(macroexpand form)``
 
-Returns the full macro expansion of *form*.
-
-.. code-block:: hy
+Returns the full macro expansion of *form*.::
 
     => (macroexpand '(-> (a b) (x y)))
     HyExpression([
@@ -682,9 +620,7 @@ macroexpand-1
 
 Usage: ``(macroexpand-1 form)``
 
-Returns the single step macro expansion of *form*.
-
-.. code-block:: hy
+Returns the single step macro expansion of *form*.::
 
     => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
     HyExpression([
@@ -707,9 +643,7 @@ mangle
 Usage: ``(mangle x)``
 
 Stringify the input and translate it according to :ref:`Hy's mangling rules
-<mangling>`.
-
-.. code-block:: hylang
+<mangling>`.::
 
     => (mangle "foo-bar")
     'foo_bar'
@@ -726,9 +660,7 @@ Usage: ``(merge-with f &rest maps)``
 Returns a map that consist of the rest of the maps joined onto first.
 If a key occurs in more than one map, the mapping(s) from the latter
 (left-to-right) will be combined with the mapping in the result by
-calling ``(f val-in-result val-in-latter)``.
-
-.. code-block:: hy
+calling ``(f val-in-result val-in-latter)``.::
 
     => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
     {u'a': 11L, u'c': 30L, u'b': 20L}
@@ -745,9 +677,7 @@ Usage: ``(name :keyword)``
 
 Convert the given value to a string. Keyword special character will be
 stripped. Strings will be used as is. Even objects with the `__name__`
-magic will work.
-
-.. code-block:: hy
+magic will work.::
 
    => (name :foo)
    u'foo'
@@ -760,9 +690,7 @@ neg?
 Usage: ``(neg? x)``
 
 Returns ``True`` if *x* is less than zero. Raises ``TypeError`` if
-``(not (numeric? x))``.
-
-.. code-block:: hy
+``(not (numeric? x))``.::
 
    => (neg? -2)
    True
@@ -780,9 +708,7 @@ none?
 
 Usage: ``(none? x)``
 
-Returns ``True`` if *x* is ``None``.
-
-.. code-block:: hy
+Returns ``True`` if *x* is ``None``.::
 
    => (none? None)
    True
@@ -808,9 +734,7 @@ Usage: ``(nth coll n &optional [default None])``
 
 Returns the *n*-th item in a collection, counting from 0. Return the
 default value, ``None``, if out of bounds (unless specified otherwise).
-Raises ``ValueError`` if *n* is negative.
-
-.. code-block:: hy
+Raises ``ValueError`` if *n* is negative.::
 
    => (nth [1 2 4 7] 1)
    2
@@ -841,9 +765,7 @@ numeric?
 Usage: ``(numeric? x)``
 
 Returns ``True`` if *x* is a numeric, as defined in Python's
-``numbers.Number`` class.
-
-.. code-block:: hy
+``numbers.Number`` class.::
 
    => (numeric? -2)
    True
@@ -863,9 +785,7 @@ odd?
 Usage: ``(odd? x)``
 
 Returns ``True`` if *x* is odd. Raises ``TypeError`` if
-``(not (numeric? x))``.
-
-.. code-block:: hy
+``(not (numeric? x))``.::
 
    => (odd? 13)
    True
@@ -883,25 +803,19 @@ partition
 
 Usage: ``(partition coll [n] [step] [fillvalue])``
 
-Chunks *coll* into *n*-tuples (pairs by default).
-
-.. code-block:: hy
+Chunks *coll* into *n*-tuples (pairs by default).::
 
     => (list (partition (range 10)))  ; n=2
     [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9)]
 
-The *step* defaults to *n*, but can be more to skip elements, or less for a sliding window with overlap.
-
-.. code-block:: hy
+The *step* defaults to *n*, but can be more to skip elements, or less for a sliding window with overlap.::
 
     => (list (partition (range 10) 2 3))
     [(0, 1), (3, 4), (6, 7)]
     => (list (partition (range 5) 2 1))
     [(0, 1), (1, 2), (2, 3), (3, 4)]
 
-The remainder, if any, is not included unless a *fillvalue* is specified.
-
-.. code-block:: hy
+The remainder, if any, is not included unless a *fillvalue* is specified.::
 
     => (list (partition (range 10) 3))
     [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
@@ -916,9 +830,7 @@ pos?
 Usage: ``(pos? x)``
 
 Returns ``True`` if *x* is greater than zero. Raises ``TypeError``
-if ``(not (numeric? x))``.
-
-.. code-block:: hy
+if ``(not (numeric? x))``.::
 
    => (pos? 3)
    True
@@ -937,9 +849,7 @@ second
 
 Usage: ``(second coll)``
 
-Returns the second member of *coll*. Equivalent to ``(get coll 1)``.
-
-.. code-block:: hy
+Returns the second member of *coll*. Equivalent to ``(get coll 1)``.::
 
    => (second [0 1 2])
    1
@@ -955,9 +865,7 @@ some
 Usage: ``(some pred coll)``
 
 Returns the first logically-true value of ``(pred x)`` for any ``x`` in
-*coll*, otherwise ``None``. Return ``None`` if *coll* is empty.
-
-.. code-block:: hy
+*coll*, otherwise ``None``. Return ``None`` if *coll* is empty.::
 
    => (some even? [2 4 6])
    True
@@ -982,9 +890,7 @@ string?
 
 Usage: ``(string? x)``
 
-Returns ``True`` if *x* is a string.
-
-.. code-block:: hy
+Returns ``True`` if *x* is a string.::
 
    => (string? "foo")
    True
@@ -999,9 +905,7 @@ symbol?
 
 Usage: ``(symbol? x)``
 
-Returns ``True`` if *x* is a symbol.
-
-.. code-block:: hy
+Returns ``True`` if *x* is a symbol.::
 
    => (symbol? 'foo)
    True
@@ -1016,9 +920,7 @@ zero?
 
 Usage: ``(zero? x)``
 
-Returns ``True`` if *x* is zero.
-
-.. code-block:: hy
+Returns ``True`` if *x* is zero.::
 
    => (zero? 3)
    False
@@ -1039,9 +941,7 @@ a list or similar container. They do this by returning a Python
 iterator.
 
 We can use the canonical infinite Fibonacci number generator
-as an example of how to use some of these functions.
-
-.. code-block:: hy
+as an example of how to use some of these functions.::
 
    (defn fib []
      (setv a 0)
@@ -1051,9 +951,7 @@ as an example of how to use some of these functions.
        (setv (, a b) (, b (+ a b)))))
 
 
-Note the ``(while True ...)`` loop. If we run this in the REPL,
-
-.. code-block:: hy
+Note the ``(while True ...)`` loop. If we run this in the REPL,::
 
    => (fib)
    <generator object fib at 0x101e642d0>
@@ -1062,26 +960,20 @@ Note the ``(while True ...)`` loop. If we run this in the REPL,
 Calling the function only returns an iterator, but does no
 work until we consume it. Trying something like this is not recommend as
 the infinite loop will run until it consumes all available RAM, or
-in this case until I killed it.
-
-.. code-block:: hy
+in this case until I killed it.::
 
    => (list (fib))
    [1]    91474 killed     hy
 
 
 To get the first 10 Fibonacci numbers, use :ref:`take-fn`. Note that
-:ref:`take-fn` also returns a generator, so I create a list from it.
-
-.. code-block:: hy
+:ref:`take-fn` also returns a generator, so I create a list from it.::
 
    => (list (take 10 (fib)))
    [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 
 
-To get the Fibonacci number at index 9, (starting from 0):
-
-.. code-block:: hy
+To get the Fibonacci number at index 9, (starting from 0):::
 
    => (nth (fib) 9)
    34
@@ -1094,9 +986,7 @@ cycle
 
 Usage: ``(cycle coll)``
 
-Returns an infinite iterator of the members of coll.
-
-.. code-block:: clj
+Returns an infinite iterator of the members of coll.::
 
    => (list (take 7 (cycle [1 2 3])))
    [1, 2, 3, 1, 2, 3, 1]
@@ -1112,9 +1002,7 @@ distinct
 
 Usage: ``(distinct coll)``
 
-Returns an iterator containing only the unique members in *coll*.
-
-.. code-block:: hy
+Returns an iterator containing only the unique members in *coll*.::
 
    => (list (distinct [ 1 2 3 4 3 5 2 ]))
    [1, 2, 3, 4, 5]
@@ -1134,9 +1022,7 @@ drop
 Usage: ``(drop n coll)``
 
 Returns an iterator, skipping the first *n* members of *coll*.
-Raises ``ValueError`` if *n* is negative.
-
-.. code-block:: hy
+Raises ``ValueError`` if *n* is negative.::
 
    => (list (drop 2 [1 2 3 4 5]))
    [3, 4, 5]
@@ -1159,9 +1045,7 @@ drop-last
 Usage: ``(drop-last n coll)``
 
 Returns an iterator of all but the last *n* items in *coll*. Raises
-``ValueError`` if *n* is negative.
-
-.. code-block:: hy
+``ValueError`` if *n* is negative.::
 
    => (list (drop-last 5 (range 10 20)))
    [10, 11, 12, 13, 14]
@@ -1183,9 +1067,7 @@ drop-while
 
 Usage: ``(drop-while pred coll)``
 
-Returns an iterator, skipping members of *coll* until *pred* is ``False``.
-
-.. code-block:: hy
+Returns an iterator, skipping members of *coll* until *pred* is ``False``.::
 
    => (list (drop-while even? [2 4 7 8 9]))
    [7, 8, 9]
@@ -1206,9 +1088,7 @@ Usage: ``(filter pred coll)``
 
 Returns an iterator for all items in *coll* that pass the predicate *pred*.
 
-See also :ref:`remove-fn`.
-
-.. code-block:: hy
+See also :ref:`remove-fn`.::
 
    => (list (filter pos? [1 2 3 -4 5 -7]))
    [1, 2, 3, 5]
@@ -1226,9 +1106,7 @@ flatten
 Usage: ``(flatten coll)``
 
 Returns a single list of all the items in *coll*, by flattening all
-contained lists and/or tuples.
-
-.. code-block:: hy
+contained lists and/or tuples.::
 
    => (flatten [1 2 [3 4] 5])
    [1, 2, 3, 4, 5]
@@ -1244,9 +1122,7 @@ iterate
 
 Usage: ``(iterate fn x)``
 
-Returns an iterator of *x*, *fn(x)*, *fn(fn(x))*, etc.
-
-.. code-block:: hy
+Returns an iterator of *x*, *fn(x)*, *fn(fn(x))*, etc.::
 
    => (list (take 5 (iterate inc 5)))
    [5, 6, 7, 8, 9]
@@ -1264,9 +1140,7 @@ Usage: ``(read &optional [from-file eof])``
 
 Reads the next Hy expression from *from-file* (defaulting to ``sys.stdin``), and
 can take a single byte as EOF (defaults to an empty string). Raises ``EOFError``
-if *from-file* ends before a complete expression can be parsed.
-
-.. code-block:: hy
+if *from-file* ends before a complete expression can be parsed.::
 
     => (read)
     (+ 2 2)
@@ -1312,9 +1186,7 @@ read-str
 Usage: ``(read-str "string")``
 
 This is essentially a wrapper around `read` which reads expressions from a
-string:
-
-.. code-block:: hy
+string:::
 
     => (read-str "(print 1)")
     HyExpression([
@@ -1333,9 +1205,7 @@ Usage: ``(remove pred coll)``
 Returns an iterator from *coll* with elements that pass the
 predicate, *pred*, removed.
 
-See also :ref:`filter-fn`.
-
-.. code-block:: hy
+See also :ref:`filter-fn`.::
 
    => (list (remove odd? [1 2 3 4 5 6 7]))
    [2, 4, 6]
@@ -1355,9 +1225,7 @@ repeat
 
 Usage: ``(repeat x)``
 
-Returns an iterator (infinite) of ``x``.
-
-.. code-block:: hy
+Returns an iterator (infinite) of ``x``.::
 
    => (list (take 6 (repeat "s")))
    [u's', u's', u's', u's', u's', u's']
@@ -1370,9 +1238,7 @@ repeatedly
 
 Usage: ``(repeatedly fn)``
 
-Returns an iterator by calling *fn* repeatedly.
-
-.. code-block:: hy
+Returns an iterator by calling *fn* repeatedly.::
 
    => (import [random [randint]])
 
@@ -1388,9 +1254,7 @@ take
 Usage: ``(take n coll)``
 
 Returns an iterator containing the first *n* members of *coll*.
-Raises ``ValueError`` if *n* is negative.
-
-.. code-block:: hy
+Raises ``ValueError`` if *n* is negative.::
 
    => (list (take 3 [1 2 3 4 5]))
    [1, 2, 3]
@@ -1408,9 +1272,7 @@ take-nth
 
 Usage: ``(take-nth n coll)``
 
-Returns an iterator containing every *n*-th member of *coll*.
-
-.. code-block:: hy
+Returns an iterator containing every *n*-th member of *coll*.::
 
    => (list (take-nth 2 [1 2 3 4 5 6 7]))
    [1, 3, 5, 7]
@@ -1432,9 +1294,7 @@ take-while
 
 Usage: ``(take-while pred coll)``
 
-Returns an iterator from *coll* as long as *pred* returns ``True``.
-
-.. code-block:: hy
+Returns an iterator from *coll* as long as *pred* returns ``True``.::
 
    => (list (take-while pos? [ 1 2 3 -4 5]))
    [1, 2, 3]
@@ -1454,9 +1314,7 @@ Usage: ``(unmangle x)``
 
 Stringify the input and return a string that would :ref:`mangle <mangling>` to
 it. Note that this isn't a one-to-one operation, and nor is ``mangle``, so
-``mangle`` and ``unmangle`` don't always round-trip.
-
-.. code-block:: hylang
+``mangle`` and ``unmangle`` don't always round-trip.::
 
     => (unmangle "foo_bar")
     'foo-bar'
@@ -1464,11 +1322,46 @@ it. Note that this isn't a one-to-one operation, and nor is ``mangle``, so
 Included itertools
 ==================
 
-count cycle repeat accumulate chain compress drop-while remove group-by islice *map take-while tee zip-longest product permutations combinations multicombinations
----------
-
 All of Python's `itertools <https://docs.python.org/3/library/itertools.html>`_
-are available. Some of their names have been changed:
+are available.
+
+  - ``count``
+
+  - ``cycle``
+
+  - ``repeat``
+
+  - ``accumulate``
+
+  - ``chain``
+
+  - ``compress``
+
+  - ``drop-while``
+
+  - ``remove``
+
+  - ``group-by``
+
+  - ``islice``
+
+  - ``*map``
+
+  - ``take-while``
+
+  - ``tee``
+
+  - ``zip-longest``
+
+  - ``product``
+
+  - ``permutations``
+
+  - ``combinations``
+
+  - ``multicombinations``
+
+Note that some of their names have been changed:
 
   - ``starmap`` has been changed to ``*map``
 
@@ -1477,8 +1370,7 @@ are available. Some of their names have been changed:
   - ``groupby`` has been changed to ``group-by``
 
   - ``takewhile`` has been changed to ``take-while``
-  
-  - ``dropwhile`` has been changed to ``drop-while``
-  
-  - ``filterfalse`` has been changed to ``remove``
 
+  - ``dropwhile`` has been changed to ``drop-while``
+
+  - ``filterfalse`` has been changed to ``remove``

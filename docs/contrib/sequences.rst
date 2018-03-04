@@ -11,9 +11,7 @@ and the implementation allows for recursive definition of sequences without
 resulting in recursive computation.
 
 To use these macros, you need to require them and import some other names like
-so:
-
-.. code-block:: hy
+so:::
 
    (require [hy.contrib.sequences [defseq seq]])
    (import [hy.contrib.sequences [Sequence end-sequence]])
@@ -21,9 +19,7 @@ so:
 The simplest sequence can be defined as ``(seq [n] n)``. This defines a sequence
 that starts as ``[0 1 2 3 ...]`` and continues forever. In order to define a
 finite sequence, you need to call ``end-sequence`` to signal the end of the
-sequence:
-
-.. code-block:: hy
+sequence:::
 
    (seq [n]
         "sequence of 5 integers"
@@ -37,9 +33,7 @@ one on an infinite sequence would take forever (or at least until available
 memory has been exhausted).
 
 Sequences can be defined recursively. For example, the Fibonacci sequence could
-be defined as:
-
-.. code-block:: hy
+be defined as:::
 
    (defseq fibonacci [n]
      "infinite sequence of fibonacci numbers"

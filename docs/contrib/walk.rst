@@ -18,9 +18,7 @@ Usage: `(walk inner outer form)`
 ``inner`` to each element of form, building up a data structure of the
 same type.  Applies ``outer`` to the result.
 
-Example:
-
-.. code-block:: hy
+Example:::
 
     => (import [hy.contrib.walk [walk]])
     => (setv a '(a b c d e f))
@@ -43,9 +41,7 @@ postwalk
 Usage: `(postwalk f form)`
 
 Performs depth-first, post-order traversal of ``form``. Calls ``f`` on
-each sub-form, uses ``f`` 's return value in place of the original.
-
-.. code-block:: hy
+each sub-form, uses ``f`` 's return value in place of the original.::
 
     => (import [hy.contrib.walk [postwalk]])
     => (setv trail '([1 2 3] [4 [5 6 [7]]]))
@@ -123,9 +119,7 @@ prewalk
 Usage: `(prewalk f form)`
 
 Performs depth-first, pre-order traversal of ``form``. Calls ``f`` on
-each sub-form, uses ``f`` 's return value in place of the original.
-
-.. code-block:: hy
+each sub-form, uses ``f`` 's return value in place of the original.::
 
     => (import [hy.contrib.walk [prewalk]])
     => (setv trail '([1 2 3] [4 [5 6 [7]]]))
@@ -211,9 +205,7 @@ let
 
 ``let`` creates lexically-scoped names for local variables.
 A let-bound name ceases to refer to that local outside the ``let`` form.
-Arguments in nested functions and bindings in nested ``let`` forms can shadow these names.
-
-.. code-block:: hy
+Arguments in nested functions and bindings in nested ``let`` forms can shadow these names.::
 
     => (let [x 5]  ; creates a new local bound to name 'x
     ...  (print x)
@@ -238,9 +230,7 @@ The ``let`` macro takes two parameters: a list defining *variables*
 and the *body* which gets executed. *variables* is a vector of
 variable and value pairs.
 
-``let`` executes the variable assignments one-by-one, in the order written.
-
-.. code-block:: hy
+``let`` executes the variable assignments one-by-one, in the order written.::
 
     => (let [x 5
     ...      y (+ x 1)]

@@ -76,9 +76,7 @@ Command Line Options
 .. cmdoption:: file[, fileN]
 
    Compile Hy code to Python bytecode. For example, save the
-   following code as ``hyname.hy``:
-
-   .. code-block:: hy
+   following code as ``hyname.hy``:::
 
       (defn hy-hy [name]
         (print (+ "Hy " name "!")))

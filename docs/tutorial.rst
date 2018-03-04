@@ -35,9 +35,7 @@ Basic intro to Lisp for Pythonistas
 
 Okay, maybe you've never used Lisp before, but you've used Python!
 
-A "hello world" program in Hy is actually super simple. Let's try it:
-
-.. code-block:: clj
+A "hello world" program in Hy is actually super simple. Let's try it:::
 
    (print "hello world")
 
@@ -46,24 +44,18 @@ version of::
 
   print("hello world")
 
-To add up some super simple math, we could do:
-
-.. code-block:: clj
+To add up some super simple math, we could do:::
 
    (+ 1 3)
 
-Which would return 4 and would be the equivalent of:
-
-.. code-block:: clj
+Which would return 4 and would be the equivalent of:::
 
    1 + 3
 
 What you'll notice is that the first item in the list is the function
 being called and the rest of the arguments are the arguments being
 passed in.  In fact, in Hy (as with most Lisps) we can pass in
-multiple arguments to the plus operator:
-
-.. code-block:: clj
+multiple arguments to the plus operator:::
 
    (+ 1 3 55)
 
@@ -75,9 +67,7 @@ is a great way to start learning Lisp.  The main thing that's obvious
 about Lisp is that there's a lot of parentheses.  This might seem
 confusing at first, but it isn't so hard.  Let's look at some simple
 math that's wrapped in a bunch of parentheses that we could enter into
-the Hy interpreter:
-
-.. code-block:: clj
+the Hy interpreter:::
 
    (setv result (- (/ (+ 1 3 88) 2) 8))
 
@@ -99,9 +89,7 @@ exercise first in Python::
   # simplified to...
   result = 38.0
 
-Now let's try the same thing in Hy:
-
-.. code-block:: clj
+Now let's try the same thing in Hy:::
 
    (setv result (- (/ (+ 1 3 88) 2) 8))
    ; simplified to...
@@ -123,7 +111,9 @@ imagine the entire same structure as above but with square brackets
 instead, any you'll be able to see the structure above as both a
 program and a data structure.)  This is easier to understand with more
 examples, so let's write a simple Python program, test it, and then
-show the equivalent Hy program::
+show the equivalent Hy program
+
+.. code-block:: python
 
   def simple_conversation():
       print("Hello!  I'd like to get to know you.  Tell me about yourself!")
@@ -133,16 +123,16 @@ show the equivalent Hy program::
 
   simple_conversation()
 
-If we ran this program, it might go like::
+If we ran this program, it might go like
+
+.. code-block:: none
 
   Hello!  I'd like to get to know you.  Tell me about yourself!
   What is your name? Gary
   What is your age? 38
   Hello Gary!  I see you are 38 years old.
 
-Now let's look at the equivalent Hy program:
-
-.. code-block:: clj
+Now let's look at the equivalent Hy program:::
 
    (defn simple-conversation []
       (print "Hello!  I'd like to get to know you.  Tell me about yourself!")
@@ -221,9 +211,7 @@ Hy syntax rather than Python syntax::
   {"dog" "bark" "cat" "meow"}
 
 If you are familiar with other Lisps, you may be interested that Hy
-supports the Common Lisp method of quoting:
-
-.. code-block:: clj
+supports the Common Lisp method of quoting:::
 
    => '(1 2 3)
    (1 2 3)
@@ -238,16 +226,12 @@ What's this?  Yes indeed, this is precisely the same as::
   " fooooo   ".strip()
 
 That's right---Lisp with dot notation!  If we have this string
-assigned as a variable, we can also do the following:
-
-.. code-block:: clj
+assigned as a variable, we can also do the following:::
 
    (setv this-string " fooooo   ")
    (this-string.strip)
 
-What about conditionals?:
-
-.. code-block:: clj
+What about conditionals?:::
 
    (if (try-some-thing)
      (print "this is if true")
@@ -259,7 +243,9 @@ is if false (ie. ``else``).
 
 If you need to do more complex conditionals, you'll find that you
 don't have ``elif`` available in Hy.  Instead, you should use something
-called ``cond``.  In Python, you might do something like::
+called ``cond``.  In Python, you might do something like
+
+.. code-block:: python
 
   somevar = 33
   if somevar > 50:
@@ -269,9 +255,7 @@ called ``cond``.  In Python, you might do something like::
   else:
       print("That variable is jussssst right!")
 
-In Hy, you would do:
-
-.. code-block:: clj
+In Hy, you would do:::
 
    (setv somevar 33)
    (cond
@@ -289,9 +273,7 @@ notice that the ``else`` is implemented at the end simply by checking
 for ``True`` -- that's because ``True`` will always be true, so if we get
 this far, we'll always run that one!
 
-You might notice above that if you have code like:
-
-.. code-block:: clj
+You might notice above that if you have code like:::
 
    (if some-condition
      (body-if-true)
@@ -300,9 +282,7 @@ You might notice above that if you have code like:
 But wait!  What if you want to execute more than one statement in the
 body of one of these?
 
-You can do the following:
-
-.. code-block:: clj
+You can do the following:::
 
    (if (try-some-thing)
      (do
@@ -314,39 +294,33 @@ You can see that we used ``do`` to wrap multiple statements.  If you're
 familiar with other Lisps, this is the equivalent of ``progn``
 elsewhere.
 
-Comments start with semicolons:
-
-.. code-block:: clj
+Comments start with semicolons:::
 
   (print "this will run")
   ; (print "but this will not")
   (+ 1 2 3)  ; we'll execute the addition, but not this comment!
 
-Hashbang (``#!``) syntax is supported:
-
-.. code-block:: clj
+Hashbang (``#!``) syntax is supported:::
 
    #! /usr/bin/env hy
    (print "Make me executable, and run me!")
 
 Looping is not hard but has a kind of special structure.  In Python,
-we might do::
+we might do
+
+.. code-block:: python
 
   for i in range(10):
       print("'i' is now at " + str(i))
 
-The equivalent in Hy would be:
-
-.. code-block:: clj
+The equivalent in Hy would be:::
 
   (for [i (range 10)]
     (print (+ "'i' is now at " (str i))))
 
 
 You can also import and make use of various Python libraries.  For
-example:
-
-.. code-block:: clj
+example:::
 
    (import os)
 
@@ -354,14 +328,14 @@ example:
      (os.mkdir "/tmp/somedir/anotherdir")
      (print "Hey, that path isn't there!"))
 
-Python's context managers (``with`` statements) are used like this:
-
-.. code-block:: clj
+Python's context managers (``with`` statements) are used like this:::
 
      (with [f (open "/tmp/data.in")]
        (print (.read f)))
 
-which is equivalent to::
+which is equivalent to
+
+.. code-block:: python
 
   with open("/tmp/data.in") as f:
       print(f.read())
@@ -373,9 +347,7 @@ And yes, we do have List comprehensions!  In Python you might do::
     for num in range(100)
     if num % 2 == 1]
 
-In Hy, you could do these like:
-
-.. code-block:: clj
+In Hy, you could do these like:::
 
   (setv odds-squared
     (list-comp
@@ -383,8 +355,7 @@ In Hy, you could do these like:
       (num (range 100))
       (= (% num 2) 1)))
 
-
-.. code-block:: clj
+::
 
   ; And, an example stolen shamelessly from a Clojure page:
   ; Let's list all the blocks of a Chessboard:
@@ -405,7 +376,9 @@ In Hy, you could do these like:
 
 
 Python has support for various fancy argument and keyword arguments.
-In Python we might see::
+In Python we might see
+
+.. code-block:: python
 
   >>> def optional_arg(pos1, pos2, keyword1=None, keyword2=42):
   ...   return [pos1, pos2, keyword1, keyword2]
@@ -444,9 +417,7 @@ similar to `*args` and `**kwargs` in Python::
   [1, 2, 4, 3]
 
 There's also a dictionary-style keyword arguments construction that
-looks like:
-
-.. code-block:: clj
+looks like:::
 
   (defn another-style [&key {"key1" "val1" "key2" "val2"}]
     [key1 key2])
@@ -454,22 +425,24 @@ looks like:
 The difference here is that since it's a dictionary, you can't rely on
 any specific ordering to the arguments.
 
-Hy also supports ``*args`` and ``**kwargs`` in parameter lists.  In Python::
+Hy also supports ``*args`` and ``**kwargs`` in parameter lists.  In Python
+
+.. code-block:: python
 
   def some_func(foo, bar, *args, **kwargs):
     import pprint
     pprint.pprint((foo, bar, args, kwargs))
 
-The Hy equivalent:
-
-.. code-block:: clj
+The Hy equivalent:::
 
   (defn some-func [foo bar &rest args &kwargs kwargs]
     (import pprint)
     (pprint.pprint (, foo bar args kwargs)))
 
 Finally, of course we need classes!  In Python, we might have a class
-like::
+like
+
+.. code-block:: python
 
   class FooBar(object):
       """
@@ -490,9 +463,7 @@ And we might use it like::
   print(bar.get_x())
 
 
-In Hy:
-
-.. code-block:: clj
+In Hy:::
 
   (defclass FooBar [object]
     "Yet Another Example Class"
@@ -504,30 +475,26 @@ In Hy:
       "Return our copy of x"
       self.x))
       
-And we can use it like:
-
-.. code-block:: clj
+And we can use it like:::
 
   (setv bar (FooBar 1))
   (print (bar.get-x))
   
-Or using the leading dot syntax!
-
-.. code-block:: clj
+Or using the leading dot syntax!::
 
   (print (.get-x (FooBar 1)))
       
 
-You can also do class-level attributes.  In Python::
+You can also do class-level attributes.  In Python
+
+.. code-block:: python
 
   class Customer(models.Model):
       name = models.CharField(max_length=255)
       address = models.TextField()
       notes = models.TextField()
 
-In Hy:
-
-.. code-block:: clj
+In Hy:::
 
   (defclass Customer [models.Model]
     [name (models.CharField :max-length 255})
@@ -540,9 +507,7 @@ Macros
 One really powerful feature of Hy are macros. They are small functions that are
 used to generate code (or data). When program written in Hy is started, the
 macros are executed and their output is placed in the program source. After this,
-the program starts executing normally. Very simple example:
-
-.. code-block:: clj
+the program starts executing normally. Very simple example:::
 
   => (defmacro hello [person]
   ...  `(print "Hello there," ~person))
@@ -552,15 +517,11 @@ the program starts executing normally. Very simple example:
 The thing to notice here is that hello macro doesn't output anything on
 screen. Instead it creates piece of code that is then executed and prints on
 screen. This macro writes a piece of program that looks like this (provided that
-we used "Tuukka" as parameter):
-
-.. code-block:: clj
+we used "Tuukka" as parameter):::
 
   (print "Hello there," "Tuukka")
 
-We can also manipulate code with macros:
-
-.. code-block:: clj
+We can also manipulate code with macros:::
 
   => (defmacro rev [code]
   ...  (setv op (last code) params (list (butlast code)))
@@ -569,18 +530,14 @@ We can also manipulate code with macros:
   6
 
 The code that was generated with this macro just switched around some of the
-elements, so by the time program started executing, it actually reads:
-
-.. code-block:: clj
+elements, so by the time program started executing, it actually reads:::
 
   (+ 1 2 3)
 
 Sometimes it's nice to be able to call a one-parameter macro without
 parentheses. Tag macros allow this. The name of a tag macro is typically
 one character long, but since Hy operates well with Unicode, we aren't running
-out of characters that soon:
-
-.. code-block:: clj
+out of characters that soon:::
 
   => (deftag ↻ [code]
   ...  (setv op (last code) params (list (butlast code)))
@@ -598,9 +555,7 @@ translates to a Python ``import`` statement that's executed at
 run-time, and macros are expanded at compile-time, that is,
 during the translate from Hy to Python. Instead, use ``require``,
 which imports the module and makes macros available at
-compile-time. ``require`` uses the same syntax as ``import``.
-
-.. code-block:: clj
+compile-time. ``require`` uses the same syntax as ``import``.::
 
    => (require tutorial.macros)
    => (tutorial.macros.rev (1 2 3 +))
@@ -614,9 +569,7 @@ Using Hy from Python
 
 You can use Hy modules in Python!
 
-If you save the following in ``greetings.hy``:
-
-.. code-block:: clj
+If you save the following in ``greetings.hy``:::
 
     (defn greet [name] (print "hello from hy," name))
 
@@ -633,14 +586,14 @@ Using Python from Hy
 
 You can also use any Python module in Hy!
 
-If you save the following in ``greetings.py`` in Python::
+If you save the following in ``greetings.py`` in Python
+
+.. code-block:: python
 
     def greet(name):
         print("hello, %s" % (name))
 
-You can use it in Hy (see :ref:`import`):
-
-.. code-block:: clj
+You can use it in Hy (see :ref:`import`):::
 
     (import greetings)
     (.greet greetings "foo")
@@ -658,17 +611,13 @@ to avoid deep nesting of expressions.
 The threading macro inserts each expression into the next expression's first
 argument place.
 
-Let's take the classic:
-
-.. code-block:: clj
+Let's take the classic:::
 
     (require [hy.contrib.loop [loop]])
 
     (loop (print (eval (read))))
 
-Rather than write it like that, we can write it as follows:
-
-.. code-block:: clj
+Rather than write it like that, we can write it as follows:::
 
     (require [hy.contrib.loop [loop]])
 
@@ -676,17 +625,13 @@ Rather than write it like that, we can write it as follows:
 
 Now, using `python-sh <http://amoffat.github.com/sh/>`_, we can show
 how the threading macro (because of python-sh's setup) can be used like
-a pipe:
-
-.. code-block:: clj
+a pipe:::
 
     => (import [sh [cat grep wc]])
     => (-> (cat "/usr/share/dict/words") (grep "-E" "^hy") (wc "-l"))
     210
 
-Which, of course, expands out to:
-
-.. code-block:: clj
+Which, of course, expands out to:::
 
     (wc (grep (cat "/usr/share/dict/words") "-E" "^hy") "-l")
 

@@ -54,9 +54,7 @@ Layout & Indentation
 + Avoid trailing spaces. They suck!
 
 + Indentation shall be 2 spaces (no hard tabs), except when matching
-  the indentation of the previous line.
-
-  .. code-block:: clj
+  the indentation of the previous line.::
 
      ;; Good (and preferred)
      (defn fib [n]
@@ -82,9 +80,7 @@ Layout & Indentation
 
 
 + Parentheses must *never* be left alone, sad and lonesome on their own
-  line.
-
-  .. code-block:: clj
+  line.::
 
     ;; Good (and preferred)
     (defn fib [n]
@@ -103,9 +99,7 @@ Layout & Indentation
 
 + Inline comments shall be two spaces from the end of the code; they
   must always have a space between the comment character and the start
-  of the comment. Also, try to not comment the obvious.
-
-.. code-block:: clj
+  of the comment. Also, try to not comment the obvious.::
 
    ;; Good
    (setv ind (dec x))  ; indexing starts from 0
@@ -123,9 +117,7 @@ Coding Style
 + Do not use s-expression syntax where vector syntax is intended.
   For instance, the fact that the former of these two examples works
   is just because the compiler isn't overly strict. In reality, the
-  correct syntax in places such as this is the latter.
-
-  .. code-block:: clj
+  correct syntax in places such as this is the latter.::
 
      ;; Bad (and evil)
      (defn foo (x) (print x))
@@ -139,9 +131,7 @@ Coding Style
 + Use the threading macro or the threading tail macros when encountering
   deeply nested s-expressions. However, be judicious when using them. Do
   use them when clarity and readability improves; do not construct
-  convoluted, hard to understand expressions.
-
-  .. code-block:: clj
+  convoluted, hard to understand expressions.::
 
      ;; Preferred
      (setv *names*
@@ -159,9 +149,7 @@ Coding Style
 
 
 + Clojure-style dot notation is preferred over the direct call of
-  the object's method, though both will continue to be supported.
-
-  .. code-block:: clj
+  the object's method, though both will continue to be supported.::
 
      ;; Good
      (with [fd (open "/etc/passwd")]

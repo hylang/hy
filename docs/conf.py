@@ -35,6 +35,7 @@ if "+" in hy_version:
 exclude_patterns = ['_build', 'coreteam.rst']
 
 pygments_style = 'sphinx'
+highlight_language = 'hylang'
 
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'

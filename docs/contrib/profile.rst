@@ -23,9 +23,7 @@ installed for this to work.
 
 Usage: `(profile/calls (body))` 
 
-Example:
-
-.. code-block:: hy
+Example:::
 
    (require [hy.contrib.profile [profile/calls]])
    (profile/calls (print "hey there"))
@@ -38,9 +36,7 @@ profile/cpu
 
 Usage: `(profile/cpu (body))`
 
-Example:
-
-.. code-block:: hy
+Example:::
 
     (require [hy.contrib.profile [profile/cpu]])
     (profile/cpu (print "hey there"))
