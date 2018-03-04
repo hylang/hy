@@ -25,8 +25,13 @@ pg = ParserGenerator(
 
 mangle_delim = 'Δ' if PY3 else 'X'
 
-def hy_symbol_mangle(s):
+def mangle(s):
+    """Stringify the argument and convert it to a valid Python identifier
+    according to Hy's mangling rules."""
+
     assert s
+
+    s = str_type(s)
 
     s = s.replace("-", "_")
     s2 = s.lstrip('_')
@@ -53,8 +58,11 @@ def hy_symbol_mangle(s):
     return s
 
 
-def hy_symbol_unmangle(s):
-    # hy_symbol_mangle is one-way, so this won't round-trip.
+def unmangle(s):
+    """Stringify the argument and try to convert it to a pretty unmangled
+    form. This may not round-trip, because different Hy symbol names can
+    mangle to the same Python identifier."""
+
     s = str_type(s)
 
     s2 = s.lstrip('_')

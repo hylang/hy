@@ -178,3 +178,12 @@
     (setv ~sym 10)
     [foo? is_foo])))
   (assert (= out [10 10])))
+
+
+(defn test-functions []
+  (for [[a b] [
+      ["---ab-cd?" "___is_ab_cd"]
+      ["if" "hyx_if"]
+      ["⚘-⚘" (if PY3 "hyx_ΔflowerΔ_ΔflowerΔ" "hyx_XflowerX_XflowerX")]]]
+    (assert (= (mangle a) b))
+    (assert (= (unmangle b) a))))

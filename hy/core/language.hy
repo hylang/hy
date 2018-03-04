@@ -18,6 +18,7 @@
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
+(import [hy.lex.parser [mangle unmangle]])
 (import [hy.compiler [HyASTCompiler spoof-positions]])
 (import [hy.importer [hy-eval :as eval]])
 
@@ -495,7 +496,7 @@ Even objects with the __name__ magic will work."
     filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list* macroexpand
-    macroexpand-1 map merge-with multicombinations name neg? none? nth
+    macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product range read read-str
     remove repeat repeatedly rest reduce second some string string? symbol?
-    take take-nth take-while xor tee zero? zip zip-longest])
+    take take-nth take-while unmangle xor tee zero? zip zip-longest])

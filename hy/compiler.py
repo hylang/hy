@@ -8,7 +8,7 @@ from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyDict, HyCons, wrap_value)
 from hy.errors import HyCompileError, HyTypeError
 
-from hy.lex.parser import hy_symbol_mangle
+from hy.lex.parser import mangle
 
 import hy.macros
 from hy._compat import (
@@ -70,7 +70,7 @@ if PY35:
 def ast_str(x, piecewise=False):
     if piecewise:
         return ".".join(ast_str(s) if s else "" for s in x.split("."))
-    x = hy_symbol_mangle(str_type(x))
+    x = mangle(x)
     return x if PY3 else x.encode('UTF8')
 
 
@@ -2109,7 +2109,7 @@ class HyASTCompiler(object):
                 "Trying to expand a tag macro using `{0}' instead "
                 "of string".format(type(tag).__name__),
             )
-        tag = HyString(hy_symbol_mangle(str(tag))).replace(tag)
+        tag = HyString(mangle(tag)).replace(tag)
         expr = tag_macroexpand(tag, expression.pop(0), self)
         return self.compile(expr)
 

@@ -16,7 +16,7 @@ import astor.code_gen
 import hy
 
 from hy.lex import LexException, PrematureEndOfInput
-from hy.lex.parser import hy_symbol_mangle
+from hy.lex.parser import mangle
 from hy.compiler import HyTypeError
 from hy.importer import (hy_eval, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst,
@@ -64,11 +64,11 @@ class HyREPL(code.InteractiveConsole):
             self.output_fn = output_fn
         else:
             if "." in output_fn:
-                parts = [hy_symbol_mangle(x) for x in output_fn.split(".")]
+                parts = [mangle(x) for x in output_fn.split(".")]
                 module, f = '.'.join(parts[:-1]), parts[-1]
                 self.output_fn = getattr(importlib.import_module(module), f)
             else:
-                self.output_fn = __builtins__[hy_symbol_mangle(output_fn)]
+                self.output_fn = __builtins__[mangle(output_fn)]
 
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)
