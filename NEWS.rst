@@ -5,6 +5,10 @@ Unreleased
 
 Other Breaking Changes
 ------------------------------
+* `_` and `-` are now equivalent as single-character names
+
+  * The REPL history variable `_` is now `*1`
+
 * Non-shadow unary `=`, `is`, `<`, etc. now evaluate their argument
   instead of ignoring it. This change increases consistency a bit
   and makes accidental unary uses easier to notice.

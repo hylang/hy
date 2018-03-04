@@ -112,8 +112,8 @@ class HyREPL(code.InteractiveConsole):
 
         if value is not None:
             # Make the last non-None value available to
-            # the user as `_`.
-            self.locals['_'] = value
+            # the user as `*1`.
+            self.locals[mangle("*1")] = value
             # Print the value.
             try:
                 output = self.output_fn(value)

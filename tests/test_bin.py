@@ -74,6 +74,11 @@ def test_bin_hy_stdin_multiline():
     assert "'abcd'" in output
 
 
+def test_bin_hy_history():
+    output, _ = run_cmd("hy", '(+ "a" "b")\n(+ *1 "y" "z")')
+    assert "'abyz'" in output
+
+
 def test_bin_hy_stdin_comments():
     _, err_empty = run_cmd("hy", '')
 
