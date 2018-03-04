@@ -36,4 +36,5 @@ Contents:
    language/index
    extra/index
    contrib/index
+   loader
    hacking
