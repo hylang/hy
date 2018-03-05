@@ -50,7 +50,7 @@ def isidentifier(x):
     if x.rstrip() != x:
         return False
     import tokenize as T
-    from StringIO import StringIO
+    from io import StringIO
     try:
         tokens = list(T.generate_tokens(StringIO(x).readline))
     except T.TokenError:
