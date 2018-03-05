@@ -8,6 +8,12 @@ Hy <-> Python interop
 Despite being a Lisp, Hy aims to be fully compatible with Python. That means
 every Python module or package can be imported in Hy code, and vice versa.
 
+:ref:`Mangling <mangling>` allows variable names to be spelled differently in
+Hy and Python. For example, Python's ``str.format_map`` can be written
+``str.format-map`` in Hy, and a Hy function named ``valid?`` would be called
+``is_valid`` in Python. In Python, you can import Hy's core functions
+``mangle`` and ``unmangle`` directly from the ``hy`` package.
+
 Using Python from Hy
 ====================
 
@@ -26,41 +32,6 @@ You can use it in Hy:
     (.greet greetings "foo") ; prints "hello, foo"
 
 You can also import ``.pyc`` bytecode files, of course.
-
-A quick note about mangling
---------
-
-In Python, snake_case is used by convention. Lisp dialects tend to use dashes
-instead of underscores, so Hy does some magic to give you more pleasant names.
-
-In the same way, ``UPPERCASE_NAMES`` from Python can be used ``*with-earmuffs*``
-instead.
-
-You can use either the original names or the new ones.
-
-Imagine ``example.py``::
-
-    def function_with_a_long_name():
-        print(42)
-
-    FOO = "bar"
-
-Then, in Hy:
-
-.. code-block:: clj
-
-    (import example)
-    (.function-with-a-long-name example) ; prints "42"
-    (.function_with_a_long_name example) ; also prints "42"
-
-    (print (. example *foo*)) ; prints "bar"
-    (print (. example FOO))   ; also prints "bar"
-
-.. warning::
-   Mangling isn’t that simple; there is more to discuss about it, yet it doesn’t
-   belong in this section.
-.. TODO: link to mangling section, when it is done
-
 
 Using Hy from Python
 ====================

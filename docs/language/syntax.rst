@@ -2,25 +2,10 @@
 Syntax
 ==============
 
-Hy maintains, over everything else, 100% compatibility in both directions
-with Python itself. All Hy code follows a few simple rules. Memorize
-this, as it's going to come in handy.
+identifiers
+-----------
 
-These rules help ensure that Hy code is idiomatic and interfaceable in both
-languages.
-
-  * Symbols in earmuffs will be translated to the upper-cased version of that
-    string. For example, ``foo`` will become ``FOO``.
-
-  * UTF-8 entities will be encoded using
-    `punycode <https://en.wikipedia.org/wiki/Punycode>`_ and prefixed with
-    ``hy_``. For instance, ``⚘`` will become ``hy_w7h``, ``♥`` will become
-    ``hy_g6h``, and ``i♥u`` will become ``hy_iu_t0x``.
-
-  * Symbols that contain dashes will have them replaced with underscores. For
-    example, ``render-template`` will become ``render_template``. This means
-    that symbols with dashes will shadow their underscore equivalents, and vice
-    versa.
+An identifier consists of a nonempty sequence of Unicode characters that are not whitespace nor any of the following: ``( ) [ ] { } ' "``. Hy first tries to parse each identifier into a numeric literal, then into a keyword if that fails, and finally into a symbol if that fails.
 
 numeric literals
 ----------------
@@ -97,6 +82,53 @@ trying to call a function on a literal keyword may fail: ``(f :foo)`` yields
 the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
+
+.. _mangling:
+
+symbols
+-------
+
+Symbols are identifiers that are neither legal numeric literals nor legal
+keywords. In most contexts, symbols are compiled to Python variable names. Some
+example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``, ``just✈wrong``,
+and ``🦑``.
+
+Since the rules for Hy symbols are much more permissive than the rules for
+Python identifiers, Hy uses a mangling algorithm to convert its own names to
+Python-legal names. The rules are:
+
+- Convert all hyphens (``-``) to underscores (``_``). Thus, ``foo-bar`` becomes
+  ``foo_bar``.
+- If the name ends with ``?``, remove it and prepend ``is``. Thus, ``tasty?``
+  becomes ``is_tasty``.
+- If the name still isn't Python-legal, make the following changes. A name
+  could be Python-illegal because it contains a character that's never legal in
+  a Python name, it contains a character that's illegal in that position, or
+  it's equal to a Python reserved word.
+
+  - Prepend ``hyx_`` to the name.
+  - Replace each illegal character with ``ΔfooΔ`` (or on Python 2, ``XfooX``),
+    where ``foo`` is the the Unicode character name in lowercase, with spaces
+    replaced by underscores and hyphens replaced by ``H``. Replace ``Δ`` itself
+    (or on Python 2, ``X``) the same way. If the character doesn't have a name,
+    use ``U`` followed by its code point in lowercase hexadecimal.
+
+  Thus, ``green☘`` becomes ``hyx_greenΔshamrockΔ`` and ``if`` becomes
+  ``hyx_if``.
+
+- Finally, any added ``hyx_`` or ``is_`` is added after any leading
+  underscores, because leading underscores have special significance to Python.
+  Thus, ``_tasty?`` becomes ``_is_tasty`` instead of ``is__tasty``.
+
+Mangling isn't something you should have to think about often, but you may see
+mangled names in error messages, the output of ``hy2py``, etc. A catch to be
+aware of is that mangling, as well as the inverse "unmangling" operation
+offered by the ``unmangle`` function, isn't one-to-one. Two different symbols
+can mangle to the same string and hence compile to the same Python variable.
+The chief practical consequence of this is that ``-`` and ``_`` are
+interchangeable in all symbol names, so you shouldn't assign to the
+one-character name ``_`` , or else you'll interfere with certain uses of
+subtraction.
 
 discard prefix
 --------------

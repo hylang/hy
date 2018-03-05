@@ -157,17 +157,8 @@ HySymbol
 ``hy.models.HySymbol`` is the model used to represent symbols
 in the Hy language. It inherits :ref:`HyString`.
 
-``HySymbol`` objects are mangled in the parsing phase, to help Python
-interoperability:
-
- - Symbols surrounded by asterisks (``*``) are turned into uppercase;
- - Dashes (``-``) are turned into underscores (``_``);
- - One trailing question mark (``?``) is turned into a leading ``is_``.
-
-Caveat: as the mangling is done during the parsing phase, it is possible
-to programmatically generate HySymbols that can't be generated with Hy
-source code. Such a mechanism is used by :ref:`gensym` to generate
-"uninterned" symbols.
+Symbols are :ref:`mangled <mangling>` when they are compiled
+to Python variable names.
 
 .. _hykeyword:
 
@@ -340,7 +331,7 @@ Since they have no "value" to Python, this makes working in Hy hard, since
 doing something like ``(print (if True True False))`` is not just common, it's
 expected.
 
-As a result, we auto-mangle things using a ``Result`` object, where we offer
+As a result, we reconfigure things using a ``Result`` object, where we offer
 up any ``ast.stmt`` that need to get run, and a single ``ast.expr`` that can
 be used to get the value of whatever was just run. Hy does this by forcing
 assignment to things while running.
@@ -352,11 +343,11 @@ As example, the Hy::
 Will turn into::
 
     if True:
-        _mangled_name_here = True
+        _temp_name_here = True
     else:
-        _mangled_name_here = False
+        _temp_name_here = False
 
-    print _mangled_name_here
+    print _temp_name_here
 
 
 OK, that was a bit of a lie, since we actually turn that statement
