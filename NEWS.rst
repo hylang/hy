@@ -5,13 +5,19 @@ Unreleased
 
 Other Breaking Changes
 ------------------------------
-* `_` and `-` are now equivalent as single-character names
+* Mangling rules have been overhauled, such that mangled names
+  are always legal Python identifiers
+* `_` and `-` are now equivalent even as single-character names
 
   * The REPL history variable `_` is now `*1`
 
 * Non-shadow unary `=`, `is`, `<`, etc. now evaluate their argument
   instead of ignoring it. This change increases consistency a bit
   and makes accidental unary uses easier to notice.
+
+New Features
+------------------------------
+* Added `mangle` and `unmangle` as core functions
 
 Bug Fixes
 ------------------------------
