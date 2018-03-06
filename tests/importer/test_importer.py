@@ -68,6 +68,37 @@ def test_import_autocompiles():
     os.remove(get_bytecode_path(f.name))
 
 
+def test_import_failure_retryable():
+    "Test that a failed import does not prevents from re trying"
+    module_name = "again"
+
+    f = open("again.hy", "wb")
+
+    def _import_test():
+        try:
+            import again
+        except HyTypeError:
+            return "Failed"
+        else:
+            return "Succeeded"
+
+    f.write(b'(import "sys")')
+    f.flush()
+
+    assert _import_test() == "Failed"
+
+    f.seek(0)
+    f.truncate()
+    f.write(b'(import sys)')
+    f.flush()
+
+    assert _import_test() == "Succeeded"
+
+    f.close()
+    os.remove(f.name)
+    os.remove(get_bytecode_path(f.name))
+
+
 def test_eval():
     def eval_str(s):
         return hy.eval(hy.read_str(s))
