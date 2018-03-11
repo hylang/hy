@@ -1785,6 +1785,11 @@ macros()
   (assert (none? (. f4 __doc__)))
   (assert (= (f4 [1 2]) "not a docstring")))
 
+(defn test-module-docstring []
+  (import [tests.resources.module-docstring-example :as m])
+  (assert (= m.__doc__ "This is the module docstring."))
+  (assert (= m.foo 5)))
+
 (defn test-relative-import []
   "Make sure relative imports work properly"
   (import [..resources [tlib]])
