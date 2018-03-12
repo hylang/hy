@@ -459,12 +459,9 @@ def test_lambda_list_keywords_mixed():
 
 def test_missing_keyword_argument_value():
     """Ensure the compiler chokes on missing keyword argument values."""
-    try:
+    with pytest.raises(HyTypeError) as excinfo:
         can_compile("((fn [x] x) :x)")
-    except HyTypeError as e:
-        assert(e.message == "Keyword argument :x needs a value.")
-    else:
-        assert(False)
+    assert excinfo.value.message == "Keyword argument :x needs a value."
 
 
 def test_ast_unicode_strings():
@@ -515,50 +512,32 @@ Only one leading newline should be removed.
 
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
-    try:
+    with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (in [1 2 3]))")
-    except HyTypeError as e:
-        assert(e.message == "`in' needs 2 arguments, got 1")
-    else:
-        assert(False)
+    assert excinfo.value.message == "`in' needs 2 arguments, got 1"
 
 
 def test_for_compile_error():
     """Ensure we get compile error in tricky 'for' cases"""
-    try:
+    with pytest.raises(LexException) as excinfo:
         can_compile("(fn [] (for)")
-    except LexException as e:
-        assert(e.message == "Premature end of input")
-    else:
-        assert(False)
+    assert excinfo.value.message == "Premature end of input"
 
-    try:
+    with pytest.raises(LexException) as excinfo:
         can_compile("(fn [] (for)))")
-    except LexException as e:
-        assert(e.message == "Ran into a RPAREN where it wasn't expected.")
-    else:
-        assert(False)
+    assert excinfo.value.message == "Ran into a RPAREN where it wasn't expected."
 
-    try:
+    with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (for [x] x))")
-    except HyTypeError as e:
-        assert(e.message == "`for' requires an even number of args.")
-    else:
-        assert(False)
+    assert excinfo.value.message == "`for' requires an even number of args."
 
-    try:
+    with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (for [x xx]))")
-    except HyTypeError as e:
-        assert(e.message == "`for' requires a body to evaluate")
-    else:
-        assert(False)
+    assert excinfo.value.message == "`for' requires a body to evaluate"
 
-    try:
+    with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (for [x xx] (else 1)))")
-    except HyTypeError as e:
-        assert(e.message == "`for' requires a body to evaluate")
-    else:
-        assert(False)
+    assert excinfo.value.message == "`for' requires a body to evaluate"
 
 
 def test_attribute_access():
