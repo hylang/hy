@@ -18,6 +18,8 @@ Other Breaking Changes
 
 New Features
 ------------------------------
+* Added a first pytest plugin that teaches pytest how to collect Hy
+  modules
 * Added `mangle` and `unmangle` as core functions
 * `defclass` in Python 3 now supports specifying metaclasses and other
   keyword arguments

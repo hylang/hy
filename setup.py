@@ -49,6 +49,9 @@ setup(
             'hyc%d = hy.cmdline:hyc_main' % ver,
             'hy2py = hy.cmdline:hy2py_main',
             'hy2py%d = hy.cmdline:hy2py_main' % ver,
+        ],
+        'pytest11': [
+            'hy = hy.pytest_plugin'
         ]
     },
     packages=find_packages(exclude=['tests*']),
