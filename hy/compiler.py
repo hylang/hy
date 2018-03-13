@@ -2228,9 +2228,16 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     if not get_expr:
         result += result.expr_as_stmt()
 
+    module_docstring = None
+    if (PY37 and result.stmts and
+            isinstance(result.stmts[0], ast.Expr) and
+            isinstance(result.stmts[0].value, ast.Str)):
+        module_docstring = result.stmts.pop(0).value.s
+
     body = compiler.imports_as_stmts(tree) + result.stmts
 
-    ret = root(body=body)
+    ret = root(body=body, docstring=(
+        None if module_docstring is None else module_docstring))
 
     if get_expr:
         expr = ast.Expression(body=expr)
