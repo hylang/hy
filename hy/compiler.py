@@ -1574,7 +1574,8 @@ class HyASTCompiler(object):
     @checkargs(min=1)
     def compile_compare_op_expression(self, expression):
         if len(expression) == 2:
-            return asty.Name(expression, id="True", ctx=ast.Load())
+            return (self.compile(expression[1]) +
+                asty.Name(expression, id="True", ctx=ast.Load()))
         return self._compile_compare_op_expression(expression)
 
     @builds("!=", "is_not")

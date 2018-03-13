@@ -3,6 +3,12 @@
 Unreleased
 ==============================
 
+Other Breaking Changes
+------------------------------
+* Non-shadow unary `=`, `is`, `<`, etc. now evaluate their argument
+  instead of ignoring it. This change increases consistency a bit
+  and makes accidental unary uses easier to notice.
+
 Bug Fixes
 ------------------------------
 * Fix `(return)` so it works correctly to exit a Python 2 generator

@@ -81,7 +81,7 @@
   (deftag + [n]
     (+ n 1))
 
-  (assert (= #+2 3)))
+  (assert (= #+ 2 3)))
 
 
 (defn test-tag-macros-macros []
