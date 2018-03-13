@@ -9,6 +9,7 @@ Contents:
 
    cli
    interop
+   syntax
    api
    core
    internals

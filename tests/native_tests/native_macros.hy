@@ -162,9 +162,9 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  ;; and make sure there is something new that starts with :G_
-  (assert (in "_;G|" s1))
-  (assert (in "_;G|" s2))
+  ;; and make sure there is something new that starts with _;G|
+  (assert (in (mangle "_;G|") s1))
+  (assert (in (mangle "_;G|") s2))
   ;; but make sure the two don't match each other
   (assert (not (= s1 s2))))
 
@@ -188,8 +188,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in "_;a|" s1))
-  (assert (in "_;a|" s2))
+  (assert (in (mangle "_;a|") s1))
+  (assert (in (mangle "_;a|") s2))
   (assert (not (= s1 s2))))
 
 (defn test-defmacro-g! []

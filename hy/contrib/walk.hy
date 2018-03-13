@@ -257,7 +257,7 @@ Arguments without a header are under None.
         (= head 'defclass) (self.handle-defclass)
         (= head 'quasiquote) (self.+quote)
         ;; must be checked last!
-        (in head special-forms) (self.handle-special-form)
+        (in (mangle head) special-forms) (self.handle-special-form)
         ;; Not a special form. Traverse it like a coll
         (self.handle-coll)))
 

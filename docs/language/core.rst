@@ -699,6 +699,20 @@ Returns the single step macro expansion of *form*.
         HySymbol('e'),
         HySymbol('f')])])
 
+.. _mangle-fn:
+
+mangle
+------
+
+Usage: ``(mangle x)``
+
+Stringify the input and translate it according to :ref:`Hy's mangling rules
+<mangling>`.
+
+.. code-block:: hylang
+
+    => (mangle "foo-bar")
+    'foo_bar'
 
 .. _merge-with-fn:
 
@@ -1430,6 +1444,22 @@ Returns an iterator from *coll* as long as *pred* returns ``True``.
 
    => (list (take-while neg? [ 1 2 3 -4 5]))
    []
+
+.. _unmangle-fn:
+
+unmangle
+--------
+
+Usage: ``(unmangle x)``
+
+Stringify the input and return a string that would :ref:`mangle <mangling>` to
+it. Note that this isn't a one-to-one operation, and nor is ``mangle``, so
+``mangle`` and ``unmangle`` don't always round-trip.
+
+.. code-block:: hylang
+
+    => (unmangle "foo_bar")
+    'foo-bar'
 
 Included itertools
 ==================

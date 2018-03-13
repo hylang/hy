@@ -121,8 +121,8 @@ def test_lex_nan_and_inf():
     assert tokenize("INF") == [HySymbol("INF")]
 
     assert tokenize("-Inf") == [HyFloat(float("-inf"))]
-    assert tokenize("-inf") == [HySymbol("_inf")]
-    assert tokenize("-INF") == [HySymbol("_INF")]
+    assert tokenize("-inf") == [HySymbol("-inf")]
+    assert tokenize("-INF") == [HySymbol("-INF")]
 
 
 def test_lex_expression_complex():
@@ -140,7 +140,7 @@ def test_lex_expression_complex():
     assert t("nanj") == f(HySymbol("nanj"))
     assert t("Inf+Infj") == f(HyComplex(complex(float("inf"), float("inf"))))
     assert t("Inf-Infj") == f(HyComplex(complex(float("inf"), float("-inf"))))
-    assert t("Inf-INFj") == f(HySymbol("Inf_INFj"))
+    assert t("Inf-INFj") == f(HySymbol("Inf-INFj"))
 
 
 def test_lex_digit_separators():
@@ -332,7 +332,7 @@ def test_complex():
 def test_tag_macro():
     """Ensure tag macros are handled properly"""
     entry = tokenize("#^()")
-    assert entry[0][0] == HySymbol("dispatch_tag_macro")
+    assert entry[0][0] == HySymbol("dispatch-tag-macro")
     assert entry[0][1] == HyString("^")
     assert len(entry[0]) == 3
 
@@ -341,78 +341,6 @@ def test_lex_comment_382():
     """Ensure that we can tokenize sources with a comment at the end"""
     entry = tokenize("foo ;bar\n;baz")
     assert entry == [HySymbol("foo")]
-
-
-def test_lex_mangling_star():
-    """Ensure that mangling starred identifiers works according to plan"""
-    entry = tokenize("*foo*")
-    assert entry == [HySymbol("FOO")]
-    entry = tokenize("*")
-    assert entry == [HySymbol("*")]
-    entry = tokenize("*foo")
-    assert entry == [HySymbol("*foo")]
-
-
-def test_lex_mangling_hyphen():
-    """Ensure that hyphens get translated to underscores during mangling"""
-    entry = tokenize("foo-bar")
-    assert entry == [HySymbol("foo_bar")]
-    entry = tokenize("-")
-    assert entry == [HySymbol("-")]
-
-
-def test_lex_mangling_qmark():
-    """Ensure that identifiers ending with a question mark get mangled ok"""
-    entry = tokenize("foo?")
-    assert entry == [HySymbol("is_foo")]
-    entry = tokenize("?")
-    assert entry == [HySymbol("?")]
-    entry = tokenize("im?foo")
-    assert entry == [HySymbol("im?foo")]
-    entry = tokenize(".foo?")
-    assert entry == [HySymbol(".is_foo")]
-    entry = tokenize("foo.bar?")
-    assert entry == [HySymbol("foo.is_bar")]
-    entry = tokenize("foo?.bar")
-    assert entry == [HySymbol("is_foo.bar")]
-    entry = tokenize(".foo?.bar.baz?")
-    assert entry == [HySymbol(".is_foo.bar.is_baz")]
-
-
-def test_lex_mangling_bang():
-    """Ensure that identifiers ending with a bang get mangled ok"""
-    entry = tokenize("foo!")
-    assert entry == [HySymbol("foo_bang")]
-    entry = tokenize("!")
-    assert entry == [HySymbol("!")]
-    entry = tokenize("im!foo")
-    assert entry == [HySymbol("im!foo")]
-    entry = tokenize(".foo!")
-    assert entry == [HySymbol(".foo_bang")]
-    entry = tokenize("foo.bar!")
-    assert entry == [HySymbol("foo.bar_bang")]
-    entry = tokenize("foo!.bar")
-    assert entry == [HySymbol("foo_bang.bar")]
-    entry = tokenize(".foo!.bar.baz!")
-    assert entry == [HySymbol(".foo_bang.bar.baz_bang")]
-
-
-def test_unmangle():
-    import sys
-    f = sys.modules["hy.lex.parser"].hy_symbol_unmangle
-
-    assert f("FOO") == "*foo*"
-    assert f("<") == "<"
-    assert f("FOOa") == "FOOa"
-
-    assert f("foo_bar") == "foo-bar"
-    assert f("_") == "_"
-
-    assert f("is_foo") == "foo?"
-    assert f("is_") == "is-"
-
-    assert f("foo_bang") == "foo!"
-    assert f("_bang") == "-bang"
 
 
 def test_simple_cons():

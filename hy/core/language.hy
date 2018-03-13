@@ -18,6 +18,7 @@
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
+(import [hy.lex.parser [mangle unmangle]])
 (import [hy.compiler [HyASTCompiler spoof-positions]])
 (import [hy.importer [hy-eval :as eval]])
 
@@ -87,7 +88,7 @@ If the second argument `codegen` is true, generate python code instead."
   "Return a generator from the original collection `coll` with no duplicates."
   (setv seen (set) citer (iter coll))
   (for* [val citer]
-    (if (not_in val seen)
+    (if (not-in val seen)
       (do
        (yield val)
        (.add seen val)))))
@@ -453,20 +454,16 @@ as EOF (defaults to an empty string)."
   "Reads and tokenizes first line of `input`."
   (read :from-file (StringIO input)))
 
-(defn hyify [text]
-  "Convert `text` to match hy identifier."
-  (.replace (string text) "_" "-"))
-
 (defn keyword [value]
   "Create a keyword from `value`.
 
 Strings numbers and even objects with the __name__ magic will work."
   (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (hyify value)
+    (unmangle value)
     (if (string? value)
-      (HyKeyword (+ ":" (hyify value)))
+      (HyKeyword (+ ":" (unmangle value)))
       (try
-        (hyify (.__name__ value))
+        (unmangle (.__name__ value))
         (except [] (HyKeyword (+ ":" (string value))))))))
 
 (defn name [value]
@@ -475,11 +472,11 @@ Strings numbers and even objects with the __name__ magic will work."
 Keyword special character will be stripped. String will be used as is.
 Even objects with the __name__ magic will work."
   (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (hyify (cut value 2))
+    (unmangle (cut value 2))
     (if (string? value)
-      (hyify value)
+      (unmangle value)
       (try
-        (hyify (. value __name__))
+        (unmangle (. value __name__))
         (except [] (string value))))))
 
 (defn xor [a b]
@@ -488,14 +485,14 @@ Even objects with the __name__ magic will work."
     False
     (or a b)))
 
-(setv *exports*
+(setv EXPORTS
   '[*map accumulate butlast calling-module-name chain coll? combinations
     comp complement compress cons cons? constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first
     filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list* macroexpand
-    macroexpand-1 map merge-with multicombinations name neg? none? nth
+    macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product range read read-str
     remove repeat repeatedly rest reduce second some string string? symbol?
-    take take-nth take-while xor tee zero? zip zip-longest])
+    take take-nth take-while unmangle xor tee zero? zip zip-longest])

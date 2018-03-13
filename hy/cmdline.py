@@ -16,7 +16,7 @@ import astor.code_gen
 import hy
 
 from hy.lex import LexException, PrematureEndOfInput
-from hy.lex.parser import hy_symbol_mangle
+from hy.lex.parser import mangle
 from hy.compiler import HyTypeError
 from hy.importer import (hy_eval, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst,
@@ -63,12 +63,12 @@ class HyREPL(code.InteractiveConsole):
         elif callable(output_fn):
             self.output_fn = output_fn
         else:
-            f = hy_symbol_mangle(output_fn)
             if "." in output_fn:
-                module, f = f.rsplit(".", 1)
+                parts = [mangle(x) for x in output_fn.split(".")]
+                module, f = '.'.join(parts[:-1]), parts[-1]
                 self.output_fn = getattr(importlib.import_module(module), f)
             else:
-                self.output_fn = __builtins__[f]
+                self.output_fn = __builtins__[mangle(output_fn)]
 
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)
@@ -112,8 +112,8 @@ class HyREPL(code.InteractiveConsole):
 
         if value is not None:
             # Make the last non-None value available to
-            # the user as `_`.
-            self.locals['_'] = value
+            # the user as `*1`.
+            self.locals[mangle("*1")] = value
             # Print the value.
             try:
                 output = self.output_fn(value)
