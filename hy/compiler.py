@@ -20,10 +20,8 @@ import hy.inspect
 
 import traceback
 import importlib
-import codecs
 import ast
 import sys
-import keyword
 import copy
 
 from collections import defaultdict
