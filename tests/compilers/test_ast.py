@@ -219,6 +219,8 @@ def test_ast_bad_defclass():
     cant_compile("(defclass)")
     cant_compile("(defclass a None)")
     cant_compile("(defclass a None None)")
+    cant_compile("(defclass a [] None 42)")
+    cant_compile("(defclass a [] None \"test\")")
 
 
 def test_ast_good_lambda():
