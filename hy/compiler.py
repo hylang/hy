@@ -2036,7 +2036,10 @@ class HyASTCompiler(object):
     def compile_class_expression(self, expressions):
         def rewire_init(expr):
             new_args = []
-            if expr[0] == HySymbol("setv"):
+            if (isinstance(expr, HyExpression)
+                and len(expr) > 1
+                and isinstance(expr[0], HySymbol)
+                and expr[0] == HySymbol("setv")):
                 pairs = expr[1:]
                 while len(pairs) > 0:
                     k, v = (pairs.pop(0), pairs.pop(0))
