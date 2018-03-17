@@ -116,6 +116,7 @@ def import_file_to_module(module_name, fpath, loader=None):
                 with open(fpath, 'rt') as fp:
                     e.source = fp.read()
                 e.filename = fpath
+            sys.modules.pop(module_name, None)
             raise
         except Exception:
             sys.modules.pop(module_name, None)
