@@ -742,6 +742,18 @@
   (assert (= (.join ", " (* 10 ["foo"]))
              (->> ["foo"] (* 10) (.join ", ")))))
 
+(defn test-threading-in-macro []
+  ; https://github.com/hylang/hy/issues/1537
+  ; The macros need to be defined in another file or else the bug
+  ; isn't visible in cb72a8c155ac4ef8e16afc63ffa80c1d5abb68a7
+  (require tests.resources.macros)
+
+  (tests.resources.macros.thread-set-ab)
+  (assert (= ab 2))
+
+  (tests.resources.macros.threadtail-set-cd)
+  (assert (= cd 5)))
+
 
 (defn test-threading-two []
   "NATIVE: test threading macro"
