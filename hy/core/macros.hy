@@ -150,8 +150,8 @@ the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
   (for* [node args]
     (setv ret (if (isinstance node HyExpression)
-      `(~(first node) ~ret ~@(rest node))
-      `(~node ~ret))))
+                  `(~(first node) ~ret ~@(rest node))
+                  `(~node ~ret))))
   ret)
 
 
@@ -175,8 +175,8 @@ the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
   (for* [node args]
     (setv ret (if (isinstance node HyExpression)
-      `(~@node ~ret)
-      `(~node ~ret))))
+                  `(~@node ~ret)
+                  `(~node ~ret))))
   ret)
 
 
