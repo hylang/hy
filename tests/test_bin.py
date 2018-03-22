@@ -12,7 +12,7 @@ import subprocess
 
 import pytest
 
-from hy._compat import PY3, PY35, builtins
+from hy._compat import PY3, PY35, PY36, builtins
 from hy.importer import get_bytecode_path
 
 
@@ -229,9 +229,11 @@ def test_hy2py():
     for dirpath, dirnames, filenames in os.walk("tests/native_tests"):
         for f in filenames:
             if f.endswith(".hy"):
-                if f == "py3_only_tests.hy" and not PY3:
+                if "py3_only" in f and not PY3:
                     continue
-                if f == "py35_only_tests.hy" and not PY35:
+                if "py35_only" in f and not PY35:
+                    continue
+                if "py36_only" in f and not PY36:
                     continue
                 i += 1
                 output, err = run_cmd("hy2py -s -a " + quote(os.path.join(dirpath, f)))

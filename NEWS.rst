@@ -14,18 +14,17 @@ Other Breaking Changes
 * Non-shadow unary `=`, `is`, `<`, etc. now evaluate their argument
   instead of ignoring it. This change increases consistency a bit
   and makes accidental unary uses easier to notice.
+* `hy-repr` uses registered functions instead of methods
 
 New Features
 ------------------------------
 * Added `mangle` and `unmangle` as core functions
+* `defclass` in Python 3 now supports specifying metaclasses and other
+  keyword arguments
 
 Bug Fixes
 ------------------------------
 * Fix `(return)` so it works correctly to exit a Python 2 generator
-
-Other Breaking Changes
------------------------------
-* `hy-repr` uses registered functions instead of methods
 
 Misc. Improvements
 ----------------------------

@@ -214,6 +214,13 @@ def test_ast_good_defclass():
     can_compile("(defclass a [])")
 
 
+@pytest.mark.skipif(not PY3, reason="Python 3 supports class keywords")
+def test_ast_good_defclass_with_metaclass():
+    "Make sure AST can compile valid defclass with keywords"
+    can_compile("(defclass a [:metaclass b])")
+    can_compile("(defclass a [:b c])")
+
+
 def test_ast_bad_defclass():
     "Make sure AST can't compile invalid defclass"
     cant_compile("(defclass)")
