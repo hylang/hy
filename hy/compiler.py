@@ -2072,12 +2072,7 @@ class HyASTCompiler(object):
 
         # grab the doc string, if there is one
         if expressions and isinstance(expressions[0], HyString):
-            docstring = expressions.pop(0)
-            symb = HySymbol("__doc__")
-            symb.start_line = docstring.start_line
-            symb.start_column = docstring.start_column
-            body += self._compile_assign(symb, docstring)
-            body += body.expr_as_stmt()
+            body += self.compile(expressions.pop(0)).expr_as_stmt()
 
         if expressions and isinstance(expressions[0], HyList) \
            and not isinstance(expressions[0], HyExpression):
@@ -2088,7 +2083,8 @@ class HyASTCompiler(object):
             body += self.compile(rewire_init(expr))
 
         for expression in expressions:
-            body += self.compile(rewire_init(macroexpand(expression, self)))
+            e = self.compile(rewire_init(macroexpand(expression, self)))
+            body += e + e.expr_as_stmt()
 
         if not body.stmts:
             body += asty.Pass(expressions)
