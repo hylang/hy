@@ -142,17 +142,16 @@ in order of the given pairs."
   (_for 'for/a* args body))
 
 
-(defmacro -> [head &rest rest]
+(defmacro -> [head &rest args]
   "Thread `head` first through the `rest` of the forms.
 
 The result of the first threaded form is inserted into the first position of
 the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
-  (for* [node rest]
-    (if (not (isinstance node HyExpression))
-      (setv node `(~node)))
-    (.insert node 1 ret)
-    (setv ret node))
+  (for* [node args]
+    (setv ret (if (isinstance node HyExpression)
+                  `(~(first node) ~ret ~@(rest node))
+                  `(~node ~ret))))
   ret)
 
 
@@ -168,17 +167,16 @@ the second form, the second result is inserted into the third form, and so on."
      ~@(map build-form expressions)
      ~f))
 
-(defmacro ->> [head &rest rest]
+(defmacro ->> [head &rest args]
   "Thread `head` last through the `rest` of the forms.
 
 The result of the first threaded form is inserted into the last position of
 the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
-  (for* [node rest]
-    (if (not (isinstance node HyExpression))
-      (setv node `(~node)))
-    (.append node ret)
-    (setv ret node))
+  (for* [node args]
+    (setv ret (if (isinstance node HyExpression)
+                  `(~@node ~ret)
+                  `(~node ~ret))))
   ret)
 
 

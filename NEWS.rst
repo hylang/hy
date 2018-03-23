@@ -25,6 +25,7 @@ New Features
 Bug Fixes
 ------------------------------
 * Fix `(return)` so it works correctly to exit a Python 2 generator
+* Fixed a case where `->` and `->>` duplicated an argument
 
 Misc. Improvements
 ----------------------------
