@@ -30,7 +30,7 @@ class Install(install):
                         "." + filename[:-len(".hy")])
         install.run(self)
 
-install_requires = ['rply>=0.7.5', 'astor>=0.6', 'clint>=0.4']
+install_requires = ['rply>=0.7.5', 'astor', 'clint>=0.4']
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 
@@ -40,6 +40,9 @@ setup(
     name=PKG,
     version=__version__,
     install_requires=install_requires,
+    dependency_links=[
+        'git+https://github.com/berkerpeksag/astor.git#egg=astor-0.7.0'
+    ],
     cmdclass=dict(install=Install),
     entry_points={
         'console_scripts': [

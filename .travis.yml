@@ -13,7 +13,7 @@ matrix:
     - python: "3.7-dev"
 install:
   - pip install -r requirements-travis.txt
-  - pip install -e .
+  - pip install --process-dependency-links -e .
 script: pytest
 cache: pip
 after_success: make coveralls
