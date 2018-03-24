@@ -2071,8 +2071,12 @@ class HyASTCompiler(object):
         body = Result()
 
         # grab the doc string, if there is one
+        docstring = None
         if expressions and isinstance(expressions[0], HyString):
-            body += self.compile(expressions.pop(0)).expr_as_stmt()
+            docstring = expressions.pop(0)
+            if not PY37:
+                body += self.compile(docstring).expr_as_stmt()
+                docstring = None
 
         if expressions and isinstance(expressions[0], HyList) \
            and not isinstance(expressions[0], HyExpression):
@@ -2097,7 +2101,8 @@ class HyASTCompiler(object):
             starargs=None,
             kwargs=None,
             bases=bases_expr,
-            body=body.stmts)
+            body=body.stmts,
+            docstring=(None if docstring is None else str_type(docstring)))
 
     @builds("dispatch-tag-macro")
     @checkargs(exact=2)
