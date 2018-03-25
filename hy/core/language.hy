@@ -12,9 +12,7 @@
 (import [fractions [Fraction :as fraction]])
 (import operator)  ; shadow not available yet
 (import sys)
-(if-python2
-  (import [StringIO [StringIO]])
-  (import [io [StringIO]]))
+(import [io [StringIO]])
 (import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models [HyCons HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
