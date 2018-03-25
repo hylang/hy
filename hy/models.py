@@ -226,11 +226,8 @@ class HyList(HyObject, list):
     """
 
     def replace(self, other):
-        for x in self:
-            replace_hy_obj(x, other)
-
-        HyObject.replace(self, other)
-        return self
+        self[:] = [replace_hy_obj(x, other) for x in self]
+        return HyObject.replace(self, other)
 
     def __add__(self, other):
         return self.__class__(super(HyList, self).__add__(other))
@@ -387,11 +384,11 @@ class HyCons(HyObject):
 
     def replace(self, other):
         if self.car is not None:
-            replace_hy_obj(self.car, other)
+            self.car = replace_hy_obj(self.car, other)
         if self.cdr is not None:
-            replace_hy_obj(self.cdr, other)
+            self.cdr = replace_hy_obj(self.cdr, other)
 
-        HyObject.replace(self, other)
+        return HyObject.replace(self, other)
 
     def __repr__(self):
         if PRETTY:
