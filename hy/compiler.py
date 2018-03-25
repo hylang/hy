@@ -699,28 +699,31 @@ class HyASTCompiler(object):
         imports = set([name])
 
         if isinstance(form, (HyList, HyDict, HySet)):
-            if not form:
-                contents = HyList()
-            else:
-                # If there are arguments, they can be spliced
-                # so we build a sum...
-                contents = HyExpression([HySymbol("+"), HyList()])
-
+            contents = HyList()
             for x in form:
                 f_imports, f_contents, splice = self._render_quoted_form(x,
                                                                          level)
                 imports.update(f_imports)
                 if splice:
-                    to_add = HyExpression([
-                        HySymbol("list"),
-                        HyExpression([HySymbol("or"), f_contents, HyList()])])
+                    # On Python 3.5 and newer, leverage PEP 448 to generate
+                    # expression using tuple unpacking instead of addition.
+                    #
+                    # Should be marginally faster too.
+                    contents.append(HyExpression([
+                        HySymbol("unpack-iterable" if PY35 else "list"),
+                        HyExpression([HySymbol("or"), f_contents, HyList()])
+                    ]))
                 else:
-                    to_add = HyList([f_contents])
+                    contents.append(f_contents if PY35
+                                    else HyList([f_contents]))
 
-                contents.append(to_add)
+            if not PY35:
+                # Without Python 3.5's unpacking improvements, we need
+                # to concatenate the expression manually
+                contents = HyExpression([HySymbol("sum"), contents, HyList()])
 
-            return imports, HyExpression([HySymbol(name),
-                                          contents]).replace(form), False
+            expr = HyExpression([HySymbol(name), contents])
+            return imports, expr.replace(form), False
 
         elif isinstance(form, HyCons):
             ret = HyExpression([HySymbol(name)])
