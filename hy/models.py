@@ -3,6 +3,7 @@
 # license. See the LICENSE.
 
 from __future__ import unicode_literals
+import collections
 from contextlib import contextmanager
 from math import isnan, isinf
 from hy._compat import PY3, str_type, bytes_type, long_type, string_types
@@ -62,9 +63,11 @@ def wrap_value(x):
 
     wrapper = _wrappers.get(type(x))
     if wrapper is None:
+        if (not isinstance(x, HyObject)
+            and isinstance(x, collections.Iterable)):
+            return wrap_value(list(x))
         return x
-    else:
-        return wrapper(x)
+    return wrapper(x)
 
 
 def replace_hy_obj(obj, other):

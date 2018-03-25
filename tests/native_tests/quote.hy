@@ -98,3 +98,12 @@
       [1 2 3]
       [4 5 6])
     [4 5 6])))
+
+(defn test-unquote-with-generators []
+  (defn values []
+    (yield '1)
+    (yield '2)
+    (yield '3))
+
+  (assert (= (eval `[~@(values)]) [1 2 3]))
+  (assert (= (eval `[~(values)]) [[1 2 3]])))
