@@ -59,7 +59,8 @@ class HyREPL(code.InteractiveConsole):
         self.spy = spy
 
         if output_fn is None:
-            self.output_fn = repr
+            import hy.core.hy_repr
+            self.output_fn = hy.core.hy_repr.hy_repr
         elif callable(output_fn):
             self.output_fn = output_fn
         else:
