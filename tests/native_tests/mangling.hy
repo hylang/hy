@@ -145,9 +145,9 @@
   (setv sym 'foo?)
   (assert (= sym "foo?"))
   (assert (!= sym "is_foo"))
-  (setv out (eval `(do
-                     (setv ~sym 10)
-                     [foo? is_foo])))
+  (setv out (hy-eval `(do
+                        (setv ~sym 10)
+                        [foo? is_foo])))
   (assert (= out [10 10])))
 
 

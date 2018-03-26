@@ -27,7 +27,7 @@
 
 (defmacro forbid [expr]
   `(assert (try
-    (eval '~expr)
+    (hy-eval '~expr)
     (except [TypeError] True)
     (else (raise AssertionError)))))
 

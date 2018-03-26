@@ -67,16 +67,16 @@
 (defn test-setv-builtin []
   "NATIVE: test that setv doesn't work on names Python can't assign to
   and that we can't mangle"
-  (try (eval '(setv None 1))
+  (try (hy-eval '(setv None 1))
        (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
-  (try (eval '(defn None [] (print "hello")))
+  (try (hy-eval '(defn None [] (print "hello")))
        (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
   (when PY3
-    (try (eval '(setv False 1))
+    (try (hy-eval '(setv False 1))
          (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
-    (try (eval '(setv True 0))
+    (try (hy-eval '(setv True 0))
          (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
-    (try (eval '(defn True [] (print "hello")))
+    (try (hy-eval '(defn True [] (print "hello")))
          (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))))
 
 
@@ -88,7 +88,7 @@
   (setv y 0 x 1 y x)
   (assert (= y 1))
   (with [(pytest.raises HyTypeError)]
-    (eval '(setv a 1 b))))
+    (hy-eval '(setv a 1 b))))
 
 
 (defn test-setv-returns-none []
@@ -142,28 +142,28 @@
   "NATIVE: test that setv raises the correct errors when given wrong argument types"
   (try
     (do
-      (eval '(setv (do 1 2) 1))
+      (hy-eval '(setv (do 1 2) 1))
       (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a non-expression"))))
 
   (try
     (do
-      (eval '(setv 1 1))
+      (hy-eval '(setv 1 1))
       (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyInteger"))))
 
   (try
     (do
-      (eval '(setv {1 2} 1))
+      (hy-eval '(setv {1 2} 1))
       (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyDict"))))
 
   (try
     (do
-      (eval '(del 1 1))
+      (hy-eval '(del 1 1))
       (assert False))
     (except [e HyTypeError]
       (assert (= e.message "Can't assign or delete a HyInteger")))))
@@ -1277,61 +1277,61 @@
        (if False False False)))))
 
 
-(defn test-eval []
-  "NATIVE: test eval"
-  (assert (= 2 (eval (quote (+ 1 1)))))
+(defn test-hy-eval []
+  "NATIVE: test hy-eval"
+  (assert (= 2 (hy-eval (quote (+ 1 1)))))
   (setv x 2)
-  (assert (= 4 (eval (quote (+ x 2)))))
+  (assert (= 4 (hy-eval (quote (+ x 2)))))
   (setv test-payload (quote (+ x 2)))
   (setv x 4)
-  (assert (= 6 (eval test-payload)))
-  (assert (= 9 ((eval (quote (fn [x] (+ 3 3 x)))) 3)))
-  (assert (= 1 (eval (quote 1))))
-  (assert (= "foobar" (eval (quote "foobar"))))
+  (assert (= 6 (hy-eval test-payload)))
+  (assert (= 9 ((hy-eval (quote (fn [x] (+ 3 3 x)))) 3)))
+  (assert (= 1 (hy-eval (quote 1))))
+  (assert (= "foobar" (hy-eval (quote "foobar"))))
   (setv x (quote 42))
-  (assert (= x (eval x)))
-  (assert (= 27 (eval (+ (quote (*)) (* [(quote 3)] 3)))))
-  (assert (= None (eval (quote (print ""))))))
+  (assert (= x (hy-eval x)))
+  (assert (= 27 (hy-eval (+ (quote (*)) (* [(quote 3)] 3)))))
+  (assert (= None (hy-eval (quote (print ""))))))
 
 
-(defn test-eval-false []
-  (assert (is (eval 'False) False))
-  (assert (is (eval 'None) None))
-  (assert (= (eval '0) 0))
-  (assert (= (eval '"") ""))
-  (assert (= (eval 'b"") b""))
-  (assert (= (eval ':) :))
-  (assert (= (eval '[]) []))
-  (assert (= (eval '(,)) (,)))
-  (assert (= (eval '{}) {}))
-  (assert (= (eval '#{}) #{})))
+(defn test-hy-eval-false []
+  (assert (is (hy-eval 'False) False))
+  (assert (is (hy-eval 'None) None))
+  (assert (= (hy-eval '0) 0))
+  (assert (= (hy-eval '"") ""))
+  (assert (= (hy-eval 'b"") b""))
+  (assert (= (hy-eval ':) :))
+  (assert (= (hy-eval '[]) []))
+  (assert (= (hy-eval '(,)) (,)))
+  (assert (= (hy-eval '{}) {}))
+  (assert (= (hy-eval '#{}) #{})))
 
 
-(defn test-eval-globals []
-  "NATIVE: test eval with explicit global dict"
-  (assert (= 'bar (eval (quote foo) {'foo 'bar})))
-  (assert (= 1 (do (setv d {}) (eval '(setv x 1) d) (eval (quote x) d))))
+(defn test-hy-eval-globals []
+  "NATIVE: test hy-eval with explicit global dict"
+  (assert (= 'bar (hy-eval (quote foo) {'foo 'bar})))
+  (assert (= 1 (do (setv d {}) (hy-eval '(setv x 1) d) (hy-eval (quote x) d))))
   (setv d1 {}  d2 {})
-  (eval '(setv x 1) d1)
+  (hy-eval '(setv x 1) d1)
   (try
     (do
        ; this should fail with a name error
-       (eval (quote x) d2)
+       (hy-eval (quote x) d2)
        (assert False "We shouldn't have arrived here"))
     (except [e Exception]
       (assert (isinstance e NameError)))))
 
-(defn test-eval-failure []
-  "NATIVE: test eval failure modes"
+(defn test-hy-eval-failure []
+  "NATIVE: test hy-eval failure modes"
   ; yo dawg
-  (try (eval '(eval)) (except [e TypeError]) (else (assert False)))
+  (try (hy-eval '(hy-eval)) (except [e TypeError]) (else (assert False)))
   (defclass C)
-  (try (eval (C)) (except [e TypeError]) (else (assert False)))
-  (try (eval 'False []) (except [e HyTypeError]) (else (assert False)))
-  (try (eval 'False {} 1) (except [e TypeError]) (else (assert False))))
+  (try (hy-eval (C)) (except [e TypeError]) (else (assert False)))
+  (try (hy-eval 'False []) (except [e HyTypeError]) (else (assert False)))
+  (try (hy-eval 'False {} 1) (except [e TypeError]) (else (assert False))))
 
 
-(defn test-eval-quasiquote []
+(defn test-hy-eval-quasiquote []
   ; https://github.com/hylang/hy/issues/1174
 
   (for [x [
@@ -1344,22 +1344,22 @@
       :mykeyword
       [] #{} {}
       [1 2 3] #{1 2 3} {"a" 1 "b" 2}]]
-    (assert (= (eval `(identity ~x)) x))
-    (assert (= (eval x) x)))
+    (assert (= (hy-eval `(identity ~x)) x))
+    (assert (= (hy-eval x) x)))
 
   ; Tuples wrap to HyLists, not HyExpressions.
-  (assert (= (eval (,)) []))
-  (assert (= (eval (, 1 2 3)) [1 2 3]))
+  (assert (= (hy-eval (,)) []))
+  (assert (= (hy-eval (, 1 2 3)) [1 2 3]))
 
-  (assert (= (eval `(+ "a" ~(+ "b" "c"))) "abc"))
+  (assert (= (hy-eval `(+ "a" ~(+ "b" "c"))) "abc"))
 
   (setv l ["a" "b"])
   (setv n 1)
-  (assert (= (eval `(get ~l ~n) "b")))
+  (assert (= (hy-eval `(get ~l ~n) "b")))
 
   (setv d {"a" 1 "b" 2})
   (setv k "b")
-  (assert (= (eval `(get ~d ~k)) 2)))
+  (assert (= (hy-eval `(get ~d ~k)) 2)))
 
 
 (defn test-quote-bracket-string-delim []
@@ -1682,13 +1682,13 @@ macros()
   (import [hy.models [HyExpression]])
 
   (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
-  (assert (= (eval (read stdin-buffer)) 4))
+  (assert (= (hy-eval (read stdin-buffer)) 4))
   (assert (isinstance (read stdin-buffer) HyExpression))
 
   "Multiline test"
   (setv stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
-  (assert (= (eval (read stdin-buffer)) 42))
-  (assert (= (eval (read stdin-buffer)) 1))
+  (assert (= (hy-eval (read stdin-buffer)) 42))
+  (assert (= (hy-eval (read stdin-buffer)) 1))
 
   "EOF test"
   (setv stdin-buffer (StringIO "(+ 2 2)"))

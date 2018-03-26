@@ -22,7 +22,7 @@
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.lex.parser [mangle unmangle]])
 (import [hy.compiler [HyASTCompiler spoof-positions]])
-(import [hy.importer [hy-eval :as eval]])
+(import [hy.importer [hy-eval]])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."
@@ -469,12 +469,12 @@ Even objects with the __name__ magic will work."
     (or a b)))
 
 (setv EXPORTS
-  '[*map accumulate butlast calling-module-name chain coll? combinations
-    comp complement compress constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? eval even? every? exec first
-    filter flatten float? fraction gensym group-by identity inc input instance?
-    integer integer? integer-char? interleave interpose islice iterable?
-    iterate iterator? juxt keyword keyword? last macroexpand
+  '[*map accumulate butlast calling-module-name chain coll? combinations comp
+    complement compress constantly count cycle dec distinct
+    disassemble drop drop-last drop-while empty? even? every? exec first filter
+    flatten float? fraction gensym group-by hy-eval identity inc input
+    instance? integer integer? integer-char? interleave interpose islice
+    iterable? iterate iterator? juxt keyword keyword? last macroexpand
     macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product range read read-str
     remove repeat repeatedly rest reduce second some string string? symbol?

@@ -31,10 +31,10 @@
     [1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
     '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"} (f #* a #** b)]])
   (for [original-val values]
-    (setv evaled (eval (read-str (hy-repr original-val))))
+    (setv evaled (hy-eval (read-str (hy-repr original-val))))
     (assert (= evaled original-val))
     (assert (is (type evaled) (type original-val))))
-  (assert (isnan (eval (read-str (hy-repr NaN))))))
+  (assert (isnan (hy-eval (read-str (hy-repr NaN))))))
 
 (defn test-hy-repr-roundtrip-from-str []
   (setv strs [
@@ -62,7 +62,7 @@
     ":akeyword"
     "'(f #* args #** kwargs)"])
   (for [original-str strs]
-    (setv rep (hy-repr (eval (read-str original-str))))
+    (setv rep (hy-repr (hy-eval (read-str original-str))))
     (assert (= rep original-str))))
 
 (defn test-hy-repr-no-roundtrip []
@@ -73,7 +73,7 @@
   (setv orig `[a ~5.0])
   (setv reprd (hy-repr orig))
   (assert (= reprd "'[a 5.0]"))
-  (setv result (eval (read-str reprd)))
+  (setv result (hy-eval (read-str reprd)))
 
   (assert (is (type (get orig 1)) float))
   (assert (is (type (get result 1)) HyFloat)))
