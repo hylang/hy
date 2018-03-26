@@ -12,7 +12,7 @@ from hy.lex.parser import mangle
 
 import hy.macros
 from hy._compat import (
-    str_type, string_types, bytes_type, long_type, PY3, PY35,
+    str_type, string_types, bytes_type, long_type, PY3, PY35, PY37,
     raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
@@ -1949,10 +1949,11 @@ class HyASTCompiler(object):
                 ) + expression
                 expression = expression.replace(arg[0])
 
-        # Docstrings must come at the start, so ensure that happens even if we
-        # generate anonymous variables.
-        if docstring is not None:
+        # Before Python 3.7, docstrings must come at the start, so ensure that
+        # happens even if we generate anonymous variables.
+        if docstring is not None and not PY37:
             expression.insert(0, docstring)
+            docstring = None
 
         if PY3:
             # Python 3.4+ requires that args are an ast.arg object, rather
@@ -1989,7 +1990,7 @@ class HyASTCompiler(object):
             defaults=defaults)
 
         body = self._compile_branch(expression)
-        if not force_functiondef and not body.stmts:
+        if not force_functiondef and not body.stmts and docstring is None:
             ret += asty.Lambda(expression, args=args, body=body.force_expr)
             return ret
 
@@ -2012,7 +2013,9 @@ class HyASTCompiler(object):
                     name=name,
                     args=args,
                     body=body.stmts,
-                    decorator_list=[])
+                    decorator_list=[],
+                    docstring=(None if docstring is None else
+                        str_type(docstring)))
 
         ast_name = asty.Name(expression, id=name, ctx=ast.Load())
 
@@ -2225,9 +2228,16 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     if not get_expr:
         result += result.expr_as_stmt()
 
+    module_docstring = None
+    if (PY37 and result.stmts and
+            isinstance(result.stmts[0], ast.Expr) and
+            isinstance(result.stmts[0].value, ast.Str)):
+        module_docstring = result.stmts.pop(0).value.s
+
     body = compiler.imports_as_stmts(tree) + result.stmts
 
-    ret = root(body=body)
+    ret = root(body=body, docstring=(
+        None if module_docstring is None else module_docstring))
 
     if get_expr:
         expr = ast.Expression(body=expr)

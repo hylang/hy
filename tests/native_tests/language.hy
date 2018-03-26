@@ -11,7 +11,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY3 PY35]])
+(import [hy._compat [PY3 PY35 PY37]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -1606,18 +1606,21 @@
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (if PY35
-    (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-               "Module(
+  (assert (= (disassemble '(do (leaky) (leaky) (macros))) (cond
+    [PY37 "Module(
     body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
-        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"))
-    (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-               "Module(
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))],
+    docstring=None)"]
+    [PY35 "Module(
+    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
+        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"]
+    [True "Module(
     body=[
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
-        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])")))
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])"])))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
              "leaky()
 leaky()
@@ -1784,6 +1787,11 @@ macros()
   (defn f4 [[a b]] "not a docstring")
   (assert (none? (. f4 __doc__)))
   (assert (= (f4 [1 2]) "not a docstring")))
+
+(defn test-module-docstring []
+  (import [tests.resources.module-docstring-example :as m])
+  (assert (= m.__doc__ "This is the module docstring."))
+  (assert (= m.foo 5)))
 
 (defn test-relative-import []
   "Make sure relative imports work properly"

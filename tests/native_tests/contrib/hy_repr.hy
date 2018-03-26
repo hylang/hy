@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [hy._compat [PY3 PY36]]
+  [hy._compat [PY3 PY36 PY37]]
   [math [isnan]]
   [hy.contrib.hy-repr [hy-repr hy-repr-register]])
 
@@ -163,8 +163,8 @@
   (setv mo (re.search "b+" "aaaabbbccc"))
   (assert (= (hy-repr mo)
     (.format
-      #[[<{}.SRE_Match object; :span {} :match "bbb">]]
-      (. (type mo) __module__)
+      #[[<{} object; :span {} :match "bbb">]]
+      (if PY37 "re.Match" (+ (. (type mo) __module__) ".SRE_Match"))
       (if PY3 "(, 4 7)" "(, (int 4) (int 7))")))))
 
 (defn test-hy-repr-custom []

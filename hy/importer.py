@@ -77,6 +77,9 @@ def import_file_to_module(module_name, fpath, loader=None):
             # The first 4 bytes are the magic number for the version of Python
             # that compiled this bytecode.
             bytecode_magic = bc_f.read(4)
+            # Python 3.7 introduced a new flags entry in the header structure.
+            if PY37:
+                bc_f.read(4)
             # The next 4 bytes, interpreted as a little-endian 32-bit integer,
             # are the mtime of the corresponding source file.
             bytecode_mtime, = struct.unpack('<i', bc_f.read(4))

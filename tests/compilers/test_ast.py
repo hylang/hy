@@ -53,7 +53,7 @@ def cant_compile(expr):
 
 
 def s(x):
-    return can_compile(x).body[0].value.s
+    return can_compile('"module docstring" ' + x).body[-1].value.s
 
 
 def test_ast_bad_type():
@@ -476,13 +476,12 @@ def test_ast_unicode_strings():
 
     def _compile_string(s):
         hy_s = HyString(s)
-        hy_s.start_line = hy_s.end_line = 0
-        hy_s.start_column = hy_s.end_column = 0
 
-        code = hy_compile(hy_s, "__main__")
+        code = hy_compile([hy_s], "__main__")
+        # We put hy_s in a list so it isn't interpreted as a docstring.
 
-        # code == ast.Module(body=[ast.Expr(value=ast.Str(s=xxx))])
-        return code.body[0].value.s
+        # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Str(s=xxx)]))])
+        return code.body[0].value.elts[0].s
 
     assert _compile_string("test") == "test"
     assert _compile_string("\u03b1\u03b2") == "\u03b1\u03b2"
