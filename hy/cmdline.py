@@ -69,7 +69,7 @@ class HyREPL(code.InteractiveConsole):
                 module, f = '.'.join(parts[:-1]), parts[-1]
                 self.output_fn = getattr(importlib.import_module(module), f)
             else:
-                self.output_fn = __builtins__[mangle(output_fn)]
+                self.output_fn = getattr(builtins, mangle(output_fn))
 
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)
