@@ -8,7 +8,8 @@
   datetime
   collections
   [hy._compat [PY3 PY36 str-type bytes-type long-type]]
-  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
+  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]]
+  [hy.core.language [*]])
 
 (try
   (import [_collections_abc [dict-keys dict-values dict-items]])
@@ -18,7 +19,7 @@
 
 (setv -registry {})
 (defn hy-repr-register [types f &optional placeholder]
-  (for [typ (if (instance? list types) types [types])]
+  (for* [typ (if (instance? list types) types [types])]
     (setv (get -registry typ) (, f placeholder))))
 
 (setv -quoting False)
@@ -32,12 +33,13 @@
 
   (global -quoting)
   (setv started-quoting False)
-  (when (and (not -quoting) (instance? HyObject obj) (not (instance? HyKeyword obj)))
-    (setv -quoting True)
-    (setv started-quoting True))
+  (if (and (not -quoting) (instance? HyObject obj) (not (instance? HyKeyword obj)))
+    (do
+      (setv -quoting True)
+      (setv started-quoting True)))
 
   (setv oid (id obj))
-  (when (in oid -seen)
+  (if (in oid -seen)
     (return (if (none? placeholder) "..." placeholder)))
   (.add -seen oid)
 
@@ -45,7 +47,7 @@
     (+ (if started-quoting "'" "") (f obj))
     (finally
       (.discard -seen oid)
-      (when started-quoting
+      (if started-quoting
         (setv -quoting False)))))
 
 (hy-repr-register tuple (fn [x]
@@ -142,7 +144,7 @@
     (hy-repr x.default-factory)
     (hy-repr (dict x)))))
 
-(for [[types fmt] (partition [
+(for* [[types fmt] (partition [
     list "[...]"
     [set HySet] "#{...}"
     frozenset "(frozenset #{...})"
@@ -157,10 +159,12 @@
   (.join " " (map hy-repr obj)))
 
 (defn -base-repr [x]
-  (unless (instance? HyObject x)
+  (if (not (instance? HyObject x))
     (return (repr x)))
   ; Call (.repr x) using the first class of x that doesn't inherit from
   ; HyObject.
   (.__repr__
     (next (genexpr t [t (. (type x) __mro__)] (not (issubclass t HyObject))))
     x))
+
+(setv EXPORTS ["hy-repr" "hy-repr-register"])

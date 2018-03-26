@@ -4,8 +4,7 @@
 
 (import
   [hy._compat [PY3 PY36 PY37]]
-  [math [isnan]]
-  [hy.contrib.hy-repr [hy-repr hy-repr-register]])
+  [math [isnan]])
 
 (defn test-hy-repr-roundtrip-from-value []
   ; Test that a variety of values round-trip properly.
