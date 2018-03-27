@@ -26,23 +26,29 @@ Quickstart
        etc
 
 6. Hit CTRL-D when you're done.
+7. If you're familiar with Python, try ``hy --spy`` to check what happens inside::
+
+       => (+ "Hyllo " "World" "!")
+       'Hyllo ' + 'World' + '!'
+       
+       'Hyllo World!'
 
 *OMG! That's amazing! I want to write a Hy program.*
 
-7. Open up an elite programming editor and type::
+8. Open up an elite programming editor and type::
 
        #! /usr/bin/env hy
        (print "I was going to code in Python syntax, but then I got Hy.")
 
-8. Save as ``awesome.hy``.
-9. Make it executable::
+9. Save as ``awesome.hy``.
+10. Make it executable::
 
         chmod +x awesome.hy
 
-10. And run your first Hy program::
+11. And run your first Hy program::
 
         ./awesome.hy
 
-11. Take a deep breath so as to not hyperventilate.
-12. Smile villainously and sneak off to your hydeaway and do
+12. Take a deep breath so as to not hyperventilate.
+13. Smile villainously and sneak off to your hydeaway and do
     unspeakable things.
