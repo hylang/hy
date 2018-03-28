@@ -25,6 +25,10 @@ PY35 = sys.version_info >= (3, 5)
 PY36 = sys.version_info >= (3, 6)
 PY37 = sys.version_info >= (3, 7)
 
+# The value of UCS4 indicates whether Unicode strings are stored as UCS-4.
+# It is always true on Pythons >= 3.3, which use USC-4 on all systems.
+UCS4 = sys.maxunicode == 0x10FFFF
+
 str_type     = str   if PY3 else unicode      # NOQA
 bytes_type   = bytes if PY3 else str          # NOQA
 long_type    = int   if PY3 else long         # NOQA

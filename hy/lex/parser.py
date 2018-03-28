@@ -10,7 +10,7 @@ import string, re, unicodedata
 
 from rply import ParserGenerator
 
-from hy._compat import PY3, str_type, isidentifier
+from hy._compat import PY3, str_type, isidentifier, UCS4
 from hy.models import (HyBytes, HyComplex, HyCons, HyDict, HyExpression,
                        HyFloat, HyInteger, HyKeyword, HyList, HySet, HyString,
                        HySymbol)
@@ -25,14 +25,28 @@ pg = ParserGenerator(
 
 mangle_delim = 'Δ' if PY3 else 'X'
 
+def unicode_to_ucs4iter(ustr):
+    # Covert a unicode string to an iterable object,
+    # elements in the object are single USC-4 unicode characters
+    if UCS4:
+        return ustr
+    ucs4_list = list(ustr)
+    for i, u in enumerate(ucs4_list):
+        if 0xD7FF < ord(u) < 0xDC00:
+            ucs4_list[i] += ucs4_list[i + 1]
+            del ucs4_list[i + 1]
+    return ucs4_list
+
 def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
     according to Hy's mangling rules."""
+    def unicode_char_to_hex(uchr):
+        # Covert a unicode char to hex string, without prefix
+        return uchr.encode('unicode-escape').decode('utf-8').lstrip('\\U').lstrip('\\u').lstrip('0')
 
     assert s
 
     s = str_type(s)
-
     s = s.replace("-", "_")
     s2 = s.lstrip('_')
     leading_underscores = '_' * (len(s) - len(s2))
@@ -50,8 +64,8 @@ def mangle(s):
                  # allowed at the start of an identifier.
                else '{0}{1}{0}'.format(mangle_delim,
                    unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
-                   or 'U{:x}'.format(ord(c)))
-            for c in s)
+                   or 'U{}'.format(unicode_char_to_hex(c)))
+            for c in unicode_to_ucs4iter(s))
 
     s = leading_underscores + s
     assert isidentifier(s)
