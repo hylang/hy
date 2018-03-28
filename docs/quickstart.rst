@@ -26,7 +26,7 @@ Quickstart
        etc
 
 6. Hit CTRL-D when you're done.
-7. If you're familiar with Python, try ``hy --spy`` to check what happens inside::
+7. If you're familiar with Python, start the REPL using ``hy --spy`` to check what happens inside::
 
        => (+ "Hyllo " "World" "!")
        'Hyllo ' + 'World' + '!'
