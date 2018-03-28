@@ -1,13 +1,22 @@
 sudo: false
 language: python
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.7-dev"
-  - pypy
-  - pypy3
+matrix:
+  include:
+  - python: "2.7"
+    env:
+      - PYTHON_CONFIGURE_OPTS="--enable-unicode=ucs2"
+    before_install:
+      - eval "$(pyenv init -)"
+      - pyenv install -f 2.7.14
+      - pyenv global 2.7.14
+      - pip install --upgrade --force-reinstall setuptools
+  - python: "2.7"
+  - python: "3.4"
+  - python: "3.5"
+  - python: "3.6"
+  - python: "3.7-dev"
+  - python: pypy
+  - python: pypy3
 install:
   - pip install -r requirements-travis.txt
   - pip install --process-dependency-links -e .
