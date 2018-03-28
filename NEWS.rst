@@ -30,6 +30,8 @@ New Features
 
 Bug Fixes
 ------------------------------
+* `hy2py` should now output legal Python code equivalent to the input Hy
+  code in all cases, modulo some outstanding bugs in `astor`
 * Fix `(return)` so it works correctly to exit a Python 2 generator
 * Fixed a case where `->` and `->>` duplicated an argument
 * Fixed bugs that caused `defclass` to drop statements or crash
