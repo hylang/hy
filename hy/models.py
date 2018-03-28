@@ -40,7 +40,7 @@ class HyObject(object):
                 if not hasattr(self, attr) and hasattr(other, attr):
                     setattr(self, attr, getattr(other, attr))
         else:
-            raise TypeError("Can't replace a non Hy object '{0}' with a Hy object '{1}'".format(self, other))
+            raise TypeError("Can't replace a non Hy object '{0}' with a Hy object '{1}'".format(other, self))
 
         return self
 
