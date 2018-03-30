@@ -22,6 +22,7 @@ New Features
 * Added `mangle` and `unmangle` as core functions
 * `defclass` in Python 3 now supports specifying metaclasses and other
   keyword arguments
+* Added a command-line option `-E` per CPython
 
 Bug Fixes
 ------------------------------
