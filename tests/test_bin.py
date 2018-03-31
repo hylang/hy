@@ -24,10 +24,12 @@ def hr(s=""):
 
 
 def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
-    env = None
+    env = dict(os.environ)
     if dontwritebytecode:
-        env = dict(os.environ)
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+    else:
+        env.pop("PYTHONDONTWRITEBYTECODE", None)
+
     cmd = shlex.split(cmd)
     cmd[0] = os.path.join(hy_dir, cmd[0])
     p = subprocess.Popen(cmd,
