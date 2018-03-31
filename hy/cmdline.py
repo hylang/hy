@@ -271,6 +271,8 @@ def cmdline_handler(scriptname, argv):
                         help="program passed in as a string")
     parser.add_argument("-m", dest="mod",
                         help="module to run, passed in as a string")
+    parser.add_argument("-E", action='store_true',
+                        help="ignore PYTHON* environment variables")
     parser.add_argument("-i", dest="icommand",
                         help="program passed in as a string, then stay in REPL")
     parser.add_argument("--spy", action="store_true",
@@ -309,6 +311,10 @@ def cmdline_handler(scriptname, argv):
 
     # reset sys.argv like Python
     sys.argv = options.args + module_args or [""]
+
+    if options.E:
+        # User did "hy -E ..."
+        _remove_python_envs()
 
     if options.command:
         # User did "hy -c ..."
@@ -436,3 +442,10 @@ def _print_for_windows(src):
             print(line)
         except:
             print(line.encode('utf-8'))
+
+# remove PYTHON* environment variables,
+# such as "PYTHONPATH"
+def _remove_python_envs():
+    for key in list(os.environ.keys()):
+        if key.startswith("PYTHON"):
+            os.environ.pop(key)

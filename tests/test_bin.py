@@ -168,6 +168,23 @@ def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd(hr("--spy"), '(+ [1] [2] (foof))')
     assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
 
+def test_bin_hy_ignore_python_env():
+    os.environ.update({"PYTHONTEST": '0'})
+    output, _ = run_cmd("hy -c '(print (do (import os) (. os environ)))'")
+    assert "PYTHONTEST" in output
+    output, _ = run_cmd("hy -m tests.resources.bin.printenv")
+    assert "PYTHONTEST" in output
+    output, _ = run_cmd("hy tests/resources/bin/printenv.hy")
+    assert "PYTHONTEST" in output
+
+    output, _ = run_cmd("hy -E -c '(print (do (import os) (. os environ)))'")
+    assert "PYTHONTEST" not in output
+    os.environ.update({"PYTHONTEST": '0'})
+    output, _ = run_cmd("hy -E -m tests.resources.bin.printenv")
+    assert "PYTHONTEST" not in output
+    os.environ.update({"PYTHONTEST": '0'})
+    output, _ = run_cmd("hy -E tests/resources/bin/printenv.hy")
+    assert "PYTHONTEST" not in output
 
 def test_bin_hy_cmd():
     output, _ = run_cmd("hy -c \"(koan)\"")
