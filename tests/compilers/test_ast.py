@@ -212,6 +212,9 @@ def test_ast_good_defclass():
     "Make sure AST can compile valid defclass"
     can_compile("(defclass a)")
     can_compile("(defclass a [])")
+    can_compile("(defclass a [] None 42)")
+    can_compile("(defclass a [] None \"test\")")
+    can_compile("(defclass a [] None (print \"foo\"))")
 
 
 @pytest.mark.skipif(not PY3, reason="Python 3 supports class keywords")
