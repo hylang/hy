@@ -17,7 +17,7 @@ import astor.code_gen
 import hy
 from hy.compiler import HyTypeError
 from hy.completer import completion, Completer
-from hy.importlib import hy_eval, hy_parse, hy_compile
+from hy.importlib import ast_compile, hy_eval, hy_parse, hy_compile
 from hy.lex import LexException, PrematureEndOfInput
 from hy.lex.parser import mangle
 from hy.macros import macro, require
@@ -223,15 +223,20 @@ def run_repl(hr=None, **kwargs):
     return 0
 
 
-def run_icommand(source, **kwargs):
-    hr = HyREPL(**kwargs)
-    if os.path.exists(source):
-        with open(source, "r") as f:
+def run_icommand(filename, **kwargs):
+    namespace = kwargs.pop('locals', {})
+
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
             source = f.read()
-        filename = source
-    else:
-        filename = '<input>'
-    hr.runsource(source, filename=filename, symbol='single')
+
+        hytree = hy_parse(source)
+        ast = hy_compile(hytree, "__main__")
+        code_object = ast_compile(ast, filename, mode="exec")
+        namespace = {'__name__': '__main__'}
+        exec(code_object, namespace)
+
+    hr = HyREPL(locals=namespace, **kwargs)
     return run_repl(hr)
 
 
