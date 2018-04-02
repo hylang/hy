@@ -44,7 +44,8 @@ def mangle(s):
         # Covert a unicode char to hex string, without prefix
         return uchr.encode('unicode-escape').decode('utf-8').lstrip('\\U').lstrip('\\u').lstrip('0')
 
-    assert s
+    if not s:
+        return ""
 
     s = str_type(s)
     s = s.replace("-", "_")
@@ -77,8 +78,10 @@ def unmangle(s):
     form. This may not round-trip, because different Hy symbol names can
     mangle to the same Python identifier."""
 
-    s = str_type(s)
+    if not s:
+        return ""
 
+    s = str_type(s)
     s2 = s.lstrip('_')
     leading_underscores = len(s) - len(s2)
     s = s2
