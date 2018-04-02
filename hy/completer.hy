@@ -12,6 +12,11 @@
   (import [--builtin-- [eval]])
   (import [builtins [eval]]))
 
+(defmacro viewkeys [obj]
+  (if-python2
+    `(.viewkeys ~obj)
+    `(.keys ~obj)))
+
 (setv docomplete True)
 (try
   (import readline)
@@ -29,16 +34,17 @@
       (raise (TypeError "namespace must be a dictionary")))
 
     (setv self.namespace namespace
-          self.path [hy.compiler.-compile-table
-                     builtins.--dict--
-                     (get hy.macros.-hy-macros None)
-                     namespace]
-          self.tag-path [(get hy.macros.-hy-tag None)])
+          self.path [(set-comp key [key hy.compiler.-compile-table]
+                               (instance? string-types key))
+                     (viewkeys builtins.--dict--)
+                     (viewkeys (get hy.macros.-hy-macros None))
+                     (viewkeys namespace)]
+          self.tag-path [(viewkeys (get hy.macros.-hy-tag None))])
 
     (setv module-name (.get namespace "__name__"))
     (when module-name
-      (->> (get hy.macros.-hy-macros module-name) (.append self.path))
-      (->> (get hy.macros.-hy-tag module-name) (.append self.tag-path))))
+      (->> (get hy.macros.-hy-macros module-name) (viewkeys) (.append self.path))
+      (->> (get hy.macros.-hy-tag module-name) (viewkeys) (.append self.tag-path))))
 
   (defn attr-matches [self text]
     (setv match (re.match r"(\S+(\.[\w-]+)*)\.([\w-]*)$" text))
@@ -58,21 +64,15 @@
              (= (cut word 0 (len attr)) attr)))
 
   (defn global-matches [self text]
-    (for [path self.path
-          key (.keys path)]
-      (when (instance? string-types key)
-        (setv key (unmangle key))
-        (when (.startswith key text)
-          (yield key)))))
+    (for [keys self.path key (map unmangle keys)]
+      (when (.startswith key text)
+        (yield key))))
 
   (defn tag-matches [self text]
     (setv text (cut text 1))
-    (for [path self.tag-path
-          key (.keys path)]
-      (when (instance? string-types key)
-        (setv key (unmangle key))
-        (when (.startswith key text)
-          (yield (.format "#{}" key))))))
+    (for [keys self.tag-path key (map unmangle keys)]
+      (when (.startswith key text)
+        (yield (.format "#{}" key)))))
 
   (defn complete [self text state]
     (setv sub-completer
