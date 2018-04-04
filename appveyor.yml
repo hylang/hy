@@ -1,0 +1,14 @@
+environment:
+  matrix:
+  - TOXENV: py27
+  - TOXENV: py34
+  - TOXENV: py35
+  - TOXENV: py36
+
+build: false
+
+install:
+  - C:\Python36\python -m pip install --upgrade --pre tox
+
+test_script:
+  - C:\Python36\python -m tox -r
