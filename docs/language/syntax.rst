@@ -107,13 +107,13 @@ Python-legal names. The rules are:
   it's equal to a Python reserved word.
 
   - Prepend ``hyx_`` to the name.
-  - Replace each illegal character with ``ΔfooΔ`` (or on Python 2, ``XfooX``),
-    where ``foo`` is the the Unicode character name in lowercase, with spaces
-    replaced by underscores and hyphens replaced by ``H``. Replace ``Δ`` itself
-    (or on Python 2, ``X``) the same way. If the character doesn't have a name,
-    use ``U`` followed by its code point in lowercase hexadecimal.
+  - Replace each illegal character with ``XfooX``, where ``foo`` is the Unicode
+    character name in lowercase, with spaces replaced by underscores and
+    hyphens replaced by ``H``. Replace ``X`` itself the same way. If the
+    character doesn't have a name, use ``U`` followed by its code point in
+    lowercase hexadecimal.
 
-  Thus, ``green☘`` becomes ``hyx_greenΔshamrockΔ`` and ``if`` becomes
+  Thus, ``green☘`` becomes ``hyx_greenXshamrockX`` and ``if`` becomes
   ``hyx_if``.
 
 - Finally, any added ``hyx_`` or ``is_`` is added after any leading
