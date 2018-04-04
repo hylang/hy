@@ -134,9 +134,9 @@
   (defn g [&kwargs x]
     x)
   (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
-    {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))
+             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))
   (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
-    {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4})))
+             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4})))
 
 
 (defn test-late-mangling []
@@ -146,15 +146,14 @@
   (assert (= sym "foo?"))
   (assert (!= sym "is_foo"))
   (setv out (eval `(do
-    (setv ~sym 10)
-    [foo? is_foo])))
+                     (setv ~sym 10)
+                     [foo? is_foo])))
   (assert (= out [10 10])))
 
 
 (defn test-functions []
-  (for [[a b] [
-      ["---ab-cd?" "___is_ab_cd"]
-      ["if" "hyx_if"]
-      ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
+  (for [[a b] [["---ab-cd?" "___is_ab_cd"]
+               ["if" "hyx_if"]
+               ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (mangle a) b))
     (assert (= (unmangle b) a))))
