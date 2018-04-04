@@ -20,6 +20,8 @@ New Features
 ------------------------------
 * Python 3.7 is now supported
 * Added `mangle` and `unmangle` as core functions
+* More REPL history result variables: `*2`, `*3`. Added last REPL error
+  variable: `*e`
 * `defclass` in Python 3 now supports specifying metaclasses and other
   keyword arguments
 * Added a command-line option `-E` per CPython

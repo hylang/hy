@@ -75,8 +75,15 @@ def test_bin_hy_stdin_multiline():
 
 
 def test_bin_hy_history():
-    output, _ = run_cmd("hy", '(+ "a" "b")\n(+ *1 "y" "z")')
-    assert "'abyz'" in output
+    output, _ = run_cmd("hy", '''(+ "a" "b")
+                                 (+ "c" "d")
+                                 (+ "e" "f")
+                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)''')
+    assert "'*1: ef, *2: cd, *3: ab,'" in output
+
+    output, _ = run_cmd("hy", '''(raise (Exception "TEST ERROR"))
+                                 (+ "err: " (str *e))''')
+    assert "'err: TEST ERROR'" in output
 
 
 def test_bin_hy_stdin_comments():

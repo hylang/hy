@@ -73,8 +73,20 @@ class HyREPL(code.InteractiveConsole):
         code.InteractiveConsole.__init__(self, locals=locals,
                                          filename=filename)
 
+        # Pre-mangle symbols for repl recent results: *1, *2, *3
+        self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]
+        self.locals.update({sym: None for sym in self._repl_results_symbols})
+
     def runsource(self, source, filename='<input>', symbol='single'):
         global SIMPLE_TRACEBACKS
+
+        def error_handler(e, use_simple_traceback=False):
+            self.locals[mangle("*e")] = e
+            if use_simple_traceback:
+                print(e, file=sys.stderr)
+            else:
+                self.showtraceback()
+
         try:
             try:
                 do = import_buffer_to_hst(source)
@@ -84,7 +96,7 @@ class HyREPL(code.InteractiveConsole):
             if e.source is None:
                 e.source = source
                 e.filename = filename
-            print(e, file=sys.stderr)
+            error_handler(e, use_simple_traceback=True)
             return False
 
         try:
@@ -101,24 +113,23 @@ class HyREPL(code.InteractiveConsole):
             if e.source is None:
                 e.source = source
                 e.filename = filename
-            if SIMPLE_TRACEBACKS:
-                print(e, file=sys.stderr)
-            else:
-                self.showtraceback()
+            error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
             return False
-        except Exception:
-            self.showtraceback()
+        except Exception as e:
+            error_handler(e)
             return False
 
         if value is not None:
-            # Make the last non-None value available to
-            # the user as `*1`.
-            self.locals[mangle("*1")] = value
+            # Shift exisitng REPL results
+            next_result = value
+            for sym in self._repl_results_symbols:
+                self.locals[sym], next_result = next_result, self.locals[sym]
+
             # Print the value.
             try:
                 output = self.output_fn(value)
-            except Exception:
-                self.showtraceback()
+            except Exception as e:
+                error_handler(e)
                 return False
             print(output)
         return False
