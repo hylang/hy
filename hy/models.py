@@ -124,34 +124,32 @@ _wrappers[type(None)] = lambda foo: HySymbol("None")
 class HyKeyword(HyObject):
     """Generic Hy Keyword object."""
 
-    __slots__ = ['_value']
+    __slots__ = ['name']
 
     def __init__(self, value):
-        if value[0] != ':':
-            value = ':' + value
-        self._value = value
+        self.name = value
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self._value)
+        return "%s(%r)" % (self.__class__.__name__, self.name)
 
     def __str__(self):
-        return self._value
+        return ":%s" % self.name
 
     def __hash__(self):
-        return hash(self._value)
+        return hash(self.name)
 
     def __eq__(self, other):
         if not isinstance(other, HyKeyword):
             return NotImplemented
-        return self._value == other._value
+        return self.name == other.name
 
     def __ne__(self, other):
         if not isinstance(other, HyKeyword):
             return NotImplemented
-        return self._value != other._value
+        return self.name != other.name
 
     def __bool__(self):
-        return bool(self._value[1:])
+        return bool(self.name)
 
 
 def strip_digit_separators(number):

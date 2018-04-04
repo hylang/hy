@@ -434,9 +434,9 @@ def test_discard():
     assert tokenize("(#_foo)") == [HyExpression()]
     assert tokenize("(#_foo bar)") == [HyExpression([HySymbol("bar")])]
     assert tokenize("(foo #_bar)") == [HyExpression([HySymbol("foo")])]
-    assert tokenize("(foo :bar 1)") == [HyExpression([HySymbol("foo"), HyKeyword(":bar"), HyInteger(1)])]
+    assert tokenize("(foo :bar 1)") == [HyExpression([HySymbol("foo"), HyKeyword("bar"), HyInteger(1)])]
     assert tokenize("(foo #_:bar 1)") == [HyExpression([HySymbol("foo"), HyInteger(1)])]
-    assert tokenize("(foo :bar #_1)") == [HyExpression([HySymbol("foo"), HyKeyword(":bar")])]
+    assert tokenize("(foo :bar #_1)") == [HyExpression([HySymbol("foo"), HyKeyword("bar")])]
     # discard term with nesting
     assert tokenize("[1 2 #_[a b c [d e [f g] h]] 3 4]") == [
         HyList([HyInteger(1), HyInteger(2), HyInteger(3), HyInteger(4)])

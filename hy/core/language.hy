@@ -460,7 +460,7 @@ as EOF (defaults to an empty string)."
 
 Strings numbers and even objects with the __name__ magic will work."
   (if (keyword? value)
-      (HyKeyword (unmangle value))
+      (HyKeyword (unmangle value.name))
       (if (string? value)
           (HyKeyword (unmangle value))
           (try

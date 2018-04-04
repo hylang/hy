@@ -747,7 +747,7 @@ class HyASTCompiler(object):
         elif isinstance(form, HyString):
             x = [HySymbol(name), form]
             if form.brackets is not None:
-                x.extend([HyKeyword(":brackets"), form.brackets])
+                x.extend([HyKeyword("brackets"), form.brackets])
             return imports, HyExpression(x).replace(form), False
 
         return imports, HyExpression([HySymbol(name),
@@ -811,7 +811,7 @@ class HyASTCompiler(object):
             ret += self.compile(expr.pop(0))
 
         cause = None
-        if len(expr) == 2 and expr[0] == HyKeyword(":from"):
+        if len(expr) == 2 and expr[0] == HyKeyword("from"):
             if not PY3:
                 raise HyCompileError(
                     "raise from only supported in python 3")
@@ -1170,7 +1170,7 @@ class HyASTCompiler(object):
             if isinstance(iexpr, HyList) and iexpr:
                 module = iexpr.pop(0)
                 entry = iexpr[0]
-                if entry == HyKeyword(":as"):
+                if entry == HyKeyword("as"):
                     if not len(iexpr) == 2:
                         raise HyTypeError(iexpr,
                                           "garbage after aliased import")
@@ -1464,7 +1464,7 @@ class HyASTCompiler(object):
                 else:
                     assignments = {}
                     while names:
-                        if len(names) > 1 and names[1] == HyKeyword(":as"):
+                        if len(names) > 1 and names[1] == HyKeyword("as"):
                             k, _, v = names[:3]
                             del names[:3]
                             assignments[k] = v
@@ -1473,7 +1473,7 @@ class HyASTCompiler(object):
                             assignments[symbol] = symbol
                     require(module, self.module_name, assignments=assignments)
             elif (isinstance(entry, HyList) and len(entry) == 3
-                    and entry[1] == HyKeyword(":as")):
+                    and entry[1] == HyKeyword("as")):
                 # e.g., (require [foo :as bar])
                 module, _, prefix = entry
                 __import__(module)
@@ -2190,12 +2190,12 @@ class HyASTCompiler(object):
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
     @builds(HyKeyword)
-    def compile_keyword(self, string):
+    def compile_keyword(self, obj):
         ret = Result()
         ret += asty.Call(
-            string,
-            func=asty.Name(string, id="HyKeyword", ctx=ast.Load()),
-            args=[asty.Str(string, s=str_type(string))],
+            obj,
+            func=asty.Name(obj, id="HyKeyword", ctx=ast.Load()),
+            args=[asty.Str(obj, s=obj.name)],
             keywords=[])
         ret.add_imports("hy", {"HyKeyword"})
         return ret
