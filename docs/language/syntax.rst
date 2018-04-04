@@ -99,7 +99,7 @@ Python-legal names. The rules are:
 
 - Convert all hyphens (``-``) to underscores (``_``). Thus, ``foo-bar`` becomes
   ``foo_bar``.
-- If the name ends with ``?``, remove it and prepend ``is``. Thus, ``tasty?``
+- If the name ends with ``?``, remove it and prepend ``is_``. Thus, ``tasty?``
   becomes ``is_tasty``.
 - If the name still isn't Python-legal, make the following changes. A name
   could be Python-illegal because it contains a character that's never legal in
