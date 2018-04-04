@@ -40,70 +40,49 @@
 
   (setv # "no comment")
   (assert (= # "no comment"))
-  (if PY3
-    (assert (= hyx_Δnumber_signΔ "no comment"))
-    (assert (= hyx_Xnumber_signX "no comment")))
+  (assert (= hyx_Xnumber_signX "no comment"))
 
   (setv $ "dosh")
   (assert (= $ "dosh"))
-  (if PY3
-    (assert (= hyx_Δdollar_signΔ "dosh"))
-    (assert (= hyx_Xdollar_signX "dosh"))))
+  (assert (= hyx_Xdollar_signX "dosh")))
 
 
 (defn test-basic-multilingual-plane []
   (setv ♥ "love"
         ⚘ab "flower")
   (assert (= (+ ⚘ab ♥) "flowerlove"))
-  (if PY3
-    (assert (= (+ hyx_ΔflowerΔab hyx_Δblack_heart_suitΔ) "flowerlove"))
-    (assert (= (+ hyx_XflowerXab hyx_Xblack_heart_suitX) "flowerlove")))
+  (assert (= (+ hyx_XflowerXab hyx_Xblack_heart_suitX) "flowerlove"))
   (setv ⚘-⚘ "doubleflower")
   (assert (= ⚘-⚘ "doubleflower"))
-  (if PY3
-    (assert (= hyx_ΔflowerΔ_ΔflowerΔ "doubleflower"))
-    (assert (= hyx_XflowerX_XflowerX "doubleflower")))
+  (assert (= hyx_XflowerX_XflowerX "doubleflower"))
   (setv ⚘? "mystery")
   (assert (= ⚘? "mystery"))
-  (if PY3
-    (assert (= hyx_is_ΔflowerΔ "mystery"))
-    (assert (= hyx_is_XflowerX "mystery"))))
+  (assert (= hyx_is_XflowerX "mystery")))
 
 
 (defn test-higher-unicode []
   (setv 😂 "emoji")
   (assert (= 😂 "emoji"))
   (if PY3
-    (assert (= hyx_Δface_with_tears_of_joyΔ "emoji"))
+    (assert (= hyx_Xface_with_tears_of_joyX "emoji"))
     (assert (= hyx_XU1f602X "emoji"))))
 
 
 (defn test-nameless-unicode []
   (setv  "private use")
   (assert (=  "private use"))
-  (if PY3
-    (assert (= hyx_ΔUe000Δ "private use"))
-    (assert (= hyx_XUe000X "private use"))))
+  (assert (= hyx_XUe000X "private use")))
 
 
 (defn test-charname-with-hyphen []
   (setv a<b "little")
   (assert (= a<b "little"))
-  (if PY3
-    (assert (= hyx_aΔlessHthan_signΔb "little"))
-    (assert (= hyx_aXlessHthan_signXb "little"))))
+  (assert (= hyx_aXlessHthan_signXb "little")))
 
 
 (defn test-delimiters []
-  (setv Δ✈ "Delta Air Lines")
-  (assert (= Δ✈ "Delta Air Lines"))
-  (if PY3
-    (assert (= hyx_Δgreek_capital_letter_deltaΔΔairplaneΔ "Delta Air Lines"))
-    (assert (= hyx_Xgreek_capital_letter_deltaXXairplaneX "Delta Air Lines")))
   (setv X☠ "treasure")
-  (if PY3
-    (assert (= hyx_XΔskull_and_crossbonesΔ "treasure"))
-    (assert (= hyx_Xlatin_capital_letter_xXXskull_and_crossbonesX "treasure"))))
+  (assert (= hyx_Xlatin_capital_letter_xXXskull_and_crossbonesX "treasure")))
 
 
 (defmacro m---x [form]
@@ -142,9 +121,7 @@
 (defn test-operator []
   (setv + 3)
   (assert (= + 3))
-  (if PY3
-    (assert (= hyx_Δplus_signΔ 3))
-    (assert (= hyx_Xplus_signX 3))))
+  (assert (= hyx_Xplus_signX 3)))
 
 
 (defn test-keyword-args []
@@ -152,20 +129,14 @@
   (defn f [a a-b foo? ☘]
     [a a-b foo? ☘])
   (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2) [1 2 3 4]))
-  (if PY3
-    (assert (= (f :is_foo 3 :hyx_ΔshamrockΔ 4 :a 1 :a_b 2) [1 2 3 4]))
-    (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4])))
+  (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4]))
 
   (defn g [&kwargs x]
     x)
-  (setv sk (.format "hyx_{0}shamrock{0}" (if PY3 "Δ" "X")))
   (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
-    {"a" 1  "a_b" 2  "is_foo" 3  sk 4}))
-  (if PY3
-    (assert (= (g :is_foo 3 :hyx_ΔshamrockΔ 4 :a 1 :a_b 2)
-      {"a" 1  "a_b" 2  "is_foo" 3  sk 4}))
-    (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
-      {"a" 1  "a_b" 2  "is_foo" 3  sk 4}))))
+             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))
+  (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
+             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4})))
 
 
 (defn test-late-mangling []
@@ -175,15 +146,14 @@
   (assert (= sym "foo?"))
   (assert (!= sym "is_foo"))
   (setv out (eval `(do
-    (setv ~sym 10)
-    [foo? is_foo])))
+                     (setv ~sym 10)
+                     [foo? is_foo])))
   (assert (= out [10 10])))
 
 
 (defn test-functions []
-  (for [[a b] [
-      ["---ab-cd?" "___is_ab_cd"]
-      ["if" "hyx_if"]
-      ["⚘-⚘" (if PY3 "hyx_ΔflowerΔ_ΔflowerΔ" "hyx_XflowerX_XflowerX")]]]
+  (for [[a b] [["---ab-cd?" "___is_ab_cd"]
+               ["if" "hyx_if"]
+               ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (mangle a) b))
     (assert (= (unmangle b) a))))

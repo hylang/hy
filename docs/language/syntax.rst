@@ -99,7 +99,7 @@ Python-legal names. The rules are:
 
 - Convert all hyphens (``-``) to underscores (``_``). Thus, ``foo-bar`` becomes
   ``foo_bar``.
-- If the name ends with ``?``, remove it and prepend ``is``. Thus, ``tasty?``
+- If the name ends with ``?``, remove it and prepend ``is_``. Thus, ``tasty?``
   becomes ``is_tasty``.
 - If the name still isn't Python-legal, make the following changes. A name
   could be Python-illegal because it contains a character that's never legal in
@@ -107,13 +107,13 @@ Python-legal names. The rules are:
   it's equal to a Python reserved word.
 
   - Prepend ``hyx_`` to the name.
-  - Replace each illegal character with ``ΔfooΔ`` (or on Python 2, ``XfooX``),
-    where ``foo`` is the the Unicode character name in lowercase, with spaces
-    replaced by underscores and hyphens replaced by ``H``. Replace ``Δ`` itself
-    (or on Python 2, ``X``) the same way. If the character doesn't have a name,
-    use ``U`` followed by its code point in lowercase hexadecimal.
+  - Replace each illegal character with ``XfooX``, where ``foo`` is the Unicode
+    character name in lowercase, with spaces replaced by underscores and
+    hyphens replaced by ``H``. Replace ``X`` itself the same way. If the
+    character doesn't have a name, use ``U`` followed by its code point in
+    lowercase hexadecimal.
 
-  Thus, ``green☘`` becomes ``hyx_greenΔshamrockΔ`` and ``if`` becomes
+  Thus, ``green☘`` becomes ``hyx_greenXshamrockX`` and ``if`` becomes
   ``hyx_if``.
 
 - Finally, any added ``hyx_`` or ``is_`` is added after any leading

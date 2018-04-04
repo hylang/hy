@@ -23,7 +23,7 @@ pg = ParserGenerator(
     cache_id="hy_parser"
 )
 
-mangle_delim = 'Δ' if PY3 else 'X'
+mangle_delim = 'X'
 
 def unicode_to_ucs4iter(ustr):
     # Covert a unicode string to an iterable object,
