@@ -15,6 +15,8 @@ Other Breaking Changes
   instead of ignoring it. This change increases consistency a bit
   and makes accidental unary uses easier to notice.
 * `hy-repr` uses registered functions instead of methods
+* `HyKeyword` no longer inherits from the string type and has been
+  made into its own object type.
 
 New Features
 ------------------------------
