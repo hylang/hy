@@ -309,7 +309,11 @@ def t_empty_list(p):
 def t_string(p):
     # Replace the single double quotes with triple double quotes to allow
     # embedded newlines.
-    s = eval(p[0].value.replace('"', '"""', 1)[:-1] + '"""')
+    try:
+        s = eval(p[0].value.replace('"', '"""', 1)[:-1] + '"""')
+    except SyntaxError:
+        raise LexException("Can't convert {} to a HyString".format(p[0].value),
+            p[0].source_pos.lineno, p[0].source_pos.colno)
     return (HyString if isinstance(s, str_type) else HyBytes)(s)
 
 

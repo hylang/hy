@@ -69,6 +69,13 @@ bc"
     assert objs == [HyString("abc")]
 
 
+def test_lex_strings_exception():
+    """ Make sure tokenize throws when codec can't decode some bytes"""
+    with lexe() as execinfo:
+        tokenize('\"\\x8\"')
+    assert "Can't convert \"\\x8\" to a HyString" in str(execinfo.value)
+
+
 def test_lex_bracket_strings():
 
     objs = tokenize("#[my delim[hello world]my delim]")
