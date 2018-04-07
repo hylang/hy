@@ -31,6 +31,7 @@ Bug Fixes
 * Fix `(return)` so it works correctly to exit a Python 2 generator
 * Fixed a case where `->` and `->>` duplicated an argument
 * Fixed bugs that caused `defclass` to drop statements or crash
+* Fixed a REPL crash caused by illegle unicode escape string inputs
 
 Misc. Improvements
 ----------------------------
