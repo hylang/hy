@@ -2012,6 +2012,7 @@ class HyASTCompiler(object):
                     args=args,
                     body=body.stmts,
                     decorator_list=[],
+                    returns=None,
                     docstring=(None if docstring is None else
                         str_type(docstring)))
 
