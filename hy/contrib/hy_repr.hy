@@ -10,6 +10,13 @@
   [hy._compat [PY3 PY36 str-type bytes-type long-type]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
+(defmacro strftime [time formatstr]
+  "Version of strftime that handles some Windows/POSIX portability"
+  (import platform)
+  (when (= (platform.system) "Windows")
+    (setv formatstr (.replace (str formatstr) "%-" "%#")))
+  `(.strftime ~time ~formatstr))
+
 (try
   (import [_collections_abc [dict-keys dict-values dict-items]])
   (except [ImportError]
@@ -122,13 +129,14 @@
 
 (hy-repr-register datetime.datetime (fn [x]
   (.format "(datetime.datetime {}{})"
-    (.strftime x "%Y %-m %-d %-H %-M %-S")
+    (strftime x "%Y %-m %-d %-H %-M %-S")
     (-repr-time-innards x))))
 (hy-repr-register datetime.date (fn [x]
-  (.strftime x "(datetime.date %Y %-m %-d)")))
+  (.format "(datetime.date {})"
+    (strftime x "%Y %-m %-d"))))
 (hy-repr-register datetime.time (fn [x]
   (.format "(datetime.time {}{})"
-    (.strftime x "%-H %-M %-S")
+    (strftime x "%-H %-M %-S")
     (-repr-time-innards x))))
 (defn -repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter identity [
