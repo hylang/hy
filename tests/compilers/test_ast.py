@@ -588,6 +588,16 @@ def test_setv_builtins():
     """)
 
 
+def test_top_level_unquote():
+    with pytest.raises(HyTypeError) as excinfo:
+        can_compile("(unquote)")
+    assert excinfo.value.message == "`unquote' can't be used at the top-level"
+
+    with pytest.raises(HyTypeError) as excinfo:
+        can_compile("(unquote-splice)")
+    assert excinfo.value.message == "`unquote-splice' can't be used at the top-level"
+
+
 def test_lots_of_comment_lines():
     # https://github.com/hylang/hy/issues/1313
     can_compile(1000 * ";\n")

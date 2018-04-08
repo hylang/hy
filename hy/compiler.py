@@ -723,7 +723,7 @@ class HyASTCompiler(object):
         ret.add_imports("hy", imports)
         return ret
 
-    @builds("unquote", "unquote-splicing")
+    @builds("unquote", "unquote-splice")
     def compile_unquote(self, expr):
         raise HyTypeError(expr,
                           "`%s' can't be used at the top-level" % expr[0])

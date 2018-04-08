@@ -51,6 +51,7 @@ Bug Fixes
 * Fixed a REPL crash caused by illegle unicode escape string inputs
 * `NaN` can no longer create an infinite loop during macro-expansion
 * Fixed a bug that caused `try` to drop expressions
+* Fixed a bug where the compiler didn't properly compile `unquote-splice`
 
 Misc. Improvements
 ----------------------------
