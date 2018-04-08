@@ -4,7 +4,7 @@
 
 from math import isnan
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
-                       HyString, HyDict, HyList, HySet, HyCons, HyKeyword)
+                       HyString, HyDict, HyList, HySet, HyKeyword)
 from hy.lex import LexException, PrematureEndOfInput, tokenize
 import pytest
 
@@ -349,34 +349,6 @@ def test_lex_comment_382():
     entry = tokenize("foo ;bar\n;baz")
     assert entry == [HySymbol("foo")]
 
-
-def test_simple_cons():
-    """Check that cons gets tokenized correctly"""
-    entry = tokenize("(a . b)")[0]
-    assert entry == HyCons(HySymbol("a"), HySymbol("b"))
-
-
-def test_dotted_list():
-    """Check that dotted lists get tokenized correctly"""
-    entry = tokenize("(a b c . (d . e))")[0]
-    assert entry == HyCons(HySymbol("a"),
-                           HyCons(HySymbol("b"),
-                                  HyCons(HySymbol("c"),
-                                         HyCons(HySymbol("d"),
-                                                HySymbol("e")))))
-
-
-def test_cons_list():
-    """Check that cons of something and a list gets tokenized as a list"""
-    entry = tokenize("(a . [])")[0]
-    assert entry == HyList([HySymbol("a")])
-    assert type(entry) == HyList
-    entry = tokenize("(a . ())")[0]
-    assert entry == HyExpression([HySymbol("a")])
-    assert type(entry) == HyExpression
-    entry = tokenize("(a b . {})")[0]
-    assert entry == HyDict([HySymbol("a"), HySymbol("b")])
-    assert type(entry) == HyDict
 
 def test_discard():
     """Check that discarded terms are removed properly."""

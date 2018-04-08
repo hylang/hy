@@ -7,8 +7,7 @@ import hy
 from clint.textui.colored import clean
 from hy._compat import long_type, str_type
 from hy.models import (wrap_value, replace_hy_obj, HyString, HyInteger, HyList,
-                       HyDict, HySet, HyExpression, HyCons, HyComplex, HyFloat,
-                       pretty)
+                       HyDict, HySet, HyExpression, HyComplex, HyFloat, pretty)
 
 
 def test_wrap_long_type():
@@ -96,41 +95,6 @@ def test_set():
     assert hyset == [3, 1, 2, 2]
 
 
-def test_cons_slicing():
-    """Check that cons slicing works as expected"""
-    cons = HyCons("car", "cdr")
-    assert cons[0] == "car"
-    assert cons[1:] == "cdr"
-    try:
-        cons[:]
-        assert True is False
-    except IndexError:
-        pass
-
-    try:
-        cons[1]
-        assert True is False
-    except IndexError:
-        pass
-
-
-def test_cons_replacing():
-    """Check that assigning to a cons works as expected"""
-    cons = HyCons("foo", "bar")
-    cons[0] = "car"
-
-    assert cons == HyCons("car", "bar")
-
-    cons[1:] = "cdr"
-    assert cons == HyCons("car", "cdr")
-
-    try:
-        cons[:] = "foo"
-        assert True is False
-    except IndexError:
-        pass
-
-
 def test_number_model_copy():
     i = HyInteger(42)
     assert (i == copy.copy(i))
@@ -146,7 +110,7 @@ def test_number_model_copy():
 
 
 PRETTY_STRINGS = {
-    k % ('[1.0] {1.0} (1.0) #{1.0} (0.0 1.0 . 2.0)',):
+    k % ('[1.0] {1.0} (1.0) #{1.0}',):
         v.format("""
   HyList([
     HyFloat(1.0)]),
@@ -156,16 +120,12 @@ PRETTY_STRINGS = {
   HyExpression([
     HyFloat(1.0)]),
   HySet([
-    HyFloat(1.0)]),
-  <HyCons (
-    HyFloat(0.0)
-    HyFloat(1.0)
-  . HyFloat(2.0))>""")
+    HyFloat(1.0)])""")
     for k, v in {'[%s]': 'HyList([{}])',
                  '#{%s}': 'HySet([{}])'}.items()}
 
 PRETTY_STRINGS.update({
-    '{[1.0] {1.0} (1.0) #{1.0} (0.0 1.0 . 2.0)}':
+    '{[1.0] {1.0} (1.0) #{1.0}}':
     """HyDict([
   HyList([
     HyFloat(1.0)]),
@@ -177,29 +137,7 @@ PRETTY_STRINGS.update({
     HyFloat(1.0)]),
   HySet([
     HyFloat(1.0)])
-  ,
-  <HyCons (
-    HyFloat(0.0)
-    HyFloat(1.0)
-  . HyFloat(2.0))>  # odd
-])"""
-    ,
-    '([1.0] {1.0} (1.0) #{1.0} (0.0 1.0 . 2.0) . 3.0)':
-    """<HyCons (
-  HyList([
-    HyFloat(1.0)])
-  HyDict([
-    HyFloat(1.0)  # odd
-  ])
-  HyExpression([
-    HyFloat(1.0)])
-  HySet([
-    HyFloat(1.0)])
-  <HyCons (
-    HyFloat(0.0)
-    HyFloat(1.0)
-  . HyFloat(2.0))>
-. HyFloat(3.0))>"""
+  ])"""
     ,
     '[1.0 1j [] {} () #{}]':
         """HyList([
@@ -239,8 +177,6 @@ PRETTY_STRINGS.update({
 def test_compound_model_repr():
     HY_LIST_MODELS = (HyExpression, HyDict, HySet, HyList)
     with pretty(False):
-        assert eval(repr(HyCons(1, 2))).__class__ is HyCons
-        assert eval(repr(HyCons(1, 2))) == HyCons(1, 2)
         for model in HY_LIST_MODELS:
             assert eval(repr(model())).__class__ is model
             assert eval(repr(model([1, 2]))) == model([1, 2])

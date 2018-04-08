@@ -10,7 +10,6 @@
 (setv walk-form '(print {"foo" "bar"
                          "array" [1 2 3 [4]]
                          "something" (+ 1 2 3 4)
-                         "cons!" (cons 1 2)
                          "quoted?" '(foo)}))
 
 (defn collector [acc x]
