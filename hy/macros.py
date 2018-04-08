@@ -174,45 +174,40 @@ def macroexpand(tree, compiler):
 def macroexpand_1(tree, compiler):
     """Expand the toplevel macro from `tree` once, in the context of
     `module_name`."""
-    if isinstance(tree, HyExpression):
-        if tree == []:
-            return tree
+    if not isinstance(tree, HyExpression) or tree == []:
+        return tree
 
-        fn = tree[0]
-        if fn in ("quote", "quasiquote"):
-            return tree
+    fn = tree[0]
+    if fn in ("quote", "quasiquote") or not isinstance(fn, HySymbol):
+        return tree
 
-        opts = {}
+    fn = mangle(fn)
+    m = _hy_macros[compiler.module_name].get(fn) or _hy_macros[None].get(fn)
+    if not m:
+        return tree
 
-        if isinstance(fn, HySymbol):
-            fn = mangle(str_type(fn))
-            m = _hy_macros[compiler.module_name].get(fn)
-            if m is None:
-                m = _hy_macros[None].get(fn)
-            if m is not None:
-                if m._hy_macro_pass_compiler:
-                    opts['compiler'] = compiler
+    opts = {}
+    if m._hy_macro_pass_compiler:
+        opts['compiler'] = compiler
 
-                try:
-                    m_copy = make_empty_fn_copy(m)
-                    m_copy(compiler.module_name, *tree[1:], **opts)
-                except TypeError as e:
-                    msg = "expanding `" + str(tree[0]) + "': "
-                    msg += str(e).replace("<lambda>()", "", 1).strip()
-                    raise HyMacroExpansionError(tree, msg)
+    try:
+        m_copy = make_empty_fn_copy(m)
+        m_copy(compiler.module_name, *tree[1:], **opts)
+    except TypeError as e:
+        msg = "expanding `" + str(tree[0]) + "': "
+        msg += str(e).replace("<lambda>()", "", 1).strip()
+        raise HyMacroExpansionError(tree, msg)
 
-                try:
-                    obj = m(compiler.module_name, *tree[1:], **opts)
-                except HyTypeError as e:
-                    if e.expression is None:
-                        e.expression = tree
-                    raise
-                except Exception as e:
-                    msg = "expanding `" + str(tree[0]) + "': " + repr(e)
-                    raise HyMacroExpansionError(tree, msg)
-                replace_hy_obj(obj, tree)
-                return obj
-    return tree
+    try:
+        obj = m(compiler.module_name, *tree[1:], **opts)
+    except HyTypeError as e:
+        if e.expression is None:
+            e.expression = tree
+        raise
+    except Exception as e:
+        msg = "expanding `" + str(tree[0]) + "': " + repr(e)
+        raise HyMacroExpansionError(tree, msg)
+    return replace_hy_obj(obj, tree)
 
 
 def tag_macroexpand(tag, tree, compiler):
