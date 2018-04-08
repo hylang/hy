@@ -5,7 +5,7 @@
 
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
-                       HyDict, HyCons, wrap_value)
+                       HyDict, wrap_value)
 from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex.parser import mangle
@@ -89,7 +89,7 @@ def builds(*types, **kwargs):
 
 
 def spoof_positions(obj):
-    if not isinstance(obj, HyObject) or isinstance(obj, HyCons):
+    if not isinstance(obj, HyObject):
         return
     if not hasattr(obj, "start_column"):
         obj.start_column = 0
@@ -718,24 +718,6 @@ class HyASTCompiler(object):
 
             return imports, HyExpression([HySymbol(name),
                                           contents]).replace(form), False
-
-        elif isinstance(form, HyCons):
-            ret = HyExpression([HySymbol(name)])
-            nimport, contents, splice = self._render_quoted_form(form.car,
-                                                                 level)
-            if splice:
-                raise HyTypeError(form, "Can't splice dotted lists yet")
-            imports.update(nimport)
-            ret.append(contents)
-
-            nimport, contents, splice = self._render_quoted_form(form.cdr,
-                                                                 level)
-            if splice:
-                raise HyTypeError(form, "Can't splice the cdr of a cons")
-            imports.update(nimport)
-            ret.append(contents)
-
-            return imports, ret.replace(form), False
 
         elif isinstance(form, HySymbol):
             return imports, HyExpression([HySymbol(name),
@@ -2130,10 +2112,6 @@ class HyASTCompiler(object):
         return (self._compile_branch(expression[1:])
                 if building == "eval_and_compile"
                 else Result())
-
-    @builds(HyCons)
-    def compile_cons(self, cons):
-        raise HyTypeError(cons, "Can't compile a top-level cons cell")
 
     @builds(HyInteger, HyFloat, HyComplex)
     def compile_numeric_literal(self, x, building):
