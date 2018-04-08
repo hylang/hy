@@ -500,19 +500,18 @@ class HyASTCompiler(object):
                 except StopIteration:
                     raise HyTypeError(expr,
                                       "Keyword argument {kw} needs "
-                                      "a value.".format(kw=str(expr[1:])))
+                                      "a value.".format(kw=expr))
+
+                if not expr:
+                    raise HyTypeError(expr, "Can't call a function with the "
+                                            "empty keyword")
 
                 compiled_value = self.compile(value)
                 ret += compiled_value
 
-                keyword = expr[2:]
-                if not keyword:
-                    raise HyTypeError(expr, "Can't call a function with the "
-                                            "empty keyword")
-                keyword = ast_str(keyword)
-
+                arg = str_type(expr)[1:]
                 keywords.append(asty.keyword(
-                    expr, arg=keyword, value=compiled_value.force_expr))
+                    expr, arg=ast_str(arg), value=compiled_value.force_expr))
 
             else:
                 ret += self.compile(expr)
@@ -742,10 +741,13 @@ class HyASTCompiler(object):
             return imports, HyExpression([HySymbol(name),
                                           HyString(form)]).replace(form), False
 
+        elif isinstance(form, HyKeyword):
+            return imports, form, False
+
         elif isinstance(form, HyString):
             x = [HySymbol(name), form]
             if form.brackets is not None:
-                x.extend([HyKeyword(":brackets"), form.brackets])
+                x.extend([HyKeyword("brackets"), form.brackets])
             return imports, HyExpression(x).replace(form), False
 
         return imports, HyExpression([HySymbol(name),
@@ -809,7 +811,7 @@ class HyASTCompiler(object):
             ret += self.compile(expr.pop(0))
 
         cause = None
-        if len(expr) == 2 and expr[0] == HyKeyword(":from"):
+        if len(expr) == 2 and expr[0] == HyKeyword("from"):
             if not PY3:
                 raise HyCompileError(
                     "raise from only supported in python 3")
@@ -1168,7 +1170,7 @@ class HyASTCompiler(object):
             if isinstance(iexpr, HyList) and iexpr:
                 module = iexpr.pop(0)
                 entry = iexpr[0]
-                if isinstance(entry, HyKeyword) and entry == HyKeyword(":as"):
+                if entry == HyKeyword("as"):
                     if not len(iexpr) == 2:
                         raise HyTypeError(iexpr,
                                           "garbage after aliased import")
@@ -1462,7 +1464,7 @@ class HyASTCompiler(object):
                 else:
                     assignments = {}
                     while names:
-                        if len(names) > 1 and names[1] == HyKeyword(":as"):
+                        if len(names) > 1 and names[1] == HyKeyword("as"):
                             k, _, v = names[:3]
                             del names[:3]
                             assignments[k] = v
@@ -1471,7 +1473,7 @@ class HyASTCompiler(object):
                             assignments[symbol] = symbol
                     require(module, self.module_name, assignments=assignments)
             elif (isinstance(entry, HyList) and len(entry) == 3
-                    and entry[1] == HyKeyword(":as")):
+                    and entry[1] == HyKeyword("as")):
                 # e.g., (require [foo :as bar])
                 module, _, prefix = entry
                 __import__(module)
@@ -1764,7 +1766,7 @@ class HyASTCompiler(object):
         # An exception for pulling together keyword args is if we're doing
         # a typecheck, eg (type :foo)
         with_kwargs = fn not in (
-            "type", "HyKeyword", "keyword", "name", "keyword?")
+            "type", "HyKeyword", "keyword", "name", "keyword?", "identity")
         args, ret, keywords, oldpy_star, oldpy_kw = self._compile_collect(
             expression[1:], with_kwargs, oldpy_unpack=True)
 
@@ -2187,7 +2189,18 @@ class HyASTCompiler(object):
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
-    @builds(HyString, HyKeyword, HyBytes)
+    @builds(HyKeyword)
+    def compile_keyword(self, obj):
+        ret = Result()
+        ret += asty.Call(
+            obj,
+            func=asty.Name(obj, id="HyKeyword", ctx=ast.Load()),
+            args=[asty.Str(obj, s=obj.name)],
+            keywords=[])
+        ret.add_imports("hy", {"HyKeyword"})
+        return ret
+
+    @builds(HyString, HyBytes)
     def compile_string(self, string, building):
         node = asty.Bytes if PY3 and building is HyBytes else asty.Str
         f = bytes_type if building is HyBytes else str_type

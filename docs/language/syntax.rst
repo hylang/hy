@@ -72,9 +72,7 @@ of bytes. So when running under Python 3, Hy translates ``"foo"`` and
 keywords
 --------
 
-An identifier headed by a colon, such as ``:foo``, is a keyword. Keywords
-evaluate to a string preceded by the Unicode non-character code point U+FDD0,
-like ``"\ufdd0:foo"``, so ``:foo`` and ``":foo"`` aren't equal. However, if a
+An identifier headed by a colon, such as ``:foo``, is a keyword. If a
 literal keyword appears in a function call, it's used to indicate a keyword
 argument rather than passed in as a value. For example, ``(f :foo 3)`` calls
 the function ``f`` with the keyword argument named ``foo`` set to ``3``. Hence,

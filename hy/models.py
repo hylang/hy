@@ -121,22 +121,35 @@ _wrappers[bool] = lambda x: HySymbol("True") if x else HySymbol("False")
 _wrappers[type(None)] = lambda foo: HySymbol("None")
 
 
-class HyKeyword(HyObject, str_type):
-    """Generic Hy Keyword object. It's either a ``str`` or a ``unicode``,
-    depending on the Python version.
-    """
+class HyKeyword(HyObject):
+    """Generic Hy Keyword object."""
 
-    PREFIX = "\uFDD0"
+    __slots__ = ['name']
 
-    def __new__(cls, value):
-        if not value.startswith(cls.PREFIX):
-            value = cls.PREFIX + value
-
-        obj = str_type.__new__(cls, value)
-        return obj
+    def __init__(self, value):
+        self.name = value
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, repr(self[1:]))
+        return "%s(%r)" % (self.__class__.__name__, self.name)
+
+    def __str__(self):
+        return ":%s" % self.name
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        if not isinstance(other, HyKeyword):
+            return NotImplemented
+        return self.name == other.name
+
+    def __ne__(self, other):
+        if not isinstance(other, HyKeyword):
+            return NotImplemented
+        return self.name != other.name
+
+    def __bool__(self):
+        return bool(self.name)
 
 
 def strip_digit_separators(number):

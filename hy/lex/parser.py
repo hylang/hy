@@ -380,7 +380,7 @@ def symbol_like(obj):
             pass
 
     if obj.startswith(":") and "." not in obj:
-        return HyKeyword(obj)
+        return HyKeyword(obj[1:])
 
 
 @pg.error

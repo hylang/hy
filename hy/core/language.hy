@@ -65,8 +65,7 @@
 
 (defn keyword? [k]
   "Check whether `k` is a keyword."
-  (and (instance? (type :foo) k)
-       (.startswith k (get :foo 0))))
+  (instance? HyKeyword k))
 
 (defn dec [n]
   "Decrement `n` by 1."
@@ -460,26 +459,26 @@ as EOF (defaults to an empty string)."
   "Create a keyword from `value`.
 
 Strings numbers and even objects with the __name__ magic will work."
-  (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (unmangle value)
-    (if (string? value)
-      (HyKeyword (+ ":" (unmangle value)))
-      (try
-        (unmangle (.__name__ value))
-        (except [] (HyKeyword (+ ":" (string value))))))))
+  (if (keyword? value)
+      (HyKeyword (unmangle value.name))
+      (if (string? value)
+          (HyKeyword (unmangle value))
+          (try
+            (unmangle (.__name__ value))
+            (except [] (HyKeyword (string value)))))))
 
 (defn name [value]
   "Convert `value` to a string.
 
 Keyword special character will be stripped. String will be used as is.
 Even objects with the __name__ magic will work."
-  (if (and (string? value) (value.startswith HyKeyword.PREFIX))
-    (unmangle (cut value 2))
-    (if (string? value)
-      (unmangle value)
-      (try
-        (unmangle (. value __name__))
-        (except [] (string value))))))
+  (if (keyword? value)
+      (unmangle (cut (str value) 1))
+      (if (string? value)
+          (unmangle value)
+          (try
+            (unmangle (. value __name__))
+            (except [] (string value))))))
 
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`."

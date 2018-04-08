@@ -32,7 +32,7 @@
 
   (global -quoting)
   (setv started-quoting False)
-  (when (and (not -quoting) (instance? HyObject obj))
+  (when (and (not -quoting) (instance? HyObject obj) (not (instance? HyKeyword obj)))
     (setv -quoting True)
     (setv started-quoting True))
 
@@ -82,10 +82,8 @@
     (+ (get syntax (first x)) (hy-repr (second x)))
     (+ "(" (-cat x) ")"))))
 
-(hy-repr-register HySymbol str)
-(hy-repr-register [str-type bytes-type HyKeyword] (fn [x]
-  (if (and (instance? str-type x) (.startswith x HyKeyword.PREFIX))
-    (return (cut x 1)))
+(hy-repr-register [HySymbol HyKeyword] str)
+(hy-repr-register [str-type bytes-type] (fn [x]
   (setv r (.lstrip (-base-repr x) "ub"))
   (+
     (if (instance? bytes-type x) "b" "")

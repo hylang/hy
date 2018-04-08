@@ -581,10 +581,10 @@ objects with the `__name__` magic will work.
 .. code-block:: hy
 
    => (keyword "foo")
-   u'\ufdd0:foo'
+   HyKeyword('foo')
 
    => (keyword 1)
-   u'\ufdd0:1'
+   HyKeyword('foo')
 
 .. _keyword?-fn:
 
