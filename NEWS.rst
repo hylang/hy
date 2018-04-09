@@ -42,6 +42,7 @@ Bug Fixes
 * Fixed a case where `->` and `->>` duplicated an argument
 * Fixed bugs that caused `defclass` to drop statements or crash
 * Fixed a REPL crash caused by illegle unicode escape string inputs
+* `NaN` can no longer create an infinite loop during macro-expansion
 
 Misc. Improvements
 ----------------------------

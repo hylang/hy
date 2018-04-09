@@ -5,7 +5,7 @@
 from hy.macros import macro, macroexpand
 from hy.lex import tokenize
 
-from hy.models import HyString, HyList, HySymbol, HyExpression
+from hy.models import HyString, HyList, HySymbol, HyExpression, HyFloat
 from hy.errors import HyMacroExpansionError
 
 from hy.compiler import HyASTCompiler
@@ -53,3 +53,12 @@ def test_preprocessor_exceptions():
     except HyMacroExpansionError as e:
         assert "_hy_anon_fn_" not in str(e)
         assert "TypeError" not in str(e)
+
+
+def test_macroexpand_nan():
+   # https://github.com/hylang/hy/issues/1574
+   import math
+   NaN = float('nan')
+   x = macroexpand(HyFloat(NaN), HyASTCompiler(__name__))
+   assert type(x) is HyFloat
+   assert math.isnan(x)
