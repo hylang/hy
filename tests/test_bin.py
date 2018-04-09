@@ -248,24 +248,6 @@ def test_bin_hyc_missing_file():
     assert "[Errno 2]" in err
 
 
-def test_hy2py():
-    i = 0
-    for dirpath, dirnames, filenames in os.walk("tests/native_tests"):
-        for f in filenames:
-            if f.endswith(".hy"):
-                if "py3_only" in f and not PY3:
-                    continue
-                if "py35_only" in f and not PY35:
-                    continue
-                if "py36_only" in f and not PY36:
-                    continue
-                i += 1
-                output, err = run_cmd("hy2py -s -a " + quote(os.path.join(dirpath, f)))
-                assert len(output) > 1, f
-                assert len(err) == 0, f
-    assert i
-
-
 def test_bin_hy_builtins():
     # hy.cmdline replaces builtins.exit and builtins.quit
     # for use by hy's repl.
