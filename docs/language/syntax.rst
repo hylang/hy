@@ -81,6 +81,13 @@ the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
 
+Keywords are also callable. It takes a single argument of a dictionary
+upon which a lookup for that specific keyword will be done.::
+
+   => (:hello {:hello "Hello World"
+               :goodbye "Goodbye!"})
+   "Hello World"
+
 .. _mangling:
 
 symbols

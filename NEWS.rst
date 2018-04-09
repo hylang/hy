@@ -16,7 +16,9 @@ Other Breaking Changes
   and makes accidental unary uses easier to notice.
 * `hy-repr` uses registered functions instead of methods
 * `HyKeyword` no longer inherits from the string type and has been
-  made into its own object type.
+  made into its own object type. `HyKeyword` is now directly callable
+  to support dictionary lookups, instead of replying on the compiler
+  to rewritten the expression
 
 New Features
 ------------------------------
