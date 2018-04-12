@@ -3,6 +3,12 @@
 Unreleased
 ==============================
 
+Removals
+------------------------------
+* Dotted lists, `HyCons`, `cons`, `cons?`, and `list*` have been removed.
+  These were redundant with Python's built-in data structures and Hy's most
+  common model types (`HyExpression`, `HyList`, etc.).
+
 Other Breaking Changes
 ------------------------------
 * Mangling rules have been overhauled, such that mangled names

@@ -18,7 +18,7 @@
 (if-python2
   (import [collections :as cabc])
   (import [collections.abc :as cabc]))
-(import [hy.models [HyCons HySymbol HyKeyword]])
+(import [hy.models [HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.lex.parser [mangle unmangle]])
 (import [hy.compiler [HyASTCompiler spoof-positions]])
@@ -49,14 +49,6 @@
   "Returns a new function that returns the logically inverted result of `f`."
   (fn [&rest args &kwargs kwargs]
     (not (f #* args #** kwargs))))
-
-(defn cons [a b]
-  "Return a fresh cons cell with car = `a` and cdr = `b`."
-  (HyCons a b))
-
-(defn cons? [c]
-  "Check whether `c` is a cons cell."
-  (instance? HyCons c))
 
 (defn constantly [value]
   "Create a new function that always returns `value` regardless of its input."
@@ -294,19 +286,13 @@ Return series of accumulated sums (or other binary function results)."
 
 (defn juxt [f &rest fs]
   "Return a function applying each `fs` to args, collecting results in a list."
-  (setv fs (cons f fs))
+  (setv fs (+ (, f) fs))
   (fn [&rest args &kwargs kwargs]
     (list-comp (f #* args #** kwargs) [f fs])))
 
 (defn last [coll]
   "Return last item from `coll`."
   (get (tuple coll) -1))
-
-(defn list* [hd &rest tl]
-  "Return a chain of nested cons cells (dotted list) containing `hd` and `tl`."
-  (if (not tl)
-    hd
-    (cons hd (list* #* tl))))
 
 (defn macroexpand [form]
   "Return the full macro expansion of `form`."
@@ -488,11 +474,11 @@ Even objects with the __name__ magic will work."
 
 (setv EXPORTS
   '[*map accumulate butlast calling-module-name chain coll? combinations
-    comp complement compress cons cons? constantly count cycle dec distinct
+    comp complement compress constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first
     filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
-    iterate iterator? juxt keyword keyword? last list* macroexpand
+    iterate iterator? juxt keyword keyword? last macroexpand
     macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product range read read-str
     remove repeat repeatedly rest reduce second some string string? symbol?

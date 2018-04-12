@@ -5,7 +5,7 @@ except ImportError:
     __version__ = 'unknown'
 
 
-from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet, HyCons  # NOQA
+from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet  # NOQA
 
 
 import hy.importer  # NOQA

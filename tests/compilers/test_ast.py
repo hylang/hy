@@ -569,11 +569,6 @@ def test_attribute_empty():
     cant_compile('[2].foo')
 
 
-def test_cons_correct():
-    """Ensure cons gets compiled correctly"""
-    can_compile("(cons a b)")
-
-
 def test_invalid_list_comprehension():
     """Ensure that invalid list comprehensions do not break the compiler"""
     cant_compile("(genexpr x [])")

@@ -98,49 +98,6 @@ inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
    True
 
 
-cons
-----
-
-.. versionadded:: 0.10.0
-
-Usage: ``(cons a b)``
-
-Returns a fresh :ref:`cons cell <hycons>` with car *a* and cdr *b*.
-
-.. code-block:: hy
-
-   => (setv a (cons 'hd 'tl))
-
-   => (= 'hd (get a 0))
-   True
-
-   => (= 'tl (cut a 1))
-   True
-
-
-cons?
------
-
-.. versionadded:: 0.10.0
-
-Usage: ``(cons? foo)``
-
-Checks whether *foo* is a :ref:`cons cell <hycons>`.
-
-.. code-block:: hy
-
-   => (setv a (cons 'hd 'tl))
-
-   => (cons? a)
-   True
-
-   => (cons? None)
-   False
-
-   => (cons? [1 2 3])
-   False
-
-
 .. _constantly:
 
 constantly
@@ -606,41 +563,6 @@ Check whether *foo* is a :ref:`keyword<HyKeyword>`.
    => (keyword? foo)
    False
 
-.. _list*-fn:
-
-list*
------
-
-Usage: ``(list* head &rest tail)``
-
-Generates a chain of nested cons cells (a dotted list) containing the
-arguments. If the argument list only has one element, return it.
-
-.. code-block:: hy
-
-    => (list* 1 2 3 4)
-    <HyCons (
-      HyInteger(1)
-      HyInteger(2)
-      HyInteger(3)
-    . HyInteger(4))>
-    => (list* 1 2 3 [4])
-    [HyInteger(1), HyInteger(2), HyInteger(3), 4]
-    => (list* 1)
-    1
-    => (cons? (list* 1 2 3 4))
-    True
-    => (list* 1 10  2 20 '{})
-    HyDict([
-      HyInteger(1), HyInteger(10),
-      HyInteger(2), HyInteger(20)])
-    => (list* 1 10  2 20 {})
-    <HyCons (
-      HyInteger(1)
-      HyInteger(10)
-      HyInteger(2)
-      HyInteger(20)
-    . HyDict())>
 
 .. _macroexpand-fn:
 
