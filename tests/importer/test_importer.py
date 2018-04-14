@@ -10,6 +10,7 @@ import os
 import ast
 import tempfile
 from fractions import Fraction
+import pytest
 
 
 def test_basics():
@@ -50,6 +51,8 @@ def test_import_error_reporting():
     assert _import_error_test() is not None
 
 
+@pytest.mark.skipif(os.environ.get('PYTHONDONTWRITEBYTECODE'),
+                    reason="Bytecode generation is suppressed")
 def test_import_autocompiles():
     "Test that (import) byte-compiles the module."
 
