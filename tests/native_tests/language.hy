@@ -283,7 +283,21 @@
     (setv fact (* fact count))
     (setv count (- count 1)))
   (assert (= count 0))
-  (assert (= fact 120)))
+  (assert (= fact 120))
+
+  (setv l [])
+  (defn f []
+    (.append l 1)
+    (len l))
+  (while (!= (f) 4))
+  (assert (= l [1 1 1 1]))
+
+  (setv l [])
+  (defn f []
+    (.append l 1)
+    (len l))
+  (while (!= (f) 4) (do))
+  (assert (= l [1 1 1 1])))
 
 (defn test-while-loop-else []
   (setv count 5)

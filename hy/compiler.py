@@ -1828,7 +1828,7 @@ class HyASTCompiler(object):
         return ret
 
     @builds("while")
-    @checkargs(min=2)
+    @checkargs(min=1)
     def compile_while_expression(self, expr):
         expr.pop(0)  # "while"
         cond = expr.pop(0)
@@ -1867,7 +1867,8 @@ class HyASTCompiler(object):
 
         ret = cond_compiled + asty.While(
             expr, test=cond_compiled.force_expr,
-            body=body.stmts, orelse=orel.stmts)
+            body=body.stmts or [asty.Pass(expr)],
+            orelse=orel.stmts)
         ret.contains_yield = body.contains_yield
 
         return ret
