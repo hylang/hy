@@ -920,48 +920,48 @@
 
 (defn test-list-comprehensions []
   "NATIVE: test list comprehensions"
-  (assert (= (list-comp (* x 2) (x (range 2))) [0 2]))
-  (assert (= (list-comp (* x 2) (x (range 4)) (% x 2)) [2 6]))
-  (assert (= (sorted (list-comp (* y 2) ((, x y) (.items {"1" 1 "2" 2}))))
+  (assert (= (list-comp (* x 2) [x (range 2)]) [0 2]))
+  (assert (= (list-comp (* x 2) [x (range 4)] (% x 2)) [2 6]))
+  (assert (= (sorted (list-comp (* y 2) [(, x y) (.items {"1" 1 "2" 2})]))
              [2 4]))
-  (assert (= (list-comp (, x y) (x (range 2) y (range 2)))
+  (assert (= (list-comp (, x y) [x (range 2) y (range 2)])
              [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
-  (assert (= (list-comp j (j [1 2])) [1 2])))
+  (assert (= (list-comp j [j [1 2]]) [1 2])))
 
 
 (defn test-set-comprehensions []
   "NATIVE: test set comprehensions"
   (assert (instance? set (set-comp x [x (range 2)])))
-  (assert (= (set-comp (* x 2) (x (range 2))) (set [0 2])))
-  (assert (= (set-comp (* x 2) (x (range 4)) (% x 2)) (set [2 6])))
-  (assert (= (set-comp (* y 2) ((, x y) (.items {"1" 1 "2" 2})))
+  (assert (= (set-comp (* x 2) [x (range 2)]) (set [0 2])))
+  (assert (= (set-comp (* x 2) [x (range 4)] (% x 2)) (set [2 6])))
+  (assert (= (set-comp (* y 2) [(, x y) (.items {"1" 1 "2" 2})])
              (set [2 4])))
-  (assert (= (set-comp (, x y) (x (range 2) y (range 2)))
+  (assert (= (set-comp (, x y) [x (range 2) y (range 2)])
              (set [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
-  (assert (= (set-comp j (j [1 2])) (set [1 2]))))
+  (assert (= (set-comp j [j [1 2]]) (set [1 2]))))
 
 
 (defn test-dict-comprehensions []
   "NATIVE: test dict comprehensions"
   (assert (instance? dict (dict-comp x x [x (range 2)])))
-  (assert (= (dict-comp x (* x 2) (x (range 2))) {1 2 0 0}))
-  (assert (= (dict-comp x (* x 2) (x (range 4)) (% x 2)) {3 6 1 2}))
-  (assert (= (dict-comp x (* y 2) ((, x y) (.items {"1" 1 "2" 2})))
+  (assert (= (dict-comp x (* x 2) [x (range 2)]) {1 2 0 0}))
+  (assert (= (dict-comp x (* x 2) [x (range 4)] (% x 2)) {3 6 1 2}))
+  (assert (= (dict-comp x (* y 2) [(, x y) (.items {"1" 1 "2" 2})])
              {"2" 4 "1" 2}))
-  (assert (= (dict-comp (, x y) (+ x y) (x (range 2) y (range 2)))
+  (assert (= (dict-comp (, x y) (+ x y) [x (range 2) y (range 2)])
              {(, 0 0) 0 (, 1 0) 1 (, 0 1) 1 (, 1 1) 2})))
 
 
 (defn test-generator-expressions []
   "NATIVE: test generator expressions"
   (assert (not (instance? list (genexpr x [x (range 2)]))))
-  (assert (= (list (genexpr (* x 2) (x (range 2)))) [0 2]))
-  (assert (= (list (genexpr (* x 2) (x (range 4)) (% x 2))) [2 6]))
-  (assert (= (list (sorted (genexpr (* y 2) ((, x y) (.items {"1" 1 "2" 2})))))
+  (assert (= (list (genexpr (* x 2) [x (range 2)])) [0 2]))
+  (assert (= (list (genexpr (* x 2) [x (range 4)] (% x 2))) [2 6]))
+  (assert (= (list (sorted (genexpr (* y 2) [(, x y) (.items {"1" 1 "2" 2})])))
              [2 4]))
-  (assert (= (list (genexpr (, x y) (x (range 2) y (range 2))))
+  (assert (= (list (genexpr (, x y) [x (range 2) y (range 2)]))
              [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
-  (assert (= (list (genexpr j (j [1 2]))) [1 2])))
+  (assert (= (list (genexpr j [j [1 2]])) [1 2])))
 
 
 (defn test-defn-order []
@@ -1370,7 +1370,7 @@
 
 (defn test-lambda-keyword-lists []
   "NATIVE: test lambda keyword lists"
-  (defn foo (x &rest xs &kwargs kw) [x xs kw])
+  (defn foo [x &rest xs &kwargs kw] [x xs kw])
   (assert (= (foo 10 20 30) [10 (, 20 30) {}])))
 
 
@@ -1721,7 +1721,7 @@ macros()
 (defmacro identify-keywords [&rest elts]
   `(list
     (map
-     (fn (x) (if (is-keyword x) "keyword" "other"))
+     (fn [x] (if (is-keyword x) "keyword" "other"))
      ~elts)))
 
 (defn test-keywords-and-macros []

@@ -48,26 +48,35 @@ Hy also attempts to color pretty reprs using ``clint.textui.colored``.
 This module has a flag to disable coloring,
 and a method ``clean`` to strip colored strings of their color tags.
 
+.. _hysequence:
+
+HySequence
+~~~~~~~~~~
+
+``hy.models.HySequence`` is the abstract base class of "iterable" Hy
+models, such as HyExpression and HyList.
+
+Adding a HySequence to another iterable object reuses the class of the
+left-hand-side object, a useful behavior when you want to concatenate Hy
+objects in a macro, for instance.
+
+
 .. _hylist:
 
 HyList
-~~~~~~
+~~~~~~~~~~~~
 
-``hy.models.HyList`` is the base class of "iterable" Hy models. Its
-basic use is to represent bracketed ``[]`` lists, which, when used as a
-top-level expression, translate to Python list literals in the
-compilation phase.
+``hy.models.HyExpression`` is a :ref:`HySequence` for bracketed ``[]``
+lists, which, when used as a top-level expression, translate to Python
+list literals in the compilation phase.
 
-Adding a HyList to another iterable object reuses the class of the
-left-hand-side object, a useful behavior when you want to concatenate Hy
-objects in a macro, for instance.
 
 .. _hyexpression:
 
 HyExpression
 ~~~~~~~~~~~~
 
-``hy.models.HyExpression`` inherits :ref:`HyList` for
+``hy.models.HyExpression`` inherits :ref:`HySequence` for
 parenthesized ``()`` expressions. The compilation result of those
 expressions depends on the first element of the list: the compiler
 dispatches expressions between compiler special-forms, user-defined
@@ -78,8 +87,8 @@ macros, and regular Python function calls.
 HyDict
 ~~~~~~
 
-``hy.models.HyDict`` inherits :ref:`HyList` for curly-bracketed ``{}``
-expressions, which compile down to a Python dictionary literal.
+``hy.models.HyDict`` inherits :ref:`HySequence` for curly-bracketed
+``{}`` expressions, which compile down to a Python dictionary literal.
 
 The decision of using a list instead of a dict as the base class for
 ``HyDict`` allows easier manipulation of dicts in macros, with the added
