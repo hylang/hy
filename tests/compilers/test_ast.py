@@ -511,7 +511,6 @@ def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (in [1 2 3]))")
-    assert excinfo.value.message == "`in' needs 2 arguments, got 1"
 
 
 def test_for_compile_error():

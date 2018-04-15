@@ -30,7 +30,7 @@ class Install(install):
                         "." + filename[:-len(".hy")])
         install.run(self)
 
-install_requires = ['rply>=0.7.5', 'astor', 'clint>=0.4']
+install_requires = ['rply>=0.7.5', 'astor', 'funcparserlib>=0.3.6', 'clint>=0.4']
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 

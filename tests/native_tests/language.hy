@@ -87,8 +87,8 @@
   (assert (= b 2))
   (setv y 0 x 1 y x)
   (assert (= y 1))
-  (try (eval '(setv a 1 b))
-       (except [e [TypeError]] (assert (in "`setv' needs an even number of arguments" (str e))))))
+  (with [(pytest.raises HyTypeError)]
+    (eval '(setv a 1 b))))
 
 
 (defn test-setv-returns-none []
@@ -280,7 +280,15 @@
         y (range 2)]
     (+ 1 1)
     (else (setv flag (+ flag 2))))
-  (assert (= flag 2)))
+  (assert (= flag 2))
+
+  (setv l [])
+  (defn f []
+    (for [x [4 9 2]]
+      (.append l (* 10 x))
+      (yield x)))
+  (for [_ (f)])
+  (assert (= l [40 90 20])))
 
 
 (defn test-while-loop []
