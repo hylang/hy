@@ -232,7 +232,15 @@
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
              (list-comp y [x [[1] [2 3]] y x])))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
-             (list-comp z [x [[1] [2 3]] y x z (range 5)]))))
+             (list-comp z [x [[1] [2 3]] y x z (range 5)])))
+
+  (setv l [])
+  (defn f []
+    (for [x [4 9 2]]
+      (.append l (* 10 x))
+      (yield x)))
+  (for [_ (f)])
+  (assert (= l [40 90 20])))
 
 
 (defn test-nasty-for-nesting []

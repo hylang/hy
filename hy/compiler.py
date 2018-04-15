@@ -1820,7 +1820,7 @@ class HyASTCompiler(object):
         ret += node(expression,
                     target=target,
                     iter=ret.force_expr,
-                    body=body.stmts,
+                    body=body.stmts or [asty.Pass(expression)],
                     orelse=orel.stmts)
 
         ret.contains_yield = body.contains_yield

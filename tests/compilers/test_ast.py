@@ -534,14 +534,6 @@ def test_for_compile_error():
         can_compile("(fn [] (for [x] x))")
     assert excinfo.value.message == "`for' requires an even number of args."
 
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x xx]))")
-    assert excinfo.value.message == "`for' requires a body to evaluate"
-
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x xx] (else 1)))")
-    assert excinfo.value.message == "`for' requires a body to evaluate"
-
 
 def test_attribute_access():
     """Ensure attribute access compiles correctly"""
