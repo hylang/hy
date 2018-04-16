@@ -6,7 +6,7 @@
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
                        HyDict, HySequence, wrap_value)
-from hy.model_patterns import FORM, SYM, sym, brackets, whole, notpexpr, dolike
+from hy.model_patterns import FORM, SYM, sym, brackets, whole, notpexpr, dolike, pexpr
 from funcparserlib.parser import many, oneplus, maybe, NoParseError
 from hy.errors import HyCompileError, HyTypeError
 
@@ -802,52 +802,41 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("try")
-    @checkargs(min=2)
-    def compile_try_expression(self, expr):
-        expr = copy.deepcopy(expr)
-        expr.pop(0)  # try
-
-        # (try something somethingelse…)
-        body = []
-        # Check against HyExpression and HySymbol to avoid incorrectly
-        # matching [except ...] or ("except" ...)
-        while expr and not (isinstance(expr[0], HyExpression)
-                            and isinstance(expr[0][0], HySymbol)
-                            and expr[0][0] in ("except", "else", "finally")):
-            body.append(expr.pop(0))
+    @special("try",
+       [many(notpexpr("except", "else", "finally")),
+        many(pexpr(sym("except"),
+            brackets() | brackets(FORM) | brackets(SYM, FORM),
+            many(FORM))),
+        maybe(dolike("else")),
+        maybe(dolike("finally"))])
+    def compile_try_expression(self, expr, root, body, catchers, orelse, finalbody):
         body = self._compile_branch(body)
 
-        var = self.get_anon_var()
-        name = asty.Name(expr, id=ast_str(var), ctx=ast.Store())
-        expr_name = asty.Name(expr, id=ast_str(var), ctx=ast.Load())
-
-        returnable = Result(expr=expr_name, temp_variables=[expr_name, name],
-                            contains_yield=body.contains_yield)
+        return_var = asty.Name(
+            expr, id=ast_str(self.get_anon_var()), ctx=ast.Store())
 
         handler_results = Result()
         handlers = []
-        while expr and expr[0][0] == HySymbol("except"):
-            handler_results += self._compile_catch_expression(expr.pop(0),
-                                                              name)
+        for catcher in catchers:
+            handler_results += self._compile_catch_expression(
+                catcher, return_var, *catcher)
             handlers.append(handler_results.stmts.pop())
-        orelse = []
-        if expr and expr[0][0] == HySymbol("else"):
-            orelse = self._compile_branch(expr.pop(0)[1:])
-            orelse += asty.Assign(expr, targets=[name],
+
+        if orelse is None:
+            orelse = []
+        else:
+            orelse = self._compile_branch(orelse)
+            orelse += asty.Assign(expr, targets=[return_var],
                                   value=orelse.force_expr)
             orelse += orelse.expr_as_stmt()
             orelse = orelse.stmts
-        finalbody = []
-        if expr and expr[0][0] == HySymbol("finally"):
-            finalbody = self._compile_branch(expr.pop(0)[1:])
+
+        if finalbody is None:
+            finalbody = []
+        else:
+            finalbody = self._compile_branch(finalbody)
             finalbody += finalbody.expr_as_stmt()
             finalbody = finalbody.stmts
-        if expr:
-            if expr[0][0] in ("except", "else", "finally"):
-                raise HyTypeError(expr, "Incorrect order "
-                                  "of `except'/`else'/`finally' in `try'")
-            raise HyTypeError(expr, "Unknown expression in `try'")
 
         # Using (else) without (except) is verboten!
         if orelse and not handlers:
@@ -860,50 +849,45 @@ class HyASTCompiler(object):
                 expr,
                 "`try' must have an `except' or `finally' clause")
 
-        ret = handler_results
-
+        returnable = Result(
+            expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),
+            temp_variables=[return_var],
+            contains_yield=body.contains_yield)
         body += body.expr_as_stmt() if orelse else asty.Assign(
-            expr, targets=[name], value=body.force_expr)
+            expr, targets=[return_var], value=body.force_expr)
         body = body.stmts or [asty.Pass(expr)]
 
         if PY3:
             # Python 3.3 features a merge of TryExcept+TryFinally into Try.
-            return ret + asty.Try(
+            x = asty.Try(
                 expr,
                 body=body,
                 handlers=handlers,
                 orelse=orelse,
-                finalbody=finalbody) + returnable
-
-        if finalbody:
-            if handlers:
-                return ret + asty.TryFinally(
+                finalbody=finalbody)
+        elif finalbody and handlers:
+            x = asty.TryFinally(
+                expr,
+                body=[asty.TryExcept(
                     expr,
-                    body=[asty.TryExcept(
-                        expr,
-                        handlers=handlers,
-                        body=body,
-                        orelse=orelse)],
-                    finalbody=finalbody) + returnable
-
-            return ret + asty.TryFinally(
-                expr, body=body, finalbody=finalbody) + returnable
-
-        return ret + asty.TryExcept(
-            expr, handlers=handlers, body=body, orelse=orelse) + returnable
+                    body=body,
+                    handlers=handlers,
+                    orelse=orelse)],
+                finalbody=finalbody)
+        elif finalbody:
+            x = asty.TryFinally(
+                expr, body=body, finalbody=finalbody)
+        else:
+            x = asty.TryExcept(
+                expr, body=body, handlers=handlers, orelse=orelse)
+        return handler_results + x + returnable
 
     @builds("except")
     def magic_internal_form(self, expr):
         raise HyTypeError(expr,
                           "Error: `%s' can't be used like that." % (expr[0]))
 
-    def _compile_catch_expression(self, expr, var):
-        catch = expr.pop(0)  # catch
-
-        if not expr:
-            raise HyTypeError(expr, "`%s' missing exceptions list" % catch)
-        exceptions = expr.pop(0)
-
+    def _compile_catch_expression(self, expr, var, exceptions, body):
         # exceptions catch should be either:
         # [[list of exceptions]]
         # or
@@ -915,61 +899,34 @@ class HyASTCompiler(object):
         # or
         # []
 
-        if not isinstance(exceptions, HyList):
-            raise HyTypeError(exceptions,
-                              "`%s' exceptions list is not a list" % catch)
-        if len(exceptions) > 2:
-            raise HyTypeError(exceptions,
-                              "`%s' exceptions list is too long" % catch)
-
         # [variable [list of exceptions]]
         # let's pop variable and use it as name
         name = None
         if len(exceptions) == 2:
-            name = exceptions.pop(0)
-            if not isinstance(name, HySymbol):
-                raise HyTypeError(
-                    exceptions,
-                    "Exception storage target name must be a symbol.")
+            name = exceptions[0]
+            name = (ast_str(name) if PY3
+                    else self._storeize(name, self.compile(name)))
 
-            if PY3:
-                # Python3 features a change where the Exception handler
-                # moved the name from a Name() to a pure Python String type.
-                #
-                # We'll just make sure it's a pure "string", and let it work
-                # it's magic.
-                name = ast_str(name)
-            else:
-                # Python2 requires an ast.Name, set to ctx Store.
-                name = self._storeize(name, self.compile(name))
-
-        exceptions_list = exceptions.pop(0) if exceptions else []
-
-        if isinstance(exceptions_list, list):
+        exceptions_list = exceptions[-1] if exceptions else HyList()
+        if isinstance(exceptions_list, HyList):
             if len(exceptions_list):
                 # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
                 elts, _type, _ = self._compile_collect(exceptions_list)
-                _type += asty.Tuple(expr, elts=elts, ctx=ast.Load())
+                _type += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
             else:
                 # [] → all exceptions caught
                 _type = Result()
-        elif isinstance(exceptions_list, HySymbol):
-            _type = self.compile(exceptions_list)
         else:
-            raise HyTypeError(exceptions,
-                              "`%s' needs a valid exception list" % catch)
+            _type = self.compile(exceptions_list)
 
-        body = self._compile_branch(expr)
+        body = self._compile_branch(body)
         body += asty.Assign(expr, targets=[var], value=body.force_expr)
         body += body.expr_as_stmt()
 
-        body = body.stmts
-        if not body:
-            body = [asty.Pass(expr)]
-
         # use _type.expr to get a literal `None`
         return _type + asty.ExceptHandler(
-            expr, type=_type.expr, name=name, body=body)
+            expr, type=_type.expr, name=name,
+            body=body.stmts or [asty.Pass(expr)])
 
     @special("if*", [FORM, FORM, maybe(FORM)])
     def compile_if(self, expr, _, cond, body, orel_expr):
