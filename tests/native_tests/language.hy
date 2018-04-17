@@ -565,13 +565,13 @@
 (defn test-exceptions []
   "NATIVE: test Exceptions"
 
-  (try (do) (except))
+  (try (do) (except []))
 
-  (try (do) (except [IOError]) (except))
+  (try (do) (except [IOError]) (except []))
 
   ; test that multiple expressions in a try get evaluated
   (setv value 0)
-  (try (+= value 1) (+= value 2)  (except [IOError]) (except))
+  (try (+= value 1) (+= value 2)  (except [IOError]) (except []))
   (assert (= value 3))
 
   ;; Test correct (raise)
@@ -606,7 +606,7 @@
   (setv passed False)
   (try
    (raise Exception)
-   (except)
+   (except [])
    (finally (setv passed True)))
   (assert passed)
 
@@ -616,7 +616,7 @@
         not-elsed True)
   (try
    (raise Exception)
-   (except)
+   (except [])
    (else (setv not-elsed False))
    (finally (setv passed True)))
   (assert passed)
@@ -664,10 +664,6 @@
 
   (try
    (print foobar42ofthebaz)
-   (except))
-
-  (try
-   (print foobar42ofthebaz)
    (except []))
 
   (try
@@ -682,7 +678,7 @@
 
   (setv passed False)
   (try
-   (try (do) (except) (else (bla)))
+   (try (do) (except []) (else (bla)))
    (except [NameError] (setv passed True)))
   (assert passed)
 
@@ -709,7 +705,7 @@
     (except [IOError]
       (setv x 45))
     (else (setv x 44)))
-   (except))
+   (except []))
   (assert (= x 0))
 
   ; test that [except ...] and ("except" ...) aren't treated like (except ...),
@@ -718,7 +714,7 @@
   (try
     (+= x 1)
     ("except" [IOError]  (+= x 1))
-    (except))
+    (except []))
 
   (assert (= x 2))
 
@@ -726,7 +722,7 @@
   (try
     (+= x 1)
     [except [IOError]  (+= x 1)]
-    (except))
+    (except []))
 
   (assert (= x 2)))
 
