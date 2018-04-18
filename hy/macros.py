@@ -80,11 +80,10 @@ def tag(name):
     return _
 
 
-def require(source_module, target_module,
-            all_macros=False, assignments={}, prefix=""):
+def require(source_module, target_module, assignments, prefix=""):
     """Load macros from `source_module` in the namespace of
-    `target_module`. `assignments` maps old names to new names, but is
-    ignored if `all_macros` is true. If `prefix` is nonempty, it is
+    `target_module`. `assignments` maps old names to new names, or
+    should be the string "ALL". If `prefix` is nonempty, it is
     prepended to the name of each imported macro. (This means you get
     macros named things like "mymacromodule.mymacro", which looks like
     an attribute of a module, although it's actually just a symbol
@@ -97,17 +96,18 @@ def require(source_module, target_module,
     seen_names = set()
     if prefix:
         prefix += "."
-    assignments = {mangle(str_type(k)): v for k, v in assignments.items()}
+    if assignments != "ALL":
+        assignments = {mangle(str_type(k)): v for k, v in assignments}
 
     for d in _hy_macros, _hy_tag:
         for name, macro in d[source_module].items():
             seen_names.add(name)
-            if all_macros:
+            if assignments == "ALL":
                 d[target_module][mangle(prefix + name)] = macro
             elif name in assignments:
                 d[target_module][mangle(prefix + assignments[name])] = macro
 
-    if not all_macros:
+    if assignments != "ALL":
         unseen = frozenset(assignments.keys()).difference(seen_names)
         if unseen:
             raise ImportError("cannot require names: " + repr(list(unseen)))

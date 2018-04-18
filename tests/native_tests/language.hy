@@ -1396,8 +1396,6 @@
   (import [os.path [basename :as bn]])
   (assert (= bn basename))
 
-  (import [sys])
-
   ;; Multiple stuff to import
   (import sys [os.path [dirname]]
           [os.path :as op]

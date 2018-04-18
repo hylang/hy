@@ -238,10 +238,10 @@ class HySequence(HyObject, list):
     An abstract type for sequence-like models to inherit from.
     """
 
-    def replace(self, other):
-        for x in self:
-            replace_hy_obj(x, other)
-
+    def replace(self, other, recursive=True):
+        if recursive:
+            for x in self:
+                replace_hy_obj(x, other)
         HyObject.replace(self, other)
         return self
 

@@ -1050,76 +1050,6 @@ class HyASTCompiler(object):
         node = asty.YieldFrom if expr[0] == "yield-from" else asty.Await
         return ret + node(expr, value=ret.force_expr)
 
-    @builds("import")
-    def compile_import_expression(self, expr):
-        expr = copy.deepcopy(expr)
-        def _compile_import(expr, module, names=None, importer=asty.Import):
-            if not names:
-                names = [ast.alias(name=ast_str(module, piecewise=True), asname=None)]
-
-            ast_module = ast_str(module, piecewise=True)
-            module = ast_module.lstrip(".")
-            level = len(ast_module) - len(module)
-            if not module:
-                module = None
-
-            return Result() + importer(
-                expr, module=module, names=names, level=level)
-
-        expr.pop(0)  # index
-        rimports = Result()
-        while len(expr) > 0:
-            iexpr = expr.pop(0)
-
-            if not isinstance(iexpr, (HySymbol, HyList)):
-                raise HyTypeError(iexpr, "(import) requires a Symbol "
-                                  "or a List.")
-
-            if isinstance(iexpr, HySymbol):
-                rimports += _compile_import(expr, iexpr)
-                continue
-
-            if isinstance(iexpr, HyList) and len(iexpr) == 1:
-                rimports += _compile_import(expr, iexpr.pop(0))
-                continue
-
-            if isinstance(iexpr, HyList) and iexpr:
-                module = iexpr.pop(0)
-                entry = iexpr[0]
-                if entry == HyKeyword("as"):
-                    if not len(iexpr) == 2:
-                        raise HyTypeError(iexpr,
-                                          "garbage after aliased import")
-                    iexpr.pop(0)  # :as
-                    alias = iexpr.pop(0)
-                    names = [ast.alias(name=ast_str(module, piecewise=True),
-                                       asname=ast_str(alias))]
-                    rimports += _compile_import(expr, ast_str(module), names)
-                    continue
-
-                if isinstance(entry, HyList):
-                    names = []
-                    while entry:
-                        sym = entry.pop(0)
-                        if entry and isinstance(entry[0], HyKeyword):
-                            entry.pop(0)
-                            alias = ast_str(entry.pop(0))
-                        else:
-                            alias = None
-                        names.append(ast.alias(name=(str(sym) if sym == "*" else ast_str(sym)),
-                                               asname=alias))
-
-                    rimports += _compile_import(expr, module,
-                                                names, asty.ImportFrom)
-                    continue
-
-                raise HyTypeError(
-                    entry,
-                    "Unknown entry (`%s`) in the HyList" % (entry)
-                )
-
-        return rimports
-
     @special("get", [FORM, oneplus(FORM)])
     def compile_index_expression(self, expr, name, obj, indices):
         indices, ret, _ = self._compile_collect(indices)
@@ -1315,53 +1245,70 @@ class HyASTCompiler(object):
 
         return operand
 
-    @builds("require")
-    def compile_require(self, expression):
+    @special(["import", "require"], [many(
+        SYM |
+        brackets(SYM, sym(":as"), SYM) |
+        brackets(SYM, brackets(many(SYM + maybe(sym(":as") + SYM)))))])
+    def compile_import_or_require(self, expr, root, entries):
         """
-        TODO: keep track of what we've imported in this run and then
-        "unimport" it after we've completed `thing' so that we don't pollute
-        other envs.
+        TODO for `require`: keep track of what we've imported in this run and
+        then "unimport" it after we've completed `thing' so that we don't
+        pollute other envs.
         """
-        for entry in expression[1:]:
+        ret = Result()
+
+        for entry in entries:
+            assignments = "ALL"
+            prefix = ""
+
             if isinstance(entry, HySymbol):
-                # e.g., (require foo)
-                __import__(entry)
-                require(entry, self.module_name, all_macros=True,
-                        prefix=entry)
-            elif isinstance(entry, HyList) and len(entry) == 2:
-                # e.g., (require [foo [bar baz :as MyBaz bing]])
-                # or (require [foo [*]])
-                module, names = entry
-                if not isinstance(names, HyList):
-                    raise HyTypeError(names,
-                                      "(require) name lists should be HyLists")
-                __import__(module)
-                if '*' in names:
-                    if len(names) != 1:
-                        raise HyTypeError(names, "* in a (require) name list "
-                                                 "must be on its own")
-                    require(module, self.module_name, all_macros=True)
-                else:
-                    assignments = {}
-                    while names:
-                        if len(names) > 1 and names[1] == HyKeyword("as"):
-                            k, _, v = names[:3]
-                            del names[:3]
-                            assignments[k] = v
-                        else:
-                            symbol = names.pop(0)
-                            assignments[symbol] = symbol
-                    require(module, self.module_name, assignments=assignments)
-            elif (isinstance(entry, HyList) and len(entry) == 3
-                    and entry[1] == HyKeyword("as")):
-                # e.g., (require [foo :as bar])
-                module, _, prefix = entry
-                __import__(module)
-                require(module, self.module_name, all_macros=True,
-                        prefix=prefix)
+                # e.g., (import foo)
+                module, prefix = entry, entry
+            elif isinstance(entry, HyList) and isinstance(entry[1], HySymbol):
+                # e.g., (import [foo :as bar])
+                module, prefix = entry
             else:
-                raise HyTypeError(entry, "unrecognized (require) syntax")
-        return Result()
+                # e.g., (import [foo [bar baz :as MyBaz bing]])
+                # or (import [foo [*]])
+                module, kids = entry
+                kids = kids[0]
+                if (HySymbol('*'), None) in kids:
+                    if len(kids) != 1:
+                        star = kids[kids.index((HySymbol('*'), None))][0]
+                        raise HyTypeError(star, "* in an import name list "
+                                                "must be on its own")
+                else:
+                    assignments = [(k, v or k) for k, v in kids]
+
+            if root == HySymbol("import"):
+                ast_module = ast_str(module, piecewise=True)
+                module = ast_module.lstrip(".")
+                level = len(ast_module) - len(module)
+                if assignments == "ALL" and prefix == "":
+                    node = asty.ImportFrom
+                    names = [ast.alias(name="*", asname=None)]
+                elif assignments == "ALL":
+                    node = asty.Import
+                    names = [ast.alias(
+                        name=ast_module,
+                        asname=ast_str(prefix)
+                            if prefix and prefix != module
+                            else None)]
+                else:
+                    node = asty.ImportFrom
+                    names = [
+                        ast.alias(
+                            name=ast_str(k),
+                            asname=None if v == k else ast_str(v))
+                        for k, v in assignments]
+                ret += node(
+                    expr, module=module or None, names=names, level=level)
+            else: # root == HySymbol("require")
+                __import__(module)
+                require(module, self.module_name,
+                        assignments=assignments, prefix=prefix)
+
+        return ret
 
     @special(["and", "or"], [many(FORM)])
     def compile_logical_or_and_and_operator(self, expr, operator, args):
