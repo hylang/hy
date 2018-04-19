@@ -61,7 +61,7 @@
   (foo x y))
 
 (defn test-macro-kw []
-  "NATIVE: test that an error is raised when &kwonly, &kwargs, or &key is used in a macro"
+  "NATIVE: test that an error is raised when &kwonly or &kwargs is used in a macro"
   (try
     (eval '(defmacro f [&kwonly a b]))
     (except [e HyTypeError]
@@ -72,12 +72,6 @@
     (eval '(defmacro f [&kwargs kw]))
     (except [e HyTypeError]
       (assert (= e.message "macros cannot use &kwargs")))
-    (else (assert False)))
-
-  (try
-    (eval '(defmacro f [&key {"kw" "xyz"}]))
-    (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &key")))
     (else (assert False))))
 
 (defn test-fn-calling-macro []

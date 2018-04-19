@@ -443,17 +443,6 @@ similar to `*args` and `**kwargs` in Python::
   => (optional-arg #* args #** kwargs)
   [1, 2, 4, 3]
 
-There's also a dictionary-style keyword arguments construction that
-looks like:
-
-.. code-block:: clj
-
-  (defn another-style [&key {"key1" "val1" "key2" "val2"}]
-    [key1 key2])
-
-The difference here is that since it's a dictionary, you can't rely on
-any specific ordering to the arguments.
-
 Hy also supports ``*args`` and ``**kwargs`` in parameter lists.  In Python::
 
   def some_func(foo, bar, *args, **kwargs):

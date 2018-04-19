@@ -18,7 +18,7 @@
               (% "received a `%s' instead of a symbol for macro name"
                  (. (type name)
                     __name__)))))
-     (for* [kw '[&kwonly &kwargs &key]]
+     (for* [kw '[&kwonly &kwargs]]
        (if* (in kw lambda-list)
             (raise (hy.errors.HyTypeError macro-name
                                           (% "macros cannot use %s"

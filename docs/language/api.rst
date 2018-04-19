@@ -493,28 +493,6 @@ Parameters may have the following keywords in front of them:
     	=> (total-value 100 1)
 	101.0
 
-&key
-    Parameter is a dict of keyword arguments. The keys of the dict
-    specify the parameter names and the values give the default values
-    of the parameters.
-
-    .. code-block:: clj
-
-       => (defn key-parameters [&key {"a" 1 "b" 2}]
-       ... (print "a is" a "and b is" b))
-       => (key-parameters :a 1 :b 2)
-       a is 1 and b is 2
-       => (key-parameters :b 1 :a 2)
-       a is 2 and b is 1
-
-    The following declarations are equivalent:
-
-    .. code-block:: clj
-
-       (defn key-parameters [&key {"a" 1 "b" 2}])
-
-       (defn key-parameters [&optional [a 1] [b 2]])
-
 &kwargs
     Parameter will contain 0 or more keyword arguments.
 

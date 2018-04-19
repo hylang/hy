@@ -84,7 +84,7 @@ splits a fn argument list into sections based on &-headers.
 returns an OrderedDict mapping headers to sublists.
 Arguments without a header are under None.
 "
-  (setv headers '[&optional &key &rest &kwonly &kwargs]
+  (setv headers '[&optional &rest &kwonly &kwargs]
         sections (OrderedDict [(, None [])])
         header None)
   (for [arg form]
@@ -177,14 +177,7 @@ Arguments without a header are under None.
                                  ~(self.expand-symbols (second pair))])]
                      [True
                       (.add protected pair)
-                      (.append argslist pair)]))]
-            [(= header '&key)
-             (setv &key-dict '{})
-             (for [[k v] (-> section first partition)]
-               (.add protected k)
-               (.append &key-dict k)
-               (.append &key-dict (self.expand-symbols v)))
-             (.append argslist &key-dict)]))
+                      (.append argslist pair)]))]))
     (, protected argslist))
 
   (defn handle-fn [self]
