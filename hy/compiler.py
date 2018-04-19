@@ -6,7 +6,7 @@
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
                        HyDict, HySequence, wrap_value)
-from hy.model_patterns import FORM, SYM, sym, brackets, whole, notpexpr, dolike, pexpr
+from hy.model_patterns import FORM, SYM, STR, sym, brackets, whole, notpexpr, dolike, pexpr
 from funcparserlib.parser import many, oneplus, maybe, NoParseError
 from hy.errors import HyCompileError, HyTypeError
 
@@ -1812,78 +1812,60 @@ class HyASTCompiler(object):
         ret += self.compile(expr[1])
         return ret + asty.Return(expr, value=ret.force_expr)
 
-    @builds("defclass")
-    @checkargs(min=1)
-    def compile_class_expression(self, expressions):
-        def rewire_init(expr):
-            new_args = []
-            if (isinstance(expr, HyExpression)
-                and len(expr) > 1
-                and isinstance(expr[0], HySymbol)
-                and expr[0] == HySymbol("setv")):
-                pairs = expr[1:]
-                while len(pairs) > 0:
-                    k, v = (pairs.pop(0), pairs.pop(0))
-                    if ast_str(k) == "__init__":
-                        v.append(HySymbol("None"))
-                    new_args.append(k)
-                    new_args.append(v)
-                expr = HyExpression([
-                    HySymbol("setv")
-                ] + new_args).replace(expr)
+    @special("defclass", [
+        SYM,
+        maybe(brackets(many(FORM)) + maybe(STR) +
+              maybe(brackets(many(SYM + FORM))) + many(FORM))])
+    def compile_class_expression(self, expr, root, name, rest):
+        base_list, docstring, attrs, body = rest or ([[]], None, None, [])
 
-            return expr
+        bases_expr, bases, keywords = (
+            self._compile_collect(base_list[0], with_kwargs=PY3))
 
-        expressions.pop(0)  # class
+        bodyr = Result()
 
-        class_name = expressions.pop(0)
-        if not isinstance(class_name, HySymbol):
-            raise HyTypeError(class_name, "Class name must be a symbol.")
-
-        bases_expr = []
-        bases = Result()
-        keywords = []
-        if expressions:
-            base_list = expressions.pop(0)
-            if not isinstance(base_list, HyList):
-                raise HyTypeError(base_list, "Base classes must be a list.")
-            bases_expr, bases, keywords = self._compile_collect(base_list, with_kwargs=PY3)
-
-        body = Result()
-
-        # grab the doc string, if there is one
-        docstring = None
-        if expressions and isinstance(expressions[0], HyString):
-            docstring = expressions.pop(0)
+        if docstring is not None:
             if not PY37:
-                body += self.compile(docstring).expr_as_stmt()
+                bodyr += self.compile(docstring).expr_as_stmt()
                 docstring = None
 
-        if expressions and isinstance(expressions[0], HyList) \
-           and not isinstance(expressions[0], HyExpression):
-            expr = expressions.pop(0)
-            expr = HyExpression([
-                HySymbol("setv")
-            ] + expr).replace(expr)
-            body += self.compile(rewire_init(expr))
+        if attrs is not None:
+            bodyr += self.compile(self._rewire_init(HyExpression(
+                [HySymbol("setv")] +
+                [x for pair in attrs[0] for x in pair]).replace(attrs)))
 
-        for expression in expressions:
-            e = self.compile(rewire_init(macroexpand(expression, self)))
-            body += e + e.expr_as_stmt()
-
-        if not body.stmts:
-            body += asty.Pass(expressions)
+        for e in body:
+            e = self.compile(self._rewire_init(macroexpand(e, self)))
+            bodyr += e + e.expr_as_stmt()
 
         return bases + asty.ClassDef(
-            expressions,
+            expr,
             decorator_list=[],
-            name=ast_str(class_name),
+            name=ast_str(name),
             keywords=keywords,
             starargs=None,
             kwargs=None,
             bases=bases_expr,
-            body=body.stmts,
+            body=bodyr.stmts or [asty.Pass(expr)],
             docstring=(None if docstring is None else str_type(docstring)))
+
+    def _rewire_init(self, expr):
+        "Given a (setv …) form, append None to definitions of __init__."
+
+        if not (isinstance(expr, HyExpression)
+                and len(expr) > 1
+                and isinstance(expr[0], HySymbol)
+                and expr[0] == HySymbol("setv")):
+            return expr
+
+        new_args = []
+        pairs = list(expr[1:])
+        while pairs:
+            k, v = (pairs.pop(0), pairs.pop(0))
+            if ast_str(k) == "__init__" and isinstance(v, HyExpression):
+                v += HyExpression([HySymbol("None")])
+            new_args.extend([k, v])
+        return HyExpression([HySymbol("setv")] + new_args).replace(expr)
 
     @builds("dispatch-tag-macro")
     @checkargs(exact=2)
