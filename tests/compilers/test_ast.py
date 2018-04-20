@@ -414,12 +414,6 @@ def test_ast_tuple():
     assert type(code) == ast.Tuple
 
 
-def test_argument_destructuring():
-    """ Ensure argument destructuring compilers. """
-    can_compile("(fn [[a b]] (print a b))")
-    cant_compile("(fn [[]] 0)")
-
-
 def test_lambda_list_keywords_rest():
     """ Ensure we can compile functions with lambda list keywords."""
     can_compile("(fn [x &rest xs] (print xs))")
