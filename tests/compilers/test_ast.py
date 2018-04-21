@@ -585,11 +585,11 @@ def test_setv_builtins():
 def test_top_level_unquote():
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(unquote)")
-    assert excinfo.value.message == "`unquote' can't be used at the top-level"
+    assert excinfo.value.message == "The special form 'unquote' is not allowed here"
 
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(unquote-splice)")
-    assert excinfo.value.message == "`unquote-splice' can't be used at the top-level"
+    assert excinfo.value.message == "The special form 'unquote-splice' is not allowed here"
 
 
 def test_lots_of_comment_lines():

@@ -62,17 +62,22 @@ def load_stdlib():
                 _stdlib[e] = module
 
 
-_compile_table = {}
-_decoratables = (ast.FunctionDef, ast.ClassDef)
-if PY35:
-    _decoratables += (ast.AsyncFunctionDef,)
-
-
 def ast_str(x, piecewise=False):
     if piecewise:
         return ".".join(ast_str(s) if s else "" for s in x.split("."))
     x = mangle(x)
     return x if PY3 else x.encode('UTF8')
+
+
+_compile_table = {}
+_decoratables = (ast.FunctionDef, ast.ClassDef)
+if PY35:
+    _decoratables += (ast.AsyncFunctionDef,)
+# _bad_roots are fake special operators, which are used internally
+# by other special forms (e.g., `except` in `try`) but can't be
+# used to construct special forms themselves.
+_bad_roots = tuple(ast_str(x) for x in (
+    "unquote", "unquote-splice", "unpack-mapping", "except"))
 
 
 def builds(*types, **kwargs):
@@ -433,6 +438,9 @@ class HyASTCompiler(object):
     def compile_atom(self, atom_type, atom):
         if isinstance(atom_type, string_types):
             atom_type = ast_str(atom_type)
+        if atom_type in _bad_roots:
+            raise HyTypeError(atom, "The special form '{}' "
+                                    "is not allowed here".format(atom_type))
         if atom_type in _compile_table:
             # _compile_table[atom_type] is a method for compiling this
             # type of atom, so call it. If it has an extra parameter,
@@ -672,11 +680,6 @@ class HyASTCompiler(object):
         ret.add_imports("hy", imports)
         return ret
 
-    @builds("unquote", "unquote-splice")
-    def compile_unquote(self, expr):
-        raise HyTypeError(expr,
-                          "`%s' can't be used at the top-level" % expr[0])
-
     @special("unpack-iterable", [FORM])
     def compile_unpack_iterable(self, expr, root, arg):
         if not PY3:
@@ -684,10 +687,6 @@ class HyASTCompiler(object):
         ret = self.compile(arg)
         ret += asty.Starred(expr, value=ret.force_expr, ctx=ast.Load())
         return ret
-
-    @builds("unpack-mapping")
-    def compile_unpack_mapping(self, expr):
-        raise HyTypeError(expr, "`unpack-mapping` isn't allowed here")
 
     @special([(not PY3, "exec*")], [FORM, maybe(FORM), maybe(FORM)])
     # Under Python 3, `exec` is a function rather than a statement type, so Hy
@@ -803,11 +802,6 @@ class HyASTCompiler(object):
             x = asty.TryExcept(
                 expr, body=body, handlers=handlers, orelse=orelse)
         return handler_results + x + returnable
-
-    @builds("except")
-    def magic_internal_form(self, expr):
-        raise HyTypeError(expr,
-                          "Error: `%s' can't be used like that." % (expr[0]))
 
     def _compile_catch_expression(self, expr, var, exceptions, body):
         # exceptions catch should be either:
