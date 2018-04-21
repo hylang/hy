@@ -177,16 +177,6 @@
   None)  ; Avoid https://github.com/hylang/hy/issues/1320
 
 
-(defn test-fn-corner-cases []
-  "NATIVE: tests that fn/defn handles corner cases gracefully"
-  (try (eval '(fn "foo"))
-       (except [e [Exception]] (assert (in "to `fn' must be a list"
-                                          (str e)))))
-  (try (eval '(defn foo "foo"))
-       (except [e [Exception]]
-         (assert (in "takes a parameter list as second" (str e))))))
-
-
 (defn test-for-loop []
   "NATIVE: test for loops"
   (setv count1 0 count2 0)

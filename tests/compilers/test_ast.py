@@ -243,6 +243,7 @@ def test_ast_bad_lambda():
     cant_compile("(fn ())")
     cant_compile("(fn () 1)")
     cant_compile("(fn (x) 1)")
+    cant_compile('(fn "foo")')
 
 
 def test_ast_good_yield():
@@ -442,8 +443,7 @@ def test_lambda_list_keywords_kwonly():
         exception = cant_compile(kwonly_demo)
         assert isinstance(exception, HyTypeError)
         message, = exception.args
-        assert message == ("keyword-only arguments are only "
-                           "available under Python 3")
+        assert message == "&kwonly parameters require Python 3"
 
 
 def test_lambda_list_keywords_mixed():
@@ -451,7 +451,7 @@ def test_lambda_list_keywords_mixed():
     can_compile("(fn [x &rest xs &kwargs kw] (list x xs kw))")
     cant_compile("(fn [x &rest xs &fasfkey {bar \"baz\"}])")
     if PY3:
-        can_compile("(fn [x &rest xs &kwargs kwxs &kwonly kwoxs]"
+        can_compile("(fn [x &rest xs &kwonly kwoxs &kwargs kwxs]"
                     "  (list x xs kwxs kwoxs))")
 
 
@@ -566,6 +566,7 @@ def test_defn():
     cant_compile("(defn \"hy\" [] 1)")
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
+    cant_compile('(defn hy "foo")')
 
 
 def test_setv_builtins():

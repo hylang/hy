@@ -6,8 +6,9 @@
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
                        HyDict, HySequence, wrap_value)
-from hy.model_patterns import FORM, SYM, STR, sym, brackets, whole, notpexpr, dolike, pexpr
-from funcparserlib.parser import many, oneplus, maybe, NoParseError
+from hy.model_patterns import (FORM, SYM, STR, sym, brackets, whole, notpexpr,
+                               dolike, pexpr)
+from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
 from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex.parser import mangle
@@ -552,85 +553,6 @@ class HyASTCompiler(object):
 
     def _compile_branch(self, exprs):
         return _branch(self.compile(expr) for expr in exprs)
-
-    def _parse_lambda_list(self, exprs):
-        """ Return FunctionDef parameter values from lambda list."""
-        ll_keywords = ("&rest", "&optional", "&kwonly", "&kwargs")
-        ret = Result()
-        args = []
-        defaults = []
-        varargs = None
-        kwonlyargs = []
-        kwonlydefaults = []
-        kwargs = None
-        lambda_keyword = None
-
-        for expr in exprs:
-
-            if expr in ll_keywords:
-                if expr in ("&optional", "&rest", "&kwonly", "&kwargs"):
-                    lambda_keyword = expr
-                else:
-                    raise HyTypeError(expr,
-                                      "{0} is in an invalid "
-                                      "position.".format(repr(expr)))
-                # we don't actually care about this token, so we set
-                # our state and continue to the next token...
-                continue
-
-            if lambda_keyword is None:
-                if not isinstance(expr, HySymbol):
-                    raise HyTypeError(expr, "Parameters must be symbols")
-                args.append(expr)
-            elif lambda_keyword == "&rest":
-                if varargs:
-                    raise HyTypeError(expr,
-                                      "There can only be one "
-                                      "&rest argument")
-                varargs = expr
-            elif lambda_keyword == "&optional":
-                if isinstance(expr, HyList):
-                    if not len(expr) == 2:
-                        raise HyTypeError(expr,
-                                          "optional args should be bare names "
-                                          "or 2-item lists")
-                    k, v = expr
-                else:
-                    k = expr
-                    v = HySymbol("None").replace(k)
-                if not isinstance(k, HyString):
-                    raise HyTypeError(expr,
-                                      "Only strings can be used as "
-                                      "parameter names")
-                args.append(k)
-                ret += self.compile(v)
-                defaults.append(ret.force_expr)
-            elif lambda_keyword == "&kwonly":
-                if not PY3:
-                    raise HyTypeError(expr,
-                                      "keyword-only arguments are only "
-                                      "available under Python 3")
-                if isinstance(expr, HyList):
-                    if len(expr) != 2:
-                        raise HyTypeError(expr,
-                                          "keyword-only args should be bare "
-                                          "names or 2-item lists")
-                    k, v = expr
-                    kwonlyargs.append(k)
-                    ret += self.compile(v)
-                    kwonlydefaults.append(ret.force_expr)
-                else:
-                    k = expr
-                    kwonlyargs.append(k)
-                    kwonlydefaults.append(None)
-            elif lambda_keyword == "&kwargs":
-                if kwargs:
-                    raise HyTypeError(expr,
-                                      "There can only be one "
-                                      "&kwargs argument")
-                kwargs = expr
-
-        return ret, args, defaults, varargs, kwonlyargs, kwonlydefaults, kwargs
 
     def _storeize(self, expr, name, func=None):
         """Return a new `name` object with an ast.Store() context"""
@@ -1705,73 +1627,69 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("fn", "fn*")
-    @builds("fn/a", iff=PY35)
-    # The starred version is for internal use (particularly, in the
-    # definition of `defn`). It ensures that a FunctionDef is
-    # produced rather than a Lambda.
-    @checkargs(min=1)
-    def compile_function_def(self, expression):
-        root = expression.pop(0)
+    NASYM = some(lambda x: isinstance(x, HySymbol) and x not in (
+        "&optional", "&rest", "&kwonly", "&kwargs"))
+    @special(["fn", "fn*", (PY35, "fn/a")], [
+        # The starred version is for internal use (particularly, in the
+        # definition of `defn`). It ensures that a FunctionDef is
+        # produced rather than a Lambda.
+        brackets(
+            many(NASYM),
+            maybe(sym("&optional") + many(NASYM | brackets(SYM, FORM))),
+            maybe(sym("&rest") + NASYM),
+            maybe(sym("&kwonly") + many(NASYM | brackets(SYM, FORM))),
+            maybe(sym("&kwargs") + NASYM)),
+        maybe(STR),
+        many(FORM)])
+    def compile_function_def(self, expr, root, params, docstring, body):
+
         force_functiondef = root in ("fn*", "fn/a")
-        asyncdef = root == "fn/a"
+        node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
 
-        arglist = expression.pop(0)
-        docstring = None
-        if len(expression) > 1 and isinstance(expression[0], str_type):
-            docstring = expression.pop(0)
-
-        if not isinstance(arglist, HyList):
-            raise HyTypeError(expression,
-                              "First argument to `{}' must be a list".format(root))
-
-        (ret, args, defaults, stararg,
-         kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)
-
-        # Before Python 3.7, docstrings must come at the start, so ensure that
-        # happens even if we generate anonymous variables.
-        if docstring is not None and not PY37:
-            expression.insert(0, docstring)
-            docstring = None
+        mandatory, optional, rest, kwonly, kwargs = params
+        optional, defaults, ret = self._parse_optional_args(optional)
+        if kwonly is not None and not PY3:
+            raise HyTypeError(params, "&kwonly parameters require Python 3")
+        kwonly, kw_defaults, ret2 = self._parse_optional_args(kwonly, True)
+        ret += ret2
+        main_args = mandatory + optional
 
         if PY3:
             # Python 3.4+ requires that args are an ast.arg object, rather
             # than an ast.Name or bare string.
-            # FIXME: Set annotations properly.
-            # XXX: Beware. Beware. `starargs` and `kwargs` weren't put
-            # into the parse lambda list because they're really just an
-            # internal parsing thing. Let's find a better home for these guys.
-            args, kwonlyargs, [stararg], [kwargs] = (
+            main_args, kwonly, [rest], [kwargs] = (
                 [[x and asty.arg(x, arg=ast_str(x), annotation=None)
                   for x in o]
-                 for o in (args, kwonlyargs, [stararg], [kwargs])])
-
+                 for o in (main_args or [], kwonly or [], [rest], [kwargs])])
         else:
-            args = [asty.Name(x, id=ast_str(x), ctx=ast.Param())
-                    for x in args]
-
-            if PY3:
-                kwonlyargs = [asty.Name(x, arg=ast_str(x), ctx=ast.Param())
-                              for x in kwonlyargs]
-
-            if kwargs:
-                kwargs = ast_str(kwargs)
-
-            if stararg:
-                stararg = ast_str(stararg)
+            main_args = [asty.Name(x, id=ast_str(x), ctx=ast.Param())
+                         for x in main_args]
+            rest = rest and ast_str(rest)
+            kwargs = kwargs and ast_str(kwargs)
 
         args = ast.arguments(
-            args=args,
-            vararg=stararg,
-            kwarg=kwargs,
-            kwonlyargs=kwonlyargs,
-            kw_defaults=kwonlydefaults,
-            defaults=defaults)
+            args=main_args, defaults=defaults,
+            vararg=rest,
+            kwonlyargs=kwonly, kw_defaults=kw_defaults,
+            kwarg=kwargs)
 
-        body = self._compile_branch(expression)
+        if docstring is not None:
+            if not body:
+                # Reinterpret the docstring as the return value of the
+                # function. Thus, (fn [] "hello") returns "hello" and has no
+                # docstring, instead of returning None and having a docstring
+                # "hello".
+                body = [docstring]
+                docstring = None
+            elif not PY37:
+                # The docstring needs to be represented in the AST as a body
+                # statement.
+                body = [docstring] + body
+                docstring = None
+        body = self._compile_branch(body)
+
         if not force_functiondef and not body.stmts and docstring is None:
-            ret += asty.Lambda(expression, args=args, body=body.force_expr)
-            return ret
+            return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
         if body.expr:
             if body.contains_yield and not PY3:
@@ -1782,25 +1700,35 @@ class HyASTCompiler(object):
             else:
                 body += asty.Return(body.expr, value=body.expr)
 
-        if not body.stmts:
-            body += asty.Pass(expression)
-
         name = self.get_anon_var()
 
-        node = asty.AsyncFunctionDef if asyncdef else asty.FunctionDef
-        ret += node(expression,
+        ret += node(expr,
                     name=name,
                     args=args,
-                    body=body.stmts,
+                    body=body.stmts or [asty.Pass(expr)],
                     decorator_list=[],
                     docstring=(None if docstring is None else
                         str_type(docstring)))
 
-        ast_name = asty.Name(expression, id=name, ctx=ast.Load())
-
+        ast_name = asty.Name(expr, id=name, ctx=ast.Load())
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
-
         return ret
+
+    def _parse_optional_args(self, expr, allow_no_default=False):
+        # [a b [c 5] d] → ([a, b, c, d], [None, None, 5, d], <ret>)
+        names, defaults, ret = [], [], Result()
+        for x in expr or []:
+            sym, value = (
+                x if isinstance(x, HyList)
+                else (x, None) if allow_no_default
+                else (x, HySymbol('None').replace(x)))
+            names.append(sym)
+            if value is None:
+                defaults.append(None)
+            else:
+                ret += self.compile(value)
+                defaults.append(ret.force_expr)
+        return names, defaults, ret
 
     @builds("return")
     @checkargs(max=1)
