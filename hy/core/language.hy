@@ -297,16 +297,12 @@ Return series of accumulated sums (or other binary function results)."
 (defn macroexpand [form]
   "Return the full macro expansion of `form`."
   (import hy.macros)
-
-  (setv name (calling-module-name))
-  (hy.macros.macroexpand form (HyASTCompiler name)))
+  (hy.macros.macroexpand form (HyASTCompiler (calling-module-name))))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of `form`."
   (import hy.macros)
-
-  (setv name (calling-module-name))
-  (hy.macros.macroexpand-1 form (HyASTCompiler name)))
+  (hy.macros.macroexpand-1 form (HyASTCompiler (calling-module-name))))
 
 (defn merge-with [f &rest maps]
   "Return the map of `maps` joined onto the first via the function `f`.

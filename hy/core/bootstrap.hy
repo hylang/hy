@@ -41,6 +41,7 @@
                   (if ~@(cut args 2))))))
 
 (defmacro deftag [tag-name lambda-list &rest body]
+  (import hy.models)
   (if (and (not (isinstance tag-name hy.models.HySymbol))
            (not (isinstance tag-name hy.models.HyString)))
       (raise (hy.errors.HyTypeError
