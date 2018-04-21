@@ -921,25 +921,16 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("break")
-    @checkargs(0)
-    def compile_break_expression(self, expr):
-        return asty.Break(expr)
+    @special(["break", "continue"], [])
+    def compile_break_or_continue_expression(self, expr, root):
+        return (asty.Break if root == "break" else asty.Continue)(expr)
 
-    @builds("continue")
-    @checkargs(0)
-    def compile_continue_expression(self, expr):
-        return asty.Continue(expr)
-
-    @builds("assert")
-    @checkargs(min=1, max=2)
-    def compile_assert_expression(self, expr):
-        expr.pop(0)  # assert
-        ret = self.compile(expr.pop(0))
+    @special("assert", [FORM, maybe(FORM)])
+    def compile_assert_expression(self, expr, root, test, msg):
+        ret = self.compile(test)
         e = ret.force_expr
-        msg = None
-        if expr:
-            msg = self.compile(expr.pop(0)).force_expr
+        if msg is not None:
+            msg = self.compile(msg).force_expr
         return ret + asty.Assert(expr, test=e, msg=msg)
 
     @special(["global", (PY3, "nonlocal")], [oneplus(SYM)])
@@ -947,20 +938,17 @@ class HyASTCompiler(object):
         node = asty.Global if root == "global" else asty.Nonlocal
         return node(expr, names=list(map(ast_str, syms)))
 
-    @builds("yield")
-    @checkargs(max=1)
-    def compile_yield_expression(self, expr):
+    @special("yield", [maybe(FORM)])
+    def compile_yield_expression(self, expr, root, arg):
         ret = Result(contains_yield=(not PY3))
-        if len(expr) > 1:
-            ret += self.compile(expr[1])
+        if arg is not None:
+            ret += self.compile(arg)
         return ret + asty.Yield(expr, value=ret.force_expr)
 
-    @builds("yield-from", iff=PY3)
-    @builds("await", iff=PY35)
-    @checkargs(1)
-    def compile_yield_from_or_await_expression(self, expr):
-        ret = Result() + self.compile(expr[1])
-        node = asty.YieldFrom if expr[0] == "yield-from" else asty.Await
+    @special([(PY3, "yield-from"), (PY35, "await")], [FORM])
+    def compile_yield_from_or_await_expression(self, expr, root, arg):
+        ret = Result() + self.compile(arg)
+        node = asty.YieldFrom if root == "yield-from" else asty.Await
         return ret + node(expr, value=ret.force_expr)
 
     @special("get", [FORM, oneplus(FORM)])
@@ -1077,9 +1065,9 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds(",")
-    def compile_tuple(self, expr):
-        elts, ret, _ = self._compile_collect(expr[1:])
+    @special(",", [many(FORM)])
+    def compile_tuple(self, expr, root, args):
+        elts, ret, _ = self._compile_collect(args)
         return ret + asty.Tuple(expr, elts=elts, ctx=ast.Load())
 
     def _compile_generator_iterables(self, trailers):
@@ -1343,33 +1331,15 @@ class HyASTCompiler(object):
 
         return ret
 
-    @builds("+=", "/=", "//=", "*=", "-=", "%=", "**=", "<<=", ">>=", "|=",
-            "^=", "&=")
-    @builds("@=", iff=PY35)
-    @checkargs(2)
-    def compile_augassign_expression(self, expression):
-        ops = {"+=": ast.Add,
-               "/=": ast.Div,
-               "//=": ast.FloorDiv,
-               "*=": ast.Mult,
-               "-=": ast.Sub,
-               "%=": ast.Mod,
-               "**=": ast.Pow,
-               "<<=": ast.LShift,
-               ">>=": ast.RShift,
-               "|=": ast.BitOr,
-               "^=": ast.BitXor,
-               "&=": ast.BitAnd}
-        if PY35:
-            ops.update({"@=": ast.MatMult})
+    a_ops = {x + "=": v for x, v in m_ops.items()}
 
-        op = ops[expression[0]]
-
-        target = self._storeize(expression[1], self.compile(expression[1]))
-        ret = self.compile(expression[2])
-
+    @special(list(a_ops.keys()), [FORM, FORM])
+    def compile_augassign_expression(self, expr, root, target, value):
+        op = self.a_ops[unmangle(ast_str(root))]
+        target = self._storeize(target, self.compile(target))
+        ret = self.compile(value)
         return ret + asty.AugAssign(
-            expression, target=target, value=ret.force_expr, op=op())
+            expr, target=target, value=ret.force_expr, op=op())
 
     @checkargs(1)
     def _compile_keyword_call(self, expression):
@@ -1668,14 +1638,12 @@ class HyASTCompiler(object):
                 defaults.append(ret.force_expr)
         return names, defaults, ret
 
-    @builds("return")
-    @checkargs(max=1)
-    def compile_return(self, expr):
+    @special("return", [maybe(FORM)])
+    def compile_return(self, expr, root, arg):
         ret = Result()
-        if len(expr) == 1:
+        if arg is None:
             return asty.Return(expr, value=None)
-
-        ret += self.compile(expr[1])
+        ret += self.compile(arg)
         return ret + asty.Return(expr, value=ret.force_expr)
 
     @special("defclass", [
@@ -1733,29 +1701,21 @@ class HyASTCompiler(object):
             new_args.extend([k, v])
         return HyExpression([HySymbol("setv")] + new_args).replace(expr)
 
-    @builds("dispatch-tag-macro")
-    @checkargs(exact=2)
-    def compile_dispatch_tag_macro(self, expression):
-        expression.pop(0)  # dispatch-tag-macro
-        tag = expression.pop(0)
-        if not type(tag) == HyString:
-            raise HyTypeError(
-                tag,
-                "Trying to expand a tag macro using `{0}' instead "
-                "of string".format(type(tag).__name__),
-            )
-        tag = HyString(mangle(tag)).replace(tag)
-        expr = tag_macroexpand(tag, expression.pop(0), self)
-        return self.compile(expr)
+    @special("dispatch-tag-macro", [STR, FORM])
+    def compile_dispatch_tag_macro(self, expr, root, tag, arg):
+        return self.compile(tag_macroexpand(
+            HyString(mangle(tag)).replace(tag),
+            arg,
+            self))
 
-    @builds("eval-and-compile", "eval-when-compile")
-    def compile_eval_and_compile(self, expression, building):
-        expression[0] = HySymbol("do")
-        hy.importer.hy_eval(expression,
+    @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
+    def compile_eval_and_compile(self, expr, root, body):
+        new_expr = HyExpression([HySymbol("do").replace(root)]).replace(expr)
+        hy.importer.hy_eval(new_expr + body,
                             compile_time_ns(self.module_name),
                             self.module_name)
-        return (self._compile_branch(expression[1:])
-                if building == "eval_and_compile"
+        return (self._compile_branch(body)
+                if ast_str(root) == "eval_and_compile"
                 else Result())
 
     @builds(HyInteger, HyFloat, HyComplex)
