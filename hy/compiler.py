@@ -1108,21 +1108,18 @@ class HyASTCompiler(object):
 
         return gen_res + cond, gen
 
-    @builds("list-comp", "set-comp", "genexpr")
-    @checkargs(min=2, max=3)
-    def compile_comprehension(self, expr):
-        # (list-comp expr (target iter) cond?)
-        form = expr.pop(0)
-        expression = expr.pop(0)
-        gen_gen = expr[0]
+    @special(["list-comp", "set-comp", "genexpr"], [FORM, FORM, maybe(FORM)])
+    def compile_comprehension(self, expr, form, expression, gen, cond):
+        # (list-comp expr [target iter] cond?)
 
-        if not isinstance(gen_gen, HyList):
-            raise HyTypeError(gen_gen, "Generator expression must be a list.")
+        if not isinstance(gen, HyList):
+            raise HyTypeError(gen, "Generator expression must be a list.")
 
-        gen_res, gen = self._compile_generator_iterables(expr)
+        gen_res, gen = self._compile_generator_iterables(
+            [gen] + ([] if cond is None else [cond]))
 
         if len(gen) == 0:
-            raise HyTypeError(gen_gen, "Generator expression cannot be empty.")
+            raise HyTypeError(expr, "Generator expression cannot be empty.")
 
         ret = self.compile(expression)
         node_class = (
@@ -1132,14 +1129,13 @@ class HyASTCompiler(object):
         return ret + gen_res + node_class(
             expr, elt=ret.force_expr, generators=gen)
 
-    @builds("dict-comp")
-    @checkargs(min=3, max=4)
-    def compile_dict_comprehension(self, expr):
-        expr.pop(0)  # dict-comp
-        key = self.compile(expr.pop(0))
-        value = self.compile(expr.pop(0))
+    @special("dict-comp", [FORM, FORM, FORM, maybe(FORM)])
+    def compile_dict_comprehension(self, expr, root, key, value, gen, cond):
+        key = self.compile(key)
+        value = self.compile(value)
 
-        gen_res, gen = self._compile_generator_iterables(expr)
+        gen_res, gen = self._compile_generator_iterables(
+            [gen] + ([] if cond is None else [cond]))
 
         return key + value + gen_res + asty.DictComp(
             expr,
