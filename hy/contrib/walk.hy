@@ -166,7 +166,7 @@ Arguments without a header are under None.
     (for [[header section] (-> self (.tail) first lambda-list .items)]
       (if header (.append argslist header))
       (cond [(in header [None '&rest '&kwargs])
-             (.update protected (-> section flatten set))
+             (.update protected section)
              (.extend argslist section)]
             [(in header '[&optional &kwonly])
              (for [pair section]
