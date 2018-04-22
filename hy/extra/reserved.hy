@@ -18,6 +18,6 @@
       hy.core.shadow.EXPORTS
       (list (.keys (get hy.macros._hy_macros None)))
       keyword.kwlist
-      (list-comp k [k (.keys hy.compiler.-compile-table)]
-        (isinstance k hy._compat.string-types))))))))
+      (list (.keys hy.compiler._special_form_compilers))
+      (list hy.compiler._bad_roots)))))))
   _cache)

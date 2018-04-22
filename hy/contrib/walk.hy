@@ -72,9 +72,7 @@
 
 ;; TODO: move to hy.extra.reserved?
 (import hy)
-(setv special-forms (list-comp k
-                               [k (.keys hy.compiler._compile-table)]
-                               (isinstance k hy._compat.string-types)))
+(setv special-forms (list (.keys hy.compiler._special-form-compilers)))
 
 
 (defn lambda-list [form]

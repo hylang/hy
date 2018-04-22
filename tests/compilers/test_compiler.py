@@ -55,7 +55,7 @@ def test_compiler_yield_return():
                         HyExpression([HySymbol("+"),
                                       HyInteger(1),
                                       HyInteger(1)]))
-    ret = compiler.HyASTCompiler('test').compile_atom("fn", e)
+    ret = compiler.HyASTCompiler('test').compile_atom(e)
 
     assert len(ret.stmts) == 1
     stmt, = ret.stmts
