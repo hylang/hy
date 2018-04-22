@@ -1341,91 +1341,6 @@ class HyASTCompiler(object):
         return ret + asty.AugAssign(
             expr, target=target, value=ret.force_expr, op=op())
 
-    @checkargs(1)
-    def _compile_keyword_call(self, expression):
-        expression.append(expression.pop(0))
-        expression.insert(0, HySymbol("get"))
-        return self.compile(expression)
-
-    @builds(HyExpression)
-    def compile_expression(self, expression):
-        # Perform macro expansions
-        expression = macroexpand(expression, self)
-        if not isinstance(expression, HyExpression):
-            # Go through compile again if the type changed.
-            return self.compile(expression)
-
-        if expression == []:
-            return self.compile_list(expression, HyList)
-
-        fn = expression[0]
-        func = None
-        if isinstance(fn, HyKeyword):
-            return self._compile_keyword_call(expression)
-
-        if isinstance(fn, HySymbol):
-            # First check if `fn` is a special form, unless it has an
-            # `unpack-iterable` in it, since Python's operators (`+`,
-            # etc.) can't unpack. An exception to this exception is that
-            # tuple literals (`,`) can unpack.
-            if fn == "," or not (
-                    any(is_unpack("iterable", x) for x in expression[1:])):
-                ret = self.compile_atom(fn, expression)
-                if ret:
-                    return ret
-
-            if fn.startswith("."):
-                # (.split "test test") -> "test test".split()
-                # (.a.b.c x) -> (.c (. x a b)) ->  x.a.b.c()
-
-                # Get the method name (the last named attribute
-                # in the chain of attributes)
-                attrs = [HySymbol(a).replace(fn) for a in fn.split(".")[1:]]
-                fn = attrs.pop()
-
-                # Get the object we're calling the method on
-                # (extracted with the attribute access DSL)
-                i = 1
-                if len(expression) != 2:
-                    # If the expression has only one object,
-                    # always use that as the callee.
-                    # Otherwise, hunt for the first thing that
-                    # isn't a keyword argument or its value.
-                    while i < len(expression):
-                        if isinstance(expression[i], HyKeyword):
-                            # Skip the keyword argument and its value.
-                            i += 1
-                        else:
-                            # Use expression[i].
-                            break
-                        i += 1
-                    else:
-                        raise HyTypeError(expression,
-                                          "attribute access requires object")
-                func = self.compile(HyExpression(
-                    [HySymbol(".").replace(fn), expression.pop(i)] +
-                    attrs))
-
-                # And get the method
-                func += asty.Attribute(fn,
-                                       value=func.force_expr,
-                                       attr=ast_str(fn),
-                                       ctx=ast.Load())
-
-        if not func:
-            func = self.compile(fn)
-
-        # An exception for pulling together keyword args is if we're doing
-        # a typecheck, eg (type :foo)
-        with_kwargs = fn not in (
-            "type", "HyKeyword", "keyword", "name", "keyword?", "identity")
-        args, ret, keywords, oldpy_star, oldpy_kw = self._compile_collect(
-            expression[1:], with_kwargs, oldpy_unpack=True)
-
-        return func + ret + asty.Call(
-            expression, func=func.expr, args=args, keywords=keywords,
-            starargs=oldpy_star, kwargs=oldpy_kw)
-
     @special("setv", [many(FORM + FORM)])
     def compile_def_expression(self, expr, root, pairs):
         if len(pairs) == 0:
@@ -1717,6 +1632,91 @@ class HyASTCompiler(object):
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
                 else Result())
+
+    @checkargs(1)
+    def _compile_keyword_call(self, expression):
+        expression.append(expression.pop(0))
+        expression.insert(0, HySymbol("get"))
+        return self.compile(expression)
+
+    @builds(HyExpression)
+    def compile_expression(self, expression):
+        # Perform macro expansions
+        expression = macroexpand(expression, self)
+        if not isinstance(expression, HyExpression):
+            # Go through compile again if the type changed.
+            return self.compile(expression)
+
+        if expression == []:
+            return self.compile_list(expression, HyList)
+
+        fn = expression[0]
+        func = None
+        if isinstance(fn, HyKeyword):
+            return self._compile_keyword_call(expression)
+
+        if isinstance(fn, HySymbol):
+            # First check if `fn` is a special form, unless it has an
+            # `unpack-iterable` in it, since Python's operators (`+`,
+            # etc.) can't unpack. An exception to this exception is that
+            # tuple literals (`,`) can unpack.
+            if fn == "," or not (
+                    any(is_unpack("iterable", x) for x in expression[1:])):
+                ret = self.compile_atom(fn, expression)
+                if ret:
+                    return ret
+
+            if fn.startswith("."):
+                # (.split "test test") -> "test test".split()
+                # (.a.b.c x) -> (.c (. x a b)) ->  x.a.b.c()
+
+                # Get the method name (the last named attribute
+                # in the chain of attributes)
+                attrs = [HySymbol(a).replace(fn) for a in fn.split(".")[1:]]
+                fn = attrs.pop()
+
+                # Get the object we're calling the method on
+                # (extracted with the attribute access DSL)
+                i = 1
+                if len(expression) != 2:
+                    # If the expression has only one object,
+                    # always use that as the callee.
+                    # Otherwise, hunt for the first thing that
+                    # isn't a keyword argument or its value.
+                    while i < len(expression):
+                        if isinstance(expression[i], HyKeyword):
+                            # Skip the keyword argument and its value.
+                            i += 1
+                        else:
+                            # Use expression[i].
+                            break
+                        i += 1
+                    else:
+                        raise HyTypeError(expression,
+                                          "attribute access requires object")
+                func = self.compile(HyExpression(
+                    [HySymbol(".").replace(fn), expression.pop(i)] +
+                    attrs))
+
+                # And get the method
+                func += asty.Attribute(fn,
+                                       value=func.force_expr,
+                                       attr=ast_str(fn),
+                                       ctx=ast.Load())
+
+        if not func:
+            func = self.compile(fn)
+
+        # An exception for pulling together keyword args is if we're doing
+        # a typecheck, eg (type :foo)
+        with_kwargs = fn not in (
+            "type", "HyKeyword", "keyword", "name", "keyword?", "identity")
+        args, ret, keywords, oldpy_star, oldpy_kw = self._compile_collect(
+            expression[1:], with_kwargs, oldpy_unpack=True)
+
+        return func + ret + asty.Call(
+            expression, func=func.expr, args=args, keywords=keywords,
+            starargs=oldpy_star, kwargs=oldpy_kw)
 
     @builds(HyInteger, HyFloat, HyComplex)
     def compile_numeric_literal(self, x, building):
