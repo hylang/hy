@@ -1518,7 +1518,10 @@
 
 (defn test-keyword-dict-access []
   "NATIVE: test keyword dict access"
-  (assert (= "test" (:foo {:foo "test"}))))
+  (assert (= "test" (:foo {:foo "test"})))
+  (with [(pytest.raises KeyError)] (:foo {:a 1 :b 2}))
+  (with [(pytest.raises TypeError)] (:foo "Hello World"))
+  (with [(pytest.raises TypeError)] (:foo (object))))
 
 
 (defn test-break-breaking []

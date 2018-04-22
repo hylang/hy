@@ -1673,12 +1673,6 @@ class HyASTCompiler(object):
         return ret + asty.AugAssign(
             expression, target=target, value=ret.force_expr, op=op())
 
-    @checkargs(1)
-    def _compile_keyword_call(self, expression):
-        expression.append(expression.pop(0))
-        expression.insert(0, HySymbol("get"))
-        return self.compile(expression)
-
     @builds(HyExpression)
     def compile_expression(self, expression):
         # Perform macro expansions
@@ -1692,8 +1686,6 @@ class HyASTCompiler(object):
 
         fn = expression[0]
         func = None
-        if isinstance(fn, HyKeyword):
-            return self._compile_keyword_call(expression)
 
         if isinstance(fn, HySymbol):
             # First check if `fn` is a special form, unless it has an

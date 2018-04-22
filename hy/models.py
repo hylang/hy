@@ -151,6 +151,9 @@ class HyKeyword(HyObject):
     def __bool__(self):
         return bool(self.name)
 
+    def __call__(self, data):
+        return data[self]
+
 
 def strip_digit_separators(number):
     # Don't strip a _ or , if it's the first character, as _42 and
