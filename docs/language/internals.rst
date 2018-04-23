@@ -119,13 +119,12 @@ the following order:
 HyString
 ~~~~~~~~
 
-``hy.models.HyString`` is the base class of string-equivalent Hy
-models. It also represents string literals (including bracket strings), which
-compile down to unicode string literals in Python. ``HyStrings`` inherit
-unicode objects in Python 2, and string objects in Python 3 (and are
-therefore not encoding-dependent).
+``hy.models.HyString`` represents string literals (including bracket strings),
+which compile down to unicode string literals in Python. ``HyStrings`` inherit
+unicode objects in Python 2, and string objects in Python 3 (and are therefore
+not encoding-dependent).
 
-``HyString`` based models are immutable.
+``HyString``\s are immutable.
 
 Hy literal strings can span multiple lines, and are considered by the
 parser as a single unit, respecting the Python escapes for unicode
@@ -163,8 +162,9 @@ valid numeric python literals will be turned into their Hy counterpart.
 HySymbol
 ~~~~~~~~
 
-``hy.models.HySymbol`` is the model used to represent symbols
-in the Hy language. It inherits :ref:`HyString`.
+``hy.models.HySymbol`` is the model used to represent symbols in the Hy
+language. Like ``HyString``, it inherits from ``str`` (or ``unicode`` on Python
+2).
 
 Symbols are :ref:`mangled <mangling>` when they are compiled
 to Python variable names.

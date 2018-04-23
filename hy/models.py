@@ -109,13 +109,13 @@ class HyBytes(HyObject, bytes_type):
 _wrappers[bytes_type] = HyBytes
 
 
-class HySymbol(HyString):
+class HySymbol(HyObject, str_type):
     """
-    Hy Symbol. Basically a String.
+    Hy Symbol. Basically a string.
     """
 
-    def __init__(self, string):
-        self += string
+    def __new__(cls, s=None):
+        return super(HySymbol, cls).__new__(cls, s)
 
 _wrappers[bool] = lambda x: HySymbol("True") if x else HySymbol("False")
 _wrappers[type(None)] = lambda foo: HySymbol("None")
