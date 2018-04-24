@@ -423,7 +423,7 @@ class HyASTCompiler(object):
             # pass in `atom_type`.
             atom_compiler = _compile_table[atom_type]
             arity = hy.inspect.get_arity(atom_compiler)
-            # Compliation methods may mutate the atom, so copy it first.
+            # Compilation methods may mutate the atom, so copy it first.
             atom = copy.copy(atom)
             ret = (atom_compiler(self, atom, atom_type)
                    if arity == 3
