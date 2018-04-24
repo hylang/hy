@@ -910,7 +910,9 @@ class HyASTCompiler(object):
     def _compile_catch_expression(self, expr, var):
         catch = expr.pop(0)  # catch
 
-        exceptions = expr.pop(0) if expr else HyList()
+        if not expr:
+            raise HyTypeError(expr, "`%s' missing exceptions list" % catch)
+        exceptions = expr.pop(0)
 
         # exceptions catch should be either:
         # [[list of exceptions]]

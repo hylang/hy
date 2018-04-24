@@ -23,6 +23,7 @@ Other Breaking Changes
 * `hy-repr` uses registered functions instead of methods
 * `HyKeyword` no longer inherits from the string type and has been
   made into its own object type.
+* `(except)` is no longer allowed. Use `(except [])` instead.
 
 New Features
 ------------------------------

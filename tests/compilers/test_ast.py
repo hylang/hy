@@ -125,11 +125,11 @@ def test_ast_bad_raise():
 
 def test_ast_good_try():
     "Make sure AST can compile valid try"
-    can_compile("(try 1 (except) (else 1))")
+    can_compile("(try 1 (except []) (else 1))")
     can_compile("(try 1 (finally 1))")
-    can_compile("(try 1 (except) (finally 1))")
+    can_compile("(try 1 (except []) (finally 1))")
     can_compile("(try 1 (except [x]) (except [y]) (finally 1))")
-    can_compile("(try 1 (except) (else 1) (finally 1))")
+    can_compile("(try 1 (except []) (else 1) (finally 1))")
     can_compile("(try 1 (except [x]) (except [y]) (else 1) (finally 1))")
 
 
@@ -142,14 +142,13 @@ def test_ast_bad_try():
     cant_compile("(try (do bla bla))")
     cant_compile("(try (do) (else 1) (else 2))")
     cant_compile("(try 1 (else 1))")
-    cant_compile("(try 1 (else 1) (except))")
-    cant_compile("(try 1 (finally 1) (except))")
-    cant_compile("(try 1 (except) (finally 1) (else 1))")
+    cant_compile("(try 1 (else 1) (except []))")
+    cant_compile("(try 1 (finally 1) (except []))")
+    cant_compile("(try 1 (except []) (finally 1) (else 1))")
 
 
 def test_ast_good_except():
     "Make sure AST can compile valid except"
-    can_compile("(try 1 (except))")
     can_compile("(try 1 (except []))")
     can_compile("(try 1 (except [Foobar]))")
     can_compile("(try 1 (except [[]]))")
@@ -161,8 +160,10 @@ def test_ast_good_except():
 def test_ast_bad_except():
     "Make sure AST can't compile invalid except"
     cant_compile("(except 1)")
+    cant_compile("(try 1 (except))")
     cant_compile("(try 1 (except 1))")
     cant_compile("(try 1 (except [1 3]))")
+    cant_compile("(try 1 (except [(f) [IOError ValueError]]))")
     cant_compile("(try 1 (except [x [FooBar] BarBar]))")
 
 
