@@ -8,6 +8,7 @@ Removals
 * Dotted lists, `HyCons`, `cons`, `cons?`, and `list*` have been removed.
   These were redundant with Python's built-in data structures and Hy's most
   common model types (`HyExpression`, `HyList`, etc.).
+* `&key` is no longer special in lambda lists. Use `&optional` instead.
 
 Other Breaking Changes
 ------------------------------

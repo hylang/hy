@@ -529,7 +529,7 @@ class HyASTCompiler(object):
 
     def _parse_lambda_list(self, exprs):
         """ Return FunctionDef parameter values from lambda list."""
-        ll_keywords = ("&rest", "&optional", "&key", "&kwonly", "&kwargs")
+        ll_keywords = ("&rest", "&optional", "&kwonly", "&kwargs")
         ret = Result()
         args = []
         defaults = []
@@ -542,13 +542,7 @@ class HyASTCompiler(object):
         for expr in exprs:
 
             if expr in ll_keywords:
-                if expr == "&optional":
-                    if len(defaults) > 0:
-                        raise HyTypeError(expr,
-                                          "There can only be &optional "
-                                          "arguments or one &key argument")
-                    lambda_keyword = expr
-                elif expr in ("&rest", "&key", "&kwonly", "&kwargs"):
+                if expr in ("&optional", "&rest", "&kwonly", "&kwargs"):
                     lambda_keyword = expr
                 else:
                     raise HyTypeError(expr,
@@ -566,27 +560,6 @@ class HyASTCompiler(object):
                                       "There can only be one "
                                       "&rest argument")
                 varargs = expr
-            elif lambda_keyword == "&key":
-                if type(expr) != HyDict:
-                    raise HyTypeError(expr,
-                                      "There can only be one &key "
-                                      "argument")
-                else:
-                    if len(defaults) > 0:
-                        raise HyTypeError(expr,
-                                          "There can only be &optional "
-                                          "arguments or one &key argument")
-                    # As you can see, Python has a funny way of
-                    # defining keyword arguments.
-                    it = iter(expr)
-                    for k, v in zip(it, it):
-                        if not isinstance(k, HyString):
-                            raise HyTypeError(expr,
-                                              "Only strings can be used "
-                                              "as parameter names")
-                        args.append(k)
-                        ret += self.compile(v)
-                        defaults.append(ret.force_expr)
             elif lambda_keyword == "&optional":
                 if isinstance(expr, HyList):
                     if not len(expr) == 2:

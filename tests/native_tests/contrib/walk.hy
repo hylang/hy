@@ -295,19 +295,6 @@
        (assert (= (foo 10 20 30)
                   (, 10 20 30)))))
 
-(defn test-let-key []
-  (let [a 1
-        b 6
-        d 2]
-       (defn foo [&key {a a b None c d}]
-         (, a b c))
-       (assert (= (foo)
-                  (, 1 None 2)))
-       (assert (= (foo 10 20 30)
-                  (, 10 20 30)))
-       (assert (= (, a b d)
-                  (, 1 6 2)))))
-
 (defn test-let-closure []
   (let [count 0]
        (defn +count [&optional [x 1]]
