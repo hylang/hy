@@ -12,6 +12,10 @@ Removals
 
 Other Breaking Changes
 ------------------------------
+* `HyExpression`, `HyDict`, and `HySet` no longer inherit from `HyList`.
+  This means you can no longer use alternative punctuation in place of
+  square brackets in special forms (e.g. `(fn (x) ...)` instead of
+  the standard `(fn [x] ...)`).
 * Mangling rules have been overhauled, such that mangled names
   are always legal Python identifiers
 * `_` and `-` are now equivalent even as single-character names

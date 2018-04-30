@@ -233,9 +233,9 @@ class HyComplex(HyObject, complex):
 _wrappers[complex] = HyComplex
 
 
-class HyList(HyObject, list):
+class HySequence(HyObject, list):
     """
-    Hy List. Basically just a list.
+    An abstract type for sequence-like models to inherit from.
     """
 
     def replace(self, other):
@@ -246,23 +246,23 @@ class HyList(HyObject, list):
         return self
 
     def __add__(self, other):
-        return self.__class__(super(HyList, self).__add__(other))
+        return self.__class__(super(HySequence, self).__add__(other))
 
     def __getslice__(self, start, end):
-        return self.__class__(super(HyList, self).__getslice__(start, end))
+        return self.__class__(super(HySequence, self).__getslice__(start, end))
 
     def __getitem__(self, item):
-        ret = super(HyList, self).__getitem__(item)
+        ret = super(HySequence, self).__getitem__(item)
 
         if isinstance(item, slice):
             return self.__class__(ret)
 
         return ret
 
-    color = staticmethod(colored.cyan)
+    color = None
 
     def __repr__(self):
-        return str(self) if PRETTY else super(HyList, self).__repr__()
+        return str(self) if PRETTY else super(HySequence, self).__repr__()
 
     def __str__(self):
         with pretty():
@@ -276,11 +276,15 @@ class HyList(HyObject, list):
             else:
                 return '' + c(self.__class__.__name__ + "()")
 
+
+class HyList(HySequence):
+    color = staticmethod(colored.cyan)
+
 _wrappers[list] = lambda l: HyList(wrap_value(x) for x in l)
 _wrappers[tuple] = lambda t: HyList(wrap_value(x) for x in t)
 
 
-class HyDict(HyList):
+class HyDict(HySequence):
     """
     HyDict (just a representation of a dict)
     """
@@ -316,7 +320,7 @@ class HyDict(HyList):
 _wrappers[dict] = lambda d: HyDict(wrap_value(x) for x in sum(d.items(), ()))
 
 
-class HyExpression(HyList):
+class HyExpression(HySequence):
     """
     Hy S-Expression. Basically just a list.
     """
@@ -327,7 +331,7 @@ _wrappers[Fraction] = lambda e: HyExpression(
     [HySymbol("fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
 
 
-class HySet(HyList):
+class HySet(HySequence):
     """
     Hy set (just a representation of a set)
     """

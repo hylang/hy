@@ -5,7 +5,7 @@
 
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
-                       HyDict, wrap_value)
+                       HyDict, HySequence, wrap_value)
 from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex.parser import mangle
@@ -670,7 +670,7 @@ class HyASTCompiler(object):
         name = form.__class__.__name__
         imports = set([name])
 
-        if isinstance(form, (HyList, HyDict, HySet)):
+        if isinstance(form, HySequence):
             if not form:
                 contents = HyList()
             else:
