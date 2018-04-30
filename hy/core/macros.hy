@@ -110,15 +110,11 @@ used as the result."
 
 (defn _for [node args body]
   (setv body (list body))
-  (if (empty? body)
-    (macro-error None "`for' requires a body to evaluate"))
-  (setv lst (get body -1))
-  (setv belse (if (and (isinstance lst HyExpression) (= (get lst 0) "else"))
+  (setv belse (if (and body (isinstance (get body -1) HyExpression) (= (get body -1 0) "else"))
                 [(body.pop)]
                 []))
   (if
     (odd? (len args)) (macro-error args "`for' requires an even number of args.")
-    (empty? body)     (macro-error None "`for' requires a body to evaluate")
     (empty? args)     `(do ~@body ~@belse)
     (= (len args) 2)  `(~node [~@args] (do ~@body) ~@belse)
     (do

@@ -97,7 +97,6 @@ def test_ast_invalid_unary_op():
 def test_ast_bad_while():
     "Make sure AST can't compile invalid while"
     cant_compile("(while)")
-    cant_compile("(while (True))")
 
 
 def test_ast_good_do():
@@ -534,14 +533,6 @@ def test_for_compile_error():
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (for [x] x))")
     assert excinfo.value.message == "`for' requires an even number of args."
-
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x xx]))")
-    assert excinfo.value.message == "`for' requires a body to evaluate"
-
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x xx] (else 1)))")
-    assert excinfo.value.message == "`for' requires a body to evaluate"
 
 
 def test_attribute_access():

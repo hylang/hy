@@ -232,7 +232,15 @@
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
              (list-comp y [x [[1] [2 3]] y x])))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
-             (list-comp z [x [[1] [2 3]] y x z (range 5)]))))
+             (list-comp z [x [[1] [2 3]] y x z (range 5)])))
+
+  (setv l [])
+  (defn f []
+    (for [x [4 9 2]]
+      (.append l (* 10 x))
+      (yield x)))
+  (for [_ (f)])
+  (assert (= l [40 90 20])))
 
 
 (defn test-nasty-for-nesting []
@@ -283,7 +291,21 @@
     (setv fact (* fact count))
     (setv count (- count 1)))
   (assert (= count 0))
-  (assert (= fact 120)))
+  (assert (= fact 120))
+
+  (setv l [])
+  (defn f []
+    (.append l 1)
+    (len l))
+  (while (!= (f) 4))
+  (assert (= l [1 1 1 1]))
+
+  (setv l [])
+  (defn f []
+    (.append l 1)
+    (len l))
+  (while (!= (f) 4) (do))
+  (assert (= l [1 1 1 1])))
 
 (defn test-while-loop-else []
   (setv count 5)

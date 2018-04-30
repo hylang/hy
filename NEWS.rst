@@ -39,6 +39,7 @@ New Features
 * `defclass` in Python 3 now supports specifying metaclasses and other
   keyword arguments
 * Added a command-line option `-E` per CPython
+* `while` and `for` are allowed to have empty bodies
 
 Bug Fixes
 ------------------------------
