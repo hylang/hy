@@ -50,6 +50,7 @@ Bug Fixes
 * Fixed bugs that caused `defclass` to drop statements or crash
 * Fixed a REPL crash caused by illegle unicode escape string inputs
 * `NaN` can no longer create an infinite loop during macro-expansion
+* Fixed a bug that caused `try` to drop expressions
 
 Misc. Improvements
 ----------------------------

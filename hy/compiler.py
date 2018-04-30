@@ -790,13 +790,14 @@ class HyASTCompiler(object):
         expr.pop(0)  # try
 
         # (try something somethingelse…)
-        body = Result()
+        body = []
         # Check against HyExpression and HySymbol to avoid incorrectly
         # matching [except ...] or ("except" ...)
         while expr and not (isinstance(expr[0], HyExpression)
                             and isinstance(expr[0][0], HySymbol)
                             and expr[0][0] in ("except", "else", "finally")):
-            body += self.compile(expr.pop(0))
+            body.append(expr.pop(0))
+        body = self._compile_branch(body)
 
         var = self.get_anon_var()
         name = asty.Name(expr, id=ast_str(var), ctx=ast.Store())
@@ -805,8 +806,6 @@ class HyASTCompiler(object):
         returnable = Result(expr=expr_name, temp_variables=[expr_name, name],
                             contains_yield=body.contains_yield)
 
-        if not all(expr):
-            raise HyTypeError(expr, "Empty list not allowed in `try'")
         handler_results = Result()
         handlers = []
         while expr and expr[0][0] == HySymbol("except"):
@@ -846,7 +845,6 @@ class HyASTCompiler(object):
 
         body += body.expr_as_stmt() if orelse else asty.Assign(
             expr, targets=[name], value=body.force_expr)
-
         body = body.stmts or [asty.Pass(expr)]
 
         if PY3:
