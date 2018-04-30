@@ -584,17 +584,26 @@
   (do))
 
 
-(defn test-exceptions []
-  "NATIVE: test Exceptions"
+(defn test-try []
 
   (try (do) (except []))
 
   (try (do) (except [IOError]) (except []))
 
-  ; test that multiple expressions in a try get evaluated
+  ; test that multiple statements in a try get evaluated
   (setv value 0)
   (try (+= value 1) (+= value 2)  (except [IOError]) (except []))
   (assert (= value 3))
+
+  ; test that multiple expressions in a try get evaluated
+  ; https://github.com/hylang/hy/issues/1584
+  (setv l [])
+  (defn f [] (.append l 1))
+  (try (f) (f) (f) (except [IOError]))
+  (assert (= l [1 1 1]))
+  (setv l [])
+  (try (f) (f) (f) (except [IOError]) (else (f)))
+  (assert (= l [1 1 1 1]))
 
   ;; Test correct (raise)
   (setv passed False)
