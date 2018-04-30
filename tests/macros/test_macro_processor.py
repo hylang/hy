@@ -44,15 +44,12 @@ def test_preprocessor_expression():
     assert obj == macroexpand(obj, HyASTCompiler(""))
 
 
-@pytest.mark.xfail
 def test_preprocessor_exceptions():
     """ Test that macro expansion raises appropriate exceptions"""
-    try:
+    with pytest.raises(HyMacroExpansionError) as excinfo:
         macroexpand(tokenize('(defn)')[0], HyASTCompiler(__name__))
-        assert False
-    except HyMacroExpansionError as e:
-        assert "_hy_anon_fn_" not in str(e)
-        assert "TypeError" not in str(e)
+    assert "_hy_anon_fn_" not in excinfo.value.message
+    assert "TypeError" not in excinfo.value.message
 
 
 def test_macroexpand_nan():
