@@ -227,7 +227,12 @@
   (setv foo (fn [])
         foo.a 42)
   (let [a 1
-        b []]
+        b []
+        bar (fn [])]
+       (setv bar.a 13)
+       (assert (= bar.a 13))
+       (setv (. bar a) 14)
+       (assert (= bar.a 14))
        (assert (= a 1))
        (assert (= b []))
        ;; method syntax not affected
