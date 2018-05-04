@@ -1761,11 +1761,6 @@ macros()
    (= (identify-keywords 1 "bloo" :foo)
       ["other" "other" "keyword"])))
 
-(defn test-argument-destr []
-  "Make sure argument destructuring works"
-  (defn f [[a b] [c]] (, a b c))
-  (assert (= (f [1 2] [3]) (, 1 2 3))))
-
 #@(pytest.mark.xfail
 (defn test-assert-multistatements []
   ; https://github.com/hylang/hy/issues/1390
@@ -1789,21 +1784,11 @@ macros()
   (defn f [] "docstring" 5)
   (assert (= (. f __doc__) "docstring"))
 
-  ; destructuring and the implicit variables it creates
-  ; shouldn't interfere with docstrings
-  ; (https://github.com/hylang/hy/issues/1409)
-  (defn f2 [[a b]] "docstring" 5)
-  (assert (= (. f2 __doc__) "docstring"))
-
   ; a single string is the return value, not a docstring
   ; (https://github.com/hylang/hy/issues/1402)
   (defn f3 [] "not a docstring")
   (assert (none? (. f3 __doc__)))
-  (assert (= (f3) "not a docstring"))
-
-  (defn f4 [[a b]] "not a docstring")
-  (assert (none? (. f4 __doc__)))
-  (assert (= (f4 [1 2]) "not a docstring")))
+  (assert (= (f3) "not a docstring")))
 
 (defn test-module-docstring []
   (import [tests.resources.module-docstring-example :as m])

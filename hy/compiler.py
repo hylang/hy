@@ -553,6 +553,8 @@ class HyASTCompiler(object):
                 continue
 
             if lambda_keyword is None:
+                if not isinstance(expr, HySymbol):
+                    raise HyTypeError(expr, "Parameters must be symbols")
                 args.append(expr)
             elif lambda_keyword == "&rest":
                 if varargs:
@@ -1893,19 +1895,6 @@ class HyASTCompiler(object):
 
         (ret, args, defaults, stararg,
          kwonlyargs, kwonlydefaults, kwargs) = self._parse_lambda_list(arglist)
-        for i, arg in enumerate(args):
-            if isinstance(arg, HyList):
-                # Destructuring argument
-                if not arg:
-                    raise HyTypeError(arglist,
-                                      "Cannot destruct empty list")
-                args[i] = var = HySymbol(self.get_anon_var())
-                expression = HyExpression([
-                    HyExpression([
-                        HySymbol("setv"), arg, var
-                    ])]
-                ) + expression
-                expression = expression.replace(arg[0])
 
         # Before Python 3.7, docstrings must come at the start, so ensure that
         # happens even if we generate anonymous variables.
