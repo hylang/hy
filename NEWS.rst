@@ -11,6 +11,9 @@ Removals
 * `&key` is no longer special in lambda lists. Use `&optional` instead.
 * Tuple unpacking is no longer built into special forms for function
   definition (`fn` etc.)
+* Macros `ap-pipe` and `ap-compose` have been removed.
+  Anaphoric macros do not work well with point-free style programming,
+  in which case both threading macros and `comp` are more adequate.
 
 Other Breaking Changes
 ------------------------------
