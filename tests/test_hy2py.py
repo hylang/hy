@@ -5,7 +5,7 @@
 
 import math, itertools
 from hy import mangle
-from hy._compat import PY36, PY37
+from hy._compat import PY36
 
 
 def test_direct_import():
@@ -23,8 +23,6 @@ def test_hy2py_import(tmpdir):
 
 
 def assert_stuff(m):
-
-    astor_issue101_workaround = PY37
 
     assert m.mystring == "foofoofoo"
 
@@ -91,8 +89,7 @@ def assert_stuff(m):
     assert m.ran_try_else is True
 
     assert type(m.fun) is type(lambda x: x)
-    if not astor_issue101_workaround:
-        assert m.fun.__doc__ == "function docstring"
+    assert m.fun.__doc__ == "function docstring"
     assert m.funcall1 == [
         1, 2, 3, 4, ("a", "b", "c"), [("k1", "v1"), ("k2", "v2")]]
     assert m.funcall2 == [
@@ -106,8 +103,7 @@ def assert_stuff(m):
     class C: pass
     assert type(m.C1) is type(C)
 
-    if not astor_issue101_workaround:
-        assert m.C2.__doc__ == "class docstring"
+    assert m.C2.__doc__ == "class docstring"
     assert issubclass(m.C2, m.C1)
     assert (m.C2.attr1, m.C2.attr2, m.C2.attr3) == (5, 6, 7)
 
