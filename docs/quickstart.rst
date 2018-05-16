@@ -30,7 +30,7 @@ Quickstart
 
        => (+ "Hyllo " "World" "!")
        'Hyllo ' + 'World' + '!'
-       
+
        'Hyllo World!'
 
 *OMG! That's amazing! I want to write a Hy program.*

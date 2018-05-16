@@ -14,7 +14,7 @@ In addition to regular numbers, standard notation from Python 3 for non-base 10
 integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
 
 .. code-block:: clj
-    
+
     (print 0x80 0b11101 0o102 30)
 
 Underscores and commas can appear anywhere in a numeric literal except the very

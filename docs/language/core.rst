@@ -1399,8 +1399,8 @@ are available. Some of their names have been changed:
   - ``groupby`` has been changed to ``group-by``
 
   - ``takewhile`` has been changed to ``take-while``
-  
+
   - ``dropwhile`` has been changed to ``drop-while``
-  
+
   - ``filterfalse`` has been changed to ``remove``
 

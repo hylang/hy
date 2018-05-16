@@ -16,12 +16,12 @@ Macros
 profile/calls
 --------------
 
-``profile/calls`` allows you to create a call graph visualization. 
+``profile/calls`` allows you to create a call graph visualization.
 **Note:** You must have `Graphviz <http://www.graphviz.org/Home.php>`_
 installed for this to work.
 
 
-Usage: `(profile/calls (body))` 
+Usage: `(profile/calls (body))`
 
 Example:
 
@@ -50,8 +50,8 @@ Example:
    hey there
    <pstats.Stats instance at 0x14ff320>
             2 function calls in 0.000 seconds
-   
+
     Random listing order was used
-    
+
     ncalls  tottime  percall  cumtime  percall filename:lineno(function)        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
         1    0.000    0.000    0.000    0.000 {print}

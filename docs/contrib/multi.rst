@@ -25,7 +25,7 @@ with the arity overloaded one. Inspired by Clojures take on ``defn``.
     => (fun 1 2 3)
     "a b c"
 
-    => (defn add [a b] 
+    => (defn add [a b]
     ...  (+ a b))
     => (add 1 2)
     3
@@ -47,13 +47,13 @@ on the code by `Adam Bard`_.
     => (defmulti area [shape]
     ...  "calculate area of a shape"
     ...  (:type shape))
-  
+
     => (defmethod area "square" [square]
     ...  (* (:width square)
     ...     (:height square)))
-  
+
     => (defmethod area "circle" [circle]
-    ...  (* (** (:radius circle) 2) 
+    ...  (* (** (:radius circle) 2)
     ...     3.14))
 
     => (default-method area [shape]
@@ -75,7 +75,7 @@ at least key :type. The value that corresponds to this key is returned and
 is used to selected between different implementations.
 
 ``defmethod`` defines a possible implementation for multimethod. It works
-otherwise in the same way as ``defn``, but has an extra parameters 
+otherwise in the same way as ``defn``, but has an extra parameters
 for specifying multimethod and which calls are routed to this specific
 implementation. In the example, shapes with "square" as :type are routed to
 first function and shapes with "circle" as :type are routed to second
