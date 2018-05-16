@@ -652,7 +652,7 @@ calling ``(f val-in-result val-in-latter)``.
 
 .. code-block:: hy
 
-    => (merge-with (fn [x y] (+ x y)) {"a" 10 "b" 20} {"a" 1 "c" 30})
+    => (merge-with + {"a" 10 "b" 20} {"a" 1 "c" 30})
     {u'a': 11L, u'c': 30L, u'b': 20L}
 
 
@@ -1201,9 +1201,9 @@ if *from-file* ends before a complete expression can be parsed.
     4
     => (import io)
     => (setv buffer (io.StringIO "(+ 2 2)\n(- 2 1)"))
-    => (eval (read :from_file buffer))
+    => (eval (read :from-file buffer))
     4
-    => (eval (read :from_file buffer))
+    => (eval (read :from-file buffer))
     1
 
     => (with [f (open "example.hy" "w")]

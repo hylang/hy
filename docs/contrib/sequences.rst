@@ -55,7 +55,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
 seq
 ===
 
-Usage: ``(seq [n] (* n n)``
+Usage: ``(seq [n] (* n n))``
 
 Creates a sequence defined in terms of ``n``.
 

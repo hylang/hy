@@ -233,7 +233,7 @@ as the user enters *k*.
 
 .. code-block:: clj
 
-    (while True (if (= "k" (raw-input "? "))
+    (while True (if (= "k" (input "? "))
                   (break)
                   (print "Try again")))
 
@@ -1398,7 +1398,7 @@ repexpr]])``, but a less error-prone approach is to change the definition of
     (defmacro foo [n]
       `(do
         (require mymodule)
-        (mymodule.repexpr ~n (raw-input "Gimme some input: "))))
+        (mymodule.repexpr ~n (input "Gimme some input: "))))
 
 It's wise to use ``(require mymodule)`` here rather than ``(require [mymodule
 [repexpr]])`` to avoid accidentally shadowing a function named ``repexpr`` in
