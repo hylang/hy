@@ -132,7 +132,7 @@ point per form via the name instead of always the first or last argument.
   ...             :discovered {:year 1907
   ...                          :name "Sir Joseph Cooke Verco"}}])
 
-  ;; retrieve name of first entry      
+  ;; retrieve name of first entry
   => (as-> (first data) it
   ...      (:name it))
   'hooded cuttlefish'
@@ -164,7 +164,7 @@ point per form via the name instead of always the first or last argument.
 
 .. note::
 
-  In these examples, the REPL will report a tuple (e.g. `('Sepia prashadi', 
+  In these examples, the REPL will report a tuple (e.g. `('Sepia prashadi',
   'Sepia prashadi')`) as the result, but only a single value is actually
   returned.
 
@@ -233,7 +233,7 @@ as the user enters *k*.
 
 .. code-block:: clj
 
-    (while True (if (= "k" (raw-input "? "))
+    (while True (if (= "k" (input "? "))
                   (break)
                   (print "Try again")))
 
@@ -296,7 +296,7 @@ As shown below, only the first matching result block is executed.
     ...  (cond [(< value 5) (print "value is smaller than 5")]
     ...        [(= value 5) (print "value is equal to 5")]
     ...        [(> value 5) (print "value is greater than 5")]
-    ...	       [True (print "value is something that it should not be")]))
+    ...        [True (print "value is something that it should not be")]))
 
     => (check-value 6)
     value is greater than 5
@@ -487,11 +487,11 @@ Parameters may have the following keywords in front of them:
         => (defn total-value [value &optional [value-added-tax 10]]
         ...  (+ (/ (* value value-added-tax) 100) value))
 
-	=> (total-value 100)
+        => (total-value 100)
         110.0
 
-    	=> (total-value 100 1)
-	101.0
+        => (total-value 100 1)
+        101.0
 
 &kwargs
     Parameter will contain 0 or more keyword arguments.
@@ -525,7 +525,7 @@ Parameters may have the following keywords in front of them:
 
         => (defn zig-zag-sum [&rest numbers]
              (setv odd-numbers (list-comp x [x numbers] (odd? x))
-	           even-numbers (list-comp x [x numbers] (even? x)))
+                   even-numbers (list-comp x [x numbers] (even? x)))
              (- (sum odd-numbers) (sum even-numbers)))
 
         => (zig-zag-sum)
@@ -1115,8 +1115,8 @@ that ``import`` can be used.
     ;; import sys as systest
     (import [tests.resources [kwtest function-with-a-dash]]
             [os.path [exists
-	              isdir :as dir?
-		      isfile :as file?]]
+                      isdir :as dir?
+                      isfile :as file?]]
             [sys :as systest])
 
     ;; Import all module functions into current namespace
@@ -1398,7 +1398,7 @@ repexpr]])``, but a less error-prone approach is to change the definition of
     (defmacro foo [n]
       `(do
         (require mymodule)
-        (mymodule.repexpr ~n (raw-input "Gimme some input: "))))
+        (mymodule.repexpr ~n (input "Gimme some input: "))))
 
 It's wise to use ``(require mymodule)`` here rather than ``(require [mymodule
 [repexpr]])`` to avoid accidentally shadowing a function named ``repexpr`` in
@@ -1856,7 +1856,7 @@ will be 4 (``1+1 + 1+1``).
     => (addition 1 1)
     4
     => (with-decorator inc2-decorator inc-decorator
-    ...	 (defn addition [a b] (+ a b)))
+    ...  (defn addition [a b] (+ a b)))
     => (addition 1 1)
     8
 

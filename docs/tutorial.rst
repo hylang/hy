@@ -120,7 +120,7 @@ This is the basic premise of Lisp. Lisp stands for "list
 processing"; this means that the structure of the program is
 actually lists of lists.  (If you're familiar with Python lists,
 imagine the entire same structure as above but with square brackets
-instead, any you'll be able to see the structure above as both a
+instead, and you'll be able to see the structure above as both a
 program and a data structure.)  This is easier to understand with more
 examples, so let's write a simple Python program, test it, and then
 show the equivalent Hy program::
@@ -472,7 +472,7 @@ like::
           Return our copy of x
           """
           return self.x
-          
+
 And we might use it like::
 
   bar = FooBar(1)
@@ -492,20 +492,20 @@ In Hy:
     (defn get-x [self]
       "Return our copy of x"
       self.x))
-      
+
 And we can use it like:
 
 .. code-block:: clj
 
   (setv bar (FooBar 1))
   (print (bar.get-x))
-  
+
 Or using the leading dot syntax!
 
 .. code-block:: clj
 
   (print (.get-x (FooBar 1)))
-      
+
 
 You can also do class-level attributes.  In Python::
 

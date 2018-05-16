@@ -323,13 +323,13 @@ Will turn into::
     else:
         _temp_name_here = False
 
-    print _temp_name_here
+    print(_temp_name_here)
 
 
 OK, that was a bit of a lie, since we actually turn that statement
 into::
 
-    print True if True else False
+    print(True if True else False)
 
 By forcing things into an ``ast.expr`` if we can, but the general idea holds.
 
@@ -412,10 +412,11 @@ so our re-written ``nif`` would look like:
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (with-gensyms [g]
-       `(setv [~g ~expr])
-       `(cond [(pos? ~g) ~pos-form]
-              [(zero? ~g) ~zero-form]
-              [(neg? ~g) ~neg-form])))
+       `(do
+          (setv ~g ~expr)
+          (cond [(pos? ~g) ~pos-form]
+                [(zero? ~g) ~zero-form]
+                [(neg? ~g) ~neg-form]))))
 
 Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
