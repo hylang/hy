@@ -136,12 +136,14 @@ Arguments without a header are under None.
                                     :quote-level (+ self.quote-level x))))
 
   (defn handle-dot [self]
-    `(. ~@(walk (fn [form]
+    `(. ~(self.expand-symbols (first (self.tail)))
+        ~@(walk (fn [form]
                   (if (symbol? form)
                       form  ; don't expand attrs
                       (self.expand-symbols form)))
                 identity
-                (self.tail))))
+                (cut (self.tail)
+                     1))))
 
   (defn head [self]
     (first self.form))
