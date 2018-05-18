@@ -19,7 +19,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv mynan NaN)
 (setv pinf Inf)
 (setv ninf -Inf)
-;(setv mycomplex -Inf+5j) ; https://github.com/berkerpeksag/astor/issues/100
+(setv mycomplex -Inf+5j)
+(setv mycomplex2 NaN-Infj)
 
 (setv num-expr (+ 3 (* 5 2) (- 6 (// 8 2)) (* (+ 1 2) (- 3 5)))) ; = 9
 
