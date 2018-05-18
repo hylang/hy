@@ -1670,23 +1670,7 @@ class HyASTCompiler(object):
         f = {HyInteger: long_type,
              HyFloat: float,
              HyComplex: complex}[type(x)]
-        # Work around https://github.com/berkerpeksag/astor/issues/85 :
-        # astor can't generate Num nodes with NaN, so we have
-        # to build an expression that evaluates to NaN.
-        def nn(number):
-            return asty.Num(x, n=number)
-        if isnan(x):
-            def nan(): return asty.BinOp(
-                  x, left=nn(1e900), op=ast.Sub(), right=nn(1e900))
-            if f is complex:
-                return asty.Call(
-                    x,
-                    func=asty.Name(x, id="complex", ctx=ast.Load()),
-                    keywords=[],
-                    args=[nan() if isnan(x.real) else nn(x.real),
-                          nan() if isnan(x.imag) else nn(x.imag)])
-            return nan()
-        return nn(f(x))
+        return asty.Num(x, n=f(x))
 
     @builds_model(HySymbol)
     def compile_symbol(self, symbol):
