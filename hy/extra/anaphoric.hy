@@ -100,17 +100,6 @@
      acc))
 
 
-(defmacro ap-pipe [var &rest forms]
-  "Pushes a value through several forms.
-  (Anaphoric version of -> and ->>)"
-  (if (empty? forms) var
-      `(ap-pipe (do (setv it ~var) ~(first forms)) ~@(rest forms))))
-
-
-(defmacro ap-compose [&rest forms]
-  "Returns a function which is the composition of several forms."
-  `(fn [var] (ap-pipe var ~@forms)))
-
 (deftag % [expr]
   "Makes an expression into a function with an implicit `%` parameter list.
 
