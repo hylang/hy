@@ -243,6 +243,7 @@ def test_ast_bad_lambda():
     cant_compile("(fn ())")
     cant_compile("(fn () 1)")
     cant_compile("(fn (x) 1)")
+    cant_compile('(fn "foo")')
 
 
 def test_ast_good_yield():
@@ -442,8 +443,7 @@ def test_lambda_list_keywords_kwonly():
         exception = cant_compile(kwonly_demo)
         assert isinstance(exception, HyTypeError)
         message, = exception.args
-        assert message == ("keyword-only arguments are only "
-                           "available under Python 3")
+        assert message == "&kwonly parameters require Python 3"
 
 
 def test_lambda_list_keywords_mixed():
@@ -451,7 +451,7 @@ def test_lambda_list_keywords_mixed():
     can_compile("(fn [x &rest xs &kwargs kw] (list x xs kw))")
     cant_compile("(fn [x &rest xs &fasfkey {bar \"baz\"}])")
     if PY3:
-        can_compile("(fn [x &rest xs &kwargs kwxs &kwonly kwoxs]"
+        can_compile("(fn [x &rest xs &kwonly kwoxs &kwargs kwxs]"
                     "  (list x xs kwxs kwoxs))")
 
 
@@ -511,7 +511,6 @@ def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(fn [] (in [1 2 3]))")
-    assert excinfo.value.message == "`in' needs 2 arguments, got 1"
 
 
 def test_for_compile_error():
@@ -567,6 +566,7 @@ def test_defn():
     cant_compile("(defn \"hy\" [] 1)")
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
+    cant_compile('(defn hy "foo")')
 
 
 def test_setv_builtins():
@@ -585,11 +585,11 @@ def test_setv_builtins():
 def test_top_level_unquote():
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(unquote)")
-    assert excinfo.value.message == "`unquote' can't be used at the top-level"
+    assert excinfo.value.message == "The special form 'unquote' is not allowed here"
 
     with pytest.raises(HyTypeError) as excinfo:
         can_compile("(unquote-splice)")
-    assert excinfo.value.message == "`unquote-splice' can't be used at the top-level"
+    assert excinfo.value.message == "The special form 'unquote-splice' is not allowed here"
 
 
 def test_lots_of_comment_lines():

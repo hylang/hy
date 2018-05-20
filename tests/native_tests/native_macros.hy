@@ -15,42 +15,42 @@
   (rev (.append x 1) (.append x 2) (.append x 3))
   (assert (= x [3 2 1])))
 
-; Macros returning constants
+(defn test-macros-returning-constants []
+  (defmacro an-int [] 42)
+  (assert (= (an-int) 42))
 
-(defmacro an-int [] 42)
-(assert (= (an-int) 42))
+  (defmacro a-true [] True)
+  (assert (= (a-true) True))
+  (defmacro a-false [] False)
+  (assert (= (a-false) False))
 
-(defmacro a-true [] True)
-(assert (= (a-true) True))
-(defmacro a-false [] False)
-(assert (= (a-false) False))
+  (defmacro a-float [] 42.)
+  (assert (= (a-float) 42.))
 
-(defmacro a-float [] 42.)
-(assert (= (a-float) 42.))
+  (defmacro a-complex [] 42j)
+  (assert (= (a-complex) 42j))
 
-(defmacro a-complex [] 42j)
-(assert (= (a-complex) 42j))
+  (defmacro a-string [] "foo")
+  (assert (= (a-string) "foo"))
 
-(defmacro a-string [] "foo")
-(assert (= (a-string) "foo"))
+  (defmacro a-bytes [] b"foo")
+  (assert (= (a-bytes) b"foo"))
 
-(defmacro a-bytes [] b"foo")
-(assert (= (a-bytes) b"foo"))
+  (defmacro a-list [] [1 2])
+  (assert (= (a-list) [1 2]))
 
-(defmacro a-list [] [1 2])
-(assert (= (a-list) [1 2]))
+  (defmacro a-tuple [&rest b] b)
+  (assert (= (a-tuple 1 2) [1 2]))
 
-(defmacro a-tuple [&rest b] b)
-(assert (= (a-tuple 1 2) [1 2]))
+  (defmacro a-dict [] {1 2})
+  (assert (= (a-dict) {1 2}))
 
-(defmacro a-dict [] {1 2})
-(assert (= (a-dict) {1 2}))
+  (defmacro a-set [] #{1 2})
+  (assert (= (a-set) #{1 2}))
 
-(defmacro a-set [] #{1 2})
-(assert (= (a-set) #{1 2}))
+  (defmacro a-none [])
+  (assert (= (a-none) None)))
 
-(defmacro a-none [])
-(assert (= (a-none) None))
 
 ; A macro calling a previously defined function
 (eval-when-compile

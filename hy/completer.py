@@ -37,7 +37,7 @@ class Completer(object):
         if not isinstance(namespace, dict):
             raise TypeError('namespace must be a dictionary')
         self.namespace = namespace
-        self.path = [hy.compiler._compile_table,
+        self.path = [hy.compiler._special_form_compilers,
                      builtins.__dict__,
                      hy.macros._hy_macros[None],
                      namespace]

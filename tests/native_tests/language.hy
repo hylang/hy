@@ -87,8 +87,8 @@
   (assert (= b 2))
   (setv y 0 x 1 y x)
   (assert (= y 1))
-  (try (eval '(setv a 1 b))
-       (except [e [TypeError]] (assert (in "`setv' needs an even number of arguments" (str e))))))
+  (with [(pytest.raises HyTypeError)]
+    (eval '(setv a 1 b))))
 
 
 (defn test-setv-returns-none []
@@ -175,16 +175,6 @@
   (with [(pytest.raises TypeError)] ("abs" -2))       ; A function
   (with [(pytest.raises TypeError)] ("when" 1 2))     ; A macro
   None)  ; Avoid https://github.com/hylang/hy/issues/1320
-
-
-(defn test-fn-corner-cases []
-  "NATIVE: tests that fn/defn handles corner cases gracefully"
-  (try (eval '(fn "foo"))
-       (except [e [Exception]] (assert (in "to `fn' must be a list"
-                                          (str e)))))
-  (try (eval '(defn foo "foo"))
-       (except [e [Exception]]
-         (assert (in "takes a parameter list as second" (str e))))))
 
 
 (defn test-for-loop []
@@ -280,7 +270,15 @@
         y (range 2)]
     (+ 1 1)
     (else (setv flag (+ flag 2))))
-  (assert (= flag 2)))
+  (assert (= flag 2))
+
+  (setv l [])
+  (defn f []
+    (for [x [4 9 2]]
+      (.append l (* 10 x))
+      (yield x)))
+  (for [_ (f)])
+  (assert (= l [40 90 20])))
 
 
 (defn test-while-loop []
@@ -1387,8 +1385,6 @@
   ;; from os.path import basename as bn
   (import [os.path [basename :as bn]])
   (assert (= bn basename))
-
-  (import [sys])
 
   ;; Multiple stuff to import
   (import sys [os.path [dirname]]

@@ -41,6 +41,12 @@ def assert_stuff(m):
     assert m.pinf > 0
     assert math.isinf(m.ninf)
     assert m.ninf < 0
+    assert math.isinf(m.mycomplex.real)
+    assert m.mycomplex.real < 0
+    assert m.mycomplex.imag == 5
+    assert math.isnan(m.mycomplex2.real)
+    assert math.isinf(m.mycomplex2.imag)
+    assert m.mycomplex2.imag < 0
 
     assert m.num_expr == 9
 
