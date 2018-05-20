@@ -256,6 +256,14 @@ def test_ast_bad_yield():
     cant_compile("(yield 1 2)")
 
 
+def test_ast_import_mangle_dotted():
+    """Mangling a module name with a period shouldn't create a spurious
+    `asname`."""
+    code = can_compile("(import a-b.c)")
+    assert code.body[0].names[0].name == "a_b.c"
+    assert code.body[0].names[0].asname is None
+
+
 def test_ast_good_import_from():
     "Make sure AST can compile valid selective import"
     can_compile("(import [x [y]])")
