@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import pytest [hy._compat [PY35]])
+(import pytest hy._compat [PY35])
 
 (defmacro op-and-shadow-test [op &rest body]
   ; Creates two tests with the given `body`, one where all occurrences
@@ -12,7 +12,7 @@
   ;
   ; `op` can also be a list of operators, in which case two tests are
   ; created for each operator.
-  (import [hy [HySymbol HyString]] [hy.contrib.walk [prewalk]])
+  (import hy [HySymbol HyString] hy.contrib.walk [prewalk])
   (setv defns [])
   (for [o (if (coll? op) op [op])]
     (.append defns `(defn ~(HySymbol (+ "test_operator_" o "_real")) []

@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(require [hy.contrib.loop [loop]])
+(require hy.contrib.loop [loop])
 (import sys)
 
 (defn tco-sum [x y]

@@ -152,7 +152,7 @@ point per form via the name instead of always the first or last argument.
   'Sir Joseph Cooke Verco'
 
   ;; more convoluted example to load web page and retrieve data from it
-  => (import [urllib.request [urlopen]])
+  => (import urllib.request [urlopen])
   => (as-> (urlopen "http://docs.hylang.org/en/stable/") it
   ...      (.read it)
   ...      (.decode it "utf-8")
@@ -1100,12 +1100,12 @@ that ``import`` can be used.
     ;; Import from a module
     ;;
     ;; Python: from os.path import exists, isdir, isfile
-    (import [os.path [exists isdir isfile]])
+    (import os.path [exists isdir isfile])
 
     ;; Import with an alias
     ;;
     ;; Python: import sys as systest
-    (import [sys :as systest])
+    (import sys :as systest)
 
     ;; You can list as many imports as you like of different types.
     ;;
@@ -1113,16 +1113,16 @@ that ``import`` can be used.
     ;; from tests.resources import kwtest, function_with_a_dash
     ;; from os.path import exists, isdir as is_dir, isfile as is_file
     ;; import sys as systest
-    (import [tests.resources [kwtest function-with-a-dash]]
-            [os.path [exists
-                      isdir :as dir?
-                      isfile :as file?]]
-            [sys :as systest])
+    (import tests.resources [kwtest function-with-a-dash])
+            os.path [exists
+                     isdir :as dir?
+                     isfile :as file?]
+            sys :as systest)
 
     ;; Import all module functions into current namespace
     ;;
     ;; Python: from sys import *
-    (import [sys [*]])
+    (import sys [*])
 
 
 fn
@@ -1349,16 +1349,16 @@ The following are all equivalent ways to call a macro named ``foo`` in the modul
     (require mymodule)
     (mymodule.foo 1)
 
-    (require [mymodule :as M])
+    (require mymodule :as M)
     (M.foo 1)
 
-    (require [mymodule [foo]])
+    (require mymodule [foo])
     (foo 1)
 
-    (require [mymodule [*]])
+    (require mymodule [*])
     (foo 1)
 
-    (require [mymodule [foo :as bar]])
+    (require mymodule [foo :as bar])
     (bar 1)
 
 Macros that call macros
@@ -1381,7 +1381,7 @@ And then, in your main program, you write:
 
 .. code-block:: clj
 
-    (require [mymodule [foo]])
+    (require mymodule [foo])
 
     (print (mymodule.foo 3))
 
@@ -1389,8 +1389,8 @@ Running this raises ``NameError: name 'repexpr' is not defined``, even though
 writing ``(print (foo 3))`` in ``mymodule`` works fine. The trouble is that your
 main program doesn't have the macro ``repexpr`` available, since it wasn't
 imported (and imported under exactly that name, as opposed to a qualified name).
-You could do ``(require [mymodule [*]])`` or ``(require [mymodule [foo
-repexpr]])``, but a less error-prone approach is to change the definition of
+You could do ``(require mymodule [*])`` or ``(require mymodule [foo
+repexpr])``, but a less error-prone approach is to change the definition of
 ``foo`` to require whatever sub-macros it needs:
 
 .. code-block:: clj
@@ -1400,8 +1400,8 @@ repexpr]])``, but a less error-prone approach is to change the definition of
         (require mymodule)
         (mymodule.repexpr ~n (input "Gimme some input: "))))
 
-It's wise to use ``(require mymodule)`` here rather than ``(require [mymodule
-[repexpr]])`` to avoid accidentally shadowing a function named ``repexpr`` in
+It's wise to use ``(require mymodule)`` here rather than ``(require mymodule
+[repexpr])`` to avoid accidentally shadowing a function named ``repexpr`` in
 the main program.
 
 Qualified macro names

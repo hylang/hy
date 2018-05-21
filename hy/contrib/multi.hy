@@ -3,8 +3,8 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [collections [defaultdict]]
-        [hy [HyExpression HyList HyString]])
+(import collections [defaultdict]
+        hy [HyExpression HyList HyString])
 
 (defclass MultiDispatch [object] [
 
@@ -56,17 +56,17 @@
   apply-decorator)
  
 (defmacro defmulti [name params &rest body]
-  `(do (import [hy.contrib.multi [multi-decorator]])
+  `(do (import hy.contrib.multi [multi-decorator])
        (with-decorator multi-decorator
          (defn ~name ~params ~@body))))
 
 (defmacro defmethod [name multi-key params &rest body]
-  `(do (import [hy.contrib.multi [method-decorator]])
+  `(do (import hy.contrib.multi [method-decorator])
        (with-decorator (method-decorator ~name ~multi-key)
          (defn ~name ~params ~@body))))
 
 (defmacro default-method [name params &rest body]
-  `(do (import [hy.contrib.multi [method-decorator]])
+  `(do (import hy.contrib.multi [method-decorator])
        (with-decorator (method-decorator ~name)
          (defn ~name ~params ~@body))))
 
@@ -85,7 +85,7 @@
      (if (= (type (first bodies)) HyString)
        (setv [comment bodies] (head-tail bodies)))
      (setv ret `(do))
-     (.append ret '(import [hy.contrib.multi [MultiDispatch]]))
+     (.append ret '(import hy.contrib.multi [MultiDispatch]))
      (for [body bodies]
        (setv [let-binds body] (head-tail body))
        (.append ret 

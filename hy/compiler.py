@@ -386,12 +386,12 @@ class HyASTCompiler(object):
                 ret += self.compile(e)
             names = sorted(name for name in names if name)
             if names:
+                imports = [HySymbol(module)]
+                imports.extend(HySymbol(name) for name in names)
                 e = HyExpression([
                         HySymbol("import"),
-                        HyList([
-                            HySymbol(module),
-                            HyList([HySymbol(name) for name in names])
-                        ])
+                        HySymbol(imports[0]),
+                        HyList(imports[1:])
                     ]).replace(expr)
                 spoof_positions(e)
                 ret += self.compile(e)
@@ -1079,9 +1079,10 @@ class HyASTCompiler(object):
         return operand
 
     @special(["import", "require"], [many(
-        SYM |
-        brackets(SYM, sym(":as"), SYM) |
-        brackets(SYM, brackets(many(SYM + maybe(sym(":as") + SYM)))))])
+        SYM + maybe(
+            sym(":as") + SYM |
+            brackets(many(SYM + maybe(sym(":as") + SYM)))
+        ))])
     def compile_import_or_require(self, expr, root, entries):
         """
         TODO for `require`: keep track of what we've imported in this run and
@@ -1090,28 +1091,27 @@ class HyASTCompiler(object):
         """
         ret = Result()
 
-        for entry in entries:
+        for module, rest in entries:
             assignments = "ALL"
             prefix = ""
 
-            if isinstance(entry, HySymbol):
+            if rest is None:
                 # e.g., (import foo)
-                module, prefix = entry, entry
-            elif isinstance(entry, HyList) and isinstance(entry[1], HySymbol):
-                # e.g., (import [foo :as bar])
-                module, prefix = entry
+                prefix = module
+            elif isinstance(rest, HySymbol):
+                # e.g., (import foo :as bar)
+                prefix = rest
             else:
-                # e.g., (import [foo [bar baz :as MyBaz bing]])
-                # or (import [foo [*]])
-                module, kids = entry
-                kids = kids[0]
-                if (HySymbol('*'), None) in kids:
-                    if len(kids) != 1:
-                        star = kids[kids.index((HySymbol('*'), None))][0]
+                names, = rest
+                # e.g., (import foo [bar baz :as MyBaz bing])
+                # or (import foo [*])
+                if (HySymbol('*'), None) in names:
+                    if len(names) != 1:
+                        star = names[names.index((HySymbol('*'), None))][0]
                         raise HyTypeError(star, "* in an import name list "
                                                 "must be on its own")
                 else:
-                    assignments = [(k, v or k) for k, v in kids]
+                    assignments = [(k, v or k) for k, v in names]
 
             if root == HySymbol("import"):
                 ast_module = ast_str(module, piecewise=True)
@@ -1136,7 +1136,7 @@ class HyASTCompiler(object):
                         for k, v in assignments]
                 ret += node(
                     expr, module=module or None, names=names, level=level)
-            else: # root == HySymbol("require")
+            else:  # root == HySymbol("require")
                 __import__(module)
                 require(module, self.module_name,
                         assignments=assignments, prefix=prefix)

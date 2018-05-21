@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(require [hy.contrib.multi [defmulti defmethod default-method defn]])
+(require hy.contrib.multi [defmulti defmethod default-method defn])
 
 (defn test-different-signatures []
   "NATIVE: Test multimethods with different signatures"

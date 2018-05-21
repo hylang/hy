@@ -7,7 +7,7 @@
 ;;; They are automatically required in every module, except inside hy.core
 
 
-(import [hy.models [HyList HySymbol]])
+(import hy.models [HyList HySymbol])
 
 (defmacro as-> [head name &rest rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.

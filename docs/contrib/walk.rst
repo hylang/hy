@@ -22,7 +22,7 @@ Example:
 
 .. code-block:: hy
 
-    => (import [hy.contrib.walk [walk]])
+    => (import hy.contrib.walk [walk])
     => (setv a '(a b c d e f))
     => (walk ord identity a)
     HyExpression([
@@ -47,7 +47,7 @@ each sub-form, uses ``f`` 's return value in place of the original.
 
 .. code-block:: hy
 
-    => (import [hy.contrib.walk [postwalk]])
+    => (import hy.contrib.walk [postwalk])
     => (setv trail '([1 2 3] [4 [5 6 [7]]]))
     => (defn walking [x]
     ...  (print "Walking:" x :sep "\n")
@@ -127,7 +127,7 @@ each sub-form, uses ``f`` 's return value in place of the original.
 
 .. code-block:: hy
 
-    => (import [hy.contrib.walk [prewalk]])
+    => (import hy.contrib.walk [prewalk])
     => (setv trail '([1 2 3] [4 [5 6 [7]]]))
     => (defn walking [x]
     ...  (print "Walking:" x :sep "\n")

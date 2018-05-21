@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 
-(import [hy._compat [PY3]])
+(import hy._compat [PY3])
 
 
 (defn test-hyphen []

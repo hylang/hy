@@ -35,7 +35,12 @@ Other Breaking Changes
   made into its own object type.
 * `HySymbol` no longer inherits from `HyString`.
 * `(except)` is no longer allowed. Use `(except [])` instead.
-* `(import [foo])` is no longer allowed. Use `(import foo)` instead.
+* The `import` and `require` expressions have been reworked. They now takes
+  arguments as expressions instead of lists
+
+  * `(import [foo])` is no longer allowed. Use `(import foo)` instead.
+  * `(import [foo :as bar])` is no longer allowed. Use `(import foo :as bar)`.
+  * `(import [foo [bar]])` is no longer allowed. Use `(import foo [bar])`.
 
 New Features
 ------------------------------

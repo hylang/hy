@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy.errors [HyTypeError]])
+(import hy.errors [HyTypeError])
 
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
@@ -138,8 +138,8 @@
 
 (defn test-gensym-in-macros []
   (import ast)
-  (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import astor.code-gen [to-source])
+  (import hy.importer [import_buffer_to_ast])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (gensym))
       `(do
@@ -164,8 +164,8 @@
 
 (defn test-with-gensym []
   (import ast)
-  (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import astor.code-gen [to-source])
+  (import hy.importer [import_buffer_to_ast])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
         `(do
@@ -188,8 +188,8 @@
 
 (defn test-defmacro-g! []
   (import ast)
-  (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import astor.code-gen [to-source])
+  (import hy.importer [import_buffer_to_ast])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -217,8 +217,8 @@
 (defn test-defmacro! []
   ;; defmacro! must do everything defmacro/g! can
   (import ast)
-  (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import astor.code-gen [to-source])
+  (import hy.importer [import_buffer_to_ast])
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)

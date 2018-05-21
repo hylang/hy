@@ -8,8 +8,8 @@
 
 (defmacro profile/calls [&rest body]
   `(do
-     (import [pycallgraph [PyCallGraph]]
-             [pycallgraph.output [GraphvizOutput]])
+     (import pycallgraph [PyCallGraph]
+             pycallgraph.output [GraphvizOutput])
      (with* [(PyCallGraph :output (GraphvizOutput))]
            ~@body)))
 
@@ -20,8 +20,8 @@
      (import cProfile pstats)
 
      (if-python2
-       (import [StringIO [StringIO]])
-       (import [io [StringIO]]))
+       (import StringIO [StringIO])
+       (import io [StringIO])
 
      (setv ~g!hy-pr (.Profile cProfile))
      (.enable ~g!hy-pr)

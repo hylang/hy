@@ -6,7 +6,7 @@
 ;;; The loop/recur macro allows you to construct functions that use tail-call
 ;;; optimization to allow arbitrary levels of recursion.
 
-(import [hy.contrib.walk [prewalk]])
+(import hy.contrib.walk [prewalk])
 
 (defn --trampoline-- [f]
   "Wrap f function and make it tail-call optimized."
@@ -37,7 +37,7 @@
     (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
     body))
   `(do
-    (import [hy.contrib.loop [--trampoline--]])
+    (import hy.contrib.loop [--trampoline--])
     (with-decorator
       --trampoline--
       (defn ~g!recur-fn [~@signature] ~@new-body))

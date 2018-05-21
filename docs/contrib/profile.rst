@@ -27,7 +27,7 @@ Example:
 
 .. code-block:: hy
 
-   (require [hy.contrib.profile [profile/calls]])
+   (require hy.contrib.profile [profile/calls])
    (profile/calls (print "hey there"))
 
 
@@ -42,7 +42,7 @@ Example:
 
 .. code-block:: hy
 
-    (require [hy.contrib.profile [profile/cpu]])
+    (require hy.contrib.profile [profile/cpu])
     (profile/cpu (print "hey there"))
 
 .. code-block:: bash

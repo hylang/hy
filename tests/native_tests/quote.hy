@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy [HyExpression HySymbol HyString HyBytes HyDict]])
+(import hy [HyExpression HySymbol HyString HyBytes HyDict])
 
 
 (defn test-quote []

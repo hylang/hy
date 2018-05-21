@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [functools [wraps]])
+(import functools [wraps])
 
 
 (defn test-tag-macro []

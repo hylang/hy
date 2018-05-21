@@ -651,7 +651,7 @@ Let's take the classic:
 
 .. code-block:: clj
 
-    (require [hy.contrib.loop [loop]])
+    (require hy.contrib.loop [loop])
 
     (loop (print (eval (read))))
 
@@ -659,7 +659,7 @@ Rather than write it like that, we can write it as follows:
 
 .. code-block:: clj
 
-    (require [hy.contrib.loop [loop]])
+    (require hy.contrib.loop [loop])
 
     (-> (read) (eval) (print) (loop))
 
@@ -669,7 +669,7 @@ a pipe:
 
 .. code-block:: clj
 
-    => (import [sh [cat grep wc]])
+    => (import [sh cat grep wc])
     => (-> (cat "/usr/share/dict/words") (grep "-E" "^hy") (wc "-l"))
     210
 

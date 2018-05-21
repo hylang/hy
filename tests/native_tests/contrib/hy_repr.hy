@@ -3,9 +3,9 @@
 ;; license. See the LICENSE.
 
 (import
-  [hy._compat [PY3 PY36 PY37]]
-  [math [isnan]]
-  [hy.contrib.hy-repr [hy-repr hy-repr-register]])
+  hy._compat [PY3 PY36 PY37]
+  math [isnan]
+  hy.contrib.hy-repr [hy-repr hy-repr-register])
 
 (defn test-hy-repr-roundtrip-from-value []
   ; Test that a variety of values round-trip properly.
@@ -85,7 +85,7 @@
   (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])"))))
 
 (defn test-datetime []
-  (import [datetime :as D])
+  (import datetime :as D)
 
   (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 0))
     "(datetime.datetime 2009 1 15 15 27 5)"))

@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY3]])
+(import hy._compat [PY3])
 
 ;;;; some simple helpers
 
@@ -269,7 +269,7 @@ result['y in globals'] = 'y' in globals()")
 
 (defn test-gensym []
   "NATIVE: testing the gensym function"
-  (import [hy.models [HySymbol]])
+  (import hy.models [HySymbol])
   (setv s1 (gensym))
   (assert (isinstance s1 HySymbol))
   (assert (= 0 (.find s1 "_;G|")))

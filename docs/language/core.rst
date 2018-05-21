@@ -1296,7 +1296,7 @@ Returns an iterator by calling *fn* repeatedly.
 
 .. code-block:: hy
 
-   => (import [random [randint]])
+   => (import random [randint])
 
    => (list (take 5 (repeatedly (fn [] (randint 0 10)))))
    [6, 2, 0, 6, 7]

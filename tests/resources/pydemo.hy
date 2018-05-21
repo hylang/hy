@@ -50,9 +50,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (del (get delstatement 1))
 
 (import math)
-(import [math [sqrt]])
-(import [math [sin :as sine]])
-(import [datetime [*]])
+(import math [sqrt sin :as sine])
+(import datetime [*])
 
 (setv if-block "")
 (if 0
@@ -139,7 +138,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   [attr1 5  attr2 6]
   (setv attr3 7))
 
-(import [contextlib [closing]])
+(import contextlib [closing])
 (setv closed [])
 (defclass Closeable []
   [close (fn [self] (.append closed self.x))])

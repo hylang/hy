@@ -3,15 +3,15 @@
 ;; license. See the LICENSE.
 
 (import
-  [math [isnan]]
+  math [isnan]
   re
   datetime
   collections
-  [hy._compat [PY3 PY36 str-type bytes-type long-type]]
-  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
+  hy._compat [PY3 PY36 str-type bytes-type long-type]
+  hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes])
 
 (try
-  (import [_collections_abc [dict-keys dict-values dict-items]])
+  (import _collections_abc [dict-keys dict-values dict-items])
   (except [ImportError]
     (defclass C)
     (setv [dict-keys dict-values dict-items] [C C C])))

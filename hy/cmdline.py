@@ -158,7 +158,7 @@ def ideas_macro(ETname):
     return HyExpression([HySymbol('print'),
                          HyString(r"""
 
-    => (import [sh [figlet]])
+    => (import sh [figlet])
     => (figlet "Hi, Hy!")
      _   _ _     _   _       _
     | | | (_)   | | | |_   _| |
@@ -173,7 +173,7 @@ def ideas_macro(ETname):
 
 
 ;;; this one plays with command line bits
-(import [sh [cat grep]])
+(import sh [cat grep])
 (-> (cat "/usr/share/dict/words") (grep "-E" "bro$"))
 
 

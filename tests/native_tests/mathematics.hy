@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY35]])
+(import hy._compat [PY35])
 
 (setv square (fn [x]
                (* x x)))

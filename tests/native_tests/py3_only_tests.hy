@@ -71,7 +71,7 @@
         (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
 
-(require [hy.contrib.walk [let]])
+(require hy.contrib.walk [let])
 
 (defn test-let-optional []
   (let [a 1

@@ -15,8 +15,8 @@ so:
 
 .. code-block:: hy
 
-   (require [hy.contrib.sequences [defseq seq]])
-   (import [hy.contrib.sequences [Sequence end-sequence]])
+   (require hy.contrib.sequences [defseq seq])
+   (import hy.contrib.sequences [Sequence end-sequence])
 
 The simplest sequence can be defined as ``(seq [n] n)``. This defines a sequence
 that starts as ``[0 1 2 3 ...]`` and continues forever. In order to define a

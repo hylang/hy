@@ -5,7 +5,7 @@
 ;; Tests where the emitted code relies on Python ≥3.5.
 ;; conftest.py skips this file when running on Python <3.5.
 
-(import [asyncio [get-event-loop sleep]])
+(import asyncio [get-event-loop sleep])
 
 
 (defn test-unpacking-pep448-1star []

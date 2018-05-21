@@ -12,7 +12,7 @@ with the arity overloaded one. Inspired by Clojures take on ``defn``.
 
 .. code-block:: clj
 
-    => (require [hy.contrib.multi [defn]])
+    => (require hy.contrib.multi [defn])
     => (defn fun
     ...  ([a] "a")
     ...  ([a b] "a b")
@@ -43,7 +43,7 @@ on the code by `Adam Bard`_.
 
 .. code-block:: clj
 
-    => (require [hy.contrib.multi [defmulti defmethod default-method]])
+    => (require hy.contrib.multi [defmulti defmethod default-method])
     => (defmulti area [shape]
     ...  "calculate area of a shape"
     ...  (:type shape))
@@ -91,7 +91,7 @@ different implementations can narrow them down.
 
 .. code-block:: clj
 
-    => (require [hy.contrib.multi [defmulti defmethod]])
+    => (require hy.contrib.multi [defmulti defmethod])
     => (defmulti fun [&rest args]
     ...  (len args))
 

@@ -5,10 +5,10 @@
 ;;;; Hy shadow functions
 
 (import operator)
-(import [hy._compat [PY3 PY35]])
+(import hy._compat [PY3 PY35])
 
 (if PY3
-  (import [functools [reduce]]))
+  (import functools [reduce]))
 
 (defn + [&rest args]
   "Shadowed `+` operator adds `args`."

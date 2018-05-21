@@ -7,7 +7,7 @@ Hy representations
 ``hy.contrib.hy-repr`` is a module containing two functions.
 To import them, say::
 
-  (import [hy.contrib.hy-repr [hy-repr hy-repr-register]])
+  (import hy.contrib.hy-repr [hy-repr hy-repr-register])
 
 To make the Hy REPL use it for output, invoke Hy like so::
 

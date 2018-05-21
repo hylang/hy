@@ -8,21 +8,21 @@
 
 (import itertools)
 (import functools)
-(import [fractions [Fraction :as fraction]])
+(import fractions [Fraction :as fraction])
 (import operator)  ; shadow not available yet
 (import sys)
 (if-python2
-  (import [StringIO [StringIO]])
-  (import [io [StringIO]]))
-(import [hy._compat [long-type]]) ; long for python2, int for python3
+  (import StringIO [StringIO])
+  (import io [StringIO]))
+(import hy._compat [long-type]) ; long for python2, int for python3
 (if-python2
-  (import [collections :as cabc])
-  (import [collections.abc :as cabc]))
-(import [hy.models [HySymbol HyKeyword]])
-(import [hy.lex [LexException PrematureEndOfInput tokenize]])
-(import [hy.lex.parser [mangle unmangle]])
-(import [hy.compiler [HyASTCompiler spoof-positions]])
-(import [hy.importer [hy-eval :as eval]])
+  (import collections :as cabc)
+  (import collections.abc :as cabc))
+(import hy.models [HySymbol HyKeyword])
+(import hy.lex [LexException PrematureEndOfInput tokenize])
+(import hy.lex.parser [mangle unmangle])
+(import hy.compiler [HyASTCompiler spoof-positions])
+(import hy.importer [hy-eval :as eval])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."
@@ -207,7 +207,7 @@ Return series of accumulated sums (or other binary function results)."
   "Check if `s` is a symbol."
   (instance? HySymbol s))
 
-(import [threading [Lock]])
+(import threading [Lock])
 (setv _gensym_counter 1234)
 (setv _gensym_lock (Lock))
 

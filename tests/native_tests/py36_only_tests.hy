@@ -5,7 +5,7 @@
 ;; Tests where the emitted code relies on Python ≥3.6.
 ;; conftest.py skips this file when running on Python <3.6.
 
-(import [asyncio [get-event-loop sleep]])
+(import asyncio [get-event-loop sleep])
 
 
 (defn run-coroutine [coro]

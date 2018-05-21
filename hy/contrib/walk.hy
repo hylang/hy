@@ -3,11 +3,11 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy [HyExpression HyDict]]
-        [functools [partial]]
-        [collections [OrderedDict]]
-        [hy.macros [macroexpand :as mexpand]]
-        [hy.compiler [HyASTCompiler]])
+(import hy [HyExpression HyDict]
+        functools [partial]
+        collections [OrderedDict]
+        hy.macros [macroexpand :as mexpand]
+        hy.compiler [HyASTCompiler])
 
 (defn walk [inner outer form]
   "Traverses form, an arbitrary data structure. Applies inner to each
