@@ -1327,7 +1327,7 @@
   (try (eval '(eval)) (except [e TypeError]) (else (assert False)))
   (defclass C)
   (try (eval (C)) (except [e TypeError]) (else (assert False)))
-  (try (eval 'False []) (except [e HyTypeError]) (else (assert False)))
+  (try (eval 'False []) (except [e TypeError]) (else (assert False)))
   (try (eval 'False {} 1) (except [e TypeError]) (else (assert False))))
 
 

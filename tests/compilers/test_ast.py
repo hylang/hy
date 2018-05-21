@@ -63,7 +63,7 @@ def test_ast_bad_type():
     try:
         hy_compile(C(), "__main__")
         assert True is False
-    except HyCompileError:
+    except TypeError:
         pass
 
 

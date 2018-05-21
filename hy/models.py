@@ -33,7 +33,7 @@ class HyObject(object):
     Hy lexing Objects at once.
     """
 
-    def replace(self, other):
+    def replace(self, other, recursive=False):
         if isinstance(other, HyObject):
             for attr in ["start_line", "end_line",
                          "start_column", "end_column"]:
@@ -60,25 +60,20 @@ def wrap_value(x):
 
     """
 
-    wrapper = _wrappers.get(type(x))
-    if wrapper is None:
-        return x
-    else:
-        return wrapper(x)
+    new = _wrappers.get(type(x), lambda y: y)(x)
+    if not isinstance(new, HyObject):
+        raise TypeError("Don't know how to wrap {!r}: {!r}".format(type(x), x))
+    if isinstance(x, HyObject):
+        new = new.replace(x, recursive=False)
+    if not hasattr(new, "start_column"):
+        new.start_column = 0
+    if not hasattr(new, "start_line"):
+        new.start_line = 0
+    return new
 
 
 def replace_hy_obj(obj, other):
-
-    if isinstance(obj, HyObject):
-        return obj.replace(other)
-
-    wrapped_obj = wrap_value(obj)
-
-    if isinstance(wrapped_obj, HyObject):
-        return wrapped_obj.replace(other)
-    else:
-        raise TypeError("Don't know how to wrap a %s object to a HyObject"
-                        % type(obj))
+    return wrap_value(obj).replace(other)
 
 
 def repr_indent(obj):
@@ -280,8 +275,12 @@ class HySequence(HyObject, list):
 class HyList(HySequence):
     color = staticmethod(colored.cyan)
 
-_wrappers[list] = lambda l: HyList(wrap_value(x) for x in l)
-_wrappers[tuple] = lambda t: HyList(wrap_value(x) for x in t)
+def recwrap(f):
+    return lambda l: f(wrap_value(x) for x in l)
+
+_wrappers[HyList] = recwrap(HyList)
+_wrappers[list] = recwrap(HyList)
+_wrappers[tuple] = recwrap(HyList)
 
 
 class HyDict(HySequence):
@@ -317,6 +316,7 @@ class HyDict(HySequence):
     def items(self):
         return list(zip(self.keys(), self.values()))
 
+_wrappers[HyDict] = recwrap(HyDict)
 _wrappers[dict] = lambda d: HyDict(wrap_value(x) for x in sum(d.items(), ()))
 
 
@@ -326,7 +326,7 @@ class HyExpression(HySequence):
     """
     color = staticmethod(colored.yellow)
 
-_wrappers[HyExpression] = lambda e: HyExpression(wrap_value(x) for x in e)
+_wrappers[HyExpression] = recwrap(HyExpression)
 _wrappers[Fraction] = lambda e: HyExpression(
     [HySymbol("fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
 
@@ -337,4 +337,5 @@ class HySet(HySequence):
     """
     color = staticmethod(colored.red)
 
-_wrappers[set] = lambda s: HySet(wrap_value(x) for x in s)
+_wrappers[HySet] = recwrap(HySet)
+_wrappers[set] = recwrap(HySet)
