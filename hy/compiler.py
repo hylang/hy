@@ -52,14 +52,15 @@ _stdlib = {}
 
 def load_stdlib():
     import hy.core
-    for module in hy.core.STDLIB:
-        mod = importlib.import_module(module)
-        for e in map(ast_str, mod.EXPORTS):
-            if getattr(mod, e) is not getattr(builtins, e, ''):
-                # Don't bother putting a name in _stdlib if it
-                # points to a builtin with the same name. This
-                # prevents pointless imports.
-                _stdlib[e] = module
+    if not _stdlib:
+        for module in hy.core.STDLIB:
+            mod = importlib.import_module(module)
+            for e in map(ast_str, mod.EXPORTS):
+                if getattr(mod, e) is not getattr(builtins, e, ''):
+                    # Don't bother putting a name in _stdlib if it
+                    # points to a builtin with the same name. This
+                    # prevents pointless imports.
+                    _stdlib[e] = module
 
 
 def ast_str(x, piecewise=False):
@@ -355,8 +356,12 @@ class HyASTCompiler(object):
         self.imports = defaultdict(set)
         self.module_name = module_name
         self.temp_if = None
-        if not module_name.startswith("hy.core"):
-            # everything in core needs to be explicit.
+        self.can_use_stdlib = (
+            not module_name.startswith("hy.core")
+            or module_name == "hy.core.macros")
+        # Everything in core needs to be explicit (except for
+        # the core macros, which are built with the core functions).
+        if self.can_use_stdlib:
             load_stdlib()
 
     def get_anon_var(self):
@@ -1698,7 +1703,7 @@ class HyASTCompiler(object):
                 attr=ast_str(local),
                 ctx=ast.Load())
 
-        if ast_str(symbol) in _stdlib:
+        if self.can_use_stdlib and ast_str(symbol) in _stdlib:
             self.imports[_stdlib[ast_str(symbol)]].add(ast_str(symbol))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())

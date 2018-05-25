@@ -5,8 +5,10 @@
 ;;;; Hy shadow functions
 
 (import operator)
-(import [hy._compat [PY35]])
+(import [hy._compat [PY3 PY35]])
 
+(if PY3
+  (import [functools [reduce]]))
 
 (defn + [&rest args]
   "Shadowed `+` operator adds `args`."
@@ -14,7 +16,7 @@
     (= (len args) 0)
       0
     (= (len args) 1)
-      (+ (first args))
+      (+ (get args 0))
     ; else
       (reduce operator.add args)))
 
@@ -30,7 +32,7 @@
     (= (len args) 0)
       1
     (= (len args) 1)
-      (first args)
+      (get args 0)
     ; else
       (reduce operator.mul args)))
 
@@ -81,7 +83,7 @@
     (= (len args) 0)
       0
     (= (len args) 1)
-      (first args)
+      (get args 0)
     ; else
       (reduce operator.or_ args)))
 
@@ -130,7 +132,7 @@
     (= (len args) 0)
       True
     (= (len args) 1)
-      (first args)
+      (get args 0)
     ; else
       (reduce (fn [x y] (and x y)) args)))
 
@@ -140,7 +142,7 @@
     (= (len args) 0)
       None
     (= (len args) 1)
-      (first args)
+      (get args 0)
     ; else
       (reduce (fn [x y] (or x y)) args)))
 
