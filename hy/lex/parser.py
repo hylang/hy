@@ -17,10 +17,7 @@ from .lexer import lexer
 from .exceptions import LexException, PrematureEndOfInput
 
 
-pg = ParserGenerator(
-    [rule.name for rule in lexer.rules] + ['$end'],
-    cache_id="hy_parser"
-)
+pg = ParserGenerator([rule.name for rule in lexer.rules] + ['$end'])
 
 mangle_delim = 'X'
 
