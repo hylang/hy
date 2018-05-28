@@ -47,6 +47,7 @@ New Features
   keyword arguments
 * Added a command-line option `-E` per CPython
 * `while` and `for` are allowed to have empty bodies
+* Added a new module ``hy.model_patterns``
 
 Bug Fixes
 ------------------------------
