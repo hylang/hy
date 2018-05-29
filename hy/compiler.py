@@ -328,14 +328,6 @@ def is_unpack(kind, x):
             and x[0] == "unpack-" + kind)
 
 
-def ends_with_else(expr):
-    return (expr and
-            isinstance(expr[-1], HyExpression) and
-            expr[-1] and
-            isinstance(expr[-1][0], HySymbol) and
-            expr[-1][0] == HySymbol("else"))
-
-
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
