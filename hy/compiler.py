@@ -1342,9 +1342,8 @@ class HyASTCompiler(object):
 
         orel = Result()
         if else_expr is not None:
-            for else_body in else_expr:
-                orel += self.compile(else_body)
-                orel += orel.expr_as_stmt()
+            orel = self._compile_branch(else_expr)
+            orel += orel.expr_as_stmt()
 
         body = self._compile_branch(body)
         body += body.expr_as_stmt()
