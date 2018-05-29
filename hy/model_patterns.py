@@ -9,6 +9,7 @@ from funcparserlib.parser import (
     some, skip, many, finished, a, Parser, NoParseError, State)
 from functools import reduce
 from itertools import repeat
+from collections import namedtuple
 from operator import add
 from math import isinf
 
@@ -74,3 +75,11 @@ def times(lo, hi, parser):
             end = e.state.max
         return result, State(s.pos, end)
     return f
+
+Tag = namedtuple('Tag', ['tag', 'value'])
+
+def tag(tag_name, parser):
+    """Matches the given parser and produces a named tuple `(Tag tag value)`
+    with `tag` set to the given tag name and `value` set to the parser's
+    value."""
+    return parser >> (lambda x: Tag(tag_name, x))
