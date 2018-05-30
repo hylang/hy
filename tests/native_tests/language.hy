@@ -173,8 +173,7 @@
   "Don't treat strings as symbols in the calling position"
   (with [(pytest.raises TypeError)] ("setv" True 3))  ; A special form
   (with [(pytest.raises TypeError)] ("abs" -2))       ; A function
-  (with [(pytest.raises TypeError)] ("when" 1 2))     ; A macro
-  None)  ; Avoid https://github.com/hylang/hy/issues/1320
+  (with [(pytest.raises TypeError)] ("when" 1 2)))    ; A macro
 
 
 (defn test-for-loop []
