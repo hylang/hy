@@ -1122,11 +1122,10 @@ class HyASTCompiler(object):
                     names = [ast.alias(name="*", asname=None)]
                 elif assignments == "ALL":
                     node = asty.Import
+                    prefix = ast_str(prefix, piecewise=True)
                     names = [ast.alias(
                         name=ast_module,
-                        asname=ast_str(prefix)
-                            if prefix and prefix != module
-                            else None)]
+                        asname=prefix if prefix != module else None)]
                 else:
                     node = asty.ImportFrom
                     names = [
