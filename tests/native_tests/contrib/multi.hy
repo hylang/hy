@@ -3,6 +3,7 @@
 ;; license. See the LICENSE.
 
 (require [hy.contrib.multi [defmulti defmethod default-method defn]])
+(import pytest)
 
 (defn test-different-signatures []
   "NATIVE: Test multimethods with different signatures"
@@ -28,20 +29,16 @@
 
 (defn test-different-signatures-defn []
   "NATIVE: Test defn with different signatures"
-  (defn fun
+  (defn f1
     ([] "")
     ([a] "a")
     ([a b] "a b"))
 
-  (assert (= (fun) ""))
-  (assert (= (fun "a") "a"))
-  (assert (= (fun "a" "b") "a b"))
-  (try
-    (do
-      (fun "a" "b" "c")
-      (assert False))
-    (except [e Exception]
-      (assert (isinstance e TypeError)))))
+  (assert (= (f1) ""))
+  (assert (= (f1 "a") "a"))
+  (assert (= (f1 "a" "b") "a b"))
+  (with [(pytest.raises TypeError)]
+    (f1 "a" "b" "c")))
 
 (defn test-basic-dispatch []
   "NATIVE: Test basic dispatch"
@@ -92,35 +89,35 @@
 
 (defn test-basic-multi []
   "NATIVE: Test a basic arity overloaded defn"
-  (defn fun
+  (defn f2
     ([] "Hello!")
     ([a] a)
     ([a b] "a b")
     ([a b c] "a b c"))
 
-  (assert (= (fun) "Hello!"))
-  (assert (= (fun "a") "a"))
-  (assert (= (fun "a" "b") "a b"))
-  (assert (= (fun "a" "b" "c") "a b c")))
+  (assert (= (f2) "Hello!"))
+  (assert (= (f2 "a") "a"))
+  (assert (= (f2 "a" "b") "a b"))
+  (assert (= (f2 "a" "b" "c") "a b c")))
 
 
 (defn test-kw-args []
   "NATIVE: Test if kwargs are handled correctly for arity overloading"
-  (defn fun
+  (defn f3
     ([a] a)
     ([&optional [a "nop"] [b "p"]] (+ a b)))
    
-  (assert (= (fun 1) 1))
-  (assert (= (fun :a "t") "t"))
-  (assert (= (fun "hello " :b "world") "hello world"))
-  (assert (= (fun :a "hello " :b "world") "hello world")))
+  (assert (= (f3 1) 1))
+  (assert (= (f3 :a "t") "t"))
+  (assert (= (f3 "hello " :b "world") "hello world"))
+  (assert (= (f3 :a "hello " :b "world") "hello world")))
 
 
 (defn test-docs []
   "NATIVE: Test if docs are properly handled for arity overloading"
-  (defn fun
+  (defn f4
     "docs"
     ([a] (print a))
     ([a b] (print b)))
   
-  (assert (= fun.--doc-- "docs")))
+  (assert (= f4.--doc-- "docs")))
