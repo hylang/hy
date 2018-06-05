@@ -106,19 +106,6 @@ def builds_model(*model_types):
     return _dec
 
 
-def spoof_positions(obj):
-    if not isinstance(obj, HyObject):
-        return
-    if not hasattr(obj, "start_column"):
-        obj.start_column = 0
-    if not hasattr(obj, "start_line"):
-        obj.start_line = 0
-    if (hasattr(obj, "__iter__") and
-            not isinstance(obj, (string_types, bytes_type))):
-        for x in obj:
-            spoof_positions(x)
-
-
 # Provide asty.Foo(x, ...) as shorthand for
 # ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
@@ -382,7 +369,6 @@ class HyASTCompiler(object):
                         HySymbol("import"),
                         HySymbol(module),
                     ]).replace(expr)
-                spoof_positions(e)
                 ret += self.compile(e)
             names = sorted(name for name in names if name)
             if names:
@@ -393,24 +379,18 @@ class HyASTCompiler(object):
                             HyList([HySymbol(name) for name in names])
                         ])
                     ]).replace(expr)
-                spoof_positions(e)
                 ret += self.compile(e)
         self.imports = defaultdict(set)
         return ret.stmts
 
     def compile_atom(self, atom):
-        if not isinstance(atom, HyObject):
-            atom = wrap_value(atom)
-            if not isinstance(atom, HyObject):
-                return
-            spoof_positions(atom)
-        if type(atom) not in _model_compilers:
-            return
         # Compilation methods may mutate the atom, so copy it first.
         atom = copy.copy(atom)
         return Result() + _model_compilers[type(atom)](self, atom)
 
     def compile(self, tree):
+        if tree is None:
+            return Result()
         try:
             ret = self.compile_atom(tree)
             if ret:
@@ -1744,15 +1724,10 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     `last_expression` is the.
     """
 
-    body = []
-    expr = None
-
+    tree = wrap_value(tree)
     if not isinstance(tree, HyObject):
-        tree = wrap_value(tree)
-        if not isinstance(tree, HyObject):
-            raise HyCompileError("`tree` must be a HyObject or capable of "
-                                 "being promoted to one")
-        spoof_positions(tree)
+        raise HyCompileError("`tree` must be a HyObject or capable of "
+                             "being promoted to one")
 
     compiler = HyASTCompiler(module_name)
     result = compiler.compile(tree)

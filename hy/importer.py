@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 
 from hy.compiler import hy_compile, HyTypeError
-from hy.models import HyObject, HyExpression, HySymbol, replace_hy_obj
+from hy.models import HyObject, HyExpression, HySymbol
 from hy.lex import tokenize, LexException
 from hy.errors import HyIOError
 
@@ -172,15 +172,8 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
         m = inspect.getmodule(inspect.stack()[1][0])
         module_name = '__eval__' if m is None else m.__name__
 
-    foo = HyObject()
-    foo.start_line = 0
-    foo.end_line = 0
-    foo.start_column = 0
-    foo.end_column = 0
-    replace_hy_obj(hytree, foo)
-
     if not isinstance(module_name, string_types):
-        raise HyTypeError(foo, "Module name must be a string")
+        raise TypeError("Module name must be a string")
 
     _ast, expr = hy_compile(hytree, module_name, get_expr=True)
 
@@ -197,7 +190,7 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
         ast_callback(_ast, expr)
 
     if not isinstance(namespace, dict):
-        raise HyTypeError(foo, "Globals must be a dictionary")
+        raise TypeError("Globals must be a dictionary")
 
     # Two-step eval: eval() the body of the exec call
     eval(ast_compile(_ast, "<eval_body>", "exec"), namespace)

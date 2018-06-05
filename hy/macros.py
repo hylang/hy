@@ -4,7 +4,7 @@
 
 from hy._compat import PY3
 import hy.inspect
-from hy.models import replace_hy_obj, HyExpression, HySymbol
+from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex.parser import mangle
 from hy._compat import str_type
 
@@ -167,16 +167,16 @@ def macroexpand(tree, compiler, once=False):
     while True:
 
         if not isinstance(tree, HyExpression) or tree == []:
-            return tree
+            break
 
         fn = tree[0]
         if fn in ("quote", "quasiquote") or not isinstance(fn, HySymbol):
-            return tree
+            break
 
         fn = mangle(fn)
         m = _hy_macros[compiler.module_name].get(fn) or _hy_macros[None].get(fn)
         if not m:
-            return tree
+            break
 
         opts = {}
         if m._hy_macro_pass_compiler:
@@ -202,8 +202,10 @@ def macroexpand(tree, compiler, once=False):
         tree = replace_hy_obj(obj, tree)
 
         if once:
-            return tree
+            break
 
+    tree = wrap_value(tree)
+    return tree
 
 def macroexpand_1(tree, compiler):
     """Expand the toplevel macro from `tree` once, in the context of

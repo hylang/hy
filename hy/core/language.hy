@@ -21,7 +21,7 @@
 (import [hy.models [HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize]])
 (import [hy.lex.parser [mangle unmangle]])
-(import [hy.compiler [HyASTCompiler spoof-positions]])
+(import [hy.compiler [HyASTCompiler]])
 (import [hy.importer [hy-eval :as eval]])
 
 (defn butlast [coll]
@@ -70,7 +70,6 @@ If the second argument `codegen` is true, generate python code instead."
   (import astor)
   (import hy.compiler)
 
-  (spoof-positions tree)
   (setv compiled (hy.compiler.hy-compile tree (calling-module-name)))
   ((if codegen
        astor.code-gen.to-source

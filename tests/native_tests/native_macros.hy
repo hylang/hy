@@ -86,6 +86,14 @@
    `(f #* [~x]))
   (assert (= (mac) "f:(None,)")))
 
+(defn test-macro-autoboxing-docstring []
+  (defmacro m []
+    (setv mystring "hello world")
+    `(fn [] ~mystring (+ 1 2)))
+  (setv f (m))
+  (assert (= (f) 3))
+  (assert (= f.__doc__ "hello world")))
+
 (defn test-midtree-yield []
   "NATIVE: test yielding with a returnable"
   (defn kruft [] (yield) (+ 1 1)))
