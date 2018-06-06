@@ -1377,9 +1377,8 @@ class HyASTCompiler(object):
             maybe(sym("&rest") + NASYM),
             maybe(sym("&kwonly") + many(NASYM | brackets(SYM, FORM))),
             maybe(sym("&kwargs") + NASYM)),
-        maybe(STR),
         many(FORM)])
-    def compile_function_def(self, expr, root, params, docstring, body):
+    def compile_function_def(self, expr, root, params, body):
 
         force_functiondef = root in ("fn*", "fn/a")
         node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
@@ -1411,22 +1410,9 @@ class HyASTCompiler(object):
             kwonlyargs=kwonly, kw_defaults=kw_defaults,
             kwarg=kwargs)
 
-        if docstring is not None:
-            if not body:
-                # Reinterpret the docstring as the return value of the
-                # function. Thus, (fn [] "hello") returns "hello" and has no
-                # docstring, instead of returning None and having a docstring
-                # "hello".
-                body = [docstring]
-                docstring = None
-            elif not PY37:
-                # The docstring needs to be represented in the AST as a body
-                # statement.
-                body = [docstring] + body
-                docstring = None
         body = self._compile_branch(body)
 
-        if not force_functiondef and not body.stmts and docstring is None:
+        if not force_functiondef and not body.stmts:
             return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
         if body.expr:
@@ -1444,9 +1430,7 @@ class HyASTCompiler(object):
                     name=name,
                     args=args,
                     body=body.stmts or [asty.Pass(expr)],
-                    decorator_list=[],
-                    docstring=(None if docstring is None else
-                        str_type(docstring)))
+                    decorator_list=[])
 
         ast_name = asty.Name(expr, id=name, ctx=ast.Load())
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
@@ -1489,9 +1473,7 @@ class HyASTCompiler(object):
         bodyr = Result()
 
         if docstring is not None:
-            if not PY37:
-                bodyr += self.compile(docstring).expr_as_stmt()
-                docstring = None
+            bodyr += self.compile(docstring).expr_as_stmt()
 
         if attrs is not None:
             bodyr += self.compile(self._rewire_init(HyExpression(
@@ -1510,8 +1492,7 @@ class HyASTCompiler(object):
             starargs=None,
             kwargs=None,
             bases=bases_expr,
-            body=bodyr.stmts or [asty.Pass(expr)],
-            docstring=(None if docstring is None else str_type(docstring)))
+            body=bodyr.stmts or [asty.Pass(expr)])
 
     def _rewire_init(self, expr):
         "Given a (setv …) form, append None to definitions of __init__."
@@ -1736,16 +1717,9 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     if not get_expr:
         result += result.expr_as_stmt()
 
-    module_docstring = None
-    if (PY37 and result.stmts and
-            isinstance(result.stmts[0], ast.Expr) and
-            isinstance(result.stmts[0].value, ast.Str)):
-        module_docstring = result.stmts.pop(0).value.s
-
     body = compiler.imports_as_stmts(tree) + result.stmts
 
-    ret = root(body=body, docstring=(
-        None if module_docstring is None else module_docstring))
+    ret = root(body=body)
 
     if get_expr:
         expr = ast.Expression(body=expr)

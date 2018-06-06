@@ -1625,11 +1625,6 @@
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
   (assert (= (disassemble '(do (leaky) (leaky) (macros))) (cond
-    [PY37 "Module(
-    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
-        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
-        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))],
-    docstring=None)"]
     [PY35 "Module(
     body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
