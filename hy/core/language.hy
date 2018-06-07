@@ -287,7 +287,7 @@ Return series of accumulated sums (or other binary function results)."
   "Return a function applying each `fs` to args, collecting results in a list."
   (setv fs (+ (, f) fs))
   (fn [&rest args &kwargs kwargs]
-    (list-comp (f #* args #** kwargs) [f fs])))
+    (lfor f fs (f #* args #** kwargs))))
 
 (defn last [coll]
   "Return last item from `coll`."
@@ -352,8 +352,8 @@ with overlap."
   (setv
    step (or step n)
    coll-clones (tee coll n)
-   slices (genexpr (islice (get coll-clones start) start None step)
-                   [start (range n)]))
+   slices (gfor start (range n)
+                (islice (get coll-clones start) start None step)))
   (if (is fillvalue -sentinel)
     (zip #* slices)
     (zip-longest #* slices :fillvalue fillvalue)))

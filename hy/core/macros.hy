@@ -38,9 +38,9 @@ be associated in pairs."
   `(setv ~@(+ (if other-kvs
                 [c coll]
                 [])
-              #* (genexpr [`(get ~c ~k) v]
-                          [[k v] (partition (+ (, k1 v1)
-                                               other-kvs))]))))
+              #* (gfor [k v] (partition (+ (, k1 v1)
+                                           other-kvs))
+                       [`(get ~c ~k) v]))))
 
 
 (defn _with [node args body]
@@ -206,8 +206,8 @@ the second form, the second result is inserted into the third form, and so on."
   "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
 
 Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
-  (setv os (list-comp s [s args] (.startswith s "o!"))
-        gs (list-comp (HySymbol (+ "g!" (cut s 2))) [s os]))
+  (setv os (lfor s args :if (.startswith s "o!") s)
+        gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))
   `(defmacro/g! ~name ~args
      `(do (setv ~@(interleave ~gs ~os))
           ~@~body)))

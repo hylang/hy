@@ -110,7 +110,7 @@
     ((wraps func)
        (fn [&rest args &kwargs kwargs]
          (func #* (map inc args)
-               #** (dict-comp k (inc v) [[k v] (.items kwargs)])))))
+               #** (dfor [k v] (.items kwargs) [k (inc v)])))))
 
   #@(increment-arguments
      (defn foo [&rest args &kwargs kwargs]

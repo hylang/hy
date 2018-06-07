@@ -191,9 +191,9 @@
   (assert (= s "az"))
 
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
-             (list-comp y [x [[1] [2 3]] y x])))
+             (lfor  x [[1] [2 3]]  y x  y)))
   (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
-             (list-comp z [x [[1] [2 3]] y x z (range 5)]))))
+             (lfor  x [[1] [2 3]]  y x  z (range 5)  z))))
 
 
 (defn test-nasty-for-nesting []

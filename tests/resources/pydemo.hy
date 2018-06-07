@@ -29,10 +29,10 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv myset #{4 5 6})
 (setv mydict {7 8  9 900  10 15})
 
-(setv mylistcomp (list-comp x [x (range 10)] (% x 2)))
-(setv mysetcomp (set-comp x [x (range 5)] (not (% x 2))))
-(setv mydictcomp (dict-comp k (.upper k) [k "abcde"] (!= k "c")))
-(setv mygenexpr (genexpr x [x (cycle [1 2 3])] (!= x 2)))
+(setv mylistcomp (lfor x (range 10) :if (% x 2) x))
+(setv mysetcomp (sfor x (range 5) :if (not (% x 2)) x))
+(setv mydictcomp (dfor k "abcde" :if (!= k "c") [k (.upper k)]))
+(setv mygenexpr (gfor x (cycle [1 2 3]) :if (!= x 2) x))
 
 (setv attr-ref str.upper)
 (setv subscript (get "hello" 2))

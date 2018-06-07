@@ -98,8 +98,7 @@
 (defn comp-op [op a1 a-rest]
   "Helper for shadow comparison operators"
   (if a-rest
-    (reduce (fn [x y] (and x y))
-      (list-comp (op x y) [(, x y) (zip (+ (, a1) a-rest) a-rest)]))
+    (and #* (gfor (, x y) (zip (+ (, a1) a-rest) a-rest) (op x y)))
     True))
 (defn < [a1 &rest a-rest]
   "Shadowed `<` operator perform lt comparison on `a1` by each `a-rest`."
