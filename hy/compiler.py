@@ -1020,41 +1020,6 @@ class HyASTCompiler(object):
 
         return gen_res + cond, gen
 
-    @special(["list-comp", "set-comp", "genexpr"], [FORM, FORM, maybe(FORM)])
-    def compile_comprehension(self, expr, form, expression, gen, cond):
-        # (list-comp expr [target iter] cond?)
-
-        if not isinstance(gen, HyList):
-            raise HyTypeError(gen, "Generator expression must be a list.")
-
-        gen_res, gen = self._compile_generator_iterables(
-            [gen] + ([] if cond is None else [cond]))
-
-        if len(gen) == 0:
-            raise HyTypeError(expr, "Generator expression cannot be empty.")
-
-        ret = self.compile(expression)
-        node_class = (
-            asty.ListComp if form == "list-comp" else
-            asty.SetComp if form == "set-comp" else
-            asty.GeneratorExp)
-        return ret + gen_res + node_class(
-            expr, elt=ret.force_expr, generators=gen)
-
-    @special("dict-comp", [FORM, FORM, FORM, maybe(FORM)])
-    def compile_dict_comprehension(self, expr, root, key, value, gen, cond):
-        key = self.compile(key)
-        value = self.compile(value)
-
-        gen_res, gen = self._compile_generator_iterables(
-            [gen] + ([] if cond is None else [cond]))
-
-        return key + value + gen_res + asty.DictComp(
-            expr,
-            key=key.force_expr,
-            value=value.force_expr,
-            generators=gen)
-
     _loopers = many(
         tag('setv', sym(":setv") + FORM + FORM) |
         tag('if', sym(":if") + FORM) |
@@ -1065,7 +1030,7 @@ class HyASTCompiler(object):
         many(notpexpr("else")) + maybe(dolike("else"))])
     @special(["lfor", "sfor", "gfor"], [_loopers, FORM])
     @special(["dfor"], [_loopers, brackets(FORM, FORM)])
-    def compile_new_comp(self, expr, root, parts, final):
+    def compile_comprehension(self, expr, root, parts, final):
         root = unmangle(ast_str(root))
         node_class = {
             "for":  asty.For,
