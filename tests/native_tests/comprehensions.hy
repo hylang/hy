@@ -1,6 +1,7 @@
 (import
   types
-  pytest)
+  pytest
+  [hy._compat [PY3]])
 
 
 (defn test-comprehension-types []
@@ -122,6 +123,30 @@
         (raise (E)))
       x))
   (assert (= l [0 1 2 3 4 5])))
+
+
+(defn test-scoping []
+
+  (setv x 0)
+  (for [x [1 2 3]])
+  (assert (= x 3))
+
+  ; An `lfor` that gets compiled to a real comprehension
+  (setv x 0)
+  (assert (= (lfor x [1 2 3] (inc x)) [2 3 4]))
+  (assert (= x (if PY3 0 3)))
+    ; Python 2 list comprehensions leak their variables.
+
+  ; An `lfor` that gets compiled to a loop
+  (setv x 0  l [])
+  (assert (= (lfor x [4 5 6] :do (.append l 1) (inc x)) [5 6 7]))
+  (assert (= l [1 1 1]))
+  (assert (= x 0))
+
+  ; An `sfor` that gets compiled to a real comprehension
+  (setv x 0)
+  (assert (= (sfor x [1 2 3] (inc x)) #{2 3 4}))
+  (assert (= x 0)))
 
 
 (defn test-for-loop []
