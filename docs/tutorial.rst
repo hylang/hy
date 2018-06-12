@@ -378,21 +378,20 @@ In Hy, you could do these like:
 .. code-block:: clj
 
   (setv odds-squared
-    (list-comp
-      (pow num 2)
-      (num (range 100))
-      (= (% num 2) 1)))
-
+    (lfor
+      num (range 100)
+      :if (= (% num 2) 1)
+      (pow num 2)))
 
 .. code-block:: clj
 
   ; And, an example stolen shamelessly from a Clojure page:
   ; Let's list all the blocks of a Chessboard:
 
-  (list-comp
-    (, x y)
-    (x (range 8)
-     y "ABCDEFGH"))
+  (lfor
+    x (range 8)
+    y "ABCDEFGH"
+    (, x y))
 
   ; [(0, 'A'), (0, 'B'), (0, 'C'), (0, 'D'), (0, 'E'), (0, 'F'), (0, 'G'), (0, 'H'),
   ;  (1, 'A'), (1, 'B'), (1, 'C'), (1, 'D'), (1, 'E'), (1, 'F'), (1, 'G'), (1, 'H'),
