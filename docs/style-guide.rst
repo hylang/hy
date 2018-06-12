@@ -36,7 +36,7 @@ The Tao of Hy
 The following illustrates a brief list of design decisions that went
 into the making of Hy.
 
-+ Look like a Lisp; DTRT with it (e.g. dashes turn to underscores).
++ Look like a Lisp; do the right thing with it (e.g. dashes turn to underscores).
 + We're still Python. Most of the internals translate 1:1 to Python internals.
 + Use Unicode everywhere.
 + Fix the bad decisions in Python 2 when we can (see ``true_division``).
@@ -167,7 +167,11 @@ Furthermore
 
 + Avoid trailing spaces. They suck!
 
-+ Limit lines to 100 characters.
++ Follow PEP-8 rules for line limits, viz.
+
+  + 72nd column limit for text (docstrings and comments).
+  + 79th column limit for other code.
+  + Limit can be relaxed to 99th (for code only, not text) if primarily maintained by a team that can agree to it.
 
 + Line up arguments to function calls when splitting over multiple lines.
 
@@ -219,7 +223,9 @@ Furthermore
      (baz)
      #_ /]
 
-    ;; Unacceptable and an syntax error. Lost a bracket.
+    ;; Commenting out items at the end of a list.
+
+    ;; Unacceptable and a syntax error. Lost a bracket.
     [(foo)
      ;; (bar)
      ;; (baz)]
@@ -300,7 +306,7 @@ Furthermore
 
     ;; Groups of one must also be consistent.
 
-    (foo 1 2 3}  ; No need for extra spaces here.
+    (foo 1 2 3)  ; No need for extra spaces here.
     (foo 1
          2
          3}  ; Also acceptable, but you could have fit this on one line.
@@ -320,8 +326,7 @@ Furthermore
           y 2)
 
 + Macros and special forms can have "special" arguments that are indented like function arguments.
-
-+ Indent the non-special arguments (usually the body) one space past the parent bracket.
+  Indent the non-special arguments (usually the body) one space past the parent bracket.
 
   .. code-block:: clj
 
@@ -543,29 +548,25 @@ Prefer docstrings to comments where applicable--in ``defn``, ``defclass``, and a
 The ``(comment)`` macro is still subject to the three laws.
 If you're tempted to violate them, consider discarding a string instead with ``#_``.
 
-Semicolon comments shall start with some number of semicolons
-and have a space between the semicolons and the start of the comment.
+Semicolon comments always have one space between the semicolon and the start of the comment.
 Also, try to not comment the obvious.
 
 .. code-block:: clj
 
-    ;;;; Major Header Labeling a Major Section
-    ;; Headers should only be one line.
-    ;; This is non-header commentary, but not about a particular form.
+    ;; This commentary is not about a particular form.
     ;; These can span multiple lines.
-    ;; These are separated from the next form or form comment by a blank line.
+    ;; Limit them to column 76.
+    ;; Separate them from the next form or form comment with a blank line.
 
     ;; Good.
     (setv ind (dec x))  ; indexing starts from 0
-                                            ; margin comment continues on the next line.
+                                    ; margin comment continues on the next line.
 
     ;; Style-compliant but just states the obvious.
     (setv ind (dec x))  ; sets index to x-1
 
     ;; Bad.
     (setv ind (dec x));typing words for fun
-
-    ;;; Minor Header Comment Labeling a Minor Section
 
     ;; Comment about the whole foofunction call.
     ;; These can also span mulitple lines.
@@ -574,31 +575,22 @@ Also, try to not comment the obvious.
                  ;; Form comment about arg2. The indent matches.
                  arg2)
 
-    ;;;; Footer
 
-
-Header comments shall not be indented, and shall appear only at the toplevel outside of any form.
-They must always begin with at least three semicolons--usually ``;;;`` for minor and ``;;;;`` for major headings.
-(Emacs recognizes these as headers.)
-
-Form comments shall be indented at the same level as the form they're commenting about;
+Indent form comments at the same level as the form they're commenting about;
 they must always start with exactly two semicolons ``;;``.
 Form comments appear directly above what they're commenting on, never below.
 
-General toplevel commentary shall not be indented;
-they must always start with exactly two semicolons ``;;``
+General toplevel commentary is not indented;
+these must always start with exactly two semicolons ``;;``
 and be separated from the next form with a blank line.
 For long commentary, consider using a ``#_`` applied to a string for this purpose instead.
 
-Margin comments shall be two spaces from the end of the code; they
+Margin comments start two spaces from the end of the code; they
 must always start with a single semicolon ``;``.
 Margin comments may be continued on the next line.
 
 When commenting out entire forms, prefer the ``#_`` syntax.
-But if you do need line comments, use the more general double-colon form,
-since they're not headers that should appear in the outline,
-nor are they margin comment continuations that should be indented automatically.
-
+But if you do need line comments, use the more general double-colon form.
 
 Coding Style
 ============
@@ -628,13 +620,13 @@ Coding Style
             sorted)))
 
     ;; Probably not a good idea.
-    (setv square? [x]
+    (defn square? [x]
       (->> 2
            (pow (int (sqrt x)))
            (= x)))
 
     ;; better
-    (setv square? [x]
+    (defn square? [x]
       (-> x
           sqrt
           int
@@ -642,11 +634,11 @@ Coding Style
           (= x))
 
     ;; good
-    (setv square? [x]
+    (defn square? [x]
       (= x (-> x sqrt int (pow 2))))
 
     ;; still OK
-    (setv square? [x]
+    (defn square? [x]
       (= x (pow (int (sqrt x))
                 2))
 
@@ -726,7 +718,6 @@ Thanks
 + The `Clojure Style Guide`_
 + `Parinfer`_ and `Parlinter`_ (the three laws)
 + The Community Scheme Wiki `scheme-style`_ (ending bracket ends the line)
-+ GNU Emacs Lisp Reference Manual `Comment-Tips`_ (how many semicolons?)
 + `Riastradh's Lisp Style Rules`_
 
 .. _`Hy Survival Guide`: https://notes.pault.ag/hy-survival-guide/
