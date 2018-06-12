@@ -122,14 +122,6 @@ used as the result."
       `(~node [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))))
 
 
-(defmacro for [args &rest body]
-  "Build a for-loop with `args` as a [element coll] bracket pair and run `body`.
-
-Args may contain multiple pairs, in which case it executes a nested for-loop
-in order of the given pairs."
-  (_for 'for* args body))
-
-
 (defmacro for/a [args &rest body]
   "Build a for/a-loop with `args` as a [element coll] bracket pair and run `body`.
 
@@ -162,6 +154,7 @@ the second form, the second result is inserted into the third form, and so on."
      (setv ~f ~form)
      ~@(map build-form expressions)
      ~f))
+
 
 (defmacro ->> [head &rest args]
   "Thread `head` last through the `rest` of the forms.

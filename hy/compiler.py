@@ -1061,24 +1061,39 @@ class HyASTCompiler(object):
         tag('do', sym(":do") + FORM) |
         tag('afor', sym(":async") + FORM + FORM) |
         tag('for', FORM + FORM))
+    @special(["for"], [brackets(_loopers),
+        many(notpexpr("else")) + maybe(dolike("else"))])
     @special(["lfor", "sfor", "gfor"], [_loopers, FORM])
     @special(["dfor"], [_loopers, brackets(FORM, FORM)])
     def compile_new_comp(self, expr, root, parts, final):
-        node_class = dict(
-            lfor=asty.ListComp,
-            dfor=asty.DictComp,
-            sfor=asty.SetComp,
-            gfor=asty.GeneratorExp)[str(root)]
+        root = unmangle(ast_str(root))
+        node_class = {
+            "for":  asty.For,
+            "lfor": asty.ListComp,
+            "dfor": asty.DictComp,
+            "sfor": asty.SetComp,
+            "gfor": asty.GeneratorExp}[root]
+        is_for = root == "for"
 
-        # Compile the final value (and for dictionary comprehensions, the final
-        # key).
-        if node_class is asty.DictComp:
-            key, elt = map(self.compile, final)
+        orel = []
+        if is_for:
+            # Get the `else`.
+            body, else_expr = final
+            if else_expr is not None:
+                orel.append(self._compile_branch(else_expr))
+                orel[0] += orel[0].expr_as_stmt()
         else:
-            key = None
-            elt = self.compile(final)
+            # Get the final value (and for dictionary
+            # comprehensions, the final key).
+            if node_class is asty.DictComp:
+                key, elt = map(self.compile, final)
+            else:
+                key = None
+                elt = self.compile(final)
 
         # Compile the parts.
+        if is_for:
+            parts = parts[0]
         parts = [
             Tag(p.tag, self.compile(p.value) if p.tag in ["if", "do"] else [
                 self._storeize(p.value[0], self.compile(p.value[0])),
@@ -1086,16 +1101,24 @@ class HyASTCompiler(object):
             for p in parts]
 
         # Produce a result.
-        if (elt.stmts or (key is not None and key.stmts) or
+        if (is_for or elt.stmts or (key is not None and key.stmts) or
             any(p.tag == 'do' or (p.value[1].stmts if p.tag in ("for", "afor", "setv") else p.value.stmts)
                 for p in parts)):
             # The desired comprehension can't be expressed as a
             # real Python comprehension. We'll write it as a nested
             # loop in a function instead.
+            contains_yield = []
             def f(parts):
                 # This function is called recursively to construct
                 # the nested loop.
                 if not parts:
+                    if is_for:
+                        if body:
+                            bd = self._compile_branch(body)
+                            if bd.contains_yield:
+                                contains_yield.append(True)
+                            return bd + bd.expr_as_stmt()
+                        return Result(stmts=[asty.Pass(expr)])
                     if node_class is asty.DictComp:
                         ret = key + elt
                         val = asty.Tuple(
@@ -1108,10 +1131,11 @@ class HyASTCompiler(object):
                         elt, value=asty.Yield(elt, value=val))
                 (tagname, v), parts = parts[0], parts[1:]
                 if tagname in ("for", "afor"):
+                    orelse = orel and orel.pop().stmts
                     node = asty.AsyncFor if tagname == "afor" else asty.For
                     return v[1] + node(
                         v[1], target=v[0], iter=v[1].force_expr, body=f(parts).stmts,
-                        orelse=[])
+                        orelse=orelse)
                 elif tagname == "setv":
                     return v[1] + asty.Assign(
                         v[1], targets=[v[0]], value=v[1].force_expr) + f(parts)
@@ -1122,6 +1146,10 @@ class HyASTCompiler(object):
                     return v + v.expr_as_stmt() + f(parts)
                 else:
                     raise ValueError("can't happen")
+            if is_for:
+                ret = f(parts)
+                ret.contains_yield = bool(contains_yield)
+                return ret
             fname = self.get_anon_var()
             # Define the generator function.
             ret = Result() + asty.FunctionDef(

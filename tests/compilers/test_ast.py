@@ -531,9 +531,7 @@ def test_for_compile_error():
         can_compile("(fn [] (for)))")
     assert excinfo.value.message == "Ran into a RPAREN where it wasn't expected."
 
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x] x))")
-    assert excinfo.value.message == "`for' requires an even number of args."
+    cant_compile("(fn [] (for [x] x))")
 
 
 def test_attribute_access():

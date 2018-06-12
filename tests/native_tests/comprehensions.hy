@@ -18,8 +18,8 @@
   (assert (is (type (gfor x "abc" :do (setv y 1) x)) types.GeneratorType)))
 
 
-#@ ((pytest.mark.parametrize "specialop" ["lfor" "sfor" "gfor" "dfor"])
-(defn test-comprehensions [specialop]
+#@ ((pytest.mark.parametrize "specialop" ["for" "lfor" "sfor" "gfor" "dfor"])
+(defn test-fors [specialop]
 
   (setv cases [
     ['(f x [] x)
@@ -86,6 +86,12 @@
     (setv expr (+ (HyExpression [(HySymbol specialop)]) (cut expr 1)))
     (when (= specialop "dfor")
       (setv expr (+ (cut expr 0 -1) `([~(get expr -1) 1]))))
+    (when (= specialop "for")
+      (setv expr `(do
+        (setv out [])
+        (for [~@(cut expr 1 -1)]
+          (.append out ~(get expr -1)))
+        out)))
     (setv result (eval expr))
     (when (= specialop "dfor")
       (setv result (.keys result)))
@@ -104,3 +110,80 @@
         (raise (E)))
       x))
   (assert (= l [0 1 2 3 4 5])))
+
+
+(defn test-for-loop []
+  "NATIVE: test for loops"
+  (setv count1 0 count2 0)
+  (for [x [1 2 3 4 5]]
+    (setv count1 (+ count1 x))
+    (setv count2 (+ count2 x)))
+  (assert (= count1 15))
+  (assert (= count2 15))
+  (setv count 0)
+  (for [x [1 2 3 4 5]
+        y [1 2 3 4 5]]
+    (setv count (+ count x y))
+    (else
+      (+= count 1)))
+  (assert (= count 151))
+
+  (setv count 0)
+  ; multiple statements in the else branch should work
+  (for [x [1 2 3 4 5]
+        y [1 2 3 4 5]]
+    (setv count (+ count x y))
+    (else
+      (+= count 1)
+      (+= count 10)))
+  (assert (= count 161))
+
+  ; don't be fooled by constructs that look like else
+  (setv s "")
+  (setv else True)
+  (for [x "abcde"]
+    (+= s x)
+    [else (+= s "_")])
+  (assert (= s "a_b_c_d_e_"))
+
+  (setv s "")
+  (with [(pytest.raises TypeError)]
+    (for [x "abcde"]
+      (+= s x)
+      ("else" (+= s "z"))))
+  (assert (= s "az"))
+
+  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
+             (list-comp y [x [[1] [2 3]] y x])))
+  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
+             (list-comp z [x [[1] [2 3]] y x z (range 5)]))))
+
+
+(defn test-nasty-for-nesting []
+  "NATIVE: test nesting for loops harder"
+  ;; This test and feature is dedicated to @nedbat.
+
+  ;; OK. This next test will ensure that we call the else branch exactly
+  ;; once.
+  (setv flag 0)
+  (for [x (range 2)
+        y (range 2)]
+    (+ 1 1)
+    (else (setv flag (+ flag 2))))
+  (assert (= flag 2)))
+
+
+(defn test-empty-for []
+
+  (setv l [])
+  (defn f []
+    (for [x (range 3)]
+      (.append l "a")
+      (yield x)))
+  (for [x (f)])
+  (assert (= l ["a" "a" "a"]))
+
+  (setv l [])
+  (for [x (f)]
+    (else (.append l "z")))
+  (assert (= l ["a" "a" "a" "z"])))
