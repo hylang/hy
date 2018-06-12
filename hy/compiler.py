@@ -1442,36 +1442,6 @@ class HyASTCompiler(object):
 
         return result
 
-    @special(["for*", (PY35, "for/a*")],
-             [brackets(FORM, FORM), many(notpexpr("else")), maybe(dolike("else"))])
-    def compile_for_expression(self, expr, root, args, body, else_expr):
-        target_name, iterable = args
-        target = self._storeize(target_name, self.compile(target_name))
-
-        ret = Result()
-
-        orel = Result()
-        if else_expr is not None:
-            for else_body in else_expr:
-                orel += self.compile(else_body)
-                orel += orel.expr_as_stmt()
-
-        ret += self.compile(iterable)
-
-        body = self._compile_branch(body)
-        body += body.expr_as_stmt()
-
-        node = asty.For if root == 'for*' else asty.AsyncFor
-        ret += node(expr,
-                    target=target,
-                    iter=ret.force_expr,
-                    body=body.stmts or [asty.Pass(expr)],
-                    orelse=orel.stmts)
-
-        ret.contains_yield = body.contains_yield
-
-        return ret
-
     @special(["while"], [FORM, many(notpexpr("else")), maybe(dolike("else"))])
     def compile_while_expression(self, expr, root, cond, body, else_expr):
         cond_compiled = self.compile(cond)

@@ -101,33 +101,11 @@ used as the result."
      (setv root (check-branch branch))
      (setv latest-branch root)
 
-     (for* [branch branches]
+     (for [branch branches]
        (setv cur-branch (check-branch branch))
        (.append latest-branch cur-branch)
        (setv latest-branch cur-branch))
      root)))
-
-
-(defn _for [node args body]
-  (setv body (list body))
-  (setv belse (if (and body (isinstance (get body -1) HyExpression) (= (get body -1 0) "else"))
-                [(body.pop)]
-                []))
-  (if
-    (odd? (len args)) (macro-error args "`for' requires an even number of args.")
-    (empty? args)     `(do ~@body ~@belse)
-    (= (len args) 2)  `(~node [~@args] (do ~@body) ~@belse)
-    (do
-      (setv alist (cut args 0 None 2))
-      `(~node [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))))
-
-
-(defmacro for/a [args &rest body]
-  "Build a for/a-loop with `args` as a [element coll] bracket pair and run `body`.
-
-Args may contain multiple pairs, in which case it executes a nested for/a-loop
-in order of the given pairs."
-  (_for 'for/a* args body))
 
 
 (defmacro -> [head &rest args]
@@ -136,7 +114,7 @@ in order of the given pairs."
 The result of the first threaded form is inserted into the first position of
 the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
-  (for* [node args]
+  (for [node args]
     (setv ret (if (isinstance node HyExpression)
                   `(~(first node) ~ret ~@(rest node))
                   `(~node ~ret))))
@@ -162,7 +140,7 @@ the second form, the second result is inserted into the third form, and so on."
 The result of the first threaded form is inserted into the last position of
 the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
-  (for* [node args]
+  (for [node args]
     (setv ret (if (isinstance node HyExpression)
                   `(~@node ~ret)
                   `(~node ~ret))))
@@ -203,7 +181,7 @@ the second form, the second result is inserted into the third form, and so on."
 (defmacro with-gensyms [args &rest body]
   "Execute `body` with `args` as bracket of names to gensym for use in macros."
   (setv syms [])
-  (for* [arg args]
+  (for [arg args]
     (.extend syms [arg `(gensym '~arg)]))
   `(do
     (setv ~@syms)
@@ -218,7 +196,7 @@ the second form, the second result is inserted into the third form, and so on."
                               (.startswith x "g!")))
                        (flatten body))))
         gensyms [])
-  (for* [sym syms]
+  (for [sym syms]
     (.extend gensyms [sym `(gensym ~(cut sym 2))]))
   `(defmacro ~name [~@args]
      (setv ~@gensyms)

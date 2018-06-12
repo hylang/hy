@@ -41,7 +41,7 @@
                 fs (tuple rfs))
           (fn [&rest args &kwargs kwargs]
             (setv res (first-f #* args #** kwargs))
-            (for* [f fs]
+            (for [f fs]
               (setv res (f res)))
             res))))
 
@@ -79,7 +79,7 @@ If the second argument `codegen` is true, generate python code instead."
 (defn distinct [coll]
   "Return a generator from the original collection `coll` with no duplicates."
   (setv seen (set) citer (iter coll))
-  (for* [val citer]
+  (for [val citer]
     (if (not-in val seen)
       (do
        (yield val)
@@ -159,7 +159,7 @@ Return series of accumulated sums (or other binary function results)."
   (setv it (iter iterable)
         total (next it))
   (yield total)
-  (for* [element it]
+  (for [element it]
     (setv total (func total element))
     (yield total)))
 
@@ -193,7 +193,7 @@ Return series of accumulated sums (or other binary function results)."
 
 (defn _flatten [coll result]
   (if (coll? coll)
-    (do (for* [b coll]
+    (do (for [b coll]
           (_flatten b result)))
     (.append result coll))
   result)
@@ -402,9 +402,9 @@ Raises ValueError for (not (pos? n))."
   (if (not (pos? n))
     (raise (ValueError "n must be positive")))
   (setv citer (iter coll) skip (dec n))
-  (for* [val citer]
+  (for [val citer]
     (yield val)
-    (for* [_ (range skip)]
+    (for [_ (range skip)]
       (try
         (next citer)
         (except [StopIteration]
