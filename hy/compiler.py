@@ -1094,6 +1094,13 @@ class HyASTCompiler(object):
         # Compile the parts.
         if is_for:
             parts = parts[0]
+        if not parts:
+            return Result(expr=ast.parse({
+                asty.For: "None",
+                asty.ListComp: "[]",
+                asty.DictComp: "{}",
+                asty.SetComp: "{1}.__class__()",
+                asty.GeneratorExp: "(_ for _ in [])"}[node_class]).body[0].value)
         parts = [
             Tag(p.tag, self.compile(p.value) if p.tag in ["if", "do"] else [
                 self._storeize(p.value[0], self.compile(p.value[0])),

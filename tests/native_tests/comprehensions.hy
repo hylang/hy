@@ -98,6 +98,18 @@
     (assert (= (sorted result) answer) (str expr)))))
 
 
+(defn test-fors-no-loopers []
+
+  (setv l [])
+  (for [] (.append l 1))
+  (assert (= l []))
+
+  (assert (= (lfor 1) []))
+  (assert (= (sfor 1) #{}))
+  (assert (= (list (gfor 1)) []))
+  (assert (= (dfor [1 2]) {})))
+
+
 (defn test-raise-in-comp []
   (defclass E [Exception] [])
   (setv l [])
