@@ -1176,10 +1176,12 @@ class HyASTCompiler(object):
 
         return operand
 
+    _symn = some(lambda x: isinstance(x, HySymbol) and "." not in x)
+
     @special(["import", "require"], [many(
         SYM |
-        brackets(SYM, sym(":as"), SYM) |
-        brackets(SYM, brackets(many(SYM + maybe(sym(":as") + SYM)))))])
+        brackets(SYM, sym(":as"), _symn) |
+        brackets(SYM, brackets(many(_symn + maybe(sym(":as") + _symn)))))])
     def compile_import_or_require(self, expr, root, entries):
         """
         TODO for `require`: keep track of what we've imported in this run and

@@ -283,6 +283,13 @@ def test_ast_require():
     cant_compile("(require [tests.resources.tlib [* *]])")
 
 
+def test_ast_import_require_dotted():
+    """As in Python, it should be a compile-type error to attempt to
+import a dotted name."""
+    cant_compile("(import [spam [foo.bar]])")
+    cant_compile("(require [spam [foo.bar]])")
+
+
 def test_ast_no_pointless_imports():
     def contains_import_from(code):
         return any([isinstance(node, ast.ImportFrom)
