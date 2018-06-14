@@ -194,7 +194,7 @@
   (assert (in (mangle "_;a|") s2))
   (assert (not (= s1 s2))))
 
-(defn test-defmacro-g! []
+(defn test-defmacro/g! []
   (import ast)
   (import [astor.code-gen [to-source]])
   (import [hy.importer [import_buffer_to_ast]])
@@ -213,8 +213,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in "_;res|" s1))
-  (assert (in "_;res|" s2))
+  (assert (in (mangle "_;res|") s1))
+  (assert (in (mangle "_;res|") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
@@ -242,8 +242,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in "_;res|" s1))
-  (assert (in "_;res|" s2))
+  (assert (in (mangle "_;res|") s1))
+  (assert (in (mangle "_;res|") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
