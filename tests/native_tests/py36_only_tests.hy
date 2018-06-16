@@ -13,7 +13,7 @@
   (.run_until_complete (get-event-loop) (coro)))
 
 
-(defn test-for/a []
+(defn test-for-async []
   (defn/a numbers []
     (for [i [1 2]]
       (yield i)))
@@ -21,11 +21,11 @@
   (run-coroutine
     (fn/a []
       (setv x 0)
-      (for/a [a (numbers)]
+      (for [:async a (numbers)]
         (setv x (+ x a)))
       (assert (= x 3)))))
 
-(defn test-for/a-else []
+(defn test-for-async-else []
   (defn/a numbers []
     (for [i [1 2]]
       (yield i)))
@@ -33,7 +33,7 @@
   (run-coroutine
     (fn/a []
       (setv x 0)
-      (for/a [a (numbers)]
+      (for [:async a (numbers)]
         (setv x (+ x a))
         (else (setv x (+ x 50))))
       (assert (= x 53)))))

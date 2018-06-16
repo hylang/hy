@@ -14,6 +14,7 @@ Removals
 * Macros `ap-pipe` and `ap-compose` have been removed.
   Anaphoric macros do not work well with point-free style programming,
   in which case both threading macros and `comp` are more adequate.
+* `for/a` has been removed. Use `(for [:async ...] ...)` instead.
 
 Other Breaking Changes
 ------------------------------
@@ -30,6 +31,10 @@ Other Breaking Changes
 * Non-shadow unary `=`, `is`, `<`, etc. now evaluate their argument
   instead of ignoring it. This change increases consistency a bit
   and makes accidental unary uses easier to notice.
+* `list-comp`, `set-comp`, `dict-comp`, and `genexpr` have been replaced
+  by `lfor`, `sfor`, `dfor`, and `gfor`, respectively, which use a new
+  syntax and have additional features. All Python comprehensions can now
+  be written in Hy.
 * `hy-repr` uses registered functions instead of methods
 * `HyKeyword` no longer inherits from the string type and has been
   made into its own object type.
@@ -47,6 +52,7 @@ New Features
   keyword arguments
 * Added a command-line option `-E` per CPython
 * `while` and `for` are allowed to have empty bodies
+* `for` supports the various new clause types offered by `lfor`
 * Added a new module ``hy.model_patterns``
 
 Bug Fixes

@@ -176,110 +176,6 @@
   (with [(pytest.raises TypeError)] ("when" 1 2)))    ; A macro
 
 
-(defn test-for-loop []
-  "NATIVE: test for loops"
-  (setv count1 0 count2 0)
-  (for [x [1 2 3 4 5]]
-    (setv count1 (+ count1 x))
-    (setv count2 (+ count2 x)))
-  (assert (= count1 15))
-  (assert (= count2 15))
-  (setv count 0)
-  (for [x [1 2 3 4 5]
-        y [1 2 3 4 5]]
-    (setv count (+ count x y))
-    (else
-      (+= count 1)))
-  (assert (= count 151))
-
-  (setv count 0)
-  ; multiple statements in the else branch should work
-  (for [x [1 2 3 4 5]
-        y [1 2 3 4 5]]
-    (setv count (+ count x y))
-    (else
-      (+= count 1)
-      (+= count 10)))
-  (assert (= count 161))
-
-  ; don't be fooled by constructs that look like else
-  (setv s "")
-  (setv else True)
-  (for [x "abcde"]
-    (+= s x)
-    [else (+= s "_")])
-  (assert (= s "a_b_c_d_e_"))
-
-  (setv s "")
-  (setv else True)
-  (with [(pytest.raises TypeError)]
-    (for [x "abcde"]
-      (+= s x)
-      ("else" (+= s "z"))))
-  (assert (= s "az"))
-
-  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x] (yield y)))))
-             (list-comp y [x [[1] [2 3]] y x])))
-  (assert (= (list ((fn [] (for [x [[1] [2 3]] y x z (range 5)] (yield z)))))
-             (list-comp z [x [[1] [2 3]] y x z (range 5)])))
-
-  (setv l [])
-  (defn f []
-    (for [x [4 9 2]]
-      (.append l (* 10 x))
-      (yield x)))
-  (for [_ (f)])
-  (assert (= l [40 90 20])))
-
-
-(defn test-nasty-for-nesting []
-  "NATIVE: test nesting for loops harder"
-  ;; This test and feature is dedicated to @nedbat.
-
-  ;; let's ensure empty iterating is an implicit do
-  (setv t 0)
-  (for [] (setv t 1))
-  (assert (= t 1))
-
-  ;; OK. This first test will ensure that the else is hooked up to the
-  ;; for when we break out of it.
-  (for [x (range 2)
-        y (range 2)]
-      (break)
-    (else (raise Exception)))
-
-  ;; OK. This next test will ensure that the else is hooked up to the
-  ;; "inner" iteration
-  (for [x (range 2)
-        y (range 2)]
-    (if (= y 1) (break))
-    (else (raise Exception)))
-
-  ;; OK. This next test will ensure that the else is hooked up to the
-  ;; "outer" iteration
-  (for [x (range 2)
-        y (range 2)]
-    (if (= x 1) (break))
-    (else (raise Exception)))
-
-  ;; OK. This next test will ensure that we call the else branch exactly
-  ;; once.
-  (setv flag 0)
-  (for [x (range 2)
-        y (range 2)]
-    (+ 1 1)
-    (else (setv flag (+ flag 2))))
-  (assert (= flag 2))
-
-  (setv l [])
-  (defn f []
-    (for [x [4 9 2]]
-      (.append l (* 10 x))
-      (yield x)))
-  (for [_ (f)])
-  (assert (= l [40 90 20])))
-
-
 (defn test-while-loop []
   "NATIVE: test while loops?"
   (setv count 5)
@@ -934,62 +830,16 @@
 (defn test-for-else []
   "NATIVE: test for else"
   (setv x 0)
-  (for* [a [1 2]]
+  (for [a [1 2]]
     (setv x (+ x a))
     (else (setv x (+ x 50))))
   (assert (= x 53))
 
   (setv x 0)
-  (for* [a [1 2]]
+  (for [a [1 2]]
     (setv x (+ x a))
     (else))
   (assert (= x 3)))
-
-
-(defn test-list-comprehensions []
-  "NATIVE: test list comprehensions"
-  (assert (= (list-comp (* x 2) [x (range 2)]) [0 2]))
-  (assert (= (list-comp (* x 2) [x (range 4)] (% x 2)) [2 6]))
-  (assert (= (sorted (list-comp (* y 2) [(, x y) (.items {"1" 1 "2" 2})]))
-             [2 4]))
-  (assert (= (list-comp (, x y) [x (range 2) y (range 2)])
-             [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
-  (assert (= (list-comp j [j [1 2]]) [1 2])))
-
-
-(defn test-set-comprehensions []
-  "NATIVE: test set comprehensions"
-  (assert (instance? set (set-comp x [x (range 2)])))
-  (assert (= (set-comp (* x 2) [x (range 2)]) (set [0 2])))
-  (assert (= (set-comp (* x 2) [x (range 4)] (% x 2)) (set [2 6])))
-  (assert (= (set-comp (* y 2) [(, x y) (.items {"1" 1 "2" 2})])
-             (set [2 4])))
-  (assert (= (set-comp (, x y) [x (range 2) y (range 2)])
-             (set [(, 0 0) (, 0 1) (, 1 0) (, 1 1)])))
-  (assert (= (set-comp j [j [1 2]]) (set [1 2]))))
-
-
-(defn test-dict-comprehensions []
-  "NATIVE: test dict comprehensions"
-  (assert (instance? dict (dict-comp x x [x (range 2)])))
-  (assert (= (dict-comp x (* x 2) [x (range 2)]) {1 2 0 0}))
-  (assert (= (dict-comp x (* x 2) [x (range 4)] (% x 2)) {3 6 1 2}))
-  (assert (= (dict-comp x (* y 2) [(, x y) (.items {"1" 1 "2" 2})])
-             {"2" 4 "1" 2}))
-  (assert (= (dict-comp (, x y) (+ x y) [x (range 2) y (range 2)])
-             {(, 0 0) 0 (, 1 0) 1 (, 0 1) 1 (, 1 1) 2})))
-
-
-(defn test-generator-expressions []
-  "NATIVE: test generator expressions"
-  (assert (not (instance? list (genexpr x [x (range 2)]))))
-  (assert (= (list (genexpr (* x 2) [x (range 2)])) [0 2]))
-  (assert (= (list (genexpr (* x 2) [x (range 4)] (% x 2))) [2 6]))
-  (assert (= (list (sorted (genexpr (* y 2) [(, x y) (.items {"1" 1 "2" 2})])))
-             [2 4]))
-  (assert (= (list (genexpr (, x y) [x (range 2) y (range 2)]))
-             [(, 0 0) (, 0 1) (, 1 0) (, 1 1)]))
-  (assert (= (list (genexpr j [j [1 2]])) [1 2])))
 
 
 (defn test-defn-order []

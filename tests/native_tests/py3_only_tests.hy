@@ -49,7 +49,7 @@
 (defn test-yield-from []
   "NATIVE: testing yield from"
   (defn yield-from-test []
-    (for* [i (range 3)]
+    (for [i (range 3)]
       (yield i))
     (yield-from [1 2 3]))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
@@ -63,7 +63,7 @@
     (yield 3)
     (assert 0))
   (defn yield-from-test []
-    (for* [i (range 3)]
+    (for [i (range 3)]
       (yield i))
     (try
       (yield-from (yield-from-subgenerator-test))

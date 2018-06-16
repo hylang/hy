@@ -46,7 +46,7 @@
   (assert (= (macroexpand-all '(with [a 1]))
              '(with* [a 1] (do))))
   (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
-             '(with* [a 1] (with* [b 2] (with* [c 3] (do (for* [d c] (do foo))))))))
+             '(with* [a 1] (with* [b 2] (with* [c 3] (do (for [d c] foo)))))))
   (assert (= (macroexpand-all '(with [a 1]
                                  '(with [b 2])
                                  `(with [c 3]

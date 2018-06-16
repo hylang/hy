@@ -144,11 +144,11 @@
 
   (setv x {1 2  3 [4 5]  6 7})
   (setv (get x 3 1) x)
-  (assert (in (hy-repr x) (list-comp
+  (assert (in (hy-repr x) (lfor
     ; The ordering of a dictionary isn't guaranteed, so we need
     ; to check for all possible orderings.
-    (+ "{" (.join "  " p) "}")
-    [p (permutations ["1 2" "3 [4 {...}]" "6 7"])]))))
+    p (permutations ["1 2" "3 [4 {...}]" "6 7"])
+    (+ "{" (.join "  " p) "}")))))
 
 (defn test-matchobject []
   (import re)

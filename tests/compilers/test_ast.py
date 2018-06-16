@@ -531,9 +531,7 @@ def test_for_compile_error():
         can_compile("(fn [] (for)))")
     assert excinfo.value.message == "Ran into a RPAREN where it wasn't expected."
 
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x] x))")
-    assert excinfo.value.message == "`for' requires an even number of args."
+    cant_compile("(fn [] (for [x] x))")
 
 
 def test_attribute_access():
@@ -554,14 +552,6 @@ def test_attribute_empty():
     cant_compile(".foo")
     cant_compile('"bar".foo')
     cant_compile('[2].foo')
-
-
-def test_invalid_list_comprehension():
-    """Ensure that invalid list comprehensions do not break the compiler"""
-    cant_compile("(genexpr x [])")
-    cant_compile("(genexpr [x [1 2 3 4]] x)")
-    cant_compile("(list-comp None [])")
-    cant_compile("(list-comp [x [1 2 3]] x)")
 
 
 def test_bad_setv():

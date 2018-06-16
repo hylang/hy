@@ -25,9 +25,10 @@
 (setv -seen (set))
 (defn hy-repr [obj]
   (setv [f placeholder] (next
-    (genexpr (get -registry t)
-      [t (. (type obj) __mro__)]
-      (in t -registry))
+    (gfor
+      t (. (type obj) __mro__)
+      :if (in t -registry)
+      (get -registry t))
     [-base-repr None]))
 
   (global -quoting)
@@ -55,18 +56,18 @@
     ; collections.namedtuple.)
     (.format "({} {})"
       (. (type x) __name__)
-      (.join " " (genexpr (+ ":" k " " (hy-repr v)) [[k v] (zip x._fields x)])))
+      (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))
     ; Otherwise, print it as a regular tuple.
     (+ "(," (if x " " "") (-cat x) ")"))))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
-  (setv text (.join "  " (genexpr
-    (+ (hy-repr k) " " (hy-repr v))
-    [[k v] (.items x)])))
+  (setv text (.join "  " (gfor
+    [k v] (.items x)
+    (+ (hy-repr k) " " (hy-repr v)))))
   (+ "{" text "}")))
 (hy-repr-register HyDict :placeholder "{...}" (fn [x]
-  (setv text (.join "  " (genexpr
-    (+ (hy-repr k) " " (hy-repr v))
-    [[k v] (partition x)])))
+  (setv text (.join "  " (gfor
+    [k v] (partition x)
+    (+ (hy-repr k) " " (hy-repr v)))))
   (if (% (len x) 2)
     (+= text (+ "  " (hy-repr (get x -1)))))
   (+ "{" text "}")))
@@ -162,5 +163,8 @@
   ; Call (.repr x) using the first class of x that doesn't inherit from
   ; HyObject.
   (.__repr__
-    (next (genexpr t [t (. (type x) __mro__)] (not (issubclass t HyObject))))
+    (next (gfor
+      t (. (type x) __mro__)
+      :if (not (issubclass t HyObject))
+      t))
     x))

@@ -11,8 +11,8 @@
    --getitem-- (fn [self n]
                  "get nth item of sequence"
                  (if (hasattr n "start")
-                   (genexpr (get self x) [x (range n.start n.stop
-                                                   (or n.step 1))])
+                   (gfor x (range n.start n.stop (or n.step 1))
+                         (get self x))
                    (do (when (neg? n)
                          ; Call (len) to force the whole
                          ; sequence to be evaluated.
