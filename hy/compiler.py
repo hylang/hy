@@ -15,8 +15,7 @@ from hy.lex.parser import mangle, unmangle
 
 import hy.macros
 from hy._compat import (
-    str_type, string_types, bytes_type, long_type, PY3, PY35, PY37,
-    raise_empty)
+    str_type, bytes_type, long_type, PY3, PY35, raise_empty)
 from hy.macros import require, macroexpand, tag_macroexpand
 import hy.importer
 
@@ -27,7 +26,6 @@ import sys
 import copy
 
 from collections import defaultdict
-from cmath import isnan
 
 if PY3:
     import builtins
