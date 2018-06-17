@@ -495,63 +495,55 @@ class HyASTCompiler(object):
         We need to distinguish them as want to concatenate them instead of
         just nesting them.
         """
-        if level == 0:
-            if isinstance(form, HyExpression):
-                if form and form[0] in ("unquote", "unquote-splice"):
-                    if len(form) != 2:
-                        raise HyTypeError(form,
-                                          ("`%s' needs 1 argument, got %s" %
-                                           form[0], len(form) - 1))
-                    return set(), form[1], (form[0] == "unquote-splice")
 
-        if isinstance(form, HyExpression):
-            if form and form[0] == "quasiquote":
-                level += 1
-            if form and form[0] in ("unquote", "unquote-splice"):
-                level -= 1
+        op = None
+        if isinstance(form, HyExpression) and form and (
+                isinstance(form[0], HySymbol)):
+            op = unmangle(ast_str(form[0]))
+        if level == 0 and op in ("unquote", "unquote-splice"):
+            if len(form) != 2:
+                raise HyTypeError(form,
+                                  ("`%s' needs 1 argument, got %s" %
+                                   op, len(form) - 1))
+            return set(), form[1], op == "unquote-splice"
+        elif op == "quasiquote":
+            level += 1
+        elif op in ("unquote", "unquote-splice"):
+            level -= 1
 
         name = form.__class__.__name__
         imports = set([name])
+        body = [form]
 
         if isinstance(form, HySequence):
-            if not form:
-                contents = HyList()
-            else:
+            contents = []
+            for x in form:
+                f_imps, f_contents, splice = self._render_quoted_form(x, level)
+                imports.update(f_imps)
+                if splice:
+                    contents.append(HyExpression([
+                        HySymbol("list"),
+                        HyExpression([HySymbol("or"), f_contents, HyList()])]))
+                else:
+                    contents.append(HyList([f_contents]))
+            if form:
                 # If there are arguments, they can be spliced
                 # so we build a sum...
-                contents = HyExpression([HySymbol("+"), HyList()])
-
-            for x in form:
-                f_imports, f_contents, splice = self._render_quoted_form(x,
-                                                                         level)
-                imports.update(f_imports)
-                if splice:
-                    to_add = HyExpression([
-                        HySymbol("list"),
-                        HyExpression([HySymbol("or"), f_contents, HyList()])])
-                else:
-                    to_add = HyList([f_contents])
-
-                contents.append(to_add)
-
-            return imports, HyExpression([HySymbol(name),
-                                          contents]).replace(form), False
+                body = [HyExpression([HySymbol("+"), HyList()] + contents)]
+            else:
+                body = [HyList()]
 
         elif isinstance(form, HySymbol):
-            return imports, HyExpression([HySymbol(name),
-                                          HyString(form)]).replace(form), False
+            body = [HyString(form)]
 
         elif isinstance(form, HyKeyword):
-            return imports, form, False
+            body = [HyString(form.name)]
 
-        elif isinstance(form, HyString):
-            x = [HySymbol(name), form]
-            if form.brackets is not None:
-                x.extend([HyKeyword("brackets"), form.brackets])
-            return imports, HyExpression(x).replace(form), False
+        elif isinstance(form, HyString) and form.brackets is not None:
+            body.extend([HyKeyword("brackets"), form.brackets])
 
-        return imports, HyExpression([HySymbol(name),
-                                      form]).replace(form), False
+        ret = HyExpression([HySymbol(name)] + body).replace(form)
+        return imports, ret, False
 
     @special(["quote", "quasiquote"], [FORM])
     def compile_quote(self, expr, root, arg):
