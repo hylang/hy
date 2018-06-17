@@ -34,21 +34,6 @@ else:
 
 Inf = float('inf')
 
-_stdlib = {}
-
-
-def load_stdlib():
-    import hy.core
-    if not _stdlib:
-        for module in hy.core.STDLIB:
-            mod = importlib.import_module(module)
-            for e in map(ast_str, mod.EXPORTS):
-                if getattr(mod, e) is not getattr(builtins, e, ''):
-                    # Don't bother putting a name in _stdlib if it
-                    # points to a builtin with the same name. This
-                    # prevents pointless imports.
-                    _stdlib[e] = module
-
 
 def ast_str(x, piecewise=False):
     if piecewise:
@@ -321,6 +306,9 @@ def is_unpack(kind, x):
             and x[0] == "unpack-" + kind)
 
 
+_stdlib = {}
+
+
 class HyASTCompiler(object):
 
     def __init__(self, module_name):
@@ -333,8 +321,17 @@ class HyASTCompiler(object):
             or module_name == "hy.core.macros")
         # Everything in core needs to be explicit (except for
         # the core macros, which are built with the core functions).
-        if self.can_use_stdlib:
-            load_stdlib()
+        if self.can_use_stdlib and not _stdlib:
+            # Populate _stdlib.
+            import hy.core
+            for module in hy.core.STDLIB:
+                mod = importlib.import_module(module)
+                for e in map(ast_str, mod.EXPORTS):
+                    if getattr(mod, e) is not getattr(builtins, e, ''):
+                        # Don't bother putting a name in _stdlib if it
+                        # points to a builtin with the same name. This
+                        # prevents pointless imports.
+                        _stdlib[e] = module
 
     def get_anon_var(self):
         self.anon_var_count += 1
