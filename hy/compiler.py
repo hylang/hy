@@ -272,26 +272,6 @@ class Result(object):
         )
 
 
-def _branch(results):
-    """Make a branch out of a list of Result objects
-
-    This generates a Result from the given sequence of Results, forcing each
-    expression context as a statement before the next result is used.
-
-    We keep the expression context of the last argument for the returned Result
-    """
-    results = list(results)
-    ret = Result()
-    for result in results[:-1]:
-        ret += result
-        ret += result.expr_as_stmt()
-
-    for result in results[-1:]:
-        ret += result
-
-    return ret
-
-
 def is_unpack(kind, x):
     return (isinstance(x, HyExpression)
             and len(x) > 0
@@ -452,7 +432,20 @@ class HyASTCompiler(object):
             return compiled_exprs, ret, keywords
 
     def _compile_branch(self, exprs):
-        return _branch(self.compile(expr) for expr in exprs)
+        """Make a branch out of an iterable of Result objects
+
+        This generates a Result from the given sequence of Results, forcing each
+        expression context as a statement before the next result is used.
+
+        We keep the expression context of the last argument for the returned Result
+        """
+        ret = Result()
+        for x in map(self.compile, exprs[:-1]):
+            ret += x
+            ret += x.expr_as_stmt()
+        if exprs:
+            ret += self.compile(exprs[-1])
+        return ret
 
     def _storeize(self, expr, name, func=None):
         """Return a new `name` object with an ast.Store() context"""
