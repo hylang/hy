@@ -184,18 +184,11 @@ class Result(object):
         """
         if self.expr:
             return self.expr
-
-        # Spoof the position of the last statement for our generated None
-        lineno = 0
-        col_offset = 0
-        if self.stmts:
-            lineno = self.stmts[-1].lineno
-            col_offset = self.stmts[-1].col_offset
-
-        return ast.Name(id=ast_str("None"),
-                        ctx=ast.Load(),
-                        lineno=lineno,
-                        col_offset=col_offset)
+        return ast.Name(
+            id=ast_str("None"),
+            ctx=ast.Load(),
+            lineno=self.stmts[-1].lineno if self.stmts else 0,
+            col_offset=self.stmts[-1].col_offset if self.stmts else 0)
 
     def expr_as_stmt(self):
         """Convert the Result's expression context to a statement
