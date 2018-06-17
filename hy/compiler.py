@@ -34,17 +34,6 @@ else:
 
 Inf = float('inf')
 
-_compile_time_ns = {}
-
-
-def compile_time_ns(module_name):
-    ns = _compile_time_ns.get(module_name)
-    if ns is None:
-        ns = {'hy': hy, '__name__': module_name}
-        _compile_time_ns[module_name] = ns
-    return ns
-
-
 _stdlib = {}
 
 
@@ -1596,11 +1585,17 @@ class HyASTCompiler(object):
             arg,
             self))
 
+    _namespaces = {}
+
     @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
     def compile_eval_and_compile(self, expr, root, body):
         new_expr = HyExpression([HySymbol("do").replace(root)]).replace(expr)
+        if self.module_name not in self._namespaces:
+            # Initialize a compile-time namespace for this module.
+            self._namespaces[self.module_name] = {
+                'hy': hy, '__name__': self.module_name}
         hy.importer.hy_eval(new_expr + body,
-                            compile_time_ns(self.module_name),
+                            self._namespaces[self.module_name],
                             self.module_name)
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
