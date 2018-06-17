@@ -325,16 +325,6 @@ def _branch(results):
     return ret
 
 
-def _raise_wrong_args_number(expression, error):
-    raise HyTypeError(expression,
-                      error % (expression.pop(0),
-                               len(expression)))
-
-
-def _nargs(n):
-    return "%d argument%s" % (n, ("" if n == 1 else "s"))
-
-
 def is_unpack(kind, x):
     return (isinstance(x, HyExpression)
             and len(x) > 0
