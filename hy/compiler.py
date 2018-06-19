@@ -548,7 +548,7 @@ class HyASTCompiler(object):
     @special(["quote", "quasiquote"], [FORM])
     def compile_quote(self, expr, root, arg):
         level = Inf if root == "quote" else 0   # Only quasiquotes can unquote
-        imports, stmts, splice = self._render_quoted_form(arg, level)
+        imports, stmts, _ = self._render_quoted_form(arg, level)
         ret = self.compile(stmts)
         ret.add_imports("hy", imports)
         return ret
