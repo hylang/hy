@@ -946,32 +946,6 @@ class HyASTCompiler(object):
         elts, ret, _ = self._compile_collect(args)
         return ret + asty.Tuple(expr, elts=elts, ctx=ast.Load())
 
-    def _compile_generator_iterables(self, trailers):
-        """Helper to compile the "trailing" parts of comprehensions:
-        generators and conditions"""
-
-        generators = trailers.pop(0)
-
-        cond = self.compile(trailers.pop(0)) if trailers else Result()
-
-        gen_it = iter(generators)
-        paired_gens = zip(gen_it, gen_it)
-
-        gen_res = Result()
-        gen = []
-        for target, iterable in paired_gens:
-            gen_res += self.compile(iterable)
-            gen.append(ast.comprehension(
-                target=self._storeize(target, self.compile(target)),
-                iter=gen_res.force_expr,
-                ifs=[],
-                is_async=False))
-
-        if cond.expr:
-            gen[-1].ifs.append(cond.expr)
-
-        return gen_res + cond, gen
-
     _loopers = many(
         tag('setv', sym(":setv") + FORM + FORM) |
         tag('if', sym(":if") + FORM) |
