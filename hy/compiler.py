@@ -348,20 +348,17 @@ class HyASTCompiler(object):
             return Result()
         try:
             ret = self.compile_atom(tree)
-            if ret:
-                self.update_imports(ret)
-                return ret
+            self.update_imports(ret)
+            return ret
         except HyCompileError:
             # compile calls compile, so we're going to have multiple raise
             # nested; so let's re-raise this exception, let's not wrap it in
             # another HyCompileError!
             raise
-        except HyTypeError as e:
+        except HyTypeError:
             raise
         except Exception as e:
             raise_empty(HyCompileError, e, sys.exc_info()[2])
-
-        raise HyCompileError(Exception("Unknown type: `%s'" % _type))
 
     def _compile_collect(self, exprs, with_kwargs=False, dict_display=False,
                          oldpy_unpack=False):
