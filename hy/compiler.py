@@ -1088,11 +1088,8 @@ class HyASTCompiler(object):
         ops = {"not": ast.Not,
                "~": ast.Invert}
         operand = self.compile(arg)
-
-        operand += asty.UnaryOp(
+        return operand + asty.UnaryOp(
             expr, op=ops[root](), operand=operand.force_expr)
-
-        return operand
 
     _symn = some(lambda x: isinstance(x, HySymbol) and "." not in x)
 
