@@ -954,7 +954,6 @@ class HyASTCompiler(object):
     @special(["lfor", "sfor", "gfor"], [_loopers, FORM])
     @special(["dfor"], [_loopers, brackets(FORM, FORM)])
     def compile_comprehension(self, expr, root, parts, final):
-        root = unmangle(ast_str(root))
         node_class = {
             "for":  asty.For,
             "lfor": asty.ListComp,
@@ -1136,7 +1135,7 @@ class HyASTCompiler(object):
                 else:
                     assignments = [(k, v or k) for k, v in kids]
 
-            if root == HySymbol("import"):
+            if root == "import":
                 ast_module = ast_str(module, piecewise=True)
                 module = ast_module.lstrip(".")
                 level = len(ast_module) - len(module)
@@ -1158,7 +1157,7 @@ class HyASTCompiler(object):
                         for k, v in assignments]
                 ret += node(
                     expr, module=module or None, names=names, level=level)
-            else: # root == HySymbol("require")
+            else: # root == "require"
                 __import__(module)
                 require(module, self.module_name,
                         assignments=assignments, prefix=prefix)
@@ -1170,8 +1169,9 @@ class HyASTCompiler(object):
         ops = {"and": (ast.And, "True"),
                "or": (ast.Or, "None")}
         opnode, default = ops[operator]
+        osym = expr[0]
         if len(args) == 0:
-            return asty.Name(operator, id=default, ctx=ast.Load())
+            return asty.Name(osym, id=default, ctx=ast.Load())
         elif len(args) == 1:
             return self.compile(args[0])
         ret = Result()
@@ -1179,16 +1179,16 @@ class HyASTCompiler(object):
         if any(value.stmts for value in values):
             # Compile it to an if...else sequence
             var = self.get_anon_var()
-            name = asty.Name(operator, id=var, ctx=ast.Store())
-            expr_name = asty.Name(operator, id=var, ctx=ast.Load())
+            name = asty.Name(osym, id=var, ctx=ast.Store())
+            expr_name = asty.Name(osym, id=var, ctx=ast.Load())
             temp_variables = [name, expr_name]
 
             def make_assign(value, node=None):
                 positioned_name = asty.Name(
-                    node or operator, id=var, ctx=ast.Store())
+                    node or osym, id=var, ctx=ast.Store())
                 temp_variables.append(positioned_name)
                 return asty.Assign(
-                    node or operator, targets=[positioned_name], value=value)
+                    node or osym, targets=[positioned_name], value=value)
 
             current = root = []
             for i, value in enumerate(values):
@@ -1210,7 +1210,7 @@ class HyASTCompiler(object):
             ret = sum(root, ret)
             ret += Result(expr=expr_name, temp_variables=temp_variables)
         else:
-            ret += asty.BoolOp(operator,
+            ret += asty.BoolOp(osym,
                                op=opnode(),
                                values=[value.force_expr for value in values])
         return ret
@@ -1255,8 +1255,6 @@ class HyASTCompiler(object):
     @special(["**", "//", "<<", ">>"], [times(2, Inf, FORM)])
     @special(["%", "^"], [times(2, 2, FORM)])
     def compile_maths_expression(self, expr, root, args):
-        root = unmangle(ast_str(root))
-
         if len(args) == 0:
             # Return the identity element for this operator.
             return asty.Num(expr, n=long_type(
@@ -1293,7 +1291,7 @@ class HyASTCompiler(object):
 
     @special(list(a_ops.keys()), [FORM, FORM])
     def compile_augassign_expression(self, expr, root, target, value):
-        op = self.a_ops[unmangle(ast_str(root))]
+        op = self.a_ops[root]
         target = self._storeize(target, self.compile(target))
         ret = self.compile(value)
         return ret + asty.AugAssign(
@@ -1301,8 +1299,8 @@ class HyASTCompiler(object):
 
     @special("setv", [many(FORM + FORM)])
     def compile_def_expression(self, expr, root, pairs):
-        if len(pairs) == 0:
-            return asty.Name(root, id='None', ctx=ast.Load())
+        if not pairs:
+            return asty.Name(expr, id='None', ctx=ast.Load())
         result = Result()
         for pair in pairs:
             result += self._compile_assign(*pair)
@@ -1535,7 +1533,7 @@ class HyASTCompiler(object):
 
     @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
     def compile_eval_and_compile(self, expr, root, body):
-        new_expr = HyExpression([HySymbol("do").replace(root)]).replace(expr)
+        new_expr = HyExpression([HySymbol("do").replace(expr[0])]).replace(expr)
         if self.module_name not in self._namespaces:
             # Initialize a compile-time namespace for this module.
             self._namespaces[self.module_name] = {
@@ -1594,7 +1592,7 @@ class HyASTCompiler(object):
                             expression[0],
                             e.msg.replace("<EOF>", "end of form")))
                 return Result() + build_method(
-                    self, expression, expression[0], *parse_tree)
+                    self, expression, unmangle(sfn), *parse_tree)
 
             if fn.startswith("."):
                 # (.split "test test") -> "test test".split()
