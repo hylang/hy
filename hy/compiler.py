@@ -575,6 +575,7 @@ class HyASTCompiler(object):
     @special("raise", [maybe(FORM), maybe(sym(":from") + FORM)])
     def compile_raise_expression(self, expr, root, exc, cause):
         ret = Result()
+
         if exc is not None:
             exc = self.compile(exc)
             ret += exc
@@ -587,11 +588,9 @@ class HyASTCompiler(object):
             ret += cause
             cause = cause.force_expr
 
-        ret += asty.Raise(
+        return ret + asty.Raise(
             expr, type=ret.expr, exc=exc,
             inst=None, tback=None, cause=cause)
-
-        return ret
 
     @special("try",
        [many(notpexpr("except", "else", "finally")),
@@ -685,8 +684,6 @@ class HyASTCompiler(object):
         # or
         # []
 
-        # [variable [list of exceptions]]
-        # let's pop variable and use it as name
         name = None
         if len(exceptions) == 2:
             name = exceptions[0]
@@ -697,21 +694,20 @@ class HyASTCompiler(object):
         if isinstance(exceptions_list, HyList):
             if len(exceptions_list):
                 # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
-                elts, _type, _ = self._compile_collect(exceptions_list)
-                _type += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
+                elts, types, _ = self._compile_collect(exceptions_list)
+                types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
             else:
                 # [] → all exceptions caught
-                _type = Result()
+                types = Result()
         else:
-            _type = self.compile(exceptions_list)
+            types = self.compile(exceptions_list)
 
         body = self._compile_branch(body)
         body += asty.Assign(expr, targets=[var], value=body.force_expr)
         body += body.expr_as_stmt()
 
-        # use _type.expr to get a literal `None`
-        return _type + asty.ExceptHandler(
-            expr, type=_type.expr, name=name,
+        return types + asty.ExceptHandler(
+            expr, type=types.expr, name=name,
             body=body.stmts or [asty.Pass(expr)])
 
     @special("if*", [FORM, FORM, maybe(FORM)])
