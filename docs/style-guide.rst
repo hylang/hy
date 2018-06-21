@@ -51,53 +51,77 @@ Layout & Indentation
 ====================
 
 The #1 complaint about Lisp?
-"It's too weird looking with all those parentheses! How do you even *read* that?"
-And they're right! Lisp was originally much too hard to read.
-Then they figured out indentation. And it was glorious.
+
+  *It's too weird looking with all those parentheses! How do you even* **read** *that?*
+
+And, they're right! Lisp was originally much too hard to read.
+Then they figured out layout and indentation. And it was glorious.
 
 The Three Laws
 --------------
 
 Here's the secret: *Real Lispers don't count the brackets.*
-When reading Lisp, disregard the trailing brackets--those are for the computer, not the human.
+They fade into the background.
+When reading Lisp, disregard the trailing closing brackets---those are for the computer, not the human.
 As in Python, read the code structure by indentation.
-These are the three laws that make this possible.
 
-1. Brackets must *never* be left alone, sad and lonesome on their own line.
+Lisp code is made of trees---Abstract Syntax Trees---not strings.
+S-expressions are very direct textual representation of AST.
+That's the level of *homoiconicity*---the level Lisp macros operate on.
+It's not like the C-preprocessor or Python's interpolated eval-string tricks that see code as just letters.
+That's not how to think of Lisp code; think tree structure, not delimiters.
 
-   .. code-block:: clj
+1. Closing brackets must NEVER be left alone, sad and lonesome on their own line.
 
-    ;; Good (and preferred)
+.. code-block:: clj
+
+    ;; PREFERRED
     (defn fib [n]
       (if (<= n 2)
           n
           (+ (fib (- n 1))
-             (fib (- n 2)))))
+             (fib (- n 2)))))  ; Lots of Irritating Superfluous Parentheses
+                                    ; L.I.S.P. ;))
 
-    ;; Hysterically ridiculous
+    ;; How the experienced Lisper sees it. Indented trees. Like Python.
+    (defn fib [n
+      (if (<= n 2
+          n
+          (+ (fib (- n 1
+             (fib (- n 2
+
+    ;; BAD
+    ;; We're trying to ignore them and you want to give them their own line?
+    ;; Hysterically ridiculous.
     (defn fib [
         n
-    ]  ; my eyes!
+    ]  ; My eyes!
       (if (<= n 2)
         n
         (+ (fib (- n 1)) (fib (- n 2)))
       )
-    )  ; GAH, BURN IT WITH FIRE
+    )  ; GAH, BURN IT WITH FIRE!
 
-2. New lines must *always* be indented past their parent opening bracket.
+2. New lines must ALWAYS be indented past their parent opening bracket.
 
-   .. code-block:: clj
+.. code-block:: clj
 
-    ;; Acceptable
+    ;; PREFERRED
     (foo (, arg1
             arg2))
 
-    ;; Unacceptable
+    ;; BAD. And evil.
+    ;; Same bracket structure as above, but not enough indent.
     (foo (, arg1
-      arg2))  ; Doesn't go far enough.
+      arg2))
 
-    ;; Look at what happens if we remove the trailing brackets from the above examples.
-    ;; Can you tell where they go?
+    ;; PREFERRED. Same indent as above, but now it matches the brackets.
+    (fn [arg]
+      arg)
+
+    ;; Remember, when reading Lisp, you ignore the trailing brackets.
+    ;; Look at what happens if we remove them.
+    ;; Can you tell where they should go by the indentation?
 
     (foo (, arg1
             arg2
@@ -105,40 +129,54 @@ These are the three laws that make this possible.
     (foo (, arg1
       arg2
 
-    ;; Judging by indentation, this is where the brackets should go.
-
-    (foo (, arg1
-            arg2))
-
-    (foo (, arg1)  ; not what we started with, is it?
-      arg2)
-
-    ;; No, it's not at all obvious it should have gone the other way.
-
     (fn [arg
       arg
 
-    (fn [arg]
-      arg)
+    ;; See how the structure of those last two became indistinguishable?
 
-    ;; Beware of brackets with reader syntax. You still have to indent past them.
+    ;; Reconstruction of the bad example by indent.
+    ;; Not what we started with, is it?
+    (foo (, arg1)
+      arg2)
 
-    ;; NO!
+    ;; Beware of brackets with reader syntax.
+    ;; You still have to indent past them.
+
+    ;; BAD
     `#{(foo)
      ~@[(bar)
       1 2]}
 
-    ;; Good.
+    ;; Above, no trail.
+    `#{(foo
+     ~@[(bar
+      1 2
+
+    ;; Reconstruction. Is. Wrong.
+    `#{(foo)}
+     ~@[(bar)]
+      1 2
+
+    ;; PREFERRED
     `#{(foo)
        ~@[(bar)
           1
           2]}
 
-3. New lines must *never* be indented past the previous element's opening bracket.
+    ;; OK
+    ;; A string is an atom, not a HySequence.
+    (foo "abc
+      xyz")
 
-   .. code-block:: clj
+    ;; Still readable without trailing brackets.
+    (foo "abc
+      xyz"  ; Double-quote isn't a closing bracket. Don't ignore it.
 
-    ;; BAD.
+3. New lines must NEVER be indented past the previous element's opening bracket.
+
+.. code-block:: clj
+
+    ;; BAD
     ((get-fn q)
       x
       y)
@@ -153,317 +191,250 @@ These are the three laws that make this possible.
       x
       y))
 
-    ;; acceptable
-    ((get-fn q) x  ; the ")" on this line isn't trailing.
+    ;; OK
+    ((get-fn q) x
                 y)
 
-    ;; preferred, since the ) should end the line.
+    ;; The above without trailing brackets. Still OK (for humans).
+    ((get-fn q) x  ; The ) on this line isn't trailing!
+                y
+
+    ;; PREFERRED, since the ) should end the line.
     ((get-fn q)
      x
      y)
 
-Furthermore
------------
+Limits
+------
 
-+ Avoid trailing spaces. They suck!
+Follow PEP 8 rules for line limits, viz.
 
-+ Follow PEP-8 rules for line limits, viz.
+ + 72 columns max for text (docstrings and comments).
+ + 79 columns max for other code, OR
+ + 99 for other code if primarily maintained by a team that can agree to 99.
 
-  + 72nd column limit for text (docstrings and comments).
-  + 79th column limit for other code.
-  + Limit can be relaxed to 99th (for code only, not text) if primarily maintained by a team that can agree to it.
+Whitespace
+----------
 
-+ Line up arguments to function calls when splitting over multiple lines.
+AVOID trailing spaces. They suck!
 
-  .. code-block:: clj
+AVOID tabs in code. Indent with spaces only.
 
+PREFER the ``\t`` escape sequence to literal tab characters in one-line string literals.
+
+ + Literal tabs are OK inside multiline strings if you also add a warning comment.
+ + But ``\t`` is still PREFERRED in multiline strings.
+ + The comment should PREFERABLY appear just before the string.
+ + But a blanket warning at the top of a function, class, or file is OK.
+
+Alignment
+---------
+
+Line up arguments to function calls when splitting over multiple lines.
+
+ + The first argument PREFERABLY stays on the first line with the function name,
+ + but may instead start on the next line indented one space past its parent bracket.
+
+.. code-block:: clj
+
+    ;; PREFERRED. All args aligned with first arg.
     (foofunction arg1
                  (barfunction bararg1
                               bararg2
-                              bararg3)  ; aligned with bararg1
+                              bararg3)  ; Aligned with bararg1.
                  arg3)
 
+    ;; BAD
     (foofunction arg1
                  (barfunction bararg1
-                   bararg2)  ; Wrong. Looks like a macro body.
+                   bararg2  ; Wrong. Looks like a macro body.
+                        bararg3)  ; Why?!
                  arg3)
 
+    ;; PREFERRED. Args can all go on one line if it fits.
     (foofunction arg1
-                 (barfunction bararg1 bararg2 bararg3)  ; acceptable.
+                 (barfunction bararg1 bararg2 bararg3)
                  arg3)
 
-    ;; indenting one space past the parent bracket is acceptable for long lines
+    ;; OK. Args not on first line, but still aligned.
     (foofunction
-      arg1  ; acceptable, but better to keep it on the same line as foofunction
+      arg1  ; Indented one column past parent (
       (barfunction
-        bararg1  ; indent again
-        bararg2
+        bararg1  ; Indent again.
+        bararg2  ; Aligned with bararg1.
         bararg3)
-      arg3)  ; aligned with arg1
+      arg3)  ; Aligned with arg1.
 
-+ If you need to separate a bracket trail use a ``#_ /`` comment to hold it open.
-  (This avoids violating law #1.)
+Hold it Open
+------------
 
-  .. code-block:: clj
+If you need to separate a bracket trail use a ``#_ /`` comment to hold it open.
+This avoids violating law #1.
 
-    ;; There are basically two reasons to do this--long lists under version control,
-    ;; and when commenting out the final element during testing.
-    ;; (Common Lisp might use #+(or) for this.)
+.. code-block:: clj
 
-    ;; preferred
+    ;; PREFERRED
     [(foo)
      (bar)
      (baz)]
 
-    ;; Acceptable if the list is long. (Three isn't that long though.)
+    ;; OK, especially if the list is long. (Not that three is long.)
     ;; This is better for version control line diffs.
-    [
+    [  ; Opening brackets can't be "trailing closing brackets" btw.
      (foo)
      (bar)
      (baz)
-     #_ /]
+     #_ /]  ; Nothing to see here. Move along.
 
-    ;; Commenting out items at the end of a list.
+    ;; Examples of commenting out items at the end of a list follow.
+    ;; As with typing things in the REPL, these cases are less important
+    ;; if you're the only one that sees them. But even so, maintaining
+    ;; good style can help prevent errors.
 
-    ;; Unacceptable and a syntax error. Lost a bracket.
+    ;; BAD and a syntax error. Lost a bracket.
     [(foo)
      ;; (bar)
      ;; (baz)]
 
-    ;; Unacceptable. Broke law #1.
+    ;; BAD. Broke law #1.
     [(foo)
      ;; (bar)
      ;; (baz)
      ]
 
-    ;; preferred
+    ;; PREFERRED
+    ;; The discard syntax respects code structure,
+    ;; so it's less likely to cause errors.
     [(foo)
      #_(bar)
      #_(baz)]
 
-    ;; acceptable
-    [(foo)
-     #_
-     (bar)
-     #_
-     (baz)]
-
-    ;; acceptable
+    ;; OK. Adding a final discarded element makes line comments safer.
     [(foo)
      ;; (bar)
      ;; (baz)
      #_ /]
 
-+ Brackets like to snuggle, don't leave them out in the cold!
+Snuggle
+-------
 
-  .. code-block:: clj
+Brackets like to snuggle, don't leave them out in the cold!
 
-    ;;; Good
+.. code-block:: clj
+
+    ;; PREFERRED
     [1 2 3]
     (foo (bar 2))
 
-    ;;; Bad
+    ;; BAD
     [ 1 2 3 ]
     ( foo ( bar 2 ) )
 
-    ;;; Ugly
+    ;; BAD. And ugly.
     [ 1 2 3]
     (foo( bar 2) )
 
-+ Use whitespace to show implicit groups, but be consistent within a form.
+Grouping
+--------
 
-  .. code-block:: clj
+Use whitespace to show implicit groups, but be consistent within a form.
 
-    ;; Older Lisps would always wrap such groups in even more parentheses.
+.. code-block:: clj
+
+    ;; Older Lisps would typically wrap such groups in even more parentheses.
+    ;; (The Common Lisp LOOP macro was a notable exception.)
     ;; But Hy takes after Clojure, which has a lighter touch.
-
-    {1 9
-     2 8
-     3 7
-     4 6
-     5 5}  ; newlines show key-value pairs in dict
-
-    ;; This grouping makes no sense.
-    #{1 2
-      3 4}  ; It's a set, so why are there pairs?
-
-    ;; This grouping also makes no sense.
-    [1
-     1 2
-     1 2 3]  ; wHy do you like random patterns? [sic pun, sorry]
 
     ;; BAD. Can't tell key from value without counting
     {1 9 2 8 3 7 4 6 5 5}
 
-    ;; Good. Extra spaces can work too, if it fits on one line.
+    ;; PREFERRED. This can fit on one line. Clojure would have used commas
+    ;; here, but those aren't whitespace in Hy. Use extra spaces instead.
     {1 9  2 8  3 7  4 6  5 5}
+
+    ;; OK. And preferred if it couldn't fit on one line.
+    {1 9
+     2 8
+     3 7
+     4 6
+     5 5}  ; Newlines show key-value pairs in dict.
+
+    ;; BAD
+    ;; This grouping makes no sense.
+    #{1 2
+      3 4}  ; It's a set, so why are there pairs?
+
+    ;; BAD
+    ;; This grouping also makes no sense. But, it could be OK in a macro or
+    ;; something if this grouping was somehow meaningful there.
+    [1
+     1 2
+     1 2 3]  ; wHy do you like random patterns? [sic pun, sorry]
 
     ;; Be consistent. Separate all groups the same way in a form.
 
+    ;; BAD
     {1 9  2 8
      3 7  4 6  5 5}  ; Pick one or the other!
+
+    ;; BAD
     {1 9  2 8 3 7  4 6  5 5}  ; You forgot something.
 
     ;; Groups of one must also be consistent.
 
+    ;; PREFERRED
     (foo 1 2 3)  ; No need for extra spaces here.
+
+    ;; OK, but you could have fit this on one line.
     (foo 1
          2
-         3}  ; Also acceptable, but you could have fit this on one line.
+         3)
+
+    ;; OK, but you still could have fit this on one line.
     [1
-     2]  ; same
+     2]
+
+    ;; BAD
     (foo 1 2  ; This isn't a pair?
          3)  ; Lines or spaces--pick one or the other!
 
+    ;; PREFERRRED
     (foofunction (make-arg)
                  (get-arg)
                  #tag(do-stuff)  ; Tags belong with what they tag.
                  #* args  ; #* goes with what it unpacks.
+                 :foo spam
+                 :bar eggs  ; Keyword args are also pairs. Group them.
                  #** kwargs)
 
-    ;; Yep, those are pairs too.
+    ;; PREFERRED. Spaces divide groups on one line.
+    (quux :foo spam  :bar eggs  #* with-spam)
+    {:foo spam  :bar eggs}
+
+    ;; OK. The colon is still enough to indicate groups.
+    (quux :foo spam :bar eggs #* with-spam)
+    {:foo spam :bar eggs}
+    ;; OK.
+    ("foo" spam "bar" eggs}
+
+    ;; BAD. Can't tell key from value.
+    (quux :foo :spam :bar :eggs :baz :bacon)
+    {:foo :spam :bar :eggs :baz :bacon}
+    {"foo" "spam" "bar" "eggs" "baz" "bacon"}
+
+    ;; PREFERRED
+    (quux :foo :spam  :bar :eggs  :baz :bacon)
+    {:foo :spam  :bar :eggs  :baz :bacon}
+    {"foo" "spam"  "bar" "eggs"  "baz" "bacon"}
+
+    ;; OK. Yep, those are pairs too.
     (setv x 1
           y 2)
 
-+ Macros and special forms can have "special" arguments that are indented like function arguments.
-  Indent the non-special arguments (usually the body) one space past the parent bracket.
+    ;; PREFERRED. This fits on one line.
+    (setv x 1  y 2)
 
-  .. code-block:: clj
-
-    (assoc foo  ; foo is special
-      "x" 1  ; remaining args are not special. Indent 2 spaces.
-      "y" 2)
-
-    ;; The do form has no special args. Indent like a function call.
-    (do (foo)
-        (bar)
-        (baz))
-
-    ;; No special args to distinguish, so this is also valid function indent.
-    (do
-      (foo)
-      (bar)
-      (baz))
-
-     ;; Preferred.
-     (defn fib [n]
-       (if (<= n 2)
-           n
-           (+ (fib (- n 1))  ; else clause is not special, but aligning it is OK.
-              (fib (- n 2)))))
-
-     (defn fib
-           [n]  ; name and argslist are special. Indent like function args.
-       ;; defn body is not special. Indent 1 space past parent bracket.
-       (if (<= n 2)
-           n  ; elif pairs are special, indent like function args
-         (+ (fib (- n 1))  ; else clause is not special. Indent 1 space past parent bracket.
-            (fib (- n 2)))))
-
-
-+ Removing whitespace can also make groups clearer.
-
-  .. code-block:: clj
-
-    ;;; lookups
-    ;; acceptable
-    (. foo ["bar"])
-    ;; preferred
-    (. foo["bar"])
-
-    ;; Bad. Doesn't show groups clearly
-    (import foo foo [spam :as sp eggs :as eg] bar bar [bacon])
-
-    ;; Acceptable. Extra spaces show groups.
-    (import foo  foo [spam :as sp  eggs :as eg]  bar  bar [bacon])
-    ;; Preferred. Removing spaces is even clearer.
-    (import foo foo[spam :as sp  eggs :as eg] bar bar[bacon])
-
-    ;; Acceptable. Newlines show groups.
-    (import foo
-            foo [spam :as sp
-                 eggs :as eg]
-            bar
-            bar [bacon])
-    ;; Preferred, since it's more consistent with the preferred one-line version.
-    (import foo
-            foo[spam :as sp
-                eggs :as eg]
-            bar
-            bar[bacon])
-
-    ;;; avoid whitespace after tags
-
-    ;; Note which shows groups better.
-
-    (foofunction #tag "foo" #tag (foo) #* (get-args))
-
-    (foofunction #tag"foo" #tag(foo) #*(get-args))
-
-    ;; Can't group these by removing whitespace, so use extra spaces instead.
-    (foofunction #x foo  #x bar  #* args)
-
-    ;; Same idea.
-    (foofunction #x foo
-                 #x bar
-                 #* args)
-
-    ;; Acceptable, but you don't need to separate function name from first arg.
-    (foofunction  #x foo  #x bar  #* args)
-
-    ;; Same idea. Keeping the first group on the same line as the function name is preferable.
-    (foofunction
-      #x foo
-      #x bar
-      #* args)
-
-    ;; OK. It's still clear what this is tagging. And you don't have to re-indent.
-    #_
-    (def foo []
-      stuff)
-
-    ;; also OK, but more work.
-    #_(def foo []
-        stuff)
-
-    ;; Not OK, you messed up the indent and broke law #2.
-    #_(def foo []
-      stuff)
-
-    ;; Not OK, keep the tag grouped with its argument.
-    #_
-
-    (def foo []
-      stuff)
-
-+ Any closing bracket(s) (of any kind) must end the line,
-  unless it's in the middle of an implicit group that started on the line.
-
-  .. code-block:: clj
-
-    ;; One-liners are overrated.
-    ;; Maybe OK if you're just typing into the REPL.
-    (defn fib [n] (if (<= n 2) n (+ (fib (- n 1)) (fib (- n 2)))))  ; too hard to read!
-
-    ;; getting better.
-    (defn fib [n]
-      (if (<= n 2)
-          n
-          (+ (fib (- n 1)) (fib (- n 2)))))  ; still too hard on this line
-
-    ;; How to do it.
-    (defn fib [n]  ; Saw a "]", newline.
-      (if (<= n 2) n  ; Saw a ")", but leave it since it's in a semantic pair starting in this line.
-          (+ (fib (- n 1))  ; Saw a "))" line break.
-             (fib (- n 2)))))
-
-    ;; Acceptable. Pairs.
-    (print (if (< n 0.0) "negative"
-               (= n 0.0) "zero"
-               (> n 0.0) "positive"
-               :else "not a number"))  ; :else is not magic; True would work also.
-
-    ;; Bad. Doesn't separate groups.
+    ;; BAD. Doesn't separate groups.
     (print (if (< n 0.0)
                "negative"
                (= n 0.0)
@@ -472,33 +443,254 @@ Furthermore
                "positive"
                "not a number"))
 
-    ;; This is also acceptable.
+    ;; BAD. And evil. Broke law #3. Shows groups but args aren't aligned.
+    (print (if (< n 0.0)
+                   "negative"
+               (= n 0.0)
+                   "zero"
+               (> n 0.0)
+                   "positive"
+               "not a number"))
+
+    ;; BAD. Shows groups but args aren't aligned.
+    ;; If the then-parts weren't atoms, this would break law #3.
+    (print (if (< n 0.0)
+             "negative"
+               (= n 0.0)
+             "zero"
+               (> n 0.0)
+             "positive"
+               "not a number"))
+
+    ;; OK. Redundant (do) forms allow extra indent to show groups
+    ;; without violating law #3.
+    (print (if (< n 0.0)
+               (do
+                 "negative")
+               (= n 0.0)
+               (do
+                 "zero")
+               (> n 0.0)
+               (do
+                 "positive")
+               "not a number"))
+
+Separate toplevel forms (including toplevel comments not about a particular form)
+with a single blank line, rather than two as in Python.
+
+ + This can be omitted for tightly associated forms.
+
+Methods within a defclass need not be separated by blank line.
+
+Special Arguments
+-----------------
+
+Macros and special forms are normally indented one space past the parent bracket,
+but can also have "special" arguments that are indented like function arguments.
+
+ + Macros with an ``&rest body`` argument contain an implicit ``do``.
+ + The body is never special, but the arguments before it are.
+
+.. code-block:: clj
+
+    ;; PREFERRED
+    (assoc foo  ; foo is special
+      "x" 1  ; remaining args are not special. Indent 2 spaces.
+      "y" 2)
+
+    ;; PREFERRED
+    ;; The do form has no special args. Indent like a function call.
+    (do (foo)
+        (bar)
+        (baz))
+
+    ;; OK
+    ;; No special args to distinguish. This is also valid function indent.
+    (do
+      (foo)
+      (bar)
+      (baz))
+
+    ;; PREFERRED
+    (defn fib [n]
+      (if (<= n 2)
+          n
+          (+ (fib (- n 1))
+             (fib (- n 2)))))
+
+    ;; OK
+    (defn fib
+          [n]  ; name and argslist are special. Indent like function args.
+      ;; The defn body is not special. Indent 1 space past parent bracket.
+      (if (<= n 2)
+          n
+        (+ (fib (- n 1))  ; Emacs-style else indent.
+           (fib (- n 2)))))
+
+Removing Whitespace
+-------------------
+
+Removing whitespace can also make groups clearer.
+
+.. code-block:: clj
+
+    ;; lookups
+
+    ;; OK
+    (. foo ["bar"])
+
+    ;; PREFERRED
+    (. foo["bar"])
+
+    ;; BAD. Doesn't show groups clearly.
+    (import foo foo [spam :as sp eggs :as eg] bar bar [bacon])
+
+    ;; OK. Extra spaces show groups.
+    (import foo  foo [spam :as sp  eggs :as eg]  bar  bar [bacon])
+
+    ;; PREFERRED. Removing spaces is even clearer.
+    (import foo foo[spam :as sp  eggs :as eg] bar bar[bacon])
+
+    ;; OK. Newlines show groups.
+    (import foo
+            foo [spam :as sp
+                 eggs :as eg]
+            bar
+            bar [bacon])
+
+    ;; PREFERRED, It's more consistent with the preferred one-line version.
+    (import foo
+            foo[spam :as sp
+                eggs :as eg]
+            bar
+            bar[bacon])
+
+    ;; Avoid whitespace after tags.
+
+    ;; Note which shows groups better.
+
+    ;; BAD
+    (foofunction #tag "foo" #tag (foo) #* (get-args))
+
+    ;; OK
+    (foofunction #tag "foo"  #tag (foo)  #* (get-args))
+
+    ;; PREFERRED
+    (foofunction #tag"foo" #tag(foo) #*(get-args))
+
+    ;; PREFERRED
+    ;; Can't group these by removing whitespace. Use extra spaces instead.
+    (foofunction #x foo  #x bar  #* args)
+
+    ;; OK
+    ;; Same idea, but this could have fit on one line.
+    (foofunction #x foo
+                 #x bar
+                 #* args)
+
+    ;; OK, but you don't need to separate function name from first arg.
+    (foofunction  #x foo  #x bar  #* args)
+
+    ;; OK. But same idea.
+    ;; No need to separate the first group from the function name.
+    (foofunction
+      #x foo
+      #x bar
+      #* args)
+
+    ;; PREFERRED. It's still clear what this is tagging.
+    ;; And you don't have to re-indent.
+    #_
+    (def foo []
+      stuff)
+
+    ;; OK, but more work.
+    #_(def foo []
+        stuff)
+
+    ;; BAD, you messed up the indent and broke law #2.
+    #_(def foo []
+      stuff)
+
+    ;; BAD, keep the tag grouped with its argument.
+    #_
+
+    (def foo []
+      stuff)
+
+Close Bracket, Close Line
+-------------------------
+
+A *single* closing bracket SHOULD end the line,
+unless it's in the middle of an implicit group.
+
+ + If the forms are small and simple you can maybe leave them on one line.
+
+A *train* of closing brackets MUST end the line.
+
+.. code-block:: clj
+
+    ;; One-liners are overrated.
+    ;; Maybe OK if you're just typing into the REPL.
+    ;; But even then, maintaining good style can help prevent errors.
+
+    ;; BAD. One-liner is too hard to read.
+    (defn fib [n] (if (<= n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
+
+    ;; BAD. Getting better, but the first line is still too complex.
+    (defn fib [n] (if (<= n 2) n (+ (fib (- n 1))
+                                    (fib (- n 2)))))
+    ;; OK. Barely.
+    (defn fib [n]
+      (if (<= n 2) n (+ (fib (- n 1))  ; This line is pushing it.
+                        (fib (- n 2)))))
+
+    ;; OK
+    (defn fib [n]  ; Saw a "]", newline.
+      (if (<= n 2)  ; OK to break here, since there's only one pair.
+          n
+        (+ (fib (- n 1))  ; Whitespace separation (Emacs else-indent).
+           (fib (- n 2)))))
+
+    ;; OK
+    (defn fib [n]  ; Saw a "]", end line. (Margin comments don't count.)
+      (if (<= n 2) n  ; Saw a ")", but it's in a pair starting in this line.
+          (+ (fib (- n 1))  ; Saw a "))" MUST end line.
+             (fib (- n 2)))))
+
+    ;; OK. Pairs.
+    (print (if (< n 0.0) "negative"  ; Single ) inside group. No break.
+               (= n 0.0) "zero"
+               (> n 0.0) "positive"
+               :else "not a number"))  ; :else is not magic; True works too.
+
+    ;; OK. Avoided line breaks at single ) to show pairs.
     (print (if (< n 0.0) "negative"
                (= n 0.0) "zero"
-               (> n 0.0) (do (do-foo)  ; Group started this line, so didn't break.
+               (> n 0.0) (do (do-foo)  ; Single ) inside group. No break.
                              (do-bar)
                              "positive")
-               "not a number"))  ; :else is implied for the last one.
+               "not a number"))  ; Implicit else is PREFERRED.
 
-    ;; Bad.
+    ;; BAD
     (print (if (< n 0.0) "negative"
                (= n 0.0) "zero"
                (and (even? n)
-                    (> n 0.0)) "even-positive"  ; Group not started this line! Should break on "))"
+                    (> n 0.0)) "even-positive"  ; Bad. "))" must break.
                (> n 0.0) "positive"
                "not a number"))
 
-    ;; Worse.
+    ;; BAD
     (print (if (< n 0.0) "negative"
                (= n 0.0) "zero"
                (and (even? n)
-                    (> n 0.0)) (do (do-foo)  ; Group not started this line.
+                    (> n 0.0)) (do (do-foo)  ; Y U no break?
                                    (do-bar)
                                    "even-positive")
                (> n 0.0) "positive"
                "not a number"))
 
-    ;; Good. Blank line separates groups.
+    ;; OK. Blank line separates multiline groups.
     (print (if (< n 0.0) "negative"
 
                (= n 0.0) "zero"
@@ -513,7 +705,7 @@ Furthermore
 
                "not a number"))
 
-    ;; Not so good, groups are not separated consistently.
+    ;; BAD. Groups are not separated consistently.
     (print (if (< n 0.0) "negative"
                (= n 0.0) "zero"
 
@@ -523,27 +715,26 @@ Furthermore
 
                "not a number"))
 
-    ;; Acceptable. All groups are separated the same way, with a blank like.
-    (print (if (< n 0.0) "negative"
+    ;; OK. Single )'s and forms are simple enough.
+    (with [f (open "names.txt")]
+      (-> (.read f) .strip (.replace "\"" "") (.split ",") sorted)))
 
-               (= n 0.0) "zero"
-
-               (> n 0.0)
-               (do (do-foo)
-                   "positive")
-
-               "not a number"))
-
-    (defn fib [n]  ; saw a "]", newline.
-      (if (<= n 2)  ; OK to break here. Since there's only one pair, we don't have to separate them.
-          n
-        (+ (fib (- n 1))  ; non-special indent is another whitespace separation technique.
-           (fib (- n 2)))))
+    ;; PREFERRED. Even so, this version is much clearer.
+    (with [f (open "names.txt")]
+      (-> (.read f)
+          .strip
+          (.replace "\"" "")
+          (.split ",")
+          sorted)))
 
 Comments
 --------
 
-Prefer docstrings to comments where applicable--in ``defn``, ``defclass``, and at the top of the module.
+Prefer docstrings to comments where applicable---in ``fn``, ``defclass``,
+at the top of the module, and in any other macros derived from these that can take a docstring
+(e.g. ``defmacro/g!``, ``deftag``, ``defn``).
+
+Docstrings contents follow the same conventions as Python.
 
 The ``(comment)`` macro is still subject to the three laws.
 If you're tempted to violate them, consider discarding a string instead with ``#_``.
@@ -551,21 +742,25 @@ If you're tempted to violate them, consider discarding a string instead with ``#
 Semicolon comments always have one space between the semicolon and the start of the comment.
 Also, try to not comment the obvious.
 
+Comments with more than a single word should start with a capital letter and use punctuation.
+
+Separate sentences with a single space.
+
 .. code-block:: clj
 
     ;; This commentary is not about a particular form.
-    ;; These can span multiple lines.
-    ;; Limit them to column 76.
+    ;; These can span multiple lines. Limit them to column 72, per PEP 8.
     ;; Separate them from the next form or form comment with a blank line.
 
-    ;; Good.
-    (setv ind (dec x))  ; indexing starts from 0
-                                    ; margin comment continues on the next line.
+    ;; PREFERRED.
+    (setv ind (dec x))  ; Indexing starts from 0,
+                                    ; margin comment continues on new line.
 
+    ;; OK
     ;; Style-compliant but just states the obvious.
-    (setv ind (dec x))  ; sets index to x-1
+    (setv ind (dec x))  ; Sets index to x-1.
 
-    ;; Bad.
+    ;; BAD
     (setv ind (dec x));typing words for fun
 
     ;; Comment about the whole foofunction call.
@@ -574,7 +769,6 @@ Also, try to not comment the obvious.
                  (get-arg1)
                  ;; Form comment about arg2. The indent matches.
                  arg2)
-
 
 Indent form comments at the same level as the form they're commenting about;
 they must always start with exactly two semicolons ``;;``.
@@ -595,23 +789,34 @@ But if you do need line comments, use the more general double-colon form.
 Coding Style
 ============
 
-+ Use the threading macro or the threading tail macros when encountering
-  deeply nested s-expressions. However, be judicious when using them. Do
-  use them when clarity and readability improves; do not construct
-  convoluted, hard to understand expressions.
+Pythonic Names
+--------------
 
-  .. code-block:: clj
+Use Python's naming conventions where still applicable to Hy.
 
-    ;; Not so good.
-    (setv *names*
+ + The first parameter of a method is ``self``,
+ + of a classmethod is ``cls``.
+
+Threading Macros
+----------------
+
+PREFER the threading macro or the threading tail macros when encountering
+deeply nested s-expressions. However, be judicious when using them. Do
+use them when clarity and readability improves; do not construct
+convoluted, hard to understand expressions.
+
+.. code-block:: clj
+
+    ;; BAD. Not wrong, but could be much clearer with a threading macro.
+    (setv NAMES
       (with [f (open "names.txt")]
         (sorted (.split (.replace (.strip (.read f))
                                   "\""
                                   "")
                         ","))))
 
-    ;; Preferred.
-    (setv *names*
+    ;; PREFERRED. This compiles exactly the same way as the above.
+    (setv NAMES
       (with [f (open "names.txt")]
         (-> (.read f)
             .strip
@@ -619,13 +824,13 @@ Coding Style
             (.split ",")
             sorted)))
 
-    ;; Probably not a good idea.
+    ;; BAD. Probably. The macro makes it less clear in this case.
     (defn square? [x]
       (->> 2
            (pow (int (sqrt x)))
            (= x)))
 
-    ;; better
+    ;; OK. Much clearer that the previous example above.
     (defn square? [x]
       (-> x
           sqrt
@@ -633,68 +838,162 @@ Coding Style
           (pow 2)
           (= x))
 
-    ;; good
+    ;; PREFERRED. Judicious use.
+    ;; You don't have to thread everything if it improves clarity.
     (defn square? [x]
       (= x (-> x sqrt int (pow 2))))
 
-    ;; still OK
+    ;; OK. Still clear enough with no threading macro this time.
     (defn square? [x]
-      (= x (pow (int (sqrt x))
-                2))
+      (= x (pow (int (sqrt x))  ; saw a "))", break.
+                2))  ; aligned with first arg to pow
 
 
-+ Clojure-style dot notation is preferred over the direct call of
-  the object's method, though both will continue to be supported.
+Method Calls
+------------
 
-  .. code-block:: clj
+Clojure-style dot notation is PREFERRED over the direct call of
+the object's method, though both will continue to be supported.
 
-     ;; Good.
+.. code-block:: clj
+
+     ;; PREFERRED
      (with [fd (open "/etc/passwd")]
        (print (.readlines fd)))
 
-     ;; Not so good.
+     ;; OK
      (with [fd (open "/etc/passwd")]
        (print (fd.readlines)))
 
-+ Prefer hyphens when separating words. ``foo-bar``, not ``foo_bar``.
+Use More Arguments
+------------------
 
-+ Don't use leading hyphens, except for "operators".
+PREFER using multiple arguments to multiple forms.
+But judicious use of redundant forms can clarify intent.
+AVOID the separating blank line for toplevel forms in this case.
 
-  .. code-block:: clj
+.. code-block:: clj
 
+    ;; BAD
+    (setv x 1)
+    (setv y 2)
+    (setv z 3)
+    (setv foo 9)
+    (setv bar 10)
+
+    ;; OK
+    (setv x 1
+          y 2
+          z 3
+          foo 9
+          bar 10)
+
+    ;; PREFERRED
+    (setv x 1
+          y 2
+          z 3)
+    (setv foo 9
+          bar 10)
+
+Imports
+-------
+
+As in Python, group imports.
+
+ + Standard library imports (including Hy's) first.
+ + Then third-party modules,
+ + and finally internal modules.
+
+PREFER one import form for each group.
+
+PREFER alphabetical order within groups.
+
+Require macros before any imports and group them the same way.
+
+But sometimes imports are conditional or must be ordered a certain way for programmatic reasons, which is OK.
+
+.. code-block:: clj
+
+    ;; PREFERRED
+    (require hy.extra.anaphoric [%])
+    (require thirdparty [some-macro])
+    (require mymacros [my-macro])
+
+    (import json re)
+    (import numpy :as np
+            pandas :as pd)
+    (import mymodule1)
+
+Underscores
+-----------
+
+Prefer hyphens when separating words.
+
++ PREFERRED ``foo-bar``
++ BAD ``foo_bar``
+
+Don't use leading hyphens, except for "operators" or symbols meant to be read as including one,
+e.g. ``-Inf``, ``->foo``.
+
+Prefix private names with an underscore, not a dash.
+to avoid confusion with negated literals like ``-Inf``, ``-42`` or ``-4/2``.
+
++ PREFERRED ``_x``
++ BAD ``-x``
+
+Write Python's magic "dunder" names the same as in Python.
+Like ``__init__``, not ``--init--`` or otherwise,
+to be consistent with the private names rule above.
+
+Private names should still separate words using dashes instead of underscores,
+to be consistent with non-private parameter names and such that need the same name sans prefix,
+like ``foo-bar``, not ``foo_bar``.
+
++ PREFERRED ``_foo-bar``
++ BAD ``_foo_bar``
+
+
+.. code-block:: clj
+
+    ;; BAD
+    ;; What are you doing?
+    (_= spam 2)  ; Throwing it away?
+    (_ 100 7)  ; i18n?
+
+    ;; PREFERRED
     ;; Clearly subtraction.
     (-= spam 2)
     (- 100 7)
 
-    ;; What are you doing?
-    (_= spam 2)
-    (_ 100 7)
-
+    ;; BAD
     ;; This looks weird.
     (_>> foo bar baz)
 
+    ;; PREFERRED
     ;; OH, it's an arrow!
     (->> foo bar baz)
 
-    ;; Negative spam???
-    (setv -spam 100)
+    ;; Negative x?
+    (setv -x 100)  ; BAD. Unless you really meant that?
 
+    ;; PREFERRED
     ;; Oh, it's just a module private.
-    (setv _spam 100)
+    (setv _x 100)
 
+    ;; BAD
     (class Foo []
-      ;; Also weird.
       (defn __init-- [self] ...))
 
+    ;; OK
     (class Foo []
       ;; Less weird?
       (defn --init-- [self] ...))
 
+    ;; PREFERRED
     (class Foo []
-      ;; Preferred!
       (defn __init__ [self] ...))
 
-    ;; This kind of name is OK, but would be module private. (No import *)
+    ;; OK, but would be module private. (No import *)
     (def ->dict [&rest pairs]
       (dict (partition pairs)))
 
@@ -706,9 +1005,11 @@ Conclusion
 
 
 This guide is just a set of community guidelines, and obviously, community
-guidelines do not make sense without an active community. Contributions are
-welcome. Join us at #hy in freenode, blog about it, tweet about it, and most
-importantly, have fun with Hy.
+guidelines do not make sense without an active community.
+As in Python, we expect the style of Hy to be refined over time in practice.
+Contributions are welcome.
+Join us at #hy in freenode, blog about it,
+tweet about it, and most importantly, have fun with Hy.
 
 
 Thanks
@@ -718,7 +1019,7 @@ Thanks
 + The `Clojure Style Guide`_
 + `Parinfer`_ and `Parlinter`_ (the three laws)
 + The Community Scheme Wiki `scheme-style`_ (ending bracket ends the line)
-+ `Riastradh's Lisp Style Rules`_
++ `Riastradh's Lisp Style Rules`_ (Lisp programmers do not ... Azathoth forbid, count brackets)
 
 .. _`Hy Survival Guide`: https://notes.pault.ag/hy-survival-guide/
 .. _`Clojure Style Guide`: https://github.com/bbatsov/clojure-style-guide
