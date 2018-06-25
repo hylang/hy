@@ -54,6 +54,7 @@ New Features
 * `while` and `for` are allowed to have empty bodies
 * `for` supports the various new clause types offered by `lfor`
 * Added a new module ``hy.model_patterns``
+* `defmacro!` now allows optional args
 
 Bug Fixes
 ------------------------------

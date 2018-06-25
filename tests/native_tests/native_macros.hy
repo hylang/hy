@@ -257,7 +257,14 @@
   ;; test that o! is evaluated once only
   (setv foo 40)
   (foo! (+= foo 1))
-  (assert (= 41 foo)))
+  (assert (= 41 foo))
+  ;; test &optional args
+  (defmacro! bar! [o!a &optional [o!b 1]] `(do ~g!a ~g!a ~g!b ~g!b))
+  ;; test that o!s are evaluated once only
+  (bar! (+= foo 1) (+= foo 1))
+  (assert (= 43 foo))
+  ;; test that the optional arg works
+  (assert (= (bar! 2) 1)))
 
 
 (defn test-if-not []

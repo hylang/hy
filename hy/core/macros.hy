@@ -206,7 +206,12 @@ the second form, the second result is inserted into the third form, and so on."
   "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
 
 Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
-  (setv os (lfor s args :if (.startswith s "o!") s)
+  (defn extract-o!-sym [arg]
+    (cond [(and (symbol? arg) (.startswith arg "o!"))
+           arg]
+          [(and (instance? list arg) (.startswith (first arg) "o!"))
+           (first arg)]))
+  (setv os (list (filter identity (map extract-o!-sym args)))
         gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))
   `(defmacro/g! ~name ~args
      `(do (setv ~@(interleave ~gs ~os))
