@@ -20,7 +20,7 @@ import inspect
 import os
 import __future__
 
-from hy._compat import PY3, PY37, MAGIC, builtins, long_type, wr_long
+from hy._compat import PY3, PY34, PY37, MAGIC, builtins, long_type, wr_long
 from hy._compat import string_types
 
 
@@ -275,7 +275,7 @@ def is_package(module_name):
 
 
 def get_bytecode_path(source_path):
-    if PY3:
+    if PY34:
         import importlib.util
         return importlib.util.cache_from_source(source_path)
     elif hasattr(imp, "cache_from_source"):
