@@ -329,3 +329,12 @@
                3))
     (assert (= b 3))
     (assert (= c 3))))
+
+(defn test-let-rebind []
+  (let [x "foo"
+        y "bar"
+        x (+ x y)
+        y (+ y x)
+        x (+ x x)]
+    (assert (= x "foobarfoobar"))
+    (assert (= y "barfoobar"))))

@@ -305,6 +305,7 @@ as can nested let forms.
       (macro-error bindings "let bindings must be paired"))
   (setv g!let (gensym 'let)
         replacements (OrderedDict)
+        keys []
         values [])
   (defn expander [symbol]
     (.get replacements symbol symbol))
@@ -315,10 +316,11 @@ as can nested let forms.
                 (macro-error k "binding target may not contain a dot")))
     (.append values (symbolexpand (macroexpand-all v &name)
                                   expander))
-    (assoc replacements k `(get ~g!let ~(name k))))
+    (.append keys `(get ~g!let ~(name k)))
+    (assoc replacements k (last keys)))
   `(do
      (setv ~g!let {}
-           ~@(interleave (.values replacements) values))
+           ~@(interleave keys values))
      ~@(symbolexpand (macroexpand-all body &name)
                      expander)))
 
