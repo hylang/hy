@@ -30,20 +30,26 @@
 
 (defn coll? [coll]
   "Check if `coll` is iterable and not a string."
-  (and (iterable? coll) (not (string? coll))))
+  (and (iterable? coll)
+       (not (string? coll))))
 
 (defn comp [&rest fs]
   "Return the function from composing the given functions `fs`."
-  (if (not fs) identity
-      (= 1 (len fs)) (first fs)
-      (do (setv rfs (reversed fs)
-                first-f (next rfs)
-                fs (tuple rfs))
-          (fn [&rest args &kwargs kwargs]
-            (setv res (first-f #* args #** kwargs))
-            (for [f fs]
-              (setv res (f res)))
-            res))))
+  (if (not fs)
+      identity
+
+      (= 1 (len fs))
+      (first fs)
+
+      (do
+        (setv rfs (reversed fs)
+              first-f (next rfs)
+              fs (tuple rfs))
+        (fn [&rest args &kwargs kwargs]
+          (setv res (first-f #* args #** kwargs))
+          (for [f fs]
+            (setv res (f res)))
+          res))))
 
 (defn complement [f]
   "Returns a new function that returns the logically inverted result of `f`."
@@ -78,52 +84,55 @@ If the second argument `codegen` is true, generate python code instead."
 
 (defn distinct [coll]
   "Return a generator from the original collection `coll` with no duplicates."
-  (setv seen (set) citer (iter coll))
+  (setv seen (set)
+        citer (iter coll))
   (for [val citer]
     (if (not-in val seen)
-      (do
-       (yield val)
-       (.add seen val)))))
+        (do
+          (yield val)
+          (.add seen val)))))
 
 (if-python2
- (setv
-   remove itertools.ifilterfalse
-   zip-longest itertools.izip_longest
-   ;; not builtin in Python3
-   reduce reduce
-   ;; hy is more like Python3
-   filter itertools.ifilter
-   input raw_input
-   map itertools.imap
-   range xrange
-   zip itertools.izip)
- (setv
-   remove itertools.filterfalse
-   zip-longest itertools.zip_longest
-   ;; was builtin in Python2
-   reduce functools.reduce
-   ;; Someone can import these directly from `hy.core.language`;
-   ;; we'll make some duplicates.
-   filter filter
-   input input
-   map map
-   range range
-   zip zip))
+  (setv
+    remove itertools.ifilterfalse
+    zip-longest itertools.izip_longest
+    ;; not builtin in Python3
+    reduce reduce
+    ;; hy is more like Python3
+    filter itertools.ifilter
+    input raw_input
+    map itertools.imap
+    range xrange
+    zip itertools.izip)
+  (setv
+    remove itertools.filterfalse
+    zip-longest itertools.zip_longest
+    ;; was builtin in Python2
+    reduce functools.reduce
+    ;; Someone can import these directly from `hy.core.language`;
+    ;; we'll make some duplicates.
+    filter filter
+    input input
+    map map
+    range range
+    zip zip))
 
 (if-python2
   (defn exec [$code &optional $globals $locals]
     "Execute Python code.
 
-The parameter names contain weird characters to discourage calling this
-function with keyword arguments, which isn't supported by Python 3's `exec`."
+    The parameter names contain weird characters to discourage calling this
+    function with keyword arguments, which isn't supported by Python 3's `exec`."
     (if
-      (none? $globals) (do
+      (none? $globals)
+      (do
         (setv frame (._getframe sys (int 1)))
         (try
           (setv $globals frame.f_globals  $locals frame.f_locals)
           (finally (del frame))))
       (none? $locals)
-        (setv $locals $globals))
+      (do
+        (setv $locals $globals)))
     (exec* $code $globals $locals))
   (setv exec exec))
 
@@ -155,7 +164,7 @@ function with keyword arguments, which isn't supported by Python 3's `exec`."
 (defn accumulate [iterable &optional [func operator.add]]
   "Accumulate `func` on `iterable`.
 
-Return series of accumulated sums (or other binary function results)."
+  Return series of accumulated sums (or other binary function results)."
   (setv it (iter iterable)
         total (next it))
   (yield total)
@@ -179,7 +188,8 @@ Return series of accumulated sums (or other binary function results)."
 
 (defn even? [n]
   "Check if `n` is an even number."
-  (= (% n 2) 0))
+  (= (% n 2)
+     0))
 
 (defn every? [pred coll]
   "Check if `pred` is true applied to every x in `coll`."
@@ -188,14 +198,14 @@ Return series of accumulated sums (or other binary function results)."
 (defn flatten [coll]
   "Return a single flat list expanding all members of `coll`."
   (if (coll? coll)
-    (_flatten coll [])
-    (raise (TypeError (.format "{0!r} is not a collection" coll)))))
+      (_flatten coll [])
+      (raise (TypeError (.format "{0!r} is not a collection" coll)))))
 
 (defn _flatten [coll result]
   (if (coll? coll)
-    (do (for [b coll]
-          (_flatten b result)))
-    (.append result coll))
+      (do (for [b coll]
+            (_flatten b result)))
+      (.append result coll))
   result)
 
 (defn float? [x]
@@ -226,12 +236,15 @@ Return series of accumulated sums (or other binary function results)."
   `calling-module-name` function call (by default, one level up)"
   (import inspect)
 
-  (setv f (get (.stack inspect) (+ n 1) 0))
+  (setv f (get (.stack inspect)
+               (+ n 1)
+               0))
   (get f.f_globals "__name__"))
 
 (defn first [coll]
   "Return first item from `coll`."
-  (next (iter coll) None))
+  (next (iter coll)
+        None))
 
 (defn identity [x]
   "Return `x`."
@@ -257,8 +270,10 @@ Return series of accumulated sums (or other binary function results)."
   "Check if char `x` parses as an integer."
   (try
     (integer? (int x))
-    (except [ValueError] False)
-    (except [TypeError] False)))
+    (except [ValueError]
+      False)
+    (except [TypeError]
+      False)))
 
 (defn interleave [&rest seqs]
   "Return an iterable of the first item in each of `seqs`, then the second etc."
@@ -266,7 +281,8 @@ Return series of accumulated sums (or other binary function results)."
 
 (defn interpose [item seq]
   "Return an iterable of the elements of `seq` separated by `item`."
-  (drop 1 (interleave (repeat item) seq)))
+  (drop 1 (interleave (repeat item)
+                      seq)))
 
 (defn iterable? [x]
   "Check if `x` is an iterable."
@@ -285,7 +301,8 @@ Return series of accumulated sums (or other binary function results)."
 
 (defn juxt [f &rest fs]
   "Return a function applying each `fs` to args, collecting results in a list."
-  (setv fs (+ (, f) fs))
+  (setv fs (+ (, f)
+              fs))
   (fn [&rest args &kwargs kwargs]
     (lfor f fs (f #* args #** kwargs))))
 
@@ -306,20 +323,23 @@ Return series of accumulated sums (or other binary function results)."
 (defn merge-with [f &rest maps]
   "Return the map of `maps` joined onto the first via the function `f`.
 
-If a key occurs in more than one map, the mapping(s) from the latter
-(left-to-right) will be combined with the mapping in the result by calling
-(f val-in-result val-in-latter)."
+  If a key occurs in more than one map, the mapping(s) from the latter
+  (left-to-right) will be combined with the mapping in the result by calling
+  (f val-in-result val-in-latter)."
   (if (any maps)
-    (do
-      (defn merge-entry [m e]
-        (setv k (get e 0) v (get e 1))
-        (setv (get m k) (if (in k m)
-                          (f (get m k) v)
-                          v))
-        m)
-      (defn merge2 [m1 m2]
-        (reduce merge-entry (.items m2) (or m1 {})))
-      (reduce merge2 maps))))
+      (do
+        (defn merge-entry [m e]
+          (setv k (get e 0)
+                v (get e 1))
+          (setv (get m k) (if (in k m)
+                              (f (get m k) v)
+                              v))
+          m)
+        (defn merge2 [m1 m2]
+          (reduce merge-entry
+                  (.items m2)
+                  (or m1 {})))
+        (reduce merge2 maps))))
 
 (defn neg? [n]
   "Check if `n` is < 0."
@@ -336,27 +356,36 @@ If a key occurs in more than one map, the mapping(s) from the latter
 
 (defn nth [coll n &optional [default None]]
   "Return `n`th item in `coll` or None (specify `default`) if out of bounds."
-  (next (drop n coll) default))
+  (next (drop n coll)
+        default))
 
 (defn odd? [n]
   "Check if `n` is an odd number."
-  (= (% n 2) 1))
+  (= (% n 2)
+     1))
 
-(setv -sentinel (object))
-(defn partition [coll &optional [n 2] step [fillvalue -sentinel]]
+(setv _sentinel (object))
+(defn partition [coll
+                 &optional
+                 [n 2]
+                 step
+                 [fillvalue _sentinel]]
   "Chunk `coll` into `n`-tuples (pairs by default).
 
-The remainder, if any, is not included unless `fillvalue` is specified. The step
-defaults to `n`, but can be more to skip elements, or less for a sliding window
-with overlap."
+  The remainder, if any, is not included unless `fillvalue` is specified. The step
+  defaults to `n`, but can be more to skip elements, or less for a sliding window
+  with overlap."
   (setv
-   step (or step n)
-   coll-clones (tee coll n)
-   slices (gfor start (range n)
-                (islice (get coll-clones start) start None step)))
+    step (or step n)
+    coll-clones (tee coll n)
+    slices (gfor start (range n)
+                 (islice (get coll-clones start)
+                         start
+                         None
+                         step)))
   (if (is fillvalue -sentinel)
-    (zip #* slices)
-    (zip-longest #* slices :fillvalue fillvalue)))
+      (zip #* slices)
+      (zip-longest #* slices :fillvalue fillvalue)))
 
 (defn pos? [n]
   "Check if `n` is > 0."
@@ -382,8 +411,8 @@ with overlap."
 (defn string [x]
   "Cast `x` as the current python version's string implementation."
   (if-python2
-   (unicode x)
-   (str x)))
+    (unicode x)
+    (str x)))
 
 (defn string? [x]
   "Check if `x` is a string."
@@ -398,10 +427,11 @@ with overlap."
 (defn take-nth [n coll]
   "Return every `n`th member of `coll`.
 
-Raises ValueError for (not (pos? n))."
+  Raises ValueError for (not (pos? n))."
   (if (not (pos? n))
-    (raise (ValueError "n must be positive")))
-  (setv citer (iter coll) skip (dec n))
+      (raise (ValueError "n must be positive")))
+  (setv citer (iter coll)
+        skip (dec n))
   (for [val citer]
     (yield val)
     (for [_ (range skip)]
@@ -414,17 +444,18 @@ Raises ValueError for (not (pos? n))."
   "Check if `n` equals 0."
   (= n 0))
 
-(defn read [&optional [from-file sys.stdin]
-                      [eof ""]]
+(defn read [&optional
+            [from-file sys.stdin]
+            [eof ""]]
   "Read from input and returns a tokenized string.
 
-Can take a given input buffer to read from, and a single byte
-as EOF (defaults to an empty string)."
+  Can take a given input buffer to read from, and a single byte
+  as EOF (defaults to an empty string)."
   (setv buff "")
   (while True
     (setv inn (string (.readline from-file)))
     (if (= inn eof)
-      (raise (EOFError "Reached end of file")))
+        (raise (EOFError "Reached end of file")))
     (+= buff inn)
     (try
       (setv parsed (first (tokenize buff)))
@@ -439,42 +470,123 @@ as EOF (defaults to an empty string)."
 (defn keyword [value]
   "Create a keyword from `value`.
 
-Strings numbers and even objects with the __name__ magic will work."
+  Strings numbers and even objects with the __name__ magic will work."
   (if (keyword? value)
       (HyKeyword (unmangle value.name))
       (if (string? value)
           (HyKeyword (unmangle value))
           (try
             (unmangle (.__name__ value))
-            (except [] (HyKeyword (string value)))))))
+            (except []
+              (HyKeyword (string value)))))))
 
 (defn name [value]
   "Convert `value` to a string.
 
-Keyword special character will be stripped. String will be used as is.
-Even objects with the __name__ magic will work."
+  Keyword special character will be stripped. String will be used as is.
+  Even objects with the __name__ magic will work."
   (if (keyword? value)
-      (unmangle (cut (str value) 1))
+      (unmangle (cut (str value)
+                     1))
       (if (string? value)
           (unmangle value)
           (try
             (unmangle (. value __name__))
-            (except [] (string value))))))
+            (except []
+              (string value))))))
 
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`."
   (if (and a b)
-    False
-    (or a b)))
+      False
+      (or a b)))
 
-(setv EXPORTS
-  '[*map accumulate butlast calling-module-name chain coll? combinations
-    comp complement compress constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? eval even? every? exec first
-    filter flatten float? fraction gensym group-by identity inc input instance?
-    integer integer? integer-char? interleave interpose islice iterable?
-    iterate iterator? juxt keyword keyword? last macroexpand
-    macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
-    numeric? odd? partition permutations pos? product range read read-str
-    remove repeat repeatedly rest reduce second some string string? symbol?
-    take take-nth take-while unmangle xor tee zero? zip zip-longest])
+(setv
+  EXPORTS
+  '[*map
+    accumulate
+    butlast
+    calling-module-name
+    chain
+    coll?
+    combinations
+    comp
+    complement
+    compress
+    constantly
+    count
+    cycle
+    dec
+    distinct
+    disassemble
+    drop
+    drop-last
+    drop-while
+    empty?
+    eval
+    even?
+    every?
+    exec
+    first
+    filter
+    flatten
+    float?
+    fraction
+    gensym
+    group-by
+    identity
+    inc
+    input
+    instance?
+    integer
+    integer?
+    integer-char?
+    interleave
+    interpose
+    islice
+    iterable?
+    iterate
+    iterator?
+    juxt
+    keyword
+    keyword?
+    last
+    macroexpand
+    macroexpand-1
+    mangle
+    map
+    merge-with
+    multicombinations
+    name
+    neg?
+    none?
+    nth
+    numeric?
+    odd?
+    partition
+    permutations
+    pos?
+    product
+    range
+    read
+    read-str
+    remove
+    repeat
+    repeatedly
+    rest
+    reduce
+    second
+    some
+    string
+    string?
+    symbol?
+    take
+    take-nth
+    take-while
+    unmangle
+    xor
+    tee
+    zero?
+    zip
+    zip-longest
+    #_/])
