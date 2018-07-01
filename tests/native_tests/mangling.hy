@@ -24,27 +24,18 @@
   (setv _42 3)
   (assert (= _42 3))
   (assert (!= _42 -42))
-  (assert (not-in "_hyx_42" (locals))))
-
-
-(defn test-question-mark []
-  (setv foo? "nachos")
-  (assert (= foo? "nachos"))
-  (assert (= is_foo "nachos"))
-  (setv ___ab_cd? "tacos")
-  (assert (= ___ab_cd? "tacos"))
-  (assert (= ___is_ab_cd "tacos")))
+  (assert (in "_42" (locals))))
 
 
 (defn test-py-forbidden-ascii []
 
   (setv # "no comment")
   (assert (= # "no comment"))
-  (assert (= hyx_Xnumber_signX "no comment"))
+  (assert (= XtagX "no comment"))
 
   (setv $ "dosh")
   (assert (= $ "dosh"))
-  (assert (= hyx_Xdollar_signX "dosh")))
+  (assert (= XsbarX "dosh")))
 
 
 (defn test-basic-multilingual-plane []
@@ -52,39 +43,39 @@
         ⚘ab "flower")
   (assert (= (+ ⚘ab ♥)
              "flowerlove"))
-  (assert (= (+ hyx_XflowerXab hyx_Xblack_heart_suitX)
+  (assert (= (+ XflowerXab Xblack_heart_suitX)
              "flowerlove"))
   (setv ⚘-⚘ "doubleflower")
   (assert (= ⚘-⚘ "doubleflower"))
-  (assert (= hyx_XflowerX_XflowerX "doubleflower"))
+  (assert (= XflowerX_XflowerX "doubleflower"))
   (setv ⚘? "mystery")
   (assert (= ⚘? "mystery"))
-  (assert (= hyx_is_XflowerX "mystery")))
+  (assert (= XflowerXXqueryX "mystery")))
 
 
 (defn test-higher-unicode []
   (setv 😂 "emoji")
   (assert (= 😂 "emoji"))
   (if PY3
-      (assert (= hyx_Xface_with_tears_of_joyX "emoji"))
-      (assert (= hyx_XU1f602X "emoji"))))
+      (assert (= Xface_with_tears_of_joyX "emoji"))
+      (assert (= XU1f602X "emoji"))))
 
 
 (defn test-nameless-unicode []
   (setv  "private use")
   (assert (=  "private use"))
-  (assert (= hyx_XUe000X "private use")))
+  (assert (= XUe000X "private use")))
 
 
 (defn test-charname-with-hyphen []
-  (setv a<b "little")
-  (assert (= a<b "little"))
-  (assert (= hyx_aXlessHthan_signXb "little")))
+  (setv a±b "about")
+  (assert (= a±b "about"))
+  (assert (= aXplusHminus_signXb "about")))
 
 
 (defn test-delimiters []
   (setv X☠ "treasure")
-  (assert (= hyx_Xlatin_capital_letter_xXXskull_and_crossbonesX "treasure")))
+  (assert (= XxXXskull_and_crossbonesX "treasure")))
 
 
 (defmacro m---x [form]
@@ -123,13 +114,13 @@
 (defn test-python-keyword []
   (setv if 3)
   (assert (= if 3))
-  (assert (= hyx_if 3)))
+  (assert (= XhyXif 3)))
 
 
 (defn test-operator []
   (setv + 3)
   (assert (= + 3))
-  (assert (= hyx_Xplus_signX 3)))
+  (assert (= XaddX 3)))
 
 
 (defn test-keyword-args []
@@ -138,33 +129,33 @@
     [a a-b foo? ☘])
   (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2)
              [1 2 3 4]))
-  (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
+  (assert (= (f :fooXqueryX 3 :XshamrockX 4 :a 1 :a_b 2)
              [1 2 3 4]))
 
   (defn g [&kwargs x]
     x)
   (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
-             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))
-  (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
-             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4})))
+             {"a" 1  "a_b" 2  "fooXqueryX" 3  "XshamrockX" 4}))
+  (assert (= (g :fooXqueryX 3 :XshamrockX 4 :a 1 :a_b 2)
+             {"a" 1  "a_b" 2  "fooXqueryX" 3  "XshamrockX" 4})))
 
 
 (defn test-late-mangling []
   ;; Mangling should only happen during compilation.
-  (assert (!= 'foo? 'is_foo))
+  (assert (!= 'foo? 'fooXqueryX))
   (setv sym 'foo?)
   (assert (= sym "foo?"))
-  (assert (!= sym "is_foo"))
+  (assert (!= sym "fooXqueryX"))
   (setv out (eval `(do
                      (setv ~sym 10)
-                     [foo? is_foo])))
+                     [foo? fooXqueryX])))
   (assert (= out [10 10])))
 
 
 (defn test-functions []
-  (for [[a b] [["---ab-cd?" "___is_ab_cd"]
-               ["if" "hyx_if"]
-               ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
+  (for [[a b] [["---ab-cd?" "___ab_cdXqueryX"]
+               ["if" "XhyXif"]
+               ["⚘-⚘" "XflowerX_XflowerX"]]]
     (assert (= (mangle a)
                b))
     (assert (= (unmangle b)
