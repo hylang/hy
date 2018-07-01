@@ -52,10 +52,10 @@
   (assert (= (a-none) None)))
 
 
-; A macro calling a previously defined function
+;; A macro calling a previously defined function
 (eval-when-compile
- (defn foo [x y]
-   (quasiquote (+ (unquote x) (unquote y)))))
+  (defn foo [x y]
+    (quasiquote (+ (unquote x) (unquote y)))))
 
 (defmacro bar [x y]
   (foo x y))
@@ -79,11 +79,11 @@
   (assert (= 3 (bar 1 2))))
 
 (defn test-optional-and-unpacking-in-macro []
-  ; https://github.com/hylang/hy/issues/1154
+  ;; https://github.com/hylang/hy/issues/1154
   (defn f [&rest args]
     (+ "f:" (repr args)))
   (defmacro mac [&optional x]
-   `(f #* [~x]))
+    `(f #* [~x]))
   (assert (= (mac) "f:(None,)")))
 
 (defn test-macro-autoboxing-docstring []
@@ -96,7 +96,9 @@
 
 (defn test-midtree-yield []
   "NATIVE: test yielding with a returnable"
-  (defn kruft [] (yield) (+ 1 1)))
+  (defn kruft []
+    (yield)
+    (+ 1 1)))
 
 (defn test-midtree-yield-in-for []
   "NATIVE: test yielding in a for with a return"
@@ -121,20 +123,21 @@
       (yield i))
     (yield "a")
     (yield "end"))
-  (assert (= (list (multi-yield)) [0 1 2 "a" "end"])))
+  (assert (= (list (multi-yield))
+             [0 1 2 "a" "end"])))
 
 
-; Macro that checks a variable defined at compile or load time
+;; Macro that checks a variable defined at compile or load time
 (setv phase "load")
 (eval-when-compile
- (setv phase "compile"))
+  (setv phase "compile"))
 (defmacro phase-when-compiling [] phase)
 (assert (= phase "load"))
 (assert (= (phase-when-compiling) "compile"))
 
 (setv initialized False)
 (eval-and-compile
- (setv initialized True))
+  (setv initialized True))
 (defmacro test-initialized [] initialized)
 (assert initialized)
 (assert (test-initialized))
@@ -259,7 +262,8 @@
   (foo! (+= foo 1))
   (assert (= 41 foo))
   ;; test &optional args
-  (defmacro! bar! [o!a &optional [o!b 1]] `(do ~g!a ~g!a ~g!b ~g!b))
+  (defmacro! bar! [o!a &optional [o!b 1]]
+    `(do ~g!a ~g!a ~g!b ~g!b))
   ;; test that o!s are evaluated once only
   (bar! (+= foo 1) (+= foo 1))
   (assert (= 43 foo))
@@ -301,10 +305,10 @@
 
 (defn test-lif-not []
   "test that lif-not works as expected"
-  ; None is false
+  ;; None is false
   (assert (= (lif-not None "false" "true") "false"))
 
-  ; But everything else is True!  Even falsey things.
+  ;; But everything else is True!  Even falsey things.
   (assert (= (lif-not True "false" "true") "true"))
   (assert (= (lif-not False "false" "true") "true"))
   (assert (= (lif-not 0 "false" "true") "true"))
@@ -327,5 +331,6 @@
     (defmain [&rest args]
       (main))
     (except [e SystemExit]
-      (assert (= (str e) "42"))))
+      (assert (= (str e)
+                 "42"))))
   (setv --name-- oldname))
