@@ -40,11 +40,13 @@ ASCII_NAMES = {
     '?': 'query',
     '.': 'dot',
     '/': 'per',
-    'X': 'x',
+    mangle_delim: 'x',
     '-': 'sub',
     '_': 'score',
+    '\x00': '__',
+    '': 'hy',
 }
-UN_ASCII_NAMES = {v: k for k, v in ASCII_NAMES.items()}
+NAMES_ASCII = {v: [k] for k, v in ASCII_NAMES.items()}
 
 def unicode_to_ucs4iter(ustr):
     # Covert a unicode string to an iterable object,
@@ -69,28 +71,34 @@ def mangle(s):
 
     s = str_type(s)
     s = s.replace("-", "_")
-    s2 = s.lstrip('_')
-    leading_underscores = '_' * (len(s) - len(s2))
-    s = s2
 
-    if s.endswith("?"):
-        s = 'is_' + s[:-1]
-    if not isidentifier(leading_underscores + s):
+
+    if not isidentifier(s):
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
-        s = 'hyx_' + ''.join(
+        s = ''.join(
             c
-               if c != mangle_delim and isidentifier('S' + c)
-                 # We prepend the "S" because some characters aren't
-                 # allowed at the start of an identifier.
-               else '{0}{1}{0}'.format(mangle_delim,
-                   ASCII_NAMES.get(c)
-                   or unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
-                   or 'U{}'.format(unicode_char_to_hex(c)))
-            for c in unicode_to_ucs4iter(s))
+            if c != mangle_delim
+               # We prepend the 'S' because some characters aren't
+               # allowed at the start of an identifier.
+               and isidentifier('S' + c)
+            else '{0}{1}{0}'.format(
+                mangle_delim,
 
-    s = leading_underscores + s
-    assert isidentifier(s)
+                ASCII_NAMES.get(c)
+                or (unicodedata
+                    .name(c, '')
+                    .lower()
+                    .replace('-', 'H')
+                    .replace(' ', '_'))
+                or 'U{}'.format(unicode_char_to_hex(c))
+            )
+            for c in unicode_to_ucs4iter(s)
+        )
+
+    if not isidentifier(s):
+        s = 'XhyX' + s
+    assert isidentifier(s), s
     return s
 
 
@@ -101,24 +109,36 @@ def unmangle(s):
 
     s = str_type(s)
 
-    s2 = s.lstrip('_')
-    leading_underscores = len(s) - len(s2)
-    s = s2
+    xs = s.count('X')
+    if xs and xs%2 == 0:
+        try:
+            s = re.sub(
+                '{0}(U)?([_a-z0-9H]+?){0}'.format(mangle_delim),
 
-    if s.startswith('hyx_'):
-        s = re.sub('{0}(U)?([_a-z0-9H]+?){0}'.format(mangle_delim),
-            lambda mo:
-               chr(int(mo.group(2), base=16))
-               if mo.group(1)
-               else UN_ASCII_NAMES.get(mo.group(2))
-               or unicodedata.lookup(
-                   mo.group(2).replace('_', ' ').replace('H', '-').upper()),
-            s[len('hyx_'):])
-    if s.startswith('is_'):
-        s = s[len("is_"):] + "?"
-    s = s.replace('_', '-')
+                lambda mo:(
+                   (chr(int(mo.group(2), base=16))
+                    ,)
+                   if mo.group(1)
+                   else NAMES_ASCII.get(mo.group(2))
+                        or (unicodedata
+                            .lookup(mo.group(2)
+                                    .replace('_', ' ')
+                                    .replace('H', '-')
+                                    .upper())
+                            ,)
+                )[0],
 
-    return '-' * leading_underscores + s
+                s
+            )
+        except KeyError:
+            # Invalid character name was found inside mangle quotes.
+            # It must not have been a mangled name in the first place.
+            pass
+        else:
+            s = s.replace('_', '-')
+    if s == '_':
+        return '-'
+    return s
 
 
 def set_boundaries(fun):

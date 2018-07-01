@@ -217,7 +217,7 @@ If the second argument `codegen` is true, generate python code instead."
   (instance? HySymbol s))
 
 (import [threading [Lock]])
-(setv _gensym_counter 1234)
+(setv _gensym_counter -1)
 (setv _gensym_lock (Lock))
 
 (defn gensym [&optional [g "G"]]
@@ -227,7 +227,7 @@ If the second argument `codegen` is true, generate python code instead."
   (global _gensym_lock)
   (.acquire _gensym_lock)
   (try (do (setv _gensym_counter (inc _gensym_counter))
-           (setv new_symbol (HySymbol (.format "_;{0}|{1}" g _gensym_counter))))
+           (setv new_symbol (HySymbol (.format "_{num:X}\x00{word}" :num _gensym_counter :word g))))
        (finally (.release _gensym_lock)))
   new_symbol)
 

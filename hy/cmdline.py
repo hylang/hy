@@ -136,7 +136,7 @@ class HyREPL(code.InteractiveConsole):
 
 
 @macro("koan")
-def koan_macro(ETname):
+def koan_macro(XetXname):
     return HyExpression([HySymbol('print'),
                          HyString("""
   Ummon asked the head monk, "What sutra are you lecturing on?"
@@ -154,7 +154,7 @@ def koan_macro(ETname):
 
 
 @macro("ideas")
-def ideas_macro(ETname):
+def ideas_macro(XetXname):
     return HyExpression([HySymbol('print'),
                          HyString(r"""
 

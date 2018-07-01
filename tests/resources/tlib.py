@@ -6,10 +6,10 @@ SECRET_MESSAGE = "Hello World"
 
 
 @macro("qplah")
-def tmac(ETname, *tree):
+def tmac(XetXname, *tree):
     return HyList((HyInteger(8), ) + tree)
 
 
 @macro("parald")
-def tmac2(ETname, *tree):
+def tmac2(XetXname, *tree):
     return HyList((HyInteger(9), ) + tree)

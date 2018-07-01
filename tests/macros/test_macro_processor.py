@@ -14,7 +14,7 @@ import pytest
 
 
 @macro("test")
-def tmac(ETname, *tree):
+def tmac(XetXname, *tree):
     """ Turn an expression into a list """
     return HyList(tree)
 
