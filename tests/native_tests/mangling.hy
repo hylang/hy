@@ -24,7 +24,7 @@
   (setv _42 3)
   (assert (= _42 3))
   (assert (!= _42 -42))
-  (assert (not (in "_hyx_42" (locals)))))
+  (assert (not-in "_hyx_42" (locals))))
 
 
 (defn test-question-mark []
@@ -50,8 +50,10 @@
 (defn test-basic-multilingual-plane []
   (setv ♥ "love"
         ⚘ab "flower")
-  (assert (= (+ ⚘ab ♥) "flowerlove"))
-  (assert (= (+ hyx_XflowerXab hyx_Xblack_heart_suitX) "flowerlove"))
+  (assert (= (+ ⚘ab ♥)
+             "flowerlove"))
+  (assert (= (+ hyx_XflowerXab hyx_Xblack_heart_suitX)
+             "flowerlove"))
   (setv ⚘-⚘ "doubleflower")
   (assert (= ⚘-⚘ "doubleflower"))
   (assert (= hyx_XflowerX_XflowerX "doubleflower"))
@@ -64,8 +66,8 @@
   (setv 😂 "emoji")
   (assert (= 😂 "emoji"))
   (if PY3
-    (assert (= hyx_Xface_with_tears_of_joyX "emoji"))
-    (assert (= hyx_XU1f602X "emoji"))))
+      (assert (= hyx_Xface_with_tears_of_joyX "emoji"))
+      (assert (= hyx_XU1f602X "emoji"))))
 
 
 (defn test-nameless-unicode []
@@ -89,8 +91,10 @@
   [form form])
 (defn test-macro []
   (setv x "")
-  (assert (= (m---x (do (+= x "a") 1)) [1 1]))
-  (assert (= (m___x (do (+= x "b") 2)) [2 2]))
+  (assert (= (m---x (do (+= x "a") 1))
+             [1 1]))
+  (assert (= (m___x (do (+= x "b") 2))
+             [2 2]))
   (assert (= x "aabb")))
 
 
@@ -98,18 +102,22 @@
   [form form])
 (defn test-tag-macro []
   (setv x "")
-  (assert (= #tm---x (do (+= x "a") 1) [1 1]))
-  (assert (= #tm___x (do (+= x "b") 2) [2 2]))
+  (assert (= #tm---x (do (+= x "a") 1)
+             [1 1]))
+  (assert (= #tm___x (do (+= x "b") 2)
+             [2 2]))
   (assert (= x "aabb")))
 
 
 (defn test-special-form []
   (setv not-in 1)
-  ; We set the variable to make sure that if this test works, it's
-  ; because we're calling the special form instead of the shadow
-  ; function.
-  (assert (is (not-in 2 [1 2 3]) False))
-  (assert (is (not_in 2 [1 2 3]) False)))
+  ;; We set the variable to make sure that if this test works, it's
+  ;; because we're calling the special form instead of the shadow
+  ;; function.
+  (assert (is (not-in 2 [1 2 3])
+              False))
+  (assert (is (not_in 2 [1 2 3])
+              False)))
 
 
 (defn test-python-keyword []
@@ -128,8 +136,10 @@
 
   (defn f [a a-b foo? ☘]
     [a a-b foo? ☘])
-  (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2) [1 2 3 4]))
-  (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4]))
+  (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2)
+             [1 2 3 4]))
+  (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
+             [1 2 3 4]))
 
   (defn g [&kwargs x]
     x)
@@ -140,7 +150,7 @@
 
 
 (defn test-late-mangling []
-  ; Mangling should only happen during compilation.
+  ;; Mangling should only happen during compilation.
   (assert (!= 'foo? 'is_foo))
   (setv sym 'foo?)
   (assert (= sym "foo?"))
@@ -155,5 +165,7 @@
   (for [[a b] [["---ab-cd?" "___is_ab_cd"]
                ["if" "hyx_if"]
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
-    (assert (= (mangle a) b))
-    (assert (= (unmangle b) a))))
+    (assert (= (mangle a)
+               b))
+    (assert (= (unmangle b)
+               a))))
