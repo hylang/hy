@@ -6,11 +6,11 @@
 from __future__ import unicode_literals
 
 from functools import wraps
-import string, re, unicodedata
+import re, unicodedata
 
 from rply import ParserGenerator
 
-from hy._compat import PY3, str_type, isidentifier, UCS4
+from hy._compat import str_type, isidentifier, UCS4
 from hy.models import (HyBytes, HyComplex, HyDict, HyExpression, HyFloat,
                        HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol)
 from .lexer import lexer
@@ -20,6 +20,31 @@ from .exceptions import LexException, PrematureEndOfInput
 pg = ParserGenerator([rule.name for rule in lexer.rules] + ['$end'])
 
 mangle_delim = 'X'
+
+ASCII_NAMES = {
+    '`': 'tick',
+    '!': 'bang',
+    '@': 'at',
+    '#': 'tag',
+    '$': 'sbar',
+    '%': 'mod',
+    '^': 'hat',
+    '&': 'et',
+    '*': 'star',
+    '+': 'add',
+    '=': 'eq',
+    '\\': 'bslash',
+    '|': 'or',
+    '<': 'lt',
+    '>': 'gt',
+    '?': 'query',
+    '.': 'dot',
+    '/': 'per',
+    'X': 'x',
+    '-': 'sub',
+    '_': 'score',
+}
+UN_ASCII_NAMES = {v: k for k, v in ASCII_NAMES.items()}
 
 def unicode_to_ucs4iter(ustr):
     # Covert a unicode string to an iterable object,
@@ -59,7 +84,8 @@ def mangle(s):
                  # We prepend the "S" because some characters aren't
                  # allowed at the start of an identifier.
                else '{0}{1}{0}'.format(mangle_delim,
-                   unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
+                   ASCII_NAMES.get(c)
+                   or unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
                    or 'U{}'.format(unicode_char_to_hex(c)))
             for c in unicode_to_ucs4iter(s))
 
@@ -84,7 +110,8 @@ def unmangle(s):
             lambda mo:
                chr(int(mo.group(2), base=16))
                if mo.group(1)
-               else unicodedata.lookup(
+               else UN_ASCII_NAMES.get(mo.group(2))
+               or unicodedata.lookup(
                    mo.group(2).replace('_', ' ').replace('H', '-').upper()),
             s[len('hyx_'):])
     if s.startswith('is_'):
