@@ -134,11 +134,7 @@ def unmangle(s):
             # Invalid character name was found inside mangle quotes.
             # It must not have been a mangled name in the first place.
             pass
-        else:
-            s = s.replace('_', '-')
-    if s == '_':
-        return '-'
-    return s
+    return s.replace('_', '-')
 
 
 def set_boundaries(fun):

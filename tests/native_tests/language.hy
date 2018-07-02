@@ -1878,7 +1878,7 @@ macros()
   `(list
      (map
        (fn [x]
-         (if (is-keyword x)
+         (if (keyword? x)
              "keyword"
              "other"))
        ~elts)))
