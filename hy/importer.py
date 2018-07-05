@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 
 from hy.compiler import hy_compile, HyTypeError
-from hy.models import HyObject, HyExpression, HySymbol
+from hy.models import HyExpression, HySymbol
 from hy.lex import tokenize, LexException
 from hy.errors import HyIOError
 

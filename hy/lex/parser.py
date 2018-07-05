@@ -6,11 +6,11 @@
 from __future__ import unicode_literals
 
 from functools import wraps
-import string, re, unicodedata
+import re, unicodedata
 
 from rply import ParserGenerator
 
-from hy._compat import PY3, str_type, isidentifier, UCS4
+from hy._compat import str_type, isidentifier, UCS4
 from hy.models import (HyBytes, HyComplex, HyDict, HyExpression, HyFloat,
                        HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol)
 from .lexer import lexer

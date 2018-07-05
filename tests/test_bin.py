@@ -5,14 +5,13 @@
 # license. See the LICENSE.
 
 import os
-from pipes import quote
 import re
 import shlex
 import subprocess
 
 import pytest
 
-from hy._compat import PY3, PY35, PY36, builtins
+from hy._compat import builtins
 from hy.importer import get_bytecode_path
 
 
