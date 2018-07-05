@@ -29,6 +29,11 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv myset #{4 5 6})
 (setv mydict {7 8  9 900  10 15})
 
+(setv emptylist [])
+(setv emptytuple (,))
+(setv emptyset #{})
+(setv emptydict {})
+
 (setv mylistcomp (lfor x (range 10) :if (% x 2) x))
 (setv mysetcomp (sfor x (range 5) :if (not (% x 2)) x))
 (setv mydictcomp (dfor k "abcde" :if (!= k "c") [k (.upper k)]))

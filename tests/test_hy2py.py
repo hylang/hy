@@ -53,6 +53,11 @@ def assert_stuff(m):
     assert m.myset == {4, 5, 6}
     assert m.mydict == {7: 8, 9: 900, 10: 15}
 
+    assert m.emptylist == []
+    assert m.emptytuple == ()
+    assert m.emptyset == set()
+    assert m.emptydict == {}
+
     assert m.mylistcomp == [1, 3, 5, 7, 9]
     assert m.mysetcomp == {0, 2, 4}
     assert m.mydictcomp == dict(a="A", b="B", d="D", e="E")
