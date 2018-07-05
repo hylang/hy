@@ -168,8 +168,8 @@
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   ;; and make sure the gensym appears.
-  (assert (in (mangle "G\x00") s1))
-  (assert (in (mangle "G\x00") s2))
+  (assert (in (mangle "G\uffff") s1))
+  (assert (in (mangle "G\uffff") s2))
   ;; but make sure the two don't match each other
   (assert (not (= s1 s2))))
 
@@ -193,8 +193,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "a\x00") s1))
-  (assert (in (mangle "a\x00") s2))
+  (assert (in (mangle "a\uffff") s1))
+  (assert (in (mangle "a\uffff") s2))
   (assert (not (= s1 s2))))
 
 (defn test-defmacro/g! []
@@ -216,8 +216,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "res\x00") s1))
-  (assert (in (mangle "res\x00") s2))
+  (assert (in (mangle "res\uffff") s1))
+  (assert (in (mangle "res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
@@ -245,8 +245,8 @@
   (setv _ast2 (import_buffer_to_ast macro1 "foo"))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "res\x00") s1))
-  (assert (in (mangle "res\x00") s2))
+  (assert (in (mangle "res\uffff") s1))
+  (assert (in (mangle "res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they

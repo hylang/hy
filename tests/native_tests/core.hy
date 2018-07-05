@@ -272,12 +272,13 @@ result['y in globals'] = 'y' in globals()")
   (import [hy.models [HySymbol]])
   (setv s1 (gensym))
   (assert (isinstance s1 HySymbol))
-  (assert (= 0 (.find s1 "_G\x00")))
+  (assert (= 0 (.find s1 "_G\uffff")))
   (setv s2 (gensym "xx"))
   (setv s3 (gensym "xx"))
-  (assert (= 0 (.find s2 "_xx\x00")))
+  (assert (= 0 (.find s2 "_xx\uffff")))
   (assert (not (= s2 s3)))
-  (assert (not (= (str s2) (str s3)))))
+  (assert (!= (% "%s" s2)
+              (% "%s" s3))))
 
 (defn test-identity []
   "NATIVE: testing the identity function"

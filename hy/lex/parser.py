@@ -43,7 +43,7 @@ ASCII_NAMES = {
     mangle_delim: 'x',
     '-': 'sub',
     '_': 'score',
-    '\x00': '__',
+    '\uffff': '__',
     '': 'hy',
 }
 NAMES_ASCII = {v: [k] for k, v in ASCII_NAMES.items()}

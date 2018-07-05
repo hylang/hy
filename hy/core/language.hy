@@ -227,7 +227,7 @@ If the second argument `codegen` is true, generate python code instead."
   (global _gensym_lock)
   (.acquire _gensym_lock)
   (try (do (setv _gensym_counter (inc _gensym_counter))
-           (setv new_symbol (HySymbol (.format "_{word}\x00{num:X}" :num _gensym_counter :word g))))
+           (setv new_symbol (HySymbol (.format "_{word}\uffff{num:X}" :num _gensym_counter :word g))))
        (finally (.release _gensym_lock)))
   new_symbol)
 
