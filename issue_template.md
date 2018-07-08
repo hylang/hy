@@ -1,0 +1,1 @@
+If you're reporting a bug, make sure you can reproduce it with the very latest, bleeding-edge version of Hy from the `master` branch on GitHub. Bugs in stable versions of Hy are fixed on `master` before the fix makes it into a new stable release. You can delete this text after reading it.
