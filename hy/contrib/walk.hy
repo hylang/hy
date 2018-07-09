@@ -305,6 +305,7 @@ as can nested let forms.
       (macro-error bindings "let bindings must be paired"))
   (setv g!let (gensym 'let)
         replacements (OrderedDict)
+        keys []
         values [])
   (defn expander [symbol]
     (.get replacements symbol symbol))
@@ -313,63 +314,15 @@ as can nested let forms.
             (macro-error k "bind targets must be symbols")
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot")))
-    (.append values (symbolexpand (macroexpand-all v &name) expander))
-    (assoc replacements k `(get ~g!let ~(name k))))
+    (.append values (symbolexpand (macroexpand-all v &name)
+                                  expander))
+    (.append keys `(get ~g!let ~(name k)))
+    (assoc replacements k (last keys)))
   `(do
      (setv ~g!let {}
-           ~@(interleave (.values replacements) values))
-     ~@(symbolexpand (macroexpand-all body &name) expander)))
+           ~@(interleave keys values))
+     ~@(symbolexpand (macroexpand-all body &name)
+                     expander)))
 
 ;; (defmacro macrolet [])
 
-#_[special cases for let
-   ;; Symbols containing a dot should be converted to this form.
-   ;; attrs should not get expanded,
-   ;; but [] lookups should.
-   '.',
-
-   ;;; can shadow let bindings with Python locals
-   ;; protect its bindings for the lexical scope of its body.
-   'fn',
-   'fn*',
-   ;; protect as bindings for the lexical scope of its body
-   'except',
-
-   ;;; changes scope of named variables
-   ;; protect the variables they name for the lexical scope of their container
-   'global',
-   'nonlocal',
-   ;; should we provide a protect form?
-   ;; it's an anaphor only valid in a `let` body.
-   ;; this would make the named variables python-scoped in its body
-   ;; expands to a do
-   'protect',
-
-   ;;; quoted variables must not be expanded.
-   ;; but unprotected, unquoted variables must be.
-   'quasiquote',
-   'quote',
-   'unquote',
-   'unquote-splice',
-
-   ;;;; deferred
-
-   ;; should really only exist at toplevel. Ignore until someone complains?
-   ;; raise an error? treat like fn?
-   ;; should probably be implemented as macros in terms of fn/setv anyway.
-   'defmacro',
-   'deftag',
-
-   ;;; create Python-scoped variables. It's probably hard to avoid this.
-   ;; Best just doc this behavior for now.
-   ;; we can't avoid clobbering enclosing python scope, unless we use a gensym,
-   ;; but that corrupts '__name__'.
-   ;; It could be set later, but that could mess up metaclasses!
-   ;; Should the class name update let variables too?
-   'defclass',
-   ;; should this update let variables?
-   ;; it could be done with gensym/setv.
-   'import',
-
-   ;; I don't understand these. Ignore until someone complains?
-   'eval_and_compile', 'eval_when_compile', 'require',]
