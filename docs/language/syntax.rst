@@ -67,6 +67,8 @@ of bytes. So when running under Python 3, Hy translates ``"foo"`` and
 ``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is translated to
 ``"foo"``.
 
+Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase.
+
 .. _syntax-keywords:
 
 keywords
