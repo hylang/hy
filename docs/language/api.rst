@@ -449,13 +449,16 @@ below:
 defn
 ----
 
-``defn`` macro is used to define functions. It takes three
-parameters: the *name* of the function to define, a vector of *parameters*,
-and the *body* of the function:
+``defn`` is used to define functions. It requires two arguments: a name (given
+as a symbol) and a list of parameters (also given as symbols). Any remaining
+arguments constitute the body of the function.
 
 .. code-block:: clj
 
-    (defn name [params] body)
+    (defn name [params] bodyform1 bodyform2...)
+
+If there at least two body forms, and the first of them is a string literal,
+this string becomes the :ref:`docstring <py:docstring>` of the function.
 
 Parameters may be prefixed with the following special symbols. If you use more
 than one, they can only appear in the given order (so all `&optional`
