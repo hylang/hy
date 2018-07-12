@@ -41,6 +41,8 @@ Other Breaking Changes
 * `HySymbol` no longer inherits from `HyString`.
 * `(except)` is no longer allowed. Use `(except [])` instead.
 * `(import [foo])` is no longer allowed. Use `(import foo)` instead.
+* `&`-parameters in lambda lists must now appear in the same order that
+  Python expects.
 
 New Features
 ------------------------------

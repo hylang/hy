@@ -449,15 +449,22 @@ below:
 defn
 ----
 
-``defn`` macro is used to define functions. It takes three
-parameters: the *name* of the function to define, a vector of *parameters*,
-and the *body* of the function:
+``defn`` is used to define functions. It requires two arguments: a name (given
+as a symbol) and a list of parameters (also given as symbols). Any remaining
+arguments constitute the body of the function.
 
 .. code-block:: clj
 
-    (defn name [params] body)
+    (defn name [params] bodyform1 bodyform2...)
 
-Parameters may have the following keywords in front of them:
+If there at least two body forms, and the first of them is a string literal,
+this string becomes the :ref:`docstring <py:docstring>` of the function.
+
+Parameters may be prefixed with the following special symbols. If you use more
+than one, they can only appear in the given order (so all `&optional`
+parameters must precede any `&rest` parameter, `&rest` must precede `&kwonly`,
+and `&kwonly` must precede `&kwargs`). This is the same order that Python
+requires.
 
 &optional
     Parameter is optional. The parameter can be given as a two item list, where
@@ -475,26 +482,6 @@ Parameters may have the following keywords in front of them:
 
         => (total-value 100 1)
         101.0
-
-&kwargs
-    Parameter will contain 0 or more keyword arguments.
-
-    The following code examples defines a function that will print all keyword
-    arguments and their values.
-
-    .. code-block:: clj
-
-        => (defn print-parameters [&kwargs kwargs]
-        ...    (for [(, k v) (.items kwargs)] (print k v)))
-
-        => (print-parameters :parameter-1 1 :parameter-2 2)
-        parameter_1 1
-        parameter_2 2
-
-        ; to avoid the mangling of '-' to '_', use unpacking:
-        => (print-parameters #** {"parameter-1" 1 "parameter-2" 2})
-        parameter-1 1
-        parameter-2 2
 
 &rest
     Parameter will contain 0 or more positional arguments. No other positional
@@ -517,7 +504,7 @@ Parameters may have the following keywords in front of them:
         8
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
-
+		
 &kwonly
     .. versionadded:: 0.12.0
 
@@ -553,6 +540,25 @@ Parameters may have the following keywords in front of them:
 
     Availability: Python 3.
 
+&kwargs
+    Parameter will contain 0 or more keyword arguments.
+
+    The following code examples defines a function that will print all keyword
+    arguments and their values.
+
+    .. code-block:: clj
+
+        => (defn print-parameters [&kwargs kwargs]
+        ...    (for [(, k v) (.items kwargs)] (print k v)))
+
+        => (print-parameters :parameter-1 1 :parameter-2 2)
+        parameter_1 1
+        parameter_2 2
+
+        ; to avoid the mangling of '-' to '_', use unpacking:
+        => (print-parameters #** {"parameter-1" 1 "parameter-2" 2})
+        parameter-1 1
+        parameter-2 2
 
 defn/a
 ------
