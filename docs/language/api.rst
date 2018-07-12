@@ -458,7 +458,7 @@ arguments constitute the body of the function.
     (defn name [params] bodyform1 bodyform2...)
 
 If there at least two body forms, and the first of them is a string literal,
-this string becomes the :ref:`docstring <py:docstring>` of the function.
+this string becomes the :term:`py:docstring` of the function.
 
 Parameters may be prefixed with the following special symbols. If you use more
 than one, they can only appear in the given order (so all `&optional`
