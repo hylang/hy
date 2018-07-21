@@ -1,20 +1,20 @@
 .. default-role:: code
 
-Unreleased
+0.15.0
 ==============================
 
 Removals
 ------------------------------
-* Dotted lists, `HyCons`, `cons`, `cons?`, and `list*` have been removed.
-  These were redundant with Python's built-in data structures and Hy's most
-  common model types (`HyExpression`, `HyList`, etc.).
+* Dotted lists, `HyCons`, `cons`, `cons?`, and `list*` have been
+  removed. These were redundant with Python's built-in data structures
+  and Hy's most common model types (`HyExpression`, `HyList`, etc.).
 * `&key` is no longer special in lambda lists. Use `&optional` instead.
-* Tuple unpacking is no longer built into special forms for function
-  definition (`fn` etc.)
-* Macros `ap-pipe` and `ap-compose` have been removed.
-  Anaphoric macros do not work well with point-free style programming,
-  in which case both threading macros and `comp` are more adequate.
+* Lambda lists can no longer unpack tuples.
+* `ap-pipe` and `ap-compose` have been removed. Use threading macros and
+  `comp` instead.
 * `for/a` has been removed. Use `(for [:async ...] ...)` instead.
+* `(except)` is no longer allowed. Use `(except [])` instead.
+* `(import [foo])` is no longer allowed. Use `(import foo)` instead.
 
 Other Breaking Changes
 ------------------------------
@@ -22,58 +22,57 @@ Other Breaking Changes
   This means you can no longer use alternative punctuation in place of
   square brackets in special forms (e.g. `(fn (x) ...)` instead of
   the standard `(fn [x] ...)`).
-* Mangling rules have been overhauled, such that mangled names
-  are always legal Python identifiers
-* `_` and `-` are now equivalent even as single-character names
+* Mangling rules have been overhauled; now, mangled names are
+  always legal Python identifiers.
+* `_` and `-` are now equivalent, even as single-character names.
 
-  * The REPL history variable `_` is now `*1`
+  * The REPL history variable `_` is now `*1`.
 
 * Non-shadow unary `=`, `is`, `<`, etc. now evaluate their argument
-  instead of ignoring it. This change increases consistency a bit
-  and makes accidental unary uses easier to notice.
+  instead of ignoring it.
 * `list-comp`, `set-comp`, `dict-comp`, and `genexpr` have been replaced
   by `lfor`, `sfor`, `dfor`, and `gfor`, respectively, which use a new
   syntax and have additional features. All Python comprehensions can now
   be written in Hy.
-* `hy-repr` uses registered functions instead of methods
-* `HyKeyword` no longer inherits from the string type and has been
-  made into its own object type.
-* `HySymbol` no longer inherits from `HyString`.
-* `(except)` is no longer allowed. Use `(except [])` instead.
-* `(import [foo])` is no longer allowed. Use `(import foo)` instead.
 * `&`-parameters in lambda lists must now appear in the same order that
   Python expects.
+* Literal keywords now evaluate to themselves, and `HyKeyword` no longer
+  inherits from a Python string type
+* `HySymbol` no longer inherits from `HyString`.
 
 New Features
 ------------------------------
-* Python 3.7 is now supported
-* Added `mangle` and `unmangle` as core functions
-* More REPL history result variables: `*2`, `*3`. Added last REPL error
-  variable: `*e`
-* `defclass` in Python 3 now supports specifying metaclasses and other
-  keyword arguments
-* Added a command-line option `-E` per CPython
-* `while` and `for` are allowed to have empty bodies
-* `for` supports the various new clause types offered by `lfor`
-* Added a new module ``hy.model_patterns``
-* `defmacro!` now allows optional args
+* Python 3.7 is now supported.
+* `while` and `for` are allowed to have empty bodies.
+* `for` supports the various new clause types offered by `lfor`.
+* `defclass` in Python 3 supports specifying metaclasses and other
+  keyword arguments.
+* Added `mangle` and `unmangle` as core functions.
+* Added more REPL history variables: `*2` and `*3`.
+* Added a REPL variable holding the last exception: `*e`.
+* Added a command-line option `-E` per CPython.
+* Added a new module `hy.model_patterns`.
 
 Bug Fixes
 ------------------------------
 * `hy2py` should now output legal Python code equivalent to the input Hy
-  code in all cases, modulo some outstanding bugs in `astor`
-* Fix `(return)` so it works correctly to exit a Python 2 generator
-* Fixed a case where `->` and `->>` duplicated an argument
-* Fixed bugs that caused `defclass` to drop statements or crash
-* Fixed a REPL crash caused by illegle unicode escape string inputs
-* `NaN` can no longer create an infinite loop during macro-expansion
-* Fixed a bug that caused `try` to drop expressions
-* Fixed a bug where the compiler didn't properly compile `unquote-splice`
-* Trying to import a dotted name is now a syntax error, as in Python
+  code in all cases.
+* Fixed `(return)` so it can exit a Python 2 generator.
+* Fixed a case where `->` and `->>` duplicated an argument.
+* Fixed bugs that caused `defclass` to drop statements or crash.
+* Fixed a REPL crash caused by illegal backslash escapes.
+* `NaN` can no longer create an infinite loop during macro-expansion.
+* Fixed a bug that caused `try` to drop expressions.
+* The compiler now properly recognizes `unquote-splice`.
+* Trying to import a dotted name is now a syntax error, as in Python.
+* `defmacro!` now allows optional arguments.
+* Fixed handling of variables that are bound multiple times in a single
+  `let`.
 
 Misc. Improvements
 ----------------------------
-* `hy-repr` supports more standard types
+* `hy-repr` uses registered functions instead of methods.
+* `hy-repr` supports more standard types.
 
 0.14.0
 ==============================
