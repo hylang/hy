@@ -9,7 +9,7 @@ python:
   - pypy3
 install:
   - pip install -r requirements-travis.txt
-  - pip install --process-dependency-links -e .
+  - pip install -e .
 script: pytest
 cache: pip
 after_success: make coveralls
