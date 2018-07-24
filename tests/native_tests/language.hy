@@ -1380,9 +1380,24 @@
   (assert (= (len "ℵℵℵ♥♥♥\t♥♥\r\n") 11)))
 
 
-(defn test-keyword-dict-access []
-  "NATIVE: test keyword dict access"
-  (assert (= "test" (:foo {:foo "test"}))))
+(defn test-keyword-get []
+
+  (assert (= (:foo {:foo "test"}) "test"))
+  (setv f :foo)
+  (assert (= (f {:foo "test"}) "test"))
+
+  (with [(pytest.raises KeyError)] (:foo {:a 1 :b 2}))
+  (assert (= (:foo {:a 1 :b 2} 3) 3))
+  (assert (= (:foo {:a 1 :b 2 :foo 5} 3) 5))
+
+  (with [(pytest.raises TypeError)] (:foo "Hello World"))
+  (with [(pytest.raises TypeError)] (:foo (object)))
+
+  ; The default argument should work regardless of the collection type.
+  (defclass G [object]
+    (defn __getitem__ [self k]
+      (raise KeyError)))
+  (assert (= (:foo (G) 15) 15)))
 
 
 (defn test-break-breaking []

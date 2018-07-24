@@ -83,6 +83,11 @@ the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
 
+Keywords can be called like functions as shorthand for ``get``. ``(:foo obj)``
+is equivalent to ``(get obj :foo)``. An optional ``default`` argument is also
+allowed: ``(:foo obj 2)`` or ``(:foo obj :default 2)`` returns ``2`` if ``(get
+obj :foo)`` raises a ``KeyError``.
+
 .. _mangling:
 
 symbols

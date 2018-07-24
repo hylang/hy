@@ -7,6 +7,12 @@ Removals
 ------------------------------
 * Empty expressions (`()`) are no longer legal at the top level.
 
+New Features
+------------------------------
+* Keyword objects (not just literal keywords) can be called, as
+  shorthand for `(get obj :key)`, and they accept a default value
+  as a second argument.
+
 0.15.0
 ==============================
 
