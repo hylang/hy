@@ -67,6 +67,12 @@ def test_ast_bad_type():
         pass
 
 
+def test_empty_expr():
+    "Empty expressions should be illegal at the top level."
+    cant_compile("(print ())")
+    can_compile("(print '())")
+
+
 def test_ast_bad_if():
     "Make sure AST can't compile invalid if*"
     cant_compile("(if*)")

@@ -1546,8 +1546,9 @@ class HyASTCompiler(object):
             # Go through compile again if the type changed.
             return self.compile(expression)
 
-        if expression == []:
-            return self.compile_atom(HyList().replace(expression))
+        if not expression:
+            raise HyTypeError(
+                expression, "empty expressions are not allowed at top level")
 
         fn = expression[0]
         func = None

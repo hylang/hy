@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Removals
+------------------------------
+* Empty expressions (`()`) are no longer legal at the top level.
+
 0.15.0
 ==============================
 
