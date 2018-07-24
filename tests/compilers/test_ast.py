@@ -72,6 +72,17 @@ def test_empty_expr():
     can_compile("(print '())")
 
 
+def test_dot_unpacking():
+
+    can_compile("(.meth obj #* args az)")
+    cant_compile("(.meth #* args az)")
+    cant_compile("(. foo #* bar baz)")
+
+    can_compile("(.meth obj #** args az)")
+    can_compile("(.meth #** args obj)")
+    cant_compile("(. foo #** bar baz)")
+
+
 def test_ast_bad_if():
     "Make sure AST can't compile invalid if*"
     cant_compile("(if*)")
