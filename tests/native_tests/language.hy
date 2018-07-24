@@ -1401,11 +1401,6 @@
   (assert (= y [5])))
 
 
-(defn test-empty-list []
-  "Evaluate an empty list to a []"
-  (assert (= () [])))
-
-
 (defn test-string []
   (assert (string? (string "a")))
   (assert (string? (string 1)))
