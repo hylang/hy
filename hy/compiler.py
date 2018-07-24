@@ -1552,13 +1552,6 @@ class HyASTCompiler(object):
 
         fn = expression[0]
         func = None
-        if isinstance(fn, HyKeyword):
-            if len(expression) > 2:
-                raise HyTypeError(
-                    expression, "keyword calls take only 1 argument")
-            expression.append(expression.pop(0))
-            expression.insert(0, HySymbol("get"))
-            return self.compile(expression)
 
         if isinstance(fn, HySymbol):
 
