@@ -16,7 +16,6 @@ from hy._compat import PY3
 import ast
 import pytest
 
-
 def _ast_spotcheck(arg, root, secondary):
     if "." in arg:
         local, full = arg.split(".", 1)
@@ -290,7 +289,7 @@ def test_ast_require():
 
 
 def test_ast_import_require_dotted():
-    """As in Python, it should be a compile-type error to attempt to
+    """As in Python, it should be a compile-time error to attempt to
 import a dotted name."""
     cant_compile("(import [spam [foo.bar]])")
     cant_compile("(require [spam [foo.bar]])")
