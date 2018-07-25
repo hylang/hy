@@ -56,7 +56,15 @@
                 (do '(with [b 2])
                     `(with [c 3]
                        ~(with* [d 4] (do))
-                       ~@[(with* [e 5] (do))]))))))
+                       ~@[(with* [e 5] (do))])))))
+
+  (defmacro require-macro []
+    `(do
+       (require [tests.resources.macros [test-macro :as my-test-macro]])
+       (my-test-macro)))
+
+  (assert (= (last (macroexpand-all '(require-macro)))
+             '(setv blah 1))))
 
 (defn test-let-basic []
   (assert (zero? (let [a 0] a)))

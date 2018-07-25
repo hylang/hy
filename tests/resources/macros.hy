@@ -7,3 +7,6 @@
   (defn f [&rest args] (.join "" (+ (, "c") args)))
   (setv variable (HySymbol (->> "d" (f))))
   `(setv ~variable 5))
+
+(defmacro test-macro []
+  '(setv blah 1))
