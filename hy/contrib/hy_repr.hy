@@ -121,19 +121,23 @@
 
 (hy-repr-register datetime.datetime (fn [x]
   (.format "(datetime.datetime {}{})"
-    (.strftime x "%Y %-m %-d %-H %-M %-S")
+    (-strftime-0 x "%Y %m %d %H %M %S")
     (-repr-time-innards x))))
 (hy-repr-register datetime.date (fn [x]
-  (.strftime x "(datetime.date %Y %-m %-d)")))
+  (-strftime-0 x "(datetime.date %Y %m %d)")))
 (hy-repr-register datetime.time (fn [x]
   (.format "(datetime.time {}{})"
-    (.strftime x "%-H %-M %-S")
+    (-strftime-0 x "%H %M %S")
     (-repr-time-innards x))))
 (defn -repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter identity [
     (if x.microsecond (str-type x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if (and PY36 (!= x.fold 0)) (+ ":fold " (hy-repr x.fold)))])))))
+(defn -strftime-0 [x fmt]
+  ; Remove leading 0s in `strftime`. This is a substitute for the `-`
+  ; flag for when Python isn't built with glibc.
+  (re.sub r"(\A| )0([0-9])" r"\1\2" (.strftime x fmt)))
 
 (hy-repr-register collections.Counter (fn [x]
   (.format "(Counter {})"
