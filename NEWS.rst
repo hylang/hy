@@ -13,6 +13,11 @@ New Features
   shorthand for `(get obj :key)`, and they accept a default value
   as a second argument.
 
+Bug Fixes
+------------------------------
+* Fixed bugs in the handling of unpacking forms in method calls and
+  attribute access.
+
 0.15.0
 ==============================
 

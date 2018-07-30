@@ -6,8 +6,8 @@
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
                        HyDict, HySequence, wrap_value)
-from hy.model_patterns import (FORM, SYM, STR, sym, brackets, whole, notpexpr,
-                               dolike, pexpr, times, Tag, tag)
+from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
+                               notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
 from hy.errors import HyCompileError, HyTypeError
 
@@ -1539,98 +1539,97 @@ class HyASTCompiler(object):
                 else Result())
 
     @builds_model(HyExpression)
-    def compile_expression(self, expression):
+    def compile_expression(self, expr):
         # Perform macro expansions
-        expression = macroexpand(expression, self)
-        if not isinstance(expression, HyExpression):
+        expr = macroexpand(expr, self)
+        if not isinstance(expr, HyExpression):
             # Go through compile again if the type changed.
-            return self.compile(expression)
+            return self.compile(expr)
 
-        if not expression:
+        if not expr:
             raise HyTypeError(
-                expression, "empty expressions are not allowed at top level")
+                expr, "empty expressions are not allowed at top level")
 
-        fn = expression[0]
+        args = list(expr)
+        root = args.pop(0)
         func = None
 
-        if isinstance(fn, HySymbol):
+        if isinstance(root, HySymbol):
 
-            # First check if `fn` is a special operator, unless it has an
+            # First check if `root` is a special operator, unless it has an
             # `unpack-iterable` in it, since Python's operators (`+`,
             # etc.) can't unpack. An exception to this exception is that
-            # tuple literals (`,`) can unpack.
-            sfn = ast_str(fn)
-            if (sfn in _special_form_compilers or sfn in _bad_roots) and (
-                    sfn == mangle(",") or
-                    not any(is_unpack("iterable", x) for x in expression[1:])):
-                if sfn in _bad_roots:
+            # tuple literals (`,`) can unpack. Finally, we allow unpacking in
+            # `.` forms here so the user gets a better error message.
+            sroot = ast_str(root)
+            if (sroot in _special_form_compilers or sroot in _bad_roots) and (
+                    sroot in (mangle(","), mangle(".")) or
+                    not any(is_unpack("iterable", x) for x in args)):
+                if sroot in _bad_roots:
                     raise HyTypeError(
-                        expression,
-                        "The special form '{}' is not allowed here".format(fn))
-                # `sfn` is a special operator. Get the build method and
+                        expr,
+                        "The special form '{}' is not allowed here".format(root))
+                # `sroot` is a special operator. Get the build method and
                 # pattern-match the arguments.
-                build_method, pattern = _special_form_compilers[sfn]
+                build_method, pattern = _special_form_compilers[sroot]
                 try:
-                    parse_tree = pattern.parse(expression[1:])
+                    parse_tree = pattern.parse(args)
                 except NoParseError as e:
                     raise HyTypeError(
-                        expression[min(e.state.pos + 1, len(expression) - 1)],
+                        expr[min(e.state.pos + 1, len(expr) - 1)],
                         "parse error for special form '{}': {}".format(
-                            expression[0],
+                            root,
                             e.msg.replace("<EOF>", "end of form")))
                 return Result() + build_method(
-                    self, expression, unmangle(sfn), *parse_tree)
+                    self, expr, unmangle(sroot), *parse_tree)
 
-            if fn.startswith("."):
+            if root.startswith("."):
                 # (.split "test test") -> "test test".split()
-                # (.a.b.c x) -> (.c (. x a b)) ->  x.a.b.c()
+                # (.a.b.c x v1 v2) -> (.c (. x a b) v1 v2) ->  x.a.b.c(v1, v2)
 
                 # Get the method name (the last named attribute
                 # in the chain of attributes)
-                attrs = [HySymbol(a).replace(fn) for a in fn.split(".")[1:]]
-                fn = attrs.pop()
+                attrs = [HySymbol(a).replace(root) for a in root.split(".")[1:]]
+                root = attrs.pop()
 
                 # Get the object we're calling the method on
                 # (extracted with the attribute access DSL)
-                i = 1
-                if len(expression) != 2:
-                    # If the expression has only one object,
-                    # always use that as the callee.
-                    # Otherwise, hunt for the first thing that
-                    # isn't a keyword argument or its value.
-                    while i < len(expression):
-                        if isinstance(expression[i], HyKeyword):
-                            # Skip the keyword argument and its value.
-                            i += 1
-                        else:
-                            # Use expression[i].
-                            break
-                        i += 1
-                    else:
-                        raise HyTypeError(expression,
-                                          "attribute access requires object")
+                # Skip past keywords and their arguments.
+                try:
+                    kws, obj, rest = (
+                        many(KEYWORD + FORM | unpack("mapping")) +
+                        FORM +
+                        many(FORM)).parse(args)
+                except NoParseError:
+                    raise HyTypeError(
+                        expr, "attribute access requires object")
+                # Reconstruct `args` to exclude `obj`.
+                args = [x for p in kws for x in p] + list(rest)
+                if is_unpack("iterable", obj):
+                    raise HyTypeError(
+                        obj, "can't call a method on an unpacking form")
                 func = self.compile(HyExpression(
-                    [HySymbol(".").replace(fn), expression.pop(i)] +
+                    [HySymbol(".").replace(root), obj] +
                     attrs))
 
                 # And get the method
-                func += asty.Attribute(fn,
+                func += asty.Attribute(root,
                                        value=func.force_expr,
-                                       attr=ast_str(fn),
+                                       attr=ast_str(root),
                                        ctx=ast.Load())
 
         if not func:
-            func = self.compile(fn)
+            func = self.compile(root)
 
         # An exception for pulling together keyword args is if we're doing
         # a typecheck, eg (type :foo)
-        with_kwargs = fn not in (
+        with_kwargs = root not in (
             "type", "HyKeyword", "keyword", "name", "keyword?", "identity")
         args, ret, keywords, oldpy_star, oldpy_kw = self._compile_collect(
-            expression[1:], with_kwargs, oldpy_unpack=True)
+            args, with_kwargs, oldpy_unpack=True)
 
         return func + ret + asty.Call(
-            expression, func=func.expr, args=args, keywords=keywords,
+            expr, func=func.expr, args=args, keywords=keywords,
             starargs=oldpy_star, kwargs=oldpy_kw)
 
     @builds_model(HyInteger, HyFloat, HyComplex)

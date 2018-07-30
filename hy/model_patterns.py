@@ -15,6 +15,7 @@ from math import isinf
 
 FORM = some(lambda _: True)
 SYM = some(lambda x: isinstance(x, HySymbol))
+KEYWORD = some(lambda x: isinstance(x, HyKeyword))
 STR = some(lambda x: isinstance(x, HyString))
 
 def sym(wanted):
@@ -56,6 +57,14 @@ def notpexpr(*disallowed_heads):
         x and
         isinstance(x[0], HySymbol) and
         x[0] in disallowed_heads))
+
+def unpack(kind):
+    "Parse an unpacking form, returning it unchanged."
+    return some(lambda x:
+        isinstance(x, HyExpression)
+        and len(x) > 0
+        and isinstance(x[0], HySymbol)
+        and x[0] == "unpack-" + kind)
 
 def times(lo, hi, parser):
     """Parse `parser` several times (`lo` to `hi`) in a row. `hi` can be
