@@ -7,6 +7,7 @@ import sys, os
 
 from setuptools import find_packages, setup
 from setuptools.command.install import install
+import fastentrypoints   # Monkey-patches setuptools.
 
 from get_version import __version__
 
