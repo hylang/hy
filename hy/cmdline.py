@@ -15,8 +15,7 @@ import astor.code_gen
 
 import hy
 
-from hy.lex import LexException, PrematureEndOfInput
-from hy.lex.parser import mangle
+from hy.lex import LexException, PrematureEndOfInput, mangle
 from hy.compiler import HyTypeError
 from hy.importer import (hy_eval, import_buffer_to_module,
                          import_file_to_ast, import_file_to_hst,

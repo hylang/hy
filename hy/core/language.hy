@@ -19,8 +19,7 @@
   (import [collections :as cabc])
   (import [collections.abc :as cabc]))
 (import [hy.models [HySymbol HyKeyword]])
-(import [hy.lex [LexException PrematureEndOfInput tokenize]])
-(import [hy.lex.parser [mangle unmangle]])
+(import [hy.lex [LexException PrematureEndOfInput tokenize mangle unmangle]])
 (import [hy.compiler [HyASTCompiler]])
 (import [hy.importer [hy-eval :as eval]])
 
