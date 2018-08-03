@@ -43,7 +43,8 @@
 (defn macroexpand-all [form &optional module-name]
   "Recursively performs all possible macroexpansions in form."
   (setv module-name (or module-name (calling-module-name))
-        quote-level [0])  ; TODO: make nonlocal after dropping Python2
+        quote-level [0]
+        ast-compiler (HyASTCompiler module-name))  ; TODO: make nonlocal after dropping Python2
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
@@ -64,7 +65,10 @@
                      [True (traverse form)])]
               [(= (first form) 'quote) form]
               [(= (first form) 'quasiquote) (+quote)]
-              [True (traverse (mexpand form (HyASTCompiler module-name)))])
+              [(= (first form) (HySymbol "require"))
+               (ast-compiler.compile form)
+               (return)]
+              [True (traverse (mexpand form ast-compiler))])
         (if (coll? form)
             (traverse form)
             form)))
@@ -325,4 +329,3 @@ as can nested let forms.
                      expander)))
 
 ;; (defmacro macrolet [])
-

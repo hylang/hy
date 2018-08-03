@@ -91,6 +91,7 @@ Misc. Improvements
 ----------------------------
 * `hy-repr` uses registered functions instead of methods.
 * `hy-repr` supports more standard types.
+* `macroexpand-all` will now expand macros introduced by a `require` in the body of a macro.
 
 0.14.0
 ==============================
