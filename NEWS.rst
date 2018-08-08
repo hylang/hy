@@ -17,6 +17,8 @@ Bug Fixes
 ------------------------------
 * Fixed bugs in the handling of unpacking forms in method calls and
   attribute access.
+* Fixed crashes on Windows when calling `hy-repr` on date and time
+  objects.
 
 0.15.0
 ==============================
