@@ -1,12 +1,18 @@
+# -*- encoding: utf-8 -*-
+# Copyright 2018 the authors.
+# This file is part of Hy, which is free software licensed under the Expat
+# license. See the LICENSE.
+#
+# Most of this is from cpython/Lib/importlib/_bootstrap*.py
+#
+
 from __future__ import print_function
 
 import io
 import os
-import struct
 import sys
 
 from hy._compat import PY3
-
 
 if PY3:
     from importlib.util import MAGIC_NUMBER  # NOQA
@@ -27,11 +33,25 @@ else:
 
 
 def w_long(x):
-    return struct.pack("<I", x)
+    """Convert a 32-bit integer to little-endian."""
+    return (int(x) & 0xFFFFFFFF).to_bytes(4, 'little')
 
 
-def r_long(x):
-    return struct.unpack("<I", x)[0]
+def r_long(int_bytes):
+    """Convert 4 bytes in little-endian to an integer."""
+    return int.from_bytes(int_bytes, 'little')
+
+
+def calc_mode(path):
+    """Calculate the mode permissions for a bytecode file."""
+    try:
+        mode = os.stat(path).st_mode
+    except OSError:
+        mode = 0o666
+    # We always ensure write access so we can update cached files
+    # later even when the source files are read-only on Windows (#6074)
+    mode |= 0o200
+    return mode
 
 
 def write_atomic(path, data, mode=0o666):

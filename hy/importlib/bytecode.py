@@ -20,6 +20,8 @@ else:
         return ImportError(*args)
 
 
+# TODO: Why not use `importlib.util.cache_from_source`?  Assuming we'll
+# have a different bytecode suffix?
 def get_path(path, optimization=None):
     head, tail = os.path.split(path)
     base, sep, rest = tail.rpartition('.')

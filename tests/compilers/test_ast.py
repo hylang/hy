@@ -29,7 +29,7 @@ def can_compile(expr):
 
 
 def can_eval(expr):
-    return hy_eval(can_compile(expr))
+    return hy_eval(hy_parse(expr))
 
 
 def cant_compile(expr):

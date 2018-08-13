@@ -1,8 +1,6 @@
 import sys
 
 from hy.compiler import hy_compile
-from hy.models import HyExpression, HySymbol
-from hy.lex import tokenize
 from hy._compat import PY3
 
 from . import ast_compile, bytecode, hy_parse
@@ -42,8 +40,7 @@ class HyLoader(SourceFileLoader):
                     try:
                         bytes_data = bytecode.validate_header(
                             data, source_stats=st, name=fullname,
-                            path=bytecode_path
-                        )
+                            path=bytecode_path)
                     except (ImportError, EOFError) as err:
                         pass
                     else:

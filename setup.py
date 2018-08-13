@@ -45,8 +45,8 @@ setup(
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
             'hy%d = hy.cmdline:hy_main' % ver,
-            'hyc = hy.cmdline:hyc_main',
-            'hyc%d = hy.cmdline:hyc_main' % ver,
+            'hyc = hy.hyc_compile:main',
+            'hyc%d = hy.hyc_compile:main' % ver,
             'hy2py = hy.cmdline:hy2py_main',
             'hy2py%d = hy.cmdline:hy2py_main' % ver,
         ]

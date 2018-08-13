@@ -15,9 +15,9 @@ import runpy
 import astor.code_gen
 
 import hy
-from hy.compiler import HyTypeError
+from hy.compiler import HyTypeError, hy_compile
 from hy.completer import completion, Completer
-from hy.importlib import ast_compile, hy_eval, hy_parse, hy_compile
+from hy.importlib import hy_eval, hy_parse
 from hy.lex import LexException, PrematureEndOfInput
 from hy.lex.parser import mangle
 from hy.macros import macro, require
@@ -31,6 +31,8 @@ class HyQuitter(object):
 
     def __repr__(self):
         return "Use (%s) or Ctrl-D (i.e. EOF) to exit" % (self.name)
+
+    __str__ = __repr__
 
     def __call__(self, code=None):
         try:
@@ -99,7 +101,7 @@ class HyREPL(code.InteractiveConsole):
                     new_ast = ast.Module(main_ast.body +
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
-            value = hy_eval(do, self.locals, "__main__",
+            value = hy_eval(do, self.locals, "__console__",
                             ast_callback)
         except HyTypeError as e:
             if e.source is None:
@@ -178,6 +180,7 @@ def ideas_macro(ETname):
 
 """)])
 
+
 require("hy.cmdline", "__console__", assignments="ALL")
 require("hy.cmdline", "__main__", assignments="ALL")
 
@@ -195,7 +198,9 @@ def pretty_error(func, *args, **kw):
 
 
 def run_command(source):
-    hy_eval(hy_parse(source))
+    tree = hy_parse(source)
+    pretty_error(hy_eval, tree, module_name="__main__")
+    return 0
 
 
 def run_repl(hr=None, **kwargs):
@@ -203,7 +208,7 @@ def run_repl(hr=None, **kwargs):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    namespace = {'__name__': '__main__', '__doc__': ''}
+    namespace = {'__name__': '__console__', '__doc__': ''}
 
     with completion(Completer(namespace)):
 
@@ -223,20 +228,15 @@ def run_repl(hr=None, **kwargs):
     return 0
 
 
-def run_icommand(filename, **kwargs):
-    namespace = kwargs.pop('locals', {})
-
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
+def run_icommand(source, **kwargs):
+    hr = HyREPL(**kwargs)
+    if os.path.exists(source):
+        with open(source, "r") as f:
             source = f.read()
-
-        hytree = hy_parse(source)
-        ast = hy_compile(hytree, "__main__")
-        code_object = ast_compile(ast, filename, mode="exec")
-        namespace = {'__name__': '__main__'}
-        exec(code_object, namespace)
-
-    hr = HyREPL(locals=namespace, **kwargs)
+        filename = source
+    else:
+        filename = '<input>'
+    hr.runsource(source, filename=filename, symbol='single')
     return run_repl(hr)
 
 
@@ -288,9 +288,9 @@ def cmdline_handler(scriptname, argv):
     module_args = []
     if "-m" in argv:
         mloc = argv.index("-m")
-        if len(argv) > mloc+2:
-            module_args = argv[mloc+2:]
-            argv = argv[:mloc+2]
+        if len(argv) > mloc + 2:
+            module_args = argv[mloc + 2:]
+            argv = argv[:mloc + 2]
 
     options = parser.parse_args(argv[1:])
 
@@ -299,7 +299,7 @@ def cmdline_handler(scriptname, argv):
         SIMPLE_TRACEBACKS = False
 
     # reset sys.argv like Python
-    sys.argv = options.args + module_args or [""]
+    # sys.argv = [sys.argv[0]] + options.args + module_args
 
     if options.E:
         # User did "hy -E ..."
@@ -311,6 +311,7 @@ def cmdline_handler(scriptname, argv):
 
     if options.mod:
         # User did "hy -m ..."
+        sys.argv = [sys.argv[0]] + options.args + module_args
         runpy.run_module(options.mod, run_name='__main__', alter_sys=True)
         return 0
 
@@ -327,6 +328,7 @@ def cmdline_handler(scriptname, argv):
         else:
             # User did "hy <filename>"
             try:
+                sys.argv = options.args
                 runpy.run_path(options.args[0], run_name='__main__')
                 return 0
             except FileNotFoundError as e:
@@ -342,27 +344,6 @@ def cmdline_handler(scriptname, argv):
 def hy_main():
     sys.path.insert(0, "")
     sys.exit(cmdline_handler("hy", sys.argv))
-
-
-# entry point for cmd line script "hyc"
-def hyc_main():
-    parser = argparse.ArgumentParser(prog="hyc")
-    parser.add_argument("files", metavar="FILE", nargs='+',
-                        help="file to compile")
-    parser.add_argument("-v", action="version", version=VERSION)
-
-    options = parser.parse_args(sys.argv[1:])
-
-    for file in options.files:
-        try:
-            print("Compiling {}".format(file))
-            with open(file):
-                # TODO
-                pass
-        except FileNotFoundError as e:
-            print("hyc: Can't open file '{0}': [Errno {1}] {2}".format(
-                  e.filename, e.errno, e.strerror), file=sys.stderr)
-            sys.exit(e.errno)
 
 
 # entry point for cmd line script "hy2py"

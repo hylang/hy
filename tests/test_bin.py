@@ -231,8 +231,11 @@ def test_bin_hy_file_with_args():
 
 
 def test_bin_hyc():
-    _, err = run_cmd("hyc", expect=2)
-    assert "usage" in err
+    _, err = run_cmd("hyc", expect=0)
+    assert err == ''
+
+    _, err = run_cmd("hyc -", expect=0)
+    assert err == ''
 
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
@@ -245,7 +248,7 @@ def test_bin_hyc():
 
 
 def test_bin_hyc_missing_file():
-    _, err = run_cmd("hyc foobarbaz", expect=2)
+    _, err = run_cmd("hyc foobarbaz", expect=1)
     assert "[Errno 2]" in err
 
 

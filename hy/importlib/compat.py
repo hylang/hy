@@ -8,7 +8,7 @@ import os
 import sys
 
 from . import loader
-from .util import write_atomic, _verbose_message
+from .util import write_atomic, calc_mode, _verbose_message
 
 
 class HyLoader(loader.HyLoader):
@@ -33,7 +33,7 @@ class HyLoader(loader.HyLoader):
         with open(path, 'rb') as f:
             return f.read()
 
-    def set_data(self, path, data, mode=0o666):
+    def set_data(self, path, data):
         parent, filename = os.path.split(path)
         path_parts = []
         while parent and not os.path.isdir(parent):
@@ -50,6 +50,7 @@ class HyLoader(loader.HyLoader):
                 _verbose_message('could not create {!r}: {!r}', parent, exc)
                 return
         try:
+            mode = calc_mode(path)
             write_atomic(path, data, mode)
             _verbose_message('created {!r}', path)
         except OSError as exc:
