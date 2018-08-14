@@ -15,6 +15,7 @@ from hy._compat import PY3
 import ast
 import pytest
 
+
 def _ast_spotcheck(arg, root, secondary):
     if "." in arg:
         local, full = arg.split(".", 1)

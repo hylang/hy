@@ -12,13 +12,6 @@ from .util import write_atomic, calc_mode, _verbose_message
 
 
 class HyLoader(loader.HyLoader):
-    def __init__(self, fullname, path):
-        self.name = fullname
-        self.path = path
-
-    def get_filename(self, fullname):
-        return self.path
-
     def path_stats(self, path):
         st = os.stat(path)
         return {'mtime': st.st_mtime, 'size': st.st_size}

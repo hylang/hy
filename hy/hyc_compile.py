@@ -52,8 +52,7 @@ def hyc_compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     loader = HyLoader('<hy_compile>', file)
     source_bytes = loader.get_data(file)
     try:
-        code = loader.source_to_code(source_bytes, dfile or file,
-                                     _optimize=optimize)
+        code = loader.source_to_code(source_bytes, dfile or file)
     except Exception as err:
         py_exc = PyCompileError(err.__class__, err, dfile or file)
         if doraise:

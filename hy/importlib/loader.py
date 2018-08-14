@@ -1,5 +1,7 @@
 import sys
 
+from importlib.machinery import SourceFileLoader
+
 from hy.compiler import hy_compile
 from hy._compat import PY3
 
@@ -7,14 +9,8 @@ from . import ast_compile, bytecode, hy_parse
 from .util import _verbose_message
 
 
-try:
-    from importlib.machinery import SourceFileLoader
-except ImportError:
-    SourceFileLoader = object
-
-
 class HyLoader(SourceFileLoader):
-    def source_to_code(self, data, path, _optimize=-1):
+    def source_to_code(self, data, path='<string>'):
         ast = hy_compile(hy_parse(data.decode("utf-8")), self.name)
         return ast_compile(ast, path, "exec")
 

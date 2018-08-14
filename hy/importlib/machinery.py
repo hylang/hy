@@ -48,6 +48,8 @@ class HyFileFinder(FileFinder):
 
 
 class HyPathFinder(PathFinder):
+    """Custom PathFinder that keeps a Hy-specific cache and path_hooks."""
+
     @classmethod
     def invalidate_caches(cls):
         for finder in path_importer_cache.values():
@@ -86,4 +88,5 @@ class HyPathFinder(PathFinder):
 
 def _install():
     path_hooks.append(HyFileFinder.path_hook((HyLoader, SOURCE_SUFFIXES)))
+
     sys.meta_path.insert(0, HyPathFinder)
