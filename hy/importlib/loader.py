@@ -1,12 +1,21 @@
 import sys
 
+from . import ast_compile, hy_parse
+from ..compiler import hy_compile
+from .._compat import PY35
+
+from importlib.util import cache_from_source
 from importlib.machinery import SourceFileLoader
+from importlib._bootstrap import _verbose_message
 
-from hy.compiler import hy_compile
-from hy._compat import PY3
-
-from . import ast_compile, bytecode, hy_parse
-from .util import _verbose_message
+if PY35:
+    from importlib._bootstrap_external import (_compile_bytecode,
+                                               _code_to_bytecode,
+                                               _validate_bytecode_header)
+else:
+    from importlib._bootstrap import (_compile_bytecode,
+                                      _code_to_bytecode,
+                                      _validate_bytecode_header)
 
 
 class HyLoader(SourceFileLoader):
@@ -18,7 +27,7 @@ class HyLoader(SourceFileLoader):
         source_path = self.get_filename(fullname)
         source_mtime = None
         try:
-            bytecode_path = bytecode.get_path(source_path)
+            bytecode_path = cache_from_source(source_path)
         except NotImplementedError:
             bytecode_path = None
         else:
@@ -34,7 +43,7 @@ class HyLoader(SourceFileLoader):
                     pass
                 else:
                     try:
-                        bytes_data = bytecode.validate_header(
+                        bytes_data = _validate_bytecode_header(
                             data, source_stats=st, name=fullname,
                             path=bytecode_path)
                     except (ImportError, EOFError) as err:
@@ -43,19 +52,9 @@ class HyLoader(SourceFileLoader):
                         _verbose_message('{} matches {}', bytecode_path,
                                          source_path)
 
-                        # In Python 2, __file__ reflects what's
-                        # loaded. By fixing this up, we'll set the
-                        # bytecode path instead.
-                        #
-                        # Easier to live with the conditional here
-                        # than having two maintain two copies of this
-                        # function...
-                        if not PY3:
-                            self.path = bytecode_path
-
-                        return bytecode.load(bytes_data, name=fullname,
-                                             bytecode_path=bytecode_path,
-                                             source_path=source_path)
+                        return _compile_bytecode(bytes_data, name=fullname,
+                                                 bytecode_path=bytecode_path,
+                                                 source_path=source_path)
 
         source_bytes = self.get_data(source_path)
         code_object = self.source_to_code(source_bytes, source_path)
@@ -63,7 +62,8 @@ class HyLoader(SourceFileLoader):
 
         if (not sys.dont_write_bytecode and bytecode_path is not None and
                 source_mtime is not None):
-            data = bytecode.dump(code_object, source_mtime, len(source_bytes))
+            data = _code_to_bytecode(code_object, source_mtime,
+                                     len(source_bytes))
             self.set_data(bytecode_path, data)
             _verbose_message('wrote {!r}', bytecode_path)
 

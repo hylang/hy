@@ -9,6 +9,8 @@ import runpy
 
 from fractions import Fraction
 
+from importlib.util import cache_from_source
+
 import pytest
 
 import hy
@@ -16,7 +18,6 @@ from hy.errors import HyTypeError
 from hy.compiler import hy_compile
 from hy.importlib import hy_parse
 from hy.importlib.loader import HyLoader
-from hy.importlib.bytecode import get_path
 
 
 def test_basics():
@@ -73,7 +74,7 @@ def test_import_autocompiles():
         f.write(b'(defn pyctest [s] (+ "X" s "Y"))')
         f.flush()
 
-        pyc_path = get_path(f.name)
+        pyc_path = cache_from_source(f.name)
 
         try:
             os.remove(pyc_path)

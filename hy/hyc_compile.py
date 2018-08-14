@@ -9,9 +9,18 @@ import argparse
 from py_compile import PyCompileError
 
 from .importlib.loader import HyLoader
-from .importlib.bytecode import dump, get_path
-from .importlib.util import write_atomic, calc_mode
 from .cmdline import VERSION
+
+from ._compat import PY35
+
+from importlib.util import cache_from_source
+
+if PY35:
+    from importlib._bootstrap_external import (_code_to_bytecode,
+                                               _write_atomic, _calc_mode)
+else:
+    from importlib._bootstrap import (_code_to_bytecode, _write_atomic,
+                                      _calc_mode)
 
 
 def hyc_compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
@@ -38,9 +47,9 @@ def hyc_compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     """
     if cfile is None:
         if optimize >= 0:
-            cfile = get_path(file, optimization='1' if not optimize else '')
+            cfile = cache_from_source(file, optimization='1' if not optimize else '')
         else:
-            cfile = get_path(file)
+            cfile = cache_from_source(file)
     if os.path.islink(cfile):
         msg = ('{} is a symlink and will be changed into a regular file if '
                'import writes a byte-compiled file to it')
@@ -49,7 +58,7 @@ def hyc_compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
         msg = ('{} is a non-regular file and will be changed into a regular '
                'one if import writes a byte-compiled file to it')
         raise FileExistsError(msg.format(cfile))
-    loader = HyLoader('<hy_compile>', file)
+    loader = HyLoader('<hyc_compile>', file)
     source_bytes = loader.get_data(file)
     try:
         code = loader.source_to_code(source_bytes, dfile or file)
@@ -67,9 +76,9 @@ def hyc_compile(file, cfile=None, dfile=None, doraise=False, optimize=-1):
     except FileExistsError:
         pass
     source_stats = loader.path_stats(file)
-    bytecode = dump(code, source_stats['mtime'], source_stats['size'])
-    mode = calc_mode(file)
-    write_atomic(cfile, bytecode, mode)
+    bytecode = _code_to_bytecode(code, source_stats['mtime'], source_stats['size'])
+    mode = _calc_mode(file)
+    _write_atomic(cfile, bytecode, mode)
     return cfile
 
 

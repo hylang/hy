@@ -5,11 +5,11 @@
 import sys
 import os
 
+from importlib.util import cache_from_source
 from importlib.machinery import FileFinder, PathFinder
+from importlib._bootstrap import _verbose_message
 
-from . import bytecode
 from .loader import HyLoader
-from .util import _verbose_message
 
 
 SOURCE_SUFFIXES = [".hy"]
@@ -82,7 +82,7 @@ class HyPathFinder(PathFinder):
     def find_spec(cls, fullname, path=None, target=None):
         spec = super().find_spec(fullname, path=path, target=target)
         if spec:
-            spec.cached = bytecode.get_path(spec.origin)
+            spec.cached = cache_from_source(spec.origin)
             return spec
 
 

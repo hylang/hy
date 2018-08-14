@@ -9,10 +9,11 @@ import re
 import shlex
 import subprocess
 
+from importlib.util import cache_from_source
+
 import pytest
 
 from hy._compat import builtins
-from hy.importlib import bytecode
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -243,8 +244,8 @@ def test_bin_hyc():
     path = "tests/resources/argparse_ex.hy"
     output, _ = run_cmd("hyc " + path)
     assert "Compiling" in output
-    assert os.path.exists(bytecode.get_path(path))
-    rm(bytecode.get_path(path))
+    assert os.path.exists(cache_from_source(path))
+    rm(cache_from_source(path))
 
 
 def test_bin_hyc_missing_file():
@@ -294,12 +295,12 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
     fpath = modname.replace(".", "/") + ".hy"
     cmd = cmd_fmt.format(**locals())
 
-    rm(bytecode.get_path(fpath))
+    rm(cache_from_source(fpath))
 
     if scenario == "prevent_by_force":
         # Keep Hy from being able to byte-compile the module by
         # creating a directory at the target location.
-        os.mkdir(bytecode.get_path(fpath))
+        os.mkdir(cache_from_source(fpath))
 
     # Whether or not we can byte-compile the module, we should be able
     # to run it.
@@ -309,10 +310,10 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     if scenario == "normal":
         # That should've byte-compiled the module.
-        assert os.path.exists(bytecode.get_path(fpath))
+        assert os.path.exists(cache_from_source(fpath))
     elif scenario == "prevent_by_env":
         # No byte-compiled version should've been created.
-        assert not os.path.exists(bytecode.get_path(fpath))
+        assert not os.path.exists(cache_from_source(fpath))
 
     # When we run the same command again, and we've byte-compiled the
     # module, the byte-compiled version should be run instead of the

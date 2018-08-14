@@ -12,7 +12,7 @@ import __future__
 from hy.compiler import hy_compile, HyTypeError
 from hy.lex import tokenize
 from hy.models import HyObject, HyExpression, HySymbol, replace_hy_obj
-from hy._compat import PY3, string_types
+from hy._compat import string_types
 
 
 def ast_compile(ast, filename, mode):
@@ -99,11 +99,7 @@ def _get_code_from_file(run_name, fname):
     return code, fname
 
 
-if PY3:
-    from .machinery import HyLoader, _install  # NOQA
-    runpy._get_code_from_file = _get_code_from_file
-else:
-    from .compat import HyLoader, _install  # NOQA
-    runpy._get_code_from_file = lambda f: _get_code_from_file(None, f)[0]
+from .machinery import HyLoader, _install  # NOQA
+runpy._get_code_from_file = _get_code_from_file
 
 _install()
