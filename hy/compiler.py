@@ -11,7 +11,7 @@ from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
 from hy.errors import HyCompileError, HyTypeError
 
-from hy.lex.parser import mangle, unmangle
+from hy.lex import mangle, unmangle
 
 import hy.macros
 from hy._compat import (

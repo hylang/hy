@@ -5,7 +5,7 @@
 from hy._compat import PY3
 import hy.inspect
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
-from hy.lex.parser import mangle
+from hy.lex import mangle
 from hy._compat import str_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
