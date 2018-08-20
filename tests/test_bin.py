@@ -9,10 +9,11 @@ import re
 import shlex
 import subprocess
 
+from hy.importer import cache_from_source
+
 import pytest
 
 from hy._compat import builtins
-from hy.importer import get_bytecode_path
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -231,8 +232,11 @@ def test_bin_hy_file_with_args():
 
 
 def test_bin_hyc():
-    _, err = run_cmd("hyc", expect=2)
-    assert "usage" in err
+    _, err = run_cmd("hyc", expect=0)
+    assert err == ''
+
+    _, err = run_cmd("hyc -", expect=0)
+    assert err == ''
 
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
@@ -240,12 +244,12 @@ def test_bin_hyc():
     path = "tests/resources/argparse_ex.hy"
     output, _ = run_cmd("hyc " + path)
     assert "Compiling" in output
-    assert os.path.exists(get_bytecode_path(path))
-    rm(get_bytecode_path(path))
+    assert os.path.exists(cache_from_source(path))
+    rm(cache_from_source(path))
 
 
 def test_bin_hyc_missing_file():
-    _, err = run_cmd("hyc foobarbaz", expect=2)
+    _, err = run_cmd("hyc foobarbaz", expect=1)
     assert "[Errno 2]" in err
 
 
@@ -284,19 +288,19 @@ def test_bin_hy_no_main():
 @pytest.mark.parametrize('scenario', [
     "normal", "prevent_by_force", "prevent_by_env"])
 @pytest.mark.parametrize('cmd_fmt', [
-    'hy {fpath}', 'hy -m {modname}', "hy -c '(import {modname})'"])
+    'hy -m {modname}', "hy -c '(import {modname})'"])
 def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
     cmd = cmd_fmt.format(**locals())
 
-    rm(get_bytecode_path(fpath))
+    rm(cache_from_source(fpath))
 
     if scenario == "prevent_by_force":
         # Keep Hy from being able to byte-compile the module by
         # creating a directory at the target location.
-        os.mkdir(get_bytecode_path(fpath))
+        os.mkdir(cache_from_source(fpath))
 
     # Whether or not we can byte-compile the module, we should be able
     # to run it.
@@ -306,10 +310,10 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     if scenario == "normal":
         # That should've byte-compiled the module.
-        assert os.path.exists(get_bytecode_path(fpath))
+        assert os.path.exists(cache_from_source(fpath))
     elif scenario == "prevent_by_env":
         # No byte-compiled version should've been created.
-        assert not os.path.exists(get_bytecode_path(fpath))
+        assert not os.path.exists(cache_from_source(fpath))
 
     # When we run the same command again, and we've byte-compiled the
     # module, the byte-compiled version should be run instead of the

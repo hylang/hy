@@ -2,35 +2,43 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import hy
-from hy.importer import (import_file_to_module, import_buffer_to_ast,
-                         MetaLoader, get_bytecode_path)
-from hy.errors import HyTypeError
 import os
 import ast
 import tempfile
+import importlib
+import runpy
+
 from fractions import Fraction
+
 import pytest
+
+import hy
+from hy.errors import HyTypeError
+from hy.compiler import hy_compile
+from hy.importer import hy_parse, HyLoader, cache_from_source
 
 
 def test_basics():
     "Make sure the basics of the importer work"
-    import_file_to_module("basic",
-                          "tests/resources/importer/basic.hy")
+
+    basic_namespace = runpy.run_path("tests/resources/importer/basic.hy",
+                                     run_name='__main__')
+    assert 'square' in basic_namespace
 
 
 def test_stringer():
-    _ast = import_buffer_to_ast("(defn square [x] (* x x))", '')
+    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), '')
+
     assert type(_ast.body[0]) == ast.FunctionDef
 
 
 def test_imports():
     path = os.getcwd() + "/tests/resources/importer/a.hy"
-    testLoader = MetaLoader(path)
+    testLoader = HyLoader("tests.resources.importer.a", path)
 
     def _import_test():
         try:
-            return testLoader.load_module("tests.resources.importer.a")
+            return testLoader.load_module()
         except:
             return "Error"
 
@@ -43,7 +51,7 @@ def test_import_error_reporting():
 
     def _import_error_test():
         try:
-            import_buffer_to_ast("(import \"sys\")", '')
+            _ = hy_compile(hy_parse("(import \"sys\")"), '')
         except HyTypeError:
             return "Error reported"
 
@@ -56,19 +64,23 @@ def test_import_error_reporting():
 def test_import_autocompiles():
     "Test that (import) byte-compiles the module."
 
-    f = tempfile.NamedTemporaryFile(suffix='.hy', delete=False)
-    f.write(b'(defn pyctest [s] (+ "X" s "Y"))')
-    f.close()
+    with tempfile.NamedTemporaryFile(suffix='.hy', delete=True) as f:
+        f.write(b'(defn pyctest [s] (+ "X" s "Y"))')
+        f.flush()
 
-    try:
-        os.remove(get_bytecode_path(f.name))
-    except (IOError, OSError):
-        pass
-    import_file_to_module("mymodule", f.name)
-    assert os.path.exists(get_bytecode_path(f.name))
+        pyc_path = cache_from_source(f.name)
 
-    os.remove(f.name)
-    os.remove(get_bytecode_path(f.name))
+        try:
+            os.remove(pyc_path)
+        except (IOError, OSError):
+            pass
+
+        test_loader = HyLoader("mymodule", f.name).load_module()
+
+        assert hasattr(test_loader, 'pyctest')
+        assert os.path.exists(pyc_path)
+
+        os.remove(pyc_path)
 
 
 def test_eval():
