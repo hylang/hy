@@ -328,6 +328,18 @@ def test_bin_hy_module_main():
     assert "Hello World" in output
 
 
+def test_bin_hy_module_main_file():
+    output, _ = run_cmd("hy -m tests.resources.bin")
+    assert "This is a __main__.hy" in output
+
+    output, _ = run_cmd("hy -m .tests.resources.bin", expect=1)
+
+
+def test_bin_hy_file_main_file():
+    output, _ = run_cmd("hy tests/resources/bin")
+    assert "This is a __main__.hy" in output
+
+
 def test_bin_hy_module_main_args():
     output, _ = run_cmd("hy -m tests.resources.bin.main test 123")
     assert "test" in output

@@ -24,9 +24,31 @@ from hy.importer import hy_parse, HyLoader, cache_from_source
 def test_basics():
     "Make sure the basics of the importer work"
 
-    basic_namespace = runpy.run_path("tests/resources/importer/basic.hy",
-                                     run_name='__main__')
-    assert 'square' in basic_namespace
+    assert os.path.isfile('tests/resources/__init__.py')
+    resources_mod = importlib.import_module('tests.resources')
+    assert hasattr(resources_mod, 'kwtest')
+
+    assert os.path.isfile('tests/resources/bin/__init__.hy')
+    bin_mod = importlib.import_module('tests.resources.bin')
+    assert hasattr(bin_mod, '_null_fn_for_import_test')
+
+
+def test_runpy():
+    # XXX: `runpy` won't update cached bytecode!  Don't know if that's
+    # intentional or not.
+
+    basic_ns = runpy.run_path('tests/resources/importer/basic.hy')
+    assert 'square' in basic_ns
+
+    main_ns = runpy.run_path('tests/resources/bin')
+    assert main_ns['visited_main'] == 1
+    del main_ns
+
+    main_ns = runpy.run_module('tests.resources.bin')
+    assert main_ns['visited_main'] == 1
+
+    with pytest.raises(IOError):
+        runpy.run_path('tests/resources/foobarbaz.py')
 
 
 def test_stringer():
