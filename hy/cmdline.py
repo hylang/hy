@@ -262,6 +262,8 @@ def cmdline_handler(scriptname, argv):
                         help="module to run, passed in as a string")
     parser.add_argument("-E", action='store_true',
                         help="ignore PYTHON* environment variables")
+    parser.add_argument("-B", action='store_true',
+                        help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x")
     parser.add_argument("-i", dest="icommand",
                         help="program passed in as a string, then stay in REPL")
     parser.add_argument("--spy", action="store_true",
@@ -278,13 +280,17 @@ def cmdline_handler(scriptname, argv):
     parser.add_argument('args', nargs=argparse.REMAINDER,
                         help=argparse.SUPPRESS)
 
-    # stash the hy executable in case we need it later
-    # mimics Python sys.executable
+    # Get the path of the Hy cmdline executable and swap it with
+    # `sys.executable` (saving the original, just in case).
+    # XXX: The `__main__` module will also have `__file__` set to the
+    # entry-point script.  Currently, I don't see an immediate problem, but
+    # that's not how the Python cmdline works.
     hy.executable = argv[0]
+    hy.sys_executable = sys.executable
+    sys.executable = hy.executable
 
-    # need to split the args if using "-m"
-    # all args after the MOD are sent to the module
-    # in sys.argv
+    # Need to split the args.  If using "-m" all args after the MOD are sent to
+    # the module in sys.argv.
     module_args = []
     if "-m" in argv:
         mloc = argv.index("-m")
@@ -298,12 +304,12 @@ def cmdline_handler(scriptname, argv):
         global SIMPLE_TRACEBACKS
         SIMPLE_TRACEBACKS = False
 
-    # reset sys.argv like Python
-    # sys.argv = [sys.argv[0]] + options.args + module_args
-
     if options.E:
         # User did "hy -E ..."
         _remove_python_envs()
+
+    if options.B:
+        sys.dont_write_bytecode = True
 
     if options.command:
         # User did "hy -c ..."

@@ -6,6 +6,7 @@
 
 import os
 import re
+import sys
 import shlex
 import subprocess
 
@@ -285,15 +286,20 @@ def test_bin_hy_no_main():
     assert "This Should Still Work" in output
 
 
-@pytest.mark.parametrize('scenario', [
-    "normal", "prevent_by_force", "prevent_by_env"])
-@pytest.mark.parametrize('cmd_fmt', [
-    'hy -m {modname}', "hy -c '(import {modname})'"])
+@pytest.mark.parametrize('scenario', ["normal", "prevent_by_force",
+                                      "prevent_by_env", "prevent_by_option"])
+@pytest.mark.parametrize('cmd_fmt', [['hy', '{fpath}'],
+                                     ['hy', '-m', '{modname}'],
+                                     ['hy', '-c', "'(import {modname})'"]])
 def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
-    cmd = cmd_fmt.format(**locals())
+
+    if scenario == 'prevent_by_option':
+        cmd_fmt.insert(1, '-B')
+
+    cmd = ' '.join(cmd_fmt).format(**locals())
 
     rm(cache_from_source(fpath))
 
@@ -304,14 +310,14 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     # Whether or not we can byte-compile the module, we should be able
     # to run it.
-    output, _ = run_cmd(cmd, dontwritebytecode=scenario == "prevent_by_env")
+    output, _ = run_cmd(cmd, dontwritebytecode=(scenario == "prevent_by_env"))
     assert "Hello from macro" in output
     assert "The macro returned: boink" in output
 
     if scenario == "normal":
         # That should've byte-compiled the module.
         assert os.path.exists(cache_from_source(fpath))
-    elif scenario == "prevent_by_env":
+    elif scenario == "prevent_by_env" or scenario == "prevent_by_option":
         # No byte-compiled version should've been created.
         assert not os.path.exists(cache_from_source(fpath))
 
@@ -353,3 +359,8 @@ def test_bin_hy_module_main_exitvalue():
 def test_bin_hy_module_no_main():
     output, _ = run_cmd("hy -m tests.resources.bin.nomain")
     assert "This Should Still Work" in output
+
+
+def test_bin_hy_sys_executable():
+    output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
+    assert output.strip().endswith('/hy')

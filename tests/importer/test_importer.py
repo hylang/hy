@@ -84,7 +84,7 @@ def test_import_error_reporting():
     assert _import_error_test() is not None
 
 
-@pytest.mark.skipif(os.environ.get('PYTHONDONTWRITEBYTECODE'),
+@pytest.mark.skipif(sys.dont_write_bytecode,
                     reason="Bytecode generation is suppressed")
 def test_import_autocompiles():
     "Test that (import) byte-compiles the module."
