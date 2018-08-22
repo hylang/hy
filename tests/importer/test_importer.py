@@ -15,6 +15,7 @@ from fractions import Fraction
 import pytest
 
 import hy
+from hy._compat import bytes_type
 from hy.errors import HyTypeError
 from hy.lex import LexException
 from hy.compiler import hy_compile
@@ -220,3 +221,14 @@ def test_reload():
         del sys.path[0]
         unlink(source)
         del sys.modules[TESTFN]
+
+
+def test_circular():
+    """Test circular imports by creating a temporary file/module that calls a
+    function that imports itself."""
+    sys.path.insert(0, os.path.abspath('tests/resources/importer'))
+    try:
+        mod = runpy.run_module('circular')
+        assert mod['f']() == 1
+    finally:
+        sys.path.pop(0)
