@@ -214,6 +214,10 @@ def test_bin_hy_icmd_file():
     output, _ = run_cmd("hy -i resources/icmd_test_file.hy", "(ideas)")
     assert "Hy!" in output
 
+    file_relative_path = os.path.realpath(os.path.split('tests/resources/relative_import.hy')[0])
+
+    output, _ = run_cmd("hy -i tests/resources/relative_import.hy None")
+    assert file_relative_path in output
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
@@ -344,6 +348,20 @@ def test_bin_hy_module_main_file():
 def test_bin_hy_file_main_file():
     output, _ = run_cmd("hy tests/resources/bin")
     assert "This is a __main__.hy" in output
+
+
+def test_bin_hy_file_sys_path():
+    """The test resource `relative_import.hy` will perform an absolute import
+    of a module in its directory: a directory that is not on the `sys.path` of
+    the script executing the module (i.e. `hy`).  We want to make sure that Hy
+    adopts the file's location in `sys.path`, instead of the runner's current
+    dir (e.g. '' in `sys.path`).
+    """
+    file_path, _ = os.path.split('tests/resources/relative_import.hy')
+    file_relative_path = os.path.realpath(file_path)
+
+    output, _ = run_cmd("hy tests/resources/relative_import.hy")
+    assert file_relative_path in output
 
 
 def test_bin_hy_module_main_args():

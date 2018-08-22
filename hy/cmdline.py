@@ -229,13 +229,21 @@ def run_repl(hr=None, **kwargs):
 
 
 def run_icommand(source, **kwargs):
-    hr = HyREPL(**kwargs)
     if os.path.exists(source):
+        # Emulate Python cmdline behavior by setting `sys.path` relative
+        # to the executed file's location.
+        if sys.path[0] == '':
+            sys.path[0] = os.path.realpath(os.path.split(source)[0])
+        else:
+            sys.path.insert(0, os.path.split(source)[0])
+
         with io.open(source, "r", encoding='utf-8') as f:
             source = f.read()
         filename = source
     else:
         filename = '<input>'
+
+    hr = HyREPL(**kwargs)
     hr.runsource(source, filename=filename, symbol='single')
     return run_repl(hr)
 
@@ -333,9 +341,18 @@ def cmdline_handler(scriptname, argv):
 
         else:
             # User did "hy <filename>"
+            filename = options.args[0]
+
+            # Emulate Python cmdline behavior by setting `sys.path` relative
+            # to the executed file's location.
+            if sys.path[0] == '':
+                sys.path[0] = os.path.realpath(os.path.split(filename)[0])
+            else:
+                sys.path.insert(0, os.path.split(filename)[0])
+
             try:
                 sys.argv = options.args
-                runpy.run_path(options.args[0], run_name='__main__')
+                runpy.run_path(filename, run_name='__main__')
                 return 0
             except FileNotFoundError as e:
                 print("hy: Can't open file '{0}': [Errno {1}] {2}".format(
