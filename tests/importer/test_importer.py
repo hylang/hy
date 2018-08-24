@@ -232,3 +232,24 @@ def test_circular():
         assert mod['f']() == 1
     finally:
         sys.path.pop(0)
+
+
+def test_shadowed_basename():
+    """Make sure Hy loads `.hy` files instead of their `.py` counterparts (.e.g
+    `__init__.py` and `__init__.hy`).
+    """
+    sys.path.insert(0, os.path.realpath('tests/resources/importer'))
+    try:
+        assert os.path.isfile('tests/resources/importer/foo/__init__.hy')
+        assert os.path.isfile('tests/resources/importer/foo/__init__.py')
+        assert os.path.isfile('tests/resources/importer/foo/some_mod.hy')
+        assert os.path.isfile('tests/resources/importer/foo/some_mod.py')
+
+        foo = importlib.import_module('foo')
+        assert foo.__file__.endswith('foo/__init__.hy')
+        assert foo.ext == 'hy'
+        some_mod = importlib.import_module('foo.some_mod')
+        assert some_mod.__file__.endswith('foo/some_mod.hy')
+        assert some_mod.ext == 'hy'
+    finally:
+        sys.path.pop(0)
