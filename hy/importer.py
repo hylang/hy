@@ -242,18 +242,15 @@ else:
 
     from pkgutil import ImpImporter, ImpLoader
 
-    # 100x better!
-    HY_SOURCE = imp.PY_SOURCE * 100
-
     class HyLoader(ImpLoader, object):
         def __init__(self, fullname, filename, fileobj=None, etc=None):
             """This constructor is designed for some compatibility with
             SourceFileLoader."""
             if etc is None and filename is not None:
                 if filename.endswith('.hy'):
-                    etc = ('.hy', 'U', HY_SOURCE)
-                if fileobj is None:
-                    fileobj = open(filename, 'rU')
+                    etc = ('.hy', 'U', imp.PY_SOURCE)
+                    if fileobj is None:
+                        fileobj = io.open(filename, 'rU', encoding='utf-8')
 
             super(HyLoader, self).__init__(fullname, fileobj, filename, etc)
 
@@ -266,10 +263,11 @@ else:
             """Same as `pkgutil.ImpLoader`, with an extra check for Hy
             source"""
             fullname = self._fix_name(fullname)
+            ext_type = self.etc[0]
             mod_type = self.etc[2]
             mod = None
             pkg_path = os.path.join(self.filename, '__init__.hy')
-            if mod_type == HY_SOURCE or (
+            if ext_type == '.hy' or (
                     mod_type == imp.PKG_DIRECTORY and
                     os.path.isfile(pkg_path)):
 
@@ -309,13 +307,13 @@ else:
         def _reopen(self):
             """Same as `pkgutil.ImpLoader`, with an extra check for Hy
             source"""
-            super(HyLoader, self)._reopen()
-
-            # Add the Hy case...
             if self.file and self.file.closed:
-                mod_type = self.etc[2]
-                if mod_type == HY_SOURCE:
+                ext_type = self.etc[0]
+                if ext_type == '.hy':
                     self.file = io.open(self.filename, 'rU', encoding='utf-8')
+                else:
+                    super(HyLoader, self)._reopen()
+
 
         def byte_compile_hy(self, fullname=None):
             fullname = self._fix_name(fullname)
@@ -344,8 +342,8 @@ else:
             """Same as `pkgutil.ImpLoader`, with an extra check for Hy
             source"""
             fullname = self._fix_name(fullname)
-            mod_type = self.etc[2]
-            if mod_type == HY_SOURCE:
+            ext_type = self.etc[0]
+            if ext_type == '.hy':
                 # Looks like we have to manually check for--and update--
                 # the bytecode.
                 t_py = long(os.stat(self.filename).st_mtime)
@@ -370,40 +368,10 @@ else:
 
             return self.code
 
-        def get_source(self, fullname=None):
-            """Same as `pkgutil.ImpLoader`, with an extra check for Hy
-            source"""
-            fullname = self._fix_name(fullname)
-            mod_type = self.etc[2]
-            if self.source is None and mod_type == HY_SOURCE:
-                self._reopen()
-                try:
-                    self.source = self.file.read()
-                finally:
-                    self.file.close()
-
-            if self.source is None:
-                super(HyLoader, self).get_source(fullname=fullname)
-
-            return self.source
-
-        def get_filename(self, fullname=None):
-            """Same as `pkgutil.ImpLoader`, with an extra check for Hy
-            source"""
-            fullname = self._fix_name(fullname)
-            if self.etc[2] == HY_SOURCE:
-                return self.filename
-
-            if self.filename is None:
-                filename = super(HyLoader, self).get_filename(fullname=fullname)
-
-            return filename
-
         def _get_delegate(self):
             return HyImporter(self.filename).find_module('__init__')
 
     class HyImporter(ImpImporter, object):
-
         def __init__(self, path=None):
             # We need to be strict about the types of files this importer will
             # handle.  To start, if the path is not the current directory in
@@ -444,7 +412,7 @@ else:
                     entry.endswith('.hy')):
                     file_path = entry
                     fileobj = io.open(file_path, 'rU', encoding='utf-8')
-                    etc = ('.hy', 'U', HY_SOURCE)
+                    etc = ('.hy', 'U', imp.PY_SOURCE)
                     break
                 else:
                     file_path = os.path.join(entry, subname)
@@ -457,14 +425,13 @@ else:
                     file_path = file_path + '.hy'
                     if os.path.isfile(file_path):
                         fileobj = io.open(file_path, 'rU', encoding='utf-8')
-                        etc = ('.hy', 'U', HY_SOURCE)
+                        etc = ('.hy', 'U', imp.PY_SOURCE)
                         break
             else:
                 try:
                     fileobj, file_path, etc = imp.find_module(subname, path)
                 except (ImportError, IOError):
                     return None
-
 
             return HyLoader(fullname, file_path, fileobj, etc)
 
