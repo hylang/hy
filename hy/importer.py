@@ -256,8 +256,8 @@ else:
 
         def exec_module(self, module, fullname=None):
             fullname = self._fix_name(fullname)
-            ast = self.get_code(fullname)
-            eval(ast, module.__dict__)
+            code = self.get_code(fullname)
+            eval(code, module.__dict__)
 
         def load_module(self, fullname=None):
             """Same as `pkgutil.ImpLoader`, with an extra check for Hy
@@ -287,7 +287,6 @@ else:
                     mod.__file__ = self.get_filename(fullname)
                     mod.__package__ = '.'.join(fullname.split('.')[:-1])
 
-                # TODO: Set `mod.__doc__`.
                 mod.__name__ = fullname
 
                 self.exec_module(mod, fullname=fullname)
@@ -314,7 +313,6 @@ else:
                 else:
                     super(HyLoader, self)._reopen()
 
-
         def byte_compile_hy(self, fullname=None):
             fullname = self._fix_name(fullname)
             if fullname is None:
@@ -322,8 +320,9 @@ else:
             try:
                 hy_source = self.get_source(fullname)
                 hy_tree = hy_parse(hy_source)
-                ast = hy_compile(hy_tree, fullname)
-                code = compile(ast, self.filename, 'exec',
+                hy_ast = hy_compile(hy_tree, fullname)
+
+                code = compile(hy_ast, self.filename, 'exec',
                                hy_ast_compile_flags)
             except (HyTypeError, LexException) as e:
                 if e.source is None:

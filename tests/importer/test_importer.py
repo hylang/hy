@@ -253,3 +253,16 @@ def test_shadowed_basename():
         assert some_mod.ext == 'hy'
     finally:
         sys.path.pop(0)
+
+
+def test_docstring():
+    """Make sure a module's docstring is loaded."""
+    sys.path.insert(0, os.path.realpath('tests/resources/importer'))
+    try:
+        mod = importlib.import_module('docstring')
+        expected_doc = ("This module has a docstring.\n\n"
+                        "It covers multiple lines, too!\n")
+        assert mod.__doc__ == expected_doc
+        assert mod.a == 1
+    finally:
+        sys.path.pop(0)
