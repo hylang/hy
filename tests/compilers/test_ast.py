@@ -664,3 +664,25 @@ def test_ast_bad_yield_from():
 def test_eval_generator_with_return():
     """Ensure generators with a return statement works."""
     can_eval("(fn [] (yield 1) (yield 2) (return))")
+
+
+def test_futures_imports():
+    """Make sure __future__ imports go first, especially when builtins are
+    automatically added (e.g. via use of a builtin name like `name`)."""
+    hy_ast = can_compile((
+        '(import [__future__ [print_function]])\n'
+        '(import sys)\n'
+        '(setv name [1 2])'
+        '(print (first name))'))
+
+    assert hy_ast.body[0].module == '__future__'
+    assert hy_ast.body[1].module == 'hy.core.language'
+
+    hy_ast = can_compile((
+        '(import sys)\n'
+        '(import [__future__ [print_function]])\n'
+        '(setv name [1 2])'
+        '(print (first name))'))
+
+    assert hy_ast.body[0].module == '__future__'
+    assert hy_ast.body[1].module == 'hy.core.language'
