@@ -22,6 +22,8 @@ Bug Fixes
   attribute access.
 * Fixed crashes on Windows when calling `hy-repr` on date and time
   objects.
+* Fixed errors from `from __future__ import ...` statements and missing Hy
+  module docstrings caused by automatic importing of Hy builtins.
 
 0.15.0
 ==============================
