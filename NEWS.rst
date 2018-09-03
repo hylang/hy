@@ -15,6 +15,9 @@ New Features
 
 Bug Fixes
 ------------------------------
+* Fixed module reloading.
+* Fixed circular imports.
+* Fixed `__main__` file execution.
 * Fixed bugs in the handling of unpacking forms in method calls and
   attribute access.
 * Fixed crashes on Windows when calling `hy-repr` on date and time

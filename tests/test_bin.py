@@ -6,13 +6,15 @@
 
 import os
 import re
+import sys
 import shlex
 import subprocess
+
+from hy.importer import cache_from_source
 
 import pytest
 
 from hy._compat import builtins
-from hy.importer import get_bytecode_path
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -212,6 +214,10 @@ def test_bin_hy_icmd_file():
     output, _ = run_cmd("hy -i resources/icmd_test_file.hy", "(ideas)")
     assert "Hy!" in output
 
+    file_relative_path = os.path.realpath(os.path.split('tests/resources/relative_import.hy')[0])
+
+    output, _ = run_cmd("hy -i tests/resources/relative_import.hy None")
+    assert file_relative_path in output
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
@@ -231,8 +237,11 @@ def test_bin_hy_file_with_args():
 
 
 def test_bin_hyc():
-    _, err = run_cmd("hyc", expect=2)
-    assert "usage" in err
+    _, err = run_cmd("hyc", expect=0)
+    assert err == ''
+
+    _, err = run_cmd("hyc -", expect=0)
+    assert err == ''
 
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
@@ -240,12 +249,12 @@ def test_bin_hyc():
     path = "tests/resources/argparse_ex.hy"
     output, _ = run_cmd("hyc " + path)
     assert "Compiling" in output
-    assert os.path.exists(get_bytecode_path(path))
-    rm(get_bytecode_path(path))
+    assert os.path.exists(cache_from_source(path))
+    rm(cache_from_source(path))
 
 
 def test_bin_hyc_missing_file():
-    _, err = run_cmd("hyc foobarbaz", expect=2)
+    _, err = run_cmd("hyc foobarbaz", expect=1)
     assert "[Errno 2]" in err
 
 
@@ -281,35 +290,40 @@ def test_bin_hy_no_main():
     assert "This Should Still Work" in output
 
 
-@pytest.mark.parametrize('scenario', [
-    "normal", "prevent_by_force", "prevent_by_env"])
-@pytest.mark.parametrize('cmd_fmt', [
-    'hy {fpath}', 'hy -m {modname}', "hy -c '(import {modname})'"])
+@pytest.mark.parametrize('scenario', ["normal", "prevent_by_force",
+                                      "prevent_by_env", "prevent_by_option"])
+@pytest.mark.parametrize('cmd_fmt', [['hy', '{fpath}'],
+                                     ['hy', '-m', '{modname}'],
+                                     ['hy', '-c', "'(import {modname})'"]])
 def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
-    cmd = cmd_fmt.format(**locals())
 
-    rm(get_bytecode_path(fpath))
+    if scenario == 'prevent_by_option':
+        cmd_fmt.insert(1, '-B')
+
+    cmd = ' '.join(cmd_fmt).format(**locals())
+
+    rm(cache_from_source(fpath))
 
     if scenario == "prevent_by_force":
         # Keep Hy from being able to byte-compile the module by
         # creating a directory at the target location.
-        os.mkdir(get_bytecode_path(fpath))
+        os.mkdir(cache_from_source(fpath))
 
     # Whether or not we can byte-compile the module, we should be able
     # to run it.
-    output, _ = run_cmd(cmd, dontwritebytecode=scenario == "prevent_by_env")
+    output, _ = run_cmd(cmd, dontwritebytecode=(scenario == "prevent_by_env"))
     assert "Hello from macro" in output
     assert "The macro returned: boink" in output
 
     if scenario == "normal":
         # That should've byte-compiled the module.
-        assert os.path.exists(get_bytecode_path(fpath))
-    elif scenario == "prevent_by_env":
+        assert os.path.exists(cache_from_source(fpath))
+    elif scenario == "prevent_by_env" or scenario == "prevent_by_option":
         # No byte-compiled version should've been created.
-        assert not os.path.exists(get_bytecode_path(fpath))
+        assert not os.path.exists(cache_from_source(fpath))
 
     # When we run the same command again, and we've byte-compiled the
     # module, the byte-compiled version should be run instead of the
@@ -322,6 +336,32 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
 def test_bin_hy_module_main():
     output, _ = run_cmd("hy -m tests.resources.bin.main")
     assert "Hello World" in output
+
+
+def test_bin_hy_module_main_file():
+    output, _ = run_cmd("hy -m tests.resources.bin")
+    assert "This is a __main__.hy" in output
+
+    output, _ = run_cmd("hy -m .tests.resources.bin", expect=1)
+
+
+def test_bin_hy_file_main_file():
+    output, _ = run_cmd("hy tests/resources/bin")
+    assert "This is a __main__.hy" in output
+
+
+def test_bin_hy_file_sys_path():
+    """The test resource `relative_import.hy` will perform an absolute import
+    of a module in its directory: a directory that is not on the `sys.path` of
+    the script executing the module (i.e. `hy`).  We want to make sure that Hy
+    adopts the file's location in `sys.path`, instead of the runner's current
+    dir (e.g. '' in `sys.path`).
+    """
+    file_path, _ = os.path.split('tests/resources/relative_import.hy')
+    file_relative_path = os.path.realpath(file_path)
+
+    output, _ = run_cmd("hy tests/resources/relative_import.hy")
+    assert file_relative_path in output
 
 
 def test_bin_hy_module_main_args():
@@ -337,3 +377,8 @@ def test_bin_hy_module_main_exitvalue():
 def test_bin_hy_module_no_main():
     output, _ = run_cmd("hy -m tests.resources.bin.nomain")
     assert "This Should Still Work" in output
+
+
+def test_bin_hy_sys_executable():
+    output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
+    assert output.strip().endswith('/hy')

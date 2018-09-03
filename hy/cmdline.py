@@ -9,26 +9,21 @@ import code
 import ast
 import sys
 import os
+import io
 import importlib
+import py_compile
+import runpy
 
 import astor.code_gen
 
 import hy
-
 from hy.lex import LexException, PrematureEndOfInput, mangle
-from hy.compiler import HyTypeError
-from hy.importer import (hy_eval, import_buffer_to_module,
-                         import_file_to_ast, import_file_to_hst,
-                         import_buffer_to_ast, import_buffer_to_hst)
-from hy.completer import completion
-from hy.completer import Completer
-
-from hy.errors import HyIOError
-
+from hy.compiler import HyTypeError, hy_compile
+from hy.importer import hy_eval, hy_parse
+from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
-
-from hy._compat import builtins, PY3
+from hy._compat import builtins, PY3, FileNotFoundError
 
 
 class HyQuitter(object):
@@ -46,6 +41,7 @@ class HyQuitter(object):
         except:
             pass
         raise SystemExit(code)
+
 
 builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
@@ -88,7 +84,7 @@ class HyREPL(code.InteractiveConsole):
 
         try:
             try:
-                do = import_buffer_to_hst(source)
+                do = hy_parse(source)
             except PrematureEndOfInput:
                 return True
         except LexException as e:
@@ -202,25 +198,8 @@ def pretty_error(func, *args, **kw):
 
 
 def run_command(source):
-    pretty_error(import_buffer_to_module, "__main__", source)
-    return 0
-
-
-def run_module(mod_name):
-    from hy.importer import MetaImporter
-    pth = MetaImporter().find_on_path(mod_name)
-    if pth is not None:
-        sys.argv = [pth] + sys.argv
-        return run_file(pth)
-
-    print("{0}: module '{1}' not found.\n".format(hy.__appname__, mod_name),
-          file=sys.stderr)
-    return 1
-
-
-def run_file(filename):
-    from hy.importer import import_file_to_module
-    pretty_error(import_file_to_module, "__main__", filename)
+    tree = hy_parse(source)
+    pretty_error(hy_eval, tree, module_name="__main__")
     return 0
 
 
@@ -250,13 +229,21 @@ def run_repl(hr=None, **kwargs):
 
 
 def run_icommand(source, **kwargs):
-    hr = HyREPL(**kwargs)
     if os.path.exists(source):
-        with open(source, "r") as f:
+        # Emulate Python cmdline behavior by setting `sys.path` relative
+        # to the executed file's location.
+        if sys.path[0] == '':
+            sys.path[0] = os.path.realpath(os.path.split(source)[0])
+        else:
+            sys.path.insert(0, os.path.split(source)[0])
+
+        with io.open(source, "r", encoding='utf-8') as f:
             source = f.read()
         filename = source
     else:
         filename = '<input>'
+
+    hr = HyREPL(**kwargs)
     hr.runsource(source, filename=filename, symbol='single')
     return run_repl(hr)
 
@@ -283,6 +270,8 @@ def cmdline_handler(scriptname, argv):
                         help="module to run, passed in as a string")
     parser.add_argument("-E", action='store_true',
                         help="ignore PYTHON* environment variables")
+    parser.add_argument("-B", action='store_true',
+                        help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x")
     parser.add_argument("-i", dest="icommand",
                         help="program passed in as a string, then stay in REPL")
     parser.add_argument("--spy", action="store_true",
@@ -299,13 +288,17 @@ def cmdline_handler(scriptname, argv):
     parser.add_argument('args', nargs=argparse.REMAINDER,
                         help=argparse.SUPPRESS)
 
-    # stash the hy executable in case we need it later
-    # mimics Python sys.executable
+    # Get the path of the Hy cmdline executable and swap it with
+    # `sys.executable` (saving the original, just in case).
+    # XXX: The `__main__` module will also have `__file__` set to the
+    # entry-point script.  Currently, I don't see an immediate problem, but
+    # that's not how the Python cmdline works.
     hy.executable = argv[0]
+    hy.sys_executable = sys.executable
+    sys.executable = hy.executable
 
-    # need to split the args if using "-m"
-    # all args after the MOD are sent to the module
-    # in sys.argv
+    # Need to split the args.  If using "-m" all args after the MOD are sent to
+    # the module in sys.argv.
     module_args = []
     if "-m" in argv:
         mloc = argv.index("-m")
@@ -319,12 +312,12 @@ def cmdline_handler(scriptname, argv):
         global SIMPLE_TRACEBACKS
         SIMPLE_TRACEBACKS = False
 
-    # reset sys.argv like Python
-    sys.argv = options.args + module_args or [""]
-
     if options.E:
         # User did "hy -E ..."
         _remove_python_envs()
+
+    if options.B:
+        sys.dont_write_bytecode = True
 
     if options.command:
         # User did "hy -c ..."
@@ -332,7 +325,9 @@ def cmdline_handler(scriptname, argv):
 
     if options.mod:
         # User did "hy -m ..."
-        return run_module(options.mod)
+        sys.argv = [sys.argv[0]] + options.args + module_args
+        runpy.run_module(options.mod, run_name='__main__', alter_sys=True)
+        return 0
 
     if options.icommand:
         # User did "hy -i ..."
@@ -346,11 +341,22 @@ def cmdline_handler(scriptname, argv):
 
         else:
             # User did "hy <filename>"
+            filename = options.args[0]
+
+            # Emulate Python cmdline behavior by setting `sys.path` relative
+            # to the executed file's location.
+            if sys.path[0] == '':
+                sys.path[0] = os.path.realpath(os.path.split(filename)[0])
+            else:
+                sys.path.insert(0, os.path.split(filename)[0])
+
             try:
-                return run_file(options.args[0])
-            except HyIOError as e:
-                print("hy: Can't open file '{0}': [Errno {1}] {2}\n".format(
-                    e.filename, e.errno, e.strerror), file=sys.stderr)
+                sys.argv = options.args
+                runpy.run_path(filename, run_name='__main__')
+                return 0
+            except FileNotFoundError as e:
+                print("hy: Can't open file '{0}': [Errno {1}] {2}".format(
+                      e.filename, e.errno, e.strerror), file=sys.stderr)
                 sys.exit(e.errno)
 
     # User did NOTHING!
@@ -359,27 +365,45 @@ def cmdline_handler(scriptname, argv):
 
 # entry point for cmd line script "hy"
 def hy_main():
+    sys.path.insert(0, "")
     sys.exit(cmdline_handler("hy", sys.argv))
 
 
-# entry point for cmd line script "hyc"
 def hyc_main():
-    from hy.importer import write_hy_as_pyc
     parser = argparse.ArgumentParser(prog="hyc")
-    parser.add_argument("files", metavar="FILE", nargs='+',
-                        help="file to compile")
+    parser.add_argument("files", metavar="FILE", nargs='*',
+                        help=('File(s) to compile (use STDIN if only'
+                              ' "-" or nothing is provided)'))
     parser.add_argument("-v", action="version", version=VERSION)
 
     options = parser.parse_args(sys.argv[1:])
 
-    for file in options.files:
-        try:
-            print("Compiling %s" % file)
-            pretty_error(write_hy_as_pyc, file)
-        except IOError as x:
-            print("hyc: Can't open file '{0}': [Errno {1}] {2}\n".format(
-                x.filename, x.errno, x.strerror), file=sys.stderr)
-            sys.exit(x.errno)
+    rv = 0
+    if len(options.files) == 0 or (
+            len(options.files) == 1 and options.files[0] == '-'):
+        while True:
+            filename = sys.stdin.readline()
+            if not filename:
+                break
+            filename = filename.rstrip('\n')
+            try:
+                py_compile.compile(filename, doraise=True)
+            except py_compile.PyCompileError as error:
+                rv = 1
+                sys.stderr.write("%s\n" % error.msg)
+            except OSError as error:
+                rv = 1
+                sys.stderr.write("%s\n" % error)
+    else:
+        for filename in options.files:
+            try:
+                print("Compiling %s" % filename)
+                py_compile.compile(filename, doraise=True)
+            except py_compile.PyCompileError as error:
+                # return value to indicate at least one failure
+                rv = 1
+                sys.stderr.write("%s\n" % error.msg)
+    return rv
 
 
 # entry point for cmd line script "hy2py"
@@ -403,14 +427,14 @@ def hy2py_main():
 
     options = parser.parse_args(sys.argv[1:])
 
-    stdin_text = None
     if options.FILE is None or options.FILE == '-':
-        stdin_text = sys.stdin.read()
+        source = sys.stdin.read()
+    else:
+        with io.open(options.FILE, 'r', encoding='utf-8') as source_file:
+            source = source_file.read()
 
+    hst = pretty_error(hy_parse, source)
     if options.with_source:
-        hst = (pretty_error(import_file_to_hst, options.FILE)
-               if stdin_text is None
-               else pretty_error(import_buffer_to_hst, stdin_text))
         # need special printing on Windows in case the
         # codepage doesn't support utf-8 characters
         if PY3 and platform.system() == "Windows":
@@ -424,9 +448,7 @@ def hy2py_main():
         print()
         print()
 
-    _ast = (pretty_error(import_file_to_ast, options.FILE, module_name)
-            if stdin_text is None
-            else pretty_error(import_buffer_to_ast, stdin_text, module_name))
+    _ast = pretty_error(hy_compile, hst, module_name)
     if options.with_ast:
         if PY3 and platform.system() == "Windows":
             _print_for_windows(astor.dump_tree(_ast))

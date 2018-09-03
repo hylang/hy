@@ -4,158 +4,75 @@
 
 from __future__ import absolute_import
 
-from hy.compiler import hy_compile, HyTypeError
-from hy.models import HyExpression, HySymbol
-from hy.lex import tokenize, LexException
-from hy.errors import HyIOError
-
-from io import open
-import re
-import marshal
-import struct
-import imp
 import sys
+import os
 import ast
 import inspect
-import os
+import pkgutil
+import re
+import io
+import runpy
+import types
+import tempfile
+import importlib
 import __future__
 
-from hy._compat import PY3, PY37, MAGIC, builtins, long_type, wr_long
-from hy._compat import string_types
+from hy.errors import HyTypeError
+from hy.compiler import hy_compile
+from hy.lex import tokenize, LexException
+from hy.models import HyExpression, HySymbol
+from hy._compat import string_types, PY3
+
+
+hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
+                        __future__.CO_FUTURE_PRINT_FUNCTION)
 
 
 def ast_compile(ast, filename, mode):
     """Compile AST.
-    Like Python's compile, but with some special flags."""
-    flags = (__future__.CO_FUTURE_DIVISION |
-             __future__.CO_FUTURE_PRINT_FUNCTION)
-    return compile(ast, filename, mode, flags)
+
+    Parameters
+    ----------
+    ast : instance of `ast.AST`
+
+    filename : str
+        Filename used for run-time error messages
+
+    mode: str
+        `compile` mode parameter
+
+    Returns
+    -------
+    out : instance of `types.CodeType`
+    """
+    return compile(ast, filename, mode, hy_ast_compile_flags)
 
 
-def import_buffer_to_hst(buf):
-    """Import content from buf and return a Hy AST."""
-    return HyExpression([HySymbol("do")] + tokenize(buf + "\n"))
+def hy_parse(source):
+    """Parse a Hy source string.
 
+    Parameters
+    ----------
+    source: string
+        Source code to parse.
 
-def import_file_to_hst(fpath):
-    """Import content from fpath and return a Hy AST."""
-    try:
-        with open(fpath, 'r', encoding='utf-8') as f:
-            buf = f.read()
-        # Strip the shebang line, if there is one.
-        buf = re.sub(r'\A#!.*', '', buf)
-        return import_buffer_to_hst(buf)
-    except IOError as e:
-        raise HyIOError(e.errno, e.strerror, e.filename)
-
-
-def import_buffer_to_ast(buf, module_name):
-    """ Import content from buf and return a Python AST."""
-    return hy_compile(import_buffer_to_hst(buf), module_name)
-
-
-def import_file_to_ast(fpath, module_name):
-    """Import content from fpath and return a Python AST."""
-    return hy_compile(import_file_to_hst(fpath), module_name)
-
-
-def import_file_to_module(module_name, fpath, loader=None):
-    """Import Hy source from fpath and put it into a Python module.
-
-    If there's an up-to-date byte-compiled version of this module, load that
-    instead. Otherwise, byte-compile the module once we're done loading it, if
-    we can.
-
-    Return the module."""
-
-    module = None
-
-    bytecode_path = get_bytecode_path(fpath)
-    try:
-        source_mtime = int(os.stat(fpath).st_mtime)
-        with open(bytecode_path, 'rb') as bc_f:
-            # The first 4 bytes are the magic number for the version of Python
-            # that compiled this bytecode.
-            bytecode_magic = bc_f.read(4)
-            # Python 3.7 introduced a new flags entry in the header structure.
-            if PY37:
-                bc_f.read(4)
-            # The next 4 bytes, interpreted as a little-endian 32-bit integer,
-            # are the mtime of the corresponding source file.
-            bytecode_mtime, = struct.unpack('<i', bc_f.read(4))
-    except (IOError, OSError):
-        pass
-    else:
-        if bytecode_magic == MAGIC and bytecode_mtime >= source_mtime:
-            # It's a cache hit. Load the byte-compiled version.
-            if PY3:
-                # As of Python 3.6, imp.load_compiled still exists, but it's
-                # deprecated. So let's use SourcelessFileLoader instead.
-                from importlib.machinery import SourcelessFileLoader
-                module = (SourcelessFileLoader(module_name, bytecode_path).
-                          load_module(module_name))
-            else:
-                module = imp.load_compiled(module_name, bytecode_path)
-
-    if not module:
-        # It's a cache miss, so load from source.
-        sys.modules[module_name] = None
-        try:
-            _ast = import_file_to_ast(fpath, module_name)
-            module = imp.new_module(module_name)
-            module.__file__ = os.path.normpath(fpath)
-            code = ast_compile(_ast, fpath, "exec")
-            if not os.environ.get('PYTHONDONTWRITEBYTECODE'):
-                try:
-                    write_code_as_pyc(fpath, code)
-                except (IOError, OSError):
-                    # We failed to save the bytecode, probably because of a
-                    # permissions issue. The user only asked to import the
-                    # file, so don't bug them about it.
-                    pass
-            eval(code, module.__dict__)
-        except (HyTypeError, LexException) as e:
-            if e.source is None:
-                with open(fpath, 'rt') as fp:
-                    e.source = fp.read()
-                e.filename = fpath
-            raise
-        except Exception:
-            sys.modules.pop(module_name, None)
-            raise
-        sys.modules[module_name] = module
-        module.__name__ = module_name
-
-    module.__file__ = os.path.normpath(fpath)
-    if loader:
-        module.__loader__ = loader
-    if is_package(module_name):
-        module.__path__ = []
-        module.__package__ = module_name
-    else:
-        module.__package__ = module_name.rpartition('.')[0]
-
-    return module
-
-
-def import_buffer_to_module(module_name, buf):
-    try:
-        _ast = import_buffer_to_ast(buf, module_name)
-        mod = imp.new_module(module_name)
-        eval(ast_compile(_ast, "", "exec"), mod.__dict__)
-    except (HyTypeError, LexException) as e:
-        if e.source is None:
-            e.source = buf
-            e.filename = '<stdin>'
-        raise
-    return mod
+    Returns
+    -------
+    out : instance of `types.CodeType`
+    """
+    source = re.sub(r'\A#!.*', '', source)
+    return HyExpression([HySymbol("do")] + tokenize(source + "\n"))
 
 
 def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
-    """``eval`` evaluates a quoted expression and returns the value. The optional
-    second and third arguments specify the dictionary of globals to use and the
-    module name. The globals dictionary defaults to ``(local)`` and the module
-    name defaults to the name of the current module.
+    """Evaluates a quoted expression and returns the value.
+
+    The optional second and third arguments specify the dictionary of globals
+    to use and the module name. The globals dictionary defaults to ``(local)``
+    and the module name defaults to the name of the current module.
+
+    Examples
+    --------
 
        => (eval '(print "Hello World"))
        "Hello World"
@@ -164,7 +81,31 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
     form first:
 
        => (eval (read-str "(+ 1 1)"))
-       2"""
+       2
+
+    Parameters
+    ----------
+    hytree: a Hy expression tree
+        Source code to parse.
+
+    namespace: dict, optional
+        Namespace in which to evaluate the Hy tree.  Defaults to the calling
+        frame.
+
+    module_name: str, optional
+        Name of the module to which the Hy tree is assigned.  Defaults to
+        the calling frame's module, if any, and '__eval__' otherwise.
+
+    ast_callback: callable, optional
+        A callback that is passed the Hy compiled tree and resulting
+        expression object, in that order, after compilation but before
+        evaluation.
+
+    Returns
+    -------
+    out : Result of evaluating the Hy compiled tree.
+
+    """
     if namespace is None:
         frame = inspect.stack()[1][0]
         namespace = inspect.getargvalues(frame).locals
@@ -199,89 +140,393 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
     return eval(ast_compile(expr, "<eval>", "eval"), namespace)
 
 
-def write_hy_as_pyc(fname):
-    _ast = import_file_to_ast(fname,
-                              os.path.basename(os.path.splitext(fname)[0]))
-    code = ast_compile(_ast, fname, "exec")
-    write_code_as_pyc(fname, code)
+def cache_from_source(source_path):
+    """Get the cached bytecode file name for a given source file name.
 
+    This function's name is set to mirror Python 3.x's
+    `importlib.util.cache_from_source`, which is also used when available.
 
-def write_code_as_pyc(fname, code):
-    st = os.stat(fname)
-    timestamp = long_type(st.st_mtime)
+    Parameters
+    ----------
+    source_path : str
+        Path of the source file
 
-    cfile = get_bytecode_path(fname)
-    try:
-        os.makedirs(os.path.dirname(cfile))
-    except (IOError, OSError):
-        pass
-
-    with builtins.open(cfile, 'wb') as fc:
-        fc.write(MAGIC)
-        if PY37:
-            # With PEP 552, the header structure has a new flags field
-            # that we need to fill in. All zeros preserve the legacy
-            # behaviour, but should we implement reproducible builds,
-            # this is where we'd add the information.
-            wr_long(fc, 0)
-        wr_long(fc, timestamp)
-        if PY3:
-            wr_long(fc, st.st_size)
-        marshal.dump(code, fc)
-
-
-class MetaLoader(object):
-    def __init__(self, path):
-        self.path = path
-
-    def load_module(self, fullname):
-        if fullname in sys.modules:
-            return sys.modules[fullname]
-
-        if not self.path:
-            return
-
-        return import_file_to_module(fullname, self.path, self)
-
-
-class MetaImporter(object):
-    def find_on_path(self, fullname):
-        fls = ["%s/__init__.hy", "%s.hy"]
-        dirpath = "/".join(fullname.split("."))
-
-        for pth in sys.path:
-            pth = os.path.abspath(pth)
-            for fp in fls:
-                composed_path = fp % ("%s/%s" % (pth, dirpath))
-                if os.path.exists(composed_path):
-                    return composed_path
-
-    def find_module(self, fullname, path=None):
-        path = self.find_on_path(fullname)
-        if path:
-            return MetaLoader(path)
-
-
-sys.meta_path.insert(0, MetaImporter())
-sys.path.insert(0, "")
-
-
-def is_package(module_name):
-    mpath = os.path.join(*module_name.split("."))
-    for path in map(os.path.abspath, sys.path):
-        if os.path.exists(os.path.join(path, mpath, "__init__.hy")):
-            return True
-    return False
-
-
-def get_bytecode_path(source_path):
+    Returns
+    -------
+    out : str
+        Path of the corresponding bytecode file that may--or may
+        not--actually exist.
+    """
     if PY3:
-        import importlib.util
         return importlib.util.cache_from_source(source_path)
-    elif hasattr(imp, "cache_from_source"):
-        return imp.cache_from_source(source_path)
     else:
         # If source_path has a file extension, replace it with ".pyc".
         # Otherwise, just append ".pyc".
         d, f = os.path.split(source_path)
         return os.path.join(d, re.sub(r"(?:\.[^.]+)?\Z", ".pyc", f))
+
+
+def _get_code_from_file(run_name, fname=None):
+    """A patch of `runpy._get_code_from_file` that will also compile Hy
+    code.
+
+    This version will read and cache bytecode for Hy files.  It operates
+    normally otherwise.
+    """
+    if fname is None and run_name is not None:
+        fname = run_name
+
+    if fname.endswith('.hy'):
+        full_fname = os.path.abspath(fname)
+        fname_path, fname_file = os.path.split(full_fname)
+        modname = os.path.splitext(fname_file)[0]
+        sys.path.insert(0, fname_path)
+        try:
+            loader = pkgutil.get_loader(modname)
+            code = loader.get_code(modname)
+        finally:
+            sys.path.pop(0)
+    else:
+        with open(fname, "rb") as f:
+            code = pkgutil.read_code(f)
+        if code is None:
+            with open(fname, "rb") as f:
+                source = f.read().decode('utf-8')
+            code = compile(source, fname, 'exec')
+
+    return (code, fname) if PY3 else code
+
+
+_runpy_get_code_from_file = runpy._get_code_from_file
+runpy._get_code_from_file = _get_code_from_file
+
+if PY3:
+    importlib.machinery.SOURCE_SUFFIXES.insert(0, '.hy')
+    _py_source_to_code = importlib.machinery.SourceFileLoader.source_to_code
+
+    def _hy_source_to_code(self, data, path, _optimize=-1):
+        if os.path.isfile(path) and path.endswith('.hy'):
+            source = data.decode("utf-8")
+            try:
+                hy_tree = hy_parse(source)
+                data = hy_compile(hy_tree, self.name)
+            except (HyTypeError, LexException) as e:
+                if e.source is None:
+                    e.source = source
+                    e.filename = path
+                raise
+
+        return _py_source_to_code(self, data, path, _optimize=_optimize)
+
+    importlib.machinery.SourceFileLoader.source_to_code = _hy_source_to_code
+
+    #  This is actually needed; otherwise, pre-created finders assigned to the
+    #  current dir (i.e. `''`) in `sys.path` will not catch absolute imports of
+    #  directory-local modules!
+    sys.path_importer_cache.clear()
+
+    # Do this one just in case?
+    importlib.invalidate_caches()
+
+    # XXX: These and the 2.7 counterparts below aren't truly cross-compliant.
+    # They're useful for testing, though.
+    HyImporter = importlib.machinery.FileFinder
+    HyLoader = importlib.machinery.SourceFileLoader
+
+else:
+    import imp
+    import py_compile
+    import marshal
+    import struct
+    import traceback
+
+    from pkgutil import ImpImporter, ImpLoader
+
+    class HyLoader(ImpLoader, object):
+        def __init__(self, fullname, filename, fileobj=None, etc=None):
+            """This constructor is designed for some compatibility with
+            SourceFileLoader."""
+            if etc is None and filename is not None:
+                if filename.endswith('.hy'):
+                    etc = ('.hy', 'U', imp.PY_SOURCE)
+                    if fileobj is None:
+                        fileobj = io.open(filename, 'rU', encoding='utf-8')
+
+            super(HyLoader, self).__init__(fullname, fileobj, filename, etc)
+
+        def exec_module(self, module, fullname=None):
+            fullname = self._fix_name(fullname)
+            code = self.get_code(fullname)
+            eval(code, module.__dict__)
+
+        def load_module(self, fullname=None):
+            """Same as `pkgutil.ImpLoader`, with an extra check for Hy
+            source"""
+            fullname = self._fix_name(fullname)
+            ext_type = self.etc[0]
+            mod_type = self.etc[2]
+            mod = None
+            pkg_path = os.path.join(self.filename, '__init__.hy')
+            if ext_type == '.hy' or (
+                    mod_type == imp.PKG_DIRECTORY and
+                    os.path.isfile(pkg_path)):
+
+                if fullname in sys.modules:
+                    mod = sys.modules[fullname]
+                else:
+                    mod = sys.modules.setdefault(
+                        fullname, imp.new_module(fullname))
+
+                # TODO: Should we set these only when not in `sys.modules`?
+                if mod_type == imp.PKG_DIRECTORY:
+                    mod.__file__ = pkg_path
+                    mod.__path__ = [self.filename]
+                    mod.__package__ = fullname
+                else:
+                    # mod.__path__ = self.filename
+                    mod.__file__ = self.get_filename(fullname)
+                    mod.__package__ = '.'.join(fullname.split('.')[:-1])
+
+                mod.__name__ = fullname
+
+                self.exec_module(mod, fullname=fullname)
+
+            if mod is None:
+                self._reopen()
+                try:
+                    mod = imp.load_module(fullname, self.file, self.filename,
+                                          self.etc)
+                finally:
+                    if self.file:
+                        self.file.close()
+
+            mod.__loader__ = self
+            return mod
+
+        def _reopen(self):
+            """Same as `pkgutil.ImpLoader`, with an extra check for Hy
+            source"""
+            if self.file and self.file.closed:
+                ext_type = self.etc[0]
+                if ext_type == '.hy':
+                    self.file = io.open(self.filename, 'rU', encoding='utf-8')
+                else:
+                    super(HyLoader, self)._reopen()
+
+        def byte_compile_hy(self, fullname=None):
+            fullname = self._fix_name(fullname)
+            if fullname is None:
+                fullname = self.fullname
+            try:
+                hy_source = self.get_source(fullname)
+                hy_tree = hy_parse(hy_source)
+                hy_ast = hy_compile(hy_tree, fullname)
+
+                code = compile(hy_ast, self.filename, 'exec',
+                               hy_ast_compile_flags)
+            except (HyTypeError, LexException) as e:
+                if e.source is None:
+                    e.source = hy_source
+                    e.filename = self.filename
+                raise
+
+            if not sys.dont_write_bytecode:
+                try:
+                    hyc_compile(code)
+                except IOError:
+                    pass
+            return code
+
+        def get_code(self, fullname=None):
+            """Same as `pkgutil.ImpLoader`, with an extra check for Hy
+            source"""
+            fullname = self._fix_name(fullname)
+            ext_type = self.etc[0]
+            if ext_type == '.hy':
+                # Looks like we have to manually check for--and update--
+                # the bytecode.
+                t_py = long(os.stat(self.filename).st_mtime)
+                pyc_file = cache_from_source(self.filename)
+                if os.path.isfile(pyc_file):
+                    t_pyc = long(os.stat(pyc_file).st_mtime)
+
+                    if t_pyc is not None and t_pyc >= t_py:
+                        with open(pyc_file, 'rb') as f:
+                            if f.read(4) == imp.get_magic():
+                                t = struct.unpack('<I', f.read(4))[0]
+                                if t == t_py:
+                                    self.code = marshal.load(f)
+
+                if self.code is None:
+                    # There's no existing bytecode, or bytecode timestamp
+                    # is older than the source file's.
+                    self.code = self.byte_compile_hy(fullname)
+
+            if self.code is None:
+              super(HyLoader, self).get_code(fullname=fullname)
+
+            return self.code
+
+        def _get_delegate(self):
+            return HyImporter(self.filename).find_module('__init__')
+
+    class HyImporter(ImpImporter, object):
+        def __init__(self, path=None):
+            # We need to be strict about the types of files this importer will
+            # handle.  To start, if the path is not the current directory in
+            # (represented by '' in `sys.path`), then it must be a supported
+            # file type or a directory.  If it isn't, this importer is not
+            # suitable: throw an exception.
+
+            if path == '' or os.path.isdir(path) or (
+                    os.path.isfile(path) and path.endswith('.hy')):
+                self.path = path
+            else:
+                raise ImportError('Invalid path: {}'.format(path))
+
+        def find_loader(self, fullname):
+            return self.find_module(fullname, path=None)
+
+        def find_module(self, fullname, path=None):
+
+            subname = fullname.split(".")[-1]
+
+            if subname != fullname and self.path is None:
+                return None
+
+            if self.path is None:
+                path = None
+            else:
+                path = [os.path.realpath(self.path)]
+
+            fileobj, file_path, etc = None, None, None
+
+            # The following are excerpts from the later pure Python
+            # implementations of the `imp` module (e.g. in Python 3.6).
+            if path is None:
+                path = sys.path
+
+            for entry in path:
+                if (os.path.isfile(entry) and subname == '__main__' and
+                    entry.endswith('.hy')):
+                    file_path = entry
+                    fileobj = io.open(file_path, 'rU', encoding='utf-8')
+                    etc = ('.hy', 'U', imp.PY_SOURCE)
+                    break
+                else:
+                    file_path = os.path.join(entry, subname)
+                    path_init = os.path.join(file_path, '__init__.hy')
+                    if os.path.isfile(path_init):
+                        fileobj = None
+                        etc = ('', '', imp.PKG_DIRECTORY)
+                        break
+
+                    file_path = file_path + '.hy'
+                    if os.path.isfile(file_path):
+                        fileobj = io.open(file_path, 'rU', encoding='utf-8')
+                        etc = ('.hy', 'U', imp.PY_SOURCE)
+                        break
+            else:
+                try:
+                    fileobj, file_path, etc = imp.find_module(subname, path)
+                except (ImportError, IOError):
+                    return None
+
+            return HyLoader(fullname, file_path, fileobj, etc)
+
+    sys.path_hooks.append(HyImporter)
+    sys.path_importer_cache.clear()
+
+    _py_compile_compile = py_compile.compile
+
+    def hyc_compile(file_or_code, cfile=None, dfile=None, doraise=False):
+        """Write a Hy file, or code object, to pyc.
+
+        This is a patched version of Python 2.7's `py_compile.compile`.
+
+        Also, it tries its best to write the bytecode file atomically.
+
+        Parameters
+        ----------
+        file_or_code : str or instance of `types.CodeType`
+            A filename for a Hy or Python source file or its corresponding code
+            object.
+        cfile : str, optional
+            The filename to use for the bytecode file.  If `None`, use the
+            standard bytecode filename determined by `cache_from_source`.
+        dfile : str, optional
+            The filename to use for compile-time errors.
+        doraise : bool, default False
+            If `True` raise compilation exceptions; otherwise, ignore them.
+
+        Returns
+        -------
+        out : str
+            The resulting bytecode file name.  Python 3.x returns this, but
+            Python 2.7 doesn't; this function does for convenience.
+        """
+
+        if isinstance(file_or_code, types.CodeType):
+            codeobject = file_or_code
+            filename = codeobject.co_filename
+        else:
+            filename = file_or_code
+
+            with open(filename, 'rb') as f:
+                source_str = f.read().decode('utf-8')
+
+            try:
+                flags = None
+                if filename.endswith('.hy'):
+                    hy_tree = hy_parse(source_str)
+                    source = hy_compile(hy_tree, '<hyc_compile>')
+                    flags = hy_ast_compile_flags
+
+                codeobject = compile(source, dfile or filename, 'exec', flags)
+            except Exception as err:
+                if isinstance(err, (HyTypeError, LexException)) and err.source is None:
+                    err.source = source_str
+                    err.filename = filename
+
+                py_exc = py_compile.PyCompileError(err.__class__, err,
+                                                   dfile or filename)
+                if doraise:
+                    raise py_exc
+                else:
+                    traceback.print_exc()
+                    return
+
+        timestamp = long(os.stat(filename).st_mtime)
+
+        if cfile is None:
+            cfile = cache_from_source(filename)
+
+        f = tempfile.NamedTemporaryFile('wb', dir=os.path.split(cfile)[0],
+                                        delete=False)
+        try:
+            f.write('\0\0\0\0')
+            f.write(struct.pack('<I', timestamp))
+            f.write(marshal.dumps(codeobject))
+            f.flush()
+            f.seek(0, 0)
+            f.write(imp.get_magic())
+
+            # Make sure it's written to disk.
+            f.flush()
+            os.fsync(f.fileno())
+            f.close()
+
+            # Rename won't replace an existing dest on Windows.
+            if os.name == 'nt' and os.path.isfile(cfile):
+                os.unlink(cfile)
+
+            os.rename(f.name, cfile)
+        except OSError:
+            try:
+                os.unlink(f.name)
+            except OSError:
+                pass
+
+        return cfile
+
+    py_compile.compile = hyc_compile

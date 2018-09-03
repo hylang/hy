@@ -299,7 +299,7 @@ But assignments via `import` are always hoisted to normal Python scope, and
 likewise, `defclass` will assign the class to the Python scope,
 even if it shares the name of a let binding.
 
-Use __import__ and type (or whatever metaclass) instead,
+Use `import_module` and `type` (or whatever metaclass) instead,
 if you must avoid this hoisting.
 
 Function arguments can shadow let bindings in their body,

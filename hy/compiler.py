@@ -1151,7 +1151,7 @@ class HyASTCompiler(object):
                 ret += node(
                     expr, module=module or None, names=names, level=level)
             else: # root == "require"
-                __import__(module)
+                importlib.import_module(module)
                 require(module, self.module_name,
                         assignments=assignments, prefix=prefix)
 

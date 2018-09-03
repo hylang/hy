@@ -1,6 +1,10 @@
 # Copyright 2018 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
+import pkgutil
+import importlib
+
+from collections import defaultdict
 
 from hy._compat import PY3
 import hy.inspect
@@ -9,8 +13,6 @@ from hy.lex import mangle
 from hy._compat import str_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
-
-from collections import defaultdict
 
 CORE_MACROS = [
     "hy.core.bootstrap",
@@ -120,20 +122,14 @@ def load_macros(module_name):
     Other modules get the macros from CORE_MACROS and EXTRA_MACROS.
 
     """
-
-    def _import(module, module_name=module_name):
-        "__import__ a module, avoiding recursions"
-        if module != module_name:
-            __import__(module)
-
     for module in CORE_MACROS:
-        _import(module)
+        importlib.import_module(module)
 
     if module_name.startswith("hy.core"):
         return
 
     for module in EXTRA_MACROS:
-        _import(module)
+        importlib.import_module(module)
 
 
 def make_empty_fn_copy(fn):
@@ -159,8 +155,8 @@ def make_empty_fn_copy(fn):
 def macroexpand(tree, compiler, once=False):
     """Expand the toplevel macros for the `tree`.
 
-    Load the macros from the given `module_name`, then expand the (top-level)
-    macros in `tree` until we no longer can.
+    Load the macros from the given `compiler.module_name`, then expand the
+    (top-level) macros in `tree` until we no longer can.
 
     """
     load_macros(compiler.module_name)
