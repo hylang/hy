@@ -11,11 +11,12 @@ import inspect
 import pkgutil
 import re
 import io
-import runpy
 import types
 import tempfile
 import importlib
 import __future__
+
+from functools import partial
 
 from hy.errors import HyTypeError
 from hy.compiler import hy_compile
@@ -166,46 +167,62 @@ def cache_from_source(source_path):
         return os.path.join(d, re.sub(r"(?:\.[^.]+)?\Z", ".pyc", f))
 
 
-def _get_code_from_file(run_name, fname=None):
-    """A patch of `runpy._get_code_from_file` that will also compile Hy
-    code.
+def _hy_code_from_file(filename, loader_type=None):
+    """Use PEP-302 loader to produce code for a given Hy source file."""
+    full_fname = os.path.abspath(filename)
+    fname_path, fname_file = os.path.split(full_fname)
+    modname = os.path.splitext(fname_file)[0]
+    sys.path.insert(0, fname_path)
+    try:
+        if loader_type is None:
+            loader = pkgutil.get_loader(modname)
+        else:
+            loader = loader_type(modname, full_fname)
+        code = loader.get_code(modname)
+    finally:
+        sys.path.pop(0)
 
-    This version will read and cache bytecode for Hy files.  It operates
-    normally otherwise.
+    return code
+
+
+def _get_code_from_file(run_name, fname=None,
+                        hy_src_check=lambda x: x.endswith('.hy')):
+    """A patch of `runpy._get_code_from_file` that will also run and cache Hy
+    code.
     """
     if fname is None and run_name is not None:
         fname = run_name
 
-    if fname.endswith('.hy'):
-        full_fname = os.path.abspath(fname)
-        fname_path, fname_file = os.path.split(full_fname)
-        modname = os.path.splitext(fname_file)[0]
-        sys.path.insert(0, fname_path)
-        try:
-            loader = pkgutil.get_loader(modname)
-            code = loader.get_code(modname)
-        finally:
-            sys.path.pop(0)
-    else:
-        with open(fname, "rb") as f:
-            code = pkgutil.read_code(f)
-        if code is None:
+    # Check for bytecode first.  (This is what the `runpy` version does!)
+    with open(fname, "rb") as f:
+        code = pkgutil.read_code(f)
+
+    if code is None:
+        if hy_src_check(fname):
+            code = _hy_code_from_file(fname, loader_type=HyLoader)
+        else:
+            # Try normal source
             with open(fname, "rb") as f:
+                # This code differs from `runpy`'s only in that we
+                # force decoding into UTF-8.
                 source = f.read().decode('utf-8')
             code = compile(source, fname, 'exec')
 
     return (code, fname) if PY3 else code
 
 
-_runpy_get_code_from_file = runpy._get_code_from_file
-runpy._get_code_from_file = _get_code_from_file
-
 if PY3:
     importlib.machinery.SOURCE_SUFFIXES.insert(0, '.hy')
     _py_source_to_code = importlib.machinery.SourceFileLoader.source_to_code
 
+    def _could_be_hy_src(filename):
+        return (os.path.isfile(filename) and
+            (filename.endswith('.hy') or
+             not any(filename.endswith(ext)
+                     for ext in importlib.machinery.SOURCE_SUFFIXES[1:])))
+
     def _hy_source_to_code(self, data, path, _optimize=-1):
-        if os.path.isfile(path) and path.endswith('.hy'):
+        if _could_be_hy_src(path):
             source = data.decode("utf-8")
             try:
                 hy_tree = hy_parse(source)
@@ -242,12 +259,17 @@ else:
 
     from pkgutil import ImpImporter, ImpLoader
 
+    def _could_be_hy_src(filename):
+        return (filename.endswith('.hy') or
+                (os.path.isfile(filename) and
+                 not any(filename.endswith(s[0]) for s in imp.get_suffixes())))
+
     class HyLoader(ImpLoader, object):
         def __init__(self, fullname, filename, fileobj=None, etc=None):
             """This constructor is designed for some compatibility with
             SourceFileLoader."""
             if etc is None and filename is not None:
-                if filename.endswith('.hy'):
+                if _could_be_hy_src(filename):
                     etc = ('.hy', 'U', imp.PY_SOURCE)
                     if fileobj is None:
                         fileobj = io.open(filename, 'rU', encoding='utf-8')
@@ -477,7 +499,7 @@ else:
 
             try:
                 flags = None
-                if filename.endswith('.hy'):
+                if _could_be_hy_src(filename):
                     hy_tree = hy_parse(source_str)
                     source = hy_compile(hy_tree, '<hyc_compile>')
                     flags = hy_ast_compile_flags
@@ -530,3 +552,18 @@ else:
         return cfile
 
     py_compile.compile = hyc_compile
+
+
+# We create a separate version of runpy, "runhy", that prefers Hy source over
+# Python.
+runhy = importlib.import_module('runpy')
+
+runhy._get_code_from_file = partial(_get_code_from_file,
+                                    hy_src_check=_could_be_hy_src)
+
+del sys.modules['runpy']
+
+runpy = importlib.import_module('runpy')
+
+_runpy_get_code_from_file = runpy._get_code_from_file
+runpy._get_code_from_file = _get_code_from_file

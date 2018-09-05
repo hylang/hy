@@ -19,7 +19,7 @@ import astor.code_gen
 import hy
 from hy.lex import LexException, PrematureEndOfInput, mangle
 from hy.compiler import HyTypeError, hy_compile
-from hy.importer import hy_eval, hy_parse
+from hy.importer import hy_eval, hy_parse, runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
@@ -352,7 +352,7 @@ def cmdline_handler(scriptname, argv):
 
             try:
                 sys.argv = options.args
-                runpy.run_path(filename, run_name='__main__')
+                runhy.run_path(filename, run_name='__main__')
                 return 0
             except FileNotFoundError as e:
                 print("hy: Can't open file '{0}': [Errno {1}] {2}".format(
