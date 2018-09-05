@@ -6,8 +6,6 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
-(import [importlib [import-module]])
-
 (import [hy.models [HyList HySymbol]])
 
 (defmacro as-> [head name &rest rest]
@@ -248,6 +246,7 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
    Use ``#doc foo`` instead for help with tag macro ``#foo``.
    Use ``(help foo)`` instead for help with runtime objects."
   `(try
+     (import [importlib [import-module]])
      (help (. (import-module "hy")
               macros
               _hy_macros
@@ -265,6 +264,7 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
 
    Gets help for a tag macro function available in this module."
   `(try
+     (import [importlib [import-module]])
      (help (. (import-module "hy")
               macros
               _hy_tag
