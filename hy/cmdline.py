@@ -13,17 +13,196 @@ import io
 import importlib
 import py_compile
 import runpy
-
+import traceback
 import astor.code_gen
 
 import hy
 from hy.lex import LexException, PrematureEndOfInput, mangle
 from hy.compiler import HyTypeError, hy_compile
-from hy.importer import hy_eval, hy_parse
+from hy.importer import hy_eval, hy_parse, hy_ast_compile_flags
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
-from hy._compat import builtins, PY3, FileNotFoundError
+from hy._compat import builtins, PY3, FileNotFoundError, str_type
+
+
+class HyPdb(object):
+    """A contextmanager that patches `bdb` and `pdb` modules to make them parse
+    Hy.
+
+    In order to affect the interactive console environment when using `exec`,
+    we create custom versions of `[pb]db` methods that use specific namespace
+    dictionaries.  Also, they force use of the closure's global and local
+    values to slightly reduce the number of functions that need patches.
+    """
+
+    @staticmethod
+    def pdb_compile(src, filename='<stdin>',
+                    mode='single', module_name='cmdline'):
+        hy_tree = hy_parse(src + '\n')
+        ast_root = ast.Interactive if mode == 'single' else ast.Module
+        hy_ast = hy_compile(hy_tree, module_name,
+                            root=ast_root)
+        code = compile(hy_ast, filename, mode, hy_ast_compile_flags)
+        return code
+
+    def __init__(self, ctx_globals=None, ctx_locals=None):
+        self.ctx_globals = ctx_globals
+        self.ctx_locals = ctx_locals
+
+    def pdbpp_getval_or_undefined(self):
+        _pdb = self.pdb
+        def _pdbpp_getval_or_undefined(self, arg):
+            """This is just for `pdb++`"""
+            try:
+                code = HyPdb.pdb_compile(arg)
+                return eval(code, self.curframe.f_globals,
+                            self.curframe.f_locals)
+            except NameError:
+                return _pdb.undefined
+
+    def hy_pdb_default(self):
+        def _hy_pdb_default(self, line):
+            if line[:1] == '!': line = line[1:]
+            locals = self.curframe_locals
+            globals = self.curframe.f_globals
+            try:
+                code = HyPdb.pdb_compile(line + '\n', mode='single')
+                save_stdout = sys.stdout
+                save_stdin = sys.stdin
+                save_displayhook = sys.displayhook
+                try:
+                    sys.stdin = self.stdin
+                    sys.stdout = self.stdout
+                    sys.displayhook = self.displayhook
+                    exec(code, globals, locals)
+                finally:
+                    sys.stdout = save_stdout
+                    sys.stdin = save_stdin
+                    sys.displayhook = save_displayhook
+            except:
+                exc_info = sys.exc_info()[:2]
+                msg = traceback.format_exception_only(*exc_info)[-1].strip()
+                print('***', msg, file=self.stdout)
+        return _hy_pdb_default
+
+    def hy_pdb_getval(self):
+        def _hy_pdb_getval(self, arg):
+            try:
+                code = HyPdb.pdb_compile(arg)
+                return eval(code, self.curframe.f_globals,
+                            self.curframe_locals)
+            except:
+                t, v = sys.exc_info()[:2]
+                if isinstance(t, str):
+                    exc_type_name = t
+                else:
+                    exc_type_name = t.__name__
+
+                print('***', exc_type_name + ':', repr(v), file=self.stdout)
+                raise
+        return _hy_pdb_getval
+
+    def hy_pdb_getval_except(self):
+        _pdb = self.pdb
+        def _hy_pdb_getval_except(self, arg, frame=None):
+            try:
+                code = HyPdb.pdb_compile(arg)
+                if frame is None:
+                    return eval(code, self.curframe.f_globals, self.curframe_locals)
+                else:
+                    return eval(code, frame.f_globals, frame.f_locals)
+            except:
+                exc_info = sys.exc_info()[:2]
+                err = traceback.format_exception_only(*exc_info)[-1].strip()
+                return _pdb._rstr('** raised %s **' % err)
+        return _hy_pdb_getval_except
+
+    def hy_bdb_runeval(self):
+        ctx_globals = self.ctx_globals
+        ctx_locals = self.ctx_locals
+
+        def _hy_bdb_runeval(self, expr, globals=ctx_globals, locals=ctx_locals):
+            return self.run(expr, globals=globals, locals=locals, mode='eval')
+        return _hy_bdb_runeval
+
+    def hy_bdb_run(self):
+        ctx_globals = self.ctx_globals
+        ctx_locals = self.ctx_locals
+
+        _bdb = self.bdb
+        def _hy_bdb_run(self, cmd, globals=ctx_globals, locals=ctx_locals,
+                        mode='exec'):
+            if globals is None:
+                if ctx_globals is None:
+                    import __main__
+                    globals = __main__.__dict__
+                else:
+                    globals = ctx_globals
+            if locals is None:
+                locals = globals if ctx_locals is None else ctx_locals
+            self.reset()
+            if isinstance(cmd, str_type):
+                cmd = HyPdb.pdb_compile(cmd, filename='<string>', mode=mode)
+            sys.settrace(self.trace_dispatch)
+            try:
+                if mode == 'exec':
+                    exec(cmd, globals, locals)
+                else:
+                    return eval(cmd, globals, locals)
+            except _bdb.BdbQuit:
+                pass
+            finally:
+                self.quitting = 1
+                sys.settrace(None)
+        return _hy_bdb_run
+
+    def _swap_versions(self, restore=False):
+        # if hasattr(pdb, 'pdb'):
+        #     pdb.pdb.Pdb.default = _pdb_default if restore else _hy_pdb_default
+        #     pdb.pdb.Pdb._getval = _pdb_getval if restore else _hy_pdb_getval
+        #     if hasattr(pdb.pdb.Pdb, '_getval_except'):
+        #         pdb.pdb.Pdb._getval_except = _pdb_getval_except if restore else _hy_pdb_getval_except
+        # else:
+        #     pdb.Pdb.default = _pdb_default if restore else _hy_pdb_default
+        #     pdb.Pdb._getval = _pdb_getval if restore else _hy_pdb_getval
+        #     if hasattr(pdb.Pdb, '_getval_except'):
+        #         pdb.Pdb._getval_except = _pdb_getval_except if restore else _hy_pdb_getval_except
+
+        self.bdb.Bdb.runeval = self._bdb_runeval if restore else self.hy_bdb_runeval()
+        self.bdb.Bdb.run = self._bdb_run if restore else self.hy_bdb_run()
+        self._old_pdb.Pdb.default = self._pdb_default if restore else self.hy_pdb_default()
+        self._old_pdb.Pdb._getval = self._pdb_getval if restore else self.hy_pdb_getval()
+        if hasattr(self._old_pdb.Pdb, '_getval_except'):
+            self._old_pdb.Pdb._getval_except = self._pdb_getval_except if restore else self.hy_pdb_getval_except()
+
+    def __enter__(self):
+        # Start with unpatched versions
+        if 'bdb' in sys.modules:
+            del sys.modules['bdb']
+        if 'pdb' in sys.modules:
+            del sys.modules['pdb']
+
+        self.bdb = importlib.import_module('bdb')
+        self.pdb = importlib.import_module('pdb')
+
+        # Keep track of the original methods
+        self._bdb_runeval = self.bdb.Bdb.runeval
+        self._bdb_run = self.bdb.Bdb.run
+        # This condition helps accounts for Pdb++
+        self._old_pdb = self.pdb if not hasattr(self.pdb, 'pdb') else self.pdb.pdb
+        self._pdb_getval = self._old_pdb.Pdb._getval
+        self._pdb_default = self._old_pdb.Pdb.default
+        # This method shows up in Python 3.x
+        if hasattr(self._old_pdb.Pdb, '_getval_except'):
+            self._pdb_getval_except = self._old_pdb.Pdb._getval_except
+
+        self._swap_versions(restore=False)
+
+        return self.pdb
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._swap_versions(restore=True)
 
 
 class HyQuitter(object):
@@ -47,7 +226,7 @@ builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
 
 
-class HyREPL(code.InteractiveConsole):
+class HyREPL(code.InteractiveConsole, object):
     def __init__(self, spy=False, output_fn=None, locals=None,
                  filename="<input>"):
 
@@ -65,8 +244,7 @@ class HyREPL(code.InteractiveConsole):
             else:
                 self.output_fn = __builtins__[mangle(output_fn)]
 
-        code.InteractiveConsole.__init__(self, locals=locals,
-                                         filename=filename)
+        super(HyREPL, self).__init__(locals=locals, filename=filename)
 
         # Pre-mangle symbols for repl recent results: *1, *2, *3
         self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]
@@ -129,6 +307,10 @@ class HyREPL(code.InteractiveConsole):
             print(output)
         return False
 
+    def interact(self, *args, **kwargs):
+        with HyPdb(ctx_locals=self.locals) as pdb:
+            self.locals['pdb'] = pdb
+            super(HyREPL, self).interact(*args, **kwargs)
 
 @macro("koan")
 def koan_macro(ETname):
