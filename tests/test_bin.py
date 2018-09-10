@@ -31,8 +31,10 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
     else:
         env.pop("PYTHONDONTWRITEBYTECODE", None)
 
-    cmd = shlex.split(cmd)
-    cmd[0] = os.path.join(hy_dir, cmd[0])
+    if not isinstance(cmd, list):
+        cmd = shlex.split(cmd)
+        cmd[0] = os.path.join(hy_dir, cmd[0])
+
     p = subprocess.Popen(cmd,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
@@ -382,3 +384,89 @@ def test_bin_hy_module_no_main():
 def test_bin_hy_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
     assert output.strip().endswith('/hy')
+
+
+def test_pdb_basics():
+    """Tests for the Hy-compatibility `pdb` patches.
+
+    Basics that we need to confirm:
+        * `pdb.run` will evaluate in the interpreter environment
+        * the `pdb` shell will evaluate Hy
+        * Hy code will appear in the code listings
+
+    Also, these tests should probably be as debugger agnostic as possible.
+    """
+    import textwrap
+
+    def clean_debug_output(output):
+        output = '\n'.join(output.split('\n')[1:]).strip()
+        # Remove debugger prompt
+        output = re.sub(r'\(i?[pP]db.*?\) ', '', output)
+        # Remove ANSI escape codes
+        output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', output)
+        return output
+
+    commands = textwrap.dedent("""
+    (pdb.run "(setv x 1)")
+    p (int (+ 1 1))
+    !(print "hi")
+    c
+    (assert (= x 1))
+    """).strip()
+
+    output, _ = run_cmd('hy', stdin_data=commands)
+    output = clean_debug_output(output)
+
+    expected_output = textwrap.dedent("""
+    2
+    None
+    hi
+    => =>
+    """).strip()
+
+    assert output == expected_output
+
+    commands = textwrap.dedent("""
+    (import [tests.resources.bin.pdb [*]])
+    (pdb.run "(func2 0)")
+    b func1
+    c
+    l
+    """).strip()
+
+    output, _ = run_cmd('hy', stdin_data=commands)
+    output = clean_debug_output(output)
+
+    output_lines = output.split('\n')
+
+    assert output_lines[0].startswith('Breakpoint 1')
+    assert output_lines[0].endswith('pdb.hy:2')
+
+    break_pnt_linenum = next((i for i, l in enumerate(output_lines)
+                              if l.strip().startswith('->')), None)
+
+    # Make sure we break in the right place
+    assert break_pnt_linenum == 3
+    assert output_lines[break_pnt_linenum].endswith('(print "func1")')
+
+    # Check the debugger src listing against the actual src file
+    import_src = open('tests/resources/bin/pdb.hy', 'r').readlines()
+    assert all(o.endswith(s.rstrip())
+               for s, o in zip(import_src, output_lines[break_pnt_linenum+1:]))
+
+    # Test the post-mortem debugger
+    commands = textwrap.dedent("""
+    (import [tests.resources.bin.pdb [*]])
+    (func2 'a)
+    (pdb.pm)
+    """).strip()
+
+    output, err_output = run_cmd('hy', stdin_data=commands)
+    output = clean_debug_output(output)
+    err_output = clean_debug_output(err_output)
+    output_lines = output.split('\n')
+    break_pnt_line = next((l for l in output_lines
+                           if l.strip().startswith('->')), None)
+
+    assert 'TypeError' in err_output
+    assert break_pnt_line == '-> (+ 1 x))'
