@@ -1719,7 +1719,19 @@ def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
     if not get_expr:
         result += result.expr_as_stmt()
 
-    body = compiler.imports_as_stmts(tree) + result.stmts
+    body = []
+
+    # Pull out a single docstring and prepend to the resulting body.
+    if (len(result.stmts) > 0 and
+        issubclass(root, ast.Module) and
+        isinstance(result.stmts[0], ast.Expr) and
+        isinstance(result.stmts[0].value, ast.Str)):
+
+        body += [result.stmts.pop(0)]
+
+    body += sorted(compiler.imports_as_stmts(tree) + result.stmts,
+                   key=lambda a: not (isinstance(a, ast.ImportFrom) and
+                                      a.module == '__future__'))
 
     ret = root(body=body)
 
