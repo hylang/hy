@@ -682,3 +682,10 @@ result['y in globals'] = 'y' in globals()")
 (defn test-comment []
   (assert-none (comment <h1>This is merely a comment.</h1>
                         <p> Move along. (Nothing to see here.)</p>)))
+
+(defn test-doc [capsys]
+  (doc doc)
+  (setv out_err (.readouterr capsys))
+  (assert (.startswith (.strip (first out_err))
+            "Help on function (doc) in module hy.core.macros:"))
+  (assert (empty? (second out_err))))
