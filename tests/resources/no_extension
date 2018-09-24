@@ -1,0 +1,2 @@
+#!/usr/bin/env hy
+(print "This Should Still Work")

@@ -382,3 +382,9 @@ def test_bin_hy_module_no_main():
 def test_bin_hy_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
     assert output.strip().endswith('/hy')
+
+
+def test_bin_hy_file_no_extension():
+    """Confirm that a file with no extension is processed as Hy source"""
+    output, _ = run_cmd("hy tests/resources/no_extension")
+    assert "This Should Still Work" in output
