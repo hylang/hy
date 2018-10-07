@@ -401,23 +401,28 @@ class HyASTCompiler(object):
                     oldpy_kwargs = ret.force_expr
 
             elif with_kwargs and isinstance(expr, HyKeyword):
-                try:
-                    value = next(exprs_iter)
-                except StopIteration:
-                    raise HyTypeError(expr,
-                                      "Keyword argument {kw} needs "
-                                      "a value.".format(kw=expr))
-
-                if not expr:
+                arg = expr.name
+                if arg in ("", "^"):
                     raise HyTypeError(expr, "Can't call a function with the "
                                             "empty keyword")
 
-                compiled_value = self.compile(value)
-                ret += compiled_value
+                if arg.startswith("^"):
+                    # `:^foo` is short for `:foo foo`.
+                    arg = arg[1:]
+                    value = asty.Name(expr, id=ast_str(arg), ctx=ast.Load())
+                else:
+                    try:
+                        value = next(exprs_iter)
+                    except StopIteration:
+                        raise HyTypeError(expr,
+                                          "Keyword argument {kw} needs "
+                                          "a value.".format(kw=expr))
+                    value = self.compile(value)
+                    ret += value
+                    value = value.force_expr
 
-                arg = str_type(expr)[1:]
                 keywords.append(asty.keyword(
-                    expr, arg=ast_str(arg), value=compiled_value.force_expr))
+                    expr, arg=ast_str(arg), value=value))
 
             else:
                 ret += self.compile(expr)
