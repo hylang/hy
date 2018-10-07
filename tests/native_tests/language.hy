@@ -1599,6 +1599,10 @@ macros()
   (assert (= (kwtest :key (kwtest :key2 "value")) {"key" {"key2" "value"}}))
   (assert (= ((get (kwtest :key (fn [x] (* x 2))) "key") 3) 6)))
 
+(defn test-keyword-punning []
+  (setv foo 15)
+  (assert (= (kwtest :^foo) {"foo" 15})))
+
 (defmacro identify-keywords [&rest elts]
   `(list
     (map

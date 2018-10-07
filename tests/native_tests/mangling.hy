@@ -126,17 +126,31 @@
 
 (defn test-keyword-args []
 
-  (defn f [a a-b foo? ☘]
-    [a a-b foo? ☘])
-  (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2) [1 2 3 4]))
-  (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4]))
+  (setv ^⁂ 5)
+
+  (defn f [a a-b foo? ☘ ^⁂]
+    [a a-b foo? ☘ ^⁂])
+  (assert (=
+    (f :foo? 3 :☘ 4 :^^⁂ :a 1 :a-b 2)
+    [1 2 3 4 5]))
+  (assert (=
+    (f :is_foo 3 :hyx_XshamrockX 4
+      :^hyx_Xcircumflex_accentXXasterismX
+      :a 1 :a_b 2)
+    [1 2 3 4 5]))
 
   (defn g [&kwargs x]
     x)
-  (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
-             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))
-  (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
-             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4})))
+  (assert (=
+    (g :foo? 3 :☘ 4 :^^⁂ :a 1 :a-b 2)
+    {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4
+      "hyx_Xcircumflex_accentXXasterismX" 5}))
+  (assert (=
+    (g :is_foo 3 :hyx_XshamrockX 4
+      :^hyx_Xcircumflex_accentXXasterismX
+      :a 1 :a_b 2)
+    {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4
+      "hyx_Xcircumflex_accentXXasterismX" 5})))
 
 
 (defn test-late-mangling []

@@ -12,6 +12,9 @@ New Features
 * Keyword objects (not just literal keywords) can be called, as
   shorthand for `(get obj :key)`, and they accept a default value
   as a second argument.
+* There is now syntactic sugar for setting a keyword argument to
+  a variable of the same name: `(f :^arg)` is equivalent to
+  `(f :arg arg)`.
 
 Bug Fixes
 ------------------------------
