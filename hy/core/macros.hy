@@ -6,7 +6,7 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
-(import [hy.models [HyList HySymbol]])
+(import [hy.models [HyList HySymbol HyKeyword HyExpression]])
 
 (defmacro as-> [head name &rest rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.
@@ -276,3 +276,10 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
                 _hy_tag
                 [None]
                 ['~symbol])))))
+
+
+(defmacro pun [&rest body]
+  (HyExpression (reduce + (gfor x body
+    (if (and (keyword? x) (.startswith x.name "^"))
+      [(HyKeyword (cut x.name 1)) (HySymbol (cut x.name 1))]
+      [x])))))

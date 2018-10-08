@@ -12,6 +12,7 @@ New Features
 * Keyword objects (not just literal keywords) can be called, as
   shorthand for `(get obj :key)`, and they accept a default value
   as a second argument.
+* Added a new core macro `pun`.
 
 Bug Fixes
 ------------------------------

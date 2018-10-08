@@ -1325,6 +1325,20 @@ print
 .. note:: ``print`` always returns ``None``.
 
 
+pun
+---
+
+The ``pun`` macro provides a shorthand for setting a keyword argument equal to
+a variable of the same name. Any argument that's a literal keyword beginning
+with a caret (``^``) is replaced, such that ``:^foo`` becomes ``:foo foo``, and
+the result is an expression of all the arguments. For example, the following::
+
+    (pun dict :^monitor :^verbose :^cv-folds)
+
+expands to::
+
+    (dict  :monitor monitor  :verbose verbose  :cv-folds cv-folds)
+
 quasiquote
 ----------
 

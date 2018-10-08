@@ -2,7 +2,8 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy.errors [HyTypeError]])
+(import [tests.resources [kwtest]]
+        [hy.errors [HyTypeError]])
 
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
@@ -329,3 +330,9 @@
     (except [e SystemExit]
       (assert (= (str e) "42"))))
   (setv --name-- oldname))
+
+(defn test-pun []
+  (setv foo 15)
+  (assert (= (pun kwtest :^foo) {"foo" 15}))
+  (setv ^⁂ 16)
+  (assert (= (pun kwtest :^^⁂) {"hyx_Xcircumflex_accentXXasterismX" 16})))
