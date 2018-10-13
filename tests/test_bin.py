@@ -11,6 +11,7 @@ import shlex
 import subprocess
 
 from hy.importer import cache_from_source
+from hy._compat import PY3
 
 import pytest
 
@@ -123,7 +124,16 @@ def test_bin_hy_stdin_as_arrow():
 
 def test_bin_hy_stdin_error_underline_alignment():
     _, err = run_cmd("hy", "(defmacro mabcdefghi [x] x)\n(mabcdefghi)")
-    assert "\n  (mabcdefghi)\n  ^----------^" in err
+
+    msg_idx = err.rindex("    (mabcdefghi)")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()
+    assert err_parts[1].startswith("    ^----------^")
+    assert err_parts[2].startswith("expanding macro mabcdefghi")
+    assert (err_parts[3].startswith("  TypeError: mabcdefghi") or
+            # PyPy can use a function's `__name__` instead of
+            # `__code__.co_name`.
+            err_parts[3].startswith("  TypeError: (mabcdefghi)"))
 
 
 def test_bin_hy_stdin_except_do():
@@ -151,6 +161,62 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
         (import hy.errors)
         (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
     assert "AZ" in err
+
+
+def test_bin_hy_error_parts_length():
+    """Confirm that exception messages print arrows surrounding the affected
+    expression."""
+    prg_str = """
+    (import hy.errors
+            [hy.importer [hy-parse]])
+
+    (setv test-expr (hy-parse "(+ 1\n\n'a 2 3\n\n 1)"))
+    (setv test-expr.start-line {})
+    (setv test-expr.start-column {})
+    (setv test-expr.end-column {})
+
+    (raise (hy.errors.HyLanguageError
+             "this\nis\na\nmessage"
+             test-expr
+             None
+             None))
+    """
+
+    # Up-arrows right next to each other.
+    _, err = run_cmd("hy", prg_str.format(3, 1, 2))
+
+    msg_idx = err.rindex("HyLanguageError:")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()[1:]
+
+    expected = ['  File "<string>", line 3',
+                '    \'a 2 3',
+                '    ^^',
+                'this',
+                'is',
+                'a',
+                'message']
+
+    for obs, exp in zip(err_parts, expected):
+        assert obs.startswith(exp)
+
+    # Make sure only one up-arrow is printed
+    _, err = run_cmd("hy", prg_str.format(3, 1, 1))
+
+    msg_idx = err.rindex("HyLanguageError:")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()[1:]
+    assert err_parts[2] == '    ^'
+
+    # Make sure lines are printed in between arrows separated by more than one
+    # character.
+    _, err = run_cmd("hy", prg_str.format(3, 1, 6))
+    print(err)
+
+    msg_idx = err.rindex("HyLanguageError:")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()[1:]
+    assert err_parts[2] == '    ^----^'
 
 
 def test_bin_hy_stdin_bad_repr():
@@ -423,3 +489,86 @@ def test_bin_hy_macro_require():
     assert os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
     assert "abc" == output.strip()
+
+
+def test_bin_hy_tracebacks():
+    """Make sure the printed tracebacks are correct."""
+
+    # We want the filtered tracebacks.
+    os.environ['HY_DEBUG'] = ''
+
+    def req_err(x):
+        assert x == '{}HyRequireError: No module named {}'.format(
+            'hy.errors.' if PY3 else '',
+            (repr if PY3 else str)('not_a_real_module'))
+
+    # Modeled after
+    #   > python -c 'import not_a_real_module'
+    #   Traceback (most recent call last):
+    #     File "<string>", line 1, in <module>
+    #   ImportError: No module named not_a_real_module
+    _, error = run_cmd('hy', '(require not-a-real-module)')
+    error_lines = error.splitlines()
+    if error_lines[-1] == '':
+        del error_lines[-1]
+    assert len(error_lines) <= 10
+      # Rough check for the internal traceback filtering
+    req_err(error_lines[4 if PY3 else -1])
+
+    _, error = run_cmd('hy -c "(require not-a-real-module)"', expect=1)
+    error_lines = error.splitlines()
+    assert len(error_lines) <= 4
+    req_err(error_lines[-1])
+
+    output, error = run_cmd('hy -i "(require not-a-real-module)"')
+    assert output.startswith('=> ')
+    print(error.splitlines())
+    req_err(error.splitlines()[3 if PY3 else -3])
+
+    # Modeled after
+    #   > python -c 'print("hi'
+    #     File "<string>", line 1
+    #       print("hi
+    #               ^
+    #   SyntaxError: EOL while scanning string literal
+    _, error = run_cmd(r'hy -c "(print \""', expect=1)
+    peoi = (
+        '  File "<string>", line 1\n'
+        '    (print "\n'
+        '           ^\n' +
+        '{}PrematureEndOfInput: Partial string literal\n'.format(
+            'hy.lex.exceptions.' if PY3 else ''))
+    assert error == peoi
+
+    # Modeled after
+    #   > python -i -c "print('"
+    #     File "<string>", line 1
+    #       print('
+    #             ^
+    #   SyntaxError: EOL while scanning string literal
+    #   >>>
+    output, error = run_cmd(r'hy -i "(print \""')
+    assert output.startswith('=> ')
+    assert error.startswith(peoi)
+
+    # Modeled after
+    #   > python -c 'print(a)'
+    #   Traceback (most recent call last):
+    #     File "<string>", line 1, in <module>
+    #   NameError: name 'a' is not defined
+    output, error = run_cmd('hy -c "(print a)"', expect=1)
+    error_lines = error.splitlines()
+    assert error_lines[3] == '  File "<string>", line 1, in <module>'
+    # PyPy will add "global" to this error message, so we work around that.
+    assert error_lines[-1].strip().replace(' global', '') == (
+        "NameError: name 'a' is not defined")
+
+    # Modeled after
+    #   > python -c 'compile()'
+    #   Traceback (most recent call last):
+    #     File "<string>", line 1, in <module>
+    #   TypeError: Required argument 'source' (pos 1) not found
+    output, error = run_cmd('hy -c "(compile)"', expect=1)
+    error_lines = error.splitlines()
+    assert error_lines[-2] == '  File "<string>", line 1, in <module>'
+    assert error_lines[-1].startswith('TypeError')

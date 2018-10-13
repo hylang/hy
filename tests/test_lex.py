@@ -61,7 +61,7 @@ def test_lex_single_quote_err():
     with lexe() as execinfo:
         tokenize("' ")
     check_ex(execinfo, [
-        '  File "<string>", line -1\n',
+        '  File "<string>", line 1\n',
         "    '\n",
         '    ^\n',
         'LexException: Could not identify the next token.\n'])
@@ -472,7 +472,7 @@ def test_lex_exception_filtering(capsys):
 
     # First, test for PrematureEndOfInput
     with peoi() as execinfo:
-        tokenize(" \n (foo")
+        tokenize(" \n (foo\n       \n")
     check_trace_output(capsys, execinfo, [
         '  File "<string>", line 2',
         '    (foo',

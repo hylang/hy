@@ -8,10 +8,9 @@ import re
 import sys
 import unicodedata
 
-from hy._compat import str_type, isidentifier, UCS4, reraise
+from hy._compat import str_type, isidentifier, UCS4
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
-from hy.errors import HySyntaxError
 
 try:
     from io import StringIO
@@ -35,15 +34,12 @@ def hy_parse(source, filename='<string>'):
     out : HyExpression
     """
     _source = re.sub(r'\A#!.*', '', source)
-    try:
-        res = HyExpression([HySymbol("do")] +
-                           tokenize(_source + "\n",
-                                    filename=filename))
-        res.source = source
-        res.filename = filename
-        return res
-    except HySyntaxError as e:
-        reraise(type(e), e, None)
+    res = HyExpression([HySymbol("do")] +
+                       tokenize(_source + "\n",
+                                filename=filename))
+    res.source = source
+    res.filename = filename
+    return res
 
 
 class ParserState(object):
@@ -70,8 +66,12 @@ def tokenize(source, filename=None):
                             state=ParserState(source, filename))
     except LexingError as e:
         pos = e.getsourcepos()
-        raise LexException("Could not identify the next token.", filename,
-                           pos.lineno, pos.colno, source)
+        raise LexException("Could not identify the next token.",
+                           None, filename, source,
+                           max(pos.lineno, 1),
+                           max(pos.colno, 1))
+    except LexException as e:
+        raise e
 
 
 mangle_delim = 'X'

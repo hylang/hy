@@ -15,13 +15,13 @@
           (raise
             (hy.errors.HyTypeError
               (% "received a `%s' instead of a symbol for macro name"
-                 (. (type name) --name--))
-              --file-- macro-name None)))
+                 (. (type name) __name__))
+              None --file-- None)))
      (for [kw '[&kwonly &kwargs]]
        (if* (in kw lambda-list)
             (raise (hy.errors.HyTypeError (% "macros cannot use %s"
                                              kw)
-                                          --file-- macro-name None))))
+                                          macro-name --file-- None))))
      ;; this looks familiar...
      `(eval-and-compile
         (import hy)
@@ -46,10 +46,10 @@
       (raise (hy.errors.HyTypeError
                (% "received a `%s' instead of a symbol for tag macro name"
                   (. (type tag-name) --name--))
-               --file-- tag-name None)))
+               tag-name --file-- None)))
   (if (or (= tag-name ":")
           (= tag-name "&"))
-      (raise (NameError (% "%s can't be used as a tag macro name" tag-name))))
+      (raise (hy.errors.HyNameError (% "%s can't be used as a tag macro name" tag-name))))
   (setv tag-name (.replace (hy.models.HyString tag-name)
                            tag-name))
   `(eval-and-compile

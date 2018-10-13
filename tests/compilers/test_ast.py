@@ -6,9 +6,8 @@
 from __future__ import unicode_literals
 
 from hy import HyString
-from hy.models import HyObject
 from hy.compiler import hy_compile, hy_eval
-from hy.errors import HyCompileError, HyTypeError
+from hy.errors import HyCompileError, HyLanguageError, HyError
 from hy.lex import hy_parse
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy._compat import PY3
@@ -27,7 +26,7 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def can_compile(expr):
-    return hy_compile(hy_parse(expr), "__main__")
+    return hy_compile(hy_parse(expr), __name__)
 
 
 def can_eval(expr):
@@ -35,21 +34,16 @@ def can_eval(expr):
 
 
 def cant_compile(expr):
-    try:
-        hy_compile(hy_parse(expr), "__main__")
-        assert False
-    except HyTypeError as e:
+    with pytest.raises(HyError) as excinfo:
+        hy_compile(hy_parse(expr), __name__)
+
+    if issubclass(excinfo.type, HyLanguageError):
+        assert excinfo.value.msg
+        return excinfo.value
+    elif issubclass(excinfo.type, HyCompileError):
         # Anything that can't be compiled should raise a user friendly
         # error, otherwise it's a compiler bug.
-        assert isinstance(e.expression, HyObject)
-        assert e.message
-        return e
-    except HyCompileError as e:
-        # Anything that can't be compiled should raise a user friendly
-        # error, otherwise it's a compiler bug.
-        assert isinstance(e.exception, HyTypeError)
-        assert e.traceback
-        return e
+        return excinfo.value
 
 
 def s(x):
@@ -60,11 +54,9 @@ def test_ast_bad_type():
     "Make sure AST breakage can happen"
     class C:
         pass
-    try:
-        hy_compile(C(), "__main__")
-        assert True is False
-    except TypeError:
-        pass
+
+    with pytest.raises(TypeError):
+        hy_compile(C(), __name__, filename='<string>', source='')
 
 
 def test_empty_expr():
@@ -473,7 +465,7 @@ def test_lambda_list_keywords_kwonly():
         assert code.body[0].args.kw_defaults[1].n == 2
     else:
         exception = cant_compile(kwonly_demo)
-        assert isinstance(exception, HyTypeError)
+        assert isinstance(exception, HyLanguageError)
         message = exception.args[0]
         assert message == "&kwonly parameters require Python 3"
 
@@ -489,9 +481,9 @@ def test_lambda_list_keywords_mixed():
 
 def test_missing_keyword_argument_value():
     """Ensure the compiler chokes on missing keyword argument values."""
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("((fn [x] x) :x)")
-    assert excinfo.value.message == "Keyword argument :x needs a value."
+    assert excinfo.value.msg == "Keyword argument :x needs a value."
 
 
 def test_ast_unicode_strings():
@@ -500,7 +492,7 @@ def test_ast_unicode_strings():
     def _compile_string(s):
         hy_s = HyString(s)
 
-        code = hy_compile([hy_s], "__main__")
+        code = hy_compile([hy_s], __name__, filename='<string>', source=s)
         # We put hy_s in a list so it isn't interpreted as a docstring.
 
         # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Str(s=xxx)]))])
@@ -541,7 +533,7 @@ Only one leading newline should be removed.
 
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("(fn [] (in [1 2 3]))")
 
 
@@ -549,11 +541,11 @@ def test_for_compile_error():
     """Ensure we get compile error in tricky 'for' cases"""
     with pytest.raises(PrematureEndOfInput) as excinfo:
         can_compile("(fn [] (for)")
-    assert excinfo.value.message == "Premature end of input"
+    assert excinfo.value.msg == "Premature end of input"
 
     with pytest.raises(LexException) as excinfo:
         can_compile("(fn [] (for)))")
-    assert excinfo.value.message == "Ran into a RPAREN where it wasn't expected."
+    assert excinfo.value.msg == "Ran into a RPAREN where it wasn't expected."
 
     cant_compile("(fn [] (for [x] x))")
 
@@ -605,13 +597,13 @@ def test_setv_builtins():
 
 
 def test_top_level_unquote():
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("(unquote)")
-    assert excinfo.value.message == "The special form 'unquote' is not allowed here"
+    assert excinfo.value.msg == "The special form 'unquote' is not allowed here"
 
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("(unquote-splice)")
-    assert excinfo.value.message == "The special form 'unquote-splice' is not allowed here"
+    assert excinfo.value.msg == "The special form 'unquote-splice' is not allowed here"
 
 
 def test_lots_of_comment_lines():

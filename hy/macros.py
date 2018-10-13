@@ -5,13 +5,15 @@ import sys
 import importlib
 import inspect
 import pkgutil
+import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import PY3, string_types, reraise
+from hy._compat import PY3, string_types, reraise, rename_function
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
-from hy.errors import HyTypeError, HyMacroExpansionError
+from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
+                       HyRequireError)
 
 try:
     # Check if we have the newer inspect.signature available.
@@ -50,7 +52,7 @@ def macro(name):
     """
     name = mangle(name)
     def _(fn):
-        fn.__name__ = '({})'.format(name)
+        fn = rename_function(fn, name)
         try:
             fn._hy_macro_pass_compiler = has_kwargs(fn)
         except Exception:
@@ -75,7 +77,7 @@ def tag(name):
         if not PY3:
             _name = _name.encode('UTF-8')
 
-        fn.__name__ = _name
+        fn = rename_function(fn, _name)
 
         module = inspect.getmodule(fn)
 
@@ -150,7 +152,6 @@ def require(source_module, target_module, assignments, prefix=""):
     out: boolean
         Whether or not macros and tags were actually transferred.
     """
-
     if target_module is None:
         parent_frame = inspect.stack()[1][0]
         target_namespace = parent_frame.f_globals
@@ -161,7 +162,7 @@ def require(source_module, target_module, assignments, prefix=""):
     elif inspect.ismodule(target_module):
         target_namespace = target_module.__dict__
     else:
-        raise TypeError('`target_module` is not a recognized type: {}'.format(
+        raise HyTypeError('`target_module` is not a recognized type: {}'.format(
             type(target_module)))
 
     # Let's do a quick check to make sure the source module isn't actually
@@ -173,14 +174,17 @@ def require(source_module, target_module, assignments, prefix=""):
         return False
 
     if not inspect.ismodule(source_module):
-        source_module = importlib.import_module(source_module)
+        try:
+            source_module = importlib.import_module(source_module)
+        except ImportError as e:
+            reraise(HyRequireError, HyRequireError(e.args[0]), None)
 
     source_macros = source_module.__dict__.setdefault('__macros__', {})
     source_tags = source_module.__dict__.setdefault('__tags__', {})
 
     if len(source_module.__macros__) + len(source_module.__tags__) == 0:
         if assignments != "ALL":
-            raise ImportError('The module {} has no macros or tags'.format(
+            raise HyRequireError('The module {} has no macros or tags'.format(
                 source_module))
         else:
             return False
@@ -205,7 +209,7 @@ def require(source_module, target_module, assignments, prefix=""):
         elif _name in source_module.__tags__:
             target_tags[alias] = source_tags[_name]
         else:
-            raise ImportError('Could not require name {} from {}'.format(
+            raise HyRequireError('Could not require name {} from {}'.format(
                 _name, source_module))
 
     return True
@@ -239,50 +243,33 @@ def load_macros(module):
                                 if k not in module_tags})
 
 
-def make_empty_fn_copy(fn):
-    try:
-        # This might fail if fn has parameters with funny names, like o!n. In
-        # such a case, we return a generic function that ensures the program
-        # can continue running. Unfortunately, the error message that might get
-        # raised later on while expanding a macro might not make sense at all.
-
-        formatted_args = format_args(fn)
-        fn_str = 'lambda {}: None'.format(
-            formatted_args.lstrip('(').rstrip(')'))
-        empty_fn = eval(fn_str)
-
-    except Exception:
-
-        def empty_fn(*args, **kwargs):
-            None
-
-    return empty_fn
-
-
 @contextmanager
 def macro_exceptions(module, macro_tree, compiler=None):
     try:
         yield
+    except HyLanguageError as e:
+        # These are user-level Hy errors occurring in the macro.
+        # We want to pass them up to the user.
+        reraise(type(e), e, sys.exc_info()[2])
     except Exception as e:
-        try:
-            filename = inspect.getsourcefile(module)
-            source = inspect.getsource(module)
-        except TypeError:
-            if compiler:
-                filename = compiler.filename
-                source = compiler.source
 
-        if not isinstance(e, HyTypeError):
-            exc_type = HyMacroExpansionError
-            msg = "expanding `{}': ".format(macro_tree[0])
-            msg += str(e).replace("<lambda>()", "", 1).strip()
+        if compiler:
+            filename = compiler.filename
+            source = compiler.source
         else:
-            exc_type = HyTypeError
-            msg = e.message
+            filename = None
+            source = None
 
-        reraise(exc_type,
-                exc_type(msg, filename, macro_tree, source),
-                sys.exc_info()[2].tb_next)
+        exc_msg = '  '.join(traceback.format_exception_only(
+            sys.exc_info()[0], sys.exc_info()[1]))
+
+        msg = "expanding macro {}\n  ".format(str(macro_tree[0]))
+        msg += exc_msg
+
+        reraise(HyMacroExpansionError,
+                HyMacroExpansionError(
+                    msg, macro_tree, filename, source),
+                sys.exc_info()[2])
 
 
 def macroexpand(tree, module, compiler=None, once=False):
@@ -353,8 +340,6 @@ def macroexpand(tree, module, compiler=None, once=False):
             opts['compiler'] = compiler
 
         with macro_exceptions(module, tree, compiler):
-            m_copy = make_empty_fn_copy(m)
-            m_copy(module.__name__, *tree[1:], **opts)
             obj = m(module.__name__, *tree[1:], **opts)
 
         if isinstance(obj, HyExpression):

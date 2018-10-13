@@ -8,26 +8,31 @@ class LexException(HySyntaxError):
 
     @classmethod
     def from_lexer(cls, message, state, token):
+        lineno = None
+        colno = None
+        source = state.source
         source_pos = token.getsourcepos()
-        if token.source_pos:
+
+        if source_pos:
             lineno = source_pos.lineno
             colno = source_pos.colno
+        elif source:
+            # Use the end of the last line of source for `PrematureEndOfInput`.
+            # We get rid of empty lines and spaces so that the error matches
+            # with the last piece of visible code.
+            lines = source.rstrip().splitlines()
+            lineno = lineno or len(lines)
+            colno = colno or len(lines[lineno - 1])
         else:
-            lineno = -1
-            colno = -1
+            lineno = lineno or 1
+            colno = colno or 1
 
-        if state.source:
-            lines = state.source.splitlines()
-            if lines[-1] == '':
-                del lines[-1]
-
-            if lineno < 1:
-                lineno = len(lines)
-            if colno < 1:
-                colno = len(lines[-1])
-
-            source = lines[lineno - 1]
-        return cls(message, state.filename, lineno, colno, source)
+        return cls(message,
+                   None,
+                   state.filename,
+                   source,
+                   lineno,
+                   colno)
 
 
 class PrematureEndOfInput(LexException):

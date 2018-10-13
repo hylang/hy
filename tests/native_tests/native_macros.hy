@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import pytest
-        [hy.errors [HyTypeError]])
+        [hy.errors [HyTypeError HyMacroExpansionError]])
 
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
@@ -66,13 +66,13 @@
   (try
     (eval '(defmacro f [&kwonly a b]))
     (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &kwonly")))
+      (assert (= e.msg "macros cannot use &kwonly")))
     (else (assert False)))
 
   (try
     (eval '(defmacro f [&kwargs kw]))
     (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &kwargs")))
+      (assert (= e.msg "macros cannot use &kwargs")))
     (else (assert False))))
 
 (defn test-fn-calling-macro []
@@ -483,3 +483,28 @@ in expansions."
 
   (test-macro)
   (assert (= blah 1)))
+
+
+(defn test-macro-errors []
+  (import traceback
+          [hy.importer [hy-parse]])
+
+  (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
+
+  (with [excinfo (pytest.raises HyMacroExpansionError)]
+    (eval test-expr))
+
+  (setv output (traceback.format_exception_only
+                 excinfo.type excinfo.value))
+  (setv output (cut (.splitlines (.strip (first output))) 1))
+
+  (setv expected ["  File \"<string>\", line 1"
+                  "    (defmacro blah [x] `(print ~@z)) (blah y)"
+                  "                                     ^------^"
+                  "expanding macro blah"
+                  "  NameError: global name 'z' is not defined"])
+
+  (assert (= (cut expected 0 -1) (cut output 0 -1)))
+  (assert (or (= (get expected -1) (get output -1))
+              ;; Handle PyPy's peculiarities
+              (= (.replace (get expected -1) "global " "") (get output -1)))))

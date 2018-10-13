@@ -7,7 +7,7 @@
         [sys :as systest]
         re
         [operator [or_]]
-        [hy.errors [HyTypeError]]
+        [hy.errors [HyLanguageError]]
         pytest)
 (import sys)
 
@@ -68,16 +68,16 @@
   "NATIVE: test that setv doesn't work on names Python can't assign to
   and that we can't mangle"
   (try (eval '(setv None 1))
-       (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
   (try (eval '(defn None [] (print "hello")))
-       (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
   (when PY3
     (try (eval '(setv False 1))
-         (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+         (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
     (try (eval '(setv True 0))
-         (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))
+         (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
     (try (eval '(defn True [] (print "hello")))
-         (except [e [TypeError]] (assert (in "Can't assign to" (str e)))))))
+         (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))))
 
 
 (defn test-setv-pairs []
@@ -87,7 +87,7 @@
   (assert (= b 2))
   (setv y 0 x 1 y x)
   (assert (= y 1))
-  (with [(pytest.raises HyTypeError)]
+  (with [(pytest.raises HyLanguageError)]
     (eval '(setv a 1 b))))
 
 
@@ -144,29 +144,29 @@
     (do
       (eval '(setv (do 1 2) 1))
       (assert False))
-    (except [e HyTypeError]
-      (assert (= e.message "Can't assign or delete a non-expression"))))
+    (except [e HyLanguageError]
+      (assert (= e.msg "Can't assign or delete a non-expression"))))
 
   (try
     (do
       (eval '(setv 1 1))
       (assert False))
-    (except [e HyTypeError]
-      (assert (= e.message "Can't assign or delete a HyInteger"))))
+    (except [e HyLanguageError]
+      (assert (= e.msg "Can't assign or delete a HyInteger"))))
 
   (try
     (do
       (eval '(setv {1 2} 1))
       (assert False))
-    (except [e HyTypeError]
-      (assert (= e.message "Can't assign or delete a HyDict"))))
+    (except [e HyLanguageError]
+      (assert (= e.msg "Can't assign or delete a HyDict"))))
 
   (try
     (do
       (eval '(del 1 1))
       (assert False))
-    (except [e HyTypeError]
-      (assert (= e.message "Can't assign or delete a HyInteger")))))
+    (except [e HyLanguageError]
+      (assert (= e.msg "Can't assign or delete a HyInteger")))))
 
 
 (defn test-no-str-as-sym []

@@ -9,8 +9,8 @@ from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
-from hy.errors import (HyCompileError, HyTypeError, HyEvalError,
-                       HyInternalError)
+from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
+                       HySyntaxError, HyEvalError, HyInternalError)
 
 from hy.lex import mangle, unmangle
 
@@ -443,15 +443,18 @@ class HyASTCompiler(object):
             # nested; so let's re-raise this exception, let's not wrap it in
             # another HyCompileError!
             raise
-        except HyTypeError as e:
-            reraise(type(e), e, None)
+        except HyLanguageError as e:
+            # These are expected errors that should be passed to the user.
+            reraise(type(e), e, sys.exc_info()[2])
         except Exception as e:
+            # These are unexpected errors that will--hopefully--never be seen
+            # by the user.
             f_exc = traceback.format_exc()
             exc_msg = "Internal Compiler Bug 😱\n⤷ {}".format(f_exc)
             reraise(HyCompileError, HyCompileError(exc_msg), sys.exc_info()[2])
 
     def _syntax_error(self, expr, message):
-        return HyTypeError(message, self.filename, expr, self.source)
+        return HySyntaxError(message, expr, self.filename, self.source)
 
     def _compile_collect(self, exprs, with_kwargs=False, dict_display=False,
                          oldpy_unpack=False):
