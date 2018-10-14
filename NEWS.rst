@@ -12,9 +12,15 @@ New Features
 * Keyword objects (not just literal keywords) can be called, as
   shorthand for `(get obj :key)`, and they accept a default value
   as a second argument.
+* Minimal macro expansion namespacing has been implemented.  As a result,
+  external macros no longer have to `require` their own macro dependencies.
+* Macros and tags now reside in module-level `__macros__` and `__tags__`
+  attributes.
 
 Bug Fixes
 ------------------------------
+* `require` now compiles to Python AST.
+* Fixed circular `require`s.
 * Fixed module reloading.
 * Fixed circular imports.
 * Fixed `__main__` file execution.
