@@ -293,7 +293,8 @@ else:
                     mod_type == imp.PKG_DIRECTORY and
                     os.path.isfile(pkg_path)):
 
-                if fullname in sys.modules:
+                was_in_sys = fullname in sys.modules
+                if was_in_sys:
                     mod = sys.modules[fullname]
                 else:
                     mod = sys.modules.setdefault(
@@ -311,7 +312,15 @@ else:
 
                 mod.__name__ = fullname
 
-                self.exec_module(mod, fullname=fullname)
+                try:
+                    self.exec_module(mod, fullname=fullname)
+                except Exception:
+                    # Follow Python 2.7 logic and only remove a new, bad
+                    # module; otherwise, leave the old--and presumably
+                    # good--module in there.
+                    if not was_in_sys:
+                        del sys.modules[fullname]
+                    raise
 
             if mod is None:
                 self._reopen()
@@ -385,7 +394,7 @@ else:
                     self.code = self.byte_compile_hy(fullname)
 
             if self.code is None:
-              super(HyLoader, self).get_code(fullname=fullname)
+                super(HyLoader, self).get_code(fullname=fullname)
 
             return self.code
 
