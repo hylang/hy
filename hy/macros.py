@@ -1,18 +1,40 @@
 # Copyright 2018 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
-import pkgutil
+import inspect
 import importlib
 
 from collections import defaultdict
 
 from hy._compat import PY3
-import hy.inspect
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
 from hy._compat import str_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
+
+try:
+    # Check if we have the newer inspect.signature available.
+    # Otherwise fallback to the legacy getargspec.
+    inspect.signature  # noqa
+except AttributeError:
+    def has_kwargs(fn):
+        argspec = inspect.getargspec(fn)
+        return argspec.keywords is not None
+
+    def format_args(fn):
+        argspec = inspect.getargspec(fn)
+        return inspect.formatargspec(*argspec)
+
+else:
+    def has_kwargs(fn):
+        parameters = inspect.signature(fn).parameters
+        return any(param.kind == param.VAR_KEYWORD
+                   for param in parameters.values())
+
+    def format_args(fn):
+        return str(inspect.signature(fn))
+
 
 CORE_MACROS = [
     "hy.core.bootstrap",
@@ -42,7 +64,7 @@ def macro(name):
     def _(fn):
         fn.__name__ = '({})'.format(name)
         try:
-            fn._hy_macro_pass_compiler = hy.inspect.has_kwargs(fn)
+            fn._hy_macro_pass_compiler = has_kwargs(fn)
         except Exception:
             # An exception might be raised if fn has arguments with
             # names that are invalid in Python.
@@ -139,7 +161,7 @@ def make_empty_fn_copy(fn):
         # can continue running. Unfortunately, the error message that might get
         # raised later on while expanding a macro might not make sense at all.
 
-        formatted_args = hy.inspect.format_args(fn)
+        formatted_args = format_args(fn)
         fn_str = 'lambda {}: None'.format(
             formatted_args.lstrip('(').rstrip(')'))
         empty_fn = eval(fn_str)
