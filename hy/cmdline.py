@@ -13,6 +13,7 @@ import io
 import importlib
 import py_compile
 import runpy
+import types
 
 import astor.code_gen
 
@@ -47,9 +48,25 @@ builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
 
 
-class HyREPL(code.InteractiveConsole):
+class HyREPL(code.InteractiveConsole, object):
     def __init__(self, spy=False, output_fn=None, locals=None,
                  filename="<input>"):
+
+        super(HyREPL, self).__init__(locals=locals,
+                                     filename=filename)
+
+        # Create a proper module for this REPL so that we can obtain it easily
+        # (e.g. using `importlib.import_module`).
+        # Also, make sure it's properly introduced to `sys.modules` and
+        # consistently use its namespace as `locals` from here on.
+        module_name = self.locals.get('__name__', '__console__')
+        self.module = sys.modules.setdefault(module_name,
+                                             types.ModuleType(module_name))
+        self.module.__dict__.update(self.locals)
+        self.locals = self.module.__dict__
+
+        # Load cmdline-specific macros.
+        require('hy.cmdline', module_name, assignments='ALL')
 
         self.spy = spy
 
@@ -64,9 +81,6 @@ class HyREPL(code.InteractiveConsole):
                 self.output_fn = getattr(importlib.import_module(module), f)
             else:
                 self.output_fn = __builtins__[mangle(output_fn)]
-
-        code.InteractiveConsole.__init__(self, locals=locals,
-                                         filename=filename)
 
         # Pre-mangle symbols for repl recent results: *1, *2, *3
         self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]
@@ -102,8 +116,7 @@ class HyREPL(code.InteractiveConsole):
                     new_ast = ast.Module(main_ast.body +
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
-            value = hy_eval(do, self.locals, "__console__",
-                            ast_callback)
+            value = hy_eval(do, self.locals, self.module, ast_callback)
         except HyTypeError as e:
             if e.source is None:
                 e.source = source
@@ -181,8 +194,6 @@ def ideas_macro(ETname):
 
 """)])
 
-require("hy.cmdline", "__console__", assignments="ALL")
-require("hy.cmdline", "__main__", assignments="ALL")
 
 SIMPLE_TRACEBACKS = True
 
@@ -199,7 +210,8 @@ def pretty_error(func, *args, **kw):
 
 def run_command(source):
     tree = hy_parse(source)
-    pretty_error(hy_eval, tree, module_name="__main__")
+    require("hy.cmdline", "__main__", assignments="ALL")
+    pretty_error(hy_eval, tree, None, importlib.import_module('__main__'))
     return 0
 
 
@@ -208,12 +220,12 @@ def run_repl(hr=None, **kwargs):
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    namespace = {'__name__': '__console__', '__doc__': ''}
+    if not hr:
+        hr = HyREPL(**kwargs)
+
+    namespace = hr.locals
 
     with completion(Completer(namespace)):
-
-        if not hr:
-            hr = HyREPL(locals=namespace, **kwargs)
 
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
@@ -409,7 +421,6 @@ def hyc_main():
 # entry point for cmd line script "hy2py"
 def hy2py_main():
     import platform
-    module_name = "<STDIN>"
 
     options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
                    formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -448,7 +459,7 @@ def hy2py_main():
         print()
         print()
 
-    _ast = pretty_error(hy_compile, hst, module_name)
+    _ast = pretty_error(hy_compile, hst, '__main__')
     if options.with_ast:
         if PY3 and platform.system() == "Windows":
             _print_for_windows(astor.dump_tree(_ast))

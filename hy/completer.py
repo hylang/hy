@@ -39,13 +39,15 @@ class Completer(object):
         self.namespace = namespace
         self.path = [hy.compiler._special_form_compilers,
                      builtins.__dict__,
-                     hy.macros._hy_macros[None],
                      namespace]
-        self.tag_path = [hy.macros._hy_tag[None]]
-        if '__name__' in namespace:
-            module_name = namespace['__name__']
-            self.path.append(hy.macros._hy_macros[module_name])
-            self.tag_path.append(hy.macros._hy_tag[module_name])
+
+        self.tag_path = []
+
+        namespace.setdefault('__macros__', {})
+        namespace.setdefault('__tags__', {})
+
+        self.path.append(namespace['__macros__'])
+        self.tag_path.append(namespace['__tags__'])
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer

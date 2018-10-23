@@ -1,15 +1,13 @@
 # Copyright 2018 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
-import inspect
 import importlib
+import inspect
+import pkgutil
 
-from collections import defaultdict
-
-from hy._compat import PY3
+from hy._compat import PY3, string_types
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
-from hy._compat import str_type
 
 from hy.errors import HyTypeError, HyMacroExpansionError
 
@@ -44,21 +42,9 @@ EXTRA_MACROS = [
     "hy.core.macros",
 ]
 
-_hy_macros = defaultdict(dict)
-_hy_tag = defaultdict(dict)
-
 
 def macro(name):
     """Decorator to define a macro called `name`.
-
-    This stores the macro `name` in the namespace for the module where it is
-    defined.
-
-    If the module where it is defined is in `hy.core`, then the macro is stored
-    in the default `None` namespace.
-
-    This function is called from the `defmacro` special form in the compiler.
-
     """
     name = mangle(name)
     def _(fn):
@@ -70,88 +56,190 @@ def macro(name):
             # names that are invalid in Python.
             fn._hy_macro_pass_compiler = False
 
-        module_name = fn.__module__
-        if module_name.startswith("hy.core"):
-            module_name = None
-        _hy_macros[module_name][name] = fn
+        module = inspect.getmodule(fn)
+        module_macros = module.__dict__.setdefault('__macros__', {})
+        module_macros[name] = fn
+
         return fn
     return _
 
 
 def tag(name):
     """Decorator to define a tag macro called `name`.
-
-    This stores the macro `name` in the namespace for the module where it is
-    defined.
-
-    If the module where it is defined is in `hy.core`, then the macro is stored
-    in the default `None` namespace.
-
-    This function is called from the `deftag` special form in the compiler.
-
     """
     def _(fn):
         _name = mangle('#{}'.format(name))
+
         if not PY3:
             _name = _name.encode('UTF-8')
+
         fn.__name__ = _name
-        module_name = fn.__module__
+
+        module = inspect.getmodule(fn)
+
+        module_name = module.__name__
         if module_name.startswith("hy.core"):
             module_name = None
-        _hy_tag[module_name][mangle(name)] = fn
+
+        module_tags = module.__dict__.setdefault('__tags__', {})
+        module_tags[mangle(name)] = fn
 
         return fn
     return _
 
 
+def _same_modules(source_module, target_module):
+    """Compare the filenames associated with the given modules names.
+
+    This tries to not actually load the modules.
+    """
+    if not (source_module or target_module):
+        return False
+
+    if target_module == source_module:
+        return True
+
+    def _get_filename(module):
+        filename = None
+        try:
+            if not inspect.ismodule(module):
+                loader = pkgutil.get_loader(module)
+                if loader:
+                    filename = loader.get_filename()
+            else:
+                filename = inspect.getfile(module)
+        except (TypeError, ImportError):
+            pass
+
+        return filename
+
+    source_filename = _get_filename(source_module)
+    target_filename = _get_filename(target_module)
+
+    return (source_filename and target_filename and
+            source_filename == target_filename)
+
+
 def require(source_module, target_module, assignments, prefix=""):
-    """Load macros from `source_module` in the namespace of
-    `target_module`. `assignments` maps old names to new names, or
-    should be the string "ALL". If `prefix` is nonempty, it is
-    prepended to the name of each imported macro. (This means you get
-    macros named things like "mymacromodule.mymacro", which looks like
-    an attribute of a module, although it's actually just a symbol
-    with a period in its name.)
+    """Load macros from one module into the namespace of another.
 
     This function is called from the `require` special form in the compiler.
 
+    Parameters
+    ----------
+    source_module: str or types.ModuleType
+        The module from which macros are to be imported.
+
+    target_module: str, types.ModuleType or None
+        The module into which the macros will be loaded.  If `None`, then
+        the caller's namespace.
+        The latter is useful during evaluation of generated AST/bytecode.
+
+    assignments: str or list of tuples of strs
+        The string "ALL" or a list of macro name and alias pairs.
+
+    prefix: str, optional ("")
+        If nonempty, its value is prepended to the name of each imported macro.
+        This allows one to emulate namespaced macros, like
+        "mymacromodule.mymacro", which looks like an attribute of a module.
+
+    Returns
+    -------
+    out: boolean
+        Whether or not macros and tags were actually transferred.
     """
 
-    seen_names = set()
+    if target_module is None:
+        parent_frame = inspect.stack()[1][0]
+        target_namespace = parent_frame.f_globals
+        target_module = target_namespace.get('__name__', None)
+    elif isinstance(target_module, string_types):
+        target_module = importlib.import_module(target_module)
+        target_namespace = target_module.__dict__
+    elif inspect.ismodule(target_module):
+        target_namespace = target_module.__dict__
+    else:
+        raise TypeError('`target_module` is not a recognized type: {}'.format(
+            type(target_module)))
+
+    # Let's do a quick check to make sure the source module isn't actually
+    # the module being compiled (e.g. when `runpy` executes a module's code
+    # in `__main__`).
+    # We use the module's underlying filename for this (when they exist), since
+    # it's the most "fixed" attribute.
+    if _same_modules(source_module, target_module):
+        return False
+
+    if not inspect.ismodule(source_module):
+        source_module = importlib.import_module(source_module)
+
+    source_macros = source_module.__dict__.setdefault('__macros__', {})
+    source_tags = source_module.__dict__.setdefault('__tags__', {})
+
+    if len(source_module.__macros__) + len(source_module.__tags__) == 0:
+        if assignments != "ALL":
+            raise ImportError('The module {} has no macros or tags'.format(
+                source_module))
+        else:
+            return False
+
+    target_macros = target_namespace.setdefault('__macros__', {})
+    target_tags = target_namespace.setdefault('__tags__', {})
+
     if prefix:
         prefix += "."
-    if assignments != "ALL":
-        assignments = {mangle(str_type(k)): v for k, v in assignments}
 
-    for d in _hy_macros, _hy_tag:
-        for name, macro in d[source_module].items():
-            seen_names.add(name)
-            if assignments == "ALL":
-                d[target_module][mangle(prefix + name)] = macro
-            elif name in assignments:
-                d[target_module][mangle(prefix + assignments[name])] = macro
+    if assignments == "ALL":
+        # Only add macros/tags created in/by the source module.
+        name_assigns = [(n, n) for n, f in source_macros.items()
+                        if inspect.getmodule(f) == source_module]
+        name_assigns += [(n, n) for n, f in source_tags.items()
+                         if inspect.getmodule(f) == source_module]
+    else:
+        # If one specifically requests a macro/tag not created in the source
+        # module, I guess we allow it?
+        name_assigns = assignments
 
-    if assignments != "ALL":
-        unseen = frozenset(assignments.keys()).difference(seen_names)
-        if unseen:
-            raise ImportError("cannot require names: " + repr(list(unseen)))
+    for name, alias in name_assigns:
+        _name = mangle(name)
+        alias = mangle(prefix + alias)
+        if _name in source_module.__macros__:
+            target_macros[alias] = source_macros[_name]
+        elif _name in source_module.__tags__:
+            target_tags[alias] = source_tags[_name]
+        else:
+            raise ImportError('Could not require name {} from {}'.format(
+                _name, source_module))
+
+    return True
 
 
-def load_macros(module_name):
+def load_macros(module):
     """Load the hy builtin macros for module `module_name`.
 
     Modules from `hy.core` can only use the macros from CORE_MACROS.
     Other modules get the macros from CORE_MACROS and EXTRA_MACROS.
-
     """
-    for module in CORE_MACROS:
-        importlib.import_module(module)
+    builtin_macros = CORE_MACROS
 
-    if module_name.startswith("hy.core"):
-        return
+    if not module.__name__.startswith("hy.core"):
+        builtin_macros += EXTRA_MACROS
 
-    for module in EXTRA_MACROS:
-        importlib.import_module(module)
+    module_macros = module.__dict__.setdefault('__macros__', {})
+    module_tags = module.__dict__.setdefault('__tags__', {})
+
+    for builtin_mod_name in builtin_macros:
+        builtin_mod = importlib.import_module(builtin_mod_name)
+
+        # Make sure we don't overwrite macros in the module.
+        if hasattr(builtin_mod, '__macros__'):
+            module_macros.update({k: v
+                                  for k, v in builtin_mod.__macros__.items()
+                                  if k not in module_macros})
+        if hasattr(builtin_mod, '__tags__'):
+            module_tags.update({k: v
+                                for k, v in builtin_mod.__tags__.items()
+                                if k not in module_tags})
 
 
 def make_empty_fn_copy(fn):
@@ -174,14 +262,17 @@ def make_empty_fn_copy(fn):
     return empty_fn
 
 
-def macroexpand(tree, compiler, once=False):
+def macroexpand(tree, module, compiler=None, once=False):
     """Expand the toplevel macros for the `tree`.
 
-    Load the macros from the given `compiler.module_name`, then expand the
+    Load the macros from the given `module`, then expand the
     (top-level) macros in `tree` until we no longer can.
-
     """
-    load_macros(compiler.module_name)
+    if not inspect.ismodule(module):
+        module = importlib.import_module(module)
+
+    assert not compiler or compiler.module == module
+
     while True:
 
         if not isinstance(tree, HyExpression) or tree == []:
@@ -192,24 +283,27 @@ def macroexpand(tree, compiler, once=False):
             break
 
         fn = mangle(fn)
-        m = _hy_macros[compiler.module_name].get(fn) or _hy_macros[None].get(fn)
+        m = module.__macros__.get(fn, None)
         if not m:
             break
 
         opts = {}
         if m._hy_macro_pass_compiler:
+            if compiler is None:
+                from hy.compiler import HyASTCompiler
+                compiler = HyASTCompiler(module)
             opts['compiler'] = compiler
 
         try:
             m_copy = make_empty_fn_copy(m)
-            m_copy(compiler.module_name, *tree[1:], **opts)
+            m_copy(module.__name__, *tree[1:], **opts)
         except TypeError as e:
             msg = "expanding `" + str(tree[0]) + "': "
             msg += str(e).replace("<lambda>()", "", 1).strip()
             raise HyMacroExpansionError(tree, msg)
 
         try:
-            obj = m(compiler.module_name, *tree[1:], **opts)
+            obj = m(module.__name__, *tree[1:], **opts)
         except HyTypeError as e:
             if e.expression is None:
                 e.expression = tree
@@ -225,25 +319,22 @@ def macroexpand(tree, compiler, once=False):
     tree = wrap_value(tree)
     return tree
 
-def macroexpand_1(tree, compiler):
+
+def macroexpand_1(tree, module, compiler=None):
     """Expand the toplevel macro from `tree` once, in the context of
     `compiler`."""
-    return macroexpand(tree, compiler, once=True)
+    return macroexpand(tree, module, compiler, once=True)
 
 
-def tag_macroexpand(tag, tree, compiler):
-    """Expand the tag macro "tag" with argument `tree`."""
-    load_macros(compiler.module_name)
+def tag_macroexpand(tag, tree, module):
+    """Expand the tag macro `tag` with argument `tree`."""
+    if not inspect.ismodule(module):
+        module = importlib.import_module(module)
 
-    tag_macro = _hy_tag[compiler.module_name].get(tag)
+    tag_macro = module.__tags__.get(tag, None)
+
     if tag_macro is None:
-        try:
-            tag_macro = _hy_tag[None][tag]
-        except KeyError:
-            raise HyTypeError(
-                tag,
-                "`{0}' is not a defined tag macro.".format(tag)
-            )
+        raise HyTypeError(tag, "'{0}' is not a defined tag macro.".format(tag))
 
     expr = tag_macro(tree)
     return replace_hy_obj(expr, tree)

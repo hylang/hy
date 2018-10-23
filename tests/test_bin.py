@@ -388,3 +388,38 @@ def test_bin_hy_file_no_extension():
     """Confirm that a file with no extension is processed as Hy source"""
     output, _ = run_cmd("hy tests/resources/no_extension")
     assert "This Should Still Work" in output
+
+
+def test_bin_hy_circular_macro_require():
+    """Confirm that macros can require themselves during expansion and when
+    run from the command line."""
+
+    # First, with no bytecode
+    test_file = "tests/resources/bin/circular_macro_require.hy"
+    rm(cache_from_source(test_file))
+    assert not os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "42" == output.strip()
+
+    # Now, with bytecode
+    assert os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "42" == output.strip()
+
+def test_bin_hy_macro_require():
+    """Confirm that a `require` will load macros into the non-module namespace
+    (i.e. `exec(code, locals)`) used by `runpy.run_path`.
+    In other words, this confirms that the AST generated for a `require` will
+    load macros into the unnamed namespace its run in."""
+
+    # First, with no bytecode
+    test_file = "tests/resources/bin/require_and_eval.hy"
+    rm(cache_from_source(test_file))
+    assert not os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "abc" == output.strip()
+
+    # Now, with bytecode
+    assert os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "abc" == output.strip()
