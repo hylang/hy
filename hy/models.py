@@ -32,11 +32,12 @@ class HyObject(object):
     Generic Hy Object model. This is helpful to inject things into all the
     Hy lexing Objects at once.
     """
+    __properties__ = ["module", "start_line", "end_line", "start_column",
+                      "end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, HyObject):
-            for attr in ["start_line", "end_line",
-                         "start_column", "end_column"]:
+            for attr in self.__properties__:
                 if not hasattr(self, attr) and hasattr(other, attr):
                     setattr(self, attr, getattr(other, attr))
         else:
