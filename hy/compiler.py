@@ -281,9 +281,6 @@ def is_unpack(kind, x):
             and x[0] == "unpack-" + kind)
 
 
-_stdlib = {}
-
-
 class HyASTCompiler(object):
     """A Hy-to-Python AST compiler"""
 
@@ -311,9 +308,11 @@ class HyASTCompiler(object):
         # Load stdlib macros into the module namespace.
         load_macros(self.module)
 
+        self._stdlib = {}
+
         # Everything in core needs to be explicit (except for
         # the core macros, which are built with the core functions).
-        if self.can_use_stdlib and not _stdlib:
+        if self.can_use_stdlib:
             # Populate _stdlib.
             import hy.core
             for stdlib_module in hy.core.STDLIB:
@@ -323,7 +322,7 @@ class HyASTCompiler(object):
                         # Don't bother putting a name in _stdlib if it
                         # points to a builtin with the same name. This
                         # prevents pointless imports.
-                        _stdlib[e] = stdlib_module
+                        self._stdlib[e] = stdlib_module
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -1690,8 +1689,8 @@ class HyASTCompiler(object):
                 attr=ast_str(local),
                 ctx=ast.Load())
 
-        if self.can_use_stdlib and ast_str(symbol) in _stdlib:
-            self.imports[_stdlib[ast_str(symbol)]].add(ast_str(symbol))
+        if self.can_use_stdlib and ast_str(symbol) in self._stdlib:
+            self.imports[self._stdlib[ast_str(symbol)]].add(ast_str(symbol))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
