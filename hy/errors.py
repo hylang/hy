@@ -2,12 +2,19 @@
 # Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
-
+import os
+import sys
 import traceback
+import pkgutil
 
 from functools import reduce
+from contextlib import contextmanager
+from hy import _initialize_env_var
 
 from clint.textui import colored
+
+_hy_filter_internal_errors = _initialize_env_var('HY_FILTER_INTERNAL_ERRORS',
+                                                 True)
 
 
 class HyError(Exception):
@@ -193,7 +200,8 @@ class HySyntaxError(HyLanguageError, SyntaxError):
 
     def __str__(self):
 
-        output = traceback.format_exception_only(SyntaxError, self)
+        output = traceback.format_exception_only(SyntaxError,
+                                                 SyntaxError(*self.args))
 
         output[-1] = colored.yellow(output[-1])
         if len(self.source) > 0:
@@ -206,3 +214,73 @@ class HySyntaxError(HyLanguageError, SyntaxError):
 
         # Avoid "...expected str instance, ColoredString found"
         return reduce(lambda x, y: x + y, output)
+
+
+def _get_module_info(module):
+    compiler_loader = pkgutil.get_loader(module)
+    is_pkg = compiler_loader.is_package(module)
+    filename = compiler_loader.get_filename()
+    if is_pkg:
+        # Use package directory
+        return os.path.dirname(filename)
+    else:
+        # Normalize filename endings, because tracebacks will use `pyc` when
+        # the loader says `py`.
+        return filename.replace('.pyc', '.py')
+
+
+_tb_hidden_modules = {_get_module_info(m)
+                      for m in ['hy.compiler', 'hy.lex',
+                                'hy.cmdline', 'hy.lex.parser',
+                                'hy.importer', 'hy._compat',
+                                'hy.macros', 'hy.models',
+                                'rply']}
+
+
+def hy_exc_handler(exc_type, exc_value, exc_traceback):
+    """Produce exceptions print-outs with all frames originating from the
+    modules in `_tb_hidden_modules` filtered out.
+
+    The frames are actually filtered by each module's filename and only when a
+    subclass of `HyLanguageError` is emitted.
+
+    This does not remove the frames from the actual tracebacks, so debugging
+    will show everything.
+    """
+    try:
+        # frame = (filename, line number, function name*, text)
+        new_tb = [frame for frame in traceback.extract_tb(exc_traceback)
+                  if not (frame[0].replace('.pyc', '.py') in _tb_hidden_modules or
+                          os.path.dirname(frame[0]) in _tb_hidden_modules)]
+
+        lines = traceback.format_list(new_tb)
+
+        if lines:
+            lines.insert(0, "Traceback (most recent call last):\n")
+
+        lines.extend(traceback.format_exception_only(exc_type, exc_value))
+        output = ''.join(lines)
+
+        sys.stderr.write(output)
+        sys.stderr.flush()
+    except Exception:
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+
+@contextmanager
+def filtered_hy_exceptions():
+    """Temporarily apply a `sys.excepthook` that filters Hy internal frames
+    from tracebacks.
+
+    Filtering can be controlled by the variable
+    `hy.errors._hy_filter_internal_errors` and environment variable
+    `HY_FILTER_INTERNAL_ERRORS`.
+    """
+    global _hy_filter_internal_errors
+    if _hy_filter_internal_errors:
+        current_hook = sys.excepthook
+        sys.excepthook = hy_exc_handler
+        yield
+        sys.excepthook = current_hook
+    else:
+        yield

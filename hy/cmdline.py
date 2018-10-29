@@ -21,7 +21,7 @@ import hy
 from hy.lex import hy_parse, mangle
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import HyASTCompiler, hy_compile, hy_eval
-from hy.errors import HyTypeError, HyLanguageError, HySyntaxError
+from hy.errors import HySyntaxError, filtered_hy_exceptions
 from hy.importer import runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
@@ -90,47 +90,58 @@ class HyREPL(code.InteractiveConsole, object):
         self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]
         self.locals.update({sym: None for sym in self._repl_results_symbols})
 
-    def runsource(self, source, filename='<input>', symbol='single'):
-        global SIMPLE_TRACEBACKS
+    def ast_callback(self, main_ast, expr_ast):
+        if self.spy:
+            # Mush the two AST chunks into a single module for
+            # conversion into Python.
+            new_ast = ast.Module(main_ast.body +
+                                 [ast.Expr(expr_ast.body)])
+            print(astor.to_source(new_ast))
 
-        def error_handler(e, use_simple_traceback=False):
-            self.locals[mangle("*e")] = e
-            if use_simple_traceback:
-                print(e, file=sys.stderr)
-            else:
-                self.showtraceback()
+    def _error_wrap(self, error_fn, *args, **kwargs):
+        sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+
+        # Sadly, this method in Python 2.7 ignores an overridden
+        # `sys.excepthook`.
+        if sys.excepthook is sys.__excepthook__:
+            error_fn(*args, **kwargs)
+        else:
+            sys.excepthook(sys.last_type, sys.last_value, sys.last_traceback)
+
+        self.locals[mangle("*e")] = sys.last_value
+
+    def showsyntaxerror(self, filename=None):
+        if filename is None:
+            filename = self.filename
+
+        self._error_wrap(super(HyREPL, self).showsyntaxerror,
+                         filename=filename)
+
+    def showtraceback(self):
+        self._error_wrap(super(HyREPL, self).showtraceback)
+
+    def runsource(self, source, filename='<input>', symbol='single'):
 
         try:
             do = hy_parse(source, filename=filename)
         except PrematureEndOfInput:
             return True
         except HySyntaxError as e:
-            error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
+            self.showsyntaxerror(filename=filename)
             return False
 
         try:
-            def ast_callback(main_ast, expr_ast):
-                if self.spy:
-                    # Mush the two AST chunks into a single module for
-                    # conversion into Python.
-                    new_ast = ast.Module(main_ast.body +
-                                         [ast.Expr(expr_ast.body)])
-                    print(astor.to_source(new_ast))
-
-            value = hy_eval(do, self.locals, self.module,
-                            ast_callback=ast_callback,
-                            compiler=self.hy_compiler,
-                            filename=filename,
+            # Our compiler doesn't correspond to a real, fixed source file, so
+            # we need to [re]set these.
+            self.hy_compiler.filename = filename
+            self.hy_compiler.source = source
+            value = hy_eval(do, self.locals, self.module, self.ast_callback,
+                            compiler=self.hy_compiler, filename=filename,
                             source=source)
-
-        except HyTypeError as e:
-            if e.source is None:
-                e.source = source
-                e.filename = filename
-            error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
-            return False
+        except SystemExit:
+            raise
         except Exception as e:
-            error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
+            self.showtraceback()
             return False
 
         if value is not None:
@@ -142,10 +153,12 @@ class HyREPL(code.InteractiveConsole, object):
             # Print the value.
             try:
                 output = self.output_fn(value)
-            except Exception as e:
-                error_handler(e)
+            except Exception:
+                self.showtraceback()
                 return False
+
             print(output)
+
         return False
 
 
@@ -201,25 +214,12 @@ def ideas_macro(ETname):
 """)])
 
 
-SIMPLE_TRACEBACKS = True
-
-
-def pretty_error(func, *args, **kw):
-    try:
-        return func(*args, **kw)
-    except HyLanguageError as e:
-        if SIMPLE_TRACEBACKS:
-            print(e, file=sys.stderr)
-            sys.exit(1)
-        raise
-
-
 def run_command(source, filename=None):
     tree = hy_parse(source, filename=filename)
     __main__ = importlib.import_module('__main__')
     require("hy.cmdline", __main__, assignments="ALL")
-    pretty_error(hy_eval, tree, None, __main__, filename=filename,
-                 source=source)
+    with filtered_hy_exceptions():
+        hy_eval(tree, None, __main__, filename=filename, source=source)
     return 0
 
 
@@ -232,9 +232,7 @@ def run_repl(hr=None, **kwargs):
         hr = HyREPL(**kwargs)
 
     namespace = hr.locals
-
-    with completion(Completer(namespace)):
-
+    with filtered_hy_exceptions(), completion(Completer(namespace)):
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
                         appname=hy.__appname__,
@@ -263,9 +261,10 @@ def run_icommand(source, **kwargs):
     else:
         filename = '<input>'
 
-    hr = HyREPL(**kwargs)
-    hr.runsource(source, filename=filename, symbol='single')
-    return run_repl(hr)
+    with filtered_hy_exceptions():
+        hr = HyREPL(**kwargs)
+        hr.runsource(source, filename=filename, symbol='single')
+        return run_repl(hr)
 
 
 USAGE = "%(prog)s [-h | -i cmd | -c cmd | -m module | file | -] [arg] ..."
@@ -301,9 +300,6 @@ def cmdline_handler(scriptname, argv):
                              "(e.g., hy.contrib.hy-repr.hy-repr)")
     parser.add_argument("-v", "--version", action="version", version=VERSION)
 
-    parser.add_argument("--show-tracebacks", action="store_true",
-                        help="show complete tracebacks for Hy exceptions")
-
     # this will contain the script/program name and any arguments for it.
     parser.add_argument('args', nargs=argparse.REMAINDER,
                         help=argparse.SUPPRESS)
@@ -327,10 +323,6 @@ def cmdline_handler(scriptname, argv):
             argv = argv[:mloc+2]
 
     options = parser.parse_args(argv[1:])
-
-    if options.show_tracebacks:
-        global SIMPLE_TRACEBACKS
-        SIMPLE_TRACEBACKS = False
 
     if options.E:
         # User did "hy -E ..."
@@ -372,7 +364,8 @@ def cmdline_handler(scriptname, argv):
 
             try:
                 sys.argv = options.args
-                runhy.run_path(filename, run_name='__main__')
+                with filtered_hy_exceptions():
+                    runhy.run_path(filename, run_name='__main__')
                 return 0
             except FileNotFoundError as e:
                 print("hy: Can't open file '{0}': [Errno {1}] {2}".format(
@@ -448,9 +441,11 @@ def hy2py_main():
 
     if options.FILE is None or options.FILE == '-':
         source = sys.stdin.read()
-        hst = pretty_error(hy_parse, source, filename='<stdin>')
+        with filtered_hy_exceptions():
+            hst = hy_parse(source, filename='<stdin>')
     else:
-        with io.open(options.FILE, 'r', encoding='utf-8') as source_file:
+        with filtered_hy_exceptions(), \
+             io.open(options.FILE, 'r', encoding='utf-8') as source_file:
             source = source_file.read()
             hst = hy_parse(source, filename=options.FILE)
 
@@ -468,7 +463,9 @@ def hy2py_main():
         print()
         print()
 
-    _ast = pretty_error(hy_compile, hst, '__main__')
+    with filtered_hy_exceptions():
+        _ast = hy_compile(hst, '__main__')
+
     if options.with_ast:
         if PY3 and platform.system() == "Windows":
             _print_for_windows(astor.dump_tree(_ast))

@@ -1834,7 +1834,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
 
 def hy_eval(hytree, locals=None, module=None, ast_callback=None,
-            compiler=None, filename='<string>', source=None):
+            compiler=None, filename=None, source=None):
     """Evaluates a quoted expression and returns the value.
 
     If you're evaluating hand-crafted AST trees, make sure the line numbers
