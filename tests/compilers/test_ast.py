@@ -10,7 +10,7 @@ from hy.models import HyObject
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyCompileError, HyTypeError
 from hy.lex import hy_parse
-from hy.lex.exceptions import LexException
+from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy._compat import PY3
 
 import ast
@@ -474,7 +474,7 @@ def test_lambda_list_keywords_kwonly():
     else:
         exception = cant_compile(kwonly_demo)
         assert isinstance(exception, HyTypeError)
-        message, = exception.args
+        message = exception.args[0]
         assert message == "&kwonly parameters require Python 3"
 
 
@@ -547,7 +547,7 @@ def test_compile_error():
 
 def test_for_compile_error():
     """Ensure we get compile error in tricky 'for' cases"""
-    with pytest.raises(LexException) as excinfo:
+    with pytest.raises(PrematureEndOfInput) as excinfo:
         can_compile("(fn [] (for)")
     assert excinfo.value.message == "Premature end of input"
 

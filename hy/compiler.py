@@ -9,20 +9,21 @@ from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
-from hy.errors import HyCompileError, HyTypeError
+from hy.errors import (HyCompileError, HyTypeError, HyEvalError,
+                       HyInternalError)
 
 from hy.lex import mangle, unmangle
 
-from hy._compat import (str_type, string_types, bytes_type, long_type, PY3,
-                        PY35, raise_empty)
+from hy._compat import (string_types, str_type, bytes_type, long_type, PY3,
+                        PY35, reraise)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
 
+import pkgutil
 import traceback
 import importlib
 import inspect
-import pkgutil
 import types
 import ast
 import sys
@@ -340,22 +341,33 @@ def is_unpack(kind, x):
 class HyASTCompiler(object):
     """A Hy-to-Python AST compiler"""
 
-    def __init__(self, module):
+    def __init__(self, module, filename=None, source=None):
         """
         Parameters
         ----------
         module: str or types.ModuleType
-            Module in which the Hy tree is evaluated.
+            Module name or object in which the Hy tree is evaluated.
+        filename: str, optional
+            The name of the file for the source to be compiled.
+            This is optional information for informative error messages and
+            debugging.
+        source: str, optional
+            The source for the file, if any, being compiled.  This is optional
+            information for informative error messages and debugging.
         """
         self.anon_var_count = 0
         self.imports = defaultdict(set)
         self.temp_if = None
 
         if not inspect.ismodule(module):
-            module = importlib.import_module(module)
+            self.module = importlib.import_module(module)
+        else:
+            self.module = module
 
-        self.module = module
-        self.module_name = module.__name__
+        self.module_name = self.module.__name__
+
+        self.filename = filename
+        self.source = source
 
         # Hy expects these to be present, so we prep the module for Hy
         # compilation.
@@ -431,13 +443,15 @@ class HyASTCompiler(object):
             # nested; so let's re-raise this exception, let's not wrap it in
             # another HyCompileError!
             raise
-        except HyTypeError:
-            raise
+        except HyTypeError as e:
+            reraise(type(e), e, None)
         except Exception as e:
-            raise_empty(HyCompileError, e, sys.exc_info()[2])
+            f_exc = traceback.format_exc()
+            exc_msg = "Internal Compiler Bug 😱\n⤷ {}".format(f_exc)
+            reraise(HyCompileError, HyCompileError(exc_msg), sys.exc_info()[2])
 
     def _syntax_error(self, expr, message):
-        return HyTypeError(expr, message)
+        return HyTypeError(message, self.filename, expr, self.source)
 
     def _compile_collect(self, exprs, with_kwargs=False, dict_display=False,
                          oldpy_unpack=False):
@@ -1614,7 +1628,29 @@ class HyASTCompiler(object):
     def compile_eval_and_compile(self, expr, root, body):
         new_expr = HyExpression([HySymbol("do").replace(expr[0])]).replace(expr)
 
-        hy_eval(new_expr + body, self.module.__dict__, self.module)
+        try:
+            hy_eval(new_expr + body,
+                    self.module.__dict__,
+                    self.module,
+                    filename=self.filename,
+                    source=self.source)
+        except HyInternalError:
+            # Unexpected "meta" compilation errors need to be treated
+            # like normal (unexpected) compilation errors at this level
+            # (or the compilation level preceding this one).
+            raise
+        except Exception as e:
+            # These could be expected Hy language errors (e.g. syntax errors)
+            # or regular Python runtime errors that do not signify errors in
+            # the compilation *process* (although compilation did technically
+            # fail).
+            # We wrap these exceptions and pass them through.
+            reraise(HyEvalError,
+                    HyEvalError(str(e),
+                                self.filename,
+                                body,
+                                self.source),
+                    sys.exc_info()[2])
 
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
@@ -1798,8 +1834,13 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
 
 def hy_eval(hytree, locals=None, module=None, ast_callback=None,
-            compiler=None):
+            compiler=None, filename='<string>', source=None):
     """Evaluates a quoted expression and returns the value.
+
+    If you're evaluating hand-crafted AST trees, make sure the line numbers
+    are set properly.  Try `fix_missing_locations` and related functions in the
+    Python `ast` library.
+
     Examples
     --------
        => (eval '(print "Hello World"))
@@ -1812,8 +1853,8 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
 
     Parameters
     ----------
-    hytree: a Hy expression tree
-        Source code to parse.
+    hytree: HyObject
+        The Hy AST object to evaluate.
 
     locals: dict, optional
         Local environment in which to evaluate the Hy tree.  Defaults to the
@@ -1835,6 +1876,19 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
         An existing Hy compiler to use for compilation.  Also serves as
         the `module` value when given.
 
+    filename: str, optional
+        The filename corresponding to the source for `tree`.  This will be
+        overridden by the `filename` field of `tree`, if any; otherwise, it
+        defaults to "<string>".  When `compiler` is given, its `filename` field
+        value is always used.
+
+    source: str, optional
+        A string containing the source code for `tree`.  This will be
+        overridden by the `source` field of `tree`, if any; otherwise,
+        if `None`, an attempt will be made to obtain it from the module given by
+        `module`.  When `compiler` is given, its `source` field value is always
+        used.
+
     Returns
     -------
     out : Result of evaluating the Hy compiled tree.
@@ -1849,36 +1903,53 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
     if not isinstance(locals, dict):
         raise TypeError("Locals must be a dictionary")
 
-    _ast, expr = hy_compile(hytree, module=module, get_expr=True,
-                            compiler=compiler)
+    # Does the Hy AST object come with its own information?
+    filename = getattr(hytree, 'filename', filename) or '<string>'
+    source = getattr(hytree, 'source', source)
 
-    # Spoof the positions in the generated ast...
-    for node in ast.walk(_ast):
-        node.lineno = 1
-        node.col_offset = 1
-
-    for node in ast.walk(expr):
-        node.lineno = 1
-        node.col_offset = 1
+    _ast, expr = hy_compile(hytree, module, get_expr=True,
+                            compiler=compiler, filename=filename,
+                            source=source)
 
     if ast_callback:
         ast_callback(_ast, expr)
 
-    globals = module.__dict__
-
     # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, "<eval_body>", "exec"), globals, locals)
+    eval(ast_compile(_ast, filename, "exec"),
+         module.__dict__, locals)
 
     # Then eval the expression context and return that
-    return eval(ast_compile(expr, "<eval>", "eval"), globals, locals)
+    return eval(ast_compile(expr, filename, "eval"),
+                module.__dict__, locals)
 
 
-def hy_compile(tree, module=None, root=ast.Module, get_expr=False,
-               compiler=None):
-    """Compile a Hy tree into a Python AST tree.
+def _module_file_source(module_name, filename, source):
+    """Try to obtain missing filename and source information from a module name
+    without actually loading the module.
+    """
+    if filename is None or source is None:
+        mod_loader = pkgutil.get_loader(module_name)
+        if mod_loader:
+            if filename is None:
+                filename = mod_loader.get_filename(module_name)
+            if source is None:
+                source = mod_loader.get_source(module_name)
+
+    # We need a non-None filename.
+    filename = filename or '<string>'
+
+    return filename, source
+
+
+def hy_compile(tree, module, root=ast.Module, get_expr=False,
+               compiler=None, filename=None, source=None):
+    """Compile a HyObject tree into a Python AST Module.
 
     Parameters
     ----------
+    tree: HyObject
+        The Hy AST object to compile.
+
     module: str or types.ModuleType, optional
         Module, or name of the module, in which the Hy tree is evaluated.
         The module associated with `compiler` takes priority over this value.
@@ -1893,18 +1964,43 @@ def hy_compile(tree, module=None, root=ast.Module, get_expr=False,
         An existing Hy compiler to use for compilation.  Also serves as
         the `module` value when given.
 
+    filename: str, optional
+        The filename corresponding to the source for `tree`.  This will be
+        overridden by the `filename` field of `tree`, if any; otherwise, it
+        defaults to "<string>".  When `compiler` is given, its `filename` field
+        value is always used.
+
+    source: str, optional
+        A string containing the source code for `tree`.  This will be
+        overridden by the `source` field of `tree`, if any; otherwise,
+        if `None`, an attempt will be made to obtain it from the module given by
+        `module`.  When `compiler` is given, its `source` field value is always
+        used.
+
     Returns
     -------
     out : A Python AST tree
     """
     module = get_compiler_module(module, compiler, False)
 
+    if isinstance(module, string_types):
+        if module.startswith('<') and module.endswith('>'):
+            module = types.ModuleType(module)
+        else:
+            module = importlib.import_module(ast_str(module, piecewise=True))
+
+    if not inspect.ismodule(module):
+        raise TypeError('Invalid module type: {}'.format(type(module)))
+
+    filename = getattr(tree, 'filename', filename)
+    source = getattr(tree, 'source', source)
+
     tree = wrap_value(tree)
     if not isinstance(tree, HyObject):
-        raise HyCompileError("`tree` must be a HyObject or capable of "
-                             "being promoted to one")
+        raise TypeError("`tree` must be a HyObject or capable of "
+                        "being promoted to one")
 
-    compiler = compiler or HyASTCompiler(module)
+    compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
     result = compiler.compile(tree)
     expr = result.force_expr
 

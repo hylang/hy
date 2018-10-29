@@ -19,9 +19,9 @@ import astor.code_gen
 
 import hy
 from hy.lex import hy_parse, mangle
-from hy.lex.exceptions import LexException, PrematureEndOfInput
+from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import HyASTCompiler, hy_compile, hy_eval
-from hy.errors import HyTypeError
+from hy.errors import HyTypeError, HyLanguageError, HySyntaxError
 from hy.importer import runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
@@ -101,15 +101,11 @@ class HyREPL(code.InteractiveConsole, object):
                 self.showtraceback()
 
         try:
-            try:
-                do = hy_parse(source)
-            except PrematureEndOfInput:
-                return True
-        except LexException as e:
-            if e.source is None:
-                e.source = source
-                e.filename = filename
-            error_handler(e, use_simple_traceback=True)
+            do = hy_parse(source, filename=filename)
+        except PrematureEndOfInput:
+            return True
+        except HySyntaxError as e:
+            error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
             return False
 
         try:
@@ -121,9 +117,12 @@ class HyREPL(code.InteractiveConsole, object):
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
 
-            value = hy_eval(do, self.locals,
+            value = hy_eval(do, self.locals, self.module,
                             ast_callback=ast_callback,
-                            compiler=self.hy_compiler)
+                            compiler=self.hy_compiler,
+                            filename=filename,
+                            source=source)
+
         except HyTypeError as e:
             if e.source is None:
                 e.source = source
@@ -131,7 +130,7 @@ class HyREPL(code.InteractiveConsole, object):
             error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
             return False
         except Exception as e:
-            error_handler(e)
+            error_handler(e, use_simple_traceback=SIMPLE_TRACEBACKS)
             return False
 
         if value is not None:
@@ -208,17 +207,19 @@ SIMPLE_TRACEBACKS = True
 def pretty_error(func, *args, **kw):
     try:
         return func(*args, **kw)
-    except (HyTypeError, LexException) as e:
+    except HyLanguageError as e:
         if SIMPLE_TRACEBACKS:
             print(e, file=sys.stderr)
             sys.exit(1)
         raise
 
 
-def run_command(source):
-    tree = hy_parse(source)
-    require("hy.cmdline", "__main__", assignments="ALL")
-    pretty_error(hy_eval, tree, None, importlib.import_module('__main__'))
+def run_command(source, filename=None):
+    tree = hy_parse(source, filename=filename)
+    __main__ = importlib.import_module('__main__')
+    require("hy.cmdline", __main__, assignments="ALL")
+    pretty_error(hy_eval, tree, None, __main__, filename=filename,
+                 source=source)
     return 0
 
 
@@ -340,7 +341,7 @@ def cmdline_handler(scriptname, argv):
 
     if options.command:
         # User did "hy -c ..."
-        return run_command(options.command)
+        return run_command(options.command, filename='<string>')
 
     if options.mod:
         # User did "hy -m ..."
@@ -356,7 +357,7 @@ def cmdline_handler(scriptname, argv):
     if options.args:
         if options.args[0] == "-":
             # Read the program from stdin
-            return run_command(sys.stdin.read())
+            return run_command(sys.stdin.read(), filename='<stdin>')
 
         else:
             # User did "hy <filename>"
@@ -447,11 +448,12 @@ def hy2py_main():
 
     if options.FILE is None or options.FILE == '-':
         source = sys.stdin.read()
+        hst = pretty_error(hy_parse, source, filename='<stdin>')
     else:
         with io.open(options.FILE, 'r', encoding='utf-8') as source_file:
             source = source_file.read()
+            hst = hy_parse(source, filename=options.FILE)
 
-    hst = pretty_error(hy_parse, source)
     if options.with_source:
         # need special printing on Windows in case the
         # codepage doesn't support utf-8 characters

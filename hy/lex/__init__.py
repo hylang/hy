@@ -8,9 +8,10 @@ import re
 import sys
 import unicodedata
 
-from hy._compat import str_type, isidentifier, UCS4
+from hy._compat import str_type, isidentifier, UCS4, reraise
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
+from hy.errors import HySyntaxError
 
 try:
     from io import StringIO
@@ -18,7 +19,7 @@ except ImportError:
     from StringIO import StringIO
 
 
-def hy_parse(source):
+def hy_parse(source, filename='<string>'):
     """Parse a Hy source string.
 
     Parameters
@@ -26,31 +27,51 @@ def hy_parse(source):
     source: string
         Source code to parse.
 
+    filename: string, optional
+        File name corresponding to source.  Defaults to "<string>".
+
     Returns
     -------
-    out : instance of `types.CodeType`
+    out : HyExpression
     """
-    source = re.sub(r'\A#!.*', '', source)
-    return HyExpression([HySymbol("do")] + tokenize(source + "\n"))
+    _source = re.sub(r'\A#!.*', '', source)
+    try:
+        res = HyExpression([HySymbol("do")] +
+                           tokenize(_source + "\n",
+                                    filename=filename))
+        res.source = source
+        res.filename = filename
+        return res
+    except HySyntaxError as e:
+        reraise(type(e), e, None)
 
 
-def tokenize(buf):
-    """
-    Tokenize a Lisp file or string buffer into internal Hy objects.
+class ParserState(object):
+    def __init__(self, source, filename):
+        self.source = source
+        self.filename = filename
+
+
+def tokenize(source, filename=None):
+    """ Tokenize a Lisp file or string buffer into internal Hy objects.
+
+    Parameters
+    ----------
+    source: str
+        The source to tokenize.
+    filename: str, optional
+        The filename corresponding to `source`.
     """
     from hy.lex.lexer import lexer
     from hy.lex.parser import parser
     from rply.errors import LexingError
     try:
-        return parser.parse(lexer.lex(buf))
+        return parser.parse(lexer.lex(source),
+                            state=ParserState(source, filename))
     except LexingError as e:
         pos = e.getsourcepos()
-        raise LexException("Could not identify the next token.",
-                           pos.lineno, pos.colno, buf)
-    except LexException as e:
-        if e.source is None:
-            e.source = buf
-        raise
+        raise LexException("Could not identify the next token.", filename,
+                           pos.lineno, pos.colno, source)
 
 
 mangle_delim = 'X'

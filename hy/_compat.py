@@ -6,7 +6,7 @@ try:
     import __builtin__ as builtins
 except ImportError:
     import builtins  # NOQA
-import sys, keyword
+import sys, keyword, textwrap
 
 PY3 = sys.version_info[0] >= 3
 PY35 = sys.version_info >= (3, 5)
@@ -22,11 +22,39 @@ bytes_type   = bytes if PY3 else str          # NOQA
 long_type    = int   if PY3 else long         # NOQA
 string_types = str   if PY3 else basestring   # NOQA
 
+#
+# Inspired by the same-named `six` functions.
+#
 if PY3:
-    exec('def raise_empty(t, *args): raise t(*args) from None')
+    raise_src = textwrap.dedent('''
+    def raise_from(value, from_value):
+        try:
+            raise value from from_value
+        finally:
+            traceback = None
+    ''')
+
+    def reraise(exc_type, value, traceback=None):
+        try:
+            raise value.with_traceback(traceback)
+        finally:
+            traceback = None
+
 else:
-    def raise_empty(t, *args):
-        raise t(*args)
+    def raise_from(value, from_value=None):
+        raise value
+
+    raise_src = textwrap.dedent('''
+    def reraise(exc_type, value, traceback=None):
+        try:
+            raise exc_type, value, traceback
+        finally:
+            traceback = None
+    ''')
+
+raise_code = compile(raise_src, __file__, 'exec')
+exec(raise_code)
+
 
 def isidentifier(x):
     if x in ('True', 'False', 'None', 'print'):

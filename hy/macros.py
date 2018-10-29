@@ -1,14 +1,16 @@
 # Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
+import sys
 import importlib
 import inspect
 import pkgutil
 
-from hy._compat import PY3, string_types
+from contextlib import contextmanager
+
+from hy._compat import PY3, string_types, reraise
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
-
 from hy.errors import HyTypeError, HyMacroExpansionError
 
 try:
@@ -257,6 +259,32 @@ def make_empty_fn_copy(fn):
     return empty_fn
 
 
+@contextmanager
+def macro_exceptions(module, macro_tree, compiler=None):
+    try:
+        yield
+    except Exception as e:
+        try:
+            filename = inspect.getsourcefile(module)
+            source = inspect.getsource(module)
+        except TypeError:
+            if compiler:
+                filename = compiler.filename
+                source = compiler.source
+
+        if not isinstance(e, HyTypeError):
+            exc_type = HyMacroExpansionError
+            msg = "expanding `{}': ".format(macro_tree[0])
+            msg += str(e).replace("<lambda>()", "", 1).strip()
+        else:
+            exc_type = HyTypeError
+            msg = e.message
+
+        reraise(exc_type,
+                exc_type(msg, filename, macro_tree, source),
+                sys.exc_info()[2].tb_next)
+
+
 def macroexpand(tree, module, compiler=None, once=False):
     """Expand the toplevel macros for the given Hy AST tree.
 
@@ -324,23 +352,10 @@ def macroexpand(tree, module, compiler=None, once=False):
                 compiler = HyASTCompiler(module)
             opts['compiler'] = compiler
 
-        try:
+        with macro_exceptions(module, tree, compiler):
             m_copy = make_empty_fn_copy(m)
             m_copy(module.__name__, *tree[1:], **opts)
-        except TypeError as e:
-            msg = "expanding `" + str(tree[0]) + "': "
-            msg += str(e).replace("<lambda>()", "", 1).strip()
-            raise HyMacroExpansionError(tree, msg)
-
-        try:
             obj = m(module.__name__, *tree[1:], **opts)
-        except HyTypeError as e:
-            if e.expression is None:
-                e.expression = tree
-            raise
-        except Exception as e:
-            msg = "expanding `" + str(tree[0]) + "': " + repr(e)
-            raise HyMacroExpansionError(tree, msg)
 
         if isinstance(obj, HyExpression):
             obj.module = inspect.getmodule(m)
@@ -375,7 +390,8 @@ def tag_macroexpand(tag, tree, module):
                      None)
 
     if tag_macro is None:
-        raise HyTypeError(tag, "'{0}' is not a defined tag macro.".format(tag))
+        raise HyTypeError("`{0}' is not a defined tag macro.".format(tag),
+                          None, tag, None)
 
     expr = tag_macro(tree)
 

@@ -17,10 +17,8 @@ import importlib
 from functools import partial
 from contextlib import contextmanager
 
-from hy.errors import HyTypeError
 from hy.compiler import hy_compile, hy_ast_compile_flags
 from hy.lex import hy_parse
-from hy.lex.exceptions import LexException
 from hy._compat import PY3
 
 
@@ -153,15 +151,9 @@ if PY3:
     def _hy_source_to_code(self, data, path, _optimize=-1):
         if _could_be_hy_src(path):
             source = data.decode("utf-8")
-            try:
-                hy_tree = hy_parse(source)
-                with loader_module_obj(self) as module:
-                    data = hy_compile(hy_tree, module)
-            except (HyTypeError, LexException) as e:
-                if e.source is None:
-                    e.source = source
-                    e.filename = path
-                raise
+            hy_tree = hy_parse(source, filename=path)
+            with loader_module_obj(self) as module:
+                data = hy_compile(hy_tree, module)
 
         return _py_source_to_code(self, data, path, _optimize=_optimize)
 
@@ -287,19 +279,15 @@ else:
             fullname = self._fix_name(fullname)
             if fullname is None:
                 fullname = self.fullname
-            try:
-                hy_source = self.get_source(fullname)
-                hy_tree = hy_parse(hy_source)
-                with loader_module_obj(self) as module:
-                    hy_ast = hy_compile(hy_tree, module)
 
-                code = compile(hy_ast, self.filename, 'exec',
-                               hy_ast_compile_flags)
-            except (HyTypeError, LexException) as e:
-                if e.source is None:
-                    e.source = hy_source
-                    e.filename = self.filename
-                raise
+            hy_source = self.get_source(fullname)
+            hy_tree = hy_parse(hy_source, filename=self.filename)
+
+            with loader_module_obj(self) as module:
+                hy_ast = hy_compile(hy_tree, module)
+
+            code = compile(hy_ast, self.filename, 'exec',
+                           hy_ast_compile_flags)
 
             if not sys.dont_write_bytecode:
                 try:
@@ -453,7 +441,7 @@ else:
             try:
                 flags = None
                 if _could_be_hy_src(filename):
-                    hy_tree = hy_parse(source_str)
+                    hy_tree = hy_parse(source_str, filename=filename)
 
                     if module is None:
                         module = inspect.getmodule(inspect.stack()[1][0])
@@ -465,9 +453,6 @@ else:
 
                 codeobject = compile(source, dfile or filename, 'exec', flags)
             except Exception as err:
-                if isinstance(err, (HyTypeError, LexException)) and err.source is None:
-                    err.source = source_str
-                    err.filename = filename
 
                 py_exc = py_compile.PyCompileError(err.__class__, err,
                                                    dfile or filename)

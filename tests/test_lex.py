@@ -1,13 +1,15 @@
 # Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
+import traceback
+
+import pytest
 
 from math import isnan
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
                        HyString, HyDict, HyList, HySet, HyKeyword)
 from hy.lex import tokenize
 from hy.lex.exceptions import LexException, PrematureEndOfInput
-import pytest
 
 def peoi(): return pytest.raises(PrematureEndOfInput)
 def lexe(): return pytest.raises(LexException)
@@ -180,7 +182,23 @@ def test_lex_digit_separators():
 
 
 def test_lex_bad_attrs():
-    with lexe(): tokenize("1.foo")
+    with lexe() as execinfo:
+        tokenize("1.foo")
+
+    expected = [
+        '  File "<string>", line 1\n',
+        '    1.foo\n',
+        '    ^\n',
+        ('LexException: Cannot access attribute on anything other'
+         ' than a name (in order to get attributes of expressions,'
+         ' use `(. <expression> <attr>)` or `(.<attr> <expression>)`)\n')
+    ]
+    output = traceback.format_exception_only(execinfo.type, execinfo.value)
+
+    assert output[:-1:1] == expected[:-1:1]
+    # Python 2.7 doesn't give the full exception name, so we compensate.
+    assert output[-1].endswith(expected[-1])
+
     with lexe(): tokenize("0.foo")
     with lexe(): tokenize("1.5.foo")
     with lexe(): tokenize("1e3.foo")

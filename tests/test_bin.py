@@ -149,7 +149,7 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
     # inside run_cmd.
     _, err = run_cmd("hy", """
         (import hy.errors)
-        (raise (hy.errors.HyTypeError '[] (+ "A" "Z")))""")
+        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
     assert "AZ" in err
 
 

@@ -5,41 +5,65 @@
 
 import traceback
 
+from functools import reduce
+
 from clint.textui import colored
 
 
 class HyError(Exception):
-    """
-    Generic Hy error. All internal Exceptions will be subclassed from this
-    Exception.
-    """
-    pass
-
-
-class HyCompileError(HyError):
-    def __init__(self, exception, traceback=None):
-        self.exception = exception
-        self.traceback = traceback
-
-    def __str__(self):
-        if isinstance(self.exception, HyTypeError):
-            return str(self.exception)
-        if self.traceback:
-            tb = "".join(traceback.format_tb(self.traceback)).strip()
-        else:
-            tb = "No traceback available. 😟"
-        return("Internal Compiler Bug 😱\n⤷ %s: %s\nCompilation traceback:\n%s"
-               % (self.exception.__class__.__name__,
-                  self.exception, tb))
-
-
-class HyTypeError(TypeError):
-    def __init__(self, expression, message):
-        super(HyTypeError, self).__init__(message)
-        self.expression = expression
+    def __init__(self, message, *args):
         self.message = message
-        self.source = None
-        self.filename = None
+        super(HyError, self).__init__(message, *args)
+
+
+class HyInternalError(HyError):
+    """Unexpected errors occurring during compilation or parsing of Hy code.
+
+    Errors sub-classing this are not intended to be user-facing, and will,
+    hopefully, never be seen by users!
+    """
+
+    def __init__(self, message, *args):
+        super(HyInternalError, self).__init__(message, *args)
+
+
+class HyLanguageError(HyError):
+    """Errors caused by invalid use of the Hy language.
+
+    This, and any errors inheriting from this, are user-facing.
+    """
+
+    def __init__(self, message, *args):
+        super(HyLanguageError, self).__init__(message, *args)
+
+
+class HyCompileError(HyInternalError):
+    """Unexpected errors occurring within the compiler."""
+
+
+class HyTypeError(HyLanguageError, TypeError):
+    """TypeErrors occurring during the normal use of Hy."""
+
+    def __init__(self, message, filename=None, expression=None, source=None):
+        """
+        Parameters
+        ----------
+        message: str
+            The message to display for this error.
+        filename: str, optional
+            The filename for the source code generating this error.
+        expression: HyObject, optional
+            The Hy expression generating this error.
+        source: str, optional
+            The actual source code generating this error.
+        """
+        self.message = message
+        self.filename = filename
+        self.expression = expression
+        self.source = source
+
+        super(HyTypeError, self).__init__(message, filename, expression,
+                                          source)
 
     def __str__(self):
 
@@ -93,12 +117,92 @@ class HyTypeError(TypeError):
 
 
 class HyMacroExpansionError(HyTypeError):
-    pass
+    """Errors caused by invalid use of Hy macros.
+
+    This, and any errors inheriting from this, are user-facing.
+    """
 
 
-class HyIOError(HyError, IOError):
+class HyEvalError(HyLanguageError):
+    """Errors occurring during code evaluation at compile-time.
+
+    These errors distinguish unexpected errors within the compilation process
+    (i.e. `HyInternalError`s) from unrelated errors in user code evaluated by
+    the compiler (e.g. in `eval-and-compile`).
+
+    This, and any errors inheriting from this, are user-facing.
     """
-    Trivial subclass of IOError and HyError, to distinguish between
-    IOErrors raised by Hy itself as opposed to Hy programs.
+
+
+class HyIOError(HyInternalError, IOError):
+    """ Subclass used to distinguish between IOErrors raised by Hy itself as
+    opposed to Hy programs.
     """
-    pass
+
+
+class HySyntaxError(HyLanguageError, SyntaxError):
+    """Error during the Lexing of a Hython expression."""
+
+    def __init__(self, message, filename=None, lineno=-1, colno=-1,
+                 source=None):
+        """
+        Parameters
+        ----------
+        message: str
+            The exception's message.
+        filename: str, optional
+            The filename for the source code generating this error.
+        lineno: int, optional
+            The line number of the error.
+        colno: int, optional
+            The column number of the error.
+        source: str, optional
+            The actual source code generating this error.
+        """
+        self.message = message
+        self.filename = filename
+        self.lineno = lineno
+        self.colno = colno
+        self.source = source
+        super(HySyntaxError, self).__init__(message,
+                                            # The builtin `SyntaxError` needs a
+                                            # tuple.
+                                            (filename, lineno, colno, source))
+
+    @staticmethod
+    def from_expression(message, expression, filename=None, source=None):
+        if not source:
+            # Maybe the expression object has its own source.
+            source = getattr(expression, 'source', None)
+
+        if not filename:
+            filename = getattr(expression, 'filename', None)
+
+        if source:
+            lineno = expression.start_line
+            colno = expression.start_column
+            end_line = getattr(expression, 'end_line', len(source))
+            lines = source.splitlines()
+            source = '\n'.join(lines[lineno-1:end_line])
+        else:
+            # We could attempt to extract the source given a filename, but we
+            # don't.
+            lineno = colno = -1
+
+        return HySyntaxError(message, filename, lineno, colno, source)
+
+    def __str__(self):
+
+        output = traceback.format_exception_only(SyntaxError, self)
+
+        output[-1] = colored.yellow(output[-1])
+        if len(self.source) > 0:
+            output[-2] = colored.green(output[-2])
+            for line in output[::-2]:
+                if line.strip().startswith(
+                        'File "{}", line'.format(self.filename)):
+                    break
+            output[-3] = colored.red(output[-3])
+
+        # Avoid "...expected str instance, ColoredString found"
+        return reduce(lambda x, y: x + y, output)
