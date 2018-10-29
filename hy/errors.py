@@ -15,6 +15,7 @@ from clint.textui import colored
 
 _hy_filter_internal_errors = _initialize_env_var('HY_FILTER_INTERNAL_ERRORS',
                                                  True)
+_hy_colored_errors = _initialize_env_var('HY_COLORED_ERRORS', False)
 
 
 class HyError(Exception):
@@ -73,8 +74,15 @@ class HyTypeError(HyLanguageError, TypeError):
                                           source)
 
     def __str__(self):
+        global _hy_colored_errors
 
         result = ""
+
+        if _hy_colored_errors:
+            from clint.textui import colored
+            red, green, yellow = colored.red, colored.green, colored.yellow
+        else:
+            red = green = yellow = lambda x: x
 
         if all(getattr(self.expression, x, None) is not None
                for x in ("start_line", "start_column", "end_column")):
@@ -97,28 +105,28 @@ class HyTypeError(HyLanguageError, TypeError):
                                                                start)
 
             if len(source) == 1:
-                result += '  %s\n' % colored.red(source[0])
+                result += '  %s\n' % red(source[0])
                 result += '  %s%s\n' % (' '*(start-1),
-                                        colored.green('^' + '-'*(length-1) + '^'))
+                                        green('^' + '-'*(length-1) + '^'))
             if len(source) > 1:
-                result += '  %s\n' % colored.red(source[0])
+                result += '  %s\n' % red(source[0])
                 result += '  %s%s\n' % (' '*(start-1),
-                                        colored.green('^' + '-'*length))
+                                        green('^' + '-'*length))
                 if len(source) > 2:  # write the middle lines
                     for line in source[1:-1]:
-                        result += '  %s\n' % colored.red("".join(line))
-                        result += '  %s\n' % colored.green("-"*len(line))
+                        result += '  %s\n' % red("".join(line))
+                        result += '  %s\n' % green("-"*len(line))
 
                 # write the last line
-                result += '  %s\n' % colored.red("".join(source[-1]))
-                result += '  %s\n' % colored.green('-'*(end-1) + '^')
+                result += '  %s\n' % red("".join(source[-1]))
+                result += '  %s\n' % green('-'*(end-1) + '^')
 
         else:
             result += '  File "%s", unknown location\n' % self.filename
 
-        result += colored.yellow("%s: %s\n\n" %
-                                 (self.__class__.__name__,
-                                  self.message))
+        result += yellow("%s: %s\n\n" %
+                         (self.__class__.__name__,
+                          self.message))
 
         return result
 
@@ -199,18 +207,21 @@ class HySyntaxError(HyLanguageError, SyntaxError):
         return HySyntaxError(message, filename, lineno, colno, source)
 
     def __str__(self):
+        global _hy_colored_errors
 
         output = traceback.format_exception_only(SyntaxError,
                                                  SyntaxError(*self.args))
 
-        output[-1] = colored.yellow(output[-1])
-        if len(self.source) > 0:
-            output[-2] = colored.green(output[-2])
-            for line in output[::-2]:
-                if line.strip().startswith(
-                        'File "{}", line'.format(self.filename)):
-                    break
-            output[-3] = colored.red(output[-3])
+        if _hy_colored_errors:
+            from hy.errors import colored
+            output[-1] = colored.yellow(output[-1])
+            if len(self.source) > 0:
+                output[-2] = colored.green(output[-2])
+                for line in output[::-2]:
+                    if line.strip().startswith(
+                            'File "{}", line'.format(self.filename)):
+                        break
+                output[-3] = colored.red(output[-3])
 
         # Avoid "...expected str instance, ColoredString found"
         return reduce(lambda x, y: x + y, output)
