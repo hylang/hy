@@ -15,13 +15,20 @@ import py_compile
 import traceback
 import runpy
 import types
+import time
+import linecache
+import hashlib
+import codeop
 
 import astor.code_gen
 
 import hy
+
 from hy.lex import hy_parse, mangle
+from contextlib import contextmanager
 from hy.lex.exceptions import PrematureEndOfInput
-from hy.compiler import HyASTCompiler, hy_eval, hy_compile, ast_compile
+from hy.compiler import (HyASTCompiler, hy_eval, hy_compile,
+                         hy_ast_compile_flags)
 from hy.errors import (HyLanguageError, HyRequireError, HyMacroExpansionError,
                        filtered_hy_exceptions, hy_exc_handler)
 from hy.importer import runhy
@@ -29,6 +36,11 @@ from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
 from hy._compat import builtins, PY3, FileNotFoundError
+
+
+sys.last_type = None
+sys.last_value = None
+sys.last_traceback = None
 
 
 class HyQuitter(object):
@@ -51,14 +63,101 @@ class HyQuitter(object):
 builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
 
+@contextmanager
+def extend_linecache(add_cmdline_cache):
+    _linecache_checkcache = linecache.checkcache
 
-class HyCommandCompiler(object):
-    def __init__(self, module, ast_callback=None, hy_compiler=None):
+    def _cmdline_checkcache(*args):
+        _linecache_checkcache(*args)
+        linecache.cache.update(add_cmdline_cache)
+
+    linecache.checkcache = _cmdline_checkcache
+    yield
+    linecache.checkcache = _linecache_checkcache
+
+
+_codeop_maybe_compile = codeop._maybe_compile
+
+
+def _hy_maybe_compile(compiler, source, filename, symbol):
+    """The `codeop` version of this will compile the same source multiple
+    times, and, since we have macros and things like `eval-and-compile`, we
+    can't allow that.
+    """
+    if not isinstance(compiler, HyCompile):
+        return _codeop_maybe_compile(compiler, source, filename, symbol)
+
+    for line in source.split("\n"):
+        line = line.strip()
+        if line and line[0] != ';':
+            # Leave it alone (could do more with Hy syntax)
+            break
+    else:
+        if symbol != "eval":
+            # Replace it with a 'pass' statement (i.e. tell the compiler to do
+            # nothing)
+            source = "pass"
+
+    return compiler(source, filename, symbol)
+
+
+codeop._maybe_compile = _hy_maybe_compile
+
+
+class HyCompile(codeop.Compile, object):
+    """This compiler uses `linecache` like
+    `IPython.core.compilerop.CachingCompiler`.
+    """
+
+    def __init__(self, module, locals, ast_callback=None,
+                 hy_compiler=None, cmdline_cache={}):
         self.module = module
+        self.locals = locals
         self.ast_callback = ast_callback
         self.hy_compiler = hy_compiler
 
+        super(HyCompile, self).__init__()
+
+        self.flags |= hy_ast_compile_flags
+
+        self.cmdline_cache = cmdline_cache
+
+    def _cache(self, source, name):
+        entry = (len(source),
+                 time.time(),
+                 [line + '\n' for line in source.splitlines()],
+                 name)
+
+        linecache.cache[name] = entry
+        self.cmdline_cache[name] = entry
+
+    def _update_exc_info(self):
+            self.locals['_hy_last_type'] = sys.last_type
+            self.locals['_hy_last_value'] = sys.last_value
+            # Skip our frame.
+            sys.last_traceback = getattr(sys.last_traceback, 'tb_next',
+                                         sys.last_traceback)
+            self.locals['_hy_last_traceback'] = sys.last_traceback
+
     def __call__(self, source, filename="<input>", symbol="single"):
+
+        if source == 'pass':
+            # We need to return a no-op to signal that no more input is needed.
+            return (compile(source, filename, symbol),) * 2
+
+        hash_digest = hashlib.sha1(source.encode("utf-8").strip()).hexdigest()
+        name = '{}-{}'.format(filename.strip('<>'), hash_digest)
+
+        try:
+            hy_ast = hy_parse(source, filename=name)
+        except Exception:
+            # Capture a traceback without the compiler/REPL frames.
+            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+            self._update_exc_info()
+            raise
+
+        self._cache(source, name)
+
         try:
             hy_ast = hy_parse(source, filename=filename)
             root_ast = ast.Interactive if symbol == 'single' else ast.Module
@@ -75,14 +174,39 @@ class HyCommandCompiler(object):
             if self.ast_callback:
                 self.ast_callback(exec_ast, eval_ast)
 
-            exec_code = ast_compile(exec_ast, filename, symbol)
-            eval_code = ast_compile(eval_ast, filename, 'eval')
+            exec_code = super(HyCompile, self).__call__(exec_ast, name, symbol)
+            eval_code = super(HyCompile, self).__call__(eval_ast, name, 'eval')
 
-            return exec_code, eval_code
-        except PrematureEndOfInput:
-            # Save these so that we can reraise/display when an incomplete
-            # interactive command is given at the prompt.
+        except HyLanguageError:
+            # Hy will raise exceptions during compile-time that Python would
+            # raise during run-time (e.g. import errors for `require`).  In
+            # order to work gracefully with the Python world, we convert such
+            # Hy errors to code that purposefully reraises those exceptions in
+            # the places where Python code expects them.
             sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+            self._update_exc_info()
+            exec_code = super(HyCompile, self).__call__(
+                'import hy._compat; hy._compat.reraise('
+                '_hy_last_type, _hy_last_value, _hy_last_traceback)',
+                name, symbol)
+            eval_code = super(HyCompile, self).__call__('None', name, 'eval')
+
+        return exec_code, eval_code
+
+
+class HyCommandCompiler(codeop.CommandCompiler, object):
+    def __init__(self, *args, **kwargs):
+        self.compiler = HyCompile(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        try:
+            return super(HyCommandCompiler, self).__call__(*args, **kwargs)
+        except PrematureEndOfInput:
+            # We have to do this here, because `codeop._maybe_compile` won't
+            # take `None` for a return value (at least not in Python 2.7) and
+            # this exception type is also a `SyntaxError`, so it will be caught
+            # by `code.InteractiveConsole` base methods before it reaches our
+            # `runsource`.
             return None
 
 
@@ -111,11 +235,16 @@ class HyREPL(code.InteractiveConsole, object):
 
         self.hy_compiler = HyASTCompiler(self.module)
 
-        self.compile = HyCommandCompiler(self.module, self.ast_callback,
-                                         self.hy_compiler)
+        self.cmdline_cache = {}
+        self.compile = HyCommandCompiler(self.module,
+                                         self.locals,
+                                         ast_callback=self.ast_callback,
+                                         hy_compiler=self.hy_compiler,
+                                         cmdline_cache=self.cmdline_cache)
 
         self.spy = spy
         self.last_value = None
+        self.print_last_value = True
 
         if output_fn is None:
             self.output_fn = repr
@@ -133,6 +262,9 @@ class HyREPL(code.InteractiveConsole, object):
         self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]
         self.locals.update({sym: None for sym in self._repl_results_symbols})
 
+        # Allow access to the running REPL instance
+        self.locals['_hy_repl'] = self
+
     def ast_callback(self, exec_ast, eval_ast):
         if self.spy:
             try:
@@ -146,11 +278,17 @@ class HyREPL(code.InteractiveConsole, object):
                     traceback.format_exc())
                 self.write(msg)
 
-    def _error_wrap(self, error_fn, *args, **kwargs):
+    def _error_wrap(self, error_fn, exc_info_override=False, *args, **kwargs):
         sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
 
-        # Sadly, this method in Python 2.7 ignores an overridden
-        # `sys.excepthook`.
+        if exc_info_override:
+            # Use a traceback that doesn't have the REPL frames.
+            sys.last_type = self.locals.get('_hy_last_type', sys.last_type)
+            sys.last_value = self.locals.get('_hy_last_value', sys.last_value)
+            sys.last_traceback = self.locals.get('_hy_last_traceback',
+                                                 sys.last_traceback)
+
+        # Sadly, this method in Python 2.7 ignores an overridden `sys.excepthook`.
         if sys.excepthook is sys.__excepthook__:
             error_fn(*args, **kwargs)
         else:
@@ -163,6 +301,7 @@ class HyREPL(code.InteractiveConsole, object):
             filename = self.filename
 
         self._error_wrap(super(HyREPL, self).showsyntaxerror,
+                         exc_info_override=True,
                          filename=filename)
 
     def showtraceback(self):
@@ -289,7 +428,9 @@ def run_repl(hr=None, **kwargs):
         hr = HyREPL(**kwargs)
 
     namespace = hr.locals
-    with filtered_hy_exceptions(), completion(Completer(namespace)):
+    with filtered_hy_exceptions(), \
+         extend_linecache(hr.cmdline_cache), \
+         completion(Completer(namespace)):
         hr.interact("{appname} {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
                         appname=hy.__appname__,

@@ -6,7 +6,6 @@
 
 import os
 import re
-import sys
 import shlex
 import subprocess
 
@@ -523,7 +522,7 @@ def test_bin_hy_tracebacks():
     output, error = run_cmd('hy -i "(require not-a-real-module)"')
     assert output.startswith('=> ')
     print(error.splitlines())
-    req_err(error.splitlines()[3 if PY3 else -3])
+    req_err(error.splitlines()[2 if PY3 else -3])
 
     # Modeled after
     #   > python -c 'print("hi'
@@ -532,13 +531,14 @@ def test_bin_hy_tracebacks():
     #               ^
     #   SyntaxError: EOL while scanning string literal
     _, error = run_cmd(r'hy -c "(print \""', expect=1)
-    peoi = (
-        '  File "<string>", line 1\n'
-        '    (print "\n'
-        '           ^\n' +
-        '{}PrematureEndOfInput: Partial string literal\n'.format(
-            'hy.lex.exceptions.' if PY3 else ''))
-    assert error == peoi
+    peoi_re = (
+        r'Traceback \(most recent call last\):\n'
+        r'  File "(?:<string>|string-[0-9a-f]+)", line 1\n'
+        r'    \(print "\n'
+        r'           \^\n' +
+        r'{}PrematureEndOfInput: Partial string literal\n'.format(
+            r'hy\.lex\.exceptions\.' if PY3 else ''))
+    assert re.search(peoi_re, error)
 
     # Modeled after
     #   > python -i -c "print('"
@@ -549,7 +549,7 @@ def test_bin_hy_tracebacks():
     #   >>>
     output, error = run_cmd(r'hy -i "(print \""')
     assert output.startswith('=> ')
-    assert error.startswith(peoi)
+    assert re.match(peoi_re, error)
 
     # Modeled after
     #   > python -c 'print(a)'

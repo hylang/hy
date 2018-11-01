@@ -28,10 +28,7 @@ string_types = str   if PY3 else basestring   # NOQA
 if PY3:
     raise_src = textwrap.dedent('''
     def raise_from(value, from_value):
-        try:
-            raise value from from_value
-        finally:
-            traceback = None
+        raise value from from_value
     ''')
 
     def reraise(exc_type, value, traceback=None):

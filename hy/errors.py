@@ -257,8 +257,7 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
 
     lines = traceback.format_list(new_tb)
 
-    if lines:
-        lines.insert(0, "Traceback (most recent call last):\n")
+    lines.insert(0, "Traceback (most recent call last):\n")
 
     lines.extend(traceback.format_exception_only(exc_type, exc_value))
     output = ''.join(lines)
