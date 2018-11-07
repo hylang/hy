@@ -30,6 +30,7 @@ Bug Fixes
   objects.
 * Fixed errors from `from __future__ import ...` statements and missing Hy
   module docstrings caused by automatic importing of Hy builtins.
+* Fixed crash in `mangle` for some pathological inputs
 
 0.15.0
 ==============================

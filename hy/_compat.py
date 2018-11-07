@@ -45,7 +45,7 @@ def isidentifier(x):
     from io import StringIO
     try:
         tokens = list(T.generate_tokens(StringIO(x).readline))
-    except T.TokenError:
+    except (T.TokenError, IndentationError):
         return False
     return len(tokens) == 2 and tokens[0][0] == T.NAME
 
