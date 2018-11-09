@@ -11,9 +11,6 @@ try:
     # Otherwise fallback to the legacy getargspec.
     inspect.signature  # noqa
 except AttributeError:
-    def get_arity(fn):
-        return len(inspect.getargspec(fn)[0])
-
     def has_kwargs(fn):
         argspec = inspect.getargspec(fn)
         return argspec.keywords is not None
@@ -23,11 +20,6 @@ except AttributeError:
         return inspect.formatargspec(*argspec)
 
 else:
-    def get_arity(fn):
-        parameters = inspect.signature(fn).parameters
-        return sum(1 for param in parameters.values()
-                   if param.kind == param.POSITIONAL_OR_KEYWORD)
-
     def has_kwargs(fn):
         parameters = inspect.signature(fn).parameters
         return any(param.kind == param.VAR_KEYWORD
