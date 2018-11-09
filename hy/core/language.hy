@@ -21,7 +21,7 @@
 (import [hy.models [HySymbol HyKeyword]])
 (import [hy.lex [LexException PrematureEndOfInput tokenize mangle unmangle]])
 (import [hy.compiler [HyASTCompiler]])
-(import [hy.importer [hy-eval :as eval]])
+(import [hy.importer [calling-module hy-eval :as eval]])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."
@@ -295,12 +295,14 @@ Return series of accumulated sums (or other binary function results)."
 (defn macroexpand [form]
   "Return the full macro expansion of `form`."
   (import hy.macros)
-  (hy.macros.macroexpand form (HyASTCompiler (calling-module-name))))
+  (setv module (calling-module))
+  (hy.macros.macroexpand form module (HyASTCompiler module)))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of `form`."
   (import hy.macros)
-  (hy.macros.macroexpand-1 form (HyASTCompiler (calling-module-name))))
+  (setv module (calling-module))
+  (hy.macros.macroexpand-1 form module (HyASTCompiler module)))
 
 (defn merge-with [f &rest maps]
   "Return the map of `maps` joined onto the first via the function `f`.
@@ -467,8 +469,8 @@ Even objects with the __name__ magic will work."
     (or a b)))
 
 (setv EXPORTS
-  '[*map accumulate butlast calling-module-name chain coll? combinations
-    comp complement compress constantly count cycle dec distinct
+  '[*map accumulate butlast calling-module calling-module-name chain coll?
+    combinations comp complement compress constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first
     filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?

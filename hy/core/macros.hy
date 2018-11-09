@@ -245,34 +245,10 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
 
    Use ``#doc foo`` instead for help with tag macro ``#foo``.
    Use ``(help foo)`` instead for help with runtime objects."
-  `(try
-     (import [importlib [import-module]])
-     (help (. (import-module "hy")
-              macros
-              _hy_macros
-              [__name__]
-              ['~symbol]))
-     (except [KeyError]
-       (help (. (import-module "hy")
-                macros
-                _hy_macros
-                [None]
-                ['~symbol])))))
+  `(help (.get __macros__ '~symbol None)))
 
 (deftag doc [symbol]
   "tag macro documentation
 
    Gets help for a tag macro function available in this module."
-  `(try
-     (import [importlib [import-module]])
-     (help (. (import-module "hy")
-              macros
-              _hy_tag
-              [__name__]
-              ['~symbol]))
-     (except [KeyError]
-       (help (. (import-module "hy")
-                macros
-                _hy_tag
-                [None]
-                ['~symbol])))))
+  `(help (.get __tags__ '~symbol None)))

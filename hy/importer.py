@@ -17,9 +17,10 @@ import importlib
 import __future__
 
 from functools import partial
+from contextlib import contextmanager
 
 from hy.errors import HyTypeError
-from hy.compiler import hy_compile
+from hy.compiler import hy_compile, ast_str
 from hy.lex import tokenize, LexException
 from hy.models import HyExpression, HySymbol
 from hy._compat import string_types, PY3
@@ -27,6 +28,36 @@ from hy._compat import string_types, PY3
 
 hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
                         __future__.CO_FUTURE_PRINT_FUNCTION)
+
+
+def calling_module(n=1):
+    """Get the module calling, if available.
+
+    As a fallback, this will import a module using the calling frame's
+    globals value of `__name__`.
+
+    Parameters
+    ----------
+    n: int, optional
+        The number of levels up the stack from this function call.
+        The default is one level up.
+
+    Returns
+    -------
+    out: types.ModuleType
+        The module at stack level `n + 1` or `None`.
+    """
+    frame_up = inspect.stack(0)[n + 1][0]
+    module = inspect.getmodule(frame_up)
+    if module is None:
+        # This works for modules like `__main__`
+        module_name = frame_up.f_globals.get('__name__', None)
+        if module_name:
+            try:
+                module = importlib.import_module(module_name)
+            except ImportError:
+                pass
+    return module
 
 
 def ast_compile(ast, filename, mode):
@@ -65,12 +96,8 @@ def hy_parse(source):
     return HyExpression([HySymbol("do")] + tokenize(source + "\n"))
 
 
-def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
+def hy_eval(hytree, locals=None, module=None, ast_callback=None):
     """Evaluates a quoted expression and returns the value.
-
-    The optional second and third arguments specify the dictionary of globals
-    to use and the module name. The globals dictionary defaults to ``(local)``
-    and the module name defaults to the name of the current module.
 
     Examples
     --------
@@ -89,13 +116,15 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
     hytree: a Hy expression tree
         Source code to parse.
 
-    namespace: dict, optional
-        Namespace in which to evaluate the Hy tree.  Defaults to the calling
-        frame.
+    locals: dict, optional
+        Local environment in which to evaluate the Hy tree.  Defaults to the
+        calling frame.
 
-    module_name: str, optional
-        Name of the module to which the Hy tree is assigned.  Defaults to
-        the calling frame's module, if any, and '__eval__' otherwise.
+    module: str or types.ModuleType, optional
+        Module, or name of the module, to which the Hy tree is assigned and
+        the global values are taken.
+        Defaults to the calling frame's module, if any, and '__eval__'
+        otherwise.
 
     ast_callback: callable, optional
         A callback that is passed the Hy compiled tree and resulting
@@ -105,19 +134,23 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
     Returns
     -------
     out : Result of evaluating the Hy compiled tree.
-
     """
-    if namespace is None:
+    if module is None:
+        module = calling_module()
+
+    if isinstance(module, string_types):
+        module = importlib.import_module(ast_str(module, piecewise=True))
+    elif not inspect.ismodule(module):
+        raise TypeError('Invalid module type: {}'.format(type(module)))
+
+    if locals is None:
         frame = inspect.stack()[1][0]
-        namespace = inspect.getargvalues(frame).locals
-    if module_name is None:
-        m = inspect.getmodule(inspect.stack()[1][0])
-        module_name = '__eval__' if m is None else m.__name__
+        locals = inspect.getargvalues(frame).locals
 
-    if not isinstance(module_name, string_types):
-        raise TypeError("Module name must be a string")
+    if not isinstance(locals, dict):
+        raise TypeError("Locals must be a dictionary")
 
-    _ast, expr = hy_compile(hytree, module_name, get_expr=True)
+    _ast, expr = hy_compile(hytree, module, get_expr=True)
 
     # Spoof the positions in the generated ast...
     for node in ast.walk(_ast):
@@ -131,14 +164,13 @@ def hy_eval(hytree, namespace=None, module_name=None, ast_callback=None):
     if ast_callback:
         ast_callback(_ast, expr)
 
-    if not isinstance(namespace, dict):
-        raise TypeError("Globals must be a dictionary")
+    globals = module.__dict__
 
     # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, "<eval_body>", "exec"), namespace)
+    eval(ast_compile(_ast, "<eval_body>", "exec"), globals, locals)
 
     # Then eval the expression context and return that
-    return eval(ast_compile(expr, "<eval>", "eval"), namespace)
+    return eval(ast_compile(expr, "<eval>", "eval"), globals, locals)
 
 
 def cache_from_source(source_path):
@@ -165,6 +197,52 @@ def cache_from_source(source_path):
         # Otherwise, just append ".pyc".
         d, f = os.path.split(source_path)
         return os.path.join(d, re.sub(r"(?:\.[^.]+)?\Z", ".pyc", f))
+
+
+@contextmanager
+def loader_module_obj(loader):
+    """Use the module object associated with a loader.
+
+    This is intended to be used by a loader object itself, and primarily as a
+    work-around for attempts to get module and/or file code from a loader
+    without actually creating a module object.  Since Hy currently needs the
+    module object for macro importing, expansion, and whatnot, using this will
+    reconcile Hy with such attempts.
+
+    For example, if we're first compiling a Hy script starting from
+    `runpy.run_path`, the Hy compiler will need a valid module object in which
+    to run, but, given the way `runpy.run_path` works, there might not be one
+    yet (e.g. `__main__` for a .hy file).  We compensate by properly loading
+    the module here.
+
+    The function `inspect.getmodule` has a hidden-ish feature that returns
+    modules using their associated filenames (via `inspect.modulesbyfile`),
+    and, since the Loaders (and their delegate Loaders) carry a filename/path
+    associated with the parent package, we use it as a more robust attempt to
+    obtain an existing module object.
+
+    When no module object is found, a temporary, minimally sufficient module
+    object is created for the duration of the `with` body.
+    """
+    tmp_mod = False
+
+    try:
+        module = inspect.getmodule(None, _filename=loader.path)
+    except KeyError:
+        module = None
+
+    if module is None:
+        tmp_mod = True
+        module = sys.modules.setdefault(loader.name,
+                                        types.ModuleType(loader.name))
+        module.__file__ = loader.path
+        module.__name__ = loader.name
+
+    try:
+        yield module
+    finally:
+        if tmp_mod:
+            del sys.modules[loader.name]
 
 
 def _hy_code_from_file(filename, loader_type=None):
@@ -226,7 +304,8 @@ if PY3:
             source = data.decode("utf-8")
             try:
                 hy_tree = hy_parse(source)
-                data = hy_compile(hy_tree, self.name)
+                with loader_module_obj(self) as module:
+                    data = hy_compile(hy_tree, module)
             except (HyTypeError, LexException) as e:
                 if e.source is None:
                     e.source = source
@@ -276,6 +355,15 @@ else:
 
             super(HyLoader, self).__init__(fullname, fileobj, filename, etc)
 
+        def __getattr__(self, item):
+            # We add these for Python >= 3.4 Loader interface compatibility.
+            if item == 'path':
+                return self.filename
+            elif item == 'name':
+                return self.fullname
+            else:
+                return super(HyLoader, self).__getattr__(item)
+
         def exec_module(self, module, fullname=None):
             fullname = self._fix_name(fullname)
             code = self.get_code(fullname)
@@ -283,7 +371,7 @@ else:
 
         def load_module(self, fullname=None):
             """Same as `pkgutil.ImpLoader`, with an extra check for Hy
-            source"""
+            source and the option to not run `self.exec_module`."""
             fullname = self._fix_name(fullname)
             ext_type = self.etc[0]
             mod_type = self.etc[2]
@@ -298,7 +386,7 @@ else:
                     mod = sys.modules[fullname]
                 else:
                     mod = sys.modules.setdefault(
-                        fullname, imp.new_module(fullname))
+                        fullname, types.ModuleType(fullname))
 
                 # TODO: Should we set these only when not in `sys.modules`?
                 if mod_type == imp.PKG_DIRECTORY:
@@ -351,7 +439,8 @@ else:
             try:
                 hy_source = self.get_source(fullname)
                 hy_tree = hy_parse(hy_source)
-                hy_ast = hy_compile(hy_tree, fullname)
+                with loader_module_obj(self) as module:
+                    hy_ast = hy_compile(hy_tree, module)
 
                 code = compile(hy_ast, self.filename, 'exec',
                                hy_ast_compile_flags)
@@ -363,7 +452,7 @@ else:
 
             if not sys.dont_write_bytecode:
                 try:
-                    hyc_compile(code)
+                    hyc_compile(code, module=fullname)
                 except IOError:
                     pass
             return code
@@ -470,7 +559,8 @@ else:
 
     _py_compile_compile = py_compile.compile
 
-    def hyc_compile(file_or_code, cfile=None, dfile=None, doraise=False):
+    def hyc_compile(file_or_code, cfile=None, dfile=None, doraise=False,
+                    module=None):
         """Write a Hy file, or code object, to pyc.
 
         This is a patched version of Python 2.7's `py_compile.compile`.
@@ -489,6 +579,9 @@ else:
             The filename to use for compile-time errors.
         doraise : bool, default False
             If `True` raise compilation exceptions; otherwise, ignore them.
+        module : str or types.ModuleType, optional
+            The module, or module name, in which the Hy tree is expanded.
+            Default is the caller's module.
 
         Returns
         -------
@@ -510,7 +603,13 @@ else:
                 flags = None
                 if _could_be_hy_src(filename):
                     hy_tree = hy_parse(source_str)
-                    source = hy_compile(hy_tree, '<hyc_compile>')
+
+                    if module is None:
+                        module = inspect.getmodule(inspect.stack()[1][0])
+                    elif not inspect.ismodule(module):
+                        module = importlib.import_module(module)
+
+                    source = hy_compile(hy_tree, module)
                     flags = hy_ast_compile_flags
 
                 codeobject = compile(source, dfile or filename, 'exec', flags)

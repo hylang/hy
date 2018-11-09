@@ -11,6 +11,7 @@ def test_tag_macro_error():
     """Check if we get correct error with wrong dispatch character"""
     try:
         macroexpand(tokenize("(dispatch_tag_macro '- '())")[0],
+                    __name__,
                     HyASTCompiler(__name__))
     except HyTypeError as e:
         assert "with the character `-`" in str(e)

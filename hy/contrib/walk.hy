@@ -5,6 +5,7 @@
 
 (import [hy [HyExpression HyDict]]
         [functools [partial]]
+        [importlib [import-module]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
         [hy.compiler [HyASTCompiler]])
@@ -42,9 +43,11 @@
 
 (defn macroexpand-all [form &optional module-name]
   "Recursively performs all possible macroexpansions in form."
-  (setv module-name (or module-name (calling-module-name))
+  (setv module (or (and module-name
+                        (import-module module-name))
+                   (calling-module))
         quote-level [0]
-        ast-compiler (HyASTCompiler module-name))  ; TODO: make nonlocal after dropping Python2
+        ast-compiler (HyASTCompiler module))  ; TODO: make nonlocal after dropping Python2
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
@@ -68,7 +71,7 @@
               [(= (first form) (HySymbol "require"))
                (ast-compiler.compile form)
                (return)]
-              [True (traverse (mexpand form ast-compiler))])
+              [True (traverse (mexpand form module ast-compiler))])
         (if (coll? form)
             (traverse form)
             form)))

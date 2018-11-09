@@ -56,7 +56,7 @@ def test_runpy():
 
 
 def test_stringer():
-    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), '')
+    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), '__main__')
 
     assert type(_ast.body[0]) == ast.FunctionDef
 
@@ -80,7 +80,7 @@ def test_import_error_reporting():
 
     def _import_error_test():
         try:
-            _ = hy_compile(hy_parse("(import \"sys\")"), '')
+            _ = hy_compile(hy_parse("(import \"sys\")"), '__main__')
         except HyTypeError:
             return "Error reported"
 

@@ -13,14 +13,16 @@ from hy.errors import HyCompileError, HyTypeError
 
 from hy.lex import mangle, unmangle
 
-import hy.macros
-from hy._compat import (
-    str_type, bytes_type, long_type, PY3, PY35, raise_empty)
-from hy.macros import require, macroexpand, tag_macroexpand
+from hy._compat import (str_type, string_types, bytes_type, long_type, PY3,
+                        PY35, raise_empty)
+from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 import hy.importer
 
 import traceback
 import importlib
+import inspect
+import pkgutil
+import types
 import ast
 import sys
 import copy
@@ -279,32 +281,48 @@ def is_unpack(kind, x):
             and x[0] == "unpack-" + kind)
 
 
-_stdlib = {}
-
-
 class HyASTCompiler(object):
+    """A Hy-to-Python AST compiler"""
 
-    def __init__(self, module_name):
+    def __init__(self, module):
+        """
+        Parameters
+        ----------
+        module: str or types.ModuleType
+            Module in which the Hy tree is evaluated.
+        """
         self.anon_var_count = 0
         self.imports = defaultdict(set)
-        self.module_name = module_name
         self.temp_if = None
+
+        if not inspect.ismodule(module):
+            module = importlib.import_module(module)
+
+        self.module = module
+        self.module_name = module.__name__
+
         self.can_use_stdlib = (
-            not module_name.startswith("hy.core")
-            or module_name == "hy.core.macros")
+            not self.module_name.startswith("hy.core")
+            or self.module_name == "hy.core.macros")
+
+        # Load stdlib macros into the module namespace.
+        load_macros(self.module)
+
+        self._stdlib = {}
+
         # Everything in core needs to be explicit (except for
         # the core macros, which are built with the core functions).
-        if self.can_use_stdlib and not _stdlib:
+        if self.can_use_stdlib:
             # Populate _stdlib.
             import hy.core
-            for module in hy.core.STDLIB:
-                mod = importlib.import_module(module)
-                for e in map(ast_str, mod.EXPORTS):
+            for stdlib_module in hy.core.STDLIB:
+                mod = importlib.import_module(stdlib_module)
+                for e in map(ast_str, getattr(mod, 'EXPORTS', [])):
                     if getattr(mod, e) is not getattr(builtins, e, ''):
                         # Don't bother putting a name in _stdlib if it
                         # points to a builtin with the same name. This
                         # prevents pointless imports.
-                        _stdlib[e] = module
+                        self._stdlib[e] = stdlib_module
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -1098,11 +1116,6 @@ class HyASTCompiler(object):
         brackets(SYM, sym(":as"), _symn) |
         brackets(SYM, brackets(many(_symn + maybe(sym(":as") + _symn)))))])
     def compile_import_or_require(self, expr, root, entries):
-        """
-        TODO for `require`: keep track of what we've imported in this run and
-        then "unimport" it after we've completed `thing' so that we don't
-        pollute other envs.
-        """
         ret = Result()
 
         for entry in entries:
@@ -1128,8 +1141,9 @@ class HyASTCompiler(object):
                 else:
                     assignments = [(k, v or k) for k, v in kids]
 
+            ast_module = ast_str(module, piecewise=True)
+
             if root == "import":
-                ast_module = ast_str(module, piecewise=True)
                 module = ast_module.lstrip(".")
                 level = len(ast_module) - len(module)
                 if assignments == "ALL" and prefix == "":
@@ -1150,10 +1164,23 @@ class HyASTCompiler(object):
                         for k, v in assignments]
                 ret += node(
                     expr, module=module or None, names=names, level=level)
-            else: # root == "require"
-                importlib.import_module(module)
-                require(module, self.module_name,
-                        assignments=assignments, prefix=prefix)
+
+            elif require(ast_module, self.module, assignments=assignments,
+                         prefix=prefix):
+                # Actually calling `require` is necessary for macro expansions
+                # occurring during compilation.
+                self.imports['hy.macros'].update([None])
+                # The `require` we're creating in AST is the same as above, but used at
+                # run-time (e.g. when modules are loaded via bytecode).
+                ret += self.compile(HyExpression([
+                    HySymbol('hy.macros.require'),
+                    HyString(ast_module),
+                    HySymbol('None'),
+                    HyKeyword('assignments'),
+                    (HyString("ALL") if assignments == "ALL" else
+                        [[HyString(k), HyString(v)] for k, v in assignments]),
+                    HyKeyword('prefix'),
+                    HyString(prefix)]).replace(expr))
 
         return ret
 
@@ -1484,7 +1511,8 @@ class HyASTCompiler(object):
                 [x for pair in attrs[0] for x in pair]).replace(attrs)))
 
         for e in body:
-            e = self.compile(self._rewire_init(macroexpand(e, self)))
+            e = self.compile(self._rewire_init(
+                macroexpand(e, self.module, self)))
             bodyr += e + e.expr_as_stmt()
 
         return bases + asty.ClassDef(
@@ -1520,20 +1548,16 @@ class HyASTCompiler(object):
         return self.compile(tag_macroexpand(
             HyString(mangle(tag)).replace(tag),
             arg,
-            self))
-
-    _namespaces = {}
+            self.module))
 
     @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
     def compile_eval_and_compile(self, expr, root, body):
         new_expr = HyExpression([HySymbol("do").replace(expr[0])]).replace(expr)
-        if self.module_name not in self._namespaces:
-            # Initialize a compile-time namespace for this module.
-            self._namespaces[self.module_name] = {
-                'hy': hy, '__name__': self.module_name}
+
         hy.importer.hy_eval(new_expr + body,
-                            self._namespaces[self.module_name],
-                            self.module_name)
+                            self.module.__dict__,
+                            self.module)
+
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
                 else Result())
@@ -1541,7 +1565,7 @@ class HyASTCompiler(object):
     @builds_model(HyExpression)
     def compile_expression(self, expr):
         # Perform macro expansions
-        expr = macroexpand(expr, self)
+        expr = macroexpand(expr, self.module, self)
         if not isinstance(expr, HyExpression):
             # Go through compile again if the type changed.
             return self.compile(expr)
@@ -1665,8 +1689,8 @@ class HyASTCompiler(object):
                 attr=ast_str(local),
                 ctx=ast.Load())
 
-        if self.can_use_stdlib and ast_str(symbol) in _stdlib:
-            self.imports[_stdlib[ast_str(symbol)]].add(ast_str(symbol))
+        if self.can_use_stdlib and ast_str(symbol) in self._stdlib:
+            self.imports[self._stdlib[ast_str(symbol)]].add(ast_str(symbol))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
@@ -1699,20 +1723,41 @@ class HyASTCompiler(object):
         return ret + asty.Dict(m, keys=keyvalues[::2], values=keyvalues[1::2])
 
 
-def hy_compile(tree, module_name, root=ast.Module, get_expr=False):
+def hy_compile(tree, module, root=ast.Module, get_expr=False):
     """
-    Compile a HyObject tree into a Python AST Module.
+    Compile a Hy tree into a Python AST tree.
 
-    If `get_expr` is True, return a tuple (module, last_expression), where
-    `last_expression` is the.
+    Parameters
+    ----------
+    module: str or types.ModuleType
+        Module, or name of the module, in which the Hy tree is evaluated.
+
+    root: ast object, optional (ast.Module)
+        Root object for the Python AST tree.
+
+    get_expr: bool, optional (False)
+        If true, return a tuple with `(root_obj, last_expression)`.
+
+    Returns
+    -------
+    out : A Python AST tree
     """
+
+    if isinstance(module, string_types):
+        if module.startswith('<') and module.endswith('>'):
+            module = types.ModuleType(module)
+        else:
+            module = importlib.import_module(ast_str(module, piecewise=True))
+    if not inspect.ismodule(module):
+        raise TypeError('Invalid module type: {}'.format(type(module)))
+
 
     tree = wrap_value(tree)
     if not isinstance(tree, HyObject):
         raise HyCompileError("`tree` must be a HyObject or capable of "
                              "being promoted to one")
 
-    compiler = HyASTCompiler(module_name)
+    compiler = HyASTCompiler(module)
     result = compiler.compile(tree)
     expr = result.force_expr
 
