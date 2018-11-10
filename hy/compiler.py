@@ -17,6 +17,8 @@ from hy._compat import (str_type, string_types, bytes_type, long_type, PY3,
                         PY35, raise_empty)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
+import hy.core
+
 import traceback
 import importlib
 import inspect
@@ -355,20 +357,22 @@ class HyASTCompiler(object):
         self.module = module
         self.module_name = module.__name__
 
-        self.can_use_stdlib = (
-            not self.module_name.startswith("hy.core")
-            or self.module_name == "hy.core.macros")
+        # Hy expects these to be present, so we prep the module for Hy
+        # compilation.
+        self.module.__dict__.setdefault('__macros__', {})
+        self.module.__dict__.setdefault('__tags__', {})
 
-        # Load stdlib macros into the module namespace.
-        load_macros(self.module)
+        self.can_use_stdlib = not self.module_name.startswith("hy.core")
 
         self._stdlib = {}
 
         # Everything in core needs to be explicit (except for
         # the core macros, which are built with the core functions).
         if self.can_use_stdlib:
+            # Load stdlib macros into the module namespace.
+            load_macros(self.module)
+
             # Populate _stdlib.
-            import hy.core
             for stdlib_module in hy.core.STDLIB:
                 mod = importlib.import_module(stdlib_module)
                 for e in map(ast_str, getattr(mod, 'EXPORTS', [])):

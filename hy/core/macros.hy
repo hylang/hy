@@ -8,6 +8,11 @@
 
 (import [hy.models [HyList HySymbol]])
 
+(eval-and-compile
+  (import [hy.core.language [*]]))
+
+(require [hy.core.bootstrap [*]])
+
 (defmacro as-> [head name &rest rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.
 

@@ -11,17 +11,19 @@
 (import [fractions [Fraction :as fraction]])
 (import operator)  ; shadow not available yet
 (import sys)
-(if-python2
-  (import [StringIO [StringIO]])
-  (import [io [StringIO]]))
 (import [hy._compat [long-type]]) ; long for python2, int for python3
+(import [hy.models [HySymbol HyKeyword]])
+(import [hy.lex [tokenize mangle unmangle read read-str]])
+(import [hy.lex.exceptions [LexException PrematureEndOfInput]])
+(import [hy.compiler [HyASTCompiler calling-module hy-eval :as eval]])
+
+(import [hy.core.shadow [*]])
+
+(require [hy.core.bootstrap [*]])
+
 (if-python2
   (import [collections :as cabc])
   (import [collections.abc :as cabc]))
-(import [hy.models [HySymbol HyKeyword]])
-(import [hy.lex [tokenize mangle unmangle]])
-(import [hy.lex.exceptions [LexException PrematureEndOfInput]])
-(import [hy.compiler [HyASTCompiler calling-module hy-eval :as eval]])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."
@@ -414,28 +416,6 @@ Raises ValueError for (not (pos? n))."
 (defn zero? [n]
   "Check if `n` equals 0."
   (= n 0))
-
-(defn read [&optional [from-file sys.stdin]
-                      [eof ""]]
-  "Read from input and returns a tokenized string.
-
-Can take a given input buffer to read from, and a single byte
-as EOF (defaults to an empty string)."
-  (setv buff "")
-  (while True
-    (setv inn (string (.readline from-file)))
-    (if (= inn eof)
-      (raise (EOFError "Reached end of file")))
-    (+= buff inn)
-    (try
-      (setv parsed (first (tokenize buff)))
-      (except [e [PrematureEndOfInput IndexError]])
-      (else (break))))
-  parsed)
-
-(defn read-str [input]
-  "Reads and tokenizes first line of `input`."
-  (read :from-file (StringIO input)))
 
 (defn keyword [value]
   "Create a keyword from `value`.

@@ -7,6 +7,8 @@
 (import operator)
 (import [hy._compat [PY3 PY35]])
 
+(require [hy.core.bootstrap [*]])
+
 (if PY3
   (import [functools [reduce]]))
 

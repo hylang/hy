@@ -5,11 +5,17 @@
 from __future__ import unicode_literals
 
 import re
+import sys
 import unicodedata
 
 from hy._compat import str_type, isidentifier, UCS4
-from hy.lex.exceptions import LexException  # NOQA
+from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
+
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 
 def hy_parse(source):
@@ -122,3 +128,28 @@ def unicode_to_ucs4iter(ustr):
             ucs4_list[i] += ucs4_list[i + 1]
             del ucs4_list[i + 1]
     return ucs4_list
+
+
+def read(from_file=sys.stdin, eof=""):
+    """Read from input and returns a tokenized string.
+
+    Can take a given input buffer to read from, and a single byte as EOF
+    (defaults to an empty string).
+    """
+    buff = ""
+    while True:
+        inn = str(from_file.readline())
+        if inn == eof:
+            raise EOFError("Reached end of file")
+        buff += inn
+        try:
+            parsed = next(iter(tokenize(buff)), None)
+        except (PrematureEndOfInput, IndexError):
+            pass
+        else:
+            break
+    return parsed
+
+
+def read_str(input):
+    return read(StringIO(str_type(input)))
