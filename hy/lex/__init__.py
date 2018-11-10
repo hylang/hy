@@ -4,9 +4,29 @@
 
 from __future__ import unicode_literals
 
-import re, unicodedata
+import re
+import unicodedata
+
 from hy._compat import str_type, isidentifier, UCS4
-from hy.lex.exceptions import LexException, PrematureEndOfInput  # NOQA
+from hy.lex.exceptions import LexException  # NOQA
+from hy.models import HyExpression, HySymbol
+
+
+def hy_parse(source):
+    """Parse a Hy source string.
+
+    Parameters
+    ----------
+    source: string
+        Source code to parse.
+
+    Returns
+    -------
+    out : instance of `types.CodeType`
+    """
+    source = re.sub(r'\A#!.*', '', source)
+    return HyExpression([HySymbol("do")] + tokenize(source + "\n"))
+
 
 def tokenize(buf):
     """

@@ -13,4 +13,4 @@ import hy.importer  # NOQA
 
 
 from hy.core.language import read, read_str, mangle, unmangle  # NOQA
-from hy.importer import hy_eval as eval  # NOQA
+from hy.compiler import hy_eval as eval  # NOQA

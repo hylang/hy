@@ -148,7 +148,8 @@
 (defn test-gensym-in-macros []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [hy-parse hy-compile]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (gensym))
       `(do
@@ -174,7 +175,8 @@
 (defn test-with-gensym []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [hy-parse hy-compile]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
         `(do
@@ -198,7 +200,8 @@
 (defn test-defmacro/g! []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [hy-parse hy-compile]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -227,7 +230,8 @@
   ;; defmacro! must do everything defmacro/g! can
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [hy-parse hy-compile]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)

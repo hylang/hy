@@ -18,9 +18,10 @@ import types
 import astor.code_gen
 
 import hy
-from hy.lex import LexException, PrematureEndOfInput, mangle
-from hy.compiler import HyTypeError, hy_compile
-from hy.importer import hy_eval, hy_parse, runhy
+from hy.lex import hy_parse, mangle
+from hy.lex.exceptions import LexException, PrematureEndOfInput
+from hy.compiler import HyTypeError, hy_compile, hy_eval
+from hy.importer import runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol

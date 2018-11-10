@@ -19,9 +19,9 @@
   (import [collections :as cabc])
   (import [collections.abc :as cabc]))
 (import [hy.models [HySymbol HyKeyword]])
-(import [hy.lex [LexException PrematureEndOfInput tokenize mangle unmangle]])
-(import [hy.compiler [HyASTCompiler]])
-(import [hy.importer [calling-module hy-eval :as eval]])
+(import [hy.lex [tokenize mangle unmangle]])
+(import [hy.lex.exceptions [LexException PrematureEndOfInput]])
+(import [hy.compiler [HyASTCompiler calling-module hy-eval :as eval]])
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."

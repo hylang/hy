@@ -5,7 +5,8 @@
 from math import isnan
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
                        HyString, HyDict, HyList, HySet, HyKeyword)
-from hy.lex import LexException, PrematureEndOfInput, tokenize
+from hy.lex import tokenize
+from hy.lex.exceptions import LexException, PrematureEndOfInput
 import pytest
 
 def peoi(): return pytest.raises(PrematureEndOfInput)
