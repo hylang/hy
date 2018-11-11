@@ -1779,18 +1779,38 @@ class HyASTCompiler(object):
         return ret + asty.Dict(m, keys=keyvalues[::2], values=keyvalues[1::2])
 
 
-def hy_eval(hytree, locals=None, module=None, ast_callback=None):
-    """Evaluates a quoted expression and returns the value.
+def get_compiler_module(module=None, compiler=None, calling_frame=False):
+    """Get a module object from a compiler, given module object,
+    string name of a module, and (optionally) the calling frame; otherwise,
+    raise an error."""
 
+    module = getattr(compiler, 'module', None) or module
+
+    if isinstance(module, string_types):
+        if module.startswith('<') and module.endswith('>'):
+            module = types.ModuleType(module)
+        else:
+            module = importlib.import_module(ast_str(module, piecewise=True))
+
+    if calling_frame and not module:
+        module = calling_module(n=2)
+
+    if not inspect.ismodule(module):
+        raise TypeError('Invalid module type: {}'.format(type(module)))
+
+    return module
+
+
+def hy_eval(hytree, locals=None, module=None, ast_callback=None,
+            compiler=None):
+    """Evaluates a quoted expression and returns the value.
     Examples
     --------
-
        => (eval '(print "Hello World"))
        "Hello World"
 
     If you want to evaluate a string, use ``read-str`` to convert it to a
     form first:
-
        => (eval (read-str "(+ 1 1)"))
        2
 
@@ -1806,25 +1826,25 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None):
     module: str or types.ModuleType, optional
         Module, or name of the module, to which the Hy tree is assigned and
         the global values are taken.
-        Defaults to the calling frame's module, if any, and '__eval__'
-        otherwise.
+        The module associated with `compiler` takes priority over this value.
+        When neither `module` nor `compiler` is specified, the calling frame's
+        module is used.
 
     ast_callback: callable, optional
         A callback that is passed the Hy compiled tree and resulting
         expression object, in that order, after compilation but before
         evaluation.
 
+    compiler: HyASTCompiler, optional
+        An existing Hy compiler to use for compilation.  Also serves as
+        the `module` value when given.
+
     Returns
     -------
     out : Result of evaluating the Hy compiled tree.
     """
-    if module is None:
-        module = calling_module()
 
-    if isinstance(module, string_types):
-        module = importlib.import_module(ast_str(module, piecewise=True))
-    elif not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+    module = get_compiler_module(module, compiler, True)
 
     if locals is None:
         frame = inspect.stack()[1][0]
@@ -1833,7 +1853,8 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None):
     if not isinstance(locals, dict):
         raise TypeError("Locals must be a dictionary")
 
-    _ast, expr = hy_compile(hytree, module, get_expr=True)
+    _ast, expr = hy_compile(hytree, module=module, get_expr=True,
+                            compiler=compiler)
 
     # Spoof the positions in the generated ast...
     for node in ast.walk(_ast):
@@ -1856,14 +1877,15 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None):
     return eval(ast_compile(expr, "<eval>", "eval"), globals, locals)
 
 
-def hy_compile(tree, module, root=ast.Module, get_expr=False):
-    """
-    Compile a Hy tree into a Python AST tree.
+def hy_compile(tree, module=None, root=ast.Module, get_expr=False,
+               compiler=None):
+    """Compile a Hy tree into a Python AST tree.
 
     Parameters
     ----------
-    module: str or types.ModuleType
+    module: str or types.ModuleType, optional
         Module, or name of the module, in which the Hy tree is evaluated.
+        The module associated with `compiler` takes priority over this value.
 
     root: ast object, optional (ast.Module)
         Root object for the Python AST tree.
@@ -1871,26 +1893,22 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False):
     get_expr: bool, optional (False)
         If true, return a tuple with `(root_obj, last_expression)`.
 
+    compiler: HyASTCompiler, optional
+        An existing Hy compiler to use for compilation.  Also serves as
+        the `module` value when given.
+
     Returns
     -------
     out : A Python AST tree
     """
-
-    if isinstance(module, string_types):
-        if module.startswith('<') and module.endswith('>'):
-            module = types.ModuleType(module)
-        else:
-            module = importlib.import_module(ast_str(module, piecewise=True))
-    if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
-
+    module = get_compiler_module(module, compiler, False)
 
     tree = wrap_value(tree)
     if not isinstance(tree, HyObject):
         raise HyCompileError("`tree` must be a HyObject or capable of "
                              "being promoted to one")
 
-    compiler = HyASTCompiler(module)
+    compiler = compiler or HyASTCompiler(module)
     result = compiler.compile(tree)
     expr = result.force_expr
 
