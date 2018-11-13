@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from math import isnan, isinf
 from hy import _initialize_env_var
 from hy._compat import PY3, str_type, bytes_type, long_type, string_types
+from hy.errors import HyWrapperError
 from fractions import Fraction
 from clint.textui import colored
 
@@ -64,7 +65,7 @@ def wrap_value(x):
 
     new = _wrappers.get(type(x), lambda y: y)(x)
     if not isinstance(new, HyObject):
-        raise TypeError("Don't know how to wrap {!r}: {!r}".format(type(x), x))
+        raise HyWrapperError("Don't know how to wrap {!r}: {!r}".format(type(x), x))
     if isinstance(x, HyObject):
         new = new.replace(x, recursive=False)
     if not hasattr(new, "start_column"):

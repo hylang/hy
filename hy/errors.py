@@ -207,6 +207,15 @@ class HySyntaxError(HyLanguageError, SyntaxError):
     """Error during the Lexing of a Hython expression."""
 
 
+class HyWrapperError(HyError, TypeError):
+    """Errors caused by language model object wrapping.
+
+    These can be caused by improper user-level use of a macro, so they're
+    not really "internal".  If they arise due to anything else, they're an
+    internal/compiler problem, though.
+    """
+
+
 def _module_filter_name(module_name):
     try:
         compiler_loader = pkgutil.get_loader(module_name)

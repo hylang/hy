@@ -342,10 +342,10 @@ def macroexpand(tree, module, compiler=None, once=False):
         with macro_exceptions(module, tree, compiler):
             obj = m(module.__name__, *tree[1:], **opts)
 
-        if isinstance(obj, HyExpression):
-            obj.module = inspect.getmodule(m)
+            if isinstance(obj, HyExpression):
+                obj.module = inspect.getmodule(m)
 
-        tree = replace_hy_obj(obj, tree)
+            tree = replace_hy_obj(obj, tree)
 
         if once:
             break
