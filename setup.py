@@ -58,9 +58,6 @@ setup(
         'hy.core': ['*.hy', '__pycache__/*'],
         'hy.extra': ['*.hy', '__pycache__/*'],
     },
-    data_files=[
-        ('get_version', ['get_version.py'])
-    ],
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,
