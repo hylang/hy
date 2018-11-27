@@ -157,3 +157,7 @@
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (mangle a) b))
     (assert (= (unmangle b) a))))
+
+(defn test-mangle-bad-indent []
+  ; Shouldn't crash with IndentationError
+  (mangle "  0\n 0"))
