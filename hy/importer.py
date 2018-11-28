@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 import sys
 import os
-import ast
 import inspect
 import pkgutil
 import re
@@ -14,163 +13,15 @@ import io
 import types
 import tempfile
 import importlib
-import __future__
 
 from functools import partial
 from contextlib import contextmanager
 
 from hy.errors import HyTypeError
-from hy.compiler import hy_compile, ast_str
-from hy.lex import tokenize, LexException
-from hy.models import HyExpression, HySymbol
-from hy._compat import string_types, PY3
-
-
-hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
-                        __future__.CO_FUTURE_PRINT_FUNCTION)
-
-
-def calling_module(n=1):
-    """Get the module calling, if available.
-
-    As a fallback, this will import a module using the calling frame's
-    globals value of `__name__`.
-
-    Parameters
-    ----------
-    n: int, optional
-        The number of levels up the stack from this function call.
-        The default is one level up.
-
-    Returns
-    -------
-    out: types.ModuleType
-        The module at stack level `n + 1` or `None`.
-    """
-    frame_up = inspect.stack(0)[n + 1][0]
-    module = inspect.getmodule(frame_up)
-    if module is None:
-        # This works for modules like `__main__`
-        module_name = frame_up.f_globals.get('__name__', None)
-        if module_name:
-            try:
-                module = importlib.import_module(module_name)
-            except ImportError:
-                pass
-    return module
-
-
-def ast_compile(ast, filename, mode):
-    """Compile AST.
-
-    Parameters
-    ----------
-    ast : instance of `ast.AST`
-
-    filename : str
-        Filename used for run-time error messages
-
-    mode: str
-        `compile` mode parameter
-
-    Returns
-    -------
-    out : instance of `types.CodeType`
-    """
-    return compile(ast, filename, mode, hy_ast_compile_flags)
-
-
-def hy_parse(source):
-    """Parse a Hy source string.
-
-    Parameters
-    ----------
-    source: string
-        Source code to parse.
-
-    Returns
-    -------
-    out : instance of `types.CodeType`
-    """
-    source = re.sub(r'\A#!.*', '', source)
-    return HyExpression([HySymbol("do")] + tokenize(source + "\n"))
-
-
-def hy_eval(hytree, locals=None, module=None, ast_callback=None):
-    """Evaluates a quoted expression and returns the value.
-
-    Examples
-    --------
-
-       => (eval '(print "Hello World"))
-       "Hello World"
-
-    If you want to evaluate a string, use ``read-str`` to convert it to a
-    form first:
-
-       => (eval (read-str "(+ 1 1)"))
-       2
-
-    Parameters
-    ----------
-    hytree: a Hy expression tree
-        Source code to parse.
-
-    locals: dict, optional
-        Local environment in which to evaluate the Hy tree.  Defaults to the
-        calling frame.
-
-    module: str or types.ModuleType, optional
-        Module, or name of the module, to which the Hy tree is assigned and
-        the global values are taken.
-        Defaults to the calling frame's module, if any, and '__eval__'
-        otherwise.
-
-    ast_callback: callable, optional
-        A callback that is passed the Hy compiled tree and resulting
-        expression object, in that order, after compilation but before
-        evaluation.
-
-    Returns
-    -------
-    out : Result of evaluating the Hy compiled tree.
-    """
-    if module is None:
-        module = calling_module()
-
-    if isinstance(module, string_types):
-        module = importlib.import_module(ast_str(module, piecewise=True))
-    elif not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
-
-    if locals is None:
-        frame = inspect.stack()[1][0]
-        locals = inspect.getargvalues(frame).locals
-
-    if not isinstance(locals, dict):
-        raise TypeError("Locals must be a dictionary")
-
-    _ast, expr = hy_compile(hytree, module, get_expr=True)
-
-    # Spoof the positions in the generated ast...
-    for node in ast.walk(_ast):
-        node.lineno = 1
-        node.col_offset = 1
-
-    for node in ast.walk(expr):
-        node.lineno = 1
-        node.col_offset = 1
-
-    if ast_callback:
-        ast_callback(_ast, expr)
-
-    globals = module.__dict__
-
-    # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, "<eval_body>", "exec"), globals, locals)
-
-    # Then eval the expression context and return that
-    return eval(ast_compile(expr, "<eval>", "eval"), globals, locals)
+from hy.compiler import hy_compile, hy_ast_compile_flags
+from hy.lex import hy_parse
+from hy.lex.exceptions import LexException
+from hy._compat import PY3
 
 
 def cache_from_source(source_path):

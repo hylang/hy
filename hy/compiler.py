@@ -16,7 +16,8 @@ from hy.lex import mangle, unmangle
 from hy._compat import (str_type, string_types, bytes_type, long_type, PY3,
                         PY35, raise_empty)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
-import hy.importer
+
+import hy.core
 
 import traceback
 import importlib
@@ -26,6 +27,7 @@ import types
 import ast
 import sys
 import copy
+import __future__
 
 from collections import defaultdict
 
@@ -35,6 +37,60 @@ else:
     import __builtin__ as builtins
 
 Inf = float('inf')
+
+
+hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
+                        __future__.CO_FUTURE_PRINT_FUNCTION)
+
+
+def ast_compile(ast, filename, mode):
+    """Compile AST.
+
+    Parameters
+    ----------
+    ast : instance of `ast.AST`
+
+    filename : str
+        Filename used for run-time error messages
+
+    mode: str
+        `compile` mode parameter
+
+    Returns
+    -------
+    out : instance of `types.CodeType`
+    """
+    return compile(ast, filename, mode, hy_ast_compile_flags)
+
+
+def calling_module(n=1):
+    """Get the module calling, if available.
+
+    As a fallback, this will import a module using the calling frame's
+    globals value of `__name__`.
+
+    Parameters
+    ----------
+    n: int, optional
+        The number of levels up the stack from this function call.
+        The default is one level up.
+
+    Returns
+    -------
+    out: types.ModuleType
+        The module at stack level `n + 1` or `None`.
+    """
+    frame_up = inspect.stack(0)[n + 1][0]
+    module = inspect.getmodule(frame_up)
+    if module is None:
+        # This works for modules like `__main__`
+        module_name = frame_up.f_globals.get('__name__', None)
+        if module_name:
+            try:
+                module = importlib.import_module(module_name)
+            except ImportError:
+                pass
+    return module
 
 
 def ast_str(x, piecewise=False):
@@ -301,20 +357,22 @@ class HyASTCompiler(object):
         self.module = module
         self.module_name = module.__name__
 
-        self.can_use_stdlib = (
-            not self.module_name.startswith("hy.core")
-            or self.module_name == "hy.core.macros")
+        # Hy expects these to be present, so we prep the module for Hy
+        # compilation.
+        self.module.__dict__.setdefault('__macros__', {})
+        self.module.__dict__.setdefault('__tags__', {})
 
-        # Load stdlib macros into the module namespace.
-        load_macros(self.module)
+        self.can_use_stdlib = not self.module_name.startswith("hy.core")
 
         self._stdlib = {}
 
         # Everything in core needs to be explicit (except for
         # the core macros, which are built with the core functions).
         if self.can_use_stdlib:
+            # Load stdlib macros into the module namespace.
+            load_macros(self.module)
+
             # Populate _stdlib.
-            import hy.core
             for stdlib_module in hy.core.STDLIB:
                 mod = importlib.import_module(stdlib_module)
                 for e in map(ast_str, getattr(mod, 'EXPORTS', [])):
@@ -1554,9 +1612,7 @@ class HyASTCompiler(object):
     def compile_eval_and_compile(self, expr, root, body):
         new_expr = HyExpression([HySymbol("do").replace(expr[0])]).replace(expr)
 
-        hy.importer.hy_eval(new_expr + body,
-                            self.module.__dict__,
-                            self.module)
+        hy_eval(new_expr + body, self.module.__dict__, self.module)
 
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
@@ -1721,6 +1777,83 @@ class HyASTCompiler(object):
     def compile_dict(self, m):
         keyvalues, ret, _ = self._compile_collect(m, dict_display=True)
         return ret + asty.Dict(m, keys=keyvalues[::2], values=keyvalues[1::2])
+
+
+def hy_eval(hytree, locals=None, module=None, ast_callback=None):
+    """Evaluates a quoted expression and returns the value.
+
+    Examples
+    --------
+
+       => (eval '(print "Hello World"))
+       "Hello World"
+
+    If you want to evaluate a string, use ``read-str`` to convert it to a
+    form first:
+
+       => (eval (read-str "(+ 1 1)"))
+       2
+
+    Parameters
+    ----------
+    hytree: a Hy expression tree
+        Source code to parse.
+
+    locals: dict, optional
+        Local environment in which to evaluate the Hy tree.  Defaults to the
+        calling frame.
+
+    module: str or types.ModuleType, optional
+        Module, or name of the module, to which the Hy tree is assigned and
+        the global values are taken.
+        Defaults to the calling frame's module, if any, and '__eval__'
+        otherwise.
+
+    ast_callback: callable, optional
+        A callback that is passed the Hy compiled tree and resulting
+        expression object, in that order, after compilation but before
+        evaluation.
+
+    Returns
+    -------
+    out : Result of evaluating the Hy compiled tree.
+    """
+    if module is None:
+        module = calling_module()
+
+    if isinstance(module, string_types):
+        module = importlib.import_module(ast_str(module, piecewise=True))
+    elif not inspect.ismodule(module):
+        raise TypeError('Invalid module type: {}'.format(type(module)))
+
+    if locals is None:
+        frame = inspect.stack()[1][0]
+        locals = inspect.getargvalues(frame).locals
+
+    if not isinstance(locals, dict):
+        raise TypeError("Locals must be a dictionary")
+
+    _ast, expr = hy_compile(hytree, module, get_expr=True)
+
+    # Spoof the positions in the generated ast...
+    for node in ast.walk(_ast):
+        node.lineno = 1
+        node.col_offset = 1
+
+    for node in ast.walk(expr):
+        node.lineno = 1
+        node.col_offset = 1
+
+    if ast_callback:
+        ast_callback(_ast, expr)
+
+    globals = module.__dict__
+
+    # Two-step eval: eval() the body of the exec call
+    eval(ast_compile(_ast, "<eval_body>", "exec"), globals, locals)
+
+    # Then eval the expression context and return that
+    return eval(ast_compile(expr, "<eval>", "eval"), globals, locals)
 
 
 def hy_compile(tree, module, root=ast.Module, get_expr=False):

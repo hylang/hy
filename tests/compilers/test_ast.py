@@ -7,8 +7,9 @@ from __future__ import unicode_literals
 
 from hy import HyString
 from hy.models import HyObject
-from hy.importer import hy_compile, hy_eval, hy_parse
+from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyCompileError, HyTypeError
+from hy.lex import hy_parse
 from hy.lex.exceptions import LexException
 from hy._compat import PY3
 

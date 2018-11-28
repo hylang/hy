@@ -15,9 +15,10 @@ import pytest
 
 import hy
 from hy.errors import HyTypeError
-from hy.lex import LexException
+from hy.lex import hy_parse
+from hy.lex.exceptions import LexException
 from hy.compiler import hy_compile
-from hy.importer import hy_parse, HyLoader, cache_from_source
+from hy.importer import HyLoader, cache_from_source
 
 try:
     from importlib import reload
