@@ -9,6 +9,8 @@ Removals
 
 New Features
 ------------------------------
+* `eval` / `hy_eval` and `hy_compile` now accept an optional `compiler` argument
+  that enables the use of an existing `HyASTCompiler` instance.
 * Keyword objects (not just literal keywords) can be called, as
   shorthand for `(get obj :key)`, and they accept a default value
   as a second argument.

@@ -20,7 +20,8 @@ import astor.code_gen
 import hy
 from hy.lex import hy_parse, mangle
 from hy.lex.exceptions import LexException, PrematureEndOfInput
-from hy.compiler import HyTypeError, hy_compile, hy_eval
+from hy.compiler import HyASTCompiler, hy_compile, hy_eval
+from hy.errors import HyTypeError
 from hy.importer import runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
@@ -68,6 +69,8 @@ class HyREPL(code.InteractiveConsole, object):
 
         # Load cmdline-specific macros.
         require('hy.cmdline', module_name, assignments='ALL')
+
+        self.hy_compiler = HyASTCompiler(self.module)
 
         self.spy = spy
 
@@ -117,7 +120,10 @@ class HyREPL(code.InteractiveConsole, object):
                     new_ast = ast.Module(main_ast.body +
                                          [ast.Expr(expr_ast.body)])
                     print(astor.to_source(new_ast))
-            value = hy_eval(do, self.locals, self.module, ast_callback)
+
+            value = hy_eval(do, self.locals,
+                            ast_callback=ast_callback,
+                            compiler=self.hy_compiler)
         except HyTypeError as e:
             if e.source is None:
                 e.source = source

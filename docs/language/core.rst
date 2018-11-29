@@ -195,7 +195,9 @@ eval
 ``eval`` evaluates a quoted expression and returns the value. The optional
 second and third arguments specify the dictionary of globals to use and the
 module name. The globals dictionary defaults to ``(local)`` and the module name
-defaults to the name of the current module.
+defaults to the name of the current module.  An optional fourth keyword parameter,
+``compiler``, allows one to re-use an existing ``HyASTCompiler`` object for the
+compilation step.
 
 .. code-block:: clj
 
@@ -1403,4 +1405,3 @@ are available. Some of their names have been changed:
   - ``dropwhile`` has been changed to ``drop-while``
 
   - ``filterfalse`` has been changed to ``remove``
-
