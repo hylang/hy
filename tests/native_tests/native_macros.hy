@@ -325,14 +325,38 @@
   (global --name--)
   (setv oldname --name--)
   (setv --name-- "__main__")
-  (defn main []
-    (print 'Hy)
-    42)
+
+  (defn main [x]
+    (print (integer? x))
+    x)
+
   (try
     (defmain [&rest args]
-      (main))
+      (main 42))
+    (assert False)
     (except [e SystemExit]
       (assert (= (str e) "42"))))
+
+  ;; Try a `defmain` without args
+  (try
+    (defmain []
+      (main 42))
+    (assert False)
+    (except [e SystemExit]
+      (assert (= (str e) "42"))))
+
+  ;; Try a `defmain` with only one arg
+  (import sys)
+  (setv oldargv sys.argv)
+  (try
+    (setv sys.argv [1])
+    (defmain [x]
+      (main x))
+    (assert False)
+    (except [e SystemExit]
+      (assert (= (str e) "1"))))
+
+  (setv sys.argv oldargv)
   (setv --name-- oldname))
 
 (defn test-macro-namespace-resolution []

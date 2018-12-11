@@ -223,11 +223,17 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
 
 
 (defmacro defmain [args &rest body]
-  "Write a function named \"main\" and do the 'if __main__' dance"
-  (setv retval (gensym))
+  "Write a function named \"main\" and do the 'if __main__' dance.
+
+The symbols in `args` are bound to the elements in `sys.argv`, which means that
+the first symbol in `args` will always take the value of the script/executable
+name (i.e. `sys.argv[0]`).
+"
+  (setv retval (gensym)
+        restval (gensym))
   `(when (= --name-- "__main__")
      (import sys)
-     (setv ~retval ((fn [~@args] ~@body) #* sys.argv))
+     (setv ~retval ((fn [~@(or args `[&rest ~restval])] ~@body) #* sys.argv))
      (if (integer? ~retval)
        (sys.exit ~retval))))
 
