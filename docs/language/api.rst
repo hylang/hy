@@ -6,7 +6,7 @@ Hy features a number of special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
-.
+_.
 -
 
 .. versionadded:: 0.10.0
