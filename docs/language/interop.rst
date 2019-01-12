@@ -47,8 +47,8 @@ If you save the following in ``greetings.hy``:
 
 .. code-block:: clj
 
-    (setv *this-will-be-in-caps-and-underscores* "See?")
-    (defn greet [name] (print "hello from hy," name))
+    (setv this-will-have-underscores "See?")
+    (defn greet [name] (print "Hello from Hy," name))
 
 Then you can use it directly from Python, by importing Hy before importing
 the module. In Python::
@@ -56,8 +56,8 @@ the module. In Python::
     import hy
     import greetings
 
-    greetings.greet("Foo") # prints "Hello from hy, Foo"
-    print(THIS_WILL_BE_IN_CAPS_AND_UNDERSCORES) # prints "See?"
+    greetings.greet("Foo") # prints "Hello from Hy, Foo"
+    print(greetings.this_will_have_underscores) # prints "See?"
 
 If you create a package with Hy code, and you do the ``import hy`` in
 ``__init__.py``, you can then directly include the package. Of course, Hy still
