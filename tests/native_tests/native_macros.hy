@@ -378,10 +378,6 @@ in expansions."
 
   (require [tests.resources.macro-with-require [*]])
 
-  ;; Make sure our local version wasn't overwritten by a faulty `require` of the
-  ;; one in tests.resources.macro-with-require.
-  (assert (= nonlocal-test-macro (get __macros__ "nonlocal_test_macro")))
-
   (setv module-name-var "tests.native_tests.native_macros.test-macro-namespace-resolution")
   (assert (= (+ "This macro was created in tests.resources.macros, "
                 "expanded in tests.native_tests.native_macros.test-macro-namespace-resolution "
@@ -479,3 +475,11 @@ in expansions."
   ;; ensure that an imported module used the cached bytecode.  We'll simply have
   ;; to trust that the .pyc loading convention was followed.
   (test-requires-and-macros))
+
+
+(defn test-recursive-require-star []
+  "(require [foo [*]]) should pull in macros required by `foo`."
+  (require [tests.resources.macro-with-require [*]])
+
+  (test-macro)
+  (assert (= blah 1)))
