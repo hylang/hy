@@ -467,25 +467,35 @@ and `&kwonly` must precede `&kwargs`). This is the same order that Python
 requires.
 
 &optional
-    Parameter is optional. The parameter can be given as a two item list, where
-    the first element is parameter name and the second is the default value. The
-    parameter can be also given as a single item, in which case the default
-    value is ``None``.
+    All following parameters are optional. They may be given as two-argument lists,
+    where the first element is the parameter name and the second is the default value.
+    The parameter can also be given as a single item, in which case the default value
+    is ``None``.
+
+    The following example defines a function with one required positional argument
+    as well as three optional arguments. The first optional argument defaults to ``None``
+    and the latter two default to ``"("`` and ``")"``, respectively.
 
     .. code-block:: clj
 
-        => (defn total-value [value &optional [value-added-tax 10]]
-        ...  (+ (/ (* value value-added-tax) 100) value))
+      => (defn format-pair [left-val &optional right-val  [open-text "("] [close-text ")"]]
+      ...  (+ open-text (str left-val) ", " (str right-val) close-text))
 
-        => (total-value 100)
-        110.0
+      => (format-pair 3)
+      '(3, None)'
 
-        => (total-value 100 1)
-        101.0
+      => (format-pair "A" "B")
+      '(A, B)'
+
+      => (format-pair "A" "B" "<" ">")
+      '<A, B>'
+
+      => (format-pair "A" :open-text "<" :close-text ">")
+      '<A, None>'
 
 &rest
-    Parameter will contain 0 or more positional arguments. No other positional
-    arguments may be specified after this one.
+    The following parameter will contain a list of 0 or more positional arguments.
+    No other positional parameters may be specified after this one.
 
     The following code example defines a function that can be given 0 to n
     numerical parameters. It then sums every odd number and subtracts
@@ -504,15 +514,14 @@ requires.
         8
         => (zig-zag-sum 1 2 3 4 5 6)
         -3
-		
+
 &kwonly
     .. versionadded:: 0.12.0
 
-    Parameters that can only be called as keywords. Mandatory
-    keyword-only arguments are declared with the argument's name;
-    optional keyword-only arguments are declared as a two-element list
-    containing the argument name followed by the default value (as
-    with `&optional` above).
+    All following parmaeters can only be supplied as keywords.
+    Like ``&optional``, the parameter may be marked as optional by
+    declaring it as a two-element list containing the parameter name
+    following by the default value.
 
     .. code-block:: clj
 
@@ -541,7 +550,8 @@ requires.
     Availability: Python 3.
 
 &kwargs
-    Parameter will contain 0 or more keyword arguments.
+    Like ``&rest``, but for keyword arugments.
+    The following parameter will contain 0 or more keyword arguments.
 
     The following code examples defines a function that will print all keyword
     arguments and their values.
@@ -559,6 +569,42 @@ requires.
         => (print-parameters #** {"parameter-1" 1 "parameter-2" 2})
         parameter-1 1
         parameter-2 2
+
+The following example uses all of ``&optional``, ``&rest``, ``&kwonly``, and
+``&kwargs`` in order to show their interactions with each other. The function
+renders an HTML tag.
+It requires an argument ``tag-name``, a string which is the tag name.
+It has one optional argument, ``delim``, which defaults to ``""`` and is placed
+between each child.
+The rest of the arguments, ``children``, are the tag's children or content.
+A single keyword-only argument, ``empty``, is included and defaults to ``False``.
+``empty`` changes how the tag is rendered if it has no children. Normally, a
+tag with no children is rendered like ``<div></div>``. If ``empty`` is ``True``,
+then it will render like ``<div />``.
+The rest of the keyword arguments, ``props``, render as HTML attributes.
+
+.. code-block:: clj
+
+  => (defn render-html-tag [tag-name &optional [delim ""] &rest children &kwonly [empty False] &kwargs attrs]
+  ...  (setv rendered-attrs (.join " " (lfor (, key val) (.items attrs) (+ (unmangle (str key)) "=\"" (str val) "\""))))
+  ...  (if rendered-attrs  ; If we have attributes, prefix them with a space after the tag name
+  ...    (setv rendered-attrs (+ " " rendered-attrs)))
+  ...  (setv rendered-children (.join delim children))
+  ...  (if (and (not children) empty)
+  ...    (+ "<" tag-name rendered-attrs " />")
+  ...    (+ "<" tag-name rendered-attrs ">" rendered-children "</" tag-name ">")))
+
+  => (render-html-tag "div")
+  '<div></div'>
+
+  => (render-html-tag "img" :empty True)
+  '<img />'
+
+  => (render-html-tag "img" :id "china" :class "big-image" :empty True)
+  '<img id="china" class="big-image" />'
+
+  => (render-html-tag "p" " --- " (render-html-tag "span" "" :class "fancy" "I'm fancy!") "I'm to the right of fancy" "I'm alone :(")
+  '<p><span class="fancy">I\'m fancy!</span> --- I\'m to right right of fancy --- I\'m alone :(</p>'
 
 defn/a
 ------
