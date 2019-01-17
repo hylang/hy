@@ -1609,6 +1609,9 @@ the given conditional is ``False``. The following shows the expansion of this ma
 unpack-iterable, unpack-mapping
 -------------------------------
 
+(Also known as the splat operator, star operator, argument expansion, argument
+explosion, argument gathering, and varargs, among others...)
+
 ``unpack-iterable`` and ``unpack-mapping`` allow an iterable or mapping
 object (respectively) to provide positional or keywords arguments
 (respectively) to a function.
