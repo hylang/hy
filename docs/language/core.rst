@@ -97,30 +97,6 @@ inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
    => (inverse False)
    True
 
-
-.. _constantly:
-
-constantly
-----------
-
-.. versionadded:: 0.12.0
-
-Usage ``(constantly 42)``
-
-Create a new function that always returns the given value, regardless of
-the arguments given to it.
-
-.. code-block:: hy
-
-   => (setv answer (constantly 42))
-   => (answer)
-   42
-   => (answer 1 2 3)
-   42
-   => (answer 1 :foo 2)
-   42
-
-
 .. _dec-fn:
 
 dec

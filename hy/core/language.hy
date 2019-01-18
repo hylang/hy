@@ -51,11 +51,6 @@
   (fn [&rest args &kwargs kwargs]
     (not (f #* args #** kwargs))))
 
-(defn constantly [value]
-  "Create a new function that always returns `value` regardless of its input."
-  (fn [&rest args &kwargs kwargs]
-    value))
-
 (defn keyword? [k]
   "Check whether `k` is a keyword."
   (instance? HyKeyword k))
@@ -450,7 +445,7 @@ Even objects with the __name__ magic will work."
 
 (setv EXPORTS
   '[*map accumulate butlast calling-module calling-module-name chain coll?
-    combinations comp complement compress constantly count cycle dec distinct
+    combinations comp complement compress count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? exec first
     filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?

@@ -263,3 +263,9 @@ name (i.e. `sys.argv[0]`).
 
    Gets help for a tag macro function available in this module."
   `(help (.get __tags__ '~symbol None)))
+
+(defmacro constantly [value]
+  "Create a function that always returns `value` regardless of its input.
+  Delays evaluation of given value till the function is called."
+  `(fn [&rest args &kwargs kwargs]
+    ~value))

@@ -302,6 +302,38 @@ As shown below, only the first matching result block is executed.
     value is greater than 5
 
 
+.. _constantly:
+
+constantly
+----------
+
+.. versionadded:: 0.15.0
+
+Usage ``(constantly 42)``
+
+Create a new function that always returns the given value, regardless of
+the arguments given to it. Delays argument evaluation until the function
+is called.
+
+.. code-block:: hy
+
+   => (setv answer (constantly 42))
+   => (answer)
+   42
+   => (answer 1 2 3)
+   42
+   => (answer 1 :foo 2)
+   42
+
+.. code-block:: hy
+
+  => (setv smile (constantly (print ":)")))
+  => (smile)
+  :)
+  => (smile)
+  :)
+
+
 continue
 --------
 
