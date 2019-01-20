@@ -35,6 +35,8 @@ Bug Fixes
   module docstrings caused by automatic importing of Hy builtins.
 * Fixed crash in `mangle` for some pathological inputs
 * Fixed incorrect mangling of some characters at low code points
+* Fixed a crash on certain versions of Python 2 due to changes
+  in the standard module `tokenize`
 
 0.15.0
 ==============================
