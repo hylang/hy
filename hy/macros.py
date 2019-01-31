@@ -190,14 +190,9 @@ def require(source_module, target_module, assignments, prefix=""):
         prefix += "."
 
     if assignments == "ALL":
-        # Only add macros/tags created in/by the source module.
-        name_assigns = [(n, n) for n, f in source_macros.items()
-                        if inspect.getmodule(f) == source_module]
-        name_assigns += [(n, n) for n, f in source_tags.items()
-                         if inspect.getmodule(f) == source_module]
+        name_assigns = [(k, k) for k in
+            tuple(source_macros.keys()) + tuple(source_tags.keys())]
     else:
-        # If one specifically requests a macro/tag not created in the source
-        # module, I guess we allow it?
         name_assigns = assignments
 
     for name, alias in name_assigns:
