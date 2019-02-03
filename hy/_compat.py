@@ -47,6 +47,11 @@ def isidentifier(x):
         tokens = list(T.generate_tokens(StringIO(x).readline))
     except (T.TokenError, IndentationError):
         return False
+    # Some versions of Python 2.7 (including one that made it into
+    # Ubuntu 18.10) have a Python 3 backport that adds a NEWLINE
+    # token. Remove it if it's present.
+    # https://bugs.python.org/issue33899
+    tokens = [t for t in tokens if t[0] != T.NEWLINE]
     return len(tokens) == 2 and tokens[0][0] == T.NAME
 
 try:
