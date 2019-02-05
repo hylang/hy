@@ -36,8 +36,7 @@ The Tao of Hy
 The following illustrates a brief list of design decisions that went
 into the making of Hy.
 
-+ Look like a Lisp; DTRT with it (e.g. dashes turn to underscores, earmuffs
-  turn to all-caps).
++ Look like a Lisp; DTRT with it (e.g. dashes turn to underscores).
 + We're still Python. Most of the internals translate 1:1 to Python internals.
 + Use Unicode everywhere.
 + Fix the bad decisions in Python 2 when we can (see ``true_division``).
