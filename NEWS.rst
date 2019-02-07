@@ -21,6 +21,7 @@ New Features
 
 Bug Fixes
 ------------------------------
+* Cleaned up syntax and compiler errors
 * Fixed issue with empty arguments in `defmain`.
 * `require` now compiles to Python AST.
 * Fixed circular `require`s.
