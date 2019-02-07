@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+0.16.0
 ==============================
 
 Removals
@@ -9,35 +9,36 @@ Removals
 
 New Features
 ------------------------------
-* `eval` / `hy_eval` and `hy_compile` now accept an optional `compiler` argument
-  that enables the use of an existing `HyASTCompiler` instance.
+* `eval` / `hy_eval` and `hy_compile` now accept an optional `compiler`
+  argument that enables the use of an existing `HyASTCompiler` instance.
 * Keyword objects (not just literal keywords) can be called, as
   shorthand for `(get obj :key)`, and they accept a default value
   as a second argument.
-* Minimal macro expansion namespacing has been implemented.  As a result,
-  external macros no longer have to `require` their own macro dependencies.
+* Minimal macro expansion namespacing has been implemented. As a result,
+  external macros no longer have to `require` their own macro
+  dependencies.
 * Macros and tags now reside in module-level `__macros__` and `__tags__`
   attributes.
 
 Bug Fixes
 ------------------------------
-* Cleaned up syntax and compiler errors
-* Fixed issue with empty arguments in `defmain`.
+* Cleaned up syntax and compiler errors.
+* You can now call `defmain` with an empty lambda list.
 * `require` now compiles to Python AST.
-* Fixed circular `require`s.
+* Fixed circular `require`\s.
 * Fixed module reloading.
 * Fixed circular imports.
+* Fixed errors from `from __future__ import ...` statements and missing
+  Hy module docstrings caused by automatic importing of Hy builtins.
 * Fixed `__main__` file execution.
 * Fixed bugs in the handling of unpacking forms in method calls and
   attribute access.
 * Fixed crashes on Windows when calling `hy-repr` on date and time
   objects.
-* Fixed errors from `from __future__ import ...` statements and missing Hy
-  module docstrings caused by automatic importing of Hy builtins.
-* Fixed crash in `mangle` for some pathological inputs
-* Fixed incorrect mangling of some characters at low code points
-* Fixed a crash on certain versions of Python 2 due to changes
-  in the standard module `tokenize`
+* Fixed a crash in `mangle` for some pathological inputs.
+* Fixed incorrect mangling of some characters at low code points.
+* Fixed a crash on certain versions of Python 2 due to changes in the
+  standard module `tokenize`.
 
 0.15.0
 ==============================
