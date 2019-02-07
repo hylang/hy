@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import pytest
-        [hy.errors [HyTypeError]])
+        [hy.errors [HyTypeError HyMacroExpansionError]])
 
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
@@ -66,13 +66,13 @@
   (try
     (eval '(defmacro f [&kwonly a b]))
     (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &kwonly")))
+      (assert (= e.msg "macros cannot use &kwonly")))
     (else (assert False)))
 
   (try
     (eval '(defmacro f [&kwargs kw]))
     (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &kwargs")))
+      (assert (= e.msg "macros cannot use &kwargs")))
     (else (assert False))))
 
 (defn test-fn-calling-macro []
@@ -162,8 +162,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
-  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   ;; and make sure there is something new that starts with _;G|
@@ -189,8 +189,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
-  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   (assert (in (mangle "_;a|") s1))
@@ -213,8 +213,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
-  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   (assert (in (mangle "_;res|") s1))
@@ -224,7 +224,7 @@
   ;; defmacro/g! didn't like numbers initially because they
   ;; don't have a startswith method and blew up during expansion
   (setv macro2 "(defmacro/g! two-point-zero [] `(+ (float 1) 1.0))")
-  (assert (hy-compile (hy-parse macro2) "foo")))
+  (assert (hy-compile (hy-parse macro2) __name__)))
 
 (defn test-defmacro! []
   ;; defmacro! must do everything defmacro/g! can
@@ -243,8 +243,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (hy-parse macro1) "foo"))
-  (setv _ast2 (hy-compile (hy-parse macro1) "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
   (assert (in (mangle "_;res|") s1))
@@ -254,7 +254,7 @@
   ;; defmacro/g! didn't like numbers initially because they
   ;; don't have a startswith method and blew up during expansion
   (setv macro2 "(defmacro! two-point-zero [] `(+ (float 1) 1.0))")
-  (assert (hy-compile (hy-parse macro2) "foo"))
+  (assert (hy-compile (hy-parse macro2) __name__))
 
   (defmacro! foo! [o!foo] `(do ~g!foo ~g!foo))
   ;; test that o! becomes g!
@@ -483,3 +483,37 @@ in expansions."
 
   (test-macro)
   (assert (= blah 1)))
+
+
+(defn test-macro-errors []
+  (import traceback
+          [hy.importer [hy-parse]])
+
+  (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
+
+  (with [excinfo (pytest.raises HyMacroExpansionError)]
+    (eval test-expr))
+
+  (setv output (traceback.format_exception_only
+                 excinfo.type excinfo.value))
+  (setv output (cut (.splitlines (.strip (first output))) 1))
+
+  (setv expected ["  File \"<string>\", line 1"
+                  "    (defmacro blah [x] `(print ~@z)) (blah y)"
+                  "                                     ^------^"
+                  "expanding macro blah"
+                  "  NameError: global name 'z' is not defined"])
+
+  (assert (= (cut expected 0 -1) (cut output 0 -1)))
+  (assert (or (= (get expected -1) (get output -1))
+              ;; Handle PyPy's peculiarities
+              (= (.replace (get expected -1) "global " "") (get output -1))))
+
+
+  ;; This should throw a `HyWrapperError` that gets turned into a
+  ;; `HyMacroExpansionError`.
+  (with [excinfo (pytest.raises HyMacroExpansionError)]
+    (eval '(do (defmacro wrap-error-test []
+                 (fn []))
+               (wrap-error-test))))
+  (assert (in "HyWrapperError" (str excinfo.value))))

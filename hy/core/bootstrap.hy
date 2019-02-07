@@ -14,15 +14,14 @@
      (if* (not (isinstance macro-name hy.models.HySymbol))
           (raise
             (hy.errors.HyTypeError
-              macro-name
               (% "received a `%s' instead of a symbol for macro name"
-                 (. (type name)
-                    __name__)))))
+                 (. (type name) __name__))
+              None --file-- None)))
      (for [kw '[&kwonly &kwargs]]
        (if* (in kw lambda-list)
-            (raise (hy.errors.HyTypeError macro-name
-                                          (% "macros cannot use %s"
-                                             kw)))))
+            (raise (hy.errors.HyTypeError (% "macros cannot use %s"
+                                             kw)
+                                          macro-name --file-- None))))
      ;; this looks familiar...
      `(eval-and-compile
         (import hy)
@@ -45,12 +44,12 @@
   (if (and (not (isinstance tag-name hy.models.HySymbol))
            (not (isinstance tag-name hy.models.HyString)))
       (raise (hy.errors.HyTypeError
-               tag-name
                (% "received a `%s' instead of a symbol for tag macro name"
-                  (. (type tag-name) __name__)))))
+                  (. (type tag-name) --name--))
+               tag-name --file-- None)))
   (if (or (= tag-name ":")
           (= tag-name "&"))
-      (raise (NameError (% "%s can't be used as a tag macro name" tag-name))))
+      (raise (hy.errors.HyNameError (% "%s can't be used as a tag macro name" tag-name))))
   (setv tag-name (.replace (hy.models.HyString tag-name)
                            tag-name))
   `(eval-and-compile
@@ -58,9 +57,8 @@
      ((hy.macros.tag ~tag-name)
       (fn ~lambda-list ~@body))))
 
-(defmacro macro-error [location reason]
-  "Error out properly within a macro at `location` giving `reason`."
-  `(raise (hy.errors.HyMacroExpansionError ~location ~reason)))
+(defmacro macro-error [expression reason &optional [filename '--name--]]
+  `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
 
 (defmacro defn [name lambda-list &rest body]
   "Define `name` as a function with `lambda-list` signature and body `body`."

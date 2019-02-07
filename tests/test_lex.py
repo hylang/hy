@@ -1,16 +1,44 @@
 # Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
+import sys
+import traceback
+
+import pytest
 
 from math import isnan
 from hy.models import (HyExpression, HyInteger, HyFloat, HyComplex, HySymbol,
                        HyString, HyDict, HyList, HySet, HyKeyword)
 from hy.lex import tokenize
 from hy.lex.exceptions import LexException, PrematureEndOfInput
-import pytest
+from hy.errors import hy_exc_handler
 
 def peoi(): return pytest.raises(PrematureEndOfInput)
 def lexe(): return pytest.raises(LexException)
+
+
+def check_ex(execinfo, expected):
+    output = traceback.format_exception_only(execinfo.type, execinfo.value)
+    assert output[:-1] == expected[:-1]
+    # Python 2.7 doesn't give the full exception name, so we compensate.
+    assert output[-1].endswith(expected[-1])
+
+
+def check_trace_output(capsys, execinfo, expected):
+   sys.__excepthook__(execinfo.type, execinfo.value, execinfo.tb)
+   captured_wo_filtering = capsys.readouterr()[-1].strip('\n')
+
+   hy_exc_handler(execinfo.type, execinfo.value, execinfo.tb)
+   captured_w_filtering = capsys.readouterr()[-1].strip('\n')
+
+   output = captured_w_filtering.split('\n')
+
+   # Make sure the filtered frames aren't the same as the unfiltered ones.
+   assert output[:-1] != captured_wo_filtering.split('\n')[:-1]
+   # Remove the origin frame lines.
+   assert output[3:-1] == expected[:-1]
+   # Python 2.7 doesn't give the full exception name, so we compensate.
+   assert output[-1].endswith(expected[-1])
 
 
 def test_lex_exception():
@@ -30,8 +58,13 @@ def test_unbalanced_exception():
 def test_lex_single_quote_err():
     "Ensure tokenizing \"' \" throws a LexException that can be stringified"
     # https://github.com/hylang/hy/issues/1252
-    with lexe() as e: tokenize("' ")
-    assert "Could not identify the next token" in str(e.value)
+    with lexe() as execinfo:
+        tokenize("' ")
+    check_ex(execinfo, [
+        '  File "<string>", line 1\n',
+        "    '\n",
+        '    ^\n',
+        'LexException: Could not identify the next token.\n'])
 
 
 def test_lex_expression_symbols():
@@ -74,7 +107,11 @@ def test_lex_strings_exception():
     """ Make sure tokenize throws when codec can't decode some bytes"""
     with lexe() as execinfo:
         tokenize('\"\\x8\"')
-    assert "Can't convert \"\\x8\" to a HyString" in str(execinfo.value)
+    check_ex(execinfo, [
+        '  File "<string>", line 1\n',
+        '    "\\x8"\n',
+        '    ^\n',
+        'LexException: Can\'t convert "\\x8" to a HyString\n'])
 
 
 def test_lex_bracket_strings():
@@ -180,7 +217,16 @@ def test_lex_digit_separators():
 
 
 def test_lex_bad_attrs():
-    with lexe(): tokenize("1.foo")
+    with lexe() as execinfo:
+        tokenize("1.foo")
+    check_ex(execinfo, [
+        '  File "<string>", line 1\n',
+        '    1.foo\n',
+        '    ^\n',
+        'LexException: Cannot access attribute on anything other'
+            ' than a name (in order to get attributes of expressions,'
+            ' use `(. <expression> <attr>)` or `(.<attr> <expression>)`)\n'])
+
     with lexe(): tokenize("0.foo")
     with lexe(): tokenize("1.5.foo")
     with lexe(): tokenize("1e3.foo")
@@ -419,3 +465,27 @@ def test_discard():
     assert tokenize("a '#_b c") == [HySymbol("a"), HyExpression([HySymbol("quote"), HySymbol("c")])]
     assert tokenize("a '#_b #_c d") == [HySymbol("a"), HyExpression([HySymbol("quote"), HySymbol("d")])]
     assert tokenize("a '#_ #_b c d") == [HySymbol("a"), HyExpression([HySymbol("quote"), HySymbol("d")])]
+
+
+def test_lex_exception_filtering(capsys):
+    """Confirm that the exception filtering works for lexer errors."""
+
+    # First, test for PrematureEndOfInput
+    with peoi() as execinfo:
+        tokenize(" \n (foo\n       \n")
+    check_trace_output(capsys, execinfo, [
+        '  File "<string>", line 2',
+        '    (foo',
+        '       ^',
+        'PrematureEndOfInput: Premature end of input'])
+
+    # Now, for a generic LexException
+    with lexe() as execinfo:
+        tokenize("  \n\n  1.foo   ")
+    check_trace_output(capsys, execinfo, [
+        '  File "<string>", line 3',
+        '    1.foo',
+        '    ^',
+        'LexException: Cannot access attribute on anything other'
+            ' than a name (in order to get attributes of expressions,'
+            ' use `(. <expression> <attr>)` or `(.<attr> <expression>)`)'])

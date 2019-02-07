@@ -6,7 +6,6 @@
 from __future__ import unicode_literals
 
 from functools import wraps
-import re, unicodedata
 
 from rply import ParserGenerator
 
@@ -22,10 +21,10 @@ pg = ParserGenerator([rule.name for rule in lexer.rules] + ['$end'])
 
 def set_boundaries(fun):
     @wraps(fun)
-    def wrapped(p):
+    def wrapped(state, p):
         start = p[0].source_pos
         end = p[-1].source_pos
-        ret = fun(p)
+        ret = fun(state, p)
         ret.start_line = start.lineno
         ret.start_column = start.colno
         if start is not end:
@@ -40,9 +39,9 @@ def set_boundaries(fun):
 
 def set_quote_boundaries(fun):
     @wraps(fun)
-    def wrapped(p):
+    def wrapped(state, p):
         start = p[0].source_pos
-        ret = fun(p)
+        ret = fun(state, p)
         ret.start_line = start.lineno
         ret.start_column = start.colno
         ret.end_line = p[-1].end_line
@@ -52,54 +51,45 @@ def set_quote_boundaries(fun):
 
 
 @pg.production("main : list_contents")
-def main(p):
+def main(state, p):
     return p[0]
 
 
 @pg.production("main : $end")
-def main_empty(p):
+def main_empty(state, p):
     return []
-
-
-def reject_spurious_dots(*items):
-    "Reject the spurious dots from items"
-    for list in items:
-        for tok in list:
-            if tok == "." and type(tok) == HySymbol:
-                raise LexException("Malformed dotted list",
-                                   tok.start_line, tok.start_column)
 
 
 @pg.production("paren : LPAREN list_contents RPAREN")
 @set_boundaries
-def paren(p):
+def paren(state, p):
     return HyExpression(p[1])
 
 
 @pg.production("paren : LPAREN RPAREN")
 @set_boundaries
-def empty_paren(p):
+def empty_paren(state, p):
     return HyExpression([])
 
 
 @pg.production("list_contents : term list_contents")
-def list_contents(p):
+def list_contents(state, p):
     return [p[0]] + p[1]
 
 
 @pg.production("list_contents : term")
-def list_contents_single(p):
+def list_contents_single(state, p):
     return [p[0]]
 
 
 @pg.production("list_contents : DISCARD term discarded_list_contents")
-def list_contents_empty(p):
+def list_contents_empty(state, p):
     return []
 
 
 @pg.production("discarded_list_contents : DISCARD term discarded_list_contents")
 @pg.production("discarded_list_contents :")
-def discarded_list_contents(p):
+def discarded_list_contents(state, p):
     pass
 
 
@@ -109,58 +99,58 @@ def discarded_list_contents(p):
 @pg.production("term : list")
 @pg.production("term : set")
 @pg.production("term : string")
-def term(p):
+def term(state, p):
     return p[0]
 
 
 @pg.production("term : DISCARD term term")
-def term_discard(p):
+def term_discard(state, p):
     return p[2]
 
 
 @pg.production("term : QUOTE term")
 @set_quote_boundaries
-def term_quote(p):
+def term_quote(state, p):
     return HyExpression([HySymbol("quote"), p[1]])
 
 
 @pg.production("term : QUASIQUOTE term")
 @set_quote_boundaries
-def term_quasiquote(p):
+def term_quasiquote(state, p):
     return HyExpression([HySymbol("quasiquote"), p[1]])
 
 
 @pg.production("term : UNQUOTE term")
 @set_quote_boundaries
-def term_unquote(p):
+def term_unquote(state, p):
     return HyExpression([HySymbol("unquote"), p[1]])
 
 
 @pg.production("term : UNQUOTESPLICE term")
 @set_quote_boundaries
-def term_unquote_splice(p):
+def term_unquote_splice(state, p):
     return HyExpression([HySymbol("unquote-splice"), p[1]])
 
 
 @pg.production("term : HASHSTARS term")
 @set_quote_boundaries
-def term_hashstars(p):
+def term_hashstars(state, p):
     n_stars = len(p[0].getstr()[1:])
     if n_stars == 1:
         sym = "unpack-iterable"
     elif n_stars == 2:
         sym = "unpack-mapping"
     else:
-        raise LexException(
+        raise LexException.from_lexer(
             "Too many stars in `#*` construct (if you want to unpack a symbol "
             "beginning with a star, separate it with whitespace)",
-            p[0].source_pos.lineno, p[0].source_pos.colno)
+            state, p[0])
     return HyExpression([HySymbol(sym), p[1]])
 
 
 @pg.production("term : HASHOTHER term")
 @set_quote_boundaries
-def hash_other(p):
+def hash_other(state, p):
     # p == [(Token('HASHOTHER', '#foo'), bar)]
     st = p[0].getstr()[1:]
     str_object = HyString(st)
@@ -170,63 +160,63 @@ def hash_other(p):
 
 @pg.production("set : HLCURLY list_contents RCURLY")
 @set_boundaries
-def t_set(p):
+def t_set(state, p):
     return HySet(p[1])
 
 
 @pg.production("set : HLCURLY RCURLY")
 @set_boundaries
-def empty_set(p):
+def empty_set(state, p):
     return HySet([])
 
 
 @pg.production("dict : LCURLY list_contents RCURLY")
 @set_boundaries
-def t_dict(p):
+def t_dict(state, p):
     return HyDict(p[1])
 
 
 @pg.production("dict : LCURLY RCURLY")
 @set_boundaries
-def empty_dict(p):
+def empty_dict(state, p):
     return HyDict([])
 
 
 @pg.production("list : LBRACKET list_contents RBRACKET")
 @set_boundaries
-def t_list(p):
+def t_list(state, p):
     return HyList(p[1])
 
 
 @pg.production("list : LBRACKET RBRACKET")
 @set_boundaries
-def t_empty_list(p):
+def t_empty_list(state, p):
     return HyList([])
 
 
 @pg.production("string : STRING")
 @set_boundaries
-def t_string(p):
+def t_string(state, p):
     # Replace the single double quotes with triple double quotes to allow
     # embedded newlines.
     try:
         s = eval(p[0].value.replace('"', '"""', 1)[:-1] + '"""')
     except SyntaxError:
-        raise LexException("Can't convert {} to a HyString".format(p[0].value),
-            p[0].source_pos.lineno, p[0].source_pos.colno)
+        raise LexException.from_lexer("Can't convert {} to a HyString".format(p[0].value),
+                                      state, p[0])
     return (HyString if isinstance(s, str_type) else HyBytes)(s)
 
 
 @pg.production("string : PARTIAL_STRING")
-def t_partial_string(p):
+def t_partial_string(state, p):
     # Any unterminated string requires more input
-    raise PrematureEndOfInput("Premature end of input")
+    raise PrematureEndOfInput.from_lexer("Partial string literal", state, p[0])
 
 
 bracket_string_re = next(r.re for r in lexer.rules if r.name == 'BRACKETSTRING')
 @pg.production("string : BRACKETSTRING")
 @set_boundaries
-def t_bracket_string(p):
+def t_bracket_string(state, p):
     m = bracket_string_re.match(p[0].value)
     delim, content = m.groups()
     return HyString(content, brackets=delim)
@@ -234,7 +224,7 @@ def t_bracket_string(p):
 
 @pg.production("identifier : IDENTIFIER")
 @set_boundaries
-def t_identifier(p):
+def t_identifier(state, p):
     obj = p[0].value
 
     val = symbol_like(obj)
@@ -243,11 +233,11 @@ def t_identifier(p):
 
     if "." in obj and symbol_like(obj.split(".", 1)[0]) is not None:
         # E.g., `5.attr` or `:foo.attr`
-        raise LexException(
+        raise LexException.from_lexer(
             'Cannot access attribute on anything other than a name (in '
             'order to get attributes of expressions, use '
             '`(. <expression> <attr>)` or `(.<attr> <expression>)`)',
-            p[0].source_pos.lineno, p[0].source_pos.colno)
+            state, p[0])
 
     return HySymbol(obj)
 
@@ -284,14 +274,15 @@ def symbol_like(obj):
 
 
 @pg.error
-def error_handler(token):
+def error_handler(state, token):
     tokentype = token.gettokentype()
     if tokentype == '$end':
-        raise PrematureEndOfInput("Premature end of input")
+        raise PrematureEndOfInput.from_lexer("Premature end of input", state,
+                                             token)
     else:
-        raise LexException(
-            "Ran into a %s where it wasn't expected." % tokentype,
-            token.source_pos.lineno, token.source_pos.colno)
+        raise LexException.from_lexer(
+            "Ran into a %s where it wasn't expected." % tokentype, state,
+            token)
 
 
 parser = pg.build()

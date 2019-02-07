@@ -14,10 +14,10 @@ from fractions import Fraction
 import pytest
 
 import hy
-from hy.errors import HyTypeError
 from hy.lex import hy_parse
-from hy.lex.exceptions import LexException
-from hy.compiler import hy_compile
+from hy.errors import HyLanguageError
+from hy.lex.exceptions import PrematureEndOfInput
+from hy.compiler import hy_eval, hy_compile
 from hy.importer import HyLoader, cache_from_source
 
 try:
@@ -57,7 +57,7 @@ def test_runpy():
 
 
 def test_stringer():
-    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), '__main__')
+    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), __name__)
 
     assert type(_ast.body[0]) == ast.FunctionDef
 
@@ -79,14 +79,8 @@ def test_imports():
 def test_import_error_reporting():
     "Make sure that (import) reports errors correctly."
 
-    def _import_error_test():
-        try:
-            _ = hy_compile(hy_parse("(import \"sys\")"), '__main__')
-        except HyTypeError:
-            return "Error reported"
-
-    assert _import_error_test() == "Error reported"
-    assert _import_error_test() is not None
+    with pytest.raises(HyLanguageError):
+        hy_compile(hy_parse("(import \"sys\")"), __name__)
 
 
 def test_import_error_cleanup():
@@ -124,7 +118,7 @@ def test_import_autocompiles():
 
 def test_eval():
     def eval_str(s):
-        return hy.eval(hy.read_str(s))
+        return hy_eval(hy.read_str(s), filename='<string>', source=s)
 
     assert eval_str('[1 2 3]') == [1, 2, 3]
     assert eval_str('{"dog" "bark" "cat" "meow"}') == {
@@ -205,8 +199,7 @@ def test_reload():
         assert mod.a == 11
         assert mod.b == 20
 
-        # Now cause a `LexException`, and confirm that the good module and its
-        # contents stick around.
+        # Now cause a syntax error
         unlink(source)
 
         with open(source, "w") as f:
@@ -214,7 +207,7 @@ def test_reload():
             f.write("(setv a 11")
             f.write("(setv b (// 20 1))")
 
-        with pytest.raises(LexException):
+        with pytest.raises(PrematureEndOfInput):
             reload(mod)
 
         mod = sys.modules.get(TESTFN)
