@@ -1,5 +1,5 @@
 ;;; Hy tail-call optimization
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
