@@ -448,6 +448,21 @@ Even objects with the __name__ magic will work."
     False
     (or a b)))
 
+(defn llist [&rest args]
+  "equivalent of `list` from normal lisps"
+  (cond
+    [(= (len args) 0)
+     []]
+
+    [(= (len args) 1)
+     [(get args 0)]]
+
+    [True
+     (setv tmp-list [(get args 0)])
+     (for [i (rest args)]
+       (.append tmp-list i))
+     tmp-list]))
+
 (setv EXPORTS
   '[*map accumulate butlast calling-module calling-module-name chain coll?
     combinations comp complement compress constantly count cycle dec distinct

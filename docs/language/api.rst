@@ -1111,6 +1111,20 @@ reverses the comparison.
     => (lif-not False "true" "false")
     "false"
 
+llist
+-----
+
+An equivalent of ``list`` from normal Lisps.
+
+.. code-block:: clj
+
+   => (llist 1)
+   [1]
+   => (llist 1 2 3 4)
+   [1 2 3 4]
+   => (llist 1 2 [3 4])
+   [1 2 [3 4]]
+
 .. _import:
 
 import
