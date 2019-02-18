@@ -31,8 +31,11 @@ def set_boundaries(fun):
             ret.end_line = end.lineno
             ret.end_column = end.colno
         else:
-            ret.end_line = start.lineno
-            ret.end_column = start.colno + len(p[0].value)
+            v = p[0].value
+            ret.end_line = start.lineno + v.count('\n')
+            ret.end_column = (len(v) - v.rindex('\n') - 1
+                if '\n' in v
+                else start.colno + len(v) - 1)
         return ret
     return wrapped
 

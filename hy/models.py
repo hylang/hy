@@ -33,6 +33,11 @@ class HyObject(object):
     """
     Generic Hy Object model. This is helpful to inject things into all the
     Hy lexing Objects at once.
+
+    The position properties (`start_line`, `end_line`, `start_column`,
+    `end_column`) are each 1-based and inclusive. For example, a symbol
+    `abc` starting at the first column would have `start_column` 1 and
+    `end_column` 3.
     """
     __properties__ = ["module", "start_line", "end_line", "start_column",
                       "end_column"]

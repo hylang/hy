@@ -247,11 +247,31 @@ def test_lex_column_counting():
     assert entry.end_line == 1
     assert entry.end_column == 15
 
+    symbol = entry[0]
+    assert symbol.start_line == 1
+    assert symbol.start_column == 2
+    assert symbol.end_line == 1
+    assert symbol.end_column == 4
+
     inner_expr = entry[1]
     assert inner_expr.start_line == 1
     assert inner_expr.start_column == 6
     assert inner_expr.end_line == 1
     assert inner_expr.end_column == 14
+
+
+def test_lex_column_counting_with_literal_newline():
+    string, symbol = tokenize('"apple\nblueberry" abc')
+
+    assert string.start_line == 1
+    assert string.start_column == 1
+    assert string.end_line == 2
+    assert string.end_column == 10
+
+    assert symbol.start_line == 2
+    assert symbol.start_column == 12
+    assert symbol.end_line == 2
+    assert symbol.end_column == 14
 
 
 def test_lex_line_counting_multi():
