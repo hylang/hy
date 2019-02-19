@@ -415,14 +415,16 @@ They can be used to assign multiple variables at once:
 defclass
 --------
 
-New classes are declared with ``defclass``. It can takes two optional parameters:
-a vector defining a possible super classes and another vector containing
-attributes of the new class as two item vectors.
+New classes are declared with ``defclass``. It can take three optional parameters in the following order:
+a list defining (a) possible super class(es), a string (:term:`py:docstring`) and another list containing
+attributes of the new class along with their corresponding values.
 
 .. code-block:: clj
 
     (defclass class-name [super-class-1 super-class-2]
-      [attribute value]
+      "docstring"
+      [attribute1 value1
+       attribute2 value2]
 
       (defn method [self] (print "hello!")))
 
