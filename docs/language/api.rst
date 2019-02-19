@@ -239,7 +239,7 @@ as the user enters *k*.
 
 
 comment
-----
+-------
 
 The ``comment`` macro ignores its body and always expands to ``None``.
 Unlike linewise comments, the body of the ``comment`` macro must
