@@ -10,7 +10,7 @@ from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyCompileError, HyLanguageError, HyError
 from hy.lex import hy_parse
 from hy.lex.exceptions import LexException, PrematureEndOfInput
-from hy._compat import PY3
+from hy._compat import PY3, PY36
 
 import ast
 import pytest
@@ -509,6 +509,18 @@ def test_ast_unicode_vs_bytes():
     assert s('b"hello"') == (eval('b"hello"') if PY3 else "hello")
     assert type(s('b"hello"')) is (bytes if PY3 else str)
     assert s('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+
+
+@pytest.mark.skipif(not PY36, reason='f-strings require Python 3.6+')
+def test_format_string():
+    assert can_compile('f"hello world"')
+    assert can_compile('f"hello {(+ 1 1)} world"')
+    assert can_compile('f"hello world {(+ 1 1)}"')
+    assert cant_compile('f"hello {(+ 1 1) world"')
+    assert cant_compile('f"hello (+ 1 1)} world"')
+    assert cant_compile('f"hello {(+ 1 1} world"')
+    assert can_compile(r'f"hello {\"n\"} world"')
+    assert can_compile(r'f"hello {\"\\n\"} world"')
 
 
 def test_ast_bracket_string():

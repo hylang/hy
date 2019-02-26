@@ -94,8 +94,9 @@ class HyString(HyObject, str_type):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
-    def __new__(cls, s=None, brackets=None):
+    def __new__(cls, s=None, is_format=False, brackets=None):
         value = super(HyString, cls).__new__(cls, s)
+        value.is_format = bool(is_format)
         value.brackets = brackets
         return value
 
