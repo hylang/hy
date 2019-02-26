@@ -74,6 +74,33 @@ def tokenize(source, filename=None):
         raise e
 
 
+def parse_one_thing(src_string):
+    """Parse the first form from the string. Return it and the
+    remainder of the string."""
+    import re
+    from hy.lex.lexer import lexer
+    from hy.lex.parser import parser
+    from rply.errors import LexingError
+    tokens = []
+    err = None
+    for token in lexer.lex(src_string):
+        tokens.append(token)
+        try:
+            model, = parser.parse(
+                iter(tokens),
+                state=ParserState(src_string, filename=None))
+        except (LexingError, LexException) as e:
+            err = e
+        else:
+            return model, src_string[re.match(
+                r'.+\n' * (model.end_line - 1)
+                    + '.' * model.end_column,
+                src_string).end():]
+    if err:
+        raise err
+    raise ValueError("No form found")
+
+
 mangle_delim = 'X'
 
 
