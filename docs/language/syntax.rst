@@ -42,7 +42,8 @@ string literal called a "bracket string" similar to Lua's long brackets.
 Bracket strings have customizable delimiters, like the here-documents of other
 languages. A bracket string begins with ``#[FOO[`` and ends with ``]FOO]``,
 where ``FOO`` is any string not containing ``[`` or ``]``, including the empty
-string. For example::
+string. (If ``FOO`` is exactly ``f`` or begins with ``f-``, the bracket string
+is interpreted as a :ref:`format string <syntax-fstrings>`.) For example::
 
    => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
    "That's very kind of yuo [sic]" Tom wrote back.
@@ -68,6 +69,43 @@ of bytes. So when running under Python 3, Hy translates ``"foo"`` and
 ``"foo"``.
 
 Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase.
+
+.. _syntax-fstrings:
+
+format strings
+--------------
+
+A format string (or "f-string", or "formatted string literal") is a string
+literal with embedded code, possibly accompanied by formatting commands. Hy
+f-strings work much like :ref:`Python f-strings <py:f-strings>` except that the
+embedded code is in Hy rather than Python, and they're supported on all
+versions of Python.
+
+::
+
+    => (print f"The sum is {(+ 1 1)}.")
+    The sum is 2.
+
+Since ``!`` and ``:`` are identifier characters in Hy, Hy decides where the
+code in a replacement field ends, and any conversion or format specifier
+begins, by parsing exactly one form. You can use ``do`` to combine several
+forms into one, as usual. Whitespace may be necessary to terminate the form::
+
+    => (setv foo "a")
+    => (print f"{foo:x<5}")
+    …
+    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
+    => (print f"{foo :x<5}")
+    axxxx
+
+Unlike Python, whitespace is allowed between a conversion and a format
+specifier.
+
+Also unlike Python, comments and backslashes are allowed in replacement fields.
+Hy's lexer will still process the whole format string normally, like any other
+string, before any replacement fields are considered, so you may need to
+backslash your backslashes, and you can't comment out a closing brace or the
+string delimiter.
 
 .. _syntax-keywords:
 
