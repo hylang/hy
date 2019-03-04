@@ -240,22 +240,38 @@ def test_lex_bad_attrs():
     with lexe(): tokenize(":hello.foo")
 
 
-def test_lex_line_counting():
-    """ Make sure we can count lines / columns """
+def test_lex_column_counting():
     entry = tokenize("(foo (one two))")[0]
-
     assert entry.start_line == 1
     assert entry.start_column == 1
-
     assert entry.end_line == 1
     assert entry.end_column == 15
 
-    entry = entry[1]
-    assert entry.start_line == 1
-    assert entry.start_column == 6
+    symbol = entry[0]
+    assert symbol.start_line == 1
+    assert symbol.start_column == 2
+    assert symbol.end_line == 1
+    assert symbol.end_column == 4
 
-    assert entry.end_line == 1
-    assert entry.end_column == 14
+    inner_expr = entry[1]
+    assert inner_expr.start_line == 1
+    assert inner_expr.start_column == 6
+    assert inner_expr.end_line == 1
+    assert inner_expr.end_column == 14
+
+
+def test_lex_column_counting_with_literal_newline():
+    string, symbol = tokenize('"apple\nblueberry" abc')
+
+    assert string.start_line == 1
+    assert string.start_column == 1
+    assert string.end_line == 2
+    assert string.end_column == 10
+
+    assert symbol.start_line == 2
+    assert symbol.start_column == 12
+    assert symbol.end_line == 2
+    assert symbol.end_column == 14
 
 
 def test_lex_line_counting_multi():

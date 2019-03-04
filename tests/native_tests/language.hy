@@ -1217,6 +1217,72 @@
   (assert (none? (. '"squid" brackets))))
 
 
+(defn test-format-strings []
+  (assert (= f"hello world" "hello world"))
+  (assert (= f"hello {(+ 1 1)} world" "hello 2 world"))
+  (assert (= f"a{ (.upper (+ \"g\" \"k\")) }z" "aGKz"))
+
+  ; Referring to a variable
+  (setv p "xyzzy")
+  (assert (= f"h{p}j" "hxyzzyj"))
+
+  ; Including a statement and setting a variable
+  (assert (= f"a{(do (setv floop 4) (* floop 2))}z" "a8z"))
+  (assert (= floop 4))
+
+  ; Comments
+  (assert (= f"a{(+ 1
+     2 ; This is a comment.
+     3)}z" "a6z"))
+
+  ; Newlines in replacement fields
+  (assert (= f"ey {\"bee
+cee\"} dee" "ey bee\ncee dee"))
+
+  ; Conversion characters and format specifiers
+  (setv p:9 "other")
+  (setv !r "bar")
+  (defn u [s]
+    ; Add a "u" prefix for Python 2.
+    (if PY3
+      s
+      (.replace (.replace s "'" "u'" 1) "  " " " 1)))
+  (assert (= f"a{p !r}" (u "a'xyzzy'")))
+  (assert (= f"a{p :9}" "axyzzy    "))
+  (assert (= f"a{p:9}" "aother"))
+  (assert (= f"a{p !r :9}" (u "a'xyzzy'  ")))
+  (assert (= f"a{p !r:9}" (u "a'xyzzy'  ")))
+  (assert (= f"a{p:9 :9}" "aother    "))
+  (assert (= f"a{!r}" "abar"))
+  (assert (= f"a{!r !r}" (u "a'bar'")))
+
+  ; Fun with `r`
+  (assert (= f"hello {r\"\\n\"}" r"hello \n"))
+  (assert (= f"hello {r\"\n\"}" "hello \n"))
+    ; The `r` applies too late to avoid interpreting a backslash.
+
+  ; Braces escaped via doubling
+  (assert (= f"ab{{cde" "ab{cde"))
+  (assert (= f"ab{{cde}}}}fg{{{{{{" "ab{cde}}fg{{{"))
+  (assert (= f"ab{{{(+ 1 1)}}}" "ab{2}"))
+
+  ; Nested replacement fields
+  (assert (= f"{2 :{(+ 2 2)}}" "   2"))
+  (setv value 12.34  width 10  precision 4)
+  (assert (= f"result: {value :{width}.{precision}}" "result:      12.34"))
+
+  ; Nested replacement fields with ! and :
+  (defclass C [object]
+    (defn __format__ [self format-spec]
+      (+ "C[" format-spec "]")))
+  (assert (= f"{(C) :  {(str (+ 1 1)) !r :x<5}}" "C[  '2'xx]"))
+
+  ; Format bracket strings
+  (assert (= #[f[a{p !r :9}]f] (u "a'xyzzy'  ")))
+  (assert (= #[f-string[result: {value :{width}.{precision}}]f-string]
+    "result:      12.34")))
+
+
 (defn test-import-syntax []
   "NATIVE: test the import syntax."
 

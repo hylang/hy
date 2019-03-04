@@ -31,8 +31,11 @@ def set_boundaries(fun):
             ret.end_line = end.lineno
             ret.end_column = end.colno
         else:
-            ret.end_line = start.lineno
-            ret.end_column = start.colno + len(p[0].value)
+            v = p[0].value
+            ret.end_line = start.lineno + v.count('\n')
+            ret.end_column = (len(v) - v.rindex('\n') - 1
+                if '\n' in v
+                else start.colno + len(v) - 1)
         return ret
     return wrapped
 
@@ -197,14 +200,22 @@ def t_empty_list(state, p):
 @pg.production("string : STRING")
 @set_boundaries
 def t_string(state, p):
+    s = p[0].value
+    # Detect and remove any "f" prefix.
+    is_format = False
+    if s.startswith('f') or s.startswith('rf'):
+        is_format = True
+        s = s.replace('f', '', 1)
     # Replace the single double quotes with triple double quotes to allow
     # embedded newlines.
     try:
-        s = eval(p[0].value.replace('"', '"""', 1)[:-1] + '"""')
+        s = eval(s.replace('"', '"""', 1)[:-1] + '"""')
     except SyntaxError:
         raise LexException.from_lexer("Can't convert {} to a HyString".format(p[0].value),
                                       state, p[0])
-    return (HyString if isinstance(s, str_type) else HyBytes)(s)
+    return (HyString(s, is_format = is_format)
+        if isinstance(s, str_type)
+        else HyBytes(s))
 
 
 @pg.production("string : PARTIAL_STRING")
@@ -219,7 +230,10 @@ bracket_string_re = next(r.re for r in lexer.rules if r.name == 'BRACKETSTRING')
 def t_bracket_string(state, p):
     m = bracket_string_re.match(p[0].value)
     delim, content = m.groups()
-    return HyString(content, brackets=delim)
+    return HyString(
+        content,
+        is_format = delim == 'f' or delim.startswith('f-'),
+        brackets = delim)
 
 
 @pg.production("identifier : IDENTIFIER")
