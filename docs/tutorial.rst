@@ -5,7 +5,6 @@ Tutorial
 .. TODO
 ..
 ..  - How do I index into arrays or dictionaries?
-..  - How do I do array ranges?  e.g. x[5:] or y[2:10]
 ..  - Blow your mind with macros!
 ..  - Where's my banana???
 
@@ -342,6 +341,19 @@ The equivalent in Hy would be:
   (for [i (range 10)]
     (print (+ "'i' is now at " (str i))))
 
+Python's collections indexes and slices are implemented
+by the ``get`` and ``cut`` built-in:
+
+.. code-block:: clj
+
+  (setv array [0 1 2])
+  (get array 1)
+  (cut array -3 -1)
+
+which is equivalent to::
+
+  array[1]
+  array[-3:-1]
 
 You can also import and make use of various Python libraries.  For
 example:
