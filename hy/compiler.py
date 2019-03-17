@@ -15,7 +15,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
 from hy._compat import (string_types, str_type, bytes_type, long_type, PY3,
-                        PY35, PY36, reraise)
+                        PY36, reraise)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
@@ -106,7 +106,7 @@ def ast_str(x, piecewise=False):
 _special_form_compilers = {}
 _model_compilers = {}
 _decoratables = (ast.FunctionDef, ast.ClassDef)
-if PY35:
+if PY3:
     _decoratables += (ast.AsyncFunctionDef,)
 # _bad_roots are fake special operators, which are used internally
 # by other special forms (e.g., `except` in `try`) but can't be
@@ -279,7 +279,7 @@ class Result(object):
                 var.arg = new_name
             elif isinstance(var, ast.FunctionDef):
                 var.name = new_name
-            elif PY35 and isinstance(var, ast.AsyncFunctionDef):
+            elif PY3 and isinstance(var, ast.AsyncFunctionDef):
                 var.name = new_name
             else:
                 raise TypeError("Don't know how to rename a %s!" % (
@@ -475,7 +475,7 @@ class HyASTCompiler(object):
         exprs_iter = iter(exprs)
         for expr in exprs_iter:
 
-            if not PY35 and oldpy_unpack and is_unpack("iterable", expr):
+            if not PY3 and oldpy_unpack and is_unpack("iterable", expr):
                 if oldpy_starargs:
                     raise self._syntax_error(expr,
                         "Pythons < 3.5 allow only one `unpack-iterable` per call")
@@ -485,7 +485,7 @@ class HyASTCompiler(object):
 
             elif is_unpack("mapping", expr):
                 ret += self.compile(expr[1])
-                if PY35:
+                if PY3:
                     if dict_display:
                         compiled_exprs.append(None)
                         compiled_exprs.append(ret.force_expr)
@@ -912,7 +912,7 @@ class HyASTCompiler(object):
             ret += self.compile(arg)
         return ret + asty.Yield(expr, value=ret.force_expr)
 
-    @special([(PY3, "yield-from"), (PY35, "await")], [FORM])
+    @special([(PY3, "yield-from"), (PY3, "await")], [FORM])
     def compile_yield_from_or_await_expression(self, expr, root, arg):
         ret = Result() + self.compile(arg)
         node = asty.YieldFrom if root == "yield-from" else asty.Await
@@ -991,7 +991,7 @@ class HyASTCompiler(object):
         fn.stmts[-1].decorator_list = decs + fn.stmts[-1].decorator_list
         return ret + fn
 
-    @special(["with*", (PY35, "with/a*")],
+    @special(["with*", (PY3, "with/a*")],
              [brackets(FORM, maybe(FORM)), many(FORM)])
     def compile_with_expression(self, expr, root, args, body):
         thing, ctx = (None, args[0]) if args[1] is None else args
@@ -1348,11 +1348,11 @@ class HyASTCompiler(object):
              "|": ast.BitOr,
              "^": ast.BitXor,
              "&": ast.BitAnd}
-    if PY35:
+    if PY3:
         m_ops["@"] = ast.MatMult
 
     @special(["+", "*", "|"], [many(FORM)])
-    @special(["-", "/", "&", (PY35, "@")], [oneplus(FORM)])
+    @special(["-", "/", "&", (PY3, "@")], [oneplus(FORM)])
     @special(["**", "//", "<<", ">>"], [times(2, Inf, FORM)])
     @special(["%", "^"], [times(2, 2, FORM)])
     def compile_maths_expression(self, expr, root, args):
@@ -1478,7 +1478,7 @@ class HyASTCompiler(object):
 
     NASYM = some(lambda x: isinstance(x, HySymbol) and x not in (
         "&optional", "&rest", "&kwonly", "&kwargs"))
-    @special(["fn", "fn*", (PY35, "fn/a")], [
+    @special(["fn", "fn*", (PY3, "fn/a")], [
         # The starred version is for internal use (particularly, in the
         # definition of `defn`). It ensures that a FunctionDef is
         # produced rather than a Lambda.
