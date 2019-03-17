@@ -3,6 +3,10 @@
 Unreleased
 ==============================
 
+Removals
+------------------------------
+* Python 3.4 is no longer supported.
+
 New Features
 ------------------------------
 * Format strings with embedded Hy code (e.g., `f"The sum is {(+ x y)}"`)

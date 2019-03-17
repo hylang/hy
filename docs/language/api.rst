@@ -1678,20 +1678,14 @@ object (respectively) to provide positional or keywords arguments
     => (f #* [1 2] #** {"c" 3 "d" 4})
     [1, 2, 3, 4]
 
-With Python 3, you can unpack in an assignment list (:pep:`3132`).
+With Python 3, unpacking is allowed in more contexts, and you can unpack
+more than once in one expression (:pep:`3132`, :pep:`448`).
 
 .. code-block:: clj
 
     => (setv [a #* b c] [1 2 3 4 5])
     => [a b c]
     [1, [2, 3, 4], 5]
-
-With Python 3.5 or greater, unpacking is allowed in more contexts than just
-function calls, and you can unpack more than once in the same expression
-(:pep:`448`).
-
-.. code-block:: clj
-
     => [#* [1 2] #* [3 4]]
     [1, 2, 3, 4]
     => {#** {1 2} #** {3 4}}
