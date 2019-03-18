@@ -5,7 +5,7 @@
 ;;;; Hy shadow functions
 
 (import operator)
-(import [hy._compat [PY3 PY35]])
+(import [hy._compat [PY3]])
 
 (require [hy.core.bootstrap [*]])
 
@@ -60,7 +60,7 @@
   "Shadowed `%` operator takes `x` modulo `y`."
   (% x y))
 
-(if PY35
+(if PY3
     (defn @ [a1 &rest a-rest]
       "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
       (reduce operator.matmul a-rest a1)))
@@ -173,5 +173,5 @@
   'and 'or 'not
   'is 'is-not 'in 'not-in
   'get])
-(if (not PY35)
+(if (not PY3)
   (.remove EXPORTS '@))

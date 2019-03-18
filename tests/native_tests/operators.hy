@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import pytest [hy._compat [PY35]])
+(import pytest [hy._compat [PY3]])
 
 (defmacro op-and-shadow-test [op &rest body]
   ; Creates two tests with the given `body`, one where all occurrences
@@ -102,7 +102,7 @@
   (forbid (f 1 2 3)))
 
 
-(when PY35 (op-and-shadow-test @
+(when PY3 (op-and-shadow-test @
   (defclass C [object] [
     __init__ (fn [self content] (setv self.content content))
     __matmul__ (fn [self other] (C (+ self.content other.content)))])

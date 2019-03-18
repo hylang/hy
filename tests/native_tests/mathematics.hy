@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY35]])
+(import [hy._compat [PY3]])
 
 (setv square (fn [x]
                (* x x)))
@@ -191,7 +191,7 @@
 
 (defn test-matmul []
   "NATIVE: test matrix multiplication"
-  (if PY35
+  (if PY3
     (assert (= (@ first-test-matrix second-test-matrix)
                product-of-test-matrices))
     ;; Python <= 3.4
@@ -205,6 +205,6 @@
   (setv matrix first-test-matrix
         matmul-attempt (try (@= matrix second-test-matrix)
                               (except [e [Exception]] e)))
-  (if PY35
+  (if PY3
     (assert (= product-of-test-matrices matrix))
     (assert (isinstance matmul-attempt NameError))))
