@@ -14,3 +14,4 @@
 * `Clinton N. Dreisbach <https://github.com/cndreisbach>`_
 * `han semaj <https://github.com/microamp>`_
 * `Kodi Arfer <https://github.com/Kodiologist>`_
+* `Brandon T. Willard <https://github.com/brandonwillard>`_
