@@ -64,9 +64,9 @@ objects in a macro, for instance.
 .. _hylist:
 
 HyList
-~~~~~~~~~~~~
+~~~~~~
 
-``hy.models.HyExpression`` is a :ref:`HySequence` for bracketed ``[]``
+``hy.models.HyList`` is a :ref:`HySequence` for bracketed ``[]``
 lists, which, when used as a top-level expression, translate to Python
 list literals in the compilation phase.
 
