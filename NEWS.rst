@@ -12,6 +12,11 @@ New Features
 * Format strings with embedded Hy code (e.g., `f"The sum is {(+ x y)}"`)
   are now supported, even on Pythons earlier than 3.6.
 
+Bug Fixes
+------------------------------
+* Fixed a crash caused by errors creating temp files during bytecode
+  compilation
+
 0.16.0
 ==============================
 
