@@ -240,6 +240,8 @@ name (i.e. `sys.argv[0]`).
 
 (deftag @ [expr]
   "with-decorator tag macro"
+  (if (empty? expr)
+      (macro-error expr "missing function argument"))
   (setv decorators (cut expr None -1)
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))
