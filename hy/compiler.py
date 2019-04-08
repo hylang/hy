@@ -2131,7 +2131,7 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
                    key=lambda a: not (isinstance(a, ast.ImportFrom) and
                                       a.module == '__future__'))
 
-    ret = root(body=body)
+    ret = root(body=body, type_ignores=[])
 
     if get_expr:
         expr = ast.Expression(body=expr)

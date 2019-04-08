@@ -11,6 +11,7 @@ import sys, keyword, textwrap
 PY3 = sys.version_info[0] >= 3
 PY36 = sys.version_info >= (3, 6)
 PY37 = sys.version_info >= (3, 7)
+PY38 = sys.version_info >= (3, 8)
 
 # The value of UCS4 indicates whether Unicode strings are stored as UCS-4.
 # It is always true on Pythons >= 3.3, which use USC-4 on all systems.

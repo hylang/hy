@@ -270,8 +270,9 @@ class HyREPL(code.InteractiveConsole, object):
             try:
                 # Mush the two AST chunks into a single module for
                 # conversion into Python.
-                new_ast = ast.Module(exec_ast.body +
-                                     [ast.Expr(eval_ast.body)])
+                new_ast = ast.Module(
+                    exec_ast.body + [ast.Expr(eval_ast.body)],
+                    type_ignores=[])
                 print(astor.to_source(new_ast))
             except Exception:
                 msg = 'Exception in AST callback:\n{}\n'.format(
