@@ -9,6 +9,7 @@ Removals
 
 New Features
 ------------------------------
+* Python 3.8 is now supported.
 * Format strings with embedded Hy code (e.g., `f"The sum is {(+ x y)}"`)
   are now supported, even on Pythons earlier than 3.6.
 * New list? function.
