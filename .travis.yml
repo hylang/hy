@@ -1,11 +1,13 @@
 sudo: false
+dist: xenial
 language: python
 python:
   - "2.7"
   - "3.5"
   - "3.6"
-  - pypy
-  - pypy3
+  - "3.7"
+  - pypy2.7-6.0
+  - pypy3.5-6.0
 install:
   - pip install -r requirements-travis.txt
   - pip install -e .
