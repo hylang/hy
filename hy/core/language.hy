@@ -206,6 +206,9 @@ Return series of accumulated sums (or other binary function results)."
 (defn list? [x]
   (isinstance x list))
 
+(defn tuple? [x]
+  (isinstance x tuple))
+
 (defn symbol? [s]
   "Check if `s` is a symbol."
   (instance? HySymbol s))
@@ -461,4 +464,4 @@ Even objects with the __name__ magic will work."
     macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product range read read-str
     remove repeat repeatedly rest reduce second some string string? symbol?
-    take take-nth take-while unmangle xor tee zero? zip zip-longest])
+    take take-nth take-while tuple? unmangle xor tee zero? zip zip-longest])
