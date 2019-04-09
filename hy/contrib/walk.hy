@@ -19,7 +19,7 @@
     (outer (HyExpression (map inner form)))]
    [(instance? HyDict form)
     (HyDict (outer (HyExpression (map inner form))))]
-   [(instance? list form)
+   [(list? form)
     ((type form) (outer (HyExpression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]

@@ -213,7 +213,7 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
   (defn extract-o!-sym [arg]
     (cond [(and (symbol? arg) (.startswith arg "o!"))
            arg]
-          [(and (instance? list arg) (.startswith (first arg) "o!"))
+          [(and (list? arg) (.startswith (first arg) "o!"))
            (first arg)]))
   (setv os (list (filter identity (map extract-o!-sym args)))
         gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))

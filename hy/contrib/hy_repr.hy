@@ -18,7 +18,7 @@
 
 (setv -registry {})
 (defn hy-repr-register [types f &optional placeholder]
-  (for [typ (if (instance? list types) types [types])]
+  (for [typ (if (list? types) types [types])]
     (setv (get -registry typ) (, f placeholder))))
 
 (setv -quoting False)

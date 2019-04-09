@@ -203,6 +203,9 @@ Return series of accumulated sums (or other binary function results)."
   "Check if x is float."
   (isinstance x float))
 
+(defn list? [x]
+  (isinstance x list))
+
 (defn symbol? [s]
   "Check if `s` is a symbol."
   (instance? HySymbol s))
@@ -454,7 +457,7 @@ Even objects with the __name__ magic will work."
     disassemble drop drop-last drop-while empty? eval even? every? exec first
     filter flatten float? fraction gensym group-by identity inc input instance?
     integer integer? integer-char? interleave interpose islice iterable?
-    iterate iterator? juxt keyword keyword? last macroexpand
+    iterate iterator? juxt keyword keyword? last list? macroexpand
     macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product range read read-str
     remove repeat repeatedly rest reduce second some string string? symbol?

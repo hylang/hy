@@ -899,6 +899,24 @@ Returns the first logically-true value of ``(pred x)`` for any ``x`` in
    True
 
 
+.. _list?-fn:
+
+list?
+-----
+
+Usage: ``(list? x)``
+
+Returns ``True`` if *x* is a list.
+
+.. code-block:: hy
+
+   => (list? '(inc 41))
+   True
+
+   => (list? '42)
+   False
+
+
 .. _string?-fn:
 
 string?
