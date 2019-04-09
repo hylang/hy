@@ -2,7 +2,7 @@
 #
 # This file is execfile()d with the current directory set to its containing dir.
 
-import re, os, sys, time, cgi
+import re, os, sys, time, html
 sys.path.append(os.path.abspath(".."))
 
 extensions = ['sphinx.ext.intersphinx']
@@ -28,7 +28,7 @@ copyright = u'%s the authors' % time.strftime('%Y')
 version = ".".join(hy_version.split(".")[:-1])
 # The full version, including alpha/beta/rc tags.
 release = hy_version
-hy_descriptive_version = cgi.escape(hy_version)
+hy_descriptive_version = html.escape(hy_version)
 if "+" in hy_version:
     hy_descriptive_version += " <strong style='color: red;'>(unstable)</strong>"
 
