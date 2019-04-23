@@ -9,8 +9,10 @@ Removals
 
 New Features
 ------------------------------
+* Python 3.8 is now supported.
 * Format strings with embedded Hy code (e.g., `f"The sum is {(+ x y)}"`)
   are now supported, even on Pythons earlier than 3.6.
+* Added a special form `setx` to create Python 3.8 assignment expressions.
 * New list? function.
 * New tuple? function.
 

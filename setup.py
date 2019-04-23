@@ -31,7 +31,11 @@ class Install(install):
                         "." + filename[:-len(".hy")])
         install.run(self)
 
-install_requires = ['rply>=0.7.7', 'astor>=0.7.1', 'funcparserlib>=0.3.6', 'clint>=0.4']
+install_requires = [
+    'rply>=0.7.7',
+    'astor @ https://github.com/berkerpeksag/astor/archive/master.zip',
+    'funcparserlib>=0.3.6',
+    'clint>=0.4']
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 
@@ -79,6 +83,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",

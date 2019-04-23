@@ -15,7 +15,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
 from hy._compat import (string_types, str_type, bytes_type, long_type, PY3,
-                        PY36, reraise)
+                        PY36, PY38, reraise)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
@@ -1399,15 +1399,16 @@ class HyASTCompiler(object):
             expr, target=target, value=ret.force_expr, op=op())
 
     @special("setv", [many(FORM + FORM)])
+    @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
     def compile_def_expression(self, expr, root, pairs):
         if not pairs:
             return asty.Name(expr, id='None', ctx=ast.Load())
         result = Result()
         for pair in pairs:
-            result += self._compile_assign(*pair)
+            result += self._compile_assign(root, *pair)
         return result
 
-    def _compile_assign(self, name, result):
+    def _compile_assign(self, root, name, result):
 
         str_name = "%s" % name
         if str_name in (["None"] + (["True", "False"] if PY3 else [])):
@@ -1427,14 +1428,18 @@ class HyASTCompiler(object):
                 and isinstance(name, HySymbol)
                 and '.' not in name):
             result.rename(name)
-            # Throw away .expr to ensure that (setv ...) returns None.
-            result.expr = None
+            if root != HySymbol("setx"):
+                # Throw away .expr to ensure that (setv ...) returns None.
+                result.expr = None
         else:
             st_name = self._storeize(name, ld_name)
-            result += asty.Assign(
+            node = (asty.NamedExpr
+                if root == HySymbol("setx")
+                else asty.Assign)
+            result += node(
                 name if hasattr(name, "start_line") else result,
-                targets=[st_name],
-                value=result.force_expr)
+                value=result.force_expr,
+                target=st_name, targets=[st_name])
 
         return result
 
@@ -2131,7 +2136,7 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
                    key=lambda a: not (isinstance(a, ast.ImportFrom) and
                                       a.module == '__future__'))
 
-    ret = root(body=body)
+    ret = root(body=body, type_ignores=[])
 
     if get_expr:
         expr = ast.Expression(body=expr)

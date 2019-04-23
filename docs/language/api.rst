@@ -412,6 +412,21 @@ They can be used to assign multiple variables at once:
     =>
 
 
+``setv`` always returns ``None``.
+
+
+setx
+-----
+
+Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment expression (see :pep:`572`). It requires Python 3.8 or later. Only one target–value pair is allowed, and the target must be a bare symbol, but the ``setx`` form returns the assigned value instead of ``None``.
+
+::
+
+    => (when (> (setx x (+ 1 2)) 0)
+    ...  (print x "is greater than 0"))
+    3 is greater than 0
+
+
 defclass
 --------
 

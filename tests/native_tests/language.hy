@@ -11,7 +11,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY3 PY37]])
+(import [hy._compat [PY3 PY37 PY38]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -1550,10 +1550,11 @@ cee\"} dee" "ey bee\ncee dee"))
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
   (assert (= (disassemble '(do (leaky) (leaky) (macros))) (cond
-    [PY3 "Module(
+    [PY3 (.format "Module(
     body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
-        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))])"]
+        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))]{})"
+      (if PY38 ",\n    type_ignores=[]" ""))]
     [True "Module(
     body=[
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
