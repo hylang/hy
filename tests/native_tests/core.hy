@@ -272,6 +272,11 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (list? "hello"))
   (assert-true (list? [1 2 3])))
 
+(defn test-tuple? []
+  "NATIVE: testing the tuple? function"
+  (assert-false (tuple? [4 5]))
+  (assert-true (tuple? (, 4 5))))
+
 (defn test-gensym []
   "NATIVE: testing the gensym function"
   (import [hy.models [HySymbol]])

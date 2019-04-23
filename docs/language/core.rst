@@ -951,6 +951,25 @@ Returns ``True`` if *x* is a symbol.
    => (symbol? '[a b c])
    False
 
+
+.. _tuple?-fn:
+
+tuple?
+------
+
+Usage: ``(tuple? x)``
+
+Returns ``True`` if *x* is a tuple.
+
+.. code-block:: hy
+
+   => (tuple? (, 42 44))
+   True
+
+   => (tuple? [42 44])
+   False
+
+
 .. _zero?-fn:
 
 zero?
