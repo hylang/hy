@@ -166,9 +166,9 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  ;; and make sure there is something new that starts with _;G|
-  (assert (in (mangle "_;G|") s1))
-  (assert (in (mangle "_;G|") s2))
+  ;; and make sure there is something new that starts with _G\uffff
+  (assert (in (mangle "_G\uffff") s1))
+  (assert (in (mangle "_G\uffff") s2))
   ;; but make sure the two don't match each other
   (assert (not (= s1 s2))))
 
@@ -193,8 +193,8 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "_;a|") s1))
-  (assert (in (mangle "_;a|") s2))
+  (assert (in (mangle "_a\uffff") s1))
+  (assert (in (mangle "_a\uffff") s2))
   (assert (not (= s1 s2))))
 
 (defn test-defmacro/g! []
@@ -217,8 +217,8 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "_;res|") s1))
-  (assert (in (mangle "_;res|") s2))
+  (assert (in (mangle "_res\uffff") s1))
+  (assert (in (mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
@@ -247,8 +247,8 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "_;res|") s1))
-  (assert (in (mangle "_;res|") s2))
+  (assert (in (mangle "_res\uffff") s1))
+  (assert (in (mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they

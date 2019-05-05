@@ -968,10 +968,10 @@ written without accidental variable name clashes.
 .. code-block:: clj
 
    => (gensym)
-   u':G_1235'
+   HySymbol('_G\uffff1')
 
    => (gensym "x")
-   u':x_1236'
+   HySymbol('_x\uffff2')
 
 .. seealso::
 

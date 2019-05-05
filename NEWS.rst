@@ -15,6 +15,9 @@ New Features
 * Added a special form `setx` to create Python 3.8 assignment expressions.
 * New list? function.
 * New tuple? function.
+* Gensyms now have a simpler format that's more concise when
+  mangled (e.g., `_hyx_XsemicolonXfooXvertical_lineX1235` is now
+  `_hyx_fooXUffffX1`).
 
 Bug Fixes
 ------------------------------

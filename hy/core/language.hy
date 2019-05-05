@@ -214,7 +214,7 @@ Return series of accumulated sums (or other binary function results)."
   (instance? HySymbol s))
 
 (import [threading [Lock]])
-(setv _gensym_counter 1234)
+(setv _gensym_counter 0)
 (setv _gensym_lock (Lock))
 
 (defn gensym [&optional [g "G"]]
@@ -224,7 +224,7 @@ Return series of accumulated sums (or other binary function results)."
   (global _gensym_lock)
   (.acquire _gensym_lock)
   (try (do (setv _gensym_counter (inc _gensym_counter))
-           (setv new_symbol (HySymbol (.format "_;{0}|{1}" g _gensym_counter))))
+           (setv new_symbol (HySymbol (.format "_{}\uffff{}" g _gensym_counter))))
        (finally (.release _gensym_lock)))
   new_symbol)
 
