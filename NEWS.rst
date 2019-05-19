@@ -1,7 +1,12 @@
 .. default-role:: code
 
-Unreleased
+0.17.0
 ==============================
+
+**Warning**: Hy 0.17.x will be the last Hy versions to support Python 2,
+and we expect 0.17.0 to be the only release in this line. By the time
+0.18.0 is released (in 2020, after CPython 2 has ceased being developed),
+Hy will only support Python 3.
 
 Removals
 ------------------------------
@@ -13,16 +18,15 @@ New Features
 * Format strings with embedded Hy code (e.g., `f"The sum is {(+ x y)}"`)
   are now supported, even on Pythons earlier than 3.6.
 * Added a special form `setx` to create Python 3.8 assignment expressions.
-* New list? function.
-* New tuple? function.
+* Added new core functions `list?` and `tuple`.
 * Gensyms now have a simpler format that's more concise when
   mangled (e.g., `_hyx_XsemicolonXfooXvertical_lineX1235` is now
   `_hyx_fooXUffffX1`).
 
 Bug Fixes
 ------------------------------
-* Fixed a crash caused by errors creating temp files during bytecode
-  compilation
+* Fixed a crash caused by errors creating temporary files during
+  bytecode compilation.
 
 0.16.0
 ==============================
