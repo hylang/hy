@@ -33,7 +33,7 @@ class Install(install):
 
 install_requires = [
     'rply>=0.7.7',
-    'astor @ https://github.com/berkerpeksag/astor/archive/master.zip',
+    'astor>=0.8',
     'funcparserlib>=0.3.6',
     'clint>=0.4']
 if os.name == 'nt':
