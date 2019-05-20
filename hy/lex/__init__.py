@@ -4,11 +4,11 @@
 
 from __future__ import unicode_literals
 
+import keyword
 import re
 import sys
 import unicodedata
 
-from hy._compat import isidentifier
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
 
@@ -191,3 +191,11 @@ def read(from_file=sys.stdin, eof=""):
 
 def read_str(input):
     return read(StringIO(str(input)))
+
+
+def isidentifier(x):
+    if x in ('True', 'False', 'None'):
+        return True
+    if keyword.iskeyword(x):
+        return False
+    return x.isidentifier()

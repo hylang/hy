@@ -2,7 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import sys, keyword
+import sys
 
 PY3 = sys.version_info[0] >= 3
 PY36 = sys.version_info >= (3, 6)
@@ -15,11 +15,3 @@ def reraise(exc_type, value, traceback=None):
         raise value.with_traceback(traceback)
     finally:
         traceback = None
-
-
-def isidentifier(x):
-    if x in ('True', 'False', 'None'):
-        return True
-    if keyword.iskeyword(x):
-        return False
-    return x.isidentifier()
