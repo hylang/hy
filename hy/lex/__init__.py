@@ -8,7 +8,7 @@ import re
 import sys
 import unicodedata
 
-from hy._compat import isidentifier, UCS4
+from hy._compat import isidentifier
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
 
@@ -135,7 +135,7 @@ def mangle(s):
                else '{0}{1}{0}'.format(mangle_delim,
                    unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
                    or 'U{}'.format(unicode_char_to_hex(c)))
-            for c in unicode_to_ucs4iter(s))
+            for c in s)
 
     s = leading_underscores + s
     assert isidentifier(s)
@@ -166,19 +166,6 @@ def unmangle(s):
     s = s.replace('_', '-')
 
     return '-' * leading_underscores + s
-
-
-def unicode_to_ucs4iter(ustr):
-    # Covert a unicode string to an iterable object,
-    # elements in the object are single USC-4 unicode characters
-    if UCS4:
-        return ustr
-    ucs4_list = list(ustr)
-    for i, u in enumerate(ucs4_list):
-        if 0xD7FF < ord(u) < 0xDC00:
-            ucs4_list[i] += ucs4_list[i + 1]
-            del ucs4_list[i + 1]
-    return ucs4_list
 
 
 def read(from_file=sys.stdin, eof=""):
