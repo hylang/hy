@@ -35,7 +35,7 @@ from hy.importer import runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
-from hy._compat import builtins, PY3, FileNotFoundError
+from hy._compat import builtins, FileNotFoundError
 
 
 sys.last_type = None
@@ -661,7 +661,7 @@ def hy2py_main():
     if options.with_source:
         # need special printing on Windows in case the
         # codepage doesn't support utf-8 characters
-        if PY3 and platform.system() == "Windows":
+        if platform.system() == "Windows":
             for h in hst:
                 try:
                     print(h)
@@ -676,7 +676,7 @@ def hy2py_main():
         _ast = hy_compile(hst, '__main__', filename=filename, source=source)
 
     if options.with_ast:
-        if PY3 and platform.system() == "Windows":
+        if platform.system() == "Windows":
             _print_for_windows(astor.dump_tree(_ast))
         else:
             print(astor.dump_tree(_ast))
@@ -684,7 +684,7 @@ def hy2py_main():
         print()
 
     if not options.without_python:
-        if PY3 and platform.system() == "Windows":
+        if platform.system() == "Windows":
             _print_for_windows(astor.code_gen.to_source(_ast))
         else:
             print(astor.code_gen.to_source(_ast))

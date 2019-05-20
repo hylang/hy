@@ -9,7 +9,7 @@ import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import PY3, reraise, rename_function
+from hy._compat import reraise, rename_function
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
@@ -73,9 +73,6 @@ def tag(name):
     """
     def _(fn):
         _name = mangle('#{}'.format(name))
-
-        if not PY3:
-            _name = _name.encode('UTF-8')
 
         fn = rename_function(fn, _name)
 
