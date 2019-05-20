@@ -201,10 +201,6 @@ If the second argument `codegen` is true, generate python code instead."
   "Perform `isinstance` with reversed arguments."
   (isinstance x klass))
 
-(defn integer [x]
-  "Return Hy kind of integer for `x`."
-  (int x))
-
 (defn integer? [x]
   "Check if `x` is an integer."
   (isinstance x int))
@@ -337,10 +333,6 @@ with overlap."
   "Return the first logical true value of applying `pred` in `coll`, else None."
   (first (filter None (map pred coll))))
 
-(defn string [x]
-  "Cast `x` as the current python version's string implementation."
-  (str x))
-
 (defn string? [x]
   "Check if `x` is a string."
   (isinstance x str))
@@ -378,7 +370,7 @@ Strings numbers and even objects with the __name__ magic will work."
           (HyKeyword (unmangle value))
           (try
             (unmangle (.__name__ value))
-            (except [] (HyKeyword (string value)))))))
+            (except [] (HyKeyword (str value)))))))
 
 (defn name [value]
   "Convert `value` to a string.
@@ -391,7 +383,7 @@ Even objects with the __name__ magic will work."
           (unmangle value)
           (try
             (unmangle (. value __name__))
-            (except [] (string value))))))
+            (except [] (str value))))))
 
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`."
@@ -404,9 +396,9 @@ Even objects with the __name__ magic will work."
     combinations comp complement compress constantly count cycle dec distinct
     disassemble drop drop-last drop-while empty? eval even? every? first
     flatten float? fraction gensym group-by identity inc instance?
-    integer integer? integer-char? interleave interpose islice iterable?
+    integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list? macroexpand
     macroexpand-1 mangle merge-with multicombinations name neg? none? nth
     numeric? odd? partition permutations pos? product read read-str
-    remove repeat repeatedly rest reduce second some string string? symbol?
+    remove repeat repeatedly rest reduce second some string? symbol?
     take take-nth take-while tuple? unmangle xor tee zero? zip-longest])

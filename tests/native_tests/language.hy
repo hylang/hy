@@ -1469,11 +1469,6 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= y [5])))
 
 
-(defn test-string []
-  (assert (string? (string "a")))
-  (assert (string? (string 1)))
-  (assert (= u"unicode" (string "unicode"))))
-
 (defn test-del []
   "NATIVE: Test the behavior of del"
   (setv foo 42)

@@ -285,7 +285,7 @@ result['y in globals'] = 'y' in globals()")
   (setv s3 (gensym "xx"))
   (assert (= 0 (.find s2 "_xx\uffff")))
   (assert (not (= s2 s3)))
-  (assert (not (= (string s2) (string s3)))))
+  (assert (not (= (str s2) (str s3)))))
 
 (defn test-identity []
   "NATIVE: testing the identity function"
@@ -322,8 +322,8 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (integer? 0))
   (assert-true (integer? 3))
   (assert-true (integer? -3))
-  (assert-true (integer? (integer "-3")))
-  (assert-true (integer? (integer 3)))
+  (assert-true (integer? (int "-3")))
+  (assert-true (integer? (int 3)))
   (assert-false (integer? 4.2))
   (assert-false (integer? None))
   (assert-false (integer? "foo")))
@@ -332,7 +332,7 @@ result['y in globals'] = 'y' in globals()")
   "NATIVE: testing the integer-char? function"
   (assert-true (integer-char? "1"))
   (assert-true (integer-char? "-1"))
-  (assert-true (integer-char? (str (integer 300))))
+  (assert-true (integer-char? (str (int 300))))
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
