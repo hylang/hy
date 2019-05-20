@@ -409,9 +409,9 @@ in expansions."
  Additionally, we confirm that `require` statements are executed via loaded bytecode."
 
   (import os sys marshal types)
-  (import [hy.importer [cache-from-source]])
+  (import importlib)
 
-  (setv pyc-file (cache-from-source
+  (setv pyc-file (importlib.util.cache-from-source
                    (os.path.realpath
                      (os.path.join
                        "tests" "resources" "macro_with_require.hy"))))

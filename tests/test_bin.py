@@ -10,7 +10,7 @@ import shlex
 import subprocess
 import builtins
 
-from hy.importer import cache_from_source
+from importlib.util import cache_from_source
 
 import pytest
 
