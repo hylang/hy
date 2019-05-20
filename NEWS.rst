@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Removals
+------------------------------
+* Python 2 is no longer supported.
+
 0.17.0
 ==============================
 
