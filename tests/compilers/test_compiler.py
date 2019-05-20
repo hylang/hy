@@ -6,7 +6,6 @@ import ast
 
 from hy import compiler
 from hy.models import HyExpression, HyList, HySymbol, HyInteger
-from hy._compat import PY3
 
 
 def make_expression(*args):
@@ -64,12 +63,5 @@ def test_compiler_yield_return():
     assert len(body) == 2
     assert isinstance(body[0], ast.Expr)
     assert isinstance(body[0].value, ast.Yield)
-
-    if PY3:
-        # From 3.3+, the final statement becomes a return value
-        assert isinstance(body[1], ast.Return)
-        assert isinstance(body[1].value, ast.BinOp)
-    else:
-        # In earlier versions, the expression is not returned
-        assert isinstance(body[1], ast.Expr)
-        assert isinstance(body[1].value, ast.BinOp)
+    assert isinstance(body[1], ast.Return)
+    assert isinstance(body[1].value, ast.BinOp)
