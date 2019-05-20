@@ -1579,9 +1579,7 @@ macros()
 
 (defn test-read []
   "NATIVE: test that read takes something for stdin and reads"
-  (if-python2
-    (import [StringIO [StringIO]])
-    (import [io [StringIO]]))
+  (import [io [StringIO]])
   (import [hy.models [HyExpression]])
 
   (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))

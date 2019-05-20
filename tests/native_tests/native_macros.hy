@@ -140,11 +140,6 @@
 (assert initialized)
 (assert (test-initialized))
 
-(defn test-if-python2 []
-  (import sys)
-  (assert (= (get sys.version_info 0)
-             (if-python2 2 3))))
-
 (defn test-gensym-in-macros []
   (import ast)
   (import [astor.code-gen [to-source]])
