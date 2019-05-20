@@ -6,10 +6,10 @@ import contextlib
 import os
 import re
 import sys
+import builtins
 
 import hy.macros
 import hy.compiler
-from hy._compat import builtins
 
 
 docomplete = True

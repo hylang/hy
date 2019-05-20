@@ -28,15 +28,12 @@ import types
 import ast
 import sys
 import copy
+import builtins
 import __future__
 
 from collections import defaultdict
 from functools import reduce
 
-if PY3:
-    import builtins
-else:
-    import __builtin__ as builtins
 
 Inf = float('inf')
 

@@ -2,10 +2,6 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-try:
-    import __builtin__ as builtins
-except ImportError:
-    import builtins  # NOQA
 import sys, keyword, textwrap
 
 PY3 = sys.version_info[0] >= 3
@@ -97,8 +93,3 @@ def isidentifier(x):
     # https://bugs.python.org/issue33899
     tokens = [t for t in tokens if t[0] != T.NEWLINE]
     return len(tokens) == 2 and tokens[0][0] == T.NAME
-
-try:
-    FileNotFoundError = FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError

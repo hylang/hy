@@ -8,12 +8,11 @@ import os
 import re
 import shlex
 import subprocess
+import builtins
 
 from hy.importer import cache_from_source
 
 import pytest
-
-from hy._compat import builtins
 
 
 hy_dir = os.environ.get('HY_DIR', '')

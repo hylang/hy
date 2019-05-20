@@ -19,6 +19,7 @@ import time
 import linecache
 import hashlib
 import codeop
+import builtins
 
 import astor.code_gen
 
@@ -35,7 +36,6 @@ from hy.importer import runhy
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
-from hy._compat import builtins, FileNotFoundError
 
 
 sys.last_type = None
@@ -256,7 +256,7 @@ class HyREPL(code.InteractiveConsole, object):
                 module, f = '.'.join(parts[:-1]), parts[-1]
                 self.output_fn = getattr(importlib.import_module(module), f)
             else:
-                self.output_fn = __builtins__[mangle(output_fn)]
+                self.output_fn = getattr(builtins, mangle(output_fn))
 
         # Pre-mangle symbols for repl recent results: *1, *2, *3
         self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]

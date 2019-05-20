@@ -60,7 +60,7 @@
 
 (defn @ [a1 &rest a-rest]
   "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
-  (reduce operator.matmul a-rest a1)))
+  (reduce operator.matmul a-rest a1))
 
 (defn << [a1 a2 &rest a-rest]
   "Shadowed `<<` operator performs left-shift on `a1` by `a2`, ..., `a-rest`."
