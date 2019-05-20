@@ -9,7 +9,6 @@ from functools import wraps
 
 from rply import ParserGenerator
 
-from hy._compat import str_type
 from hy.models import (HyBytes, HyComplex, HyDict, HyExpression, HyFloat,
                        HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol)
 from .lexer import lexer
@@ -214,7 +213,7 @@ def t_string(state, p):
         raise LexException.from_lexer("Can't convert {} to a HyString".format(p[0].value),
                                       state, p[0])
     return (HyString(s, is_format = is_format)
-        if isinstance(s, str_type)
+        if isinstance(s, str)
         else HyBytes(s))
 
 

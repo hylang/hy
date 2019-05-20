@@ -7,7 +7,7 @@
   re
   datetime
   collections
-  [hy._compat [PY3 PY36 str-type bytes-type long-type]]
+  [hy._compat [PY36]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
 (try
@@ -84,10 +84,10 @@
     (+ "(" (-cat x) ")"))))
 
 (hy-repr-register [HySymbol HyKeyword] str)
-(hy-repr-register [str-type bytes-type] (fn [x]
+(hy-repr-register [str bytes] (fn [x]
   (setv r (.lstrip (-base-repr x) "ub"))
   (+
-    (if (instance? bytes-type x) "b" "")
+    (if (instance? bytes x) "b" "")
     (if (.startswith "\"" r)
       ; If Python's built-in repr produced a double-quoted string, use
       ; that.
@@ -96,10 +96,6 @@
       ; convert it.
       (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\"")))))
 (hy-repr-register bool str)
-(if (not PY3) (hy-repr-register int (fn [x]
-  (.format "(int {})" (-base-repr x)))))
-(if (not PY3) (hy-repr-register long_type (fn [x]
-  (.rstrip (-base-repr x) "L"))))
 (hy-repr-register float (fn [x]
   (if
     (isnan x)  "NaN"
@@ -131,7 +127,7 @@
     (-repr-time-innards x))))
 (defn -repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter identity [
-    (if x.microsecond (str-type x.microsecond))
+    (if x.microsecond (str x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if (and PY36 (!= x.fold 0)) (+ ":fold " (hy-repr x.fold)))])))))
 (defn -strftime-0 [x fmt]

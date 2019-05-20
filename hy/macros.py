@@ -9,7 +9,7 @@ import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import PY3, string_types, reraise, rename_function
+from hy._compat import PY3, reraise, rename_function
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
@@ -156,7 +156,7 @@ def require(source_module, target_module, assignments, prefix=""):
         parent_frame = inspect.stack()[1][0]
         target_namespace = parent_frame.f_globals
         target_module = target_namespace.get('__name__', None)
-    elif isinstance(target_module, string_types):
+    elif isinstance(target_module, str):
         target_module = importlib.import_module(target_module)
         target_namespace = target_module.__dict__
     elif inspect.ismodule(target_module):

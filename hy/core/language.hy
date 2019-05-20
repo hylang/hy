@@ -11,7 +11,6 @@
 (import [fractions [Fraction :as fraction]])
 (import operator)  ; shadow not available yet
 (import sys)
-(import [hy._compat [long-type]]) ; long for python2, int for python3
 (import [hy.models [HySymbol HyKeyword]])
 (import [hy.lex [tokenize mangle unmangle read read-str]])
 (import [hy.lex.exceptions [LexException PrematureEndOfInput]])
@@ -254,11 +253,11 @@ Return series of accumulated sums (or other binary function results)."
 
 (defn integer [x]
   "Return Hy kind of integer for `x`."
-  (long-type x))
+  (int x))
 
 (defn integer? [x]
   "Check if `x` is an integer."
-  (isinstance x (, int long-type)))
+  (isinstance x int))
 
 (defn integer-char? [x]
   "Check if char `x` parses as an integer."

@@ -14,8 +14,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
-from hy._compat import (string_types, str_type, bytes_type, long_type, PY3,
-                        PY36, PY38, reraise)
+from hy._compat import (PY3, PY36, PY38, reraise)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
@@ -512,7 +511,7 @@ class HyASTCompiler(object):
                 compiled_value = self.compile(value)
                 ret += compiled_value
 
-                arg = str_type(expr)[1:]
+                arg = str(expr)[1:]
                 keywords.append(asty.keyword(
                     expr, arg=ast_str(arg), value=compiled_value.force_expr))
 
@@ -1358,7 +1357,7 @@ class HyASTCompiler(object):
     def compile_maths_expression(self, expr, root, args):
         if len(args) == 0:
             # Return the identity element for this operator.
-            return asty.Num(expr, n=long_type(
+            return asty.Num(expr, n=(
                 {"+": 0, "|": 0, "*": 1}[root]))
 
         if len(args) == 1:
@@ -1763,7 +1762,7 @@ class HyASTCompiler(object):
 
     @builds_model(HyInteger, HyFloat, HyComplex)
     def compile_numeric_literal(self, x):
-        f = {HyInteger: long_type,
+        f = {HyInteger: int,
              HyFloat: float,
              HyComplex: complex}[type(x)]
         return asty.Num(x, n=f(x))
@@ -1810,9 +1809,9 @@ class HyASTCompiler(object):
     def compile_string(self, string):
         if type(string) is HyString and string.is_format:
             # This is a format string (a.k.a. an f-string).
-            return self._format_string(string, str_type(string))
+            return self._format_string(string, str(string))
         node = asty.Bytes if PY3 and type(string) is HyBytes else asty.Str
-        f = bytes_type if type(string) is HyBytes else str_type
+        f = bytes if type(string) is HyBytes else str
         return node(string, s=f(string))
 
     def _format_string(self, string, rest, allow_recursion=True):
@@ -1859,7 +1858,7 @@ class HyASTCompiler(object):
            try:
                model, item = parse_one_thing(item)
            except (ValueError, LexException) as e:
-               raise self._syntax_error(string, "f-string: " + str_type(e))
+               raise self._syntax_error(string, "f-string: " + str(e))
 
            # Look for a conversion character.
            item = item.lstrip()
@@ -1933,7 +1932,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
     module = getattr(compiler, 'module', None) or module
 
-    if isinstance(module, string_types):
+    if isinstance(module, str):
         if module.startswith('<') and module.endswith('>'):
             module = types.ModuleType(module)
         else:
@@ -2098,7 +2097,7 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
     """
     module = get_compiler_module(module, compiler, False)
 
-    if isinstance(module, string_types):
+    if isinstance(module, str):
         if module.startswith('<') and module.endswith('>'):
             module = types.ModuleType(module)
         else:

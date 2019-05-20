@@ -8,7 +8,7 @@ import re
 import sys
 import unicodedata
 
-from hy._compat import str_type, isidentifier, UCS4
+from hy._compat import isidentifier, UCS4
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
 
@@ -116,7 +116,7 @@ def mangle(s):
 
     assert s
 
-    s = str_type(s)
+    s = str(s)
     s = s.replace("-", "_")
     s2 = s.lstrip('_')
     leading_underscores = '_' * (len(s) - len(s2))
@@ -147,7 +147,7 @@ def unmangle(s):
     form. This may not round-trip, because different Hy symbol names can
     mangle to the same Python identifier."""
 
-    s = str_type(s)
+    s = str(s)
 
     s2 = s.lstrip('_')
     leading_underscores = len(s) - len(s2)
@@ -203,4 +203,4 @@ def read(from_file=sys.stdin, eof=""):
 
 
 def read_str(input):
-    return read(StringIO(str_type(input)))
+    return read(StringIO(str(input)))

@@ -17,11 +17,6 @@ PY38 = sys.version_info >= (3, 8)
 # It is always true on Pythons >= 3.3, which use USC-4 on all systems.
 UCS4 = sys.maxunicode == 0x10FFFF
 
-str_type     = str   if PY3 else unicode      # NOQA
-bytes_type   = bytes if PY3 else str          # NOQA
-long_type    = int   if PY3 else long         # NOQA
-string_types = str   if PY3 else basestring   # NOQA
-
 #
 # Inspired by the same-named `six` functions.
 #

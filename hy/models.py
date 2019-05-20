@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 from contextlib import contextmanager
 from math import isnan, isinf
 from hy import _initialize_env_var
-from hy._compat import PY3, str_type, bytes_type, long_type, string_types
 from hy.errors import HyWrapperError
 from fractions import Fraction
 from clint.textui import colored
@@ -88,7 +87,7 @@ def repr_indent(obj):
     return repr(obj).replace("\n", "\n  ")
 
 
-class HyString(HyObject, str_type):
+class HyString(HyObject, str):
     """
     Generic Hy String object. Helpful to store string literals from Hy
     scripts. It's either a ``str`` or a ``unicode``, depending on the
@@ -100,20 +99,20 @@ class HyString(HyObject, str_type):
         value.brackets = brackets
         return value
 
-_wrappers[str_type] = HyString
+_wrappers[str] = HyString
 
 
-class HyBytes(HyObject, bytes_type):
+class HyBytes(HyObject, bytes):
     """
     Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending
     on the Python version.
     """
     pass
 
-_wrappers[bytes_type] = HyBytes
+_wrappers[bytes] = HyBytes
 
 
-class HySymbol(HyObject, str_type):
+class HySymbol(HyObject, str):
     """
     Hy Symbol. Basically a string.
     """
@@ -170,42 +169,39 @@ def strip_digit_separators(number):
     # Don't strip a _ or , if it's the first character, as _42 and
     # ,42 aren't valid numbers
     return (number[0] + number[1:].replace("_", "").replace(",", "")
-            if isinstance(number, string_types) and len(number) > 1
+            if isinstance(number, str) and len(number) > 1
             else number)
 
 
-class HyInteger(HyObject, long_type):
+class HyInteger(HyObject, int):
     """
     Internal representation of a Hy Integer. May raise a ValueError as if
-    int(foo) was called, given HyInteger(foo). On python 2.x long will
-    be used instead
+    int(foo) was called, given HyInteger(foo).
     """
 
     def __new__(cls, number, *args, **kwargs):
-        if isinstance(number, string_types):
+        if isinstance(number, str):
             number = strip_digit_separators(number)
             bases = {"0x": 16, "0o": 8, "0b": 2}
             for leader, base in bases.items():
                 if number.startswith(leader):
                     # We've got a string, known leader, set base.
-                    number = long_type(number, base=base)
+                    number = int(number, base=base)
                     break
             else:
                 # We've got a string, no known leader; base 10.
-                number = long_type(number, base=10)
+                number = int(number, base=10)
         else:
             # We've got a non-string; convert straight.
-            number = long_type(number)
+            number = int(number)
         return super(HyInteger, cls).__new__(cls, number)
 
 
 _wrappers[int] = HyInteger
-if not PY3:  # do not add long on python3
-    _wrappers[long_type] = HyInteger
 
 
 def check_inf_nan_cap(arg, value):
-    if isinstance(arg, string_types):
+    if isinstance(arg, str):
         if isinf(value) and "i" in arg.lower() and "Inf" not in arg:
             raise ValueError('Inf must be capitalized as "Inf"')
         if isnan(value) and "NaN" not in arg:
@@ -233,7 +229,7 @@ class HyComplex(HyObject, complex):
     """
 
     def __new__(cls, real, imag=0, *args, **kwargs):
-        if isinstance(real, string_types):
+        if isinstance(real, str):
             value = super(HyComplex, cls).__new__(
                 cls, strip_digit_separators(real)
             )
