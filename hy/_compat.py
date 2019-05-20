@@ -17,27 +17,6 @@ def reraise(exc_type, value, traceback=None):
         traceback = None
 
 
-code_obj_args = ['argcount', 'kwonlyargcount', 'nlocals', 'stacksize',
-                 'flags', 'code', 'consts', 'names', 'varnames',
-                 'filename', 'name', 'firstlineno', 'lnotab', 'freevars',
-                 'cellvars']
-
-def rename_function(func, new_name):
-    """Creates a copy of a function and [re]sets the name at the code-object
-    level.
-    """
-    c = func.__code__
-    new_code = type(c)(*[getattr(c, 'co_{}'.format(a))
-                         if a != 'name' else str(new_name)
-                         for a in code_obj_args])
-
-    _fn = type(func)(new_code, func.__globals__, str(new_name),
-                     func.__defaults__, func.__closure__)
-    _fn.__dict__.update(func.__dict__)
-
-    return _fn
-
-
 def isidentifier(x):
     if x in ('True', 'False', 'None', 'print'):
         # `print` is special-cased here because Python 2's

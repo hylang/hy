@@ -9,7 +9,7 @@ import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import reraise, rename_function
+from hy._compat import reraise
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
@@ -381,3 +381,24 @@ def tag_macroexpand(tag, tree, module):
         expr.module = inspect.getmodule(tag_macro)
 
     return replace_hy_obj(expr, tree)
+
+
+def rename_function(func, new_name):
+    """Creates a copy of a function and [re]sets the name at the code-object
+    level.
+    """
+    c = func.__code__
+    new_code = type(c)(*[getattr(c, 'co_{}'.format(a))
+                         if a != 'name' else str(new_name)
+                         for a in code_obj_args])
+
+    _fn = type(func)(new_code, func.__globals__, str(new_name),
+                     func.__defaults__, func.__closure__)
+    _fn.__dict__.update(func.__dict__)
+
+    return _fn
+
+code_obj_args = ['argcount', 'kwonlyargcount', 'nlocals', 'stacksize',
+                 'flags', 'code', 'consts', 'names', 'varnames',
+                 'filename', 'name', 'firstlineno', 'lnotab', 'freevars',
+                 'cellvars']
