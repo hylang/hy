@@ -14,7 +14,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
-from hy._compat import (PY3, PY36, PY38, reraise)
+from hy._compat import (PY36, PY38, reraise)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
@@ -95,15 +95,12 @@ def calling_module(n=1):
 def ast_str(x, piecewise=False):
     if piecewise:
         return ".".join(ast_str(s) if s else "" for s in x.split("."))
-    x = mangle(x)
-    return x if PY3 else x.encode('UTF8')
+    return mangle(x)
 
 
 _special_form_compilers = {}
 _model_compilers = {}
-_decoratables = (ast.FunctionDef, ast.ClassDef)
-if PY3:
-    _decoratables += (ast.AsyncFunctionDef,)
+_decoratables = (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
 # _bad_roots are fake special operators, which are used internally
 # by other special forms (e.g., `except` in `try`) but can't be
 # used to construct special forms themselves.
@@ -175,7 +172,7 @@ class Result(object):
     object gets added to a Result object, it gets converted on-the-fly.
     """
     __slots__ = ("imports", "stmts", "temp_variables",
-                 "_expr", "__used_expr", "contains_yield")
+                 "_expr", "__used_expr")
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -186,14 +183,12 @@ class Result(object):
         self.stmts = []
         self.temp_variables = []
         self._expr = None
-        self.contains_yield = False
 
         self.__used_expr = False
 
         # XXX: Make sure we only have AST where we should.
         for kwarg in kwargs:
-            if kwarg not in ["imports", "contains_yield", "stmts", "expr",
-                             "temp_variables"]:
+            if kwarg not in ["imports", "stmts", "expr", "temp_variables"]:
                 raise TypeError(
                     "%s() got an unexpected keyword argument '%s'" % (
                         self.__class__.__name__, kwarg))
@@ -273,9 +268,7 @@ class Result(object):
             if isinstance(var, ast.Name):
                 var.id = new_name
                 var.arg = new_name
-            elif isinstance(var, ast.FunctionDef):
-                var.name = new_name
-            elif PY3 and isinstance(var, ast.AsyncFunctionDef):
+            elif isinstance(var, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 var.name = new_name
             else:
                 raise TypeError("Don't know how to rename a %s!" % (
@@ -311,22 +304,17 @@ class Result(object):
         result.stmts = self.stmts + other.stmts
         result.expr = other.expr
         result.temp_variables = other.temp_variables
-        result.contains_yield = False
-        if self.contains_yield or other.contains_yield:
-            result.contains_yield = True
 
         return result
 
     def __str__(self):
         return (
-            "Result(imports=[%s], stmts=[%s], "
-            "expr=%s, contains_yield=%s)"
-        ) % (
+            "Result(imports=[%s], stmts=[%s], expr=%s)"
+        % (
             ", ".join(ast.dump(x) for x in self.imports),
             ", ".join(ast.dump(x) for x in self.stmts),
-            ast.dump(self.expr) if self.expr else None,
-            self.contains_yield
-        )
+            ast.dump(self.expr) if self.expr else None
+        ))
 
 
 def is_unpack(kind, x):
@@ -386,11 +374,7 @@ class HyASTCompiler(object):
             for stdlib_module in hy.core.STDLIB:
                 mod = importlib.import_module(stdlib_module)
                 for e in map(ast_str, getattr(mod, 'EXPORTS', [])):
-                    if getattr(mod, e) is not getattr(builtins, e, ''):
-                        # Don't bother putting a name in _stdlib if it
-                        # points to a builtin with the same name. This
-                        # prevents pointless imports.
-                        self._stdlib[e] = stdlib_module
+                    self._stdlib[e] = stdlib_module
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -454,8 +438,7 @@ class HyASTCompiler(object):
     def _syntax_error(self, expr, message):
         return HySyntaxError(message, expr, self.filename, self.source)
 
-    def _compile_collect(self, exprs, with_kwargs=False, dict_display=False,
-                         oldpy_unpack=False):
+    def _compile_collect(self, exprs, with_kwargs=False, dict_display=False):
         """Collect the expression contexts from a list of compiled expression.
 
         This returns a list of the expression contexts, and the sum of the
@@ -465,34 +448,18 @@ class HyASTCompiler(object):
         compiled_exprs = []
         ret = Result()
         keywords = []
-        oldpy_starargs = None
-        oldpy_kwargs = None
 
         exprs_iter = iter(exprs)
         for expr in exprs_iter:
 
-            if not PY3 and oldpy_unpack and is_unpack("iterable", expr):
-                if oldpy_starargs:
-                    raise self._syntax_error(expr,
-                        "Pythons < 3.5 allow only one `unpack-iterable` per call")
-                oldpy_starargs = self.compile(expr[1])
-                ret += oldpy_starargs
-                oldpy_starargs = oldpy_starargs.force_expr
-
-            elif is_unpack("mapping", expr):
+            if is_unpack("mapping", expr):
                 ret += self.compile(expr[1])
-                if PY3:
-                    if dict_display:
-                        compiled_exprs.append(None)
-                        compiled_exprs.append(ret.force_expr)
-                    elif with_kwargs:
-                        keywords.append(asty.keyword(
-                            expr, arg=None, value=ret.force_expr))
-                elif oldpy_unpack:
-                    if oldpy_kwargs:
-                        raise self._syntax_error(expr,
-                            "Pythons < 3.5 allow only one `unpack-mapping` per call")
-                    oldpy_kwargs = ret.force_expr
+                if dict_display:
+                    compiled_exprs.append(None)
+                    compiled_exprs.append(ret.force_expr)
+                elif with_kwargs:
+                    keywords.append(asty.keyword(
+                        expr, arg=None, value=ret.force_expr))
 
             elif with_kwargs and isinstance(expr, HyKeyword):
                 try:
@@ -516,10 +483,7 @@ class HyASTCompiler(object):
                 ret += self.compile(expr)
                 compiled_exprs.append(ret.force_expr)
 
-        if oldpy_unpack:
-            return compiled_exprs, ret, keywords, oldpy_starargs, oldpy_kwargs
-        else:
-            return compiled_exprs, ret, keywords
+        return compiled_exprs, ret, keywords
 
     def _compile_branch(self, exprs):
         """Make a branch out of an iterable of Result objects
@@ -560,7 +524,7 @@ class HyASTCompiler(object):
             new_name = ast.Subscript(value=name.value, slice=name.slice)
         elif isinstance(name, ast.Attribute):
             new_name = ast.Attribute(value=name.value, attr=name.attr)
-        elif PY3 and isinstance(name, ast.Starred):
+        elif isinstance(name, ast.Starred):
             new_name = ast.Starred(
                 value=self._storeize(expr, name.value, func))
         else:
@@ -646,22 +610,9 @@ class HyASTCompiler(object):
 
     @special("unpack-iterable", [FORM])
     def compile_unpack_iterable(self, expr, root, arg):
-        if not PY3:
-            raise self._syntax_error(expr,
-                "`unpack-iterable` isn't allowed here")
         ret = self.compile(arg)
         ret += asty.Starred(expr, value=ret.force_expr, ctx=ast.Load())
         return ret
-
-    @special([(not PY3, "exec*")], [FORM, maybe(FORM), maybe(FORM)])
-    # Under Python 3, `exec` is a function rather than a statement type, so Hy
-    # doesn't need a special form for it.
-    def compile_exec(self, expr, root, body, globals_, locals_):
-        return asty.Exec(
-            expr,
-            body=self.compile(body).force_expr,
-            globals=self.compile(globals_).force_expr if globals_ is not None else None,
-            locals=self.compile(locals_).force_expr if locals_ is not None else None)
 
     @special("do", [many(FORM)])
     def compile_do(self, expr, root, body):
@@ -677,9 +628,6 @@ class HyASTCompiler(object):
             exc = exc.force_expr
 
         if cause is not None:
-            if not PY3:
-                raise self._syntax_error(expr,
-                    "raise from only supported in python 3")
             cause = self.compile(cause)
             ret += cause
             cause = cause.force_expr
@@ -735,35 +683,17 @@ class HyASTCompiler(object):
 
         returnable = Result(
             expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),
-            temp_variables=[return_var],
-            contains_yield=body.contains_yield)
+            temp_variables=[return_var])
         body += body.expr_as_stmt() if orelse else asty.Assign(
             expr, targets=[return_var], value=body.force_expr)
         body = body.stmts or [asty.Pass(expr)]
 
-        if PY3:
-            # Python 3.3 features a merge of TryExcept+TryFinally into Try.
-            x = asty.Try(
-                expr,
-                body=body,
-                handlers=handlers,
-                orelse=orelse,
-                finalbody=finalbody)
-        elif finalbody and handlers:
-            x = asty.TryFinally(
-                expr,
-                body=[asty.TryExcept(
-                    expr,
-                    body=body,
-                    handlers=handlers,
-                    orelse=orelse)],
-                finalbody=finalbody)
-        elif finalbody:
-            x = asty.TryFinally(
-                expr, body=body, finalbody=finalbody)
-        else:
-            x = asty.TryExcept(
-                expr, body=body, handlers=handlers, orelse=orelse)
+        x = asty.Try(
+            expr,
+            body=body,
+            handlers=handlers,
+            orelse=orelse,
+            finalbody=finalbody)
         return handler_results + x + returnable
 
     def _compile_catch_expression(self, expr, var, exceptions, body):
@@ -780,9 +710,7 @@ class HyASTCompiler(object):
 
         name = None
         if len(exceptions) == 2:
-            name = exceptions[0]
-            name = (ast_str(name) if PY3
-                    else self._storeize(name, self.compile(name)))
+            name = ast_str(exceptions[0])
 
         exceptions_list = exceptions[-1] if exceptions else HyList()
         if isinstance(exceptions_list, HyList):
@@ -896,19 +824,19 @@ class HyASTCompiler(object):
             msg = self.compile(msg).force_expr
         return ret + asty.Assert(expr, test=e, msg=msg)
 
-    @special(["global", (PY3, "nonlocal")], [oneplus(SYM)])
+    @special(["global", "nonlocal"], [oneplus(SYM)])
     def compile_global_or_nonlocal(self, expr, root, syms):
         node = asty.Global if root == "global" else asty.Nonlocal
         return node(expr, names=list(map(ast_str, syms)))
 
     @special("yield", [maybe(FORM)])
     def compile_yield_expression(self, expr, root, arg):
-        ret = Result(contains_yield=(not PY3))
+        ret = Result()
         if arg is not None:
             ret += self.compile(arg)
         return ret + asty.Yield(expr, value=ret.force_expr)
 
-    @special([(PY3, "yield-from"), (PY3, "await")], [FORM])
+    @special(["yield-from", "await"], [FORM])
     def compile_yield_from_or_await_expression(self, expr, root, arg):
         ret = Result() + self.compile(arg)
         node = asty.YieldFrom if root == "yield-from" else asty.Await
@@ -987,7 +915,7 @@ class HyASTCompiler(object):
         fn.stmts[-1].decorator_list = decs + fn.stmts[-1].decorator_list
         return ret + fn
 
-    @special(["with*", (PY3, "with/a*")],
+    @special(["with*", "with/a*"],
              [brackets(FORM, maybe(FORM)), many(FORM)])
     def compile_with_expression(self, expr, root, args, body):
         thing, ctx = (None, args[0]) if args[1] is None else args
@@ -1011,14 +939,11 @@ class HyASTCompiler(object):
         the_with = node(expr,
                         context_expr=ctx.force_expr,
                         optional_vars=thing,
-                        body=body.stmts)
-
-        if PY3:
-            the_with.items = [ast.withitem(context_expr=ctx.force_expr,
-                                           optional_vars=thing)]
+                        body=body.stmts,
+                        items=[ast.withitem(context_expr=ctx.force_expr,
+                                            optional_vars=thing)])
 
         ret = Result(stmts=[initial_assign]) + ctx + the_with
-        ret.contains_yield = ret.contains_yield or body.contains_yield
         # And make our expression context our temp variable
         expr_name = asty.Name(expr, id=ast_str(var), ctx=ast.Load())
 
@@ -1092,7 +1017,6 @@ class HyASTCompiler(object):
             # The desired comprehension can't be expressed as a
             # real Python comprehension. We'll write it as a nested
             # loop in a function instead.
-            contains_yield = []
             def f(parts):
                 # This function is called recursively to construct
                 # the nested loop.
@@ -1100,8 +1024,6 @@ class HyASTCompiler(object):
                     if is_for:
                         if body:
                             bd = self._compile_branch(body)
-                            if bd.contains_yield:
-                                contains_yield.append(True)
                             return bd + bd.expr_as_stmt()
                         return Result(stmts=[asty.Pass(expr)])
                     if node_class is asty.DictComp:
@@ -1132,9 +1054,7 @@ class HyASTCompiler(object):
                 else:
                     raise ValueError("can't happen")
             if is_for:
-                ret = f(parts)
-                ret.contains_yield = bool(contains_yield)
-                return ret
+                return f(parts)
             fname = self.get_anon_var()
             # Define the generator function.
             ret = Result() + asty.FunctionDef(
@@ -1343,12 +1263,11 @@ class HyASTCompiler(object):
              ">>": ast.RShift,
              "|": ast.BitOr,
              "^": ast.BitXor,
-             "&": ast.BitAnd}
-    if PY3:
-        m_ops["@"] = ast.MatMult
+             "&": ast.BitAnd,
+             "@": ast.MatMult}
 
     @special(["+", "*", "|"], [many(FORM)])
-    @special(["-", "/", "&", (PY3, "@")], [oneplus(FORM)])
+    @special(["-", "/", "&", "@"], [oneplus(FORM)])
     @special(["**", "//", "<<", ">>"], [times(2, Inf, FORM)])
     @special(["%", "^"], [times(2, 2, FORM)])
     def compile_maths_expression(self, expr, root, args):
@@ -1407,9 +1326,7 @@ class HyASTCompiler(object):
     def _compile_assign(self, root, name, result):
 
         str_name = "%s" % name
-        if str_name in (["None"] + (["True", "False"] if PY3 else [])):
-            # Python 2 allows assigning to True and False, although
-            # this is rarely wise.
+        if str_name in ("None", "True", "False"):
             raise self._syntax_error(name,
                 "Can't assign to `%s'" % str_name)
 
@@ -1473,13 +1390,12 @@ class HyASTCompiler(object):
             expr, test=cond_compiled.force_expr,
             body=body.stmts or [asty.Pass(expr)],
             orelse=orel.stmts)
-        ret.contains_yield = body.contains_yield
 
         return ret
 
     NASYM = some(lambda x: isinstance(x, HySymbol) and x not in (
         "&optional", "&rest", "&kwonly", "&kwargs"))
-    @special(["fn", "fn*", (PY3, "fn/a")], [
+    @special(["fn", "fn*", "fn/a"], [
         # The starred version is for internal use (particularly, in the
         # definition of `defn`). It ensures that a FunctionDef is
         # produced rather than a Lambda.
@@ -1497,25 +1413,14 @@ class HyASTCompiler(object):
 
         mandatory, optional, rest, kwonly, kwargs = params
         optional, defaults, ret = self._parse_optional_args(optional)
-        if kwonly is not None and not PY3:
-            raise self._syntax_error(params,
-                "&kwonly parameters require Python 3")
         kwonly, kw_defaults, ret2 = self._parse_optional_args(kwonly, True)
         ret += ret2
         main_args = mandatory + optional
 
-        if PY3:
-            # Python 3.4+ requires that args are an ast.arg object, rather
-            # than an ast.Name or bare string.
-            main_args, kwonly, [rest], [kwargs] = (
-                [[x and asty.arg(x, arg=ast_str(x), annotation=None)
-                  for x in o]
-                 for o in (main_args or [], kwonly or [], [rest], [kwargs])])
-        else:
-            main_args = [asty.Name(x, id=ast_str(x), ctx=ast.Param())
-                         for x in main_args]
-            rest = rest and ast_str(rest)
-            kwargs = kwargs and ast_str(kwargs)
+        main_args, kwonly, [rest], [kwargs] = (
+            [[x and asty.arg(x, arg=ast_str(x), annotation=None)
+              for x in o]
+             for o in (main_args or [], kwonly or [], [rest], [kwargs])])
 
         args = ast.arguments(
             args=main_args, defaults=defaults,
@@ -1529,13 +1434,7 @@ class HyASTCompiler(object):
             return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
         if body.expr:
-            if body.contains_yield and not PY3:
-                # Prior to PEP 380 (introduced in Python 3.3)
-                # generators may not have a value in a return
-                # statement.
-                body += body.expr_as_stmt()
-            else:
-                body += asty.Return(body.expr, value=body.expr)
+            body += asty.Return(body.expr, value=body.expr)
 
         name = self.get_anon_var()
 
@@ -1581,7 +1480,7 @@ class HyASTCompiler(object):
         base_list, docstring, attrs, body = rest or ([[]], None, None, [])
 
         bases_expr, bases, keywords = (
-            self._compile_collect(base_list[0], with_kwargs=PY3))
+            self._compile_collect(base_list[0], with_kwargs=True))
 
         bodyr = Result()
 
@@ -1750,12 +1649,10 @@ class HyASTCompiler(object):
         # a typecheck, eg (type :foo)
         with_kwargs = root not in (
             "type", "HyKeyword", "keyword", "name", "keyword?", "identity")
-        args, ret, keywords, oldpy_star, oldpy_kw = self._compile_collect(
-            args, with_kwargs, oldpy_unpack=True)
+        args, ret, keywords = self._compile_collect(args, with_kwargs)
 
         return func + ret + asty.Call(
-            expr, func=func.expr, args=args, keywords=keywords,
-            starargs=oldpy_star, kwargs=oldpy_kw)
+            expr, func=func.expr, args=args, keywords=keywords)
 
     @builds_model(HyInteger, HyFloat, HyComplex)
     def compile_numeric_literal(self, x):
@@ -1807,7 +1704,7 @@ class HyASTCompiler(object):
         if type(string) is HyString and string.is_format:
             # This is a format string (a.k.a. an f-string).
             return self._format_string(string, str(string))
-        node = asty.Bytes if PY3 and type(string) is HyBytes else asty.Str
+        node = asty.Bytes if type(string) is HyBytes else asty.Str
         f = bytes if type(string) is HyBytes else str
         return node(string, s=f(string))
 
