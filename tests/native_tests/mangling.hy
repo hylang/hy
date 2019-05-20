@@ -3,9 +3,6 @@
 ;; license. See the LICENSE.
 
 
-(import [hy._compat [PY3]])
-
-
 (defn test-hyphen []
   (setv a-b 1)
   (assert (= a-b 1))
@@ -63,9 +60,7 @@
 (defn test-higher-unicode []
   (setv 😂 "emoji")
   (assert (= 😂 "emoji"))
-  (if PY3
-    (assert (= hyx_Xface_with_tears_of_joyX "emoji"))
-    (assert (= hyx_XU1f602X "emoji"))))
+  (assert (= hyx_Xface_with_tears_of_joyX "emoji")))
 
 
 (defn test-nameless-unicode []

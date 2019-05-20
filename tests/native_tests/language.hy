@@ -11,7 +11,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY3 PY37 PY38]])
+(import [hy._compat [PY38]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -71,13 +71,12 @@
        (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
   (try (eval '(defn None [] (print "hello")))
        (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
-  (when PY3
-    (try (eval '(setv False 1))
-         (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
-    (try (eval '(setv True 0))
-         (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
-    (try (eval '(defn True [] (print "hello")))
-         (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))))
+  (try (eval '(setv False 1))
+       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
+  (try (eval '(setv True 0))
+       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
+  (try (eval '(defn True [] (print "hello")))
+       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e))))))
 
 
 (defn test-setv-pairs []
@@ -513,9 +512,7 @@
   (setv passed False)
   (try
    (raise)
-   ;; Python 2 raises IndexError here (due to the previous test)
-   ;; Python 3 raises RuntimeError
-   (except [[IndexError RuntimeError]]
+   (except [RuntimeError]
      (setv passed True)))
   (assert passed)
 
@@ -747,16 +744,11 @@
 (defn test-yield-with-return []
   "NATIVE: test yield with return"
   (defn gen [] (yield 3) "goodbye")
-  (if PY3
-    (do (setv gg (gen))
-        (assert (= 3 (next gg)))
-        (try (next gg)
-             (except [e StopIteration] (assert (hasattr e "value"))
-                                       (assert (= (getattr e "value") "goodbye")))))
-    (do (setv gg (gen))
-        (assert (= 3 (next gg)))
-        (try (next gg)
-             (except [e StopIteration] (assert (not (hasattr e "value"))))))))
+  (setv gg (gen))
+  (assert (= 3 (next gg)))
+  (try (next gg)
+       (except [e StopIteration] (assert (hasattr e "value"))
+                                 (assert (= (getattr e "value") "goodbye")))))
 
 
 (defn test-yield-in-try []
@@ -1242,19 +1234,14 @@ cee\"} dee" "ey bee\ncee dee"))
   ; Conversion characters and format specifiers
   (setv p:9 "other")
   (setv !r "bar")
-  (defn u [s]
-    ; Add a "u" prefix for Python 2.
-    (if PY3
-      s
-      (.replace (.replace s "'" "u'" 1) "  " " " 1)))
-  (assert (= f"a{p !r}" (u "a'xyzzy'")))
+  (assert (= f"a{p !r}" "a'xyzzy'"))
   (assert (= f"a{p :9}" "axyzzy    "))
   (assert (= f"a{p:9}" "aother"))
-  (assert (= f"a{p !r :9}" (u "a'xyzzy'  ")))
-  (assert (= f"a{p !r:9}" (u "a'xyzzy'  ")))
+  (assert (= f"a{p !r :9}" "a'xyzzy'  "))
+  (assert (= f"a{p !r:9}" "a'xyzzy'  "))
   (assert (= f"a{p:9 :9}" "aother    "))
   (assert (= f"a{!r}" "abar"))
-  (assert (= f"a{!r !r}" (u "a'bar'")))
+  (assert (= f"a{!r !r}" "a'bar'"))
 
   ; Fun with `r`
   (assert (= f"hello {r\"\\n\"}" r"hello \n"))
@@ -1278,7 +1265,7 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= f"{(C) :  {(str (+ 1 1)) !r :x<5}}" "C[  '2'xx]"))
 
   ; Format bracket strings
-  (assert (= #[f[a{p !r :9}]f] (u "a'xyzzy'  ")))
+  (assert (= #[f[a{p !r :9}]f] "a'xyzzy'  "))
   (assert (= #[f-string[result: {value :{width}.{precision}}]f-string]
     "result:      12.34")))
 
@@ -1549,17 +1536,12 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (assert (= (disassemble '(do (leaky) (leaky) (macros))) (cond
-    [PY3 (.format "Module(
+  (assert (= (disassemble '(do (leaky) (leaky) (macros)))
+    (.format "Module(
     body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))]{})"
-      (if PY38 ",\n    type_ignores=[]" ""))]
-    [True "Module(
-    body=[
-        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
-        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[], starargs=None, kwargs=None)),
-        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[], starargs=None, kwargs=None))])"])))
+      (if PY38 ",\n    type_ignores=[]" ""))))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
              "leaky()
 leaky()

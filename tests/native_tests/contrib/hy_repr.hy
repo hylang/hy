@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [hy._compat [PY3 PY36 PY37]]
+  [hy._compat [PY36 PY37]]
   [math [isnan]]
   [hy.contrib.hy-repr [hy-repr hy-repr-register]])
 
@@ -79,10 +79,10 @@
   (assert (is (type (get orig 1)) float))
   (assert (is (type (get result 1)) HyFloat)))
 
-(when PY3 (defn test-dict-views []
+(defn test-dict-views []
   (assert (= (hy-repr (.keys {1 2})) "(dict-keys [1])"))
   (assert (= (hy-repr (.values {1 2})) "(dict-values [2])"))
-  (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])"))))
+  (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])")))
 
 (defn test-datetime []
   (import [datetime :as D])
@@ -91,9 +91,8 @@
     "(datetime.datetime 2009 1 15 15 27 5)"))
   (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123))
     "(datetime.datetime 2009 1 15 15 27 5 123)"))
-  (when PY3
-    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123 :tzinfo D.timezone.utc))
-      "(datetime.datetime 2009 1 15 15 27 5 123 :tzinfo datetime.timezone.utc)")))
+  (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123 :tzinfo D.timezone.utc))
+    "(datetime.datetime 2009 1 15 15 27 5 123 :tzinfo datetime.timezone.utc)"))
   (when PY36
     (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1))
       "(datetime.datetime 2009 1 15 15 27 5 :fold 1)"))
@@ -114,17 +113,11 @@
 (defn test-collections []
   (import collections)
   (assert (= (hy-repr (collections.defaultdict :a 8))
-    (if PY3
-      "(defaultdict None {\"a\" 8})"
-      "(defaultdict None {b\"a\" 8})")))
+    "(defaultdict None {\"a\" 8})"))
   (assert (= (hy-repr (collections.defaultdict int :a 8))
-    (if PY3
-      "(defaultdict <class 'int'> {\"a\" 8})"
-      "(defaultdict <type 'int'> {b\"a\" 8})")))
+    "(defaultdict <class 'int'> {\"a\" 8})"))
   (assert (= (hy-repr (collections.Counter [15 15 15 15]))
-    (if PY3
-      "(Counter {15 4})"
-      "(Counter {15 (int 4)})")))
+    "(Counter {15 4})"))
   (setv C (collections.namedtuple "Fooey" ["cd" "a_b"]))
   (assert (= (hy-repr (C 11 12))
     "(Fooey :cd 11 :a_b 12)")))
@@ -155,9 +148,8 @@
   (setv mo (re.search "b+" "aaaabbbccc"))
   (assert (= (hy-repr mo)
     (.format
-      #[[<{} object; :span {} :match "bbb">]]
-      (if PY37 "re.Match" (+ (. (type mo) __module__) ".SRE_Match"))
-      (if PY3 "(, 4 7)" "(, (int 4) (int 7))")))))
+      #[[<{} object; :span (, 4 7) :match "bbb">]]
+      (if PY37 "re.Match" (+ (. (type mo) __module__) ".SRE_Match"))))))
 
 (defn test-hy-repr-custom []
 

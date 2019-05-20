@@ -2,8 +2,6 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY3]])
-
 ;;;; some simple helpers
 
 (defn assert-true [x]
@@ -429,8 +427,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (neg? -2))
   (assert-false (neg? 1))
   (assert-false (neg? 0))
-  (when PY3
-    (assert-requires-num neg?)))
+  (assert-requires-num neg?))
 
 (defn test-zero []
   "NATIVE: testing the zero? function"
@@ -519,8 +516,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (pos? 2))
   (assert-false (pos? -1))
   (assert-false (pos? 0))
-  (when PY3
-    (assert-requires-num pos?)))
+  (assert-requires-num pos?))
 
 (defn test-remove []
   "NATIVE: testing the remove function"
