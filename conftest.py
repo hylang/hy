@@ -4,7 +4,7 @@ import importlib
 import py
 import pytest
 import hy
-from hy._compat import PY3, PY36, PY38
+from hy._compat import PY36, PY38
 
 NATIVE_TESTS = os.path.join("", "tests", "native_tests", "")
 
@@ -12,8 +12,7 @@ _fspath_pyimport = py.path.local.pyimport
 
 
 def pytest_ignore_collect(path, config):
-    return (("py3_only" in path.basename and not PY3) or
-            ("py36_only" in path.basename and not PY36) or
+    return (("py36_only" in path.basename and not PY36) or
             ("py38_only" in path.basename and not PY38) or None)
 
 
