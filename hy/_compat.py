@@ -2,7 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import sys, keyword, textwrap
+import sys, keyword
 
 PY3 = sys.version_info[0] >= 3
 PY36 = sys.version_info >= (3, 6)
@@ -13,44 +13,18 @@ PY38 = sys.version_info >= (3, 8)
 # It is always true on Pythons >= 3.3, which use USC-4 on all systems.
 UCS4 = sys.maxunicode == 0x10FFFF
 
-#
-# Inspired by the same-named `six` functions.
-#
-if PY3:
-    raise_src = textwrap.dedent('''
-    def raise_from(value, from_value):
-        raise value from from_value
-    ''')
 
-    def reraise(exc_type, value, traceback=None):
-        try:
-            raise value.with_traceback(traceback)
-        finally:
-            traceback = None
+def reraise(exc_type, value, traceback=None):
+    try:
+        raise value.with_traceback(traceback)
+    finally:
+        traceback = None
 
-    code_obj_args = ['argcount', 'kwonlyargcount', 'nlocals', 'stacksize',
-                     'flags', 'code', 'consts', 'names', 'varnames',
-                     'filename', 'name', 'firstlineno', 'lnotab', 'freevars',
-                     'cellvars']
-else:
-    def raise_from(value, from_value=None):
-        raise value
 
-    raise_src = textwrap.dedent('''
-    def reraise(exc_type, value, traceback=None):
-        try:
-            raise exc_type, value, traceback
-        finally:
-            traceback = None
-    ''')
-
-    code_obj_args = ['argcount', 'nlocals', 'stacksize', 'flags', 'code',
-                     'consts', 'names', 'varnames', 'filename', 'name',
-                     'firstlineno', 'lnotab', 'freevars', 'cellvars']
-
-raise_code = compile(raise_src, __file__, 'exec')
-exec(raise_code)
-
+code_obj_args = ['argcount', 'kwonlyargcount', 'nlocals', 'stacksize',
+                 'flags', 'code', 'consts', 'names', 'varnames',
+                 'filename', 'name', 'firstlineno', 'lnotab', 'freevars',
+                 'cellvars']
 
 def rename_function(func, new_name):
     """Creates a copy of a function and [re]sets the name at the code-object
