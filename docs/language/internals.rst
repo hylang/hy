@@ -120,9 +120,7 @@ HyString
 ~~~~~~~~
 
 ``hy.models.HyString`` represents string literals (including bracket strings),
-which compile down to unicode string literals in Python. ``HyStrings`` inherit
-unicode objects in Python 2, and string objects in Python 3 (and are therefore
-not encoding-dependent).
+which compile down to unicode string literals (``str``) in Python.
 
 ``HyString``\s are immutable.
 
@@ -140,15 +138,15 @@ HyBytes
 ~~~~~~~
 
 ``hy.models.HyBytes`` is like ``HyString``, but for sequences of bytes.
-It inherits from ``bytes`` on Python 3 and ``str`` on Python 2.
+It inherits from ``bytes``.
 
 .. _hy_numeric_models:
 
 Numeric Models
 ~~~~~~~~~~~~~~
 
-``hy.models.HyInteger`` represents integer literals (using the
-``long`` type on Python 2, and ``int`` on Python 3).
+``hy.models.HyInteger`` represents integer literals, using the ``int``
+type.
 
 ``hy.models.HyFloat`` represents floating-point literals.
 

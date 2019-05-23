@@ -39,7 +39,6 @@ into the making of Hy.
 + Look like a Lisp; DTRT with it (e.g. dashes turn to underscores).
 + We're still Python. Most of the internals translate 1:1 to Python internals.
 + Use Unicode everywhere.
-+ Fix the bad decisions in Python 2 when we can (see ``true_division``).
 + When in doubt, defer to Python.
 + If you're still unsure, defer to Clojure.
 + If you're even more unsure, defer to Common Lisp.

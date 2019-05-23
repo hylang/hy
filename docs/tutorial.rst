@@ -25,9 +25,6 @@ This is pretty cool because it means Hy is several things:
    comfort of Python!
  - For everyone: a pleasant language that has a lot of neat ideas!
 
-Now this tutorial assumes you're running Hy on Python 3. So know things
-are a bit different if you're still using Python 2.
-
 
 Basic intro to Lisp for Pythonistas
 ===================================
