@@ -530,7 +530,7 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [name (models.CharField :max-length 255})
+    [name (models.CharField :max-length 255)
      address (models.TextField)
      notes (models.TextField)])
 
