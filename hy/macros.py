@@ -9,7 +9,7 @@ import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import reraise
+from hy._compat import reraise, PY38
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
@@ -398,7 +398,8 @@ def rename_function(func, new_name):
 
     return _fn
 
-code_obj_args = ['argcount', 'kwonlyargcount', 'nlocals', 'stacksize',
-                 'flags', 'code', 'consts', 'names', 'varnames',
-                 'filename', 'name', 'firstlineno', 'lnotab', 'freevars',
-                 'cellvars']
+code_obj_args = ['argcount', 'posonlyargcount', 'kwonlyargcount', 'nlocals', 'stacksize',
+                 'flags', 'code', 'consts', 'names', 'varnames', 'filename', 'name',
+                 'firstlineno', 'lnotab', 'freevars', 'cellvars']
+if not PY38:
+    code_obj_args.remove("posonlyargcount")

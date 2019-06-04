@@ -1061,7 +1061,7 @@ class HyASTCompiler(object):
                 expr,
                 name=fname,
                 args=ast.arguments(
-                    args=[], vararg=None, kwarg=None,
+                    args=[], vararg=None, kwarg=None, posonlyargs=[],
                     kwonlyargs=[], kw_defaults=[], defaults=[]),
                 body=f(parts).stmts,
                 decorator_list=[])
@@ -1425,6 +1425,7 @@ class HyASTCompiler(object):
         args = ast.arguments(
             args=main_args, defaults=defaults,
             vararg=rest,
+            posonlyargs=[],
             kwonlyargs=kwonly, kw_defaults=kw_defaults,
             kwarg=kwargs)
 
