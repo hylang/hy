@@ -11,7 +11,7 @@
 (import [fractions [Fraction :as fraction]])
 (import operator)  ; shadow not available yet
 (import sys)
-(import [hy._compat [long-type]]) ; long for python2, int for python3
+(import [collections.abc :as cabc])
 (import [hy.models [HySymbol HyKeyword]])
 (import [hy.lex [tokenize mangle unmangle read read-str]])
 (import [hy.lex.exceptions [LexException PrematureEndOfInput]])
@@ -20,10 +20,6 @@
 (import [hy.core.shadow [*]])
 
 (require [hy.core.bootstrap [*]])
-
-(if-python2
-  (import [collections :as cabc])
-  (import [collections.abc :as cabc]))
 
 (defn butlast [coll]
   "Return an iterator of all but the last item in `coll`."
@@ -86,47 +82,12 @@ If the second argument `codegen` is true, generate python code instead."
        (yield val)
        (.add seen val)))))
 
-(if-python2
- (setv
-   remove itertools.ifilterfalse
-   zip-longest itertools.izip_longest
-   ;; not builtin in Python3
-   reduce reduce
-   ;; hy is more like Python3
-   filter itertools.ifilter
-   input raw_input
-   map itertools.imap
-   range xrange
-   zip itertools.izip)
- (setv
-   remove itertools.filterfalse
-   zip-longest itertools.zip_longest
-   ;; was builtin in Python2
-   reduce functools.reduce
-   ;; Someone can import these directly from `hy.core.language`;
-   ;; we'll make some duplicates.
-   filter filter
-   input input
-   map map
-   range range
-   zip zip))
-
-(if-python2
-  (defn exec [$code &optional $globals $locals]
-    "Execute Python code.
-
-The parameter names contain weird characters to discourage calling this
-function with keyword arguments, which isn't supported by Python 3's `exec`."
-    (if
-      (none? $globals) (do
-        (setv frame (._getframe sys (int 1)))
-        (try
-          (setv $globals frame.f_globals  $locals frame.f_locals)
-          (finally (del frame))))
-      (none? $locals)
-        (setv $locals $globals))
-    (exec* $code $globals $locals))
-  (setv exec exec))
+(setv
+  remove itertools.filterfalse
+  zip-longest itertools.zip_longest
+  ;; was builtin in Python2
+  reduce functools.reduce
+  accumulate itertools.accumulate)
 
 ;; infinite iterators
 (setv
@@ -151,18 +112,6 @@ function with keyword arguments, which isn't supported by Python 3's `exec`."
   multicombinations itertools.combinations_with_replacement
   permutations itertools.permutations
   product itertools.product)
-
-;; also from itertools, but not in Python2, and without func option until 3.3
-(defn accumulate [iterable &optional [func operator.add]]
-  "Accumulate `func` on `iterable`.
-
-Return series of accumulated sums (or other binary function results)."
-  (setv it (iter iterable)
-        total (next it))
-  (yield total)
-  (for [element it]
-    (setv total (func total element))
-    (yield total)))
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest."
@@ -252,13 +201,9 @@ Return series of accumulated sums (or other binary function results)."
   "Perform `isinstance` with reversed arguments."
   (isinstance x klass))
 
-(defn integer [x]
-  "Return Hy kind of integer for `x`."
-  (long-type x))
-
 (defn integer? [x]
   "Check if `x` is an integer."
-  (isinstance x (, int long-type)))
+  (isinstance x int))
 
 (defn integer-char? [x]
   "Check if char `x` parses as an integer."
@@ -388,17 +333,9 @@ with overlap."
   "Return the first logical true value of applying `pred` in `coll`, else None."
   (first (filter None (map pred coll))))
 
-(defn string [x]
-  "Cast `x` as the current python version's string implementation."
-  (if-python2
-   (unicode x)
-   (str x)))
-
 (defn string? [x]
   "Check if `x` is a string."
-  (if-python2
-    (isinstance x (, str unicode))
-    (isinstance x str)))
+  (isinstance x str))
 
 (defn take [count coll]
   "Take `count` elements from `coll`."
@@ -433,7 +370,7 @@ Strings numbers and even objects with the __name__ magic will work."
           (HyKeyword (unmangle value))
           (try
             (unmangle (.__name__ value))
-            (except [] (HyKeyword (string value)))))))
+            (except [] (HyKeyword (str value)))))))
 
 (defn name [value]
   "Convert `value` to a string.
@@ -446,7 +383,7 @@ Even objects with the __name__ magic will work."
           (unmangle value)
           (try
             (unmangle (. value __name__))
-            (except [] (string value))))))
+            (except [] (str value))))))
 
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`."
@@ -457,11 +394,11 @@ Even objects with the __name__ magic will work."
 (setv EXPORTS
   '[*map accumulate butlast calling-module calling-module-name chain coll?
     combinations comp complement compress constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? eval even? every? exec first
-    filter flatten float? fraction gensym group-by identity inc input instance?
-    integer integer? integer-char? interleave interpose islice iterable?
+    disassemble drop drop-last drop-while empty? eval even? every? first
+    flatten float? fraction gensym group-by identity inc instance?
+    integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list? macroexpand
-    macroexpand-1 mangle map merge-with multicombinations name neg? none? nth
-    numeric? odd? partition permutations pos? product range read read-str
-    remove repeat repeatedly rest reduce second some string string? symbol?
-    take take-nth take-while tuple? unmangle xor tee zero? zip zip-longest])
+    macroexpand-1 mangle merge-with multicombinations name neg? none? nth
+    numeric? odd? partition permutations pos? product read read-str
+    remove repeat repeatedly rest reduce second some string? symbol?
+    take take-nth take-while tuple? unmangle xor tee zero? zip-longest])

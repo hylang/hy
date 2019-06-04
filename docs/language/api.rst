@@ -564,8 +564,6 @@ requires.
           File "<input>", line 1, in <module>
         TypeError: compare() missing 1 required keyword-only argument: 'keyfn'
 
-    Availability: Python 3.
-
 &kwargs
     Like ``&rest``, but for keyword arugments.
     The following parameter will contain 0 or more keyword arguments.
@@ -1057,7 +1055,7 @@ if / if* / if-not
 ``if / if* / if-not`` respect Python *truthiness*, that is, a *test* fails if it
 evaluates to a "zero" (including values of ``len`` zero, ``None``, and
 ``False``), and passes otherwise, but values with a ``__bool__`` method
-(``__nonzero__`` in Python 2) can overrides this.
+can override this.
 
 The ``if`` macro is for conditionally selecting an expression for evaluation.
 The result of the selected expression becomes the result of the entire ``if``
@@ -1296,18 +1294,11 @@ fact, these forms are implemented as generator functions whenever they
 contain Python statements, with the attendant consequences for calling
 ``return``. By contrast, ``for`` shares the caller's scope.
 
-.. note:: An exception to the above scoping rules occurs on Python 2 for
-   ``lfor`` specifically (and not ``sfor``, ``gfor``, or ``dfor``) when
-   Hy can implement the ``lfor`` as a Python list comprehension. Then,
-   variables will leak to the surrounding scope.
-
 
 nonlocal
 --------
 
 .. versionadded:: 0.11.1
-
-**PYTHON 3.0 AND UP ONLY!**
 
 ``nonlocal`` can be used to mark a symbol as not local to the current scope.
 The parameters are the names of symbols to mark as nonlocal.  This is necessary
@@ -1693,7 +1684,7 @@ object (respectively) to provide positional or keywords arguments
     => (f #* [1 2] #** {"c" 3 "d" 4})
     [1, 2, 3, 4]
 
-With Python 3, unpacking is allowed in more contexts, and you can unpack
+Unpacking is allowed in a variety of contexts, and you can unpack
 more than once in one expression (:pep:`3132`, :pep:`448`).
 
 .. code-block:: clj
@@ -2037,8 +2028,6 @@ yield-from
 ----------
 
 .. versionadded:: 0.9.13
-
-**PYTHON 3.3 AND UP ONLY!**
 
 ``yield-from`` is used to call a subgenerator.  This is useful if you
 want your coroutine to be able to delegate its processes to another

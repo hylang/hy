@@ -52,5 +52,4 @@ html_context = dict(
     hy_descriptive_version = hy_descriptive_version)
 
 intersphinx_mapping = dict(
-    py2 = ('https://docs.python.org/2/', None),
-    py  = ('https://docs.python.org/3/', None))
+    py = ('https://docs.python.org/3/', None))

@@ -2,8 +2,6 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import pytest [hy._compat [PY3]])
-
 (defmacro op-and-shadow-test [op &rest body]
   ; Creates two tests with the given `body`, one where all occurrences
   ; of the symbol `f` are syntactically replaced with `op` (a test of
@@ -102,14 +100,14 @@
   (forbid (f 1 2 3)))
 
 
-(when PY3 (op-and-shadow-test @
+(op-and-shadow-test @
   (defclass C [object] [
     __init__ (fn [self content] (setv self.content content))
     __matmul__ (fn [self other] (C (+ self.content other.content)))])
   (forbid (f))
   (assert (do (setv c (C "a")) (is (f c) c)))
   (assert (= (. (f (C "b") (C "c")) content) "bc"))
-  (assert (= (. (f (C "d") (C "e") (C "f")) content) "def"))))
+  (assert (= (. (f (C "d") (C "e") (C "f")) content) "def")))
 
 
 (op-and-shadow-test <<

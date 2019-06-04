@@ -10,7 +10,7 @@ An identifier consists of a nonempty sequence of Unicode characters that are not
 numeric literals
 ----------------
 
-In addition to regular numbers, standard notation from Python 3 for non-base 10
+In addition to regular numbers, standard notation from Python for non-base 10
 integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
 
 .. code-block:: clj
@@ -60,13 +60,9 @@ Plain string literals support :ref:`a variety of backslash escapes
 literally, prefix the string with ``r``, as in ``r"slash\not"``. Bracket
 strings are always raw strings and don't allow the ``r`` prefix.
 
-Whether running under Python 2 or Python 3, Hy treats all string literals as
-sequences of Unicode characters by default, and allows you to prefix a plain
-string literal (but not a bracket string) with ``b`` to treat it as a sequence
-of bytes. So when running under Python 3, Hy translates ``"foo"`` and
-``b"foo"`` to the identical Python code, but when running under Python 2,
-``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is translated to
-``"foo"``.
+Like Python, Hy treats all string literals as sequences of Unicode characters
+by default. You may prefix a plain string literal (but not a bracket string)
+with ``b`` to treat it as a sequence of bytes.
 
 Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase.
 

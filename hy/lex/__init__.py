@@ -4,11 +4,11 @@
 
 from __future__ import unicode_literals
 
+import keyword
 import re
 import sys
 import unicodedata
 
-from hy._compat import str_type, isidentifier, UCS4
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
 from hy.models import HyExpression, HySymbol
 
@@ -116,7 +116,7 @@ def mangle(s):
 
     assert s
 
-    s = str_type(s)
+    s = str(s)
     s = s.replace("-", "_")
     s2 = s.lstrip('_')
     leading_underscores = '_' * (len(s) - len(s2))
@@ -135,7 +135,7 @@ def mangle(s):
                else '{0}{1}{0}'.format(mangle_delim,
                    unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
                    or 'U{}'.format(unicode_char_to_hex(c)))
-            for c in unicode_to_ucs4iter(s))
+            for c in s)
 
     s = leading_underscores + s
     assert isidentifier(s)
@@ -147,7 +147,7 @@ def unmangle(s):
     form. This may not round-trip, because different Hy symbol names can
     mangle to the same Python identifier."""
 
-    s = str_type(s)
+    s = str(s)
 
     s2 = s.lstrip('_')
     leading_underscores = len(s) - len(s2)
@@ -166,19 +166,6 @@ def unmangle(s):
     s = s.replace('_', '-')
 
     return '-' * leading_underscores + s
-
-
-def unicode_to_ucs4iter(ustr):
-    # Covert a unicode string to an iterable object,
-    # elements in the object are single USC-4 unicode characters
-    if UCS4:
-        return ustr
-    ucs4_list = list(ustr)
-    for i, u in enumerate(ucs4_list):
-        if 0xD7FF < ord(u) < 0xDC00:
-            ucs4_list[i] += ucs4_list[i + 1]
-            del ucs4_list[i + 1]
-    return ucs4_list
 
 
 def read(from_file=sys.stdin, eof=""):
@@ -203,4 +190,12 @@ def read(from_file=sys.stdin, eof=""):
 
 
 def read_str(input):
-    return read(StringIO(str_type(input)))
+    return read(StringIO(str(input)))
+
+
+def isidentifier(x):
+    if x in ('True', 'False', 'None'):
+        return True
+    if keyword.iskeyword(x):
+        return False
+    return x.isidentifier()

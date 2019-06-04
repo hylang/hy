@@ -19,9 +19,7 @@
   `(do
      (import cProfile pstats)
 
-     (if-python2
-       (import [StringIO [StringIO]])
-       (import [io [StringIO]]))
+     (import [io [StringIO]])
 
      (setv ~g!hy-pr (.Profile cProfile))
      (.enable ~g!hy-pr)

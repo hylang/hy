@@ -77,10 +77,3 @@
   (if (not (isinstance lambda-list hy.HyList))
     (macro-error name "defn/a takes a parameter list as second argument"))
   `(setv ~name (fn/a ~lambda-list ~@body)))
-
-(defmacro if-python2 [python2-form python3-form]
-  "If running on python2, execute python2-form, else, execute python3-form"
-  (import sys)
-  (if (< (get sys.version_info 0) 3)
-    python2-form
-    python3-form))

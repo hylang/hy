@@ -240,19 +240,6 @@ otherwise ``False``. Return ``True`` if *coll* is empty.
    True
 
 
-.. _exec-fn:
-
-exec
-----
-
-Equivalent to Python 3's built-in function :py:func:`exec`.
-
-.. code-block:: clj
-
-    => (exec "print(a + b)" {"a" 1} {"b" 2})
-    3
-
-
 .. _float?-fn:
 
 float?
@@ -385,8 +372,7 @@ integer?
 
 Usage: ``(integer? x)``
 
-Returns `True` if *x* is an integer. For Python 2, this is
-either ``int`` or ``long``. For Python 3, this is ``int``.
+Returns `True` if *x* is an integer (``int``).
 
 .. code-block:: hy
 
@@ -924,7 +910,7 @@ string?
 
 Usage: ``(string? x)``
 
-Returns ``True`` if *x* is a string.
+Returns ``True`` if *x* is a string (``str``).
 
 .. code-block:: hy
 

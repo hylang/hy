@@ -6,10 +6,10 @@ import contextlib
 import os
 import re
 import sys
+import builtins
 
 import hy.macros
 import hy.compiler
-from hy._compat import builtins, string_types
 
 
 docomplete = True
@@ -78,7 +78,7 @@ class Completer(object):
         matches = []
         for p in self.path:
             for k in p.keys():
-                if isinstance(k, string_types):
+                if isinstance(k, str):
                     k = k.replace("_", "-")
                     if k.startswith(text):
                         matches.append(k)
@@ -89,7 +89,7 @@ class Completer(object):
         matches = []
         for p in self.tag_path:
             for k in p.keys():
-                if isinstance(k, string_types):
+                if isinstance(k, str):
                     if k.startswith(text):
                         matches.append("#{}".format(k))
         return matches

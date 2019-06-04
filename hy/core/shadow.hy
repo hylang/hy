@@ -5,12 +5,10 @@
 ;;;; Hy shadow functions
 
 (import operator)
-(import [hy._compat [PY3]])
 
 (require [hy.core.bootstrap [*]])
 
-(if PY3
-  (import [functools [reduce]]))
+(import [functools [reduce]])
 
 (defn + [&rest args]
   "Shadowed `+` operator adds `args`."
@@ -60,10 +58,9 @@
   "Shadowed `%` operator takes `x` modulo `y`."
   (% x y))
 
-(if PY3
-    (defn @ [a1 &rest a-rest]
-      "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
-      (reduce operator.matmul a-rest a1)))
+(defn @ [a1 &rest a-rest]
+  "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
+  (reduce operator.matmul a-rest a1))
 
 (defn << [a1 a2 &rest a-rest]
   "Shadowed `<<` operator performs left-shift on `a1` by `a2`, ..., `a-rest`."
@@ -173,5 +170,3 @@
   'and 'or 'not
   'is 'is-not 'in 'not-in
   'get])
-(if (not PY3)
-  (.remove EXPORTS '@))

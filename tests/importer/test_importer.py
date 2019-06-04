@@ -18,7 +18,7 @@ from hy.lex import hy_parse
 from hy.errors import HyLanguageError
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import hy_eval, hy_compile
-from hy.importer import HyLoader, cache_from_source
+from hy.importer import HyLoader
 
 try:
     from importlib import reload
@@ -101,7 +101,7 @@ def test_import_autocompiles():
         f.write(b'(defn pyctest [s] (+ "X" s "Y"))')
         f.flush()
 
-        pyc_path = cache_from_source(f.name)
+        pyc_path = importlib.util.cache_from_source(f.name)
 
         try:
             os.remove(pyc_path)
@@ -144,7 +144,7 @@ def test_reload():
 
     def unlink(filename):
         os.unlink(source)
-        bytecode = cache_from_source(source)
+        bytecode = importlib.util.cache_from_source(source)
         if os.path.isfile(bytecode):
             os.unlink(bytecode)
 

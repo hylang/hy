@@ -2,8 +2,6 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY3]])
-
 ;;;; some simple helpers
 
 (defn assert-true [x]
@@ -287,7 +285,7 @@ result['y in globals'] = 'y' in globals()")
   (setv s3 (gensym "xx"))
   (assert (= 0 (.find s2 "_xx\uffff")))
   (assert (not (= s2 s3)))
-  (assert (not (= (string s2) (string s3)))))
+  (assert (not (= (str s2) (str s3)))))
 
 (defn test-identity []
   "NATIVE: testing the identity function"
@@ -324,8 +322,8 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (integer? 0))
   (assert-true (integer? 3))
   (assert-true (integer? -3))
-  (assert-true (integer? (integer "-3")))
-  (assert-true (integer? (integer 3)))
+  (assert-true (integer? (int "-3")))
+  (assert-true (integer? (int 3)))
   (assert-false (integer? 4.2))
   (assert-false (integer? None))
   (assert-false (integer? "foo")))
@@ -334,7 +332,7 @@ result['y in globals'] = 'y' in globals()")
   "NATIVE: testing the integer-char? function"
   (assert-true (integer-char? "1"))
   (assert-true (integer-char? "-1"))
-  (assert-true (integer-char? (str (integer 300))))
+  (assert-true (integer-char? (str (int 300))))
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
@@ -429,8 +427,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (neg? -2))
   (assert-false (neg? 1))
   (assert-false (neg? 0))
-  (when PY3
-    (assert-requires-num neg?)))
+  (assert-requires-num neg?))
 
 (defn test-zero []
   "NATIVE: testing the zero? function"
@@ -519,8 +516,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (pos? 2))
   (assert-false (pos? -1))
   (assert-false (pos? 0))
-  (when PY3
-    (assert-requires-num pos?)))
+  (assert-requires-num pos?))
 
 (defn test-remove []
   "NATIVE: testing the remove function"

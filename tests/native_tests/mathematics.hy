@@ -2,8 +2,6 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy._compat [PY3]])
-
 (setv square (fn [x]
                (* x x)))
 
@@ -191,20 +189,12 @@
 
 (defn test-matmul []
   "NATIVE: test matrix multiplication"
-  (if PY3
-    (assert (= (@ first-test-matrix second-test-matrix)
-               product-of-test-matrices))
-    ;; Python <= 3.4
-    (do
-      (setv matmul-attempt (try (@ first-test-matrix second-test-matrix)
-                                (except [e [Exception]] e)))
-      (assert (isinstance matmul-attempt NameError)))))
+  (assert (= (@ first-test-matrix second-test-matrix)
+             product-of-test-matrices)))
 
 (defn test-augassign-matmul []
   "NATIVE: test augmented-assignment matrix multiplication"
   (setv matrix first-test-matrix
         matmul-attempt (try (@= matrix second-test-matrix)
                               (except [e [Exception]] e)))
-  (if PY3
-    (assert (= product-of-test-matrices matrix))
-    (assert (isinstance matmul-attempt NameError))))
+  (assert (= product-of-test-matrices matrix)))

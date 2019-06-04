@@ -9,7 +9,7 @@ import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import PY3, string_types, reraise, rename_function
+from hy._compat import reraise, PY38
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
 from hy.lex import mangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
@@ -73,9 +73,6 @@ def tag(name):
     """
     def _(fn):
         _name = mangle('#{}'.format(name))
-
-        if not PY3:
-            _name = _name.encode('UTF-8')
 
         fn = rename_function(fn, _name)
 
@@ -156,7 +153,7 @@ def require(source_module, target_module, assignments, prefix=""):
         parent_frame = inspect.stack()[1][0]
         target_namespace = parent_frame.f_globals
         target_module = target_namespace.get('__name__', None)
-    elif isinstance(target_module, string_types):
+    elif isinstance(target_module, str):
         target_module = importlib.import_module(target_module)
         target_namespace = target_module.__dict__
     elif inspect.ismodule(target_module):
@@ -384,3 +381,25 @@ def tag_macroexpand(tag, tree, module):
         expr.module = inspect.getmodule(tag_macro)
 
     return replace_hy_obj(expr, tree)
+
+
+def rename_function(func, new_name):
+    """Creates a copy of a function and [re]sets the name at the code-object
+    level.
+    """
+    c = func.__code__
+    new_code = type(c)(*[getattr(c, 'co_{}'.format(a))
+                         if a != 'name' else str(new_name)
+                         for a in code_obj_args])
+
+    _fn = type(func)(new_code, func.__globals__, str(new_name),
+                     func.__defaults__, func.__closure__)
+    _fn.__dict__.update(func.__dict__)
+
+    return _fn
+
+code_obj_args = ['argcount', 'posonlyargcount', 'kwonlyargcount', 'nlocals', 'stacksize',
+                 'flags', 'code', 'consts', 'names', 'varnames', 'filename', 'name',
+                 'firstlineno', 'lnotab', 'freevars', 'cellvars']
+if not PY38:
+    code_obj_args.remove("posonlyargcount")

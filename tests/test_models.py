@@ -5,14 +5,13 @@
 import copy
 import hy
 from clint.textui.colored import clean
-from hy._compat import long_type, str_type
 from hy.models import (wrap_value, replace_hy_obj, HyString, HyInteger, HyList,
                        HyDict, HySet, HyExpression, HyComplex, HyFloat, pretty)
 
 
-def test_wrap_long_type():
+def test_wrap_int():
     """ Test conversion of integers."""
-    wrapped = wrap_value(long_type(0))
+    wrapped = wrap_value(0)
     assert type(wrapped) == HyInteger
 
 
@@ -26,27 +25,27 @@ def test_wrap_tuple():
 
 def test_wrap_nested_expr():
     """ Test conversion of HyExpressions with embedded non-HyObjects."""
-    wrapped = wrap_value(HyExpression([long_type(0)]))
+    wrapped = wrap_value(HyExpression([0]))
     assert type(wrapped) == HyExpression
     assert type(wrapped[0]) == HyInteger
     assert wrapped == HyExpression([HyInteger(0)])
 
 
-def test_replace_long_type():
+def test_replace_int():
     """ Test replacing integers."""
-    replaced = replace_hy_obj(long_type(0), HyInteger(13))
+    replaced = replace_hy_obj(0, HyInteger(13))
     assert replaced == HyInteger(0)
 
 
 def test_replace_string_type():
     """Test replacing python string"""
-    replaced = replace_hy_obj(str_type("foo"), HyString("bar"))
+    replaced = replace_hy_obj("foo", HyString("bar"))
     assert replaced == HyString("foo")
 
 
 def test_replace_tuple():
     """ Test replacing tuples."""
-    replaced = replace_hy_obj((long_type(0), ), HyInteger(13))
+    replaced = replace_hy_obj((0, ), HyInteger(13))
     assert type(replaced) == HyList
     assert type(replaced[0]) == HyInteger
     assert replaced == HyList([HyInteger(0)])

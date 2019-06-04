@@ -8,13 +8,11 @@ import os
 import re
 import shlex
 import subprocess
+import builtins
 
-from hy.importer import cache_from_source
-from hy._compat import PY3
+from importlib.util import cache_from_source
 
 import pytest
-
-from hy._compat import builtins
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -497,9 +495,8 @@ def test_bin_hy_tracebacks():
     os.environ['HY_DEBUG'] = ''
 
     def req_err(x):
-        assert x == '{}HyRequireError: No module named {}'.format(
-            'hy.errors.' if PY3 else '',
-            (repr if PY3 else str)('not_a_real_module'))
+        assert (x == 'hy.errors.HyRequireError: No module named '
+            "'not_a_real_module'")
 
     # Modeled after
     #   > python -c 'import not_a_real_module'
@@ -512,7 +509,7 @@ def test_bin_hy_tracebacks():
         del error_lines[-1]
     assert len(error_lines) <= 10
       # Rough check for the internal traceback filtering
-    req_err(error_lines[4 if PY3 else -1])
+    req_err(error_lines[4])
 
     _, error = run_cmd('hy -c "(require not-a-real-module)"', expect=1)
     error_lines = error.splitlines()
@@ -522,7 +519,7 @@ def test_bin_hy_tracebacks():
     output, error = run_cmd('hy -i "(require not-a-real-module)"')
     assert output.startswith('=> ')
     print(error.splitlines())
-    req_err(error.splitlines()[2 if PY3 else -3])
+    req_err(error.splitlines()[2])
 
     # Modeled after
     #   > python -c 'print("hi'
@@ -535,9 +532,8 @@ def test_bin_hy_tracebacks():
         r'Traceback \(most recent call last\):\n'
         r'  File "(?:<string>|string-[0-9a-f]+)", line 1\n'
         r'    \(print "\n'
-        r'           \^\n' +
-        r'{}PrematureEndOfInput: Partial string literal\n'.format(
-            r'hy\.lex\.exceptions\.' if PY3 else ''))
+        r'           \^\n'
+        r'hy.lex.exceptions.PrematureEndOfInput: Partial string literal\n')
     assert re.search(peoi_re, error)
 
     # Modeled after
