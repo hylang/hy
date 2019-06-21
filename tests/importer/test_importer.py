@@ -10,6 +10,7 @@ import runpy
 import importlib
 
 from fractions import Fraction
+from importlib import reload
 
 import pytest
 
@@ -19,11 +20,6 @@ from hy.errors import HyLanguageError
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import hy_eval, hy_compile
 from hy.importer import HyLoader
-
-try:
-    from importlib import reload
-except ImportError:
-    from imp import reload
 
 
 def test_basics():
