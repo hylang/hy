@@ -535,7 +535,7 @@ Macros
 ======
 
 One really powerful feature of Hy are macros. They are small functions that are
-used to generate code (or data). When program written in Hy is started, the
+used to generate code (or data). When a program written in Hy is started, the
 macros are executed and their output is placed in the program source. After this,
 the program starts executing normally. Very simple example:
 
