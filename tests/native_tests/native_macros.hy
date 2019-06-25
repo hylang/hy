@@ -386,7 +386,7 @@ in expansions."
   ;; Now, let's use a `require`d macro that depends on another macro defined only
   ;; in this scope.
   (defmacro local-test-macro [x]
-    (.format "This is the local version of `nonlocal-test-macro` returning {}!" x))
+    (.format "This is the local version of `nonlocal-test-macro` returning {}!" (int x)))
 
   (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
              (test-module-macro-2 3)))
