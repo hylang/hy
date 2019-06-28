@@ -234,6 +234,18 @@ def test_reload():
         unlink(source)
 
 
+def test_reload_reexecute(capsys):
+    """A module is re-executed when it's reloaded, even if it's
+    unchanged.
+
+    https://github.com/hylang/hy/issues/712"""
+    import tests.resources.hello_world
+    assert capsys.readouterr().out == 'hello world\n'
+    assert capsys.readouterr().out == ''
+    reload(tests.resources.hello_world)
+    assert capsys.readouterr().out == 'hello world\n'
+
+
 def test_circular():
     """Test circular imports by creating a temporary file/module that calls a
     function that imports itself."""
