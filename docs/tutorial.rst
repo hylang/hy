@@ -527,9 +527,9 @@ In Hy:
 .. code-block:: clj
 
   (defclass Customer [models.Model]
-    [name (models.CharField :max-length 255)
-     address (models.TextField)
-     notes (models.TextField)])
+     (setv name (models.CharField :max-length 255))
+     (setv address (models.TextField))
+     (setv notes (models.TextField)))
 
 Macros
 ======

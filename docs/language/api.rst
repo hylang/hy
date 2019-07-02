@@ -430,16 +430,16 @@ Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment
 defclass
 --------
 
-New classes are declared with ``defclass``. It can take three optional parameters in the following order:
-a list defining (a) possible super class(es), a string (:term:`py:docstring`) and another list containing
-attributes of the new class along with their corresponding values.
+New classes are declared with ``defclass``. It can take optional parameters in the following order:
+a list defining (a) possible super class(es) and a string (:term:`py:docstring`).
 
 .. code-block:: clj
 
     (defclass class-name [super-class-1 super-class-2]
       "docstring"
-      [attribute1 value1
-       attribute2 value2]
+
+      (setv attribute1 value1)
+      (setv attribute2 value2)
 
       (defn method [self] (print "hello!")))
 
@@ -449,8 +449,8 @@ below:
 .. code-block:: clj
 
     => (defclass Cat []
-    ...  [age None
-    ...   colour "white"]
+    ...  (setv age None)
+    ...  (setv colour "white")
     ...
     ...  (defn speak [self] (print "Meow")))
 
