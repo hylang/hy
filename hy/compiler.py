@@ -1475,10 +1475,9 @@ class HyASTCompiler(object):
 
     @special("defclass", [
         SYM,
-        maybe(brackets(many(FORM)) + maybe(STR) +
-              maybe(brackets(many(SYM + FORM))) + many(FORM))])
+        maybe(brackets(many(FORM)) + maybe(STR) + many(FORM))])
     def compile_class_expression(self, expr, root, name, rest):
-        base_list, docstring, attrs, body = rest or ([[]], None, None, [])
+        base_list, docstring, body = rest or ([[]], None, [])
 
         bases_expr, bases, keywords = (
             self._compile_collect(base_list[0], with_kwargs=True))
@@ -1487,11 +1486,6 @@ class HyASTCompiler(object):
 
         if docstring is not None:
             bodyr += self.compile(docstring).expr_as_stmt()
-
-        if attrs is not None:
-            bodyr += self.compile(self._rewire_init(HyExpression(
-                [HySymbol("setv")] +
-                [x for pair in attrs[0] for x in pair]).replace(attrs)))
 
         for e in body:
             e = self.compile(self._rewire_init(
