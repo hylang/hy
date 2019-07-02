@@ -40,8 +40,8 @@
 
 (defn test-pep-487 []
   (defclass QuestBase []
-    [--init-subclass-- (fn [cls swallow &kwargs kwargs]
-                         (setv cls.swallow swallow))])
+    (defn --init-subclass-- [cls swallow &kwargs kwargs]
+                         (setv cls.swallow swallow)))
 
   (defclass Quest [QuestBase :swallow "african"])
   (assert (= (. (Quest) swallow) "african")))

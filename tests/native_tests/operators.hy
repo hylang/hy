@@ -34,7 +34,7 @@
 
   (assert (= (f) 0))
 
-  (defclass C [object] [__pos__ (fn [self] "called __pos__")])
+  (defclass C [object] (defn __pos__ [self] "called __pos__"))
   (assert (= (f (C)) "called __pos__"))
 
   (assert (= (f 1 2) 3))
@@ -101,9 +101,9 @@
 
 
 (op-and-shadow-test @
-  (defclass C [object] [
-    __init__ (fn [self content] (setv self.content content))
-    __matmul__ (fn [self other] (C (+ self.content other.content)))])
+  (defclass C [object]
+    (defn __init__ [self content] (setv self.content content))
+    (defn __matmul__ [self other] (C (+ self.content other.content))))
   (forbid (f))
   (assert (do (setv c (C "a")) (is (f c) c)))
   (assert (= (. (f (C "b") (C "c")) content) "bc"))
@@ -171,11 +171,11 @@
 
   ; Make sure chained comparisons use `and`, not `&`.
   ; https://github.com/hylang/hy/issues/1191
-  (defclass C [object] [
-    __init__ (fn [self x]
+  (defclass C [object]
+    (defn __init__ [self x]
       (setv self.x x))
-    __lt__ (fn [self other]
-      self.x)])
+    (defn __lt__ [self other]
+      self.x))
   (assert (= (f (C "a") (C "b") (C "c")) "b")))
 
 

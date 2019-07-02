@@ -3,12 +3,12 @@
 ;; license. See the LICENSE.
 
 (defclass Sequence []
-  [--init-- (fn [self func]
+  (defn --init-- [self func]
               "initialize a new sequence with a function to compute values"
               (setv (. self func) func)
               (setv (. self cache) [])
               (setv (. self high-water) -1))
-   --getitem-- (fn [self n]
+  (defn --getitem-- [self n]
                  "get nth item of sequence"
                  (if (hasattr n "start")
                    (gfor x (range n.start n.stop (or n.step 1))
@@ -23,7 +23,7 @@
                                (setv (. self high-water) (inc (. self high-water)))
                                (.append (. self cache) (.func self (. self high-water))))
                              (get self n))))))
-   --iter-- (fn [self]
+   (defn --iter-- [self]
               "create iterator for this sequence"
               (setv index 0)
               (try (while True
@@ -31,7 +31,7 @@
                      (setv index (inc index)))
                    (except [IndexError]
                      (return))))
-   --len-- (fn [self]
+   (defn --len-- [self]
              "length of the sequence, dangerous for infinite sequences"
              (setv index (. self high-water))
              (try (while True
@@ -39,17 +39,17 @@
                     (setv index (inc index)))
                   (except [IndexError]
                     (len (. self cache)))))
-   max-items-in-repr 10
-   --str-- (fn [self]
+   (setv max-items-in-repr 10)
+   (defn --str-- [self]
              "string representation of this sequence"
              (setv items (list (take (inc self.max-items-in-repr) self)))
              (.format (if (> (len items) self.max-items-in-repr)
                         "[{0}, ...]"
                         "[{0}]")
                       (.join ", " (map str items))))
-   --repr-- (fn [self]
+   (defn --repr-- [self]
               "string representation of this sequence"
-              (.--str-- self))])
+              (.--str-- self)))
 
 (defmacro seq [param &rest seq-code]
   `(Sequence (fn ~param (do ~@seq-code))))

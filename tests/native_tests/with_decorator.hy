@@ -27,7 +27,7 @@
     cls)
   (with-decorator bardec
     (defclass cls []
-      [attr1 123]))
+      (setv attr1 123)))
   (assert (= cls.attr1 123))
   (assert (= cls.attr2 456)))
 

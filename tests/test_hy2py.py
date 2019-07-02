@@ -113,7 +113,7 @@ def assert_stuff(m):
 
     assert m.C2.__doc__ == "class docstring"
     assert issubclass(m.C2, m.C1)
-    assert (m.C2.attr1, m.C2.attr2, m.C2.attr3) == (5, 6, 7)
+    assert (m.C2.attr1, m.C2.attr2) == (5, 6)
 
     assert m.closed == ["v2", "v1"]
 
