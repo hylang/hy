@@ -160,19 +160,19 @@
 
 (defclass HyTestMatrix [list]
   (defn --matmul-- [self other]
-     (setv n (len self)
-           m (len (. other [0]))
-           result [])
-     (for [i (range m)]
-       (setv result-row [])
-       (for [j (range n)]
-         (setv dot-product 0)
-         (for [k (range (len (. self [0])))]
-           (+= dot-product (* (. self [i] [k])
-                              (. other [k] [j]))))
-         (.append result-row dot-product))
-       (.append result result-row))
-     result))
+    (setv n (len self)
+          m (len (. other [0]))
+          result [])
+    (for [i (range m)]
+      (setv result-row [])
+      (for [j (range n)]
+        (setv dot-product 0)
+        (for [k (range (len (. self [0])))]
+          (+= dot-product (* (. self [i] [k])
+                             (. other [k] [j]))))
+        (.append result-row dot-product))
+      (.append result result-row))
+    result))
 
 (setv first-test-matrix (HyTestMatrix [[1 2 3]
                                        [4 5 6]

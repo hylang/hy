@@ -37,7 +37,7 @@
   (defclass B []
     (setv x 42)
     (setv y (fn [self value]
-         (+ self.x value))))
+      (+ self.x value))))
   (assert (= B.x 42))
   (assert (= (.y (B) 5) 47))
   (setv b (B))

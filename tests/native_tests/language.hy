@@ -1773,20 +1773,22 @@ macros()
 
 (defn test-pep-3115 []
   (defclass member-table [dict]
-    (defn --init-- [self] (setv self.member-names []))
+    (defn --init-- [self]
+      (setv self.member-names []))
 
     (defn --setitem-- [self key value]
-                   (if (not-in key self)
-                       (.append self.member-names key))
-                   (dict.--setitem-- self key value)))
+      (if (not-in key self)
+          (.append self.member-names key))
+      (dict.--setitem-- self key value)))
 
   (defclass OrderedClass [type]
-    (setv --prepare-- (classmethod (fn [metacls name bases] (member-table))))
+    (setv --prepare-- (classmethod (fn [metacls name bases]
+      (member-table))))
 
     (defn --new-- [cls name bases classdict]
-               (setv result (type.--new-- cls name bases (dict classdict)))
-               (setv result.member-names classdict.member-names)
-               result))
+      (setv result (type.--new-- cls name bases (dict classdict)))
+      (setv result.member-names classdict.member-names)
+      result))
 
   (defclass MyClass [:metaclass OrderedClass]
     (defn method1 [self] (pass))
