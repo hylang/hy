@@ -10,6 +10,7 @@ import runpy
 import importlib
 
 from fractions import Fraction
+from importlib import reload
 
 import pytest
 
@@ -19,11 +20,6 @@ from hy.errors import HyLanguageError
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import hy_eval, hy_compile
 from hy.importer import HyLoader
-
-try:
-    from importlib import reload
-except ImportError:
-    from imp import reload
 
 
 def test_basics():
@@ -236,6 +232,18 @@ def test_reload():
         if TESTFN in sys.modules:
             del sys.modules[TESTFN]
         unlink(source)
+
+
+def test_reload_reexecute(capsys):
+    """A module is re-executed when it's reloaded, even if it's
+    unchanged.
+
+    https://github.com/hylang/hy/issues/712"""
+    import tests.resources.hello_world
+    assert capsys.readouterr().out == 'hello world\n'
+    assert capsys.readouterr().out == ''
+    reload(tests.resources.hello_world)
+    assert capsys.readouterr().out == 'hello world\n'
 
 
 def test_circular():
