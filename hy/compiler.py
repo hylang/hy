@@ -324,6 +324,18 @@ def is_unpack(kind, x):
             and x[0] == "unpack-" + kind)
 
 
+def make_hy_model(outer, x, rest):
+   return outer(
+      [HySymbol(a) if type(a) is str else
+              a[0] if type(a) is list else a
+          for a in x] +
+      (rest or []))
+def mkexpr(*items, **kwargs):
+   return make_hy_model(HyExpression, items, kwargs.get('rest'))
+def mklist(*items, **kwargs):
+   return make_hy_model(HyList, items, kwargs.get('rest'))
+
+
 class HyASTCompiler(object):
     """A Hy-to-Python AST compiler"""
 
@@ -1364,19 +1376,17 @@ class HyASTCompiler(object):
             # We need to ensure the statements for the condition are
             # executed on every iteration. Rewrite the loop to use a
             # single anonymous variable as the condition.
-            def e(*x): return HyExpression(x)
-            s = HySymbol
-            cond_var = s(self.get_anon_var())
-            return self.compile(e(
-                s('do'),
-                e(s('setv'), cond_var, 1),
-                e(s('while'), cond_var,
+            cond_var = self.get_anon_var()
+            return self.compile(mkexpr(
+                'do',
+                mkexpr('setv', cond_var, 'True'),
+                mkexpr('while', cond_var,
                   # Cast the condition to a bool in case it's mutable and
                   # changes its truth value, but use (not (not ...)) instead of
                   # `bool` in case `bool` has been redefined.
-                  e(s('setv'), cond_var, e(s('not'), e(s('not'), cond))),
-                  e(s('if*'), cond_var, e(s('do'), *body)),
-                  *([e(s('else'), *else_expr)] if else_expr is not None else []))).replace(expr))  # noqa
+                  mkexpr('setv', cond_var, mkexpr('not', mkexpr('not', [cond]))),
+                  mkexpr('if*', cond_var, mkexpr('do', rest=body)),
+                  *([mkexpr('else', rest=else_expr)] if else_expr is not None else []))).replace(expr))  # noqa
 
         orel = Result()
         if else_expr is not None:
