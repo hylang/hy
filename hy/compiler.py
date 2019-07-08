@@ -820,11 +820,22 @@ class HyASTCompiler(object):
 
     @special("assert", [FORM, maybe(FORM)])
     def compile_assert_expression(self, expr, root, test, msg):
-        ret = self.compile(test)
-        e = ret.force_expr
-        if msg is not None:
-            msg = self.compile(msg).force_expr
-        return ret + asty.Assert(expr, test=e, msg=msg)
+        if msg is None or type(msg) is HySymbol:
+            ret = self.compile(test)
+            return ret + asty.Assert(
+                expr,
+                test=ret.force_expr,
+                msg=(None if msg is None else self.compile(msg).force_expr))
+
+        # The `msg` part may involve statements, which we only
+        # want to be executed if the assertion fails. Rewrite the
+        # form to set `msg` to a variable.
+        msg_var = self.get_anon_var()
+        return self.compile(mkexpr(
+            'if*', mkexpr('and', '__debug__', mkexpr('not', [test])),
+                mkexpr('do',
+                    mkexpr('setv', msg_var, [msg]),
+                    mkexpr('assert', 'False', msg_var))).replace(expr))
 
     @special(["global", "nonlocal"], [oneplus(SYM)])
     def compile_global_or_nonlocal(self, expr, root, syms):

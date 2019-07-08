@@ -9,6 +9,10 @@ Removals
 * Support for attribute lists in `defclass` has been removed. Use `setv`
   and `defn` instead.
 
+Bug Fixes
+------------------------------
+* Statements in the second argument of `assert` are now executed.
+
 0.17.0
 ==============================
 

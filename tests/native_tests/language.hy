@@ -1653,16 +1653,15 @@ macros()
    (= (identify-keywords 1 "bloo" :foo)
       ["other" "other" "keyword"])))
 
-#@(pytest.mark.xfail
 (defn test-assert-multistatements []
   ; https://github.com/hylang/hy/issues/1390
-  (setv s (set))
+  (setv l [])
   (defn f [x]
-    (.add s x)
+    (.append l x)
     False)
   (with [(pytest.raises AssertionError)]
     (assert (do (f 1) (f 2)) (do (f 3) (f 4))))
-  (assert (= s #{1 2 3 4}))))
+  (assert (= l [1 2 3 4])))
 
 (defn test-underscore_variables []
   ; https://github.com/hylang/hy/issues/1340
