@@ -157,3 +157,11 @@ runpy = importlib.import_module('runpy')
 
 _runpy_get_code_from_file = runpy._get_code_from_file
 runpy._get_code_from_file = _get_code_from_file
+
+
+def _import_from_path(name, path):
+    """A helper function that imports a module from the given path."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod

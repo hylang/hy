@@ -39,8 +39,6 @@ install_requires = [
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 
-ver = sys.version_info[0]
-
 setup(
     name=PKG,
     version=__version__,
@@ -49,11 +47,11 @@ setup(
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
-            'hy%d = hy.cmdline:hy_main' % ver,
+            'hy3 = hy.cmdline:hy_main',
             'hyc = hy.cmdline:hyc_main',
-            'hyc%d = hy.cmdline:hyc_main' % ver,
+            'hyc3 = hy.cmdline:hyc_main',
             'hy2py = hy.cmdline:hy2py_main',
-            'hy2py%d = hy.cmdline:hy2py_main' % ver,
+            'hy2py3 = hy.cmdline:hy2py_main',
         ]
     },
     packages=find_packages(exclude=['tests*']),

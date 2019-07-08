@@ -6,6 +6,7 @@
 import math, itertools
 from hy import mangle
 from hy._compat import PY36
+import hy.importer
 
 
 def test_direct_import():
@@ -19,7 +20,8 @@ def test_hy2py_import(tmpdir):
         ["hy2py", "tests/resources/pydemo.hy"]).decode("UTF-8")
     path = tmpdir.join("pydemo.py")
     path.write(python_code)
-    assert_stuff(import_from_path("pydemo", path))
+    # Note: explicit "str" is needed for 3.5.
+    assert_stuff(hy.importer._import_from_path("pydemo", str(path)))
 
 
 def assert_stuff(m):
@@ -116,15 +118,3 @@ def assert_stuff(m):
     assert (m.C2.attr1, m.C2.attr2) == (5, 6)
 
     assert m.closed == ["v2", "v1"]
-
-
-def import_from_path(name, path):
-    if PY36:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(name, path)
-        m = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(m)
-    else:
-        import imp
-        m = imp.load_source(name, str(path))
-    return m
