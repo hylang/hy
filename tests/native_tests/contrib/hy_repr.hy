@@ -158,8 +158,8 @@
   (assert (= (hy-repr (C)) "cuddles"))
 
   (defclass Container [object]
-    [__init__ (fn [self value]
-      (setv self.value value))])
+    (defn __init__ [self value]
+      (setv self.value value)))
   (hy-repr-register Container :placeholder "(Container ...)" (fn [x]
     (+ "(Container " (hy-repr x.value) ")")))
   (setv container (Container 5))
@@ -170,5 +170,5 @@
 
 (defn test-hy-repr-fallback []
   (defclass D [object]
-    [__repr__ (fn [self] "cuddles")])
+    (defn __repr__ [self] "cuddles"))
   (assert (= (hy-repr (D)) "cuddles")))

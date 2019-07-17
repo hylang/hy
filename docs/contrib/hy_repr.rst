@@ -67,8 +67,8 @@ your choice to the keyword argument ``:placeholder`` of
 .. code-block:: hy
 
    (defclass Container [object]
-     [__init__ (fn [self value]
-       (setv self.value value))])
+     (defn __init__ (fn [self value]
+       (setv self.value value))))
    (hy-repr-register Container :placeholder "HY THERE" (fn [x]
      (+ "(Container " (hy-repr x.value) ")")))
    (setv container (Container 5))

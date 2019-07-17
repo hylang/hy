@@ -6,6 +6,8 @@ Unreleased
 Removals
 ------------------------------
 * Python 2 is no longer supported.
+* Support for attribute lists in `defclass` has been removed. Use `setv`
+  and `defn` instead.
 
 0.17.0
 ==============================

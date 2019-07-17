@@ -300,7 +300,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-requires-num inc)
 
   (defclass X [object]
-    [__add__ (fn [self other] (.format "__add__ got {}" other))])
+    (defn __add__ [self other] (.format "__add__ got {}" other)))
   (assert-equal (inc (X)) "__add__ got 1"))
 
 (defn test-instance []

@@ -142,13 +142,13 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 
 (defclass C2 [C1]
   "class docstring"
-  [attr1 5  attr2 6]
-  (setv attr3 7))
+  (setv attr1 5)
+  (setv attr2 6))
 
 (import [contextlib [closing]])
 (setv closed [])
 (defclass Closeable []
-  [close (fn [self] (.append closed self.x))])
+  (defn close [self] (.append closed self.x)))
 (with [c1 (closing (Closeable)) c2 (closing (Closeable))]
   (setv c1.x "v1")
   (setv c2.x "v2"))

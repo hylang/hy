@@ -6,11 +6,11 @@
 (import [collections [defaultdict]]
         [hy [HyExpression HyList HyString]])
 
-(defclass MultiDispatch [object] [
+(defclass MultiDispatch [object]
 
-  _fns (defaultdict dict)
+  (setv _fns (defaultdict dict))
 
-  __init__ (fn [self f]
+  (defn __init__ [self f]
     (setv self.f f)
     (setv self.__doc__ f.__doc__)
     (unless (in f.__name__ (.keys (get self._fns f.__module__)))
@@ -18,14 +18,14 @@
     (setv values f.__code__.co_varnames)
     (setv (get self._fns f.__module__ f.__name__ values) f))
 
-  fn? (fn [self v args kwargs]
+  (defn fn? [self v args kwargs]
     "Compare the given (checked fn) to the called fn"
     (setv com (+ (list args) (list (.keys kwargs))))
     (and
       (= (len com) (len v))
       (.issubset (frozenset (.keys kwargs)) com)))
 
-  __call__ (fn [self &rest args &kwargs kwargs]
+  (defn __call__ [self &rest args &kwargs kwargs]
     (setv func None)
     (for [[i f] (.items (get self._fns self.f.__module__ self.f.__name__))]
       (when (.fn? self i args kwargs)
@@ -33,7 +33,7 @@
         (break)))
     (if func
       (func #* args #** kwargs)
-      (raise (TypeError "No matching functions with this signature"))))])
+      (raise (TypeError "No matching functions with this signature")))))
 
 (defn multi-decorator [dispatch-fn]
   (setv inner (fn [&rest args &kwargs kwargs]

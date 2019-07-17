@@ -129,8 +129,8 @@
   (assert (none? (setv (get {} "x") 42)))
   (setv l [])
   (defclass Foo [object]
-    [__setattr__ (fn [self attr val]
-      (.append l [attr val]))])
+    (defn __setattr__ [self attr val]
+      (.append l [attr val])))
   (setv x (Foo))
   (assert (none? (setv x.eggs "ham")))
   (assert (not (hasattr x "eggs")))
@@ -443,9 +443,9 @@
 
   (defclass X [object] [])
   (defclass M [object]
-    [meth (fn [self &rest args &kwargs kwargs]
+    (defn meth [self &rest args &kwargs kwargs]
       (.join " " (+ (, "meth") args
-        (tuple (map (fn [k] (get kwargs k)) (sorted (.keys kwargs)))))))])
+        (tuple (map (fn [k] (get kwargs k)) (sorted (.keys kwargs))))))))
 
   (setv x (X))
   (setv m (M))
@@ -1667,7 +1667,7 @@ macros()
 (defn test-underscore_variables []
   ; https://github.com/hylang/hy/issues/1340
   (defclass XYZ []
-    [_42 6])
+    (setv _42 6))
   (setv x (XYZ))
   (assert (= (. x _42) 6)))
 
@@ -1773,24 +1773,26 @@ macros()
 
 (defn test-pep-3115 []
   (defclass member-table [dict]
-    [--init-- (fn [self] (setv self.member-names []))
+    (defn --init-- [self]
+      (setv self.member-names []))
 
-     --setitem-- (fn [self key value]
-                   (if (not-in key self)
-                       (.append self.member-names key))
-                   (dict.--setitem-- self key value))])
+    (defn --setitem-- [self key value]
+      (if (not-in key self)
+          (.append self.member-names key))
+      (dict.--setitem-- self key value)))
 
   (defclass OrderedClass [type]
-    [--prepare-- (classmethod (fn [metacls name bases] (member-table)))
+    (setv --prepare-- (classmethod (fn [metacls name bases]
+      (member-table))))
 
-     --new-- (fn [cls name bases classdict]
-               (setv result (type.--new-- cls name bases (dict classdict)))
-               (setv result.member-names classdict.member-names)
-               result)])
+    (defn --new-- [cls name bases classdict]
+      (setv result (type.--new-- cls name bases (dict classdict)))
+      (setv result.member-names classdict.member-names)
+      result))
 
   (defclass MyClass [:metaclass OrderedClass]
-    [method1 (fn [self] (pass))
-     method2 (fn [self] (pass))])
+    (defn method1 [self] (pass))
+    (defn method2 [self] (pass)))
 
   (assert (= (. (MyClass) member-names)
              ["__module__" "__qualname__" "method1" "method2"])))
