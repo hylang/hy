@@ -224,6 +224,23 @@ Examples of usage:
 .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
 
 
+await
+-----
+
+``await`` creates an :ref:`await expression <py:await>`. It takes exactly one
+argument: the object to wait for.
+
+::
+
+    => (import asyncio)
+    => (defn/a main []
+    ...   (print "hello")
+    ...   (await (asyncio.sleep 1))
+    ...   (print "world"))
+    => (asyncio.run (main))
+    hello
+    world
+
 break
 -----
 
