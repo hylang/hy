@@ -324,6 +324,18 @@ def is_unpack(kind, x):
             and x[0] == "unpack-" + kind)
 
 
+def make_hy_model(outer, x, rest):
+   return outer(
+      [HySymbol(a) if type(a) is str else
+              a[0] if type(a) is list else a
+          for a in x] +
+      (rest or []))
+def mkexpr(*items, **kwargs):
+   return make_hy_model(HyExpression, items, kwargs.get('rest'))
+def mklist(*items, **kwargs):
+   return make_hy_model(HyList, items, kwargs.get('rest'))
+
+
 class HyASTCompiler(object):
     """A Hy-to-Python AST compiler"""
 
@@ -390,21 +402,11 @@ class HyASTCompiler(object):
         ret = Result()
         for module, names in self.imports.items():
             if None in names:
-                e = HyExpression([
-                        HySymbol("import"),
-                        HySymbol(module),
-                    ]).replace(expr)
-                ret += self.compile(e)
+                ret += self.compile(mkexpr('import', module).replace(expr))
             names = sorted(name for name in names if name)
             if names:
-                e = HyExpression([
-                        HySymbol("import"),
-                        HyList([
-                            HySymbol(module),
-                            HyList([HySymbol(name) for name in names])
-                        ])
-                    ]).replace(expr)
-                ret += self.compile(e)
+                ret += self.compile(mkexpr('import',
+                    mklist(module, mklist(*names))))
         self.imports = defaultdict(set)
         return ret.stmts
 
@@ -818,11 +820,22 @@ class HyASTCompiler(object):
 
     @special("assert", [FORM, maybe(FORM)])
     def compile_assert_expression(self, expr, root, test, msg):
-        ret = self.compile(test)
-        e = ret.force_expr
-        if msg is not None:
-            msg = self.compile(msg).force_expr
-        return ret + asty.Assert(expr, test=e, msg=msg)
+        if msg is None or type(msg) is HySymbol:
+            ret = self.compile(test)
+            return ret + asty.Assert(
+                expr,
+                test=ret.force_expr,
+                msg=(None if msg is None else self.compile(msg).force_expr))
+
+        # The `msg` part may involve statements, which we only
+        # want to be executed if the assertion fails. Rewrite the
+        # form to set `msg` to a variable.
+        msg_var = self.get_anon_var()
+        return self.compile(mkexpr(
+            'if*', mkexpr('and', '__debug__', mkexpr('not', [test])),
+                mkexpr('do',
+                    mkexpr('setv', msg_var, [msg]),
+                    mkexpr('assert', 'False', msg_var))).replace(expr))
 
     @special(["global", "nonlocal"], [oneplus(SYM)])
     def compile_global_or_nonlocal(self, expr, root, syms):
@@ -1364,19 +1377,17 @@ class HyASTCompiler(object):
             # We need to ensure the statements for the condition are
             # executed on every iteration. Rewrite the loop to use a
             # single anonymous variable as the condition.
-            def e(*x): return HyExpression(x)
-            s = HySymbol
-            cond_var = s(self.get_anon_var())
-            return self.compile(e(
-                s('do'),
-                e(s('setv'), cond_var, 1),
-                e(s('while'), cond_var,
+            cond_var = self.get_anon_var()
+            return self.compile(mkexpr(
+                'do',
+                mkexpr('setv', cond_var, 'True'),
+                mkexpr('while', cond_var,
                   # Cast the condition to a bool in case it's mutable and
                   # changes its truth value, but use (not (not ...)) instead of
                   # `bool` in case `bool` has been redefined.
-                  e(s('setv'), cond_var, e(s('not'), e(s('not'), cond))),
-                  e(s('if*'), cond_var, e(s('do'), *body)),
-                  *([e(s('else'), *else_expr)] if else_expr is not None else []))).replace(expr))  # noqa
+                  mkexpr('setv', cond_var, mkexpr('not', mkexpr('not', [cond]))),
+                  mkexpr('if*', cond_var, mkexpr('do', rest=body)),
+                  *([mkexpr('else', rest=else_expr)] if else_expr is not None else []))).replace(expr))  # noqa
 
         orel = Result()
         if else_expr is not None:
