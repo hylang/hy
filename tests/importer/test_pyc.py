@@ -3,10 +3,11 @@
 # license. See the LICENSE.
 
 import os
-import imp
+import importlib.util
+import py_compile
 import tempfile
 
-import py_compile
+import hy.importer
 
 
 def test_pyc():
@@ -16,10 +17,11 @@ def test_pyc():
         f.flush()
 
         cfile = py_compile.compile(f.name)
-
         assert os.path.exists(cfile)
 
-        mod = imp.load_compiled('pyc', cfile)
-        os.remove(cfile)
+        try:
+            mod = hy.importer._import_from_path('pyc', cfile)
+        finally:
+            os.remove(cfile)
 
         assert mod.pyctest('Foo') == 'XFooY'
