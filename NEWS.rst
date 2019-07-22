@@ -12,6 +12,7 @@ Removals
 Bug Fixes
 ------------------------------
 * Statements in the second argument of `assert` are now executed.
+* Fixed the expression of a while loop that contains statements being compiled twice.
 
 0.17.0
 ==============================

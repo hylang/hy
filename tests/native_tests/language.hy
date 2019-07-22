@@ -197,7 +197,23 @@
     (.append l 1)
     (len l))
   (while (!= (f) 4) (do))
-  (assert (= l [1 1 1 1])))
+  (assert (= l [1 1 1 1]))
+
+  ; only compile the condition once
+  ; https://github.com/hylang/hy/issues/1790
+  (global while-cond-var)
+  (setv while-cond-var 10)
+  (eval
+    '(do
+      (defmacro while-cond []
+        (global while-cond-var)
+        (assert (= while-cond-var 10))
+        (+= while-cond-var 1)
+        `(do
+          (setv x 3)
+          False))
+      (while (while-cond))
+      (assert (= x 3)))))
 
 (defn test-while-loop-else []
   (setv count 5)

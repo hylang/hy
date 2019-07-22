@@ -1373,33 +1373,46 @@ class HyASTCompiler(object):
     def compile_while_expression(self, expr, root, cond, body, else_expr):
         cond_compiled = self.compile(cond)
 
+        body = self._compile_branch(body)
+        body += body.expr_as_stmt()
+        body_stmts = body.stmts or [asty.Pass(expr)]
+
         if cond_compiled.stmts:
             # We need to ensure the statements for the condition are
             # executed on every iteration. Rewrite the loop to use a
-            # single anonymous variable as the condition.
-            cond_var = self.get_anon_var()
-            return self.compile(mkexpr(
-                'do',
-                mkexpr('setv', cond_var, 'True'),
-                mkexpr('while', cond_var,
-                  # Cast the condition to a bool in case it's mutable and
-                  # changes its truth value, but use (not (not ...)) instead of
-                  # `bool` in case `bool` has been redefined.
-                  mkexpr('setv', cond_var, mkexpr('not', mkexpr('not', [cond]))),
-                  mkexpr('if*', cond_var, mkexpr('do', rest=body)),
-                  *([mkexpr('else', rest=else_expr)] if else_expr is not None else []))).replace(expr))  # noqa
+            # single anonymous variable as the condition, i.e.:
+            #  anon_var = True
+            #  while anon_var:
+            #    condition stmts...
+            #    anon_var = condition expr
+            #    if anon_var:
+            #      while loop body
+            cond_var = asty.Name(cond, id=self.get_anon_var(), ctx=ast.Load())
+            def make_not(operand):
+                return asty.UnaryOp(cond, op=ast.Not(), operand=operand)
+
+            body_stmts = cond_compiled.stmts + [
+                asty.Assign(cond, targets=[self._storeize(cond, cond_var)],
+                            # Cast the condition to a bool in case it's mutable and
+                            # changes its truth value, but use (not (not ...)) instead of
+                            # `bool` in case `bool` has been redefined.
+                            value=make_not(make_not(cond_compiled.force_expr))),
+                asty.If(cond, test=cond_var, body=body_stmts, orelse=[]),
+            ]
+
+            cond_compiled = (Result()
+                + asty.Assign(cond, targets=[self._storeize(cond, cond_var)],
+                              value=asty.Name(cond, id="True", ctx=ast.Load()))
+                + cond_var)
 
         orel = Result()
         if else_expr is not None:
             orel = self._compile_branch(else_expr)
             orel += orel.expr_as_stmt()
 
-        body = self._compile_branch(body)
-        body += body.expr_as_stmt()
-
         ret = cond_compiled + asty.While(
             expr, test=cond_compiled.force_expr,
-            body=body.stmts or [asty.Pass(expr)],
+            body=body_stmts,
             orelse=orel.stmts)
 
         return ret
