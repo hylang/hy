@@ -8,6 +8,8 @@ Removals
 * Python 2 is no longer supported.
 * Support for attribute lists in `defclass` has been removed. Use `setv`
   and `defn` instead.
+* Literal keywords are no longer parsed differently in calls to functions
+  with certain names.
 
 Bug Fixes
 ------------------------------
