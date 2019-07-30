@@ -79,6 +79,9 @@ def assert_stuff(m):
     assert type(m.mylambda) is type(lambda x: x + "z")
     assert m.mylambda("a") == "az"
 
+    assert m.fstring1 == "hello 2 world"
+    assert m.fstring2 == "a'xyzzy'  "
+
     assert m.augassign == 25
 
     assert m.delstatement == ["a", "c", "d", "e"]

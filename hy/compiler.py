@@ -1784,7 +1784,7 @@ class HyASTCompiler(object):
                item = item[2:].lstrip()
 
            # Look for a format specifier.
-           format_spec = asty.Str(string, s = "")
+           format_spec = None
            if item.startswith(':'):
                if allow_recursion:
                    ret += self._format_string(string,
@@ -1793,6 +1793,8 @@ class HyASTCompiler(object):
                    format_spec = ret.force_expr
                else:
                    format_spec = asty.Str(string, s=item[1:])
+                   if PY36:
+                       format_spec = asty.JoinedStr(string, values=[format_spec])
            elif item:
                raise self._syntax_error(string,
                    "f-string: trailing junk in field")
@@ -1818,7 +1820,9 @@ class HyASTCompiler(object):
                            ('!' + conversion if conversion else '') +
                            ':{}}'),
                        attr = 'format', ctx = ast.Load()),
-                   args = [ret.force_expr, format_spec],
+                   args = [
+                       ret.force_expr,
+                       format_spec or asty.Str(string, s = "")],
                    keywords = [], starargs = None, kwargs = None))
 
         return ret + (

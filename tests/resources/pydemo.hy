@@ -49,6 +49,10 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv condexpr (if "" "x" "y"))
 (setv mylambda (fn [x] (+ x "z")))
 
+(setv fstring1 f"hello {(+ 1 1)} world")
+(setv p "xyzzy")
+(setv fstring2 f"a{p !r :9}")
+
 (setv augassign 103)
 (//= augassign 4)
 
