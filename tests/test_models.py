@@ -56,8 +56,8 @@ def test_list_add():
     a = HyList([1, 2, 3])
     b = HyList([3, 4, 5])
     c = a + b
-    assert c == [1, 2, 3, 3, 4, 5]
-    assert c.__class__ == HyList
+    assert c == HyList([1, 2, 3, 3, 4, 5])
+    assert type(c) is HyList
 
 
 def test_list_slice():
@@ -91,7 +91,7 @@ hyset = HySet([3, 1, 2, 2])
 
 
 def test_set():
-    assert hyset == [3, 1, 2, 2]
+    assert list(hyset) == [3, 1, 2, 2]
 
 
 def test_number_model_copy():

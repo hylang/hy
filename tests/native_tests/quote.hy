@@ -9,7 +9,7 @@
   "NATIVE: test for quoting functionality"
   (setv q (quote (a b c)))
   (assert (= (len q) 3))
-  (assert (= q [(quote a) (quote b) (quote c)])))
+  (assert (= q (HyExpression [(quote a) (quote b) (quote c)]))))
 
 
 (defn test-basic-quoting []

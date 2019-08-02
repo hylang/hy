@@ -21,10 +21,10 @@
              walk-form)))
 
 (defn test-walk []
-  (setv acc '())
-  (assert (= (walk (partial collector acc) identity walk-form)
+  (setv acc [])
+  (assert (= (list (walk (partial collector acc) identity walk-form))
              [None None]))
-  (assert (= acc walk-form))
+  (assert (= acc (list walk-form)))
   (setv acc [])
   (assert (= (walk identity (partial collector acc) walk-form)
              None))
@@ -129,7 +129,7 @@
                '(foo `(bar a ~a ~"x"))))
     (assert (= `(foo ~@[a])
                '(foo "x")))
-    (assert (= `(foo `(bar [a] ~@[a] ~@~[a 'a `a] ~~@[a]))
+    (assert (= `(foo `(bar [a] ~@[a] ~@~(HyList [a 'a `a]) ~~@[a]))
                '(foo `(bar [a] ~@[a] ~@["x" a a] ~"x"))))))
 
 (defn test-let-except []
