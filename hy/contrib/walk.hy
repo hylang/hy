@@ -89,7 +89,7 @@ splits a fn argument list into sections based on &-headers.
 returns an OrderedDict mapping headers to sublists.
 Arguments without a header are under None.
 "
-  (setv headers '[&optional &rest &kwonly &kwargs]
+  (setv headers ['&optional '&rest '&kwonly '&kwargs]
         sections (OrderedDict [(, None [])])
         header None)
   (for [arg form]
@@ -169,7 +169,7 @@ Arguments without a header are under None.
                                                 #{})))))
   (defn handle-args-list [self]
     (setv protected #{}
-          argslist `[])
+          argslist [])
     (for [[header section] (-> self (.tail) first lambda-list .items)]
       (if header (.append argslist header))
       (cond [(in header [None '&rest '&kwargs])

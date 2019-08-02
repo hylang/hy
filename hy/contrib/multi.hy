@@ -84,13 +84,9 @@
      (setv comment (HyString))
      (if (= (type (first bodies)) HyString)
        (setv [comment bodies] (head-tail bodies)))
-     (setv ret `(do))
-     (.append ret '(import [hy.contrib.multi [MultiDispatch]]))
-     (for [body bodies]
-       (setv [let-binds body] (head-tail body))
-       (.append ret 
-                `(with-decorator MultiDispatch (defn ~name ~let-binds ~comment ~@body))))
-     ret)
+     (+ '(do (import [hy.contrib.multi [MultiDispatch]])) (lfor
+       [let-binds #* body] bodies
+       `(with-decorator MultiDispatch (defn ~name ~let-binds ~comment ~@body)))))
     (do
      (setv [lambda-list body] (head-tail bodies))
      `(setv ~name (fn* ~lambda-list ~@body)))))
