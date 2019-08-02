@@ -31,7 +31,6 @@
   (assert (= acc [walk-form])))
 
 (defn test-walk-iterators []
-  (setv acc [])
   (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
                    (drop 1 [1 [2 [3 [4]]]]))
              [[2 [3 [4]] 2 [3 [4]]]])))
