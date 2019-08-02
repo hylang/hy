@@ -45,22 +45,24 @@
   (setv module (or (and module-name
                         (import-module module-name))
                    (calling-module))
-        quote-level [0]
+        quote-level 0
         ast-compiler (HyASTCompiler module))  ; TODO: make nonlocal after dropping Python2
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
+    (nonlocal quote-level)
     ;; manages quote levels
     (defn +quote [&optional [x 1]]
+      (nonlocal quote-level)
       (setv head (first form))
-      (+= (get quote-level 0) x)
-      (when (neg? (get quote-level 0))
+      (+= quote-level x)
+      (when (neg? quote-level)
         (raise (TypeError "unquote outside of quasiquote")))
       (setv res (traverse (cut form 1)))
-      (-= (get quote-level 0) x)
+      (-= quote-level x)
       `(~head ~@res))
     (if (call? form)
-        (cond [(get quote-level 0)
+        (cond [quote-level
                (cond [(in (first form) '[unquote unquote-splice])
                       (+quote -1)]
                      [(= (first form) 'quasiquote) (+quote)]
