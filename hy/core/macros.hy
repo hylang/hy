@@ -87,29 +87,19 @@ Shorthand for nested with/a* loops:
 
 The result in the bracket may be omitted, in which case the condition is also
 used as the result."
-  (if (empty? branches)
-    None
-    (do
-     (setv branches (iter branches))
-     (setv branch (next branches))
-     (defn check-branch [branch]
-       "check `cond` branch for validity, return the corresponding `if` expr"
-       (if (not (= (type branch) HyList))
-         (macro-error branch "cond branches need to be a list"))
-       (if (< (len branch) 2)
-         (do
-           (setv g (gensym))
-           `(if (do (setv ~g ~(first branch)) ~g) ~g))
-         `(if ~(first branch) (do ~@(cut branch 1)))))
+  (or branches
+    (return))
 
-     (setv root (check-branch branch))
-     (setv latest-branch root)
-
-     (for [branch branches]
-       (setv cur-branch (check-branch branch))
-       (.append latest-branch cur-branch)
-       (setv latest-branch cur-branch))
-     root)))
+  `(if ~@(reduce + (gfor
+    branch branches
+    (if
+      (not (and (is (type branch) hy.HyList) branch))
+        (macro-error branch "each cond branch needs to be a nonempty list")
+      (= (len branch) 1) (do
+        (setv g (gensym))
+        [`(do (setv ~g ~(first branch)) ~g) g])
+      True
+        [(first branch) `(do ~@(cut branch 1))])))))
 
 
 (defmacro -> [head &rest args]
