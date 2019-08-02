@@ -327,10 +327,10 @@ class HyDict(HySequence):
                 return '' + g("HyDict()")
 
     def keys(self):
-        return self[0::2]
+        return list(self[0::2])
 
     def values(self):
-        return self[1::2]
+        return list(self[1::2])
 
     def items(self):
         return list(zip(self.keys(), self.values()))
