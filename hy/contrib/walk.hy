@@ -4,6 +4,7 @@
 ;; license. See the LICENSE.
 
 (import [hy [HyExpression HyDict]]
+        [hy.models [HySequence]]
         [functools [partial]]
         [importlib [import-module]]
         [collections [OrderedDict]]
@@ -17,9 +18,7 @@
   (cond
    [(instance? HyExpression form)
     (outer (HyExpression (map inner form)))]
-   [(instance? HyDict form)
-    (HyDict (outer (HyExpression (map inner form))))]
-   [(list? form)
+   [(or (instance? HySequence form) (list? form))
     ((type form) (outer (HyExpression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
