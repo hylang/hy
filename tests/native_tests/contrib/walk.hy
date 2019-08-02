@@ -43,19 +43,19 @@
   (assert (= (macroexpand-all '(foo-walk))
              42))
   (assert (= (macroexpand-all '(with [a 1]))
-             '(with* [a 1] (do))))
+             '(with* [a 1])))
   (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
-             '(with* [a 1] (with* [b 2] (with* [c 3] (do (for [d c] foo)))))))
+             '(with* [a 1] (with* [b 2] (with* [c 3] (for [d c] foo))))))
   (assert (= (macroexpand-all '(with [a 1]
                                  '(with [b 2])
                                  `(with [c 3]
                                     ~(with [d 4])
                                     ~@[(with [e 5])])))
              '(with* [a 1]
-                (do '(with [b 2])
-                    `(with [c 3]
-                       ~(with* [d 4] (do))
-                       ~@[(with* [e 5] (do))])))))
+                '(with [b 2])
+                `(with [c 3]
+                   ~(with* [d 4])
+                   ~@[(with* [e 5])]))))
 
   (defmacro require-macro []
     `(do

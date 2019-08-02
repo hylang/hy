@@ -48,16 +48,14 @@ be associated in pairs."
 
 
 (defn _with [node args body]
-  (if (not (empty? args))
-    (do
-     (if (>= (len args) 2)
-       (do
-        (setv p1 (.pop args 0)
-              p2 (.pop args 0)
-              primary [p1 p2])
-        `(~node [~@primary] ~(_with node args body)))
-       `(~node [~@args] ~@body)))
-    `(do ~@body)))
+  (if
+    (not args)
+      `(do ~@body)
+    (<= (len args) 2)
+      `(~node [~@args] ~@body)
+    True (do
+      (setv [p1 p2 #* args] args)
+      `(~node [~p1 ~p2] ~(_with node args body)))))
 
 
 (defmacro with [args &rest body]
