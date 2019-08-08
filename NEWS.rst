@@ -11,6 +11,11 @@ Removals
 * Literal keywords are no longer parsed differently in calls to functions
   with certain names.
 
+New Features
+------------------------------
+* All augmented assignment operators (except `%=` and `^=`) now allow
+  more than two arguments.
+
 Bug Fixes
 ------------------------------
 * Statements in the second argument of `assert` are now executed.

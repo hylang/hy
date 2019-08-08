@@ -1265,19 +1265,21 @@ class HyASTCompiler(object):
         return ret + asty.Compare(
             expr, left=exprs[0], ops=ops, comparators=exprs[1:])
 
-    m_ops = {"+": ast.Add,
-             "/": ast.Div,
-             "//": ast.FloorDiv,
-             "*": ast.Mult,
-             "-": ast.Sub,
-             "%": ast.Mod,
-             "**": ast.Pow,
-             "<<": ast.LShift,
-             ">>": ast.RShift,
-             "|": ast.BitOr,
-             "^": ast.BitXor,
-             "&": ast.BitAnd,
-             "@": ast.MatMult}
+    # The second element of each tuple below is an aggregation operator
+    # that's used for augmented assignment with three or more arguments.
+    m_ops = {"+": (ast.Add, "+"),
+             "/": (ast.Div, "*"),
+             "//": (ast.FloorDiv, "*"),
+             "*": (ast.Mult, "*"),
+             "-": (ast.Sub, "+"),
+             "%": (ast.Mod, None),
+             "**": (ast.Pow, "**"),
+             "<<": (ast.LShift, "+"),
+             ">>": (ast.RShift, "+"),
+             "|": (ast.BitOr, "|"),
+             "^": (ast.BitXor, None),
+             "&": (ast.BitAnd, "&"),
+             "@": (ast.MatMult, "@")}
 
     @special(["+", "*", "|"], [many(FORM)])
     @special(["-", "/", "&", "@"], [oneplus(FORM)])
@@ -1302,7 +1304,7 @@ class HyASTCompiler(object):
                 # Return the argument unchanged.
                 return self.compile(args[0])
 
-        op = self.m_ops[root]
+        op = self.m_ops[root][0]
         right_associative = root == "**"
         ret = self.compile(args[-1 if right_associative else 0])
         for child in args[-2 if right_associative else 1 ::
@@ -1318,11 +1320,16 @@ class HyASTCompiler(object):
 
     a_ops = {x + "=": v for x, v in m_ops.items()}
 
-    @special(list(a_ops.keys()), [FORM, FORM])
-    def compile_augassign_expression(self, expr, root, target, value):
-        op = self.a_ops[root]
+    @special([x for x, (_, v) in a_ops.items() if v is not None], [FORM, oneplus(FORM)])
+    @special([x for x, (_, v) in a_ops.items() if v is None], [FORM, times(1, 1, FORM)])
+    def compile_augassign_expression(self, expr, root, target, values):
+        if len(values) > 1:
+            return self.compile(mkexpr(root, [target],
+                mkexpr(self.a_ops[root][1], rest=values)).replace(expr))
+
+        op = self.a_ops[root][0]
         target = self._storeize(target, self.compile(target))
-        ret = self.compile(value)
+        ret = self.compile(values[0])
         return ret + asty.AugAssign(
             expr, target=target, value=ret.force_expr, op=op())
 
