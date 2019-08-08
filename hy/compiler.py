@@ -1664,11 +1664,7 @@ class HyASTCompiler(object):
         if not func:
             func = self.compile(root)
 
-        # An exception for pulling together keyword args is if we're doing
-        # a typecheck, eg (type :foo)
-        with_kwargs = root not in (
-            "type", "HyKeyword", "keyword", "name", "keyword?", "identity")
-        args, ret, keywords = self._compile_collect(args, with_kwargs)
+        args, ret, keywords = self._compile_collect(args, with_kwargs=True)
 
         return func + ret + asty.Call(
             expr, func=func.expr, args=args, keywords=keywords)

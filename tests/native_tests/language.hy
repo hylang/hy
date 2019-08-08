@@ -1104,7 +1104,8 @@
 
   (assert (= :foo :foo))
   (assert (= :foo ':foo))
-  (assert (is (type :foo) (type ':foo)))
+  (setv x :foo)
+  (assert (is (type x) (type ':foo)))
   (assert (= (get {:foo "bar"} :foo) "bar"))
   (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
 
@@ -1119,9 +1120,9 @@
 (defn test-empty-keyword []
   "NATIVE: test that the empty keyword is recognized"
   (assert (= : :))
-  (assert (keyword? :))
+  (assert (keyword? ':))
   (assert (!= : ":"))
-  (assert (= (name :) "")))
+  (assert (= (name ':) "")))
 
 
 (defn test-nested-if []
@@ -1198,11 +1199,14 @@
       5j 5.1j 2+1j 1.2+3.4j
       "" b""
       "apple bloom" b"apple bloom" "⚘" b"\x00"
-      :mykeyword
       [] #{} {}
       [1 2 3] #{1 2 3} {"a" 1 "b" 2}]]
     (assert (= (eval `(identity ~x)) x))
     (assert (= (eval x) x)))
+
+  (setv kw :mykeyword)
+  (assert (= (get (eval `[~kw]) 0) kw))
+  (assert (= (eval kw) kw))
 
   ; Tuples wrap to HyLists, not HyExpressions.
   (assert (= (eval (,)) []))
@@ -1632,7 +1636,8 @@ macros()
   (assert (= (keyword 'foo) :foo))
   (assert (= (keyword 'foo-bar) :foo-bar))
   (assert (= (keyword 1) :1))
-  (assert (= (keyword :foo_bar) :foo-bar)))
+  (setv x :foo_bar)
+  (assert (= (keyword x) :foo-bar)))
 
 (defn test-name-conversion []
   "NATIVE: Test name conversion"
@@ -1644,8 +1649,8 @@ macros()
   (assert (= (name 'foo_bar) "foo-bar"))
   (assert (= (name 1) "1"))
   (assert (= (name 1.0) "1.0"))
-  (assert (= (name :foo) "foo"))
-  (assert (= (name :foo_bar) "foo-bar"))
+  (assert (= (name ':foo) "foo"))
+  (assert (= (name ':foo_bar) "foo-bar"))
   (assert (= (name test-name-conversion) "test-name-conversion")))
 
 (defn test-keywords []
