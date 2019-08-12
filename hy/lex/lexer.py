@@ -10,7 +10,8 @@ lg = LexerGenerator()
 
 # A regexp for something that should end a quoting/unquoting operator
 # i.e. a space or a closing brace/paren/curly
-end_quote = r'(?![\s\)\]\}])'
+end_quote_set = r'\s\)\]\}'
+end_quote = r'(?![%s])' % end_quote_set
 
 identifier = r'[^()\[\]{}\'"\s;]+'
 
@@ -25,6 +26,7 @@ lg.add('QUOTE', r'\'%s' % end_quote)
 lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
+lg.add('ANNOTATION', r'\^(?![=%s])' % end_quote_set)
 lg.add('DISCARD', r'#_')
 lg.add('HASHSTARS', r'#\*+')
 lg.add('BRACKETSTRING', r'''(?x)

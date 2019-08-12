@@ -6,6 +6,7 @@
 ;; conftest.py skips this file when running on Python <3.6.
 
 (import [asyncio [get-event-loop sleep]])
+(import [typing [get-type-hints]])
 
 
 (defn run-coroutine [coro]
@@ -37,6 +38,15 @@
         (setv x (+ x a))
         (else (setv x (+ x 50))))
       (assert (= x 53)))))
+
+(defn test-variable-annotations []
+  (defclass AnnotationContainer []
+    (setv ^int x 1 y 2)
+    (^bool z))
+
+  (setv annotations (get-type-hints AnnotationContainer))
+  (assert (= (get annotations "x") int))
+  (assert (= (get annotations "z") bool)))
 
 (defn test-pep-487 []
   (defclass QuestBase []

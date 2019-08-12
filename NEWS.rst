@@ -17,6 +17,7 @@ New Features
   inline Python code.
 * All augmented assignment operators (except `%=` and `^=`) now allow
   more than two arguments.
+* PEP 3107 and PEP 526 function and variable annotations are now supported.
 
 Other Breaking Changes
 ------------------------------
