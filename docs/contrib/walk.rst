@@ -206,6 +206,8 @@ Recursively performs all possible macroexpansions in form, using the ``require``
 Macros
 ======
 
+.. _let:
+
 let
 ---
 

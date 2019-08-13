@@ -1,3 +1,5 @@
+.. _special-forms:
+
 =================
 Built-Ins
 =================
@@ -279,6 +281,8 @@ This is completely discarded and doesn't expand to anything, not even ``None``.
    Hy
 
 
+.. _cond:
+
 cond
 ----
 
@@ -337,6 +341,8 @@ is only called on every other value in the list.
         (continue))
       (side-effect2 x))
 
+
+.. _do:
 
 do
 ----------
@@ -400,6 +406,8 @@ the second of which becomes each value.
     {0: 0, 1: 10, 2: 20, 3: 30, 4: 40}
 
 
+.. _setv:
+
 setv
 ----
 
@@ -443,6 +451,8 @@ Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment
     ...  (print x "is greater than 0"))
     3 is greater than 0
 
+
+.. _defclass:
 
 defclass
 --------
@@ -914,6 +924,9 @@ raising an exception.
     => (first [])
     None
 
+
+.. _for:
+
 for
 ---
 
@@ -992,6 +1005,8 @@ written without accidental variable name clashes.
 
    Section :ref:`using-gensym`
 
+.. _get:
+
 get
 ---
 
@@ -1021,6 +1036,8 @@ successive elements in a nested structure. Example usage:
 .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
           index that is out of bounds.
 
+
+.. _gfor:
 
 gfor
 ----
@@ -1062,6 +1079,8 @@ keyword, the second function would have raised a ``NameError``.
 
     (set-a 5)
     (print-a)
+
+.. _if:
 
 if / if* / if-not
 -----------------
@@ -1188,6 +1207,8 @@ that ``import`` can be used.
     (import [sys [*]])
 
 
+.. _fn:
+
 fn
 -----------
 
@@ -1252,6 +1273,8 @@ last
     => (last [2 4 6])
     6
 
+
+.. _lfor:
 
 lfor
 ----
@@ -1396,6 +1419,8 @@ print
 .. note:: ``print`` always returns ``None``.
 
 
+.. _quasiquote:
+
 quasiquote
 ----------
 
@@ -1414,6 +1439,8 @@ using ``unquote`` (``~``). The evaluated form can also be spliced using
     ; equivalent to '(foo bar baz)
 
 
+.. _quote:
+
 quote
 -----
 
@@ -1430,6 +1457,8 @@ alternatively be written using the apostrophe (``'``) symbol.
     => (eval x)
     Hello World
 
+
+.. _require:
 
 require
 -------
@@ -1571,6 +1600,8 @@ sfor
 equivalent to ``(set (lfor CLAUSES VALUE))``. See `lfor`_.
 
 
+.. _cut:
+
 cut
 -----
 
@@ -1677,6 +1708,8 @@ the given conditional is ``False``. The following shows the expansion of this ma
       (do statement))
 
 
+.. _unpack-iterable:
+
 unpack-iterable, unpack-mapping
 -------------------------------
 
@@ -1716,6 +1749,8 @@ more than once in one expression (:pep:`3132`, :pep:`448`).
     => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
     [1, 2, 3, 4]
 
+
+.. _unquote:
 
 unquote
 -------
@@ -1792,6 +1827,8 @@ following shows the expansion of the macro.
     (if conditional (do statement))
 
 
+.. _while:
+
 while
 -----
 
@@ -1850,6 +1887,9 @@ prints
     In outer loop
     In condition
     At end of outer loop
+
+
+.. _with:
 
 with
 ----
