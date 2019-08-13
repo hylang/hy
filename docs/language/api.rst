@@ -424,20 +424,19 @@ For example:
     => (counter [1 2 3 4 5 2 3] 2)
     2
 
-They can be used to assign multiple variables at once:
+You can provide more than one target–value pair, and the assignments will be made in order::
 
-.. code-block:: hy
+    (setv  x 1  y x  x 2)
+    (print x y)  ; => 2 1
 
-    => (setv a 1 b 2)
-    (1L, 2L)
-    => a
-    1L
-    => b
-    2L
-    =>
+You can perform parallel assignments or unpack the source value with square brackets and :ref:`unpack-iterable`::
 
+    (setv duo ["tim" "eric"])
+    (setv [guy1 guy2] duo)
+    (print guy1 guy2)  ; => tim eric
 
-``setv`` always returns ``None``.
+    (setv [letter1 letter2 #* others] "abcdefg")
+    (print letter1 letter2 others)   ; => a b ['c', 'd', 'e', 'f', 'g']
 
 
 setx
