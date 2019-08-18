@@ -144,7 +144,7 @@
     (hy-repr (dict x)))))
 
 (for [[types fmt] (partition [
-    list "[...]"
+    [list HyList] "[...]"
     [set HySet] "#{...}"
     frozenset "(frozenset #{...})"
     dict-keys "(dict-keys [...])"

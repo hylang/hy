@@ -21,17 +21,16 @@
              walk-form)))
 
 (defn test-walk []
-  (setv acc '())
-  (assert (= (walk (partial collector acc) identity walk-form)
+  (setv acc [])
+  (assert (= (list (walk (partial collector acc) identity walk-form))
              [None None]))
-  (assert (= acc walk-form))
+  (assert (= acc (list walk-form)))
   (setv acc [])
   (assert (= (walk identity (partial collector acc) walk-form)
              None))
   (assert (= acc [walk-form])))
 
 (defn test-walk-iterators []
-  (setv acc [])
   (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
                    (drop 1 [1 [2 [3 [4]]]]))
              [[2 [3 [4]] 2 [3 [4]]]])))
@@ -44,19 +43,19 @@
   (assert (= (macroexpand-all '(foo-walk))
              42))
   (assert (= (macroexpand-all '(with [a 1]))
-             '(with* [a 1] (do))))
+             '(with* [a 1])))
   (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
-             '(with* [a 1] (with* [b 2] (with* [c 3] (do (for [d c] foo)))))))
+             '(with* [a 1] (with* [b 2] (with* [c 3] (for [d c] foo))))))
   (assert (= (macroexpand-all '(with [a 1]
                                  '(with [b 2])
                                  `(with [c 3]
                                     ~(with [d 4])
                                     ~@[(with [e 5])])))
              '(with* [a 1]
-                (do '(with [b 2])
-                    `(with [c 3]
-                       ~(with* [d 4] (do))
-                       ~@[(with* [e 5] (do))])))))
+                '(with [b 2])
+                `(with [c 3]
+                   ~(with* [d 4])
+                   ~@[(with* [e 5])]))))
 
   (defmacro require-macro []
     `(do
@@ -130,7 +129,7 @@
                '(foo `(bar a ~a ~"x"))))
     (assert (= `(foo ~@[a])
                '(foo "x")))
-    (assert (= `(foo `(bar [a] ~@[a] ~@~[a 'a `a] ~~@[a]))
+    (assert (= `(foo `(bar [a] ~@[a] ~@~(HyList [a 'a `a]) ~~@[a]))
                '(foo `(bar [a] ~@[a] ~@["x" a a] ~"x"))))))
 
 (defn test-let-except []

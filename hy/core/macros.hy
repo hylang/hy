@@ -48,16 +48,14 @@ be associated in pairs."
 
 
 (defn _with [node args body]
-  (if (not (empty? args))
-    (do
-     (if (>= (len args) 2)
-       (do
-        (setv p1 (.pop args 0)
-              p2 (.pop args 0)
-              primary [p1 p2])
-        `(~node [~@primary] ~(_with node args body)))
-       `(~node [~@args] ~@body)))
-    `(do ~@body)))
+  (if
+    (not args)
+      `(do ~@body)
+    (<= (len args) 2)
+      `(~node [~@args] ~@body)
+    True (do
+      (setv [p1 p2 #* args] args)
+      `(~node [~p1 ~p2] ~(_with node args body)))))
 
 
 (defmacro with [args &rest body]
@@ -87,29 +85,19 @@ Shorthand for nested with/a* loops:
 
 The result in the bracket may be omitted, in which case the condition is also
 used as the result."
-  (if (empty? branches)
-    None
-    (do
-     (setv branches (iter branches))
-     (setv branch (next branches))
-     (defn check-branch [branch]
-       "check `cond` branch for validity, return the corresponding `if` expr"
-       (if (not (= (type branch) HyList))
-         (macro-error branch "cond branches need to be a list"))
-       (if (< (len branch) 2)
-         (do
-           (setv g (gensym))
-           `(if (do (setv ~g ~(first branch)) ~g) ~g))
-         `(if ~(first branch) (do ~@(cut branch 1)))))
+  (or branches
+    (return))
 
-     (setv root (check-branch branch))
-     (setv latest-branch root)
-
-     (for [branch branches]
-       (setv cur-branch (check-branch branch))
-       (.append latest-branch cur-branch)
-       (setv latest-branch cur-branch))
-     root)))
+  `(if ~@(reduce + (gfor
+    branch branches
+    (if
+      (not (and (is (type branch) hy.HyList) branch))
+        (macro-error branch "each cond branch needs to be a nonempty list")
+      (= (len branch) 1) (do
+        (setv g (gensym))
+        [`(do (setv ~g ~(first branch)) ~g) g])
+      True
+        [(first branch) `(do ~@(cut branch 1))])))))
 
 
 (defmacro -> [head &rest args]
@@ -213,7 +201,7 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
   (defn extract-o!-sym [arg]
     (cond [(and (symbol? arg) (.startswith arg "o!"))
            arg]
-          [(and (list? arg) (.startswith (first arg) "o!"))
+          [(and (instance? HyList arg) (.startswith (first arg) "o!"))
            (first arg)]))
   (setv os (list (filter identity (map extract-o!-sym args)))
         gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))

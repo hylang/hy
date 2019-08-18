@@ -60,6 +60,10 @@ Adding a HySequence to another iterable object reuses the class of the
 left-hand-side object, a useful behavior when you want to concatenate Hy
 objects in a macro, for instance.
 
+HySequences are (mostly) immutable: you can't add, modify, or remove
+elements. You can still append to a variable containing a HySequence with
+``+=`` and otherwise construct new HySequences out of old ones.
+
 
 .. _hylist:
 
@@ -89,11 +93,6 @@ HyDict
 
 ``hy.models.HyDict`` inherits :ref:`HySequence` for curly-bracketed
 ``{}`` expressions, which compile down to a Python dictionary literal.
-
-The decision of using a list instead of a dict as the base class for
-``HyDict`` allows easier manipulation of dicts in macros, with the added
-benefit of allowing compound expressions as dict keys (as, for instance,
-the :ref:`HyExpression` Python class isn't hashable).
 
 Atomic Models
 -------------

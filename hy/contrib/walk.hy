@@ -4,6 +4,7 @@
 ;; license. See the LICENSE.
 
 (import [hy [HyExpression HyDict]]
+        [hy.models [HySequence]]
         [functools [partial]]
         [importlib [import-module]]
         [collections [OrderedDict]]
@@ -17,9 +18,7 @@
   (cond
    [(instance? HyExpression form)
     (outer (HyExpression (map inner form)))]
-   [(instance? HyDict form)
-    (HyDict (outer (HyExpression (map inner form))))]
-   [(list? form)
+   [(or (instance? HySequence form) (list? form))
     ((type form) (outer (HyExpression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
@@ -46,22 +45,24 @@
   (setv module (or (and module-name
                         (import-module module-name))
                    (calling-module))
-        quote-level [0]
+        quote-level 0
         ast-compiler (HyASTCompiler module))  ; TODO: make nonlocal after dropping Python2
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
+    (nonlocal quote-level)
     ;; manages quote levels
     (defn +quote [&optional [x 1]]
+      (nonlocal quote-level)
       (setv head (first form))
-      (+= (get quote-level 0) x)
-      (when (neg? (get quote-level 0))
+      (+= quote-level x)
+      (when (neg? quote-level)
         (raise (TypeError "unquote outside of quasiquote")))
       (setv res (traverse (cut form 1)))
-      (-= (get quote-level 0) x)
+      (-= quote-level x)
       `(~head ~@res))
     (if (call? form)
-        (cond [(get quote-level 0)
+        (cond [quote-level
                (cond [(in (first form) '[unquote unquote-splice])
                       (+quote -1)]
                      [(= (first form) 'quasiquote) (+quote)]
@@ -89,7 +90,7 @@ splits a fn argument list into sections based on &-headers.
 returns an OrderedDict mapping headers to sublists.
 Arguments without a header are under None.
 "
-  (setv headers '[&optional &rest &kwonly &kwargs]
+  (setv headers ['&optional '&rest '&kwonly '&kwargs]
         sections (OrderedDict [(, None [])])
         header None)
   (for [arg form]
@@ -169,7 +170,7 @@ Arguments without a header are under None.
                                                 #{})))))
   (defn handle-args-list [self]
     (setv protected #{}
-          argslist `[])
+          argslist [])
     (for [[header section] (-> self (.tail) first lambda-list .items)]
       (if header (.append argslist header))
       (cond [(in header [None '&rest '&kwargs])

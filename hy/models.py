@@ -243,7 +243,7 @@ class HyComplex(HyObject, complex):
 _wrappers[complex] = HyComplex
 
 
-class HySequence(HyObject, list):
+class HySequence(HyObject, tuple):
     """
     An abstract type for sequence-like models to inherit from.
     """
@@ -256,7 +256,8 @@ class HySequence(HyObject, list):
         return self
 
     def __add__(self, other):
-        return self.__class__(super(HySequence, self).__add__(other))
+        return self.__class__(super(HySequence, self).__add__(
+            tuple(other) if isinstance(other, list) else other))
 
     def __getslice__(self, start, end):
         return self.__class__(super(HySequence, self).__getslice__(start, end))
@@ -326,10 +327,10 @@ class HyDict(HySequence):
                 return '' + g("HyDict()")
 
     def keys(self):
-        return self[0::2]
+        return list(self[0::2])
 
     def values(self):
-        return self[1::2]
+        return list(self[1::2])
 
     def items(self):
         return list(zip(self.keys(), self.values()))

@@ -1345,17 +1345,16 @@ class HyASTCompiler(object):
 
     def _compile_assign(self, root, name, result):
 
-        str_name = "%s" % name
-        if str_name in ("None", "True", "False"):
+        if name in [HySymbol(x) for x in ("None", "True", "False")]:
             raise self._syntax_error(name,
-                "Can't assign to `%s'" % str_name)
+                "Can't assign to `{}'".format(name))
 
         result = self.compile(result)
         ld_name = self.compile(name)
 
         if isinstance(ld_name.expr, ast.Call):
             raise self._syntax_error(name,
-                "Can't assign to a callable: `%s'" % str_name)
+                "Can't assign to a callable: `{}'".format(name))
 
         if (result.temp_variables
                 and isinstance(name, HySymbol)
