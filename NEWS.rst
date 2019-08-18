@@ -16,6 +16,12 @@ New Features
 * All augmented assignment operators (except `%=` and `^=`) now allow
   more than two arguments.
 
+Other Breaking Changes
+------------------------------
+* ``HySequence`` is now a subclass of ``tuple`` instead of ``list``.
+  Thus, a ``HyList`` will never be equal to a ``list``, and you can't
+  use ``.append``, ``.pop``, etc. on an expression or list.
+
 Bug Fixes
 ------------------------------
 * Statements in the second argument of `assert` are now executed.
