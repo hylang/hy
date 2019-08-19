@@ -27,6 +27,7 @@ Bug Fixes
 * Statements in the second argument of `assert` are now executed.
 * Fixed the expression of a while loop that contains statements being compiled twice.
 * `hy2py` can now handle format strings.
+* Fixed crashes from inaccessible history files.
 
 0.17.0
 ==============================
