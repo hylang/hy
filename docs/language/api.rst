@@ -1,3 +1,5 @@
+.. _special-forms:
+
 =================
 Built-Ins
 =================
@@ -279,6 +281,8 @@ This is completely discarded and doesn't expand to anything, not even ``None``.
    Hy
 
 
+.. _cond:
+
 cond
 ----
 
@@ -337,6 +341,8 @@ is only called on every other value in the list.
         (continue))
       (side-effect2 x))
 
+
+.. _do:
 
 do
 ----------
@@ -400,6 +406,8 @@ the second of which becomes each value.
     {0: 0, 1: 10, 2: 20, 3: 30, 4: 40}
 
 
+.. _setv:
+
 setv
 ----
 
@@ -416,20 +424,19 @@ For example:
     => (counter [1 2 3 4 5 2 3] 2)
     2
 
-They can be used to assign multiple variables at once:
+You can provide more than one target–value pair, and the assignments will be made in order::
 
-.. code-block:: hy
+    (setv  x 1  y x  x 2)
+    (print x y)  ; => 2 1
 
-    => (setv a 1 b 2)
-    (1L, 2L)
-    => a
-    1L
-    => b
-    2L
-    =>
+You can perform parallel assignments or unpack the source value with square brackets and :ref:`unpack-iterable`::
 
+    (setv duo ["tim" "eric"])
+    (setv [guy1 guy2] duo)
+    (print guy1 guy2)  ; => tim eric
 
-``setv`` always returns ``None``.
+    (setv [letter1 letter2 #* others] "abcdefg")
+    (print letter1 letter2 others)   ; => a b ['c', 'd', 'e', 'f', 'g']
 
 
 setx
@@ -443,6 +450,8 @@ Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment
     ...  (print x "is greater than 0"))
     3 is greater than 0
 
+
+.. _defclass:
 
 defclass
 --------
@@ -914,6 +923,9 @@ raising an exception.
     => (first [])
     None
 
+
+.. _for:
+
 for
 ---
 
@@ -992,6 +1004,8 @@ written without accidental variable name clashes.
 
    Section :ref:`using-gensym`
 
+.. _get:
+
 get
 ---
 
@@ -1021,6 +1035,8 @@ successive elements in a nested structure. Example usage:
 .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
           index that is out of bounds.
 
+
+.. _gfor:
 
 gfor
 ----
@@ -1062,6 +1078,8 @@ keyword, the second function would have raised a ``NameError``.
 
     (set-a 5)
     (print-a)
+
+.. _if:
 
 if / if* / if-not
 -----------------
@@ -1188,6 +1206,8 @@ that ``import`` can be used.
     (import [sys [*]])
 
 
+.. _fn:
+
 fn
 -----------
 
@@ -1252,6 +1272,8 @@ last
     => (last [2 4 6])
     6
 
+
+.. _lfor:
 
 lfor
 ----
@@ -1396,6 +1418,8 @@ print
 .. note:: ``print`` always returns ``None``.
 
 
+.. _quasiquote:
+
 quasiquote
 ----------
 
@@ -1414,6 +1438,8 @@ using ``unquote`` (``~``). The evaluated form can also be spliced using
     ; equivalent to '(foo bar baz)
 
 
+.. _quote:
+
 quote
 -----
 
@@ -1430,6 +1456,8 @@ alternatively be written using the apostrophe (``'``) symbol.
     => (eval x)
     Hello World
 
+
+.. _require:
 
 require
 -------
@@ -1571,6 +1599,8 @@ sfor
 equivalent to ``(set (lfor CLAUSES VALUE))``. See `lfor`_.
 
 
+.. _cut:
+
 cut
 -----
 
@@ -1677,6 +1707,8 @@ the given conditional is ``False``. The following shows the expansion of this ma
       (do statement))
 
 
+.. _unpack-iterable:
+
 unpack-iterable, unpack-mapping
 -------------------------------
 
@@ -1716,6 +1748,8 @@ more than once in one expression (:pep:`3132`, :pep:`448`).
     => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
     [1, 2, 3, 4]
 
+
+.. _unquote:
 
 unquote
 -------
@@ -1792,6 +1826,8 @@ following shows the expansion of the macro.
     (if conditional (do statement))
 
 
+.. _while:
+
 while
 -----
 
@@ -1850,6 +1886,9 @@ prints
     In outer loop
     In condition
     At end of outer loop
+
+
+.. _with:
 
 with
 ----
