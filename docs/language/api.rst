@@ -1406,18 +1406,6 @@ parameter will be returned.
     True
 
 
-print
------
-
-``print`` is used to output on screen. Example usage:
-
-.. code-block:: clj
-
-    (print "Hello world!")
-
-.. note:: ``print`` always returns ``None``.
-
-
 .. _quasiquote:
 
 quasiquote
