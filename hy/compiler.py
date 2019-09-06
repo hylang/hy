@@ -20,6 +20,7 @@ from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 import hy.core
 
 import re
+import textwrap
 import pkgutil
 import traceback
 import importlib
@@ -1588,6 +1589,22 @@ class HyASTCompiler(object):
         return (self._compile_branch(body)
                 if ast_str(root) == "eval_and_compile"
                 else Result())
+
+    @special(["py", "pys"], [STR])
+    def compile_inline_python(self, expr, root, code):
+        exec_mode = root == HySymbol("pys")
+
+        try:
+            o = ast.parse(
+                textwrap.dedent(code) if exec_mode else code,
+                self.filename,
+                'exec' if exec_mode else 'eval').body
+        except (SyntaxError, ValueError if PY36 else TypeError) as e:
+            raise self._syntax_error(
+                expr,
+                "Python parse error in '{}': {}".format(root, e))
+
+        return Result(stmts=o) if exec_mode else o
 
     @builds_model(HyExpression)
     def compile_expression(self, expr):

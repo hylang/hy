@@ -120,4 +120,10 @@ def assert_stuff(m):
     assert issubclass(m.C2, m.C1)
     assert (m.C2.attr1, m.C2.attr2) == (5, 6)
 
-    assert m.closed == ["v2", "v1"]
+    assert m.closed1 == ["v2", "v1"]
+
+    assert len(m.closed) == 5
+    for a, b in itertools.combinations(m.closed, 2):
+        assert type(a) is not type(b)
+    assert m.pys_accum == [0, 1, 2, 3, 4]
+    assert m.py_accum == "01234"

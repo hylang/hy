@@ -13,6 +13,8 @@ Removals
 
 New Features
 ------------------------------
+* Added special forms ``py`` to ``pys`` that allow Hy programs to include
+  inline Python code.
 * All augmented assignment operators (except `%=` and `^=`) now allow
   more than two arguments.
 
