@@ -9,6 +9,7 @@ The Hy Manual
 :Source: https://github.com/hylang/hy
 :List: `hylang-discuss <https://groups.google.com/forum/#!forum/hylang-discuss>`_
 :IRC: irc://chat.freenode.net/hy
+:Stack Overflow: `The [hy] tag <https://stackoverflow.com/questions/tagged/hy>`_
 
 Hy is a Lisp dialect that's embedded in Python. Since Hy transforms its Lisp
 code into Python abstract syntax tree (AST) objects, you have the whole
