@@ -31,6 +31,7 @@ Project
   * [Contributor Guidelines](http://docs.hylang.org/en/master/hacking.html#contributor-guidelines)
   * [Code of Conduct](http://docs.hylang.org/en/master/hacking.html#contributor-code-of-conduct)
 * IRC: Join #hy on [freenode](https://webchat.freenode.net/)
+* [Stack Overflow: The [hy] tag](https://stackoverflow.com/questions/tagged/hy)
 
 ![Cuddles the Hacker](https://i.imgur.com/QbPMXTN.png)
 
