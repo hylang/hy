@@ -639,3 +639,10 @@ def test_futures_imports():
 
     assert hy_ast.body[0].module == '__future__'
     assert hy_ast.body[1].module == 'hy.core.language'
+
+
+def test_inline_python():
+    can_compile('(py "1 + 1")')
+    cant_compile('(py "1 +")')
+    can_compile('(pys "if 1:\n  2")')
+    cant_compile('(pys "if 1\n  2")')

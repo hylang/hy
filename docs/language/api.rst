@@ -1406,16 +1406,42 @@ parameter will be returned.
     True
 
 
-print
------
+.. _py-specialform:
 
-``print`` is used to output on screen. Example usage:
+py
+--
 
-.. code-block:: clj
+``py`` parses the given Python code at compile-time and inserts the result into
+the generated abstract syntax tree. Thus, you can mix Python code into a Hy
+program. Only a Python expression is allowed, not statements; use
+:ref:`pys-specialform` if you want to use Python statements. The value of the
+expression is returned from the ``py`` form. ::
 
-    (print "Hello world!")
+    (print "A result from Python:" (py "'hello' + 'world'"))
 
-.. note:: ``print`` always returns ``None``.
+The code must be given as a single string literal, but you can still use
+macros, :ref:`eval`, and related tools to construct the ``py`` form. If you
+want to evaluate some Python code that's only defined at run-time, try the
+standard Python function :func:`eval`.
+
+Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
+program that uses ``py`` or ``pys``. For example, comments will be removed.
+
+
+.. _pys-specialform:
+
+pys
+---
+
+As :ref:`py-specialform`, but the code can consist of zero or more statements,
+including compound statements such as ``for`` and ``def``. ``pys`` always
+returns ``None``. Also, the code string is dedented with
+:func:`textwrap.dedent` before parsing, which allows you to intend the code to
+match the surrounding Hy code, but significant leading whitespace in embedded
+string literals will be removed. ::
+
+    (pys "myvar = 5")
+    (print "myvar is" myvar)
 
 
 .. _quasiquote:

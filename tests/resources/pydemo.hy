@@ -156,3 +156,14 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (with [c1 (closing (Closeable)) c2 (closing (Closeable))]
   (setv c1.x "v1")
   (setv c2.x "v2"))
+(setv closed1 (.copy closed))
+
+(pys "
+  closed = []
+  pys_accum = []
+  for i in range(5):
+      with closing(Closeable()) as o:
+          class C: pass
+          o.x = C()
+      pys_accum.append(i)")
+(setv py-accum (py "''.join(map(str, pys_accum))"))

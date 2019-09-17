@@ -19,9 +19,11 @@ Hy and Python. For example, Python's ``str.format_map`` can be written
 Using Python from Hy
 ====================
 
-Using Python from Hy is nice and easy, you just have to :ref:`import` it.
+You can embed Python code directly into a Hy program with the special operators
+:ref:`py-specialform` and :ref:`pys-specialform`.
 
-If you have the following in ``greetings.py`` in Python::
+Using a Python module from Hy is nice and easy: you just have to :ref:`import`
+it. If you have the following in ``greetings.py`` in Python::
 
     def greet(name):
         print("hello," name)

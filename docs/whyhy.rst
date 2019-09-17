@@ -81,8 +81,8 @@ The Hy compiler works by reading Hy source code into Hy model objects and
 compiling the Hy model objects into Python abstract syntax tree (:py:mod:`ast`)
 objects. Python AST objects can then be compiled and run by Python itself,
 byte-compiled for faster execution later, or rendered into Python source code.
-You can even :ref:`mix Python and Hy code in the same project <interop>`, which
-can be a good way to get your feet wet in Hy.
+You can even :ref:`mix Python and Hy code in the same project, or even the same
+file,<interop>` which can be a good way to get your feet wet in Hy.
 
 
 Hy versus other Lisps
