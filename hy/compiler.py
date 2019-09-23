@@ -1336,15 +1336,17 @@ class HyASTCompiler(object):
 
     @special("setv", [many(FORM + FORM)])
     @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
-    def compile_def_expression(self, expr, root, pairs):
-        if not pairs:
+    def compile_def_expression(self, expr, root, decls):
+        if not decls:
             return asty.Name(expr, id='None', ctx=ast.Load())
+
         result = Result()
-        for pair in pairs:
-            result += self._compile_assign(root, *pair)
+        is_assignment_expr = root == HySymbol("setx")
+        for decl in decls:
+            result += self._compile_assign(*decl, is_assignment_expr=is_assignment_expr)
         return result
 
-    def _compile_assign(self, root, name, result):
+    def _compile_assign(self, name, result, *, is_assignment_expr=False):
 
         if name in [HySymbol(x) for x in ("None", "True", "False")]:
             raise self._syntax_error(name,
@@ -1361,13 +1363,13 @@ class HyASTCompiler(object):
                 and isinstance(name, HySymbol)
                 and '.' not in name):
             result.rename(name)
-            if root != HySymbol("setx"):
+            if not is_assignment_expr:
                 # Throw away .expr to ensure that (setv ...) returns None.
                 result.expr = None
         else:
             st_name = self._storeize(name, ld_name)
             node = (asty.NamedExpr
-                if root == HySymbol("setx")
+                if is_assignment_expr
                 else asty.Assign)
             result += node(
                 name if hasattr(name, "start_line") else result,
