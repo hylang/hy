@@ -1440,27 +1440,32 @@ class HyASTCompiler(object):
             maybe(sym("&kwargs") + NASYM)),
         many(FORM)])
     def compile_function_def(self, expr, root, params, body):
-
         force_functiondef = root in ("fn*", "fn/a")
         node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
+        ret = Result()
 
         mandatory, optional, rest, kwonly, kwargs = params
-        optional, defaults, ret = self._parse_optional_args(optional)
-        kwonly, kw_defaults, ret2 = self._parse_optional_args(kwonly, True)
-        ret += ret2
-        main_args = mandatory + optional
 
-        main_args, kwonly, [rest], [kwargs] = (
-            [[x and asty.arg(x, arg=ast_str(x), annotation=None)
-              for x in o]
-             for o in (main_args or [], kwonly or [], [rest], [kwargs])])
+        optional = optional or []
+        kwonly = kwonly or []
+
+        mandatory_ast, _, ret = self._compile_arguments_set(mandatory, False, ret)
+        optional_ast, optional_defaults, ret = self._compile_arguments_set(optional, True, ret)
+        kwonly_ast, kwonly_defaults, ret = self._compile_arguments_set(kwonly, False, ret)
+
+        rest_ast = kwargs_ast = None
+
+        if rest is not None:
+            [rest_ast], _, ret = self._compile_arguments_set([rest], False, ret)
+        if kwargs is not None:
+            [kwargs_ast], _, ret = self._compile_arguments_set([kwargs], False, ret)
 
         args = ast.arguments(
-            args=main_args, defaults=defaults,
-            vararg=rest,
+            args=mandatory_ast + optional_ast, defaults=optional_defaults,
+            vararg=rest_ast,
             posonlyargs=[],
-            kwonlyargs=kwonly, kw_defaults=kw_defaults,
-            kwarg=kwargs)
+            kwonlyargs=kwonly_ast, kw_defaults=kwonly_defaults,
+            kwarg=kwargs_ast)
 
         body = self._compile_branch(body)
 
@@ -1482,21 +1487,35 @@ class HyASTCompiler(object):
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
         return ret
 
-    def _parse_optional_args(self, expr, allow_no_default=False):
-        # [a b [c 5] d] → ([a, b, c, d], [None, None, 5, d], <ret>)
-        names, defaults, ret = [], [], Result()
-        for x in expr or []:
-            sym, value = (
-                x if isinstance(x, HyList)
-                else (x, None) if allow_no_default
-                else (x, HySymbol('None').replace(x)))
-            names.append(sym)
-            if value is None:
-                defaults.append(None)
+    def _compile_arguments_set(self, decls, implicit_default_none, ret):
+        args_ast = []
+        args_defaults = []
+
+        for decl in decls:
+            default = None
+
+            # funcparserlib will check to make sure that the only times we
+            # ever have a HyList here are due to a default value.
+            if isinstance(decl, HyList):
+                sym, default = decl
             else:
-                ret += self.compile(value)
-                defaults.append(ret.force_expr)
-        return names, defaults, ret
+                sym = decl
+                if implicit_default_none:
+                    default = HySymbol('None').replace(sym)
+
+            if default is not None:
+                ret += self.compile(default)
+                args_defaults.append(ret.force_expr)
+            else:
+                # Note that the only time any None should ever appear here
+                # is in kwargs, since the order of those with defaults vs
+                # those without isn't significant in the same way as
+                # positional args.
+                args_defaults.append(None)
+
+            args_ast.append(asty.arg(sym, arg=ast_str(sym), annotation=None))
+
+        return args_ast, args_defaults, ret
 
     @special("return", [maybe(FORM)])
     def compile_return(self, expr, root, arg):
