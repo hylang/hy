@@ -287,7 +287,7 @@ If you run this program twice in a row, you'll see this::
     Executing
     Value: 1
     Done executing
-    $ hy example.hy 
+    $ hy example.hy
     Executing
     Value: 1
     Done executing
