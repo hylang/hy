@@ -68,15 +68,15 @@
   "NATIVE: test that setv doesn't work on names Python can't assign to
   and that we can't mangle"
   (try (eval '(setv None 1))
-       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
+       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
   (try (eval '(defn None [] (print "hello")))
-       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
+       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
   (try (eval '(setv False 1))
-       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
+       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
   (try (eval '(setv True 0))
-       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e)))))
+       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
   (try (eval '(defn True [] (print "hello")))
-       (except [e [SyntaxError]] (assert (in "Can't assign to" (str e))))))
+       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e))))))
 
 
 (defn test-setv-pairs []
@@ -906,6 +906,22 @@
     (+= x 1)
     x)
   (assert (= mooey.__name__ "mooey")))
+
+
+(defn test-defn-annotations []
+  "NATIVE: test that annotations in defn work"
+
+  (defn f [^int p1 p2 ^str p3 &optional ^str o1 ^int [o2 0]
+           &rest ^str rest &kwonly ^str k1 ^int [k2 0] &kwargs ^bool kwargs])
+
+  (assert (= (. f __annotations__ ["p1"]) int))
+  (assert (= (. f __annotations__ ["p3"]) str))
+  (assert (= (. f __annotations__ ["o1"]) str))
+  (assert (= (. f __annotations__ ["o2"]) int))
+  (assert (= (. f __annotations__ ["rest"]) str))
+  (assert (= (. f __annotations__ ["k1"]) str))
+  (assert (= (. f __annotations__ ["k2"]) int))
+  (assert (= (. f __annotations__ ["kwargs"]) bool)))
 
 
 (defn test-return []

@@ -134,6 +134,12 @@ def term_unquote_splice(state, p):
     return HyExpression([HySymbol("unquote-splice"), p[1]])
 
 
+@pg.production("term : ANNOTATION term")
+@set_quote_boundaries
+def term_annotation(state, p):
+    return HyExpression([HySymbol("annotate*"), p[1]])
+
+
 @pg.production("term : HASHSTARS term")
 @set_quote_boundaries
 def term_hashstars(state, p):

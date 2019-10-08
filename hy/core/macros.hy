@@ -139,6 +139,20 @@ the second form, the second result is inserted into the third form, and so on."
   ret)
 
 
+(defmacro of [base &rest args]
+  "Shorthand for indexing for type annotations.
+
+If only one arguments are given, this expands to just that argument. If two arguments are
+given, it expands to indexing the first argument via the second. Otherwise, the first argument
+is indexed using a tuple of the rest.
+
+E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
+  (if
+    (empty? args) base
+    (= (len args) 1) `(get ~base ~@args)
+    `(get ~base (, ~@args))))
+
+
 (defmacro if-not [test not-branch &optional yes-branch]
   "Like `if`, but execute the first branch when the test fails"
   `(if* (not ~test) ~not-branch ~yes-branch))

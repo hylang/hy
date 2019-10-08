@@ -60,14 +60,12 @@
 (defmacro macro-error [expression reason &optional [filename '--name--]]
   `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
 
-(defmacro defn [name lambda-list &rest body]
-  "Define `name` as a function with `lambda-list` signature and body `body`."
+(defmacro defn [name &rest args]
+  "Define `name` as a function with `args` as the signature, annotations, and body."
   (import hy)
   (if (not (= (type name) hy.HySymbol))
     (macro-error name "defn takes a name as first argument"))
-  (if (not (isinstance lambda-list hy.HyList))
-    (macro-error name "defn takes a parameter list as second argument"))
-  `(setv ~name (fn* ~lambda-list ~@body)))
+  `(setv ~name (fn* ~@args)))
 
 (defmacro defn/a [name lambda-list &rest body]
   "Define `name` as a function with `lambda-list` signature and body `body`."

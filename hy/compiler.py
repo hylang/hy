@@ -23,6 +23,7 @@ import re
 import textwrap
 import pkgutil
 import traceback
+import itertools
 import importlib
 import inspect
 import types
@@ -335,6 +336,15 @@ def mkexpr(*items, **kwargs):
    return make_hy_model(HyExpression, items, kwargs.get('rest'))
 def mklist(*items, **kwargs):
    return make_hy_model(HyList, items, kwargs.get('rest'))
+
+
+# Parse an annotation setting.
+OPTIONAL_ANNOTATION = maybe(pexpr(sym("annotate*") + FORM) >> (lambda x: x[0]))
+
+
+def is_annotate_expression(model):
+    return (isinstance(model, HyExpression) and model and isinstance(model[0], HySymbol)
+            and model[0] == HySymbol("annotate*"))
 
 
 class HyASTCompiler(object):
@@ -1334,44 +1344,83 @@ class HyASTCompiler(object):
         return ret + asty.AugAssign(
             expr, target=target, value=ret.force_expr, op=op())
 
-    @special("setv", [many(FORM + FORM)])
+    @special("setv", [many(OPTIONAL_ANNOTATION + FORM + FORM)])
     @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
-    def compile_def_expression(self, expr, root, pairs):
-        if not pairs:
+    def compile_def_expression(self, expr, root, decls):
+        if not decls:
             return asty.Name(expr, id='None', ctx=ast.Load())
+
         result = Result()
-        for pair in pairs:
-            result += self._compile_assign(root, *pair)
+        is_assignment_expr = root == HySymbol("setx")
+        for decl in decls:
+            if is_assignment_expr:
+                ann = None
+                name, value = decl
+            else:
+                ann, name, value = decl
+
+            result += self._compile_assign(ann, name, value,
+                                           is_assignment_expr=is_assignment_expr)
         return result
 
-    def _compile_assign(self, root, name, result):
+    @special(["annotate*"], [FORM, FORM])
+    def compile_basic_annotation(self, expr, root, ann, target):
+        return self._compile_assign(ann, target, None)
 
-        if name in [HySymbol(x) for x in ("None", "True", "False")]:
-            raise self._syntax_error(name,
-                "Can't assign to `{}'".format(name))
+    def _compile_assign(self, ann, name, value, *, is_assignment_expr = False):
+        # Ensure that assignment expressions have a result and no annotation.
+        assert not is_assignment_expr or (value is not None and ann is None)
 
-        result = self.compile(result)
         ld_name = self.compile(name)
 
-        if isinstance(ld_name.expr, ast.Call):
-            raise self._syntax_error(name,
-                "Can't assign to a callable: `{}'".format(name))
+        annotate_only = value is None
+        if annotate_only:
+            result = Result()
+        else:
+            result = self.compile(value)
+
+        invalid_name = False
+        if ann is not None:
+            # An annotation / annotated assignment is more strict with the target expression.
+            invalid_name = not isinstance(ld_name.expr, (ast.Name, ast.Attribute, ast.Subscript))
+        else:
+            invalid_name = (str(name) in ("None", "True", "False")
+                            or isinstance(ld_name.expr, ast.Call))
+
+        if invalid_name:
+            raise self._syntax_error(name, "illegal target for {}".format(
+                                        "annotation" if annotate_only else "assignment"))
 
         if (result.temp_variables
                 and isinstance(name, HySymbol)
                 and '.' not in name):
             result.rename(name)
-            if root != HySymbol("setx"):
+            if not is_assignment_expr:
                 # Throw away .expr to ensure that (setv ...) returns None.
                 result.expr = None
         else:
             st_name = self._storeize(name, ld_name)
-            node = (asty.NamedExpr
-                if root == HySymbol("setx")
-                else asty.Assign)
+
+            if ann is not None:
+                ann_result = self.compile(ann)
+                result = ann_result + result
+
+            if is_assignment_expr:
+                node = asty.NamedExpr
+            elif ann is not None:
+                if not PY36:
+                    raise self._syntax_error(name, "Variable annotations are not supported on "
+                                                   "Python <=3.6")
+
+                node = lambda x, **kw: asty.AnnAssign(x, annotation=ann_result.force_expr,
+                                                      simple=int(isinstance(name, HySymbol)),
+                                                      **kw)
+            else:
+                node = asty.Assign
+
             result += node(
                 name if hasattr(name, "start_line") else result,
-                value=result.force_expr,
+                value=result.force_expr if not annotate_only else None,
                 target=st_name, targets=[st_name])
 
         return result
@@ -1430,39 +1479,60 @@ class HyASTCompiler(object):
         # The starred version is for internal use (particularly, in the
         # definition of `defn`). It ensures that a FunctionDef is
         # produced rather than a Lambda.
+        OPTIONAL_ANNOTATION,
         brackets(
-            many(NASYM),
-            maybe(sym("&optional") + many(NASYM | brackets(SYM, FORM))),
-            maybe(sym("&rest") + NASYM),
-            maybe(sym("&kwonly") + many(NASYM | brackets(SYM, FORM))),
-            maybe(sym("&kwargs") + NASYM)),
+            many(OPTIONAL_ANNOTATION + NASYM),
+            maybe(sym("&optional") + many(OPTIONAL_ANNOTATION
+                                            + (NASYM | brackets(SYM, FORM)))),
+            maybe(sym("&rest") + OPTIONAL_ANNOTATION + NASYM),
+            maybe(sym("&kwonly") + many(OPTIONAL_ANNOTATION
+                                        + (NASYM | brackets(SYM, FORM)))),
+            maybe(sym("&kwargs") + OPTIONAL_ANNOTATION + NASYM)),
         many(FORM)])
-    def compile_function_def(self, expr, root, params, body):
-
+    def compile_function_def(self, expr, root, returns, params, body):
         force_functiondef = root in ("fn*", "fn/a")
         node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
+        ret = Result()
+
+        # NOTE: Our evaluation order of return type annotations is
+        # different from Python: Python evalautes them after the argument
+        # annotations / defaults (as that's where they are in the source),
+        # but Hy evaluates them *first*, since here they come before the #
+        # argument list. Therefore, it would be more confusing for
+        # readability to evaluate them after like Python.
+
+        ret = Result()
+        returns_ann = None
+        if returns is not None:
+            returns_result = self.compile(returns)
+            ret += returns_result
 
         mandatory, optional, rest, kwonly, kwargs = params
-        optional, defaults, ret = self._parse_optional_args(optional)
-        kwonly, kw_defaults, ret2 = self._parse_optional_args(kwonly, True)
-        ret += ret2
-        main_args = mandatory + optional
 
-        main_args, kwonly, [rest], [kwargs] = (
-            [[x and asty.arg(x, arg=ast_str(x), annotation=None)
-              for x in o]
-             for o in (main_args or [], kwonly or [], [rest], [kwargs])])
+        optional = optional or []
+        kwonly = kwonly or []
+
+        mandatory_ast, _, ret = self._compile_arguments_set(mandatory, False, ret)
+        optional_ast, optional_defaults, ret = self._compile_arguments_set(optional, True, ret)
+        kwonly_ast, kwonly_defaults, ret = self._compile_arguments_set(kwonly, False, ret)
+
+        rest_ast = kwargs_ast = None
+
+        if rest is not None:
+            [rest_ast], _, ret = self._compile_arguments_set([rest], False, ret)
+        if kwargs is not None:
+            [kwargs_ast], _, ret = self._compile_arguments_set([kwargs], False, ret)
 
         args = ast.arguments(
-            args=main_args, defaults=defaults,
-            vararg=rest,
+            args=mandatory_ast + optional_ast, defaults=optional_defaults,
+            vararg=rest_ast,
             posonlyargs=[],
-            kwonlyargs=kwonly, kw_defaults=kw_defaults,
-            kwarg=kwargs)
+            kwonlyargs=kwonly_ast, kw_defaults=kwonly_defaults,
+            kwarg=kwargs_ast)
 
         body = self._compile_branch(body)
 
-        if not force_functiondef and not body.stmts:
+        if not force_functiondef and not body.stmts and returns is None:
             return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
         if body.expr:
@@ -1474,27 +1544,48 @@ class HyASTCompiler(object):
                     name=name,
                     args=args,
                     body=body.stmts or [asty.Pass(expr)],
-                    decorator_list=[])
+                    decorator_list=[],
+                    returns=returns_result.force_expr if returns is not None else None)
 
         ast_name = asty.Name(expr, id=name, ctx=ast.Load())
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
         return ret
 
-    def _parse_optional_args(self, expr, allow_no_default=False):
-        # [a b [c 5] d] → ([a, b, c, d], [None, None, 5, d], <ret>)
-        names, defaults, ret = [], [], Result()
-        for x in expr or []:
-            sym, value = (
-                x if isinstance(x, HyList)
-                else (x, None) if allow_no_default
-                else (x, HySymbol('None').replace(x)))
-            names.append(sym)
-            if value is None:
-                defaults.append(None)
+    def _compile_arguments_set(self, decls, implicit_default_none, ret):
+        args_ast = []
+        args_defaults = []
+
+        for ann, decl in decls:
+            default = None
+
+            # funcparserlib will check to make sure that the only times we
+            # ever have a HyList here are due to a default value.
+            if isinstance(decl, HyList):
+                sym, default = decl
             else:
-                ret += self.compile(value)
-                defaults.append(ret.force_expr)
-        return names, defaults, ret
+                sym = decl
+                if implicit_default_none:
+                    default = HySymbol('None').replace(sym)
+
+            if ann is not None:
+                ret += self.compile(ann)
+                ann_ast = ret.force_expr
+            else:
+                ann_ast = None
+
+            if default is not None:
+                ret += self.compile(default)
+                args_defaults.append(ret.force_expr)
+            else:
+                # Note that the only time any None should ever appear here
+                # is in kwargs, since the order of those with defaults vs
+                # those without isn't significant in the same way as
+                # positional args.
+                args_defaults.append(None)
+
+            args_ast.append(asty.arg(sym, arg=ast_str(sym), annotation=ann_ast))
+
+        return args_ast, args_defaults, ret
 
     @special("return", [maybe(FORM)])
     def compile_return(self, expr, root, arg):
@@ -1543,12 +1634,22 @@ class HyASTCompiler(object):
             return expr
 
         new_args = []
-        pairs = list(expr[1:])
-        while pairs:
-            k, v = (pairs.pop(0), pairs.pop(0))
+        decls = list(expr[1:])
+        while decls:
+            if is_annotate_expression(decls[0]):
+                # Handle annotations.
+                ann = decls.pop(0)
+            else:
+                ann = None
+
+            k, v = (decls.pop(0), decls.pop(0))
             if ast_str(k) == "__init__" and isinstance(v, HyExpression):
                 v += HyExpression([HySymbol("None")])
-            new_args.extend([k, v])
+
+            if ann is not None:
+                new_args.append(ann)
+
+            new_args.extend((k, v))
         return HyExpression([HySymbol("setv")] + new_args).replace(expr)
 
     @special("dispatch-tag-macro", [STR, FORM])
@@ -1607,7 +1708,7 @@ class HyASTCompiler(object):
         return Result(stmts=o) if exec_mode else o
 
     @builds_model(HyExpression)
-    def compile_expression(self, expr):
+    def compile_expression(self, expr, *, allow_annotation_expression=False):
         # Perform macro expansions
         expr = macroexpand(expr, self.module, self)
         if not isinstance(expr, HyExpression):
@@ -1623,17 +1724,20 @@ class HyASTCompiler(object):
         func = None
 
         if isinstance(root, HySymbol):
-
             # First check if `root` is a special operator, unless it has an
             # `unpack-iterable` in it, since Python's operators (`+`,
             # etc.) can't unpack. An exception to this exception is that
             # tuple literals (`,`) can unpack. Finally, we allow unpacking in
             # `.` forms here so the user gets a better error message.
             sroot = ast_str(root)
-            if (sroot in _special_form_compilers or sroot in _bad_roots) and (
+
+            bad_root = sroot in _bad_roots or (sroot == ast_str("annotate*")
+                                               and not allow_annotation_expression)
+
+            if (sroot in _special_form_compilers or bad_root) and (
                     sroot in (mangle(","), mangle(".")) or
                     not any(is_unpack("iterable", x) for x in args)):
-                if sroot in _bad_roots:
+                if bad_root:
                     raise self._syntax_error(expr,
                         "The special form '{}' is not allowed here".format(root))
                 # `sroot` is a special operator. Get the build method and
@@ -1683,6 +1787,11 @@ class HyASTCompiler(object):
                                        value=func.force_expr,
                                        attr=ast_str(root),
                                        ctx=ast.Load())
+
+        elif is_annotate_expression(root):
+            # Flatten and compile the annotation expression.
+            ann_expr = HyExpression(root + args).replace(root)
+            return self.compile_expression(ann_expr, allow_annotation_expression=True)
 
         if not func:
             func = self.compile(root)

@@ -8,6 +8,48 @@ Hy features a number of special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
 
+^
+-
+
+The ``^`` symbol is used to denote annotations in three different contexts:
+
+- Standalone variable annotations.
+- Variable annotations in a setv call.
+- Function argument annotations.
+
+They implement `PEP 526 <https://www.python.org/dev/peps/pep-0526/>`_ and
+`PEP 3107 <https://www.python.org/dev/peps/pep-3107/>`_.
+
+Here is some example syntax of all three usages:
+
+.. code-block:: clj
+
+  ; Annotate the variable x as an int (equivalent to `x: int`).
+  (^int x)
+  ; Can annotate with expressions if needed (equivalent to `y: f(x)`).
+  (^(f x) y)
+
+  ; Annotations with an assignment: each annotation (int, str) covers the term that
+  ; immediately follows.
+  ; Equivalent to: x: int = 1; y = 2; z: str = 3
+  (setv ^int x 1 y 2 ^str z 3)
+
+  ; Annotate a as an int, c as an int, and b as a str.
+  ; Equivalent to: def func(a: int, b: str = None, c: int = 1): ...
+  (defn func [^int a &optional ^str b ^int [c 1]] ...)
+
+The rules are:
+
+- The value to annotate with is the value that immediately follows the caret.
+- There must be no space between the caret and the value to annotate, otherwise it will be
+  interpreted as a bitwise XOR like the Python operator.
+- The annotation always comes (and is evaluated) *before* the value being annotated. This is
+  unlike Python, where it comes and is evaluated *after* the value being annotated.
+
+Note that variable annotations are only supported on Python 3.6+.
+
+For annotating items with generic types, the of_ macro will likely be of use.
+
 .
 -
 
@@ -1407,6 +1449,33 @@ parameter will be returned.
 
 
 .. _py-specialform:
+
+of
+--
+
+``of`` is an alias for get, but with special semantics designed for handling PEP 484's generic
+types.
+
+``of`` has three forms:
+
+- ``(of T)`` will simply become ``T``.
+- ``(of T x)`` will become ``(get T x)``.
+- ``(of T x y ...)`` (where the ``...`` represents zero or more arguments) will become
+  ``(get T (, x y ...))``.
+
+For instance:
+
+.. code-block:: clj
+
+  (of str)  ; => str
+
+  (of List int)  ; => List[int]
+  (of Set int)   ; => Set[int]
+
+  (of Dict str str)   ; => Dict[str, str]
+  (of Tuple str int)  ; => Tuple[str, int]
+
+  (of Callable [int str] str)  ; => Callable[[int, str], str]
 
 py
 --
