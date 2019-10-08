@@ -31,6 +31,11 @@ Bug Fixes
 * `hy2py` can now handle format strings.
 * Fixed crashes from inaccessible history files.
 
+Misc. Improvements
+------------------------------
+* Drop the use of the long-abandoned `clint <https://github.com/kennethreitz/clint>`_ library
+  for colors. `colorama <https://github.com/tartley/colorama>`_ is now used instead.
+
 0.17.0
 ==============================
 

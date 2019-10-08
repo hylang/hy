@@ -4,9 +4,10 @@
 
 import copy
 import hy
-from clint.textui.colored import clean
 from hy.models import (wrap_value, replace_hy_obj, HyString, HyInteger, HyList,
                        HyDict, HySet, HyExpression, HyComplex, HyFloat, pretty)
+
+hy.models.COLORED = False
 
 
 def test_wrap_int():
@@ -182,13 +183,13 @@ def test_compound_model_repr():
             assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
             # `str` should be pretty, even under `pretty(False)`.
-            assert clean(str(hy.read_str(k))) == v
+            assert str(hy.read_str(k)) == v
         for k in PRETTY_STRINGS.keys():
             assert eval(repr(hy.read_str(k))) == hy.read_str(k)
     with pretty(True):
         for model in HY_LIST_MODELS:
-            assert eval(clean(repr(model()))).__class__ is model
-            assert eval(clean(repr(model([1, 2])))) == model([1, 2])
-            assert eval(clean(repr(model([1, 2, 3])))) == model([1, 2, 3])
+            assert eval(repr(model())).__class__ is model
+            assert eval(repr(model([1, 2]))) == model([1, 2])
+            assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
-            assert clean(repr(hy.read_str(k))) == v
+            assert repr(hy.read_str(k)) == v

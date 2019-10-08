@@ -9,14 +9,13 @@ import traceback
 import pkgutil
 
 from functools import reduce
+from colorama import Fore
 from contextlib import contextmanager
 from hy import _initialize_env_var
 
-from clint.textui import colored
-
 _hy_filter_internal_errors = _initialize_env_var('HY_FILTER_INTERNAL_ERRORS',
                                                  True)
-_hy_colored_errors = _initialize_env_var('HY_COLORED_ERRORS', False)
+COLORED = _initialize_env_var('HY_COLORED_ERRORS', False)
 
 
 class HyError(Exception):
@@ -108,15 +107,12 @@ class HyLanguageError(HyError):
         """Provide an exception message that includes SyntaxError-like source
         line information when available.
         """
-        global _hy_colored_errors
-
         # Syntax errors are special and annotate the traceback (instead of what
         # we would do in the message that follows the traceback).
         if isinstance(self, SyntaxError):
             return super(HyLanguageError, self).__str__()
-
         # When there isn't extra source information, use the normal message.
-        if not isinstance(self, SyntaxError) and not self.text:
+        elif not self.text:
             return super(HyLanguageError, self).__str__()
 
         # Re-purpose Python's builtin syntax error formatting.
@@ -142,15 +138,14 @@ class HyLanguageError(HyError):
             output[arrow_idx] = '{}{}^\n'.format(output[arrow_idx].rstrip('\n'),
                                                  '-' * (self.arrow_offset - 1))
 
-        if _hy_colored_errors:
-            from clint.textui import colored
-            output[msg_idx:] = [colored.yellow(o) for o in output[msg_idx:]]
+        if COLORED:
+            output[msg_idx:] = [Fore.YELLOW + o + Fore.RESET for o in output[msg_idx:]]
             if arrow_idx:
-                output[arrow_idx] = colored.green(output[arrow_idx])
+                output[arrow_idx] = Fore.GREEN + output[arrow_idx] + Fore.RESET
             for idx, line in enumerate(output[::msg_idx]):
                 if line.strip().startswith(
                         'File "{}", line'.format(self.filename)):
-                    output[idx] = colored.red(line)
+                    output[idx] = Fore.RED + line + Fore.RESET
 
         # This resulting string will come after a "<class-name>:" prompt, so
         # put it down a line.

@@ -8,10 +8,10 @@ from math import isnan, isinf
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
 from fractions import Fraction
-from clint.textui import colored
+from colorama import Fore
 
 PRETTY = True
-_hy_colored_ast_objects = _initialize_env_var('HY_COLORED_AST_OBJECTS', False)
+COLORED = _initialize_env_var('HY_COLORED_AST_OBJECTS', False)
 
 
 @contextmanager
@@ -26,6 +26,18 @@ def pretty(pretty=True):
         yield
     finally:
         PRETTY = old
+
+
+class _ColoredModel:
+    """
+    Mixin that provides a helper function for models that have color.
+    """
+
+    def _colored(self, text):
+        if COLORED:
+            return self.color + text + Fore.RESET
+        else:
+            return text
 
 
 class HyObject(object):
@@ -243,7 +255,7 @@ class HyComplex(HyObject, complex):
 _wrappers[complex] = HyComplex
 
 
-class HySequence(HyObject, tuple):
+class HySequence(HyObject, tuple, _ColoredModel):
     """
     An abstract type for sequence-like models to inherit from.
     """
@@ -276,21 +288,25 @@ class HySequence(HyObject, tuple):
         return str(self) if PRETTY else super(HySequence, self).__repr__()
 
     def __str__(self):
-        global _hy_colored_ast_objects
         with pretty():
-            c = self.color if _hy_colored_ast_objects else str
             if self:
-                return ("{}{}\n  {}{}").format(
-                    c(self.__class__.__name__),
-                    c("(["),
-                    (c(",") + "\n  ").join([repr_indent(e) for e in self]),
-                    c("])"))
+                return self._colored("{}{}\n  {}{}".format(
+                    self._colored(self.__class__.__name__),
+                    self._colored("(["),
+                    self._colored(",\n  ").join(map(repr_indent, self)),
+                    self._colored("])"),
+                ))
+                return self._colored("{}([\n  {}])".format(
+                    self.__class__.__name__,
+                    ','.join(repr_indent(e) for e in self),
+                ))
             else:
-                return '' + c(self.__class__.__name__ + "()")
+                return self._colored(self.__class__.__name__ + "()")
 
 
 class HyList(HySequence):
-    color = staticmethod(colored.cyan)
+    color = Fore.CYAN
+
 
 def recwrap(f):
     return lambda l: f(wrap_value(x) for x in l)
@@ -300,16 +316,14 @@ _wrappers[list] = recwrap(HyList)
 _wrappers[tuple] = recwrap(HyList)
 
 
-class HyDict(HySequence):
+class HyDict(HySequence, _ColoredModel):
     """
     HyDict (just a representation of a dict)
     """
-    color = staticmethod(colored.green)
+    color = Fore.GREEN
 
     def __str__(self):
-        global _hy_colored_ast_objects
         with pretty():
-            g = self.color if _hy_colored_ast_objects else str
             if self:
                 pairs = []
                 for k, v in zip(self[::2],self[1::2]):
@@ -317,14 +331,16 @@ class HyDict(HySequence):
                     pairs.append(
                         ("{0}{c}\n  {1}\n  "
                          if '\n' in k+v
-                         else "{0}{c} {1}").format(k, v, c=g(',')))
+                         else "{0}{c} {1}").format(k, v, c=self._colored(',')))
                 if len(self) % 2 == 1:
                     pairs.append("{}  {}\n".format(
-                        repr_indent(self[-1]), g("# odd")))
+                        repr_indent(self[-1]), self._colored("# odd")))
                 return "{}\n  {}{}".format(
-                    g("HyDict(["), ("{c}\n  ".format(c=g(',')).join(pairs)), g("])"))
+                    self._colored("HyDict(["),
+                    "{c}\n  ".format(c=self._colored(',')).join(pairs),
+                    self._colored("])"))
             else:
-                return '' + g("HyDict()")
+                return self._colored("HyDict()")
 
     def keys(self):
         return list(self[0::2])
@@ -343,7 +359,7 @@ class HyExpression(HySequence):
     """
     Hy S-Expression. Basically just a list.
     """
-    color = staticmethod(colored.yellow)
+    color = Fore.YELLOW
 
 _wrappers[HyExpression] = recwrap(HyExpression)
 _wrappers[Fraction] = lambda e: HyExpression(
@@ -354,7 +370,7 @@ class HySet(HySequence):
     """
     Hy set (just a representation of a set)
     """
-    color = staticmethod(colored.red)
+    color = Fore.RED
 
 _wrappers[HySet] = recwrap(HySet)
 _wrappers[set] = recwrap(HySet)
