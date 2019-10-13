@@ -6,6 +6,7 @@ import ast
 
 from hy import compiler
 from hy.models import HyExpression, HyList, HySymbol, HyInteger
+import types
 
 
 def make_expression(*args):
@@ -25,7 +26,7 @@ def test_compiler_bare_names():
                         HySymbol("a"),
                         HySymbol("b"),
                         HySymbol("c"))
-    ret = compiler.HyASTCompiler('test').compile(e)
+    ret = compiler.HyASTCompiler(types.ModuleType('test')).compile(e)
 
     # We expect two statements and a final expr.
 
@@ -54,7 +55,7 @@ def test_compiler_yield_return():
                         HyExpression([HySymbol("+"),
                                       HyInteger(1),
                                       HyInteger(1)]))
-    ret = compiler.HyASTCompiler('test').compile_atom(e)
+    ret = compiler.HyASTCompiler(types.ModuleType('test')).compile_atom(e)
 
     assert len(ret.stmts) == 1
     stmt, = ret.stmts

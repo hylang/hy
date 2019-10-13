@@ -31,6 +31,8 @@ Bug Fixes
 * Fixed the expression of a while loop that contains statements being compiled twice.
 * `hy2py` can now handle format strings.
 * Fixed crashes from inaccessible history files.
+* The unit tests no longer unintentionally import the internal Python module "test".
+  This allows them to pass when run inside the "slim" Python Docker images.
 
 0.17.0
 ==============================
