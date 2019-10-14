@@ -59,9 +59,19 @@ class HyQuitter(object):
             pass
         raise SystemExit(code)
 
+class HyHelper(object):
+    def __repr__(self):
+        return ("Use (help) for interactive help, or (help object) for help "
+                "about object.")
+
+    def __call__(self, *args, **kwds):
+        import pydoc
+        return pydoc.help(*args, **kwds)
+
 
 builtins.quit = HyQuitter('quit')
 builtins.exit = HyQuitter('exit')
+builtins.help = HyHelper()
 
 @contextmanager
 def extend_linecache(add_cmdline_cache):
