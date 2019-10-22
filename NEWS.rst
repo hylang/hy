@@ -34,6 +34,11 @@ Bug Fixes
 * The unit tests no longer unintentionally import the internal Python module "test".
   This allows them to pass when run inside the "slim" Python Docker images.
 
+Misc. Improvements
+------------------------------
+* Drop the use of the long-abandoned `clint <https://github.com/kennethreitz/clint>`_ library
+  for colors. `colorama <https://github.com/tartley/colorama>`_ is now used instead.
+
 0.17.0
 ==============================
 

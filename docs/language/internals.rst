@@ -44,9 +44,9 @@ If this is causing issues,
 it can be turned off globally by setting ``hy.models.PRETTY`` to ``False``,
 or temporarily by using the ``hy.models.pretty`` context manager.
 
-Hy also attempts to color pretty reprs using ``clint.textui.colored``.
-This module has a flag to disable coloring,
-and a method ``clean`` to strip colored strings of their color tags.
+Hy also attempts to color pretty reprs and errors using ``colorama``. These can
+be turned off globally by setting ``hy.models.COLORED`` and ``hy.errors.COLORED``,
+respectively, to ``False``.
 
 .. _hysequence:
 

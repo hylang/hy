@@ -35,7 +35,7 @@ install_requires = [
     'rply>=0.7.7',
     'astor>=0.8',
     'funcparserlib>=0.3.6',
-    'clint>=0.4']
+    'colorama']
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 
