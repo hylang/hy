@@ -18,6 +18,7 @@ New Features
 * All augmented assignment operators (except `%=` and `^=`) now allow
   more than two arguments.
 * PEP 3107 and PEP 526 function and variable annotations are now supported.
+* Added function ``parse-args`` which parses arguments with ``argparse``.
 
 Other Breaking Changes
 ------------------------------

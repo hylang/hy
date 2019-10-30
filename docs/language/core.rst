@@ -786,6 +786,29 @@ Returns ``True`` if *x* is odd. Raises ``TypeError`` if
    => (odd? 0)
    False
 
+.. _parse-args:
+
+parse-args
+----------
+
+Usage: ``(parse-args spec &optional args &kwargs parser-args)``
+
+Return arguments namespace parsed from *args* or ``sys.argv`` with
+:py:meth:`argparse.ArgumentParser.parse_args` according to *spec*.
+
+*spec* should be a list of arguments which will be passed to repeated
+calls to :py:meth:`argparse.ArgumentParser.add_argument`.  *parser-args*
+may be a list of keyword arguments to pass to the
+:py:class:`argparse.ArgumentParser` constructor.
+
+.. code-block:: hy
+
+    => (parse-args [["strings" :nargs "+" :help "Strings"]
+                    ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
+                   ["a" "b" "-n" "1" "-n" "2"]
+                   :description "Parse strings and numbers from args")
+    Namespace(numbers=[1, 2], strings=['a', 'b'])
+
 .. _partition-fn:
 
 partition
