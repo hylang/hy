@@ -240,7 +240,8 @@ The ``let`` macro takes two parameters: a list defining *variables*
 and the *body* which gets executed. *variables* is a vector of
 variable and value pairs.
 
-``let`` executes the variable assignments one-by-one, in the order written.
+Like the ``let*`` of many other Lisps, ``let`` executes the variable
+assignments one-by-one, in the order written::
 
 .. code-block:: hy
 
@@ -248,5 +249,9 @@ variable and value pairs.
     ...      y (+ x 1)]
     ...  (print x y))
     5 6
+
+Unlike them, however, each ``(let …)`` form uses only one
+namespace for all its assignments. Thus, ``(let [x 1  x (fn [] x)]
+(x))`` returns a function object, not 1 as you might expect.
 
 It is an error to use a let-bound name in a ``global`` or ``nonlocal`` form.
