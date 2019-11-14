@@ -24,7 +24,6 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
 
    whyhy
    tutorial
-   style-guide
    language/index
    extra/index
    contrib/index
