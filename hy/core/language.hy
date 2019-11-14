@@ -391,6 +391,19 @@ Even objects with the __name__ magic will work."
     False
     (or a b)))
 
+(defn parse-args [spec &optional args &kwargs parser-args]
+  "Return arguments namespace parsed from `args` or `sys.argv` with `argparse.ArgumentParser.parse-args` according to `spec`.
+
+`spec` should be a list of arguments to pass to repeated calls to
+`argparse.ArgumentParser.add-argument`.  `parser-args` may be a list
+of keyword arguments to pass to the `argparse.ArgumentParser`
+constructor."
+  (import argparse)
+  (setv parser (argparse.ArgumentParser #** parser-args))
+  (for [arg spec]
+    (eval `(.add-argument parser ~@arg)))
+  (.parse-args parser args))
+
 (setv EXPORTS
   '[*map accumulate butlast calling-module calling-module-name chain coll?
     combinations comp complement compress constantly count cycle dec distinct
@@ -399,6 +412,6 @@ Even objects with the __name__ magic will work."
     integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list? macroexpand
     macroexpand-1 mangle merge-with multicombinations name neg? none? nth
-    numeric? odd? partition permutations pos? product read read-str
+    numeric? odd? parse-args partition permutations pos? product read read-str
     remove repeat repeatedly rest reduce second some string? symbol?
     take take-nth take-while tuple? unmangle xor tee zero? zip-longest])

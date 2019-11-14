@@ -478,6 +478,15 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (odd? 0))
   (assert-requires-num odd?))
 
+(defn test-parse-args []
+  "NATIVE: testing the parse-args function"
+  (setv parsed-args (parse-args [["strings" :nargs "+" :help "Strings"]
+                                 ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
+                                ["a" "b" "-n" "1" "-n" "2"]
+                                :description "Parse strings and numbers from args"))
+  (assert-equal parsed-args.strings ["a" "b"])
+  (assert-equal parsed-args.numbers [1 2]))
+
 (defn test-partition []
   "NATIVE: testing the partition function"
   (setv ten (range 10))
