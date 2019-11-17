@@ -2,6 +2,7 @@ Hy
 ==
 
 [![Version](https://img.shields.io/pypi/v/hy.svg)](https://pypi.python.org/pypi/hy)
+[![Build Status](https://travis-ci.org/hylang/hy.svg?branch=master)](https://travis-ci.org/hylang/hy)
 
 <a href="https://xkcd.com/224/"><img title="We lost the documentation on quantum mechanics. You'll have to decode the regexes yourself." alt="XKCD #224" src="https://raw.github.com/hylang/shyte/18f6925e08684b0e1f52b2cc2c803989cd62cd91/imgs/xkcd.png"></a>
 
