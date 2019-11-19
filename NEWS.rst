@@ -10,6 +10,8 @@ Removals
   and `defn` instead.
 * Literal keywords are no longer parsed differently in calls to functions
   with certain names.
+* `hy.contrib.multi` has been removed. Use ``cond`` or the PyPI package
+  ``multipledispatch`` instead.
 
 New Features
 ------------------------------

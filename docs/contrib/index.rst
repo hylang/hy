@@ -12,7 +12,6 @@ Contents:
    :maxdepth: 3
 
    loop
-   multi
    profile
    sequences
    walk
