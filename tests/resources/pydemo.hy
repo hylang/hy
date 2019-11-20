@@ -1,9 +1,10 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
 ;; This Hy module is intended to concisely demonstrate all of
 ;; Python's major syntactic features for the purpose of testing hy2py.
+"This is a module docstring."
 
 (setv mystring (* "foo" 3))
 
@@ -29,10 +30,15 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv myset #{4 5 6})
 (setv mydict {7 8  9 900  10 15})
 
-(setv mylistcomp (list-comp x [x (range 10)] (% x 2)))
-(setv mysetcomp (set-comp x [x (range 5)] (not (% x 2))))
-(setv mydictcomp (dict-comp k (.upper k) [k "abcde"] (!= k "c")))
-(setv mygenexpr (genexpr x [x (cycle [1 2 3])] (!= x 2)))
+(setv emptylist [])
+(setv emptytuple (,))
+(setv emptyset #{})
+(setv emptydict {})
+
+(setv mylistcomp (lfor x (range 10) :if (% x 2) x))
+(setv mysetcomp (sfor x (range 5) :if (not (% x 2)) x))
+(setv mydictcomp (dfor k "abcde" :if (!= k "c") [k (.upper k)]))
+(setv mygenexpr (gfor x (cycle [1 2 3]) :if (!= x 2) x))
 
 (setv attr-ref str.upper)
 (setv subscript (get "hello" 2))
@@ -42,6 +48,10 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv boolexpr (and (or True False) (not (and True False))))
 (setv condexpr (if "" "x" "y"))
 (setv mylambda (fn [x] (+ x "z")))
+
+(setv fstring1 f"hello {(+ 1 1)} world")
+(setv p "xyzzy")
+(setv fstring2 f"a{p !r :9}")
 
 (setv augassign 103)
 (//= augassign 4)
@@ -136,13 +146,24 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 
 (defclass C2 [C1]
   "class docstring"
-  [attr1 5  attr2 6]
-  (setv attr3 7))
+  (setv attr1 5)
+  (setv attr2 6))
 
 (import [contextlib [closing]])
 (setv closed [])
 (defclass Closeable []
-  [close (fn [self] (.append closed self.x))])
+  (defn close [self] (.append closed self.x)))
 (with [c1 (closing (Closeable)) c2 (closing (Closeable))]
   (setv c1.x "v1")
   (setv c2.x "v2"))
+(setv closed1 (.copy closed))
+
+(pys "
+  closed = []
+  pys_accum = []
+  for i in range(5):
+      with closing(Closeable()) as o:
+          class C: pass
+          o.x = C()
+      pys_accum.append(i)")
+(setv py-accum (py "''.join(map(str, pys_accum))"))

@@ -1,4 +1,4 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
@@ -7,7 +7,7 @@
   re
   datetime
   collections
-  [hy._compat [PY3 PY36 str-type bytes-type long-type]]
+  [hy._compat [PY36]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
 (try
@@ -18,16 +18,17 @@
 
 (setv -registry {})
 (defn hy-repr-register [types f &optional placeholder]
-  (for [typ (if (instance? list types) types [types])]
+  (for [typ (if (list? types) types [types])]
     (setv (get -registry typ) (, f placeholder))))
 
 (setv -quoting False)
 (setv -seen (set))
 (defn hy-repr [obj]
   (setv [f placeholder] (next
-    (genexpr (get -registry t)
-      [t (. (type obj) __mro__)]
-      (in t -registry))
+    (gfor
+      t (. (type obj) __mro__)
+      :if (in t -registry)
+      (get -registry t))
     [-base-repr None]))
 
   (global -quoting)
@@ -55,18 +56,18 @@
     ; collections.namedtuple.)
     (.format "({} {})"
       (. (type x) __name__)
-      (.join " " (genexpr (+ ":" k " " (hy-repr v)) [[k v] (zip x._fields x)])))
+      (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))
     ; Otherwise, print it as a regular tuple.
     (+ "(," (if x " " "") (-cat x) ")"))))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
-  (setv text (.join "  " (genexpr
-    (+ (hy-repr k) " " (hy-repr v))
-    [[k v] (.items x)])))
+  (setv text (.join "  " (gfor
+    [k v] (.items x)
+    (+ (hy-repr k) " " (hy-repr v)))))
   (+ "{" text "}")))
 (hy-repr-register HyDict :placeholder "{...}" (fn [x]
-  (setv text (.join "  " (genexpr
-    (+ (hy-repr k) " " (hy-repr v))
-    [[k v] (partition x)])))
+  (setv text (.join "  " (gfor
+    [k v] (partition x)
+    (+ (hy-repr k) " " (hy-repr v)))))
   (if (% (len x) 2)
     (+= text (+ "  " (hy-repr (get x -1)))))
   (+ "{" text "}")))
@@ -83,10 +84,10 @@
     (+ "(" (-cat x) ")"))))
 
 (hy-repr-register [HySymbol HyKeyword] str)
-(hy-repr-register [str-type bytes-type] (fn [x]
+(hy-repr-register [str bytes] (fn [x]
   (setv r (.lstrip (-base-repr x) "ub"))
   (+
-    (if (instance? bytes-type x) "b" "")
+    (if (instance? bytes x) "b" "")
     (if (.startswith "\"" r)
       ; If Python's built-in repr produced a double-quoted string, use
       ; that.
@@ -95,10 +96,6 @@
       ; convert it.
       (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\"")))))
 (hy-repr-register bool str)
-(if (not PY3) (hy-repr-register int (fn [x]
-  (.format "(int {})" (-base-repr x)))))
-(if (not PY3) (hy-repr-register long_type (fn [x]
-  (.rstrip (-base-repr x) "L"))))
 (hy-repr-register float (fn [x]
   (if
     (isnan x)  "NaN"
@@ -120,19 +117,23 @@
 
 (hy-repr-register datetime.datetime (fn [x]
   (.format "(datetime.datetime {}{})"
-    (.strftime x "%Y %-m %-d %-H %-M %-S")
+    (-strftime-0 x "%Y %m %d %H %M %S")
     (-repr-time-innards x))))
 (hy-repr-register datetime.date (fn [x]
-  (.strftime x "(datetime.date %Y %-m %-d)")))
+  (-strftime-0 x "(datetime.date %Y %m %d)")))
 (hy-repr-register datetime.time (fn [x]
   (.format "(datetime.time {}{})"
-    (.strftime x "%-H %-M %-S")
+    (-strftime-0 x "%H %M %S")
     (-repr-time-innards x))))
 (defn -repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter identity [
-    (if x.microsecond (str-type x.microsecond))
+    (if x.microsecond (str x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if (and PY36 (!= x.fold 0)) (+ ":fold " (hy-repr x.fold)))])))))
+(defn -strftime-0 [x fmt]
+  ; Remove leading 0s in `strftime`. This is a substitute for the `-`
+  ; flag for when Python isn't built with glibc.
+  (re.sub r"(\A| )0([0-9])" r"\1\2" (.strftime x fmt)))
 
 (hy-repr-register collections.Counter (fn [x]
   (.format "(Counter {})"
@@ -143,7 +144,7 @@
     (hy-repr (dict x)))))
 
 (for [[types fmt] (partition [
-    list "[...]"
+    [list HyList] "[...]"
     [set HySet] "#{...}"
     frozenset "(frozenset #{...})"
     dict-keys "(dict-keys [...])"
@@ -162,5 +163,8 @@
   ; Call (.repr x) using the first class of x that doesn't inherit from
   ; HyObject.
   (.__repr__
-    (next (genexpr t [t (. (type x) __mro__)] (not (issubclass t HyObject))))
+    (next (gfor
+      t (. (type x) __mro__)
+      :if (not (issubclass t HyObject))
+      t))
     x))

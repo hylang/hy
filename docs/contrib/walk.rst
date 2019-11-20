@@ -206,6 +206,8 @@ Recursively performs all possible macroexpansions in form, using the ``require``
 Macros
 ======
 
+.. _let:
+
 let
 ---
 
@@ -231,14 +233,15 @@ But assignments via ``import`` are always hoisted to normal Python scope, and
 likewise, ``defclass`` will assign the class to the Python scope,
 even if it shares the name of a let binding.
 
-Use ``__import__`` and ``type`` (or whatever metaclass) instead,
+Use ``importlib.import_module`` and ``type`` (or whatever metaclass) instead,
 if you must avoid this hoisting.
 
 The ``let`` macro takes two parameters: a list defining *variables*
 and the *body* which gets executed. *variables* is a vector of
 variable and value pairs.
 
-``let`` executes the variable assignments one-by-one, in the order written.
+Like the ``let*`` of many other Lisps, ``let`` executes the variable
+assignments one-by-one, in the order written::
 
 .. code-block:: hy
 
@@ -246,5 +249,9 @@ variable and value pairs.
     ...      y (+ x 1)]
     ...  (print x y))
     5 6
+
+Unlike them, however, each ``(let …)`` form uses only one
+namespace for all its assignments. Thus, ``(let [x 1  x (fn [] x)]
+(x))`` returns a function object, not 1 as you might expect.
 
 It is an error to use a let-bound name in a ``global`` or ``nonlocal`` form.

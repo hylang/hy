@@ -1,49 +1,39 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
+from hy.errors import HySyntaxError
 
-from hy.errors import HyError
 
+class LexException(HySyntaxError):
 
-class LexException(HyError):
-    """Error during the Lexing of a Hython expression."""
-    def __init__(self, message, lineno, colno, source=None):
-        super(LexException, self).__init__(message)
-        self.message = message
-        self.lineno = lineno
-        self.colno = colno
-        self.source = source
-        self.filename = '<stdin>'
+    @classmethod
+    def from_lexer(cls, message, state, token):
+        lineno = None
+        colno = None
+        source = state.source
+        source_pos = token.getsourcepos()
 
-    def __str__(self):
-        from hy.errors import colored
+        if source_pos:
+            lineno = source_pos.lineno
+            colno = source_pos.colno
+        elif source:
+            # Use the end of the last line of source for `PrematureEndOfInput`.
+            # We get rid of empty lines and spaces so that the error matches
+            # with the last piece of visible code.
+            lines = source.rstrip().splitlines()
+            lineno = lineno or len(lines)
+            colno = colno or len(lines[lineno - 1])
+        else:
+            lineno = lineno or 1
+            colno = colno or 1
 
-        line = self.lineno
-        start = self.colno
-
-        result = ""
-
-        source = self.source.split("\n")
-
-        if line > 0 and start > 0:
-            result += '  File "%s", line %d, column %d\n\n' % (self.filename,
-                                                               line,
-                                                               start)
-
-            if len(self.source) > 0:
-                source_line = source[line-1]
-            else:
-                source_line = ""
-
-            result += '  %s\n' % colored.red(source_line)
-            result += '  %s%s\n' % (' '*(start-1), colored.green('^'))
-
-        result += colored.yellow("LexException: %s\n\n" % self.message)
-
-        return result
+        return cls(message,
+                   None,
+                   state.filename,
+                   source,
+                   lineno,
+                   colno)
 
 
 class PrematureEndOfInput(LexException):
-    """We got a premature end of input"""
-    def __init__(self, message):
-        super(PrematureEndOfInput, self).__init__(message, -1, -1)
+    pass

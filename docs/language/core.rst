@@ -195,7 +195,9 @@ eval
 ``eval`` evaluates a quoted expression and returns the value. The optional
 second and third arguments specify the dictionary of globals to use and the
 module name. The globals dictionary defaults to ``(local)`` and the module name
-defaults to the name of the current module.
+defaults to the name of the current module.  An optional fourth keyword parameter,
+``compiler``, allows one to re-use an existing ``HyASTCompiler`` object for the
+compilation step.
 
 .. code-block:: clj
 
@@ -236,19 +238,6 @@ otherwise ``False``. Return ``True`` if *coll* is empty.
 
    => (every? even? [])
    True
-
-
-.. _exec-fn:
-
-exec
-----
-
-Equivalent to Python 3's built-in function :py:func:`exec`.
-
-.. code-block:: clj
-
-    => (exec "print(a + b)" {"a" 1} {"b" 2})
-    3
 
 
 .. _float?-fn:
@@ -383,8 +372,7 @@ integer?
 
 Usage: ``(integer? x)``
 
-Returns `True` if *x* is an integer. For Python 2, this is
-either ``int`` or ``long``. For Python 3, this is ``int``.
+Returns `True` if *x* is an integer (``int``).
 
 .. code-block:: hy
 
@@ -798,6 +786,29 @@ Returns ``True`` if *x* is odd. Raises ``TypeError`` if
    => (odd? 0)
    False
 
+.. _parse-args:
+
+parse-args
+----------
+
+Usage: ``(parse-args spec &optional args &kwargs parser-args)``
+
+Return arguments namespace parsed from *args* or ``sys.argv`` with
+:py:meth:`argparse.ArgumentParser.parse_args` according to *spec*.
+
+*spec* should be a list of arguments which will be passed to repeated
+calls to :py:meth:`argparse.ArgumentParser.add_argument`.  *parser-args*
+may be a list of keyword arguments to pass to the
+:py:class:`argparse.ArgumentParser` constructor.
+
+.. code-block:: hy
+
+    => (parse-args [["strings" :nargs "+" :help "Strings"]
+                    ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
+                   ["a" "b" "-n" "1" "-n" "2"]
+                   :description "Parse strings and numbers from args")
+    Namespace(numbers=[1, 2], strings=['a', 'b'])
+
 .. _partition-fn:
 
 partition
@@ -897,6 +908,24 @@ Returns the first logically-true value of ``(pred x)`` for any ``x`` in
    True
 
 
+.. _list?-fn:
+
+list?
+-----
+
+Usage: ``(list? x)``
+
+Returns ``True`` if *x* is a list.
+
+.. code-block:: hy
+
+   => (list? '(inc 41))
+   True
+
+   => (list? '42)
+   False
+
+
 .. _string?-fn:
 
 string?
@@ -904,7 +933,7 @@ string?
 
 Usage: ``(string? x)``
 
-Returns ``True`` if *x* is a string.
+Returns ``True`` if *x* is a string (``str``).
 
 .. code-block:: hy
 
@@ -930,6 +959,25 @@ Returns ``True`` if *x* is a symbol.
 
    => (symbol? '[a b c])
    False
+
+
+.. _tuple?-fn:
+
+tuple?
+------
+
+Usage: ``(tuple? x)``
+
+Returns ``True`` if *x* is a tuple.
+
+.. code-block:: hy
+
+   => (tuple? (, 42 44))
+   True
+
+   => (tuple? [42 44])
+   False
+
 
 .. _zero?-fn:
 
@@ -1403,4 +1451,3 @@ are available. Some of their names have been changed:
   - ``dropwhile`` has been changed to ``drop-while``
 
   - ``filterfalse`` has been changed to ``remove``
-

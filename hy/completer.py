@@ -1,4 +1,4 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
@@ -6,10 +6,10 @@ import contextlib
 import os
 import re
 import sys
+import builtins
 
 import hy.macros
 import hy.compiler
-from hy._compat import builtins, string_types
 
 
 docomplete = True
@@ -39,13 +39,15 @@ class Completer(object):
         self.namespace = namespace
         self.path = [hy.compiler._special_form_compilers,
                      builtins.__dict__,
-                     hy.macros._hy_macros[None],
                      namespace]
-        self.tag_path = [hy.macros._hy_tag[None]]
-        if '__name__' in namespace:
-            module_name = namespace['__name__']
-            self.path.append(hy.macros._hy_macros[module_name])
-            self.tag_path.append(hy.macros._hy_tag[module_name])
+
+        self.tag_path = []
+
+        namespace.setdefault('__macros__', {})
+        namespace.setdefault('__tags__', {})
+
+        self.path.append(namespace['__macros__'])
+        self.tag_path.append(namespace['__tags__'])
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer
@@ -76,7 +78,7 @@ class Completer(object):
         matches = []
         for p in self.path:
             for k in p.keys():
-                if isinstance(k, string_types):
+                if isinstance(k, str):
                     k = k.replace("_", "-")
                     if k.startswith(text):
                         matches.append(k)
@@ -87,7 +89,7 @@ class Completer(object):
         matches = []
         for p in self.tag_path:
             for k in p.keys():
-                if isinstance(k, string_types):
+                if isinstance(k, str):
                     if k.startswith(text):
                         matches.append("#{}".format(k))
         return matches
@@ -121,7 +123,7 @@ def completion(completer=None):
         try:
             readline.read_history_file(history)
         except IOError:
-            open(history, 'a').close()
+            pass
 
         readline.parse_and_bind(readline_bind)
 
@@ -129,4 +131,7 @@ def completion(completer=None):
         yield
     finally:
         if docomplete:
-            readline.write_history_file(history)
+            try:
+                readline.write_history_file(history)
+            except IOError:
+                pass

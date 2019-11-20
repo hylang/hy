@@ -1,18 +1,18 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
 import copy
 import hy
-from clint.textui.colored import clean
-from hy._compat import long_type, str_type
 from hy.models import (wrap_value, replace_hy_obj, HyString, HyInteger, HyList,
                        HyDict, HySet, HyExpression, HyComplex, HyFloat, pretty)
 
+hy.models.COLORED = False
 
-def test_wrap_long_type():
+
+def test_wrap_int():
     """ Test conversion of integers."""
-    wrapped = wrap_value(long_type(0))
+    wrapped = wrap_value(0)
     assert type(wrapped) == HyInteger
 
 
@@ -26,27 +26,27 @@ def test_wrap_tuple():
 
 def test_wrap_nested_expr():
     """ Test conversion of HyExpressions with embedded non-HyObjects."""
-    wrapped = wrap_value(HyExpression([long_type(0)]))
+    wrapped = wrap_value(HyExpression([0]))
     assert type(wrapped) == HyExpression
     assert type(wrapped[0]) == HyInteger
     assert wrapped == HyExpression([HyInteger(0)])
 
 
-def test_replace_long_type():
+def test_replace_int():
     """ Test replacing integers."""
-    replaced = replace_hy_obj(long_type(0), HyInteger(13))
+    replaced = replace_hy_obj(0, HyInteger(13))
     assert replaced == HyInteger(0)
 
 
 def test_replace_string_type():
     """Test replacing python string"""
-    replaced = replace_hy_obj(str_type("foo"), HyString("bar"))
+    replaced = replace_hy_obj("foo", HyString("bar"))
     assert replaced == HyString("foo")
 
 
 def test_replace_tuple():
     """ Test replacing tuples."""
-    replaced = replace_hy_obj((long_type(0), ), HyInteger(13))
+    replaced = replace_hy_obj((0, ), HyInteger(13))
     assert type(replaced) == HyList
     assert type(replaced[0]) == HyInteger
     assert replaced == HyList([HyInteger(0)])
@@ -57,8 +57,8 @@ def test_list_add():
     a = HyList([1, 2, 3])
     b = HyList([3, 4, 5])
     c = a + b
-    assert c == [1, 2, 3, 3, 4, 5]
-    assert c.__class__ == HyList
+    assert c == HyList([1, 2, 3, 3, 4, 5])
+    assert type(c) is HyList
 
 
 def test_list_slice():
@@ -92,7 +92,7 @@ hyset = HySet([3, 1, 2, 2])
 
 
 def test_set():
-    assert hyset == [3, 1, 2, 2]
+    assert list(hyset) == [3, 1, 2, 2]
 
 
 def test_number_model_copy():
@@ -183,13 +183,13 @@ def test_compound_model_repr():
             assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
             # `str` should be pretty, even under `pretty(False)`.
-            assert clean(str(hy.read_str(k))) == v
+            assert str(hy.read_str(k)) == v
         for k in PRETTY_STRINGS.keys():
             assert eval(repr(hy.read_str(k))) == hy.read_str(k)
     with pretty(True):
         for model in HY_LIST_MODELS:
-            assert eval(clean(repr(model()))).__class__ is model
-            assert eval(clean(repr(model([1, 2])))) == model([1, 2])
-            assert eval(clean(repr(model([1, 2, 3])))) == model([1, 2, 3])
+            assert eval(repr(model())).__class__ is model
+            assert eval(repr(model([1, 2]))) == model([1, 2])
+            assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
-            assert clean(repr(hy.read_str(k))) == v
+            assert repr(hy.read_str(k)) == v

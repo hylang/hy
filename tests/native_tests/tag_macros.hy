@@ -1,4 +1,4 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
@@ -110,7 +110,7 @@
     ((wraps func)
        (fn [&rest args &kwargs kwargs]
          (func #* (map inc args)
-               #** (dict-comp k (inc v) [[k v] (.items kwargs)])))))
+               #** (dfor [k v] (.items kwargs) [k (inc v)])))))
 
   #@(increment-arguments
      (defn foo [&rest args &kwargs kwargs]

@@ -1,4 +1,4 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
@@ -10,7 +10,8 @@ lg = LexerGenerator()
 
 # A regexp for something that should end a quoting/unquoting operator
 # i.e. a space or a closing brace/paren/curly
-end_quote = r'(?![\s\)\]\}])'
+end_quote_set = r'\s\)\]\}'
+end_quote = r'(?![%s])' % end_quote_set
 
 identifier = r'[^()\[\]{}\'"\s;]+'
 
@@ -25,6 +26,7 @@ lg.add('QUOTE', r'\'%s' % end_quote)
 lg.add('QUASIQUOTE', r'`%s' % end_quote)
 lg.add('UNQUOTESPLICE', r'~@%s' % end_quote)
 lg.add('UNQUOTE', r'~%s' % end_quote)
+lg.add('ANNOTATION', r'\^(?![=%s])' % end_quote_set)
 lg.add('DISCARD', r'#_')
 lg.add('HASHSTARS', r'#\*+')
 lg.add('BRACKETSTRING', r'''(?x)
@@ -38,7 +40,7 @@ lg.add('HASHOTHER', r'#%s' % identifier)
 # A regexp which matches incomplete strings, used to support
 # multi-line strings in the interpreter
 partial_string = r'''(?x)
-    (?:u|r|ur|ru|b|br|rb)? # prefix
+    (?:u|r|ur|ru|b|br|rb|f|fr|rf)? # prefix
     "  # start string
     (?:
        | [^"\\]             # non-quote or backslash

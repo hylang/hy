@@ -1,5 +1,5 @@
 ;;; Hy anaphoric macros
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
@@ -109,18 +109,18 @@
    `%*` and `%**` name the `&rest` and `&kwargs` parameters, respectively.
 
    Nesting of `#%` forms is not recommended."
-  (setv %symbols (set-comp a
-                           [a (flatten [expr])]
-                           (and (symbol? a)
-                                (.startswith a '%))))
+  (setv %symbols (sfor a (flatten [expr])
+                       :if (and (symbol? a)
+                                (.startswith a '%))
+                       a))
   `(fn [;; generate all %i symbols up to the maximum found in expr
-        ~@(genexpr (HySymbol (+ "%" (str i)))
-                   [i (range 1 (-> (list-comp (int (cut a 1))
-                                              [a %symbols]
-                                              (.isdigit (cut a 1)))
-                                   (or (, 0))
-                                   max
-                                   inc))])
+        ~@(gfor i (range 1 (-> (lfor a %symbols
+                                     :if (.isdigit (cut a 1))
+                                     (int (cut a 1)))
+                               (or (, 0))
+                               max
+                               inc))
+                (HySymbol (+ "%" (str i))))
         ;; generate the &rest parameter only if '%* is present in expr
         ~@(if (in '%* %symbols)
               '(&rest %*))

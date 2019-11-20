@@ -1,10 +1,12 @@
 ;;; Hy AST walker
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
 (import [hy [HyExpression HyDict]]
+        [hy.models [HySequence]]
         [functools [partial]]
+        [importlib [import-module]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
         [hy.compiler [HyASTCompiler]])
@@ -16,9 +18,7 @@
   (cond
    [(instance? HyExpression form)
     (outer (HyExpression (map inner form)))]
-   [(instance? HyDict form)
-    (HyDict (outer (HyExpression (map inner form))))]
-   [(instance? list form)
+   [(or (instance? HySequence form) (list? form))
     ((type form) (outer (HyExpression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
@@ -42,29 +42,37 @@
 
 (defn macroexpand-all [form &optional module-name]
   "Recursively performs all possible macroexpansions in form."
-  (setv module-name (or module-name (calling-module-name))
-        quote-level [0])  ; TODO: make nonlocal after dropping Python2
+  (setv module (or (and module-name
+                        (import-module module-name))
+                   (calling-module))
+        quote-level 0
+        ast-compiler (HyASTCompiler module))  ; TODO: make nonlocal after dropping Python2
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
+    (nonlocal quote-level)
     ;; manages quote levels
     (defn +quote [&optional [x 1]]
+      (nonlocal quote-level)
       (setv head (first form))
-      (+= (get quote-level 0) x)
-      (when (neg? (get quote-level 0))
+      (+= quote-level x)
+      (when (neg? quote-level)
         (raise (TypeError "unquote outside of quasiquote")))
       (setv res (traverse (cut form 1)))
-      (-= (get quote-level 0) x)
+      (-= quote-level x)
       `(~head ~@res))
     (if (call? form)
-        (cond [(get quote-level 0)
+        (cond [quote-level
                (cond [(in (first form) '[unquote unquote-splice])
                       (+quote -1)]
                      [(= (first form) 'quasiquote) (+quote)]
                      [True (traverse form)])]
               [(= (first form) 'quote) form]
               [(= (first form) 'quasiquote) (+quote)]
-              [True (traverse (mexpand form (HyASTCompiler module-name)))])
+              [(= (first form) (HySymbol "require"))
+               (ast-compiler.compile form)
+               (return)]
+              [True (traverse (mexpand form module ast-compiler))])
         (if (coll? form)
             (traverse form)
             form)))
@@ -82,7 +90,7 @@ splits a fn argument list into sections based on &-headers.
 returns an OrderedDict mapping headers to sublists.
 Arguments without a header are under None.
 "
-  (setv headers '[&optional &rest &kwonly &kwargs]
+  (setv headers ['&optional '&rest '&kwonly '&kwargs]
         sections (OrderedDict [(, None [])])
         header None)
   (for [arg form]
@@ -162,7 +170,7 @@ Arguments without a header are under None.
                                                 #{})))))
   (defn handle-args-list [self]
     (setv protected #{}
-          argslist `[])
+          argslist [])
     (for [[header section] (-> self (.tail) first lambda-list .items)]
       (if header (.append argslist header))
       (cond [(in header [None '&rest '&kwargs])
@@ -295,7 +303,7 @@ But assignments via `import` are always hoisted to normal Python scope, and
 likewise, `defclass` will assign the class to the Python scope,
 even if it shares the name of a let binding.
 
-Use __import__ and type (or whatever metaclass) instead,
+Use `import_module` and `type` (or whatever metaclass) instead,
 if you must avoid this hoisting.
 
 Function arguments can shadow let bindings in their body,
@@ -305,6 +313,7 @@ as can nested let forms.
       (macro-error bindings "let bindings must be paired"))
   (setv g!let (gensym 'let)
         replacements (OrderedDict)
+        keys []
         values [])
   (defn expander [symbol]
     (.get replacements symbol symbol))
@@ -313,63 +322,14 @@ as can nested let forms.
             (macro-error k "bind targets must be symbols")
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot")))
-    (.append values (symbolexpand (macroexpand-all v &name) expander))
-    (assoc replacements k `(get ~g!let ~(name k))))
+    (.append values (symbolexpand (macroexpand-all v &name)
+                                  expander))
+    (.append keys `(get ~g!let ~(name k)))
+    (assoc replacements k (last keys)))
   `(do
      (setv ~g!let {}
-           ~@(interleave (.values replacements) values))
-     ~@(symbolexpand (macroexpand-all body &name) expander)))
+           ~@(interleave keys values))
+     ~@(symbolexpand (macroexpand-all body &name)
+                     expander)))
 
 ;; (defmacro macrolet [])
-
-#_[special cases for let
-   ;; Symbols containing a dot should be converted to this form.
-   ;; attrs should not get expanded,
-   ;; but [] lookups should.
-   '.',
-
-   ;;; can shadow let bindings with Python locals
-   ;; protect its bindings for the lexical scope of its body.
-   'fn',
-   'fn*',
-   ;; protect as bindings for the lexical scope of its body
-   'except',
-
-   ;;; changes scope of named variables
-   ;; protect the variables they name for the lexical scope of their container
-   'global',
-   'nonlocal',
-   ;; should we provide a protect form?
-   ;; it's an anaphor only valid in a `let` body.
-   ;; this would make the named variables python-scoped in its body
-   ;; expands to a do
-   'protect',
-
-   ;;; quoted variables must not be expanded.
-   ;; but unprotected, unquoted variables must be.
-   'quasiquote',
-   'quote',
-   'unquote',
-   'unquote-splice',
-
-   ;;;; deferred
-
-   ;; should really only exist at toplevel. Ignore until someone complains?
-   ;; raise an error? treat like fn?
-   ;; should probably be implemented as macros in terms of fn/setv anyway.
-   'defmacro',
-   'deftag',
-
-   ;;; create Python-scoped variables. It's probably hard to avoid this.
-   ;; Best just doc this behavior for now.
-   ;; we can't avoid clobbering enclosing python scope, unless we use a gensym,
-   ;; but that corrupts '__name__'.
-   ;; It could be set later, but that could mess up metaclasses!
-   ;; Should the class name update let variables too?
-   'defclass',
-   ;; should this update let variables?
-   ;; it could be done with gensym/setv.
-   'import',
-
-   ;; I don't understand these. Ignore until someone complains?
-   'eval_and_compile', 'eval_when_compile', 'require',]

@@ -1,5 +1,5 @@
 ;;; Hy profiling macros
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
@@ -19,9 +19,7 @@
   `(do
      (import cProfile pstats)
 
-     (if-python2
-       (import [StringIO [StringIO]])
-       (import [io [StringIO]]))
+     (import [io [StringIO]])
 
      (setv ~g!hy-pr (.Profile cProfile))
      (.enable ~g!hy-pr)

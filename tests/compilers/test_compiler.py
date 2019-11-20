@@ -1,4 +1,4 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
@@ -6,7 +6,7 @@ import ast
 
 from hy import compiler
 from hy.models import HyExpression, HyList, HySymbol, HyInteger
-from hy._compat import PY3
+import types
 
 
 def make_expression(*args):
@@ -26,7 +26,7 @@ def test_compiler_bare_names():
                         HySymbol("a"),
                         HySymbol("b"),
                         HySymbol("c"))
-    ret = compiler.HyASTCompiler('test').compile(e)
+    ret = compiler.HyASTCompiler(types.ModuleType('test')).compile(e)
 
     # We expect two statements and a final expr.
 
@@ -55,7 +55,7 @@ def test_compiler_yield_return():
                         HyExpression([HySymbol("+"),
                                       HyInteger(1),
                                       HyInteger(1)]))
-    ret = compiler.HyASTCompiler('test').compile_atom(e)
+    ret = compiler.HyASTCompiler(types.ModuleType('test')).compile_atom(e)
 
     assert len(ret.stmts) == 1
     stmt, = ret.stmts
@@ -64,12 +64,5 @@ def test_compiler_yield_return():
     assert len(body) == 2
     assert isinstance(body[0], ast.Expr)
     assert isinstance(body[0].value, ast.Yield)
-
-    if PY3:
-        # From 3.3+, the final statement becomes a return value
-        assert isinstance(body[1], ast.Return)
-        assert isinstance(body[1].value, ast.BinOp)
-    else:
-        # In earlier versions, the expression is not returned
-        assert isinstance(body[1], ast.Expr)
-        assert isinstance(body[1].value, ast.BinOp)
+    assert isinstance(body[1], ast.Return)
+    assert isinstance(body[1].value, ast.BinOp)

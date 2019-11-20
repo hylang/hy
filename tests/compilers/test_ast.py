@@ -1,17 +1,16 @@
 # -*- encoding: utf-8 -*-
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
 from __future__ import unicode_literals
 
 from hy import HyString
-from hy.models import HyObject
-from hy.compiler import hy_compile
-from hy.importer import hy_eval, import_buffer_to_hst
-from hy.errors import HyCompileError, HyTypeError
-from hy.lex.exceptions import LexException
-from hy._compat import PY3
+from hy.compiler import hy_compile, hy_eval
+from hy.errors import HyCompileError, HyLanguageError, HyError
+from hy.lex import hy_parse
+from hy.lex.exceptions import LexException, PrematureEndOfInput
+from hy._compat import PY36
 
 import ast
 import pytest
@@ -27,29 +26,24 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def can_compile(expr):
-    return hy_compile(import_buffer_to_hst(expr), "__main__")
+    return hy_compile(hy_parse(expr), __name__)
 
 
 def can_eval(expr):
-    return hy_eval(import_buffer_to_hst(expr))
+    return hy_eval(hy_parse(expr))
 
 
 def cant_compile(expr):
-    try:
-        hy_compile(import_buffer_to_hst(expr), "__main__")
-        assert False
-    except HyTypeError as e:
+    with pytest.raises(HyError) as excinfo:
+        hy_compile(hy_parse(expr), __name__)
+
+    if issubclass(excinfo.type, HyLanguageError):
+        assert excinfo.value.msg
+        return excinfo.value
+    elif issubclass(excinfo.type, HyCompileError):
         # Anything that can't be compiled should raise a user friendly
         # error, otherwise it's a compiler bug.
-        assert isinstance(e.expression, HyObject)
-        assert e.message
-        return e
-    except HyCompileError as e:
-        # Anything that can't be compiled should raise a user friendly
-        # error, otherwise it's a compiler bug.
-        assert isinstance(e.exception, HyTypeError)
-        assert e.traceback
-        return e
+        return excinfo.value
 
 
 def s(x):
@@ -60,11 +54,26 @@ def test_ast_bad_type():
     "Make sure AST breakage can happen"
     class C:
         pass
-    try:
-        hy_compile(C(), "__main__")
-        assert True is False
-    except TypeError:
-        pass
+
+    with pytest.raises(TypeError):
+        hy_compile(C(), __name__, filename='<string>', source='')
+
+
+def test_empty_expr():
+    "Empty expressions should be illegal at the top level."
+    cant_compile("(print ())")
+    can_compile("(print '())")
+
+
+def test_dot_unpacking():
+
+    can_compile("(.meth obj #* args az)")
+    cant_compile("(.meth #* args az)")
+    cant_compile("(. foo #* bar baz)")
+
+    can_compile("(.meth obj #** args az)")
+    can_compile("(.meth #** args obj)")
+    cant_compile("(. foo #** bar baz)")
 
 
 def test_ast_bad_if():
@@ -112,9 +121,8 @@ def test_ast_good_raise():
     can_compile("(raise e)")
 
 
-if PY3:
-    def test_ast_raise_from():
-        can_compile("(raise Exception :from NameError)")
+def test_ast_raise_from():
+    can_compile("(raise Exception :from NameError)")
 
 
 def test_ast_bad_raise():
@@ -196,16 +204,16 @@ def test_ast_bad_global():
     cant_compile("(global (foo))")
 
 
-if PY3:
-    def test_ast_good_nonlocal():
-        "Make sure AST can compile valid nonlocal"
-        can_compile("(nonlocal a)")
-        can_compile("(nonlocal foo bar)")
+def test_ast_good_nonlocal():
+    "Make sure AST can compile valid nonlocal"
+    can_compile("(nonlocal a)")
+    can_compile("(nonlocal foo bar)")
 
-    def test_ast_bad_nonlocal():
-        "Make sure AST can't compile invalid nonlocal"
-        cant_compile("(nonlocal)")
-        cant_compile("(nonlocal (foo))")
+
+def test_ast_bad_nonlocal():
+    "Make sure AST can't compile invalid nonlocal"
+    cant_compile("(nonlocal)")
+    cant_compile("(nonlocal (foo))")
 
 
 def test_ast_good_defclass():
@@ -217,7 +225,6 @@ def test_ast_good_defclass():
     can_compile("(defclass a [] None (print \"foo\"))")
 
 
-@pytest.mark.skipif(not PY3, reason="Python 3 supports class keywords")
 def test_ast_good_defclass_with_metaclass():
     "Make sure AST can compile valid defclass with keywords"
     can_compile("(defclass a [:metaclass b])")
@@ -283,19 +290,11 @@ def test_ast_require():
     cant_compile("(require [tests.resources.tlib [* *]])")
 
 
-def test_ast_no_pointless_imports():
-    def contains_import_from(code):
-        return any([isinstance(node, ast.ImportFrom)
-                   for node in can_compile(code).body])
-    # `reduce` is a builtin in Python 2, but not Python 3.
-    # The version of `map` that returns an iterator is a builtin in
-    # Python 3, but not Python 2.
-    if PY3:
-        assert contains_import_from("reduce")
-        assert not contains_import_from("map")
-    else:
-        assert not contains_import_from("reduce")
-        assert contains_import_from("map")
+def test_ast_import_require_dotted():
+    """As in Python, it should be a compile-time error to attempt to
+import a dotted name."""
+    cant_compile("(import [spam [foo.bar]])")
+    cant_compile("(require [spam [foo.bar]])")
 
 
 def test_ast_good_get():
@@ -438,36 +437,27 @@ def test_lambda_list_keywords_kwargs():
 
 
 def test_lambda_list_keywords_kwonly():
-    """Ensure we can compile functions with &kwonly if we're on Python
-    3, or fail with an informative message on Python 2."""
     kwonly_demo = "(fn [&kwonly a [b 2]] (print 1) (print a b))"
-    if PY3:
-        code = can_compile(kwonly_demo)
-        for i, kwonlyarg_name in enumerate(('a', 'b')):
-            assert kwonlyarg_name == code.body[0].args.kwonlyargs[i].arg
-        assert code.body[0].args.kw_defaults[0] is None
-        assert code.body[0].args.kw_defaults[1].n == 2
-    else:
-        exception = cant_compile(kwonly_demo)
-        assert isinstance(exception, HyTypeError)
-        message, = exception.args
-        assert message == "&kwonly parameters require Python 3"
+    code = can_compile(kwonly_demo)
+    for i, kwonlyarg_name in enumerate(('a', 'b')):
+        assert kwonlyarg_name == code.body[0].args.kwonlyargs[i].arg
+    assert code.body[0].args.kw_defaults[0] is None
+    assert code.body[0].args.kw_defaults[1].n == 2
 
 
 def test_lambda_list_keywords_mixed():
     """ Ensure we can mix them up."""
     can_compile("(fn [x &rest xs &kwargs kw] (list x xs kw))")
     cant_compile("(fn [x &rest xs &fasfkey {bar \"baz\"}])")
-    if PY3:
-        can_compile("(fn [x &rest xs &kwonly kwoxs &kwargs kwxs]"
-                    "  (list x xs kwxs kwoxs))")
+    can_compile("(fn [x &rest xs &kwonly kwoxs &kwargs kwxs]"
+                "  (list x xs kwxs kwoxs))")
 
 
 def test_missing_keyword_argument_value():
     """Ensure the compiler chokes on missing keyword argument values."""
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("((fn [x] x) :x)")
-    assert excinfo.value.message == "Keyword argument :x needs a value."
+    assert excinfo.value.msg == "Keyword argument :x needs a value."
 
 
 def test_ast_unicode_strings():
@@ -476,7 +466,7 @@ def test_ast_unicode_strings():
     def _compile_string(s):
         hy_s = HyString(s)
 
-        code = hy_compile([hy_s], "__main__")
+        code = hy_compile([hy_s], __name__, filename='<string>', source=s)
         # We put hy_s in a list so it isn't interpreted as a docstring.
 
         # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Str(s=xxx)]))])
@@ -488,11 +478,23 @@ def test_ast_unicode_strings():
 
 
 def test_ast_unicode_vs_bytes():
-    assert s('"hello"') == u"hello"
-    assert type(s('"hello"')) is (str if PY3 else unicode)  # noqa
-    assert s('b"hello"') == (eval('b"hello"') if PY3 else "hello")
-    assert type(s('b"hello"')) is (bytes if PY3 else str)
-    assert s('b"\\xa0"') == (bytes([160]) if PY3 else chr(160))
+    assert s('"hello"') == "hello"
+    assert type(s('"hello"')) is str
+    assert s('b"hello"') == b"hello"
+    assert type(s('b"hello"')) is bytes
+    assert s('b"\\xa0"') == bytes([160])
+
+
+@pytest.mark.skipif(not PY36, reason='f-strings require Python 3.6+')
+def test_format_string():
+    assert can_compile('f"hello world"')
+    assert can_compile('f"hello {(+ 1 1)} world"')
+    assert can_compile('f"hello world {(+ 1 1)}"')
+    assert cant_compile('f"hello {(+ 1 1) world"')
+    assert cant_compile('f"hello (+ 1 1)} world"')
+    assert cant_compile('f"hello {(+ 1 1} world"')
+    assert can_compile(r'f"hello {\"n\"} world"')
+    assert can_compile(r'f"hello {\"\\n\"} world"')
 
 
 def test_ast_bracket_string():
@@ -500,7 +502,7 @@ def test_ast_bracket_string():
     assert s(r'#[my delim[fizzle]my delim]') == 'fizzle'
     assert s(r'#[[]]') == ''
     assert s(r'#[my delim[]my delim]') == ''
-    assert type(s('#[X[hello]X]')) is (str if PY3 else unicode)  # noqa
+    assert type(s('#[X[hello]X]')) is str
     assert s(r'#[X[raw\nstring]X]') == 'raw\\nstring'
     assert s(r'#[foozle[aa foozli bb ]foozle]') == 'aa foozli bb '
     assert s(r'#[([unbalanced](]') == 'unbalanced'
@@ -517,23 +519,21 @@ Only one leading newline should be removed.
 
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("(fn [] (in [1 2 3]))")
 
 
 def test_for_compile_error():
     """Ensure we get compile error in tricky 'for' cases"""
-    with pytest.raises(LexException) as excinfo:
+    with pytest.raises(PrematureEndOfInput) as excinfo:
         can_compile("(fn [] (for)")
-    assert excinfo.value.message == "Premature end of input"
+    assert excinfo.value.msg == "Premature end of input"
 
     with pytest.raises(LexException) as excinfo:
         can_compile("(fn [] (for)))")
-    assert excinfo.value.message == "Ran into a RPAREN where it wasn't expected."
+    assert excinfo.value.msg == "Ran into a RPAREN where it wasn't expected."
 
-    with pytest.raises(HyTypeError) as excinfo:
-        can_compile("(fn [] (for [x] x))")
-    assert excinfo.value.message == "`for' requires an even number of args."
+    cant_compile("(fn [] (for [x] x))")
 
 
 def test_attribute_access():
@@ -554,14 +554,6 @@ def test_attribute_empty():
     cant_compile(".foo")
     cant_compile('"bar".foo')
     cant_compile('[2].foo')
-
-
-def test_invalid_list_comprehension():
-    """Ensure that invalid list comprehensions do not break the compiler"""
-    cant_compile("(genexpr x [])")
-    cant_compile("(genexpr [x [1 2 3 4]] x)")
-    cant_compile("(list-comp None [])")
-    cant_compile("(list-comp [x [1 2 3]] x)")
 
 
 def test_bad_setv():
@@ -591,42 +583,18 @@ def test_setv_builtins():
 
 
 def test_top_level_unquote():
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("(unquote)")
-    assert excinfo.value.message == "The special form 'unquote' is not allowed here"
+    assert excinfo.value.msg == "The special form 'unquote' is not allowed here"
 
-    with pytest.raises(HyTypeError) as excinfo:
+    with pytest.raises(HyLanguageError) as excinfo:
         can_compile("(unquote-splice)")
-    assert excinfo.value.message == "The special form 'unquote-splice' is not allowed here"
+    assert excinfo.value.msg == "The special form 'unquote-splice' is not allowed here"
 
 
 def test_lots_of_comment_lines():
     # https://github.com/hylang/hy/issues/1313
     can_compile(1000 * ";\n")
-
-
-def test_exec_star():
-
-    code = can_compile('(exec* "print(5)")').body[0]
-    assert type(code) == (ast.Expr if PY3 else ast.Exec)
-    if not PY3:
-        assert code.body.s == "print(5)"
-        assert code.globals is None
-        assert code.locals is None
-
-    code = can_compile('(exec* "print(a)" {"a" 3})').body[0]
-    assert type(code) == (ast.Expr if PY3 else ast.Exec)
-    if not PY3:
-        assert code.body.s == "print(a)"
-        assert code.globals.keys[0].s == "a"
-        assert code.locals is None
-
-    code = can_compile('(exec* "print(a + b)" {"a" "x"} {"b" "y"})').body[0]
-    assert type(code) == (ast.Expr if PY3 else ast.Exec)
-    if not PY3:
-        assert code.body.s == "print(a + b)"
-        assert code.globals.keys[0].s == "a"
-        assert code.locals.keys[0].s == "b"
 
 
 def test_compiler_macro_tag_try():
@@ -636,13 +604,11 @@ def test_compiler_macro_tag_try():
     can_compile("(deftag foo [] (try None (except [] None)) `())")
 
 
-@pytest.mark.skipif(not PY3, reason="Python 3 required")
 def test_ast_good_yield_from():
     "Make sure AST can compile valid yield-from"
     can_compile("(yield-from [1 2])")
 
 
-@pytest.mark.skipif(not PY3, reason="Python 3 required")
 def test_ast_bad_yield_from():
     "Make sure AST can't compile invalid yield-from"
     cant_compile("(yield-from)")
@@ -651,3 +617,32 @@ def test_ast_bad_yield_from():
 def test_eval_generator_with_return():
     """Ensure generators with a return statement works."""
     can_eval("(fn [] (yield 1) (yield 2) (return))")
+
+
+def test_futures_imports():
+    """Make sure __future__ imports go first, especially when builtins are
+    automatically added (e.g. via use of a builtin name like `name`)."""
+    hy_ast = can_compile((
+        '(import [__future__ [print_function]])\n'
+        '(import sys)\n'
+        '(setv name [1 2])'
+        '(print (first name))'))
+
+    assert hy_ast.body[0].module == '__future__'
+    assert hy_ast.body[1].module == 'hy.core.language'
+
+    hy_ast = can_compile((
+        '(import sys)\n'
+        '(import [__future__ [print_function]])\n'
+        '(setv name [1 2])'
+        '(print (first name))'))
+
+    assert hy_ast.body[0].module == '__future__'
+    assert hy_ast.body[1].module == 'hy.core.language'
+
+
+def test_inline_python():
+    can_compile('(py "1 + 1")')
+    cant_compile('(py "1 +")')
+    can_compile('(pys "if 1:\n  2")')
+    cant_compile('(pys "if 1\n  2")')

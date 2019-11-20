@@ -1,3 +1,5 @@
+.. _syntax:
+
 ==============
 Syntax
 ==============
@@ -10,7 +12,7 @@ An identifier consists of a nonempty sequence of Unicode characters that are not
 numeric literals
 ----------------
 
-In addition to regular numbers, standard notation from Python 3 for non-base 10
+In addition to regular numbers, standard notation from Python for non-base 10
 integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
 
 .. code-block:: clj
@@ -42,7 +44,8 @@ string literal called a "bracket string" similar to Lua's long brackets.
 Bracket strings have customizable delimiters, like the here-documents of other
 languages. A bracket string begins with ``#[FOO[`` and ends with ``]FOO]``,
 where ``FOO`` is any string not containing ``[`` or ``]``, including the empty
-string. For example::
+string. (If ``FOO`` is exactly ``f`` or begins with ``f-``, the bracket string
+is interpreted as a :ref:`format string <syntax-fstrings>`.) For example::
 
    => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
    "That's very kind of yuo [sic]" Tom wrote back.
@@ -59,13 +62,48 @@ Plain string literals support :ref:`a variety of backslash escapes
 literally, prefix the string with ``r``, as in ``r"slash\not"``. Bracket
 strings are always raw strings and don't allow the ``r`` prefix.
 
-Whether running under Python 2 or Python 3, Hy treats all string literals as
-sequences of Unicode characters by default, and allows you to prefix a plain
-string literal (but not a bracket string) with ``b`` to treat it as a sequence
-of bytes. So when running under Python 3, Hy translates ``"foo"`` and
-``b"foo"`` to the identical Python code, but when running under Python 2,
-``"foo"`` is translated to ``u"foo"`` and ``b"foo"`` is translated to
-``"foo"``.
+Like Python, Hy treats all string literals as sequences of Unicode characters
+by default. You may prefix a plain string literal (but not a bracket string)
+with ``b`` to treat it as a sequence of bytes.
+
+Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase.
+
+.. _syntax-fstrings:
+
+format strings
+--------------
+
+A format string (or "f-string", or "formatted string literal") is a string
+literal with embedded code, possibly accompanied by formatting commands. Hy
+f-strings work much like :ref:`Python f-strings <py:f-strings>` except that the
+embedded code is in Hy rather than Python, and they're supported on all
+versions of Python.
+
+::
+
+    => (print f"The sum is {(+ 1 1)}.")
+    The sum is 2.
+
+Since ``!`` and ``:`` are identifier characters in Hy, Hy decides where the
+code in a replacement field ends, and any conversion or format specifier
+begins, by parsing exactly one form. You can use ``do`` to combine several
+forms into one, as usual. Whitespace may be necessary to terminate the form::
+
+    => (setv foo "a")
+    => (print f"{foo:x<5}")
+    …
+    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
+    => (print f"{foo :x<5}")
+    axxxx
+
+Unlike Python, whitespace is allowed between a conversion and a format
+specifier.
+
+Also unlike Python, comments and backslashes are allowed in replacement fields.
+Hy's lexer will still process the whole format string normally, like any other
+string, before any replacement fields are considered, so you may need to
+backslash your backslashes, and you can't comment out a closing brace or the
+string delimiter.
 
 .. _syntax-keywords:
 
@@ -80,6 +118,11 @@ trying to call a function on a literal keyword may fail: ``(f :foo)`` yields
 the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
+
+Keywords can be called like functions as shorthand for ``get``. ``(:foo obj)``
+is equivalent to ``(get obj :foo)``. An optional ``default`` argument is also
+allowed: ``(:foo obj 2)`` or ``(:foo obj :default 2)`` returns ``2`` if ``(get
+obj :foo)`` raises a ``KeyError``.
 
 .. _mangling:
 

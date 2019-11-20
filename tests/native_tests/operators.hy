@@ -1,8 +1,6 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
-
-(import pytest [hy._compat [PY35]])
 
 (defmacro op-and-shadow-test [op &rest body]
   ; Creates two tests with the given `body`, one where all occurrences
@@ -28,7 +26,7 @@
 (defmacro forbid [expr]
   `(assert (try
     (eval '~expr)
-    (except [TypeError] True)
+    (except [[TypeError SyntaxError]] True)
     (else (raise AssertionError)))))
 
 
@@ -36,7 +34,7 @@
 
   (assert (= (f) 0))
 
-  (defclass C [object] [__pos__ (fn [self] "called __pos__")])
+  (defclass C [object] (defn __pos__ [self] "called __pos__"))
   (assert (= (f (C)) "called __pos__"))
 
   (assert (= (f 1 2) 3))
@@ -102,14 +100,14 @@
   (forbid (f 1 2 3)))
 
 
-(when PY35 (op-and-shadow-test @
-  (defclass C [object] [
-    __init__ (fn [self content] (setv self.content content))
-    __matmul__ (fn [self other] (C (+ self.content other.content)))])
+(op-and-shadow-test @
+  (defclass C [object]
+    (defn __init__ [self content] (setv self.content content))
+    (defn __matmul__ [self other] (C (+ self.content other.content))))
   (forbid (f))
   (assert (do (setv c (C "a")) (is (f c) c)))
   (assert (= (. (f (C "b") (C "c")) content) "bc"))
-  (assert (= (. (f (C "d") (C "e") (C "f")) content) "def"))))
+  (assert (= (. (f (C "d") (C "e") (C "f")) content) "def")))
 
 
 (op-and-shadow-test <<
@@ -173,11 +171,11 @@
 
   ; Make sure chained comparisons use `and`, not `&`.
   ; https://github.com/hylang/hy/issues/1191
-  (defclass C [object] [
-    __init__ (fn [self x]
+  (defclass C [object]
+    (defn __init__ [self x]
       (setv self.x x))
-    __lt__ (fn [self other]
-      self.x)])
+    (defn __lt__ [self other]
+      self.x))
   (assert (= (f (C "a") (C "b") (C "c")) "b")))
 
 
@@ -305,3 +303,43 @@
   (assert (= (f "hello" 1) "e"))
   (assert (= (f [[1 2 3] [4 5 6] [7 8 9]] 1 2) 6))
   (assert (= (f {"x" {"y" {"z" 12}}} "x" "y" "z") 12)))
+
+
+(defn test-augassign []
+    (setv b 2  c 3  d 4)
+    (defmacro same-as [expr1 expr2 expected-value]
+      `(do
+        (setv a 4)
+        ~expr1
+        (setv expr1-value a)
+        (setv a 4)
+        ~expr2
+        (assert (= expr1-value a ~expected-value))))
+    (same-as (+= a b c d) (+= a (+ b c d)) 13)
+    (same-as (-= a b c d) (-= a (+ b c d)) -5)
+    (same-as (*= a b c d) (*= a (* b c d)) 96)
+    (same-as (**= a b c) (**= a (** b c)) 65,536)
+    (same-as (/= a b c d) (/= a (* b c d)) (/ 1 6))
+    (same-as (//= a b c d) (//= a (* b c d)) 0)
+    (same-as (<<= a b c d) (<<= a (+ b c d)) 0b10_00000_00000)
+    (same-as (>>= a b c d) (>>= a (+ b c d)) 0)
+    (same-as (&= a b c d) (&= a (& b c d)) 0)
+    (same-as (|= a b c d) (|= a (| b c d)) 0b111)
+
+    (defclass C [object]
+      (defn __init__ [self content] (setv self.content content))
+      (defn __matmul__ [self other] (C (+ self.content other.content))))
+    (setv  a (C "a")  b (C "b")  c (C "c")  d (C "d"))
+    (@= a b c d)
+    (assert (= a.content "abcd"))
+    (setv a (C "a"))
+    (@= a (@ b c d))
+    (assert (= a.content "abcd"))
+
+    (setv a 15)
+    (%= a 9)
+    (assert (= a 6))
+
+    (setv a 0b1100)
+    (^= a 0b1010)
+    (assert (= a 0b0110)))

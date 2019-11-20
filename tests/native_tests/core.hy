@@ -1,8 +1,6 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
-
-(import [hy._compat [PY3]])
 
 ;;;; some simple helpers
 
@@ -267,15 +265,25 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (symbol? 'im-symbol))
   (assert-false (symbol? (name 'im-symbol))))
 
+(defn test-list? []
+  "NATIVE: testing the list? function"
+  (assert-false (list? "hello"))
+  (assert-true (list? [1 2 3])))
+
+(defn test-tuple? []
+  "NATIVE: testing the tuple? function"
+  (assert-false (tuple? [4 5]))
+  (assert-true (tuple? (, 4 5))))
+
 (defn test-gensym []
   "NATIVE: testing the gensym function"
   (import [hy.models [HySymbol]])
   (setv s1 (gensym))
   (assert (isinstance s1 HySymbol))
-  (assert (= 0 (.find s1 "_;G|")))
+  (assert (= 0 (.find s1 "_G\uffff")))
   (setv s2 (gensym "xx"))
   (setv s3 (gensym "xx"))
-  (assert (= 0 (.find s2 "_;xx|")))
+  (assert (= 0 (.find s2 "_xx\uffff")))
   (assert (not (= s2 s3)))
   (assert (not (= (str s2) (str s3)))))
 
@@ -292,7 +300,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-requires-num inc)
 
   (defclass X [object]
-    [__add__ (fn [self other] (.format "__add__ got {}" other))])
+    (defn __add__ [self other] (.format "__add__ got {}" other)))
   (assert-equal (inc (X)) "__add__ got 1"))
 
 (defn test-instance []
@@ -314,8 +322,8 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (integer? 0))
   (assert-true (integer? 3))
   (assert-true (integer? -3))
-  (assert-true (integer? (integer "-3")))
-  (assert-true (integer? (integer 3)))
+  (assert-true (integer? (int "-3")))
+  (assert-true (integer? (int 3)))
   (assert-false (integer? 4.2))
   (assert-false (integer? None))
   (assert-false (integer? "foo")))
@@ -324,7 +332,7 @@ result['y in globals'] = 'y' in globals()")
   "NATIVE: testing the integer-char? function"
   (assert-true (integer-char? "1"))
   (assert-true (integer-char? "-1"))
-  (assert-true (integer-char? (str (integer 300))))
+  (assert-true (integer-char? (str (int 300))))
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
@@ -419,8 +427,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (neg? -2))
   (assert-false (neg? 1))
   (assert-false (neg? 0))
-  (when PY3
-    (assert-requires-num neg?)))
+  (assert-requires-num neg?))
 
 (defn test-zero []
   "NATIVE: testing the zero? function"
@@ -471,6 +478,15 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (odd? 0))
   (assert-requires-num odd?))
 
+(defn test-parse-args []
+  "NATIVE: testing the parse-args function"
+  (setv parsed-args (parse-args [["strings" :nargs "+" :help "Strings"]
+                                 ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
+                                ["a" "b" "-n" "1" "-n" "2"]
+                                :description "Parse strings and numbers from args"))
+  (assert-equal parsed-args.strings ["a" "b"])
+  (assert-equal parsed-args.numbers [1 2]))
+
 (defn test-partition []
   "NATIVE: testing the partition function"
   (setv ten (range 10))
@@ -509,8 +525,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (pos? 2))
   (assert-false (pos? -1))
   (assert-false (pos? 0))
-  (when PY3
-    (assert-requires-num pos?)))
+  (assert-requires-num pos?))
 
 (defn test-remove []
   "NATIVE: testing the remove function"
@@ -628,8 +643,8 @@ result['y in globals'] = 'y' in globals()")
   "NATIVE: testing the keyword? function"
   (assert (keyword? ':bar))
   (assert (keyword? ':baz))
-  (assert (keyword? :bar))
-  (assert (keyword? :baz))
+  (setv x :bar)
+  (assert (keyword? x))
   (assert (not (keyword? "foo")))
   (assert (not (keyword? ":foo")))
   (assert (not (keyword? 1)))
@@ -682,3 +697,10 @@ result['y in globals'] = 'y' in globals()")
 (defn test-comment []
   (assert-none (comment <h1>This is merely a comment.</h1>
                         <p> Move along. (Nothing to see here.)</p>)))
+
+(defn test-doc [capsys]
+  (doc doc)
+  (setv out_err (.readouterr capsys))
+  (assert (.startswith (.strip (first out_err))
+            "Help on function doc in module hy.core.macros:"))
+  (assert (empty? (second out_err))))

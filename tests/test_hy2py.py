@@ -1,11 +1,12 @@
 # -*- encoding: utf-8 -*-
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
 import math, itertools
 from hy import mangle
 from hy._compat import PY36
+import hy.importer
 
 
 def test_direct_import():
@@ -19,10 +20,14 @@ def test_hy2py_import(tmpdir):
         ["hy2py", "tests/resources/pydemo.hy"]).decode("UTF-8")
     path = tmpdir.join("pydemo.py")
     path.write(python_code)
-    assert_stuff(import_from_path("pydemo", path))
+    # Note: explicit "str" is needed for 3.5.
+    assert_stuff(hy.importer._import_from_path("pydemo", str(path)))
 
 
 def assert_stuff(m):
+
+    # This makes sure that automatically imported builtins go after docstrings.
+    assert m.__doc__ == u'This is a module docstring.'
 
     assert m.mystring == "foofoofoo"
 
@@ -53,6 +58,11 @@ def assert_stuff(m):
     assert m.myset == {4, 5, 6}
     assert m.mydict == {7: 8, 9: 900, 10: 15}
 
+    assert m.emptylist == []
+    assert m.emptytuple == ()
+    assert m.emptyset == set()
+    assert m.emptydict == {}
+
     assert m.mylistcomp == [1, 3, 5, 7, 9]
     assert m.mysetcomp == {0, 2, 4}
     assert m.mydictcomp == dict(a="A", b="B", d="D", e="E")
@@ -68,6 +78,9 @@ def assert_stuff(m):
     assert m.condexpr == "y"
     assert type(m.mylambda) is type(lambda x: x + "z")
     assert m.mylambda("a") == "az"
+
+    assert m.fstring1 == "hello 2 world"
+    assert m.fstring2 == "a'xyzzy'  "
 
     assert m.augassign == 25
 
@@ -105,18 +118,12 @@ def assert_stuff(m):
 
     assert m.C2.__doc__ == "class docstring"
     assert issubclass(m.C2, m.C1)
-    assert (m.C2.attr1, m.C2.attr2, m.C2.attr3) == (5, 6, 7)
+    assert (m.C2.attr1, m.C2.attr2) == (5, 6)
 
-    assert m.closed == ["v2", "v1"]
+    assert m.closed1 == ["v2", "v1"]
 
-
-def import_from_path(name, path):
-    if PY36:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(name, path)
-        m = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(m)
-    else:
-        import imp
-        m = imp.load_source(name, str(path))
-    return m
+    assert len(m.closed) == 5
+    for a, b in itertools.combinations(m.closed, 2):
+        assert type(a) is not type(b)
+    assert m.pys_accum == [0, 1, 2, 3, 4]
+    assert m.py_accum == "01234"

@@ -1,9 +1,9 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
 (import
-  [hy._compat [PY3 PY36 PY37]]
+  [hy._compat [PY36 PY37]]
   [math [isnan]]
   [hy.contrib.hy-repr [hy-repr hy-repr-register]])
 
@@ -79,10 +79,10 @@
   (assert (is (type (get orig 1)) float))
   (assert (is (type (get result 1)) HyFloat)))
 
-(when PY3 (defn test-dict-views []
+(defn test-dict-views []
   (assert (= (hy-repr (.keys {1 2})) "(dict-keys [1])"))
   (assert (= (hy-repr (.values {1 2})) "(dict-values [2])"))
-  (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])"))))
+  (assert (= (hy-repr (.items {1 2})) "(dict-items [(, 1 2)])")))
 
 (defn test-datetime []
   (import [datetime :as D])
@@ -91,9 +91,8 @@
     "(datetime.datetime 2009 1 15 15 27 5)"))
   (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123))
     "(datetime.datetime 2009 1 15 15 27 5 123)"))
-  (when PY3
-    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123 :tzinfo D.timezone.utc))
-      "(datetime.datetime 2009 1 15 15 27 5 123 :tzinfo datetime.timezone.utc)")))
+  (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123 :tzinfo D.timezone.utc))
+    "(datetime.datetime 2009 1 15 15 27 5 123 :tzinfo datetime.timezone.utc)"))
   (when PY36
     (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1))
       "(datetime.datetime 2009 1 15 15 27 5 :fold 1)"))
@@ -114,17 +113,11 @@
 (defn test-collections []
   (import collections)
   (assert (= (hy-repr (collections.defaultdict :a 8))
-    (if PY3
-      "(defaultdict None {\"a\" 8})"
-      "(defaultdict None {b\"a\" 8})")))
+    "(defaultdict None {\"a\" 8})"))
   (assert (= (hy-repr (collections.defaultdict int :a 8))
-    (if PY3
-      "(defaultdict <class 'int'> {\"a\" 8})"
-      "(defaultdict <type 'int'> {b\"a\" 8})")))
+    "(defaultdict <class 'int'> {\"a\" 8})"))
   (assert (= (hy-repr (collections.Counter [15 15 15 15]))
-    (if PY3
-      "(Counter {15 4})"
-      "(Counter {15 (int 4)})")))
+    "(Counter {15 4})"))
   (setv C (collections.namedtuple "Fooey" ["cd" "a_b"]))
   (assert (= (hy-repr (C 11 12))
     "(Fooey :cd 11 :a_b 12)")))
@@ -144,20 +137,19 @@
 
   (setv x {1 2  3 [4 5]  6 7})
   (setv (get x 3 1) x)
-  (assert (in (hy-repr x) (list-comp
+  (assert (in (hy-repr x) (lfor
     ; The ordering of a dictionary isn't guaranteed, so we need
     ; to check for all possible orderings.
-    (+ "{" (.join "  " p) "}")
-    [p (permutations ["1 2" "3 [4 {...}]" "6 7"])]))))
+    p (permutations ["1 2" "3 [4 {...}]" "6 7"])
+    (+ "{" (.join "  " p) "}")))))
 
 (defn test-matchobject []
   (import re)
   (setv mo (re.search "b+" "aaaabbbccc"))
   (assert (= (hy-repr mo)
     (.format
-      #[[<{} object; :span {} :match "bbb">]]
-      (if PY37 "re.Match" (+ (. (type mo) __module__) ".SRE_Match"))
-      (if PY3 "(, 4 7)" "(, (int 4) (int 7))")))))
+      #[[<{} object; :span (, 4 7) :match "bbb">]]
+      (if PY37 "re.Match" (+ (. (type mo) __module__) ".SRE_Match"))))))
 
 (defn test-hy-repr-custom []
 
@@ -166,8 +158,8 @@
   (assert (= (hy-repr (C)) "cuddles"))
 
   (defclass Container [object]
-    [__init__ (fn [self value]
-      (setv self.value value))])
+    (defn __init__ [self value]
+      (setv self.value value)))
   (hy-repr-register Container :placeholder "(Container ...)" (fn [x]
     (+ "(Container " (hy-repr x.value) ")")))
   (setv container (Container 5))
@@ -178,5 +170,5 @@
 
 (defn test-hy-repr-fallback []
   (defclass D [object]
-    [__repr__ (fn [self] "cuddles")])
+    (defn __repr__ [self] "cuddles"))
   (assert (= (hy-repr (D)) "cuddles")))

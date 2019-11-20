@@ -12,4 +12,5 @@ Contents:
    syntax
    api
    core
+   model_patterns
    internals

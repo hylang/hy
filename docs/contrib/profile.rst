@@ -17,7 +17,7 @@ profile/calls
 --------------
 
 ``profile/calls`` allows you to create a call graph visualization.
-**Note:** You must have `Graphviz <http://www.graphviz.org/Home.php>`_
+**Note:** You must have `Graphviz <http://www.graphviz.org/>`_
 installed for this to work.
 
 

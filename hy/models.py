@@ -1,16 +1,17 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
-
 from __future__ import unicode_literals
+
 from contextlib import contextmanager
 from math import isnan, isinf
-from hy._compat import PY3, str_type, bytes_type, long_type, string_types
+from hy import _initialize_env_var
+from hy.errors import HyWrapperError
 from fractions import Fraction
-from clint.textui import colored
-
+from colorama import Fore
 
 PRETTY = True
+COLORED = _initialize_env_var('HY_COLORED_AST_OBJECTS', False)
 
 
 @contextmanager
@@ -27,16 +28,34 @@ def pretty(pretty=True):
         PRETTY = old
 
 
+class _ColoredModel:
+    """
+    Mixin that provides a helper function for models that have color.
+    """
+
+    def _colored(self, text):
+        if COLORED:
+            return self.color + text + Fore.RESET
+        else:
+            return text
+
+
 class HyObject(object):
     """
     Generic Hy Object model. This is helpful to inject things into all the
     Hy lexing Objects at once.
+
+    The position properties (`start_line`, `end_line`, `start_column`,
+    `end_column`) are each 1-based and inclusive. For example, a symbol
+    `abc` starting at the first column would have `start_column` 1 and
+    `end_column` 3.
     """
+    __properties__ = ["module", "start_line", "end_line", "start_column",
+                      "end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, HyObject):
-            for attr in ["start_line", "end_line",
-                         "start_column", "end_column"]:
+            for attr in self.__properties__:
                 if not hasattr(self, attr) and hasattr(other, attr):
                     setattr(self, attr, getattr(other, attr))
         else:
@@ -62,7 +81,7 @@ def wrap_value(x):
 
     new = _wrappers.get(type(x), lambda y: y)(x)
     if not isinstance(new, HyObject):
-        raise TypeError("Don't know how to wrap {!r}: {!r}".format(type(x), x))
+        raise HyWrapperError("Don't know how to wrap {!r}: {!r}".format(type(x), x))
     if isinstance(x, HyObject):
         new = new.replace(x, recursive=False)
     if not hasattr(new, "start_column"):
@@ -80,31 +99,32 @@ def repr_indent(obj):
     return repr(obj).replace("\n", "\n  ")
 
 
-class HyString(HyObject, str_type):
+class HyString(HyObject, str):
     """
     Generic Hy String object. Helpful to store string literals from Hy
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
-    def __new__(cls, s=None, brackets=None):
+    def __new__(cls, s=None, is_format=False, brackets=None):
         value = super(HyString, cls).__new__(cls, s)
+        value.is_format = bool(is_format)
         value.brackets = brackets
         return value
 
-_wrappers[str_type] = HyString
+_wrappers[str] = HyString
 
 
-class HyBytes(HyObject, bytes_type):
+class HyBytes(HyObject, bytes):
     """
     Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending
     on the Python version.
     """
     pass
 
-_wrappers[bytes_type] = HyBytes
+_wrappers[bytes] = HyBytes
 
 
-class HySymbol(HyObject, str_type):
+class HySymbol(HyObject, str):
     """
     Hy Symbol. Basically a string.
     """
@@ -146,47 +166,54 @@ class HyKeyword(HyObject):
     def __bool__(self):
         return bool(self.name)
 
+    _sentinel = object()
+
+    def __call__(self, data, default=_sentinel):
+        try:
+            return data[self]
+        except KeyError:
+            if default is HyKeyword._sentinel:
+                raise
+            return default
+
 
 def strip_digit_separators(number):
     # Don't strip a _ or , if it's the first character, as _42 and
     # ,42 aren't valid numbers
     return (number[0] + number[1:].replace("_", "").replace(",", "")
-            if isinstance(number, string_types) and len(number) > 1
+            if isinstance(number, str) and len(number) > 1
             else number)
 
 
-class HyInteger(HyObject, long_type):
+class HyInteger(HyObject, int):
     """
     Internal representation of a Hy Integer. May raise a ValueError as if
-    int(foo) was called, given HyInteger(foo). On python 2.x long will
-    be used instead
+    int(foo) was called, given HyInteger(foo).
     """
 
     def __new__(cls, number, *args, **kwargs):
-        if isinstance(number, string_types):
+        if isinstance(number, str):
             number = strip_digit_separators(number)
             bases = {"0x": 16, "0o": 8, "0b": 2}
             for leader, base in bases.items():
                 if number.startswith(leader):
                     # We've got a string, known leader, set base.
-                    number = long_type(number, base=base)
+                    number = int(number, base=base)
                     break
             else:
                 # We've got a string, no known leader; base 10.
-                number = long_type(number, base=10)
+                number = int(number, base=10)
         else:
             # We've got a non-string; convert straight.
-            number = long_type(number)
+            number = int(number)
         return super(HyInteger, cls).__new__(cls, number)
 
 
 _wrappers[int] = HyInteger
-if not PY3:  # do not add long on python3
-    _wrappers[long_type] = HyInteger
 
 
 def check_inf_nan_cap(arg, value):
-    if isinstance(arg, string_types):
+    if isinstance(arg, str):
         if isinf(value) and "i" in arg.lower() and "Inf" not in arg:
             raise ValueError('Inf must be capitalized as "Inf"')
         if isnan(value) and "NaN" not in arg:
@@ -214,7 +241,7 @@ class HyComplex(HyObject, complex):
     """
 
     def __new__(cls, real, imag=0, *args, **kwargs):
-        if isinstance(real, string_types):
+        if isinstance(real, str):
             value = super(HyComplex, cls).__new__(
                 cls, strip_digit_separators(real)
             )
@@ -228,7 +255,7 @@ class HyComplex(HyObject, complex):
 _wrappers[complex] = HyComplex
 
 
-class HySequence(HyObject, list):
+class HySequence(HyObject, tuple, _ColoredModel):
     """
     An abstract type for sequence-like models to inherit from.
     """
@@ -241,7 +268,8 @@ class HySequence(HyObject, list):
         return self
 
     def __add__(self, other):
-        return self.__class__(super(HySequence, self).__add__(other))
+        return self.__class__(super(HySequence, self).__add__(
+            tuple(other) if isinstance(other, list) else other))
 
     def __getslice__(self, start, end):
         return self.__class__(super(HySequence, self).__getslice__(start, end))
@@ -261,19 +289,24 @@ class HySequence(HyObject, list):
 
     def __str__(self):
         with pretty():
-            c = self.color
             if self:
-                return ("{}{}\n  {}{}").format(
-                    c(self.__class__.__name__),
-                    c("(["),
-                    (c(",") + "\n  ").join([repr_indent(e) for e in self]),
-                    c("])"))
+                return self._colored("{}{}\n  {}{}".format(
+                    self._colored(self.__class__.__name__),
+                    self._colored("(["),
+                    self._colored(",\n  ").join(map(repr_indent, self)),
+                    self._colored("])"),
+                ))
+                return self._colored("{}([\n  {}])".format(
+                    self.__class__.__name__,
+                    ','.join(repr_indent(e) for e in self),
+                ))
             else:
-                return '' + c(self.__class__.__name__ + "()")
+                return self._colored(self.__class__.__name__ + "()")
 
 
 class HyList(HySequence):
-    color = staticmethod(colored.cyan)
+    color = Fore.CYAN
+
 
 def recwrap(f):
     return lambda l: f(wrap_value(x) for x in l)
@@ -283,14 +316,14 @@ _wrappers[list] = recwrap(HyList)
 _wrappers[tuple] = recwrap(HyList)
 
 
-class HyDict(HySequence):
+class HyDict(HySequence, _ColoredModel):
     """
     HyDict (just a representation of a dict)
     """
+    color = Fore.GREEN
 
     def __str__(self):
         with pretty():
-            g = colored.green
             if self:
                 pairs = []
                 for k, v in zip(self[::2],self[1::2]):
@@ -298,20 +331,22 @@ class HyDict(HySequence):
                     pairs.append(
                         ("{0}{c}\n  {1}\n  "
                          if '\n' in k+v
-                         else "{0}{c} {1}").format(k, v, c=g(',')))
+                         else "{0}{c} {1}").format(k, v, c=self._colored(',')))
                 if len(self) % 2 == 1:
                     pairs.append("{}  {}\n".format(
-                        repr_indent(self[-1]), g("# odd")))
+                        repr_indent(self[-1]), self._colored("# odd")))
                 return "{}\n  {}{}".format(
-                    g("HyDict(["), ("{c}\n  ".format(c=g(',')).join(pairs)), g("])"))
+                    self._colored("HyDict(["),
+                    "{c}\n  ".format(c=self._colored(',')).join(pairs),
+                    self._colored("])"))
             else:
-                return '' + g("HyDict()")
+                return self._colored("HyDict()")
 
     def keys(self):
-        return self[0::2]
+        return list(self[0::2])
 
     def values(self):
-        return self[1::2]
+        return list(self[1::2])
 
     def items(self):
         return list(zip(self.keys(), self.values()))
@@ -324,7 +359,7 @@ class HyExpression(HySequence):
     """
     Hy S-Expression. Basically just a list.
     """
-    color = staticmethod(colored.yellow)
+    color = Fore.YELLOW
 
 _wrappers[HyExpression] = recwrap(HyExpression)
 _wrappers[Fraction] = lambda e: HyExpression(
@@ -335,7 +370,7 @@ class HySet(HySequence):
     """
     Hy set (just a representation of a set)
     """
-    color = staticmethod(colored.red)
+    color = Fore.RED
 
 _wrappers[HySet] = recwrap(HySet)
 _wrappers[set] = recwrap(HySet)

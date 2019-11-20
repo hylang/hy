@@ -44,9 +44,9 @@ If this is causing issues,
 it can be turned off globally by setting ``hy.models.PRETTY`` to ``False``,
 or temporarily by using the ``hy.models.pretty`` context manager.
 
-Hy also attempts to color pretty reprs using ``clint.textui.colored``.
-This module has a flag to disable coloring,
-and a method ``clean`` to strip colored strings of their color tags.
+Hy also attempts to color pretty reprs and errors using ``colorama``. These can
+be turned off globally by setting ``hy.models.COLORED`` and ``hy.errors.COLORED``,
+respectively, to ``False``.
 
 .. _hysequence:
 
@@ -60,13 +60,17 @@ Adding a HySequence to another iterable object reuses the class of the
 left-hand-side object, a useful behavior when you want to concatenate Hy
 objects in a macro, for instance.
 
+HySequences are (mostly) immutable: you can't add, modify, or remove
+elements. You can still append to a variable containing a HySequence with
+``+=`` and otherwise construct new HySequences out of old ones.
+
 
 .. _hylist:
 
 HyList
-~~~~~~~~~~~~
+~~~~~~
 
-``hy.models.HyExpression`` is a :ref:`HySequence` for bracketed ``[]``
+``hy.models.HyList`` is a :ref:`HySequence` for bracketed ``[]``
 lists, which, when used as a top-level expression, translate to Python
 list literals in the compilation phase.
 
@@ -89,11 +93,6 @@ HyDict
 
 ``hy.models.HyDict`` inherits :ref:`HySequence` for curly-bracketed
 ``{}`` expressions, which compile down to a Python dictionary literal.
-
-The decision of using a list instead of a dict as the base class for
-``HyDict`` allows easier manipulation of dicts in macros, with the added
-benefit of allowing compound expressions as dict keys (as, for instance,
-the :ref:`HyExpression` Python class isn't hashable).
 
 Atomic Models
 -------------
@@ -120,9 +119,7 @@ HyString
 ~~~~~~~~
 
 ``hy.models.HyString`` represents string literals (including bracket strings),
-which compile down to unicode string literals in Python. ``HyStrings`` inherit
-unicode objects in Python 2, and string objects in Python 3 (and are therefore
-not encoding-dependent).
+which compile down to unicode string literals (``str``) in Python.
 
 ``HyString``\s are immutable.
 
@@ -140,15 +137,15 @@ HyBytes
 ~~~~~~~
 
 ``hy.models.HyBytes`` is like ``HyString``, but for sequences of bytes.
-It inherits from ``bytes`` on Python 3 and ``str`` on Python 2.
+It inherits from ``bytes``.
 
 .. _hy_numeric_models:
 
 Numeric Models
 ~~~~~~~~~~~~~~
 
-``hy.models.HyInteger`` represents integer literals (using the
-``long`` type on Python 2, and ``int`` on Python 3).
+``hy.models.HyInteger`` represents integer literals, using the ``int``
+type.
 
 ``hy.models.HyFloat`` represents floating-point literals.
 

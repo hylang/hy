@@ -1,3 +1,5 @@
+.. _special-forms:
+
 =================
 Built-Ins
 =================
@@ -5,6 +7,48 @@ Built-Ins
 Hy features a number of special forms that are used to help generate
 correct Python AST. The following are "special" forms, which may have
 behavior that's slightly unexpected in some situations.
+
+^
+-
+
+The ``^`` symbol is used to denote annotations in three different contexts:
+
+- Standalone variable annotations.
+- Variable annotations in a setv call.
+- Function argument annotations.
+
+They implement `PEP 526 <https://www.python.org/dev/peps/pep-0526/>`_ and
+`PEP 3107 <https://www.python.org/dev/peps/pep-3107/>`_.
+
+Here is some example syntax of all three usages:
+
+.. code-block:: clj
+
+  ; Annotate the variable x as an int (equivalent to `x: int`).
+  (^int x)
+  ; Can annotate with expressions if needed (equivalent to `y: f(x)`).
+  (^(f x) y)
+
+  ; Annotations with an assignment: each annotation (int, str) covers the term that
+  ; immediately follows.
+  ; Equivalent to: x: int = 1; y = 2; z: str = 3
+  (setv ^int x 1 y 2 ^str z 3)
+
+  ; Annotate a as an int, c as an int, and b as a str.
+  ; Equivalent to: def func(a: int, b: str = None, c: int = 1): ...
+  (defn func [^int a &optional ^str b ^int [c 1]] ...)
+
+The rules are:
+
+- The value to annotate with is the value that immediately follows the caret.
+- There must be no space between the caret and the value to annotate, otherwise it will be
+  interpreted as a bitwise XOR like the Python operator.
+- The annotation always comes (and is evaluated) *before* the value being annotated. This is
+  unlike Python, where it comes and is evaluated *after* the value being annotated.
+
+Note that variable annotations are only supported on Python 3.6+.
+
+For annotating items with generic types, the of_ macro will likely be of use.
 
 .
 -
@@ -224,6 +268,23 @@ Examples of usage:
 .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
 
 
+await
+-----
+
+``await`` creates an :ref:`await expression <py:await>`. It takes exactly one
+argument: the object to wait for.
+
+::
+
+    => (import asyncio)
+    => (defn/a main []
+    ...   (print "hello")
+    ...   (await (asyncio.sleep 1))
+    ...   (print "world"))
+    => (asyncio.run (main))
+    hello
+    world
+
 break
 -----
 
@@ -239,7 +300,7 @@ as the user enters *k*.
 
 
 comment
-----
+-------
 
 The ``comment`` macro ignores its body and always expands to ``None``.
 Unlike linewise comments, the body of the ``comment`` macro must
@@ -261,6 +322,8 @@ This is completely discarded and doesn't expand to anything, not even ``None``.
    ...        "Hy")
    Hy
 
+
+.. _cond:
 
 cond
 ----
@@ -321,48 +384,19 @@ is only called on every other value in the list.
       (side-effect2 x))
 
 
-dict-comp
----------
-
-``dict-comp`` is used to create dictionaries. It takes three or four parameters.
-The first two parameters are for controlling the return value (key-value pair)
-while the third is used to select items from a sequence. The fourth and optional
-parameter can be used to filter out some of the items in the sequence based on a
-conditional expression.
-
-.. code-block:: hy
-
-    => (dict-comp x (* x 2) [x (range 10)] (odd? x))
-    {1: 2, 3: 6, 9: 18, 5: 10, 7: 14}
-
+.. _do:
 
 do
 ----------
 
-``do`` is used to evaluate each of its arguments and return the
-last one. Return values from every other than the last argument are discarded.
-It can be used in ``list-comp`` to perform more complex logic as shown in one
-of the following examples.
+``do`` (called ``progn`` in some Lisps) takes any number of forms,
+evaluates them, and returns the value of the last one, or ``None`` if no
+forms were provided.
 
-Some example usage:
+::
 
-.. code-block:: clj
-
-    => (if True
-    ...  (do (print "Side effects rock!")
-    ...      (print "Yeah, really!")))
-    Side effects rock!
-    Yeah, really!
-
-    ;; assuming that (side-effect) is a function that we want to call for each
-    ;; and every value in the list, but whose return value we do not care about
-    => (list-comp (do (side-effect x)
-    ...               (if (< x 5) (* 2 x)
-    ...                   (* 4 x)))
-    ...           (x (range 10)))
-    [0, 2, 4, 6, 8, 20, 24, 28, 32, 36]
-
-``do`` can accept any number of arguments, from 1 to n.
+    => (+ 1 (do (setv x (+ 1 1)) x))
+    3
 
 
 doc / #doc
@@ -400,6 +434,22 @@ Gets help for macros or tag macros, respectively.
     Gets help for a tag macro function available in this module.
 
 
+dfor
+----
+
+``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
+is the same as that of `lfor`_ except that the final value form must be
+a literal list of two elements, the first of which becomes each key and
+the second of which becomes each value.
+
+.. code-block:: hy
+
+    => (dfor x (range 5) [x (* x 10)])
+    {0: 0, 1: 10, 2: 20, 3: 30, 4: 40}
+
+
+.. _setv:
+
 setv
 ----
 
@@ -416,30 +466,48 @@ For example:
     => (counter [1 2 3 4 5 2 3] 2)
     2
 
-They can be used to assign multiple variables at once:
+You can provide more than one target–value pair, and the assignments will be made in order::
 
-.. code-block:: hy
+    (setv  x 1  y x  x 2)
+    (print x y)  ; => 2 1
 
-    => (setv a 1 b 2)
-    (1L, 2L)
-    => a
-    1L
-    => b
-    2L
-    =>
+You can perform parallel assignments or unpack the source value with square brackets and :ref:`unpack-iterable`::
 
+    (setv duo ["tim" "eric"])
+    (setv [guy1 guy2] duo)
+    (print guy1 guy2)  ; => tim eric
+
+    (setv [letter1 letter2 #* others] "abcdefg")
+    (print letter1 letter2 others)   ; => a b ['c', 'd', 'e', 'f', 'g']
+
+
+setx
+-----
+
+Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment expression (see :pep:`572`). It requires Python 3.8 or later. Only one target–value pair is allowed, and the target must be a bare symbol, but the ``setx`` form returns the assigned value instead of ``None``.
+
+::
+
+    => (when (> (setx x (+ 1 2)) 0)
+    ...  (print x "is greater than 0"))
+    3 is greater than 0
+
+
+.. _defclass:
 
 defclass
 --------
 
-New classes are declared with ``defclass``. It can takes two optional parameters:
-a vector defining a possible super classes and another vector containing
-attributes of the new class as two item vectors.
+New classes are declared with ``defclass``. It can take optional parameters in the following order:
+a list defining (a) possible super class(es) and a string (:term:`py:docstring`).
 
 .. code-block:: clj
 
     (defclass class-name [super-class-1 super-class-2]
-      [attribute value]
+      "docstring"
+
+      (setv attribute1 value1)
+      (setv attribute2 value2)
 
       (defn method [self] (print "hello!")))
 
@@ -449,8 +517,8 @@ below:
 .. code-block:: clj
 
     => (defclass Cat []
-    ...  [age None
-    ...   colour "white"]
+    ...  (setv age None)
+    ...  (setv colour "white")
     ...
     ...  (defn speak [self] (print "Meow")))
 
@@ -466,56 +534,53 @@ below:
 defn
 ----
 
-``defn`` macro is used to define functions. It takes three
-parameters: the *name* of the function to define, a vector of *parameters*,
-and the *body* of the function:
+``defn`` is used to define functions. It requires two arguments: a name (given
+as a symbol) and a list of parameters (also given as symbols). Any remaining
+arguments constitute the body of the function.
 
 .. code-block:: clj
 
-    (defn name [params] body)
+    (defn name [params] bodyform1 bodyform2...)
 
-Parameters may have the following keywords in front of them:
+If there at least two body forms, and the first of them is a string literal,
+this string becomes the :term:`py:docstring` of the function.
+
+Parameters may be prefixed with the following special symbols. If you use more
+than one, they can only appear in the given order (so all `&optional`
+parameters must precede any `&rest` parameter, `&rest` must precede `&kwonly`,
+and `&kwonly` must precede `&kwargs`). This is the same order that Python
+requires.
 
 &optional
-    Parameter is optional. The parameter can be given as a two item list, where
-    the first element is parameter name and the second is the default value. The
-    parameter can be also given as a single item, in which case the default
-    value is ``None``.
+    All following parameters are optional. They may be given as two-argument lists,
+    where the first element is the parameter name and the second is the default value.
+    The parameter can also be given as a single item, in which case the default value
+    is ``None``.
+
+    The following example defines a function with one required positional argument
+    as well as three optional arguments. The first optional argument defaults to ``None``
+    and the latter two default to ``"("`` and ``")"``, respectively.
 
     .. code-block:: clj
 
-        => (defn total-value [value &optional [value-added-tax 10]]
-        ...  (+ (/ (* value value-added-tax) 100) value))
+      => (defn format-pair [left-val &optional right-val  [open-text "("] [close-text ")"]]
+      ...  (+ open-text (str left-val) ", " (str right-val) close-text))
 
-        => (total-value 100)
-        110.0
+      => (format-pair 3)
+      '(3, None)'
 
-        => (total-value 100 1)
-        101.0
+      => (format-pair "A" "B")
+      '(A, B)'
 
-&kwargs
-    Parameter will contain 0 or more keyword arguments.
+      => (format-pair "A" "B" "<" ">")
+      '<A, B>'
 
-    The following code examples defines a function that will print all keyword
-    arguments and their values.
-
-    .. code-block:: clj
-
-        => (defn print-parameters [&kwargs kwargs]
-        ...    (for [(, k v) (.items kwargs)] (print k v)))
-
-        => (print-parameters :parameter-1 1 :parameter-2 2)
-        parameter_1 1
-        parameter_2 2
-
-        ; to avoid the mangling of '-' to '_', use unpacking:
-        => (print-parameters #** {"parameter-1" 1 "parameter-2" 2})
-        parameter-1 1
-        parameter-2 2
+      => (format-pair "A" :open-text "<" :close-text ">")
+      '<A, None>'
 
 &rest
-    Parameter will contain 0 or more positional arguments. No other positional
-    arguments may be specified after this one.
+    The following parameter will contain a list of 0 or more positional arguments.
+    No other positional parameters may be specified after this one.
 
     The following code example defines a function that can be given 0 to n
     numerical parameters. It then sums every odd number and subtracts
@@ -524,8 +589,8 @@ Parameters may have the following keywords in front of them:
     .. code-block:: clj
 
         => (defn zig-zag-sum [&rest numbers]
-             (setv odd-numbers (list-comp x [x numbers] (odd? x))
-                   even-numbers (list-comp x [x numbers] (even? x)))
+             (setv odd-numbers (lfor x numbers :if (odd? x) x)
+                   even-numbers (lfor x numbers :if (even? x) x))
              (- (sum odd-numbers) (sum even-numbers)))
 
         => (zig-zag-sum)
@@ -538,11 +603,10 @@ Parameters may have the following keywords in front of them:
 &kwonly
     .. versionadded:: 0.12.0
 
-    Parameters that can only be called as keywords. Mandatory
-    keyword-only arguments are declared with the argument's name;
-    optional keyword-only arguments are declared as a two-element list
-    containing the argument name followed by the default value (as
-    with `&optional` above).
+    All following parmaeters can only be supplied as keywords.
+    Like ``&optional``, the parameter may be marked as optional by
+    declaring it as a two-element list containing the parameter name
+    following by the default value.
 
     .. code-block:: clj
 
@@ -568,8 +632,62 @@ Parameters may have the following keywords in front of them:
           File "<input>", line 1, in <module>
         TypeError: compare() missing 1 required keyword-only argument: 'keyfn'
 
-    Availability: Python 3.
+&kwargs
+    Like ``&rest``, but for keyword arugments.
+    The following parameter will contain 0 or more keyword arguments.
 
+    The following code examples defines a function that will print all keyword
+    arguments and their values.
+
+    .. code-block:: clj
+
+        => (defn print-parameters [&kwargs kwargs]
+        ...    (for [(, k v) (.items kwargs)] (print k v)))
+
+        => (print-parameters :parameter-1 1 :parameter-2 2)
+        parameter_1 1
+        parameter_2 2
+
+        ; to avoid the mangling of '-' to '_', use unpacking:
+        => (print-parameters #** {"parameter-1" 1 "parameter-2" 2})
+        parameter-1 1
+        parameter-2 2
+
+The following example uses all of ``&optional``, ``&rest``, ``&kwonly``, and
+``&kwargs`` in order to show their interactions with each other. The function
+renders an HTML tag.
+It requires an argument ``tag-name``, a string which is the tag name.
+It has one optional argument, ``delim``, which defaults to ``""`` and is placed
+between each child.
+The rest of the arguments, ``children``, are the tag's children or content.
+A single keyword-only argument, ``empty``, is included and defaults to ``False``.
+``empty`` changes how the tag is rendered if it has no children. Normally, a
+tag with no children is rendered like ``<div></div>``. If ``empty`` is ``True``,
+then it will render like ``<div />``.
+The rest of the keyword arguments, ``props``, render as HTML attributes.
+
+.. code-block:: clj
+
+  => (defn render-html-tag [tag-name &optional [delim ""] &rest children &kwonly [empty False] &kwargs attrs]
+  ...  (setv rendered-attrs (.join " " (lfor (, key val) (.items attrs) (+ (unmangle (str key)) "=\"" (str val) "\""))))
+  ...  (if rendered-attrs  ; If we have attributes, prefix them with a space after the tag name
+  ...    (setv rendered-attrs (+ " " rendered-attrs)))
+  ...  (setv rendered-children (.join delim children))
+  ...  (if (and (not children) empty)
+  ...    (+ "<" tag-name rendered-attrs " />")
+  ...    (+ "<" tag-name rendered-attrs ">" rendered-children "</" tag-name ">")))
+
+  => (render-html-tag "div")
+  '<div></div'>
+
+  => (render-html-tag "img" :empty True)
+  '<img />'
+
+  => (render-html-tag "img" :id "china" :class "big-image" :empty True)
+  '<img id="china" class="big-image" />'
+
+  => (render-html-tag "p" " --- " (render-html-tag "span" "" :class "fancy" "I'm fancy!") "I'm to the right of fancy" "I'm alone :(")
+  '<p><span class="fancy">I\'m fancy!</span> --- I\'m to right right of fancy --- I\'m alone :(</p>'
 
 defn/a
 ------
@@ -847,27 +965,45 @@ raising an exception.
     => (first [])
     None
 
+
+.. _for:
+
 for
 ---
 
-``for`` is used to call a function for each element in a list or vector.
-The results of each call are discarded and the ``for`` expression returns
-``None`` instead. The example code iterates over *collection* and for each
-*element* in *collection* calls the ``side-effect`` function with *element*
-as its argument:
+``for`` is used to evaluate some forms for each element in an iterable
+object, such as a list. The return values of the forms are discarded and
+the ``for`` form returns ``None``.
 
-.. code-block:: clj
+::
 
-    ;; assuming that (side-effect) is a function that takes a single parameter
-    (for [element collection] (side-effect element))
+    => (for [x [1 2 3]]
+    ...  (print "iterating")
+    ...  (print x))
+    iterating
+    1
+    iterating
+    2
+    iterating
+    3
 
-    ;; for can have an optional else block
-    (for [element collection] (side-effect element)
-         (else (side-effect-2)))
+In its square-bracketed first argument, ``for`` allows the same types of
+clauses as lfor_.
 
-The optional ``else`` block is only executed if the ``for`` loop terminates
-normally. If the execution is halted with ``break``, the ``else`` block does
-not execute.
+::
+
+   => (for [x [1 2 3]  :if (!= x 2)  y [7 8]]
+   ...  (print x y))
+   1 7
+   1 8
+   3 7
+   3 8
+
+Furthermore, the last argument of ``for`` can be an ``(else …)`` form.
+This form is executed after the last iteration of the ``for``\'s
+outermost iteration clause, but only if that outermost loop terminates
+normally. If it's jumped out of with e.g. ``break``, the ``else`` is
+ignored.
 
 .. code-block:: clj
 
@@ -888,43 +1024,6 @@ not execute.
     loop finished
 
 
-for/a
------
-
-``for/a`` behaves like ``for`` but is used to call a function for each
-element generated by an asynchronous generator expression. The results
-of each call are discarded and the ``for/a`` expression returns
-``None`` instead.
-
-.. code-block:: clj
-
-    ;; assuming that (side-effect) is a function that takes a single parameter
-    (for/a [element (agen)] (side-effect element))
-
-    ;; for/a can have an optional else block
-    (for/a [element (agen)] (side-effect element)
-         (else (side-effect-2)))
-
-
-genexpr
--------
-
-``genexpr`` is used to create generator expressions. It takes two or three
-parameters. The first parameter is the expression controlling the return value,
-while the second is used to select items from a list. The third and optional
-parameter can be used to filter out some of the items in the list based on a
-conditional expression. ``genexpr`` is similar to ``list-comp``, except it
-returns an iterable that evaluates values one by one instead of evaluating them
-immediately.
-
-.. code-block:: hy
-
-    => (setv collection (range 10))
-    => (setv filtered (genexpr x [x collection] (even? x)))
-    => (list filtered)
-    [0, 2, 4, 6, 8]
-
-
 .. _gensym:
 
 gensym
@@ -938,14 +1037,16 @@ written without accidental variable name clashes.
 .. code-block:: clj
 
    => (gensym)
-   u':G_1235'
+   HySymbol('_G\uffff1')
 
    => (gensym "x")
-   u':x_1236'
+   HySymbol('_x\uffff2')
 
 .. seealso::
 
    Section :ref:`using-gensym`
+
+.. _get:
 
 get
 ---
@@ -977,6 +1078,26 @@ successive elements in a nested structure. Example usage:
           index that is out of bounds.
 
 
+.. _gfor:
+
+gfor
+----
+
+``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
+is the same as that of `lfor`_. The difference is that ``gfor`` returns
+an iterator, which evaluates and yields values one at a time.
+
+::
+
+    => (setv accum [])
+    => (list (take-while
+    ...  (fn [x] (< x 5))
+    ...  (gfor x (count) :do (.append accum x) x)))
+    [0, 1, 2, 3, 4]
+    => accum
+    [0, 1, 2, 3, 4, 5]
+
+
 global
 ------
 
@@ -1000,6 +1121,8 @@ keyword, the second function would have raised a ``NameError``.
     (set-a 5)
     (print-a)
 
+.. _if:
+
 if / if* / if-not
 -----------------
 
@@ -1009,7 +1132,7 @@ if / if* / if-not
 ``if / if* / if-not`` respect Python *truthiness*, that is, a *test* fails if it
 evaluates to a "zero" (including values of ``len`` zero, ``None``, and
 ``False``), and passes otherwise, but values with a ``__bool__`` method
-(``__nonzero__`` in Python 2) can overrides this.
+can override this.
 
 The ``if`` macro is for conditionally selecting an expression for evaluation.
 The result of the selected expression becomes the result of the entire ``if``
@@ -1125,6 +1248,8 @@ that ``import`` can be used.
     (import [sys [*]])
 
 
+.. _fn:
+
 fn
 -----------
 
@@ -1190,34 +1315,71 @@ last
     6
 
 
-list-comp
----------
+.. _lfor:
 
-``list-comp`` performs list comprehensions. It takes two or three parameters.
-The first parameter is the expression controlling the return value, while
-the second is used to select items from a list. The third and optional
-parameter can be used to filter out some of the items in the list based on a
-conditional expression. Some examples:
+lfor
+----
 
-.. code-block:: clj
+The comprehension forms ``lfor``, `sfor`_, `dfor`_, `gfor`_, and `for`_
+are used to produce various kinds of loops, including Python-style
+:ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
+creates a list comprehension. A simple use of ``lfor`` is::
 
-    => (setv collection (range 10))
-    => (list-comp x [x collection])
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-    => (list-comp (* x 2) [x collection])
-    [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
-
-    => (list-comp (* x 2) [x collection] (< x 5))
+    => (lfor x (range 5) (* 2 x))
     [0, 2, 4, 6, 8]
+
+``x`` is the name of a new variable, which is bound to each element of
+``(range 5)``. Each such element in turn is used to evaluate the value
+form ``(* 2 x)``, and the results are accumulated into a list.
+
+Here's a more complex example::
+
+    => (lfor
+    ...  x (range 3)
+    ...  y (range 3)
+    ...  :if (!= x y)
+    ...  :setv total (+ x y)
+    ...  [x y total])
+    [[0, 1, 1], [0, 2, 2], [1, 0, 1], [1, 2, 3], [2, 0, 2], [2, 1, 3]]
+
+When there are several iteration clauses (here, the pairs of forms ``x
+(range 3)`` and ``y (range 3)``), the result works like a nested loop or
+Cartesian product: all combinations are considered in lexicographic
+order.
+
+The general form of ``lfor`` is::
+
+    (lfor CLAUSES VALUE)
+
+where the ``VALUE`` is an arbitrary form that is evaluated to produce
+each element of the result list, and ``CLAUSES`` is any number of
+clauses. There are several types of clauses:
+
+- Iteration clauses, which look like ``LVALUE ITERABLE``. The ``LVALUE``
+  is usually just a symbol, but could be something more complicated,
+  like ``[x y]``.
+- ``:async LVALUE ITERABLE``, which is an
+  :ref:`asynchronous <py:async for>` form of iteration clause.
+- ``:do FORM``, which simply evaluates the ``FORM``. If you use
+  ``(continue)`` or ``(break)`` here, they will apply to the innermost
+  iteration clause before the ``:do``.
+- ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
+  RVALUE)``.
+- ``:if CONDITION``, which is equivalent to ``:do (unless CONDITION
+  (continue))``.
+
+For ``lfor``, ``sfor``, ``gfor``, and ``dfor``, variables are scoped as
+if the comprehension form were its own function, so variables defined by
+an iteration clause or ``:setv`` are not visible outside the form. In
+fact, these forms are implemented as generator functions whenever they
+contain Python statements, with the attendant consequences for calling
+``return``. By contrast, ``for`` shares the caller's scope.
 
 
 nonlocal
 --------
 
 .. versionadded:: 0.11.1
-
-**PYTHON 3.0 AND UP ONLY!**
 
 ``nonlocal`` can be used to mark a symbol as not local to the current scope.
 The parameters are the names of symbols to mark as nonlocal.  This is necessary
@@ -1286,17 +1448,72 @@ parameter will be returned.
     True
 
 
-print
------
+.. _py-specialform:
 
-``print`` is used to output on screen. Example usage:
+of
+--
+
+``of`` is an alias for get, but with special semantics designed for handling PEP 484's generic
+types.
+
+``of`` has three forms:
+
+- ``(of T)`` will simply become ``T``.
+- ``(of T x)`` will become ``(get T x)``.
+- ``(of T x y ...)`` (where the ``...`` represents zero or more arguments) will become
+  ``(get T (, x y ...))``.
+
+For instance:
 
 .. code-block:: clj
 
-    (print "Hello world!")
+  (of str)  ; => str
 
-.. note:: ``print`` always returns ``None``.
+  (of List int)  ; => List[int]
+  (of Set int)   ; => Set[int]
 
+  (of Dict str str)   ; => Dict[str, str]
+  (of Tuple str int)  ; => Tuple[str, int]
+
+  (of Callable [int str] str)  ; => Callable[[int, str], str]
+
+py
+--
+
+``py`` parses the given Python code at compile-time and inserts the result into
+the generated abstract syntax tree. Thus, you can mix Python code into a Hy
+program. Only a Python expression is allowed, not statements; use
+:ref:`pys-specialform` if you want to use Python statements. The value of the
+expression is returned from the ``py`` form. ::
+
+    (print "A result from Python:" (py "'hello' + 'world'"))
+
+The code must be given as a single string literal, but you can still use
+macros, :ref:`eval`, and related tools to construct the ``py`` form. If you
+want to evaluate some Python code that's only defined at run-time, try the
+standard Python function :func:`eval`.
+
+Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
+program that uses ``py`` or ``pys``. For example, comments will be removed.
+
+
+.. _pys-specialform:
+
+pys
+---
+
+As :ref:`py-specialform`, but the code can consist of zero or more statements,
+including compound statements such as ``for`` and ``def``. ``pys`` always
+returns ``None``. Also, the code string is dedented with
+:func:`textwrap.dedent` before parsing, which allows you to intend the code to
+match the surrounding Hy code, but significant leading whitespace in embedded
+string literals will be removed. ::
+
+    (pys "myvar = 5")
+    (print "myvar is" myvar)
+
+
+.. _quasiquote:
 
 quasiquote
 ----------
@@ -1316,6 +1533,8 @@ using ``unquote`` (``~``). The evaluated form can also be spliced using
     ; equivalent to '(foo bar baz)
 
 
+.. _quote:
+
 quote
 -----
 
@@ -1332,6 +1551,8 @@ alternatively be written using the apostrophe (``'``) symbol.
     => (eval x)
     Hello World
 
+
+.. _require:
 
 require
 -------
@@ -1465,21 +1686,15 @@ the end of a function, put ``None`` there yourself.
     => (print (f 4))
     None
 
-set-comp
---------
 
-``set-comp`` is used to create sets. It takes two or three parameters.
-The first parameter is for controlling the return value, while the second is
-used to select items from a sequence. The third and optional parameter can be
-used to filter out some of the items in the sequence based on a conditional
-expression.
+sfor
+----
 
-.. code-block:: hy
+``sfor`` creates a set comprehension. ``(sfor CLAUSES VALUE)`` is
+equivalent to ``(set (lfor CLAUSES VALUE))``. See `lfor`_.
 
-    => (setv data [1 2 3 4 5 2 3 4 5 3 4 5])
-    => (set-comp x [x data] (odd? x))
-    {1, 3, 5}
 
+.. _cut:
 
 cut
 -----
@@ -1587,8 +1802,13 @@ the given conditional is ``False``. The following shows the expansion of this ma
       (do statement))
 
 
+.. _unpack-iterable:
+
 unpack-iterable, unpack-mapping
 -------------------------------
+
+(Also known as the splat operator, star operator, argument expansion, argument
+explosion, argument gathering, and varargs, among others...)
 
 ``unpack-iterable`` and ``unpack-mapping`` allow an iterable or mapping
 object (respectively) to provide positional or keywords arguments
@@ -1608,20 +1828,14 @@ object (respectively) to provide positional or keywords arguments
     => (f #* [1 2] #** {"c" 3 "d" 4})
     [1, 2, 3, 4]
 
-With Python 3, you can unpack in an assignment list (:pep:`3132`).
+Unpacking is allowed in a variety of contexts, and you can unpack
+more than once in one expression (:pep:`3132`, :pep:`448`).
 
 .. code-block:: clj
 
     => (setv [a #* b c] [1 2 3 4 5])
     => [a b c]
     [1, [2, 3, 4], 5]
-
-With Python 3.5 or greater, unpacking is allowed in more contexts than just
-function calls, and you can unpack more than once in the same expression
-(:pep:`448`).
-
-.. code-block:: clj
-
     => [#* [1 2] #* [3 4]]
     [1, 2, 3, 4]
     => {#** {1 2} #** {3 4}}
@@ -1629,6 +1843,8 @@ function calls, and you can unpack more than once in the same expression
     => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
     [1, 2, 3, 4]
 
+
+.. _unquote:
 
 unquote
 -------
@@ -1705,6 +1921,8 @@ following shows the expansion of the macro.
     (if conditional (do statement))
 
 
+.. _while:
+
 while
 -----
 
@@ -1763,6 +1981,9 @@ prints
     In outer loop
     In condition
     At end of outer loop
+
+
+.. _with:
 
 with
 ----
@@ -1944,13 +2165,13 @@ infinite series without consuming infinite amount of memory.
     => (multiply (range 5) (range 5))
     <generator object multiply at 0x978d8ec>
 
-    => (list-comp value [value (multiply (range 10) (range 10))])
+    => (list (multiply (range 10) (range 10)))
     [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
     => (import random)
     => (defn random-numbers [low high]
     ...  (while True (yield (.randint random low high))))
-    => (list-comp x [x (take 15 (random-numbers 1 50))])
+    => (list (take 15 (random-numbers 1 50)))
     [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
 
 
@@ -1958,8 +2179,6 @@ yield-from
 ----------
 
 .. versionadded:: 0.9.13
-
-**PYTHON 3.3 AND UP ONLY!**
 
 ``yield-from`` is used to call a subgenerator.  This is useful if you
 want your coroutine to be able to delegate its processes to another

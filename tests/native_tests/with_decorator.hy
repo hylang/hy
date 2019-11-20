@@ -1,4 +1,4 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
@@ -27,7 +27,7 @@
     cls)
   (with-decorator bardec
     (defclass cls []
-      [attr1 123]))
+      (setv attr1 123)))
   (assert (= cls.attr1 123))
   (assert (= cls.attr2 456)))
 

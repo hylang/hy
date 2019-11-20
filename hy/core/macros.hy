@@ -1,13 +1,17 @@
 ;;; Hy core macros
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
-
 (import [hy.models [HyList HySymbol]])
+
+(eval-and-compile
+  (import [hy.core.language [*]]))
+
+(require [hy.core.bootstrap [*]])
 
 (defmacro as-> [head name &rest rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.
@@ -38,22 +42,20 @@ be associated in pairs."
   `(setv ~@(+ (if other-kvs
                 [c coll]
                 [])
-              #* (genexpr [`(get ~c ~k) v]
-                          [[k v] (partition (+ (, k1 v1)
-                                               other-kvs))]))))
+              #* (gfor [k v] (partition (+ (, k1 v1)
+                                           other-kvs))
+                       [`(get ~c ~k) v]))))
 
 
 (defn _with [node args body]
-  (if (not (empty? args))
-    (do
-     (if (>= (len args) 2)
-       (do
-        (setv p1 (.pop args 0)
-              p2 (.pop args 0)
-              primary [p1 p2])
-        `(~node [~@primary] ~(_with node args body)))
-       `(~node [~@args] ~@body)))
-    `(do ~@body)))
+  (if
+    (not args)
+      `(do ~@body)
+    (<= (len args) 2)
+      `(~node [~@args] ~@body)
+    True (do
+      (setv [p1 p2 #* args] args)
+      `(~node [~p1 ~p2] ~(_with node args body)))))
 
 
 (defmacro with [args &rest body]
@@ -83,59 +85,19 @@ Shorthand for nested with/a* loops:
 
 The result in the bracket may be omitted, in which case the condition is also
 used as the result."
-  (if (empty? branches)
-    None
-    (do
-     (setv branches (iter branches))
-     (setv branch (next branches))
-     (defn check-branch [branch]
-       "check `cond` branch for validity, return the corresponding `if` expr"
-       (if (not (= (type branch) HyList))
-         (macro-error branch "cond branches need to be a list"))
-       (if (< (len branch) 2)
-         (do
-           (setv g (gensym))
-           `(if (do (setv ~g ~(first branch)) ~g) ~g))
-         `(if ~(first branch) (do ~@(cut branch 1)))))
+  (or branches
+    (return))
 
-     (setv root (check-branch branch))
-     (setv latest-branch root)
-
-     (for* [branch branches]
-       (setv cur-branch (check-branch branch))
-       (.append latest-branch cur-branch)
-       (setv latest-branch cur-branch))
-     root)))
-
-
-(defn _for [node args body]
-  (setv body (list body))
-  (setv belse (if (and body (isinstance (get body -1) HyExpression) (= (get body -1 0) "else"))
-                [(body.pop)]
-                []))
-  (if
-    (odd? (len args)) (macro-error args "`for' requires an even number of args.")
-    (empty? args)     `(do ~@body ~@belse)
-    (= (len args) 2)  `(~node [~@args] (do ~@body) ~@belse)
-    (do
-      (setv alist (cut args 0 None 2))
-      `(~node [(, ~@alist) (genexpr (, ~@alist) [~@args])] (do ~@body) ~@belse))))
-
-
-(defmacro for [args &rest body]
-  "Build a for-loop with `args` as a [element coll] bracket pair and run `body`.
-
-Args may contain multiple pairs, in which case it executes a nested for-loop
-in order of the given pairs."
-  (_for 'for* args body))
-
-
-(defmacro for/a [args &rest body]
-  "Build a for/a-loop with `args` as a [element coll] bracket pair and run `body`.
-
-Args may contain multiple pairs, in which case it executes a nested for/a-loop
-in order of the given pairs."
-  (_for 'for/a* args body))
+  `(if ~@(reduce + (gfor
+    branch branches
+    (if
+      (not (and (is (type branch) hy.HyList) branch))
+        (macro-error branch "each cond branch needs to be a nonempty list")
+      (= (len branch) 1) (do
+        (setv g (gensym))
+        [`(do (setv ~g ~(first branch)) ~g) g])
+      True
+        [(first branch) `(do ~@(cut branch 1))])))))
 
 
 (defmacro -> [head &rest args]
@@ -144,7 +106,7 @@ in order of the given pairs."
 The result of the first threaded form is inserted into the first position of
 the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
-  (for* [node args]
+  (for [node args]
     (setv ret (if (isinstance node HyExpression)
                   `(~(first node) ~ret ~@(rest node))
                   `(~node ~ret))))
@@ -163,17 +125,32 @@ the second form, the second result is inserted into the third form, and so on."
      ~@(map build-form expressions)
      ~f))
 
+
 (defmacro ->> [head &rest args]
   "Thread `head` last through the `rest` of the forms.
 
 The result of the first threaded form is inserted into the last position of
 the second form, the second result is inserted into the third form, and so on."
   (setv ret head)
-  (for* [node args]
+  (for [node args]
     (setv ret (if (isinstance node HyExpression)
                   `(~@node ~ret)
                   `(~node ~ret))))
   ret)
+
+
+(defmacro of [base &rest args]
+  "Shorthand for indexing for type annotations.
+
+If only one arguments are given, this expands to just that argument. If two arguments are
+given, it expands to indexing the first argument via the second. Otherwise, the first argument
+is indexed using a tuple of the rest.
+
+E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
+  (if
+    (empty? args) base
+    (= (len args) 1) `(get ~base ~@args)
+    `(get ~base (, ~@args))))
 
 
 (defmacro if-not [test not-branch &optional yes-branch]
@@ -210,7 +187,7 @@ the second form, the second result is inserted into the third form, and so on."
 (defmacro with-gensyms [args &rest body]
   "Execute `body` with `args` as bracket of names to gensym for use in macros."
   (setv syms [])
-  (for* [arg args]
+  (for [arg args]
     (.extend syms [arg `(gensym '~arg)]))
   `(do
     (setv ~@syms)
@@ -225,7 +202,7 @@ the second form, the second result is inserted into the third form, and so on."
                               (.startswith x "g!")))
                        (flatten body))))
         gensyms [])
-  (for* [sym syms]
+  (for [sym syms]
     (.extend gensyms [sym `(gensym ~(cut sym 2))]))
   `(defmacro ~name [~@args]
      (setv ~@gensyms)
@@ -235,25 +212,38 @@ the second form, the second result is inserted into the third form, and so on."
   "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
 
 Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
-  (setv os (list-comp s [s args] (.startswith s "o!"))
-        gs (list-comp (HySymbol (+ "g!" (cut s 2))) [s os]))
+  (defn extract-o!-sym [arg]
+    (cond [(and (symbol? arg) (.startswith arg "o!"))
+           arg]
+          [(and (instance? HyList arg) (.startswith (first arg) "o!"))
+           (first arg)]))
+  (setv os (list (filter identity (map extract-o!-sym args)))
+        gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))
   `(defmacro/g! ~name ~args
      `(do (setv ~@(interleave ~gs ~os))
           ~@~body)))
 
 
 (defmacro defmain [args &rest body]
-  "Write a function named \"main\" and do the 'if __main__' dance"
-  (setv retval (gensym))
+  "Write a function named \"main\" and do the 'if __main__' dance.
+
+The symbols in `args` are bound to the elements in `sys.argv`, which means that
+the first symbol in `args` will always take the value of the script/executable
+name (i.e. `sys.argv[0]`).
+"
+  (setv retval (gensym)
+        restval (gensym))
   `(when (= --name-- "__main__")
      (import sys)
-     (setv ~retval ((fn [~@args] ~@body) #* sys.argv))
+     (setv ~retval ((fn [~@(or args `[&rest ~restval])] ~@body) #* sys.argv))
      (if (integer? ~retval)
        (sys.exit ~retval))))
 
 
 (deftag @ [expr]
   "with-decorator tag macro"
+  (if (empty? expr)
+      (macro-error expr "missing function argument"))
   (setv decorators (cut expr None -1)
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))
@@ -270,32 +260,10 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
 
    Use ``#doc foo`` instead for help with tag macro ``#foo``.
    Use ``(help foo)`` instead for help with runtime objects."
-  `(try
-     (help (. (__import__ "hy")
-              macros
-              _hy_macros
-              [__name__]
-              ['~symbol]))
-     (except [KeyError]
-       (help (. (__import__ "hy")
-                macros
-                _hy_macros
-                [None]
-                ['~symbol])))))
+  `(help (.get __macros__ '~symbol None)))
 
 (deftag doc [symbol]
   "tag macro documentation
 
    Gets help for a tag macro function available in this module."
-  `(try
-     (help (. (__import__ "hy")
-              macros
-              _hy_tag
-              [__name__]
-              ['~symbol]))
-     (except [KeyError]
-       (help (. (__import__ "hy")
-                macros
-                _hy_tag
-                [None]
-                ['~symbol])))))
+  `(help (.get __tags__ '~symbol None)))

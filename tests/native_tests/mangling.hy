@@ -1,9 +1,6 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
-
-
-(import [hy._compat [PY3]])
 
 
 (defn test-hyphen []
@@ -63,9 +60,7 @@
 (defn test-higher-unicode []
   (setv 😂 "emoji")
   (assert (= 😂 "emoji"))
-  (if PY3
-    (assert (= hyx_Xface_with_tears_of_joyX "emoji"))
-    (assert (= hyx_XU1f602X "emoji"))))
+  (assert (= hyx_Xface_with_tears_of_joyX "emoji")))
 
 
 (defn test-nameless-unicode []
@@ -157,3 +152,28 @@
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (mangle a) b))
     (assert (= (unmangle b) a))))
+
+
+(defn test-nongraphic []
+  ; https://github.com/hylang/hy/issues/1694
+
+  (assert (= (mangle " ") "hyx_XspaceX"))
+  (assert (= (mangle "\a") "hyx_XU7X"))
+  (assert (= (mangle "\t") "hyx_XU9X"))
+  (assert (= (mangle "\n") "hyx_XUaX"))
+  (assert (= (mangle "\r") "hyx_XUdX"))
+  (assert (= (mangle "\r") "hyx_XUdX"))
+
+  (setv c (try unichr (except [NameError] chr)))
+  (assert (= (mangle (c 127)) "hyx_XU7fX"))
+  (assert (= (mangle (c 128)) "hyx_XU80X"))
+  (assert (= (mangle (c 0xa0)) "hyx_XnoHbreak_spaceX"))
+  (assert (= (mangle (c 0x378)) "hyx_XU378X"))
+  (assert (= (mangle (c 0x200a) "hyx_Xhair_spaceX")))
+  (assert (= (mangle (c 0x2065)) "hyx_XU2065X"))
+  (assert (= (mangle (c 0x1000c)) "hyx_XU1000cX")))
+
+
+(defn test-mangle-bad-indent []
+  ; Shouldn't crash with IndentationError
+  (mangle "  0\n 0"))

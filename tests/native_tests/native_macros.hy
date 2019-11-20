@@ -1,8 +1,9 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy.errors [HyTypeError]])
+(import pytest
+        [hy.errors [HyTypeError HyMacroExpansionError]])
 
 (defmacro rev [&rest body]
   "Execute the `body` statements in reverse"
@@ -65,13 +66,13 @@
   (try
     (eval '(defmacro f [&kwonly a b]))
     (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &kwonly")))
+      (assert (= e.msg "macros cannot use &kwonly")))
     (else (assert False)))
 
   (try
     (eval '(defmacro f [&kwargs kw]))
     (except [e HyTypeError]
-      (assert (= e.message "macros cannot use &kwargs")))
+      (assert (= e.msg "macros cannot use &kwargs")))
     (else (assert False))))
 
 (defn test-fn-calling-macro []
@@ -101,7 +102,7 @@
 (defn test-midtree-yield-in-for []
   "NATIVE: test yielding in a for with a return"
   (defn kruft-in-for []
-    (for* [i (range 5)]
+    (for [i (range 5)]
       (yield i))
     (+ 1 2)))
 
@@ -117,7 +118,7 @@
 (defn test-multi-yield []
   "NATIVE: testing multiple yields"
   (defn multi-yield []
-    (for* [i (range 3)]
+    (for [i (range 3)]
       (yield i))
     (yield "a")
     (yield "end"))
@@ -139,15 +140,11 @@
 (assert initialized)
 (assert (test-initialized))
 
-(defn test-if-python2 []
-  (import sys)
-  (assert (= (get sys.version_info 0)
-             (if-python2 2 3))))
-
 (defn test-gensym-in-macros []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (gensym))
       `(do
@@ -160,20 +157,21 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  ;; and make sure there is something new that starts with _;G|
-  (assert (in (mangle "_;G|") s1))
-  (assert (in (mangle "_;G|") s2))
+  ;; and make sure there is something new that starts with _G\uffff
+  (assert (in (mangle "_G\uffff") s1))
+  (assert (in (mangle "_G\uffff") s2))
   ;; but make sure the two don't match each other
   (assert (not (= s1 s2))))
 
 (defn test-with-gensym []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
         `(do
@@ -186,18 +184,19 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in (mangle "_;a|") s1))
-  (assert (in (mangle "_;a|") s2))
+  (assert (in (mangle "_a\uffff") s1))
+  (assert (in (mangle "_a\uffff") s2))
   (assert (not (= s1 s2))))
 
-(defn test-defmacro-g! []
+(defn test-defmacro/g! []
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -209,24 +208,25 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in "_;res|" s1))
-  (assert (in "_;res|" s2))
+  (assert (in (mangle "_res\uffff") s1))
+  (assert (in (mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
   ;; don't have a startswith method and blew up during expansion
   (setv macro2 "(defmacro/g! two-point-zero [] `(+ (float 1) 1.0))")
-  (assert (import_buffer_to_ast macro2 "foo")))
+  (assert (hy-compile (hy-parse macro2) __name__)))
 
 (defn test-defmacro! []
   ;; defmacro! must do everything defmacro/g! can
   (import ast)
   (import [astor.code-gen [to-source]])
-  (import [hy.importer [import_buffer_to_ast]])
+  (import [hy.compiler [hy-compile]])
+  (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -238,18 +238,18 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (import_buffer_to_ast macro1 "foo"))
-  (setv _ast2 (import_buffer_to_ast macro1 "foo"))
+  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (to_source _ast1))
   (setv s2 (to_source _ast2))
-  (assert (in "_;res|" s1))
-  (assert (in "_;res|" s2))
+  (assert (in (mangle "_res\uffff") s1))
+  (assert (in (mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
   ;; don't have a startswith method and blew up during expansion
   (setv macro2 "(defmacro! two-point-zero [] `(+ (float 1) 1.0))")
-  (assert (import_buffer_to_ast macro2 "foo"))
+  (assert (hy-compile (hy-parse macro2) __name__))
 
   (defmacro! foo! [o!foo] `(do ~g!foo ~g!foo))
   ;; test that o! becomes g!
@@ -257,7 +257,14 @@
   ;; test that o! is evaluated once only
   (setv foo 40)
   (foo! (+= foo 1))
-  (assert (= 41 foo)))
+  (assert (= 41 foo))
+  ;; test &optional args
+  (defmacro! bar! [o!a &optional [o!b 1]] `(do ~g!a ~g!a ~g!b ~g!b))
+  ;; test that o!s are evaluated once only
+  (bar! (+= foo 1) (+= foo 1))
+  (assert (= 43 foo))
+  ;; test that the optional arg works
+  (assert (= (bar! 2) 1)))
 
 
 (defn test-if-not []
@@ -313,12 +320,195 @@
   (global --name--)
   (setv oldname --name--)
   (setv --name-- "__main__")
-  (defn main []
-    (print 'Hy)
-    42)
+
+  (defn main [x]
+    (print (integer? x))
+    x)
+
   (try
     (defmain [&rest args]
-      (main))
+      (main 42))
+    (assert False)
     (except [e SystemExit]
       (assert (= (str e) "42"))))
+
+  ;; Try a `defmain` without args
+  (try
+    (defmain []
+      (main 42))
+    (assert False)
+    (except [e SystemExit]
+      (assert (= (str e) "42"))))
+
+  ;; Try a `defmain` with only one arg
+  (import sys)
+  (setv oldargv sys.argv)
+  (try
+    (setv sys.argv [1])
+    (defmain [x]
+      (main x))
+    (assert False)
+    (except [e SystemExit]
+      (assert (= (str e) "1"))))
+
+  (setv sys.argv oldargv)
   (setv --name-- oldname))
+
+(defn test-macro-namespace-resolution []
+  "Confirm that local versions of macro-macro dependencies do not shadow the
+versions from the macro's own module, but do resolve unbound macro references
+in expansions."
+
+  ;; `nonlocal-test-macro` is a macro used within
+  ;; `tests.resources.macro-with-require.test-module-macro`.
+  ;; Here, we introduce an equivalently named version in local scope that, when
+  ;; used, will expand to a different output string.
+  (defmacro nonlocal-test-macro [x]
+    (print "this is the local version of `nonlocal-test-macro`!"))
+
+  ;; Was the above macro created properly?
+  (assert (in "nonlocal_test_macro" __macros__))
+
+  (setv nonlocal-test-macro (get __macros__ "nonlocal_test_macro"))
+
+  (require [tests.resources.macro-with-require [*]])
+
+  (setv module-name-var "tests.native_tests.native_macros.test-macro-namespace-resolution")
+  (assert (= (+ "This macro was created in tests.resources.macros, "
+                "expanded in tests.native_tests.native_macros.test-macro-namespace-resolution "
+                "and passed the value 2.")
+             (test-module-macro 2)))
+  (assert (= (+ "This macro was created in tests.resources.macros, "
+                "expanded in tests.native_tests.native_macros.test-macro-namespace-resolution "
+                "and passed the value 2.")
+             #test-module-tag 2))
+
+  ;; Now, let's use a `require`d macro that depends on another macro defined only
+  ;; in this scope.
+  (defmacro local-test-macro [x]
+    (.format "This is the local version of `nonlocal-test-macro` returning {}!" (int x)))
+
+  (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
+             (test-module-macro-2 3)))
+  (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
+             #test-module-tag-2 3)))
+
+(defn test-macro-from-module []
+  "Macros loaded from an external module, which itself `require`s macros, should
+ work without having to `require` the module's macro dependencies (due to
+ [minimal] macro namespace resolution).
+
+ In doing so we also confirm that a module's `__macros__` attribute is correctly
+ loaded and used.
+
+ Additionally, we confirm that `require` statements are executed via loaded bytecode."
+
+  (import os sys marshal types)
+  (import importlib)
+
+  (setv pyc-file (importlib.util.cache-from-source
+                   (os.path.realpath
+                     (os.path.join
+                       "tests" "resources" "macro_with_require.hy"))))
+
+  ;; Remove any cached byte-code, so that this runs from source and
+  ;; gets evaluated in this module.
+  (when (os.path.isfile pyc-file)
+    (os.unlink pyc-file)
+    (.clear sys.path_importer_cache)
+    (when (in  "tests.resources.macro_with_require" sys.modules)
+      (del (get sys.modules "tests.resources.macro_with_require"))
+      (__macros__.clear)
+      (__tags__.clear)))
+
+  ;; Ensure that bytecode isn't present when we require this module.
+  (assert (not (os.path.isfile pyc-file)))
+
+  (defn test-requires-and-macros []
+    (require [tests.resources.macro-with-require
+              [test-module-macro]])
+
+    ;; Make sure that `require` didn't add any of its `require`s
+    (assert (not (in "nonlocal-test-macro" __macros__)))
+    ;; and that it didn't add its tags.
+    (assert (not (in "test_module_tag" __tags__)))
+
+    ;; Now, require everything.
+    (require [tests.resources.macro-with-require [*]])
+
+    ;; Again, make sure it didn't add its required macros and/or tags.
+    (assert (not (in "nonlocal-test-macro" __macros__)))
+
+    ;; Its tag(s) should be here now.
+    (assert (in "test_module_tag" __tags__))
+
+    ;; The test macro expands to include this symbol.
+    (setv module-name-var "tests.native_tests.native_macros")
+    (assert (= (+ "This macro was created in tests.resources.macros, "
+                  "expanded in tests.native_tests.native_macros "
+                  "and passed the value 1.")
+               (test-module-macro 1)))
+
+    (assert (= (+ "This macro was created in tests.resources.macros, "
+                  "expanded in tests.native_tests.native_macros "
+                  "and passed the value 1.")
+               #test-module-tag 1)))
+
+  (test-requires-and-macros)
+
+  ;; Now that bytecode is present, reload the module, clear the `require`d
+  ;; macros and tags, and rerun the tests.
+  (assert (os.path.isfile pyc-file))
+
+  ;; Reload the module and clear the local macro context.
+  (.clear sys.path_importer_cache)
+  (del (get sys.modules "tests.resources.macro_with_require"))
+  (.clear __macros__)
+  (.clear __tags__)
+
+  ;; XXX: There doesn't seem to be a way--via standard import mechanisms--to
+  ;; ensure that an imported module used the cached bytecode.  We'll simply have
+  ;; to trust that the .pyc loading convention was followed.
+  (test-requires-and-macros))
+
+
+(defn test-recursive-require-star []
+  "(require [foo [*]]) should pull in macros required by `foo`."
+  (require [tests.resources.macro-with-require [*]])
+
+  (test-macro)
+  (assert (= blah 1)))
+
+
+(defn test-macro-errors []
+  (import traceback
+          [hy.importer [hy-parse]])
+
+  (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
+
+  (with [excinfo (pytest.raises HyMacroExpansionError)]
+    (eval test-expr))
+
+  (setv output (traceback.format_exception_only
+                 excinfo.type excinfo.value))
+  (setv output (cut (.splitlines (.strip (first output))) 1))
+
+  (setv expected ["  File \"<string>\", line 1"
+                  "    (defmacro blah [x] `(print ~@z)) (blah y)"
+                  "                                     ^------^"
+                  "expanding macro blah"
+                  "  NameError: global name 'z' is not defined"])
+
+  (assert (= (cut expected 0 -1) (cut output 0 -1)))
+  (assert (or (= (get expected -1) (get output -1))
+              ;; Handle PyPy's peculiarities
+              (= (.replace (get expected -1) "global " "") (get output -1))))
+
+
+  ;; This should throw a `HyWrapperError` that gets turned into a
+  ;; `HyMacroExpansionError`.
+  (with [excinfo (pytest.raises HyMacroExpansionError)]
+    (eval '(do (defmacro wrap-error-test []
+                 (fn []))
+               (wrap-error-test))))
+  (assert (in "HyWrapperError" (str excinfo.value))))

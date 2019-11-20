@@ -1,14 +1,14 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
 ;;;; Hy shadow functions
 
 (import operator)
-(import [hy._compat [PY3 PY35]])
 
-(if PY3
-  (import [functools [reduce]]))
+(require [hy.core.bootstrap [*]])
+
+(import [functools [reduce]])
 
 (defn + [&rest args]
   "Shadowed `+` operator adds `args`."
@@ -58,10 +58,9 @@
   "Shadowed `%` operator takes `x` modulo `y`."
   (% x y))
 
-(if PY35
-    (defn @ [a1 &rest a-rest]
-      "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
-      (reduce operator.matmul a-rest a1)))
+(defn @ [a1 &rest a-rest]
+  "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
+  (reduce operator.matmul a-rest a1))
 
 (defn << [a1 a2 &rest a-rest]
   "Shadowed `<<` operator performs left-shift on `a1` by `a2`, ..., `a-rest`."
@@ -98,8 +97,7 @@
 (defn comp-op [op a1 a-rest]
   "Helper for shadow comparison operators"
   (if a-rest
-    (reduce (fn [x y] (and x y))
-      (list-comp (op x y) [(, x y) (zip (+ (, a1) a-rest) a-rest)]))
+    (and #* (gfor (, x y) (zip (+ (, a1) a-rest) a-rest) (op x y)))
     True))
 (defn < [a1 &rest a-rest]
   "Shadowed `<` operator perform lt comparison on `a1` by each `a-rest`."
@@ -161,7 +159,7 @@
 (defn get [coll key1 &rest keys]
   "Access item in `coll` indexed by `key1`, with optional `keys` nested-access."
   (setv coll (get coll key1))
-  (for* [k keys]
+  (for [k keys]
     (setv coll (get coll k)))
   coll)
 
@@ -172,5 +170,3 @@
   'and 'or 'not
   'is 'is-not 'in 'not-in
   'get])
-(if (not PY35)
-  (.remove EXPORTS '@))

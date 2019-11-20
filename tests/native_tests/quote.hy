@@ -1,4 +1,4 @@
-;; Copyright 2018 the authors.
+;; Copyright 2019 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
@@ -9,7 +9,7 @@
   "NATIVE: test for quoting functionality"
   (setv q (quote (a b c)))
   (assert (= (len q) 3))
-  (assert (= q [(quote a) (quote b) (quote c)])))
+  (assert (= q (HyExpression [(quote a) (quote b) (quote c)]))))
 
 
 (defn test-basic-quoting []

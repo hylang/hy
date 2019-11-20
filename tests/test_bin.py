@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
 import os
-from pipes import quote
 import re
 import shlex
 import subprocess
+import builtins
+
+from importlib.util import cache_from_source
 
 import pytest
-
-from hy._compat import PY3, PY35, PY36, builtins
-from hy.importer import get_bytecode_path
 
 
 hy_dir = os.environ.get('HY_DIR', '')
@@ -122,7 +121,16 @@ def test_bin_hy_stdin_as_arrow():
 
 def test_bin_hy_stdin_error_underline_alignment():
     _, err = run_cmd("hy", "(defmacro mabcdefghi [x] x)\n(mabcdefghi)")
-    assert "\n  (mabcdefghi)\n  ^----------^" in err
+
+    msg_idx = err.rindex("    (mabcdefghi)")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()
+    assert err_parts[1].startswith("    ^----------^")
+    assert err_parts[2].startswith("expanding macro mabcdefghi")
+    assert (err_parts[3].startswith("  TypeError: mabcdefghi") or
+            # PyPy can use a function's `__name__` instead of
+            # `__code__.co_name`.
+            err_parts[3].startswith("  TypeError: (mabcdefghi)"))
 
 
 def test_bin_hy_stdin_except_do():
@@ -148,8 +156,64 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
     # inside run_cmd.
     _, err = run_cmd("hy", """
         (import hy.errors)
-        (raise (hy.errors.HyTypeError '[] (+ "A" "Z")))""")
+        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
     assert "AZ" in err
+
+
+def test_bin_hy_error_parts_length():
+    """Confirm that exception messages print arrows surrounding the affected
+    expression."""
+    prg_str = """
+    (import hy.errors
+            [hy.importer [hy-parse]])
+
+    (setv test-expr (hy-parse "(+ 1\n\n'a 2 3\n\n 1)"))
+    (setv test-expr.start-line {})
+    (setv test-expr.start-column {})
+    (setv test-expr.end-column {})
+
+    (raise (hy.errors.HyLanguageError
+             "this\nis\na\nmessage"
+             test-expr
+             None
+             None))
+    """
+
+    # Up-arrows right next to each other.
+    _, err = run_cmd("hy", prg_str.format(3, 1, 2))
+
+    msg_idx = err.rindex("HyLanguageError:")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()[1:]
+
+    expected = ['  File "<string>", line 3',
+                '    \'a 2 3',
+                '    ^^',
+                'this',
+                'is',
+                'a',
+                'message']
+
+    for obs, exp in zip(err_parts, expected):
+        assert obs.startswith(exp)
+
+    # Make sure only one up-arrow is printed
+    _, err = run_cmd("hy", prg_str.format(3, 1, 1))
+
+    msg_idx = err.rindex("HyLanguageError:")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()[1:]
+    assert err_parts[2] == '    ^'
+
+    # Make sure lines are printed in between arrows separated by more than one
+    # character.
+    _, err = run_cmd("hy", prg_str.format(3, 1, 6))
+    print(err)
+
+    msg_idx = err.rindex("HyLanguageError:")
+    assert msg_idx
+    err_parts = err[msg_idx:].splitlines()[1:]
+    assert err_parts[2] == '    ^----^'
 
 
 def test_bin_hy_stdin_bad_repr():
@@ -213,6 +277,10 @@ def test_bin_hy_icmd_file():
     output, _ = run_cmd("hy -i resources/icmd_test_file.hy", "(ideas)")
     assert "Hy!" in output
 
+    file_relative_path = os.path.realpath(os.path.split('tests/resources/relative_import.hy')[0])
+
+    output, _ = run_cmd("hy -i tests/resources/relative_import.hy None")
+    assert file_relative_path in output
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
@@ -232,8 +300,11 @@ def test_bin_hy_file_with_args():
 
 
 def test_bin_hyc():
-    _, err = run_cmd("hyc", expect=2)
-    assert "usage" in err
+    _, err = run_cmd("hyc", expect=0)
+    assert err == ''
+
+    _, err = run_cmd("hyc -", expect=0)
+    assert err == ''
 
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
@@ -241,12 +312,12 @@ def test_bin_hyc():
     path = "tests/resources/argparse_ex.hy"
     output, _ = run_cmd("hyc " + path)
     assert "Compiling" in output
-    assert os.path.exists(get_bytecode_path(path))
-    rm(get_bytecode_path(path))
+    assert os.path.exists(cache_from_source(path))
+    rm(cache_from_source(path))
 
 
 def test_bin_hyc_missing_file():
-    _, err = run_cmd("hyc foobarbaz", expect=2)
+    _, err = run_cmd("hyc foobarbaz", expect=1)
     assert "[Errno 2]" in err
 
 
@@ -282,35 +353,40 @@ def test_bin_hy_no_main():
     assert "This Should Still Work" in output
 
 
-@pytest.mark.parametrize('scenario', [
-    "normal", "prevent_by_force", "prevent_by_env"])
-@pytest.mark.parametrize('cmd_fmt', [
-    'hy {fpath}', 'hy -m {modname}', "hy -c '(import {modname})'"])
+@pytest.mark.parametrize('scenario', ["normal", "prevent_by_force",
+                                      "prevent_by_env", "prevent_by_option"])
+@pytest.mark.parametrize('cmd_fmt', [['hy', '{fpath}'],
+                                     ['hy', '-m', '{modname}'],
+                                     ['hy', '-c', "'(import {modname})'"]])
 def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
-    cmd = cmd_fmt.format(**locals())
 
-    rm(get_bytecode_path(fpath))
+    if scenario == 'prevent_by_option':
+        cmd_fmt.insert(1, '-B')
+
+    cmd = ' '.join(cmd_fmt).format(**locals())
+
+    rm(cache_from_source(fpath))
 
     if scenario == "prevent_by_force":
         # Keep Hy from being able to byte-compile the module by
         # creating a directory at the target location.
-        os.mkdir(get_bytecode_path(fpath))
+        os.mkdir(cache_from_source(fpath))
 
     # Whether or not we can byte-compile the module, we should be able
     # to run it.
-    output, _ = run_cmd(cmd, dontwritebytecode=scenario == "prevent_by_env")
+    output, _ = run_cmd(cmd, dontwritebytecode=(scenario == "prevent_by_env"))
     assert "Hello from macro" in output
     assert "The macro returned: boink" in output
 
     if scenario == "normal":
         # That should've byte-compiled the module.
-        assert os.path.exists(get_bytecode_path(fpath))
-    elif scenario == "prevent_by_env":
+        assert os.path.exists(cache_from_source(fpath))
+    elif scenario == "prevent_by_env" or scenario == "prevent_by_option":
         # No byte-compiled version should've been created.
-        assert not os.path.exists(get_bytecode_path(fpath))
+        assert not os.path.exists(cache_from_source(fpath))
 
     # When we run the same command again, and we've byte-compiled the
     # module, the byte-compiled version should be run instead of the
@@ -323,6 +399,32 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
 def test_bin_hy_module_main():
     output, _ = run_cmd("hy -m tests.resources.bin.main")
     assert "Hello World" in output
+
+
+def test_bin_hy_module_main_file():
+    output, _ = run_cmd("hy -m tests.resources.bin")
+    assert "This is a __main__.hy" in output
+
+    output, _ = run_cmd("hy -m .tests.resources.bin", expect=1)
+
+
+def test_bin_hy_file_main_file():
+    output, _ = run_cmd("hy tests/resources/bin")
+    assert "This is a __main__.hy" in output
+
+
+def test_bin_hy_file_sys_path():
+    """The test resource `relative_import.hy` will perform an absolute import
+    of a module in its directory: a directory that is not on the `sys.path` of
+    the script executing the module (i.e. `hy`).  We want to make sure that Hy
+    adopts the file's location in `sys.path`, instead of the runner's current
+    dir (e.g. '' in `sys.path`).
+    """
+    file_path, _ = os.path.split('tests/resources/relative_import.hy')
+    file_relative_path = os.path.realpath(file_path)
+
+    output, _ = run_cmd("hy tests/resources/relative_import.hy")
+    assert file_relative_path in output
 
 
 def test_bin_hy_module_main_args():
@@ -338,3 +440,131 @@ def test_bin_hy_module_main_exitvalue():
 def test_bin_hy_module_no_main():
     output, _ = run_cmd("hy -m tests.resources.bin.nomain")
     assert "This Should Still Work" in output
+
+
+def test_bin_hy_sys_executable():
+    output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
+    assert output.strip().endswith('/hy')
+
+
+def test_bin_hy_file_no_extension():
+    """Confirm that a file with no extension is processed as Hy source"""
+    output, _ = run_cmd("hy tests/resources/no_extension")
+    assert "This Should Still Work" in output
+
+
+def test_bin_hy_circular_macro_require():
+    """Confirm that macros can require themselves during expansion and when
+    run from the command line."""
+
+    # First, with no bytecode
+    test_file = "tests/resources/bin/circular_macro_require.hy"
+    rm(cache_from_source(test_file))
+    assert not os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "42" == output.strip()
+
+    # Now, with bytecode
+    assert os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "42" == output.strip()
+
+def test_bin_hy_macro_require():
+    """Confirm that a `require` will load macros into the non-module namespace
+    (i.e. `exec(code, locals)`) used by `runpy.run_path`.
+    In other words, this confirms that the AST generated for a `require` will
+    load macros into the unnamed namespace its run in."""
+
+    # First, with no bytecode
+    test_file = "tests/resources/bin/require_and_eval.hy"
+    rm(cache_from_source(test_file))
+    assert not os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "abc" == output.strip()
+
+    # Now, with bytecode
+    assert os.path.exists(cache_from_source(test_file))
+    output, _ = run_cmd("hy {}".format(test_file))
+    assert "abc" == output.strip()
+
+
+def test_bin_hy_tracebacks():
+    """Make sure the printed tracebacks are correct."""
+
+    # We want the filtered tracebacks.
+    os.environ['HY_DEBUG'] = ''
+
+    def req_err(x):
+        assert (x == 'hy.errors.HyRequireError: No module named '
+            "'not_a_real_module'")
+
+    # Modeled after
+    #   > python -c 'import not_a_real_module'
+    #   Traceback (most recent call last):
+    #     File "<string>", line 1, in <module>
+    #   ImportError: No module named not_a_real_module
+    _, error = run_cmd('hy', '(require not-a-real-module)')
+    error_lines = error.splitlines()
+    if error_lines[-1] == '':
+        del error_lines[-1]
+    assert len(error_lines) <= 10
+      # Rough check for the internal traceback filtering
+    req_err(error_lines[4])
+
+    _, error = run_cmd('hy -c "(require not-a-real-module)"', expect=1)
+    error_lines = error.splitlines()
+    assert len(error_lines) <= 4
+    req_err(error_lines[-1])
+
+    output, error = run_cmd('hy -i "(require not-a-real-module)"')
+    assert output.startswith('=> ')
+    print(error.splitlines())
+    req_err(error.splitlines()[2])
+
+    # Modeled after
+    #   > python -c 'print("hi'
+    #     File "<string>", line 1
+    #       print("hi
+    #               ^
+    #   SyntaxError: EOL while scanning string literal
+    _, error = run_cmd(r'hy -c "(print \""', expect=1)
+    peoi_re = (
+        r'Traceback \(most recent call last\):\n'
+        r'  File "(?:<string>|string-[0-9a-f]+)", line 1\n'
+        r'    \(print "\n'
+        r'           \^\n'
+        r'hy.lex.exceptions.PrematureEndOfInput: Partial string literal\n')
+    assert re.search(peoi_re, error)
+
+    # Modeled after
+    #   > python -i -c "print('"
+    #     File "<string>", line 1
+    #       print('
+    #             ^
+    #   SyntaxError: EOL while scanning string literal
+    #   >>>
+    output, error = run_cmd(r'hy -i "(print \""')
+    assert output.startswith('=> ')
+    assert re.match(peoi_re, error)
+
+    # Modeled after
+    #   > python -c 'print(a)'
+    #   Traceback (most recent call last):
+    #     File "<string>", line 1, in <module>
+    #   NameError: name 'a' is not defined
+    output, error = run_cmd('hy -c "(print a)"', expect=1)
+    error_lines = error.splitlines()
+    assert error_lines[3] == '  File "<string>", line 1, in <module>'
+    # PyPy will add "global" to this error message, so we work around that.
+    assert error_lines[-1].strip().replace(' global', '') == (
+        "NameError: name 'a' is not defined")
+
+    # Modeled after
+    #   > python -c 'compile()'
+    #   Traceback (most recent call last):
+    #     File "<string>", line 1, in <module>
+    #   TypeError: Required argument 'source' (pos 1) not found
+    output, error = run_cmd('hy -c "(compile)"', expect=1)
+    error_lines = error.splitlines()
+    assert error_lines[-2] == '  File "<string>", line 1, in <module>'
+    assert error_lines[-1].startswith('TypeError')

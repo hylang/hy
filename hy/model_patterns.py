@@ -1,4 +1,4 @@
-# Copyright 2018 the authors.
+# Copyright 2019 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
@@ -9,11 +9,13 @@ from funcparserlib.parser import (
     some, skip, many, finished, a, Parser, NoParseError, State)
 from functools import reduce
 from itertools import repeat
+from collections import namedtuple
 from operator import add
 from math import isinf
 
 FORM = some(lambda _: True)
 SYM = some(lambda x: isinstance(x, HySymbol))
+KEYWORD = some(lambda x: isinstance(x, HyKeyword))
 STR = some(lambda x: isinstance(x, HyString))
 
 def sym(wanted):
@@ -56,6 +58,14 @@ def notpexpr(*disallowed_heads):
         isinstance(x[0], HySymbol) and
         x[0] in disallowed_heads))
 
+def unpack(kind):
+    "Parse an unpacking form, returning it unchanged."
+    return some(lambda x:
+        isinstance(x, HyExpression)
+        and len(x) > 0
+        and isinstance(x[0], HySymbol)
+        and x[0] == "unpack-" + kind)
+
 def times(lo, hi, parser):
     """Parse `parser` several times (`lo` to `hi`) in a row. `hi` can be
     float('inf'). The result is a list no matter the number of instances."""
@@ -74,3 +84,11 @@ def times(lo, hi, parser):
             end = e.state.max
         return result, State(s.pos, end)
     return f
+
+Tag = namedtuple('Tag', ['tag', 'value'])
+
+def tag(tag_name, parser):
+    """Matches the given parser and produces a named tuple `(Tag tag value)`
+    with `tag` set to the given tag name and `value` set to the parser's
+    value."""
+    return parser >> (lambda x: Tag(tag_name, x))
