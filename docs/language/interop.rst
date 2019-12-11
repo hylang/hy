@@ -4,9 +4,6 @@
 Hy <-> Python interop
 =====================
 
-   “Keep in mind we’re not Clojure. We’re not Common Lisp. We’re Homoiconic
-   Python, with extra bits that make sense.” — Hy Style Guide
-
 Despite being a Lisp, Hy aims to be fully compatible with Python. That means
 every Python module or package can be imported in Hy code, and vice versa.
 

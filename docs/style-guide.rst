@@ -2,48 +2,10 @@
 Hy Style Guide
 ==============
 
-   “You know, Minister, I disagree with Dumbledore on many counts…but
-   you cannot deny he’s got style…”
-   — Phineas Nigellus Black, *Harry Potter and the Order of the Phoenix*
-
 The Hy style guide intends to be a set of ground rules for the Hyve
 (yes, the Hy community prides itself in appending Hy to everything)
 to write idiomatic Hy code. Hy derives a lot from Clojure & Common
 Lisp, while always maintaining Python interoperability.
-
-
-Prelude
-=======
-
-The Tao of Hy
--------------
-
-.. code-block:: none
-
-   Ummon asked the head monk, "What sutra are you lecturing on?"
-   "The Nirvana Sutra."
-   "The Nirvana Sutra has the Four Virtues, hasn't it?"
-   "It has."
-   Ummon asked, picking up a cup, "How many virtues has this?"
-   "None at all," said the monk.
-   "But ancient people said it had, didn't they?" said Ummon.
-   "What do you think of what they said?"
-   Ummon struck the cup and asked, "You understand?"
-   "No," said the monk.
-   "Then," said Ummon, "You'd better go on with your lectures on the sutra."
-   — the (koan) macro
-
-The following illustrates a brief list of design decisions that went
-into the making of Hy.
-
-+ Look like a Lisp; do the right thing with it (e.g. dashes turn to underscores).
-+ We're still Python. Most of the internals translate 1:1 to Python internals.
-+ Use Unicode everywhere.
-+ When in doubt, defer to Python.
-+ If you're still unsure, defer to Clojure.
-+ If you're even more unsure, defer to Common Lisp.
-+ Keep in mind we're not Clojure. We're not Common Lisp. We're
-  Homoiconic Python, with extra bits that make sense.
 
 
 Layout & Indentation
@@ -995,21 +957,6 @@ like ``foo-bar``, not ``foo_bar``.
     ;; OK, but would be module private. (No import *)
     (def ->dict [&rest pairs]
       (dict (partition pairs)))
-
-Conclusion
-==========
-
-   “Fashions fade, style is eternal”
-   —Yves Saint Laurent
-
-
-This guide is just a set of community guidelines, and obviously, community
-guidelines do not make sense without an active community.
-As in Python, we expect the style of Hy to be refined over time in practice.
-Contributions are welcome.
-Join us at #hy in freenode, blog about it,
-tweet about it, and most importantly, have fun with Hy.
-
 
 Thanks
 ======
