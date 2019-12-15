@@ -36,6 +36,8 @@ Bug Fixes
 * Fixed crashes from inaccessible history files.
 * The unit tests no longer unintentionally import the internal Python module "test".
   This allows them to pass when run inside the "slim" Python Docker images.
+* `ap-reduce` now accepts any iterable.
+* `ap-reduce` now evaluates its arguments only once.
 
 Misc. Improvements
 ------------------------------

@@ -91,12 +91,15 @@
        ~n)))
 
 
-(defmacro ap-reduce [form lst &optional [initial-value None]]
+(defmacro! ap-reduce [form o!lst &optional [initial-value None]]
   "Anaphoric form of reduce, `acc' and `it' can be used for a form"
   `(do
-     (setv acc ~(if (none? initial-value) `(get ~lst 0) initial-value))
-     (ap-each ~(if (none? initial-value) `(cut ~lst 1) lst)
-              (setv acc ~form))
+     (setv acc ~(if (none? initial-value)
+       `(do
+         (setv ~g!lst (iter ~g!lst))
+         (next ~g!lst))
+       initial-value))
+     (ap-each ~g!lst (setv acc ~form))
      acc))
 
 

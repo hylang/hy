@@ -64,7 +64,17 @@
   (assert (= (ap-reduce (* acc it) [1 2 3] 6) 36))
   (assert (= (ap-reduce (+ acc " on " it) ["Hy" "meth"])
               "Hy on meth"))
-  (assert (= (ap-reduce (+ acc it) [] 1) 1)))
+  (assert (= (ap-reduce (+ acc it) [] 1) 1))
+
+  ; https://github.com/hylang/hy/issues/1848
+  (assert (= (ap-reduce (* acc it) (map inc [1 2 3])) 24))
+  (assert (= (ap-reduce (* acc it) (map inc [1 2 3]) 4) 96))
+
+  (setv expr-evaluated 0)
+  (assert (=
+    (ap-reduce (* acc it) (do (+= expr-evaluated 1) [4 5 6])))
+    120)
+  (assert (= expr-evaluated 1)))
 
 (defn test-tag-fn []
   ;; test ordering
