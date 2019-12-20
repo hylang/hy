@@ -1448,8 +1448,6 @@ parameter will be returned.
     True
 
 
-.. _py-specialform:
-
 of
 --
 
@@ -1477,6 +1475,9 @@ For instance:
 
   (of Callable [int str] str)  ; => Callable[[int, str], str]
 
+
+.. _py-specialform:
+
 py
 --
 
@@ -1489,9 +1490,11 @@ expression is returned from the ``py`` form. ::
     (print "A result from Python:" (py "'hello' + 'world'"))
 
 The code must be given as a single string literal, but you can still use
-macros, :ref:`eval`, and related tools to construct the ``py`` form. If you
-want to evaluate some Python code that's only defined at run-time, try the
-standard Python function :func:`eval`.
+macros, :ref:`eval-fn`, and related tools to construct the ``py`` form. If
+having to backslash-escape internal double quotes is getting you down, try a
+:ref:`bracket string <syntax-bracket-strings>`. If you want to evaluate some
+Python code that's only defined at run-time, try the standard Python function
+:func:`eval`.
 
 Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
 program that uses ``py`` or ``pys``. For example, comments will be removed.

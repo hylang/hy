@@ -37,6 +37,8 @@ Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
 strings like Python. The single-quote character ``'`` is reserved for
 preventing the evaluation of a form (e.g., ``'(+ 1 1)``), as in most Lisps.
 
+.. _syntax-bracket-strings:
+
 Python's so-called triple-quoted strings (e.g., ``'''hello'''`` and
 ``"""hello"""``) aren't supported. However, in Hy, unlike Python, any string
 literal can contain newlines. Furthermore, Hy supports an alternative form of
