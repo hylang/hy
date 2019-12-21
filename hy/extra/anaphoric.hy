@@ -6,72 +6,72 @@
 ;;; These macros make writing functional programs more concise
 
 (defmacro ap-if [test-form then-form &optional else-form]
-  `(do
+  (rit `(do
      (setv it ~test-form)
-     (if it ~then-form ~else-form)))
+     (if it ~then-form ~else-form))))
 
 
 (defmacro ap-each [lst &rest body]
   "Evaluate the body form for each element in the list."
-  `(for [it ~lst] ~@body))
+  (rit `(for [it ~lst] ~@body)))
 
 
 (defmacro ap-each-while [lst form &rest body]
   "Evaluate the body form for each element in the list while the
   predicate form evaluates to True."
-  `(for [it ~lst]
+  (rit `(for [it ~lst]
     (unless ~form
       (break))
-    ~@body))
+    ~@body)))
 
 
 (defmacro ap-map [form lst]
   "Yield elements evaluated in the form for each element in the list."
-  `(gfor  it ~lst  ~form))
+  (rit `(gfor  it ~lst  ~form)))
 
 
 (defmacro ap-map-when [predfn rep lst]
   "Yield elements evaluated for each element in the list when the
   predicate function returns True."
-  `(gfor  it ~lst  (if (~predfn it) ~rep it)))
+  (rit `(gfor  it ~lst  (if (~predfn it) ~rep it))))
 
 
 (defmacro ap-filter [form lst]
   "Yield elements returned when the predicate form evaluates to True."
-  `(gfor  it ~lst  :if ~form  it))
+  (rit `(gfor  it ~lst  :if ~form  it)))
 
 
 (defmacro ap-reject [form lst]
   "Yield elements returned when the predicate form evaluates to False"
-  `(gfor  it ~lst  :if (not ~form)  it))
+  (rit `(gfor  it ~lst  :if (not ~form)  it)))
 
 
 (defmacro ap-dotimes [n &rest body]
   "Execute body for side effects `n' times, with it bound from 0 to n-1"
-  `(for [it (range ~n)]
-    ~@body))
+  (rit `(for [it (range ~n)]
+    ~@body)))
 
 
 (defmacro ap-first [predfn lst]
   "Yield the first element that passes `predfn`"
-  `(next
+  (rit `(next
     (gfor  it ~lst  :if ~predfn  it)
-    None))
+    None)))
 
 
 (defmacro ap-last [predfn lst]
   "Yield the last element that passes `predfn`"
   (setv x (gensym))
-  `(do
+  (rit `(do
     (setv ~x None)
     (for  [it ~lst  :if ~predfn]
       (setv ~x it))
-    ~x))
+    ~x)))
 
 
 (defmacro! ap-reduce [form o!lst &optional [initial-value None]]
   "Anaphoric form of reduce, `acc' and `it' can be used for a form"
-  `(do
+  (recur-sym-replace {'it (gensym)  'acc (gensym)} `(do
      (setv acc ~(if (none? initial-value)
        `(do
          (setv ~g!lst (iter ~g!lst))
@@ -79,7 +79,7 @@
        initial-value))
      (for [it ~g!lst]
        (setv acc ~form))
-     acc))
+     acc)))
 
 
 (deftag % [expr]
@@ -111,3 +111,23 @@
               '(&kwargs %**))]
      ~expr))
 
+
+;;; --------------------------------------------------
+;;; Subroutines
+;;; --------------------------------------------------
+
+
+(defn recur-sym-replace [d form]
+  "Recursive symbol replacement."
+  (cond
+    [(instance? HySymbol form)
+      (.get d form form)]
+    [(coll? form)
+      ((type form) (gfor  x form  (recur-sym-replace d x)))]
+    [True
+      form]))
+
+
+(defn rit [form]
+  "Replace `it` with a gensym throughout `form`."
+  (recur-sym-replace {'it (gensym)} form))

@@ -7,7 +7,13 @@
 
 (defn test-ap-if []
   (ap-if True (assert (is it True)))
-  (ap-if False True (assert (is it False))))
+  (ap-if False True (assert (is it False)))
+
+  ; https://github.com/hylang/hy/issues/1847
+  (setv it "orig")
+  (setv out (ap-if (+ 1 1) (+ it 1) (+ it 10)))
+  (assert (= out 3))
+  (assert (= it "orig")))
 
 (defn test-ap-each []
   (setv res [])

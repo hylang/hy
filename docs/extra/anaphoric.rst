@@ -17,6 +17,12 @@ To use these macros you need to require the ``hy.extra.anaphoric`` module like s
 
 ``(require [hy.extra.anaphoric [*]])``
 
+These macros are implemented by replacing any use of the designated
+anaphoric symbols (``it``, in most cases) with a gensym. Consequently,
+it's unwise to nest these macros, or to use an affected symbol as
+something other than a variable name, as in ``(print "My favorite
+Stephen King book is" 'it)``.
+
 .. _ap-if:
 
 ap-if
