@@ -47,7 +47,13 @@
   (assert (= (do (setv n []) (ap-dotimes 3 (.append n 3)) n)
              [3 3 3]))
   (assert (= (do (setv n []) (ap-dotimes 3 (.append n it)) n)
-             [0 1 2])))
+             [0 1 2]))
+
+  ; https://github.com/hylang/hy/issues/1853
+  (setv n 5)
+  (setv x "")
+  (ap-dotimes n (+= x "."))
+  (assert (= x ".....")))
 
 (defn test-ap-first []
   (assert (= (ap-first (> it 5) (range 10)) 6))

@@ -66,8 +66,6 @@
 
 (defmacro ap-dotimes [n &rest body]
   "Execute body for side effects `n' times, with it bound from 0 to n-1"
-  (unless (numeric? n)
-    (raise (TypeError (.format "{!r} is not a number" n))))
   `(ap-each (range ~n) ~@body))
 
 
