@@ -11,39 +11,39 @@
      (if it ~then-form ~else-form))))
 
 
-(defmacro ap-each [lst &rest body]
+(defmacro ap-each [xs &rest body]
   "Evaluate the body form for each element in the list."
-  (rit `(for [it ~lst] ~@body)))
+  (rit `(for [it ~xs] ~@body)))
 
 
-(defmacro ap-each-while [lst form &rest body]
+(defmacro ap-each-while [xs form &rest body]
   "Evaluate the body form for each element in the list while the
   predicate form evaluates to True."
-  (rit `(for [it ~lst]
+  (rit `(for [it ~xs]
     (unless ~form
       (break))
     ~@body)))
 
 
-(defmacro ap-map [form lst]
+(defmacro ap-map [form xs]
   "Yield elements evaluated in the form for each element in the list."
-  (rit `(gfor  it ~lst  ~form)))
+  (rit `(gfor  it ~xs  ~form)))
 
 
-(defmacro ap-map-when [predfn rep lst]
+(defmacro ap-map-when [predfn rep xs]
   "Yield elements evaluated for each element in the list when the
   predicate function returns True."
-  (rit `(gfor  it ~lst  (if (~predfn it) ~rep it))))
+  (rit `(gfor  it ~xs  (if (~predfn it) ~rep it))))
 
 
-(defmacro ap-filter [form lst]
+(defmacro ap-filter [form xs]
   "Yield elements returned when the predicate form evaluates to True."
-  (rit `(gfor  it ~lst  :if ~form  it)))
+  (rit `(gfor  it ~xs  :if ~form  it)))
 
 
-(defmacro ap-reject [form lst]
+(defmacro ap-reject [form xs]
   "Yield elements returned when the predicate form evaluates to False"
-  (rit `(gfor  it ~lst  :if (not ~form)  it)))
+  (rit `(gfor  it ~xs  :if (not ~form)  it)))
 
 
 (defmacro ap-dotimes [n &rest body]
@@ -52,32 +52,32 @@
     ~@body)))
 
 
-(defmacro ap-first [predfn lst]
-  "Yield the first element that passes `predfn`"
+(defmacro ap-first [form xs]
+  "Yield the first element that passes `form`"
   (rit `(next
-    (gfor  it ~lst  :if ~predfn  it)
+    (gfor  it ~xs  :if ~form  it)
     None)))
 
 
-(defmacro ap-last [predfn lst]
-  "Yield the last element that passes `predfn`"
+(defmacro ap-last [form xs]
+  "Yield the last element that passes `form`"
   (setv x (gensym))
   (rit `(do
     (setv ~x None)
-    (for  [it ~lst  :if ~predfn]
+    (for  [it ~xs  :if ~form]
       (setv ~x it))
     ~x)))
 
 
-(defmacro! ap-reduce [form o!lst &optional [initial-value None]]
+(defmacro! ap-reduce [form o!xs &optional [initial-value None]]
   "Anaphoric form of reduce, `acc' and `it' can be used for a form"
   (recur-sym-replace {'it (gensym)  'acc (gensym)} `(do
      (setv acc ~(if (none? initial-value)
        `(do
-         (setv ~g!lst (iter ~g!lst))
-         (next ~g!lst))
+         (setv ~g!xs (iter ~g!xs))
+         (next ~g!xs))
        initial-value))
-     (for [it ~g!lst]
+     (for [it ~g!xs]
        (setv acc ~form))
      acc)))
 
