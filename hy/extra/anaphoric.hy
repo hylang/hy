@@ -19,74 +19,54 @@
 (defmacro ap-each-while [lst form &rest body]
   "Evaluate the body form for each element in the list while the
   predicate form evaluates to True."
-  (setv p (gensym))
-  `(do
-     (defn ~p [it] ~form)
-     (for [it ~lst]
-       (if (~p it)
-           ~@body
-           (break)))))
+  `(for [it ~lst]
+    (unless ~form
+      (break))
+    ~@body))
 
 
 (defmacro ap-map [form lst]
   "Yield elements evaluated in the form for each element in the list."
-  (setv v (gensym 'v)  f (gensym 'f))
-  `((fn []
-      (defn ~f [it] ~form)
-      (for [~v ~lst]
-        (yield (~f ~v))))))
+  `(gfor  it ~lst  ~form))
 
 
 (defmacro ap-map-when [predfn rep lst]
   "Yield elements evaluated for each element in the list when the
   predicate function returns True."
-  (setv f (gensym))
-  `((fn []
-      (defn ~f [it] ~rep)
-      (for [it ~lst]
-        (if (~predfn it)
-            (yield (~f it))
-            (yield it))))))
+  `(gfor  it ~lst  (if (~predfn it) ~rep it)))
 
 
 (defmacro ap-filter [form lst]
   "Yield elements returned when the predicate form evaluates to True."
-  (setv pred (gensym))
-  `((fn []
-      (defn ~pred [it] ~form)
-      (for [val ~lst]
-        (if (~pred val)
-            (yield val))))))
+  `(gfor  it ~lst  :if ~form  it))
 
 
 (defmacro ap-reject [form lst]
   "Yield elements returned when the predicate form evaluates to False"
-  `(ap-filter (not ~form) ~lst))
+  `(gfor  it ~lst  :if (not ~form)  it))
 
 
 (defmacro ap-dotimes [n &rest body]
   "Execute body for side effects `n' times, with it bound from 0 to n-1"
-  `(ap-each (range ~n) ~@body))
+  `(for [it (range ~n)]
+    ~@body))
 
 
 (defmacro ap-first [predfn lst]
   "Yield the first element that passes `predfn`"
-  (with-gensyms [n]
-    `(do
-       (setv ~n None)
-       (ap-each ~lst (when ~predfn (setv ~n it) (break)))
-       ~n)))
+  `(next
+    (gfor  it ~lst  :if ~predfn  it)
+    None))
 
 
 (defmacro ap-last [predfn lst]
   "Yield the last element that passes `predfn`"
-  (with-gensyms [n]
-    `(do
-       (setv ~n None)
-       (ap-each ~lst (none? ~n)
-                (when ~predfn
-                  (setv ~n it)))
-       ~n)))
+  (setv x (gensym))
+  `(do
+    (setv ~x None)
+    (for  [it ~lst  :if ~predfn]
+      (setv ~x it))
+    ~x))
 
 
 (defmacro! ap-reduce [form o!lst &optional [initial-value None]]
@@ -97,7 +77,8 @@
          (setv ~g!lst (iter ~g!lst))
          (next ~g!lst))
        initial-value))
-     (ap-each ~g!lst (setv acc ~form))
+     (for [it ~g!lst]
+       (setv acc ~form))
      acc))
 
 
