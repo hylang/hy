@@ -17,7 +17,7 @@
 
 (defn test-ap-each []
   (setv res [])
-  (ap-each [1 2 3 4] (.append res it))
+  (assert (is (ap-each [1 2 3 4] (.append res it)) None))
   (assert (= res [1 2 3 4])))
 
 (defn test-ap-each-while []
