@@ -299,6 +299,38 @@ as the user enters *k*.
                   (print "Try again")))
 
 
+cmp
+---
+
+``cmp`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
+required for unchained comparisons, which have only one comparison operator,
+nor for chains of the same operator. For those cases, you can use the
+comparison operators directly with Hy's usual prefix syntax, as in ``(= x 1)``
+or ``(< 1 2 3)``. The use of ``cmp`` is to construct chains of heterogeneous
+operators, such as ``x <= y < z``. It uses an infix syntax with the general
+form
+
+::
+
+    (cmp ARG OP ARG OP ARG…)
+
+Hence, ``(cmp x <= y < z)`` is equivalent to ``(and (<= x y) (< y z))``,
+including short-circuiting, except that ``y`` is only evaluated once.
+
+Each ``ARG`` is an arbitrary form, which does not itself use infix syntax. Use
+:ref:`py-specialform` if you want fully Python-style operator syntax. You can
+also nest ``cmp`` forms, although this is rarely useful. Each ``OP`` is a
+literal comparison operator; other forms that resolve to a comparison operator
+are not allowed.
+
+At least two ``ARG``\ s and one ``OP`` are required, and every ``OP`` must be
+followed by an ``ARG``.
+
+As elsewhere in Hy, the equality operator is spelled ``=``, not ``==`` as in
+Python.
+
+
+
 comment
 -------
 

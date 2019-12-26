@@ -17,6 +17,7 @@ New Features
 ------------------------------
 * Added special forms ``py`` to ``pys`` that allow Hy programs to include
   inline Python code.
+* Added a special form ``cmp`` for chained comparisons.
 * All augmented assignment operators (except `%=` and `^=`) now allow
   more than two arguments.
 * PEP 3107 and PEP 526 function and variable annotations are now supported.

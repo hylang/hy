@@ -1256,12 +1256,18 @@ class HyASTCompiler(object):
                                values=[value.force_expr for value in values])
         return ret
 
-    c_ops = {"=": ast.Eq, "!=": ast.NotEq,
+    _c_ops = {"=": ast.Eq, "!=": ast.NotEq,
              "<": ast.Lt, "<=": ast.LtE,
              ">": ast.Gt, ">=": ast.GtE,
              "is": ast.Is, "is-not": ast.IsNot,
              "in": ast.In, "not-in": ast.NotIn}
-    c_ops = {ast_str(k): v for k, v in c_ops.items()}
+    _c_ops = {ast_str(k): v for k, v in _c_ops.items()}
+    def _get_c_op(self, sym):
+        k = ast_str(sym)
+        if k not in self._c_ops:
+            raise self._syntax_error(sym,
+                "Illegal comparison operator: " + str(sym))
+        return self._c_ops[k]()
 
     @special(["=", "is", "<", "<=", ">", ">="], [oneplus(FORM)])
     @special(["!=", "is-not"], [times(2, Inf, FORM)])
@@ -1271,10 +1277,22 @@ class HyASTCompiler(object):
             return (self.compile(args[0]) +
                     asty.Name(expr, id="True", ctx=ast.Load()))
 
-        ops = [self.c_ops[ast_str(root)]() for _ in args[1:]]
+        ops = [self._get_c_op(root) for _ in args[1:]]
         exprs, ret, _ = self._compile_collect(args)
         return ret + asty.Compare(
             expr, left=exprs[0], ops=ops, comparators=exprs[1:])
+
+    @special("cmp", [FORM, many(SYM + FORM)])
+    def compile_chained_comparison(self, expr, root, arg1, args):
+        ret = self.compile(arg1)
+        arg1 = ret.force_expr
+
+        ops = [self._get_c_op(op) for op, _ in args]
+        args, ret2, _ = self._compile_collect(
+            [x for _, x in args])
+
+        return ret + ret2 + asty.Compare(expr,
+            left=arg1, ops=ops, comparators=args)
 
     # The second element of each tuple below is an aggregation operator
     # that's used for augmented assignment with three or more arguments.
