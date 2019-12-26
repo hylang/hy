@@ -306,40 +306,40 @@
 
 
 (defn test-augassign []
-    (setv b 2  c 3  d 4)
-    (defmacro same-as [expr1 expr2 expected-value]
-      `(do
-        (setv a 4)
-        ~expr1
-        (setv expr1-value a)
-        (setv a 4)
-        ~expr2
-        (assert (= expr1-value a ~expected-value))))
-    (same-as (+= a b c d) (+= a (+ b c d)) 13)
-    (same-as (-= a b c d) (-= a (+ b c d)) -5)
-    (same-as (*= a b c d) (*= a (* b c d)) 96)
-    (same-as (**= a b c) (**= a (** b c)) 65,536)
-    (same-as (/= a b c d) (/= a (* b c d)) (/ 1 6))
-    (same-as (//= a b c d) (//= a (* b c d)) 0)
-    (same-as (<<= a b c d) (<<= a (+ b c d)) 0b10_00000_00000)
-    (same-as (>>= a b c d) (>>= a (+ b c d)) 0)
-    (same-as (&= a b c d) (&= a (& b c d)) 0)
-    (same-as (|= a b c d) (|= a (| b c d)) 0b111)
+  (setv b 2  c 3  d 4)
+  (defmacro same-as [expr1 expr2 expected-value]
+    `(do
+      (setv a 4)
+      ~expr1
+      (setv expr1-value a)
+      (setv a 4)
+      ~expr2
+      (assert (= expr1-value a ~expected-value))))
+  (same-as (+= a b c d) (+= a (+ b c d)) 13)
+  (same-as (-= a b c d) (-= a (+ b c d)) -5)
+  (same-as (*= a b c d) (*= a (* b c d)) 96)
+  (same-as (**= a b c) (**= a (** b c)) 65,536)
+  (same-as (/= a b c d) (/= a (* b c d)) (/ 1 6))
+  (same-as (//= a b c d) (//= a (* b c d)) 0)
+  (same-as (<<= a b c d) (<<= a (+ b c d)) 0b10_00000_00000)
+  (same-as (>>= a b c d) (>>= a (+ b c d)) 0)
+  (same-as (&= a b c d) (&= a (& b c d)) 0)
+  (same-as (|= a b c d) (|= a (| b c d)) 0b111)
 
-    (defclass C [object]
-      (defn __init__ [self content] (setv self.content content))
-      (defn __matmul__ [self other] (C (+ self.content other.content))))
-    (setv  a (C "a")  b (C "b")  c (C "c")  d (C "d"))
-    (@= a b c d)
-    (assert (= a.content "abcd"))
-    (setv a (C "a"))
-    (@= a (@ b c d))
-    (assert (= a.content "abcd"))
+  (defclass C [object]
+    (defn __init__ [self content] (setv self.content content))
+    (defn __matmul__ [self other] (C (+ self.content other.content))))
+  (setv  a (C "a")  b (C "b")  c (C "c")  d (C "d"))
+  (@= a b c d)
+  (assert (= a.content "abcd"))
+  (setv a (C "a"))
+  (@= a (@ b c d))
+  (assert (= a.content "abcd"))
 
-    (setv a 15)
-    (%= a 9)
-    (assert (= a 6))
+  (setv a 15)
+  (%= a 9)
+  (assert (= a 6))
 
-    (setv a 0b1100)
-    (^= a 0b1010)
-    (assert (= a 0b0110)))
+  (setv a 0b1100)
+  (^= a 0b1010)
+  (assert (= a 0b0110)))
