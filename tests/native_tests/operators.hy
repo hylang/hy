@@ -294,7 +294,8 @@
   (forbid (f 3))
   (assert (is (f 3 [1 2]) (!= f-name "in")))
   (assert (is (f 2 [1 2]) (= f-name "in")))
-  (forbid (f 2 [1 2] [3 4])))
+  (assert (is (f 2 [1 2] [[1 2] 3]) (= f-name "in")))
+  (assert (is (f 3 [1 2] [[2 2] 3]) (!= f-name "in"))))
 
 
 (op-and-shadow-test [get]

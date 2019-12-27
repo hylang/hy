@@ -117,6 +117,12 @@
 (defn is-not [a1 a2 &rest a-rest]
   "Shadowed `is-not` keyword perform is-not on `a1` by `a2`, ..., `a-rest`."
   (comp-op operator.is-not a1 (+ (, a2) a-rest)))
+(defn in [a1 a2 &rest a-rest]
+  "Shadowed `in` keyword perform `a1` in `a2` in …."
+  (comp-op (fn [x y] (in x y)) a1 (+ (, a2) a-rest)))
+(defn not-in [a1 a2 &rest a-rest]
+  "Shadowed `not in` keyword perform `a1` not in `a2` not in…."
+  (comp-op (fn [x y] (not-in x y)) a1 (+ (, a2) a-rest)))
 (defn >= [a1 &rest a-rest]
   "Shadowed `>=` operator perform ge comparison on `a1` by each `a-rest`."
   (comp-op operator.ge a1 a-rest))
@@ -147,14 +153,6 @@
 (defn not [x]
   "Shadowed `not` keyword perform not on `x`."
   (not x))
-
-(defn in [x y]
-  "Shadowed `in` keyword perform `x` in `y`."
-  (in x y))
-
-(defn not-in [x y]
-  "Shadowed `not in` keyword perform `x` not in `y`."
-  (not-in x y))
 
 (defn get [coll key1 &rest keys]
   "Access item in `coll` indexed by `key1`, with optional `keys` nested-access."

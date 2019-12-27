@@ -33,6 +33,7 @@ Bug Fixes
 ------------------------------
 * Statements in the second argument of `assert` are now executed.
 * Fixed the expression of a while loop that contains statements being compiled twice.
+* `in` and `not-in` now allow more than two arguments, as in Python.
 * `hy2py` can now handle format strings.
 * Fixed crashes from inaccessible history files.
 * The unit tests no longer unintentionally import the internal Python module "test".

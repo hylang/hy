@@ -1270,8 +1270,7 @@ class HyASTCompiler(object):
         return self._c_ops[k]()
 
     @special(["=", "is", "<", "<=", ">", ">="], [oneplus(FORM)])
-    @special(["!=", "is-not"], [times(2, Inf, FORM)])
-    @special(["in", "not-in"], [times(2, 2, FORM)])
+    @special(["!=", "is-not", "in", "not-in"], [times(2, Inf, FORM)])
     def compile_compare_op_expression(self, expr, root, args):
         if len(args) == 1:
             return (self.compile(args[0]) +
