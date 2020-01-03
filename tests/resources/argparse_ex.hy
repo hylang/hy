@@ -1,5 +1,5 @@
 #!/usr/bin/env hy
-;; Copyright 2019 the authors.
+;; Copyright 2020 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
