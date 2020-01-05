@@ -17,15 +17,27 @@ To use these macros you need to require the ``hy.extra.anaphoric`` module like s
 
 ``(require [hy.extra.anaphoric [*]])``
 
+These macros are implemented by replacing any use of the designated
+anaphoric symbols (``it``, in most cases) with a gensym. Consequently,
+it's unwise to nest these macros, or to use an affected symbol as
+something other than a variable name, as in ``(print "My favorite
+Stephen King book is" 'it)``.
+
 .. _ap-if:
 
 ap-if
 =====
 
-Usage: ``(ap-if (foo) (print it))``
+Usage: ``(ap-if test-form then-form else-form)``
 
-Evaluates the first form for truthiness, and bind it to ``it`` in both the
-true and false branches.
+As :ref:`if <if>`, but the result of the test form is named ``it`` in
+the subsequent forms. As with ``if``, the else-clause is optional.
+
+.. code-block:: hy
+
+   => (import os)
+   => (ap-if (.get os.environ "PYTHONPATH")
+   ...  (print "Your PYTHONPATH is" it))
 
 
 .. _ap-each:
@@ -33,9 +45,17 @@ true and false branches.
 ap-each
 =======
 
-Usage: ``(ap-each [1 2 3 4 5] (print it))``
+Usage: ``(ap-each xs body…)``
 
-Evaluate the form for each element in the list for side-effects.
+Evaluate the body forms for each element ``it`` of ``xs`` and return
+``None``.
+
+.. code-block:: hy
+
+   => (ap-each [1 2 3] (print it))
+   1
+   2
+   3
 
 
 .. _ap-each-while:
@@ -43,10 +63,10 @@ Evaluate the form for each element in the list for side-effects.
 ap-each-while
 =============
 
-Usage: ``(ap-each-while list pred body)``
+Usage: ``(ap-each-while xs pred body…)``
 
-Evaluate the form for each element where the predicate form returns
-``True``.
+As ``ap-each``, but the form ``pred`` is run before the body forms on
+each iteration, and the loop ends if ``pred`` is false.
 
 .. code-block:: hy
 
@@ -60,11 +80,10 @@ Evaluate the form for each element where the predicate form returns
 ap-map
 ======
 
-Usage: ``(ap-map form list)``
+Usage: ``(ap-map form xs)``
 
-The anaphoric form of map works just like regular map except that
-instead of a function object it takes a Hy form. The special name
-``it`` is bound to the current object from the list in the iteration.
+Create a generator like :py:func:`map` that yields each result of ``form``
+evaluated with ``it`` bound to successive elements of ``xs``.
 
 .. code-block:: hy
 
@@ -77,10 +96,12 @@ instead of a function object it takes a Hy form. The special name
 ap-map-when
 ===========
 
-Usage: ``(ap-map-when predfn rep list)``
+Usage: ``(ap-map-when predfn rep xs)``
 
-Evaluate a mapping over the list using a predicate function to
-determin when to apply the form.
+As ``ap-map``, but the predicate function ``predfn`` (yes, that's a
+function, not an anaphoric form) is applied to each ``it``, and the
+anaphoric mapping form ``rep`` is only applied if the predicate is true.
+Otherwise, ``it`` is yielded unchanged.
 
 .. code-block:: hy
 
@@ -96,11 +117,9 @@ determin when to apply the form.
 ap-filter
 =========
 
-Usage: ``(ap-filter form list)``
+Usage: ``(ap-filter form xs)``
 
-As with ``ap-map`` we take a special form instead of a function to
-filter the elements of the list. The special name ``it`` is bound to
-the current element in the iteration.
+The :py:func:`filter` equivalent of ``ap-map``.
 
 .. code-block:: hy
 
@@ -113,11 +132,9 @@ the current element in the iteration.
 ap-reject
 =========
 
-Usage: ``(ap-reject form list)``
+Usage: ``(ap-reject form xs)``
 
-This function does the opposite of ``ap-filter``, it rejects the
-elements passing the predicate . The special name ``it`` is bound to
-the current element in the iteration.
+Equivalent to ``(ap-filter (not form) xs)``.
 
 .. code-block:: hy
 
@@ -130,10 +147,9 @@ the current element in the iteration.
 ap-dotimes
 ==========
 
-Usage ``(ap-dotimes n body)``
+Usage: ``(ap-dotimes n body…)``
 
-This function evaluates the body *n* times, with the special
-variable ``it`` bound from *0* to *1-n*. It is useful for side-effects.
+Equivalent to ``(ap-each (range n) body…)``.
 
 .. code-block:: hy
 
@@ -148,15 +164,15 @@ variable ``it`` bound from *0* to *1-n*. It is useful for side-effects.
 ap-first
 ========
 
-Usage ``(ap-first predfn list)``
+Usage: ``(ap-first form xs)``
 
-This function returns the first element that passes the predicate or
-``None``, with the special variable ``it`` bound to the current element in
-iteration.
+Evaluate the predicate ``form`` for each element ``it`` of ``xs``. When
+the predicate is true, stop and return ``it``. If the predicate is never
+true, return ``None``.
 
 .. code-block:: hy
 
-   =>(ap-first (> it 5) (range 10))
+   => (ap-first (> it 5) (range 10))
    6
 
 
@@ -165,15 +181,15 @@ iteration.
 ap-last
 ========
 
-Usage ``(ap-last predfn list)``
+Usage: ``(ap-last form list)``
 
-This function returns the last element that passes the predicate or
-``None``, with the special variable ``it`` bound to the current element in
-iteration.
+Evaluate the predicate ``form`` for every element ``it`` of ``xs``.
+Return the last element for which the predicate is true, or ``None`` if
+there is no such element.
 
 .. code-block:: hy
 
-   =>(ap-last (> it 5) (range 10))
+   => (ap-last (> it 5) (range 10))
    9
 
 
@@ -182,18 +198,24 @@ iteration.
 ap-reduce
 =========
 
-Usage ``(ap-reduce form list &optional initial-value)``
+Usage: ``(ap-reduce form xs &optional initial-value)``
 
-This function returns the result of applying form to the first 2
-elements in the body and applying the result and the 3rd element
-etc. until the list is exhausted. Optionally an initial value can be
-supplied so the function will be applied to initial value and the
-first element instead. This exposes the element being iterated as
-``it`` and the current accumulated value as ``acc``.
+This macro is an anaphoric version of :py:func:`reduce`. It works as
+follows:
+
+- Bind ``acc`` to the first element of ``xs``, bind ``it`` to the
+  second, and evaluate ``form``.
+- Bind ``acc`` to the result, bind ``it`` to the third value of ``xs``,
+  and evaluate ``form`` again.
+- Bind ``acc`` to the result, and continue until ``xs`` is exhausted.
+
+If ``initial-value`` is supplied, the process instead begins with
+``acc`` set to ``initial-value`` and ``it`` set to the first element of
+``xs``.
 
 .. code-block:: hy
 
-   =>(ap-reduce (+ it acc) (range 10))
+   => (ap-reduce (+ it acc) (range 10))
    45
 
 
@@ -202,7 +224,7 @@ first element instead. This exposes the element being iterated as
 #%
 ==
 
-Usage ``#% expr``
+Usage: ``#% expr``
 
 Makes an expression into a function with an implicit ``%`` parameter list.
 
