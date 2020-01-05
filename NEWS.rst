@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+0.18.0
 ==============================
 
 Removals
@@ -10,41 +10,40 @@ Removals
   and `defn` instead.
 * Literal keywords are no longer parsed differently in calls to functions
   with certain names.
-* `hy.contrib.multi` has been removed. Use ``cond`` or the PyPI package
-  ``multipledispatch`` instead.
-
-New Features
-------------------------------
-* Added special forms ``py`` to ``pys`` that allow Hy programs to include
-  inline Python code.
-* Added a special form ``cmp`` for chained comparisons.
-* All augmented assignment operators (except `%=` and `^=`) now allow
-  more than two arguments.
-* PEP 3107 and PEP 526 function and variable annotations are now supported.
-* Added function ``parse-args`` which parses arguments with ``argparse``.
+* `hy.contrib.multi` has been removed. Use `cond` or the PyPI package
+  `multipledispatch` instead.
 
 Other Breaking Changes
 ------------------------------
-* ``HySequence`` is now a subclass of ``tuple`` instead of ``list``.
-  Thus, a ``HyList`` will never be equal to a ``list``, and you can't
-  use ``.append``, ``.pop``, etc. on an expression or list.
+* `HySequence` is now a subclass of `tuple` instead of `list`.
+  Thus, a `HyList` will never be equal to a `list`, and you can't
+  use `.append`, `.pop`, etc. on a `HyExpression` or `HyList`.
+
+New Features
+------------------------------
+* Added special forms `py` to `pys` that allow Hy programs to include
+  inline Python code.
+* Added a special form `cmp` for chained comparisons.
+* All augmented assignment operators (except `%=` and `^=`) now allow
+  more than two arguments.
+* Added support for function annotations (PEP 3107) and variable
+  annotations (PEP 526).
+* Added a function `parse-args` as a wrapper for Python's `argparse`.
 
 Bug Fixes
 ------------------------------
 * Statements in the second argument of `assert` are now executed.
-* Fixed the expression of a while loop that contains statements being compiled twice.
+* Fixed a bug that caused the condition of a `while` to be compiled
+  twice.
 * `in` and `not-in` now allow more than two arguments, as in Python.
 * `hy2py` can now handle format strings.
 * Fixed crashes from inaccessible history files.
-* The unit tests no longer unintentionally import the internal Python module "test".
-  This allows them to pass when run inside the "slim" Python Docker images.
-* `ap-reduce` now accepts any iterable.
-* `ap-reduce` now evaluates its arguments only once.
+* Removed an accidental import from the internal Python module `test`.
+* Fixed a swarm of bugs in `hy.extra.anaphoric`.
 
 Misc. Improvements
 ------------------------------
-* Drop the use of the long-abandoned `clint <https://github.com/kennethreitz/clint>`_ library
-  for colors. `colorama <https://github.com/tartley/colorama>`_ is now used instead.
+* Replaced the dependency `clint` with `colorama`.
 
 0.17.0
 ==============================
