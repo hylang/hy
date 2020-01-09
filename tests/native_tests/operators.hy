@@ -294,7 +294,8 @@
   (forbid (f 3))
   (assert (is (f 3 [1 2]) (!= f-name "in")))
   (assert (is (f 2 [1 2]) (= f-name "in")))
-  (forbid (f 2 [1 2] [3 4])))
+  (assert (is (f 2 [1 2] [[1 2] 3]) (= f-name "in")))
+  (assert (is (f 3 [1 2] [[2 2] 3]) (!= f-name "in"))))
 
 
 (op-and-shadow-test [get]
@@ -305,41 +306,56 @@
   (assert (= (f {"x" {"y" {"z" 12}}} "x" "y" "z") 12)))
 
 
+(defn test-chained-comparison []
+  (assert (cmp 2 = (+ 1 1) = (- 3 1)))
+  (assert (not (cmp 2 = (+ 1 1) = (+ 3 1))))
+
+  (assert (cmp 2 = 2 > 1))
+  (assert (cmp 2 = (+ 1 1) > 1))
+  (setv x 2)
+  (assert (cmp 2 = x > 1))
+  (assert (cmp 2 = x > (> 4 3)))
+  (assert (not (cmp (> 4 3) = x > 1)))
+
+  (assert (cmp 1 in [1] in [[1] [2 3]] not-in [5]))
+  (assert (not (cmp 1 in [1] not-in [[1] [2 3]] not-in [5]))))
+
+
 (defn test-augassign []
-    (setv b 2  c 3  d 4)
-    (defmacro same-as [expr1 expr2 expected-value]
-      `(do
-        (setv a 4)
-        ~expr1
-        (setv expr1-value a)
-        (setv a 4)
-        ~expr2
-        (assert (= expr1-value a ~expected-value))))
-    (same-as (+= a b c d) (+= a (+ b c d)) 13)
-    (same-as (-= a b c d) (-= a (+ b c d)) -5)
-    (same-as (*= a b c d) (*= a (* b c d)) 96)
-    (same-as (**= a b c) (**= a (** b c)) 65,536)
-    (same-as (/= a b c d) (/= a (* b c d)) (/ 1 6))
-    (same-as (//= a b c d) (//= a (* b c d)) 0)
-    (same-as (<<= a b c d) (<<= a (+ b c d)) 0b10_00000_00000)
-    (same-as (>>= a b c d) (>>= a (+ b c d)) 0)
-    (same-as (&= a b c d) (&= a (& b c d)) 0)
-    (same-as (|= a b c d) (|= a (| b c d)) 0b111)
+  (setv b 2  c 3  d 4)
+  (defmacro same-as [expr1 expr2 expected-value]
+    `(do
+      (setv a 4)
+      ~expr1
+      (setv expr1-value a)
+      (setv a 4)
+      ~expr2
+      (assert (= expr1-value a ~expected-value))))
+  (same-as (+= a b c d) (+= a (+ b c d)) 13)
+  (same-as (-= a b c d) (-= a (+ b c d)) -5)
+  (same-as (*= a b c d) (*= a (* b c d)) 96)
+  (same-as (**= a b c) (**= a (** b c)) 65,536)
+  (same-as (/= a b c d) (/= a (* b c d)) (/ 1 6))
+  (same-as (//= a b c d) (//= a (* b c d)) 0)
+  (same-as (<<= a b c d) (<<= a (+ b c d)) 0b10_00000_00000)
+  (same-as (>>= a b c d) (>>= a (+ b c d)) 0)
+  (same-as (&= a b c d) (&= a (& b c d)) 0)
+  (same-as (|= a b c d) (|= a (| b c d)) 0b111)
 
-    (defclass C [object]
-      (defn __init__ [self content] (setv self.content content))
-      (defn __matmul__ [self other] (C (+ self.content other.content))))
-    (setv  a (C "a")  b (C "b")  c (C "c")  d (C "d"))
-    (@= a b c d)
-    (assert (= a.content "abcd"))
-    (setv a (C "a"))
-    (@= a (@ b c d))
-    (assert (= a.content "abcd"))
+  (defclass C [object]
+    (defn __init__ [self content] (setv self.content content))
+    (defn __matmul__ [self other] (C (+ self.content other.content))))
+  (setv  a (C "a")  b (C "b")  c (C "c")  d (C "d"))
+  (@= a b c d)
+  (assert (= a.content "abcd"))
+  (setv a (C "a"))
+  (@= a (@ b c d))
+  (assert (= a.content "abcd"))
 
-    (setv a 15)
-    (%= a 9)
-    (assert (= a 6))
+  (setv a 15)
+  (%= a 9)
+  (assert (= a 6))
 
-    (setv a 0b1100)
-    (^= a 0b1010)
-    (assert (= a 0b0110)))
+  (setv a 0b1100)
+  (^= a 0b1010)
+  (assert (= a 0b0110)))
