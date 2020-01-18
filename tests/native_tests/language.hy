@@ -1303,7 +1303,16 @@ cee\"} dee" "ey bee\ncee dee"))
   ; Format bracket strings
   (assert (= #[f[a{p !r :9}]f] "a'xyzzy'  "))
   (assert (= #[f-string[result: {value :{width}.{precision}}]f-string]
-    "result:      12.34")))
+    "result:      12.34"))
+
+  ; Quoting shouldn't evaluate the f-string immediately
+  ; https://github.com/hylang/hy/issues/1844
+  (setv quoted 'f"hello {world}")
+  (assert quoted.is-format)
+  (with [(pytest.raises NameError)]
+    (eval quoted))
+  (setv world "goodbye")
+  (assert (= (eval quoted) "hello goodbye")))
 
 
 (defn test-import-syntax []

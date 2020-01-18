@@ -606,7 +606,13 @@ class HyASTCompiler(object):
 
         elif isinstance(form, HyString):
             if form.is_format:
-                body.extend([HyKeyword("is_format"), form.is_format])
+                # Ensure that this f-string isn't evaluated right now.
+                body = [
+                    copy.copy(form),
+                    HyKeyword("is_format"),
+                    form.is_format,
+                ]
+                body[0].is_format = False
             if form.brackets is not None:
                 body.extend([HyKeyword("brackets"), form.brackets])
 
