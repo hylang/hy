@@ -606,9 +606,9 @@ class HyASTCompiler(object):
 
         elif isinstance(form, HyString):
             if form.is_format:
-               body.extend([HyKeyword("is_format"), form.is_format])
+                body.extend([HyKeyword("is_format"), form.is_format])
             if form.brackets is not None:
-               body.extend([HyKeyword("brackets"), form.brackets])
+                body.extend([HyKeyword("brackets"), form.brackets])
 
         ret = HyExpression([HySymbol(name)] + body).replace(form)
         return imports, ret, False
