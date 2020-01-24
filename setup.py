@@ -3,7 +3,11 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import sys, os
+import glob
+import importlib
+import inspect
+import os
+import sys
 
 from setuptools import find_packages, setup
 from setuptools.command.install import install
@@ -20,16 +24,42 @@ make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
 class Install(install):
+    def __compile_hy_bytecode(self):
+        for path in sorted(glob.iglob('hy/**.hy', recursive=True)):
+            importlib.util.cache_from_source(path, optimize=self.optimize)
+
     def run(self):
-        # Import each Hy module to ensure it's compiled.
-        import os, importlib
-        for dirpath, _, filenames in sorted(os.walk("hy")):
-            for filename in sorted(filenames):
-                if filename.endswith(".hy"):
-                    importlib.import_module(
-                        dirpath.replace("/", ".").replace("\\", ".") +
-                        "." + filename[:-len(".hy")])
-        install.run(self)
+        # Don't bother messing around with deps if they wouldn't be installed anyway.
+        # Code is based on setuptools's install.py.
+        if not (self.old_and_unmanageable or self.single_version_externally_managed
+                or not self._called_from_setup(inspect.currentframe())):
+            easy_install = self.distribution.get_command_class('easy_install')
+
+            cmd = easy_install(
+                self.distribution, args="x", root=self.root, record=self.record,
+            )
+            cmd.ensure_finalized()
+            cmd.always_copy_from = '.'
+            cmd.package_index.scan(glob.glob('*.egg'))
+
+            cmd.args = self.distribution.install_requires
+
+            # Avoid deprecation warnings on new setuptools versions.
+            if 'show_deprecation' in inspect.signature(cmd.run).parameters:
+                cmd.run(show_deprecation=False)
+            else:
+                cmd.run()
+
+            # Make sure any new packages get picked up.
+            import site
+            importlib.reload(site)
+            importlib.invalidate_caches()
+
+        self.__compile_hy_bytecode()
+
+        # The deps won't be reinstalled because of:
+        # https://github.com/pypa/setuptools/issues/456
+        return install.run(self)
 
 install_requires = [
     'rply>=0.7.7',
