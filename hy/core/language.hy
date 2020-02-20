@@ -401,7 +401,10 @@ constructor."
   (import argparse)
   (setv parser (argparse.ArgumentParser #** parser-args))
   (for [arg spec]
-    (eval `(.add-argument parser ~@arg)))
+    (parser.add-argument
+      #* (take-while (complement keyword?) arg)
+      #** (dfor [key value] (partition (drop-while (complement keyword?) arg) 2)
+                [(name key) value])))
   (.parse-args parser args))
 
 (setv EXPORTS
