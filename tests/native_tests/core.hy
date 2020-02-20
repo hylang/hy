@@ -481,7 +481,7 @@ result['y in globals'] = 'y' in globals()")
 (defn test-parse-args []
   "NATIVE: testing the parse-args function"
   (setv parsed-args (parse-args [["strings" :nargs "+" :help "Strings"]
-                                 ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
+                                 ["-n" "--numbers" :action "append" :type int :help "Numbers"]]
                                 ["a" "b" "-n" "1" "-n" "2"]
                                 :description "Parse strings and numbers from args"))
   (assert-equal parsed-args.strings ["a" "b"])
