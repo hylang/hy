@@ -401,10 +401,23 @@ constructor."
   (import argparse)
   (setv parser (argparse.ArgumentParser #** parser-args))
   (for [arg spec]
-    (parser.add-argument
-      #* (take-while (complement keyword?) arg)
-      #** (dfor [key value] (partition (drop-while (complement keyword?) arg) 2)
-            [(name key) value])))
+    (setv [positional keywords _]
+          (reduce (fn [state arg]
+                    (setv [positional keywords value-of-keyword?] state)
+                    (if value-of-keyword?
+                        (do
+                          (.append (get keywords -1) arg)
+                          [positional keywords False])
+                        (if (keyword? arg)
+                            (do
+                              (.append keywords [(name arg)])
+                              [positional keywords True])
+                            (do
+                              (.append positional arg)
+                              [positional keywords False]))))
+                  arg
+                  [[] [] False]))
+    (parser.add-argument #* positional #** (dict keywords)))
   (.parse-args parser args))
 
 (setv EXPORTS
