@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Other Breaking Changes
+------------------------------
+* Value type of `:type` in `parse-args` spec is now a `function` instead of `HySymbol`.
+
 0.18.0
 ==============================
 
