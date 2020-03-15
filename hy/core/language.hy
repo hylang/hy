@@ -401,7 +401,17 @@ constructor."
   (import argparse)
   (setv parser (argparse.ArgumentParser #** parser-args))
   (for [arg spec]
-    (eval `(.add-argument parser ~@arg)))
+    (setv positional-arguments []
+          keyword-arguments []
+          value-of-keyword? False)
+    (for [item arg]
+      (if value-of-keyword?
+          (.append (get keyword-arguments -1) item)
+          (if (keyword? item)
+              (.append keyword-arguments [(name item)])
+              (.append positional-arguments item)))
+      (setv value-of-keyword? (and (not value-of-keyword?) (keyword? item))))
+    (parser.add-argument #* positional-arguments #** (dict keyword-arguments)))
   (.parse-args parser args))
 
 (setv EXPORTS

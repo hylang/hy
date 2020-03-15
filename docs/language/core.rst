@@ -804,7 +804,7 @@ may be a list of keyword arguments to pass to the
 .. code-block:: hy
 
     => (parse-args [["strings" :nargs "+" :help "Strings"]
-                    ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
+                    ["-n" "--numbers" :action "append" :type int :help "Numbers"]]
                    ["a" "b" "-n" "1" "-n" "2"]
                    :description "Parse strings and numbers from args")
     Namespace(numbers=[1, 2], strings=['a', 'b'])

@@ -480,9 +480,10 @@ result['y in globals'] = 'y' in globals()")
 
 (defn test-parse-args []
   "NATIVE: testing the parse-args function"
+  ; https://github.com/hylang/hy/issues/1875
   (setv parsed-args (parse-args [["strings" :nargs "+" :help "Strings"]
-                                 ["-n" "--numbers" :action "append" :type 'int :help "Numbers"]]
-                                ["a" "b" "-n" "1" "-n" "2"]
+                                 ["-n" :action "append" :type int :help "Numbers" "--numbers"]]
+                                ["a" "b" "-n" "1" "--numbers" "2"]
                                 :description "Parse strings and numbers from args"))
   (assert-equal parsed-args.strings ["a" "b"])
   (assert-equal parsed-args.numbers [1 2]))
