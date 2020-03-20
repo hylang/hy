@@ -308,10 +308,7 @@ def macroexpand(tree, module, compiler=None, once=False):
 
     assert not compiler or compiler.module == module
 
-    while True:
-
-        if not isinstance(tree, HyExpression) or tree == []:
-            break
+    while isinstance(tree, HyExpression) and tree:
 
         fn = tree[0]
         if fn in ("quote", "quasiquote") or not isinstance(fn, HySymbol):
