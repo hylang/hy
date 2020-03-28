@@ -8,6 +8,11 @@ Other Breaking Changes
 * `parse-args` is no longer implemented with `eval`; so e.g. you should
   now say `:type int` instead of `:type 'int`.
 
+Bug Fixes
+------------------------------
+* Improved support for nesting anaphoric macros by only applying
+  symbol replacement where absolutely necessary.
+
 0.18.0
 ==============================
 
