@@ -3,49 +3,62 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
+;;; Macro to help write anaphoric macros
+
+(defmacro rit [&rest body]
+  """Supply `it` as a gensym and R as a function to replace `it` with the
+  given gensym throughout expressions."""
+  `(do
+    (setv it (gensym))
+    (defn R [form]
+      "Replace `it` with a gensym throughout `form`."
+      (recur-sym-replace {'it it} form))
+    ~@body))
+
+
 ;;; These macros make writing functional programs more concise
 
 (defmacro ap-if [test-form then-form &optional else-form]
   (rit `(do
-     (setv it ~test-form)
-     (if it ~then-form ~else-form))))
+     (setv ~it ~test-form)
+     (if ~it ~(R then-form) ~(R else-form)))))
 
 
 (defmacro ap-each [xs &rest body]
-  (rit `(for [it ~xs] ~@body)))
+  (rit `(for [~it ~xs] ~@(R body))))
 
 
 (defmacro ap-each-while [xs form &rest body]
-  (rit `(for [it ~xs]
-    (unless ~form
+  (rit `(for [~it ~xs]
+    (unless ~(R form)
       (break))
-    ~@body)))
+    ~@(R body))))
 
 
 (defmacro ap-map [form xs]
-  (rit `(gfor  it ~xs  ~form)))
+  (rit `(gfor  ~it ~xs  ~(R form))))
 
 
 (defmacro ap-map-when [predfn rep xs]
-  (rit `(gfor  it ~xs  (if (~predfn it) ~rep it))))
+  (rit `(gfor  ~it ~xs  (if (~predfn ~it) ~(R rep) ~it))))
 
 
 (defmacro ap-filter [form xs]
-  (rit `(gfor  it ~xs  :if ~form  it)))
+  (rit `(gfor  ~it ~xs  :if ~(R form)  ~it)))
 
 
 (defmacro ap-reject [form xs]
-  (rit `(gfor  it ~xs  :if (not ~form)  it)))
+  (rit `(gfor  ~it ~xs  :if (not ~(R form))  ~it)))
 
 
 (defmacro ap-dotimes [n &rest body]
-  (rit `(for [it (range ~n)]
-    ~@body)))
+  (rit `(for [~it (range ~n)]
+    ~@(R body))))
 
 
 (defmacro ap-first [form xs]
   (rit `(next
-    (gfor  it ~xs  :if ~form  it)
+    (gfor  ~it ~xs  :if ~(R form)  ~it)
     None)))
 
 
@@ -53,21 +66,25 @@
   (setv x (gensym))
   (rit `(do
     (setv ~x None)
-    (for  [it ~xs  :if ~form]
-      (setv ~x it))
+    (for  [~it ~xs  :if ~(R form)]
+      (setv ~x ~it))
     ~x)))
 
-
 (defmacro! ap-reduce [form o!xs &optional [initial-value None]]
-  (recur-sym-replace {'it (gensym)  'acc (gensym)} `(do
-     (setv acc ~(if (none? initial-value)
-       `(do
-         (setv ~g!xs (iter ~g!xs))
-         (next ~g!xs))
-       initial-value))
-     (for [it ~g!xs]
-       (setv acc ~form))
-     acc)))
+  (setv
+    it (gensym)
+    acc (gensym))
+  (defn R [form]
+    (recur-sym-replace {'it it  'acc acc} form))
+  `(do
+    (setv ~acc ~(if (none? initial-value)
+      `(do
+        (setv ~g!xs (iter ~g!xs))
+        (next ~g!xs))
+      initial-value))
+    (for [~it ~g!xs]
+      (setv ~acc ~(R form)))
+    ~acc))
 
 
 (deftag % [expr]
@@ -106,8 +123,3 @@
       ((type form) (gfor  x form  (recur-sym-replace d x)))]
     [True
       form]))
-
-
-(defn rit [form]
-  "Replace `it` with a gensym throughout `form`."
-  (recur-sym-replace {'it (gensym)} form))
