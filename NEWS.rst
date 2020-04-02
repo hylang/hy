@@ -12,6 +12,7 @@ Bug Fixes
 ------------------------------
 * Improved support for nesting anaphoric macros by only applying
   symbol replacement where absolutely necessary.
+* Quoted f-strings are no longer evaluated prematurely.
 
 0.18.0
 ==============================
