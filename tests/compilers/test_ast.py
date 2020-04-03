@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 from hy import HyString
 from hy.compiler import hy_compile, hy_eval
-from hy.errors import HyCompileError, HyLanguageError, HyError
+from hy.errors import HyLanguageError, HyError
 from hy.lex import hy_parse
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy._compat import PY36
@@ -36,14 +36,11 @@ def can_eval(expr):
 def cant_compile(expr):
     with pytest.raises(HyError) as excinfo:
         hy_compile(hy_parse(expr), __name__)
-
-    if issubclass(excinfo.type, HyLanguageError):
-        assert excinfo.value.msg
-        return excinfo.value
-    elif issubclass(excinfo.type, HyCompileError):
-        # Anything that can't be compiled should raise a user friendly
-        # error, otherwise it's a compiler bug.
-        return excinfo.value
+    # Anything that can't be compiled should raise a user friendly
+    # error, otherwise it's a compiler bug.
+    assert issubclass(excinfo.type, HyLanguageError)
+    assert excinfo.value.msg
+    return excinfo.value
 
 
 def s(x):

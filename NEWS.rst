@@ -13,6 +13,8 @@ Bug Fixes
 * Improved support for nesting anaphoric macros by only applying
   symbol replacement where absolutely necessary.
 * Quoted f-strings are no longer evaluated prematurely.
+* Fixed a regression in the production of error messages for empty
+  expressions.
 
 0.18.0
 ==============================
