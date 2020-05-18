@@ -1465,10 +1465,10 @@ parameter will be returned.
     => (or True False)
     True
 
-    => (and False False)
+    => (or False False)
     False
 
-    => (and False 1 True False)
+    => (or False 1 True False)
     1
 
 .. note:: ``or`` short-circuits and stops evaluating parameters as soon as the
