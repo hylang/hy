@@ -45,5 +45,5 @@ def pytest_collect_file(parent, path):
         and NATIVE_TESTS in path.dirname + os.sep
         and path.basename != "__init__.hy"):
 
-        pytest_mod = pytest.Module(path, parent)
+        pytest_mod = pytest.Module.from_parent(parent, fspath=path)
         return pytest_mod
