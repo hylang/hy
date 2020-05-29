@@ -1,5 +1,4 @@
 import hy  # NOQA
-import imp
 import sys
 
 # This just mocks the normalish behavior of the Python interp. Helpful to aid
