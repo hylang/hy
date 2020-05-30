@@ -44,12 +44,12 @@ hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
                         __future__.CO_FUTURE_PRINT_FUNCTION)
 
 
-def ast_compile(ast, filename, mode):
+def ast_compile(a, filename, mode):
     """Compile AST.
 
     Parameters
     ----------
-    ast : instance of `ast.AST`
+    a : instance of `ast.AST`
 
     filename : str
         Filename used for run-time error messages
@@ -61,7 +61,7 @@ def ast_compile(ast, filename, mode):
     -------
     out : instance of `types.CodeType`
     """
-    return compile(ast, filename, mode, hy_ast_compile_flags)
+    return compile(a, filename, mode, hy_ast_compile_flags)
 
 
 def calling_module(n=1):
