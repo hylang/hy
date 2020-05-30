@@ -931,7 +931,8 @@ class HyASTCompiler(object):
         s = asty.Subscript(
             expr,
             value=c(obj),
-            slice=ast.Slice(lower=c(lower), upper=c(upper), step=c(step)),
+            slice=asty.Slice(expr,
+                lower=c(lower), upper=c(upper), step=c(step)),
             ctx=ast.Load())
         return ret[0] + s
 
