@@ -6,6 +6,7 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
+  - "3.9-dev"
   - pypy3
 install:
   - pip install -r requirements-travis.txt
