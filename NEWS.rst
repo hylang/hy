@@ -8,6 +8,10 @@ Other Breaking Changes
 * `parse-args` is no longer implemented with `eval`; so e.g. you should
   now say `:type int` instead of `:type 'int`.
 
+New Features
+------------------------------
+* Python 3.9 is now supported.
+
 Bug Fixes
 ------------------------------
 * Improved support for nesting anaphoric macros by only applying
