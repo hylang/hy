@@ -110,6 +110,12 @@ _bad_roots = tuple(ast_str(x) for x in (
     "unquote", "unquote-splice", "unpack-mapping", "except"))
 
 
+def named_constant(expr, v):
+    return (asty.Constant(expr, value=v)
+       if PY36
+       else asty.Name(expr, id=str(v), ctx=ast.Load()))
+
+
 def special(names, pattern):
     """Declare special operators. The decorated method and the given pattern
     is assigned to _special_form_compilers for each of the listed names."""
@@ -238,9 +244,8 @@ class Result(object):
         """
         if self.expr:
             return self.expr
-        return ast.Name(
-            id=ast_str("None"),
-            ctx=ast.Load(),
+        return (ast.Constant if PY36 else ast.Name)(
+            **({'value': None} if PY36 else {'id': 'None', 'ctx': ast.Load()}),
             lineno=self.stmts[-1].lineno if self.stmts else 0,
             col_offset=self.stmts[-1].col_offset if self.stmts else 0)
 
@@ -963,8 +968,7 @@ class HyASTCompiler(object):
         # Initialize the tempvar to None in case the `with` exits
         # early with an exception.
         initial_assign = asty.Assign(
-            expr, targets=[name], value=asty.Name(
-                expr, id=ast_str("None"), ctx=ast.Load()))
+            expr, targets=[name], value=named_constant(expr, None))
 
         node = asty.With if root == "with*" else asty.AsyncWith
         the_with = node(expr,
@@ -1214,12 +1218,12 @@ class HyASTCompiler(object):
 
     @special(["and", "or"], [many(FORM)])
     def compile_logical_or_and_and_operator(self, expr, operator, args):
-        ops = {"and": (ast.And, "True"),
-               "or": (ast.Or, "None")}
+        ops = {"and": (ast.And, True),
+               "or": (ast.Or, None)}
         opnode, default = ops[operator]
         osym = expr[0]
         if len(args) == 0:
-            return asty.Name(osym, id=default, ctx=ast.Load())
+            return named_constant(osym, default)
         elif len(args) == 1:
             return self.compile(args[0])
         ret = Result()
@@ -1281,7 +1285,7 @@ class HyASTCompiler(object):
     def compile_compare_op_expression(self, expr, root, args):
         if len(args) == 1:
             return (self.compile(args[0]) +
-                    asty.Name(expr, id="True", ctx=ast.Load()))
+                    named_constant(expr, True))
 
         ops = [self._get_c_op(root) for _ in args[1:]]
         exprs, ret, _ = self._compile_collect(args)
@@ -1372,7 +1376,7 @@ class HyASTCompiler(object):
     @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
     def compile_def_expression(self, expr, root, decls):
         if not decls:
-            return asty.Name(expr, id='None', ctx=ast.Load())
+            return named_constant(expr, None)
 
         result = Result()
         is_assignment_expr = root == HySymbol("setx")
@@ -1482,7 +1486,7 @@ class HyASTCompiler(object):
 
             cond_compiled = (Result()
                 + asty.Assign(cond, targets=[self._storeize(cond, cond_var)],
-                              value=asty.Name(cond, id="True", ctx=ast.Load()))
+                              value=named_constant(cond, True))
                 + cond_var)
 
         orel = Result()
@@ -1856,6 +1860,9 @@ class HyASTCompiler(object):
 
         if self.can_use_stdlib and ast_str(symbol) in self._stdlib:
             self.imports[self._stdlib[ast_str(symbol)]].add(ast_str(symbol))
+
+        if ast_str(symbol) in ("None", "False", "True"):
+            return named_constant(symbol, ast.literal_eval(ast_str(symbol)))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
