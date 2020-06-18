@@ -1,9 +1,9 @@
 .. default-role:: code
 
-Unreleased
+0.19.0
 ==============================
 
-Other Breaking Changes
+Breaking Changes
 ------------------------------
 * `parse-args` is no longer implemented with `eval`; so e.g. you should
   now say `:type int` instead of `:type 'int`.
