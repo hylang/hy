@@ -17,11 +17,11 @@ def peoi(): return pytest.raises(PrematureEndOfInput)
 def lexe(): return pytest.raises(LexException)
 
 
-def check_ex(execinfo, expected):
-    output = traceback.format_exception_only(execinfo.type, execinfo.value)
-    assert output[:-1] == expected[:-1]
-    # Python 2.7 doesn't give the full exception name, so we compensate.
-    assert output[-1].endswith(expected[-1])
+def check_ex(einfo, expected):
+    assert (
+        [x.rstrip() for x in
+            traceback.format_exception_only(einfo.type, einfo.value)]
+        == expected)
 
 
 def check_trace_output(capsys, execinfo, expected):
@@ -31,14 +31,12 @@ def check_trace_output(capsys, execinfo, expected):
    hy_exc_handler(execinfo.type, execinfo.value, execinfo.tb)
    captured_w_filtering = capsys.readouterr()[-1].strip('\n')
 
-   output = captured_w_filtering.split('\n')
+   output = [x.rstrip() for x in captured_w_filtering.split('\n')]
 
    # Make sure the filtered frames aren't the same as the unfiltered ones.
-   assert output[:-1] != captured_wo_filtering.split('\n')[:-1]
+   assert output != captured_wo_filtering.split('\n')
    # Remove the origin frame lines.
-   assert output[3:-1] == expected[:-1]
-   # Python 2.7 doesn't give the full exception name, so we compensate.
-   assert output[-1].endswith(expected[-1])
+   assert output[3:] == expected
 
 
 def test_lex_exception():
@@ -61,10 +59,10 @@ def test_lex_single_quote_err():
     with lexe() as execinfo:
         tokenize("' ")
     check_ex(execinfo, [
-        '  File "<string>", line 1\n',
-        "    '\n",
-        '    ^\n',
-        'LexException: Could not identify the next token.\n'])
+        '  File "<string>", line 1',
+        "    '",
+        '    ^',
+        'hy.lex.exceptions.LexException: Could not identify the next token.'])
 
 
 def test_lex_expression_symbols():
@@ -108,10 +106,10 @@ def test_lex_strings_exception():
     with lexe() as execinfo:
         tokenize('\"\\x8\"')
     check_ex(execinfo, [
-        '  File "<string>", line 1\n',
-        '    "\\x8"\n',
-        '    ^\n',
-        'LexException: Can\'t convert "\\x8" to a HyString\n'])
+        '  File "<string>", line 1',
+        '    "\\x8"',
+        '    ^',
+        'hy.lex.exceptions.LexException: Can\'t convert "\\x8" to a HyString'])
 
 
 def test_lex_bracket_strings():
@@ -220,12 +218,12 @@ def test_lex_bad_attrs():
     with lexe() as execinfo:
         tokenize("1.foo")
     check_ex(execinfo, [
-        '  File "<string>", line 1\n',
-        '    1.foo\n',
-        '    ^\n',
-        'LexException: Cannot access attribute on anything other'
+        '  File "<string>", line 1',
+        '    1.foo',
+        '    ^',
+        'hy.lex.exceptions.LexException: Cannot access attribute on anything other'
             ' than a name (in order to get attributes of expressions,'
-            ' use `(. <expression> <attr>)` or `(.<attr> <expression>)`)\n'])
+            ' use `(. <expression> <attr>)` or `(.<attr> <expression>)`)'])
 
     with lexe(): tokenize("0.foo")
     with lexe(): tokenize("1.5.foo")
@@ -493,7 +491,7 @@ def test_lex_exception_filtering(capsys):
         '  File "<string>", line 2',
         '    (foo',
         '       ^',
-        'PrematureEndOfInput: Premature end of input'])
+        'hy.lex.exceptions.PrematureEndOfInput: Premature end of input'])
 
     # Now, for a generic LexException
     with lexe() as execinfo:
@@ -502,6 +500,6 @@ def test_lex_exception_filtering(capsys):
         '  File "<string>", line 3',
         '    1.foo',
         '    ^',
-        'LexException: Cannot access attribute on anything other'
+        'hy.lex.exceptions.LexException: Cannot access attribute on anything other'
             ' than a name (in order to get attributes of expressions,'
             ' use `(. <expression> <attr>)` or `(.<attr> <expression>)`)'])

@@ -156,8 +156,8 @@
 
   (setv expr-evaluated 0)
   (assert (=
-    (ap-reduce (* acc it) (do (+= expr-evaluated 1) [4 5 6])))
-    120)
+    (ap-reduce (* acc it) (do (+= expr-evaluated 1) [4 5 6]))
+    120))
   (assert (= expr-evaluated 1))
 
   (assert (=
