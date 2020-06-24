@@ -1213,6 +1213,7 @@ class HyASTCompiler(object):
                         [[HyString(k), HyString(v)] for k, v in assignments]),
                     HyKeyword('prefix'),
                     HyString(prefix)]).replace(expr))
+                ret += ret.expr_as_stmt()
 
         return ret
 
