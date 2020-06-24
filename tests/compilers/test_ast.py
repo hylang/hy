@@ -482,7 +482,6 @@ def test_ast_unicode_vs_bytes():
     assert s('b"\\xa0"') == bytes([160])
 
 
-@pytest.mark.skipif(not PY36, reason='f-strings require Python 3.6+')
 def test_format_string():
     assert can_compile('f"hello world"')
     assert can_compile('f"hello {(+ 1 1)} world"')
