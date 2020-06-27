@@ -228,18 +228,18 @@ def test_bin_hy_stdin_bad_repr():
 
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
-    assert "[1, 2]" in output.replace('L', '')
+    assert "[1, 2]" in output
 
     output, _ = run_cmd(hr(), '(+ [1] [2])')
     assert "[1 2]" in output
 
     output, _ = run_cmd(hr("--spy"), '(+ [1] [2])')
-    assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
+    assert "[1]+[2]" in output.replace(' ', '')
     assert "[1 2]" in output
 
     # --spy should work even when an exception is thrown
     output, _ = run_cmd(hr("--spy"), '(+ [1] [2] (foof))')
-    assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
+    assert "[1]+[2]" in output.replace(' ', '')
 
 def test_bin_hy_ignore_python_env():
     os.environ.update({"PYTHONTEST": '0'})

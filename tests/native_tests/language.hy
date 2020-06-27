@@ -1587,7 +1587,7 @@ cee\"} dee" "ey bee\ncee dee"))
 leaky()
 macros()
 "))
-  (assert (= (re.sub r"[L() ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
+  (assert (= (re.sub r"[() ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
              "2+40\n")))
 
 
