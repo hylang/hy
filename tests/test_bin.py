@@ -266,6 +266,10 @@ def test_bin_hy_cmd():
     _, err = run_cmd("hy -c \"(koan\"", expect=1)
     assert "Premature end of input" in err
 
+    # https://github.com/hylang/hy/issues/1879
+    output, _ = run_cmd(
+        """hy -c '(setv x "bing") (defn f [] (+ "fiz" x)) (print (f))'""")
+    assert 'fizbing' in output
 
 def test_bin_hy_icmd():
     output, _ = run_cmd("hy -i \"(koan)\"", "(ideas)")

@@ -429,7 +429,7 @@ def run_command(source, filename=None):
         return 1
 
     with filtered_hy_exceptions():
-        hy_eval(tree, None, __main__, filename=filename, source=source)
+        hy_eval(tree, __main__.__dict__, __main__, filename=filename, source=source)
     return 0
 
 

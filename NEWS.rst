@@ -19,6 +19,7 @@ Bug Fixes
 * Quoted f-strings are no longer evaluated prematurely.
 * Fixed a regression in the production of error messages for empty
   expressions.
+* Fixed a scoping bug for code executed with `hy -c`.
 
 0.18.0
 ==============================
