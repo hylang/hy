@@ -294,6 +294,17 @@ import a dotted name."""
     cant_compile("(require [spam [foo.bar]])")
 
 
+def test_ast_multi_require():
+    # https://github.com/hylang/hy/issues/1903
+    x = can_compile("""(require
+      [tests.resources.tlib [qplah]]
+      [tests.resources.macros [threadtail-set-cd]])""")
+    assert sum(1 for stmt in x.body if isinstance(stmt, ast.Expr)) == 2
+    dump = ast.dump(x)
+    assert "qplah" in dump
+    assert "threadtail" in dump
+
+
 def test_ast_good_get():
     "Make sure AST can compile valid get"
     can_compile("(get x y)")
@@ -482,7 +493,6 @@ def test_ast_unicode_vs_bytes():
     assert s('b"\\xa0"') == bytes([160])
 
 
-@pytest.mark.skipif(not PY36, reason='f-strings require Python 3.6+')
 def test_format_string():
     assert can_compile('f"hello world"')
     assert can_compile('f"hello {(+ 1 1)} world"')

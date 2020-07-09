@@ -20,6 +20,7 @@ Bug Fixes
 * Fixed a regression in the production of error messages for empty
   expressions.
 * Fixed a scoping bug for code executed with `hy -c`.
+* Fixed a bug in the compilation of multiple `require`\s.
 
 0.18.0
 ==============================
