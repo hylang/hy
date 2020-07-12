@@ -228,18 +228,18 @@ def test_bin_hy_stdin_bad_repr():
 
 def test_bin_hy_stdin_hy_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
-    assert "[1, 2]" in output.replace('L', '')
+    assert "[1, 2]" in output
 
     output, _ = run_cmd(hr(), '(+ [1] [2])')
     assert "[1 2]" in output
 
     output, _ = run_cmd(hr("--spy"), '(+ [1] [2])')
-    assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
+    assert "[1]+[2]" in output.replace(' ', '')
     assert "[1 2]" in output
 
     # --spy should work even when an exception is thrown
     output, _ = run_cmd(hr("--spy"), '(+ [1] [2] (foof))')
-    assert "[1]+[2]" in output.replace('L', '').replace(' ', '')
+    assert "[1]+[2]" in output.replace(' ', '')
 
 def test_bin_hy_ignore_python_env():
     os.environ.update({"PYTHONTEST": '0'})
@@ -271,6 +271,12 @@ def test_bin_hy_cmd():
         """hy -c '(setv x "bing") (defn f [] (+ "fiz" x)) (print (f))'""")
     assert 'fizbing' in output
 
+    # https://github.com/hylang/hy/issues/1894
+    output, _ = run_cmd(' '.join(('hy -c ',
+        repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
+        'AA', 'ZZ', '-m')))
+    assert '<-c|AA|ZZ|-m>' in output
+
 def test_bin_hy_icmd():
     output, _ = run_cmd("hy -i \"(koan)\"", "(ideas)")
     assert "monk" in output
@@ -287,7 +293,7 @@ def test_bin_hy_icmd_file():
     assert file_relative_path in output
 
 def test_bin_hy_icmd_and_spy():
-    output, _ = run_cmd("hy -i \"(+ [] [])\" --spy", "(+ 1 1)")
+    output, _ = run_cmd("hy --spy -i \"(+ [] [])\"", "(+ 1 1)")
     assert "[] + []" in output
 
 
@@ -343,9 +349,8 @@ def test_bin_hy_main():
 
 
 def test_bin_hy_main_args():
-    output, _ = run_cmd("hy tests/resources/bin/main.hy test 123")
-    assert "test" in output
-    assert "123" in output
+    output, _ = run_cmd("hy tests/resources/bin/main.hy test 123 -m -B 9")
+    assert "<test|123|-m|-B|9>" in output
 
 
 def test_bin_hy_main_exitvalue():
@@ -432,9 +437,8 @@ def test_bin_hy_file_sys_path():
 
 
 def test_bin_hy_module_main_args():
-    output, _ = run_cmd("hy -m tests.resources.bin.main test 123")
-    assert "test" in output
-    assert "123" in output
+    output, _ = run_cmd("hy -m tests.resources.bin.main test 123 -B")
+    assert "<test|123|-B>" in output
 
 
 def test_bin_hy_module_main_exitvalue():

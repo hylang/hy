@@ -21,6 +21,7 @@ Bug Fixes
   expressions.
 * Fixed a scoping bug for code executed with `hy -c`.
 * Fixed a bug in the compilation of multiple `require`\s.
+* Fixed various bugs in command-line option parsing.
 
 0.18.0
 ==============================

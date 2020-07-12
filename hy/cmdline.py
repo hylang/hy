@@ -485,42 +485,43 @@ def run_icommand(source, **kwargs):
     return run_repl(hr)
 
 
-USAGE = "%(prog)s [-h | -i cmd | -c cmd | -m module | file | -] [arg] ..."
-VERSION = "%(prog)s " + hy.__version__
+USAGE = "hy [-h | -v | -i CMD | -c CMD | -m MODULE | FILE | -] [ARG]..."
+VERSION = "hy " + hy.__version__
 EPILOG = """
-  file                  program read from script
-  module                module to execute as main
-  -                     program read from stdin
-  [arg] ...             arguments passed to program in sys.argv[1:]
+FILE
+  program read from script
+-
+  program read from stdin
+[ARG]...
+  arguments passed to program in sys.argv[1:]
 """
 
+class HyArgError(Exception): pass
 
 def cmdline_handler(scriptname, argv):
-    parser = argparse.ArgumentParser(
-        prog="hy",
-        usage=USAGE,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=EPILOG)
-    parser.add_argument("-c", dest="command",
-                        help="program passed in as a string")
-    parser.add_argument("-m", dest="mod",
-                        help="module to run, passed in as a string")
-    parser.add_argument("-E", action='store_true',
-                        help="ignore PYTHON* environment variables")
-    parser.add_argument("-B", action='store_true',
-                        help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x")
-    parser.add_argument("-i", dest="icommand",
-                        help="program passed in as a string, then stay in REPL")
-    parser.add_argument("--spy", action="store_true",
-                        help="print equivalent Python code before executing")
-    parser.add_argument("--repl-output-fn",
-                        help="function for printing REPL output "
-                             "(e.g., hy.contrib.hy-repr.hy-repr)")
-    parser.add_argument("-v", "--version", action="version", version=VERSION)
+    # We need to terminate interpretation of options after certain
+    # options, such as `-c`. So, we can't use `argparse`.
 
-    # this will contain the script/program name and any arguments for it.
-    parser.add_argument('args', nargs=argparse.REMAINDER,
-                        help=argparse.SUPPRESS)
+    defs = [
+        dict(name=["-h", "--help"], action="help",
+            help="show this help message and exit"),
+        dict(name=["-c"], dest="command", terminate=True,
+            help="program passed in as a string"),
+        dict(name=["-m"], dest="mod", terminate=True,
+            help="module to run, passed in as a string"),
+        dict(name=["-E"], action='store_true',
+            help="ignore PYTHON* environment variables"),
+        dict(name=["-B"], action='store_true',
+            help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x"),
+        dict(name=["-i"], dest="icommand", terminate=True,
+            help="program passed in as a string, then stay in REPL"),
+        dict(name=["--spy"], action="store_true",
+            help="print equivalent Python code before executing"),
+        dict(name=["--repl-output-fn"], dest="repl_output_fn",
+            help="function for printing REPL output "
+                "(e.g., hy.contrib.hy-repr.hy-repr)"),
+        dict(name=["-v", "--version"], action="version",
+            help="show program's version number and exit")]
 
     # Get the path of the Hy cmdline executable and swap it with
     # `sys.executable` (saving the original, just in case).
@@ -531,47 +532,103 @@ def cmdline_handler(scriptname, argv):
     hy.sys_executable = sys.executable
     sys.executable = hy.executable
 
-    # Need to split the args.  If using "-m" all args after the MOD are sent to
-    # the module in sys.argv.
-    module_args = []
-    if "-m" in argv:
-        mloc = argv.index("-m")
-        if len(argv) > mloc+2:
-            module_args = argv[mloc+2:]
-            argv = argv[:mloc+2]
+    program = argv[0]
+    argv = list(argv[1:])
+    options = {}
 
-    options = parser.parse_args(argv[1:])
+    def err(fmt, *args):
+        raise HyArgError('hy: ' + fmt.format(*args))
 
-    if options.E:
-        # User did "hy -E ..."
+    def proc_opt(opt, arg=None, item=None, i=None):
+        matches = [o for o in defs if opt in o['name']]
+        if not matches:
+            err('unrecognized option: {}', opt)
+        [match] = matches
+        if 'dest' in match:
+            if arg:
+                pass
+            elif i is not None and i + 1 < len(item):
+                arg = item[i + 1 + (item[i + 1] == '='):]
+            elif argv:
+                arg = argv.pop(0)
+            else:
+                err('option {}: expected one argument', opt)
+            options[match['dest']] = arg
+        else:
+            options[match['name'][-1].lstrip('-')] = True
+        if 'terminate' in match:
+            return 'terminate'
+        return 'dest' in match
+
+    # Collect options.
+    while argv:
+        item = argv.pop(0)
+        if item == '--':
+            break
+        elif item.startswith('--'):
+            # One double-hyphen option.
+            opt, _, arg = item.partition('=')
+            if proc_opt(opt, arg=arg) == 'terminate':
+                break
+        elif item.startswith('-') and item != '-':
+            # One or more single-hyphen options.
+            for i in range(1, len(item)):
+                x = proc_opt('-' + item[i], item=item, i=i)
+                if x:
+                    break
+            if x == 'terminate':
+                break
+        else:
+            # We're done with options. Add the item back.
+            argv.insert(0, item)
+            break
+
+    if 'E' in options:
         _remove_python_envs()
 
-    if options.B:
+    if 'B' in options:
         sys.dont_write_bytecode = True
 
-    if options.command:
-        # User did "hy -c ..."
-        return run_command(options.command, filename='<string>')
-
-    if options.mod:
-        # User did "hy -m ..."
-        sys.argv = [sys.argv[0]] + options.args + module_args
-        runpy.run_module(options.mod, run_name='__main__', alter_sys=True)
+    if 'help' in options:
+        print('usage:', USAGE)
+        print('')
+        print('optional arguments:')
+        for o in defs:
+            print(', '.join(o['name']) +
+                ('=' + o['dest'].upper() if 'dest' in o else ''))
+            print('    ' + o['help'] +
+                (' (terminates option list)'
+                    if o.get('terminate')
+                    else ''))
+        print(EPILOG)
         return 0
 
-    if options.icommand:
-        # User did "hy -i ..."
-        return run_icommand(options.icommand, spy=options.spy,
-                            output_fn=options.repl_output_fn)
+    if 'version' in options:
+        print(VERSION)
+        return 0
 
-    if options.args:
-        if options.args[0] == "-":
+    if 'command' in options:
+        sys.argv = ['-c'] + argv
+        return run_command(options['command'], filename='<string>')
+
+    if 'mod' in options:
+        sys.argv = [program] + argv
+        runpy.run_module(options['mod'], run_name='__main__', alter_sys=True)
+        return 0
+
+    if 'icommand' in options:
+        return run_icommand(options['icommand'],
+            spy=options.get('spy'),
+            output_fn=options.get('repl_output_fn'))
+
+    if argv:
+        if argv[0] == "-":
             # Read the program from stdin
             return run_command(sys.stdin.read(), filename='<stdin>')
 
         else:
             # User did "hy <filename>"
-            filename = options.args[0]
+            filename = argv[0]
 
             # Emulate Python cmdline behavior by setting `sys.path` relative
             # to the executed file's location.
@@ -581,7 +638,7 @@ def cmdline_handler(scriptname, argv):
                 sys.path.insert(0, os.path.split(filename)[0])
 
             try:
-                sys.argv = options.args
+                sys.argv = argv
                 with filtered_hy_exceptions():
                     runhy.run_path(filename, run_name='__main__')
                 return 0
@@ -593,14 +650,19 @@ def cmdline_handler(scriptname, argv):
                 hy_exc_handler(*sys.exc_info())
                 sys.exit(1)
 
-    # User did NOTHING!
-    return run_repl(spy=options.spy, output_fn=options.repl_output_fn)
+    return run_repl(
+        spy=options.get('spy'),
+        output_fn=options.get('repl_output_fn'))
 
 
 # entry point for cmd line script "hy"
 def hy_main():
     sys.path.insert(0, "")
-    sys.exit(cmdline_handler("hy", sys.argv))
+    try:
+        sys.exit(cmdline_handler("hy", sys.argv))
+    except HyArgError as e:
+        print(e)
+        exit(1)
 
 
 def hyc_main():
