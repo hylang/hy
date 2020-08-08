@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Bug Fixes
+------------------------------
+* Fixed a bug that made `hy.eval` from Python fail on `require`.
+
 0.19.0
 ==============================
 

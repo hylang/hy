@@ -289,3 +289,9 @@ def test_docstring():
         assert mod.a == 1
     finally:
         sys.path.pop(0)
+
+
+def test_hy_python_require():
+    # https://github.com/hylang/hy/issues/1911
+    test = "(do (require [tests.resources.macros [test-macro]]) (test-macro) blah)"
+    assert hy.eval(hy.read_str(test)) == 1
