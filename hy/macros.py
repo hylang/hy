@@ -105,7 +105,7 @@ def _same_modules(source_module, target_module):
         try:
             if not inspect.ismodule(module):
                 loader = pkgutil.get_loader(module)
-                if loader:
+                if isinstance(loader, importlib.machinery.SourceFileLoader):
                     filename = loader.get_filename()
             else:
                 filename = inspect.getfile(module)
