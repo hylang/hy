@@ -665,7 +665,7 @@ requires.
         TypeError: compare() missing 1 required keyword-only argument: 'keyfn'
 
 &kwargs
-    Like ``&rest``, but for keyword arugments.
+    Like ``&rest``, but for keyword arguments.
     The following parameter will contain 0 or more keyword arguments.
 
     The following code examples defines a function that will print all keyword
