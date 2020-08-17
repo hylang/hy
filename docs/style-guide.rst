@@ -725,7 +725,7 @@ Separate sentences with a single space.
     (setv ind (dec x));typing words for fun
 
     ;; Comment about the whole foofunction call.
-    ;; These can also span mulitple lines.
+    ;; These can also span multiple lines.
     (foofunction ;; Form comment about (get-arg1). Not a margin comment!
                  (get-arg1)
                  ;; Form comment about arg2. The indent matches.

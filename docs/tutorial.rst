@@ -338,6 +338,6 @@ Next steps
 You now know enough to be dangerous with Hy. You may now smile villainously and
 sneak off to your Hydeaway to do unspeakable things.
 
-Refer to Python's documention for the details of Python semantics, and the rest
-of this manual for Hy-specific features. Like Hy itself, the manual is
+Refer to Python's documentation for the details of Python semantics, and the
+rest of this manual for Hy-specific features. Like Hy itself, the manual is
 incomplete, but :ref:`contributions <hacking>` are always welcome.
