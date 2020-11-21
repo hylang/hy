@@ -6,6 +6,7 @@ Unreleased
 Bug Fixes
 ------------------------------
 * Fixed a bug that made `hy.eval` from Python fail on `require`.
+* Fixed a bug that prevented pickling of keyword objects.
 
 0.19.0
 ==============================

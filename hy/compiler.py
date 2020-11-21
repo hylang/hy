@@ -179,8 +179,6 @@ class Result(object):
     The Result object is interoperable with python AST objects: when an AST
     object gets added to a Result object, it gets converted on-the-fly.
     """
-    __slots__ = ("imports", "stmts", "temp_variables",
-                 "_expr", "__used_expr")
 
     def __init__(self, *args, **kwargs):
         if args:

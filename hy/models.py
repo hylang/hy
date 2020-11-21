@@ -139,8 +139,6 @@ _wrappers[type(None)] = lambda foo: HySymbol("None")
 class HyKeyword(HyObject):
     """Generic Hy Keyword object."""
 
-    __slots__ = ['name']
-
     def __init__(self, value):
         self.name = value
 
