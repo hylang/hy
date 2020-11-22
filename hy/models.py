@@ -176,6 +176,15 @@ class HyKeyword(HyObject):
                 raise
             return default
 
+    # __getstate__ and __setstate__ are required for Pickle protocol
+    # 0, because we have __slots__.
+    def __getstate__(self):
+        return {k: getattr(self, k)
+            for k in self.properties + self.__slots__
+            if hasattr(self, k)}
+    def __setstate__(self, state):
+        for k, v in state.items():
+            setattr(self, k, v)
 
 def strip_digit_separators(number):
     # Don't strip a _ or , if it's the first character, as _42 and

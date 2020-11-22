@@ -7,6 +7,7 @@
         [sys :as systest]
         re
         [operator [or_]]
+        pickle
         [hy.errors [HyLanguageError]]
         pytest)
 (import sys)
@@ -1140,6 +1141,12 @@
   (assert (!= : ":"))
   (assert (= (name ':) "")))
 
+(defn test-pickling-keyword []
+  ; https://github.com/hylang/hy/issues/1754
+  (setv x :test-keyword)
+  (for [protocol (range 0 (+ pickle.HIGHEST-PROTOCOL 1))]
+    (assert (= x
+      (pickle.loads (pickle.dumps x :protocol protocol))))))
 
 (defn test-nested-if []
   "NATIVE: test nested if"
