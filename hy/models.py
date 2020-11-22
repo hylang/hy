@@ -50,12 +50,12 @@ class HyObject(object):
     `abc` starting at the first column would have `start_column` 1 and
     `end_column` 3.
     """
-    __properties__ = ["module", "start_line", "end_line", "start_column",
-                      "end_column"]
+    properties = ["module", "start_line", "end_line", "start_column",
+                  "end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, HyObject):
-            for attr in self.__properties__:
+            for attr in self.properties:
                 if not hasattr(self, attr) and hasattr(other, attr):
                     setattr(self, attr, getattr(other, attr))
         else:
