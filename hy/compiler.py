@@ -1671,6 +1671,8 @@ class HyASTCompiler(object):
             else:
                 ann = None
 
+            if len(decls) < 2:
+                break
             k, v = (decls.pop(0), decls.pop(0))
             if ast_str(k) == "__init__" and isinstance(v, HyExpression):
                 v += HyExpression([HySymbol("None")])
@@ -1679,7 +1681,8 @@ class HyASTCompiler(object):
                 new_args.append(ann)
 
             new_args.extend((k, v))
-        return HyExpression([HySymbol("setv")] + new_args).replace(expr)
+        return (HyExpression([HySymbol("setv")] + new_args + decls)
+            .replace(expr))
 
     @special("dispatch-tag-macro", [STR, FORM])
     def compile_dispatch_tag_macro(self, expr, root, tag, arg):

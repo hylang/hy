@@ -7,6 +7,8 @@ Bug Fixes
 ------------------------------
 * Fixed a bug that made `hy.eval` from Python fail on `require`.
 * Fixed a bug that prevented pickling of keyword objects.
+* Fixed a compiler crash from `setv` with an odd number of arguments in
+  `defclass`.
 
 New Features
 ------------------------------
