@@ -6,6 +6,7 @@ Unreleased
 Bug Fixes
 ------------------------------
 * Fixed a bug that made `hy.eval` from Python fail on `require`.
+* New contrib module `pprint`, a Hy equivalent of `python.pprint`.
 
 0.19.0
 ==============================
