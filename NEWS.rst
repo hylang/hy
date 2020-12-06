@@ -14,7 +14,7 @@ New Features
 ------------------------------
 * New contrib module `pprint`, a Hy equivalent of `python.pprint`.
 
-0.19.0
+0.19.0 (released 2020-07-16)
 ==============================
 
 Breaking Changes
@@ -37,7 +37,7 @@ Bug Fixes
 * Fixed a bug in the compilation of multiple `require`\s.
 * Fixed various bugs in command-line option parsing.
 
-0.18.0
+0.18.0 (released 2020-02-02)
 ==============================
 
 Removals
@@ -82,7 +82,7 @@ Misc. Improvements
 ------------------------------
 * Replaced the dependency `clint` with `colorama`.
 
-0.17.0
+0.17.0 (released 2019-05-20)
 ==============================
 
 **Warning**: Hy 0.17.x will be the last Hy versions to support Python 2,
@@ -110,7 +110,7 @@ Bug Fixes
 * Fixed a crash caused by errors creating temporary files during
   bytecode compilation.
 
-0.16.0
+0.16.0 (released 2019-02-12)
 ==============================
 
 Removals
@@ -150,7 +150,7 @@ Bug Fixes
 * Fixed a crash on certain versions of Python 2 due to changes in the
   standard module `tokenize`.
 
-0.15.0
+0.15.0 (released 2018-07-21)
 ==============================
 
 Removals
@@ -225,7 +225,7 @@ Misc. Improvements
 * `hy-repr` supports more standard types.
 * `macroexpand-all` will now expand macros introduced by a `require` in the body of a macro.
 
-0.14.0
+0.14.0 (released 2018-02-14)
 ==============================
 
 Removals
@@ -302,7 +302,7 @@ Misc. Improvements
   functions in the `hy` module
 * An experimental `let` macro has been added to `hy.contrib.walk`
 
-0.13.1
+0.13.1 (released 2017-11-03)
 ==============================
 
 Bug Fixes
@@ -310,7 +310,7 @@ Bug Fixes
 * Changed setup.py to require astor 0.5, since 0.6 isn't
   backwards-compatible.
 
-0.13.0
+0.13.0 (released 2017-06-20)
 ==============================
 
 Language Changes
@@ -368,14 +368,14 @@ Misc. Improvements
 * New contrib module `hy-repr`
 * Added a command-line option `--repl-output-fn`
 
-0.12.1
+0.12.1 (released 2017-01-24)
 ==============================
 
 Bug Fixes
 ------------------------------
 * Allow installation without Git
 
-0.12.0
+0.12.0 (released 2017-01-17)
 ==============================
 
 This release brings some quite significant changes on the language and as a
