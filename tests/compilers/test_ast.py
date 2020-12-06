@@ -234,6 +234,10 @@ def test_ast_bad_defclass():
     cant_compile("(defclass a None)")
     cant_compile("(defclass a None None)")
 
+    # https://github.com/hylang/hy/issues/1920
+    cant_compile("(defclass a [] (setv x))")
+    cant_compile("(defclass a [] (setv x 1  y))")
+
 
 def test_ast_good_lambda():
     "Make sure AST can compile valid lambda"
