@@ -700,8 +700,12 @@ result['y in globals'] = 'y' in globals()")
                         <p> Move along. (Nothing to see here.)</p>)))
 
 (defn test-doc [capsys]
-  (doc doc)
-  (setv out_err (.readouterr capsys))
-  (assert (.startswith (.strip (first out_err))
-            "Help on function doc in module hy.core.macros:"))
-  (assert (empty? (second out_err))))
+  (defmacro testmacdoc []
+    "a fancy docstring"
+    '(+ 2 2))
+  (doc testmacdoc)
+  (setv [out err] (.readouterr capsys))
+  (assert (.startswith (.strip out)
+            "Help on function testmacdoc in module "))
+  (assert (in "a fancy docstring" out))
+  (assert (empty? err)))
