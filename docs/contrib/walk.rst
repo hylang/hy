@@ -238,10 +238,35 @@ if you must avoid this hoisting.
 
 The ``let`` macro takes two parameters: a list defining *variables*
 and the *body* which gets executed. *variables* is a vector of
-variable and value pairs.
+variable and value pairs. ``let`` can also define variables using
+Python's `extended iterable unpacking`_ syntax to destructure iterables.
+
+.. code-block:: hy
+
+   => (let [[head #* tail] (, 0 1 2)]
+   ...  [head tail])
+   [0 [1 2]]
+
+Do note, however, that let can not destructure into a mutable data type,
+such as ``dicts`` or ``classes``. As such, the following will both raise
+macro expansion errors:
+
+.. code-block:: hy
+
+   ;; Unpack into a dictionary
+   => (let [x (dict)
+   ...      (, a (get x "y")) [1 2]]
+   ...  [a x])
+
+   ;; Unpack into a class
+   => (let [x (SimpleNamespace)
+   ...      [a x.y] [1 2]]
+   ...  [a x])
+
+.. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
 
 Like the ``let*`` of many other Lisps, ``let`` executes the variable
-assignments one-by-one, in the order written::
+assignments one-by-one, in the order written:
 
 .. code-block:: hy
 

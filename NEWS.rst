@@ -3,16 +3,17 @@
 Unreleased
 ==============================
 
+New Features
+------------------------------
+* `let` macro now supports extended iterable unpacking syntax
+* New contrib module `pprint`, a Hy equivalent of `python.pprint`.
+
 Bug Fixes
 ------------------------------
 * Fixed a bug that made `hy.eval` from Python fail on `require`.
 * Fixed a bug that prevented pickling of keyword objects.
 * Fixed a compiler crash from `setv` with an odd number of arguments in
   `defclass`.
-
-New Features
-------------------------------
-* New contrib module `pprint`, a Hy equivalent of `python.pprint`.
 
 0.19.0 (released 2020-07-16)
 ==============================
