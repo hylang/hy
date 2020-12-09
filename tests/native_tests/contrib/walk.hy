@@ -345,3 +345,28 @@
         x (+ x x)]
     (assert (= x "foobarfoobar"))
     (assert (= y "barfoobar"))))
+
+(defn test-let-unpacking []
+  (let [[a b] [1 2]
+        [lhead #* ltail] (range 3)
+        (, thead #* ttail) (range 3)
+        [nhead #* (, c #* nrest)] [0 1 2]]
+    (assert (= a 1))
+    (assert (= b 2))
+    (assert (= lhead 0))
+    (assert (= ltail [1 2]))
+    (assert (= thead 0))
+    (assert (= ttail [1 2]))
+    (assert (= nhead 0))
+    (assert (= c 1))
+    (assert (= nrest [2]))))
+
+(defn test-let-unpacking-rebind []
+  (let [[a b] [:foo :bar]
+        [a #* c] (range 3)
+        [head #* tail] [a b c]]
+    (assert (= a 0))
+    (assert (= b :bar))
+    (assert (= c [1 2]))
+    (assert (= head 0))
+    (assert (= tail [:bar [1 2]]))))

@@ -313,19 +313,61 @@ as can nested let forms.
       (macro-error bindings "let bindings must be paired"))
   (setv g!let (gensym 'let)
         replacements (OrderedDict)
+        unpacked-syms (OrderedDict)
         keys []
         values [])
   (defn expander [symbol]
     (.get replacements symbol symbol))
+
+  (defn destructuring-expander [symbol]
+    (cond
+      [(not (symbol? symbol)) (macro-error symbol "bind targets must be symbol or destructing assignment")]
+      [(in '. symbol) (macro-error symbol "binding target may not contain a dot")])
+    (setv replaced (gensym symbol))
+    (assoc unpacked-syms symbol replaced)
+    replaced)
+
+  (defn destructuring? [x]
+    (or (instance? HyList x)
+        (and (instance? HyExpression x)
+             (= (first x) ',))))
+
   (for [[k v] (partition bindings)]
-    (if-not (symbol? k)
-            (macro-error k "bind targets must be symbols")
-            (if (in '. k)
-                (macro-error k "binding target may not contain a dot")))
-    (.append values (symbolexpand (macroexpand-all v &name)
-                                  expander))
-    (.append keys `(get ~g!let ~(name k)))
-    (assoc replacements k (last keys)))
+    (cond
+      [(and (symbol? k) (in '. k))
+       (macro-error k "binding target may not contain a dot")]
+
+      [(not (or (symbol? k) (destructuring? k)))
+       (macro-error k "bind targets must be symbol or iterable unpacking assignment")])
+
+    (if (destructuring? k)
+        (do
+          ;; append the setv unpacking form
+          (.append keys (symbolexpand (macroexpand-all k &name) destructuring-expander))
+          (.append values (symbolexpand (macroexpand-all v &name) expander))
+
+          ;; add the keys we replaced in the unpacking form into the let
+          ;; dict
+          (prewalk (fn [x]
+                     (cond
+                       [(and (symbol? x) (in '. x))
+                        (macro-error k "bind target may not contain a dot")]
+
+                       [(and (instance? HyExpression x) (-> x first (in #{', 'unpack-iterable}) not))
+                        (macro-error k "cannot destructure non-iterable unpacking expression")]
+
+                       [(and (symbol? x) (in x unpacked-syms))
+                        (do (.append keys `(get ~g!let ~(name x)))
+                            (.append values (.get unpacked-syms x x))
+                            (assoc replacements x (last keys)))]
+
+                       [True x]))
+                   k))
+
+        (do (.append values (symbolexpand (macroexpand-all v &name) expander))
+            (.append keys `(get ~g!let ~(name k)))
+            (assoc replacements k (last keys)))))
+
   `(do
      (setv ~g!let {}
            ~@(interleave keys values))
