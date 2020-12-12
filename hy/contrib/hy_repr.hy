@@ -7,7 +7,6 @@
   re
   datetime
   collections
-  [hy._compat [PY36]]
   [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
 
 (try
@@ -129,7 +128,7 @@
   (.rstrip (+ " " (.join " " (filter identity [
     (if x.microsecond (str x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
-    (if (and PY36 (!= x.fold 0)) (+ ":fold " (hy-repr x.fold)))])))))
+    (if x.fold (+ ":fold " (hy-repr x.fold)))])))))
 (defn -strftime-0 [x fmt]
   ; Remove leading 0s in `strftime`. This is a substitute for the `-`
   ; flag for when Python isn't built with glibc.
