@@ -8,6 +8,7 @@
         re
         [operator [or_]]
         pickle
+        [typing [get-type-hints List Dict]]
         [hy.errors [HyLanguageError]]
         pytest)
 (import sys)
@@ -1946,3 +1947,51 @@ macros()
         (assert (= t1 1))
         (assert (= t2 2))
         (assert (= t3 3))))))
+
+(defn test-for-async []
+  (defn/a numbers []
+    (for [i [1 2]]
+      (yield i)))
+
+  (run-coroutine
+    (fn/a []
+      (setv x 0)
+      (for [:async a (numbers)]
+        (setv x (+ x a)))
+      (assert (= x 3)))))
+
+(defn test-for-async-else []
+  (defn/a numbers []
+    (for [i [1 2]]
+      (yield i)))
+
+  (run-coroutine
+    (fn/a []
+      (setv x 0)
+      (for [:async a (numbers)]
+        (setv x (+ x a))
+        (else (setv x (+ x 50))))
+      (assert (= x 53)))))
+
+(defn test-variable-annotations []
+  (defclass AnnotationContainer []
+    (setv ^int x 1 y 2)
+    (^bool z))
+
+  (setv annotations (get-type-hints AnnotationContainer))
+  (assert (= (get annotations "x") int))
+  (assert (= (get annotations "z") bool)))
+
+(defn test-of []
+  (assert (= (of str) str))
+  (assert (= (of List int) (get List int)))
+  (assert (= (of Dict str str) (get Dict (, str str)))))
+
+(defn test-pep-487 []
+  (defclass QuestBase []
+    (defn --init-subclass-- [cls swallow &kwargs kwargs]
+      (setv cls.swallow swallow)))
+
+  (defclass Quest [QuestBase :swallow "african"])
+  (assert (= (. (Quest) swallow) "african")))
+
