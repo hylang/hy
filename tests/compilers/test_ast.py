@@ -10,7 +10,6 @@ from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, HyError
 from hy.lex import hy_parse
 from hy.lex.exceptions import LexException, PrematureEndOfInput
-from hy._compat import PY36
 
 import ast
 import pytest

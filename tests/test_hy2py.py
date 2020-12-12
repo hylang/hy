@@ -5,7 +5,6 @@
 
 import math, itertools
 from hy import mangle
-from hy._compat import PY36
 import hy.importer
 
 
@@ -20,8 +19,7 @@ def test_hy2py_import(tmpdir):
         ["hy2py", "tests/resources/pydemo.hy"]).decode("UTF-8")
     path = tmpdir.join("pydemo.py")
     path.write(python_code)
-    # Note: explicit "str" is needed for 3.5.
-    assert_stuff(hy.importer._import_from_path("pydemo", str(path)))
+    assert_stuff(hy.importer._import_from_path("pydemo", path))
 
 
 def assert_stuff(m):
