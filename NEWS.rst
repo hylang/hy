@@ -3,6 +3,10 @@
 Unreleased
 ==============================
 
+Removals
+------------------------------
+* Python 3.5 is no longer supported.
+
 New Features
 ------------------------------
 * `let` macro now supports extended iterable unpacking syntax
