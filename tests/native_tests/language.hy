@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [tests.resources [kwtest function-with-a-dash]]
+(import [tests.resources [kwtest function-with-a-dash AsyncWithTest]]
         [os.path [exists isdir isfile]]
         [sys :as systest]
         re
@@ -1899,18 +1899,6 @@ macros()
         (await (sleep 0))
         42))
   (assert (= (run-coroutine coro-test) 21)))
-
-
-(defclass AsyncWithTest []
-  (defn --init-- [self val]
-    (setv self.val val)
-    None)
-
-  (defn/a --aenter-- [self]
-    self.val)
-
-  (defn/a --aexit-- [self tyle value traceback]
-    (setv self.val None)))
 
 
 (defn test-single-with/a []
