@@ -18,7 +18,7 @@ print objects using Hy syntax.
                       :pizza}}
 
 Hy ``pprint`` leverages ``hy-repr`` for much of it's pretty printing and
-therefor can be exteneded to work with arbitrary types using
+therefor can be extended to work with arbitrary types using
 ``hy-repr-register``. Like Python's ``pprint`` and ``hy-repr``, Hy ``pprint``
 attempts to maintain round-trippability of it's input where possible. Unlike
 Python, however, Hy does not have `string literal concatenation`_,
