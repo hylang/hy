@@ -14,7 +14,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
-from hy._compat import (PY36, PY38, reraise)
+from hy._compat import (PY38, reraise)
 from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
@@ -111,10 +111,7 @@ _bad_roots = tuple(ast_str(x) for x in (
 
 
 def named_constant(expr, v):
-    return (asty.Constant(expr, value=v)
-       if PY36
-       else asty.Name(expr, id=str(v), ctx=ast.Load()))
-
+    return asty.Constant(expr, value=v)
 
 def special(names, pattern):
     """Declare special operators. The decorated method and the given pattern
@@ -244,8 +241,8 @@ class Result(object):
         """
         if self.expr:
             return self.expr
-        return (ast.Constant if PY36 else ast.Name)(
-            **({'value': None} if PY36 else {'id': 'None', 'ctx': ast.Load()}),
+        return ast.Constant(
+            value=None,
             lineno=self.stmts[-1].lineno if self.stmts else 0,
             col_offset=self.stmts[-1].col_offset if self.stmts else 0)
 
@@ -1437,10 +1434,6 @@ class HyASTCompiler(object):
             if is_assignment_expr:
                 node = asty.NamedExpr
             elif ann is not None:
-                if not PY36:
-                    raise self._syntax_error(name, "Variable annotations are not supported on "
-                                                   "Python <=3.6")
-
                 node = lambda x, **kw: asty.AnnAssign(x, annotation=ann_result.force_expr,
                                                       simple=int(isinstance(name, HySymbol)),
                                                       **kw)
@@ -1732,7 +1725,7 @@ class HyASTCompiler(object):
                 textwrap.dedent(code) if exec_mode else code,
                 self.filename,
                 'exec' if exec_mode else 'eval').body
-        except (SyntaxError, ValueError if PY36 else TypeError) as e:
+        except (SyntaxError, ValueError) as e:
             raise self._syntax_error(
                 expr,
                 "Python parse error in '{}': {}".format(root, e))
@@ -1952,9 +1945,8 @@ class HyASTCompiler(object):
                        allow_recursion=False)
                    format_spec = ret.force_expr
                else:
-                   format_spec = asty.Str(string, s=item[1:])
-                   if PY36:
-                       format_spec = asty.JoinedStr(string, values=[format_spec])
+                   format_spec = asty.JoinedStr(string, values=
+                       [asty.Str(string, s=item[1:])])
            elif item:
                raise self._syntax_error(string,
                    "f-string: trailing junk in field")
@@ -1963,35 +1955,13 @@ class HyASTCompiler(object):
            # forms, we can compile the first form that we parsed.
            ret += self.compile(model)
 
-           if PY36:
-               values.append(asty.FormattedValue(
-                   string,
-                   conversion = -1 if conversion is None else ord(conversion),
-                   format_spec = format_spec,
-                   value = ret.force_expr))
-           else:
-               # Make an expression like:
-               #    "{!r:{}}".format(value, format_spec)
-               values.append(asty.Call(string,
-                   func = asty.Attribute(
-                       string,
-                       value = asty.Str(string, s =
-                           '{' +
-                           ('!' + conversion if conversion else '') +
-                           ':{}}'),
-                       attr = 'format', ctx = ast.Load()),
-                   args = [
-                       ret.force_expr,
-                       format_spec or asty.Str(string, s = "")],
-                   keywords = [], starargs = None, kwargs = None))
+           values.append(asty.FormattedValue(
+               string,
+               conversion = -1 if conversion is None else ord(conversion),
+               format_spec = format_spec,
+               value = ret.force_expr))
 
-        return ret + (
-           asty.JoinedStr(string, values = values)
-           if PY36
-           else reduce(
-              lambda x, y:
-                  asty.BinOp(string, left = x, op = ast.Add(), right = y),
-              values))
+        return ret + asty.JoinedStr(string, values = values)
 
     @builds_model(HyList, HySet)
     def compile_list(self, expression):

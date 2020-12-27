@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [hy._compat [PY36 PY37]]
+  [hy._compat [PY37]]
   [math [isnan]]
   [hy.contrib.hy-repr [hy-repr hy-repr-register]])
 
@@ -93,11 +93,10 @@
     "(datetime.datetime 2009 1 15 15 27 5 123)"))
   (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 123 :tzinfo D.timezone.utc))
     "(datetime.datetime 2009 1 15 15 27 5 123 :tzinfo datetime.timezone.utc)"))
-  (when PY36
-    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1))
-      "(datetime.datetime 2009 1 15 15 27 5 :fold 1)"))
-    (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1 :tzinfo D.timezone.utc))
-      "(datetime.datetime 2009 1 15 15 27 5 :tzinfo datetime.timezone.utc :fold 1)")))
+  (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1))
+    "(datetime.datetime 2009 1 15 15 27 5 :fold 1)"))
+  (assert (= (hy-repr (D.datetime 2009 1 15 15 27 5 :fold 1 :tzinfo D.timezone.utc))
+    "(datetime.datetime 2009 1 15 15 27 5 :tzinfo datetime.timezone.utc :fold 1)"))
 
   (assert (= (hy-repr (D.date 2015 11 3))
     "(datetime.date 2015 11 3)"))
@@ -106,9 +105,8 @@
     "(datetime.time 1 2 3)"))
   (assert (= (hy-repr (D.time 1 2 3 4567))
     "(datetime.time 1 2 3 4567)"))
-  (when PY36
-    (assert (= (hy-repr (D.time 1 2 3 4567 :fold 1 :tzinfo D.timezone.utc))
-      "(datetime.time 1 2 3 4567 :tzinfo datetime.timezone.utc :fold 1)"))))
+  (assert (= (hy-repr (D.time 1 2 3 4567 :fold 1 :tzinfo D.timezone.utc))
+    "(datetime.time 1 2 3 4567 :tzinfo datetime.timezone.utc :fold 1)")))
 
 (defn test-collections []
   (import collections)
