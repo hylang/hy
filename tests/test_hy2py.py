@@ -3,7 +3,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import math, itertools
+import math, itertools, asyncio
 from hy import mangle
 import hy.importer
 
@@ -125,3 +125,6 @@ def assert_stuff(m):
         assert type(a) is not type(b)
     assert m.pys_accum == [0, 1, 2, 3, 4]
     assert m.py_accum == "01234"
+
+    assert (asyncio.get_event_loop().run_until_complete(m.coro())
+        == list("abcdef"))

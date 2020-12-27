@@ -167,3 +167,16 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
           o.x = C()
       pys_accum.append(i)")
 (setv py-accum (py "''.join(map(str, pys_accum))"))
+
+(defn/a coro []
+  (import asyncio [tests.resources [AsyncWithTest async-loop]])
+  (await (asyncio.sleep 0))
+  (setv values ["a"])
+  (with/a [t (AsyncWithTest "b")]
+    (.append values t))
+  (for [:async item (async-loop ["c" "d"])]
+    (.append values item))
+  (.extend values (lfor
+    :async item (async-loop ["e" "f"])
+    item))
+  values)
