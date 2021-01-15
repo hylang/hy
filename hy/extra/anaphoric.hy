@@ -1,5 +1,5 @@
 ;;; Hy anaphoric macros
-;; Copyright 2020 the authors.
+;; Copyright 2021 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
