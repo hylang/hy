@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+0.20.0 (released 2021-??-??)
 ==============================
 
 Removals
@@ -9,7 +9,7 @@ Removals
 
 New Features
 ------------------------------
-* `let` macro now supports extended iterable unpacking syntax
+* `let` macro now supports extended iterable unpacking syntax.
 * New contrib module `pprint`, a Hy equivalent of `python.pprint`.
 
 Bug Fixes
