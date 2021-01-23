@@ -8,6 +8,7 @@ Contents:
    :maxdepth: 3
 
    cli
+   repl
    interop
    syntax
    api

@@ -78,6 +78,8 @@ causes the import of ``name`` from ``hy.core.language``.
 
 **Bottom line: in most cases, Hy has to be installed.**
 
+.. _repl-from-py:
+
 Launching a Hy REPL from Python
 -------------------------------
 
