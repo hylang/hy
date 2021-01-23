@@ -8,6 +8,10 @@ Bug Fixes
 * Fixed a bug where AST nodes from macro expansion did not properly
   receive source location info.
 
+New Features
+------------------------------
+* New contrib module `destructure` for Clojure-style destructuring.
+
 0.20.0 (released 2021-01-25)
 ==============================
 
