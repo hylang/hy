@@ -1,6 +1,6 @@
 .. default-role:: code
 
-0.20.0 (released 2021-??-??)
+0.20.0 (released 2021-01-25)
 ==============================
 
 Removals
