@@ -5,6 +5,7 @@
 
 from __future__ import unicode_literals
 
+import re
 from functools import wraps
 
 from rply import ParserGenerator
@@ -221,6 +222,86 @@ def t_string(state, p):
     return (HyString(s, is_format = is_format)
         if isinstance(s, str)
         else HyBytes(s))
+
+def _format_string(self, string, rest, allow_recursion=True):
+    values = []
+    ret = Result()
+
+    while True:
+       # Look for the next replacement field, and get the
+       # plain text before it.
+       match = re.search(r'\{\{?|\}\}?', rest)
+       if match:
+          literal_chars = rest[: match.start()]
+          if match.group() == '}':
+              raise self._syntax_error(string,
+                  "f-string: single '}' is not allowed")
+          if match.group() in ('{{', '}}'):
+              # Doubled braces just add a single brace to the text.
+              literal_chars += match.group()[0]
+          rest = rest[match.end() :]
+       else:
+          literal_chars = rest
+          rest = ""
+       if literal_chars:
+           values.append(asty.Str(string, s = literal_chars))
+       if not rest:
+           break
+       if match.group() != '{':
+           continue
+
+       # Look for the end of the replacement field, allowing
+       # one more level of matched braces, but no deeper, and only
+       # if we can recurse.
+       match = re.match(
+           r'(?: \{ [^{}]* \} | [^{}]+ )* \}'
+               if allow_recursion
+               else r'[^{}]* \}',
+           rest, re.VERBOSE)
+       if not match:
+          raise self._syntax_error(string, 'f-string: mismatched braces')
+       item = rest[: match.end() - 1]
+       rest = rest[match.end() :]
+
+       # Parse the first form.
+       try:
+           model, item = parse_one_thing(item)
+       except (ValueError, LexException) as e:
+           raise self._syntax_error(string, "f-string: " + str(e))
+
+       # Look for a conversion character.
+       item = item.lstrip()
+       conversion = None
+       if item.startswith('!'):
+           conversion = item[1]
+           item = item[2:].lstrip()
+
+       # Look for a format specifier.
+       format_spec = None
+       if item.startswith(':'):
+           if allow_recursion:
+               ret += self._format_string(string,
+                   item[1:],
+                   allow_recursion=False)
+               format_spec = ret.force_expr
+           else:
+               format_spec = asty.JoinedStr(string, values=
+                   [asty.Str(string, s=item[1:])])
+       elif item:
+           raise self._syntax_error(string,
+               "f-string: trailing junk in field")
+
+       # Now, having finished compiling any recursively included
+       # forms, we can compile the first form that we parsed.
+       ret += self.compile(model)
+
+       values.append(asty.FormattedValue(
+           string,
+           conversion = -1 if conversion is None else ord(conversion),
+           format_spec = format_spec,
+           value = ret.force_expr))
+
+    return ret + asty.JoinedStr(string, values = values)
 
 
 @pg.production("string : PARTIAL_STRING")
