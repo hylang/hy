@@ -4,8 +4,8 @@
 # license. See the LICENSE.
 
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
-                       HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
-                       HyDict, HySequence, wrap_value)
+                       HyString, HyFComponent, HyFString, HyBytes, HySymbol,
+                       HyFloat, HyList, HySet, HyDict, HySequence, wrap_value)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
@@ -599,6 +599,11 @@ class HyASTCompiler(object):
             else:
                 body = [HyList()]
 
+            if isinstance(form, HyFString) and form.brackets is not None:
+                body.extend([HyKeyword("brackets"), form.brackets])
+            elif isinstance(form, HyFComponent) and form.conversion is not None:
+                body.extend([HyKeyword("conversion"), HyString(form.conversion)])
+
         elif isinstance(form, HySymbol):
             body = [HyString(form)]
 
@@ -606,14 +611,6 @@ class HyASTCompiler(object):
             body = [HyString(form.name)]
 
         elif isinstance(form, HyString):
-            if form.is_format:
-                # Ensure that this f-string isn't evaluated right now.
-                body = [
-                    copy.copy(form),
-                    HyKeyword("is_format"),
-                    form.is_format,
-                ]
-                body[0].is_format = False
             if form.brackets is not None:
                 body.extend([HyKeyword("brackets"), form.brackets])
 
@@ -1875,12 +1872,27 @@ class HyASTCompiler(object):
 
     @builds_model(HyString, HyBytes)
     def compile_string(self, string):
-        if type(string) is HyString and string.is_format:
-            # This is a format string (a.k.a. an f-string).
-            return self._format_string(string, str(string))
         node = asty.Bytes if type(string) is HyBytes else asty.Str
         f = bytes if type(string) is HyBytes else str
         return node(string, s=f(string))
+
+    @builds_model(HyFComponent)
+    def compile_fcomponent(self, fcomponent):
+        conversion = ord(fcomponent.conversion) if fcomponent.conversion else -1
+        root, *rest = fcomponent
+        value = self.compile(root)
+        elts, ret, _ = self._compile_collect(rest)
+        if elts:
+            spec = asty.JoinedStr(fcomponent, values=elts)
+        else:
+            spec = None
+        return value + ret + asty.FormattedValue(
+            fcomponent, value=value.expr, conversion=conversion, format_spec=spec)
+
+    @builds_model(HyFString)
+    def compile_fstring(self, fstring):
+        elts, ret, _ = self._compile_collect(fstring)
+        return ret + asty.JoinedStr(fstring, values=elts)
 
     @builds_model(HyList, HySet)
     def compile_list(self, expression):

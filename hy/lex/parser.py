@@ -10,8 +10,9 @@ from functools import wraps
 
 from rply import ParserGenerator
 
-from hy.models import (HyBytes, HyComplex, HyDict, HyExpression, HyFloat,
-                       HyInteger, HyKeyword, HyList, HySet, HyString, HySymbol)
+from hy.models import (HyBytes, HyComplex, HyDict, HyExpression, HyFComponent,
+                       HyFString, HyFloat, HyInteger, HyKeyword, HyList, HySet,
+                       HyString, HySymbol)
 from .lexer import lexer
 from .exceptions import LexException, PrematureEndOfInput
 
@@ -207,11 +208,9 @@ def t_empty_list(state, p):
 @set_boundaries
 def t_string(state, p):
     s = p[0].value
-    # Detect and remove any "f" prefix.
-    is_format = False
+    # Detect any "f" prefix.
     if s.startswith('f') or s.startswith('rf'):
-        is_format = True
-        s = s.replace('f', '', 1)
+        return t_fstring(state, p)
     # Replace the single double quotes with triple double quotes to allow
     # embedded newlines.
     try:
@@ -219,13 +218,32 @@ def t_string(state, p):
     except SyntaxError:
         raise LexException.from_lexer("Can't convert {} to a HyString".format(p[0].value),
                                       state, p[0])
-    return (HyString(s, is_format = is_format)
+    return (HyString(s)
         if isinstance(s, str)
         else HyBytes(s))
 
-def _format_string(self, string, rest, allow_recursion=True):
+def t_fstring(state, p):
+    s = p[0].value
+    assert s.startswith('f') or s.startswith('rf')
+    assert isinstance(s, str)
+    s = s.replace('f', '', 1)
+    # Replace the single double quotes with triple double quotes to allow
+    # embedded newlines.
+    try:
+        s = eval(s.replace('"', '"""', 1)[:-1] + '"""')
+    except SyntaxError:
+        raise LexException.from_lexer("Can't convert {} to a HyFString".format(p[0].value),
+                                      state, p[0])
+    # internal parser
+    values = _format_string(state, p, s)
+    return HyFString(values)
+
+def _format_string(state, p, rest, allow_recursion=True):
+    """
+    Produces a list of elements
+    where each element is either a HyString or a HyFComponent.
+    """
     values = []
-    ret = Result()
 
     while True:
        # Look for the next replacement field, and get the
@@ -234,8 +252,9 @@ def _format_string(self, string, rest, allow_recursion=True):
        if match:
           literal_chars = rest[: match.start()]
           if match.group() == '}':
-              raise self._syntax_error(string,
-                  "f-string: single '}' is not allowed")
+              raise LexException.from_lexer(
+                  "f-string: single '}' is not allowed",
+                  state, p[0])
           if match.group() in ('{{', '}}'):
               # Doubled braces just add a single brace to the text.
               literal_chars += match.group()[0]
@@ -244,7 +263,7 @@ def _format_string(self, string, rest, allow_recursion=True):
           literal_chars = rest
           rest = ""
        if literal_chars:
-           values.append(asty.Str(string, s = literal_chars))
+           values.append(HyString(literal_chars))
        if not rest:
            break
        if match.group() != '{':
@@ -259,15 +278,19 @@ def _format_string(self, string, rest, allow_recursion=True):
                else r'[^{}]* \}',
            rest, re.VERBOSE)
        if not match:
-          raise self._syntax_error(string, 'f-string: mismatched braces')
+          raise LexException.from_lexer('f-string: mismatched braces', state, p[0])
        item = rest[: match.end() - 1]
        rest = rest[match.end() :]
 
        # Parse the first form.
        try:
+           from . import parse_one_thing
            model, item = parse_one_thing(item)
-       except (ValueError, LexException) as e:
-           raise self._syntax_error(string, "f-string: " + str(e))
+       except LexException:
+           raise
+       except ValueError as e:
+           raise LexException.from_lexer("f-string: " + str(e), state, p[0])
+       subnodes = [model]
 
        # Look for a conversion character.
        item = item.lstrip()
@@ -277,31 +300,22 @@ def _format_string(self, string, rest, allow_recursion=True):
            item = item[2:].lstrip()
 
        # Look for a format specifier.
-       format_spec = None
        if item.startswith(':'):
            if allow_recursion:
-               ret += self._format_string(string,
-                   item[1:],
-                   allow_recursion=False)
-               format_spec = ret.force_expr
+               format_spec = _format_string(state, p,
+                                            item[1:],
+                                            allow_recursion=False)
+               subnodes.extend(format_spec)
            else:
-               format_spec = asty.JoinedStr(string, values=
-                   [asty.Str(string, s=item[1:])])
+               subnodes.append(HyString(item[1:]))
        elif item:
-           raise self._syntax_error(string,
-               "f-string: trailing junk in field")
+           raise LexException.from_lexer(
+               "f-string: trailing junk in field",
+               state, p[0])
 
-       # Now, having finished compiling any recursively included
-       # forms, we can compile the first form that we parsed.
-       ret += self.compile(model)
+       values.append(HyFComponent(subnodes, conversion=conversion))
 
-       values.append(asty.FormattedValue(
-           string,
-           conversion = -1 if conversion is None else ord(conversion),
-           format_spec = format_spec,
-           value = ret.force_expr))
-
-    return ret + asty.JoinedStr(string, values = values)
+    return values
 
 
 @pg.production("string : PARTIAL_STRING")
@@ -316,9 +330,11 @@ bracket_string_re = next(r.re for r in lexer.rules if r.name == 'BRACKETSTRING')
 def t_bracket_string(state, p):
     m = bracket_string_re.match(p[0].value)
     delim, content = m.groups()
+    if delim == 'f' or delim.startswith('f-'):
+        values = _format_string(state, p, content)
+        return HyFString(values, brackets=delim)
     return HyString(
         content,
-        is_format = delim == 'f' or delim.startswith('f-'),
         brackets = delim)
 
 

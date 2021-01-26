@@ -4,7 +4,7 @@
 
 "Parser combinators for pattern-matching Hy model trees."
 
-from hy.models import HyExpression, HySymbol, HyKeyword, HyString, HyList
+from hy.models import HyExpression, HySymbol, HyKeyword, HyString, HyFString, HyList
 from funcparserlib.parser import (
     some, skip, many, finished, a, Parser, NoParseError, State)
 from functools import reduce
@@ -16,7 +16,7 @@ from math import isinf
 FORM = some(lambda _: True)
 SYM = some(lambda x: isinstance(x, HySymbol))
 KEYWORD = some(lambda x: isinstance(x, HyKeyword))
-STR = some(lambda x: isinstance(x, HyString))
+STR = some(lambda x: isinstance(x, HyString))  # matches literal strings only!
 
 def sym(wanted):
     "Parse and skip the given symbol or keyword."

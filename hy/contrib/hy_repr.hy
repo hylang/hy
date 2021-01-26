@@ -7,7 +7,7 @@
   re
   datetime
   collections
-  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyBytes]])
+  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyFString HyFComponent HyBytes]])
 
 (try
   (import [_collections_abc [dict-keys dict-values dict-items]])

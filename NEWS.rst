@@ -3,15 +3,21 @@
 Unreleased
 ==============================
 
+Breaking Changes
+------------------------------
+* f-strings are now parsed as a separate `HyFString` node,
+  which is a collection of `HyString` and `HyFComponent` nodes.
+
+New Features
+------------------------------
+* New contrib module `destructure` for Clojure-style destructuring.
+
 Bug Fixes
 ------------------------------
 * Fixed a bug where AST nodes from macro expansion did not properly
   receive source location info.
 * Fixed bug in `smacrolet` by replacing `module-name` argument with `&name`.
-
-New Features
-------------------------------
-* New contrib module `destructure` for Clojure-style destructuring.
+* Fixed expressions within f-strings being inaccessible to macros.
 
 0.20.0 (released 2021-01-25)
 ==============================

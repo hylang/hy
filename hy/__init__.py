@@ -15,7 +15,7 @@ def _initialize_env_var(env_var, default_val):
     return res
 
 
-from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet  # NOQA
+from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyFString, HyFComponent, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet  # NOQA
 
 
 import hy.importer  # NOQA
