@@ -700,12 +700,17 @@ result['y in globals'] = 'y' in globals()")
                         <p> Move along. (Nothing to see here.)</p>)))
 
 (defn test-doc [capsys]
-  (defmacro testmacdoc []
+  (defmacro <-mangle-> []
     "a fancy docstring"
     '(+ 2 2))
-  (doc testmacdoc)
+  (doc <-mangle->)
   (setv [out err] (.readouterr capsys))
+  ;; https://github.com/hylang/hy/issues/1946
   (assert (.startswith (.strip out)
-            "Help on function testmacdoc in module "))
+            f"Help on function {(mangle '<-mangle->)} in module "))
   (assert (in "a fancy docstring" out))
+  (assert (empty? err))
+  #doc @
+  (setv [out err] (.readouterr capsys))
+  (assert (in "with-decorator tag macro" out))
   (assert (empty? err)))

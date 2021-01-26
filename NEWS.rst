@@ -20,6 +20,7 @@ Bug Fixes
 * Fixed expressions within f-strings being inaccessible to macros.
 * Fixed symbol `J` being incorrectly parsed as a complex number
 * Fixed error handling for non-symbol macro names
+* `doc` and `#doc` now work with names that require mangling.
 
 0.20.0 (released 2021-01-25)
 ==============================
