@@ -50,7 +50,7 @@ class HyObject(object):
     `abc` starting at the first column would have `start_column` 1 and
     `end_column` 3.
     """
-    properties = ["module", "start_line", "end_line", "start_column",
+    properties = ["module", "_start_line", "end_line", "_start_column",
                   "end_column"]
 
     def replace(self, other, recursive=False):
@@ -62,6 +62,22 @@ class HyObject(object):
             raise TypeError("Can't replace a non Hy object '{}' with a Hy object '{}'".format(repr(other), repr(self)))
 
         return self
+
+    @property
+    def start_line(self):
+        return getattr(self, "_start_line", 1)
+
+    @start_line.setter
+    def start_line(self, value):
+        self._start_line = value
+
+    @property
+    def start_column(self):
+        return getattr(self, "_start_column", 1)
+
+    @start_column.setter
+    def start_column(self, value):
+        self._start_column = value
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, super(HyObject, self).__repr__())
@@ -84,10 +100,6 @@ def wrap_value(x):
         raise HyWrapperError("Don't know how to wrap {!r}: {!r}".format(type(x), x))
     if isinstance(x, HyObject):
         new = new.replace(x, recursive=False)
-    if not hasattr(new, "start_column"):
-        new.start_column = 0
-    if not hasattr(new, "start_line"):
-        new.start_line = 0
     return new
 
 
