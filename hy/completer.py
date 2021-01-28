@@ -117,7 +117,8 @@ def completion(completer=None):
         readline.set_completer(completer.complete)
         readline.set_completer_delims(delims)
 
-        history = os.path.expanduser("~/.hy-history")
+        history = os.environ.get(
+            "HY_HISTORY", os.path.expanduser("~/.hy-history"))
         readline.parse_and_bind("set blink-matching-paren on")
 
         try:

@@ -62,6 +62,19 @@ Once an exception has been thrown in an interactive session, the most recent exc
   <class 'ZeroDivisionError'>
 
 
+.. _repl-configuration:
+
+Configuration
+-------------
+
+.. _history-location:
+
+Location of history
+^^^^^^^^^^^^^^^^^^^
+
+The default location for the history of REPL inputs is ``~/.hy-history``. This can be changed by setting the environment variable ``HY_HISTORY`` to your preferred location. For example, if you are using Bash, it can be set with ``export HY_HISTORY=/path/to/my/.custom-hy-history``.
+
+
 --------
 
 .. [#] https://en.wikipedia.org/wiki/Read-eval-print_loop
