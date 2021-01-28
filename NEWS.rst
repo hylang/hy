@@ -1,5 +1,13 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Bug Fixes
+------------------------------
+* Fixed a bug where AST nodes from macro expansion did not properly
+  receive source location info.
+
 0.20.0 (released 2021-01-25)
 ==============================
 
