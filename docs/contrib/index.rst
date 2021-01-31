@@ -17,3 +17,4 @@ Contents:
    walk
    hy_repr
    pprint
+   destructure
