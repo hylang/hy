@@ -10,7 +10,20 @@
 (defn names []
   "Return a frozenset of reserved symbol names.
 
-  The result of the first call is cached."
+  The result of the first call is cached.
+
+  This function can be used to get a list (actually, a ``frozenset``) of the
+  names of Hy's built-in functions, macros, and special forms. The output
+  also includes all Python reserved words. All names are in unmangled form
+  (e.g., ``not-in`` rather than ``not_in``).
+
+  Examples:
+    ::
+
+       => (import hy.extra.reserved)
+       => (in \"defclass\" (hy.extra.reserved.names))
+       True
+  "
   (global _cache)
   (if (is _cache None) (do
     (setv _cache (frozenset (map unmangle (+
