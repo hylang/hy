@@ -131,7 +131,43 @@
   (comp-op operator.gt a1 a-rest))
 
 (defn and [&rest args]
-  "Shadowed `and` keyword perform and on `args`."
+  "Shadowed `and` keyword perform and on `args`.
+
+  ``and`` is used in logical expressions. It takes at least two parameters.
+  If all parameters evaluate to ``True``, the last parameter is returned.
+  In any other case, the first false value will be returned.
+
+  .. note::
+
+    ``and`` short-circuits and stops evaluating parameters as soon as the first
+    false is encountered.
+
+  Examples:
+    ::
+
+       => (and True False)
+       False
+
+    ::
+
+       => (and False (print \"hello\"))
+       False
+
+    ::
+
+       => (and True True)
+       True
+
+    ::
+
+       => (and True 1)
+       1
+
+    ::
+
+       => (and True [] False True)
+       []
+  "
   (if
     (= (len args) 0)
       True
@@ -141,7 +177,36 @@
       (reduce (fn [x y] (and x y)) args)))
 
 (defn or [&rest args]
-  "Shadowed `or` keyword perform or on `args`."
+  "Shadowed `or` keyword perform or on `args`.
+
+  ``or`` is used in logical expressions. It takes at least two parameters. It
+  will return the first non-false parameter. If no such value exists, the last
+  parameter will be returned.
+
+  Examples:
+    ::
+
+       => (or True False)
+       True
+
+    ::
+
+       => (or False False)
+       False
+
+    ::
+
+       => (or False 1 True False)
+       1
+
+    .. note:: ``or`` short-circuits and stops evaluating parameters as soon as the
+              first true value is encountered.
+
+    ::
+
+       => (or True (print \"hello\"))
+       True
+"
   (if
     (= (len args) 0)
       None
@@ -151,11 +216,59 @@
       (reduce (fn [x y] (or x y)) args)))
 
 (defn not [x]
-  "Shadowed `not` keyword perform not on `x`."
+  "Shadowed `not` keyword perform not on `x`.
+
+  ``not`` is used in logical expressions. It takes a single parameter and
+  returns a reversed truth value. If ``True`` is given as a parameter, ``False``
+  will be returned, and vice-versa.
+
+  Examples:
+    ::
+
+       => (not True)
+       False
+
+    ::
+
+       => (not False)
+       True
+
+    ::
+
+       => (not None)
+       True
+  "
   (not x))
 
 (defn get [coll key1 &rest keys]
-  "Access item in `coll` indexed by `key1`, with optional `keys` nested-access."
+  "Access item in `coll` indexed by `key1`, with optional `keys` nested-access.
+
+  ``get`` is used to access single elements in collections. ``get`` takes at
+  least two parameters: the *data structure* and the *index* or *key* of the
+  item. It will then return the corresponding value from the collection. If
+  multiple *index* or *key* values are provided, they are used to access
+  successive elements in a nested structure.
+
+  .. note:: ``get`` raises a KeyError if a dictionary is queried for a
+            non-existing key.
+
+  .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
+            index that is out of bounds.
+
+  Examples:
+    ::
+
+       => (do
+       ...   (setv animals {\"dog\" \"bark\" \"cat\" \"meow\"}
+       ...         numbers (, \"zero\" \"one\" \"two\" \"three\")
+       ...         nested [0 1 [\"a\" \"b\" \"c\"] 3 4])
+       ...   (print (get animals \"dog\"))
+       ...   (print (get numbers 2))
+       ...   (print (get nested 2 1))
+       bark
+       two
+       b
+  "
   (setv coll (get coll key1))
   (for [k keys]
     (setv coll (get coll k)))
