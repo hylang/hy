@@ -26,8 +26,6 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
    tutorial
    style-guide
    language/index
-   extra/index
-   contrib/index
    cheatsheet
    api
    hacking
