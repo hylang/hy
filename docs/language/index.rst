@@ -11,7 +11,5 @@ Contents:
    repl
    interop
    syntax
-   api
-   core
    model_patterns
    internals

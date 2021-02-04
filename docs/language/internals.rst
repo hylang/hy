@@ -313,7 +313,9 @@ As example, the Hy::
 
     (print (if True True False))
 
-Will turn into::
+Will turn into:
+
+.. code-block:: python
 
     if True:
         _temp_name_here = True
@@ -324,7 +326,9 @@ Will turn into::
 
 
 OK, that was a bit of a lie, since we actually turn that statement
-into::
+into:
+
+.. code-block:: python
 
     print(True if True else False)
 
@@ -356,9 +360,7 @@ for a more complete description.) ``nif`` is an example, something like a numeri
 where based on the expression, one of the 3 forms is called depending on if the
 expression is positive, zero or negative.
 
-A first pass might be something like:
-
-.. code-block:: hy
+A first pass might be something like::
 
    (defmacro nif [expr pos-form zero-form neg-form]
      `(do
@@ -389,9 +391,7 @@ basically expands to a ``setv`` form::
    (with-gensyms [a b c]
      ...)
 
-expands to:
-
-.. code-block:: hy
+expands to::
 
    (do
      (setv a (gensym)
@@ -399,9 +399,7 @@ expands to:
            c (gensym))
      ...)
 
-so our re-written ``nif`` would look like:
-
-.. code-block:: hy
+so our re-written ``nif`` would look like::
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (with-gensyms [g]
@@ -415,9 +413,7 @@ Finally, though we can make a new macro that does all this for us. :hy:func:`def
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
 remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 
-Our final version of ``nif``, built with ``defmacro/g!`` becomes:
-
-.. code-block:: hy
+Our final version of ``nif``, built with ``defmacro/g!`` becomes::
 
    (defmacro/g! nif [expr pos-form zero-form neg-form]
      `(do
