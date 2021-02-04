@@ -371,10 +371,8 @@ where ``obscure-name`` is an attempt to pick some variable name as not to
 conflict with other code. But of course, while well-intentioned,
 this is no guarantee.
 
-The method :ref:`gensym` is designed to generate a new, unique symbol for just
-such an occasion. A much better version of ``nif`` would be:
-
-.. code-block:: hy
+The method :hy:func:`gensym <hy.core.language.gensym>` is designed to generate a new, unique symbol for just
+such an occasion. A much better version of ``nif`` would be::
 
    (defmacro nif [expr pos-form zero-form neg-form]
      (setv g (gensym))
@@ -385,10 +383,8 @@ such an occasion. A much better version of ``nif`` would be:
               [(neg? ~g) ~neg-form])))
 
 This is an easy case, since there is only one symbol. But if there is
-a need for several gensym's there is a second macro :ref:`with-gensyms` that
-basically expands to a ``setv`` form:
-
-.. code-block:: hy
+a need for several gensym's there is a second macro :hy:func:`with-gensyms <hy.core.macros.with-gensyms>` that
+basically expands to a ``setv`` form::
 
    (with-gensyms [a b c]
      ...)
@@ -415,7 +411,7 @@ so our re-written ``nif`` would look like:
                 [(zero? ~g) ~zero-form]
                 [(neg? ~g) ~neg-form]))))
 
-Finally, though we can make a new macro that does all this for us. :ref:`defmacro/g!`
+Finally, though we can make a new macro that does all this for us. :hy:func:`defmacro/g! <hy.core.macros.defmacro/g!>`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
 remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
 

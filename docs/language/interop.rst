@@ -17,7 +17,7 @@ Using Python from Hy
 ====================
 
 You can embed Python code directly into a Hy program with the special operators
-:ref:`py-specialform` and :ref:`pys-specialform`.
+:hy:func:`py <py>` and :hy:func:`pys <pys>`.
 
 Using a Python module from Hy is nice and easy: you just have to :ref:`import`
 it. If you have the following in ``greetings.py`` in Python::
@@ -69,7 +69,7 @@ Compiled files
 
 You can also compile a module with ``hyc``, which gives you a ``.pyc`` file. You
 can import that file. Hy does not *really* need to be installed ; however, if in
-your code, you use any symbol from :doc:`core`, a corresponding ``import``
+your code, you use any symbol from :doc:`/api`, a corresponding ``import``
 statement will be generated, and Hy will have to be installed.
 
 Even if you do not use a Hy builtin, but just another function or variable with
