@@ -1,3 +1,28 @@
+"``hy.contrib.pprint`` is a port of python's built-in ``pprint`` that can pretty
+print objects using Hy syntax.
+
+Hy ``pprint`` leverages ``hy-repr`` for much of it's pretty printing and
+therefor can be extended to work with arbitrary types using
+``hy-repr-register``. Like Python's ``pprint`` and ``hy-repr``, Hy ``pprint``
+attempts to maintain round-trippability of it's input where possible. Unlike
+Python, however, Hy does not have `string literal concatenation`_,
+which is why strings and bytestrings are broken up using the form ``(+ ...)``.
+
+.. _string literal concatenation: https://docs.python.org/3/reference/lexical_analysis.html#string-literal-concatenation
+
+The API for Hy ``pprint`` is functionally identical to Python's ``pprint``
+module, so be sure to reference the Python `pprint`_
+docs for more on how to use the module's various methods and arguments.
+
+.. _pprint: https://docs.python.org/3/library/pprint.html
+
+The differences that do exist are as follows:
+
+- ``isreadable`` becomes ``readable?``
+- ``isrecursive`` becomes ``recursive?``
+- Passing ``False`` to the ``PrettyPrinter`` arg ``sort-dicts`` in Python
+  versions < 3.8 will raise a ``ValueError``
+"
 ;; Adapted from: https://github.com/python/cpython/blob/3.9/Lib/pprint.py
 
 (import sys
@@ -11,10 +36,24 @@
         [hy.contrib [hy-repr]]
         [hy.-compat [PY38]])
 
-(setv --all-- ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive"])
+(setv --all-- ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive" "pp"])
 
 (defn pprint [object &rest args &kwargs kwargs]
-  "Pretty-print a Python object to a stream [default is sys.stdout]."
+  "Pretty-print a Python object to a stream [default is sys.stdout].
+
+  Examples:
+    ::
+
+       => (pprint {:name \"Adam\" :favorite-foods #{:apple :pizza}
+                     :bio \"something very important\"}
+             :width 20)
+        {:name \"Adam\"
+         :bio (+ \"something \"
+                 \"very \"
+                 \"important\")
+         :favorite-foods #{:apple
+                           :pizza}}
+  "
   (.pprint (PrettyPrinter #* args #** kwargs) object))
 
 (defn pformat [object &rest args &kwargs kwargs]
@@ -141,19 +180,15 @@
 (defclass PrettyPrinter [PyPrettyPrinter]
   "Handle pretty printing operations onto a stream using a set of
    configured parameters.
-   indent
-       Number of spaces to indent for each level of nesting.
-   width
-       Attempted maximum number of columns in the output.
-   depth
-       The maximum depth to print out nested structures.
-   stream
-       The desired output stream.  If omitted (or false), the standard
+
+   Args:
+     indent: Number of spaces to indent for each level of nesting.
+     width: Attempted maximum number of columns in the output.
+     depth: The maximum depth to print out nested structures.
+     stream: The desired output stream.  If omitted (or false), the standard
        output stream available at construction will be used.
-   compact
-       If true, several items will be combined in one line.
-   sort-dicts
-       If True, dict keys are sorted. (only available for python >= 3.8)"
+     compact: If true, several items will be combined in one line.
+     sort-dicts: If True, dict keys are sorted. (only available for python >= 3.8)"
   (defn --init-- [self
                   &optional [indent 1] [width 80] depth stream
                   &kwonly [compact False] [sort-dicts True]]

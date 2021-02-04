@@ -4,9 +4,22 @@
 ;; license. See the LICENSE.
 
 ;;; These macros make debugging where bottlenecks exist easier.
+"Hy Profiling macros
+
+These macros make debugging where bottlenecks exist easier."
 
 
 (defmacro profile/calls [&rest body]
+  "``profile/calls`` allows you to create a call graph visualization.
+  **Note:** You must have `Graphviz <http://www.graphviz.org/>`_
+  installed for this to work.
+
+  Examples:
+    ::
+
+       => (require [hy.contrib.profile [profile/calls]])
+       => (profile/calls (print \"hey there\"))
+  "
   `(do
      (import [pycallgraph [PyCallGraph]]
              [pycallgraph.output [GraphvizOutput]])
@@ -14,8 +27,28 @@
            ~@body)))
 
 
+;; TODO not showing up
 (defmacro/g! profile/cpu [&rest body]
-  " Profile a bit of code "
+  "Profile a bit of code
+
+  Examples:
+    ::
+
+       => (require [hy.contrib.profile [profile/cpu]])
+       => (profile/cpu (print \"hey there\"))
+
+    .. code-block:: bash
+
+      hey there
+      <pstats.Stats instance at 0x14ff320>
+                2 function calls in 0.000 seconds
+
+        Random listing order was used
+
+        ncalls  tottime  percall  cumtime  percall filename:lineno(function)        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+            1    0.000    0.000    0.000    0.000 {print}
+
+  "
   `(do
      (import cProfile pstats)
 
