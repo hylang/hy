@@ -21,17 +21,12 @@ except ImportError:
 def hy_parse(source, filename='<string>'):
     """Parse a Hy source string.
 
-    Parameters
-    ----------
-    source: string
-        Source code to parse.
+    Args:
+      source (string): Source code to parse.
+      filename (string, optional): File name corresponding to source.  Defaults to "<string>".
 
-    filename: string, optional
-        File name corresponding to source.  Defaults to "<string>".
-
-    Returns
-    -------
-    out : HyExpression
+    Returns:
+      out : HyExpression
     """
     _source = re.sub(r'\A#!.*', '', source)
     res = HyExpression([HySymbol("do")] +
@@ -51,12 +46,9 @@ class ParserState(object):
 def tokenize(source, filename=None):
     """ Tokenize a Lisp file or string buffer into internal Hy objects.
 
-    Parameters
-    ----------
-    source: str
-        The source to tokenize.
-    filename: str, optional
-        The filename corresponding to `source`.
+    Args:
+    source (str): The source to tokenize.
+    filename (str, optional): The filename corresponding to `source`.
     """
     from hy.lex.lexer import lexer
     from hy.lex.parser import parser
@@ -106,7 +98,14 @@ mangle_delim = 'X'
 
 def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
-    according to Hy's mangling rules."""
+    according to Hy's mangling rules.
+
+    Examples:
+      ::
+
+         => (mangle "foo-bar")
+         'foo_bar'
+    """
     def unicode_char_to_hex(uchr):
         # Covert a unicode char to hex string, without prefix
         if len(uchr) == 1 and ord(uchr) < 128:
@@ -145,7 +144,14 @@ def mangle(s):
 def unmangle(s):
     """Stringify the argument and try to convert it to a pretty unmangled
     form. This may not round-trip, because different Hy symbol names can
-    mangle to the same Python identifier."""
+    mangle to the same Python identifier.
+
+    Examples:
+      ::
+
+         => (unmangle "foo_bar")
+         'foo-bar'
+    """
 
     s = str(s)
 
@@ -173,6 +179,59 @@ def read(from_file=sys.stdin, eof=""):
 
     Can take a given input buffer to read from, and a single byte as EOF
     (defaults to an empty string).
+
+    Reads the next Hy expression from *from-file* (defaulting to ``sys.stdin``), and
+    can take a single byte as EOF (defaults to an empty string). Raises ``EOFError``
+    if *from-file* ends before a complete expression can be parsed.
+
+    Examples:
+      ::
+
+         => (read)
+         (+ 2 2)
+         HyExpression([
+           HySymbol('+'),
+           HyInteger(2),
+           HyInteger(2)])
+
+      ::
+
+         => (eval (read))
+         (+ 2 2)
+         4
+
+      ::
+
+         => (import io)
+         => (setv buffer (io.StringIO "(+ 2 2)\\n(- 2 1)"))
+         => (eval (read :from-file buffer))
+         4
+         => (eval (read :from-file buffer))
+         1
+
+      ::
+
+         => (with [f (open "example.hy" "w")]
+         ...  (.write f "(print 'hello)\\n(print \"hyfriends!\")"))
+         35
+         => (with [f (open "example.hy")]
+         ...  (try (while True
+         ...         (setv exp (read f))
+         ...         (print "OHY" exp)
+         ...         (eval exp))
+         ...       (except [e EOFError]
+         ...         (print "EOF!"))))
+         OHY HyExpression([
+           HySymbol('print'),
+           HyExpression([
+             HySymbol('quote'),
+             HySymbol('hello')])])
+         hello
+         OHY HyExpression([
+           HySymbol('print'),
+           HyString('hyfriends!')])
+         hyfriends!
+         EOF!
     """
     buff = ""
     while True:
@@ -190,6 +249,22 @@ def read(from_file=sys.stdin, eof=""):
 
 
 def read_str(input):
+    """This is essentially a wrapper around `read` which reads expressions from a
+    string
+
+    Examples:
+      ::
+
+         => (read-str "(print 1)")
+         HyExpression([
+         HySymbol('print'),
+         HyInteger(1)]
+
+      ::
+
+         => (eval (read-str "(print 1)"))
+         1
+  """
     return read(StringIO(str(input)))
 
 
