@@ -204,7 +204,14 @@ E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
         gensyms [])
   (for [sym syms]
     (.extend gensyms [sym `(gensym ~(cut sym 2))]))
+
+  (setv [docstring body] (if (and (instance? str (first body))
+                                  (> (len body) 1))
+                             (, (first body) (tuple (rest body)))
+                             (, None body)))
+
   `(defmacro ~name [~@args]
+     ~docstring
      (setv ~@gensyms)
      ~@body))
 
@@ -219,7 +226,14 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
            (first arg)]))
   (setv os (list (filter identity (map extract-o!-sym args)))
         gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))
+
+  (setv [docstring body] (if (and (instance? str (first body))
+                                  (> (len body) 1))
+                             (, (first body) (tuple (rest body)))
+                             (, None body)))
+
   `(defmacro/g! ~name ~args
+     ~docstring
      `(do (setv ~@(interleave ~gs ~os))
           ~@~body)))
 
