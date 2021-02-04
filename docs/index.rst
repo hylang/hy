@@ -28,4 +28,5 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
    language/index
    extra/index
    contrib/index
+   cheatsheet
    hacking
