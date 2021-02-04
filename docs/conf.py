@@ -3,11 +3,18 @@
 # This file is execfile()d with the current directory set to its containing dir.
 
 import re, os, sys, time, html
-sys.path.append(os.path.abspath(".."))
 
-extensions = ['sphinx.ext.intersphinx']
+sys.path.insert(0, os.path.abspath('..'))
+
+extensions = [
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.autodoc',
+    'sphinxcontrib.hydomain',
+]
 
 from get_version import __version__ as hy_version
+
 # Read the Docs might dirty its checkout, so strip the dirty flag.
 hy_version = re.sub(r'[+.]dirty\Z', '', hy_version)
 
@@ -33,6 +40,7 @@ if "+" in hy_version:
     hy_descriptive_version += " <strong style='color: red;'>(unstable)</strong>"
 
 exclude_patterns = ['_build', 'coreteam.rst']
+add_module_names = False
 
 pygments_style = 'sphinx'
 
@@ -50,6 +58,8 @@ html_show_sphinx = False
 
 html_context = dict(
     hy_descriptive_version = hy_descriptive_version)
+
+highlight_language = 'clojure'
 
 intersphinx_mapping = dict(
     py = ('https://docs.python.org/3/', None))
