@@ -7,6 +7,7 @@ Bug Fixes
 ------------------------------
 * Fixed a bug where AST nodes from macro expansion did not properly
   receive source location info.
+* Fixed bug in `smacrolet` by replacing `module-name` argument with `&name`.
 
 New Features
 ------------------------------

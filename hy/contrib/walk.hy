@@ -269,7 +269,7 @@ Arguments without a header are under None.
         ;; recursive base case--it's an atom. Put it back.
         (self.handle-base))))
 
-(defmacro smacrolet [bindings &optional module-name &rest body]
+(defmacro smacrolet [bindings &rest body]
   "
 symbol macro let.
 
@@ -284,7 +284,7 @@ The bindings pairs the target symbol and the expansion form for that symbol.
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot"))))
   (setv bindings (dict (partition bindings))
-        body (macroexpand-all body (or module-name (calling-module-name))))
+        body (macroexpand-all body &name))
   (symbolexpand `(do ~@body)
                 (fn [symbol]
                   (.get bindings symbol symbol))))
