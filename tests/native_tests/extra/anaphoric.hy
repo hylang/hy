@@ -194,6 +194,9 @@
   (assert (= (#%(, %* %**) 1 2 :a 'b)
              (, (, 1 2)
                 (dict :a 'b))))
+  ;; test f-strings
+  ;; https://github.com/hylang/hy/issues/1938
+  (assert (= (#% f"->{(- %2 %1)}" 4 7) "->3"))
   ;; test other expression types
   (assert (= (#% %* 1 2 3)
              (, 1 2 3)))

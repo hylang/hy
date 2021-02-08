@@ -10,11 +10,21 @@
 (setv walk-form '(print {"foo" "bar"
                          "array" [1 2 3 [4]]
                          "something" (+ 1 2 3 4)
-                         "quoted?" '(foo)}))
+                         "quoted?" '(foo)
+                         "fstring" f"this {pytest} is {formatted !s :>{(+ width 3)}}"}))
+
+(setv walk-form-inc '(print {"foo" "bar"
+                             "array" [2 3 4 [5]]
+                             "something" (+ 2 3 4 5)
+                             "quoted?" '(foo)
+                             "fstring" f"this {pytest} is {formatted !s :>{(+ width 4)}}"}))
 
 (defn collector [acc x]
   (.append acc x)
   None)
+
+(defn inc-ints [x]
+  (if (integer? x) (+ x 1) x))
 
 (defn test-walk-identity []
   (assert (= (walk identity identity walk-form)
@@ -35,6 +45,12 @@
                    (drop 1 [1 [2 [3 [4]]]]))
              [[2 [3 [4]] 2 [3 [4]]]])))
 
+;; test that expressions within f-strings are also walked
+;; https://github.com/hylang/hy/issues/1843
+(defn test-walking-update []
+  (assert (= (prewalk inc-ints walk-form) walk-form-inc))
+  (assert (= (postwalk inc-ints walk-form) walk-form-inc)))
+
 (defmacro foo-walk []
   42)
 
@@ -44,6 +60,12 @@
              42))
   (assert (= (macroexpand-all '(with [a 1]))
              '(with* [a 1])))
+  ;; macros within f-strings should also be expanded
+  ;; related to https://github.com/hylang/hy/issues/1843
+  (assert (= (macroexpand-all 'f"{(foo-walk)}")
+             'f"{42}"))
+  (assert (= (macroexpand-all 'f"{(with [a 1])}")
+             'f"{(with* [a 1])}"))
   (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
              '(with* [a 1] (with* [b 2] (with* [c 3] (for [d c] foo))))))
   (assert (= (macroexpand-all '(with [a 1]
@@ -110,6 +132,20 @@
   (assert (in "a" (.keys (vars))))
   ;; scope of q is limited to let body
   (assert (not-in "q" (.keys (vars)))))
+
+;; let should substitute within f-strings
+;; related to https://github.com/hylang/hy/issues/1843
+(defn test-let-fstring []
+  (assert (zero? (let [a 0] a)))
+  (setv a "a"
+        b "b")
+  (let [a "x"
+        b "y"]
+    (assert (= f"res: {(+ a b)}!"
+               "res: xy!"))
+    (let [a 4]
+      (assert (= f"double f >{b :^{(+ a 1)}}<"
+                 "double f >  y  <")))))
 
 (defn test-let-sequence []
   ;; assignments happen in sequence, not parallel.

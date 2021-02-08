@@ -117,9 +117,8 @@ class HyString(HyObject, str):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
-    def __new__(cls, s=None, is_format=False, brackets=None):
+    def __new__(cls, s=None, brackets=None):
         value = super(HyString, cls).__new__(cls, s)
-        value.is_format = bool(is_format)
         value.brackets = brackets
         return value
 
@@ -325,6 +324,34 @@ class HySequence(HyObject, tuple, _ColoredModel):
                 return self._colored(self.__class__.__name__ + "()")
 
 
+class HyFComponent(HySequence):
+    """
+    Analogue of ast.FormattedValue.
+    The first node in the contained sequence is the value being formatted,
+    the rest of the sequence contains the nodes in the format spec (if any).
+    """
+    def __new__(cls, s=None, conversion=None):
+        value = super().__new__(cls, s)
+        value.conversion = conversion
+        return value
+
+    def replace(self, other, recursive=True):
+        super().replace(other, recursive)
+        if hasattr(other, "conversion"):
+            self.conversion = other.conversion
+        return self
+
+class HyFString(HySequence):
+    """
+    Generic Hy F-String object, for smarter f-string handling.
+    Mimics ast.JoinedStr, but using HyString and HyFComponent.
+    """
+    def __new__(cls, s=None, brackets=None):
+        value = super().__new__(cls, s)
+        value.brackets = brackets
+        return value
+
+
 class HyList(HySequence):
     color = Fore.CYAN
 
@@ -332,6 +359,8 @@ class HyList(HySequence):
 def recwrap(f):
     return lambda l: f(wrap_value(x) for x in l)
 
+_wrappers[HyFComponent] = recwrap(HyFComponent)
+_wrappers[HyFString] = recwrap(HyFString)
 _wrappers[HyList] = recwrap(HyList)
 _wrappers[list] = recwrap(HyList)
 _wrappers[tuple] = recwrap(HyList)

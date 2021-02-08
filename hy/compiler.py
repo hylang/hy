@@ -4,8 +4,8 @@
 # license. See the LICENSE.
 
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
-                       HyString, HyBytes, HySymbol, HyFloat, HyList, HySet,
-                       HyDict, HySequence, wrap_value)
+                       HyString, HyFComponent, HyFString, HyBytes, HySymbol,
+                       HyFloat, HyList, HySet, HyDict, HySequence, wrap_value)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
@@ -19,7 +19,6 @@ from hy.macros import require, load_macros, macroexpand, tag_macroexpand
 
 import hy.core
 
-import re
 import textwrap
 import pkgutil
 import traceback
@@ -600,6 +599,11 @@ class HyASTCompiler(object):
             else:
                 body = [HyList()]
 
+            if isinstance(form, HyFString) and form.brackets is not None:
+                body.extend([HyKeyword("brackets"), form.brackets])
+            elif isinstance(form, HyFComponent) and form.conversion is not None:
+                body.extend([HyKeyword("conversion"), HyString(form.conversion)])
+
         elif isinstance(form, HySymbol):
             body = [HyString(form)]
 
@@ -607,14 +611,6 @@ class HyASTCompiler(object):
             body = [HyString(form.name)]
 
         elif isinstance(form, HyString):
-            if form.is_format:
-                # Ensure that this f-string isn't evaluated right now.
-                body = [
-                    copy.copy(form),
-                    HyKeyword("is_format"),
-                    form.is_format,
-                ]
-                body[0].is_format = False
             if form.brackets is not None:
                 body.extend([HyKeyword("brackets"), form.brackets])
 
@@ -1876,92 +1872,27 @@ class HyASTCompiler(object):
 
     @builds_model(HyString, HyBytes)
     def compile_string(self, string):
-        if type(string) is HyString and string.is_format:
-            # This is a format string (a.k.a. an f-string).
-            return self._format_string(string, str(string))
         node = asty.Bytes if type(string) is HyBytes else asty.Str
         f = bytes if type(string) is HyBytes else str
         return node(string, s=f(string))
 
-    def _format_string(self, string, rest, allow_recursion=True):
-        values = []
-        ret = Result()
+    @builds_model(HyFComponent)
+    def compile_fcomponent(self, fcomponent):
+        conversion = ord(fcomponent.conversion) if fcomponent.conversion else -1
+        root, *rest = fcomponent
+        value = self.compile(root)
+        elts, ret, _ = self._compile_collect(rest)
+        if elts:
+            spec = asty.JoinedStr(fcomponent, values=elts)
+        else:
+            spec = None
+        return value + ret + asty.FormattedValue(
+            fcomponent, value=value.expr, conversion=conversion, format_spec=spec)
 
-        while True:
-           # Look for the next replacement field, and get the
-           # plain text before it.
-           match = re.search(r'\{\{?|\}\}?', rest)
-           if match:
-              literal_chars = rest[: match.start()]
-              if match.group() == '}':
-                  raise self._syntax_error(string,
-                      "f-string: single '}' is not allowed")
-              if match.group() in ('{{', '}}'):
-                  # Doubled braces just add a single brace to the text.
-                  literal_chars += match.group()[0]
-              rest = rest[match.end() :]
-           else:
-              literal_chars = rest
-              rest = ""
-           if literal_chars:
-               values.append(asty.Str(string, s = literal_chars))
-           if not rest:
-               break
-           if match.group() != '{':
-               continue
-
-           # Look for the end of the replacement field, allowing
-           # one more level of matched braces, but no deeper, and only
-           # if we can recurse.
-           match = re.match(
-               r'(?: \{ [^{}]* \} | [^{}]+ )* \}'
-                   if allow_recursion
-                   else r'[^{}]* \}',
-               rest, re.VERBOSE)
-           if not match:
-              raise self._syntax_error(string, 'f-string: mismatched braces')
-           item = rest[: match.end() - 1]
-           rest = rest[match.end() :]
-
-           # Parse the first form.
-           try:
-               model, item = parse_one_thing(item)
-           except (ValueError, LexException) as e:
-               raise self._syntax_error(string, "f-string: " + str(e))
-
-           # Look for a conversion character.
-           item = item.lstrip()
-           conversion = None
-           if item.startswith('!'):
-               conversion = item[1]
-               item = item[2:].lstrip()
-
-           # Look for a format specifier.
-           format_spec = None
-           if item.startswith(':'):
-               if allow_recursion:
-                   ret += self._format_string(string,
-                       item[1:],
-                       allow_recursion=False)
-                   format_spec = ret.force_expr
-               else:
-                   format_spec = asty.JoinedStr(string, values=
-                       [asty.Str(string, s=item[1:])])
-           elif item:
-               raise self._syntax_error(string,
-                   "f-string: trailing junk in field")
-
-           # Now, having finished compiling any recursively included
-           # forms, we can compile the first form that we parsed.
-           ret += self.compile(model)
-
-           values.append(asty.FormattedValue(
-               string,
-               conversion = -1 if conversion is None else ord(conversion),
-               format_spec = format_spec,
-               value = ret.force_expr))
-
-        return ret + asty.JoinedStr(string, values = values)
+    @builds_model(HyFString)
+    def compile_fstring(self, fstring):
+        elts, ret, _ = self._compile_collect(fstring)
+        return ret + asty.JoinedStr(fstring, values=elts)
 
     @builds_model(HyList, HySet)
     def compile_list(self, expression):

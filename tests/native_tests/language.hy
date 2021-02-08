@@ -1316,7 +1316,7 @@ cee\"} dee" "ey bee\ncee dee"))
   ; Quoting shouldn't evaluate the f-string immediately
   ; https://github.com/hylang/hy/issues/1844
   (setv quoted 'f"hello {world}")
-  (assert quoted.is-format)
+  (assert (isinstance quoted HyFString))
   (with [(pytest.raises NameError)]
     (eval quoted))
   (setv world "goodbye")
