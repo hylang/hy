@@ -379,7 +379,7 @@ def symbol_like(obj):
     except ValueError:
         pass
 
-    if obj != 'j':
+    if obj not in ('j', 'J'):
         try:
             return HyComplex(obj)
         except ValueError:
