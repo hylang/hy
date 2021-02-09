@@ -75,6 +75,16 @@
       (assert (= e.msg "macros cannot use &kwargs")))
     (else (assert False))))
 
+(defn test-macro-bad-name []
+  "NATIVE: test that the proper error is raised when a non-symbol is used for a macro or tag name"
+  (with [excinfo (pytest.raises HyTypeError)]
+    (eval '(defmacro :kw [])))
+  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol for macro name"))
+
+  (with [excinfo (pytest.raises HyTypeError)]
+    (eval '(deftag :kw [])))
+  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol for tag macro name")))
+
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"
   (assert (= 3 (bar 1 2))))

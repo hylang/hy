@@ -179,6 +179,7 @@ def test_lex_expression_complex():
     assert t("-0.5j") == f(HyComplex(-0.5j))
     assert t("1.e7j") == f(HyComplex(1e7j))
     assert t("j") == f(HySymbol("j"))
+    assert t("J") == f(HySymbol("J"))
     assert isnan(t("NaNj")[0][1].imag)
     assert t("nanj") == f(HySymbol("nanj"))
     assert t("Inf+Infj") == f(HyComplex(complex(float("inf"), float("inf"))))
@@ -393,8 +394,12 @@ def test_complex():
     # This is a regression test for #143
     entry = tokenize("(1j)")[0][0]
     assert entry == HyComplex("1.0j")
+    entry = tokenize("(1J)")[0][0]
+    assert entry == HyComplex("1.0j")
     entry = tokenize("(j)")[0][0]
     assert entry == HySymbol("j")
+    entry = tokenize("(J)")[0][0]
+    assert entry == HySymbol("J")
 
 
 def test_tag_macro():

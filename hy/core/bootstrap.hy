@@ -15,7 +15,7 @@
           (raise
             (hy.errors.HyTypeError
               (% "received a `%s' instead of a symbol for macro name"
-                 (. (type name) __name__))
+                 (. (type macro-name) __name__))
               None --file-- None)))
      (for [kw '[&kwonly &kwargs]]
        (if* (in kw lambda-list)

@@ -18,6 +18,8 @@ Bug Fixes
   receive source location info.
 * Fixed bug in `smacrolet` by replacing `module-name` argument with `&name`.
 * Fixed expressions within f-strings being inaccessible to macros.
+* Fixed symbol `J` being incorrectly parsed as a complex number
+* Fixed error handling for non-symbol macro names
 
 0.20.0 (released 2021-01-25)
 ==============================
