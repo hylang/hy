@@ -185,7 +185,7 @@
        => (print (with [f (open \"NEWS\")] (.read f)))
 
 
-    Shorthand for nested with\* loops::
+    Shorthand for nested ``with*`` loops::
 
        => (with [x foo y bar] baz)
        (with* [x foo]
@@ -210,7 +210,7 @@
        => (with/a [(expr)] block
        => (with/a [arg (expr) (expr)] block
 
-    Shorthand for nested with/a\* loops::
+    Shorthand for nested ``with/a*`` loops::
 
        => (with/a [x foo y bar] baz)
        (with/a* [x foo]
@@ -402,9 +402,9 @@
 
   .. versionadded:: 0.10.0
 
-  ``if-not`` is similar to ``if\*`` but the second expression will be executed
+  ``if-not`` is similar to ``if*`` but the second expression will be executed
   when the condition fails while the third and final expression is executed when
-  the test succeeds -- the opposite order of ``if\*``. The final expression is
+  the test succeeds -- the opposite order of ``if*``. The final expression is
   again optional and defaults to ``None``.
 
   Examples:
