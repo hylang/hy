@@ -7,3 +7,4 @@ tox
 Pygments >= 1.6
 Sphinx
 sphinx_rtd_theme
+git+https://github.com/hylang/sphinxcontrib-hydomain.git

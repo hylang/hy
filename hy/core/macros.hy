@@ -13,15 +13,85 @@
 
 (require [hy.core.bootstrap [*]])
 
+
 (defmacro as-> [head name &rest rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.
 
-Each assignment is passed to the subsequent form. Returns the final assignment,
-leaving the name bound to it in the local scope.
+  .. versionadded:: 0.12.0
 
-This behaves similarly to other threading macros, but requires specifying
-the threading point per-form via the name, rather than fixing to the first
-or last argument."
+  Each assignment is passed to the subsequent form. Returns the final assignment,
+  leaving the name bound to it in the local scope.
+
+  This behaves similarly to other threading macros, but requires specifying
+  the threading point per-form via the name, rather than fixing to the first
+  or last argument.
+
+  Examples:
+    example how ``->`` and ``as->`` relate::
+
+       => (as-> 0 it
+       ...      (inc it)
+       ...      (inc it))
+       2
+
+    ::
+
+       => (-> 0 inc inc)
+       2
+
+    create data for our cuttlefish database::
+
+       => (setv data [{:name \"hooded cuttlefish\"
+       ...             :classification {:subgenus \"Acanthosepion\"
+       ...                              :species \"Sepia prashadi\"}
+       ...             :discovered {:year 1936
+       ...                          :name \"Ronald Winckworth\"}}
+       ...            {:name \"slender cuttlefish\"
+       ...             :classification {:subgenus \"Doratosepion\"
+       ...                              :species \"Sepia braggi\"}
+       ...             :discovered {:year 1907
+       ...                          :name \"Sir Joseph Cooke Verco\"}}])
+
+    retrieve name of first entry::
+
+       => (as-> (first data) it
+       ...      (:name it))
+       \"hooded cuttlefish\"
+
+    retrieve species of first entry::
+
+       => (as-> (first data) it
+       ...      (:classification it)
+       ...      (:species it))
+       \"Sepia prashadi\"
+
+    find out who discovered slender cuttlefish::
+
+       => (as-> (filter (fn [entry] (= (:name entry)
+       ...                           \"slender cuttlefish\")) data) it
+       ...      (first it)
+       ...      (:discovered it)
+       ...      (:name it))
+       \"Sir Joseph Cooke Verco\"
+
+    more convoluted example to load web page and retrieve data from it::
+
+       => (import [urllib.request [urlopen]])
+       => (as-> (urlopen \"http://docs.hylang.org/en/stable/\") it
+       ...      (.read it)
+       ...      (.decode it \"utf-8\")
+       ...      (drop (.index it \"Welcome\") it)
+       ...      (take 30 it)
+       ...      (list it)
+       ...      (.join \"\" it))
+       \"Welcome to Hy’s documentation!\"
+
+  .. note::
+
+    In these examples, the REPL will report a tuple (e.g. `('Sepia prashadi',
+    'Sepia prashadi')`) as the result, but only a single value is actually
+    returned.
+  "
   `(do (setv
          ~name ~head
          ~@(interleave (repeat name) rest))
@@ -31,8 +101,38 @@ or last argument."
 (defmacro assoc [coll k1 v1 &rest other-kvs]
   "Associate key/index value pair(s) to a collection `coll` like a dict or list.
 
-If more than three parameters are given, the remaining args are k/v pairs to
-be associated in pairs."
+  ``assoc`` is used to associate a key with a value in a dictionary or to set an
+  index of a list to a value. It takes at least three parameters: the *data
+  structure* to be modified, a *key* or *index*, and a *value*. If more than
+  three parameters are used, it will associate in pairs.
+
+  Examples:
+    ::
+
+       => (do
+       ...   (setv collection {})
+       ...   (assoc collection \"Dog\" \"Bark\")
+       ...   (print collection))
+       {u'Dog': u'Bark'}
+
+    ::
+
+       => (do
+       ...   (setv collection {})
+       ...   (assoc collection \"Dog\" \"Bark\" \"Cat\" \"Meow\")
+       ...   (print collection))
+       {u'Cat': u'Meow', u'Dog': u'Bark'}
+
+    ::
+
+       => (do
+       ...   (setv collection [1 2 3 4])
+       ...   (assoc collection 2 None)
+       ...   (print collection))
+       [1, 2, None, 4]
+
+  .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
+  "
   (if (odd? (len other-kvs))
     (macro-error (last other-kvs)
                  "`assoc` takes an odd number of arguments"))
@@ -61,30 +161,99 @@ be associated in pairs."
 (defmacro with [args &rest body]
   "Wrap execution of `body` within a context manager given as bracket `args`.
 
-Shorthand for nested with* loops:
-  (with [x foo y bar] baz) ->
-  (with* [x foo]
-    (with* [y bar]
-      baz))."
+  ``with`` is used to wrap the execution of a block within a context manager. The
+  context manager can then set up the local system and tear it down in a controlled
+  manner. The archetypical example of using ``with`` is when processing files.
+  ``with`` can bind context to an argument or ignore it completely, as shown below:
+
+  Examples:
+    ::
+
+       => (with [arg (expr)] block)
+       => (with [(expr)] block)
+       => (with [arg (expr) (expr)] block)
+
+    The following example will open the ``NEWS`` file and print its content to the
+    screen. The file is automatically closed after it has been processed::
+
+       => (with [f (open \"NEWS\")] (print (.read f)))
+
+    ``with`` returns the value of its last form, unless it suppresses an exception
+    (because the context manager's ``__exit__`` method returned true), in which
+    case it returns ``None``. So, the previous example could also be written::
+
+       => (print (with [f (open \"NEWS\")] (.read f)))
+
+
+    Shorthand for nested ``with*`` loops::
+
+       => (with [x foo y bar] baz)
+       (with* [x foo]
+         (with* [y bar]
+           baz)).
+  "
   (_with 'with* args body))
 
 
 (defmacro with/a [args &rest body]
   "Wrap execution of `body` with/ain a context manager given as bracket `args`.
 
-Shorthand for nested with/a* loops:
-  (with/a [x foo y bar] baz) ->
-  (with/a* [x foo]
-    (with/a* [y bar]
-      baz))."
-  (_with 'with/a* args body))
+  ``with/a`` behaves like ``with``, but is used to wrap the execution of
+  a block within an asynchronous context manager. The context manager can
+  then set up the local system and tear it down in a controlled manner
+  asynchronously.
 
+  Examples:
+    ::
+
+       => (with/a [arg (expr)] block
+       => (with/a [(expr)] block
+       => (with/a [arg (expr) (expr)] block
+
+    Shorthand for nested ``with/a*`` loops::
+
+       => (with/a [x foo y bar] baz)
+       (with/a* [x foo]
+         (with/a* [y bar]
+           baz)).
+
+  .. note::
+    ``with/a`` returns the value of its last form, unless it suppresses an exception
+    (because the context manager's ``__aexit__`` method returned true), in which
+    case it returns ``None``."
+  (_with 'with/a* args body))
 
 (defmacro cond [&rest branches]
   "Build a nested if clause with each `branch` a [cond result] bracket pair.
 
-The result in the bracket may be omitted, in which case the condition is also
-used as the result."
+  Examples:
+    ::
+
+       => (cond [condition-1 result-1]
+       ...      [condition-2 result-2])
+       (if condition-1 result-1
+         (if condition-2 result-2))
+
+    If only the condition is given in a branch, then the condition is also used as
+    the result. The expansion of this single argument version is demonstrated
+    below::
+
+       => (cond [condition-1]
+       ...       [condition-2])
+       (if condition-1 condition-1
+         (if condition-2 condition-2))
+
+    As shown below, only the first matching result block is executed::
+
+       => (defn check-value [value]
+       ...   (cond [(< value 5) (print \"value is smaller than 5\")]
+       ...         [(= value 5) (print \"value is equal to 5\")]
+       ...         [(> value 5) (print \"value is greater than 5\")]
+       ...         [True (print \"value is something that it should not be\")]))
+
+       => (check-value 6)
+       \"value is greater than 5\"
+"
   (or branches
     (return))
 
@@ -103,8 +272,17 @@ used as the result."
 (defmacro -> [head &rest args]
   "Thread `head` first through the `rest` of the forms.
 
-The result of the first threaded form is inserted into the first position of
-the second form, the second result is inserted into the third form, and so on."
+  ``->`` (or the *threading macro*) is used to avoid nesting of expressions. The
+  threading macro inserts each expression into the next expression's first argument
+  place. The following code demonstrates this:
+
+  Examples:
+    ::
+
+       => (defn output [a b] (print a b))
+       => (-> (+ 4 6) (output 5))
+       10 5
+  "
   (setv ret head)
   (for [node args]
     (setv ret (if (isinstance node HyExpression)
@@ -114,7 +292,27 @@ the second form, the second result is inserted into the third form, and so on."
 
 
 (defmacro doto [form &rest expressions]
-  "Perform possibly mutating `expressions` on `form`, returning resulting obj."
+  "Perform possibly mutating `expressions` on `form`, returning resulting obj.
+
+  .. versionadded:: 0.10.1
+
+  ``doto`` is used to simplify a sequence of method calls to an object.
+
+  Examples:
+    ::
+
+       => (doto [] (.append 1) (.append 2) .reverse)
+       [2, 1]
+
+    ::
+
+       => (setv collection [])
+       => (.append collection 1)
+       => (.append collection 2)
+       => (.reverse collection)
+       => collection
+       [2, 1]
+  "
   (setv f (gensym))
   (defn build-form [expression]
     (if (isinstance expression HyExpression)
@@ -129,8 +327,17 @@ the second form, the second result is inserted into the third form, and so on."
 (defmacro ->> [head &rest args]
   "Thread `head` last through the `rest` of the forms.
 
-The result of the first threaded form is inserted into the last position of
-the second form, the second result is inserted into the third form, and so on."
+  ``->>`` (or the *threading tail macro*) is similar to the *threading macro*, but
+  instead of inserting each expression into the next expression's first argument,
+  it appends it as the last argument. The following code demonstrates this:
+
+  Examples:
+    ::
+
+       => (defn output [a b] (print a b))
+       => (->> (+ 4 6) (output 5))
+       5 10
+  "
   (setv ret head)
   (for [node args]
     (setv ret (if (isinstance node HyExpression)
@@ -142,11 +349,48 @@ the second form, the second result is inserted into the third form, and so on."
 (defmacro of [base &rest args]
   "Shorthand for indexing for type annotations.
 
-If only one arguments are given, this expands to just that argument. If two arguments are
-given, it expands to indexing the first argument via the second. Otherwise, the first argument
-is indexed using a tuple of the rest.
+  If only one arguments are given, this expands to just that argument. If two arguments are
+  given, it expands to indexing the first argument via the second. Otherwise, the first argument
+  is indexed using a tuple of the rest.
 
-E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
+  ``of`` has three forms:
+
+  - ``(of T)`` will simply become ``T``.
+  - ``(of T x)`` will become ``(get T x)``.
+  - ``(of T x y ...)`` (where the ``...`` represents zero or more arguments) will become
+    ``(get T (, x y ...))``.
+
+  Examples:
+    ::
+
+       => (of str)
+       str
+
+    ::
+
+       => (of List int)
+       List[int]
+
+    ::
+
+       => (of Set int)
+       Set[int]
+
+    ::
+
+       => (of Dict str str)
+       Dict[str, str]
+
+    ::
+
+       => (of Tuple str int)
+       Tuple[str, int]
+
+    ::
+
+       => (of Callable [int str] str)
+       Callable[[int, str], str]
+  "
   (if
     (empty? args) base
     (= (len args) 1) `(get ~base ~@args)
@@ -154,12 +398,55 @@ E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
 
 
 (defmacro if-not [test not-branch &optional yes-branch]
-  "Like `if`, but execute the first branch when the test fails"
+  "Like `if`, but execute the first branch when the test fails
+
+  .. versionadded:: 0.10.0
+
+  ``if-not`` is similar to ``if*`` but the second expression will be executed
+  when the condition fails while the third and final expression is executed when
+  the test succeeds -- the opposite order of ``if*``. The final expression is
+  again optional and defaults to ``None``.
+
+  Examples:
+    ::
+
+       => (if-not (money-left? account)
+             (print \"let's go and work\")
+             (print \"let's go shopping\"))
+  "
   `(if* (not ~test) ~not-branch ~yes-branch))
 
 
 (defmacro lif [&rest args]
-  "Like `if`, but anything that is not None is considered true."
+  "Like `if`, but anything that is not None is considered true.
+
+  .. versionadded:: 0.10.0
+
+  For those that prefer a more Lispy ``if`` clause, we have
+  ``lif``. This *only* considers ``None`` to be false! All other
+  \"false-ish\" Python values are considered true.
+
+  Examples:
+    ::
+
+       => (lif True \"true\" \"false\")
+       \"true\"
+
+    ::
+
+       => (lif False \"true\" \"false\")
+       \"true\"
+
+    ::
+
+       => (lif 0 \"true\" \"false\")
+       \"true\"
+
+    ::
+
+       => (lif None \"true\" \"false\")
+       \"false\"
+  "
   (setv n (len args))
   (if* n
        (if* (= n 1)
@@ -170,22 +457,82 @@ E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
 
 
 (defmacro lif-not [test not-branch &optional yes-branch]
-  "Like `if-not`, but anything that is not None is considered true."
+  "Like `if-not`, but anything that is not None is considered true.
+
+  .. versionadded:: 0.11.0
+
+  Examples:
+    ::
+
+       => (lif-not None \"true\" \"false\")
+       \"true\"
+
+    ::
+
+       => (lif-not False \"true\" \"false\")
+       \"false\"
+"
   `(if* (is ~test None) ~not-branch ~yes-branch))
 
 
 (defmacro when [test &rest body]
-  "Execute `body` when `test` is true"
+  "Execute `body` when `test` is true
+
+  ``when`` is similar to ``unless``, except it tests when the given conditional is
+  ``True``. It is not possible to have an ``else`` block in a ``when`` macro. The
+  following shows the expansion of the macro.
+
+  Examples:
+    ::
+
+       => (when conditional statement)
+       (if conditional (do statement))
+  "
   `(if ~test (do ~@body)))
 
 
 (defmacro unless [test &rest body]
-  "Execute `body` when `test` is false"
+  "Execute `body` when `test` is false
+
+  The ``unless`` macro is a shorthand for writing an ``if`` statement that checks if
+  the given conditional is ``False``. The following shows the expansion of this macro.
+
+  Examples:
+    ::
+
+       => (unless conditional statement)
+       (if conditional
+         None
+         (do statement))"
   `(if-not ~test (do ~@body)))
 
 
 (defmacro with-gensyms [args &rest body]
-  "Execute `body` with `args` as bracket of names to gensym for use in macros."
+  "Execute `body` with `args` as bracket of names to gensym for use in macros.
+
+  .. versionadded:: 0.9.12
+
+  ``with-gensym`` is used to generate a set of :hy:func:`gensym <hy.core.language.gensym>`
+  for use in a macro. The following code:
+
+  Examples:
+    ::
+
+       => (with-gensyms [a b c]
+       ...   ...)
+
+    expands to::
+
+       => (do
+       ...   (setv a (gensym)
+       ...         b (gensym)
+       ...         c (gensym))
+       ...   ...)
+
+  .. seealso::
+
+     Section :ref:`using-gensym`
+  "
   (setv syms [])
   (for [arg args]
     (.extend syms [arg `(gensym '~arg)]))
@@ -193,8 +540,23 @@ E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
     (setv ~@syms)
     ~@body))
 
+
 (defmacro defmacro/g! [name args &rest body]
-  "Like `defmacro`, but symbols prefixed with 'g!' are gensymed."
+  "Like `defmacro`, but symbols prefixed with 'g!' are gensymed.
+
+  .. versionadded:: 0.9.12
+
+  ``defmacro/g!`` is a special version of ``defmacro`` that is used to
+  automatically generate :hy:func:`gensym <hy.core.language.gensym>` for
+  any symbol that starts with
+  ``g!``.
+
+  For example, ``g!a`` would become ``(gensym \"a\")``.
+
+  .. seealso::
+
+    Section :ref:`using-gensym`
+  "
   (setv syms (list
               (distinct
                (filter (fn [x]
@@ -204,14 +566,48 @@ E.g. `(of List int)` -> `List[int]`, `(of Dict str str)` -> `Dict[str, str]`."
         gensyms [])
   (for [sym syms]
     (.extend gensyms [sym `(gensym ~(cut sym 2))]))
+
+  (setv [docstring body] (if (and (instance? str (first body))
+                                  (> (len body) 1))
+                             (, (first body) (tuple (rest body)))
+                             (, None body)))
+
   `(defmacro ~name [~@args]
+     ~docstring
      (setv ~@gensyms)
      ~@body))
+
 
 (defmacro defmacro! [name args &rest body]
   "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
 
-Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
+  Such 'o!' params are available within `body` as the equivalent 'g!' symbol.
+
+  Examples:
+    ::
+
+       => (defn expensive-get-number [] (print \"spam\") 14)
+       => (defmacro triple-1 [n] `(+ ~n ~n ~n))
+       => (triple-1 (expensive-get-number))  ; evals n three times
+       spam
+       spam
+       spam
+       42
+
+    ::
+
+       => (defmacro/g! triple-2 [n] `(do (setv ~g!n ~n) (+ ~g!n ~g!n ~g!n)))
+       => (triple-2 (expensive-get-number))  ; avoid repeats with a gensym
+       spam
+       42
+
+    ::
+
+       => (defmacro! triple-3 [o!n] `(+ ~g!n ~g!n ~g!n))
+       => (triple-3 (expensive-get-number))  ; easier with defmacro!
+       spam
+       42
+  "
   (defn extract-o!-sym [arg]
     (cond [(and (symbol? arg) (.startswith arg "o!"))
            arg]
@@ -219,7 +615,14 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
            (first arg)]))
   (setv os (list (filter identity (map extract-o!-sym args)))
         gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))
+
+  (setv [docstring body] (if (and (instance? str (first body))
+                                  (> (len body) 1))
+                             (, (first body) (tuple (rest body)))
+                             (, None body)))
+
   `(defmacro/g! ~name ~args
+     ~docstring
      `(do (setv ~@(interleave ~gs ~os))
           ~@~body)))
 
@@ -227,9 +630,53 @@ Such 'o!' params are available within `body` as the equivalent 'g!' symbol."
 (defmacro defmain [args &rest body]
   "Write a function named \"main\" and do the 'if __main__' dance.
 
-The symbols in `args` are bound to the elements in `sys.argv`, which means that
-the first symbol in `args` will always take the value of the script/executable
-name (i.e. `sys.argv[0]`).
+  .. versionadded:: 0.10.1
+
+  The ``defmain`` macro defines a main function that is immediately called
+  with ``sys.argv`` as arguments if and only if this file is being executed
+  as a script.  In other words, this:
+
+  Examples:
+    ::
+
+       => (defmain [&rest args]
+       ...  (do-something-with args))
+
+    is the equivalent of:
+
+    .. code-block:: python
+
+       => def main(*args):
+       ...    do_something_with(args)
+       ...    return 0
+       ...
+       ... if __name__ == \"__main__\":
+       ...     import sys
+       ...     retval = main(*sys.argv)
+       ...
+       ...     if isinstance(retval, int):
+       ...         sys.exit(retval)
+
+    Note that as you can see above, if you return an integer from this
+    function, this will be used as the exit status for your script.
+    (Python defaults to exit status 0 otherwise, which means everything's
+    okay!) Since ``(sys.exit 0)`` is not run explicitly in the case of a
+    non-integer return from ``defmain``, it's a good idea to put ``(defmain)``
+    as the last piece of code in your file.
+
+    If you want fancy command-line arguments, you can use the standard Python
+    module ``argparse`` in the usual way::
+
+       => (import argparse)
+       => (defmain [&rest _]
+       ...   (setv parser (argparse.ArgumentParser))
+       ...   (.add-argument parser \"STRING\"
+       ...     :help \"string to replicate\")
+       ...   (.add-argument parser \"-n\" :type int :default 3
+       ...     :help \"number of copies\")
+       ...   (setv args (parser.parse_args))
+       ...   (print (* args.STRING args.n))
+       ...   0)
 "
   (setv retval (gensym)
         restval (gensym))
@@ -248,9 +695,35 @@ name (i.e. `sys.argv[0]`).
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))
 
+
 (defmacro comment [&rest body]
-  "Ignores body and always expands to None"
+  "Ignores body and always expands to None
+
+  The ``comment`` macro ignores its body and always expands to ``None``.
+  Unlike linewise comments, the body of the ``comment`` macro must
+  be grammatically valid Hy, so the compiler can tell where the comment ends.
+  Besides the semicolon linewise comments,
+  Hy also has the ``#_`` discard prefix syntax to discard the next form.
+  This is completely discarded and doesn't expand to anything, not even ``None``.
+
+  Examples:
+    ::
+
+        => (print (comment <h1>Surprise!</h1>
+        ...                <p>You'd be surprised what's grammatically valid in Hy.</p>
+        ...                <p>(Keep delimiters in balance, and you're mostly good to go.)</p>)
+        ...        \"Hy\")
+        None Hy
+
+    ::
+
+        => (print #_(comment <h1>Surprise!</h1>
+        ...                  <p>You'd be surprised what's grammatically valid in Hy.</p>
+        ...                  <p>(Keep delimiters in balance, and you're mostly good to go.)</p>))
+        ...        \"Hy\")
+        Hy"
   None)
+
 
 (defmacro doc [symbol]
   "macro documentation
@@ -261,6 +734,7 @@ name (i.e. `sys.argv[0]`).
    Use ``#doc foo`` instead for help with tag macro ``#foo``.
    Use ``(help foo)`` instead for help with runtime objects."
   `(help (.get __macros__ '~symbol None)))
+
 
 (deftag doc [symbol]
   "tag macro documentation

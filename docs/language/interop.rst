@@ -17,17 +17,17 @@ Using Python from Hy
 ====================
 
 You can embed Python code directly into a Hy program with the special operators
-:ref:`py-specialform` and :ref:`pys-specialform`.
+:hy:func:`py <py>` and :hy:func:`pys <pys>`.
 
 Using a Python module from Hy is nice and easy: you just have to :ref:`import`
 it. If you have the following in ``greetings.py`` in Python::
 
+.. code-block:: python
+
     def greet(name):
         print("hello," name)
 
-You can use it in Hy:
-
-.. code-block:: clj
+You can use it in Hy::
 
     (import greetings)
     (.greet greetings "foo") ; prints "hello, foo"
@@ -44,15 +44,15 @@ with somebody else, who doesn't like Hy (!), and only uses Python.
 In any case, you need to know how to use Hy from Python. Fear not, for it is
 easy.
 
-If you save the following in ``greetings.hy``:
-
-.. code-block:: clj
+If you save the following in ``greetings.hy``::
 
     (setv this-will-have-underscores "See?")
     (defn greet [name] (print "Hello from Hy," name))
 
 Then you can use it directly from Python, by importing Hy before importing
-the module. In Python::
+the module. In Python:
+
+.. code-block:: python
 
     import hy
     import greetings
@@ -69,7 +69,7 @@ Compiled files
 
 You can also compile a module with ``hyc``, which gives you a ``.pyc`` file. You
 can import that file. Hy does not *really* need to be installed ; however, if in
-your code, you use any symbol from :doc:`core`, a corresponding ``import``
+your code, you use any symbol from :doc:`/api`, a corresponding ``import``
 statement will be generated, and Hy will have to be installed.
 
 Even if you do not use a Hy builtin, but just another function or variable with
@@ -83,7 +83,9 @@ causes the import of ``name`` from ``hy.core.language``.
 Launching a Hy REPL from Python
 -------------------------------
 
-You can use the function ``run_repl()`` to launch the Hy REPL from Python::
+You can use the function ``run_repl()`` to launch the Hy REPL from Python:
+
+.. code-block:: python
 
     >>> import hy.cmdline
     >>> hy.cmdline.run_repl()
@@ -93,7 +95,9 @@ You can use the function ``run_repl()`` to launch the Hy REPL from Python::
     bar
 
 If you want to print the Python code Hy generates for you, use the ``spy``
-argument::
+argument:
+
+.. code-block:: python
 
     >>> import hy.cmdline
     >>> hy.cmdline.run_repl(spy=True)
@@ -110,12 +114,16 @@ Evaluating strings of Hy code from Python
 
 Evaluating a string (or ``file`` object) containing a Hy expression requires
 two separate steps. First, use the ``read_str`` function (or ``read`` for a
-``file`` object) to turn the expression into a Hy model::
+``file`` object) to turn the expression into a Hy model:
+
+.. code-block:: python
 
     >>> import hy
     >>> expr = hy.read_str("(- (/ (+ 1 3 88) 2) 8)")
 
-Then, use the ``eval`` function to evaluate it::
+Then, use the ``eval`` function to evaluate it:
+
+.. code-block:: python
 
     >>> hy.eval(expr)
     38.0

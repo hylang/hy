@@ -119,7 +119,7 @@ But if you start Hy like this (a shell alias might be helpful)::
 
   $ hy --repl-output-fn=hy.contrib.hy-repr.hy-repr
 
-the interactive mode will use :ref:`hy-repr-fn` instead of Python's native
+the interactive mode will use :hy:func:`hy-repr-fn <hy.contrib.hy_repr.hy-repr-fn>` instead of Python's native
 ``repr`` function to print out values, so you'll see values in Hy syntax::
 
   => [1 2 3]
@@ -129,19 +129,19 @@ the interactive mode will use :ref:`hy-repr-fn` instead of Python's native
 Basic operations
 ================
 
-Set variables with :ref:`setv`::
+Set variables with :hy:func:`setv`::
 
     (setv zone-plane 8)
 
 Access the elements of a list, dictionary, or other data structure with
-:ref:`get`::
+:hy:func:`get <hy.core.shadow.get>`::
 
     (setv fruit ["apple" "banana" "cantaloupe"])
     (print (get fruit 0))  ; => apple
     (setv (get fruit 1) "durian")
     (print (get fruit 1))  ; => durian
 
-Access a range of elements in an ordered structure with :ref:`cut`::
+Access a range of elements in an ordered structure with :hy:func:`cut`::
 
     (print (cut "abcdef" 1 4))  ; => bcd
 
@@ -158,7 +158,7 @@ in its place.
 
 What if you want to use more than form in place of the ``THEN`` or ``ELSE``
 clauses, or in place of ``CONDITION``, for that matter? Use the special
-operator :ref:`do` (known more traditionally in Lisp as ``progn``), which
+operator :hy:func:`do` (known more traditionally in Lisp as ``progn``), which
 combines several forms into one, returning the last::
 
    (if (do (print "Let's check.") (= 1 1))
@@ -169,7 +169,7 @@ combines several forms into one, returning the last::
        (print "Math has failed.")
        (print "The universe is doomed.")))
 
-For branching on more than one case, try :ref:`cond`::
+For branching on more than one case, try :hy:func:`cond <hy.core.macros.cond>`::
 
    (setv somevar 33)
    (cond
@@ -195,7 +195,7 @@ Hy's basic loops are :ref:`while` and :ref:`for`::
       (print x))         ; => 1 2 3
 
 A more functional way to iterate is provided by the comprehension forms such as
-:ref:`lfor`. Whereas ``for`` always returns ``None``, ``lfor`` returns a list
+:hy:func:`lfor`. Whereas ``for`` always returns ``None``, ``lfor`` returns a list
 with one element per iteration. ::
 
     (print (lfor  x [1 2 3]  (* x 2)))  ; => [2, 4, 6]
@@ -204,7 +204,7 @@ with one element per iteration. ::
 Functions, classes, and modules
 ===============================
 
-Define named functions with :ref:`defn`::
+Define named functions with :hy:func:`defn <hy.core.bootstrap.defn>`::
 
     (defn fib [n]
       (if (< n 2)
@@ -212,7 +212,7 @@ Define named functions with :ref:`defn`::
         (+ (fib (- n 1)) (fib (- n 2)))))
     (print (fib 8))  ; => 21
 
-Define anonymous functions with :ref:`fn`::
+Define anonymous functions with :hy:func:`fn <fn>`::
 
     (print (list (filter (fn [x] (% x 2)) (range 10))))
       ; => [1, 3, 5, 7, 9]
@@ -230,7 +230,7 @@ Set a function parameter by name with a ``:keyword``::
 
     (test 1 2 :d "y")             ; => [1, 2, None, 'y', ()]
 
-Define classes with :ref:`defclass`::
+Define classes with :hy:func:`defclass`::
 
     (defclass FooBar []
       (defn __init__ [self x]
@@ -306,8 +306,8 @@ Our macro ``m`` has an especially simple return value, an integer, which at
 compile-time is converted to an integer literal. In general, macros can return
 arbitrary Hy forms to be executed as code. There are several special operators
 and macros that make it easy to construct forms programmatically, such as
-:ref:`quote` (``'``), :ref:`quasiquote` (`````), :ref:`unquote` (``~``), and
-:ref:`defmacro!`. The previous chapter has :ref:`a simple example <do-while>`
+:hy:func:`quote` (``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``), and
+:hy:func:`defmacro! <hy.core.bootstrap.defmacro!>`. The previous chapter has :hy:func:`a simple example <while>`
 of using ````` and ``~`` to define a new control construct ``do-while``.
 
 Sometimes it's nice to be able to call a one-parameter macro without
@@ -324,7 +324,7 @@ macro (or ordinary variable), you won't out of characters soon. ::
 What if you want to use a macro that's defined in a different module?
 ``import`` won't help, because it merely translates to a Python ``import``
 statement that's executed at run-time, and macros are expanded at compile-time,
-that is, during the translation from Hy to Python. Instead, use :ref:`require`,
+that is, during the translation from Hy to Python. Instead, use :hy:func:`require <require>`,
 which imports the module and makes macros available at compile-time.
 ``require`` uses the same syntax as ``import``. ::
 

@@ -2,6 +2,10 @@
 ;; Copyright 2021 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
+"Hy AST walker
+
+.. versionadded:: 0.11.0
+"
 
 (import [hy [HyExpression HyDict]]
         [hy.models [HySequence]]
@@ -12,9 +16,29 @@
         [hy.compiler [HyASTCompiler]])
 
 (defn walk [inner outer form]
-  "Traverses form, an arbitrary data structure. Applies inner to each
-  element of form, building up a data structure of the same type.
-  Applies outer to the result."
+  "``walk`` traverses ``form``, an arbitrary data structure. Applies
+  ``inner`` to each element of form, building up a data structure of the
+  same type.  Applies ``outer`` to the result.
+
+  Examples:
+    ::
+
+       => (import [hy.contrib.walk [walk]])
+       => (setv a '(a b c d e f))
+       => (walk ord identity a)
+       HyExpression([
+         97,
+         98,
+         99,
+         100,
+         101,
+         102])
+
+    ::
+
+       => (walk ord first a)
+       97
+  "
   (cond
    [(instance? HyExpression form)
     (outer (HyExpression (map inner form)))]
@@ -25,13 +49,157 @@
    [True (outer form)]))
 
 (defn postwalk [f form]
-  "Performs depth-first, post-order traversal of form. Calls f on each
-  sub-form, uses f's return value in place of the original."
+  "Performs depth-first, post-order traversal of ``form``. Calls ``f`` on
+  each sub-form, uses ``f`` 's return value in place of the original.
+
+  Examples:
+    ::
+
+       => (import [hy.contrib.walk [postwalk]])
+       => (setv trail '([1 2 3] [4 [5 6 [7]]]))
+       => (defn walking [x]
+       ...   (print \"Walking\" x :sep \"\\n\")
+       ...   x)
+       => (postwalk walking trail)
+       Walking
+       1
+       Walking
+       2
+       Walking
+       3
+       Walking
+       HyExpression([
+         HyInteger(1),
+         HyInteger(2),
+         HyInteger(3)])
+       Walking
+       4
+       Walking
+       5
+       Walking
+       6
+       Walking
+       7
+       Walking
+       HyExpression([
+         HyInteger(7)])
+       Walking
+       HyExpression([
+         HyInteger(5),
+         HyInteger(6),
+         HyList([
+           HyInteger(7)])])
+       Walking
+       HyExpression([
+         HyInteger(4),
+         HyList([
+           HyInteger(5),
+           HyInteger(6),
+           HyList([
+             HyInteger(7)])])])
+       Walking
+       HyExpression([
+         HyList([
+           HyInteger(1),
+           HyInteger(2),
+           HyInteger(3)]),
+         HyList([
+           HyInteger(4),
+           HyList([
+             HyInteger(5),
+             HyInteger(6),
+             HyList([
+               HyInteger(7)])])])])
+       HyExpression([
+         HyList([
+           HyInteger(1),
+           HyInteger(2),
+           HyInteger(3)]),
+         HyList([
+           HyInteger(4),
+           HyList([
+             HyInteger(5),
+             HyInteger(6),
+             HyList([
+               HyInteger(7)])])])])
+  "
   (walk (partial postwalk f) f form))
 
 (defn prewalk [f form]
-  "Performs depth-first, pre-order traversal of form. Calls f on each
-  sub-form, uses f's return value in place of the original."
+  "Performs depth-first, pre-order traversal of ``form``. Calls ``f`` on
+  each sub-form, uses ``f`` 's return value in place of the original.
+
+  Examples:
+    ::
+
+       => (import [hy.contrib.walk [prewalk]])
+       => (setv trail '([1 2 3] [4 [5 6 [7]]]))
+       => (defn walking [x]
+       ...  (print \"Walking\" x :sep \"\\n\")
+       ...  x)
+       => (prewalk walking trail)
+       Walking
+       HyExpression([
+         HyList([
+           HyInteger(1),
+           HyInteger(2),
+           HyInteger(3)]),
+         HyList([
+           HyInteger(4),
+           HyList([
+             HyInteger(5),
+             HyInteger(6),
+             HyList([
+               HyInteger(7)])])])])
+       Walking
+       HyList([
+         HyInteger(1),
+         HyInteger(2),
+         HyInteger(3)])
+       Walking
+       1
+       Walking
+       2
+       Walking
+       3
+       Walking
+       HyList([
+         HyInteger(4),
+         HyList([
+           HyInteger(5),
+           HyInteger(6),
+           HyList([
+             HyInteger(7)])])])
+       Walking
+       4
+       Walking
+       HyList([
+         HyInteger(5),
+         HyInteger(6),
+         HyList([
+           HyInteger(7)])])
+       Walking
+       5
+       Walking
+       6
+       Walking
+       HyList([
+         HyInteger(7)])
+       Walking
+       7
+       HyExpression([
+         HyList([
+           HyInteger(1),
+           HyInteger(2),
+           HyInteger(3)]),
+         HyList([
+           HyInteger(4),
+           HyList([
+             HyInteger(5),
+             HyInteger(6),
+             HyList([
+               HyInteger(7)])])])])
+  "
   (walk (partial prewalk f) identity (f form)))
 
 ;; TODO: move to hy.core?
@@ -41,7 +209,9 @@
        form))
 
 (defn macroexpand-all [form &optional module-name]
-  "Recursively performs all possible macroexpansions in form."
+  "Recursively performs all possible macroexpansions in form, using the ``require`` context of ``module-name``.
+  `macroexpand-all` assumes the calling module's context if unspecified.
+  "
   (setv module (or (and module-name
                         (import-module module-name))
                    (calling-module))
@@ -84,12 +254,11 @@
 
 
 (defn lambda-list [form]
-  "
-splits a fn argument list into sections based on &-headers.
+  "splits a fn argument list into sections based on &-headers.
 
-returns an OrderedDict mapping headers to sublists.
-Arguments without a header are under None.
-"
+  returns an OrderedDict mapping headers to sublists.
+  Arguments without a header are under None.
+  "
   (setv headers ['&optional '&rest '&kwonly '&kwargs]
         sections (OrderedDict [(, None [])])
         header None)
@@ -270,12 +439,11 @@ Arguments without a header are under None.
         (self.handle-base))))
 
 (defmacro smacrolet [bindings &rest body]
-  "
-symbol macro let.
+  "symbol macro let.
 
-Replaces symbols in body, but only where it would be a valid let binding.
-The bindings pairs the target symbol and the expansion form for that symbol.
-"
+  Replaces symbols in body, but only where it would be a valid let binding.
+  The bindings pairs the target symbol and the expansion form for that symbol.
+  "
   (if (odd? (len bindings))
       (macro-error bindings "bindings must be paired"))
   (for [k (cut bindings None None 2)]
@@ -290,25 +458,75 @@ The bindings pairs the target symbol and the expansion form for that symbol.
                   (.get bindings symbol symbol))))
 
 (defmacro let [bindings &rest body]
+  "sets up lexical bindings in its body
+
+  ``let`` creates lexically-scoped names for local variables.
+  A let-bound name ceases to refer to that local outside the ``let`` form.
+  Arguments in nested functions and bindings in nested ``let`` forms can shadow these names.
+
+  Examples:
+    ::
+
+       => (let [x 5]  ; creates a new local bound to name 'x
+       ...  (print x)
+       ...  (let [x 6]  ; new local and name binding that shadows 'x
+       ...    (print x))
+       ...  (print x))  ; 'x refers to the first local again
+       5
+       6
+       5
+
+    Basic assignments (e.g. ``setv``, ``+=``) will update the local variable named by a let binding,
+    when they assign to a let-bound name.
+
+    But assignments via ``import`` are always hoisted to normal Python scope, and
+    likewise, ``defclass`` will assign the class to the Python scope,
+    even if it shares the name of a let binding.
+
+    Use ``importlib.import_module`` and ``type`` (or whatever metaclass) instead,
+    if you must avoid this hoisting.
+
+    The ``let`` macro takes two parameters: a list defining *variables*
+    and the *body* which gets executed. *variables* is a vector of
+    variable and value pairs. ``let`` can also define variables using
+    Python's `extended iterable unpacking`_ syntax to destructure iterables::
+
+       => (let [[head #* tail] (, 0 1 2)]
+       ...   [head tail])
+       [0 [1 2]]
+
+    Do note, however, that let can not destructure into a mutable data type,
+    such as ``dicts`` or ``classes``. As such, the following will both raise
+    macro expansion errors:
+
+    Unpack into dictionary::
+
+       => (let [x (dict)
+       ...      (, a (get x \"y\")) [1 2]]
+       ...  [a x])
+
+    Unpack into a class::
+
+       => (let [x (SimpleNamespace)
+       ...      [a x.y] [1 2]]
+       ...  [a x])
+
+    Like the ``let*`` of many other Lisps, ``let`` executes the variable
+    assignments one-by-one, in the order written::
+
+       => (let [x 5
+       ...       y (+ x 1)]
+       ...   (print x y))
+       5 6
+
+    Unlike them, however, each ``(let …)`` form uses only one
+    namespace for all its assignments. Thus, ``(let [x 1  x (fn [] x)]
+    (x))`` returns a function object, not 1 as you might expect.
+
+  It is an error to use a let-bound name in a ``global`` or ``nonlocal`` form.
+
+  .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
   "
-sets up lexical bindings in its body
-
-Bindings are processed sequentially,
-so you can use the result of an earlier binding in a later one.
-
-Basic assignments (e.g. setv, +=) will update the let binding,
-if they use the name of a let binding.
-
-But assignments via `import` are always hoisted to normal Python scope, and
-likewise, `defclass` will assign the class to the Python scope,
-even if it shares the name of a let binding.
-
-Use `import_module` and `type` (or whatever metaclass) instead,
-if you must avoid this hoisting.
-
-Function arguments can shadow let bindings in their body,
-as can nested let forms.
-"
   (if (odd? (len bindings))
       (macro-error bindings "let bindings must be paired"))
   (setv g!let (gensym 'let)

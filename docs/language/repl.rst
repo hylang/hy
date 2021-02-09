@@ -39,7 +39,7 @@ The results of the three most recent evaluations can be obtained by entering ``*
    The result of evaluating ``*i`` itself becomes the next most recent result, pushing ``*1`` to ``*2``, ``*2`` to ``*3``, and ``*3`` off the cache.
 
 
-.. _recent-error
+.. _recent-error:
 
 Most Recent Exception
 ^^^^^^^^^^^^^^^^^^^^^

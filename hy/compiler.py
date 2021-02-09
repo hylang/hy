@@ -1936,57 +1936,57 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
     are set properly.  Try `fix_missing_locations` and related functions in the
     Python `ast` library.
 
-    Examples
-    --------
-       => (eval '(print "Hello World"))
-       "Hello World"
+    Examples:
+      ::
 
-    If you want to evaluate a string, use ``read-str`` to convert it to a
-    form first:
-       => (eval (read-str "(+ 1 1)"))
-       2
+         => (eval '(print "Hello World"))
+         "Hello World"
 
-    Parameters
-    ----------
-    hytree: HyObject
-        The Hy AST object to evaluate.
+      If you want to evaluate a string, use ``read-str`` to convert it to a
+      form first::
 
-    locals: dict, optional
-        Local environment in which to evaluate the Hy tree.  Defaults to the
-        calling frame.
+         => (eval (read-str "(+ 1 1)"))
+         2
 
-    module: str or types.ModuleType, optional
-        Module, or name of the module, to which the Hy tree is assigned and
-        the global values are taken.
-        The module associated with `compiler` takes priority over this value.
-        When neither `module` nor `compiler` is specified, the calling frame's
-        module is used.
+    Args:
+      hytree (HyObject):
+          The Hy AST object to evaluate.
 
-    ast_callback: callable, optional
-        A callback that is passed the Hy compiled tree and resulting
-        expression object, in that order, after compilation but before
-        evaluation.
+      locals (dict, optional):
+          Local environment in which to evaluate the Hy tree.  Defaults to the
+          calling frame.
 
-    compiler: HyASTCompiler, optional
-        An existing Hy compiler to use for compilation.  Also serves as
-        the `module` value when given.
+      module (str or types.ModuleType, optional):
+          Module, or name of the module, to which the Hy tree is assigned and
+          the global values are taken.
+          The module associated with `compiler` takes priority over this value.
+          When neither `module` nor `compiler` is specified, the calling frame's
+          module is used.
 
-    filename: str, optional
-        The filename corresponding to the source for `tree`.  This will be
-        overridden by the `filename` field of `tree`, if any; otherwise, it
-        defaults to "<string>".  When `compiler` is given, its `filename` field
-        value is always used.
+      ast_callback (callable, optional):
+          A callback that is passed the Hy compiled tree and resulting
+          expression object, in that order, after compilation but before
+          evaluation.
 
-    source: str, optional
-        A string containing the source code for `tree`.  This will be
-        overridden by the `source` field of `tree`, if any; otherwise,
-        if `None`, an attempt will be made to obtain it from the module given by
-        `module`.  When `compiler` is given, its `source` field value is always
-        used.
+      compiler (HyASTCompiler, optional):
+          An existing Hy compiler to use for compilation.  Also serves as
+          the `module` value when given.
 
-    Returns
-    -------
-    out : Result of evaluating the Hy compiled tree.
+      filename (str, optional):
+          The filename corresponding to the source for `tree`.  This will be
+          overridden by the `filename` field of `tree`, if any; otherwise, it
+          defaults to "<string>".  When `compiler` is given, its `filename` field
+          value is always used.
+
+      source (str, optional):
+          A string containing the source code for `tree`.  This will be
+          overridden by the `source` field of `tree`, if any; otherwise,
+          if `None`, an attempt will be made to obtain it from the module given by
+          `module`.  When `compiler` is given, its `source` field value is always
+          used.
+
+    Returns:
+      Result of evaluating the Hy compiled tree.
     """
 
     module = get_compiler_module(module, compiler, True)

@@ -1,0 +1,338 @@
+[
+  {
+    "name": "Core",
+    "categories": [
+      {
+        "name": "Collections",
+        "methods": [
+          "hy.core.language.*map",
+          "hy.core.language.accumulate",
+          "hy.core.language.butlast",
+          "hy.core.language.chain",
+          "hy.core.language.combinations",
+          "hy.core.language.multicombinations",
+          "hy.core.language.compress",
+          "hy.core.language.count",
+          "hy.core.language.cycle",
+          "hy.core.language.distinct",
+          "hy.core.language.drop",
+          "hy.core.language.drop-last",
+          "hy.core.language.drop-while",
+          "hy.core.language.first",
+          "hy.core.language.flatten",
+          "hy.core.language.group-by",
+          "hy.core.language.interleave",
+          "hy.core.language.interpose",
+          "hy.core.language.islice",
+          "hy.core.language.iterate",
+          "hy.core.language.nth",
+          "hy.core.language.last",
+          "hy.core.language.partition",
+          "hy.core.language.permutations",
+          "hy.core.language.product",
+          "hy.core.language.remove",
+          "hy.core.language.repeat",
+          "hy.core.language.repeatedly",
+          "hy.core.language.rest",
+          "hy.core.language.reduce",
+          "hy.core.language.second",
+          "hy.core.language.some",
+          "hy.core.language.take",
+          "hy.core.language.take-nth",
+          "hy.core.language.take-while",
+          "hy.core.language.tee",
+          "hy.core.language.zip-longest"
+        ]
+      },
+      {
+        "name": "Functions",
+        "methods": [
+          "hy.core.language.comp",
+          "hy.core.language.complement",
+          "hy.core.language.constantly",
+          "hy.core.language.identity",
+          "hy.core.language.juxt"
+        ]
+      },
+      {
+        "name": "Tests",
+        "methods": [
+          "hy.core.language.pos?",
+          "hy.core.language.coll?",
+          "hy.core.language.instance?",
+          "hy.core.language.integer?",
+          "hy.core.language.integer-char?",
+          "hy.core.language.iterable?",
+          "hy.core.language.keyword?",
+          "hy.core.language.list?",
+          "hy.core.language.iterator?",
+          "hy.core.language.empty?",
+          "hy.core.language.even?",
+          "hy.core.language.every?",
+          "hy.core.language.float?",
+          "hy.core.language.neg?",
+          "hy.core.language.none?",
+          "hy.core.language.numeric?",
+          "hy.core.language.odd?",
+          "hy.core.language.tuple?",
+          "hy.core.language.string?",
+          "hy.core.language.symbol?",
+          "hy.core.language.zero?"
+        ]
+      },
+      {
+        "name": "Meta",
+        "methods": [
+          "hy.core.macros.defmacro/g!",
+          "hy.core.macros.defmacro!",
+          "hy.core.macros.comment",
+          "hy.core.macros.doc",
+          "hy.core.bootstrap.defmacro",
+          "hy.core.bootstrap.deftag",
+          "hy.core.bootstrap.if",
+          "hy.core.bootstrap.defn/a",
+          "hy.core.language.calling-module",
+          "hy.core.language.calling-module-name",
+          "hy.core.language.parse-args",
+          "hy.core.language.disassemble",
+          "hy.core.language.eval",
+          "hy.core.language.gensym",
+          "hy.core.language.keyword",
+          "hy.core.language.macroexpand",
+          "hy.core.language.macroexpand-1",
+          "hy.core.language.mangle",
+          "hy.core.language.name",
+          "hy.core.language.read",
+          "hy.core.language.read-str",
+          "hy.core.language.unmangle"
+        ]
+      },
+      {
+        "name": "Macros",
+        "methods": [
+          "hy.core.macros.as->",
+          "hy.core.macros.->",
+          "hy.core.macros.->>",
+          "hy.core.macros.doto",
+          "hy.core.macros.of",
+          "hy.core.macros.unless",
+          "hy.core.macros.if-not",
+          "hy.core.macros.lif",
+          "hy.core.macros.lif-not",
+          "hy.core.macros.cond",
+          "hy.core.macros.unless",
+          "hy.core.macros.with-gensyms",
+          "hy.core.macros.defmain"
+        ]
+      },
+      {
+        "name": "Special Forms",
+        "methods": [
+          "hy.core.bootstrap.defn",
+          "hy.core.macros.when",
+          "hy.core.macros.with",
+          "hy.core.macros.with/a",
+          "^",
+          {
+            "name": "\\.",
+            "uri": "dot",
+            "internal": true
+          },
+          "await",
+          "break",
+          "cmp",
+          "continue",
+          "do",
+          "for",
+          "lfor",
+          "dfor",
+          "gfor",
+          "sfor",
+          "setv",
+          "setx",
+          "defclass",
+          "del",
+          "nonlocal",
+          "py",
+          "pys",
+          "quasiquote",
+          "quote",
+          "require",
+          "return",
+          "cut",
+          "raise",
+          "try",
+          "unpack-iterable/unpack-mapping",
+          "unquote",
+          "unquote-splice",
+          "while",
+          "with-decorator",
+          "yield",
+          "yield-from"
+        ]
+      },
+      {
+        "name": "Arithmatic",
+        "methods": [
+          "hy.core.language.dec",
+          "hy.core.shadow.@",
+          "hy.core.shadow.%",
+          "hy.core.shadow.+",
+          "hy.core.shadow.-",
+          "hy.core.shadow.*",
+          "hy.core.shadow.**",
+          "hy.core.shadow./",
+          "hy.core.shadow.//",
+          "fractions.Fraction",
+          "hy.core.language.inc"
+        ]
+      },
+      {
+        "name": "Dicts",
+        "methods": [
+          "hy.core.language.merge-with",
+          "hy.core.macros.assoc"
+        ]
+      },
+      {
+        "name": "Comparison",
+        "methods": [
+          "hy.core.macros.cond",
+          "hy.core.shadow.<",
+          "hy.core.shadow.>",
+          "hy.core.shadow.<=",
+          "hy.core.shadow.>=",
+          "hy.core.shadow.=",
+          "hy.core.shadow.\\!=",
+          "hy.core.shadow.is",
+          "hy.core.shadow.not?",
+          "hy.core.shadow.in",
+          "hy.core.shadow.not-in"
+        ]
+      },
+      {
+        "name": "Bitwise",
+        "methods": [
+          "hy.core.shadow.\\<\\<",
+          "hy.core.shadow.>>",
+          "hy.core.shadow.&",
+          "hy.core.shadow.|",
+          "hy.core.shadow.^",
+          "hy.core.shadow.~"
+        ]
+      },
+      {
+        "name": "Logic",
+        "methods": [
+          "hy.core.language.xor",
+          "hy.core.shadow.not",
+          "hy.core.shadow.and",
+          "hy.core.shadow.or"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Extras",
+    "categories": [
+      {
+        "name": "Anaphoric",
+        "methods": [
+          "hy.extra.anaphoric.ap-dotimes",
+          "hy.extra.anaphoric.ap-each",
+          "hy.extra.anaphoric.ap-each-while",
+          "hy.extra.anaphoric.ap-filter",
+          "hy.extra.anaphoric.ap-first",
+          "hy.extra.anaphoric.ap-if",
+          "hy.extra.anaphoric.ap-last",
+          "hy.extra.anaphoric.ap-map",
+          "hy.extra.anaphoric.ap-map-when",
+          "hy.extra.anaphoric.ap-reduce",
+          "hy.extra.anaphoric.ap-reject",
+          "hy.extra.anaphoric.recur-sym-replace",
+          "hy.extra.anaphoric.rit"
+        ]
+      },
+      {
+        "name": "Reserved",
+        "methods": [
+          "hy.extra.reserved.names"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Contributor",
+    "categories": [
+      {
+        "name": "Sequences",
+        "methods": [
+          "hy.contrib.sequences.Sequence",
+          "hy.contrib.sequences.defseq",
+          "hy.contrib.sequences.end-sequence",
+          "hy.contrib.sequences.seq"
+        ]
+      },
+      {
+        "name": "Walk",
+        "methods": [
+          "hy.contrib.walk.call?",
+          "hy.contrib.walk.lambda-list",
+          "hy.contrib.walk.let",
+          "hy.contrib.walk.macroexpand-all",
+          "hy.contrib.walk.postwalk",
+          "hy.contrib.walk.prewalk",
+          "hy.contrib.walk.smacrolet",
+          "hy.contrib.walk.walk"
+        ]
+      },
+      {
+        "name": "Profile",
+        "methods": [
+          "hy.contrib.profile.profile/calls",
+          "hy.contrib.profile.profile/cpu"
+        ]
+      },
+      {
+        "name": "Loop",
+        "methods": [
+          "hy.contrib.loop.loop",
+          "hy.contrib.loop.--trampoline--"
+        ]
+      },
+      {
+        "name": "Hy Repr",
+        "methods": [
+          "hy.contrib.hy_repr.hy-repr",
+          "hy.contrib.hy_repr.hy-repr-register"
+        ]
+      },
+      {
+        "name": "PPrint",
+        "methods": [
+          "hy.contrib.pprint.PrettyPrinter",
+          "hy.contrib.pprint.pformat",
+          "hy.contrib.pprint.pprint",
+          "hy.contrib.pprint.readable?",
+          "hy.contrib.pprint.recursive?",
+          "hy.contrib.pprint.saferepr",
+          "hy.contrib.pprint.pp"
+        ]
+      },
+      {
+        "name": "Destructure",
+        "methods": [
+          "hy.contrib.destructure.defn+",
+          "hy.contrib.destructure.fn+",
+          "hy.contrib.destructure.defn/a+",
+          "hy.contrib.destructure.fn/a+",
+          "hy.contrib.destructure.setv+",
+          "hy.contrib.destructure.let+",
+          "hy.contrib.destructure.ifp",
+          "hy.contrib.destructure.dict=:",
+          "hy.contrib.destructure.destructure"
+        ]
+      }
+    ]
+  }
+]

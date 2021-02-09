@@ -64,8 +64,7 @@ like an ordinary function call::
      (len (with [o (open "foo")] (.read o))
      (len (with [o (open "bar")] (.read o))))))
 
-To be even more concise, you can put a ``with`` form in a :ref:`generator
-expression <gfor>`::
+To be even more concise, you can put a ``with`` form in a :hy:func:`gfor <gfor>`::
 
    (print (sum (gfor
      filename ["foo" "bar"]
@@ -132,7 +131,7 @@ the same time, Hy goes to some lengths to allow you to do typical Lisp things
 that aren't straightforward in Python. For example, Hy provides the
 aforementioned mixing of statements and expressions, :ref:`name mangling
 <mangling>` that transparently converts symbols with names like ``valid?`` to
-Python-legal identifiers, and a :ref:`let` macro to provide block-level scoping
+Python-legal identifiers, and a :hy:func:`let <hy.contrib.walk.let>` macro to provide block-level scoping
 in place of Python's usual function-level scoping.
 
 Overall, Hy, like Common Lisp, is intended to be an unopinionated big-tent

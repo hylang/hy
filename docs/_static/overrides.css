@@ -1,0 +1,5 @@
+.rst-content table.docutils td {vertical-align: top; padding: 6px 16px; line-height: 20px}
+.wy-table-responsive table td {white-space: normal}
+.wy-table-responsive table td:first-child {white-space: nowrap}
+.rst-content code.xref {color: #2E7FB3; font-size: 90%;
+                        padding: 0px 2px; border: none; background: none; line-height: 20px}
