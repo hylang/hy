@@ -21,6 +21,7 @@ Bug Fixes
 * Fixed symbol `J` being incorrectly parsed as a complex number
 * Fixed error handling for non-symbol macro names
 * `doc` and `#doc` now work with names that require mangling.
+* Fixed exceptions in tag macros crashing compiler
 
 0.20.0 (released 2021-01-25)
 ==============================

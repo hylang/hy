@@ -1,8 +1,9 @@
 ;; Copyright 2021 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
-
-(import [functools [wraps]])
+(import pytest
+        [hy.errors [HyTypeError HyMacroExpansionError]]
+        [functools [wraps]])
 
 
 (defn test-tag-macro []
@@ -134,3 +135,20 @@
 
   (assert (= (, (, 3 4 5) {"quux" 6 "baz" 7})
              (double-foo 1 2 3 :quux 4 :baz 5))))
+
+(defn test-tag-exceptions []
+  (import [hy.lex [hy-parse]])
+
+  ;; https://github.com/hylang/hy/issues/1965
+  (setv test-expr (hy-parse "(deftag foo [x] (raise (ValueError))) #foo(y)"))
+  (with [excinfo (pytest.raises HyMacroExpansionError)]
+    (eval test-expr))
+
+  ;; tags must take one and only one argument
+  (setv test-expr (hy-parse "(deftag foo []) #foo()"))
+  (with [excinfo (pytest.raises HyTypeError)]
+    (eval test-expr))
+
+  (setv test-expr (hy-parse "(deftag foo [a b]) #foo(1 2)"))
+  (with [excinfo (pytest.raises HyTypeError)]
+    (eval test-expr)))

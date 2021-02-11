@@ -129,6 +129,12 @@
   (if (or (= tag-name ":")
           (= tag-name "&"))
       (raise (hy.errors.HyNameError (% "%s can't be used as a tag macro name" tag-name))))
+
+  (if (!= (len lambda-list) 1)
+      (raise (hy.errors.HyTypeError
+               (% "tag macros must take one and only one argument, received: '%s' with lambda-list: '%s'"
+                  (, (len lambda-list) (list lambda-list)))
+               tag-name --file-- None)))
   (setv tag-name (.replace (hy.models.HyString tag-name)
                            tag-name))
   `(eval-and-compile

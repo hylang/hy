@@ -269,6 +269,35 @@ def macro_exceptions(module, macro_tree, compiler=None):
                 sys.exc_info()[2])
 
 
+@contextmanager
+def tag_exceptions(module, tag_name, macro_tree, compiler=None):
+    try:
+        yield
+    except HyLanguageError as e:
+        # These are user-level Hy errors occurring in the macro.
+        # We want to pass them up to the user.
+        reraise(type(e), e, sys.exc_info()[2])
+    except Exception as e:
+
+        if compiler:
+            filename = compiler.filename
+            source = compiler.source
+        else:
+            filename = None
+            source = None
+
+        exc_msg = '  '.join(traceback.format_exception_only(
+            sys.exc_info()[0], sys.exc_info()[1]))
+
+        msg = "expanding macro {}\n  ".format(str(tag_name))
+        msg += exc_msg
+
+        reraise(HyMacroExpansionError,
+                HyMacroExpansionError(
+                    msg, macro_tree, filename, source),
+                sys.exc_info()[2])
+
+
 def macroexpand(tree, module, compiler=None, once=False):
     """Expand the toplevel macros for the given Hy AST tree.
 
@@ -372,12 +401,13 @@ def tag_macroexpand(tag, tree, module):
         raise HyTypeError("`{0}' is not a defined tag macro.".format(tag),
                           None, tag, None)
 
-    expr = tag_macro(tree)
+    with tag_exceptions(module, tag, tree):
+        expr = tag_macro(tree)
 
-    if isinstance(expr, HyExpression):
-        expr.module = inspect.getmodule(tag_macro)
+        if isinstance(expr, HyExpression):
+            expr.module = inspect.getmodule(tag_macro)
 
-    return replace_hy_obj(expr, tree)
+        return replace_hy_obj(expr, tree)
 
 
 def rename_function(func, new_name):
