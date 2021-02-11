@@ -285,15 +285,24 @@ def _format_string(state, p, rest, allow_recursion=True):
        # Parse the first form.
        try:
            from . import parse_one_thing
-           model, item = parse_one_thing(item)
+           model, remainder = parse_one_thing(item)
+           f_expression = item[:-len(remainder)]
+           item = remainder
        except LexException:
            raise
        except ValueError as e:
            raise LexException.from_lexer("f-string: " + str(e), state, p[0])
        subnodes = [model]
 
+       # Check for '=' debugging syntax, reproduce whitespace in output
+       eq_sign_match = re.match(r'\s*=\s*', item)
+       if eq_sign_match:
+           values.append(HyString(f_expression + eq_sign_match.group()))
+           item = item[eq_sign_match.end():]
+       else:
+           item = item.lstrip()
+
        # Look for a conversion character.
-       item = item.lstrip()
        conversion = None
        if item.startswith('!'):
            conversion = item[1]
@@ -312,6 +321,9 @@ def _format_string(state, p, rest, allow_recursion=True):
            raise LexException.from_lexer(
                "f-string: trailing junk in field",
                state, p[0])
+       elif eq_sign_match and not conversion:
+           # Python has a special default conversion in this case.
+           conversion = "r"
 
        values.append(HyFComponent(subnodes, conversion=conversion))
 
