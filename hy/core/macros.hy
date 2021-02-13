@@ -687,7 +687,7 @@
        (sys.exit ~retval))))
 
 
-(deftag @ [expr]
+(defmacro "#@" [expr]
   "with-decorator tag macro"
   (if (empty? expr)
       (macro-error expr "missing function argument"))
@@ -736,7 +736,7 @@
   `(help (.get __macros__ (mangle '~symbol) None)))
 
 
-(deftag doc [symbol]
+(defmacro "#doc" [symbol]
   "tag macro documentation
 
    Gets help for a tag macro function available in this module."
