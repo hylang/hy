@@ -79,11 +79,7 @@
   "NATIVE: test that the proper error is raised when a non-symbol is used for a macro or tag name"
   (with [excinfo (pytest.raises HyTypeError)]
     (eval '(defmacro :kw [])))
-  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol for macro name"))
-
-  (with [excinfo (pytest.raises HyTypeError)]
-    (eval '(deftag :kw [])))
-  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol for tag macro name")))
+  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol or string for macro name")))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"
@@ -429,8 +425,7 @@ in expansions."
     (.clear sys.path_importer_cache)
     (when (in  "tests.resources.macro_with_require" sys.modules)
       (del (get sys.modules "tests.resources.macro_with_require"))
-      (__macros__.clear)
-      (__tags__.clear)))
+      (__macros__.clear)))
 
   ;; Ensure that bytecode isn't present when we require this module.
   (assert (not (os.path.isfile pyc-file)))
@@ -442,7 +437,7 @@ in expansions."
     ;; Make sure that `require` didn't add any of its `require`s
     (assert (not (in (mangle "nonlocal-test-macro") __macros__)))
     ;; and that it didn't add its tags.
-    (assert (not (in (mangle "test-module-tag") __tags__)))
+    (assert (not (in (mangle "#test-module-tag") __macros__)))
 
     ;; Now, require everything.
     (require [tests.resources.macro-with-require [*]])
@@ -451,7 +446,7 @@ in expansions."
     (assert (not (in (mangle "nonlocal-test-macro") __macros__)))
 
     ;; Its tag(s) should be here now.
-    (assert (in (mangle "test-module-tag") __tags__))
+    (assert (in (mangle "#test-module-tag") __macros__))
 
     ;; The test macro expands to include this symbol.
     (setv module-name-var "tests.native_tests.native_macros")
@@ -475,7 +470,6 @@ in expansions."
   (.clear sys.path_importer_cache)
   (del (get sys.modules "tests.resources.macro_with_require"))
   (.clear __macros__)
-  (.clear __tags__)
 
   ;; XXX: There doesn't seem to be a way--via standard import mechanisms--to
   ;; ensure that an imported module used the cached bytecode.  We'll simply have

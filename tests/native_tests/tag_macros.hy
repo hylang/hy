@@ -84,19 +84,7 @@
   (assert (= #+ 2 3)))
 
 
-(defn test-tag-macros-macros []
-  "Test if deftag is actually a macro"
-  (defmacro "#t" [expr]
-    `(, ~@expr))
-
-  (setv a #t[1 2 3])
-
-  (assert (= (type a) tuple))
-  (assert (= (, 1 2 3) a)))
-
-
-(defn test-tag-macro-string-name []
-  "Test if deftag accepts a string as a macro name."
+(defn test-tag-macro-period []
 
   (defmacro "#." [expr]
     expr)
