@@ -731,13 +731,5 @@
    Gets help for a macro function available in this module.
    Use ``require`` to make other macros available.
 
-   Use ``#doc foo`` instead for help with tag macro ``#foo``.
    Use ``(help foo)`` instead for help with runtime objects."
   `(help (.get __macros__ (mangle '~symbol) None)))
-
-
-(defmacro "#doc" [symbol]
-  "tag macro documentation
-
-   Gets help for a tag macro function available in this module."
-  `(help (.get __tags__ (mangle '~symbol) None)))

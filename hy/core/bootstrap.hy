@@ -91,51 +91,6 @@
                   ~(get args 1)
                   (if ~@(cut args 2))))))
 
-(defmacro deftag [tag-name lambda-list &rest body]
-  "Defines a tag macro.
-
-  .. versionadded:: 0.13.0
-
-  ``deftag`` defines a tag macro. A tag macro is a unary macro that has the
-  same semantics as an ordinary macro defined with ``defmacro``. It is called with
-  the syntax ``#tag FORM``, where ``tag`` is the name of the macro, and ``FORM``
-  is any form. The ``tag`` is often only one character, but it can be any symbol.
-
-  Examples:
-    In this example, if you used ``(defmacro ♣ ...)`` instead of ``(deftag
-    ♣ ...)``, you would call the macro as ``(♣ 5)`` or ``(♣ (+= x 1))``.
-
-    The syntax for calling tag macros is similar to that of reader macros a la
-    Common Lisp's ``SET-MACRO-CHARACTER``. In fact, before Hy 0.13.0, tag macros
-    were called \"reader macros\", and defined with ``defreader`` rather than
-    ``deftag``. True reader macros are not (yet) implemented in Hy::
-
-       => (deftag ♣ [expr] `[~expr ~expr])
-       => #♣ 5
-       [5, 5]
-       => (setv x 0)
-       => #♣(+= x 1)
-       [None, None]
-       => x
-       2
-  "
-  (import hy.models)
-  (if (and (not (isinstance tag-name hy.models.HySymbol))
-           (not (isinstance tag-name hy.models.HyString)))
-      (raise (hy.errors.HyTypeError
-               (% "received a `%s' instead of a symbol for tag macro name"
-                  (. (type tag-name) --name--))
-               tag-name --file-- None)))
-  (if (or (= tag-name ":")
-          (= tag-name "&"))
-      (raise (hy.errors.HyNameError (% "%s can't be used as a tag macro name" tag-name))))
-  (setv tag-name (.replace (hy.models.HyString tag-name)
-                           tag-name))
-  `(eval-and-compile
-     (import hy)
-     ((hy.macros.tag ~tag-name)
-      (fn ~lambda-list ~@body))))
-
 (defmacro macro-error [expression reason &optional [filename '--name--]]
   `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
 
