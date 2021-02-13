@@ -13,3 +13,8 @@ def tmac(ETname, *tree):
 @macro("parald")
 def tmac2(ETname, *tree):
     return HyList((HyInteger(9), ) + tree)
+
+
+@macro("#taggart")
+def tmac3(ETname, x):
+    return HyList((HyInteger(10), x))

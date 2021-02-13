@@ -279,7 +279,7 @@ def test_ast_good_import_from():
 def test_ast_require():
     "Make sure AST respects (require) syntax"
     can_compile("(require tests.resources.tlib)")
-    can_compile("(require [tests.resources.tlib [qplah parald]])")
+    can_compile('(require [tests.resources.tlib [qplah parald "#taggart"]])')
     can_compile("(require [tests.resources.tlib [*]])")
     can_compile("(require [tests.resources.tlib :as foobar])")
     can_compile("(require [tests.resources.tlib [qplah :as quiz]])")
@@ -288,6 +288,7 @@ def test_ast_require():
     cant_compile("(require [tests.resources.tlib [* qplah]])")
     cant_compile("(require [tests.resources.tlib [qplah *]])")
     cant_compile("(require [tests.resources.tlib [* *]])")
+    cant_compile("(require [tests.resources.tlib [#taggart]]")
 
 
 def test_ast_import_require_dotted():

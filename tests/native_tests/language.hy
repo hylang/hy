@@ -1443,6 +1443,8 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (p 1 2 3) [9 1 2 3]))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
+  (require [tests.resources.tlib ["#taggart"]])
+  (assert (= #taggart 15 [10 15]))
   (require [tests.resources.tlib [*]])
   (assert (= (parald 1 2 3) [9 1 2 3])))
 
