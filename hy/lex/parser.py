@@ -162,10 +162,7 @@ def term_hashstars(state, p):
 @set_quote_boundaries
 def hash_other(state, p):
     # p == [(Token('HASHOTHER', '#foo'), bar)]
-    st = p[0].getstr()[1:]
-    str_object = HyString(st)
-    expr = p[1]
-    return HyExpression([HySymbol("dispatch-tag-macro"), str_object, expr])
+    return HyExpression([HySymbol(p[0].getstr()), p[1]])
 
 
 @pg.production("set : HLCURLY list_contents RCURLY")
