@@ -1134,12 +1134,16 @@ class HyASTCompiler(object):
         return operand + asty.UnaryOp(
             expr, op=ops[root](), operand=operand.force_expr)
 
-    _symn = some(lambda x: isinstance(x, HySymbol) and "." not in x)
+    def _importlike(*name_types):
+        name = some(lambda x: isinstance(x, name_types) and "." not in x)
+        return [many(
+            SYM |
+            brackets(SYM, sym(":as"), name) |
+            brackets(SYM, brackets(many(
+                name + maybe(sym(":as") + name)))))]
 
-    @special(["import", "require"], [many(
-        SYM |
-        brackets(SYM, sym(":as"), _symn) |
-        brackets(SYM, brackets(many(_symn + maybe(sym(":as") + _symn)))))])
+    @special("import", _importlike(HySymbol))
+    @special("require", _importlike(HySymbol, HyString))
     def compile_import_or_require(self, expr, root, entries):
         ret = Result()
 

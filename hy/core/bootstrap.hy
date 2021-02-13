@@ -32,10 +32,10 @@
           => (infix (1 + 1))
           2
      "
-     (if* (not (isinstance macro-name hy.models.HySymbol))
+     (if* (not (isinstance macro-name (, hy.models.HySymbol hy.models.HyString)))
           (raise
             (hy.errors.HyTypeError
-              (% "received a `%s' instead of a symbol for macro name"
+              (% "received a `%s' instead of a symbol or string for macro name"
                  (. (type macro-name) __name__))
               None --file-- None)))
      (for [kw '[&kwonly &kwargs]]
