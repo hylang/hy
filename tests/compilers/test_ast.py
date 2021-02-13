@@ -555,6 +555,7 @@ def test_attribute_access():
     cant_compile("(. foo bar :baz [0] quux [frob])")
     cant_compile("(. foo bar baz (0) quux [frob])")
     cant_compile("(. foo bar baz [0] quux {frob})")
+    cant_compile("(.. foo bar baz)")
 
 
 def test_attribute_empty():
