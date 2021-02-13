@@ -15,7 +15,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
 from hy._compat import (PY38, reraise)
-from hy.macros import require, load_macros, macroexpand, tag_macroexpand
+from hy.macros import require, load_macros, macroexpand
 
 import hy.core
 
@@ -379,10 +379,9 @@ class HyASTCompiler(object):
         self.filename = filename
         self.source = source
 
-        # Hy expects these to be present, so we prep the module for Hy
+        # Hy expects this to be present, so we prep the module for Hy
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})
-        self.module.__dict__.setdefault('__tags__', {})
 
         self.can_use_stdlib = not self.module_name.startswith("hy.core")
 
@@ -1676,13 +1675,6 @@ class HyASTCompiler(object):
             new_args.extend((k, v))
         return (HyExpression([HySymbol("setv")] + new_args + decls)
             .replace(expr))
-
-    @special("dispatch-tag-macro", [STR, FORM])
-    def compile_dispatch_tag_macro(self, expr, root, tag, arg):
-        return self.compile(tag_macroexpand(
-            HyString(mangle(tag)).replace(tag),
-            arg,
-            self.module))
 
     @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
     def compile_eval_and_compile(self, expr, root, body):

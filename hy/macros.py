@@ -68,27 +68,6 @@ def macro(name):
     return _
 
 
-def tag(name):
-    """Decorator to define a tag macro called `name`.
-    """
-    def _(fn):
-        _name = mangle('#{}'.format(name))
-
-        fn = rename_function(fn, _name)
-
-        module = inspect.getmodule(fn)
-
-        module_name = module.__name__
-        if module_name.startswith("hy.core"):
-            module_name = None
-
-        module_tags = module.__dict__.setdefault('__tags__', {})
-        module_tags[mangle(name)] = fn
-
-        return fn
-    return _
-
-
 def _same_modules(source_module, target_module):
     """Compare the filenames associated with the given modules names.
 
@@ -147,7 +126,7 @@ def require(source_module, target_module, assignments, prefix=""):
     Returns
     -------
     out: boolean
-        Whether or not macros and tags were actually transferred.
+        Whether or not macros were actually transferred.
     """
     if target_module is None:
         parent_frame = inspect.stack()[1][0]
@@ -177,24 +156,21 @@ def require(source_module, target_module, assignments, prefix=""):
             reraise(HyRequireError, HyRequireError(e.args[0]), None)
 
     source_macros = source_module.__dict__.setdefault('__macros__', {})
-    source_tags = source_module.__dict__.setdefault('__tags__', {})
 
-    if len(source_module.__macros__) + len(source_module.__tags__) == 0:
+    if not source_module.__macros__:
         if assignments != "ALL":
-            raise HyRequireError('The module {} has no macros or tags'.format(
+            raise HyRequireError('The module {} has no macros'.format(
                 source_module))
         else:
             return False
 
     target_macros = target_namespace.setdefault('__macros__', {})
-    target_tags = target_namespace.setdefault('__tags__', {})
 
     if prefix:
         prefix += "."
 
     if assignments == "ALL":
-        name_assigns = [(k, k) for k in
-            tuple(source_macros.keys()) + tuple(source_tags.keys())]
+        name_assigns = [(k, k) for k in source_macros.keys()]
     else:
         name_assigns = assignments
 
@@ -203,8 +179,6 @@ def require(source_module, target_module, assignments, prefix=""):
         alias = mangle(prefix + alias)
         if _name in source_module.__macros__:
             target_macros[alias] = source_macros[_name]
-        elif _name in source_module.__tags__:
-            target_tags[alias] = source_tags[_name]
         else:
             raise HyRequireError('Could not require name {} from {}'.format(
                 _name, source_module))
@@ -224,7 +198,6 @@ def load_macros(module):
         builtin_macros += EXTRA_MACROS
 
     module_macros = module.__dict__.setdefault('__macros__', {})
-    module_tags = module.__dict__.setdefault('__tags__', {})
 
     for builtin_mod_name in builtin_macros:
         builtin_mod = importlib.import_module(builtin_mod_name)
@@ -234,11 +207,6 @@ def load_macros(module):
             module_macros.update({k: v
                                   for k, v in builtin_mod.__macros__.items()
                                   if k not in module_macros})
-        if hasattr(builtin_mod, '__tags__'):
-            module_tags.update({k: v
-                                for k, v in builtin_mod.__tags__.items()
-                                if k not in module_tags})
-
 
 @contextmanager
 def macro_exceptions(module, macro_tree, compiler=None):
@@ -352,32 +320,6 @@ def macroexpand_1(tree, module, compiler=None):
     """Expand the toplevel macro from `tree` once, in the context of
     `compiler`."""
     return macroexpand(tree, module, compiler, once=True)
-
-
-def tag_macroexpand(tag, tree, module):
-    """Expand the tag macro `tag` with argument `tree`."""
-    if not inspect.ismodule(module):
-        module = importlib.import_module(module)
-
-    expr_modules = (([] if not hasattr(tree, 'module') else [tree.module])
-        + [module])
-
-    # Choose the first namespace with the macro.
-    tag_macro = next((mod.__tags__[tag]
-                      for mod in expr_modules
-                      if tag in mod.__tags__),
-                     None)
-
-    if tag_macro is None:
-        raise HyTypeError("`{0}' is not a defined tag macro.".format(tag),
-                          None, tag, None)
-
-    expr = tag_macro(tree)
-
-    if isinstance(expr, HyExpression):
-        expr.module = inspect.getmodule(tag_macro)
-
-    return replace_hy_obj(expr, tree)
 
 
 def rename_function(func, new_name):
