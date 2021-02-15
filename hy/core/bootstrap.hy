@@ -38,6 +38,10 @@
               (% "received a `%s' instead of a symbol or string for macro name"
                  (. (type macro-name) __name__))
               None --file-- None)))
+     (if* (in "." macro-name)
+       (raise (hy.errors.HyTypeError
+         "periods are not allowed in macro names"
+         None --file-- None)))
      (for [kw '[&kwonly &kwargs]]
        (if* (in kw lambda-list)
             (raise (hy.errors.HyTypeError (% "macros cannot use %s"

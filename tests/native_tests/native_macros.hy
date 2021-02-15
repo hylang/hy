@@ -76,10 +76,12 @@
     (else (assert False))))
 
 (defn test-macro-bad-name []
-  "NATIVE: test that the proper error is raised when a non-symbol is used for a macro or tag name"
   (with [excinfo (pytest.raises HyTypeError)]
     (eval '(defmacro :kw [])))
-  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol or string for macro name")))
+  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol or string for macro name"))
+  (with [excinfo (pytest.raises HyTypeError)]
+    (eval '(defmacro "foo.bar" [])))
+  (assert (= (. excinfo value msg) "periods are not allowed in macro names")))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"

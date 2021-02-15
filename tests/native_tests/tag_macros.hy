@@ -84,14 +84,6 @@
   (assert (= #+ 2 3)))
 
 
-(defn test-tag-macro-period []
-
-  (defmacro "#." [expr]
-    expr)
-
-  (assert (= #."works" "works")))
-
-
 (defn test-builtin-decorator-tag []
   (defn increment-arguments [func]
     "Increments each argument passed to the decorated function."
