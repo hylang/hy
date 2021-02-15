@@ -290,7 +290,7 @@ def test_bin_hy_icmd_file():
     file_relative_path = os.path.realpath(os.path.split('tests/resources/relative_import.hy')[0])
 
     output, _ = run_cmd("hy -i tests/resources/relative_import.hy None")
-    assert file_relative_path in output
+    assert file_relative_path in output.replace("\\\\", "\\") if os.sys.platform == "win32" else output
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy --spy -i \"(+ [] [])\"", "(+ 1 1)")
@@ -433,7 +433,7 @@ def test_bin_hy_file_sys_path():
     file_relative_path = os.path.realpath(file_path)
 
     output, _ = run_cmd("hy tests/resources/relative_import.hy")
-    assert file_relative_path in output
+    assert file_relative_path in output.replace("\\\\", "\\") if os.sys.platform == "win32" else output
 
 
 def test_bin_hy_module_main_args():
@@ -452,7 +452,8 @@ def test_bin_hy_module_no_main():
 
 def test_bin_hy_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
-    assert output.strip().endswith('/hy')
+    stripped = output.strip()
+    assert stripped.endswith("\\hy") if os.sys.platform == "win32" else stripped.endswith('/hy')
 
 
 def test_bin_hy_file_no_extension():
