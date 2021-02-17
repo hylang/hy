@@ -3,10 +3,17 @@
 Unreleased
 ==============================
 
+Removals
+------------------------------
+* `name` function has been removed from core.
+  Use `(. :keyword name)` and/or explicit calls to `unmangle` instead.
+
 Breaking Changes
 ------------------------------
 * f-strings are now parsed as a separate `HyFString` node,
   which is a collection of `HyString` and `HyFComponent` nodes.
+* Calling a `HyKeyword`  now looks up by its (string) name instead by its self.
+  `(:key obj)` is now equivalent to `(get obj (. :key name))`.
 
 New Features
 ------------------------------
