@@ -698,16 +698,16 @@
 
 (defn test-as-threading []
   "NATIVE: test as threading macro"
-  (setv data [{:name "hooded cuttlefish"
-               :classification {:subgenus "Acanthosepion"
-                                :species "Sepia prashadi"}
-               :discovered {:year 1936
-                            :name "Ronald Winckworth"}}
-              {:name "slender cuttlefish"
-               :classification {:subgenus "Doratosepion"
-                                :species "Sepia braggi"}
-               :discovered {:year 1907
-                            :name "Sir Joseph Cooke Verco"}}])
+  (setv data [{"name" "hooded cuttlefish"
+               "classification" {"subgenus" "Acanthosepion"
+                                "species" "Sepia prashadi"}
+               "discovered" {"year" 1936
+                            "name" "Ronald Winckworth"}}
+              {"name" "slender cuttlefish"
+               "classification" {"subgenus" "Doratosepion"
+                                "species" "Sepia braggi"}
+               "discovered" {"year" 1907
+                            "name" "Sir Joseph Cooke Verco"}}])
   (assert (= (as-> (first data) x
                    (:name x))
              "hooded cuttlefish"))
@@ -1488,13 +1488,13 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-keyword-get []
 
-  (assert (= (:foo {:foo "test"}) "test"))
+  (assert (= (:foo (dict :foo "test")) "test"))
   (setv f :foo)
-  (assert (= (f {:foo "test"}) "test"))
+  (assert (= (f (dict :foo "test")) "test"))
 
-  (with [(pytest.raises KeyError)] (:foo {:a 1 :b 2}))
-  (assert (= (:foo {:a 1 :b 2} 3) 3))
-  (assert (= (:foo {:a 1 :b 2 :foo 5} 3) 5))
+  (with [(pytest.raises KeyError)] (:foo (dict :a 1 :b 2)))
+  (assert (= (:foo (dict :a 1 :b 2) 3) 3))
+  (assert (= (:foo (dict :a 1 :b 2 :foo 5) 3) 5))
 
   (with [(pytest.raises TypeError)] (:foo "Hello World"))
   (with [(pytest.raises TypeError)] (:foo (object)))
