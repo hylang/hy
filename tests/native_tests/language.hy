@@ -1140,7 +1140,7 @@
   (assert (= : :))
   (assert (keyword? ':))
   (assert (!= : ":"))
-  (assert (= (name ':) "")))
+  (assert (= (. ': name) "")))
 
 (defn test-pickling-keyword []
   ; https://github.com/hylang/hy/issues/1754
@@ -1671,20 +1671,6 @@ macros()
   (assert (= (keyword 1) :1))
   (setv x :foo_bar)
   (assert (= (keyword x) :foo-bar)))
-
-(defn test-name-conversion []
-  "NATIVE: Test name conversion"
-  (assert (= (name "foo") "foo"))
-  (assert (= (name "foo_bar") "foo-bar"))
-  (assert (= (name `foo) "foo"))
-  (assert (= (name `foo_bar) "foo-bar"))
-  (assert (= (name 'foo) "foo"))
-  (assert (= (name 'foo_bar) "foo-bar"))
-  (assert (= (name 1) "1"))
-  (assert (= (name 1.0) "1.0"))
-  (assert (= (name ':foo) "foo"))
-  (assert (= (name ':foo_bar) "foo-bar"))
-  (assert (= (name test-name-conversion) "test-name-conversion")))
 
 (defn test-keywords []
   "Check keyword use in function calls"
