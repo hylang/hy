@@ -12,6 +12,7 @@ New Features
 ------------------------------
 * New contrib module `destructure` for Clojure-style destructuring.
 * Location of history file now configurable via environment variable `HY_HISTORY`
+* Added handling for "=" syntax in f-strings.
 
 Bug Fixes
 ------------------------------

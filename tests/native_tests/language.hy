@@ -1320,7 +1320,34 @@ cee\"} dee" "ey bee\ncee dee"))
   (with [(pytest.raises NameError)]
     (eval quoted))
   (setv world "goodbye")
-  (assert (= (eval quoted) "hello goodbye")))
+  (assert (= (eval quoted) "hello goodbye"))
+
+  ;; '=' debugging syntax.
+  (setv foo "bar")
+  (assert (= f"{foo =}" "foo ='bar'"))
+
+  ;; Whitespace is preserved.
+  (assert (= f"xyz{  foo = }" "xyz  foo = 'bar'"))
+
+  ;; Explicit conversion is applied.
+  (assert (= f"{ foo = !s}" " foo = bar"))
+
+  ;; Format spec supercedes implicit conversion.
+  (setv  pi 3.141593  fill "_")
+  (assert (= f"{pi = :{fill}^8.2f}" "pi = __3.14__"))
+
+  ;; Format spec doesn't clobber the explicit conversion.
+  (with [(pytest.raises
+           ValueError
+           :match r"Unknown format code '?f'? for object of type 'str'")]
+    f"{pi =!s:.3f}")
+
+  ;; Nested "=" is parsed, but fails at runtime, like Python.
+  (setv width 7)
+  (with [(pytest.raises
+           ValueError
+           :match r"I|invalid format spec(?:ifier)?")]
+    f"{pi =:{fill =}^{width =}.2f}"))
 
 
 (defn test-import-syntax []

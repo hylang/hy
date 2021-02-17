@@ -107,6 +107,15 @@ string, before any replacement fields are considered, so you may need to
 backslash your backslashes, and you can't comment out a closing brace or the
 string delimiter.
 
+Hy's f-strings are compatible with Python's "=" debugging syntax, subject to
+the above limitations on delimiting identifiers. For example::
+
+    => (setv foo "bar")
+    => (print f"{foo = }")
+    foo = 'bar'
+    => (print f"{foo = !s :_^7}")
+    foo = __bar__
+
 .. _syntax-keywords:
 
 keywords
