@@ -181,7 +181,7 @@ class HyKeyword(HyObject):
 
     def __call__(self, data, default=_sentinel):
         try:
-            return data[self]
+            return data[self.name]
         except KeyError:
             if default is HyKeyword._sentinel:
                 raise

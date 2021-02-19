@@ -174,6 +174,16 @@ HyKeyword
 ``hy.models.HyKeyword`` represents keywords in Hy. Keywords are
 symbols starting with a ``:``. See :ref:`syntax-keywords`.
 
+The ``.name`` attribute of a ``hy.models.HyKeyword`` provides
+the (:ref:`unmangled <mangling>`) string representation of the keyword without the initial ``:``.
+For example::
+
+  => (setv x :foo-bar)
+  => (print x.name)
+  foo-bar
+
+If needed, you can get the mangled name by calling :hy:func:`mangle <hy.core.language.mangle>`.
+
 Hy Internal Theory
 ==================
 

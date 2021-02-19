@@ -1341,28 +1341,6 @@
             (unmangle (.__name__ value))
             (except [] (HyKeyword (str value)))))))
 
-(defn name [value]
-  "Convert `value` to a string.
-
-  .. versionadded:: 0.10.1
-
-  Keyword special character will be stripped. String will be used as is.
-  Even objects with the __name__ magic will work.
-
-  Examples:
-    ::
-
-       => (name :foo)
-       u'foo'
-  "
-  (if (keyword? value)
-      (unmangle (cut (str value) 1))
-      (if (string? value)
-          (unmangle value)
-          (try
-            (unmangle (. value __name__))
-            (except [] (str value))))))
-
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`.
 
@@ -1411,7 +1389,7 @@
       (if value-of-keyword?
           (.append (get keyword-arguments -1) item)
           (if (keyword? item)
-              (.append keyword-arguments [(name item)])
+              (.append keyword-arguments [item.name])
               (.append positional-arguments item)))
       (setv value-of-keyword? (and (not value-of-keyword?) (keyword? item))))
     (parser.add-argument #* positional-arguments #** (dict keyword-arguments)))
@@ -1424,7 +1402,7 @@
     flatten float? fraction gensym group-by identity inc instance?
     integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list? macroexpand
-    macroexpand-1 mangle merge-with multicombinations name neg? none? nth
+    macroexpand-1 mangle merge-with multicombinations neg? none? nth
     numeric? odd? parse-args partition permutations pos? product read read-str
     remove repeat repeatedly rest reduce second some string? symbol?
     take take-nth take-while tuple? unmangle xor tee zero? zip-longest])

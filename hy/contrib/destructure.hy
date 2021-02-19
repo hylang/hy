@@ -212,7 +212,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
       (if (= magic target)
         (if (in magic seen)
           (raise (SyntaxError (.format "Duplicate :{} in destructure."
-                                       (name magic))))
+                                       magic.name)))
           (do (.add seen magic)
             True))))
     (unless (none? gsyms)
@@ -263,7 +263,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                  ':or []
                  ':as [lookup ddict]
                  ':strs (get-as str lookup)
-                 ':keys (get-as (comp HyKeyword name) lookup)
+                 ':keys (get-as (comp HyKeyword unmangle) lookup)
                  (destructure #* (expand-lookup target lookup) gsyms))))
        ((fn [xs] (reduce + xs result)))))
 
@@ -276,7 +276,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
       (if (or (none? y) (keyword? y))
         (raise (SyntaxError
                  (.format "Unpaired keyword :{} in list destructure"
-                          (name x))))
+                          x.name)))
         (if as?
           (raise
             (SyntaxError ":as must be final magic in sequential destructure"))
@@ -311,7 +311,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                                       `(dict (partition (cut ~dlist ~n)))
                                       `(cut ~dlist ~n))
                                   gsyms)
-                 (raise (SyntaxError (.format err-msg (name m)))))))
+                 (raise (SyntaxError (.format err-msg m.name))))))
   (reduce + (chain bres mres) result))
 
 (defn dest-iter [diter result found binds gsyms]

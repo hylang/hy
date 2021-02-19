@@ -262,8 +262,7 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (symbol? "hello"))
   (assert-false (symbol? [1 2 3]))
   (assert-false (symbol? '[a b c]))
-  (assert-true (symbol? 'im-symbol))
-  (assert-false (symbol? (name 'im-symbol))))
+  (assert-true (symbol? 'im-symbol)))
 
 (defn test-list? []
   "NATIVE: testing the list? function"

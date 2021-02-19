@@ -575,7 +575,7 @@
                         (macro-error k "cannot destructure non-iterable unpacking expression")]
 
                        [(and (symbol? x) (in x unpacked-syms))
-                        (do (.append keys `(get ~g!let ~(name x)))
+                        (do (.append keys `(get ~g!let ~(unmangle x)))
                             (.append values (.get unpacked-syms x x))
                             (assoc replacements x (last keys)))]
 
@@ -583,7 +583,7 @@
                    k))
 
         (do (.append values (symbolexpand (macroexpand-all v &name) expander))
-            (.append keys `(get ~g!let ~(name k)))
+            (.append keys `(get ~g!let ~(unmangle k)))
             (assoc replacements k (last keys)))))
 
   `(do

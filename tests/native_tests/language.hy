@@ -698,16 +698,16 @@
 
 (defn test-as-threading []
   "NATIVE: test as threading macro"
-  (setv data [{:name "hooded cuttlefish"
-               :classification {:subgenus "Acanthosepion"
-                                :species "Sepia prashadi"}
-               :discovered {:year 1936
-                            :name "Ronald Winckworth"}}
-              {:name "slender cuttlefish"
-               :classification {:subgenus "Doratosepion"
-                                :species "Sepia braggi"}
-               :discovered {:year 1907
-                            :name "Sir Joseph Cooke Verco"}}])
+  (setv data [{"name" "hooded cuttlefish"
+               "classification" {"subgenus" "Acanthosepion"
+                                "species" "Sepia prashadi"}
+               "discovered" {"year" 1936
+                            "name" "Ronald Winckworth"}}
+              {"name" "slender cuttlefish"
+               "classification" {"subgenus" "Doratosepion"
+                                "species" "Sepia braggi"}
+               "discovered" {"year" 1907
+                            "name" "Sir Joseph Cooke Verco"}}])
   (assert (= (as-> (first data) x
                    (:name x))
              "hooded cuttlefish"))
@@ -1140,7 +1140,7 @@
   (assert (= : :))
   (assert (keyword? ':))
   (assert (!= : ":"))
-  (assert (= (name ':) "")))
+  (assert (= (. ': name) "")))
 
 (defn test-pickling-keyword []
   ; https://github.com/hylang/hy/issues/1754
@@ -1515,13 +1515,13 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-keyword-get []
 
-  (assert (= (:foo {:foo "test"}) "test"))
+  (assert (= (:foo (dict :foo "test")) "test"))
   (setv f :foo)
-  (assert (= (f {:foo "test"}) "test"))
+  (assert (= (f (dict :foo "test")) "test"))
 
-  (with [(pytest.raises KeyError)] (:foo {:a 1 :b 2}))
-  (assert (= (:foo {:a 1 :b 2} 3) 3))
-  (assert (= (:foo {:a 1 :b 2 :foo 5} 3) 5))
+  (with [(pytest.raises KeyError)] (:foo (dict :a 1 :b 2)))
+  (assert (= (:foo (dict :a 1 :b 2) 3) 3))
+  (assert (= (:foo (dict :a 1 :b 2 :foo 5) 3) 5))
 
   (with [(pytest.raises TypeError)] (:foo "Hello World"))
   (with [(pytest.raises TypeError)] (:foo (object)))
@@ -1698,20 +1698,6 @@ macros()
   (assert (= (keyword 1) :1))
   (setv x :foo_bar)
   (assert (= (keyword x) :foo-bar)))
-
-(defn test-name-conversion []
-  "NATIVE: Test name conversion"
-  (assert (= (name "foo") "foo"))
-  (assert (= (name "foo_bar") "foo-bar"))
-  (assert (= (name `foo) "foo"))
-  (assert (= (name `foo_bar) "foo-bar"))
-  (assert (= (name 'foo) "foo"))
-  (assert (= (name 'foo_bar) "foo-bar"))
-  (assert (= (name 1) "1"))
-  (assert (= (name 1.0) "1.0"))
-  (assert (= (name ':foo) "foo"))
-  (assert (= (name ':foo_bar) "foo-bar"))
-  (assert (= (name test-name-conversion) "test-name-conversion")))
 
 (defn test-keywords []
   "Check keyword use in function calls"

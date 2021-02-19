@@ -103,7 +103,7 @@ Here's how you could write a simple macro using model patterns:
       (setv [args] (->> args (.parse (whole [
         (many (+ SYM FORM))]))))
       `[~@(->> args (map (fn [x]
-        (, (name (get x 0)) (get x 1)))))])
+        (, (str (get x 0)) (get x 1)))))])
 
     (print (pairs  a 1  b 2  c 3))
     ; => [["a" 1] ["b" 2] ["c" 3]]
