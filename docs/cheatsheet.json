@@ -101,7 +101,6 @@
           "hy.core.language.macroexpand",
           "hy.core.language.macroexpand-1",
           "hy.core.language.mangle",
-          "hy.core.language.name",
           "hy.core.language.read",
           "hy.core.language.read-str",
           "hy.core.language.unmangle"
