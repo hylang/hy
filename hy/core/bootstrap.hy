@@ -10,7 +10,7 @@
   (import hy)
   ((hy.macros.macro "defmacro")
    (fn [&name macro-name lambda-list &rest body]
-     "the defmacro macro
+     #[[the defmacro macro
      ``defmacro`` is used to define macros. The general format is
      ``(defmacro name [parameters] expr)``.
 
@@ -31,7 +31,21 @@
 
           => (infix (1 + 1))
           2
-     "
+
+     The name of the macro can be given as a string literal instead of a symbol. If the name starts with `#`, the macro can be called on a single argument without parentheses; such a macro is called a tag macro.
+
+       ::
+
+          => (defmacro "#x2" [form]
+          ...  `(do ~form ~form))
+
+       ::
+
+          => (setv foo 1)
+          => #x2 (+= foo 1)
+          => foo
+          3
+     ]]
      (if* (not (isinstance macro-name (, hy.models.HySymbol hy.models.HyString)))
           (raise
             (hy.errors.HyTypeError

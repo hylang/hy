@@ -7,6 +7,11 @@ Removals
 ------------------------------
 * `name` function has been removed from core.
   Use `(. :keyword name)` and/or explicit calls to `unmangle` instead.
+* `deftag` has been removed. Instead of `(deftag foo …)`,
+  say `(defmacro "#foo" …)`.
+* `#doc` has been removed. Instead of `#doc @`, say `(doc "#@")`.
+* `__tags__` has been removed. Tag macros are now tracked in
+  `__macros__`.
 
 Breaking Changes
 ------------------------------
@@ -14,6 +19,8 @@ Breaking Changes
   which is a collection of `HyString` and `HyFComponent` nodes.
 * Calling a `HyKeyword`  now looks up by its (string) name instead by its self.
   `(:key obj)` is now equivalent to `(get obj (. :key name))`.
+* To require a tag macro `foo`, instead of `(require [module [foo]])`,
+  you must now say `(require [module ["#foo"]])`.
 
 New Features
 ------------------------------
@@ -21,6 +28,7 @@ New Features
 * Location of history file now configurable via environment variable `HY_HISTORY`
 * Added handling for "=" syntax in f-strings.
 * Repl init scripts with `HYSTARTUP` env var
+* `defmacro` and `require` can now take macro names as string literals.
 
 Bug Fixes
 ------------------------------

@@ -693,7 +693,7 @@ Comments
 
 Prefer docstrings to comments where applicable---in ``fn``, ``defclass``,
 at the top of the module, and in any other macros derived from these that can take a docstring
-(e.g. ``defmacro/g!``, ``deftag``, ``defn``).
+(e.g. ``defmacro/g!``, ``defn``).
 
 Docstrings contents follow the same conventions as Python.
 
