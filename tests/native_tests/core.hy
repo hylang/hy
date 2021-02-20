@@ -709,7 +709,11 @@ result['y in globals'] = 'y' in globals()")
             f"Help on function {(mangle '<-mangle->)} in module "))
   (assert (in "a fancy docstring" out))
   (assert (empty? err))
-  (doc "#@")
+
+  (defmacro "#pillgrums" [x]
+    "Look at the quality of that picture!"
+    x)
+  (doc "#pillgrums")
   (setv [out err] (.readouterr capsys))
-  (assert (in "with-decorator tag macro" out))
+  (assert (in "Look at the quality of that picture!" out))
   (assert (empty? err)))
