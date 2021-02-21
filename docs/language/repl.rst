@@ -74,6 +74,58 @@ Location of history
 
 The default location for the history of REPL inputs is ``~/.hy-history``. This can be changed by setting the environment variable ``HY_HISTORY`` to your preferred location. For example, if you are using Bash, it can be set with ``export HY_HISTORY=/path/to/my/.custom-hy-history``.
 
+Initialization Script
+^^^^^^^^^^^^^^^^^^^^^^
+
+Similarly to python's :py:envvar:`PYTHONSTARTUP` environment variable, when
+``HYSTARTUP`` is set, Hy will try to execute the file and import/require its defines
+into the repl namespace. This can be useful to set the repl ``sys.path`` and make
+certain macros and methods available in any Hy repl.
+
+In addition, init scripts can set defaults for repl config values with:
+
+``repl-spy``
+  (bool) print equivalent Python code before executing.
+
+``repl-output-fn``
+  (callable) single argument function for printing REPL output.
+
+Init scripts can do a number of other things like set banner messages or change the
+prompts. The following shows a number of possibilities::
+
+  ;; Wrapping in an `eval-and-compile` ensures global python packages
+  ;; are available in macros defined in this file as well.
+  (eval-and-compile
+    (import sys os)
+    (sys.path.append "~/<path-to-global-libs>"))
+
+  ;; These modules, macros, and methods are now available in any Hy repl
+  (import
+    re
+    json
+    [pathlib [Path]]
+    [hy.contrib.pprint [pp pformat]])
+
+  (require
+    [hy.extra.anaphoric [%]])
+
+  (setv
+    ;; Spy and output-fn will be set automatically for all hy repls
+    repl-spy True
+    repl-output-fn pformat
+    ;; We can even add colors to the promps. This will set `=>` to green and `...` to red.
+    sys.ps1 "\x01\x1b[0;32m\x02=> \x01\x1b[0m\x02"
+    sys.ps2 "\x01\x1b[0;31m\x02... \x01\x1b[0m\x02")
+
+  ;; Functions and Macros will be available in the repl without qualification
+  (defn slurp [path]
+    (let [path (Path path)]
+      (when (path.exists)
+        (path.read-text))))
+
+  (defmacro greet [person]
+    `(print ~person))
+
 
 --------
 

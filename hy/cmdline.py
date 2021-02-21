@@ -35,7 +35,7 @@ from hy.compiler import (HyASTCompiler, hy_eval, hy_compile,
                          hy_ast_compile_flags)
 from hy.errors import (HyLanguageError, HyRequireError, HyMacroExpansionError,
                        filtered_hy_exceptions, hy_exc_handler)
-from hy.importer import runhy
+from hy.importer import runhy, HyLoader
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
@@ -243,6 +243,25 @@ class HyREPL(code.InteractiveConsole, object):
         self.module.__dict__.update(self.locals)
         self.locals = self.module.__dict__
 
+        if os.environ.get("HYSTARTUP"):
+            try:
+                loader = HyLoader("__hystartup__", os.environ.get("HYSTARTUP"))
+                mod = loader.load_module()
+                imports = mod.__dict__.get(
+                    '__all__',
+                    [name for name in mod.__dict__ if not name.startswith("_")]
+                )
+                imports = {name: mod.__dict__[name] for name in imports}
+                spy = imports.get("repl_spy", spy)
+                output_fn = imports.get("repl_output_fn", output_fn)
+
+                # Load imports and defs
+                self.locals.update(imports)
+
+                # load module macros
+                require(mod, self.module, assignments='ALL')
+            except Exception as e:
+                print(e)
         # Load cmdline-specific macros.
         require('hy.cmdline', self.module, assignments='ALL')
 
