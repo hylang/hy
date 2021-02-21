@@ -279,7 +279,7 @@ def test_ast_good_import_from():
 def test_ast_require():
     "Make sure AST respects (require) syntax"
     can_compile("(require tests.resources.tlib)")
-    can_compile("(require [tests.resources.tlib [qplah parald]])")
+    can_compile('(require [tests.resources.tlib [qplah parald "#taggart"]])')
     can_compile("(require [tests.resources.tlib [*]])")
     can_compile("(require [tests.resources.tlib :as foobar])")
     can_compile("(require [tests.resources.tlib [qplah :as quiz]])")
@@ -288,6 +288,7 @@ def test_ast_require():
     cant_compile("(require [tests.resources.tlib [* qplah]])")
     cant_compile("(require [tests.resources.tlib [qplah *]])")
     cant_compile("(require [tests.resources.tlib [* *]])")
+    cant_compile("(require [tests.resources.tlib [#taggart]]")
 
 
 def test_ast_import_require_dotted():
@@ -609,10 +610,9 @@ def test_lots_of_comment_lines():
 
 
 def test_compiler_macro_tag_try():
-    """Check that try forms within defmacro/deftag are compiled correctly"""
+    """Check that try forms within defmacro are compiled correctly"""
     # https://github.com/hylang/hy/issues/1350
     can_compile("(defmacro foo [] (try None (except [] None)) `())")
-    can_compile("(deftag foo [] (try None (except [] None)) `())")
 
 
 def test_ast_good_yield_from():
@@ -657,3 +657,10 @@ def test_inline_python():
     cant_compile('(py "1 +")')
     can_compile('(pys "if 1:\n  2")')
     cant_compile('(pys "if 1\n  2")')
+
+
+def test_bad_tag_macros():
+    # https://github.com/hylang/hy/issues/1965
+    cant_compile('(defmacro "#a" [] (raise (ValueError))) #a ()')
+    cant_compile('(defmacro "#a" [x] (raise (ValueError))) #a ()')
+    can_compile('(defmacro "#a" [x] 3) #a ()')

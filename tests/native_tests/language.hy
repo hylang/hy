@@ -69,16 +69,15 @@
 (defn test-setv-builtin []
   "NATIVE: test that setv doesn't work on names Python can't assign to
   and that we can't mangle"
-  (try (eval '(setv None 1))
-       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
-  (try (eval '(defn None [] (print "hello")))
-       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
-  (try (eval '(setv False 1))
-       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
-  (try (eval '(setv True 0))
-       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e)))))
-  (try (eval '(defn True [] (print "hello")))
-       (except [e [SyntaxError]] (assert (in "illegal target for assignment" (str e))))))
+  (for [form '[
+      (setv None 1)
+      (defn None [] (print "hello"))
+      (setv False 1)
+      (setv True 0)
+      (defn True [] (print "hello"))]]
+    (with [e (pytest.raises SyntaxError)]
+      (eval form))
+    (assert (in "illegal target for assignment" (str e)))))
 
 
 (defn test-setv-pairs []
@@ -141,33 +140,14 @@
 
 (defn test-store-errors []
   "NATIVE: test that setv raises the correct errors when given wrong argument types"
-  (try
-    (do
-      (eval '(setv (do 1 2) 1))
-      (assert False))
-    (except [e HyLanguageError]
-      (assert (= e.msg "Can't assign or delete a non-expression"))))
-
-  (try
-    (do
-      (eval '(setv 1 1))
-      (assert False))
-    (except [e HyLanguageError]
-      (assert (= e.msg "Can't assign or delete a HyInteger"))))
-
-  (try
-    (do
-      (eval '(setv {1 2} 1))
-      (assert False))
-    (except [e HyLanguageError]
-      (assert (= e.msg "Can't assign or delete a HyDict"))))
-
-  (try
-    (do
-      (eval '(del 1 1))
-      (assert False))
-    (except [e HyLanguageError]
-      (assert (= e.msg "Can't assign or delete a HyInteger")))))
+  (for [[form s] '[
+      [(setv (do 1 2) 1) "a non-expression"]
+      [(setv 1 1) "a HyInteger"]
+      [(setv {1 2} 1) "a HyDict"]
+      [(del 1 1) "a HyInteger"]]]
+    (with [e (pytest.raises HyLanguageError)]
+      (eval form))
+    (assert (= e.value.msg (+ "Can't assign or delete " s)))))
 
 
 (defn test-no-str-as-sym []
@@ -764,9 +744,9 @@
   (defn gen [] (yield 3) "goodbye")
   (setv gg (gen))
   (assert (= 3 (next gg)))
-  (try (next gg)
-       (except [e StopIteration] (assert (hasattr e "value"))
-                                 (assert (= (getattr e "value") "goodbye")))))
+  (with [e (pytest.raises StopIteration)]
+    (next gg))
+  (assert (= e.value.value "goodbye")))
 
 
 (defn test-yield-in-try []
@@ -1195,23 +1175,17 @@
   (assert (= 1 (do (setv d {}) (eval '(setv x 1) d) (eval (quote x) d))))
   (setv d1 {}  d2 {})
   (eval '(setv x 1) d1)
-  (try
-    (do
-       ; this should fail with a name error
-       (eval (quote x) d2)
-       (assert False "We shouldn't have arrived here"))
-    (except [e Exception]
-      (assert (isinstance e NameError)))))
+  (with [e (pytest.raises NameError)]
+    (eval (quote x) d2)))
 
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
   ; yo dawg
-  (try (eval '(eval)) (except [e TypeError]) (else (assert False)))
+  (with [(pytest.raises TypeError)] (eval '(eval)))
   (defclass C)
-  (try (eval (C)) (except [e TypeError]) (else (assert False)))
-  (try (eval 'False []) (except [e TypeError]) (else (assert False)))
-  (try (eval 'False {} 1) (except [e TypeError]) (else (assert False))))
-
+  (with [(pytest.raises TypeError)] (eval (C)))
+  (with [(pytest.raises TypeError)] (eval 'False []))
+  (with [(pytest.raises TypeError)] (eval 'False {} 1)))
 
 (defn test-eval-quasiquote []
   ; https://github.com/hylang/hy/issues/1174
@@ -1393,11 +1367,9 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-undefined-name []
   "NATIVE: test that undefined names raise errors"
-  (try
-   (do
-    xxx
-    (assert False))
-   (except [NameError])))
+  (with [(pytest.raises NameError)]
+    xxx))
+
 
 (defn test-if-in-if []
   "NATIVE: test that we can use if in if"
@@ -1451,61 +1423,43 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-require []
   "NATIVE: test requiring macros from python code"
-  (try (qplah 1 2 3 4)
-       (except [NameError] True)
-       (else (assert False)))
-  (try (parald 1 2 3 4)
-       (except [NameError] True)
-       (else (assert False)))
+  (with [(pytest.raises NameError)]
+    (qplah 1 2 3 4))
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
   (require [tests.resources.tlib [qplah]])
   (assert (= (qplah 1 2 3) [8 1 2 3]))
-  (try (parald 1 2 3 4)
-       (except [NameError] True)
-       (else (assert False)))
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
   (require tests.resources.tlib)
   (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
-  (try (parald 1 2 3 4)
-       (except [NameError] True)
-       (else (assert False)))
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
   (require [tests.resources.tlib :as T])
   (assert (= (T.parald 1 2 3) [9 1 2 3]))
-  (try (parald 1 2 3 4)
-       (except [NameError] True)
-       (else (assert False)))
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
   (require [tests.resources.tlib [parald :as p]])
   (assert (= (p 1 2 3) [9 1 2 3]))
-  (try (parald 1 2 3 4)
-       (except [NameError] True)
-       (else (assert False)))
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
+  (require [tests.resources.tlib ["#taggart"]])
+  (assert (= #taggart 15 [10 15]))
   (require [tests.resources.tlib [*]])
   (assert (= (parald 1 2 3) [9 1 2 3])))
 
 
 (defn test-require-native []
   "NATIVE: test requiring macros from native code"
-  (assert (= "failure"
-             (try
-              (do (setv x [])
-                  (rev (.append x 1) (.append x 2) (.append x 3))
-                  (assert (= x [3 2 1]))
-                  "success")
-              (except [NameError] "failure"))))
+  (with [(pytest.raises NameError)]
+    (rev 1))
   (import tests.native_tests.native_macros)
-  (assert (= "failure"
-             (try
-              (do (setv x [])
-                  (rev (.append x 1) (.append x 2) (.append x 3))
-                  (assert (= x [3 2 1]))
-                  "success")
-              (except [NameError] "failure"))))
+  (with [(pytest.raises NameError)]
+    (rev 1))
   (require [tests.native_tests.native_macros [rev]])
-  (assert (= "success"
-             (try
-              (do (setv x [])
-                  (rev (.append x 1) (.append x 2) (.append x 3))
-                  (assert (= x [3 2 1]))
-                  "success")
-              (except [NameError] "failure")))))
+  (setv x [])
+  (rev (.append x 1) (.append x 2) (.append x 3))
+  (assert (= x [3 2 1])))
 
 
 (defn test-encoding-nightmares []
@@ -1554,10 +1508,8 @@ cee\"} dee" "ey bee\ncee dee"))
   (setv foo 42)
   (assert (= foo 42))
   (del foo)
-  (assert (= 'good
-    (try
-      (do foo 'bad)
-      (except [NameError] 'good))))
+  (with [(pytest.raises NameError)]
+    foo)
   (setv test (list (range 5)))
   (del (get test 4))
   (assert (= test [0 1 2 3]))
@@ -1647,10 +1599,8 @@ macros()
 
 (defn test-only-parse-lambda-list-in-defn []
   "NATIVE: test lambda lists are only parsed in defn"
-  (try
-   (foo [&rest spam] 1)
-   (except [NameError] True)
-   (else (raise AssertionError))))
+  (with [(pytest.raises NameError)]
+    (setv x [&rest spam]  y 1)))
 
 (defn test-read []
   "NATIVE: test that read takes something for stdin and reads"
@@ -1669,10 +1619,8 @@ macros()
   "EOF test"
   (setv stdin-buffer (StringIO "(+ 2 2)"))
   (read stdin-buffer)
-  (try
-    (read stdin-buffer)
-    (except [e Exception]
-      (assert (isinstance e EOFError)))))
+  (with [(pytest.raises EOFError)]
+    (read stdin-buffer)))
 
 (defn test-read-str []
   "NATIVE: test read-str"
@@ -1760,9 +1708,11 @@ macros()
 
 
 (defn test-exception-cause []
-  (try (raise ValueError :from NameError)
-       (except [e [ValueError]]
-         (assert (= (type (. e __cause__)) NameError)))))
+  (assert (is NameError (type (.
+    (try
+      (raise ValueError :from NameError)
+      (except [e [ValueError]] e))
+    __cause__)))))
 
 
 (defn test-kwonly []
@@ -1773,15 +1723,12 @@ macros()
   (assert (= (kwonly-foo-default-false :foo True) True))
   ;; keyword-only without default ...
   (defn kwonly-foo-no-default [&kwonly foo] foo)
-  (setv attempt-to-omit-default (try
-                                  (kwonly-foo-no-default)
-                                  (except [e [Exception]] e)))
+  (with [e (pytest.raises TypeError)]
+    (kwonly-foo-no-default))
+  (assert (in "missing 1 required keyword-only argument: 'foo'"
+              (. e value args [0])))
   ;; works
   (assert (= (kwonly-foo-no-default :foo "quux") "quux"))
-  ;; raises TypeError with appropriate message if not supplied
-  (assert (isinstance attempt-to-omit-default TypeError))
-  (assert (in "missing 1 required keyword-only argument: 'foo'"
-              (. attempt-to-omit-default args [0])))
   ;; keyword-only with other arg types works
   (defn function-of-various-args [a b &rest args &kwonly foo &kwargs kwargs]
     (, a b args foo kwargs))
@@ -1814,13 +1761,13 @@ macros()
     (yield 1)
     (yield 2)
     (yield 3)
-    (assert 0))
+    (/ 1 0))
   (defn yield-from-test []
     (for [i (range 3)]
       (yield i))
     (try
       (yield-from (yield-from-subgenerator-test))
-      (except [e AssertionError]
+      (except [e ZeroDivisionError]
         (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
 

@@ -405,9 +405,8 @@ def test_complex():
 def test_tag_macro():
     """Ensure tag macros are handled properly"""
     entry = tokenize("#^()")
-    assert entry[0][0] == HySymbol("dispatch-tag-macro")
-    assert entry[0][1] == HyString("^")
-    assert len(entry[0]) == 3
+    assert entry[0][0] == HySymbol("#^")
+    assert len(entry[0]) == 2
 
 
 def test_lex_comment_382():

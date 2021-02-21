@@ -41,13 +41,9 @@ class Completer(object):
                      builtins.__dict__,
                      namespace]
 
-        self.tag_path = []
-
         namespace.setdefault('__macros__', {})
-        namespace.setdefault('__tags__', {})
 
         self.path.append(namespace['__macros__'])
-        self.tag_path.append(namespace['__tags__'])
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer
@@ -84,20 +80,8 @@ class Completer(object):
                         matches.append(k)
         return matches
 
-    def tag_matches(self, text):
-        text = text[1:]
-        matches = []
-        for p in self.tag_path:
-            for k in p.keys():
-                if isinstance(k, str):
-                    if k.startswith(text):
-                        matches.append("#{}".format(k))
-        return matches
-
     def complete(self, text, state):
-        if text.startswith("#"):
-            matches = self.tag_matches(text)
-        elif "." in text:
+        if "." in text:
             matches = self.attr_matches(text)
         else:
             matches = self.global_matches(text)

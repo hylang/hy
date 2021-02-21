@@ -315,7 +315,7 @@ parentheses. Tag macros allow this. The name of a tag macro is often just one
 character long, but since Hy allows most Unicode characters in the name of a
 macro (or ordinary variable), you won't out of characters soon. ::
 
-  => (deftag ↻ [code]
+  => (defmacro "#↻" [code]
   ...  (setv op (last code) params (list (butlast code)))
   ...  `(~op ~@params))
   => #↻(1 2 3 +)

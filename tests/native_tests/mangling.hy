@@ -89,7 +89,7 @@
   (assert (= x "aabb")))
 
 
-(deftag tm---x [form]
+(defmacro "#tm---x" [form]
   [form form])
 (defn test-tag-macro []
   (setv x "")

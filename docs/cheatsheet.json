@@ -88,7 +88,6 @@
           "hy.core.macros.comment",
           "hy.core.macros.doc",
           "hy.core.bootstrap.defmacro",
-          "hy.core.bootstrap.deftag",
           "hy.core.bootstrap.if",
           "hy.core.bootstrap.defn/a",
           "hy.core.language.calling-module",

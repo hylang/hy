@@ -8,7 +8,7 @@ in the expansion of `nonlocal-test-macro'."
   (setv macro-level-var "tests.resources.macros.macro-with-require")
   `(nonlocal-test-macro ~a))
 
-(deftag test-module-tag [a]
+(defmacro "#test-module-tag" [a]
   "The variable `macro-level-var' here should not bind to the same-named symbol
 in the expansion of `nonlocal-test-macro'."
   (setv macro-level-var "tests.resources.macros.macro-with-require")
@@ -19,7 +19,7 @@ in the expansion of `nonlocal-test-macro'."
  be in the expansion's!"
   `(local-test-macro ~a))
 
-(deftag test-module-tag-2 [a]
+(defmacro "#test-module-tag-2" [a]
   "The macro `local-test-macro` isn't in this module's namespace, so it better
  be in the expansion's!"
   `(local-test-macro ~a))

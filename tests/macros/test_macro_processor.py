@@ -2,7 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from hy.macros import macro, macroexpand, tag_macroexpand
+from hy.macros import macro, macroexpand
 from hy.lex import tokenize
 
 from hy.models import HyString, HyList, HySymbol, HyExpression, HyFloat
@@ -63,9 +63,9 @@ def test_macroexpand_nan():
 
 def test_macroexpand_source_data():
     # https://github.com/hylang/hy/issues/1944
-    ast = HyString('a')
+    ast = HyExpression([HySymbol('#@'), HyString('a')])
     ast.start_line = 3
     ast.start_column = 5
-    bad = tag_macroexpand(mangle("@"), ast, "hy.core.macros")
+    bad = macroexpand(ast, "hy.core.macros")
     assert bad.start_line == 3
     assert bad.start_column == 5

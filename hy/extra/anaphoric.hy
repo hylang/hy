@@ -223,7 +223,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ~acc))
 
 
-(deftag % [expr]
+(defmacro "#%" [expr]
   "Makes an expression into a function with an implicit ``%`` parameter list.
 
   A ``%i`` symbol designates the (1-based) *i* th parameter (such as ``%3``).
