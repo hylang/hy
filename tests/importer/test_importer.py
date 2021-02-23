@@ -53,7 +53,7 @@ def test_runpy():
 
 
 def test_stringer():
-    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), __name__)
+    _ast = hy_compile(hy_parse("(defn square [x] (* x x))"), __name__, import_stdlib=False)
 
     assert type(_ast.body[0]) == ast.FunctionDef
 
