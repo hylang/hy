@@ -12,7 +12,9 @@
 (import operator)  ; shadow not available yet
 (import sys)
 (import [collections.abc :as cabc])
-(import [hy.models [HySymbol HyKeyword]])
+(import [hy.models [HyBytes HyComplex HyDict HyExpression HyFComponent
+                    HyFString HyFloat HyInteger HyKeyword HyList
+                    HyObject HySequence HySet HyString HySymbol]])
 (import [hy.lex [tokenize mangle unmangle read read-str]])
 (import [hy.lex.exceptions [LexException PrematureEndOfInput]])
 (import [hy.compiler [HyASTCompiler calling-module]])
@@ -1405,4 +1407,6 @@
     macroexpand-1 mangle merge-with multicombinations neg? none? nth
     numeric? odd? parse-args partition permutations pos? product read read-str
     remove repeat repeatedly rest reduce second some string? symbol?
-    take take-nth take-while tuple? unmangle xor tee zero? zip-longest])
+    take take-nth take-while tuple? unmangle xor tee zero? zip-longest
+    HyBytes HyComplex HyDict HyExpression HyFComponent HyFString HyFloat
+    HyInteger HyKeyword HyList HyObject HySequence HySet HyString HySymbol])
