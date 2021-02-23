@@ -15,7 +15,7 @@
 (import [hy.models [HySymbol HyKeyword]])
 (import [hy.lex [tokenize mangle unmangle read read-str]])
 (import [hy.lex.exceptions [LexException PrematureEndOfInput]])
-(import [hy.compiler [HyASTCompiler calling-module hy-eval :as eval]])
+(import [hy.compiler [HyASTCompiler calling-module]])
 
 (import [hy.core.shadow [*]])
 
@@ -1398,7 +1398,7 @@
 (setv EXPORTS
   '[*map accumulate butlast calling-module calling-module-name chain coll?
     combinations comp complement compress constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? eval even? every? first
+    disassemble drop drop-last drop-while empty? even? every? first
     flatten float? fraction gensym group-by identity inc instance?
     integer? integer-char? interleave interpose islice iterable?
     iterate iterator? juxt keyword keyword? last list? macroexpand

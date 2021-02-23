@@ -1956,13 +1956,13 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
     Examples:
       ::
 
-         => (eval '(print "Hello World"))
+         => (hy.eval '(print "Hello World"))
          "Hello World"
 
       If you want to evaluate a string, use ``read-str`` to convert it to a
       form first::
 
-         => (eval (read-str "(+ 1 1)"))
+         => (hy.eval (read-str "(+ 1 1)"))
          2
 
     Args:

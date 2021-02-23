@@ -121,7 +121,7 @@
  [[[[[1 2 3]
      "1 2"]]]]]]FOO])
 
-  (setv o (eval (read-str exp)))
+  (setv o (hy.eval (read-str exp)))
   (assert (= (pprint.pformat o :width 16) exp))
   (assert (= (pprint.pformat o :width 17) exp))
   (assert (= (pprint.pformat o :width 22) exp))

@@ -1,6 +1,8 @@
 API
 ===
 
+.. hy:autofunction:: hy.eval
+
 .. _special-forms:
 
 Special Forms
@@ -684,7 +686,7 @@ Special Forms
        (print "A result from Python:" (py "'hello' + 'world'"))
 
    The code must be given as a single string literal, but you can still use
-   macros, :hy:func:`eval <hy.core.language.eval>`, and related tools to construct the ``py`` form. If
+   macros, :hy:func:`hy.eval <hy.eval>`, and related tools to construct the ``py`` form. If
    having to backslash-escape internal double quotes is getting you down, try a
    :ref:`bracket string <syntax-bracket-strings>`. If you want to evaluate some
    Python code that's only defined at run-time, try the standard Python function
@@ -741,7 +743,7 @@ Special Forms
        HyExpression([
          HySymbol('print'),
          HyString('Hello World')])
-       => (eval x)
+       => (hy.eval x)
        Hello World
 
 
@@ -1197,8 +1199,6 @@ Core
    :members:
 
 .. hy:autofunction:: hy.core.language.calling-module
-
-.. hy:autofunction:: hy.core.language.eval
 
 .. hy:autofunction:: hy.core.language.mangle
 

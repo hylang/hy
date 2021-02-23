@@ -64,23 +64,23 @@
 (defn test-macro-kw []
   "NATIVE: test that an error is raised when * or #** is used in a macro"
   (try
-    (eval '(defmacro f [* a b]))
+    (hy.eval '(defmacro f [* a b]))
     (except [e HyTypeError]
       (assert (= e.msg "macros cannot use '*', or '#**'")))
     (else (assert False)))
 
   (try
-    (eval '(defmacro f [#** kw]))
+    (hy.eval '(defmacro f [#** kw]))
     (except [e HyTypeError]
       (assert (= e.msg "macros cannot use '*', or '#**'")))
     (else (assert False))))
 
 (defn test-macro-bad-name []
   (with [excinfo (pytest.raises HyTypeError)]
-    (eval '(defmacro :kw [])))
+    (hy.eval '(defmacro :kw [])))
   (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol or string for macro name"))
   (with [excinfo (pytest.raises HyTypeError)]
-    (eval '(defmacro "foo.bar" [])))
+    (hy.eval '(defmacro "foo.bar" [])))
   (assert (= (. excinfo value msg) "periods are not allowed in macro names")))
 
 (defn test-fn-calling-macro []
@@ -494,7 +494,7 @@ in expansions."
   (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
 
   (with [excinfo (pytest.raises HyMacroExpansionError)]
-    (eval test-expr))
+    (hy.eval test-expr))
 
   (setv output (traceback.format_exception_only
                  excinfo.type excinfo.value))
@@ -515,7 +515,7 @@ in expansions."
   ;; This should throw a `HyWrapperError` that gets turned into a
   ;; `HyMacroExpansionError`.
   (with [excinfo (pytest.raises HyMacroExpansionError)]
-    (eval '(do (defmacro wrap-error-test []
+    (hy.eval '(do (defmacro wrap-error-test []
                  (fn []))
                (wrap-error-test))))
   (assert (in "HyWrapperError" (str excinfo.value))))

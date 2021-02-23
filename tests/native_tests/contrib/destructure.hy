@@ -214,9 +214,9 @@
 
 (defn test-errors []
   (with [(pytest.raises TypeError)]
-    (eval (macroexpand '(setv+ [a b] 1))))
+    (hy.eval (macroexpand '(setv+ [a b] 1))))
   (with [(pytest.raises AttributeError)]
-    (eval (macroexpand '(setv+ {a :a} 1))))
+    (hy.eval (macroexpand '(setv+ {a :a} 1))))
   (with [(pytest.raises SyntaxError)]
     (destructure '{a b c} {:a 1}))
   (with [(pytest.raises SyntaxError)]

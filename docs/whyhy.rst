@@ -122,7 +122,7 @@ benefit of error messages, and models can represent syntactic features that the
 corresponding primitive type can't, such as the order in which elements appear
 in a set literal. However, models can be concatenated and indexed just like
 plain lists, and you can return ordinary Python types from a macro or give them
-to ``eval`` and Hy will automatically promote them to models.
+to ``hy.eval`` and Hy will automatically promote them to models.
 
 Hy takes much of its semantics from Python. For example, Hy is a Lisp-1 because
 Python functions use the same namespace as objects that aren't functions. In
