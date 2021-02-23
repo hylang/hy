@@ -12,6 +12,8 @@ Removals
 * `#doc` has been removed. Instead of `#doc @`, say `(doc "#@")`.
 * `__tags__` has been removed. Tag macros are now tracked in
   `__macros__`.
+* `eval` has been removed from core.
+  Use the fully qualified name `hy.eval` instead.
 
 Breaking Changes
 ------------------------------
@@ -56,6 +58,9 @@ Bug Fixes
 * Fixed compiler crash on `.` form with empty attributes.
 * Attempts to assign to constants are now more reliably detected.
 * Fixed bugs with `require` of names that need mangling.
+* Fixed namespace pollution caused by automatic imports of Hy builtins and macros.
+* Fixed Hy model objects sometimes not being in scope.
+* Fixed `doc` sometimes failing to find builtin macros.
 
 0.20.0 (released 2021-01-25)
 ==============================
