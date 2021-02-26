@@ -1,5 +1,1 @@
-pytest >= 3.2.1
-
-# code quality
-flake8
-coverage
+pytest >= 6

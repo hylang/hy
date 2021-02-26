@@ -1,5 +1,6 @@
-sudo: false
-dist: bionic
+arch: amd64
+os: linux
+dist: focal
 language: python
 python:
   - "3.6"
@@ -12,7 +13,6 @@ install:
   - pip install -e .
 script: pytest
 cache: pip
-after_success: make coveralls
 notifications:
   email:
     - paultag@gmail.com
