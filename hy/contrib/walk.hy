@@ -7,9 +7,7 @@
 .. versionadded:: 0.11.0
 "
 
-(import [hy [HyExpression HyDict]]
-        [hy.models [HySequence]]
-        [functools [partial]]
+(import [functools [partial]]
         [importlib [import-module]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
@@ -249,7 +247,6 @@
   (expand form))
 
 ;; TODO: move to hy.extra.reserved?
-(import hy)
 (setv special-forms (list (.keys hy.compiler._special-form-compilers)))
 
 

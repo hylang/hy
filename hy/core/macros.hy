@@ -6,13 +6,6 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
-(import [hy.models [HyList HySymbol]])
-
-(eval-and-compile
-  (import [hy.core.language [*]]))
-
-(require [hy.core.bootstrap [*]])
-
 
 (defmacro as-> [head name #* rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.

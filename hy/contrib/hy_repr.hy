@@ -17,8 +17,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
   [math [isnan]]
   re
   datetime
-  collections
-  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyFString HyFComponent HyBytes]])
+  collections)
 
 (try
   (import [_collections_abc [dict-keys dict-values dict-items]])

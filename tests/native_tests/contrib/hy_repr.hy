@@ -121,11 +121,10 @@
     "(Fooey :cd 11 :a_b 12)")))
 
 (defn test-hy-model-constructors []
-  (import hy)
-  (assert (= (hy-repr (hy.HyInteger 7)) "'7"))
-  (assert (= (hy-repr (hy.HyString "hello")) "'\"hello\""))
-  (assert (= (hy-repr (hy.HyList [1 2 3])) "'[1 2 3]"))
-  (assert (= (hy-repr (hy.HyDict [1 2 3])) "'{1 2  3}")))
+  (assert (= (hy-repr (HyInteger 7)) "'7"))
+  (assert (= (hy-repr (HyString "hello")) "'\"hello\""))
+  (assert (= (hy-repr (HyList [1 2 3])) "'[1 2 3]"))
+  (assert (= (hy-repr (HyDict [1 2 3])) "'{1 2  3}")))
 
 (defn test-hy-repr-self-reference []
 

@@ -105,7 +105,6 @@ Iterator Pattern
 Iterator patterns are specified using round brackets. They are the same as list patterns, but can be safely used with infinite generators. The iterator pattern does not allow for recursive destructuring within the ``:as`` special option.
 "
 
-(import [hy.models [HyDict HyExpression HyKeyword HyList HySymbol]])
 (require [hy.contrib.walk [let]])
 
 (defmacro! ifp [o!pred o!expr #* clauses]
