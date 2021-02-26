@@ -507,6 +507,45 @@
   `(if-not ~test (do ~@body)))
 
 
+(defn _do-n [count-form body]
+  `(for [~(gensym) (range ~count-form)]
+    ~@body))
+
+
+(defmacro do-n [count-form &rest body]
+  "Execute `body` a number of times equal to `count-form` and return
+  ``None``. (To collect return values, use :hy:macro:`list-n`
+  instead.) Negative values of the count are treated as 0.
+
+  This macro is implemented as a :hy:macro:`for` loop, so you can use
+  :hy:macro:`break` and :hy:macro:`continue` in the body.
+
+  ::
+
+     => (do-n 3 (print \"hi\"))
+     hi
+     hi
+     hi
+  "
+  (_do-n count-form body))
+
+
+(defmacro list-n [count-form &rest body]
+  "Like :hy:macro:`do-n`, but the results are collected into a list.
+
+  ::
+
+    => (setv counter 0)
+    => (list-n 5 (+= counter 1) counter)
+    [1 2 3 4 5]
+  "
+  (setv l (gensym))
+  `(do
+    (setv ~l [])
+    ~(_do-n count-form [`(.append ~l (do ~@body))])
+    ~l))
+
+
 (defmacro with-gensyms [args &rest body]
   "Execute `body` with `args` as bracket of names to gensym for use in macros.
 

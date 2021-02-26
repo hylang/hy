@@ -717,3 +717,30 @@ result['y in globals'] = 'y' in globals()")
   (setv [out err] (.readouterr capsys))
   (assert (in "Look at the quality of that picture!" out))
   (assert (empty? err)))
+
+
+(defn test-do-n []
+  (setv n 0)
+
+  (do-n 1 (+= n 1))
+  (assert (= n 1))
+  (do-n 3 (+= n 1))
+  (assert (= n 4))
+  (do-n 0 (+= n 1))
+  (assert (= n 4))
+  (do-n -2 (+= n 1))
+  (assert (= n 4))
+
+  (do-n 2 (+= n 1) (+= n 2))
+  (assert (= n 10))
+
+  (do-n 2 (+= n 1) (+= n 2) (break))
+  (assert (= n 13)))
+
+
+(defn test-list-n []
+
+  (assert (= (list-n 4 1) [1 1 1 1]))
+
+  (setv l (list (range 10)))
+  (assert (= (list-n 3 (.pop l)) [9 8 7])))
