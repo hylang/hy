@@ -109,9 +109,6 @@ _bad_roots = tuple(ast_str(x) for x in (
     "unquote", "unquote-splice", "unpack-mapping", "except"))
 
 
-def named_constant(expr, v):
-    return asty.Constant(expr, value=v)
-
 def special(names, pattern):
     """Declare special operators. The decorated method and the given pattern
     is assigned to _special_form_compilers for each of the listed names."""
@@ -960,7 +957,7 @@ class HyASTCompiler(object):
         # Initialize the tempvar to None in case the `with` exits
         # early with an exception.
         initial_assign = asty.Assign(
-            expr, targets=[name], value=named_constant(expr, None))
+            expr, targets=[name], value=asty.Constant(expr, value=None))
 
         node = asty.With if root == "with*" else asty.AsyncWith
         the_with = node(expr,
@@ -1220,7 +1217,7 @@ class HyASTCompiler(object):
         opnode, default = ops[operator]
         osym = expr[0]
         if len(args) == 0:
-            return named_constant(osym, default)
+            return asty.Constant(osym, value=default)
         elif len(args) == 1:
             return self.compile(args[0])
         ret = Result()
@@ -1282,7 +1279,7 @@ class HyASTCompiler(object):
     def compile_compare_op_expression(self, expr, root, args):
         if len(args) == 1:
             return (self.compile(args[0]) +
-                    named_constant(expr, True))
+                    asty.Constant(expr, value=True))
 
         ops = [self._get_c_op(root) for _ in args[1:]]
         exprs, ret, _ = self._compile_collect(args)
@@ -1373,7 +1370,7 @@ class HyASTCompiler(object):
     @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
     def compile_def_expression(self, expr, root, decls):
         if not decls:
-            return named_constant(expr, None)
+            return asty.Constant(expr, value=None)
 
         result = Result()
         is_assignment_expr = root == HySymbol("setx")
@@ -1479,7 +1476,7 @@ class HyASTCompiler(object):
 
             cond_compiled = (Result()
                 + asty.Assign(cond, targets=[self._storeize(cond, cond_var)],
-                              value=named_constant(cond, True))
+                              value=asty.Constant(cond, value=True))
                 + cond_var)
 
         orel = Result()
@@ -1854,7 +1851,8 @@ class HyASTCompiler(object):
             self.imports[self._stdlib[ast_str(symbol)]].add(ast_str(symbol))
 
         if ast_str(symbol) in ("None", "False", "True"):
-            return named_constant(symbol, ast.literal_eval(ast_str(symbol)))
+            return asty.Constant(symbol, value =
+                ast.literal_eval(ast_str(symbol)))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 
