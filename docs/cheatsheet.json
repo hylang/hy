@@ -330,6 +330,13 @@
           "hy.contrib.destructure.dict=:",
           "hy.contrib.destructure.destructure"
         ]
+      },
+      {
+        "name": "Slicing",
+        "methods": [
+          "hy.contrib.slicing.ncut",
+          "hy.contrib.slicing.#|"
+        ]
       }
     ]
   }

@@ -30,6 +30,7 @@ New Features
 * Added handling for "=" syntax in f-strings.
 * Repl init scripts with `HYSTARTUP` env var
 * `defmacro` and `require` can now take macro names as string literals.
+* New contrib module `slicing` for easy multi-index sequence slicing.
 
 Bug Fixes
 ------------------------------

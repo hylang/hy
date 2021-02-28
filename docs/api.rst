@@ -1276,3 +1276,9 @@ Destructure
 
 .. hy:automodule:: hy.contrib.destructure
    :members:
+
+Slicing
+*******
+
+.. hy:automodule:: hy.contrib.slicing
+   :members:
