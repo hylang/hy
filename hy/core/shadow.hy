@@ -7,6 +7,7 @@
 (import operator)
 
 (require [hy.core.bootstrap [*]])
+(import [hy.lex [mangle]])
 
 (import [functools [reduce]])
 
@@ -274,10 +275,11 @@
     (setv coll (get coll k)))
   coll)
 
-(setv EXPORTS [
-  '+ '- '* '** '/ '// '% '@
-  '<< '>> '& '| '^ '~
-  '< '> '<= '>= '= '!=
-  'and 'or 'not
-  'is 'is-not 'in 'not-in
-  'get])
+(setv __all__
+  (list (map mangle [
+    '+ '- '* '** '/ '// '% '@
+    '<< '>> '& '| '^ '~
+    '< '> '<= '>= '= '!=
+    'and 'or 'not
+    'is 'is-not 'in 'not-in
+    'get])))

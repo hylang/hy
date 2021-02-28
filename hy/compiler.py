@@ -16,7 +16,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
 from hy._compat import (PY3_8, reraise)
-from hy.macros import require, load_macros, macroexpand
+from hy.macros import require, macroexpand
 
 import hy.core
 
@@ -577,8 +577,9 @@ class HyASTCompiler(object):
         elif op in ("unquote", "unquote-splice"):
             level -= 1
 
-        name = form.__class__.__name__
-        imports = set([name])
+        hytype = form.__class__
+        imports = set([hytype.__name__])
+        name = ".".join((hytype.__module__, hytype.__name__))
         body = [form]
 
         if isinstance(form, HySequence):
@@ -1702,7 +1703,8 @@ class HyASTCompiler(object):
                     self.module.__dict__,
                     self.module,
                     filename=self.filename,
-                    source=self.source)
+                    source=self.source,
+                    import_stdlib=False)
         except HyInternalError:
             # Unexpected "meta" compilation errors need to be treated
             # like normal (unexpected) compilation errors at this level
@@ -1946,7 +1948,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
 
 def hy_eval(hytree, locals=None, module=None, ast_callback=None,
-            compiler=None, filename=None, source=None):
+            compiler=None, filename=None, source=None, import_stdlib=True):
     """Evaluates a quoted expression and returns the value.
 
     If you're evaluating hand-crafted AST trees, make sure the line numbers
@@ -2021,7 +2023,7 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
 
     _ast, expr = hy_compile(hytree, module, get_expr=True,
                             compiler=compiler, filename=filename,
-                            source=source)
+                            source=source, import_stdlib=import_stdlib)
 
     if ast_callback:
         ast_callback(_ast, expr)
@@ -2054,7 +2056,7 @@ def _module_file_source(module_name, filename, source):
 
 
 def hy_compile(tree, module, root=ast.Module, get_expr=False,
-               compiler=None, filename=None, source=None):
+               compiler=None, filename=None, source=None, import_stdlib=True):
     """Compile a HyObject tree into a Python AST Module.
 
     Parameters
@@ -2113,6 +2115,11 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
                         "being promoted to one")
 
     compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
+
+    if import_stdlib:
+        # Import hy for compile time, but save the compiled AST.
+        stdlib_ast = compiler.compile(mkexpr("eval-and-compile", mkexpr("import", "hy")))
+
     result = compiler.compile(tree)
     expr = result.force_expr
 
@@ -2121,18 +2128,26 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
 
     body = []
 
-    # Pull out a single docstring and prepend to the resulting body.
-    if (len(result.stmts) > 0 and
-        issubclass(root, ast.Module) and
-        isinstance(result.stmts[0], ast.Expr) and
-        isinstance(result.stmts[0].value, ast.Str)):
+    if issubclass(root, ast.Module):
+        # Pull out a single docstring and prepend to the resulting body.
+        if (result.stmts and
+            isinstance(result.stmts[0], ast.Expr) and
+            isinstance(result.stmts[0].value, ast.Str)):
 
-        body += [result.stmts.pop(0)]
+            body += [result.stmts.pop(0)]
 
-    body += sorted(compiler.imports_as_stmts(tree) + result.stmts,
-                   key=lambda a: not (isinstance(a, ast.ImportFrom) and
-                                      a.module == '__future__'))
+        # Pull out any __future__ imports, since they are required to be at the beginning.
+        while (result.stmts and
+            isinstance(result.stmts[0], ast.ImportFrom) and
+            result.stmts[0].module == '__future__'):
 
+            body += [result.stmts.pop(0)]
+
+        # Import hy for runtime.
+        if import_stdlib:
+            body += stdlib_ast.stmts
+
+    body += result.stmts
     ret = root(body=body, type_ignores=[])
 
     if get_expr:
