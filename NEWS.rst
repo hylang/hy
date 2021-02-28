@@ -42,6 +42,7 @@ Bug Fixes
 * Fixed error handling for non-symbol macro names
 * `doc` and `#doc` now work with names that require mangling.
 * Fixed compiler crash on `.` form with empty attributes.
+* Attempts to assign to constants are now more reliably detected.
 
 0.20.0 (released 2021-01-25)
 ==============================

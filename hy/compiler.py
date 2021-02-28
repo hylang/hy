@@ -538,12 +538,19 @@ class HyASTCompiler(object):
             new_name = ast.Starred(
                 value=self._storeize(expr, name.value, func))
         else:
-            raise self._syntax_error(expr,
-                "Can't assign or delete a %s" % type(expr).__name__)
+            raise self._syntax_error(expr, "Can't assign or delete a " + (
+                "constant"
+                if isinstance(name, ast.Constant)
+                else type(expr).__name__))
 
         new_name.ctx = func()
         ast.copy_location(new_name, name)
         return new_name
+
+    def _nonconst(self, name):
+        if str(name) in ("None", "True", "False"):
+            raise self._syntax_error(name, "Can't assign to constant")
+        return name
 
     def _render_quoted_form(self, form, level):
         """
@@ -723,7 +730,7 @@ class HyASTCompiler(object):
 
         name = None
         if len(exceptions) == 2:
-            name = ast_str(exceptions[0])
+            name = ast_str(self._nonconst(exceptions[0]))
 
         exceptions_list = exceptions[-1] if exceptions else HyList()
         if isinstance(exceptions_list, HyList):
@@ -1405,18 +1412,11 @@ class HyASTCompiler(object):
         if ann is not None:
             # An annotation / annotated assignment is more strict with the target expression.
             invalid_name = not isinstance(ld_name.expr, (ast.Name, ast.Attribute, ast.Subscript))
-        else:
-            invalid_name = (str(name) in ("None", "True", "False")
-                            or isinstance(ld_name.expr, ast.Call))
-
-        if invalid_name:
-            raise self._syntax_error(name, "illegal target for {}".format(
-                                        "annotation" if annotate_only else "assignment"))
 
         if (result.temp_variables
                 and isinstance(name, HySymbol)
                 and '.' not in name):
-            result.rename(name)
+            result.rename(self._nonconst(name))
             if not is_assignment_expr:
                 # Throw away .expr to ensure that (setv ...) returns None.
                 result.expr = None
@@ -1601,7 +1601,8 @@ class HyASTCompiler(object):
                 # positional args.
                 args_defaults.append(None)
 
-            args_ast.append(asty.arg(sym, arg=ast_str(sym), annotation=ann_ast))
+            args_ast.append(asty.arg(
+                sym, arg=ast_str(self._nonconst(sym)), annotation=ann_ast))
 
         return args_ast, args_defaults, ret
 
@@ -1635,7 +1636,7 @@ class HyASTCompiler(object):
         return bases + asty.ClassDef(
             expr,
             decorator_list=[],
-            name=ast_str(name),
+            name=ast_str(self._nonconst(name)),
             keywords=keywords,
             starargs=None,
             kwargs=None,
