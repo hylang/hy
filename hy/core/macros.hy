@@ -772,3 +772,35 @@
 
    Use ``(help foo)`` instead for help with runtime objects."
   `(help (.get __macros__ (mangle '~symbol) None)))
+
+
+(defmacro cfor [f &rest generator]
+  #[[syntactic sugar for passing a ``generator`` expression to the callable ``f``
+
+  Its syntax is the same as :ref:`generator expression <py:genexpr>`, but takes
+  a function ``f`` that the generator will be immedietly passed to. Equivalent
+  to ``(f (gfor ...))``.
+
+  Examples:
+  ::
+     => (cfor tuple x (range 10) :if (odd? x) x)
+     (, 1 3 5 7 9)
+
+  The equivalent in python would be:
+
+     >>> tuple(x for x in range(10) if is_odd(x))
+
+  Some other common functions that take iterables::
+
+     => (cfor all x [1 3 8 5] (< x 10))
+     True
+
+     => (with [f (open "AUTHORS")]
+     ...  (cfor max
+     ...        author (.splitlines (f.read))
+     ...        :setv name (.group (re.match r"\* (.*?) <" author) 1)
+     ...        :if (name.startswith "A")
+     ...        (len name)))
+     20 ;; The number of characters in the longest author's name that starts with 'A'
+  ]]
+  `(~f (gfor ~@generator)))
