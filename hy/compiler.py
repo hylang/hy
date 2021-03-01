@@ -109,9 +109,6 @@ _bad_roots = tuple(ast_str(x) for x in (
     "unquote", "unquote-splice", "unpack-mapping", "except"))
 
 
-def named_constant(expr, v):
-    return asty.Constant(expr, value=v)
-
 def special(names, pattern):
     """Declare special operators. The decorated method and the given pattern
     is assigned to _special_form_compilers for each of the listed names."""
@@ -541,12 +538,19 @@ class HyASTCompiler(object):
             new_name = ast.Starred(
                 value=self._storeize(expr, name.value, func))
         else:
-            raise self._syntax_error(expr,
-                "Can't assign or delete a %s" % type(expr).__name__)
+            raise self._syntax_error(expr, "Can't assign or delete a " + (
+                "constant"
+                if isinstance(name, ast.Constant)
+                else type(expr).__name__))
 
         new_name.ctx = func()
         ast.copy_location(new_name, name)
         return new_name
+
+    def _nonconst(self, name):
+        if str(name) in ("None", "True", "False"):
+            raise self._syntax_error(name, "Can't assign to constant")
+        return name
 
     def _render_quoted_form(self, form, level):
         """
@@ -726,7 +730,7 @@ class HyASTCompiler(object):
 
         name = None
         if len(exceptions) == 2:
-            name = ast_str(exceptions[0])
+            name = ast_str(self._nonconst(exceptions[0]))
 
         exceptions_list = exceptions[-1] if exceptions else HyList()
         if isinstance(exceptions_list, HyList):
@@ -960,7 +964,7 @@ class HyASTCompiler(object):
         # Initialize the tempvar to None in case the `with` exits
         # early with an exception.
         initial_assign = asty.Assign(
-            expr, targets=[name], value=named_constant(expr, None))
+            expr, targets=[name], value=asty.Constant(expr, value=None))
 
         node = asty.With if root == "with*" else asty.AsyncWith
         the_with = node(expr,
@@ -1220,7 +1224,7 @@ class HyASTCompiler(object):
         opnode, default = ops[operator]
         osym = expr[0]
         if len(args) == 0:
-            return named_constant(osym, default)
+            return asty.Constant(osym, value=default)
         elif len(args) == 1:
             return self.compile(args[0])
         ret = Result()
@@ -1282,7 +1286,7 @@ class HyASTCompiler(object):
     def compile_compare_op_expression(self, expr, root, args):
         if len(args) == 1:
             return (self.compile(args[0]) +
-                    named_constant(expr, True))
+                    asty.Constant(expr, value=True))
 
         ops = [self._get_c_op(root) for _ in args[1:]]
         exprs, ret, _ = self._compile_collect(args)
@@ -1373,7 +1377,7 @@ class HyASTCompiler(object):
     @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
     def compile_def_expression(self, expr, root, decls):
         if not decls:
-            return named_constant(expr, None)
+            return asty.Constant(expr, value=None)
 
         result = Result()
         is_assignment_expr = root == HySymbol("setx")
@@ -1408,18 +1412,11 @@ class HyASTCompiler(object):
         if ann is not None:
             # An annotation / annotated assignment is more strict with the target expression.
             invalid_name = not isinstance(ld_name.expr, (ast.Name, ast.Attribute, ast.Subscript))
-        else:
-            invalid_name = (str(name) in ("None", "True", "False")
-                            or isinstance(ld_name.expr, ast.Call))
-
-        if invalid_name:
-            raise self._syntax_error(name, "illegal target for {}".format(
-                                        "annotation" if annotate_only else "assignment"))
 
         if (result.temp_variables
                 and isinstance(name, HySymbol)
                 and '.' not in name):
-            result.rename(name)
+            result.rename(self._nonconst(name))
             if not is_assignment_expr:
                 # Throw away .expr to ensure that (setv ...) returns None.
                 result.expr = None
@@ -1479,7 +1476,7 @@ class HyASTCompiler(object):
 
             cond_compiled = (Result()
                 + asty.Assign(cond, targets=[self._storeize(cond, cond_var)],
-                              value=named_constant(cond, True))
+                              value=asty.Constant(cond, value=True))
                 + cond_var)
 
         orel = Result()
@@ -1604,7 +1601,8 @@ class HyASTCompiler(object):
                 # positional args.
                 args_defaults.append(None)
 
-            args_ast.append(asty.arg(sym, arg=ast_str(sym), annotation=ann_ast))
+            args_ast.append(asty.arg(
+                sym, arg=ast_str(self._nonconst(sym)), annotation=ann_ast))
 
         return args_ast, args_defaults, ret
 
@@ -1638,7 +1636,7 @@ class HyASTCompiler(object):
         return bases + asty.ClassDef(
             expr,
             decorator_list=[],
-            name=ast_str(name),
+            name=ast_str(self._nonconst(name)),
             keywords=keywords,
             starargs=None,
             kwargs=None,
@@ -1854,7 +1852,8 @@ class HyASTCompiler(object):
             self.imports[self._stdlib[ast_str(symbol)]].add(ast_str(symbol))
 
         if ast_str(symbol) in ("None", "False", "True"):
-            return named_constant(symbol, ast.literal_eval(ast_str(symbol)))
+            return asty.Constant(symbol, value =
+                ast.literal_eval(ast_str(symbol)))
 
         return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
 

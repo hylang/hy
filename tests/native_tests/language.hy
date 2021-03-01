@@ -9,7 +9,7 @@
         [operator [or_]]
         pickle
         [typing [get-type-hints List Dict]]
-        [hy.errors [HyLanguageError]]
+        [hy.errors [HyLanguageError HySyntaxError]]
         pytest)
 (import sys)
 
@@ -64,20 +64,6 @@
   (setv foo [0 1 2])
   (setv (get foo 0) 12)
   (assert (= (get foo 0) 12)))
-
-
-(defn test-setv-builtin []
-  "NATIVE: test that setv doesn't work on names Python can't assign to
-  and that we can't mangle"
-  (for [form '[
-      (setv None 1)
-      (defn None [] (print "hello"))
-      (setv False 1)
-      (setv True 0)
-      (defn True [] (print "hello"))]]
-    (with [e (pytest.raises SyntaxError)]
-      (eval form))
-    (assert (in "illegal target for assignment" (str e)))))
 
 
 (defn test-setv-pairs []
@@ -138,16 +124,28 @@
   (assert (= l [["eggs" "ham"]])))
 
 
-(defn test-store-errors []
-  "NATIVE: test that setv raises the correct errors when given wrong argument types"
-  (for [[form s] '[
-      [(setv (do 1 2) 1) "a non-expression"]
-      [(setv 1 1) "a HyInteger"]
-      [(setv {1 2} 1) "a HyDict"]
-      [(del 1 1) "a HyInteger"]]]
+(defn test-illegal-assignments []
+  (for [form '[
+      (setv (do 1 2) 1)
+      (setv 1 1)
+      (setv {1 2} 1)
+      (del 1 1)
+      ; https://github.com/hylang/hy/issues/1780
+      (setv None 1)
+      (setv False 1)
+      (setv True 1)
+      (defn None [] (print "hello"))
+      (defn True [] (print "hello"))
+      (defn f [True] (print "hello"))
+      (for [True [1 2 3]] (print "hello"))
+      (lfor  True [1 2 3]  True)
+      (lfor  :setv True 1  True)
+      (with [True x] (print "hello"))
+      (try 1 (except [True AssertionError] 2))
+      (defclass True [])]]
     (with [e (pytest.raises HyLanguageError)]
       (eval form))
-    (assert (= e.value.msg (+ "Can't assign or delete " s)))))
+    (assert (in "Can't assign" e.value.msg))))
 
 
 (defn test-no-str-as-sym []
