@@ -111,6 +111,7 @@
           "hy.core.macros.as->",
           "hy.core.macros.->",
           "hy.core.macros.->>",
+          "hy.core.macros.cfor",
           "hy.core.macros.doto",
           "hy.core.macros.of",
           "hy.core.macros.unless",
