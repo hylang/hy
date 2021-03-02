@@ -221,7 +221,7 @@ Special symbols in the parameter list of ``defn`` or ``fn`` allow you to
 indicate optional arguments, provide default values, and collect unlisted
 arguments::
 
-    (defn test [a b &optional c [d "x"] &rest e]
+    (defn test [a b [c None] [d "x"] #* e]
       [a b c d e])
     (print (test 1 2))            ; => [1, 2, None, 'x', ()]
     (print (test 1 2 3 4 5 6 7))  ; => [1, 2, 3, 4, (5, 6, 7)]

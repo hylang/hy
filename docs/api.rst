@@ -35,7 +35,7 @@ Special Forms
 
       ; Annotate a as an int, c as an int, and b as a str.
       ; Equivalent to: def func(a: int, b: str = None, c: int = 1): ...
-      (defn func [^int a &optional ^str b ^int [c 1]] ...)
+      (defn func [^int a ^str [b None] ^int [c 1]] ...)
 
    The rules are:
 
@@ -85,7 +85,7 @@ Special Forms
    unknown keys raises an :exc:`IndexError` (on lists and tuples) or a
    :exc:`KeyError` (on dictionaries).
 
-.. hy:function:: (fn [name &rest arags])
+.. hy:function:: (fn [name #* arags])
 
    ``fn``, like Python's ``lambda``, can be used to define an anonymous function.
    Unlike Python's ``lambda``, the body of the function can comprise several
@@ -124,7 +124,7 @@ Special Forms
        Multiplies input by three and returns result
        (END)
 
-.. hy:function:: (fn/a [name &rest args])
+.. hy:function:: (fn/a [name #* args])
 
    ``fn/a`` is a variant of ``fn`` than defines an anonymous coroutine.
    The parameters are similar to ``defn/a``: the first parameter is
@@ -167,7 +167,7 @@ Special Forms
      ...       (print "Try again")))
 
 
-.. hy:function:: (cmp [&rest args])
+.. hy:function:: (cmp [#* args])
 
    ``cmp`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
    required for unchained comparisons, which have only one comparison operator,
@@ -215,7 +215,7 @@ Special Forms
        ...     (continue))
        ...   (side-effect2))
 
-.. hy:function:: (do [&rest body])
+.. hy:function:: (do [#* body])
 
    ``do`` (called ``progn`` in some Lisps) takes any number of forms,
    evaluates them, and returns the value of the last one, or ``None`` if no
@@ -228,7 +228,7 @@ Special Forms
        => (+ 1 (do (setv x (+ 1 1)) x))
        3
 
-.. hy:function:: (for [&rest args])
+.. hy:function:: (for [#* args])
 
    ``for`` is used to evaluate some forms for each element in an iterable
    object, such as a list. The return values of the forms are discarded and
@@ -282,7 +282,7 @@ Special Forms
        3
        loop finished
 
-.. hy:function:: (assert [condition &optional label])
+.. hy:function:: (assert [condition [label None]])
 
    ``assert`` is used to verify conditions while the program is
    running. If the condition is not met, an :exc:`AssertionError` is
@@ -328,7 +328,7 @@ Special Forms
        (set-a 5)
        (print-a)
 
-.. hy:function:: (get [coll key1 &rest keys])
+.. hy:function:: (get [coll key1 #* keys])
 
    ``get`` is used to access single elements in collections. ``get`` takes at
    least two parameters: the *data structure* and the *index* or *key* of the
@@ -358,7 +358,7 @@ Special Forms
    .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
              index that is out of bounds.
 
-.. hy:macro:: (import [&rest forms])
+.. hy:macro:: (import [#* forms])
 
    ``import`` is used to import modules, like in Python. There are several ways
    that ``import`` can be used.
@@ -401,7 +401,7 @@ Special Forms
        ;; Python: from sys import *
        (import [sys [*]])
 
-.. hy:function:: (eval-and-compile [&rest body])
+.. hy:function:: (eval-and-compile [#* body])
 
    ``eval-and-compile`` is a special form that takes any number of forms. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice.
 
@@ -419,7 +419,7 @@ Special Forms
 
    Had the ``defn`` not been wrapped in ``eval-and-compile``, ``m`` wouldn't be able to call ``add``, because when the compiler was expanding ``(m 3)``, ``add`` wouldn't exist yet.
 
-.. hy:function:: (eval-when-compile [&rest body])
+.. hy:function:: (eval-when-compile [#* body])
 
    ``eval-when-compile`` is like ``eval-and-compile``, but the code isn't executed at run-time. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function).
 
@@ -437,7 +437,7 @@ Special Forms
        (print (m 3))     ; prints 5
        (print (add 3 6)) ; raises NameError: name 'add' is not defined
 
-.. hy:macro:: (lfor [binding iterable &rest body])
+.. hy:macro:: (lfor [binding iterable #* body])
 
    The comprehension forms ``lfor``, :hy:macro:`sfor`, :hy:macro:`dfor`, :hy:macro:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
@@ -494,7 +494,7 @@ Special Forms
    contain Python statements, with the attendant consequences for calling
    ``return``. By contrast, ``for`` shares the caller's scope.
 
-.. hy:macro:: (dfor [binding iterable &rest body])
+.. hy:macro:: (dfor [binding iterable #* body])
 
     ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
     is the same as that of `:hy:macro:`lfor` except that the final value form must be
@@ -509,7 +509,7 @@ Special Forms
         {0: 0, 1: 10, 2: 20, 3: 30, 4: 40}
 
 
-.. hy:macro:: (gfor [binding iterable &rest body])
+.. hy:macro:: (gfor [binding iterable #* body])
 
    ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
    is the same as that of :hy:macro:`lfor`. The difference is that ``gfor`` returns
@@ -527,12 +527,12 @@ Special Forms
        => accum
        [0, 1, 2, 3, 4, 5]
 
-.. hy:macro:: (sfor [binding iterable &rest body])
+.. hy:macro:: (sfor [binding iterable #* body])
 
    ``sfor`` creates a set comprehension. ``(sfor CLAUSES VALUE)`` is
    equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:macro:`lfor`.
 
-.. hy:function:: (setv [&rest args])
+.. hy:function:: (setv [#* args])
 
    ``setv`` is used to bind a value, object, or function to a symbol.
 
@@ -566,7 +566,7 @@ Special Forms
        a b ['c', 'd', 'e', 'f', 'g']
 
 
-.. hy:function:: (setx [&rest args])
+.. hy:function:: (setx [#* args])
 
    Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment expression (see :pep:`572`). It requires Python 3.8 or later. Only one target–value pair is allowed, and the target must be a bare symbol, but the ``setx`` form returns the assigned value instead of ``None``.
 
@@ -579,7 +579,7 @@ Special Forms
        3 is greater than 0
 
 
-.. hy:function:: (defclass [class-name super-classes &rest body])
+.. hy:function:: (defclass [class-name super-classes #* body])
 
    New classes are declared with ``defclass``. It can take optional parameters in the following order:
    a list defining (a) possible super class(es) and a string (:term:`py:docstring`).
@@ -745,7 +745,7 @@ Special Forms
        Hello World
 
 
-.. hy:function:: (require [&rest args])
+.. hy:function:: (require [#* args])
 
    ``require`` is used to import macros from one or more given modules. It allows
    parameters in all the same formats as ``import``. The ``require`` form itself
@@ -861,7 +861,7 @@ Special Forms
        => (print (f 4))
        None
 
-.. hy:function:: (cut [coll &optional start stop step])
+.. hy:function:: (cut [coll [start None] [stop None] [step None])
 
    ``cut`` can be used to take a subset of a list and create a new list from it.
    The form takes at least one parameter specifying the list to cut. Two
@@ -892,7 +892,7 @@ Special Forms
        => (cut collection -4 -2)
        [6, 7]
 
-.. hy:function:: (raise [&optional exception])
+.. hy:function:: (raise [[exception None]])
 
    The ``raise`` form can be used to raise an ``Exception`` at
    runtime. Example usage:
@@ -915,7 +915,7 @@ Special Forms
    or no arguments to re-raise the last ``Exception``.
 
 
-.. hy:function:: (try [&rest body])
+.. hy:function:: (try [#* body])
 
    The ``try`` form is used to catch exceptions (``except``) and run cleanup
    actions (``finally``).
@@ -1049,7 +1049,7 @@ Special Forms
    leaving no effects on the list it is enclosed in, therefore resulting in
    ``('+' 1 2)``.
 
-.. hy:function:: (while [condition &rest body])
+.. hy:function:: (while [condition #* body])
 
    ``while`` compiles to a :py:keyword:`while` statement. It is used to execute a
    set of forms as long as a condition is met. The first argument to ``while`` is
@@ -1107,7 +1107,7 @@ Special Forms
        In condition
        At end of outer loop
 
-.. hy:function:: (with-decorator [&rest args])
+.. hy:function:: (with-decorator [#* args])
 
    ``with-decorator`` is used to wrap a function with another. The function
    performing the decoration should accept a single value: the function being
@@ -1208,7 +1208,7 @@ Core
 
 .. hy:autofunction:: hy.core.language.read
 
-.. hy:function:: (chain [&rest iters])
+.. hy:function:: (chain [#* iters])
 
    builtin alias for `itertools.chain <https://docs.python.org/3/library/itertools.html#itertools.chain>`_
 
@@ -1252,11 +1252,11 @@ Core
       [2, -4]
 
 
-.. hy:function:: (group-by [iterable &optional key])
+.. hy:function:: (group-by [iterable [key None]])
 
    builtin alias for `itertools.groupby <https://docs.python.org/3/library/itertools.html#itertools.groupby>`_
 
-.. hy:function:: (islice [iterable &rest args])
+.. hy:function:: (islice [iterable #* args])
 
    Builtin alias for `itertools.islice <https://docs.python.org/3/library/itertools.html#itertools.islice>`_
 
@@ -1277,7 +1277,7 @@ Core
 
    Builtin alias for `itertools.takewhile <https://docs.python.org/3/library/itertools.html#itertools.takewhile>`_
 
-.. hy:function:: (tee [iterable &optional [n 2]])
+.. hy:function:: (tee [iterable [n 2]])
 
    Builtin alias for `itertools.tee <https://docs.python.org/3/library/itertools.html#itertools.tee>`_
 
@@ -1289,11 +1289,11 @@ Core
 
    Builtin alias for `itertools.combinations_with_replacement <https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement>`_
 
-.. hy:function:: (permutations [iterable &optional r])
+.. hy:function:: (permutations [iterable [r None]])
 
    Builtin alias for `itertools.permutations <https://docs.python.org/3/library/itertools.html#itertools.permutations>`_
 
-.. hy:function:: (product [&rest args &kwonly [repeat 1]])
+.. hy:function:: (product [#* args * [repeat 1]])
 
    Builtin alias for `itertools.product <https://docs.python.org/3/library/itertools.html#itertools.product>`_
 
@@ -1317,15 +1317,15 @@ Core
 
    Builtin alias for `itertools.filterfalse <https://docs.python.org/3/library/itertools.html#itertools.filterfalse>`_
 
-.. hy:function:: (zip-longest [&rest iterables &kwonly fillvalue])
+.. hy:function:: (zip-longest [#* iterables * fillvalue])
 
    Builtin alias for `itertools.zip_longest <https://docs.python.org/3/library/itertools.html#itertools.zip_longest>`_
 
-.. hy:function:: (accumulate [iterable &optional func &kwonly initial])
+.. hy:function:: (accumulate [iterable [func None] * initial])
 
    Builtin alias for `itertools.accumulate <https://docs.python.org/3/library/itertools.html#itertools.accumulate>`_
 
-.. hy:function:: (count [&optional [start 0] [step 1]])
+.. hy:function:: (count [[start 0] [step 1]])
 
    Builtin alias for `itertools.count <https://docs.python.org/3/library/itertools.html#itertools.count>`_
 
@@ -1343,7 +1343,7 @@ Core
 
    Builtin alias for `itertools.cycle <https://docs.python.org/3/library/itertools.html#itertools.cycle>`_
 
-.. hy:function:: (repeat [object &optional times])
+.. hy:function:: (repeat [object [times None]])
 
    Returns an iterator (infinite) of ``x``.
 
@@ -1354,7 +1354,7 @@ Core
 
    Builtin alias for `itertools.repeat <https://docs.python.org/3/library/itertools.html#itertools.repeat>`_
 
-.. hy:function:: (reduce [function iterable &optional initializer])
+.. hy:function:: (reduce [function iterable [initializer None]])
 
    Builtin alias for `functools.reduce <https://docs.python.org/3/library/functools.html#functools.reduce>`_
 

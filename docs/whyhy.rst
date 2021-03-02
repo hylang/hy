@@ -34,7 +34,7 @@ for as long as the condition is true, but at least once.
 
 ::
 
-    (defmacro do-while [condition &rest body]
+    (defmacro do-while [condition #* body]
       `(do
         ~body
         (while ~condition

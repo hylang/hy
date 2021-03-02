@@ -449,7 +449,7 @@ Special Arguments
 Macros and special forms are normally indented one space past the parent bracket,
 but can also have "special" arguments that are indented like function arguments.
 
- + Macros with an ``&rest body`` argument contain an implicit ``do``.
+ + Macros with an ``#* body`` argument contain an implicit ``do``.
  + The body is never special, but the arguments before it are.
 
 .. code-block:: clj
@@ -955,7 +955,7 @@ like ``foo-bar``, not ``foo_bar``.
       (defn __init__ [self] ...))
 
     ;; OK, but would be module private. (No import *)
-    (def ->dict [&rest pairs]
+    (def ->dict [#* pairs]
       (dict (partition pairs)))
 
 Thanks

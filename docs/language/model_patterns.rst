@@ -97,7 +97,7 @@ Here's how you could write a simple macro using model patterns:
 
 .. code-block:: clj
 
-    (defmacro pairs [&rest args]
+    (defmacro pairs [#* args]
       (import [funcparserlib.parser [many]])
       (import [hy.model-patterns [whole SYM FORM]])
       (setv [args] (->> args (.parse (whole [
