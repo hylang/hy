@@ -655,6 +655,13 @@ def test_bad_tag_macros():
     can_compile('(defmacro "#a" [x] 3) #a ()')
 
 
+def test_models_accessible():
+    # https://github.com/hylang/hy/issues/1045
+    can_eval('HySymbol')
+    can_eval('HyList')
+    can_eval('HyDict')
+
+
 def test_module_prelude():
     """Make sure the hy prelude appears at the top of a compiled module."""
     hy_ast = can_compile('', import_stdlib=True)

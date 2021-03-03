@@ -343,6 +343,13 @@ def test_bin_hy_builtins():
     assert type(builtins.quit) is hy.cmdline.HyQuitter
 
 
+def test_bin_hy_shadowing_core():
+    # make sure we don't shadow user symbols with hy's core
+    # https://github.com/hylang/hy/issues/791
+    output, _ = run_cmd("hy", "(defn keyword? [x] True)\n(keyword? 4)")
+    assert "True" in output
+
+
 def test_bin_hy_main():
     output, _ = run_cmd("hy tests/resources/bin/main.hy")
     assert "Hello World" in output
