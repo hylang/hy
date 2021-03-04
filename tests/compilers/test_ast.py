@@ -632,12 +632,12 @@ def test_eval_generator_with_return():
 
 def test_futures_imports():
     """Make sure __future__ imports go first, especially when builtins are
-    automatically added (e.g. via use of a builtin name like `name`)."""
+    automatically added (e.g. via use of a builtin name like `last`)."""
     hy_ast = can_compile((
         '(import [__future__ [print_function]])\n'
         '(import sys)\n'
-        '(setv name [1 2])'
-        '(print (first name))'))
+        '(setv last [1 2])'
+        '(print (first last))'))
 
     assert hy_ast.body[0].module == '__future__'
 
