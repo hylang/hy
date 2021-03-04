@@ -4,7 +4,7 @@
 
 "Parser combinators for pattern-matching Hy model trees."
 
-from hy.models import HyExpression, HySymbol, HyKeyword, HyString, HyFString, HyList
+from hy.models import HyExpression, HySymbol, HyKeyword, HyString, HyList
 from funcparserlib.parser import (
     some, skip, many, finished, a, Parser, NoParseError, State)
 from functools import reduce

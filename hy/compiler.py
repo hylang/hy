@@ -12,7 +12,7 @@ from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
 from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
                        HySyntaxError, HyEvalError, HyInternalError)
 
-from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
+from hy.lex import mangle, unmangle
 
 from hy._compat import (PY38, reraise)
 from hy.macros import require, load_macros, macroexpand
@@ -22,18 +22,15 @@ import hy.core
 import textwrap
 import pkgutil
 import traceback
-import itertools
 import importlib
 import inspect
 import types
 import ast
 import sys
 import copy
-import builtins
 import __future__
 
 from collections import defaultdict
-from functools import reduce
 
 
 Inf = float('inf')
@@ -734,7 +731,7 @@ class HyASTCompiler(object):
 
         exceptions_list = exceptions[-1] if exceptions else HyList()
         if isinstance(exceptions_list, HyList):
-            if len(exceptions_list):
+            if exceptions_list:
                 # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
                 elts, types, _ = self._compile_collect(exceptions_list)
                 types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())

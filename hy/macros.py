@@ -161,8 +161,7 @@ def require(source_module, target_module, assignments, prefix=""):
         if assignments != "ALL":
             raise HyRequireError('The module {} has no macros'.format(
                 source_module))
-        else:
-            return False
+        return False
 
     target_macros = target_namespace.setdefault('__macros__', {})
 

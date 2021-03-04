@@ -681,7 +681,7 @@ def hy_main():
         sys.exit(cmdline_handler("hy", sys.argv))
     except HyArgError as e:
         print(e)
-        exit(1)
+        sys.exit(1)
 
 
 def hyc_main():
