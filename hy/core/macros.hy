@@ -764,7 +764,13 @@
    Use ``require`` to make other macros available.
 
    Use ``(help foo)`` instead for help with runtime objects."
-  `(help (.get __macros__ (mangle '~symbol) None)))
+   (setv symbol (str symbol))
+   (setv mangled (mangle symbol))
+   (setv builtins (gensym "builtins"))
+   `(do (import [builtins :as ~builtins])
+        (help (or (.get __macros__ ~mangled)
+                  (.get (. ~builtins __macros__) ~mangled)
+                  (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 
 (defmacro cfor [f #* generator]
