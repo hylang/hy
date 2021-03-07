@@ -137,6 +137,12 @@
             "uri": "dot",
             "internal": true
           },
+          "assert",
+          "get",
+          "global",
+          "import",
+          "eval-and-compile",
+          "eval-when-compile",
           "await",
           "break",
           "cmp",

@@ -282,6 +282,161 @@ Special Forms
        3
        loop finished
 
+.. hy:function:: (assert [condition &optional label])
+
+   ``assert`` is used to verify conditions while the program is
+   running. If the condition is not met, an :exc:`AssertionError` is
+   raised. ``assert`` may take one or two parameters.  The first
+   parameter is the condition to check, and it should evaluate to either
+   ``True`` or ``False``. The second parameter, optional, is a label for
+   the assert, and is the string that will be raised with the
+   :exc:`AssertionError`. For example:
+
+   :strong:`Examples`
+
+   ::
+
+     (assert (= variable expected-value))
+
+     (assert False)
+     ; AssertionError
+
+     (assert (= 1 2) "one should equal two")
+     ; AssertionError: one should equal two
+
+.. hy:function:: (global [sym])
+
+   ``global`` can be used to mark a symbol as global. This allows the programmer to
+   assign a value to a global symbol. Reading a global symbol does not require the
+   ``global`` keyword -- only assigning it does.
+
+   The following example shows how the global symbol ``a`` is assigned a value in a
+   function and is later on printed in another function. Without the ``global``
+   keyword, the second function would have raised a ``NameError``.
+
+   :strong:`Examples`
+
+   ::
+
+       (defn set-a [value]
+         (global a)
+         (setv a value))
+
+       (defn print-a []
+         (print a))
+
+       (set-a 5)
+       (print-a)
+
+.. hy:function:: (get [coll key1 &rest keys])
+
+   ``get`` is used to access single elements in collections. ``get`` takes at
+   least two parameters: the *data structure* and the *index* or *key* of the
+   item. It will then return the corresponding value from the collection. If
+   multiple *index* or *key* values are provided, they are used to access
+   successive elements in a nested structure. Example usage:
+
+   :string:`Examples`
+
+   ::
+
+      => (do
+      ...  (setv animals {"dog" "bark" "cat" "meow"}
+      ...        numbers (, "zero" "one" "two" "three")
+      ...        nested [0 1 ["a" "b" "c"] 3 4])
+      ...  (print (get animals "dog"))
+      ...  (print (get numbers 2))
+      ...  (print (get nested 2 1)))
+
+      bark
+      two
+      b
+
+   .. note:: ``get`` raises a KeyError if a dictionary is queried for a
+             non-existing key.
+
+   .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
+             index that is out of bounds.
+
+.. hy:macro:: (import [&rest forms])
+
+   ``import`` is used to import modules, like in Python. There are several ways
+   that ``import`` can be used.
+
+   :strong:`Examples`
+
+   ::
+
+       ;; Imports each of these modules
+       ;;
+       ;; Python:
+       ;; import sys
+       ;; import os.path
+       (import sys os.path)
+
+       ;; Import from a module
+       ;;
+       ;; Python: from os.path import exists, isdir, isfile
+       (import [os.path [exists isdir isfile]])
+
+       ;; Import with an alias
+       ;;
+       ;; Python: import sys as systest
+       (import [sys :as systest])
+
+       ;; You can list as many imports as you like of different types.
+       ;;
+       ;; Python:
+       ;; from tests.resources import kwtest, function_with_a_dash
+       ;; from os.path import exists, isdir as is_dir, isfile as is_file
+       ;; import sys as systest
+       (import [tests.resources [kwtest function-with-a-dash]]
+               [os.path [exists
+                         isdir :as dir?
+                         isfile :as file?]]
+               [sys :as systest])
+
+       ;; Import all module functions into current namespace
+       ;;
+       ;; Python: from sys import *
+       (import [sys [*]])
+
+.. hy:function:: (eval-and-compile [&rest body])
+
+   ``eval-and-compile`` is a special form that takes any number of forms. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice.
+
+   One possible use of ``eval-and-compile`` is to make a function available both at compile-time (so a macro can call it while expanding) and run-time (so it can be called like any other function)::
+
+       (eval-and-compile
+         (defn add [x y]
+           (+ x y)))
+
+       (defmacro m [x]
+         (add x 2))
+
+       (print (m 3))     ; prints 5
+       (print (add 3 6)) ; prints 9
+
+   Had the ``defn`` not been wrapped in ``eval-and-compile``, ``m`` wouldn't be able to call ``add``, because when the compiler was expanding ``(m 3)``, ``add`` wouldn't exist yet.
+
+.. hy:function:: (eval-when-compile [&rest body])
+
+   ``eval-when-compile`` is like ``eval-and-compile``, but the code isn't executed at run-time. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function).
+
+   :strong:`Examples`
+
+   ::
+
+       (eval-when-compile
+         (defn add [x y]
+           (+ x y)))
+
+       (defmacro m [x]
+         (add x 2))
+
+       (print (m 3))     ; prints 5
+       (print (add 3 6)) ; raises NameError: name 'add' is not defined
+
 .. hy:macro:: (lfor [binding iterable &rest body])
 
    The comprehension forms ``lfor``, :hy:macro:`sfor`, :hy:macro:`dfor`, :hy:macro:`gfor`, and :hy:func:`for`
