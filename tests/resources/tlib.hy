@@ -6,5 +6,8 @@
 (defmacro parald [&rest tree]
   `[9 ~@tree])
 
+(defmacro ✈ [arg]
+  `(+ "plane " ~arg))
+
 (defmacro "#taggart" [x]
   `[10 ~x])
