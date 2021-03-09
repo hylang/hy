@@ -24,6 +24,7 @@ Breaking Changes
 
 New Features
 ------------------------------
+* Python 3.10 is now supported.
 * New standard macros `do-n`, `list-n`, and `cfor`
 * New contrib module `destructure` for Clojure-style destructuring.
 * Location of history file now configurable via environment variable `HY_HISTORY`
