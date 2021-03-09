@@ -246,7 +246,7 @@ class HyREPL(code.InteractiveConsole, object):
         if os.environ.get("HYSTARTUP"):
             try:
                 loader = HyLoader("__hystartup__", os.environ.get("HYSTARTUP"))
-                mod = loader.load_module()
+                mod = loader.exec_module()
                 imports = mod.__dict__.get(
                     '__all__',
                     [name for name in mod.__dict__ if not name.startswith("_")]
