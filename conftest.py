@@ -12,7 +12,7 @@ _fspath_pyimport = py.path.local.pyimport
 
 
 def pytest_ignore_collect(path, config):
-    return (("py38_only" in path.basename and not PY3_8) or None)
+    return (("py3_8_only" in path.basename and not PY3_8) or None)
 
 
 def pyimport_patch_mismatch(self, **kwargs):
