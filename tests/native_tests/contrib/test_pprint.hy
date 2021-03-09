@@ -2,7 +2,7 @@
   pytest
   io
   [pprint :as pypprint]
-  [hy._compat [PY38]]
+  [hy._compat [PY3_8]]
   [hy.contrib.hy-repr :as hy-repr]
   [hy.contrib.pprint :as pprint])
 
@@ -198,7 +198,7 @@
 
 (defn test-sort-dicts []
   (setv d (dict.fromkeys "cba"))
-  (if PY38
+  (if PY3_8
       (assert (= (pprint.pformat d :sort-dicts False)
                  #[[{"c" None  "b" None  "a" None}]]))
       (with [e (pytest.raises ValueError)]

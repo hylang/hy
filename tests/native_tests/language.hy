@@ -13,7 +13,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY38]])
+(import [hy._compat [PY3_8]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -1583,7 +1583,7 @@ cee\"} dee" "ey bee\ncee dee"))
     body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
         Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))]{})"
-      (if PY38 ",\n    type_ignores=[]" ""))))
+      (if PY3_8 ",\n    type_ignores=[]" ""))))
   (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
              "leaky()
 leaky()

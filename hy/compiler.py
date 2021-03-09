@@ -14,7 +14,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
-from hy._compat import (PY38, reraise)
+from hy._compat import (PY3_8, reraise)
 from hy.macros import require, load_macros, macroexpand
 
 import hy.core
@@ -1368,7 +1368,7 @@ class HyASTCompiler(object):
             expr, target=target, value=ret.force_expr, op=op())
 
     @special("setv", [many(OPTIONAL_ANNOTATION + FORM + FORM)])
-    @special((PY38, "setx"), [times(1, 1, SYM + FORM)])
+    @special((PY3_8, "setx"), [times(1, 1, SYM + FORM)])
     def compile_def_expression(self, expr, root, decls):
         if not decls:
             return asty.Constant(expr, value=None)

@@ -34,7 +34,7 @@ The differences that do exist are as follows:
                  -safe-tuple
                  -safe-key]]
         [hy.contrib [hy-repr]]
-        [hy.-compat [PY38]])
+        [hy.-compat [PY3_8]])
 
 (setv --all-- ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive" "pp"])
 
@@ -155,7 +155,7 @@ The differences that do exist are as follows:
   (when (in typ hy-repr.-registry)
     (return (, (hy-repr.hy-repr object) True False)))
 
-  (if PY38
+  (if PY3_8
       (-safe-py-repr object context maxlevels level sort-dicts)
       (-safe-py-repr object context maxlevels level)))
 
@@ -192,7 +192,7 @@ The differences that do exist are as follows:
   (defn --init-- [self
                   &optional [indent 1] [width 80] depth stream
                   &kwonly [compact False] [sort-dicts True]]
-    (when (and (not PY38) (not sort-dicts))
+    (when (and (not PY3_8) (not sort-dicts))
         (raise (ValueError "sort-dicts is not available for python versions < 3.8")))
     (setv self.-sort-dicts True)
     (.--init-- (super)
@@ -201,7 +201,7 @@ The differences that do exist are as follows:
                :depth depth
                :stream stream
                :compact compact
-               #** (if PY38 {"sort_dicts" sort-dicts} {})))
+               #** (if PY3_8 {"sort_dicts" sort-dicts} {})))
 
   (defn format [self object context maxlevels level]
     "Format object for a specific context, returning a string

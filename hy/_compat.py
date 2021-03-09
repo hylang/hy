@@ -4,8 +4,8 @@
 
 import sys
 
-PY37 = sys.version_info >= (3, 7)
-PY38 = sys.version_info >= (3, 8)
+PY3_7 = sys.version_info >= (3, 7)
+PY3_8 = sys.version_info >= (3, 8)
 
 
 def reraise(exc_type, value, traceback=None):
