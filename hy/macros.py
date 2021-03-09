@@ -11,7 +11,7 @@ from contextlib import contextmanager
 
 from hy._compat import reraise, PY38
 from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
-from hy.lex import mangle
+from hy.lex import mangle, unmangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
                        HyRequireError)
 
@@ -176,7 +176,9 @@ def require(source_module, target_module, assignments, prefix=""):
 
     for name, alias in name_assigns:
         _name = mangle(name)
-        alias = mangle(prefix + alias)
+        alias = mangle('#' + prefix + unmangle(alias)[1:]
+            if unmangle(alias).startswith('#')
+            else prefix + alias)
         if _name in source_module.__macros__:
             target_macros[alias] = source_macros[_name]
         else:
