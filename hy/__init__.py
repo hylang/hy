@@ -6,13 +6,8 @@ except ImportError:
 
 
 def _initialize_env_var(env_var, default_val):
-    import os, distutils.util
-    try:
-        res = bool(distutils.util.strtobool(
-            os.environ.get(env_var, str(default_val))))
-    except ValueError as e:
-        res = default_val
-    return res
+    import os
+    return bool(os.environ.get(env_var, default_val))
 
 
 from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyFString, HyFComponent, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet  # NOQA
