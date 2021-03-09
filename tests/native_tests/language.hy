@@ -13,7 +13,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY3_8]])
+(import [hy._compat [PY3_8 PY3_10]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -889,19 +889,16 @@
 
 
 (defn test-defn-annotations []
-  "NATIVE: test that annotations in defn work"
 
   (defn f [^int p1 p2 ^str p3 &optional ^str o1 ^int [o2 0]
            &rest ^str rest &kwonly ^str k1 ^int [k2 0] &kwargs ^bool kwargs])
 
-  (assert (= (. f __annotations__ ["p1"]) int))
-  (assert (= (. f __annotations__ ["p3"]) str))
-  (assert (= (. f __annotations__ ["o1"]) str))
-  (assert (= (. f __annotations__ ["o2"]) int))
-  (assert (= (. f __annotations__ ["rest"]) str))
-  (assert (= (. f __annotations__ ["k1"]) str))
-  (assert (= (. f __annotations__ ["k2"]) int))
-  (assert (= (. f __annotations__ ["kwargs"]) bool)))
+  (for [[k v] (.items (dict
+      :p1 int  :p3 str  :o1 str  :o2 int
+      :k1 str  :k2 int  :kwargs bool))]
+    (assert (=
+      (. f __annotations__ [k])
+      (if PY3_10 v.__name__ v)))))
 
 
 (defn test-return []
