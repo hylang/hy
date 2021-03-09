@@ -93,9 +93,7 @@ def calling_module(n=1):
     return module
 
 
-def ast_str(x, piecewise=False):
-    if piecewise:
-        return ".".join(ast_str(s) if s else "" for s in x.split("."))
+def ast_str(x, piecewise=False)
     return mangle(x)
 
 
