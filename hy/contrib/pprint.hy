@@ -29,14 +29,19 @@ The differences that do exist are as follows:
         re
         collections
         [pprint [PrettyPrinter :as PyPrettyPrinter
-                 -safe-repr :as -safe-py-repr
                  -recursion
                  -safe-tuple
                  -safe-key]]
         [hy.contrib [hy-repr]]
-        [hy.-compat [PY3_8]])
+        [hy.-compat [PY3_8 PY3_10]])
 
 (setv --all-- ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive" "pp"])
+
+(if PY3_10
+  (defn -safe-py-repr [object context maxlevels level sort-dicts]
+    (.-safe-repr (PyPrettyPrinter :sort-dicts sort-dicts)
+      object context maxlevels level))
+  (import [pprint [-safe-repr :as -safe-py-repr]]))
 
 (defn pprint [object &rest args &kwargs kwargs]
   "Pretty-print a Python object to a stream [default is sys.stdout].
