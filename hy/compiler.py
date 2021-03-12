@@ -93,19 +93,13 @@ def calling_module(n=1):
     return module
 
 
-def ast_str(x, piecewise=False):
-    if piecewise:
-        return ".".join(ast_str(s) if s else "" for s in x.split("."))
-    return mangle(x)
-
-
 _special_form_compilers = {}
 _model_compilers = {}
 _decoratables = (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
 # _bad_roots are fake special operators, which are used internally
 # by other special forms (e.g., `except` in `try`) but can't be
 # used to construct special forms themselves.
-_bad_roots = tuple(ast_str(x) for x in (
+_bad_roots = tuple(mangle(x) for x in (
     "unquote", "unquote-splice", "unpack-mapping", "except"))
 
 
@@ -119,7 +113,7 @@ def special(names, pattern):
                 condition, name = name
                 if not condition:
                     continue
-            _special_form_compilers[ast_str(name)] = (fn, pattern)
+            _special_form_compilers[mangle(name)] = (fn, pattern)
         return fn
     return dec
 
@@ -263,7 +257,7 @@ class Result(object):
 
         We know how to handle ast.Names and ast.FunctionDefs.
         """
-        new_name = ast_str(new_name)
+        new_name = mangle(new_name)
         for var in self.temp_variables:
             if isinstance(var, ast.Name):
                 var.id = new_name
@@ -393,7 +387,7 @@ class HyASTCompiler(object):
             # Populate _stdlib.
             for stdlib_module in hy.core.STDLIB:
                 mod = importlib.import_module(stdlib_module)
-                for e in map(ast_str, getattr(mod, 'EXPORTS', [])):
+                for e in map(mangle, getattr(mod, 'EXPORTS', [])):
                     self._stdlib[e] = stdlib_module
 
     def get_anon_var(self):
@@ -487,7 +481,7 @@ class HyASTCompiler(object):
 
                 arg = str(expr)[1:]
                 keywords.append(asty.keyword(
-                    expr, arg=ast_str(arg), value=compiled_value.force_expr))
+                    expr, arg=mangle(arg), value=compiled_value.force_expr))
 
             else:
                 ret += self.compile(expr)
@@ -569,7 +563,7 @@ class HyASTCompiler(object):
         op = None
         if isinstance(form, HyExpression) and form and (
                 isinstance(form[0], HySymbol)):
-            op = unmangle(ast_str(form[0]))
+            op = unmangle(mangle(form[0]))
         if level == 0 and op in ("unquote", "unquote-splice"):
             if len(form) != 2:
                 raise HyTypeError("`%s' needs 1 argument, got %s" % op, len(form) - 1,
@@ -667,7 +661,7 @@ class HyASTCompiler(object):
         body = self._compile_branch(body)
 
         return_var = asty.Name(
-            expr, id=ast_str(self.get_anon_var()), ctx=ast.Store())
+            expr, id=mangle(self.get_anon_var()), ctx=ast.Store())
 
         handler_results = Result()
         handlers = []
@@ -730,7 +724,7 @@ class HyASTCompiler(object):
 
         name = None
         if len(exceptions) == 2:
-            name = ast_str(self._nonconst(exceptions[0]))
+            name = mangle(self._nonconst(exceptions[0]))
 
         exceptions_list = exceptions[-1] if exceptions else HyList()
         if isinstance(exceptions_list, HyList):
@@ -778,7 +772,7 @@ class HyASTCompiler(object):
             if branch is not None:
                 if self.temp_if and branch.stmts:
                     name = asty.Name(expr,
-                                     id=ast_str(self.temp_if),
+                                     id=mangle(self.temp_if),
                                      ctx=ast.Store())
 
                     branch += asty.Assign(expr,
@@ -795,7 +789,7 @@ class HyASTCompiler(object):
             # Get a temporary variable for the result storage
             var = self.temp_if or self.get_anon_var()
             name = asty.Name(expr,
-                             id=ast_str(var),
+                             id=mangle(var),
                              ctx=ast.Store())
 
             # Store the result of the body
@@ -817,7 +811,7 @@ class HyASTCompiler(object):
                            orelse=orel.stmts)
 
             # And make our expression context our temp variable
-            expr_name = asty.Name(expr, id=ast_str(var), ctx=ast.Load())
+            expr_name = asty.Name(expr, id=mangle(var), ctx=ast.Load())
 
             ret += Result(expr=expr_name, temp_variables=[expr_name, name])
         else:
@@ -858,7 +852,7 @@ class HyASTCompiler(object):
     @special(["global", "nonlocal"], [oneplus(SYM)])
     def compile_global_or_nonlocal(self, expr, root, syms):
         node = asty.Global if root == "global" else asty.Nonlocal
-        return node(expr, names=list(map(ast_str, syms)))
+        return node(expr, names=list(map(mangle, syms)))
 
     @special("yield", [maybe(FORM)])
     def compile_yield_expression(self, expr, root, arg):
@@ -895,7 +889,7 @@ class HyASTCompiler(object):
             if isinstance(attr, HySymbol):
                 ret += asty.Attribute(attr,
                                       value=ret.force_expr,
-                                      attr=ast_str(attr),
+                                      attr=mangle(attr),
                                       ctx=ast.Load())
             else: # attr is a HyList
                 compiled_attr = self.compile(attr[0])
@@ -959,7 +953,7 @@ class HyASTCompiler(object):
 
         # Store the result of the body in a tempvar
         var = self.get_anon_var()
-        name = asty.Name(expr, id=ast_str(var), ctx=ast.Store())
+        name = asty.Name(expr, id=mangle(var), ctx=ast.Store())
         body += asty.Assign(expr, targets=[name], value=body.force_expr)
         # Initialize the tempvar to None in case the `with` exits
         # early with an exception.
@@ -976,7 +970,7 @@ class HyASTCompiler(object):
 
         ret = Result(stmts=[initial_assign]) + ctx + the_with
         # And make our expression context our temp variable
-        expr_name = asty.Name(expr, id=ast_str(var), ctx=ast.Load())
+        expr_name = asty.Name(expr, id=mangle(var), ctx=ast.Load())
 
         ret += Result(expr=expr_name)
         # We don't give the Result any temp_vars because we don't want
@@ -1173,7 +1167,7 @@ class HyASTCompiler(object):
                 else:
                     assignments = [(k, v or k) for k, v in kids]
 
-            ast_module = ast_str(module, piecewise=True)
+            ast_module = mangle(module)
 
             if root == "import":
                 module = ast_module.lstrip(".")
@@ -1183,7 +1177,7 @@ class HyASTCompiler(object):
                     names = [ast.alias(name="*", asname=None)]
                 elif assignments == "ALL":
                     node = asty.Import
-                    prefix = ast_str(prefix, piecewise=True)
+                    prefix = mangle(prefix)
                     names = [ast.alias(
                         name=ast_module,
                         asname=prefix if prefix != module else None)]
@@ -1191,8 +1185,8 @@ class HyASTCompiler(object):
                     node = asty.ImportFrom
                     names = [
                         ast.alias(
-                            name=ast_str(k),
-                            asname=None if v == k else ast_str(v))
+                            name=mangle(k),
+                            asname=None if v == k else mangle(v))
                         for k, v in assignments]
                 ret += node(
                     expr, module=module or None, names=names, level=level)
@@ -1273,9 +1267,9 @@ class HyASTCompiler(object):
              ">": ast.Gt, ">=": ast.GtE,
              "is": ast.Is, "is-not": ast.IsNot,
              "in": ast.In, "not-in": ast.NotIn}
-    _c_ops = {ast_str(k): v for k, v in _c_ops.items()}
+    _c_ops = {mangle(k): v for k, v in _c_ops.items()}
     def _get_c_op(self, sym):
-        k = ast_str(sym)
+        k = mangle(sym)
         if k not in self._c_ops:
             raise self._syntax_error(sym,
                 "Illegal comparison operator: " + str(sym))
@@ -1602,7 +1596,7 @@ class HyASTCompiler(object):
                 args_defaults.append(None)
 
             args_ast.append(asty.arg(
-                sym, arg=ast_str(self._nonconst(sym)), annotation=ann_ast))
+                sym, arg=mangle(self._nonconst(sym)), annotation=ann_ast))
 
         return args_ast, args_defaults, ret
 
@@ -1636,7 +1630,7 @@ class HyASTCompiler(object):
         return bases + asty.ClassDef(
             expr,
             decorator_list=[],
-            name=ast_str(self._nonconst(name)),
+            name=mangle(self._nonconst(name)),
             keywords=keywords,
             starargs=None,
             kwargs=None,
@@ -1664,7 +1658,7 @@ class HyASTCompiler(object):
             if len(decls) < 2:
                 break
             k, v = (decls.pop(0), decls.pop(0))
-            if ast_str(k) == "__init__" and isinstance(v, HyExpression):
+            if isinstance(k, HySymbol) and mangle(k) == "__init__" and isinstance(v, HyExpression):
                 v += HyExpression([HySymbol("None")])
 
             if ann is not None:
@@ -1703,7 +1697,7 @@ class HyASTCompiler(object):
                     sys.exc_info()[2])
 
         return (self._compile_branch(body)
-                if ast_str(root) == "eval_and_compile"
+                if mangle(root) == "eval_and_compile"
                 else Result())
 
     @special(["py", "pys"], [STR])
@@ -1744,9 +1738,9 @@ class HyASTCompiler(object):
             # etc.) can't unpack. An exception to this exception is that
             # tuple literals (`,`) can unpack. Finally, we allow unpacking in
             # `.` forms here so the user gets a better error message.
-            sroot = ast_str(root)
+            sroot = mangle(root)
 
-            bad_root = sroot in _bad_roots or (sroot == ast_str("annotate*")
+            bad_root = sroot in _bad_roots or (sroot == mangle("annotate*")
                                                and not allow_annotation_expression)
 
             if (sroot in _special_form_compilers or bad_root) and (
@@ -1803,7 +1797,7 @@ class HyASTCompiler(object):
                 # And get the method
                 func += asty.Attribute(root,
                                        value=func.force_expr,
-                                       attr=ast_str(root),
+                                       attr=mangle(root),
                                        ctx=ast.Load())
 
         elif is_annotate_expression(root):
@@ -1845,17 +1839,17 @@ class HyASTCompiler(object):
             return asty.Attribute(
                 symbol,
                 value=ret,
-                attr=ast_str(local),
+                attr=mangle(local),
                 ctx=ast.Load())
 
-        if self.can_use_stdlib and ast_str(symbol) in self._stdlib:
-            self.imports[self._stdlib[ast_str(symbol)]].add(ast_str(symbol))
+        if self.can_use_stdlib and mangle(symbol) in self._stdlib:
+            self.imports[self._stdlib[mangle(symbol)]].add(mangle(symbol))
 
-        if ast_str(symbol) in ("None", "False", "True"):
+        if mangle(symbol) in ("None", "False", "True"):
             return asty.Constant(symbol, value =
-                ast.literal_eval(ast_str(symbol)))
+                ast.literal_eval(mangle(symbol)))
 
-        return asty.Name(symbol, id=ast_str(symbol), ctx=ast.Load())
+        return asty.Name(symbol, id=mangle(symbol), ctx=ast.Load())
 
     @builds_model(HyKeyword)
     def compile_keyword(self, obj):
@@ -1915,7 +1909,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
         if module.startswith('<') and module.endswith('>'):
             module = types.ModuleType(module)
         else:
-            module = importlib.import_module(ast_str(module, piecewise=True))
+            module = importlib.import_module(mangle(module))
 
     if calling_frame and not module:
         module = calling_module(n=2)
@@ -2080,7 +2074,7 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
         if module.startswith('<') and module.endswith('>'):
             module = types.ModuleType(module)
         else:
-            module = importlib.import_module(ast_str(module, piecewise=True))
+            module = importlib.import_module(mangle(module))
 
     if not inspect.ismodule(module):
         raise TypeError('Invalid module type: {}'.format(type(module)))

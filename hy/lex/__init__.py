@@ -114,8 +114,11 @@ def mangle(s):
             .lstrip('\\U').lstrip('\\u').lstrip('\\x').lstrip('0'))
 
     assert s
-
     s = str(s)
+
+    if "." in s:
+        return ".".join(mangle(x) if x else "" for x in s.split("."))
+
     s = s.replace("-", "_")
     s2 = s.lstrip('_')
     leading_underscores = '_' * (len(s) - len(s2))

@@ -1,0 +1,13 @@
+(setv SECRET_MESSAGE "Hello World")
+
+(defmacro qplah [&rest tree]
+  `[8 ~@tree])
+
+(defmacro parald [&rest tree]
+  `[9 ~@tree])
+
+(defmacro ✈ [arg]
+  `(+ "plane " ~arg))
+
+(defmacro "#taggart" [x]
+  `[10 ~x])
