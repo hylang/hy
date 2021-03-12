@@ -366,6 +366,24 @@ class HyASTCompiler(object):
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})
 
+        self.can_use_stdlib = not self.module_name.startswith("hy.core")
+
+        self._stdlib = {}
+
+        self._in_pattern = False
+
+        # Everything in core needs to be explicit (except for
+        # the core macros, which are built with the core functions).
+        if self.can_use_stdlib:
+            # Load stdlib macros into the module namespace.
+            load_macros(self.module)
+
+            # Populate _stdlib.
+            for stdlib_module in hy.core.STDLIB:
+                mod = importlib.import_module(stdlib_module)
+                for e in map(ast_str, getattr(mod, 'EXPORTS', [])):
+                    self._stdlib[e] = stdlib_module
+
     def get_anon_var(self):
         self.anon_var_count += 1
         return "_hy_anon_var_%s" % self.anon_var_count
@@ -373,7 +391,8 @@ class HyASTCompiler(object):
     def compile_atom(self, atom):
         # Compilation methods may mutate the atom, so copy it first.
         atom = copy.copy(atom)
-        return Result() + _model_compilers[type(atom)](self, atom)
+        t = type(atom)
+        return Result() + _model_compilers[t](self, atom)
 
     def compile(self, tree):
         if tree is None:
@@ -779,6 +798,91 @@ class HyASTCompiler(object):
         if root:
             self.temp_if = None
 
+        return ret
+
+    @special("match",
+             [FORM,
+              many(brackets(FORM + maybe(sym(":if") + FORM) + many(FORM)))])
+    def compile_match(self, expr, _, subject, clauses):
+        subject = self.compile(subject)
+        var = self.get_anon_var()
+        name = asty.Name(expr, id=ast_str(var), ctx=ast.Store())
+        initial_assign = asty.Assign(expr,
+                                     targets=[name],
+                                     value=asty.Constant(expr, value=None))
+
+        require_split = False
+        patterns, guards, bodies = [], [], []
+        for pattern, guard, body in clauses:
+            self._in_pattern = True
+            try:
+                # TODO deal with statements in pattern
+                p = self.compile(pattern)
+            finally:
+                self._in_pattern = False
+            # TODO figure out how to set context for `pattern` to `ast.Store()`
+            # pattern = self._storeize(pattern, self.compile(pattern))
+            patterns.append(p.expr)
+            if guard is not None:
+                g = self.compile(guard)
+                require_split = require_split or not g.is_expr()
+                guards.append(g)
+            else:
+                guards.append(None)
+            b = self._compile_branch(body)
+            b += asty.Assign(expr, targets=[name], value=b.force_expr)
+            bodies.append(b.stmts)
+
+        def g_expr(guard):
+            return guard.expr if guard is not None else None
+
+        def comp_match_clauses(ps, gs, bs, subject):
+            for i, g in enumerate(gs):
+                if g is not None and not g.is_expr():
+                    split_index = i
+                    break
+            else:
+                cases = [asty.match_case(expr, pattern=p, guard=g_expr(g), body=b)
+                         for p, g, b in zip(ps, gs, bs)]
+                return asty.Match(expr, subject=subject, cases=cases)
+            normal_cases = [asty.match_case(expr, pattern=p, guard=g_expr(g), body=b)
+                            for p, g, b
+                            in itertools.islice(zip(ps, gs, bs), split_index)]
+            if split_index == len(ps) - 1:
+                left_overs = None
+            else:
+                left_overs = [comp_match_clauses(ps[split_index+1:],
+                                                 gs[split_index+1:],
+                                                 bs[split_index+1:],
+                                                 subject)]
+            body = gs[split_index] + asty.If(expr,
+                                             test=gs[split_index].force_expr,
+                                             body=bs[split_index],
+                                             orelse=left_overs)
+            split_case = asty.match_case(expr,
+                                         pattern=ps[split_index],
+                                         body=body.stmts)
+            return asty.Match(expr,
+                              subject=subject,
+                              cases=(normal_cases + [split_case]))
+
+        if not require_split:
+            cases = [asty.match_case(expr, pattern=p, guard=g_expr(g), body=b)
+                     for p, g, b in zip(patterns, gs, bodies)]
+            match = asty.Match(expr, subject=subject.force_expr, cases=cases)
+            ret = Result(stmts=[initial_assign]) + subject + match
+        else:
+            sub_var = self.get_anon_var()
+            sub_name = asty.Name(expr, id=ast_str(sub_var), ctx=ast.Store())
+            sub_expr = asty.Name(expr, id=ast_str(sub_var), ctx=ast.Load())
+            sub_assign = asty.Assign(expr,
+                                     targets=[sub_name],
+                                     value=subject.force_expr)
+            match = comp_match_clauses(patterns, guards, bodies, sub_expr)
+            ret = subject + Result(stmts=[initial_assign, sub_assign]) + match
+
+        expr_name = asty.Name(expr, id=ast_str(var), ctx=ast.Load())
+        ret += Result(expr=expr_name)
         return ret
 
     @special(["break", "continue"], [])
@@ -1709,7 +1813,7 @@ class HyASTCompiler(object):
         root = args.pop(0)
         func = None
 
-        if isinstance(root, HySymbol):
+        if isinstance(root, HySymbol) and not self._in_pattern:
             # First check if `root` is a special operator, unless it has an
             # `unpack-iterable` in it, since Python's operators (`+`,
             # etc.) can't unpack. An exception to this exception is that
@@ -1738,7 +1842,7 @@ class HyASTCompiler(object):
                             root, e.msg.replace("<EOF>", "end of form")))
                 return Result() + build_method(
                     self, expr, unmangle(sroot), *parse_tree)
-
+               
             if root.startswith("."):
                 # (.split "test test") -> "test test".split()
                 # (.a.b.c x v1 v2) -> (.c (. x a b) v1 v2) ->  x.a.b.c(v1, v2)
@@ -1781,6 +1885,22 @@ class HyASTCompiler(object):
             # Flatten and compile the annotation expression.
             ann_expr = HyExpression(root + args).replace(root)
             return self.compile_expression(ann_expr, allow_annotation_expression=True)
+
+        elif self._in_pattern and root in [HyKeyword("as"), HyKeyword("or")]:
+            if root == HyKeyword("as"):
+                if len(args) != 2:
+                    raise self._syntax_error(
+                        expr,
+                        "':as' pattern takes exactly 2 arguments",
+                    )
+                return asty.MatchAs(
+                    expr,
+                    pattern=self.compile(args[0]).expr,
+                    name = self._storeize(expr, self.compile(args[1])).id,
+                )
+            elif root == HyKeyword("or"):
+                ps = [self.compile(a).expr for a in args]
+                return asty.MatchOr(expr, patterns=ps)
 
         if not func:
             func = self.compile(root)
