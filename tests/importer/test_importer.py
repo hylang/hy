@@ -64,7 +64,7 @@ def test_imports():
 
     def _import_test():
         try:
-            return testLoader.load_module()
+            return testLoader.exec_module()
         except:
             return "Error"
 
@@ -104,9 +104,11 @@ def test_import_autocompiles():
         except (IOError, OSError):
             pass
 
-        test_loader = HyLoader("mymodule", f.name).load_module()
+        spec = importlib.util.spec_from_file_location('mymodule', f.name)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
 
-        assert hasattr(test_loader, 'pyctest')
+        assert hasattr(module, 'pyctest')
         assert os.path.exists(pyc_path)
 
         os.remove(pyc_path)
