@@ -56,10 +56,11 @@
        (raise (hy.errors.HyTypeError
          "periods are not allowed in macro names"
          None --file-- None)))
-     (for [kw '[&kwonly &kwargs]]
-       (if* (in kw lambda-list)
-            (raise (hy.errors.HyTypeError (% "macros cannot use %s"
-                                             kw)
+     (for [arg lambda-list]
+       (if* (or (= arg '*)
+                (and (isinstance arg HyExpression)
+                     (= (get arg 0) 'unpack-mapping)))
+            (raise (hy.errors.HyTypeError "macros cannot use '*', or '#**'"
                                           macro-name --file-- None))))
      ;; this looks familiar...
      `(eval-and-compile
