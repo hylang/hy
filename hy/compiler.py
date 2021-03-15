@@ -103,7 +103,7 @@ def calling_module(n: int = 1):
     module = inspect.getmodule(frame_up)
     if module is None:
         # This works for modules like `__main__`
-        module_name = frame_up.f_globals.get('__name__', None)
+        module_name = frame_up.f_globals.get("__name__", None)
         if module_name:
             try:
                 module = importlib.import_module(module_name)
@@ -130,11 +130,11 @@ def make_hy_model(outer, x, rest):
 
 
 def mkexpr(*items, **kwargs):
-    return make_hy_model(Expression, items, kwargs.get('rest'))
+    return make_hy_model(Expression, items, kwargs.get("rest"))
 
 
 def mklist(*items, **kwargs):
-    return make_hy_model(List, items, kwargs.get('rest'))
+    return make_hy_model(List, items, kwargs.get("rest"))
 
 
 def pvalue(root, wanted):
@@ -198,9 +198,9 @@ class Asty(object):
     def __getattr__(self, name):
         setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
             lineno=getattr(
-                x, 'start_line', getattr(x, 'lineno', None)),
+                x, "start_line", getattr(x, "lineno", None)),
             col_offset=getattr(
-                x, 'start_column', getattr(x, 'col_offset', None)),
+                x, "start_column", getattr(x, "col_offset", None)),
             **kwargs)))
         return getattr(Asty, name)
 
@@ -392,7 +392,7 @@ class HyASTCompiler(object):
 
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
-        self.module.__dict__.setdefault('__macros__', {})
+        self.module.__dict__.setdefault("__macros__", {})
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -751,7 +751,7 @@ class HyASTCompiler(object):
         orel = Result()
         if orel_expr is not None:
             if isinstance(orel_expr, Expression) and isinstance(orel_expr[0],
-               Symbol) and orel_expr[0] == 'if*':
+               Symbol) and orel_expr[0] == "if*":
                 # Nested ifs: don't waste temporaries
                 root = self.temp_if is None
                 nested = True
@@ -761,9 +761,9 @@ class HyASTCompiler(object):
         if not cond.stmts and isinstance(cond.force_expr, ast.Name):
             name = cond.force_expr.id
             branch = None
-            if name == 'True':
+            if name == "True":
                 branch = body
-            elif name in ('False', 'None'):
+            elif name in ("False", "None"):
                 branch = orel
             if branch is not None:
                 if self.temp_if and branch.stmts:
@@ -992,11 +992,11 @@ class HyASTCompiler(object):
         return ret + asty.Tuple(expr, elts=elements, ctx=ast.Load())
 
     _loopers = many(
-        tag('setv', sym(":setv") + FORM + FORM) |
-        tag('if', sym(":if") + FORM) |
-        tag('do', sym(":do") + FORM) |
-        tag('afor', sym(":async") + FORM + FORM) |
-        tag('for', FORM + FORM))
+        tag("setv", sym(":setv") + FORM + FORM) |
+        tag("if", sym(":if") + FORM) |
+        tag("do", sym(":do") + FORM) |
+        tag("afor", sym(":async") + FORM + FORM) |
+        tag("for", FORM + FORM))
 
     @special(
         ["for"], [brackets(_loopers), many(notpexpr("else")) + maybe(dolike("else"))]
@@ -1222,13 +1222,13 @@ class HyASTCompiler(object):
                 # The `require` we're creating in AST is the same as above, but used at
                 # run-time (e.g. when modules are loaded via bytecode).
                 ret += self.compile(Expression([
-                    Symbol('hy.macros.require'),
+                    Symbol("hy.macros.require"),
                     String(ast_module),
-                    Symbol('None'),
-                    Keyword('assignments'),
+                    Symbol("None"),
+                    Keyword("assignments"),
                     (String("ALL") if assignments == "ALL" else
                         [[String(k), String(v)] for k, v in assignments]),
-                    Keyword('prefix'),
+                    Keyword("prefix"),
                     String(prefix)]).replace(expr))
                 ret += ret.expr_as_stmt()
 
@@ -1449,7 +1449,7 @@ class HyASTCompiler(object):
 
         if (result.temp_variables
                 and isinstance(name, Symbol)
-                and '.' not in name):
+                and "." not in name):
             result.rename(self._nonconst(name))
             if not is_assignment_expr:
                 # Throw away .expr to ensure that (setv ...) returns None.
@@ -1784,7 +1784,7 @@ class HyASTCompiler(object):
             o = ast.parse(
                 textwrap.dedent(code) if exec_mode else code,
                 self.filename,
-                'exec' if exec_mode else 'eval').body
+                "exec" if exec_mode else "eval").body
         except (SyntaxError, ValueError) as e:
             raise self._syntax_error(
                 expr,
@@ -1987,10 +1987,10 @@ def _get_compiler_module(module=None, compiler=None, calling_frame=False):
     string name of a module, and (optionally) the calling frame; otherwise,
     raise an error."""
 
-    module = getattr(compiler, 'module', None) or module
+    module = getattr(compiler, "module", None) or module
 
     if isinstance(module, str):
-        if module.startswith('<') and module.endswith('>'):
+        if module.startswith("<") and module.endswith(">"):
             module = types.ModuleType(module)
         else:
             module = importlib.import_module(mangle(module))
@@ -1999,7 +1999,7 @@ def _get_compiler_module(module=None, compiler=None, calling_frame=False):
         module = calling_module(n=2)
 
     if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+        raise TypeError("Invalid module type: {}".format(type(module)))
 
     return module
 
@@ -2075,8 +2075,8 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
         raise TypeError("Locals must be a dictionary")
 
     # Does the Hy AST object come with its own information?
-    filename = getattr(hytree, 'filename', filename) or '<string>'
-    source = getattr(hytree, 'source', source)
+    filename = getattr(hytree, "filename", filename) or "<string>"
+    source = getattr(hytree, "source", source)
 
     _ast, expr = hy_compile(hytree, module, get_expr=True,
                             compiler=compiler, filename=filename,
@@ -2125,16 +2125,16 @@ def hy_compile(tree: Object, module: Union[str, types.ModuleType],
     module = _get_compiler_module(module, compiler, False)
 
     if isinstance(module, str):
-        if module.startswith('<') and module.endswith('>'):
+        if module.startswith("<") and module.endswith(">"):
             module = types.ModuleType(module)
         else:
             module = importlib.import_module(mangle(module))
 
     if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+        raise TypeError("Invalid module type: {}".format(type(module)))
 
-    filename = getattr(tree, 'filename', filename)
-    source = getattr(tree, 'source', source)
+    filename = getattr(tree, "filename", filename)
+    source = getattr(tree, "source", source)
 
     tree = wrap_value(tree)
     if not isinstance(tree, Object):
