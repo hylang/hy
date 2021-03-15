@@ -72,6 +72,7 @@ HY_AST_COMPILE_FLAGS = (
 )
 
 
+# Helper Functions ############################################################
 def ast_compile(a: ast.AST, filename: str, mode: str):
     """Compile AST.
 
@@ -112,14 +113,50 @@ def calling_module(n: int=1):
     return module
 
 
+def is_unpack(kind, x):
+    return (isinstance(x, Expression)
+            and len(x) > 0
+            and isinstance(x[0], Symbol)
+            and x[0] == "unpack-" + kind)
+
+
+def make_hy_model(outer, x, rest):
+   return outer(
+      [Symbol(a) if type(a) is str else
+              a[0] if type(a) is list else a
+          for a in x] +
+      (rest or []))
+
+
+def mkexpr(*items, **kwargs):
+   return make_hy_model(Expression, items, kwargs.get('rest'))
+
+
+def mklist(*items, **kwargs):
+   return make_hy_model(List, items, kwargs.get('rest'))
+
+
+def pvalue(root, wanted):
+    return pexpr(sym(root) + wanted) >> (lambda x: x[0])
+
+
+def is_annotate_expression(model):
+    return (isinstance(model, Expression) and model and isinstance(model[0], Symbol)
+            and model[0] == Symbol("annotate*"))
+
+
+
+# Compiler Form Decorators ####################################################
 _special_form_compilers = {}
 _model_compilers = {}
 _decoratables = (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
-# _bad_roots are fake special operators, which are used internally
-# by other special forms (e.g., `except` in `try`) but can't be
-# used to construct special forms themselves.
-_bad_roots = tuple(mangle(x) for x in (
-    "unquote", "unquote-splice", "unpack-mapping", "except"))
+_bad_roots = tuple(
+    mangle(x) for x in ("unquote", "unquote-splice", "unpack-mapping", "except")
+)
+"""`_bad_roots` are fake special operators, which are used internally
+by other special forms (e.g., `except` in `try`) but can't be
+used to construct special forms themselves.
+"""
 
 
 def special(names, pattern):
@@ -146,10 +183,14 @@ def builds_model(*model_types):
     return _dec
 
 
-# Provide asty.Foo(x, ...) as shorthand for
-# ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
-# ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
+
+# Internal Compiler Classes ###################################################
 class Asty(object):
+    """
+    Provide asty.Foo(x, ...) as shorthand for
+    ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
+    ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
+    """
     def __getattr__(self, name):
         setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
             lineno=getattr(
@@ -158,7 +199,6 @@ class Asty(object):
                 x, 'start_column', getattr(x, 'col_offset', None)),
             **kwargs)))
         return getattr(Asty, name)
-asty = Asty()
 
 
 class Result(object):
@@ -310,36 +350,16 @@ class Result(object):
         ))
 
 
-def is_unpack(kind, x):
-    return (isinstance(x, Expression)
-            and len(x) > 0
-            and isinstance(x[0], Symbol)
-            and x[0] == "unpack-" + kind)
-
-
-def make_hy_model(outer, x, rest):
-   return outer(
-      [Symbol(a) if type(a) is str else
-              a[0] if type(a) is list else a
-          for a in x] +
-      (rest or []))
-def mkexpr(*items, **kwargs):
-   return make_hy_model(Expression, items, kwargs.get('rest'))
-def mklist(*items, **kwargs):
-   return make_hy_model(List, items, kwargs.get('rest'))
-
-def pvalue(root, wanted):
-    return pexpr(sym(root) + wanted) >> (lambda x: x[0])
-
-# Parse an annotation setting.
+# Compiler Helper Variables ###################################################
 OPTIONAL_ANNOTATION = maybe(pvalue("annotate*", FORM))
+"""Parse an annotation setting."""
 
+asty = Asty()
+"""Wrapper instance around python's `ast` to make tracking `lineno`'s easier.
+See `compiler.Asty` for more info.
+"""
 
-def is_annotate_expression(model):
-    return (isinstance(model, Expression) and model and isinstance(model[0], Symbol)
-            and model[0] == Symbol("annotate*"))
-
-
+# Compiler ####################################################################
 class HyASTCompiler(object):
     """A Hy-to-Python AST compiler"""
 
@@ -1885,7 +1905,8 @@ class HyASTCompiler(object):
         return ret + asty.Dict(m, keys=keyvalues[::2], values=keyvalues[1::2])
 
 
-def get_compiler_module(module=None, compiler=None, calling_frame=False):
+# Public Methods ##############################################################
+def _get_compiler_module(module=None, compiler=None, calling_frame=False):
     """Get a module object from a compiler, given module object,
     string name of a module, and (optionally) the calling frame; otherwise,
     raise an error."""
@@ -1968,7 +1989,7 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
       Result of evaluating the Hy compiled tree.
     """
 
-    module = get_compiler_module(module, compiler, True)
+    module = _get_compiler_module(module, compiler, True)
 
     if locals is None:
         frame = inspect.stack()[1][0]
@@ -1995,24 +2016,6 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
     # Then eval the expression context and return that
     return eval(ast_compile(expr, filename, "eval"),
                 module.__dict__, locals)
-
-
-def _module_file_source(module_name, filename, source):
-    """Try to obtain missing filename and source information from a module name
-    without actually loading the module.
-    """
-    if filename is None or source is None:
-        mod_loader = pkgutil.get_loader(module_name)
-        if mod_loader:
-            if filename is None:
-                filename = mod_loader.get_filename(module_name)
-            if source is None:
-                source = mod_loader.get_source(module_name)
-
-    # We need a non-None filename.
-    filename = filename or '<string>'
-
-    return filename, source
 
 
 def hy_compile(tree: Object, module: Union[str, types.ModuleType],
@@ -2043,7 +2046,7 @@ def hy_compile(tree: Object, module: Union[str, types.ModuleType],
     Returns:
         out: A Python AST tree
     """
-    module = get_compiler_module(module, compiler, False)
+    module = _get_compiler_module(module, compiler, False)
 
     if isinstance(module, str):
         if module.startswith('<') and module.endswith('>'):
