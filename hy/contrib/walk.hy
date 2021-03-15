@@ -259,15 +259,25 @@
   returns an OrderedDict mapping headers to sublists.
   Arguments without a header are under None.
   "
-  (setv headers ['&optional '&rest '&kwonly '&kwargs]
+  (setv headers ['unpack-iterable '* 'unpack-mapping]
         sections (OrderedDict [(, None [])])
+        vararg-types {'unpack-iterable (HySymbol "#*") 'unpack-mapping (HySymbol "#**")}
         header None)
   (for [arg form]
-    (if (in arg headers)
+    (if
+      (in arg headers)
       (do (setv header arg)
           (assoc sections header [])
           ;; Don't use a header more than once. It's the compiler's problem.
           (.remove headers header))
+
+      (and (isinstance arg HyExpression) (in (first arg) headers))
+      (do (setv header (first arg))
+          (assoc sections header [])
+          ;; Don't use a header more than once. It's the compiler's problem.
+          (.remove headers header)
+          (.append (get sections header) arg))
+
       (.append (get sections header) arg)))
   sections)
 
@@ -341,11 +351,9 @@
     (setv protected #{}
           argslist [])
     (for [[header section] (-> self (.tail) first lambda-list .items)]
-      (if header (.append argslist header))
-      (cond [(in header [None '&rest '&kwargs])
-             (.update protected section)
-             (.extend argslist section)]
-            [(in header '[&optional &kwonly])
+      (unless (in header [None 'unpack-iterable 'unpack-mapping])
+          (.append argslist header))
+      (cond [(in header [None '*])
              (for [pair section]
                (cond [(coll? pair)
                       (.add protected (first pair))
@@ -354,13 +362,16 @@
                                  ~(self.expand-symbols (second pair))])]
                      [True
                       (.add protected pair)
-                      (.append argslist pair)]))]))
+                      (.append argslist pair)]))]
+            [(in header ['unpack-iterable 'unpack-mapping])
+             (.update protected (map second section))
+             (.extend argslist section)]))
     (, protected argslist))
 
   (defn handle-fn [self]
     (setv [protected argslist] (self.handle-args-list))
     `(~(self.head) ~argslist
-      ~@(self.traverse (cut (self.tail) 1)(| protected self.protected))))
+       ~@(self.traverse (cut (self.tail) 1)(| protected self.protected))))
 
   ;; don't expand symbols in quotations
   (defn handle-quoted [self]
