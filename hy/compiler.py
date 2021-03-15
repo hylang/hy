@@ -6,18 +6,14 @@
 import __future__
 
 import ast
-import builtins
 import copy
 import importlib
 import inspect
-import itertools
-import pkgutil
 import sys
 import textwrap
 import traceback
 import types
 from collections import defaultdict
-from functools import reduce
 from itertools import dropwhile
 
 from funcparserlib.parser import NoParseError, many, maybe, oneplus, some
@@ -31,7 +27,7 @@ from hy.errors import (
     HySyntaxError,
     HyTypeError,
 )
-from hy.lex import LexException, hy_parse, mangle, parse_one_thing, unmangle
+from hy.lex import mangle, unmangle
 from hy.macros import load_macros, macroexpand, require
 from hy.model_patterns import (
     FORM,
