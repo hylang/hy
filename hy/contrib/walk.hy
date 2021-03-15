@@ -208,7 +208,7 @@
   (and (instance? HyExpression form)
        form))
 
-(defn macroexpand-all [form &optional module-name]
+(defn macroexpand-all [form [module-name None]]
   "Recursively performs all possible macroexpansions in form, using the ``require`` context of ``module-name``.
   `macroexpand-all` assumes the calling module's context if unspecified.
   "
@@ -222,7 +222,7 @@
   (defn expand [form]
     (nonlocal quote-level)
     ;; manages quote levels
-    (defn +quote [&optional [x 1]]
+    (defn +quote [[x 1]]
       (nonlocal quote-level)
       (setv head (first form))
       (+= quote-level x)
@@ -283,7 +283,6 @@
 
 
 (defn symbolexpand [form expander
-                    &optional
                     [protected (frozenset)]
                     [quote-level 0]]
   (.expand (SymbolExpander form expander protected quote-level)))
@@ -296,14 +295,14 @@
           self.protected protected
           self.quote-level quote-level))
 
-  (defn expand-symbols [self form &optional protected quote-level]
+  (defn expand-symbols [self form [protected None] [quote-level None]]
     (if (none? protected)
         (setv protected self.protected))
     (if (none? quote-level)
         (setv quote-level self.quote-level))
     (symbolexpand form self.expander protected quote-level))
 
-  (defn traverse [self form &optional protected quote-level]
+  (defn traverse [self form [protected None] [quote-level None]]
     (if (none? protected)
         (setv protected self.protected))
     (if (none? quote-level)
@@ -316,7 +315,7 @@
           form))
 
   ;; manages quote levels
-  (defn +quote [self &optional [x 1]]
+  (defn +quote [self [x 1]]
     `(~(self.head) ~@(self.traverse (self.tail)
                                     :quote-level (+ self.quote-level x))))
 
@@ -449,7 +448,7 @@
         ;; recursive base case--it's an atom. Put it back.
         (self.handle-base))))
 
-(defmacro smacrolet [bindings &rest body]
+(defmacro smacrolet [bindings #* body]
   "symbol macro let.
 
   Replaces symbols in body, but only where it would be a valid let binding.
@@ -468,7 +467,7 @@
                 (fn [symbol]
                   (.get bindings symbol symbol))))
 
-(defmacro let [bindings &rest body]
+(defmacro let [bindings #* body]
   "sets up lexical bindings in its body
 
   ``let`` creates lexically-scoped names for local variables.

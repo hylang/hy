@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(defmacro do-until [&rest args]
+(defmacro do-until [#* args]
   (import
     [hy.model-patterns [whole FORM notpexpr dolike]]
     [funcparserlib.parser [many]])
@@ -26,7 +26,7 @@
     (until (+= n 1) (>= n 3)))
   (assert (= s "xxxx")))
 
-(defmacro loop [&rest args]
+(defmacro loop [#* args]
   (import
     [hy.model-patterns [whole FORM sym SYM]]
     [funcparserlib.parser [many]])

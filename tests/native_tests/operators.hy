@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(defmacro op-and-shadow-test [op &rest body]
+(defmacro op-and-shadow-test [op #* body]
   ; Creates two tests with the given `body`, one where all occurrences
   ; of the symbol `f` are syntactically replaced with `op` (a test of
   ; the real operator), and one where the body is preceded by an

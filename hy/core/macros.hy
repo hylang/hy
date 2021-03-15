@@ -14,7 +14,7 @@
 (require [hy.core.bootstrap [*]])
 
 
-(defmacro as-> [head name &rest rest]
+(defmacro as-> [head name #* rest]
   "Beginning with `head`, expand a sequence of assignments `rest` to `name`.
 
   .. versionadded:: 0.12.0
@@ -98,7 +98,7 @@
      ~name))
 
 
-(defmacro assoc [coll k1 v1 &rest other-kvs]
+(defmacro assoc [coll k1 v1 #* other-kvs]
   "Associate key/index value pair(s) to a collection `coll` like a dict or list.
 
   ``assoc`` is used to associate a key with a value in a dictionary or to set an
@@ -158,7 +158,7 @@
       `(~node [~p1 ~p2] ~(_with node args body)))))
 
 
-(defmacro with [args &rest body]
+(defmacro with [args #* body]
   "Wrap execution of `body` within a context manager given as bracket `args`.
 
   ``with`` is used to wrap the execution of a block within a context manager. The
@@ -195,7 +195,7 @@
   (_with 'with* args body))
 
 
-(defmacro with/a [args &rest body]
+(defmacro with/a [args #* body]
   "Wrap execution of `body` with/ain a context manager given as bracket `args`.
 
   ``with/a`` behaves like ``with``, but is used to wrap the execution of
@@ -223,7 +223,7 @@
     case it returns ``None``."
   (_with 'with/a* args body))
 
-(defmacro cond [&rest branches]
+(defmacro cond [#* branches]
   "Build a nested if clause with each `branch` a [cond result] bracket pair.
 
   Examples:
@@ -269,7 +269,7 @@
         [(first branch) `(do ~@(cut branch 1))])))))
 
 
-(defmacro -> [head &rest args]
+(defmacro -> [head #* args]
   "Thread `head` first through the `rest` of the forms.
 
   ``->`` (or the *threading macro*) is used to avoid nesting of expressions. The
@@ -291,7 +291,7 @@
   ret)
 
 
-(defmacro doto [form &rest expressions]
+(defmacro doto [form #* expressions]
   "Perform possibly mutating `expressions` on `form`, returning resulting obj.
 
   .. versionadded:: 0.10.1
@@ -324,7 +324,7 @@
      ~f))
 
 
-(defmacro ->> [head &rest args]
+(defmacro ->> [head #* args]
   "Thread `head` last through the `rest` of the forms.
 
   ``->>`` (or the *threading tail macro*) is similar to the *threading macro*, but
@@ -346,7 +346,7 @@
   ret)
 
 
-(defmacro of [base &rest args]
+(defmacro of [base #* args]
   "Shorthand for indexing for type annotations.
 
   If only one arguments are given, this expands to just that argument. If two arguments are
@@ -397,7 +397,7 @@
     `(get ~base (, ~@args))))
 
 
-(defmacro if-not [test not-branch &optional yes-branch]
+(defmacro if-not [test not-branch [yes-branch None]]
   "Like `if`, but execute the first branch when the test fails
 
   .. versionadded:: 0.10.0
@@ -417,7 +417,7 @@
   `(if* (not ~test) ~not-branch ~yes-branch))
 
 
-(defmacro lif [&rest args]
+(defmacro lif [#* args]
   "Like `if`, but anything that is not None is considered true.
 
   .. versionadded:: 0.10.0
@@ -456,7 +456,7 @@
                   (lif ~@(cut args 2))))))
 
 
-(defmacro lif-not [test not-branch &optional yes-branch]
+(defmacro lif-not [test not-branch [yes-branch None]]
   "Like `if-not`, but anything that is not None is considered true.
 
   .. versionadded:: 0.11.0
@@ -475,7 +475,7 @@
   `(if* (is ~test None) ~not-branch ~yes-branch))
 
 
-(defmacro when [test &rest body]
+(defmacro when [test #* body]
   "Execute `body` when `test` is true
 
   ``when`` is similar to ``unless``, except it tests when the given conditional is
@@ -491,7 +491,7 @@
   `(if ~test (do ~@body)))
 
 
-(defmacro unless [test &rest body]
+(defmacro unless [test #* body]
   "Execute `body` when `test` is false
 
   The ``unless`` macro is a shorthand for writing an ``if`` statement that checks if
@@ -512,7 +512,7 @@
     ~@body))
 
 
-(defmacro do-n [count-form &rest body]
+(defmacro do-n [count-form #* body]
   "Execute `body` a number of times equal to `count-form` and return
   ``None``. (To collect return values, use :hy:macro:`list-n`
   instead.) Negative values of the count are treated as 0.
@@ -530,7 +530,7 @@
   (_do-n count-form body))
 
 
-(defmacro list-n [count-form &rest body]
+(defmacro list-n [count-form #* body]
   "Like :hy:macro:`do-n`, but the results are collected into a list.
 
   ::
@@ -546,7 +546,7 @@
     ~l))
 
 
-(defmacro with-gensyms [args &rest body]
+(defmacro with-gensyms [args #* body]
   "Execute `body` with `args` as bracket of names to gensym for use in macros.
 
   .. versionadded:: 0.9.12
@@ -580,7 +580,7 @@
     ~@body))
 
 
-(defmacro defmacro/g! [name args &rest body]
+(defmacro defmacro/g! [name args #* body]
   "Like `defmacro`, but symbols prefixed with 'g!' are gensymed.
 
   .. versionadded:: 0.9.12
@@ -617,7 +617,7 @@
      ~@body))
 
 
-(defmacro defmacro! [name args &rest body]
+(defmacro defmacro! [name args #* body]
   "Like `defmacro/g!`, with automatic once-only evaluation for 'o!' params.
 
   Such 'o!' params are available within `body` as the equivalent 'g!' symbol.
@@ -666,7 +666,7 @@
           ~@~body)))
 
 
-(defmacro defmain [args &rest body]
+(defmacro defmain [args #* body]
   "Write a function named \"main\" and do the 'if __main__' dance.
 
   .. versionadded:: 0.10.1
@@ -678,7 +678,7 @@
   Examples:
     ::
 
-       => (defmain [&rest args]
+       => (defmain [#* args]
        ...  (do-something-with args))
 
     is the equivalent of:
@@ -707,7 +707,7 @@
     module ``argparse`` in the usual way::
 
        => (import argparse)
-       => (defmain [&rest _]
+       => (defmain [#* _]
        ...   (setv parser (argparse.ArgumentParser))
        ...   (.add-argument parser \"STRING\"
        ...     :help \"string to replicate\")
@@ -721,7 +721,7 @@
         restval (gensym))
   `(when (= --name-- "__main__")
      (import sys)
-     (setv ~retval ((fn [~@(or args `[&rest ~restval])] ~@body) #* sys.argv))
+     (setv ~retval ((fn [~@(or args `[#* ~restval])] ~@body) #* sys.argv))
      (if (integer? ~retval)
        (sys.exit ~retval))))
 
@@ -735,7 +735,7 @@
   `(with-decorator ~@decorators ~fndef))
 
 
-(defmacro comment [&rest body]
+(defmacro comment [#* body]
   "Ignores body and always expands to None
 
   The ``comment`` macro ignores its body and always expands to ``None``.
@@ -774,7 +774,7 @@
   `(help (.get __macros__ (mangle '~symbol) None)))
 
 
-(defmacro cfor [f &rest generator]
+(defmacro cfor [f #* generator]
   #[[syntactic sugar for passing a ``generator`` expression to the callable ``f``
 
   Its syntax is the same as :ref:`generator expression <py:genexpr>`, but takes

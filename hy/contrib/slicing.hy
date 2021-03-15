@@ -49,7 +49,7 @@ or more manually using the tag macro as::
 
       sym)))
 
-(defmacro ncut [seq key1 &rest keys]
+(defmacro ncut [seq key1 #* keys]
   "N-Dimensional ``cut`` macro with shorthand slice notation.
 
   Libraries like ``numpy`` and ``pandas`` extend Python's sequence

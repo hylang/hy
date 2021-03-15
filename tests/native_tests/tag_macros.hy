@@ -88,12 +88,12 @@
   (defn increment-arguments [func]
     "Increments each argument passed to the decorated function."
     ((wraps func)
-       (fn [&rest args &kwargs kwargs]
+       (fn [#* args #** kwargs]
          (func #* (map inc args)
                #** (dfor [k v] (.items kwargs) [k (inc v)])))))
 
   #@(increment-arguments
-     (defn foo [&rest args &kwargs kwargs]
+     (defn foo [#* args #** kwargs]
        "Bar."
        (, args kwargs)))
 
@@ -108,7 +108,7 @@
   ;; We can use the #@ tag macro to apply more than one decorator
   #@(increment-arguments
      increment-arguments
-     (defn double-foo [&rest args &kwargs kwargs]
+     (defn double-foo [#* args #** kwargs]
        "Bar."
        (, args kwargs)))
 

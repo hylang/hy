@@ -108,7 +108,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
 (import [hy.models [HyDict HyExpression HyKeyword HyList HySymbol]])
 (require [hy.contrib.walk [let]])
 
-(defmacro! ifp [o!pred o!expr &rest clauses]
+(defmacro! ifp [o!pred o!expr #* clauses]
   "Takes a binary predicate ``pred``, an expression ``expr``, and a set of
   clauses. Each clause can be of the form ``cond res`` or ``cond :>> res``. For
   each clause, if ``(pred cond expr)`` evaluates to true, returns ``res`` in
@@ -156,7 +156,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
            ~(emit pred expr more)))))
   `~(emit g!pred g!expr clauses))
 
-(defmacro setv+ [&rest pairs]
+(defmacro setv+ [#* pairs]
   "Assignment with destructuring for both mappings and iterables.
 
   Destructuring equivalent of ``setv``. Binds symbols found in a pattern
@@ -174,7 +174,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
               sym))
     (del ~@gsyms)))
 
-(defmacro dict=: [&rest pairs]
+(defmacro dict=: [#* pairs]
   "Destructure into dict
 
   Same as ``setv+``, except returns a dictionary with symbols to be defined,
@@ -190,7 +190,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
      (del ~@gsyms)
      ~result))
 
-(defn destructure [binds expr &optional gsyms]
+(defn destructure [binds expr [gsyms None]]
   "
   Destructuring bind.
 
@@ -267,7 +267,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                  (destructure #* (expand-lookup target lookup) gsyms))))
        ((fn [xs] (reduce + xs result)))))
 
-(defn find-magics [bs &optional [keys? False] [as? False]]
+(defn find-magics [bs [keys? False] [as? False]]
   (setv x (first bs)
         y (second bs))
   (if (none? x)
@@ -348,47 +348,47 @@ Iterator patterns are specified using round brackets. They are the same as list 
                                 s [(HyKeyword k) v]
                             s)))))
 
-(defmacro/g! defn+ [fn-name args &rest doc+body]
+(defmacro/g! defn+ [fn-name args #* doc+body]
   "Define function `fn-name` with destructuring within `args`.
 
-  Note that `&rest`, `&optional` etc have no special meaning and are
+  Note that `#*` etc have no special meaning and are
   intepretted as any other argument.
   "
   (setv [doc body] (if (string? (first doc+body))
                      [(first doc+body) (rest doc+body)]
                      [None doc+body]))
-  `(defn ~fn-name [&rest ~g!args &kwargs ~g!kwargs]
+  `(defn ~fn-name [#* ~g!args #** ~g!kwargs]
      ~doc
      ~(-expanded-setv args g!args g!kwargs)
      ~@body))
 
-(defmacro/g! fn+ [args &rest body]
+(defmacro/g! fn+ [args #* body]
   "Return anonymous function with destructuring within `args`
 
-  Note that `&rest`, `&optional` etc have no special meaning and are
+  Note that `*`, `/`, etc have no special meaning and are
   intepretted as any other argument.
   "
-  `(fn [&rest ~g!args &kwargs ~g!kwargs]
+  `(fn [#* ~g!args #** ~g!kwargs]
      ~(-expanded-setv args g!args g!kwargs)
      ~@body))
 
-(defmacro/g! defn/a+ [fn-name args &rest doc+body]
+(defmacro/g! defn/a+ [fn-name args #* doc+body]
   "Async variant of ``defn+``."
   (setv [doc body] (if (string? (first doc+body))
                      [(first doc+body) (rest doc+body)]
                      [None doc+body]))
-  `(defn/a ~fn-name [&rest ~g!args &kwargs ~g!kwargs]
+  `(defn/a ~fn-name [#* ~g!args #** ~g!kwargs]
      ~doc
      ~(-expanded-setv args g!args g!kwargs)
      ~@body))
 
-(defmacro/g! fn/a+ [args &rest body]
+(defmacro/g! fn/a+ [args #* body]
   "Async variant of ``fn+``."
-  `(fn/a [&rest ~g!args &kwargs ~g!kwargs]
+  `(fn/a [#* ~g!args #** ~g!kwargs]
      ~(-expanded-setv args g!args g!kwargs)
      ~@body))
 
-(defmacro let+ [args &rest body]
+(defmacro let+ [args #* body]
   "let macro with full destructuring with `args`"
   (if (odd? (len args))
     (macro-error args "let bindings must be paired"))

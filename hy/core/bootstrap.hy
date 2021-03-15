@@ -9,7 +9,7 @@
 (eval-and-compile
   (import hy)
   ((hy.macros.macro "defmacro")
-   (fn [&name macro-name lambda-list &rest body]
+   (fn [&name macro-name lambda-list #* body]
      #[[the defmacro macro
      ``defmacro`` is used to define macros. The general format is
      ``(defmacro name [parameters] expr)``.
@@ -69,7 +69,7 @@
          (fn ~(+ `[&name] lambda-list)
            ~@body))))))
 
-(defmacro if [&rest args]
+(defmacro if [#* args]
   "Conditionally evaluate alternating test and then expressions.
 
   ``if / if*`` respect Python *truthiness*, that is, a *test* fails if it
@@ -110,10 +110,10 @@
                   ~(get args 1)
                   (if ~@(cut args 2))))))
 
-(defmacro macro-error [expression reason &optional [filename '--name--]]
+(defmacro macro-error [expression reason [filename '--name--]]
   `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
 
-(defmacro defn [name &rest args]
+(defmacro defn [name #* args]
   "Define `name` as a function with `args` as the signature, annotations, and body.
 
   ``defn`` is used to define functions. It requires two arguments: a name (given
@@ -278,7 +278,7 @@
     (macro-error name "defn takes a name as first argument"))
   `(setv ~name (fn* ~@args)))
 
-(defmacro defn/a [name lambda-list &rest body]
+(defmacro defn/a [name lambda-list #* body]
   "Define `name` as a function with `lambda-list` signature and body `body`.
 
   ``defn/a`` macro is a variant of ``defn`` that instead defines

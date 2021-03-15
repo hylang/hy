@@ -116,7 +116,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (else
     (setv ran-try-else True)))
 
-(defn fun [a b &optional [c 9] [d 10] &rest args &kwargs kwargs]
+(defn fun [a b [c 9] [d 10] #* args #** kwargs]
   "function docstring"
   [a b c d args (sorted (.items kwargs))])
 (setv funcall1 (fun 1 2 3 4 "a" "b" "c" :k1 "v1" :k2 "v2"))

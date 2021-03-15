@@ -126,7 +126,7 @@
   (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2) [1 2 3 4]))
   (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4]))
 
-  (defn g [&kwargs x]
+  (defn g [#** x]
     x)
   (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
              {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))

@@ -88,7 +88,7 @@
   (assert (= q qq)))
 
 
-(defmacro doodle [&rest body]
+(defmacro doodle [#* body]
   `(do ~@body))
 
 (defn test-unquote-splice []

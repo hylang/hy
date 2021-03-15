@@ -10,7 +10,7 @@
 
 (import [functools [reduce]])
 
-(defn + [&rest args]
+(defn + [#* args]
   "Shadowed `+` operator adds `args`."
   (if
     (= (len args) 0)
@@ -20,13 +20,13 @@
     ; else
       (reduce operator.add args)))
 
-(defn - [a1 &rest a-rest]
+(defn - [a1 #* a-rest]
   "Shadowed `-` operator subtracts each `a-rest` from `a1`."
   (if a-rest
     (reduce operator.sub a-rest a1)
     (- a1)))
 
-(defn * [&rest args]
+(defn * [#* args]
   "Shadowed `*` operator multiplies `args`."
   (if
     (= (len args) 0)
@@ -36,7 +36,7 @@
     ; else
       (reduce operator.mul args)))
 
-(defn ** [a1 a2 &rest a-rest]
+(defn ** [a1 a2 #* a-rest]
   "Shadowed `**` operator takes `a1` to the power of `a2`, ..., `a-rest`."
   ; We use `-foldr` instead of `reduce` because exponentiation
   ; is right-associative.
@@ -44,13 +44,13 @@
 (defn -foldr [f xs]
   (reduce (fn [x y] (f y x)) (cut xs None None -1)))
 
-(defn / [a1 &rest a-rest]
+(defn / [a1 #* a-rest]
   "Shadowed `/` operator divides `a1` by each `a-rest`."
   (if a-rest
     (reduce operator.truediv a-rest a1)
     (/ 1 a1)))
 
-(defn // [a1 a2 &rest a-rest]
+(defn // [a1 a2 #* a-rest]
   "Shadowed `//` operator floor divides `a1` by `a2`, ..., `a-rest`."
   (reduce operator.floordiv (+ (, a2) a-rest) a1))
 
@@ -58,25 +58,25 @@
   "Shadowed `%` operator takes `x` modulo `y`."
   (% x y))
 
-(defn @ [a1 &rest a-rest]
+(defn @ [a1 #* a-rest]
   "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
   (reduce operator.matmul a-rest a1))
 
-(defn << [a1 a2 &rest a-rest]
+(defn << [a1 a2 #* a-rest]
   "Shadowed `<<` operator performs left-shift on `a1` by `a2`, ..., `a-rest`."
   (reduce operator.lshift (+ (, a2) a-rest) a1))
 
-(defn >> [a1 a2 &rest a-rest]
+(defn >> [a1 a2 #* a-rest]
   "Shadowed `>>` operator performs right-shift on `a1` by `a2`, ..., `a-rest`."
   (reduce operator.rshift (+ (, a2) a-rest) a1))
 
-(defn & [a1 &rest a-rest]
+(defn & [a1 #* a-rest]
   "Shadowed `&` operator performs bitwise-and on `a1` by each `a-rest`."
   (if a-rest
     (reduce operator.and_ a-rest a1)
     a1))
 
-(defn | [&rest args]
+(defn | [#* args]
   "Shadowed `|` operator performs bitwise-or on `a1` by each `a-rest`."
   (if
     (= (len args) 0)
@@ -99,38 +99,38 @@
   (if a-rest
     (and #* (gfor (, x y) (zip (+ (, a1) a-rest) a-rest) (op x y)))
     True))
-(defn < [a1 &rest a-rest]
+(defn < [a1 #* a-rest]
   "Shadowed `<` operator perform lt comparison on `a1` by each `a-rest`."
   (comp-op operator.lt a1 a-rest))
-(defn <= [a1 &rest a-rest]
+(defn <= [a1 #* a-rest]
   "Shadowed `<=` operator perform le comparison on `a1` by each `a-rest`."
   (comp-op operator.le a1 a-rest))
-(defn = [a1 &rest a-rest]
+(defn = [a1 #* a-rest]
   "Shadowed `=` operator perform eq comparison on `a1` by each `a-rest`."
   (comp-op operator.eq a1 a-rest))
-(defn is [a1 &rest a-rest]
+(defn is [a1 #* a-rest]
   "Shadowed `is` keyword perform is on `a1` by each `a-rest`."
   (comp-op operator.is_ a1 a-rest))
-(defn != [a1 a2 &rest a-rest]
+(defn != [a1 a2 #* a-rest]
   "Shadowed `!=` operator perform neq comparison on `a1` by `a2`, ..., `a-rest`."
   (comp-op operator.ne a1 (+ (, a2) a-rest)))
-(defn is-not [a1 a2 &rest a-rest]
+(defn is-not [a1 a2 #* a-rest]
   "Shadowed `is-not` keyword perform is-not on `a1` by `a2`, ..., `a-rest`."
   (comp-op operator.is-not a1 (+ (, a2) a-rest)))
-(defn in [a1 a2 &rest a-rest]
+(defn in [a1 a2 #* a-rest]
   "Shadowed `in` keyword perform `a1` in `a2` in …."
   (comp-op (fn [x y] (in x y)) a1 (+ (, a2) a-rest)))
-(defn not-in [a1 a2 &rest a-rest]
+(defn not-in [a1 a2 #* a-rest]
   "Shadowed `not in` keyword perform `a1` not in `a2` not in…."
   (comp-op (fn [x y] (not-in x y)) a1 (+ (, a2) a-rest)))
-(defn >= [a1 &rest a-rest]
+(defn >= [a1 #* a-rest]
   "Shadowed `>=` operator perform ge comparison on `a1` by each `a-rest`."
   (comp-op operator.ge a1 a-rest))
-(defn > [a1 &rest a-rest]
+(defn > [a1 #* a-rest]
   "Shadowed `>` operator perform gt comparison on `a1` by each `a-rest`."
   (comp-op operator.gt a1 a-rest))
 
-(defn and [&rest args]
+(defn and [#* args]
   "Shadowed `and` keyword perform and on `args`.
 
   ``and`` is used in logical expressions. It takes at least two parameters.
@@ -176,7 +176,7 @@
     ; else
       (reduce (fn [x y] (and x y)) args)))
 
-(defn or [&rest args]
+(defn or [#* args]
   "Shadowed `or` keyword perform or on `args`.
 
   ``or`` is used in logical expressions. It takes at least two parameters. It
@@ -240,7 +240,7 @@
   "
   (not x))
 
-(defn get [coll key1 &rest keys]
+(defn get [coll key1 #* keys]
   "Access item in `coll` indexed by `key1`, with optional `keys` nested-access.
 
   ``get`` is used to access single elements in collections. ``get`` takes at

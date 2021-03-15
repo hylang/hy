@@ -48,7 +48,7 @@ tail-call optimization (TCO) in their Hy code.
   (setv active [False])
   (setv accumulated [])
 
-  (fn [&rest args]
+  (fn [#* args]
     (.append accumulated args)
     (when (not (first active))
       (assoc active 0 True)
@@ -58,7 +58,7 @@ tail-call optimization (TCO) in their Hy code.
       result)))
 
 
-(defmacro/g! fnr [signature &rest body]
+(defmacro/g! fnr [signature #* body]
   (setv new-body (prewalk
     (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
     body))
@@ -70,14 +70,14 @@ tail-call optimization (TCO) in their Hy code.
     ~g!recur-fn))
 
 
-(defmacro defnr [name lambda-list &rest body]
+(defmacro defnr [name lambda-list #* body]
   (if (not (= (type name) HySymbol))
     (macro-error name "defnr takes a name as first argument"))
   `(do (require hy.contrib.loop)
        (setv ~name (hy.contrib.loop.fnr ~lambda-list ~@body))))
 
 
-(defmacro/g! loop [bindings &rest body]
+(defmacro/g! loop [bindings #* body]
   "``loop`` establishes a recursion point. With ``loop``, ``recur``
   rebinds the variables set in the recursion point and sends code
   execution back to that recursion point. If ``recur`` is used in a
@@ -85,7 +85,7 @@ tail-call optimization (TCO) in their Hy code.
   causes chaos. Fixing this to detect if recur is in a tail-call position
   and erroring if not is a giant TODO.
 
-  Usage: ``(loop bindings &rest body)``
+  Usage: ``(loop bindings #* body)``
 
   Examples:
     ::

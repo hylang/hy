@@ -173,7 +173,7 @@
   (assert (= (#%(identity (, %5 %4 %3 %2 %1)) 1 2 3 4 5) (, 5 4 3 2 1)))
   (assert (= (#%(identity (, %1 %2 %3 %4 %5)) 1 2 3 4 5) (, 1 2 3 4 5)))
   (assert (= (#%(identity (, %1 %5 %2 %3 %4)) 1 2 3 4 5) (, 1 5 2 3 4)))
-  ;; test &rest
+  ;; test #*
   (assert (= (#%(sum %*) 1 2 3) 6))
   (assert (= (#%(identity (, %1 %*)) 10 1 2 3) (, 10 (, 1 2 3))))
   ;; no parameters
@@ -190,7 +190,7 @@
   (assert (= (#%(%1 2 4) +) 6))
   (assert (= (#%(%1 2 4) -) -2))
   (assert (= (#%(%1 2 4) /) 0.5))
-  ;; test &rest &kwargs
+  ;; test #* #**
   (assert (= (#%(, %* %**) 1 2 :a 'b)
              (, (, 1 2)
                 (dict :a 'b))))

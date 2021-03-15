@@ -43,7 +43,7 @@ The differences that do exist are as follows:
       object context maxlevels level))
   (import [pprint [-safe-repr :as -safe-py-repr]]))
 
-(defn pprint [object &rest args &kwargs kwargs]
+(defn pprint [object #* args #** kwargs]
   "Pretty-print a Python object to a stream [default is sys.stdout].
 
   Examples:
@@ -61,14 +61,11 @@ The differences that do exist are as follows:
   "
   (.pprint (PrettyPrinter #* args #** kwargs) object))
 
-(defn pformat [object &rest args &kwargs kwargs]
+(defn pformat [object #* args #** kwargs]
   "Format a Python object into a pretty-printed representation."
   (.pformat (PrettyPrinter #* args #** kwargs) object))
 
-(defn pp [object
-          &optional [sort-dicts False]
-          &rest args
-          &kwargs kwargs]
+(defn pp [object [sort-dicts False] #* args #** kwargs]
   "Pretty-print a Python object"
   (pprint object #* args :sort-dicts sort-dicts #** kwargs))
 
@@ -84,8 +81,7 @@ The differences that do exist are as follows:
   "Determine if object requires a recursive representation."
   (get (-safe-repr object {} None 0 True) 2))
 
-(defn -safe-repr [object context maxlevels level
-                  &optional [sort-dicts True]]
+(defn -safe-repr [object context maxlevels level [sort-dicts True]]
   (setv typ (type object)
         r (getattr typ "__repr__" None))
 
@@ -194,9 +190,8 @@ The differences that do exist are as follows:
        output stream available at construction will be used.
      compact: If true, several items will be combined in one line.
      sort-dicts: If True, dict keys are sorted. (only available for python >= 3.8)"
-  (defn --init-- [self
-                  &optional [indent 1] [width 80] depth stream
-                  &kwonly [compact False] [sort-dicts True]]
+  (defn --init-- [self [indent 1] [width 80] [depth None] [stream None]
+                  * [compact False] [sort-dicts True]]
     (when (and (not PY3_8) (not sort-dicts))
         (raise (ValueError "sort-dicts is not available for python versions < 3.8")))
     (setv self.-sort-dicts True)

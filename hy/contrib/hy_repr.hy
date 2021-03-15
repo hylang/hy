@@ -27,7 +27,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (setv [dict-keys dict-values dict-items] [C C C])))
 
 (setv -registry {})
-(defn hy-repr-register [types f &optional placeholder]
+(defn hy-repr-register [types f [placeholder None]]
   "``hy-repr-register`` lets you set the function that ``hy-repr`` calls to
   represent a type.
 

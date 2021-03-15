@@ -5,7 +5,7 @@
 (import pytest
         [hy.errors [HyTypeError HyMacroExpansionError]])
 
-(defmacro rev [&rest body]
+(defmacro rev [#* body]
   "Execute the `body` statements in reverse"
   (quasiquote (do (unquote-splice (list (reversed body))))))
 
@@ -40,7 +40,7 @@
   (defmacro a-list [] [1 2])
   (assert (= (a-list) [1 2]))
 
-  (defmacro a-tuple [&rest b] b)
+  (defmacro a-tuple [#* b] b)
   (assert (= (a-tuple 1 2) [1 2]))
 
   (defmacro a-dict [] {1 2})
@@ -62,17 +62,17 @@
   (foo x y))
 
 (defn test-macro-kw []
-  "NATIVE: test that an error is raised when &kwonly or &kwargs is used in a macro"
+  "NATIVE: test that an error is raised when * or #** is used in a macro"
   (try
-    (eval '(defmacro f [&kwonly a b]))
+    (eval '(defmacro f [* a b]))
     (except [e HyTypeError]
-      (assert (= e.msg "macros cannot use &kwonly")))
+      (assert (= e.msg "macros cannot use '*', or '#**'")))
     (else (assert False)))
 
   (try
-    (eval '(defmacro f [&kwargs kw]))
+    (eval '(defmacro f [#** kw]))
     (except [e HyTypeError]
-      (assert (= e.msg "macros cannot use &kwargs")))
+      (assert (= e.msg "macros cannot use '*', or '#**'")))
     (else (assert False))))
 
 (defn test-macro-bad-name []
@@ -89,9 +89,9 @@
 
 (defn test-optional-and-unpacking-in-macro []
   ; https://github.com/hylang/hy/issues/1154
-  (defn f [&rest args]
+  (defn f [#* args]
     (+ "f:" (repr args)))
-  (defmacro mac [&optional x]
+  (defmacro mac [[x None]]
    `(f #* [~x]))
   (assert (= (mac) "f:(None,)")))
 
@@ -266,8 +266,8 @@
   (setv foo 40)
   (foo! (+= foo 1))
   (assert (= 41 foo))
-  ;; test &optional args
-  (defmacro! bar! [o!a &optional [o!b 1]] `(do ~g!a ~g!a ~g!b ~g!b))
+  ;; test optional args
+  (defmacro! bar! [o!a [o!b 1]] `(do ~g!a ~g!a ~g!b ~g!b))
   ;; test that o!s are evaluated once only
   (bar! (+= foo 1) (+= foo 1))
   (assert (= 43 foo))
@@ -334,7 +334,7 @@
     x)
 
   (try
-    (defmain [&rest args]
+    (defmain [#* args]
       (main 42))
     (assert False)
     (except [e SystemExit]
