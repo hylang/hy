@@ -126,22 +126,26 @@
   this string becomes the :term:`py:docstring` of the function.
 
   Parameters may be prefixed with the following special symbols. If you use more
-  than one, they can only appear in the given order (so all `&optional`
-  parameters must precede any `&rest` parameter, `&rest` must precede `&kwonly`,
-  and `&kwonly` must precede `&kwargs`). This is the same order that Python
-  requires.
+  than one, they can only appear in the given order (so all positional only arguments
+  must precede ``/``, all positional or keyword arguments must precede a ``#*`` rest
+  parameter or ``*`` kwonly delimiter and ``#**`` must be the last argument).
+  This is the same order that Python requires.
 
-  &optional
-      All following parameters are optional. They may be given as two-argument lists,
-      where the first element is the parameter name and the second is the default value.
-      The parameter can also be given as a single item, in which case the default value
-      is ``None``.
+  /
+      The preceding parameters can only be supplied as positional arguments.
+
+  positional or keyword arguments:
+      All parameters until following ``/`` (if its supplied) but before ``*/#*/#**``
+      can be supplied positionally or by keyword. Optional arguments may be given as
+      two-argument lists, where the first element is the parameter name and the second
+      is the default value. When defining parameters, a positional argument cannot follow
+      a keyword argument.
 
       The following example defines a function with one required positional argument
       as well as three optional arguments. The first optional argument defaults to ``None``
       and the latter two default to ``\"(\"`` and ``\")\"``, respectively::
 
-        => (defn format-pair [left-val &optional right-val  [open-text \"(\"] [close-text \")\"]]
+        => (defn format-pair [left-val [right-val None] [open-text \"(\"] [close-text \")\"]]
         ...  (+ open-text (str left-val) \", \" (str right-val) close-text))
 
         => (format-pair 3)
@@ -156,15 +160,16 @@
         => (format-pair \"A\" :open-text \"<\" :close-text \">\")
         '<A, None>'
 
-  &rest
+  #*
       The following parameter will contain a list of 0 or more positional arguments.
-      No other positional parameters may be specified after this one.
+      No other positional parameters may be specified after this one. Parameters
+      defined after this but before ``#**`` are considered keyword only.
 
       The following code example defines a function that can be given 0 to n
       numerical parameters. It then sums every odd number and subtracts
       every even number::
 
-          => (defn zig-zag-sum [&rest numbers]
+          => (defn zig-zag-sum [#* numbers]
                (setv odd-numbers (lfor x numbers :if (odd? x) x)
                      even-numbers (lfor x numbers :if (even? x) x))
                (- (sum odd-numbers) (sum even-numbers)))
@@ -176,15 +181,15 @@
           => (zig-zag-sum 1 2 3 4 5 6)
           -3
 
-  &kwonly
-      .. versionadded:: 0.12.0
+  *
 
       All following parmaeters can only be supplied as keywords.
-      Like ``&optional``, the parameter may be marked as optional by
+      Like keyword arguments, the parameter may be marked as optional by
       declaring it as a two-element list containing the parameter name
-      following by the default value::
+      following by the default value. Parameters without a default are
+      considered required::
 
-          => (defn compare [a b &kwonly keyfn [reverse False]]
+          => (defn compare [a b * keyfn [reverse False]]
           ...  (setv result (keyfn a b))
           ...  (if (not reverse)
           ...    result
@@ -206,14 +211,14 @@
             File \"<input>\", line 1, in <module>
           TypeError: compare() missing 1 required keyword-only argument: 'keyfn'
 
-  &kwargs
-      Like ``&rest``, but for keyword arguments.
+  #**
+      Like ``#*``, but for keyword arguments.
       The following parameter will contain 0 or more keyword arguments.
 
       The following code examples defines a function that will print all keyword
       arguments and their values::
 
-          => (defn print-parameters [&kwargs kwargs]
+          => (defn print-parameters [#** kwargs]
           ...    (for [(, k v) (.items kwargs)] (print k v)))
 
           => (print-parameters :parameter-1 1 :parameter-2 2)
@@ -226,10 +231,10 @@
           parameter-2 2
 
   Examples:
-    The following example uses all of ``&optional``, ``&rest``, ``&kwonly``, and
-    ``&kwargs`` in order to show their interactions with each other. The function
+    The following example uses all of ``/``, ``#*``, and
+    ``#**`` in order to show their interactions with each other. The function
     renders an HTML tag.
-    It requires an argument ``tag-name``, a string which is the tag name.
+    It requires positional only argument ``tag-name``, a string which is the tag name.
     It has one optional argument, ``delim``, which defaults to ``\"\"`` and is placed
     between each child.
     The rest of the arguments, ``children``, are the tag's children or content.
@@ -239,7 +244,7 @@
     then it will render like ``<div />``.
     The rest of the keyword arguments, ``props``, render as HTML attributes::
 
-       => (defn render-html-tag [tag-name &optional [delim \"\"] &rest children &kwonly [empty False] &kwargs attrs]
+       => (defn render-html-tag [tag-name / [delim \"\"] #* children [empty False] #** attrs]
        ...  (setv rendered-attrs (.join \" \" (lfor (, key val) (.items attrs) (+ (unmangle (str key)) \"=\"\" (str val) \"\"\"))))
        ...  (if rendered-attrs  ; If we have attributes, prefix them with a space after the tag name
        ...    (setv rendered-attrs (+ \" \" rendered-attrs)))
