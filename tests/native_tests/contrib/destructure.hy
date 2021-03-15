@@ -263,4 +263,3 @@
           "options" "xyzq"}]
     (assert (= [a b c d style colour options]
                [1 2 3 4 "pretty" "purple" "xyzq"]))))
-

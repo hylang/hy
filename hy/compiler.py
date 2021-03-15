@@ -3,12 +3,13 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
+from itertools import dropwhile
 from hy.models import (HyObject, HyExpression, HyKeyword, HyInteger, HyComplex,
                        HyString, HyFComponent, HyFString, HyBytes, HySymbol,
                        HyFloat, HyList, HySet, HyDict, HySequence, wrap_value)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
-from funcparserlib.parser import some, many, oneplus, maybe, NoParseError
+from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a
 from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
                        HySyntaxError, HyEvalError, HyInternalError)
 
@@ -329,9 +330,11 @@ def mkexpr(*items, **kwargs):
 def mklist(*items, **kwargs):
    return make_hy_model(HyList, items, kwargs.get('rest'))
 
+def pvalue(root, wanted):
+    return pexpr(sym(root) + wanted) >> (lambda x: x[0])
 
 # Parse an annotation setting.
-OPTIONAL_ANNOTATION = maybe(pexpr(sym("annotate*") + FORM) >> (lambda x: x[0]))
+OPTIONAL_ANNOTATION = maybe(pvalue("annotate*", FORM))
 
 
 def is_annotate_expression(model):
@@ -1485,21 +1488,21 @@ class HyASTCompiler(object):
 
         return ret
 
-    NASYM = some(lambda x: isinstance(x, HySymbol) and x not in (
-        "&optional", "&rest", "&kwonly", "&kwargs"))
+    NASYM = some(lambda x: isinstance(x, HySymbol) and x not in (HySymbol("/"), HySymbol("*")))
+    argument = OPTIONAL_ANNOTATION + (NASYM | brackets(NASYM, FORM))
+    varargs = lambda unpack_type, wanted: OPTIONAL_ANNOTATION + pvalue(unpack_type, wanted)
+    kwonly_delim = some(lambda x: isinstance(x, HySymbol) and x == HySymbol("*"))
     @special(["fn", "fn*", "fn/a"], [
         # The starred version is for internal use (particularly, in the
         # definition of `defn`). It ensures that a FunctionDef is
         # produced rather than a Lambda.
         OPTIONAL_ANNOTATION,
         brackets(
-            many(OPTIONAL_ANNOTATION + NASYM),
-            maybe(sym("&optional") + many(OPTIONAL_ANNOTATION
-                                            + (NASYM | brackets(SYM, FORM)))),
-            maybe(sym("&rest") + OPTIONAL_ANNOTATION + NASYM),
-            maybe(sym("&kwonly") + many(OPTIONAL_ANNOTATION
-                                        + (NASYM | brackets(SYM, FORM)))),
-            maybe(sym("&kwargs") + OPTIONAL_ANNOTATION + NASYM)),
+            maybe(many(argument) + sym("/")),
+            many(argument),
+            maybe(kwonly_delim | varargs("unpack-iterable", NASYM)),
+            many(argument),
+            maybe(varargs("unpack-mapping", NASYM))),
         many(FORM)])
     def compile_function_def(self, expr, root, returns, params, body):
         force_functiondef = root in ("fn*", "fn/a")
@@ -1519,27 +1522,48 @@ class HyASTCompiler(object):
             returns_result = self.compile(returns)
             ret += returns_result
 
-        mandatory, optional, rest, kwonly, kwargs = params
+        posonly, args, rest, kwonly, kwargs = params
 
-        optional = optional or []
-        kwonly = kwonly or []
+        if not (posonly or posonly is None):
+            raise self._syntax_error(
+                params, "positional only delimiter '/' must have an argument"
+            )
 
-        mandatory_ast, _, ret = self._compile_arguments_set(mandatory, False, ret)
-        optional_ast, optional_defaults, ret = self._compile_arguments_set(optional, True, ret)
-        kwonly_ast, kwonly_defaults, ret = self._compile_arguments_set(kwonly, False, ret)
+        posonly = posonly or []
 
+        is_positional_arg = lambda x: isinstance(x[1], HySymbol)
+        invalid_non_default = next(
+            (arg
+             for arg in dropwhile(is_positional_arg, posonly + args)
+             if is_positional_arg(arg)),
+            None
+        )
+        if invalid_non_default:
+            raise self._syntax_error(
+                invalid_non_default[1], "non-default argument follows default argument"
+            )
+
+        posonly_ast, posonly_defaults, ret = self._compile_arguments_set(posonly, ret)
+        args_ast, args_defaults, ret = self._compile_arguments_set(args, ret)
+        kwonly_ast, kwonly_defaults, ret = self._compile_arguments_set(kwonly, ret, True)
         rest_ast = kwargs_ast = None
 
-        if rest is not None:
-            [rest_ast], _, ret = self._compile_arguments_set([rest], False, ret)
-        if kwargs is not None:
-            [kwargs_ast], _, ret = self._compile_arguments_set([kwargs], False, ret)
+        if rest == HySymbol("*"): # rest is a positional only marker
+            if not kwonly:
+                raise self._syntax_error(rest, "named arguments must follow bare *")
+            rest_ast = None
+        elif rest: # rest is capturing varargs
+            [rest_ast], _, ret = self._compile_arguments_set([rest], ret)
+        if kwargs:
+            [kwargs_ast], _, ret = self._compile_arguments_set([kwargs], ret)
 
         args = ast.arguments(
-            args=mandatory_ast + optional_ast, defaults=optional_defaults,
+            args=args_ast,
+            defaults=[*posonly_defaults, *args_defaults],
             vararg=rest_ast,
-            posonlyargs=[],
-            kwonlyargs=kwonly_ast, kw_defaults=kwonly_defaults,
+            posonlyargs=posonly_ast,
+            kwonlyargs=kwonly_ast,
+            kw_defaults=kwonly_defaults,
             kwarg=kwargs_ast)
 
         body = self._compile_branch(body)
@@ -1563,7 +1587,7 @@ class HyASTCompiler(object):
         ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
         return ret
 
-    def _compile_arguments_set(self, decls, implicit_default_none, ret):
+    def _compile_arguments_set(self, decls, ret, is_kwonly=False):
         args_ast = []
         args_defaults = []
 
@@ -1576,8 +1600,6 @@ class HyASTCompiler(object):
                 sym, default = decl
             else:
                 sym = decl
-                if implicit_default_none:
-                    default = HySymbol('None').replace(sym)
 
             if ann is not None:
                 ret += self.compile(ann)
@@ -1588,7 +1610,10 @@ class HyASTCompiler(object):
             if default is not None:
                 ret += self.compile(default)
                 args_defaults.append(ret.force_expr)
-            else:
+            # Kwonly args without defaults are considered required
+            elif not isinstance(decl, HyList) and is_kwonly:
+                args_defaults.append(None)
+            elif isinstance(decl, HyList):
                 # Note that the only time any None should ever appear here
                 # is in kwargs, since the order of those with defaults vs
                 # those without isn't significant in the same way as

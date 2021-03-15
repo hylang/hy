@@ -418,8 +418,8 @@ def test_ast_non_decoratable():
 
 def test_ast_lambda_lists():
     """Ensure the compiler chokes on invalid lambda-lists"""
-    cant_compile('(fn [&optional [a b c]] a)')
-    cant_compile('(fn [&optional [1 2]] (list 1 2))')
+    cant_compile('(fn [[a b c]] a)')
+    cant_compile('(fn [[1 2]] (list 1 2))')
 
 
 def test_ast_print():
@@ -436,20 +436,20 @@ def test_ast_tuple():
 
 def test_lambda_list_keywords_rest():
     """ Ensure we can compile functions with lambda list keywords."""
-    can_compile("(fn [x &rest xs] (print xs))")
-    cant_compile("(fn [x &rest xs &rest ys] (print xs))")
-    can_compile("(fn [&optional a &rest xs] (print xs))")
+    can_compile("(fn [x #* xs] (print xs))")
+    cant_compile("(fn [x #* xs #* ys] (print xs))")
+    can_compile("(fn [[a None] #* xs] (print xs))")
 
 
 def test_lambda_list_keywords_kwargs():
-    """ Ensure we can compile functions with &kwargs."""
-    can_compile("(fn [x &kwargs kw] (list x kw))")
-    cant_compile("(fn [x &kwargs xs &kwargs ys] (list x xs ys))")
-    can_compile("(fn [&optional x &kwargs kw] (list x kw))")
+    """ Ensure we can compile functions with #** kwargs."""
+    can_compile("(fn [x #** kw] (list x kw))")
+    cant_compile("(fn [x #** xs #** ys] (list x xs ys))")
+    can_compile("(fn [[x None] #** kw] (list x kw))")
 
 
 def test_lambda_list_keywords_kwonly():
-    kwonly_demo = "(fn [&kwonly a [b 2]] (print 1) (print a b))"
+    kwonly_demo = "(fn [* a [b 2]] (print 1) (print a b))"
     code = can_compile(kwonly_demo)
     for i, kwonlyarg_name in enumerate(('a', 'b')):
         assert kwonlyarg_name == code.body[0].args.kwonlyargs[i].arg
@@ -459,9 +459,9 @@ def test_lambda_list_keywords_kwonly():
 
 def test_lambda_list_keywords_mixed():
     """ Ensure we can mix them up."""
-    can_compile("(fn [x &rest xs &kwargs kw] (list x xs kw))")
-    cant_compile("(fn [x &rest xs &fasfkey {bar \"baz\"}])")
-    can_compile("(fn [x &rest xs &kwonly kwoxs &kwargs kwxs]"
+    can_compile("(fn [x #* xs #** kw] (list x xs kw))")
+    cant_compile("(fn [x #* xs &fasfkey {bar \"baz\"}])")
+    can_compile("(fn [x #* xs kwoxs #** kwxs]"
                 "  (list x xs kwxs kwoxs))")
 
 

@@ -70,7 +70,7 @@
   "
   (and (iterable? coll) (not (string? coll))))
 
-(defn comp [&rest fs]
+(defn comp [#* fs]
   "Return the function from composing the given functions `fs`.
 
   Compose zero or more functions into a new function. The new function will
@@ -95,7 +95,7 @@
       (do (setv rfs (reversed fs)
                 first-f (next rfs)
                 fs (tuple rfs))
-          (fn [&rest args &kwargs kwargs]
+          (fn [#* args #** kwargs]
             (setv res (first-f #* args #** kwargs))
             (for [f fs]
               (setv res (f res)))
@@ -125,7 +125,7 @@
 
        => (inverse False)
        True"
-  (fn [&rest args &kwargs kwargs]
+  (fn [#* args #** kwargs]
     (not (f #* args #** kwargs))))
 
 (defn constantly [value]
@@ -153,7 +153,7 @@
         => (answer 1 :foo 2)
         42
   "
-  (fn [&rest args &kwargs kwargs]
+  (fn [#* args #** kwargs]
     value))
 
 (defn keyword? [k]
@@ -201,7 +201,7 @@
   "
   (- n 1))
 
-(defn disassemble [tree &optional [codegen False]]
+(defn disassemble [tree [codegen False]]
   "Return the python AST for a quoted Hy `tree` as a string.
 
   If the second argument `codegen` is true, generate python code instead.
@@ -526,7 +526,7 @@
 (setv _gensym_counter 0)
 (setv _gensym_lock (Lock))
 
-(defn gensym [&optional [g "G"]]
+(defn gensym [[g "G"]]
   "Generate a unique symbol for use in macros without accidental name clashes.
 
   .. versionadded:: 0.9.12
@@ -556,7 +556,7 @@
        (finally (.release _gensym_lock)))
   new_symbol)
 
-(defn calling-module-name [&optional [n 1]]
+(defn calling-module-name [[n 1]]
   "Get the name of the module calling `n` levels up the stack from the
   `calling-module-name` function call (by default, one level up)"
   (import inspect)
@@ -682,7 +682,7 @@
     (except [ValueError] False)
     (except [TypeError] False)))
 
-(defn interleave [&rest seqs]
+(defn interleave [#* seqs]
   "Return an iterable of the first item in each of `seqs`, then the second etc.
 
   .. versionadded:: 0.10.1
@@ -810,7 +810,7 @@
   "
   (isinstance x cabc.Iterator))
 
-(defn juxt [f &rest fs]
+(defn juxt [f #* fs]
   "Return a function applying each `fs` to args, collecting results in a list.
 
   .. versionadded:: 0.12.0
@@ -835,7 +835,7 @@
        [27, 21, 72, 8.0]
   "
   (setv fs (+ (, f) fs))
-  (fn [&rest args &kwargs kwargs]
+  (fn [#* args #** kwargs]
     (lfor f fs (f #* args #** kwargs))))
 
 (defn last [coll]
@@ -909,7 +909,7 @@
   (setv module (calling-module))
   (hy.macros.macroexpand-1 form module (HyASTCompiler module)))
 
-(defn merge-with [f &rest maps]
+(defn merge-with [f #* maps]
   "Return the map of `maps` joined onto the first via the function `f`.
 
   .. versionadded:: 0.10.1
@@ -1011,7 +1011,7 @@
   (import numbers)
   (instance? numbers.Number x))
 
-(defn nth [coll n &optional [default None]]
+(defn nth [coll n [default None]]
   "Return `n`th item in `coll` or `None` (specify `default`) if out of bounds.
 
   Returns the *n*-th item in a collection, counting from 0. Return the
@@ -1079,7 +1079,7 @@
 
 ;; TODO Autodoc can't parse arbitrary object default params
 (setv -sentinel (object))
-(defn partition [coll &optional [n 2] step [fillvalue -sentinel]]
+(defn partition [coll [n 2] [step None] [fillvalue -sentinel]]
   "Usage: ``(partition coll [n] [step] [fillvalue])``
 
   Chunks *coll* into *n*-tuples (pairs by default).
@@ -1361,7 +1361,7 @@
     False
     (or a b)))
 
-(defn parse-args [spec &optional args &kwargs parser-args]
+(defn parse-args [spec [args None] #** parser-args]
   "Return arguments namespace parsed from *args* or ``sys.argv`` with
   :py:meth:`argparse.ArgumentParser.parse_args` according to *spec*.
 

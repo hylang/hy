@@ -401,7 +401,7 @@
   "NATIVE: test fn operator"
   (setv square (fn [x] (* x x)))
   (assert (= 4 (square 2)))
-  (setv lambda_list (fn [test &rest args] (, test args)))
+  (setv lambda_list (fn [test #* args] (, test args)))
   (assert (= (, 1 (, 2 3)) (lambda_list 1 2 3))))
 
 
@@ -416,7 +416,8 @@
   ; Python 3-only forms of unpacking are in py3_only_tests.hy
   (setv l [1 2 3])
   (setv d {"a" "x" "b" "y"})
-  (defn fun [&optional x1 x2 x3 x4 a b c] [x1 x2 x3 x4 a b c])
+  (defn fun [[x1 None] [x2 None] [x3 None] [x4 None] [a None] [b None] [c None]]
+    [x1 x2 x3 x4 a b c])
   (assert (= (fun 5 #* l) [5 1 2 3 None None None]))
   (assert (= (+ #* l) 6))
   (assert (= (fun 5 #** d) [5 None None None "x" "y" None]))
@@ -439,7 +440,7 @@
 
   (defclass X [object] [])
   (defclass M [object]
-    (defn meth [self &rest args &kwargs kwargs]
+    (defn meth [self #* args #** kwargs]
       (.join " " (+ (, "meth") args
         (tuple (map (fn [k] (get kwargs k)) (sorted (.keys kwargs))))))))
 
@@ -890,8 +891,8 @@
 
 (defn test-defn-annotations []
 
-  (defn f [^int p1 p2 ^str p3 &optional ^str o1 ^int [o2 0]
-           &rest ^str rest &kwonly ^str k1 ^int [k2 0] &kwargs ^bool kwargs])
+  (defn f [^int p1 p2 ^str p3 ^str [o1 None] ^int [o2 0]
+           ^str #* rest ^str k1 ^int [k2 0] ^bool #** kwargs])
 
   (for [[k v] (.items (dict
       :p1 int  :p3 str  :o1 str  :o2 int
@@ -1348,13 +1349,13 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-lambda-keyword-lists []
   "NATIVE: test lambda keyword lists"
-  (defn foo [x &rest xs &kwargs kw] [x xs kw])
+  (defn foo [x #* xs #** kw] [x xs kw])
   (assert (= (foo 10 20 30) [10 (, 20 30) {}])))
 
 
 (defn test-optional-arguments []
-  "NATIVE: test &optional function arguments"
-  (defn foo [a b &optional c [d 42]] [a b c d])
+  "NATIVE: test optional function arguments"
+  (defn foo [a b [c None] [d 42]] [a b c d])
   (assert (= (foo 1 2) [1 2 None 42]))
   (assert (= (foo 1 2 3) [1 2 3 42]))
   (assert (= (foo 1 2 3 4) [1 2 3 4])))
@@ -1612,7 +1613,7 @@ macros()
 (defn test-only-parse-lambda-list-in-defn []
   "NATIVE: test lambda lists are only parsed in defn"
   (with [(pytest.raises NameError)]
-    (setv x [&rest spam]  y 1)))
+    (setv x [#* spam]  y 1)))
 
 (defn test-read []
   "NATIVE: test that read takes something for stdin and reads"
@@ -1668,7 +1669,7 @@ macros()
   (assert (= (kwtest :key (kwtest :key2 "value")) {"key" {"key2" "value"}}))
   (assert (= ((get (kwtest :key (fn [x] (* x 2))) "key") 3) 6)))
 
-(defmacro identify-keywords [&rest elts]
+(defmacro identify-keywords [#* elts]
   `(list
     (map
      (fn [x] (if (is-keyword x) "keyword" "other"))
@@ -1730,11 +1731,11 @@ macros()
 (defn test-kwonly []
   "NATIVE: test keyword-only arguments"
   ;; keyword-only with default works
-  (defn kwonly-foo-default-false [&kwonly [foo False]] foo)
+  (defn kwonly-foo-default-false [* [foo False]] foo)
   (assert (= (kwonly-foo-default-false) False))
   (assert (= (kwonly-foo-default-false :foo True) True))
   ;; keyword-only without default ...
-  (defn kwonly-foo-no-default [&kwonly foo] foo)
+  (defn kwonly-foo-no-default [* foo] foo)
   (with [e (pytest.raises TypeError)]
     (kwonly-foo-no-default))
   (assert (in "missing 1 required keyword-only argument: 'foo'"
@@ -1742,7 +1743,7 @@ macros()
   ;; works
   (assert (= (kwonly-foo-no-default :foo "quux") "quux"))
   ;; keyword-only with other arg types works
-  (defn function-of-various-args [a b &rest args &kwonly foo &kwargs kwargs]
+  (defn function-of-various-args [a b #* args foo #** kwargs]
     (, a b args foo kwargs))
   (assert (= (function-of-various-args 1 2 3 4 :foo 5 :bar 6 :quux 7)
              (, 1 2 (, 3 4)  5 {"bar" 6 "quux" 7}))))
@@ -1789,7 +1790,7 @@ macros()
   (let [a 1
         b 6
         d 2]
-       (defn foo [&kwonly [a a] b [c d]]
+       (defn foo [* [a a] b [c d]]
          (, a b c))
        (assert (= (foo :b "b")
                   (, 1 "b" 2)))
@@ -1832,7 +1833,7 @@ macros()
   (assert (= ["a" #*l "b" #*p #*l] ["a" 1 2 3 "b" 4 5 1 2 3]))
   (assert (= (, "a" #*l "b" #*p #*l) (, "a" 1 2 3 "b" 4 5 1 2 3)))
   (assert (= #{"a" #*l "b" #*p #*l} #{"a" "b" 1 2 3 4 5}))
-  (defn f [&rest args] args)
+  (defn f [#* args] args)
   (assert (= (f "a" #*l "b" #*p #*l) (, "a" 1 2 3 "b" 4 5 1 2 3)))
   (assert (= (+ #*l #*p) 15))
   (assert (= (and #*l) 3)))
@@ -1842,7 +1843,8 @@ macros()
   (setv d1 {"a" 1 "b" 2})
   (setv d2 {"c" 3 "d" 4})
   (assert (= {1 "x" #**d1 #**d2 2 "y"} {"a" 1 "b" 2 "c" 3 "d" 4 1 "x" 2 "y"}))
-  (defn fun [&optional a b c d e f] [a b c d e f])
+  (defn fun [[a None] [b None] [c None] [d None] [e None] [f None]]
+    [a b c d e f])
   (assert (= (fun #**d1 :e "eee" #**d2) [1 2 3 4 "eee" None])))
 
 
@@ -1949,9 +1951,8 @@ macros()
 
 (defn test-pep-487 []
   (defclass QuestBase []
-    (defn --init-subclass-- [cls swallow &kwargs kwargs]
+    (defn --init-subclass-- [cls swallow #** kwargs]
       (setv cls.swallow swallow)))
 
   (defclass Quest [QuestBase :swallow "african"])
   (assert (= (. (Quest) swallow) "african")))
-

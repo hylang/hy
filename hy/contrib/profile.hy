@@ -9,7 +9,7 @@
 These macros make debugging where bottlenecks exist easier."
 
 
-(defmacro profile/calls [&rest body]
+(defmacro profile/calls [#* body]
   "``profile/calls`` allows you to create a call graph visualization.
   **Note:** You must have `Graphviz <http://www.graphviz.org/>`_
   installed for this to work.
@@ -28,7 +28,7 @@ These macros make debugging where bottlenecks exist easier."
 
 
 ;; TODO not showing up
-(defmacro/g! profile/cpu [&rest body]
+(defmacro/g! profile/cpu [#* body]
   "Profile a bit of code
 
   Examples:

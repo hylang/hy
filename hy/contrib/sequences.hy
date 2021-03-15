@@ -101,7 +101,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
      "string representation of this sequence"
      (.--str-- self)))
 
-(defmacro seq [param &rest seq-code]
+(defmacro seq [param #* seq-code]
   "Creates a sequence defined in terms of ``n``.
 
   Examples:
@@ -109,7 +109,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
   "
   `(Sequence (fn ~param (do ~@seq-code))))
 
-(defmacro defseq [seq-name param &rest seq-code]
+(defmacro defseq [seq-name param #* seq-code]
   "Creates a sequence defined in terms of ``n`` and assigns it to a given name.
 
   Examples:

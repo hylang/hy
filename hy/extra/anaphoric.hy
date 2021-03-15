@@ -27,7 +27,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
 ;;; Macro to help write anaphoric macros
 
-(defmacro rit [&rest body]
+(defmacro rit [#* body]
   "Supply `it` as a gensym and R as a function to replace `it` with the
   given gensym throughout expressions."
   `(do
@@ -40,7 +40,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
 ;;; These macros make writing functional programs more concise
 
-(defmacro ap-if [test-form then-form &optional else-form]
+(defmacro ap-if [test-form then-form [else-form None]]
   "As :ref:`if <if>`, but the result of the test form is named ``it`` in
   the subsequent forms. As with ``if``, the else-clause is optional.
 
@@ -56,7 +56,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
      (if ~it ~(R then-form) ~(R else-form)))))
 
 
-(defmacro ap-each [xs &rest body]
+(defmacro ap-each [xs #* body]
   "Evaluate the body forms for each element ``it`` of ``xs`` and return ``None``.
 
   Examples:
@@ -69,7 +69,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
   (rit `(for [~it ~xs] ~@(R body))))
 
 
-(defmacro ap-each-while [xs form &rest body]
+(defmacro ap-each-while [xs form #* body]
   "As ``ap-each``, but the form ``pred`` is run before the body forms on
   each iteration, and the loop ends if ``pred`` is false.
 
@@ -139,7 +139,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
   (rit `(gfor  ~it ~xs  :if (not ~(R form))  ~it)))
 
 
-(defmacro ap-dotimes [n &rest body]
+(defmacro ap-dotimes [n #* body]
   "Equivalent to ``(ap-each (range n) body…)``.
 
   Examples:
@@ -188,7 +188,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ~x)))
 
 
-(defmacro! ap-reduce [form o!xs &optional [initial-value None]]
+(defmacro! ap-reduce [form o!xs [initial-value None]]
   "This macro is an anaphoric version of :py:func:`reduce`. It works as
   follows:
 
@@ -229,7 +229,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
   A ``%i`` symbol designates the (1-based) *i* th parameter (such as ``%3``).
   Only the maximum ``%i`` determines the number of ``%i`` parameters--the
   others need not appear in the expression.
-  ``%*`` and ``%**`` name the ``&rest`` and ``&kwargs`` parameters, respectively.
+  ``%*`` and ``%**`` name the ``#*`` and ``#**`` parameters, respectively.
 
   Examples:
     ::
@@ -265,12 +265,12 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
                                max
                                inc))
                 (HySymbol (+ "%" (str i))))
-        ;; generate the &rest parameter only if '%* is present in expr
+        ;; generate the #* parameter only if '%* is present in expr
         ~@(if (in '%* %symbols)
-              '(&rest %*))
-        ;; similarly for &kwargs and %**
+              '(#* %*))
+        ;; similarly for #** and %**
         ~@(if (in '%** %symbols)
-              '(&kwargs %**))]
+              '(#** %**))]
      ~expr))
 
 

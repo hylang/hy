@@ -89,26 +89,26 @@
 
 (defn test-smacrolet []
   (setv form '(do
-                (setv foo (fn [a &optional [b 1]] (* b (inc a))))
+                (setv foo (fn [a [b 1]] (* b (inc a))))
                 (* b (foo 7)))
         form1 (macroexpand
                 '(smacrolet [b c]
-                   (setv foo (fn [a &optional [b 1]] (* b (inc a))))
+                   (setv foo (fn [a [b 1]] (* b (inc a))))
                    (* b (foo 7))))
         form2 (macroexpand
                 '(smacrolet [a c]
-                   (setv foo (fn [a &optional [b 1]] (* b (inc a))))
+                   (setv foo (fn [a [b 1]] (* b (inc a))))
                    (* b (foo 7))))
         form3 (macroexpand
                 '(smacrolet [foo bar]
-                   (setv foo (fn [a &optional [b 1]] (* b (inc a))))
+                   (setv foo (fn [a [b 1]] (* b (inc a))))
                    (* b (foo 7)))))
   (assert (= form1 '(do
-                      (setv foo (fn [a &optional [b 1]] (* b (inc a))))
+                      (setv foo (fn [a [b 1]] (* b (inc a))))
                       (* c (foo 7)))))
   (assert (= form2 form))
   (assert (= form3 '(do
-                      (setv bar (fn [a &optional [b 1]] (* b (inc a))))
+                      (setv bar (fn [a [b 1]] (* b (inc a))))
                       (* b (bar 7))))))
 
 (defn test-let-basic []
@@ -334,7 +334,7 @@
         a 88
         c 64
         &rest 12]
-    (defn foo [a b &rest xs]
+    (defn foo [a b #* xs]
       (-= a 1)
       (setv xs (list xs))
       (.append xs 42)
@@ -350,7 +350,7 @@
 (defn test-let-kwargs []
   (let [kws 6
         &kwargs 13]
-    (defn foo [&kwargs kws]
+    (defn foo [#** kws]
       (, &kwargs kws))
     (assert (= kws 6))
     (assert (= (foo :a 1)
@@ -360,7 +360,7 @@
   (let [a 1
         b 6
         d 2]
-    (defn foo [&optional [a a] b [c d]]
+    (defn foo [[a a] [b None] [c d]]
       (, a b c))
     (assert (= (foo)
                (, 1 None 2)))
@@ -369,7 +369,7 @@
 
 (defn test-let-closure []
   (let [count 0]
-    (defn +count [&optional [x 1]]
+    (defn +count [[x 1]]
       (+= count x)
       count))
   ;; let bindings can still exist outside of a let body

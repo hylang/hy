@@ -21,6 +21,17 @@ Breaking Changes
   `(:key obj)` is now equivalent to `(get obj (. :key name))`.
 * To require a tag macro `foo`, instead of `(require [module [foo]])`,
   you must now say `(require [module ["#foo"]])`.
+* Simplified `fn` parameters, added support for positional only arguments, and removed
+  implicit `None` for optional arguments.
+  The equivalent of::
+
+    def hello(a, /, b, c=None, *, d, e="world", **kwargs): pass
+
+  is now::
+
+    (defn hello [a / b [c None] * d [e "world"] #** kwargs])
+
+  check the docs or use ``(doc defn)`` at the repl for more details.
 
 New Features
 ------------------------------

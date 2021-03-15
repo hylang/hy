@@ -208,7 +208,7 @@
   (and (instance? HyExpression form)
        form))
 
-(defn macroexpand-all [form &optional module-name]
+(defn macroexpand-all [form [module-name None]]
   "Recursively performs all possible macroexpansions in form, using the ``require`` context of ``module-name``.
   `macroexpand-all` assumes the calling module's context if unspecified.
   "
@@ -222,7 +222,7 @@
   (defn expand [form]
     (nonlocal quote-level)
     ;; manages quote levels
-    (defn +quote [&optional [x 1]]
+    (defn +quote [[x 1]]
       (nonlocal quote-level)
       (setv head (first form))
       (+= quote-level x)
@@ -259,21 +259,30 @@
   returns an OrderedDict mapping headers to sublists.
   Arguments without a header are under None.
   "
-  (setv headers ['&optional '&rest '&kwonly '&kwargs]
+  (setv headers ['unpack-iterable '* 'unpack-mapping]
         sections (OrderedDict [(, None [])])
+        vararg-types {'unpack-iterable (HySymbol "#*") 'unpack-mapping (HySymbol "#**")}
         header None)
   (for [arg form]
-    (if (in arg headers)
+    (if
+      (in arg headers)
       (do (setv header arg)
           (assoc sections header [])
           ;; Don't use a header more than once. It's the compiler's problem.
           (.remove headers header))
+
+      (and (isinstance arg HyExpression) (in (first arg) headers))
+      (do (setv header (first arg))
+          (assoc sections header [])
+          ;; Don't use a header more than once. It's the compiler's problem.
+          (.remove headers header)
+          (.append (get sections header) arg))
+
       (.append (get sections header) arg)))
   sections)
 
 
 (defn symbolexpand [form expander
-                    &optional
                     [protected (frozenset)]
                     [quote-level 0]]
   (.expand (SymbolExpander form expander protected quote-level)))
@@ -286,14 +295,14 @@
           self.protected protected
           self.quote-level quote-level))
 
-  (defn expand-symbols [self form &optional protected quote-level]
+  (defn expand-symbols [self form [protected None] [quote-level None]]
     (if (none? protected)
         (setv protected self.protected))
     (if (none? quote-level)
         (setv quote-level self.quote-level))
     (symbolexpand form self.expander protected quote-level))
 
-  (defn traverse [self form &optional protected quote-level]
+  (defn traverse [self form [protected None] [quote-level None]]
     (if (none? protected)
         (setv protected self.protected))
     (if (none? quote-level)
@@ -306,7 +315,7 @@
           form))
 
   ;; manages quote levels
-  (defn +quote [self &optional [x 1]]
+  (defn +quote [self [x 1]]
     `(~(self.head) ~@(self.traverse (self.tail)
                                     :quote-level (+ self.quote-level x))))
 
@@ -341,11 +350,9 @@
     (setv protected #{}
           argslist [])
     (for [[header section] (-> self (.tail) first lambda-list .items)]
-      (if header (.append argslist header))
-      (cond [(in header [None '&rest '&kwargs])
-             (.update protected section)
-             (.extend argslist section)]
-            [(in header '[&optional &kwonly])
+      (unless (in header [None 'unpack-iterable 'unpack-mapping])
+          (.append argslist header))
+      (cond [(in header [None '*])
              (for [pair section]
                (cond [(coll? pair)
                       (.add protected (first pair))
@@ -354,13 +361,16 @@
                                  ~(self.expand-symbols (second pair))])]
                      [True
                       (.add protected pair)
-                      (.append argslist pair)]))]))
+                      (.append argslist pair)]))]
+            [(in header ['unpack-iterable 'unpack-mapping])
+             (.update protected (map second section))
+             (.extend argslist section)]))
     (, protected argslist))
 
   (defn handle-fn [self]
     (setv [protected argslist] (self.handle-args-list))
     `(~(self.head) ~argslist
-      ~@(self.traverse (cut (self.tail) 1)(| protected self.protected))))
+       ~@(self.traverse (cut (self.tail) 1)(| protected self.protected))))
 
   ;; don't expand symbols in quotations
   (defn handle-quoted [self]
@@ -438,7 +448,7 @@
         ;; recursive base case--it's an atom. Put it back.
         (self.handle-base))))
 
-(defmacro smacrolet [bindings &rest body]
+(defmacro smacrolet [bindings #* body]
   "symbol macro let.
 
   Replaces symbols in body, but only where it would be a valid let binding.
@@ -457,7 +467,7 @@
                 (fn [symbol]
                   (.get bindings symbol symbol))))
 
-(defmacro let [bindings &rest body]
+(defmacro let [bindings #* body]
   "sets up lexical bindings in its body
 
   ``let`` creates lexically-scoped names for local variables.

@@ -1,9 +1,9 @@
 (setv SECRET_MESSAGE "Hello World")
 
-(defmacro qplah [&rest tree]
+(defmacro qplah [#* tree]
   `[8 ~@tree])
 
-(defmacro parald [&rest tree]
+(defmacro parald [#* tree]
   `[9 ~@tree])
 
 (defmacro ✈ [arg]
