@@ -265,12 +265,12 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
                                max
                                inc))
                 (HySymbol (+ "%" (str i))))
-        ;; generate the &rest parameter only if '%* is present in expr
+        ;; generate the #* parameter only if '%* is present in expr
         ~@(if (in '%* %symbols)
-              '(&rest %*))
-        ;; similarly for &kwargs and %**
+              '(#* %*))
+        ;; similarly for #** and %**
         ~@(if (in '%** %symbols)
-              '(&kwargs %**))]
+              '(#** %**))]
      ~expr))
 
 
