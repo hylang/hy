@@ -726,8 +726,8 @@ class HyASTCompiler(object):
         if isinstance(exceptions_list, List):
             if len(exceptions_list):
                 # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
-                elts, types, _ = self._compile_collect(exceptions_list)
-                types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
+                elements, types, _ = self._compile_collect(exceptions_list)
+                types += asty.Tuple(exceptions_list, elts=elements, ctx=ast.Load())
             else:
                 # [] → all exceptions caught
                 types = Result()
@@ -988,8 +988,8 @@ class HyASTCompiler(object):
 
     @special(",", [many(FORM)])
     def compile_tuple(self, expr, root, args):
-        elts, ret, _ = self._compile_collect(args)
-        return ret + asty.Tuple(expr, elts=elts, ctx=ast.Load())
+        elements, ret, _ = self._compile_collect(args)
+        return ret + asty.Tuple(expr, elts=elements, ctx=ast.Load())
 
     _loopers = many(
         tag('setv', sym(":setv") + FORM + FORM) |
@@ -1023,10 +1023,10 @@ class HyASTCompiler(object):
             # Get the final value (and for dictionary
             # comprehensions, the final key).
             if node_class is asty.DictComp:
-                key, elt = map(self.compile, final)
+                key, element = map(self.compile, final)
             else:
                 key = None
-                elt = self.compile(final)
+                element = self.compile(final)
 
         # Compile the parts.
         if is_for:
@@ -1047,7 +1047,7 @@ class HyASTCompiler(object):
         # Produce a result.
         should_lift_into_function = (
             is_for
-            or elt.stmts
+            or element.stmts
             or (key is not None and key.stmts)
             or any(
                 p.tag == "do"
@@ -1073,15 +1073,15 @@ class HyASTCompiler(object):
                             return bd + bd.expr_as_stmt()
                         return Result(stmts=[asty.Pass(expr)])
                     if node_class is asty.DictComp:
-                        ret = key + elt
+                        ret = key + element
                         val = asty.Tuple(
                             key, ctx=ast.Load(),
-                            elts=[key.force_expr, elt.force_expr])
+                            elts=[key.force_expr, element.force_expr])
                     else:
-                        ret = elt
-                        val = elt.force_expr
+                        ret = element
+                        val = element.force_expr
                     return ret + asty.Expr(
-                        elt, value=asty.Yield(elt, value=val))
+                        element, value=asty.Yield(element, value=val))
                 (tagname, v), parts = parts[0], parts[1:]
                 if tagname in ("for", "afor"):
                     orelse = orel and orel.pop().stmts
@@ -1142,9 +1142,9 @@ class HyASTCompiler(object):
                 raise ValueError("can't happen")
         if node_class is asty.DictComp:
             return asty.DictComp(
-                expr, key=key.expr, value=elt.expr, generators=generators
+                expr, key=key.expr, value=element.expr, generators=generators
             )
-        return node_class(expr, elt=elt.expr, generators=generators)
+        return node_class(expr, elt=element.expr, generators=generators)
 
     @special(["not", "~"], [FORM])
     def compile_unary_operator(self, expr, root, arg):
@@ -1956,9 +1956,9 @@ class HyASTCompiler(object):
         conversion = ord(fcomponent.conversion) if fcomponent.conversion else -1
         root, *rest = fcomponent
         value = self.compile(root)
-        elts, ret, _ = self._compile_collect(rest)
-        if elts:
-            spec = asty.JoinedStr(fcomponent, values=elts)
+        elements, ret, _ = self._compile_collect(rest)
+        if elements:
+            spec = asty.JoinedStr(fcomponent, values=elements)
         else:
             spec = None
         return value + ret + asty.FormattedValue(
@@ -1966,14 +1966,14 @@ class HyASTCompiler(object):
 
     @builds_model(FString)
     def compile_fstring(self, fstring):
-        elts, ret, _ = self._compile_collect(fstring)
-        return ret + asty.JoinedStr(fstring, values=elts)
+        elements, ret, _ = self._compile_collect(fstring)
+        return ret + asty.JoinedStr(fstring, values=elements)
 
     @builds_model(List, Set)
     def compile_list(self, expression):
-        elts, ret, _ = self._compile_collect(expression)
+        elements, ret, _ = self._compile_collect(expression)
         node = {List: asty.List, Set: asty.Set}[type(expression)]
-        return ret + node(expression, elts=elts, ctx=ast.Load())
+        return ret + node(expression, elts=elements, ctx=ast.Load())
 
     @builds_model(Dict)
     def compile_dict(self, m):
