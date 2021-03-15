@@ -30,7 +30,7 @@ from hy.lex import hy_parse, mangle
 from contextlib import contextmanager
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import (HyASTCompiler, hy_eval, hy_compile,
-                         hy_ast_compile_flags)
+                         HY_AST_COMPILE_FLAGS)
 from hy.errors import (HyLanguageError, HyRequireError, HyMacroExpansionError,
                        filtered_hy_exceptions, hy_exc_handler)
 from hy.importer import runhy, HyLoader
@@ -130,7 +130,7 @@ class HyCompile(codeop.Compile, object):
 
         super(HyCompile, self).__init__()
 
-        self.flags |= hy_ast_compile_flags
+        self.flags |= HY_AST_COMPILE_FLAGS
 
         self.cmdline_cache = cmdline_cache
 

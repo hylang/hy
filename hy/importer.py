@@ -19,7 +19,7 @@ from functools import partial
 from contextlib import contextmanager
 
 import hy
-from hy.compiler import hy_compile, hy_ast_compile_flags
+from hy.compiler import hy_compile
 from hy.lex import hy_parse
 
 

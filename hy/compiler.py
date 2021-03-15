@@ -65,11 +65,11 @@ from hy.models import (
     wrap_value,
 )
 
-Inf = float('inf')
-
-
-hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
-                        __future__.CO_FUTURE_PRINT_FUNCTION)
+# Constants ###################################################################
+INF = float("inf")
+HY_AST_COMPILE_FLAGS = (
+    __future__.CO_FUTURE_DIVISION | __future__.CO_FUTURE_PRINT_FUNCTION  # type: ignore
+)
 
 
 def ast_compile(a: ast.AST, filename: str, mode: str):
@@ -83,7 +83,7 @@ def ast_compile(a: ast.AST, filename: str, mode: str):
     Returns:
       out: instance of `types.CodeType`
     """
-    return compile(a, filename, mode, hy_ast_compile_flags)
+    return compile(a, filename, mode, HY_AST_COMPILE_FLAGS)
 
 
 def calling_module(n: int=1):
@@ -575,7 +575,7 @@ class HyASTCompiler(object):
 
     @special(["quote", "quasiquote"], [FORM])
     def compile_quote(self, expr, root, arg):
-        level = Inf if root == "quote" else 0   # Only quasiquotes can unquote
+        level = INF if root == "quote" else 0   # Only quasiquotes can unquote
         stmts, _ = self._render_quoted_form(arg, level)
         ret = self.compile(stmts)
         return ret
@@ -900,7 +900,7 @@ class HyASTCompiler(object):
         return ret + fn
 
     @special(["with", "with/a"],
-             [(brackets(times(1, Inf, FORM + FORM)))
+             [(brackets(times(1, INF, FORM + FORM)))
               | brackets((FORM >> (lambda x: [(Symbol('_'), x)]))),
               many(FORM)])
     def compile_with_expression(self, expr, root, args, body):
@@ -1236,7 +1236,7 @@ class HyASTCompiler(object):
         return self._c_ops[k]()
 
     @special(["=", "is", "<", "<=", ">", ">="], [oneplus(FORM)])
-    @special(["!=", "is-not", "in", "not-in"], [times(2, Inf, FORM)])
+    @special(["!=", "is-not", "in", "not-in"], [times(2, INF, FORM)])
     def compile_compare_op_expression(self, expr, root, args):
         if len(args) == 1:
             return (self.compile(args[0]) +
@@ -1277,7 +1277,7 @@ class HyASTCompiler(object):
 
     @special(["+", "*", "|"], [many(FORM)])
     @special(["-", "/", "&", "@"], [oneplus(FORM)])
-    @special(["**", "//", "<<", ">>"], [times(2, Inf, FORM)])
+    @special(["**", "//", "<<", ">>"], [times(2, INF, FORM)])
     @special(["%", "^"], [times(2, 2, FORM)])
     def compile_maths_expression(self, expr, root, args):
         if len(args) == 0:
