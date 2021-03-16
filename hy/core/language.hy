@@ -226,13 +226,12 @@
        => (disassemble '(print \"Hello World!\") True)
        print('Hello World!')
   "
-  (import astor)
-  (import hy.compiler)
+  (import ast hy.compiler hy._compat)
 
   (setv compiled (hy.compiler.hy-compile tree (calling-module-name) :import-stdlib False))
   ((if codegen
-       astor.code-gen.to-source
-       astor.dump-tree)
+       hy._compat.ast-unparse
+       ast.dump)
     compiled))
 
 (defn distinct [coll]

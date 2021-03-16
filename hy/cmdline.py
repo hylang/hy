@@ -764,7 +764,7 @@ def hy2py_main():
         _ast = hy_compile(hst, '__main__', filename=filename, source=source)
 
     if options.with_ast:
-        _print_for_windows(astor.dump_tree(_ast))
+        _print_for_windows(ast.dump(_ast))
         print()
         print()
 
