@@ -92,7 +92,7 @@
         (for [~@(cut expr 1 -1)]
           (.append out ~(get expr -1)))
         out)))
-    (setv result (eval expr))
+    (setv result (hy.eval expr))
     (when (= specialop "dfor")
       (setv result (.keys result)))
     (assert (= (sorted result) answer) (str expr)))))

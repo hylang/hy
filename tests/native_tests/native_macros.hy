@@ -2,7 +2,9 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import pytest
+(import os sys
+        importlib
+        pytest
         [hy.errors [HyTypeError HyMacroExpansionError]])
 
 (defmacro rev [#* body]
@@ -64,23 +66,23 @@
 (defn test-macro-kw []
   "NATIVE: test that an error is raised when * or #** is used in a macro"
   (try
-    (eval '(defmacro f [* a b]))
+    (hy.eval '(defmacro f [* a b]))
     (except [e HyTypeError]
       (assert (= e.msg "macros cannot use '*', or '#**'")))
     (else (assert False)))
 
   (try
-    (eval '(defmacro f [#** kw]))
+    (hy.eval '(defmacro f [#** kw]))
     (except [e HyTypeError]
       (assert (= e.msg "macros cannot use '*', or '#**'")))
     (else (assert False))))
 
 (defn test-macro-bad-name []
   (with [excinfo (pytest.raises HyTypeError)]
-    (eval '(defmacro :kw [])))
+    (hy.eval '(defmacro :kw [])))
   (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol or string for macro name"))
   (with [excinfo (pytest.raises HyTypeError)]
-    (eval '(defmacro "foo.bar" [])))
+    (hy.eval '(defmacro "foo.bar" [])))
   (assert (= (. excinfo value msg) "periods are not allowed in macro names")))
 
 (defn test-fn-calling-macro []
@@ -401,6 +403,49 @@ in expansions."
   (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
              #test-module-tag-2 3)))
 
+(defn test-requires-pollutes-core []
+  ;; https://github.com/hylang/hy/issues/1978
+  ;; Macros loaded from an external module should not pollute `__macros__`
+  ;; with macros from core.
+
+  (setv pyc-file (importlib.util.cache-from-source
+                   (os.path.realpath
+                     (os.path.join
+                       "tests" "resources" "macros.hy"))))
+
+  ;; Remove any cached byte-code, so that this runs from source and
+  ;; gets evaluated in this module.
+  (when (os.path.isfile pyc-file)
+    (os.unlink pyc-file)
+    (.clear sys.path_importer_cache)
+    (when (in  "tests.resources.macros" sys.modules)
+      (del (get sys.modules "tests.resources.macros"))
+      (__macros__.clear)))
+
+  ;; Ensure that bytecode isn't present when we require this module.
+  (assert (not (os.path.isfile pyc-file)))
+
+  (defn require-macros []
+    (require [tests.resources.macros :as m])
+
+    (assert (in (mangle "m.test-macro") __macros__))
+    (for [macro-name __macros__]
+      (assert (not (and (in "with" macro-name)
+                        (!= "with" macro-name))))))
+
+  (require-macros)
+
+  ;; Now that bytecode is present, reload the module, clear the `require`d
+  ;; macros and tags, and rerun the tests.
+  (assert (os.path.isfile pyc-file))
+
+  ;; Reload the module and clear the local macro context.
+  (.clear sys.path_importer_cache)
+  (del (get sys.modules "tests.resources.macros"))
+  (.clear __macros__)
+
+  (require-macros))
+
 #@(pytest.mark.xfail
 (defn test-macro-from-module []
   "Macros loaded from an external module, which itself `require`s macros, should
@@ -411,9 +456,6 @@ in expansions."
  loaded and used.
 
  Additionally, we confirm that `require` statements are executed via loaded bytecode."
-
-  (import os sys marshal types)
-  (import importlib)
 
   (setv pyc-file (importlib.util.cache-from-source
                    (os.path.realpath
@@ -494,7 +536,7 @@ in expansions."
   (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
 
   (with [excinfo (pytest.raises HyMacroExpansionError)]
-    (eval test-expr))
+    (hy.eval test-expr))
 
   (setv output (traceback.format_exception_only
                  excinfo.type excinfo.value))
@@ -515,7 +557,7 @@ in expansions."
   ;; This should throw a `HyWrapperError` that gets turned into a
   ;; `HyMacroExpansionError`.
   (with [excinfo (pytest.raises HyMacroExpansionError)]
-    (eval '(do (defmacro wrap-error-test []
+    (hy.eval '(do (defmacro wrap-error-test []
                  (fn []))
                (wrap-error-test))))
   (assert (in "HyWrapperError" (str excinfo.value))))

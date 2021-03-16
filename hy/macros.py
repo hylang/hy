@@ -2,6 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 import sys
+import builtins
 import importlib
 import inspect
 import pkgutil
@@ -189,26 +190,20 @@ def require(source_module, target_module, assignments, prefix=""):
 
 
 def load_macros(module):
-    """Load the hy builtin macros for module `module_name`.
-
-    Modules from `hy.core` can only use the macros from CORE_MACROS.
-    Other modules get the macros from CORE_MACROS and EXTRA_MACROS.
+    """Load the hy builtin macros into module `module_name`,
+    removing any prior macros set.
+    It is an error to call this on any module in `hy.core`.
     """
-    builtin_macros = CORE_MACROS
-
-    if not module.__name__.startswith("hy.core"):
-        builtin_macros += EXTRA_MACROS
-
-    module_macros = module.__dict__.setdefault('__macros__', {})
+    builtin_macros = CORE_MACROS + EXTRA_MACROS
+    module.__macros__ = {}
 
     for builtin_mod_name in builtin_macros:
         builtin_mod = importlib.import_module(builtin_mod_name)
 
-        # Make sure we don't overwrite macros in the module.
+        # This may overwrite macros in the module.
         if hasattr(builtin_mod, '__macros__'):
-            module_macros.update({k: v
-                                  for k, v in builtin_mod.__macros__.items()
-                                  if k not in module_macros})
+            module.__macros__.update(getattr(builtin_mod, '__macros__', {}))
+
 
 @contextmanager
 def macro_exceptions(module, macro_tree, compiler=None):
@@ -287,11 +282,12 @@ def macroexpand(tree, module, compiler=None, once=False):
         fn = mangle(fn)
         expr_modules = (([] if not hasattr(tree, 'module') else [tree.module])
             + [module])
+        expr_modules.append(builtins)
 
         # Choose the first namespace with the macro.
         m = next((mod.__macros__[fn]
                   for mod in expr_modules
-                  if fn in mod.__macros__),
+                  if fn in getattr(mod, '__macros__', ())),
                  None)
         if not m:
             break

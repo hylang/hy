@@ -182,7 +182,8 @@ class HyCompile(codeop.Compile, object):
             exec_ast, eval_ast = hy_compile(hy_ast, self.module, root=root_ast,
                                             get_expr=True,
                                             compiler=self.hy_compiler,
-                                            filename=filename, source=source)
+                                            filename=filename, source=source,
+                                            import_stdlib=False)
 
             if self.ast_callback:
                 self.ast_callback(exec_ast, eval_ast)
@@ -297,13 +298,18 @@ class HyREPL(code.InteractiveConsole, object):
         # Allow access to the running REPL instance
         self.locals['_hy_repl'] = self
 
+        # Compile an empty statement to load the standard prelude
+        exec_ast = hy_compile(hy_parse(''), self.module, compiler=self.hy_compiler, import_stdlib=True)
+        if self.ast_callback:
+            self.ast_callback(exec_ast, None)
+
     def ast_callback(self, exec_ast, eval_ast):
         if self.spy:
             try:
                 # Mush the two AST chunks into a single module for
                 # conversion into Python.
                 new_ast = ast.Module(
-                    exec_ast.body + [ast.Expr(eval_ast.body)],
+                    exec_ast.body + ([] if eval_ast is None else [ast.Expr(eval_ast.body)]),
                     type_ignores=[])
                 print(astor.to_source(new_ast))
             except Exception:

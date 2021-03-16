@@ -4,6 +4,8 @@
 
 ;;;; some simple helpers
 
+(import pytest)
+
 (defn assert-true [x]
   (assert (= True x)))
 
@@ -699,6 +701,17 @@ result['y in globals'] = 'y' in globals()")
                         <p> Move along. (Nothing to see here.)</p>)))
 
 (defn test-doc [capsys]
+  ;; https://github.com/hylang/hy/issues/1970
+  ;; Let's first make sure we can doc the builtin macros
+  ;; before we create the user macros.
+  (doc doc)
+  (setv [out err] (.readouterr capsys))
+  (assert (in "Gets help for a macro function" out))
+
+  (doc "#@")
+  (setv [out err] (.readouterr capsys))
+  (assert (in "with-decorator tag macro" out))
+
   (defmacro <-mangle-> []
     "a fancy docstring"
     '(+ 2 2))
@@ -716,7 +729,12 @@ result['y in globals'] = 'y' in globals()")
   (doc "#pillgrums")
   (setv [out err] (.readouterr capsys))
   (assert (in "Look at the quality of that picture!" out))
-  (assert (empty? err)))
+  (assert (empty? err))
+
+  ;; make sure doc raises an error instead of
+  ;; presenting a default value help screen
+  (with [(pytest.raises NameError)]
+    (doc does-not-exist)))
 
 
 (defn test-do-n []

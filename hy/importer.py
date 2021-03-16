@@ -13,10 +13,12 @@ import io
 import types
 import tempfile
 import importlib
+import builtins
 
 from functools import partial
 from contextlib import contextmanager
 
+import hy
 from hy.compiler import hy_compile, hy_ast_compile_flags
 from hy.lex import hy_parse
 
@@ -165,3 +167,19 @@ def _import_from_path(name, path):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def _inject_builtins():
+    """Inject the hy core/stdlib into python's builtins if necessary"""
+    if hasattr(builtins, '__hy_injected__'):
+        return
+
+    # Load the standard functions directly into builtins
+    core = importlib.import_module('hy.core')
+    builtins.__dict__.update({k: getattr(core, k) for k in core.__all__})
+
+    # Load the standard macros
+    hy.macros.load_macros(builtins)
+
+    # Set the marker so we don't inject again
+    builtins.__hy_injected__ = True

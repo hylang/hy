@@ -94,7 +94,7 @@
           "hy.core.language.calling-module-name",
           "hy.core.language.parse-args",
           "hy.core.language.disassemble",
-          "hy.core.language.eval",
+          "hy.eval",
           "hy.core.language.gensym",
           "hy.core.language.keyword",
           "hy.core.language.macroexpand",

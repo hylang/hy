@@ -74,7 +74,7 @@
   (setv y 0 x 1 y x)
   (assert (= y 1))
   (with [(pytest.raises HyLanguageError)]
-    (eval '(setv a 1 b))))
+    (hy.eval '(setv a 1 b))))
 
 
 (defn test-setv-returns-none []
@@ -144,7 +144,7 @@
       (try 1 (except [True AssertionError] 2))
       (defclass True [])]]
     (with [e (pytest.raises HyLanguageError)]
-      (eval form))
+      (hy.eval form))
     (assert (in "Can't assign" e.value.msg))))
 
 
@@ -183,7 +183,7 @@
   ; https://github.com/hylang/hy/issues/1790
   (global while-cond-var)
   (setv while-cond-var 10)
-  (eval
+  (hy.eval
     '(do
       (defmacro while-cond []
         (global while-cond-var)
@@ -1137,51 +1137,51 @@
 
 (defn test-eval []
   "NATIVE: test eval"
-  (assert (= 2 (eval (quote (+ 1 1)))))
+  (assert (= 2 (hy.eval (quote (+ 1 1)))))
   (setv x 2)
-  (assert (= 4 (eval (quote (+ x 2)))))
+  (assert (= 4 (hy.eval (quote (+ x 2)))))
   (setv test-payload (quote (+ x 2)))
   (setv x 4)
-  (assert (= 6 (eval test-payload)))
-  (assert (= 9 ((eval (quote (fn [x] (+ 3 3 x)))) 3)))
-  (assert (= 1 (eval (quote 1))))
-  (assert (= "foobar" (eval (quote "foobar"))))
+  (assert (= 6 (hy.eval test-payload)))
+  (assert (= 9 ((hy.eval (quote (fn [x] (+ 3 3 x)))) 3)))
+  (assert (= 1 (hy.eval (quote 1))))
+  (assert (= "foobar" (hy.eval (quote "foobar"))))
   (setv x (quote 42))
-  (assert (= x (eval x)))
-  (assert (= 27 (eval (+ (quote (*)) (* [(quote 3)] 3)))))
-  (assert (= None (eval (quote (print ""))))))
+  (assert (= x (hy.eval x)))
+  (assert (= 27 (hy.eval (+ (quote (*)) (* [(quote 3)] 3)))))
+  (assert (= None (hy.eval (quote (print ""))))))
 
 
 (defn test-eval-false []
-  (assert (is (eval 'False) False))
-  (assert (is (eval 'None) None))
-  (assert (= (eval '0) 0))
-  (assert (= (eval '"") ""))
-  (assert (= (eval 'b"") b""))
-  (assert (= (eval ':) :))
-  (assert (= (eval '[]) []))
-  (assert (= (eval '(,)) (,)))
-  (assert (= (eval '{}) {}))
-  (assert (= (eval '#{}) #{})))
+  (assert (is (hy.eval 'False) False))
+  (assert (is (hy.eval 'None) None))
+  (assert (= (hy.eval '0) 0))
+  (assert (= (hy.eval '"") ""))
+  (assert (= (hy.eval 'b"") b""))
+  (assert (= (hy.eval ':) :))
+  (assert (= (hy.eval '[]) []))
+  (assert (= (hy.eval '(,)) (,)))
+  (assert (= (hy.eval '{}) {}))
+  (assert (= (hy.eval '#{}) #{})))
 
 
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
-  (assert (= 'bar (eval (quote foo) {'foo 'bar})))
-  (assert (= 1 (do (setv d {}) (eval '(setv x 1) d) (eval (quote x) d))))
+  (assert (= 'bar (hy.eval (quote foo) {'foo 'bar})))
+  (assert (= 1 (do (setv d {}) (hy.eval '(setv x 1) d) (hy.eval (quote x) d))))
   (setv d1 {}  d2 {})
-  (eval '(setv x 1) d1)
+  (hy.eval '(setv x 1) d1)
   (with [e (pytest.raises NameError)]
-    (eval (quote x) d2)))
+    (hy.eval (quote x) d2)))
 
 (defn test-eval-failure []
   "NATIVE: test eval failure modes"
   ; yo dawg
-  (with [(pytest.raises TypeError)] (eval '(eval)))
+  (with [(pytest.raises TypeError)] (hy.eval '(hy.eval)))
   (defclass C)
-  (with [(pytest.raises TypeError)] (eval (C)))
-  (with [(pytest.raises TypeError)] (eval 'False []))
-  (with [(pytest.raises TypeError)] (eval 'False {} 1)))
+  (with [(pytest.raises TypeError)] (hy.eval (C)))
+  (with [(pytest.raises TypeError)] (hy.eval 'False []))
+  (with [(pytest.raises TypeError)] (hy.eval 'False {} 1)))
 
 (defn test-eval-quasiquote []
   ; https://github.com/hylang/hy/issues/1174
@@ -1195,26 +1195,26 @@
       "apple bloom" b"apple bloom" "⚘" b"\x00"
       [] #{} {}
       [1 2 3] #{1 2 3} {"a" 1 "b" 2}]]
-    (assert (= (eval `(identity ~x)) x))
-    (assert (= (eval x) x)))
+    (assert (= (hy.eval `(identity ~x)) x))
+    (assert (= (hy.eval x) x)))
 
   (setv kw :mykeyword)
-  (assert (= (get (eval `[~kw]) 0) kw))
-  (assert (= (eval kw) kw))
+  (assert (= (get (hy.eval `[~kw]) 0) kw))
+  (assert (= (hy.eval kw) kw))
 
   ; Tuples wrap to HyLists, not HyExpressions.
-  (assert (= (eval (,)) []))
-  (assert (= (eval (, 1 2 3)) [1 2 3]))
+  (assert (= (hy.eval (,)) []))
+  (assert (= (hy.eval (, 1 2 3)) [1 2 3]))
 
-  (assert (= (eval `(+ "a" ~(+ "b" "c"))) "abc"))
+  (assert (= (hy.eval `(+ "a" ~(+ "b" "c"))) "abc"))
 
   (setv l ["a" "b"])
   (setv n 1)
-  (assert (= (eval `(get ~l ~n) "b")))
+  (assert (= (hy.eval `(get ~l ~n) "b")))
 
   (setv d {"a" 1 "b" 2})
   (setv k "b")
-  (assert (= (eval `(get ~d ~k)) 2)))
+  (assert (= (hy.eval `(get ~d ~k)) 2)))
 
 
 (defn test-quote-bracket-string-delim []
@@ -1288,9 +1288,9 @@ cee\"} dee" "ey bee\ncee dee"))
   (setv quoted 'f"hello {world}")
   (assert (isinstance quoted HyFString))
   (with [(pytest.raises NameError)]
-    (eval quoted))
+    (hy.eval quoted))
   (setv world "goodbye")
-  (assert (= (eval quoted) "hello goodbye"))
+  (assert (= (hy.eval quoted) "hello goodbye"))
 
   ;; '=' debugging syntax.
   (setv foo "bar")
@@ -1621,13 +1621,13 @@ macros()
   (import [hy.models [HyExpression]])
 
   (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
-  (assert (= (eval (read stdin-buffer)) 4))
+  (assert (= (hy.eval (read stdin-buffer)) 4))
   (assert (isinstance (read stdin-buffer) HyExpression))
 
   "Multiline test"
   (setv stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
-  (assert (= (eval (read stdin-buffer)) 42))
-  (assert (= (eval (read stdin-buffer)) 1))
+  (assert (= (hy.eval (read stdin-buffer)) 42))
+  (assert (= (hy.eval (read stdin-buffer)) 1))
 
   "EOF test"
   (setv stdin-buffer (StringIO "(+ 2 2)"))
@@ -1672,7 +1672,7 @@ macros()
 (defmacro identify-keywords [#* elts]
   `(list
     (map
-     (fn [x] (if (is-keyword x) "keyword" "other"))
+     (fn [x] (if (keyword? x) "keyword" "other"))
      ~elts)))
 
 (defn test-keywords-and-macros []

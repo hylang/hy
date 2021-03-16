@@ -17,8 +17,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
   [math [isnan]]
   re
   datetime
-  collections
-  [hy.models [HyObject HyExpression HySymbol HyKeyword HyInteger HyFloat HyComplex HyList HyDict HySet HyString HyFString HyFComponent HyBytes]])
+  collections)
 
 (try
   (import [_collections_abc [dict-keys dict-values dict-items]])
@@ -74,7 +73,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
 
   Like ``repr`` in Python, ``hy-repr`` can round-trip many kinds of
   values. Round-tripping implies that given an object ``x``,
-  ``(eval (read-str (hy-repr x)))`` returns ``x``, or at least a value
+  ``(hy.eval (read-str (hy-repr x)))`` returns ``x``, or at least a value
   that's equal to ``x``.
 
   Examples:

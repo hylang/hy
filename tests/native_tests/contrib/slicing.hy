@@ -30,12 +30,12 @@
 
   (assert (= #: ... Ellipsis))
 
-  (assert (= (eval (hy-parse "#: 1:[1 2]:2")) :2))
-  (assert (= (eval (hy-parse "#: 1:[1 2]")) [1 2]))
+  (assert (= (hy.eval (hy-parse "#: 1:[1 2]:2")) :2))
+  (assert (= (hy.eval (hy-parse "#: 1:[1 2]")) [1 2]))
 
   (with [(pytest.raises TypeError)]
     ;; slice takes at most 3 args
-    (eval (hy-parse "#: 1:2:3:4")))
+    (hy.eval (hy-parse "#: 1:2:3:4")))
 
   (with [(pytest.raises NameError)]
-    (eval (hy-parse "#: 1:abc:2"))))
+    (hy.eval (hy-parse "#: 1:abc:2"))))

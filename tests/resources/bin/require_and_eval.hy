@@ -1,3 +1,3 @@
 (require [hy.extra.anaphoric [ap-if]])
 
-(print (eval '(ap-if (+ "a" "b") (+ it "c"))))
+(print (hy.eval '(ap-if (+ "a" "b") (+ it "c"))))

@@ -24,8 +24,8 @@ def _ast_spotcheck(arg, root, secondary):
     assert getattr(root, arg) == getattr(secondary, arg)
 
 
-def can_compile(expr):
-    return hy_compile(hy_parse(expr), __name__)
+def can_compile(expr, import_stdlib=False):
+    return hy_compile(hy_parse(expr), __name__, import_stdlib=import_stdlib)
 
 
 def can_eval(expr):
@@ -478,7 +478,7 @@ def test_ast_unicode_strings():
     def _compile_string(s):
         hy_s = HyString(s)
 
-        code = hy_compile([hy_s], __name__, filename='<string>', source=s)
+        code = hy_compile([hy_s], __name__, filename='<string>', source=s, import_stdlib=False)
         # We put hy_s in a list so it isn't interpreted as a docstring.
 
         # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Str(s=xxx)]))])
@@ -632,25 +632,14 @@ def test_eval_generator_with_return():
 
 def test_futures_imports():
     """Make sure __future__ imports go first, especially when builtins are
-    automatically added (e.g. via use of a builtin name like `name`)."""
+    automatically added (e.g. via use of a builtin name like `last`)."""
     hy_ast = can_compile((
         '(import [__future__ [print_function]])\n'
         '(import sys)\n'
-        '(setv name [1 2])'
-        '(print (first name))'))
+        '(setv last [1 2])'
+        '(print (first last))'))
 
     assert hy_ast.body[0].module == '__future__'
-    assert hy_ast.body[1].module == 'hy.core.language'
-
-    hy_ast = can_compile((
-        '(import sys)\n'
-        '(import [__future__ [print_function]])\n'
-        '(setv name [1 2])'
-        '(print (first name))'))
-
-    assert hy_ast.body[0].module == '__future__'
-    assert hy_ast.body[1].module == 'hy.core.language'
-
 
 def test_inline_python():
     can_compile('(py "1 + 1")')
@@ -664,3 +653,23 @@ def test_bad_tag_macros():
     cant_compile('(defmacro "#a" [] (raise (ValueError))) #a ()')
     cant_compile('(defmacro "#a" [x] (raise (ValueError))) #a ()')
     can_compile('(defmacro "#a" [x] 3) #a ()')
+
+
+def test_models_accessible():
+    # https://github.com/hylang/hy/issues/1045
+    can_eval('HySymbol')
+    can_eval('HyList')
+    can_eval('HyDict')
+
+
+def test_module_prelude():
+    """Make sure the hy prelude appears at the top of a compiled module."""
+    hy_ast = can_compile('', import_stdlib=True)
+    assert len(hy_ast.body) == 1
+    assert isinstance(hy_ast.body[0], ast.Import)
+    assert hy_ast.body[0].module == 'hy'
+
+    hy_ast = can_compile('(setv flag (keyword? HySymbol))', import_stdlib=True)
+    assert len(hy_ast.body) == 2
+    assert isinstance(hy_ast.body[0], ast.Import)
+    assert hy_ast.body[0].module == 'hy'

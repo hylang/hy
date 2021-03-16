@@ -121,7 +121,7 @@ two separate steps. First, use the ``read_str`` function (or ``read`` for a
     >>> import hy
     >>> expr = hy.read_str("(- (/ (+ 1 3 88) 2) 8)")
 
-Then, use the ``eval`` function to evaluate it:
+Then, use the ``hy.eval`` function to evaluate it:
 
 .. code-block:: python
 

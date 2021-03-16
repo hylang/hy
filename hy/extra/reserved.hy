@@ -3,7 +3,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import hy sys keyword)
+(import sys keyword)
 
 (setv _cache None)
 
@@ -27,8 +27,8 @@
   (global _cache)
   (if (is _cache None) (do
     (setv _cache (frozenset (map unmangle (+
-      hy.core.language.EXPORTS
-      hy.core.shadow.EXPORTS
+      hy.core.__all__
+      (list (.keys hy.core.bootstrap.__macros__))
       (list (.keys hy.core.macros.__macros__))
       keyword.kwlist
       (list (.keys hy.compiler._special_form_compilers))

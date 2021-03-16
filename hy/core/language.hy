@@ -12,10 +12,12 @@
 (import operator)  ; shadow not available yet
 (import sys)
 (import [collections.abc :as cabc])
-(import [hy.models [HySymbol HyKeyword]])
+(import [hy.models [HyBytes HyComplex HyDict HyExpression HyFComponent
+                    HyFString HyFloat HyInteger HyKeyword HyList
+                    HyObject HySequence HySet HyString HySymbol]])
 (import [hy.lex [tokenize mangle unmangle read read-str]])
 (import [hy.lex.exceptions [LexException PrematureEndOfInput]])
-(import [hy.compiler [HyASTCompiler calling-module hy-eval :as eval]])
+(import [hy.compiler [HyASTCompiler calling-module]])
 
 (import [hy.core.shadow [*]])
 
@@ -227,7 +229,7 @@
   (import astor)
   (import hy.compiler)
 
-  (setv compiled (hy.compiler.hy-compile tree (calling-module-name)))
+  (setv compiled (hy.compiler.hy-compile tree (calling-module-name) :import-stdlib False))
   ((if codegen
        astor.code-gen.to-source
        astor.dump-tree)
@@ -1395,14 +1397,17 @@
     (parser.add-argument #* positional-arguments #** (dict keyword-arguments)))
   (.parse-args parser args))
 
-(setv EXPORTS
-  '[*map accumulate butlast calling-module calling-module-name chain coll?
-    combinations comp complement compress constantly count cycle dec distinct
-    disassemble drop drop-last drop-while empty? eval even? every? first
-    flatten float? fraction gensym group-by identity inc instance?
-    integer? integer-char? interleave interpose islice iterable?
-    iterate iterator? juxt keyword keyword? last list? macroexpand
-    macroexpand-1 mangle merge-with multicombinations neg? none? nth
-    numeric? odd? parse-args partition permutations pos? product read read-str
-    remove repeat repeatedly rest reduce second some string? symbol?
-    take take-nth take-while tuple? unmangle xor tee zero? zip-longest])
+(setv __all__
+  (list (map mangle
+    '[*map accumulate butlast calling-module calling-module-name chain coll?
+      combinations comp complement compress constantly count cycle dec distinct
+      disassemble drop drop-last drop-while empty? even? every? first
+      flatten float? fraction gensym group-by identity inc instance?
+      integer? integer-char? interleave interpose islice iterable?
+      iterate iterator? juxt keyword keyword? last list? macroexpand
+      macroexpand-1 mangle merge-with multicombinations neg? none? nth
+      numeric? odd? parse-args partition permutations pos? product read read-str
+      remove repeat repeatedly rest reduce second some string? symbol?
+      take take-nth take-while tuple? unmangle xor tee zero? zip-longest
+      HyBytes HyComplex HyDict HyExpression HyFComponent HyFString HyFloat
+      HyInteger HyKeyword HyList HyObject HySequence HySet HyString HySymbol])))
