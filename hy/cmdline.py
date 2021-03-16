@@ -729,8 +729,6 @@ def hyc_main():
 
 # entry point for cmd line script "hy2py"
 def hy2py_main():
-    import platform
-
     options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
                    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = argparse.ArgumentParser(**options)
@@ -759,16 +757,7 @@ def hy2py_main():
         hst = hy_parse(source, filename=filename)
 
     if options.with_source:
-        # need special printing on Windows in case the
-        # codepage doesn't support utf-8 characters
-        if platform.system() == "Windows":
-            for h in hst:
-                try:
-                    print(h)
-                except:
-                    print(str(h).encode('utf-8'))
-        else:
-            print(hst)
+        _print_for_windows(hst)
         print()
         print()
 
@@ -776,18 +765,12 @@ def hy2py_main():
         _ast = hy_compile(hst, '__main__', filename=filename, source=source)
 
     if options.with_ast:
-        if platform.system() == "Windows":
-            _print_for_windows(astor.dump_tree(_ast))
-        else:
-            print(astor.dump_tree(_ast))
+        _print_for_windows(astor.dump_tree(_ast))
         print()
         print()
 
     if not options.without_python:
-        if platform.system() == "Windows":
-            _print_for_windows(astor.code_gen.to_source(_ast))
-        else:
-            print(astor.code_gen.to_source(_ast))
+        _print_for_windows(astor.code_gen.to_source(_ast))
 
     parser.exit(0)
 
@@ -795,11 +778,15 @@ def hy2py_main():
 # need special printing on Windows in case the
 # codepage doesn't support utf-8 characters
 def _print_for_windows(src):
-    for line in src.split("\n"):
-        try:
-            print(line)
-        except:
-            print(line.encode('utf-8'))
+    import platform
+    if platform.system() == "Windows":
+        for line in src.split("\n"):
+            try:
+                print(line)
+            except:
+                print(line.encode('utf-8'))
+    else:
+        print(src)
 
 # remove PYTHON* environment variables,
 # such as "PYTHONPATH"
