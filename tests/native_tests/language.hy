@@ -1576,19 +1576,18 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
-  (assert (= (disassemble '(do (leaky) (leaky) (macros)))
-    (.format "Module(
-    body=[Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
-        Expr(value=Call(func=Name(id='leaky'), args=[], keywords=[])),
-        Expr(value=Call(func=Name(id='macros'), args=[], keywords=[]))]{})"
-      (if PY3_8 ",\n    type_ignores=[]" ""))))
-  (assert (= (disassemble '(do (leaky) (leaky) (macros)) True)
-             "leaky()
-leaky()
-macros()
-"))
-  (assert (= (re.sub r"[() ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
-             "2+40\n")))
+  (defn nos [x] (re.sub r"\s" "" x))
+  (assert (= (nos (disassemble '(do (leaky) (leaky) (macros))))
+    (nos (.format
+      "Module(
+          body=[Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
+              Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
+              Expr(value=Call(func=Name(id='macros', ctx=Load()), args=[], keywords=[]))]{})"
+      (if PY3_8 ",type_ignores=[]" "")))))
+  (assert (= (nos (disassemble '(do (leaky) (leaky) (macros)) True))
+             "leaky()leaky()macros()"))
+  (assert (= (re.sub r"[()\n ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
+             "2+40")))
 
 
 (defn test-attribute-access []

@@ -229,10 +229,13 @@
   (import ast hy.compiler hy._compat)
 
   (setv compiled (hy.compiler.hy-compile tree (calling-module-name) :import-stdlib False))
-  ((if codegen
-       hy._compat.ast-unparse
-       ast.dump)
-    compiled))
+  (if
+    codegen
+      (hy._compat.ast-unparse compiled)
+    hy._compat.PY3_9
+      (ast.dump compiled :indent 1)
+    True
+      (ast.dump compiled)))
 
 (defn distinct [coll]
   "Return a generator from the original collection `coll` with no duplicates.
