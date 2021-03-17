@@ -63,9 +63,10 @@ class Install(install):
 
 install_requires = [
     'rply>=0.7.7',
-    'astor>=0.8',
     'funcparserlib>=0.3.6',
     'colorama']
+if sys.version_info < (3, 9):
+    install_requires.append('astor>=0.8')
 if os.name == 'nt':
     install_requires.append('pyreadline>=2.1')
 

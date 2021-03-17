@@ -24,8 +24,6 @@ import hashlib
 import codeop
 import builtins
 
-import astor.code_gen
-
 import hy
 
 from hy.lex import hy_parse, mangle
@@ -39,6 +37,7 @@ from hy.importer import runhy, HyLoader
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
+from hy._compat import ast_unparse
 
 
 sys.last_type = None
@@ -311,7 +310,7 @@ class HyREPL(code.InteractiveConsole, object):
                 new_ast = ast.Module(
                     exec_ast.body + ([] if eval_ast is None else [ast.Expr(eval_ast.body)]),
                     type_ignores=[])
-                print(astor.to_source(new_ast))
+                print(ast_unparse(new_ast))
             except Exception:
                 msg = 'Exception in AST callback:\n{}\n'.format(
                     traceback.format_exc())
@@ -729,8 +728,6 @@ def hyc_main():
 
 # entry point for cmd line script "hy2py"
 def hy2py_main():
-    import platform
-
     options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
                    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = argparse.ArgumentParser(**options)
@@ -759,16 +756,7 @@ def hy2py_main():
         hst = hy_parse(source, filename=filename)
 
     if options.with_source:
-        # need special printing on Windows in case the
-        # codepage doesn't support utf-8 characters
-        if platform.system() == "Windows":
-            for h in hst:
-                try:
-                    print(h)
-                except:
-                    print(str(h).encode('utf-8'))
-        else:
-            print(hst)
+        _print_for_windows(hst)
         print()
         print()
 
@@ -776,18 +764,12 @@ def hy2py_main():
         _ast = hy_compile(hst, '__main__', filename=filename, source=source)
 
     if options.with_ast:
-        if platform.system() == "Windows":
-            _print_for_windows(astor.dump_tree(_ast))
-        else:
-            print(astor.dump_tree(_ast))
+        _print_for_windows(ast.dump(_ast))
         print()
         print()
 
     if not options.without_python:
-        if platform.system() == "Windows":
-            _print_for_windows(astor.code_gen.to_source(_ast))
-        else:
-            print(astor.code_gen.to_source(_ast))
+        _print_for_windows(ast_unparse(_ast))
 
     parser.exit(0)
 
@@ -795,11 +777,15 @@ def hy2py_main():
 # need special printing on Windows in case the
 # codepage doesn't support utf-8 characters
 def _print_for_windows(src):
-    for line in src.split("\n"):
-        try:
-            print(line)
-        except:
-            print(line.encode('utf-8'))
+    import platform
+    if platform.system() == "Windows":
+        for line in src.split("\n"):
+            try:
+                print(line)
+            except:
+                print(line.encode('utf-8'))
+    else:
+        print(src)
 
 # remove PYTHON* environment variables,
 # such as "PYTHONPATH"
