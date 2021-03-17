@@ -24,8 +24,6 @@ import hashlib
 import codeop
 import builtins
 
-import astor.code_gen
-
 import hy
 
 from hy.lex import hy_parse, mangle
@@ -39,6 +37,7 @@ from hy.importer import runhy, HyLoader
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import HyExpression, HyString, HySymbol
+from hy._compat import ast_unparse
 
 
 sys.last_type = None
@@ -311,7 +310,7 @@ class HyREPL(code.InteractiveConsole, object):
                 new_ast = ast.Module(
                     exec_ast.body + ([] if eval_ast is None else [ast.Expr(eval_ast.body)]),
                     type_ignores=[])
-                print(astor.to_source(new_ast))
+                print(ast_unparse(new_ast))
             except Exception:
                 msg = 'Exception in AST callback:\n{}\n'.format(
                     traceback.format_exc())
@@ -770,7 +769,7 @@ def hy2py_main():
         print()
 
     if not options.without_python:
-        _print_for_windows(astor.code_gen.to_source(_ast))
+        _print_for_windows(ast_unparse(_ast))
 
     parser.exit(0)
 

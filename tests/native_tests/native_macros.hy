@@ -152,9 +152,9 @@
 
 (defn test-gensym-in-macros []
   (import ast)
-  (import [astor.code-gen [to-source]])
   (import [hy.compiler [hy-compile]])
   (import [hy.lex [hy-parse]])
+  (import [hy._compat [ast-unparse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (gensym))
       `(do
@@ -169,8 +169,8 @@
   ;; gensym each time
   (setv _ast1 (hy-compile (hy-parse macro1) __name__))
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
-  (setv s1 (to_source _ast1))
-  (setv s2 (to_source _ast2))
+  (setv s1 (ast-unparse _ast1))
+  (setv s2 (ast-unparse _ast2))
   ;; and make sure there is something new that starts with _G\uffff
   (assert (in (mangle "_G\uffff") s1))
   (assert (in (mangle "_G\uffff") s2))
@@ -179,9 +179,9 @@
 
 (defn test-with-gensym []
   (import ast)
-  (import [astor.code-gen [to-source]])
   (import [hy.compiler [hy-compile]])
   (import [hy.lex [hy-parse]])
+  (import [hy._compat [ast-unparse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
         `(do
@@ -196,17 +196,17 @@
   ;; gensym each time
   (setv _ast1 (hy-compile (hy-parse macro1) __name__))
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
-  (setv s1 (to_source _ast1))
-  (setv s2 (to_source _ast2))
+  (setv s1 (ast-unparse _ast1))
+  (setv s2 (ast-unparse _ast2))
   (assert (in (mangle "_a\uffff") s1))
   (assert (in (mangle "_a\uffff") s2))
   (assert (not (= s1 s2))))
 
 (defn test-defmacro/g! []
   (import ast)
-  (import [astor.code-gen [to-source]])
   (import [hy.compiler [hy-compile]])
   (import [hy.lex [hy-parse]])
+  (import [hy._compat [ast-unparse]])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -220,8 +220,8 @@
   ;; gensym each time
   (setv _ast1 (hy-compile (hy-parse macro1) __name__))
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
-  (setv s1 (to_source _ast1))
-  (setv s2 (to_source _ast2))
+  (setv s1 (ast-unparse _ast1))
+  (setv s2 (ast-unparse _ast2))
   (assert (in (mangle "_res\uffff") s1))
   (assert (in (mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
@@ -234,9 +234,9 @@
 (defn test-defmacro! []
   ;; defmacro! must do everything defmacro/g! can
   (import ast)
-  (import [astor.code-gen [to-source]])
   (import [hy.compiler [hy-compile]])
   (import [hy.lex [hy-parse]])
+  (import [hy._compat [ast-unparse]])
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -250,8 +250,8 @@
   ;; gensym each time
   (setv _ast1 (hy-compile (hy-parse macro1) __name__))
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
-  (setv s1 (to_source _ast1))
-  (setv s2 (to_source _ast2))
+  (setv s1 (ast-unparse _ast1))
+  (setv s2 (ast-unparse _ast2))
   (assert (in (mangle "_res\uffff") s1))
   (assert (in (mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
