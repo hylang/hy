@@ -62,6 +62,10 @@ Bug Fixes
 * Fixed Hy model objects sometimes not being in scope.
 * Fixed `doc` sometimes failing to find builtin macros.
 
+Misc. Improvements
+------------------------------
+* The library `astor` is no longer required on Pythons ≥ 3.9.
+
 0.20.0 (released 2021-01-25)
 ==============================
 
