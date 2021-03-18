@@ -20,7 +20,7 @@ Breaking Changes
 * f-strings are now parsed as a separate `HyFString` node,
   which is a collection of `HyString` and `HyFComponent` nodes.
 * Calling a `HyKeyword`  now looks up by its (string) name instead by its self.
-  `(:key obj)` is now equivalent to `(get obj (. :key name))`.
+  `(:key obj)` is now equivalent to `(get obj (mangle (. :key name)))`.
 * To require a tag macro `foo`, instead of `(require [module [foo]])`,
   you must now say `(require [module ["#foo"]])`.
 * Simplified `fn` parameters, added support for positional only arguments, and removed

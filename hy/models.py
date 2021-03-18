@@ -180,8 +180,9 @@ class HyKeyword(HyObject):
     _sentinel = object()
 
     def __call__(self, data, default=_sentinel):
+        from hy.lex import mangle
         try:
-            return data[self.name]
+            return data[mangle(self.name)]
         except KeyError:
             if default is HyKeyword._sentinel:
                 raise
