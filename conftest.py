@@ -4,7 +4,7 @@ import importlib
 import py
 import pytest
 import hy
-from hy._compat import PY3_8
+from hy._compat import PY3_8, PY3_10
 
 NATIVE_TESTS = os.path.join("", "tests", "native_tests", "")
 
@@ -12,7 +12,9 @@ _fspath_pyimport = py.path.local.pyimport
 
 
 def pytest_ignore_collect(path, config):
-    return (("py3_8_only" in path.basename and not PY3_8) or None)
+    return (("py3_8_only" in path.basename and not PY3_8)
+            or ("py3_10_only" in path.basename and not PY3_10)
+            or None)
 
 
 def pyimport_patch_mismatch(self, **kwargs):

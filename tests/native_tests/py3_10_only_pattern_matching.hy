@@ -2,6 +2,9 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
+;; Tests where the emitted code relies on Python ≥3.10.
+;; conftest.py skips this file when running on Python <3.10.
+
 (import pytest)
 
 (defn test-match [capsys]
