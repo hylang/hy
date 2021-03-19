@@ -15,7 +15,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
-from hy._compat import (PY3_8, reraise)
+from hy._compat import (PY3_8, PY3_10, reraise)
 from hy.macros import require, macroexpand
 
 import textwrap
@@ -366,23 +366,7 @@ class HyASTCompiler(object):
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})
 
-        self.can_use_stdlib = not self.module_name.startswith("hy.core")
-
-        self._stdlib = {}
-
         self._in_pattern = False
-
-        # Everything in core needs to be explicit (except for
-        # the core macros, which are built with the core functions).
-        if self.can_use_stdlib:
-            # Load stdlib macros into the module namespace.
-            load_macros(self.module)
-
-            # Populate _stdlib.
-            for stdlib_module in hy.core.STDLIB:
-                mod = importlib.import_module(stdlib_module)
-                for e in map(ast_str, getattr(mod, 'EXPORTS', [])):
-                    self._stdlib[e] = stdlib_module
 
     def get_anon_var(self):
         self.anon_var_count += 1
@@ -800,13 +784,13 @@ class HyASTCompiler(object):
 
         return ret
 
-    @special("match",
+    @special((PY3_10, "match"),
              [FORM,
               many(brackets(FORM + maybe(sym(":if") + FORM) + many(FORM)))])
     def compile_match(self, expr, _, subject, clauses):
         subject = self.compile(subject)
         var = self.get_anon_var()
-        name = asty.Name(expr, id=ast_str(var), ctx=ast.Store())
+        name = asty.Name(expr, id=mangle(var), ctx=ast.Store())
         initial_assign = asty.Assign(expr,
                                      targets=[name],
                                      value=asty.Constant(expr, value=None))
@@ -849,7 +833,7 @@ class HyASTCompiler(object):
                             for p, g, b
                             in itertools.islice(zip(ps, gs, bs), split_index)]
             if split_index == len(ps) - 1:
-                left_overs = None
+                left_overs = []
             else:
                 left_overs = [comp_match_clauses(ps[split_index+1:],
                                                  gs[split_index+1:],
@@ -868,20 +852,20 @@ class HyASTCompiler(object):
 
         if not require_split:
             cases = [asty.match_case(expr, pattern=p, guard=g_expr(g), body=b)
-                     for p, g, b in zip(patterns, gs, bodies)]
+                     for p, g, b in zip(patterns, guards, bodies)]
             match = asty.Match(expr, subject=subject.force_expr, cases=cases)
             ret = Result(stmts=[initial_assign]) + subject + match
         else:
             sub_var = self.get_anon_var()
-            sub_name = asty.Name(expr, id=ast_str(sub_var), ctx=ast.Store())
-            sub_expr = asty.Name(expr, id=ast_str(sub_var), ctx=ast.Load())
+            sub_name = asty.Name(expr, id=mangle(sub_var), ctx=ast.Store())
+            sub_expr = asty.Name(expr, id=mangle(sub_var), ctx=ast.Load())
             sub_assign = asty.Assign(expr,
                                      targets=[sub_name],
                                      value=subject.force_expr)
             match = comp_match_clauses(patterns, guards, bodies, sub_expr)
             ret = subject + Result(stmts=[initial_assign, sub_assign]) + match
 
-        expr_name = asty.Name(expr, id=ast_str(var), ctx=ast.Load())
+        expr_name = asty.Name(expr, id=mangle(var), ctx=ast.Load())
         ret += Result(expr=expr_name)
         return ret
 
