@@ -122,11 +122,15 @@ def is_unpack(kind, x):
 
 
 def make_hy_model(outer, x, rest):
-    return outer(
-        [Symbol(a) if type(a) is str else
-         a[0] if type(a) is list else a
-         for a in x] +
-        (rest or []))
+    def convert_to_hy_model(x):
+        if isinstance(x, str):
+            return Symbol(x)
+        elif isinstance(x, list):
+            return x[0]
+        else:
+            return x
+
+    return outer([convert_to_hy_model(a) for a in x] + (rest or []))
 
 
 def mkexpr(*items, **kwargs):
@@ -195,13 +199,18 @@ class Asty(object):
     ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
     ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
     """
+
     def __getattr__(self, name):
-        setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
-            lineno=getattr(
-                x, "start_line", getattr(x, "lineno", None)),
-            col_offset=getattr(
-                x, "start_column", getattr(x, "col_offset", None)),
-            **kwargs)))
+        @staticmethod
+        def f(x, **kwargs):
+            original_ast_class = getattr(ast, name)
+            return original_ast_class(
+                lineno=getattr(x, "start_line", getattr(x, "lineno", None)),
+                col_offset=getattr(x, "start_column", getattr(x, "col_offset", None)),
+                **kwargs
+            )
+
+        setattr(Asty, name, f)
         return getattr(Asty, name)
 
 
@@ -252,17 +261,19 @@ class Result(object):
     def lineno(self):
         if self._expr is not None:
             return self._expr.lineno
-        if self.stmts:
+        elif self.stmts:
             return self.stmts[-1].lineno
-        return None
+        else:
+            return None
 
     @property
     def col_offset(self):
         if self._expr is not None:
             return self._expr.col_offset
-        if self.stmts:
+        elif self.stmts:
             return self.stmts[-1].col_offset
-        return None
+        else:
+            return None
 
     def is_expr(self):
         """Check whether I am a pure expression"""
