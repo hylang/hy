@@ -1486,6 +1486,13 @@ cee\"} dee" "ey bee\ncee dee"))
   (setv f :foo)
   (assert (= (f (dict :foo "test")) "test"))
 
+  (assert (= (:foo-bar (dict :foo-bar "baz")) "baz"))
+  (assert (= (:♥ (dict :♥ "heart")) "heart"))
+  (defclass C []
+    (defn __getitem__ [self k]
+      k))
+  (assert (= (:♥ (C)) "hyx_Xblack_heart_suitX"))
+
   (with [(pytest.raises KeyError)] (:foo (dict :a 1 :b 2)))
   (assert (= (:foo (dict :a 1 :b 2) 3) 3))
   (assert (= (:foo (dict :a 1 :b 2 :foo 5) 3) 5))
