@@ -441,9 +441,26 @@ class HyASTCompiler(object):
     def _compile_collect(self, exprs, with_kwargs=False, dict_display=False):
         """Collect the expression contexts from a list of compiled expression.
 
-        This returns a list of the expression contexts, and the sum of the
-        Result objects passed as arguments.
+        Args:
+            exprs: list of ``HyObject``'s to compile
+            with_kwargs: whether or not to compile found ``HyKeyword``'s or
+                ``unpack-mapping``'s into ``ast.keyword`` nodes. Defaults to ``False``
+            dict_display: whether or not we are compiling ``unpack-mapping``'s for use
+                in ``ast.Dict`` nodes which expect a ``None`` to be in the associated
+                keys position.
+        Returns:
+            Tuple of a list of compiled ast nodes for each expression in ``exprs``,
+                ``Result`` instance representing sum of compiling each expression in
+                ``exprs``, and a list of ``ast.keywords`` for arguments passed by
+                keywords (is the empty list if ``with_kwargs`` is False)
 
+        .. note::
+
+           For more information about what ``with_kwargs`` and ``dict_display`` are
+           used to achieve, see:
+
+           - https://docs.python.org/3/library/ast.html#ast.Call
+           - https://docs.python.org/3/library/ast.html#ast.Dict
         """
         compiled_exprs = []
         ret = Result()
@@ -491,12 +508,17 @@ class HyASTCompiler(object):
         return compiled_exprs, ret, keywords
 
     def _compile_branch(self, exprs):
-        """Make a branch out of an iterable of Result objects
+        """Compile a sequence of exprs into a ``Result`` with last expr as the expr context
 
-        This generates a Result from the given sequence of Results, forcing each
-        expression context as a statement before the next result is used.
+        Used to compile ``do`` statements, both explicit and implicit (i.e. the body
+        of a function call, class defs, etc). Each expression in ``exprs`` is compiled
+        in order into a ``Result`` where the last expression in the sequence is
+        used as the return value (or expression context) of ``Result``.
 
-        We keep the expression context of the last argument for the returned Result
+        .. note::
+
+           See the api documentation for ``do`` for an example of how an explicit
+           do works in practice.
         """
         ret = Result()
         for x in map(self.compile, exprs[:-1]):
@@ -507,7 +529,28 @@ class HyASTCompiler(object):
         return ret
 
     def _storeize(self, expr, name, func=None):
-        """Return a new `name` object with an ast.Store() context"""
+        """Return a new `name` object with an ast.Store() context
+
+        Args:
+            expr: the expression tree ``name`` is drawn from. Used for syntax errors
+            name: identifier to compile into an ``ast`` var reference. Tuples and lists
+                represent iterable unpacking syntax with multiple ``ast`` var references's
+                returned
+            func: class constructor for ``ast.Name``'s ``ctx`` attribute.
+                Either ``ast.Load``, ``ast.Del``, or ``ast.Store``. Will default
+                to ``ast.Store`` if none is given.
+
+        Returns:
+            an ``ast`` variable reference (or sequence of them for unpacking assignments)
+            with the appropriate ``ctx`` set
+
+        Raises:
+            HySyntaxError: if attempting to assign/delete an invalid ``name``
+
+        .. note::
+
+           See https://docs.python.org/3/library/ast.html#variables for more info
+        """
         if not func:
             func = ast.Store
 
@@ -544,6 +587,14 @@ class HyASTCompiler(object):
         return new_name
 
     def _nonconst(self, name):
+        """Ensure a ``name`` is not an already defined constant
+
+        Raises:
+            HySyntaxError: if ``name`` is a non literal constant
+
+        Returns:
+            the given ``name`` unchanged
+        """
         if str(name) in ("None", "True", "False"):
             raise self._syntax_error(name, "Can't assign to constant")
         return name
