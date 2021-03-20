@@ -1149,7 +1149,11 @@
   (setv x (quote 42))
   (assert (= x (hy.eval x)))
   (assert (= 27 (hy.eval (+ (quote (*)) (* [(quote 3)] 3)))))
-  (assert (= None (hy.eval (quote (print ""))))))
+  (assert (= None (hy.eval (quote (print "")))))
+
+  ;; https://github.com/hylang/hy/issues/1041
+  (assert (is (hy.eval 're) re))
+  (assert (is ((fn [] (hy.eval 're))) re)))
 
 
 (defn test-eval-false []
