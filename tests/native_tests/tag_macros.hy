@@ -2,7 +2,8 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [functools [wraps]])
+(import pytest
+        [functools [wraps]])
 
 
 (defn test-tag-macro []
@@ -113,4 +114,8 @@
        (, args kwargs)))
 
   (assert (= (, (, 3 4 5) {"quux" 6 "baz" 7})
-             (double-foo 1 2 3 :quux 4 :baz 5))))
+             (double-foo 1 2 3 :quux 4 :baz 5)))
+
+  ;; https://github.com/hylang/hy/issues/1565
+  (with [(pytest.raises hy.errors.HyMacroExpansionError)]  ; and not IndexError
+    (hy.eval '#@())))
