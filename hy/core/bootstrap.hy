@@ -50,17 +50,17 @@
             (hy.errors.HyTypeError
               (% "received a `%s' instead of a symbol or string for macro name"
                  (. (type macro-name) __name__))
-              None --file-- None)))
+              None __file__ None)))
      (if* (in "." macro-name)
        (raise (hy.errors.HyTypeError
          "periods are not allowed in macro names"
-         None --file-- None)))
+         None __file__ None)))
      (for [arg lambda-list]
        (if* (or (= arg '*)
                 (and (isinstance arg hy.models.HyExpression)
                      (= (get arg 0) 'unpack-mapping)))
             (raise (hy.errors.HyTypeError "macros cannot use '*', or '#**'"
-                                          macro-name --file-- None))))
+                                          macro-name __file__ None))))
      ;; this looks familiar...
      `(eval-and-compile
         ((hy.macros.macro ~(str macro-name))
@@ -108,7 +108,7 @@
                   ~(get args 1)
                   (if ~@(cut args 2))))))
 
-(defmacro macro-error [expression reason [filename '--name--]]
+(defmacro macro-error [expression reason [filename '__name__]]
   `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
 
 (defmacro defn [name #* args]

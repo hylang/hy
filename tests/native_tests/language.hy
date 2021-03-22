@@ -1625,11 +1625,11 @@ cee\"} dee" "ey bee\ncee dee"))
   (setv foo [(mycls) (mycls) (mycls)])
   (assert (is (. foo) foo))
   (assert (is (. foo [0]) (get foo 0)))
-  (assert (is (. foo [0] --class--) mycls))
-  (assert (is (. foo [1] --class--) mycls))
-  (assert (is (. foo [(+ 1 1)] --class--) mycls))
-  (assert (= (. foo [(+ 1 1)] --class-- --name-- [0]) "m"))
-  (assert (= (. foo [(+ 1 1)] --class-- --name-- [1]) "y"))
+  (assert (is (. foo [0] __class__) mycls))
+  (assert (is (. foo [1] __class__) mycls))
+  (assert (is (. foo [(+ 1 1)] __class__) mycls))
+  (assert (= (. foo [(+ 1 1)] __class__ __name__ [0]) "m"))
+  (assert (= (. foo [(+ 1 1)] __class__ __name__ [1]) "y"))
 
   (setv bar (mycls))
   (setv (. foo [1]) bar)
@@ -1826,20 +1826,20 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-pep-3115 []
   (defclass member-table [dict]
-    (defn --init-- [self]
+    (defn __init__ [self]
       (setv self.member-names []))
 
-    (defn --setitem-- [self key value]
+    (defn __setitem__ [self key value]
       (if (not-in key self)
           (.append self.member-names key))
-      (dict.--setitem-- self key value)))
+      (dict.__setitem__ self key value)))
 
   (defclass OrderedClass [type]
-    (setv --prepare-- (classmethod (fn [metacls name bases]
+    (setv __prepare__ (classmethod (fn [metacls name bases]
       (member-table))))
 
-    (defn --new-- [cls name bases classdict]
-      (setv result (type.--new-- cls name bases (dict classdict)))
+    (defn __new__ [cls name bases classdict]
+      (setv result (type.__new__ cls name bases (dict classdict)))
       (setv result.member-names classdict.member-names)
       result))
 
@@ -1978,7 +1978,7 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-pep-487 []
   (defclass QuestBase []
-    (defn --init-subclass-- [cls swallow #** kwargs]
+    (defn __init-subclass__ [cls swallow #** kwargs]
       (setv cls.swallow swallow)))
 
   (defclass Quest [QuestBase :swallow "african"])

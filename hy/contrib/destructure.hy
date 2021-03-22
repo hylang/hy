@@ -204,7 +204,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   and :as must be last, if present.
   "
   (defn dispatch [f]
-    (setv dcoll (gensym f.--name--)
+    (setv dcoll (gensym f.__name__)
       result [dcoll expr]
       seen #{})
     (defn found [magic target]
@@ -340,7 +340,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                  ':as [t copy-iter])))
           result))
 
-(defn -expanded-setv [actual args kwargs]
+(defn _expanded-setv [actual args kwargs]
   (macroexpand
     `(setv+ ~actual (chain ~args
                           (lfor [k v] (.items ~kwargs)
@@ -358,7 +358,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                      [None doc+body]))
   `(defn ~fn-name [#* ~g!args #** ~g!kwargs]
      ~doc
-     ~(-expanded-setv args g!args g!kwargs)
+     ~(_expanded-setv args g!args g!kwargs)
      ~@body))
 
 (defmacro/g! fn+ [args #* body]
@@ -368,7 +368,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   intepretted as any other argument.
   "
   `(fn [#* ~g!args #** ~g!kwargs]
-     ~(-expanded-setv args g!args g!kwargs)
+     ~(_expanded-setv args g!args g!kwargs)
      ~@body))
 
 (defmacro/g! defn/a+ [fn-name args #* doc+body]
@@ -378,13 +378,13 @@ Iterator patterns are specified using round brackets. They are the same as list 
                      [None doc+body]))
   `(defn/a ~fn-name [#* ~g!args #** ~g!kwargs]
      ~doc
-     ~(-expanded-setv args g!args g!kwargs)
+     ~(_expanded-setv args g!args g!kwargs)
      ~@body))
 
 (defmacro/g! fn/a+ [args #* body]
   "Async variant of ``fn+``."
   `(fn/a [#* ~g!args #** ~g!kwargs]
-     ~(-expanded-setv args g!args g!kwargs)
+     ~(_expanded-setv args g!args g!kwargs)
      ~@body))
 
 (defmacro let+ [args #* body]

@@ -1,2 +1,2 @@
-(defn -null-fn-for-import-test []
+(defn _null-fn-for-import-test []
   pass)

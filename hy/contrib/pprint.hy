@@ -29,19 +29,19 @@ The differences that do exist are as follows:
         re
         collections
         [pprint [PrettyPrinter :as PyPrettyPrinter
-                 -recursion
-                 -safe-tuple
-                 -safe-key]]
+                 _recursion
+                 _safe-tuple
+                 _safe-key]]
         [hy.contrib [hy-repr]]
-        [hy.-compat [PY3_8 PY3_10]])
+        [hy._compat [PY3_8 PY3_10]])
 
-(setv --all-- ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive" "pp"])
+(setv __all__ ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive" "pp"])
 
 (if PY3_10
-  (defn -safe-py-repr [object context maxlevels level sort-dicts]
-    (.-safe-repr (PyPrettyPrinter :sort-dicts sort-dicts)
+  (defn _safe-py-repr [object context maxlevels level sort-dicts]
+    (._safe-repr (PyPrettyPrinter :sort-dicts sort-dicts)
       object context maxlevels level))
-  (import [pprint [-safe-repr :as -safe-py-repr]]))
+  (import [pprint [_safe-repr :as _safe-py-repr]]))
 
 (defn pprint [object #* args #** kwargs]
   "Pretty-print a Python object to a stream [default is sys.stdout].
@@ -71,22 +71,22 @@ The differences that do exist are as follows:
 
 (defn saferepr [object]
   "Version of (repr) which can handle recursive data structures."
-  (first (-safe-repr object {} None 0 True)))
+  (first (_safe-repr object {} None 0 True)))
 
 (defn readable? [object]
   "Determine if (saferepr object) is readable by (hy.eval)."
-  (get (-safe-repr object {} None 0 True) 1))
+  (get (_safe-repr object {} None 0 True) 1))
 
 (defn recursive? [object]
   "Determine if object requires a recursive representation."
-  (get (-safe-repr object {} None 0 True) 2))
+  (get (_safe-repr object {} None 0 True) 2))
 
-(defn -safe-repr [object context maxlevels level [sort-dicts True]]
+(defn _safe-repr [object context maxlevels level [sort-dicts True]]
   (setv typ (type object)
         r (getattr typ "__repr__" None))
 
   ;; Level and recursive protected dict hy-repr
-  (when (and (issubclass typ dict) (is r dict.--repr--))
+  (when (and (issubclass typ dict) (is r dict.__repr__))
     (unless object
       (return (, "{}" True False)))
 
@@ -94,7 +94,7 @@ The differences that do exist are as follows:
     (when (and maxlevels (>= level maxlevels))
       (return (, "{...}" False (in objid context))))
     (when (in objid context)
-      (return (, (-recursion object) False True)))
+      (return (, (_recursion object) False True)))
 
     (setv (get context objid) 1
           readable? True
@@ -104,9 +104,9 @@ The differences that do exist are as follows:
     (+= level 1)
 
     (for [(, k v) (sorted (.items object)
-                          :key (if sort-dicts -safe-tuple (constantly 1)))]
-      (setv (, krepr kreadable? krecur?) (-safe-repr k context maxlevels level sort-dicts)
-            (, vrepr vreadable? vrecur?) (-safe-repr v context maxlevels level sort-dicts))
+                          :key (if sort-dicts _safe-tuple (constantly 1)))]
+      (setv (, krepr kreadable? krecur?) (_safe-repr k context maxlevels level sort-dicts)
+            (, vrepr vreadable? vrecur?) (_safe-repr v context maxlevels level sort-dicts))
       (append (% "%s %s" (, krepr vrepr)))
       (setv readable? (and readable? kreadable? vreadable?))
       (when (or krecur? vrecur?)
@@ -117,8 +117,8 @@ The differences that do exist are as follows:
                recursive?)))
 
   ;; Level and recursive protected sequence hy-repr
-  (when (or (and (issubclass typ list) (is r list.--repr--))
-            (and (issubclass typ tuple) (is r tuple.--repr--)))
+  (when (or (and (issubclass typ list) (is r list.__repr__))
+            (and (issubclass typ tuple) (is r tuple.__repr__)))
     (cond
       [(issubclass typ list)
        (if-not object
@@ -134,7 +134,7 @@ The differences that do exist are as follows:
     (when (and maxlevels (>= level maxlevels))
       (return (, (% format "...") False (in objid context))))
     (when (in objid context)
-      (return (, (-recursion object) False True)))
+      (return (, (_recursion object) False True)))
     (setv (get context objid) 1
           readable? True
           recursive? False
@@ -142,7 +142,7 @@ The differences that do exist are as follows:
           append components.append)
     (+= level 1)
     (for [o object]
-      (setv (, orepr oreadable? orecur?) (-safe-repr o context maxlevels level sort-dicts))
+      (setv (, orepr oreadable? orecur?) (_safe-repr o context maxlevels level sort-dicts))
       (append orepr)
       (if-not oreadable?
               (setv readable? False))
@@ -153,23 +153,23 @@ The differences that do exist are as follows:
                readable?
                recursive?)))
 
-  (when (in typ hy-repr.-registry)
+  (when (in typ hy-repr._registry)
     (return (, (hy-repr.hy-repr object) True False)))
 
   (if PY3_8
-      (-safe-py-repr object context maxlevels level sort-dicts)
-      (-safe-py-repr object context maxlevels level)))
+      (_safe-py-repr object context maxlevels level sort-dicts)
+      (_safe-py-repr object context maxlevels level)))
 
 
 (setv CHUNK-SIZE 4)
 
-(defn -wrap-bytes-repr [object width allowance]
+(defn _wrap-bytes-repr [object width allowance]
   (setv current b""
-        -last (-> object len (// CHUNK-SIZE) (* CHUNK-SIZE)))
+        _last (-> object len (// CHUNK-SIZE) (* CHUNK-SIZE)))
   (for [i (range 0 (len object) CHUNK-SIZE)]
     (setv part (cut object i (+ i CHUNK-SIZE))
           candidate (+ current part))
-    (when (= i -last)
+    (when (= i _last)
       (-= width allowance))
     (if (-> candidate hy-repr.hy-repr len (> width))
         (do (when current (yield (hy-repr.hy-repr current)))
@@ -190,12 +190,12 @@ The differences that do exist are as follows:
        output stream available at construction will be used.
      compact: If true, several items will be combined in one line.
      sort-dicts: If True, dict keys are sorted. (only available for python >= 3.8)"
-  (defn --init-- [self [indent 1] [width 80] [depth None] [stream None]
+  (defn __init__ [self [indent 1] [width 80] [depth None] [stream None]
                   * [compact False] [sort-dicts True]]
     (when (and (not PY3_8) (not sort-dicts))
         (raise (ValueError "sort-dicts is not available for python versions < 3.8")))
-    (setv self.-sort-dicts True)
-    (.--init-- (super)
+    (setv self._sort-dicts True)
+    (.__init__ (super)
                :indent indent
                :width width
                :depth depth
@@ -208,19 +208,19 @@ The differences that do exist are as follows:
     and flags indicating whether the representation is 'readable'
     and whether the object represents a recursive construct.
     "
-    (-safe-repr object context maxlevels level self.-sort-dicts))
+    (_safe-repr object context maxlevels level self._sort-dicts))
 
-  (defn -format-dict-items [self items stream indent allowance context level]
+  (defn _format-dict-items [self items stream indent allowance context level]
     (setv write stream.write
-          indent (+ indent self.-indent-per-level)
+          indent (+ indent self._indent-per-level)
           delimnl (+ "\n" (* " " indent))
           last-index (dec (len items)))
     (for [(, i (, key ent)) (enumerate items)]
       (setv last? (= i last-index)
-            rep (self.-repr key context level))
+            rep (self._repr key context level))
       (write rep)
       (write " ")
-      (self.-format ent
+      (self._format ent
                     stream
                     (+ indent (len rep) 1)
                     (if last allowance 1)
@@ -229,15 +229,15 @@ The differences that do exist are as follows:
       (unless last?
         (write delimnl))))
 
-  (defn -format-items [self items stream indent allowance context level]
+  (defn _format-items [self items stream indent allowance context level]
     (setv write stream.write)
-    (+= indent self.-indent-per-level)
-    (when (pos? self.-indent-per-level)
-      (write (* (dec self.-indent-per-level) " ")))
+    (+= indent self._indent-per-level)
+    (when (pos? self._indent-per-level)
+      (write (* (dec self._indent-per-level) " ")))
 
     (setv delimnl (+ "\n" (* " " indent))
           delim ""
-          max-width (inc (- self.-width indent))
+          max-width (inc (- self._width indent))
           width max-width
           it (iter items))
     (try
@@ -253,8 +253,8 @@ The differences that do exist are as follows:
              (setv last? True)
              (-= max-width allowance)
              (-= width allowance)))
-      (when self.-compact
-        (setv rep (self.-repr ent context level)
+      (when self._compact
+        (setv rep (self._repr ent context level)
               w (+ (len rep) 2))
         (when (< width w)
           (setv width max-width)
@@ -268,41 +268,41 @@ The differences that do exist are as follows:
           (continue)))
       (write delim)
       (setv delim delimnl)
-      (self.-format ent
+      (self._format ent
                     stream
                     indent
                     (if last? allowance 1)
                     context
                     level)))
 
-  (setv -dispatch {#** PyPrettyPrinter.-dispatch})
+  (setv _dispatch {#** PyPrettyPrinter._dispatch})
 
-  (assoc -dispatch tuple.--repr-- (fn [self object stream indent allowance context level]
+  (assoc _dispatch tuple.__repr__ (fn [self object stream indent allowance context level]
     (stream.write "(, ")
     (setv endchar ")")
-    (self.-format-items object stream (+ indent 2) (inc allowance) context level)
+    (self._format-items object stream (+ indent 2) (inc allowance) context level)
     (stream.write endchar)))
 
-  (defn -pprint-set [self object stream indent allowance context level]
+  (defn _pprint-set [self object stream indent allowance context level]
     (unless (len object)
       (stream.write (repr object))
       (return))
 
-    (setv typ object.--class--)
+    (setv typ object.__class__)
     (if (is typ set)
         (do (stream.write "#{")
             (setv endchar "}"))
-        (do (stream.write (+ "(" typ.--name-- " #{"))
+        (do (stream.write (+ "(" typ.__name__ " #{"))
             (setv endchar "})")
-            (+= indent (+ (len typ.--name--) 2))))
-    (setv object (sorted object :key -safe-key))
-    (self.-format-items object stream (inc indent) (+ allowance (len endchar)) context level)
+            (+= indent (+ (len typ.__name__) 2))))
+    (setv object (sorted object :key _safe-key))
+    (self._format-items object stream (inc indent) (+ allowance (len endchar)) context level)
     (stream.write endchar))
 
-  (assoc -dispatch set.--repr-- -pprint-set)
-  (assoc -dispatch frozenset.--repr-- -pprint-set)
+  (assoc _dispatch set.__repr__ _pprint-set)
+  (assoc _dispatch frozenset.__repr__ _pprint-set)
 
-  (assoc -dispatch str.--repr-- (fn [self object stream indent allowance context level]
+  (assoc _dispatch str.__repr__ (fn [self object stream indent allowance context level]
     (setv write stream.write)
     (unless (len object)
       (write (hy-repr.hy-repr object))
@@ -313,7 +313,7 @@ The differences that do exist are as follows:
     ;; Need to offset by 2 to accomadate multiline string form chars: "(+"
     (+= indent 2)
     (+= allowance 2)
-    (setv max-width (- self.-width indent)
+    (setv max-width (- self._width indent)
           max-width1 max-width)
     (for [(, i line) (enumerate lines)]
       (setv rep (hy-repr.hy-repr line))
@@ -350,7 +350,7 @@ The differences that do exist are as follows:
       (write rep))
     (write ")")))
 
-  (assoc -dispatch bytes.--repr-- (fn [self object stream indent allowance context level]
+  (assoc _dispatch bytes.__repr__ (fn [self object stream indent allowance context level]
     (setv write stream.write)
     (when (<= (len object) 4)
       (write (hy-repr.hy-repr object))
@@ -362,7 +362,7 @@ The differences that do exist are as follows:
     (+= allowance 3)
     (write "(+ ")
     (setv delim "")
-    (for [rep  (-wrap-bytes-repr object (- self.-width indent) allowance)]
+    (for [rep  (_wrap-bytes-repr object (- self._width indent) allowance)]
       (write delim)
       (write rep)
       (unless delim

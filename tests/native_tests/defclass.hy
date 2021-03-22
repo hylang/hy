@@ -68,7 +68,7 @@
 (defn test-defclass-docstring []
   "NATIVE: test defclass docstring"
   (defclass A []
-    (setv --doc-- "doc string")
+    (setv __doc__ "doc string")
     (setv x 1))
   (setv a (A))
   (assert (= a.__doc__ "doc string"))
@@ -115,11 +115,11 @@
   (assert (.greet a) "hello"))
 
 (defn test-defclass-implicit-none-for-init []
-  "NATIVE: test that defclass adds an implicit None to --init--"
+  "NATIVE: test that defclass adds an implicit None to __init__"
   (defclass A []
-    (setv --init-- (fn [self] (setv self.x 1) 42)))
+    (setv __init__ (fn [self] (setv self.x 1) 42)))
   (defclass B []
-    (defn --init-- [self]
+    (defn __init__ [self]
       (setv self.x 2)
       42))
 

@@ -25,7 +25,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (defclass C)
     (setv [dict-keys dict-values dict-items] [C C C])))
 
-(setv -registry {})
+(setv _registry {})
 (defn hy-repr-register [types f [placeholder None]]
   "``hy-repr-register`` lets you set the function that ``hy-repr`` calls to
   represent a type.
@@ -63,10 +63,10 @@ To make the Hy REPL use it for output, invoke Hy like so::
       \"(Container HY THERE)\"
   "
   (for [typ (if (list? types) types [types])]
-    (setv (get -registry typ) (, f placeholder))))
+    (setv (get _registry typ) (, f placeholder))))
 
-(setv -quoting False)
-(setv -seen (set))
+(setv _quoting False)
+(setv _seen (set))
 (defn hy-repr [obj]
   "This function is Hy's equivalent of Python's built-in ``repr``.
   It returns a string representing the input object in Hy syntax.
@@ -87,27 +87,27 @@ To make the Hy REPL use it for output, invoke Hy like so::
   (setv [f placeholder] (next
     (gfor
       t (. (type obj) __mro__)
-      :if (in t -registry)
-      (get -registry t))
-    [-base-repr None]))
+      :if (in t _registry)
+      (get _registry t))
+    [_base-repr None]))
 
-  (global -quoting)
+  (global _quoting)
   (setv started-quoting False)
-  (when (and (not -quoting) (instance? HyObject obj) (not (instance? HyKeyword obj)))
-    (setv -quoting True)
+  (when (and (not _quoting) (instance? HyObject obj) (not (instance? HyKeyword obj)))
+    (setv _quoting True)
     (setv started-quoting True))
 
   (setv oid (id obj))
-  (when (in oid -seen)
+  (when (in oid _seen)
     (return (if (none? placeholder) "..." placeholder)))
-  (.add -seen oid)
+  (.add _seen oid)
 
   (try
     (+ (if started-quoting "'" "") (f obj))
     (finally
-      (.discard -seen oid)
+      (.discard _seen oid)
       (when started-quoting
-        (setv -quoting False)))))
+        (setv _quoting False)))))
 
 (hy-repr-register tuple (fn [x]
   (if (hasattr x "_fields")
@@ -118,7 +118,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
       (. (type x) __name__)
       (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))
     ; Otherwise, print it as a regular tuple.
-    (+ "(," (if x " " "") (-cat x) ")"))))
+    (+ "(," (if x " " "") (_cat x) ")"))))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
   (setv text (.join "  " (gfor
     [k v] (.items x)
@@ -141,11 +141,11 @@ To make the Hy REPL use it for output, invoke Hy like so::
     'unpack-mapping "#** "})
   (if (and x (symbol? (first x)) (in (first x) syntax))
     (+ (get syntax (first x)) (hy-repr (second x)))
-    (+ "(" (-cat x) ")"))))
+    (+ "(" (_cat x) ")"))))
 
 (hy-repr-register [HySymbol HyKeyword] str)
 (hy-repr-register [str bytes] (fn [x]
-  (setv r (.lstrip (-base-repr x) "ub"))
+  (setv r (.lstrip (_base-repr x) "ub"))
   (+
     (if (instance? bytes x) "b" "")
     (if (.startswith "\"" r)
@@ -161,36 +161,36 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (isnan x)  "NaN"
     (= x Inf)  "Inf"
     (= x -Inf) "-Inf"
-               (-base-repr x))))
+               (_base-repr x))))
 (hy-repr-register complex (fn [x]
-  (.replace (.replace (.strip (-base-repr x) "()") "inf" "Inf") "nan" "NaN")))
+  (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
 (hy-repr-register fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
-(setv -matchobject-type (type (re.match "" "")))
-(hy-repr-register -matchobject-type (fn [x]
+(setv _matchobject-type (type (re.match "" "")))
+(hy-repr-register _matchobject-type (fn [x]
   (.format "<{}.{} object; :span {} :match {}>"
-    -matchobject-type.__module__
-    -matchobject-type.__name__
+    _matchobject-type.__module__
+    _matchobject-type.__name__
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
 
 (hy-repr-register datetime.datetime (fn [x]
   (.format "(datetime.datetime {}{})"
-    (-strftime-0 x "%Y %m %d %H %M %S")
-    (-repr-time-innards x))))
+    (_strftime-0 x "%Y %m %d %H %M %S")
+    (_repr-time-innards x))))
 (hy-repr-register datetime.date (fn [x]
-  (-strftime-0 x "(datetime.date %Y %m %d)")))
+  (_strftime-0 x "(datetime.date %Y %m %d)")))
 (hy-repr-register datetime.time (fn [x]
   (.format "(datetime.time {}{})"
-    (-strftime-0 x "%H %M %S")
-    (-repr-time-innards x))))
-(defn -repr-time-innards [x]
+    (_strftime-0 x "%H %M %S")
+    (_repr-time-innards x))))
+(defn _repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter identity [
     (if x.microsecond (str x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if x.fold (+ ":fold " (hy-repr x.fold)))])))))
-(defn -strftime-0 [x fmt]
+(defn _strftime-0 [x fmt]
   ; Remove leading 0s in `strftime`. This is a substitute for the `-`
   ; flag for when Python isn't built with glibc.
   (re.sub r"(\A| )0([0-9])" r"\1\2" (.strftime x fmt)))
@@ -211,13 +211,13 @@ To make the Hy REPL use it for output, invoke Hy like so::
     dict-values "(dict-values [...])"
     dict-items "(dict-items [...])"])]
   (defn mkrepr [fmt]
-    (fn [x] (.replace fmt "..." (-cat x) 1)))
+    (fn [x] (.replace fmt "..." (_cat x) 1)))
   (hy-repr-register types :placeholder fmt (mkrepr fmt)))
 
-(defn -cat [obj]
+(defn _cat [obj]
   (.join " " (map hy-repr obj)))
 
-(defn -base-repr [x]
+(defn _base-repr [x]
   (unless (instance? HyObject x)
     (return (repr x)))
   ; Call (.repr x) using the first class of x that doesn't inherit from
