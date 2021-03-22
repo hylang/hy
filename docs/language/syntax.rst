@@ -147,40 +147,48 @@ and ``🦑``.
 
 Since the rules for Hy symbols are much more permissive than the rules for
 Python identifiers, Hy uses a mangling algorithm to convert its own names to
-Python-legal names. The rules are:
+Python-legal names. The steps are as follows:
 
-- Convert all hyphens (``-``) to underscores (``_``). Thus, ``foo-bar`` becomes
-  ``foo_bar``.
-- If the name ends with ``?``, remove it and prepend ``is_``. Thus, ``tasty?``
-  becomes ``is_tasty``.
-- If the name still isn't Python-legal, make the following changes. A name
-  could be Python-illegal because it contains a character that's never legal in
-  a Python name, it contains a character that's illegal in that position, or
-  it's equal to a Python reserved word.
+#. Remove any leading underscores (``_``). Leading underscores have special
+   significance in Python, so we will mangle the remainder of the name and
+   then add the leading underscores back in to the final mangled name.
 
-  - Prepend ``hyx_`` to the name.
-  - Replace each illegal character with ``XfooX``, where ``foo`` is the Unicode
-    character name in lowercase, with spaces replaced by underscores and
-    hyphens replaced by ``H``. Replace ``X`` itself the same way. If the
-    character doesn't have a name, use ``U`` followed by its code point in
-    lowercase hexadecimal.
+#. Convert hyphens (``-``) to underscores (``_``). Thus, ``foo-bar`` becomes
+   ``foo_bar``. If the name at this step starts with a hyphen, this *first* hyphen is not
+   converted, so that we don't introduce a new leading underscore into the name. Thus
+   ``--has-dashes?`` becomes ``-_has_dashes?`` at this step.
 
-  Thus, ``green☘`` becomes ``hyx_greenXshamrockX`` and ``if`` becomes
-  ``hyx_if``.
+#. If the name ends with ``?``, remove it and prepend ``is_``. Thus, ``tasty?``
+   becomes ``is_tasty`` and ``-_has_dashes?`` becomes ``is_-_has_dashes``.
 
-- Finally, any added ``hyx_`` or ``is_`` is added after any leading
-  underscores, because leading underscores have special significance to Python.
-  Thus, ``_tasty?`` becomes ``_is_tasty`` instead of ``is__tasty``.
+#. If the name still isn't Python-legal, make the following changes. A name
+   could be Python-illegal because it contains a character that's never legal
+   in a Python name, it contains a character that's illegal in that position,
+   or it's equal to a Python reserved word.
+
+   - Prepend ``hyx_`` to the name.
+   - Replace each illegal character with ``XfooX``, where ``foo`` is the Unicode
+     character name in lowercase, with spaces replaced by underscores and
+     hyphens replaced by ``H``. Replace leading hyphens and ``X`` itself the
+     same way. If the character doesn't have a name, use ``U`` followed by its
+     code point in lowercase hexadecimal.
+
+   Thus, ``green☘`` becomes ``hyx_greenXshamrockX``, ``if`` becomes
+   ``hyx_if``, and ``is_-_has_dashes`` becomes ``hyx_is_XhyphenHminusX_has_dashes``.
+
+#. Finally, any leading underscores removed in the first step are added back
+   to the mangled name.
+   Thus, ``(mangle '_tasty?)`` is ``"_is_tasty"`` instead of ``"is__tasty"``
+   and ``(mangle '__-_has-dashes?)`` is ``"__hyx_is_XhyphenHminusX_has_dashes"``.
 
 Mangling isn't something you should have to think about often, but you may see
 mangled names in error messages, the output of ``hy2py``, etc. A catch to be
 aware of is that mangling, as well as the inverse "unmangling" operation
 offered by the ``unmangle`` function, isn't one-to-one. Two different symbols
 can mangle to the same string and hence compile to the same Python variable.
-The chief practical consequence of this is that ``-`` and ``_`` are
-interchangeable in all symbol names, so you shouldn't assign to the
-one-character name ``_`` , or else you'll interfere with certain uses of
-subtraction.
+The chief practical consequence of this is that (non-initial) ``-`` and ``_`` are
+interchangeable in all symbol names, so you shouldn't use, e.g., both
+``foo-bar`` and ``foo_bar`` as separate variables.
 
 discard prefix
 --------------
