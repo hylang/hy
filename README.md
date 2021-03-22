@@ -16,8 +16,8 @@ To install the latest stable release of Hy, just use the command `pip3 install
 the command `hy`, or run a Hy program with `hy myprogram.hy`.
 
 * [Try Hy with a web console](https://hylang.github.io/hy-interpreter)
-* [Why Hy?](http://docs.hylang.org/en/master/whyhy.html)
-* [Tutorial](http://docs.hylang.org/en/master/tutorial.html)
+* [Why Hy?](http://docs.hylang.org/en/stable/whyhy.html)
+* [Tutorial](http://docs.hylang.org/en/stable/tutorial.html)
 
 Project
 -------
