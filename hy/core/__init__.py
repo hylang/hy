@@ -1,8 +1,5 @@
 from .shadow import *
 from .language import *
 
-# Need to explicitly re-export names since some names (e.g. `-`)
-# start with a `_` after mangling
-from . import shadow
-from . import language
-__all__ = shadow.__all__ + language.__all__
+# Keep re-exports clean
+__all__ = [k for k in locals() if k[0] != '_' and k != 'hy']
