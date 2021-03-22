@@ -98,13 +98,28 @@ mangle_delim = 'X'
 
 def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
-    according to Hy's mangling rules.
+    according to :ref:`Hy's mangling rules <mangling>`.
 
     Examples:
       ::
 
-         => (mangle "foo-bar")
-         'foo_bar'
+         => (mangle 'foo-bar)
+         "foo_bar"
+
+         => (mangle 'foo-bar?)
+         "is_foo_bar"
+
+         => (mangle '*)
+         "hyx_XasteriskX"
+
+         => (mangle '_foo/a?)
+         "_hyx_is_fooXsolidusXa"
+
+         => (mangle '-->)
+         "hyx_XhyphenHminusX_XgreaterHthan_signX"
+
+         => (mangle '<--)
+         "hyx_XlessHthan_signX__"
     """
     def unicode_char_to_hex(uchr):
         # Covert a unicode char to hex string, without prefix
@@ -119,13 +134,19 @@ def mangle(s):
     if "." in s:
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
-    s = s.replace("-", "_")
+    # Step 1: Remove and save leading underscores
     s2 = s.lstrip('_')
     leading_underscores = '_' * (len(s) - len(s2))
     s = s2
 
+    # Step 2: Convert hyphens without introducing a new leading underscore
+    s = s[0] + s[1:].replace("-", "_") if s else s
+
+    # Step 3: Convert trailing `?` to leading `is_`
     if s.endswith("?"):
         s = 'is_' + s[:-1]
+
+    # Step 4: Convert invalid characters or reserved words
     if not isidentifier(leading_underscores + s):
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
@@ -139,7 +160,9 @@ def mangle(s):
                    or 'U{}'.format(unicode_char_to_hex(c)))
             for c in s)
 
+    # Step 5: Add back leading underscores
     s = leading_underscores + s
+
     assert isidentifier(s)
     return s
 
@@ -147,20 +170,40 @@ def mangle(s):
 def unmangle(s):
     """Stringify the argument and try to convert it to a pretty unmangled
     form. This may not round-trip, because different Hy symbol names can
-    mangle to the same Python identifier.
+    mangle to the same Python identifier. See :ref:`Hy's mangling rules <mangling>`.
 
     Examples:
       ::
 
-         => (unmangle "foo_bar")
-         'foo-bar'
+         => (unmangle 'foo_bar)
+         "foo-bar"
+
+         => (unmangle 'is_foo_bar)
+         "foo-bar?"
+
+         => (unmangle 'hyx_XasteriskX)
+         "*"
+
+         => (unmangle '_hyx_is_fooXsolidusXa)
+         "_foo/a?"
+
+         => (unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
+         "-->"
+
+         => (unmangle 'hyx_XlessHthan_signX__)
+         "<--"
+
+         => (unmangle '__dunder_name__)
+         "__dunder-name__"
     """
 
     s = str(s)
 
-    s2 = s.lstrip('_')
-    leading_underscores = len(s) - len(s2)
-    s = s2
+    prefix = ""
+    suffix = ""
+    m = re.fullmatch(r'(_+)(.*?)(_*)', s, re.DOTALL)
+    if m:
+        prefix, s, suffix = m.groups()
 
     if s.startswith('hyx_'):
         s = re.sub('{0}(U)?([_a-z0-9H]+?){0}'.format(mangle_delim),
@@ -174,7 +217,7 @@ def unmangle(s):
         s = s[len("is_"):] + "?"
     s = s.replace('_', '-')
 
-    return '-' * leading_underscores + s
+    return prefix + s + suffix
 
 
 def read(from_file=sys.stdin, eof=""):
