@@ -23,7 +23,7 @@ These macros make debugging where bottlenecks exist easier."
   `(do
      (import [pycallgraph [PyCallGraph]]
              [pycallgraph.output [GraphvizOutput]])
-     (with* [(PyCallGraph :output (GraphvizOutput))]
+     (with [(PyCallGraph :output (GraphvizOutput))]
            ~@body)))
 
 

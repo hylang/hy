@@ -1109,6 +1109,51 @@ Special Forms
        In condition
        At end of outer loop
 
+.. hy:function:: (with [#* args])
+                   
+  Wrap execution of `body` within a context manager given as bracket `args`.
+  ``with`` is used to wrap the execution of a block within a context manager. The
+  context manager can then set up the local system and tear it down in a controlled
+  manner. The archetypical example of using ``with`` is when processing files.
+  If only a single expression is supplied, or the argument is `_`, then no
+  variable is bound to the expression, as shown below.
+
+  Examples:
+    ::
+
+       => (with [arg (expr)] block)
+       => (with [(expr)] block)
+       => (with [arg1 (expr1)  _ (expr2)  arg3 (expr3)] block)
+
+  The following example will open the ``NEWS`` file and print its content to the
+  screen. The file is automatically closed after it has been processed::
+
+       => (with [f (open \"NEWS\")] (print (.read f)))
+
+  ``with`` returns the value of its last form, unless it suppresses an exception
+  (because the context manager's ``__exit__`` method returned true), in which
+  case it returns ``None``. So, the previous example could also be written::
+
+       => (print (with [f (open \"NEWS\")] (.read f)))
+           
+.. hy:function:: (with/a [#* args])
+
+  Wrap execution of `body` within a context manager given as bracket `args`.
+  ``with/a`` behaves like ``with``, but is used to wrap the execution of a block
+  within an asynchronous context manager. The context manager can then set up
+  the local system and tear it down in a controlled manner asynchronously.
+  Examples:
+
+    ::
+       => (with/a [arg (expr)] block)
+       => (with/a [(expr)] block)
+       => (with/a [_ (expr)  arg (expr)  _ (expr)] block)
+
+  .. note::
+    ``with/a`` returns the value of its last form, unless it suppresses an exception
+    (because the context manager's ``__aexit__`` method returned true), in which
+    case it returns ``None``.
+
 .. hy:function:: (with-decorator [#* args])
 
    ``with-decorator`` is used to wrap a function with another. The function

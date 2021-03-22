@@ -2,6 +2,8 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
+(import pytest)
+
 (defclass WithTest [object]
   (defn __init__ [self val]
     (setv self.val val)
@@ -43,6 +45,15 @@
         (assert (= t1 1))
         (assert (= t2 2))
         (assert (= t3 3))))
+
+(defn test-unnamed-context-with []
+  "`_` get compiled to unnamed context"
+  (with [_ (WithTest 1)
+         [b d] (WithTest (range 2 5 2))
+         _ (WithTest 3)]
+    (assert (= [b d] [2 4]))
+    (with [(pytest.raises NameError)]
+      _)))
 
 (defclass SuppressZDE [object]
   (defn __enter__ [self])

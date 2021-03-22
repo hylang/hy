@@ -129,8 +129,6 @@
         "methods": [
           "hy.core.bootstrap.defn",
           "hy.core.macros.when",
-          "hy.core.macros.with",
-          "hy.core.macros.with/a",
           "^",
           {
             "name": "\\.",
@@ -171,6 +169,8 @@
           "unquote",
           "unquote-splice",
           "while",
+          "with",
+          "with/a",
           "with-decorator",
           "yield",
           "yield-from"

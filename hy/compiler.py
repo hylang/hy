@@ -896,36 +896,39 @@ class HyASTCompiler(object):
         fn.stmts[-1].decorator_list = decs + fn.stmts[-1].decorator_list
         return ret + fn
 
-    @special(["with*", "with/a*"],
-             [brackets(FORM, maybe(FORM)), many(FORM)])
+    @special(["with", "with/a"],
+             [(brackets(times(1, Inf, FORM + FORM)))
+              | brackets((FORM >> (lambda x: [(HySymbol('_'), x)]))),
+              many(FORM)])
     def compile_with_expression(self, expr, root, args, body):
-        thing, ctx = (None, args[0]) if args[1] is None else args
-        if thing is not None:
-            thing = self._storeize(thing, self.compile(thing))
-        ctx = self.compile(ctx)
-
         body = self._compile_branch(body)
 
         # Store the result of the body in a tempvar
-        var = self.get_anon_var()
-        name = asty.Name(expr, id=mangle(var), ctx=ast.Store())
+        temp_var = self.get_anon_var()
+        name = asty.Name(expr, id=mangle(temp_var), ctx=ast.Store())
         body += asty.Assign(expr, targets=[name], value=body.force_expr)
         # Initialize the tempvar to None in case the `with` exits
         # early with an exception.
         initial_assign = asty.Assign(
             expr, targets=[name], value=asty.Constant(expr, value=None))
 
-        node = asty.With if root == "with*" else asty.AsyncWith
-        the_with = node(expr,
-                        context_expr=ctx.force_expr,
-                        optional_vars=thing,
-                        body=body.stmts,
-                        items=[ast.withitem(context_expr=ctx.force_expr,
-                                            optional_vars=thing)])
+        ret = Result(stmts=[initial_assign])
+        items = []
+        for variable, ctx in args[0]:
+            ctx = self.compile(ctx)
+            ret += ctx
+            variable = (None
+                if isinstance(variable, HySymbol) and variable == HySymbol('_')
+                else self._storeize(variable, self.compile(variable)))
+            items.append(asty.withitem(expr,
+                                       context_expr=ctx.force_expr,
+                                       optional_vars=variable))
 
-        ret = Result(stmts=[initial_assign]) + ctx + the_with
+        node = asty.With if root == "with" else asty.AsyncWith
+        ret += node(expr, body=body.stmts, items=items)
+
         # And make our expression context our temp variable
-        expr_name = asty.Name(expr, id=mangle(var), ctx=ast.Load())
+        expr_name = asty.Name(expr, id=mangle(temp_var), ctx=ast.Load())
 
         ret += Result(expr=expr_name)
         # We don't give the Result any temp_vars because we don't want
