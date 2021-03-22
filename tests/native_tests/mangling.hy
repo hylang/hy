@@ -13,8 +13,37 @@
   (assert (= -a__b- 2))
   (setv -_- 3)
   (assert (= -_- 3))
-  (assert (= --- 3))
-  (assert (= ___ 3)))
+  (assert (= -__ 3)))
+
+
+(defn test-mangle-hyphen-underscore []
+  ;; https://github.com/hylang/hy/issues/1635
+  (assert (= (mangle "-")               "hyx_XhyphenHminusX"))
+  (assert (= (mangle "-a")              "hyx_XhyphenHminusXa"))
+  (assert (= (mangle "-_a")             "hyx_XhyphenHminusX_a"))
+  (assert (= (mangle "_-a")             "_hyx_XhyphenHminusXa"))
+  (assert (= (mangle "__init__")        "__init__"))
+  (assert (= (mangle "--init--")        "hyx_XhyphenHminusX_init__"))
+  (assert (= (mangle "__dunder-name__") "__dunder_name__"))
+  (assert (= (mangle "-->")             "hyx_XhyphenHminusX_XgreaterHthan_signX"))
+  (assert (= (mangle "<--")             "hyx_XlessHthan_signX__"))
+
+  ;; test various interactions
+  (assert (= (mangle "----")   "hyx_XhyphenHminusX___"))
+  (assert (= (mangle "--__")   "hyx_XhyphenHminusX___"))
+  (assert (= (mangle "__--")   "__hyx_XhyphenHminusX_"))
+  (assert (= (mangle "__--__") "__hyx_XhyphenHminusX___"))
+  (assert (= (mangle "--?")    "hyx_is_XhyphenHminusX_"))
+  (assert (= (mangle "__--?")  "__hyx_is_XhyphenHminusX_"))
+
+  ;; test unmangling choices
+  (assert (= (unmangle "hyx_XhyphenHminusX")        "-"))
+  (assert (= (unmangle "_")                         "_"))
+  (assert (= (unmangle "__init__")                  "__init__"))
+  (assert (= (unmangle "hyx_XhyphenHminusX_init__") "--init--"))
+  (assert (= (unmangle "__dunder_name__")           "__dunder-name__"))
+  (assert (= (unmangle "hyx_XhyphenHminusX_XgreaterHthan_signX") "-->"))
+  (assert (= (unmangle "hyx_XlessHthan_signX__")                 "<--")))
 
 
 (defn test-underscore-number []
@@ -147,7 +176,7 @@
 
 
 (defn test-functions []
-  (for [[a b] [["---ab-cd?" "___is_ab_cd"]
+  (for [[a b] [["___ab-cd?" "___is_ab_cd"]
                ["if" "hyx_if"]
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (mangle a) b))
