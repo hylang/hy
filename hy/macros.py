@@ -152,7 +152,17 @@ def require(source_module, target_module, assignments, prefix=""):
 
     if not inspect.ismodule(source_module):
         try:
-            source_module = importlib.import_module(source_module)
+            if source_module.startswith("."):
+                source_dirs = source_module.split(".")
+                target_dirs = (getattr(target_module, "__name__", target_module)
+                               .split("."))
+                while source_dirs and target_dirs and source_dirs[0] == "":
+                    source_dirs.pop(0)
+                    target_dirs.pop()
+                package = ".".join(target_dirs + source_dirs[:-1])
+            else:
+                package = None
+            source_module = importlib.import_module(source_module, package)
         except ImportError as e:
             reraise(HyRequireError, HyRequireError(e.args[0]), None)
 

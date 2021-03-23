@@ -61,6 +61,7 @@ Bug Fixes
 * Fixed namespace pollution caused by automatic imports of Hy builtins and macros.
 * Fixed Hy model objects sometimes not being in scope.
 * Fixed `doc` sometimes failing to find builtin macros.
+* `require` now works with relative imports.
 
 Misc. Improvements
 ------------------------------

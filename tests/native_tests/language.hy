@@ -1478,6 +1478,13 @@ cee\"} dee" "ey bee\ncee dee"))
   (rev (.append x 1) (.append x 2) (.append x 3))
   (assert (= x [3 2 1])))
 
+(defn test-relative-require []
+  (require [..resources.macros [nonlocal-test-macro]])
+  (assert (in "nonlocal_test_macro" __macros__))
+
+  (require [.native-macros [rev]])
+  (assert (in "rev" __macros__)))
+
 
 (defn test-encoding-nightmares []
   "NATIVE: test unicode encoding escaping crazybits"
