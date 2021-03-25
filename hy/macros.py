@@ -156,7 +156,9 @@ def require(source_module, target_module, assignments, prefix=""):
                 source_dirs = source_module.split(".")
                 target_dirs = (getattr(target_module, "__name__", target_module)
                                .split("."))
-                while source_dirs and target_dirs and source_dirs[0] == "":
+                while (len(source_dirs) > 1
+                       and source_dirs[0] == ""
+                       and target_dirs):
                     source_dirs.pop(0)
                     target_dirs.pop()
                 package = ".".join(target_dirs + source_dirs[:-1])
@@ -170,8 +172,17 @@ def require(source_module, target_module, assignments, prefix=""):
 
     if not source_module.__macros__:
         if assignments != "ALL":
-            raise HyRequireError('The module {} has no macros'.format(
-                source_module))
+            for name, alias in assignments:
+                try:
+                    require(f"{source_module.__name__}.{mangle(name)}",
+                            target_module,
+                            "ALL",
+                            prefix=alias)
+                except HyRequireError as e:
+                    raise HyRequireError(f"Cannot import name '{name}'"
+                                         f" from '{source_module.__name__}'"
+                                         f" ({source_module.__file__})")
+            return True
         else:
             return False
 
