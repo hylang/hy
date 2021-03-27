@@ -200,7 +200,6 @@
   "
   (walk (partial prewalk f) identity (f form)))
 
-;; TODO: move to hy.core?
 (defn call? [form]
   "Checks whether form is a non-empty HyExpression"
   (and (instance? HyExpression form)
@@ -214,7 +213,7 @@
                         (import-module module-name))
                    (calling-module))
         quote-level 0
-        ast-compiler (HyASTCompiler module))  ; TODO: make nonlocal after dropping Python2
+        ast-compiler (HyASTCompiler module))
   (defn traverse [form]
     (walk expand identity form))
   (defn expand [form]
