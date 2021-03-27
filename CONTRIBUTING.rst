@@ -77,6 +77,10 @@ revert other commits in the same PR (``git rebase`` is your friend).
 
 Avoid committing spurious whitespace changes.
 
+Don't commit comments tagged with things like "FIXME", "TODO", or
+"XXX". Ideas for how the code or documentation should change go in the
+issues list, not the code or documentation itself.
+
 The first line of a commit message should describe the overall change in 50
 characters or less. If you wish to add more information, separate it from the
 first line with a blank line.
