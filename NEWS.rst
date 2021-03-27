@@ -17,6 +17,8 @@ Removals
 
 Breaking Changes
 ------------------------------
+* `defn` has been renamed to `def`.
+* `defclass` has been renamed to `class`.
 * f-strings are now parsed as a separate `HyFString` node,
   which is a collection of `HyString` and `HyFComponent` nodes.
 * Calling a `HyKeyword`  now looks up by its (string) name instead by its self.
