@@ -63,6 +63,7 @@ Bug Fixes
 * Fixed `doc` sometimes failing to find builtin macros.
 * `require` now works with relative imports and can import modules, such as
   `(require [hy.contrib [walk]])`.
+* Fixed `hyc` and `hy2py` not finding relative imports
 
 Misc. Improvements
 ------------------------------

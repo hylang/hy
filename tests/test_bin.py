@@ -442,6 +442,22 @@ def test_bin_hy_file_sys_path():
     output, _ = run_cmd("hy tests/resources/relative_import.hy")
     assert file_relative_path in output
 
+def test_bin_hyc_file_sys_path():
+    # similar to test_bin_hy_file_sys_path, test hyc and hy2py to make sure
+    # they can find the relative import at compile time
+    # https://github.com/hylang/hy/issues/2021
+
+    test_file = 'tests/resources/relative_import_compile_time.hy'
+    file_relative_path = os.path.realpath(os.path.dirname(test_file))
+
+    for binary in ("hy", "hyc", "hy2py"):
+        # Ensure we hit the compiler
+        rm(cache_from_source(test_file))
+        assert not os.path.exists(cache_from_source(file_relative_path))
+
+        output, _ = run_cmd(f"{binary} {test_file}")
+        assert file_relative_path in output
+
 
 def test_bin_hy_module_main_args():
     output, _ = run_cmd("hy -m tests.resources.bin.main test 123 -B")

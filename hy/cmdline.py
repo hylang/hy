@@ -443,6 +443,16 @@ def ideas_macro(ETname):
 """)])
 
 
+def set_path(filename):
+    """Emulate Python cmdline behavior by setting `sys.path` relative
+    to the executed file's location."""
+    path = os.path.realpath(os.path.dirname(filename))
+    if sys.path[0] == '':
+        sys.path[0] = path
+    else:
+        sys.path.insert(0, path)
+
+
 def run_command(source, filename=None):
     __main__ = importlib.import_module('__main__')
     require("hy.cmdline", __main__, assignments="ALL")
@@ -484,13 +494,7 @@ def run_repl(hr=None, **kwargs):
 
 def run_icommand(source, **kwargs):
     if os.path.exists(source):
-        # Emulate Python cmdline behavior by setting `sys.path` relative
-        # to the executed file's location.
-        if sys.path[0] == '':
-            sys.path[0] = os.path.realpath(os.path.split(source)[0])
-        else:
-            sys.path.insert(0, os.path.split(source)[0])
-
+        set_path(source)
         with io.open(source, "r", encoding='utf-8') as f:
             source = f.read()
         filename = source
@@ -636,6 +640,7 @@ def cmdline_handler(scriptname, argv):
         return run_command(options['command'], filename='<string>')
 
     if 'mod' in options:
+        set_path('')
         sys.argv = [program] + argv
         runpy.run_module(options['mod'], run_name='__main__', alter_sys=True)
         return 0
@@ -653,13 +658,7 @@ def cmdline_handler(scriptname, argv):
         else:
             # User did "hy <filename>"
             filename = argv[0]
-
-            # Emulate Python cmdline behavior by setting `sys.path` relative
-            # to the executed file's location.
-            if sys.path[0] == '':
-                sys.path[0] = os.path.realpath(os.path.split(filename)[0])
-            else:
-                sys.path.insert(0, os.path.split(filename)[0])
+            set_path(filename)
 
             try:
                 sys.argv = argv
@@ -706,6 +705,7 @@ def hyc_main():
             if not filename:
                 break
             filename = filename.rstrip('\n')
+            set_path(filename)
             try:
                 py_compile.compile(filename, doraise=True)
             except py_compile.PyCompileError as error:
@@ -714,8 +714,10 @@ def hyc_main():
             except OSError as error:
                 rv = 1
                 sys.stderr.write("%s\n" % error)
+            sys.path.pop(0)
     else:
         for filename in options.files:
+            set_path(filename)
             try:
                 print("Compiling %s" % filename)
                 py_compile.compile(filename, doraise=True)
@@ -723,6 +725,7 @@ def hyc_main():
                 # return value to indicate at least one failure
                 rv = 1
                 sys.stderr.write("%s\n" % error.msg)
+            sys.path.pop(0)
     return rv
 
 
@@ -745,10 +748,12 @@ def hy2py_main():
     options = parser.parse_args(sys.argv[1:])
 
     if options.FILE is None or options.FILE == '-':
+        sys.path.insert(0, "")
         filename = '<stdin>'
         source = sys.stdin.read()
     else:
         filename = options.FILE
+        set_path(filename)
         with io.open(options.FILE, 'r', encoding='utf-8') as source_file:
             source = source_file.read()
 
