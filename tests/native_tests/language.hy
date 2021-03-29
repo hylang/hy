@@ -1463,7 +1463,14 @@ cee\"} dee" "ey bee\ncee dee"))
   (require [tests.resources.tlib [*]])
   (assert (= (parald 1 2 3) [9 1 2 3]))
   (assert (= (✈ "silly") "plane silly"))
-  (assert (= (hyx_XairplaneX "foolish") "plane foolish")))
+  (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
+
+  (require [tests.resources [tlib macros :as m]])
+  (assert (in "tlib.qplah" __macros__))
+  (assert (in (mangle "m.test-macro") __macros__))
+  (require [os [path]])
+  (with [(pytest.raises hy.errors.HyRequireError)]
+    (hy.eval '(require [tests.resources [does-not-exist]]))))
 
 
 (defn test-require-native []
@@ -1479,11 +1486,14 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= x [3 2 1])))
 
 (defn test-relative-require []
-  (require [..resources.macros [nonlocal-test-macro]])
-  (assert (in "nonlocal_test_macro" __macros__))
+  (require [..resources.macros [test-macro]])
+  (assert (in "test_macro" __macros__))
 
   (require [.native-macros [rev]])
-  (assert (in "rev" __macros__)))
+  (assert (in "rev" __macros__))
+
+  (require [. [native-macros :as m]])
+  (assert (in "m.rev" __macros__)))
 
 
 (defn test-encoding-nightmares []
