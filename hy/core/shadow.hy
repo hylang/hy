@@ -39,10 +39,10 @@
 
 (defn ** [a1 a2 #* a-rest]
   "Shadowed `**` operator takes `a1` to the power of `a2`, ..., `a-rest`."
-  ; We use `-foldr` instead of `reduce` because exponentiation
+  ; We use `_foldr` instead of `reduce` because exponentiation
   ; is right-associative.
-  (-foldr operator.pow (+ (, a1 a2) a-rest)))
-(defn -foldr [f xs]
+  (_foldr operator.pow (+ (, a1 a2) a-rest)))
+(defn _foldr [f xs]
   (reduce (fn [x y] (f y x)) (cut xs None None -1)))
 
 (defn / [a1 #* a-rest]

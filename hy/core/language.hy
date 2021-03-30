@@ -1082,8 +1082,8 @@
   (= (% n 2) 1))
 
 ;; TODO Autodoc can't parse arbitrary object default params
-(setv -sentinel (object))
-(defn partition [coll [n 2] [step None] [fillvalue -sentinel]]
+(setv _sentinel (object))
+(defn partition [coll [n 2] [step None] [fillvalue _sentinel]]
   "Usage: ``(partition coll [n] [step] [fillvalue])``
 
   Chunks *coll* into *n*-tuples (pairs by default).
@@ -1114,7 +1114,7 @@
    coll-clones (tee coll n)
    slices (gfor start (range n)
                 (islice (get coll-clones start) start None step)))
-  (if (is fillvalue -sentinel)
+  (if (is fillvalue _sentinel)
     (zip #* slices)
     (zip-longest #* slices :fillvalue fillvalue)))
 

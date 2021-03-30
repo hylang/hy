@@ -103,8 +103,8 @@
              (foo 1 2 3 :quux 4 :baz 5)))
 
   ;; @wraps preserved the docstring and __name__
-  (assert (= "foo" (. foo --name--)))
-  (assert (= "Bar." (. foo --doc--)))
+  (assert (= "foo" (. foo __name__)))
+  (assert (= "Bar." (. foo __doc__)))
 
   ;; We can use the #@ tag macro to apply more than one decorator
   #@(increment-arguments

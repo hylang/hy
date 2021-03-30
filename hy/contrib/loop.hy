@@ -34,7 +34,7 @@ tail-call optimization (TCO) in their Hy code.
 
 (import [hy.contrib.walk [prewalk]])
 
-(defn --trampoline-- [f]
+(defn __trampoline__ [f]
   "Wrap f function and make it tail-call optimized."
   ;; Takes the function "f" and returns a wrapper that may be used for tail-
   ;; recursive algorithms. Note that the returned function is not side-effect
@@ -63,9 +63,9 @@ tail-call optimization (TCO) in their Hy code.
     (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
     body))
   `(do
-    (import [hy.contrib.loop [--trampoline--]])
+    (import [hy.contrib.loop [__trampoline__]])
     (with-decorator
-      --trampoline--
+      __trampoline__
       (defn ~g!recur-fn [~@signature] ~@new-body))
     ~g!recur-fn))
 

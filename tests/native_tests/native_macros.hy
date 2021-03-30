@@ -327,9 +327,9 @@
 
 (defn test-defmain []
   "NATIVE: make sure defmain is clean"
-  (global --name--)
-  (setv oldname --name--)
-  (setv --name-- "__main__")
+  (global __name__)
+  (setv oldname __name__)
+  (setv __name__ "__main__")
 
   (defn main [x]
     (print (integer? x))
@@ -362,7 +362,7 @@
       (assert (= (str e) "1"))))
 
   (setv sys.argv oldargv)
-  (setv --name-- oldname))
+  (setv __name__ oldname))
 
 (defn test-macro-namespace-resolution []
   "Confirm that local versions of macro-macro dependencies do not shadow the

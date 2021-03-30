@@ -47,13 +47,13 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
 (defclass Sequence []
   "Container for construction of lazy sequences."
 
-  (defn --init-- [self func]
+  (defn __init__ [self func]
     "initialize a new sequence with a function to compute values"
     (setv (. self func) func)
     (setv (. self cache) [])
     (setv (. self high-water) -1))
 
-  (defn --getitem-- [self n]
+  (defn __getitem__ [self n]
     "get nth item of sequence"
     (if (hasattr n "start")
     (gfor x (range n.start n.stop (or n.step 1))
@@ -69,7 +69,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
                (.append (. self cache) (.func self (. self high-water))))
              (get self n))))))
 
-   (defn --iter-- [self]
+   (defn __iter__ [self]
      "create iterator for this sequence"
      (setv index 0)
      (try (while True
@@ -78,7 +78,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
           (except [IndexError]
             (return))))
 
-   (defn --len-- [self]
+   (defn __len__ [self]
      "length of the sequence, dangerous for infinite sequences"
      (setv index (. self high-water))
      (try (while True
@@ -89,7 +89,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
 
    (setv max-items-in-repr 10)
 
-   (defn --str-- [self]
+   (defn __str__ [self]
      "string representation of this sequence"
      (setv items (list (take (inc self.max-items-in-repr) self)))
      (.format (if (> (len items) self.max-items-in-repr)
@@ -97,9 +97,9 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
                 "[{0}]")
               (.join ", " (map str items))))
 
-   (defn --repr-- [self]
+   (defn __repr__ [self]
      "string representation of this sequence"
-     (.--str-- self)))
+     (.__str__ self)))
 
 (defmacro seq [param #* seq-code]
   "Creates a sequence defined in terms of ``n``.

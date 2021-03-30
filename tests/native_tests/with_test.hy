@@ -3,14 +3,14 @@
 ;; license. See the LICENSE.
 
 (defclass WithTest [object]
-  (defn --init-- [self val]
+  (defn __init__ [self val]
     (setv self.val val)
     None)
 
-  (defn --enter-- [self]
+  (defn __enter__ [self]
     self.val)
 
-  (defn --exit-- [self type value traceback]
+  (defn __exit__ [self type value traceback]
     (setv self.val None)))
 
 (defn test-single-with []
@@ -45,8 +45,8 @@
         (assert (= t3 3))))
 
 (defclass SuppressZDE [object]
-  (defn --enter-- [self])
-  (defn --exit-- [self exc-type exc-value traceback]
+  (defn __enter__ [self])
+  (defn __exit__ [self exc-type exc-value traceback]
     (and (not (none? exc-type)) (issubclass exc-type ZeroDivisionError))))
 
 (defn test-exception-suppressing-with []

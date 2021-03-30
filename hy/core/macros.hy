@@ -712,7 +712,7 @@
 "
   (setv retval (gensym)
         restval (gensym))
-  `(when (= --name-- "__main__")
+  `(when (= __name__ "__main__")
      (import sys)
      (setv ~retval ((fn [~@(or args `[#* ~restval])] ~@body) #* sys.argv))
      (if (integer? ~retval)

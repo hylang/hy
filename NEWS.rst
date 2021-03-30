@@ -34,6 +34,8 @@ Breaking Changes
     (defn hello [a / b [c None] * d [e "world"] #** kwargs])
 
   check the docs or use ``(doc defn)`` at the repl for more details.
+* `mangle` no longer converts leading hyphens to underscores, and
+  `unmangle` no longer converts leading underscores to hyphens.
 
 New Features
 ------------------------------

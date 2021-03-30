@@ -237,7 +237,7 @@
     "bar foo"
     [a b c d e f])
   (assert (= [1 2 3 4 5 6] (foo [1 2] {:c 3 :d 4} "e" 5 "f" 6)))
-  (assert (= "bar foo" foo.--doc--))
+  (assert (= "bar foo" foo.__doc__))
   (defn+ bar [&optional &rest &kwonly]
     (+ &optional &rest &kwonly))
   (assert (= (bar 1 2 3) 6)))
