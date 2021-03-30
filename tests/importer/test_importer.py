@@ -35,8 +35,8 @@ def test_basics():
 
 
 def test_runpy():
-    # XXX: `runpy` won't update cached bytecode!  Don't know if that's
-    # intentional or not.
+    # `runpy` won't update cached bytecode. It's not clear if that's
+    # intentional.
 
     basic_ns = runpy.run_path('tests/resources/importer/basic.hy')
     assert 'square' in basic_ns

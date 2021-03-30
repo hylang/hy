@@ -515,7 +515,7 @@ in expansions."
   (del (get sys.modules "tests.resources.macro_with_require"))
   (.clear __macros__)
 
-  ;; XXX: There doesn't seem to be a way--via standard import mechanisms--to
+  ;; There doesn't seem to be a way--via standard import mechanisms--to
   ;; ensure that an imported module used the cached bytecode.  We'll simply have
   ;; to trust that the .pyc loading convention was followed.
   (test-requires-and-macros)))

@@ -555,7 +555,7 @@ def cmdline_handler(scriptname, argv):
 
     # Get the path of the Hy cmdline executable and swap it with
     # `sys.executable` (saving the original, just in case).
-    # XXX: The `__main__` module will also have `__file__` set to the
+    # The `__main__` module will also have `__file__` set to the
     # entry-point script.  Currently, I don't see an immediate problem, but
     # that's not how the Python cmdline works.
     hy.executable = argv[0]
