@@ -431,15 +431,3 @@ Our final version of ``nif``, built with ``defmacro/g!`` becomes::
         (cond [(pos? ~g!res) ~pos-form]
               [(zero? ~g!res) ~zero-form]
               [(neg? ~g!res) ~neg-form])))
-
-
-
-Checking Macro Arguments and Raising Exceptions
------------------------------------------------
-
-
-
-Hy Compiler Built-Ins
-=====================
-
-.. TODO: Write this.
