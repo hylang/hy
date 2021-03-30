@@ -167,24 +167,12 @@ class Result(object):
     """
     __slots__ = ("stmts", "temp_variables", "_expr", "__used_expr")
 
-    def __init__(self, *args, **kwargs):
-        if args:
-            # emulate kw-only args for future bits.
-            raise TypeError("Yo: Hacker: don't pass me real args, dingus")
-
-        self.stmts = []
-        self.temp_variables = []
-        self._expr = None
+    def __init__(self, *, stmts=(), expr=None, temp_variables=()):
+        self.stmts = list(stmts)
+        self.temp_variables = list(temp_variables)
+        self._expr = expr
 
         self.__used_expr = False
-
-        # XXX: Make sure we only have AST where we should.
-        for kwarg in kwargs:
-            if kwarg not in ["stmts", "expr", "temp_variables"]:
-                raise TypeError(
-                    "%s() got an unexpected keyword argument '%s'" % (
-                        self.__class__.__name__, kwarg))
-            setattr(self, kwarg, kwargs[kwarg])
 
     @property
     def expr(self):
