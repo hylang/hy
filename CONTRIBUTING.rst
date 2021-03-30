@@ -134,11 +134,22 @@ There are two situations in which a PR is allowed to be merged:
    PR to create a new release is not eligible to be merged under this criterion,
    only the first one.)
 
-Anybody on the Hy core team may perform the merge. Merging should create a
-merge commit (don't squash unnecessarily, because that would remove separation
-between logically separate commits, and don't fast-forward, because that would
-throw away the history of the commits as a separate branch), which should
-include the PR number in the commit message.
+Anybody on the Hy core team may perform the merge. Merging should create a merge
+commit (don't squash unnecessarily, because that would remove separation between
+logically separate commits, and don't fast-forward, because that would throw
+away the history of the commits as a separate branch), which should include the
+PR number in the commit message. The typical workflow for this is to run the
+following commands on your own machine, then press the merge button on GitHub.
+
+.. code-block:: console
+
+    $ git checkout master
+    $ git pull
+    $ git checkout $PR_BRANCH
+    $ git fetch
+    $ get reset --hard $REMOTE/$PR_BRANCH
+    $ git rebase master
+    $ git push -f
 
 Contributor Code of Conduct
 ===========================
