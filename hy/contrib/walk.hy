@@ -11,7 +11,8 @@
         [importlib [import-module]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
-        [hy.compiler [HyASTCompiler]])
+        [hy.compiler [HyASTCompiler]]
+        [hy.extra.reserved [special]])
 
 (defn walk [inner outer form]
   "``walk`` traverses ``form``, an arbitrary data structure. Applies
@@ -245,8 +246,7 @@
             form)))
   (expand form))
 
-;; TODO: move to hy.extra.reserved?
-(setv special-forms (list (.keys hy.compiler._special-form-compilers)))
+(setv _mangled-special (frozenset (map mangle (special))))
 
 
 (defn lambda-list [form]
@@ -430,7 +430,7 @@
         (= head 'defclass) (self.handle-defclass)
         (= head 'quasiquote) (self.+quote)
         ;; must be checked last!
-        (in (mangle head) special-forms) (self.handle-special-form)
+        (in (mangle head) _mangled-special) (self.handle-special-form)
         ;; Not a special form. Traverse it like a coll
         (self.handle-coll)))
 
