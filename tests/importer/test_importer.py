@@ -61,15 +61,13 @@ def test_stringer():
 def test_imports():
     path = os.getcwd() + "/tests/resources/importer/a.hy"
     testLoader = HyLoader("tests.resources.importer.a", path)
+    spec = importlib.util.spec_from_loader(testLoader.name, testLoader)
+    mod = importlib.util.module_from_spec(spec)
 
-    def _import_test():
-        try:
-            return testLoader.exec_module()
-        except:
-            return "Error"
+    with pytest.raises(NameError) as excinfo:
+        testLoader.exec_module(mod)
 
-    assert _import_test() == "Error"
-    assert _import_test() is not None
+    assert "thisshouldnotwork" in excinfo.value.args[0]
 
 
 def test_import_error_reporting():
