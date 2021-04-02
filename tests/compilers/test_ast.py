@@ -475,7 +475,7 @@ def test_ast_unicode_strings():
     """Ensure we handle unicode strings correctly"""
 
     def _compile_string(s):
-        hy_s = HyString(s)
+        hy_s = hy.models.String(s)
 
         code = hy_compile([hy_s], __name__, filename='<string>', source=s, import_stdlib=False)
         # We put hy_s in a list so it isn't interpreted as a docstring.
@@ -656,9 +656,9 @@ def test_bad_tag_macros():
 
 def test_models_accessible():
     # https://github.com/hylang/hy/issues/1045
-    can_eval('HySymbol')
-    can_eval('HyList')
-    can_eval('HyDict')
+    can_eval('hy.models.Symbol')
+    can_eval('hy.models.List')
+    can_eval('hy.models.Dict')
 
 
 def test_module_prelude():
@@ -668,7 +668,8 @@ def test_module_prelude():
     assert isinstance(hy_ast.body[0], ast.Import)
     assert hy_ast.body[0].module == 'hy'
 
-    hy_ast = can_compile('(setv flag (keyword? HySymbol))', import_stdlib=True)
+    hy_ast = can_compile('(setv flag (keyword? hy.models.Symbol))',
+                         import_stdlib=True)
     assert len(hy_ast.body) == 2
     assert isinstance(hy_ast.body[0], ast.Import)
     assert hy_ast.body[0].module == 'hy'

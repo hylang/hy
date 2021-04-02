@@ -7,14 +7,14 @@
   "NATIVE: test for quoting functionality"
   (setv q (quote (a b c)))
   (assert (= (len q) 3))
-  (assert (= q (HyExpression [(quote a) (quote b) (quote c)]))))
+  (assert (= q (hy.models.Expression [(quote a) (quote b) (quote c)]))))
 
 
 (defn test-basic-quoting []
-  (assert (= (type (quote (foo bar))) HyExpression))
-  (assert (= (type (quote foo)) HySymbol))
-  (assert (= (type (quote "string")) HyString))
-  (assert (= (type (quote b"string")) HyBytes)))
+  (assert (= (type (quote (foo bar))) hy.models.Expression))
+  (assert (= (type (quote foo)) hy.models.Symbol))
+  (assert (= (type (quote "string")) hy.models.String))
+  (assert (= (type (quote b"string")) hy.models.Bytes)))
 
 
 (defn test-quoted-hoistable []
@@ -41,7 +41,7 @@
   (assert (= (get q 1) (quote bar)))
   (assert (= (get q 2) (quote baz)))
   (assert (= (get q 3) (quote quux)))
-  (assert (= (type q) HyDict)))
+  (assert (= (type q) hy.models.Dict)))
 
 
 (defn test-quote-expr-in-dict []

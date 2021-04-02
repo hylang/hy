@@ -83,7 +83,8 @@
   (for [[expr answer] cases]
     ; Mutate the case as appropriate for the operator before
     ; evaluating it.
-    (setv expr (+ (HyExpression [(HySymbol specialop)]) (cut expr 1)))
+    (setv expr (+ (hy.models.Expression
+                    [(hy.models.Symbol specialop)]) (cut expr 1)))
     (when (= specialop "dfor")
       (setv expr (+ (cut expr 0 -1) `([~(get expr -1) 1]))))
     (when (= specialop "for")

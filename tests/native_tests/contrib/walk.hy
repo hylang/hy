@@ -177,7 +177,7 @@
                '(foo `(bar a ~a ~"x"))))
     (assert (= `(foo ~@[a])
                '(foo "x")))
-    (assert (= `(foo `(bar [a] ~@[a] ~@~(HyList [a 'a `a]) ~~@[a]))
+    (assert (= `(foo `(bar [a] ~@[a] ~@~(hy.models.List [a 'a `a]) ~~@[a]))
                '(foo `(bar [a] ~@[a] ~@["x" a a] ~"x"))))))
 
 (defn test-let-except []

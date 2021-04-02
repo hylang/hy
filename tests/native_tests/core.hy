@@ -278,9 +278,8 @@ result['y in globals'] = 'y' in globals()")
 
 (defn test-gensym []
   "NATIVE: testing the gensym function"
-  (import [hy.models [HySymbol]])
   (setv s1 (gensym))
-  (assert (isinstance s1 HySymbol))
+  (assert (isinstance s1 hy.models.Symbol))
   (assert (= 0 (.find s1 "_G\uffff")))
   (setv s2 (gensym "xx"))
   (setv s3 (gensym "xx"))

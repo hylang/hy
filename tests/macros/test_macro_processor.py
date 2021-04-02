@@ -5,7 +5,7 @@
 from hy.macros import macro, macroexpand
 from hy.lex import tokenize
 
-from hy.models import HyString, HyList, HySymbol, HyExpression, HyFloat
+from hy.models import String, List, Symbol, Expression, Float
 from hy.errors import HyMacroExpansionError
 
 from hy.compiler import HyASTCompiler, mangle
@@ -16,7 +16,7 @@ import pytest
 @macro("test")
 def tmac(ETname, *tree):
     """ Turn an expression into a list """
-    return HyList(tree)
+    return List(tree)
 
 
 def test_preprocessor_simple():
@@ -24,8 +24,8 @@ def test_preprocessor_simple():
     obj = macroexpand(tokenize('(test "one" "two")')[0],
                       __name__,
                       HyASTCompiler(__name__))
-    assert obj == HyList(["one", "two"])
-    assert type(obj) == HyList
+    assert obj == List(["one", "two"])
+    assert type(obj) == List
 
 
 def test_preprocessor_expression():
@@ -34,14 +34,14 @@ def test_preprocessor_expression():
                       __name__,
                       HyASTCompiler(__name__))
 
-    assert type(obj) == HyList
-    assert type(obj[0]) == HyExpression
+    assert type(obj) == List
+    assert type(obj[0]) == Expression
 
-    assert obj[0] == HyExpression([HySymbol("test"),
-                                   HyString("one"),
-                                   HyString("two")])
+    assert obj[0] == Expression([Symbol("test"),
+                                 String("one"),
+                                 String("two")])
 
-    obj = HyList([HyString("one"), HyString("two")])
+    obj = List([String("one"), String("two")])
     obj = tokenize('(shill ["one" "two"])')[0][1]
     assert obj == macroexpand(obj, __name__, HyASTCompiler(__name__))
 
@@ -57,13 +57,13 @@ def test_macroexpand_nan():
    # https://github.com/hylang/hy/issues/1574
    import math
    NaN = float('nan')
-   x = macroexpand(HyFloat(NaN), __name__, HyASTCompiler(__name__))
-   assert type(x) is HyFloat
+   x = macroexpand(Float(NaN), __name__, HyASTCompiler(__name__))
+   assert type(x) is Float
    assert math.isnan(x)
 
 def test_macroexpand_source_data():
     # https://github.com/hylang/hy/issues/1944
-    ast = HyExpression([HySymbol('#@'), HyString('a')])
+    ast = Expression([Symbol('#@'), String('a')])
     ast.start_line = 3
     ast.start_column = 5
     bad = macroexpand(ast, "hy.core.macros")

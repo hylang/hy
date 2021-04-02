@@ -80,7 +80,7 @@
 (defn test-macro-bad-name []
   (with [excinfo (pytest.raises HyTypeError)]
     (hy.eval '(defmacro :kw [])))
-  (assert (= (. excinfo value msg) "received a `HyKeyword' instead of a symbol or string for macro name"))
+  (assert (= (. excinfo value msg) "received a `hy.models.Keyword' instead of a symbol or string for macro name"))
   (with [excinfo (pytest.raises HyTypeError)]
     (hy.eval '(defmacro "foo.bar" [])))
   (assert (= (. excinfo value msg) "periods are not allowed in macro names")))
