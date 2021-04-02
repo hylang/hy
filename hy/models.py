@@ -80,7 +80,8 @@ class Object(object):
         self._start_column = value
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, super(HyObject, self).__repr__())
+        return (f"hy.models.{self.__class__.__name__}"
+                f"({super(Object, self).__repr__()})")
 
 
 _wrappers = {}
@@ -156,7 +157,7 @@ class Keyword(Object):
         self.name = value
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self.name)
+        return f"hy.models.{self.__class__.__name__}({self.name!r})"
 
     def __str__(self):
         return ":%s" % self.name
@@ -311,18 +312,14 @@ class Sequence(Object, tuple, _ColoredModel):
     def __str__(self):
         with pretty():
             if self:
-                return self._colored("{}{}\n  {}{}".format(
+                return self._colored("hy.models.{}{}\n  {}{}".format(
                     self._colored(self.__class__.__name__),
                     self._colored("(["),
                     self._colored(",\n  ").join(map(repr_indent, self)),
                     self._colored("])"),
                 ))
-                return self._colored("{}([\n  {}])".format(
-                    self.__class__.__name__,
-                    ','.join(repr_indent(e) for e in self),
-                ))
             else:
-                return self._colored(self.__class__.__name__ + "()")
+                return self._colored(f"hy.models.{self.__class__.__name__}()")
 
 
 class FComponent(Sequence):
@@ -387,11 +384,11 @@ class Dict(Sequence, _ColoredModel):
                     pairs.append("{}  {}\n".format(
                         repr_indent(self[-1]), self._colored("# odd")))
                 return "{}\n  {}{}".format(
-                    self._colored("HyDict(["),
+                    self._colored("hy.models.Dict(["),
                     "{c}\n  ".format(c=self._colored(',')).join(pairs),
                     self._colored("])"))
             else:
-                return self._colored("HyDict()")
+                return self._colored("hy.models.Dict()")
 
     def keys(self):
         return list(self[0::2])

@@ -212,9 +212,12 @@ def t_string(state, p):
     try:
         s = eval(s.replace('"', '"""', 1)[:-1] + '"""')
     except SyntaxError:
-        raise LexException.from_lexer("Can't convert {} to a HyString".format(p[0].value),
-                                      state, p[0])
-    return (HyString(s)
+        raise LexException.from_lexer(
+            f"Can't convert {p[0].value} to a hy.models.String",
+            state,
+            p[0],
+        )
+    return (String(s)
         if isinstance(s, str)
         else Bytes(s))
 
@@ -228,8 +231,11 @@ def t_fstring(state, p):
     try:
         s = eval(s.replace('"', '"""', 1)[:-1] + '"""')
     except SyntaxError:
-        raise LexException.from_lexer("Can't convert {} to a HyFString".format(p[0].value),
-                                      state, p[0])
+        raise LexException.from_lexer(
+            f"Can't convert {p[0].value} to a hy.models.FString",
+            state,
+            p[0],
+        )
     # internal parser
     values = _format_string(state, p, s)
     return FString(values)

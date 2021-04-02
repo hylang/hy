@@ -109,7 +109,7 @@ def test_lex_strings_exception():
         '  File "<string>", line 1',
         '    "\\x8"',
         '    ^',
-        'hy.lex.exceptions.LexException: Can\'t convert "\\x8" to a HyString'])
+        'hy.lex.exceptions.LexException: Can\'t convert "\\x8" to a hy.models.String'])
 
 
 def test_lex_bracket_strings():

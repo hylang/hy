@@ -112,70 +112,70 @@ def test_number_model_copy():
 PRETTY_STRINGS = {
     k % ('[1.0] {1.0} (1.0) #{1.0}',):
         v.format("""
-  HyList([
-    HyFloat(1.0)]),
-  HyDict([
-    HyFloat(1.0)  # odd
+  hy.models.List([
+    hy.models.Float(1.0)]),
+  hy.models.Dict([
+    hy.models.Float(1.0)  # odd
   ]),
-  HyExpression([
-    HyFloat(1.0)]),
-  HySet([
-    HyFloat(1.0)])""")
-    for k, v in {'[%s]': 'HyList([{}])',
-                 '#{%s}': 'HySet([{}])'}.items()}
+  hy.models.Expression([
+    hy.models.Float(1.0)]),
+  hy.models.Set([
+    hy.models.Float(1.0)])""")
+    for k, v in {'[%s]': 'hy.models.List([{}])',
+                 '#{%s}': 'hy.models.Set([{}])'}.items()}
 
 PRETTY_STRINGS.update({
     '{[1.0] {1.0} (1.0) #{1.0}}':
-    """HyDict([
-  HyList([
-    HyFloat(1.0)]),
-  HyDict([
-    HyFloat(1.0)  # odd
+    """hy.models.Dict([
+  hy.models.List([
+    hy.models.Float(1.0)]),
+  hy.models.Dict([
+    hy.models.Float(1.0)  # odd
   ])
   ,
-  HyExpression([
-    HyFloat(1.0)]),
-  HySet([
-    HyFloat(1.0)])
+  hy.models.Expression([
+    hy.models.Float(1.0)]),
+  hy.models.Set([
+    hy.models.Float(1.0)])
   ])"""
     ,
     '[1.0 1j [] {} () #{}]':
-        """HyList([
-  HyFloat(1.0),
-  HyComplex(1j),
-  HyList(),
-  HyDict(),
-  HyExpression(),
-  HySet()])"""
+        """hy.models.List([
+  hy.models.Float(1.0),
+  hy.models.Complex(1j),
+  hy.models.List(),
+  hy.models.Dict(),
+  hy.models.Expression(),
+  hy.models.Set()])"""
     ,
     '{{1j 2j} {1j 2j [][1j]} {[1j][] 1j 2j} {[1j][1j]}}':
-        """HyDict([
-  HyDict([
-    HyComplex(1j), HyComplex(2j)]),
-  HyDict([
-    HyComplex(1j), HyComplex(2j),
-    HyList(),
-    HyList([
-      HyComplex(1j)])
+        """hy.models.Dict([
+  hy.models.Dict([
+    hy.models.Complex(1j), hy.models.Complex(2j)]),
+  hy.models.Dict([
+    hy.models.Complex(1j), hy.models.Complex(2j),
+    hy.models.List(),
+    hy.models.List([
+      hy.models.Complex(1j)])
     ])
   ,
-  HyDict([
-    HyList([
-      HyComplex(1j)]),
-    HyList()
+  hy.models.Dict([
+    hy.models.List([
+      hy.models.Complex(1j)]),
+    hy.models.List()
     ,
-    HyComplex(1j), HyComplex(2j)]),
-  HyDict([
-    HyList([
-      HyComplex(1j)]),
-    HyList([
-      HyComplex(1j)])
+    hy.models.Complex(1j), hy.models.Complex(2j)]),
+  hy.models.Dict([
+    hy.models.List([
+      hy.models.Complex(1j)]),
+    hy.models.List([
+      hy.models.Complex(1j)])
     ])
   ])"""})
 
 
 def test_compound_model_repr():
-    HY_LIST_MODELS = (HyExpression, HyDict, HySet, HyList)
+    HY_LIST_MODELS = (Expression, Dict, Set, List)
     with pretty(False):
         for model in HY_LIST_MODELS:
             assert eval(repr(model())).__class__ is model

@@ -48,7 +48,7 @@
      (if* (not (isinstance macro-name (, hy.models.Symbol hy.models.String)))
           (raise
             (hy.errors.HyTypeError
-              (% "received a `%s' instead of a symbol or string for macro name"
+              (% "received a `hy.models.%s' instead of a symbol or string for macro name"
                  (. (type macro-name) __name__))
               None __file__ None)))
      (if* (in "." macro-name)
