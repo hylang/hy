@@ -82,8 +82,7 @@ tail-call optimization (TCO) in their Hy code.
   rebinds the variables set in the recursion point and sends code
   execution back to that recursion point. If ``recur`` is used in a
   non-tail position, an exception is raised. which
-  causes chaos. Fixing this to detect if recur is in a tail-call position
-  and erroring if not is a giant TODO.
+  causes chaos.
 
   Usage: ``(loop bindings #* body)``
 

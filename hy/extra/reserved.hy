@@ -7,15 +7,20 @@
 
 (setv _cache None)
 
+(defn special []
+  "Return a frozenset of special operators, such as ``fn`` and ``+``."
+  (frozenset (map unmangle
+    (.keys hy.compiler._special_form_compilers))))
+
 (defn names []
   "Return a frozenset of reserved symbol names.
 
   The result of the first call is cached.
 
   This function can be used to get a list (actually, a ``frozenset``) of the
-  names of Hy's built-in functions, macros, and special forms. The output
-  also includes all Python reserved words. All names are in unmangled form
-  (e.g., ``not-in`` rather than ``not_in``).
+  names of Hy's built-in functions, macros, and special forms. The output also
+  includes :hy:func:`hy.extra.reserved.special` and all Python reserved words.
+  All names are in unmangled form (e.g., ``not-in`` rather than ``not_in``).
 
   Examples:
     ::
@@ -31,6 +36,6 @@
       (list (.keys hy.core.bootstrap.__macros__))
       (list (.keys hy.core.macros.__macros__))
       keyword.kwlist
-      (list (.keys hy.compiler._special_form_compilers))
+      (list (special))
       (list hy.compiler._bad_roots)))))))
   _cache)

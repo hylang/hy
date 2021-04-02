@@ -47,6 +47,7 @@ New Features
 * Repl init scripts with `HYSTARTUP` env var
 * `defmacro` and `require` can now take macro names as string literals.
 * New contrib module `slicing` for easy multi-index sequence slicing.
+* The module `hy.extra.reserved` has a new function `special`
 
 Bug Fixes
 ------------------------------

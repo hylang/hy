@@ -27,7 +27,6 @@ These macros make debugging where bottlenecks exist easier."
            ~@body)))
 
 
-;; TODO not showing up
 (defmacro/g! profile/cpu [#* body]
   "Profile a bit of code
 

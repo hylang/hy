@@ -141,7 +141,7 @@ sys.path_importer_cache.clear()
 # Do this one just in case?
 importlib.invalidate_caches()
 
-# XXX: These aren't truly cross-compliant.
+# These aren't truly cross-compliant.
 # They're useful for testing, though.
 HyImporter = importlib.machinery.FileFinder
 HyLoader = importlib.machinery.SourceFileLoader

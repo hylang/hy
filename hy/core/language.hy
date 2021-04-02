@@ -1081,7 +1081,6 @@
   "
   (= (% n 2) 1))
 
-;; TODO Autodoc can't parse arbitrary object default params
 (setv _sentinel (object))
 (defn partition [coll [n 2] [step None] [fillvalue _sentinel]]
   "Usage: ``(partition coll [n] [step] [fillvalue])``
