@@ -36,7 +36,7 @@ from hy.errors import (HyLanguageError, HyRequireError, HyMacroExpansionError,
 from hy.importer import runhy, HyLoader
 from hy.completer import completion, Completer
 from hy.macros import macro, require
-from hy.models import HyExpression, HyString, HySymbol
+from hy.models import Expression, String, Symbol
 from hy._compat import ast_unparse
 
 
@@ -395,8 +395,8 @@ class HyREPL(code.InteractiveConsole, object):
 
 @macro("koan")
 def koan_macro(ETname):
-    return HyExpression([HySymbol('print'),
-                         HyString("""
+    return Expression([Symbol('print'),
+                       String("""
   Ummon asked the head monk, "What sutra are you lecturing on?"
   "The Nirvana Sutra."
   "The Nirvana Sutra has the Four Virtues, hasn't it?"
@@ -413,8 +413,8 @@ def koan_macro(ETname):
 
 @macro("ideas")
 def ideas_macro(ETname):
-    return HyExpression([HySymbol('print'),
-                         HyString(r"""
+    return Expression([Symbol('print'),
+                       String(r"""
 
     => (import [sh [figlet]])
     => (figlet "Hi, Hy!")

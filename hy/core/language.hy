@@ -12,9 +12,7 @@
 (import operator)  ; shadow not available yet
 (import sys)
 (import [collections.abc :as cabc])
-(import [hy.models [HyBytes HyComplex HyDict HyExpression HyFComponent
-                    HyFString HyFloat HyInteger HyKeyword HyList
-                    HyObject HySequence HySet HyString HySymbol]])
+(import [hy.models [Keyword Symbol]])
 (import [hy.lex [tokenize mangle unmangle read read-str]])
 (import [hy.lex.exceptions [LexException PrematureEndOfInput]])
 (import [hy.compiler [HyASTCompiler calling-module]])
@@ -163,7 +161,7 @@
 
   .. versionadded:: 0.10.1
 
-  Check whether *foo* is a :ref:`keyword<HyKeyword>`.
+  Check whether *foo* is a :ref:`keyword<hy.models.Keyword>`.
 
   Examples:
     ::
@@ -177,7 +175,7 @@
        => (keyword? foo)
        False
   "
-  (instance? HyKeyword k))
+  (instance? Keyword k))
 
 (defn dec [n]
   "Decrement `n` by 1.
@@ -524,7 +522,7 @@
        => (symbol? '[a b c])
        False
   "
-  (instance? HySymbol s))
+  (instance? Symbol s))
 
 (import [threading [Lock]])
 (setv _gensym_counter 0)
@@ -543,12 +541,12 @@
     ::
 
       => (gensym)
-      HySymbol('_G\uffff1')
+      hy.models.Symbol('_G\uffff1')
 
     ::
 
       => (gensym \"x\")
-      HySymbol('_x\uffff2')
+      hy.models.Symbol('_x\uffff2')
 
    "
   (setv new_symbol None)
@@ -556,7 +554,7 @@
   (global _gensym_lock)
   (.acquire _gensym_lock)
   (try (do (setv _gensym_counter (inc _gensym_counter))
-           (setv new_symbol (HySymbol (.format "_{}\uffff{}" g _gensym_counter))))
+           (setv new_symbol (Symbol (.format "_{}\uffff{}" g _gensym_counter))))
        (finally (.release _gensym_lock)))
   new_symbol)
 
@@ -864,25 +862,25 @@
     ::
 
        => (macroexpand '(-> (a b) (x y)))
-       HyExpression([
-         HySymbol('x'),
-         HyExpression([
-           HySymbol('a'),
-           HySymbol('b')]),
-         HySymbol('y')])
+       hy.models.Expression([
+         hy.models.Symbol('x'),
+         hy.models.Expression([
+           hy.models.Symbol('a'),
+           hy.models.Symbol('b')]),
+         hy.models.Symbol('y')])
 
     ::
 
        => (macroexpand '(-> (a b) (-> (c d) (e f))))
-       HyExpression([
-         HySymbol('e'),
-         HyExpression([
-           HySymbol('c'),
-           HyExpression([
-             HySymbol('a'),
-             HySymbol('b')]),
-           HySymbol('d')]),
-         HySymbol('f')])
+       hy.models.Expression([
+         hy.models.Symbol('e'),
+         hy.models.Expression([
+           hy.models.Symbol('c'),
+           hy.models.Expression([
+             hy.models.Symbol('a'),
+             hy.models.Symbol('b')]),
+           hy.models.Symbol('d')]),
+         hy.models.Symbol('f')])
   "
   (import hy.macros)
   (setv module (calling-module))
@@ -897,17 +895,17 @@
     ::
 
        => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
-       HyExpression([
-         HySymbol('_>'),
-         HyExpression([
-           HySymbol('a'),
-           HySymbol('b')]),
-         HyExpression([
-           HySymbol('c'),
-           HySymbol('d')]),
-         HyExpression([
-           HySymbol('e'),
-           HySymbol('f')])])
+       hy.models.Expression([
+         hy.models.Symbol('_>'),
+         hy.models.Expression([
+           hy.models.Symbol('a'),
+           hy.models.Symbol('b')]),
+         hy.models.Expression([
+           hy.models.Symbol('c'),
+           hy.models.Symbol('d')]),
+         hy.models.Expression([
+           hy.models.Symbol('e'),
+           hy.models.Symbol('f')])])
   "
   (import hy.macros)
   (setv module (calling-module))
@@ -1329,20 +1327,20 @@
     ::
 
        => (keyword \"foo\")
-       HyKeyword('foo')
+       hy.models.Keyword('foo')
 
     ::
 
        => (keyword 1)
-       HyKeyword('foo')
+       hy.models.Keyword('foo')
   "
   (if (keyword? value)
-      (HyKeyword (unmangle value.name))
+      (Keyword (unmangle value.name))
       (if (string? value)
-          (HyKeyword (unmangle value))
+          (Keyword (unmangle value))
           (try
             (unmangle (.__name__ value))
-            (except [] (HyKeyword (str value)))))))
+            (except [] (Keyword (str value)))))))
 
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`.

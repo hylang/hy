@@ -10,7 +10,7 @@ import sys
 import unicodedata
 
 from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
-from hy.models import HyExpression, HySymbol
+from hy.models import Expression, Symbol
 
 try:
     from io import StringIO
@@ -26,10 +26,10 @@ def hy_parse(source, filename='<string>'):
       filename (string, optional): File name corresponding to source.  Defaults to "<string>".
 
     Returns:
-      out : HyExpression
+      out : hy.models.Expression
     """
     _source = re.sub(r'\A#!.*', '', source)
-    res = HyExpression([HySymbol("do")] +
+    res = Expression([Symbol("do")] +
                        tokenize(_source + "\n",
                                 filename=filename))
     res.source = source
@@ -235,10 +235,10 @@ def read(from_file=sys.stdin, eof=""):
 
          => (read)
          (+ 2 2)
-         HyExpression([
-           HySymbol('+'),
-           HyInteger(2),
-           HyInteger(2)])
+         hy.models.Expression([
+           hy.models.Symbol('+'),
+           hy.models.Integer(2),
+           hy.models.Integer(2)])
 
       ::
 
@@ -267,15 +267,15 @@ def read(from_file=sys.stdin, eof=""):
          ...         (hy.eval exp))
          ...       (except [e EOFError]
          ...         (print "EOF!"))))
-         OHY HyExpression([
-           HySymbol('print'),
-           HyExpression([
-             HySymbol('quote'),
-             HySymbol('hello')])])
+         OHY hy.models.Expression([
+           hy.models.Symbol('print'),
+           hy.models.Expression([
+             hy.models.Symbol('quote'),
+             hy.models.Symbol('hello')])])
          hello
-         OHY HyExpression([
-           HySymbol('print'),
-           HyString('hyfriends!')])
+         OHY hy.models.Expression([
+           hy.models.Symbol('print'),
+           hy.models.String('hyfriends!')])
          hyfriends!
          EOF!
     """
@@ -302,9 +302,9 @@ def read_str(input):
       ::
 
          => (read-str "(print 1)")
-         HyExpression([
-         HySymbol('print'),
-         HyInteger(1)]
+         hy.models.Expression([
+         hy.models.Symbol('print'),
+         hy.models.Integer(1)]
 
       ::
 

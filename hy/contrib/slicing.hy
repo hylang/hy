@@ -38,13 +38,14 @@ or more manually using the tag macro as::
 
   (defn parse-indexing [sym]
     (if
-      (and (isinstance sym HyExpression) (= (get sym 0) :))
+      (and (isinstance sym hy.models.Expression) (= (get sym 0) :))
       `(slice ~@(cut sym 1))
 
       (and (symbol? sym) (= sym '...))
       'Ellipsis
 
-      (and (isinstance sym (, HyKeyword HySymbol)) (in ":" (str sym)))
+      (and (isinstance sym (, hy.models.Keyword hy.models.Symbol))
+           (in ":" (str sym)))
       (try `(slice ~@(parse-colon sym)) (except [ValueError] sym))
 
       sym)))
@@ -193,5 +194,5 @@ or more manually using the tag macro as::
        => #:(\"colname\" 1 2)
        (slice \"colname\" 1 2)
   "
-  (if (isinstance key HyExpression) (parse-indexing `(: ~@key))
+  (if (isinstance key hy.models.Expression) (parse-indexing `(: ~@key))
       (parse-indexing key)))
