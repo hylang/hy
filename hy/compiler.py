@@ -1820,7 +1820,15 @@ class HyASTCompiler(object):
         ret = Result()
         ret += asty.Call(
             obj,
-            func=asty.Name(obj, id="HyKeyword", ctx=ast.Load()),
+            func=asty.Attribute(obj,
+                                value=asty.Attribute(
+                                    obj,
+                                    value=asty.Name(obj, id="hy", ctx=ast.Load()),
+                                    attr="models",
+                                    ctx=ast.Load()
+                                ),
+                                attr="Keyword",
+                                ctx=ast.Load()),
             args=[asty.Str(obj, s=obj.name)],
             keywords=[])
         return ret
