@@ -66,6 +66,9 @@ Bug Fixes
 * `require` now works with relative imports and can import modules, such as
   `(require [hy.contrib [walk]])`.
 * Fixed `hyc` and `hy2py` not finding relative imports
+* `with*` has been removed and now `with` is now a special form. It compiles to
+  a Python `with` statement with multiple context managers and `_` is used to
+  signify an unnamed context manager.
 
 Misc. Improvements
 ------------------------------

@@ -359,9 +359,9 @@ def test_ast_bad_assoc():
 
 def test_ast_bad_with():
     "Make sure AST can't compile invalid with"
-    cant_compile("(with*)")
-    cant_compile("(with* [])")
-    cant_compile("(with* [] (pass))")
+    cant_compile("(with)")
+    cant_compile("(with [])")
+    cant_compile("(with [] (pass))")
 
 
 def test_ast_valid_while():

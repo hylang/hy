@@ -58,26 +58,14 @@
   ;; make sure a macro from the current module works
   (assert (= (macroexpand-all '(foo-walk))
              42))
-  (assert (= (macroexpand-all '(with [a 1]))
-             '(with* [a 1])))
+  (assert (= (macroexpand-all '(-> 1 a))
+             '(a 1)))
   ;; macros within f-strings should also be expanded
   ;; related to https://github.com/hylang/hy/issues/1843
   (assert (= (macroexpand-all 'f"{(foo-walk)}")
              'f"{42}"))
-  (assert (= (macroexpand-all 'f"{(with [a 1])}")
-             'f"{(with* [a 1])}"))
-  (assert (= (macroexpand-all '(with [a 1 b 2 c 3] (for [d c] foo)))
-             '(with* [a 1] (with* [b 2] (with* [c 3] (for [d c] foo))))))
-  (assert (= (macroexpand-all '(with [a 1]
-                                 '(with [b 2])
-                                 `(with [c 3]
-                                    ~(with [d 4])
-                                    ~@[(with [e 5])])))
-             '(with* [a 1]
-                '(with [b 2])
-                `(with [c 3]
-                   ~(with* [d 4])
-                   ~@[(with* [e 5])]))))
+  (assert (= (macroexpand-all 'f"{(-> 1 a)}")
+             'f"{(a 1)}"))
 
   (defmacro require-macro []
     `(do
