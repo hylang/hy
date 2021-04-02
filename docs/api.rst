@@ -740,9 +740,9 @@ Special Forms
 
        => (setv x '(print "Hello World"))
        => x  ; variable x is set to unevaluated expression
-       HyExpression([
-         HySymbol('print'),
-         HyString('Hello World')])
+       hy.models.Expression([
+         hy.models.Symbol('print'),
+         hy.models.String('Hello World')])
        => (hy.eval x)
        Hello World
 
@@ -1001,14 +1001,14 @@ Special Forms
 
        => (setv nickname "Cuddles")
        => (quasiquote (= nickname (unquote nickname)))
-       HyExpression([
-         HySymbol('='),
-         HySymbol('nickname'),
+       hy.models.Expression([
+         hy.models.Symbol('='),
+         hy.models.Symbol('nickname'),
          'Cuddles'])
        => `(= nickname ~nickname)
-       HyExpression([
-         HySymbol('='),
-         HySymbol('nickname'),
+       hy.models.Expression([
+         hy.models.Symbol('='),
+         hy.models.Symbol('nickname'),
          'Cuddles'])
 
 
@@ -1026,23 +1026,23 @@ Special Forms
 
        => (setv nums [1 2 3 4])
        => (quasiquote (+ (unquote-splice nums)))
-       HyExpression([
-         HySymbol('+'),
+       hy.models.Expression([
+         hy.models.Symbol('+'),
          1,
          2,
          3,
          4])
        => `(+ ~@nums)
-       HyExpression([
-         HySymbol('+'),
+       hy.models.Expression([
+         hy.models.Symbol('+'),
          1,
          2,
          3,
          4])
        => `[1 2 ~@(if (neg? (first nums)) nums)]
-       HyList([
-         HyInteger(1),
-         HyInteger(2)])
+       hy.models.List([
+         hy.models.Integer(1),
+         hy.models.Integer(2)])
 
    Here, the last example evaluates to ``('+' 1 2)``, since the condition
    ``(< (nth nums 0) 0)`` is ``False``, which makes this ``if`` expression

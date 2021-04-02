@@ -17,20 +17,20 @@ Hy models are a very thin layer on top of regular Python objects,
 representing Hy source code as data. Models only add source position
 information, and a handful of methods to support clean manipulation of
 Hy source code, for instance in macros. To achieve that goal, Hy models
-are mixins of a base Python class and :ref:`HyObject`.
+are mixins of a base Python class and :ref:`Object`.
 
 .. _hyobject:
 
-HyObject
+Object
 ~~~~~~~~
 
-``hy.models.HyObject`` is the base class of Hy models. It only
+``hy.models.Object`` is the base class of Hy models. It only
 implements one method, ``replace``, which replaces the source position
 of the current object with the one passed as argument. This allows us to
 keep track of the original position of expressions that get modified by
 macros, be that in the compiler or in pure hy macros.
 
-``HyObject`` is not intended to be used directly to instantiate Hy
+``Object`` is not intended to be used directly to instantiate Hy
 models, but only as a mixin for other classes.
 
 Compound Models
@@ -50,37 +50,37 @@ respectively, to ``False``.
 
 .. _hysequence:
 
-HySequence
+Sequence
 ~~~~~~~~~~
 
-``hy.models.HySequence`` is the abstract base class of "iterable" Hy
-models, such as HyExpression and HyList.
+``hy.models.Sequence`` is the abstract base class of "iterable" Hy
+models, such as hy.models.Expression and hy.models.List.
 
-Adding a HySequence to another iterable object reuses the class of the
+Adding a Sequence to another iterable object reuses the class of the
 left-hand-side object, a useful behavior when you want to concatenate Hy
 objects in a macro, for instance.
 
-HySequences are (mostly) immutable: you can't add, modify, or remove
-elements. You can still append to a variable containing a HySequence with
-``+=`` and otherwise construct new HySequences out of old ones.
+Sequences are (mostly) immutable: you can't add, modify, or remove
+elements. You can still append to a variable containing a Sequence with
+``+=`` and otherwise construct new Sequences out of old ones.
 
 
 .. _hylist:
 
-HyList
+List
 ~~~~~~
 
-``hy.models.HyList`` is a :ref:`HySequence` for bracketed ``[]``
+``hy.models.List`` is a :ref:`Sequence` for bracketed ``[]``
 lists, which, when used as a top-level expression, translate to Python
 list literals in the compilation phase.
 
 
 .. _hyexpression:
 
-HyExpression
+Expression
 ~~~~~~~~~~~~
 
-``hy.models.HyExpression`` inherits :ref:`HySequence` for
+``hy.models.Expression`` inherits :ref:`Sequence` for
 parenthesized ``()`` expressions. The compilation result of those
 expressions depends on the first element of the list: the compiler
 dispatches expressions between compiler special-forms, user-defined
@@ -88,10 +88,10 @@ macros, and regular Python function calls.
 
 .. _hydict:
 
-HyDict
+Dict
 ~~~~~~
 
-``hy.models.HyDict`` inherits :ref:`HySequence` for curly-bracketed
+``hy.models.Dict`` inherits :ref:`Sequence` for curly-bracketed
 ``{}`` expressions, which compile down to a Python dictionary literal.
 
 Atomic Models
@@ -99,7 +99,7 @@ Atomic Models
 
 In the input stream, double-quoted strings, respecting the Python
 notation for strings, are parsed as a single token, which is directly
-parsed as a :ref:`HyString`.
+parsed as a :ref:`String`.
 
 An uninterrupted string of characters, excluding spaces, brackets,
 quotes, double-quotes and comments, is parsed as an identifier.
@@ -107,36 +107,36 @@ quotes, double-quotes and comments, is parsed as an identifier.
 Identifiers are resolved to atomic models during the parsing phase in
 the following order:
 
- - :ref:`HyInteger <hy_numeric_models>`
- - :ref:`HyFloat <hy_numeric_models>`
- - :ref:`HyComplex <hy_numeric_models>` (if the atom isn't a bare ``j``)
- - :ref:`HyKeyword` (if the atom starts with ``:``)
- - :ref:`HySymbol`
+ - :ref:`Integer <hy_numeric_models>`
+ - :ref:`Float <hy_numeric_models>`
+ - :ref:`Complex <hy_numeric_models>` (if the atom isn't a bare ``j``)
+ - :ref:`Keyword` (if the atom starts with ``:``)
+ - :ref:`Symbol`
 
 .. _hystring:
 
-HyString
+String
 ~~~~~~~~
 
-``hy.models.HyString`` represents string literals (including bracket strings),
+``hy.models.String`` represents string literals (including bracket strings),
 which compile down to unicode string literals (``str``) in Python.
 
-``HyString``\s are immutable.
+``String``\s are immutable.
 
 Hy literal strings can span multiple lines, and are considered by the
 parser as a single unit, respecting the Python escapes for unicode
 strings.
 
-``HyString``\s have an attribute ``brackets`` that stores the custom
+``String``\s have an attribute ``brackets`` that stores the custom
 delimiter used for a bracket string (e.g., ``"=="`` for ``#[==[hello
 world]==]`` and the empty string for ``#[[hello world]]``).
-``HyString``\s that are not produced by bracket strings have their
+``String``\s that are not produced by bracket strings have their
 ``brackets`` set to ``None``.
 
-HyBytes
+Bytes
 ~~~~~~~
 
-``hy.models.HyBytes`` is like ``HyString``, but for sequences of bytes.
+``hy.models.Bytes`` is like ``String``, but for sequences of bytes.
 It inherits from ``bytes``.
 
 .. _hy_numeric_models:
@@ -144,23 +144,23 @@ It inherits from ``bytes``.
 Numeric Models
 ~~~~~~~~~~~~~~
 
-``hy.models.HyInteger`` represents integer literals, using the ``int``
+``hy.models.Integer`` represents integer literals, using the ``int``
 type.
 
-``hy.models.HyFloat`` represents floating-point literals.
+``hy.models.Float`` represents floating-point literals.
 
-``hy.models.HyComplex`` represents complex literals.
+``hy.models.Complex`` represents complex literals.
 
 Numeric models are parsed using the corresponding Python routine, and
 valid numeric python literals will be turned into their Hy counterpart.
 
 .. _hysymbol:
 
-HySymbol
+Symbol
 ~~~~~~~~
 
-``hy.models.HySymbol`` is the model used to represent symbols in the Hy
-language. Like ``HyString``, it inherits from ``str`` (or ``unicode`` on Python
+``hy.models.Symbol`` is the model used to represent symbols in the Hy
+language. Like ``String``, it inherits from ``str`` (or ``unicode`` on Python
 2).
 
 Symbols are :ref:`mangled <mangling>` when they are compiled
@@ -168,13 +168,13 @@ to Python variable names.
 
 .. _hykeyword:
 
-HyKeyword
+Keyword
 ~~~~~~~~~
 
-``hy.models.HyKeyword`` represents keywords in Hy. Keywords are
+``hy.models.Keyword`` represents keywords in Hy. Keywords are
 symbols starting with a ``:``. See :ref:`syntax-keywords`.
 
-The ``.name`` attribute of a ``hy.models.HyKeyword`` provides
+The ``.name`` attribute of a ``hy.models.Keyword`` provides
 the (:ref:`unmangled <mangling>`) string representation of the keyword without the initial ``:``.
 For example::
 
@@ -261,29 +261,29 @@ can build the ``type()`` that we have, and dispatch to the method that can
 handle it. If we don't have any methods that can build that type, we raise
 an internal ``Exception``.
 
-For instance, if we have a ``HyString``, we have an almost 1-to-1 mapping of
-Hy AST to Python AST. The ``compile_string`` method takes the ``HyString``, and
+For instance, if we have a ``String``, we have an almost 1-to-1 mapping of
+Hy AST to Python AST. The ``compile_string`` method takes the ``String``, and
 returns an ``ast.Str()`` that's populated with the correct line-numbers and
 content.
 
 Macro-Expand
 ~~~~~~~~~~~~
 
-If we get a ``HyExpression``, we'll attempt to see if this is a known
+If we get a ``Expression``, we'll attempt to see if this is a known
 Macro, and push to have it expanded by invoking ``hy.macros.macroexpand``, then
 push the result back into ``HyASTCompiler.compile``.
 
 Second Stage Expression-Dispatch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The only special case is the ``HyExpression``, since we need to create different
+The only special case is the ``Expression``, since we need to create different
 AST depending on the special form in question. For instance, when we hit an
 ``(if True True False)``, we need to generate a ``ast.If``, and properly
 compile the sub-nodes. This is where the ``@builds()`` with a String as an
 argument comes in.
 
 For the ``compile_expression`` (which is defined with an
-``@builds(HyExpression)``) will dispatch based on the string of the first
+``@builds(Expression)``) will dispatch based on the string of the first
 argument. If, for some reason, the first argument is not a string, it will
 properly handle that case as well (most likely by raising an ``Exception``).
 
