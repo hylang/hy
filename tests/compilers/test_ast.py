@@ -5,7 +5,6 @@
 
 from __future__ import unicode_literals
 
-from hy import HyString
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, HyError
 from hy.lex import hy_parse

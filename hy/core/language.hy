@@ -1407,6 +1407,4 @@
       macroexpand-1 mangle merge-with multicombinations neg? none? nth
       numeric? odd? parse-args partition permutations pos? product read read-str
       remove repeat repeatedly rest reduce second some string? symbol?
-      take take-nth take-while tuple? unmangle xor tee zero? zip-longest
-      HyBytes HyComplex HyDict HyExpression HyFComponent HyFString HyFloat
-      HyInteger HyKeyword HyList HyObject HySequence HySet HyString HySymbol])))
+      take take-nth take-while tuple? unmangle xor tee zero? zip-longest])))

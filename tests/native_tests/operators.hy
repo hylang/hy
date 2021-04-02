@@ -10,7 +10,7 @@
   ;
   ; `op` can also be a list of operators, in which case two tests are
   ; created for each operator.
-  (import [hy [HySymbol HyString]] [hy.contrib.walk [prewalk]])
+  (import [hy.contrib.walk [prewalk]])
   (setv defns [])
   (for [o (if (coll? op) op [op])]
     (.append defns `(defn ~(HySymbol (+ "test_operator_" o "_real")) []
