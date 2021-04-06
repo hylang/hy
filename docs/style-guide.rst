@@ -125,7 +125,7 @@ That's not how to think of Lisp code; think tree structure, not delimiters.
           2]}
 
     ;; OK
-    ;; A string is an atom, not a HySequence.
+    ;; A string is an atom, not a Sequence.
     (foo "abc
       xyz")
 

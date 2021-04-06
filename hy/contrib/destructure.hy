@@ -218,10 +218,10 @@ Iterator patterns are specified using round brackets. They are the same as list 
       (.append gsyms dcoll))
     (f dcoll result found binds gsyms))
   (ifp instance? binds
-       HySymbol [binds expr]
-       HyDict (dispatch dest-dict)
-       HyExpression (dispatch dest-iter)
-       HyList (dispatch dest-list)
+       hy.models.Symbol [binds expr]
+       hy.models.Dict (dispatch dest-dict)
+       hy.models.Expression (dispatch dest-iter)
+       hy.models.List (dispatch dest-list)
        (raise (SyntaxError (+ "Malformed destructure. Unknown binding form: "
                              (repr binds))))))
 
@@ -251,7 +251,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (defn expand-lookup [target key]
     [target `(.get ~ddict
                    ~(if (keyword? key) `(quote ~key) key)
-                   ~(if (isinstance target HySymbol) (.get default target)))])
+                   ~(if (isinstance target hy.models.Symbol)
+                        (.get default target)))])
   (defn get-as [to-key targets]
     (lfor t targets
           sym (expand-lookup t (to-key t))
@@ -262,7 +263,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                  ':or []
                  ':as [lookup ddict]
                  ':strs (get-as str lookup)
-                 ':keys (get-as (comp HyKeyword unmangle) lookup)
+                 ':keys (get-as (comp hy.models.Keyword unmangle) lookup)
                  (destructure #* (expand-lookup target lookup) gsyms))))
        ((fn [xs] (reduce + xs result)))))
 
@@ -306,7 +307,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
         mres (lfor [m t] magics
                (ifp found m
                  ':as [t dlist]
-                 ':& (destructure t (if (instance? HyDict t)
+                 ':& (destructure t (if (instance? hy.models.Dict t)
                                       `(dict (partition (cut ~dlist ~n)))
                                       `(cut ~dlist ~n))
                                   gsyms)
@@ -344,7 +345,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (macroexpand
     `(setv+ ~actual (chain ~args
                           (lfor [k v] (.items ~kwargs)
-                                s [(HyKeyword k) v]
+                                s [(hy.models.Keyword k) v]
                             s)))))
 
 (defmacro/g! defn+ [fn-name args #* doc+body]

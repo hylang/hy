@@ -10,9 +10,6 @@ def _initialize_env_var(env_var, default_val):
     return bool(os.environ.get(env_var, default_val))
 
 
-from hy.models import HyExpression, HyInteger, HyKeyword, HyComplex, HyString, HyFString, HyFComponent, HyBytes, HySymbol, HyFloat, HyDict, HyList, HySet  # NOQA
-
-
 import hy.importer  # NOQA
 hy.importer._inject_builtins()
 # we import for side-effects.

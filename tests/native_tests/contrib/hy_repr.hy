@@ -68,8 +68,8 @@
 
 (defn test-hy-repr-no-roundtrip []
   ; Test one of the corner cases in which hy-repr doesn't
-  ; round-trip: when a HyObject contains a non-HyObject, we
-  ; promote the constituent to a HyObject.
+  ; round-trip: when a Hy Object contains a non-Hy Object, we
+  ; promote the constituent to a Hy Object.
 
   (setv orig `[a ~5.0])
   (setv reprd (hy-repr orig))
@@ -77,7 +77,7 @@
   (setv result (hy.eval (read-str reprd)))
 
   (assert (is (type (get orig 1)) float))
-  (assert (is (type (get result 1)) HyFloat)))
+  (assert (is (type (get result 1)) hy.models.Float)))
 
 (defn test-dict-views []
   (assert (= (hy-repr (.keys {1 2})) "(dict-keys [1])"))
@@ -121,10 +121,10 @@
     "(Fooey :cd 11 :a_b 12)")))
 
 (defn test-hy-model-constructors []
-  (assert (= (hy-repr (HyInteger 7)) "'7"))
-  (assert (= (hy-repr (HyString "hello")) "'\"hello\""))
-  (assert (= (hy-repr (HyList [1 2 3])) "'[1 2 3]"))
-  (assert (= (hy-repr (HyDict [1 2 3])) "'{1 2  3}")))
+  (assert (= (hy-repr (hy.models.Integer 7)) "'7"))
+  (assert (= (hy-repr (hy.models.String "hello")) "'\"hello\""))
+  (assert (= (hy-repr (hy.models.List [1 2 3])) "'[1 2 3]"))
+  (assert (= (hy-repr (hy.models.Dict [1 2 3])) "'{1 2  3}")))
 
 (defn test-hy-repr-self-reference []
 

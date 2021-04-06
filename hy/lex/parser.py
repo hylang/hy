@@ -10,9 +10,8 @@ from functools import wraps
 
 from rply import ParserGenerator
 
-from hy.models import (HyBytes, HyComplex, HyDict, HyExpression, HyFComponent,
-                       HyFString, HyFloat, HyInteger, HyKeyword, HyList, HySet,
-                       HyString, HySymbol)
+from hy.models import (Bytes, Complex, Dict, Expression, FComponent, FString,
+                       Float, Integer, Keyword, List, Set, String, Symbol)
 from .lexer import lexer
 from .exceptions import LexException, PrematureEndOfInput
 
@@ -67,13 +66,13 @@ def main_empty(state, p):
 @pg.production("paren : LPAREN list_contents RPAREN")
 @set_boundaries
 def paren(state, p):
-    return HyExpression(p[1])
+    return Expression(p[1])
 
 
 @pg.production("paren : LPAREN RPAREN")
 @set_boundaries
 def empty_paren(state, p):
-    return HyExpression([])
+    return Expression([])
 
 
 @pg.production("list_contents : term list_contents")
@@ -115,31 +114,31 @@ def term_discard(state, p):
 @pg.production("term : QUOTE term")
 @set_quote_boundaries
 def term_quote(state, p):
-    return HyExpression([HySymbol("quote"), p[1]])
+    return Expression([Symbol("quote"), p[1]])
 
 
 @pg.production("term : QUASIQUOTE term")
 @set_quote_boundaries
 def term_quasiquote(state, p):
-    return HyExpression([HySymbol("quasiquote"), p[1]])
+    return Expression([Symbol("quasiquote"), p[1]])
 
 
 @pg.production("term : UNQUOTE term")
 @set_quote_boundaries
 def term_unquote(state, p):
-    return HyExpression([HySymbol("unquote"), p[1]])
+    return Expression([Symbol("unquote"), p[1]])
 
 
 @pg.production("term : UNQUOTESPLICE term")
 @set_quote_boundaries
 def term_unquote_splice(state, p):
-    return HyExpression([HySymbol("unquote-splice"), p[1]])
+    return Expression([Symbol("unquote-splice"), p[1]])
 
 
 @pg.production("term : ANNOTATION term")
 @set_quote_boundaries
 def term_annotation(state, p):
-    return HyExpression([HySymbol("annotate*"), p[1]])
+    return Expression([Symbol("annotate*"), p[1]])
 
 
 @pg.production("term : HASHSTARS term")
@@ -155,50 +154,50 @@ def term_hashstars(state, p):
             "Too many stars in `#*` construct (if you want to unpack a symbol "
             "beginning with a star, separate it with whitespace)",
             state, p[0])
-    return HyExpression([HySymbol(sym), p[1]])
+    return Expression([Symbol(sym), p[1]])
 
 
 @pg.production("term : HASHOTHER term")
 @set_quote_boundaries
 def hash_other(state, p):
     # p == [(Token('HASHOTHER', '#foo'), bar)]
-    return HyExpression([HySymbol(p[0].getstr()), p[1]])
+    return Expression([Symbol(p[0].getstr()), p[1]])
 
 
 @pg.production("set : HLCURLY list_contents RCURLY")
 @set_boundaries
 def t_set(state, p):
-    return HySet(p[1])
+    return Set(p[1])
 
 
 @pg.production("set : HLCURLY RCURLY")
 @set_boundaries
 def empty_set(state, p):
-    return HySet([])
+    return Set([])
 
 
 @pg.production("dict : LCURLY list_contents RCURLY")
 @set_boundaries
 def t_dict(state, p):
-    return HyDict(p[1])
+    return Dict(p[1])
 
 
 @pg.production("dict : LCURLY RCURLY")
 @set_boundaries
 def empty_dict(state, p):
-    return HyDict([])
+    return Dict([])
 
 
 @pg.production("list : LBRACKET list_contents RBRACKET")
 @set_boundaries
 def t_list(state, p):
-    return HyList(p[1])
+    return List(p[1])
 
 
 @pg.production("list : LBRACKET RBRACKET")
 @set_boundaries
 def t_empty_list(state, p):
-    return HyList([])
+    return List([])
 
 
 @pg.production("string : STRING")
@@ -213,11 +212,14 @@ def t_string(state, p):
     try:
         s = eval(s.replace('"', '"""', 1)[:-1] + '"""')
     except SyntaxError:
-        raise LexException.from_lexer("Can't convert {} to a HyString".format(p[0].value),
-                                      state, p[0])
-    return (HyString(s)
+        raise LexException.from_lexer(
+            f"Can't convert {p[0].value} to a hy.models.String",
+            state,
+            p[0],
+        )
+    return (String(s)
         if isinstance(s, str)
-        else HyBytes(s))
+        else Bytes(s))
 
 def t_fstring(state, p):
     s = p[0].value
@@ -229,16 +231,19 @@ def t_fstring(state, p):
     try:
         s = eval(s.replace('"', '"""', 1)[:-1] + '"""')
     except SyntaxError:
-        raise LexException.from_lexer("Can't convert {} to a HyFString".format(p[0].value),
-                                      state, p[0])
+        raise LexException.from_lexer(
+            f"Can't convert {p[0].value} to a hy.models.FString",
+            state,
+            p[0],
+        )
     # internal parser
     values = _format_string(state, p, s)
-    return HyFString(values)
+    return FString(values)
 
 def _format_string(state, p, rest, allow_recursion=True):
     """
     Produces a list of elements
-    where each element is either a HyString or a HyFComponent.
+    where each element is either a hy.models.String or a hy.models.FComponent.
     """
     values = []
 
@@ -260,7 +265,7 @@ def _format_string(state, p, rest, allow_recursion=True):
           literal_chars = rest
           rest = ""
        if literal_chars:
-           values.append(HyString(literal_chars))
+           values.append(String(literal_chars))
        if not rest:
            break
        if match.group() != '{':
@@ -294,7 +299,7 @@ def _format_string(state, p, rest, allow_recursion=True):
        # Check for '=' debugging syntax, reproduce whitespace in output
        eq_sign_match = re.match(r'\s*=\s*', item)
        if eq_sign_match:
-           values.append(HyString(f_expression + eq_sign_match.group()))
+           values.append(String(f_expression + eq_sign_match.group()))
            item = item[eq_sign_match.end():]
        else:
            item = item.lstrip()
@@ -313,7 +318,7 @@ def _format_string(state, p, rest, allow_recursion=True):
                                             allow_recursion=False)
                subnodes.extend(format_spec)
            else:
-               subnodes.append(HyString(item[1:]))
+               subnodes.append(String(item[1:]))
        elif item:
            raise LexException.from_lexer(
                "f-string: trailing junk in field",
@@ -322,7 +327,7 @@ def _format_string(state, p, rest, allow_recursion=True):
            # Python has a special default conversion in this case.
            conversion = "r"
 
-       values.append(HyFComponent(subnodes, conversion=conversion))
+       values.append(FComponent(subnodes, conversion=conversion))
 
     return values
 
@@ -341,10 +346,8 @@ def t_bracket_string(state, p):
     delim, content = m.groups()
     if delim == 'f' or delim.startswith('f-'):
         values = _format_string(state, p, content)
-        return HyFString(values, brackets=delim)
-    return HyString(
-        content,
-        brackets = delim)
+        return FString(values, brackets=delim)
+    return String(content, brackets = delim)
 
 
 @pg.production("identifier : IDENTIFIER")
@@ -364,38 +367,38 @@ def t_identifier(state, p):
             '`(. <expression> <attr>)` or `(.<attr> <expression>)`)',
             state, p[0])
 
-    return HySymbol(obj)
+    return Symbol(obj)
 
 
 def symbol_like(obj):
     "Try to interpret `obj` as a number or keyword."
 
     try:
-        return HyInteger(obj)
+        return Integer(obj)
     except ValueError:
         pass
 
     if '/' in obj:
         try:
             lhs, rhs = obj.split('/')
-            return HyExpression([HySymbol('fraction'), HyInteger(lhs),
-                                 HyInteger(rhs)])
+            return Expression([Symbol('fraction'), Integer(lhs),
+                               Integer(rhs)])
         except ValueError:
             pass
 
     try:
-        return HyFloat(obj)
+        return Float(obj)
     except ValueError:
         pass
 
     if obj not in ('j', 'J'):
         try:
-            return HyComplex(obj)
+            return Complex(obj)
         except ValueError:
             pass
 
     if obj.startswith(":") and "." not in obj:
-        return HyKeyword(obj[1:])
+        return Keyword(obj[1:])
 
 
 @pg.error

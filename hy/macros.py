@@ -11,7 +11,7 @@ import traceback
 from contextlib import contextmanager
 
 from hy._compat import reraise, PY3_8
-from hy.models import replace_hy_obj, HyExpression, HySymbol, wrap_value
+from hy.models import replace_hy_obj, Expression, Symbol, wrap_value
 from hy.lex import mangle, unmangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
                        HyRequireError)
@@ -261,18 +261,18 @@ def macroexpand(tree, module, compiler=None, once=False):
     Load the macros from the given `module`, then expand the (top-level) macros
     in `tree` until we no longer can.
 
-    `HyExpression` resulting from macro expansions are assigned the module in
+    `Expression` resulting from macro expansions are assigned the module in
     which the macro function is defined (determined using `inspect.getmodule`).
-    If the resulting `HyExpression` is itself macro expanded, then the
-    namespace of the assigned module is checked first for a macro corresponding
-    to the expression's head/car symbol.  If the head/car symbol of such a
-    `HyExpression` is not found among the macros of its assigned module's
-    namespace, the outer-most namespace--e.g.  the one given by the `module`
-    parameter--is used as a fallback.
+    If the resulting `Expression` is itself macro expanded, then the namespace
+    of the assigned module is checked first for a macro corresponding to the
+    expression's head/car symbol.  If the head/car symbol of such a `Expression`
+    is not found among the macros of its assigned module's namespace, the
+    outer-most namespace--e.g.  the one given by the `module` parameter--is used
+    as a fallback.
 
     Parameters
     ----------
-    tree: HyObject or list
+    tree: hy.models.Object or list
         Hy AST tree.
 
     module: str or types.ModuleType
@@ -286,7 +286,7 @@ def macroexpand(tree, module, compiler=None, once=False):
 
     Returns
     ------
-    out: HyObject
+    out: hy.models.Object
         Returns a mutated tree with macros expanded.
     """
     if not inspect.ismodule(module):
@@ -294,10 +294,10 @@ def macroexpand(tree, module, compiler=None, once=False):
 
     assert not compiler or compiler.module == module
 
-    while isinstance(tree, HyExpression) and tree:
+    while isinstance(tree, Expression) and tree:
 
         fn = tree[0]
-        if fn in ("quote", "quasiquote") or not isinstance(fn, HySymbol):
+        if fn in ("quote", "quasiquote") or not isinstance(fn, Symbol):
             break
 
         fn = mangle(fn)
@@ -323,7 +323,7 @@ def macroexpand(tree, module, compiler=None, once=False):
         with macro_exceptions(module, tree, compiler):
             obj = m(module.__name__, *tree[1:], **opts)
 
-            if isinstance(obj, HyExpression):
+            if isinstance(obj, Expression):
                 obj.module = inspect.getmodule(m)
 
             tree = replace_hy_obj(obj, tree)

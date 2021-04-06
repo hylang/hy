@@ -264,7 +264,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
                                (or (, 0))
                                max
                                inc))
-                (HySymbol (+ "%" (str i))))
+                (hy.models.Symbol (+ "%" (str i))))
         ;; generate the #* parameter only if '%* is present in expr
         ~@(if (in '%* %symbols)
               '(#* %*))
@@ -282,7 +282,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 (defn recur-sym-replace [d form]
   "Recursive symbol replacement."
   (cond
-    [(instance? HySymbol form)
+    [(instance? hy.models.Symbol form)
       (.get d form form)]
     [(coll? form)
       ((type form) (gfor  x form  (recur-sym-replace d x)))]

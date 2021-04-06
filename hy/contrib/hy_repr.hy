@@ -93,7 +93,8 @@ To make the Hy REPL use it for output, invoke Hy like so::
 
   (global _quoting)
   (setv started-quoting False)
-  (when (and (not _quoting) (instance? HyObject obj) (not (instance? HyKeyword obj)))
+  (when (and (not _quoting) (instance? hy.models.Object obj)
+             (not (instance? hy.models.Keyword obj)))
     (setv _quoting True)
     (setv started-quoting True))
 
@@ -124,14 +125,14 @@ To make the Hy REPL use it for output, invoke Hy like so::
     [k v] (.items x)
     (+ (hy-repr k) " " (hy-repr v)))))
   (+ "{" text "}")))
-(hy-repr-register HyDict :placeholder "{...}" (fn [x]
+(hy-repr-register hy.models.Dict :placeholder "{...}" (fn [x]
   (setv text (.join "  " (gfor
     [k v] (partition x)
     (+ (hy-repr k) " " (hy-repr v)))))
   (if (% (len x) 2)
     (+= text (+ "  " (hy-repr (get x -1)))))
   (+ "{" text "}")))
-(hy-repr-register HyExpression (fn [x]
+(hy-repr-register hy.models.Expression (fn [x]
   (setv syntax {
     'quote "'"
     'quasiquote "`"
@@ -143,7 +144,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (+ (get syntax (first x)) (hy-repr (second x)))
     (+ "(" (_cat x) ")"))))
 
-(hy-repr-register [HySymbol HyKeyword] str)
+(hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
 (hy-repr-register [str bytes] (fn [x]
   (setv r (.lstrip (_base-repr x) "ub"))
   (+
@@ -204,8 +205,8 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (hy-repr (dict x)))))
 
 (for [[types fmt] (partition [
-    [list HyList] "[...]"
-    [set HySet] "#{...}"
+    [list hy.models.List] "[...]"
+    [set hy.models.Set] "#{...}"
     frozenset "(frozenset #{...})"
     dict-keys "(dict-keys [...])"
     dict-values "(dict-values [...])"
@@ -218,13 +219,13 @@ To make the Hy REPL use it for output, invoke Hy like so::
   (.join " " (map hy-repr obj)))
 
 (defn _base-repr [x]
-  (unless (instance? HyObject x)
+  (unless (instance? hy.models.Object x)
     (return (repr x)))
   ; Call (.repr x) using the first class of x that doesn't inherit from
-  ; HyObject.
+  ; hy.models.Object.
   (.__repr__
     (next (gfor
       t (. (type x) __mro__)
-      :if (not (issubclass t HyObject))
+      :if (not (issubclass t hy.models.Object))
       t))
     x))

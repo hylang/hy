@@ -36,6 +36,10 @@ Breaking Changes
   check the docs or use ``(doc defn)`` at the repl for more details.
 * `mangle` no longer converts leading hyphens to underscores, and
   `unmangle` no longer converts leading underscores to hyphens.
+* Hy models have been renamed to exclude `Hy` from their names. They are no
+  longer autoimported and must be accessed through the `hy.models`
+  namespace. `repr` reflects these changes, so, for example, `HyList` will now
+  show up as `hy.models.List`.
 
 New Features
 ------------------------------

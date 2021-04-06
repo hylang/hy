@@ -5,12 +5,12 @@
 import ast
 
 from hy import compiler
-from hy.models import HyExpression, HyList, HySymbol, HyInteger
+from hy.models import Expression, List, Symbol, Integer
 import types
 
 
 def make_expression(*args):
-    h = HyExpression(args)
+    h = Expression(args)
     h.start_line = 1
     h.end_line = 1
     h.start_column = 1
@@ -22,10 +22,10 @@ def test_compiler_bare_names():
     """
     Check that the compiler doesn't drop bare names from code branches
     """
-    e = make_expression(HySymbol("do"),
-                        HySymbol("a"),
-                        HySymbol("b"),
-                        HySymbol("c"))
+    e = make_expression(Symbol("do"),
+                        Symbol("a"),
+                        Symbol("b"),
+                        Symbol("c"))
     ret = compiler.HyASTCompiler(types.ModuleType('test')).compile(e)
 
     # We expect two statements and a final expr.
@@ -48,13 +48,13 @@ def test_compiler_yield_return():
     should not generate a return statement. From 3.3 onwards a return
     value should be generated.
     """
-    e = make_expression(HySymbol("fn"),
-                        HyList(),
-                        HyExpression([HySymbol("yield"),
-                                      HyInteger(2)]),
-                        HyExpression([HySymbol("+"),
-                                      HyInteger(1),
-                                      HyInteger(1)]))
+    e = make_expression(Symbol("fn"),
+                        List(),
+                        Expression([Symbol("yield"),
+                                    Integer(2)]),
+                        Expression([Symbol("+"),
+                                    Integer(1),
+                                    Integer(1)]))
     ret = compiler.HyASTCompiler(types.ModuleType('test')).compile_atom(e)
 
     assert len(ret.stmts) == 1

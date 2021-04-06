@@ -45,10 +45,10 @@
           => foo
           3
      ]]
-     (if* (not (isinstance macro-name (, hy.models.HySymbol hy.models.HyString)))
+     (if* (not (isinstance macro-name (, hy.models.Symbol hy.models.String)))
           (raise
             (hy.errors.HyTypeError
-              (% "received a `%s' instead of a symbol or string for macro name"
+              (% "received a `hy.models.%s' instead of a symbol or string for macro name"
                  (. (type macro-name) __name__))
               None __file__ None)))
      (if* (in "." macro-name)
@@ -57,7 +57,7 @@
          None __file__ None)))
      (for [arg lambda-list]
        (if* (or (= arg '*)
-                (and (isinstance arg hy.models.HyExpression)
+                (and (isinstance arg hy.models.Expression)
                      (= (get arg 0) 'unpack-mapping)))
             (raise (hy.errors.HyTypeError "macros cannot use '*', or '#**'"
                                           macro-name __file__ None))))
@@ -271,7 +271,7 @@
        => (render-html-tag \"p\" \" --- \" (render-html-tag \"span\" \"\" :class \"fancy\" \"I'm fancy!\") \"I'm to the right of fancy\" \"I'm alone :(\")
        '<p><span class=\"fancy\">I\'m fancy!</span> --- I\'m to right right of fancy --- I\'m alone :(</p>'
   "
-  (if (not (= (type name) hy.HySymbol))
+  (if (not (= (type name) hy.models.Symbol))
     (macro-error name "defn takes a name as first argument"))
   `(setv ~name (fn* ~@args)))
 
@@ -287,8 +287,8 @@
 
        => (defn/a name [params] body)
   "
-  (if (not (= (type name) hy.HySymbol))
+  (if (not (= (type name) hy.models.Symbol))
     (macro-error name "defn/a takes a name as first argument"))
-  (if (not (isinstance lambda-list hy.HyList))
+  (if (not (isinstance lambda-list hy.models.List))
     (macro-error name "defn/a takes a parameter list as second argument"))
   `(setv ~name (fn/a ~lambda-list ~@body)))

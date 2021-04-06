@@ -1206,7 +1206,7 @@
   (assert (= (get (hy.eval `[~kw]) 0) kw))
   (assert (= (hy.eval kw) kw))
 
-  ; Tuples wrap to HyLists, not HyExpressions.
+  ; Tuples wrap to hy.models.Lists, not hy.models.Expressions.
   (assert (= (hy.eval (,)) []))
   (assert (= (hy.eval (, 1 2 3)) [1 2 3]))
 
@@ -1290,7 +1290,7 @@ cee\"} dee" "ey bee\ncee dee"))
   ; Quoting shouldn't evaluate the f-string immediately
   ; https://github.com/hylang/hy/issues/1844
   (setv quoted 'f"hello {world}")
-  (assert (isinstance quoted HyFString))
+  (assert (isinstance quoted hy.models.FString))
   (with [(pytest.raises NameError)]
     (hy.eval quoted))
   (setv world "goodbye")
@@ -1645,11 +1645,10 @@ cee\"} dee" "ey bee\ncee dee"))
 (defn test-read []
   "NATIVE: test that read takes something for stdin and reads"
   (import [io [StringIO]])
-  (import [hy.models [HyExpression]])
 
   (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
   (assert (= (hy.eval (read stdin-buffer)) 4))
-  (assert (isinstance (read stdin-buffer) HyExpression))
+  (assert (isinstance (read stdin-buffer) hy.models.Expression))
 
   "Multiline test"
   (setv stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))

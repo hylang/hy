@@ -177,7 +177,7 @@
   `(if ~@(reduce + (gfor
     branch branches
     (if
-      (not (and (is (type branch) hy.HyList) branch))
+      (not (and (is (type branch) hy.models.List) branch))
         (macro-error branch "each cond branch needs to be a nonempty list")
       (= (len branch) 1) (do
         (setv g (gensym))
@@ -202,7 +202,7 @@
   "
   (setv ret head)
   (for [node args]
-    (setv ret (if (isinstance node HyExpression)
+    (setv ret (if (isinstance node hy.models.Expression)
                   `(~(first node) ~ret ~@(rest node))
                   `(~node ~ret))))
   ret)
@@ -232,7 +232,7 @@
   "
   (setv f (gensym))
   (defn build-form [expression]
-    (if (isinstance expression HyExpression)
+    (if (isinstance expression hy.models.Expression)
       `(~(first expression) ~f ~@(rest expression))
       `(~expression ~f)))
   `(do
@@ -257,7 +257,7 @@
   "
   (setv ret head)
   (for [node args]
-    (setv ret (if (isinstance node HyExpression)
+    (setv ret (if (isinstance node hy.models.Expression)
                   `(~@node ~ret)
                   `(~node ~ret))))
   ret)
@@ -567,10 +567,10 @@
   (defn extract-o!-sym [arg]
     (cond [(and (symbol? arg) (.startswith arg "o!"))
            arg]
-          [(and (instance? HyList arg) (.startswith (first arg) "o!"))
+          [(and (instance? hy.models.List arg) (.startswith (first arg) "o!"))
            (first arg)]))
   (setv os (list (filter identity (map extract-o!-sym args)))
-        gs (lfor s os (HySymbol (+ "g!" (cut s 2)))))
+        gs (lfor s os (hy.models.Symbol (+ "g!" (cut s 2)))))
 
   (setv [docstring body] (if (and (instance? str (first body))
                                   (> (len body) 1))

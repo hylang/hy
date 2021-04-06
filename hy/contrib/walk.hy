@@ -25,7 +25,7 @@
        => (import [hy.contrib.walk [walk]])
        => (setv a '(a b c d e f))
        => (walk ord identity a)
-       HyExpression([
+       hy.models.Expression([
          97,
          98,
          99,
@@ -39,10 +39,10 @@
        97
   "
   (cond
-   [(instance? HyExpression form)
-    (outer (HyExpression (map inner form)))]
-   [(or (instance? HySequence form) (list? form))
-    ((type form) (outer (HyExpression (map inner form))))]
+   [(instance? hy.models.Expression form)
+    (outer (hy.models.Expression (map inner form)))]
+   [(or (instance? hy.models.Sequence form) (list? form))
+    ((type form) (outer (hy.models.Expression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
    [True (outer form)]))
@@ -67,10 +67,10 @@
        Walking
        3
        Walking
-       HyExpression([
-         HyInteger(1),
-         HyInteger(2),
-         HyInteger(3)])
+       hy.models.Expression([
+         hy.models.Integer(1),
+         hy.models.Integer(2),
+         hy.models.Integer(3)])
        Walking
        4
        Walking
@@ -80,47 +80,47 @@
        Walking
        7
        Walking
-       HyExpression([
-         HyInteger(7)])
+       hy.models.Expression([
+         hy.models.Integer(7)])
        Walking
-       HyExpression([
-         HyInteger(5),
-         HyInteger(6),
-         HyList([
-           HyInteger(7)])])
+       hy.models.Expression([
+         hy.models.Integer(5),
+         hy.models.Integer(6),
+         hy.models.List([
+           hy.models.Integer(7)])])
        Walking
-       HyExpression([
-         HyInteger(4),
-         HyList([
-           HyInteger(5),
-           HyInteger(6),
-           HyList([
-             HyInteger(7)])])])
+       hy.models.Expression([
+         hy.models.Integer(4),
+         hy.models.List([
+           hy.models.Integer(5),
+           hy.models.Integer(6),
+           hy.models.List([
+             hy.models.Integer(7)])])])
        Walking
-       HyExpression([
-         HyList([
-           HyInteger(1),
-           HyInteger(2),
-           HyInteger(3)]),
-         HyList([
-           HyInteger(4),
-           HyList([
-             HyInteger(5),
-             HyInteger(6),
-             HyList([
-               HyInteger(7)])])])])
-       HyExpression([
-         HyList([
-           HyInteger(1),
-           HyInteger(2),
-           HyInteger(3)]),
-         HyList([
-           HyInteger(4),
-           HyList([
-             HyInteger(5),
-             HyInteger(6),
-             HyList([
-               HyInteger(7)])])])])
+       hy.models.Expression([
+         hy.models.List([
+           hy.models.Integer(1),
+           hy.models.Integer(2),
+           hy.models.Integer(3)]),
+         hy.models.List([
+           hy.models.Integer(4),
+           hy.models.List([
+             hy.models.Integer(5),
+             hy.models.Integer(6),
+             hy.models.List([
+               hy.models.Integer(7)])])])])
+       hy.models.Expression([
+         hy.models.List([
+           hy.models.Integer(1),
+           hy.models.Integer(2),
+           hy.models.Integer(3)]),
+         hy.models.List([
+           hy.models.Integer(4),
+           hy.models.List([
+             hy.models.Integer(5),
+             hy.models.Integer(6),
+             hy.models.List([
+               hy.models.Integer(7)])])])])
   "
   (walk (partial postwalk f) f form))
 
@@ -138,23 +138,23 @@
        ...  x)
        => (prewalk walking trail)
        Walking
-       HyExpression([
-         HyList([
-           HyInteger(1),
-           HyInteger(2),
-           HyInteger(3)]),
-         HyList([
-           HyInteger(4),
-           HyList([
-             HyInteger(5),
-             HyInteger(6),
-             HyList([
-               HyInteger(7)])])])])
+       hy.models.Expression([
+         hy.models.List([
+           hy.models.Integer(1),
+           hy.models.Integer(2),
+           hy.models.Integer(3)]),
+         hy.models.List([
+           hy.models.Integer(4),
+           hy.models.List([
+             hy.models.Integer(5),
+             hy.models.Integer(6),
+             hy.models.List([
+               hy.models.Integer(7)])])])])
        Walking
-       HyList([
-         HyInteger(1),
-         HyInteger(2),
-         HyInteger(3)])
+       hy.models.List([
+         hy.models.Integer(1),
+         hy.models.Integer(2),
+         hy.models.Integer(3)])
        Walking
        1
        Walking
@@ -162,48 +162,48 @@
        Walking
        3
        Walking
-       HyList([
-         HyInteger(4),
-         HyList([
-           HyInteger(5),
-           HyInteger(6),
-           HyList([
-             HyInteger(7)])])])
+       hy.models.List([
+         hy.models.Integer(4),
+         hy.models.List([
+           hy.models.Integer(5),
+           hy.models.Integer(6),
+           hy.models.List([
+             hy.models.Integer(7)])])])
        Walking
        4
        Walking
-       HyList([
-         HyInteger(5),
-         HyInteger(6),
-         HyList([
-           HyInteger(7)])])
+       hy.models.List([
+         hy.models.Integer(5),
+         hy.models.Integer(6),
+         hy.models.List([
+           hy.models.Integer(7)])])
        Walking
        5
        Walking
        6
        Walking
-       HyList([
-         HyInteger(7)])
+       hy.models.List([
+         hy.models.Integer(7)])
        Walking
        7
-       HyExpression([
-         HyList([
-           HyInteger(1),
-           HyInteger(2),
-           HyInteger(3)]),
-         HyList([
-           HyInteger(4),
-           HyList([
-             HyInteger(5),
-             HyInteger(6),
-             HyList([
-               HyInteger(7)])])])])
+       hy.models.Expression([
+         hy.models.List([
+           hy.models.Integer(1),
+           hy.models.Integer(2),
+           hy.models.Integer(3)]),
+         hy.models.List([
+           hy.models.Integer(4),
+           hy.models.List([
+             hy.models.Integer(5),
+             hy.models.Integer(6),
+             hy.models.List([
+               hy.models.Integer(7)])])])])
   "
   (walk (partial prewalk f) identity (f form)))
 
 (defn call? [form]
-  "Checks whether form is a non-empty HyExpression"
-  (and (instance? HyExpression form)
+  "Checks whether form is a non-empty hy.models.Expression"
+  (and (instance? hy.models.Expression form)
        form))
 
 (defn macroexpand-all [form [module-name None]]
@@ -237,7 +237,7 @@
                      [True (traverse form)])]
               [(= (first form) 'quote) form]
               [(= (first form) 'quasiquote) (+quote)]
-              [(= (first form) (HySymbol "require"))
+              [(= (first form) (hy.models.Symbol "require"))
                (ast-compiler.compile form)
                (return)]
               [True (traverse (mexpand form module ast-compiler))])
@@ -257,7 +257,8 @@
   "
   (setv headers ['unpack-iterable '* 'unpack-mapping]
         sections (OrderedDict [(, None [])])
-        vararg-types {'unpack-iterable (HySymbol "#*") 'unpack-mapping (HySymbol "#**")}
+        vararg-types {'unpack-iterable (hy.models.Symbol "#*")
+                      'unpack-mapping (hy.models.Symbol "#**")}
         header None)
   (for [arg form]
     (if
@@ -267,7 +268,7 @@
           ;; Don't use a header more than once. It's the compiler's problem.
           (.remove headers header))
 
-      (and (isinstance arg HyExpression) (in (first arg) headers))
+      (and (isinstance arg hy.models.Expression) (in (first arg) headers))
       (do (setv header (first arg))
           (assoc sections header [])
           ;; Don't use a header more than once. It's the compiler's problem.
@@ -380,7 +381,7 @@
 
   ;; convert dotted names to the standard special form
   (defn convert-dotted-symbol [self]
-    (self.expand-symbols `(. ~@(map HySymbol (.split self.form '.)))))
+    (self.expand-symbols `(. ~@(map hy.models.Symbol (.split self.form '.)))))
 
   (defn expand-symbol [self]
     (if (not-in self.form self.protected)
@@ -552,8 +553,8 @@
     replaced)
 
   (defn destructuring? [x]
-    (or (instance? HyList x)
-        (and (instance? HyExpression x)
+    (or (instance? hy.models.List x)
+        (and (instance? hy.models.Expression x)
              (= (first x) ',))))
 
   (for [[k v] (partition bindings)]
@@ -577,7 +578,8 @@
                        [(and (symbol? x) (in '. x))
                         (macro-error k "bind target may not contain a dot")]
 
-                       [(and (instance? HyExpression x) (-> x first (in #{', 'unpack-iterable}) not))
+                       [(and (instance? hy.models.Expression x)
+                             (-> x first (in #{', 'unpack-iterable}) not))
                         (macro-error k "cannot destructure non-iterable unpacking expression")]
 
                        [(and (symbol? x) (in x unpacked-syms))
