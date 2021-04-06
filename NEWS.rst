@@ -74,6 +74,7 @@ Bug Fixes
 * `with*` has been removed and now `with` is now a special form. It compiles to
   a Python `with` statement with multiple context managers and `_` is used to
   signify an unnamed context manager.
+* Corrected `hy-repr` for f-strings.
 
 Misc. Improvements
 ------------------------------

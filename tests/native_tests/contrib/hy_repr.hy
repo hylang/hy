@@ -124,7 +124,9 @@
   (assert (= (hy-repr (hy.models.Integer 7)) "'7"))
   (assert (= (hy-repr (hy.models.String "hello")) "'\"hello\""))
   (assert (= (hy-repr (hy.models.List [1 2 3])) "'[1 2 3]"))
-  (assert (= (hy-repr (hy.models.Dict [1 2 3])) "'{1 2  3}")))
+  (assert (= (hy-repr (hy.models.Dict [1 2 3])) "'{1 2  3}"))
+  (assert (= (hy-repr 'f"a{:a}") "'f\"a{:a}\""))
+  (assert (= (hy-repr 'f"a{{{{(+ 1 1)}}}}") "'f\"a{{{{(+ 1 1)}}}}\"")))
 
 (defn test-hy-repr-self-reference []
 
