@@ -1,79 +1,74 @@
 .. default-role:: code
 
-Unreleased
+1.0a1 (released 2021-04-12)
 ==============================
 
 Removals
 ------------------------------
-* `name` function has been removed from core.
-  Use `(. :keyword name)` and/or explicit calls to `unmangle` instead.
+* The core function `name` has been removed.
+   Use `unmangle` or the `name` attribute of keyword objects instead.
 * `deftag` has been removed. Instead of `(deftag foo …)`,
   say `(defmacro "#foo" …)`.
 * `#doc` has been removed. Instead of `#doc @`, say `(doc "#@")`.
 * `__tags__` has been removed. Tag macros are now tracked in
   `__macros__`.
-* `eval` has been removed from core.
-  Use the fully qualified name `hy.eval` instead.
 
 Breaking Changes
 ------------------------------
-* f-strings are now parsed as a separate `HyFString` node,
-  which is a collection of `HyString` and `HyFComponent` nodes.
-* Calling a `HyKeyword`  now looks up by its (string) name instead by its self.
-  `(:key obj)` is now equivalent to `(get obj (mangle (. :key name)))`.
+* Lambda lists (function parameter lists) have been simplified.
+  `&optional` is gone, `&args` is `#*`, `&kwargs` is `#**`, and
+  `&kwonly` is `*`. Thus, `[a &optional b [c 3] &rest args &kwargs
+  kwargs]` is now `[a [b None] [c 3] #* args #** kwargs]`.
+* Hy models have been renamed to remove "Hy", and are no longer
+  automatically brought into scope. Thus, `HyList` is now
+  `hy.models.List`.
+* `eval` is no longer automatically brought into scope. Call it as
+  `hy.eval` (or import it explicitly).
+* Calling a keyword object now does a string lookup, instead of a
+  keyword-object lookup. Thus, `(:key obj)` is equivalent to `(get
+  obj (mangle (. :key name)))`.
 * To require a tag macro `foo`, instead of `(require [module [foo]])`,
   you must now say `(require [module ["#foo"]])`.
-* Simplified `fn` parameters, added support for positional only arguments, and removed
-  implicit `None` for optional arguments.
-  The equivalent of::
-
-    def hello(a, /, b, c=None, *, d, e="world", **kwargs): pass
-
-  is now::
-
-    (defn hello [a / b [c None] * d [e "world"] #** kwargs])
-
-  check the docs or use ``(doc defn)`` at the repl for more details.
-* `mangle` no longer converts leading hyphens to underscores, and
-  `unmangle` no longer converts leading underscores to hyphens.
-* Hy models have been renamed to exclude `Hy` from their names. They are no
-  longer autoimported and must be accessed through the `hy.models`
-  namespace. `repr` reflects these changes, so, for example, `HyList` will now
-  show up as `hy.models.List`.
+* Mangling no longer converts leading hyphens to underscores, and
+  unmangling no longer converts leading underscores to hyphens.
+* F-strings now have their own model type, and store their code parts
+  as models instead of strings.
 
 New Features
 ------------------------------
 * Python 3.10 is now supported.
-* New standard macros `do-n`, `list-n`, and `cfor`
-* New contrib module `destructure` for Clojure-style destructuring.
-* Location of history file now configurable via environment variable `HY_HISTORY`
-* Added handling for "=" syntax in f-strings.
-* Repl init scripts with `HYSTARTUP` env var
-* `defmacro` and `require` can now take macro names as string literals.
-* New contrib module `slicing` for easy multi-index sequence slicing.
-* The module `hy.extra.reserved` has a new function `special`
+* Lambda lists now support positional-only arguments.
+* F-strings now support `=` syntax per Python.
+* `with` now supports unnamed context managers.
+* `defmacro` and `require` can now take macro names as string
+  literals.
+* New standard macros `do-n`, `list-n`, and `cfor`.
+* The location of the REPL history file can now be set with the
+  environment variable `HY_HISTORY`.
+* REPL initialization scripts are now supported with the envrionment
+  variable `HYSTARTUP`.
+* The module `hy.extra.reserved` has a new function `special`.
+* New module `hy.contrib.destructure` for Clojure-style destructuring.
+* New module `hy.contrib.slicing` for multi-index sequence slicing.
 
 Bug Fixes
 ------------------------------
-* Fixed a bug where AST nodes from macro expansion did not properly
-  receive source location info.
-* Fixed bug in `smacrolet` by replacing `module-name` argument with `&name`.
-* Fixed expressions within f-strings being inaccessible to macros.
-* Fixed symbol `J` being incorrectly parsed as a complex number
-* Fixed error handling for non-symbol macro names
-* `doc` and `#doc` now work with names that require mangling.
-* Fixed compiler crash on `.` form with empty attributes.
+* Fixed the identifier `J` being incorrectly parsed as a complex
+  number.
 * Attempts to assign to constants are now more reliably detected.
+* Fixed a bug where AST nodes from macro expansion did not properly
+  receive source locations.
+* Fixed `doc` sometimes failing to find core macros.
+* `doc` now works with names that need mangling.
 * Fixed bugs with `require` of names that need mangling.
-* Fixed namespace pollution caused by automatic imports of Hy builtins and macros.
-* Fixed Hy model objects sometimes not being in scope.
-* Fixed `doc` sometimes failing to find builtin macros.
-* `require` now works with relative imports and can import modules, such as
-  `(require [hy.contrib [walk]])`.
-* Fixed `hyc` and `hy2py` not finding relative imports
-* `with*` has been removed and now `with` is now a special form. It compiles to
-  a Python `with` statement with multiple context managers and `_` is used to
-  signify an unnamed context manager.
+* Fixed a compiler crash from trying to use `..` as an operator.
+* Fixed namespace pollution caused by automatic imports of Hy builtins
+  and macros.
+* `require` now works with relative imports and can name modules as
+  members, as in `(require [hy.contrib [walk]])`.
+* Fixed error handling for illegal macro names.
+* Fixed `hyc` and `hy2py` not finding relative imports.
+* Fixed `hy.contrib.walk.smacrolet` requiring a module name.
 
 Misc. Improvements
 ------------------------------
