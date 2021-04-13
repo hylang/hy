@@ -1,7 +1,9 @@
 .. default-role:: code
 
-1.0a1 (released 2021-04-12)
+0.21.0 (released ???)
 ==============================
+
+This version was also mistakenly released as 1.0a1 on 2021-04-12.
 
 Removals
 ------------------------------
