@@ -521,6 +521,7 @@ Special Forms
 
    ::
 
+       => (import [itertools [count take-while]])
        => (setv accum [])
        => (list (take-while
        ...  (fn [x] (< x 5))
