@@ -8,6 +8,7 @@
         re
         [operator [or_]]
         [itertools [repeat]]
+        [fractions [Fraction]]
         pickle
         [typing [get-type-hints List Dict]]
         [hy.errors [HyLanguageError HySyntaxError]]
@@ -39,7 +40,7 @@
 
 (defn test-fractions []
   "NATIVE: test fractions"
-  (assert (= 1/2 (fraction 1 2))))
+  (assert (= 1/2 (Fraction 1 2))))
 
 
 (defn test-lists []
