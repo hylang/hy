@@ -14,6 +14,7 @@ import hy.importer  # NOQA
 hy.importer._inject_builtins()
 # we import for side-effects.
 
+from fractions import Fraction as _Fraction  # For fraction literals
 
 from hy.lex import read, read_str, mangle, unmangle  # NOQA
 from hy.compiler import hy_eval as eval  # NOQA

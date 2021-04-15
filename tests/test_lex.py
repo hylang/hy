@@ -132,7 +132,7 @@ def test_lex_integers():
 def test_lex_fractions():
     """ Make sure that fractions are valid expressions"""
     objs = tokenize("1/2")
-    assert objs == [Expression([Symbol("fraction"), Integer(1), Integer(2)])]
+    assert objs == [Expression([Symbol("hy._Fraction"), Integer(1), Integer(2)])]
 
 
 def test_lex_expression_float():
@@ -203,7 +203,7 @@ def test_lex_digit_separators():
     assert tokenize('1_2.3,4') == [Float(12.34)]
     assert tokenize('1_2e3,4') == [Float(12e34)]
     assert (tokenize("1,2/3_4") ==
-            [Expression([Symbol("fraction"), Integer(12), Integer(34)])])
+            [Expression([Symbol("hy._Fraction"), Integer(12), Integer(34)])])
     assert tokenize("1,0_00j") == [Complex(1000j)]
 
     assert tokenize("1,,,,___,____,,__,,2__,,,__") == [Integer(12)]

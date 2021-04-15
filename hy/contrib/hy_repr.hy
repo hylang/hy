@@ -15,6 +15,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
 
 (import
   [math [isnan]]
+  [fractions [Fraction]]
   re
   datetime
   collections)
@@ -165,7 +166,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
                (_base-repr x))))
 (hy-repr-register complex (fn [x]
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
-(hy-repr-register fraction (fn [x]
+(hy-repr-register Fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
 (setv _matchobject-type (type (re.match "" "")))
