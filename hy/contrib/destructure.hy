@@ -106,6 +106,9 @@ Iterator patterns are specified using round brackets. They are the same as list 
 "
 
 (require [hy.contrib.walk [let]])
+(import
+  [itertools [starmap chain count]]
+  [functools [reduce]])
 
 (defmacro! ifp [o!pred o!expr #* clauses]
   "Takes a binary predicate ``pred``, an expression ``expr``, and a set of
@@ -258,13 +261,13 @@ Iterator patterns are specified using round brackets. They are the same as list 
           sym (expand-lookup t (to-key t))
       sym))
   (->> (.items binds)
-       (*map (fn [target lookup]
-               (ifp found target
-                 ':or []
-                 ':as [lookup ddict]
-                 ':strs (get-as str lookup)
-                 ':keys (get-as (comp hy.models.Keyword unmangle) lookup)
-                 (destructure #* (expand-lookup target lookup) gsyms))))
+       (starmap (fn [target lookup]
+                  (ifp found target
+                    ':or []
+                    ':as [lookup ddict]
+                    ':strs (get-as str lookup)
+                    ':keys (get-as (comp hy.models.Keyword unmangle) lookup)
+                    (destructure #* (expand-lookup target lookup) gsyms))))
        ((fn [xs] (reduce + xs result)))))
 
 (defn find-magics [bs [keys? False] [as? False]]
@@ -327,10 +330,12 @@ Iterator patterns are specified using round brackets. They are the same as list 
   For example, try ``(destructure '(a b c :& more :as it) (count))``.
   "
   (setv [bs magics] (find-magics binds)
-        copy-iter (gensym))
+        copy-iter (gensym)
+        tee (gensym))
   (if (in ':as (map first magics))
     (.extend result [diter `(do
-                              (setv [~diter ~copy-iter] (tee ~diter))
+                              (import [itertools [tee :as ~tee]])
+                              (setv [~diter ~copy-iter] (~tee ~diter))
                               ~diter)])
     (.append result `(iter ~(.pop result))))
   (reduce +
@@ -343,7 +348,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
 
 (defn _expanded-setv [actual args kwargs]
   (macroexpand
-    `(setv+ ~actual (chain ~args
+    `(setv+ ~actual (+ (list ~args)
                           (lfor [k v] (.items ~kwargs)
                                 s [(hy.models.Keyword k) v]
                             s)))))
