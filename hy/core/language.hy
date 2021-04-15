@@ -8,7 +8,6 @@
 
 (import itertools)
 (import functools)
-(import [fractions [Fraction :as fraction]])
 (import operator)  ; shadow not available yet
 (import sys)
 (import [collections.abc :as cabc])
@@ -261,37 +260,6 @@
       (do
        (yield val)
        (.add seen val)))))
-
-(setv
-  remove itertools.filterfalse
-  zip-longest itertools.zip_longest
-  ;; was builtin in Python2
-  reduce functools.reduce
-  accumulate itertools.accumulate)
-
-;; infinite iterators
-(setv
-  count itertools.count
-  cycle itertools.cycle
-  repeat itertools.repeat)
-
-;; shortest-terminating iterators
-(setv
-  *map itertools.starmap
-  chain itertools.chain
-  compress itertools.compress
-  drop-while itertools.dropwhile
-  group-by itertools.groupby
-  islice itertools.islice
-  take-while itertools.takewhile
-  tee itertools.tee)
-
-;; combinatoric iterators
-(setv
-  combinations itertools.combinations
-  multicombinations itertools.combinations_with_replacement
-  permutations itertools.permutations
-  product itertools.product)
 
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest.
@@ -1410,13 +1378,13 @@
 
 (setv __all__
   (list (map mangle
-    '[*map accumulate butlast calling-module calling-module-name chain coll?
-      combinations comp complement compress constantly count cycle dec distinct
-      disassemble drop drop-last drop-while empty? even? every? first
-      flatten float? fraction gensym group-by identity inc instance?
-      integer? integer-char? interleave interpose islice iterable?
+    '[butlast calling-module calling-module-name coll?
+      comp complement constantly dec distinct
+      disassemble drop drop-last empty? even? every? first
+      flatten float? gensym identity inc instance?
+      integer? integer-char? interleave interpose iterable?
       iterate iterator? juxt keyword keyword? last list? macroexpand
-      macroexpand-1 mangle merge-with multicombinations neg? none? nth
-      numeric? odd? parse-args partition permutations pos? product read read-str
-      remove repeat repeatedly rest reduce second some string? symbol?
-      take take-nth take-while tuple? unmangle xor tee zero? zip-longest])))
+      macroexpand-1 mangle merge-with neg? none? nth
+      numeric? odd? parse-args partition pos? read read-str
+      repeatedly rest second some string? symbol?
+      take take-nth tuple? unmangle xor zero?])))
