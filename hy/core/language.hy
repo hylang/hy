@@ -42,6 +42,7 @@
 
     ::
 
+       => (import [itertools [count]])
        => (list (take 5 (butlast (count 10))))
        [10, 11, 12, 13, 14]
   "
@@ -319,6 +320,7 @@
        => (list (drop 6 [1 2 3 4 5]))
        []
   "
+  (import [itertools [islice]])
   (islice coll count None))
 
 (defn drop-last [n coll]
@@ -345,9 +347,11 @@
 
     ::
 
+       => (import [itertools [count]])
        => (list (take 5 (drop-last 100 (count 10))))
        [10, 11, 12, 13, 14]
   "
+  (import [itertools [tee]])
   (setv iters (tee coll))
   (map first (zip #* [(get iters 0)
                       (drop n (get iters 1))])))
@@ -581,6 +585,7 @@
 
     ::
 
+       (import [itertools [repeat]])
        => (first (repeat 10))
        10
 
@@ -700,6 +705,7 @@
        => (list (interleave (range 1000000) \"abc\"))
        [0, 'a', 1, 'b', 2, 'c']
   "
+  (import [itertools [chain]])
   (chain.from-iterable (zip #* seqs)))
 
 (defn interpose [item seq]
@@ -718,6 +724,7 @@
        => (list (interpose -1 (range 5)))
        [0, -1, 1, -1, 2, -1, 3, -1, 4]
   "
+  (import [itertools [repeat]])
   (drop 1 (interleave (repeat item) seq)))
 
 (defn iterable? [x]
@@ -754,6 +761,7 @@
     ::
 
        => ;; works for iterators/generators
+       => (import [itertools [repeat]])
        => (iterable? (repeat 3))
        True
   "
@@ -927,6 +935,7 @@
        => (merge-with + {\"a\" 10 \"b\" 20} {\"a\" 1 \"c\" 30})
        {u'a': 11L, u'c': 30L, u'b': 20L}
   "
+  (import [functools [reduce]])
   (if (any maps)
     (do
       (defn merge-entry [m e]
@@ -1106,6 +1115,7 @@
        => (list (partition (range 10) 3 :fillvalue \"x\"))
        [(0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 'x', 'x')]
   "
+  (import [itertools [zip-longest islice tee]])
   (setv
    step (or step n)
    coll-clones (tee coll n)
@@ -1250,6 +1260,7 @@
 
     ::
 
+       => (import [itertools [repeat]])
        => (list (take 4 (repeat \"s\")))
        [u's', u's', u's', u's']
 
@@ -1258,6 +1269,7 @@
        => (list (take 0 (repeat \"s\")))
        []
   "
+  (import [itertools [islice]])
   (islice coll None count))
 
 (defn take-nth [n coll]
