@@ -87,7 +87,7 @@
   "
   `(do (setv
          ~name ~head
-         ~@(interleave (repeat name) rest))
+         ~@(sum (gfor  x rest  [name x]) []))
      ~name))
 
 
@@ -174,16 +174,18 @@
   (or branches
     (return))
 
-  `(if ~@(reduce + (gfor
-    branch branches
-    (if
-      (not (and (is (type branch) hy.models.List) branch))
-        (macro-error branch "each cond branch needs to be a nonempty list")
-      (= (len branch) 1) (do
-        (setv g (gensym))
-        [`(do (setv ~g ~(first branch)) ~g) g])
-      True
-        [(first branch) `(do ~@(cut branch 1))])))))
+  `(if ~@(sum
+    (gfor
+      branch branches
+      (if
+        (not (and (is (type branch) hy.models.List) branch))
+          (macro-error branch "each cond branch needs to be a nonempty list")
+        (= (len branch) 1) (do
+          (setv g (gensym))
+          [`(do (setv ~g ~(first branch)) ~g) g])
+        True
+          [(first branch) `(do ~@(cut branch 1))]))
+    [])))
 
 
 (defmacro -> [head #* args]
