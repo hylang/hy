@@ -2,9 +2,11 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-;;;; some simple helpers
+(import
+  [itertools [repeat cycle]]
+  pytest)
 
-(import pytest)
+;;;; some simple helpers
 
 (defn assert-true [x]
   (assert (= True x)))

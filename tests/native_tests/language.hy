@@ -7,6 +7,7 @@
         [sys :as systest]
         re
         [operator [or_]]
+        [itertools [repeat]]
         pickle
         [typing [get-type-hints List Dict]]
         [hy.errors [HyLanguageError HySyntaxError]]
