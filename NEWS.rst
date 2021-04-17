@@ -6,14 +6,14 @@
 Removals
 ------------------------------
 * The core function `name` has been removed.
-   Use `unmangle` or the `name` attribute of keyword objects instead.
+  Use `unmangle` or the `name` attribute of keyword objects instead.
 * `deftag` has been removed. Instead of `(deftag foo …)`,
   say `(defmacro "#foo" …)`.
 * `#doc` has been removed. Instead of `#doc @`, say `(doc "#@")`.
 * `__tags__` has been removed. Tag macros are now tracked in
   `__macros__`.
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
 * Lambda lists (function parameter lists) have been simplified.
   `&optional` is gone, `&args` is `#*`, `&kwargs` is `#**`, and
