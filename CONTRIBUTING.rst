@@ -11,7 +11,7 @@ helps in making Hy better. Potential contributions include:
   - You can mark tests that Hy can't pass yet as xfail_.
 - Cleaning up the code.
 - Improving the documentation.
-- Answering questions on `the IRC channel`_, `the mailing list`_, or
+- Answering questions on `the Github Discussions page`_ or
   `Stack Overflow`_.
 - Evangelizing for Hy in your organization, user group, conference, or
   bus stop.
@@ -193,7 +193,6 @@ http://contributor-covenant.org/version/1/1/0/.
 .. _GitHub: https://github.com/hylang/hy
 .. _This getting-started guide: http://rogerdudler.github.io/git-guide/
 .. _good-first-bug: https://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug
-.. _the IRC channel: irc://freenode.net/hy
-.. _the mailing list: https://groups.google.com/forum/#!forum/hylang-discuss
+.. _the Github Discussions page: https://github.com/hylang/hy/discussions
 .. _Stack Overflow: https://stackoverflow.com/questions/tagged/hy
 .. _xfail: https://docs.pytest.org/en/latest/skipping.html#mark-a-test-function-as-expected-to-fail
