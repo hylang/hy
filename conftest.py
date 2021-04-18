@@ -10,6 +10,9 @@ NATIVE_TESTS = os.path.join("", "tests", "native_tests", "")
 
 _fspath_pyimport = py.path.local.pyimport
 
+# https://github.com/hylang/hy/issues/2029
+os.environ.pop("HYSTARTUP", None)
+
 
 def pytest_ignore_collect(path, config):
     return (("py3_8_only" in path.basename and not PY3_8) or None)

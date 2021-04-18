@@ -599,3 +599,15 @@ def test_bin_hy_tracebacks():
     error_lines = error.splitlines()
     assert error_lines[-2] == '  File "<string>", line 1, in <module>'
     assert error_lines[-1].startswith('TypeError')
+
+
+def test_hystartup():
+    os.environ["HYSTARTUP"] = "tests/resources/hystartup.hy"
+    output, _ = run_cmd("hy", "[1 2]")
+    assert "[1 2]" in output
+    assert "[1, 2]" in output
+
+    output, _ = run_cmd("hy", "(hello-world)")
+    assert "(hello-world)" not in output
+    assert "1 + 1" in output
+    assert "2" in output
