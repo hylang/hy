@@ -333,16 +333,6 @@ def test_ast_bad_cut():
     cant_compile("(cut 1 2 3 4 5)")
 
 
-def test_ast_good_take():
-    "Make sure AST can compile valid 'take'"
-    can_compile("(take 1 [2 3])")
-
-
-def test_ast_good_drop():
-    "Make sure AST can compile valid 'drop'"
-    can_compile("(drop 1 [2 3])")
-
-
 def test_ast_good_assoc():
     "Make sure AST can compile valid assoc"
     can_compile("(assoc x y z)")
@@ -631,12 +621,12 @@ def test_eval_generator_with_return():
 
 def test_futures_imports():
     """Make sure __future__ imports go first, especially when builtins are
-    automatically added (e.g. via use of a builtin name like `last`)."""
+    automatically added (e.g. via use of a builtin name like `rest`)."""
     hy_ast = can_compile((
         '(import [__future__ [print_function]])\n'
         '(import sys)\n'
-        '(setv last [1 2])'
-        '(print (first last))'))
+        '(setv some [1 2])'
+        '(print (list (rest some)))'))
 
     assert hy_ast.body[0].module == '__future__'
 
