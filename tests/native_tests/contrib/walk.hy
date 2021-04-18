@@ -27,22 +27,22 @@
   (if (integer? x) (+ x 1) x))
 
 (defn test-walk-identity []
-  (assert (= (walk identity identity walk-form)
+  (assert (= (walk (fn [x] x) (fn [x] x) walk-form)
              walk-form)))
 
 (defn test-walk []
   (setv acc [])
-  (assert (= (list (walk (partial collector acc) identity walk-form))
+  (assert (= (list (walk (partial collector acc) (fn [x] x) walk-form))
              [None None]))
   (assert (= acc (list walk-form)))
   (setv acc [])
-  (assert (= (walk identity (partial collector acc) walk-form)
+  (assert (= (walk (fn [x] x) (partial collector acc) walk-form)
              None))
   (assert (= acc [walk-form])))
 
 (defn test-walk-iterators []
   (assert (= (walk (fn [x] (* 2 x)) (fn [x] x)
-                   (drop 1 [1 [2 [3 [4]]]]))
+                   (rest [1 [2 [3 [4]]]]))
              [[2 [3 [4]] 2 [3 [4]]]])))
 
 ;; test that expressions within f-strings are also walked
@@ -72,7 +72,7 @@
        (require [tests.resources.macros [test-macro :as my-test-macro]])
        (my-test-macro)))
 
-  (assert (= (last (macroexpand-all '(require-macro)))
+  (assert (= (get (macroexpand-all '(require-macro)) -1)
              '(setv blah 1))))
 
 (defn test-smacrolet []

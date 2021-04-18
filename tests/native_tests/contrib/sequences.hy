@@ -4,11 +4,12 @@
 
 (require [hy.contrib.sequences [seq defseq]])
 
-(import [hy.contrib.sequences [Sequence end-sequence]])
+(import
+  [hy.contrib.sequences [Sequence end-sequence]])
 
 (defn test-infinite-sequence []
   "NATIVE: test creating infinite sequence"
-  (assert (= (list (take 5 (seq [n] n)))
+  (assert (= (list (cut (seq [n] n) 0 5))
              [0 1 2 3 4])))
 
 (defn test-indexing-sequence []
@@ -33,8 +34,8 @@
     (cond [(< n 10) n]
           [True (end-sequence)]))
   (setv 0-to-9 (list (range 10)))
-  (assert (= (first shorty)
-             (first 0-to-9))
+  (assert (= (get shorty 0)
+             (get 0-to-9 0))
           "getting first failed")
   (assert (= (list (rest shorty))
              (list (rest 0-to-9)))
@@ -56,16 +57,16 @@
           [(= n 1) 1]
           [True (+ (get fibonacci (- n 1))
                    (get fibonacci (- n 2)))]))
-  (assert (= (first fibonacci)
+  (assert (= (get fibonacci 0)
              0)
           "first element of fibonacci didn't match")
-  (assert (= (second fibonacci)
+  (assert (= (get fibonacci 1)
              1)
           "second element of fibonacci didn't match")
   (assert (= (get fibonacci 40)
              102334155)
           "40th element of fibonacci didn't match")
-  (assert (= (list (take 9 fibonacci))
+  (assert (= (list (cut fibonacci 0 9))
              [0 1 1 2 3 5 8 13 21])
           "taking 8 elements of fibonacci didn't match"))
 
@@ -80,7 +81,7 @@
                 prevs)))
     (defn previous-primes [n]
       "previous prime numbers"
-      (take (dec n) primes))
+      (cut primes 0 (dec n)))
     (defn next-possible-prime [n]
       "next possible prime after nth prime"
       (inc (get primes (dec n))))
@@ -89,6 +90,6 @@
                     (while (divisible? guess (previous-primes n))
                       (setv guess (inc guess)))
                     guess)]))
-  (assert (= (list (take 10 primes))
+  (assert (= (list (cut primes 0 10))
              [2 3 5 7 11 13 17 19 23 29])
           "prime sequence didn't match"))

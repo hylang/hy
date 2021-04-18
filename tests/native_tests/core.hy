@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [itertools [repeat cycle]]
+  [itertools [repeat cycle islice]]
   pytest)
 
 ;;;; some simple helpers
@@ -44,7 +44,7 @@
                 [])
   ; with an infinite sequence
   (import itertools)
-  (assert-equal (list (take 5 (butlast (itertools.count 10))))
+  (assert-equal (list (islice (butlast (itertools.count 10)) 5))
                 [10 11 12 13 14]))
 
 (defn test-dec []
@@ -109,7 +109,7 @@
                 [])
   ; with an infinite sequence
   (import itertools)
-  (assert-equal (list (take 5 (drop-last 100 (itertools.count 10))))
+  (assert-equal (list (islice (drop-last 100 (itertools.count 10)) 5))
                 [10 11 12 13 14]))
 
 (defn test-empty? []
@@ -399,9 +399,9 @@ result['y in globals'] = 'y' in globals()")
 (defn test-repeatedly []
   "NATIVE: testing repeatedly"
   (setv r (repeatedly (fn [] (inc 4))))
-  (assert-equal (list (take 5 r)) [5 5 5 5 5])
-  (assert-equal (list (take 4 r)) [5 5 5 5])
-  (assert-equal (list (take 6 r)) [5 5 5 5 5 5]))
+  (assert-equal (list (islice r 5)) [5 5 5 5 5])
+  (assert-equal (list (islice r 4)) [5 5 5 5])
+  (assert-equal (list (islice r 6)) [5 5 5 5 5 5]))
 
 (defn test-some []
   "NATIVE: testing the some function"
@@ -410,9 +410,9 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (some even? [1 2 3]))
   (assert-none (some even? []))
   ; 0, "" (empty string) and [] (empty list) are all logical false
-  (assert-none (some identity [0 "" []]))
+  (assert-none (some (fn [x] x) [0 "" []]))
   ; non-empty string is logical true
-  (assert-equal (some identity [0 "this string is non-empty" []])
+  (assert-equal (some (fn [x] x) [0 "this string is non-empty" []])
                 "this string is non-empty")
   ; None if collection is empty
   (assert-none (some even? [])))

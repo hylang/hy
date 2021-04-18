@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import pytest)
-(import [itertools [cycle count]])
+(import [itertools [cycle count islice]])
 (import [hy.contrib.destructure [destructure]])
 (require [hy.contrib.destructure [setv+ dict=: defn+ fn+ let+]])
 
@@ -46,7 +46,7 @@
              [0 1 2]))
   (assert (= (next the-rest)
              3))
-  (assert (= (list (take 5 the-rest))
+  (assert (= (list (islice the-rest 5))
              [4 5 6 7 8]))
   ;; :as
   (setv+ (a b c :& d :as e) (count))
@@ -54,8 +54,8 @@
              [0 1 2]))
   (assert (iterator? d))
   (assert (iterator? e))
-  (assert (= [3 4 5] (list (take 3 d))))
-  (assert (= [0 1 2 3 4 5] (list (take 6 e))))
+  (assert (= [3 4 5] (list (islice d 3))))
+  (assert (= [0 1 2 3 4 5] (list (islice e 6))))
   ;; missing
   (setv+ (a b c :& d :as e) (gfor i (range 2) i))
   (assert (= [a b c]

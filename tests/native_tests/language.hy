@@ -7,7 +7,7 @@
         [sys :as systest]
         re
         [operator [or_]]
-        [itertools [repeat]]
+        [itertools [repeat count islice]]
         [fractions [Fraction]]
         pickle
         [typing [get-type-hints List Dict]]
@@ -689,12 +689,12 @@
                                 "species" "Sepia braggi"}
                "discovered" {"year" 1907
                             "name" "Sir Joseph Cooke Verco"}}])
-  (assert (= (as-> (first data) x
+  (assert (= (as-> (get data 0) x
                    (:name x))
              "hooded cuttlefish"))
   (assert (= (as-> (filter (fn [entry] (= (:name entry)
                            "slender cuttlefish")) data) x
-                   (first x)
+                   (next x)
                    (:discovered x)
                    (:name x))
              "Sir Joseph Cooke Verco")))
@@ -770,7 +770,7 @@
 (defn test-rest []
   "NATIVE: test rest"
   (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5]))
-  (assert (= (list (take 3 (rest (iterate inc 8)))) [9 10 11]))
+  (assert (= (list (islice (rest (count 8)) 3)) [9 10 11]))
   (assert (= (list (rest [])) [])))
 
 
@@ -1193,7 +1193,7 @@
       "apple bloom" b"apple bloom" "⚘" b"\x00"
       [] #{} {}
       [1 2 3] #{1 2 3} {"a" 1 "b" 2}]]
-    (assert (= (hy.eval `(identity ~x)) x))
+    (assert (= (hy.eval `(get [~x] 0)) x))
     (assert (= (hy.eval x) x)))
 
   (setv kw :mykeyword)
