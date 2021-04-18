@@ -8,7 +8,6 @@
 
 (import itertools)
 (import functools)
-(import [fractions [Fraction :as fraction]])
 (import operator)  ; shadow not available yet
 (import sys)
 (import [collections.abc :as cabc])
@@ -42,6 +41,7 @@
 
     ::
 
+       => (import [itertools [count]])
        => (list (take 5 (butlast (count 10))))
        [10, 11, 12, 13, 14]
   "
@@ -261,37 +261,6 @@
        (yield val)
        (.add seen val)))))
 
-(setv
-  remove itertools.filterfalse
-  zip-longest itertools.zip_longest
-  ;; was builtin in Python2
-  reduce functools.reduce
-  accumulate itertools.accumulate)
-
-;; infinite iterators
-(setv
-  count itertools.count
-  cycle itertools.cycle
-  repeat itertools.repeat)
-
-;; shortest-terminating iterators
-(setv
-  *map itertools.starmap
-  chain itertools.chain
-  compress itertools.compress
-  drop-while itertools.dropwhile
-  group-by itertools.groupby
-  islice itertools.islice
-  take-while itertools.takewhile
-  tee itertools.tee)
-
-;; combinatoric iterators
-(setv
-  combinations itertools.combinations
-  multicombinations itertools.combinations_with_replacement
-  permutations itertools.permutations
-  product itertools.product)
-
 (defn drop [count coll]
   "Drop `count` elements from `coll` and yield back the rest.
 
@@ -319,6 +288,7 @@
        => (list (drop 6 [1 2 3 4 5]))
        []
   "
+  (import [itertools [islice]])
   (islice coll count None))
 
 (defn drop-last [n coll]
@@ -345,9 +315,11 @@
 
     ::
 
+       => (import [itertools [count]])
        => (list (take 5 (drop-last 100 (count 10))))
        [10, 11, 12, 13, 14]
   "
+  (import [itertools [tee]])
   (setv iters (tee coll))
   (map first (zip #* [(get iters 0)
                       (drop n (get iters 1))])))
@@ -581,6 +553,7 @@
 
     ::
 
+       (import [itertools [repeat]])
        => (first (repeat 10))
        10
 
@@ -700,6 +673,7 @@
        => (list (interleave (range 1000000) \"abc\"))
        [0, 'a', 1, 'b', 2, 'c']
   "
+  (import [itertools [chain]])
   (chain.from-iterable (zip #* seqs)))
 
 (defn interpose [item seq]
@@ -718,6 +692,7 @@
        => (list (interpose -1 (range 5)))
        [0, -1, 1, -1, 2, -1, 3, -1, 4]
   "
+  (import [itertools [repeat]])
   (drop 1 (interleave (repeat item) seq)))
 
 (defn iterable? [x]
@@ -754,6 +729,7 @@
     ::
 
        => ;; works for iterators/generators
+       => (import [itertools [repeat]])
        => (iterable? (repeat 3))
        True
   "
@@ -927,6 +903,7 @@
        => (merge-with + {\"a\" 10 \"b\" 20} {\"a\" 1 \"c\" 30})
        {u'a': 11L, u'c': 30L, u'b': 20L}
   "
+  (import [functools [reduce]])
   (if (any maps)
     (do
       (defn merge-entry [m e]
@@ -1106,6 +1083,7 @@
        => (list (partition (range 10) 3 :fillvalue \"x\"))
        [(0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 'x', 'x')]
   "
+  (import [itertools [zip-longest islice tee]])
   (setv
    step (or step n)
    coll-clones (tee coll n)
@@ -1250,6 +1228,7 @@
 
     ::
 
+       => (import [itertools [repeat]])
        => (list (take 4 (repeat \"s\")))
        [u's', u's', u's', u's']
 
@@ -1258,6 +1237,7 @@
        => (list (take 0 (repeat \"s\")))
        []
   "
+  (import [itertools [islice]])
   (islice coll None count))
 
 (defn take-nth [n coll]
@@ -1398,13 +1378,13 @@
 
 (setv __all__
   (list (map mangle
-    '[*map accumulate butlast calling-module calling-module-name chain coll?
-      combinations comp complement compress constantly count cycle dec distinct
-      disassemble drop drop-last drop-while empty? even? every? first
-      flatten float? fraction gensym group-by identity inc instance?
-      integer? integer-char? interleave interpose islice iterable?
+    '[butlast calling-module calling-module-name coll?
+      comp complement constantly dec distinct
+      disassemble drop drop-last empty? even? every? first
+      flatten float? gensym identity inc instance?
+      integer? integer-char? interleave interpose iterable?
       iterate iterator? juxt keyword keyword? last list? macroexpand
-      macroexpand-1 mangle merge-with multicombinations neg? none? nth
-      numeric? odd? parse-args partition permutations pos? product read read-str
-      remove repeat repeatedly rest reduce second some string? symbol?
-      take take-nth take-while tuple? unmangle xor tee zero? zip-longest])))
+      macroexpand-1 mangle merge-with neg? none? nth
+      numeric? odd? parse-args partition pos? read read-str
+      repeatedly rest second some string? symbol?
+      take take-nth tuple? unmangle xor zero?])))

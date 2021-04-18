@@ -381,7 +381,7 @@ def symbol_like(obj):
     if '/' in obj:
         try:
             lhs, rhs = obj.split('/')
-            return Expression([Symbol('fraction'), Integer(lhs),
+            return Expression([Symbol('hy._Fraction'), Integer(lhs),
                                Integer(rhs)])
         except ValueError:
             pass

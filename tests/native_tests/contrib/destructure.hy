@@ -3,6 +3,7 @@
 ;; license. See the LICENSE.
 
 (import pytest)
+(import [itertools [cycle count]])
 (import [hy.contrib.destructure [destructure]])
 (require [hy.contrib.destructure [setv+ dict=: defn+ fn+ let+]])
 

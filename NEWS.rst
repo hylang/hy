@@ -1,5 +1,23 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Removals
+------------------------------
+* All aliases of objects in Python's standard library have been removed.
+  Import these objects explicitly instead.
+
+  * From `itertools`: `accumulate`, `chain`,
+    `combinations-with-replacement` (formerly `multicombinations` in
+    Hy), `combinations`, `compress`, `count`, `cycle`, `dropwhile`
+    (formerly `drop-while`), `filterfalse` (formerly `remove`),
+    `groupby` (formerly `group-by`), `islice`, `permutations`,
+    `product`, `repeat`, `starmap` (formerly `*map`), `takewhile`
+    (formerly `take-while`), `tee`, `zip-longest`
+  * From `functools`: `reduce`
+  * From `fractions`: `Fraction` (formerly `fraction`)
+
 1.0a1 (released 2021-04-12)
 ==============================
 

@@ -2,9 +2,11 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-;;;; some simple helpers
+(import
+  [itertools [repeat cycle]]
+  pytest)
 
-(import pytest)
+;;;; some simple helpers
 
 (defn assert-true [x]
   (assert (= True x)))
@@ -44,13 +46,6 @@
   (import itertools)
   (assert-equal (list (take 5 (butlast (itertools.count 10))))
                 [10 11 12 13 14]))
-
-(defn test-cycle []
-  "NATIVE: testing cycle"
-  (assert-equal (list (cycle [])) [])
-  (assert-equal (list (take 7 (cycle [1 2 3]))) [1 2 3 1 2 3 1])
-  (assert-equal (list (take 2 (cycle [1 2 3]))) [1 2])
-  (assert-equal (list (take 4 (cycle [1 None 3]))) [1 None 3 1]))
 
 (defn test-dec []
   "NATIVE: testing the dec function"
@@ -133,15 +128,6 @@
   (import itertools)
   (assert-equal (list (take 5 (drop-last 100 (itertools.count 10))))
                 [10 11 12 13 14]))
-
-(defn test-drop-while []
-  "NATIVE: testing drop-while function"
-  (setv res (list (drop-while even? [2 4 7 8 9])))
-  (assert (= res [7 8 9]))
-  (setv res (list (drop-while pos? [2 4 7 8 9])))
-  (assert (= res []))
-  (setv res (list (drop-while numeric? [1 2 3 None "a"])))
-  (assert (= res [None "a"])))
 
 (defn test-empty? []
   "NATIVE: testing the empty? function"
@@ -528,24 +514,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (pos? 0))
   (assert-requires-num pos?))
 
-(defn test-remove []
-  "NATIVE: testing the remove function"
-  (setv r (list (remove odd? [1 2 3 4 5 6 7])))
-  (assert-equal r [2 4 6])
-  (assert-equal (list (remove even? [1 2 3 4 5])) [1 3 5])
-  (assert-equal (list (remove neg? [1 2 3 4 5])) [1 2 3 4 5])
-  (assert-equal (list (remove pos? [1 2 3 4 5])) [])
-  ;; deal with embedded None
-  (assert-equal (list (remove (fn [x] (not (numeric? x))) [1 2 None 3 None 4])) [1 2 3 4]))
-
-(defn test-repeat []
-  "NATIVE: testing repeat"
-  (setv r (repeat 10))
-  (assert-equal (list (take 5 r)) [10 10 10 10 10])
-  (assert-equal (list (take 4 r)) [10 10 10 10])
-  (setv r (repeat 10 3))
-  (assert-equal (list r) [10 10 10]))
-
 (defn test-repeatedly []
   "NATIVE: testing repeatedly"
   (setv r (repeatedly (fn [] (inc 4))))
@@ -619,17 +587,6 @@ result['y in globals'] = 'y' in globals()")
    (except [ValueError] (setv passed True)))
   (assert passed))
 
-(defn test-take-while []
-  "NATIVE: testing the take-while function"
-  (setv res (list (take-while pos? [ 1 2 3 -4 5])))
-  (assert-equal res [1 2 3])
-  (setv res (list (take-while neg? [ -1 -4 5 3 4])))
-  (assert-false (= res [1 2]))
-  (setv res (list (take-while none? [None None 1 2 3])))
-  (assert-equal res [None None])
-  (setv res (list (take-while (fn [x] (not (none? x))) [1 2 3 4 None 5 6 None 7])))
-  (assert-equal res [1 2 3 4]))
-
 (defn test-doto []
   "NATIVE: testing doto macro"
   (setv collection [])
@@ -655,15 +612,6 @@ result['y in globals'] = 'y' in globals()")
   "NATIVE: testing import of __init__.hy"
   (import tests.resources.bin)
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
-
-(defn test-accumulate []
-  "NATIVE: testing the accumulate function"
-  (assert-equal (list (accumulate ["a" "b" "c"]))
-                ["a" "ab" "abc"])
-  (assert-equal (list (accumulate [1 2 3 4 5]))
-                [1 3 6 10 15])
-  (assert-equal (list (accumulate [1 -2 -3 -4 -5] -))
-                [1 3 6 10 15]))
 
 (defn test-complement []
   "NATIVE: test complement"

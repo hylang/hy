@@ -411,7 +411,7 @@ class Expression(Sequence):
 
 _wrappers[Expression] = recwrap(Expression)
 _wrappers[Fraction] = lambda e: Expression(
-    [Symbol("fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
+    [Symbol("hy._Fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
 
 
 class Set(Sequence):
