@@ -320,9 +320,8 @@
        [10, 11, 12, 13, 14]
   "
   (import [itertools [tee]])
-  (setv iters (tee coll))
-  (map first (zip #* [(get iters 0)
-                      (drop n (get iters 1))])))
+  (setv [copy1 copy2] (tee coll))
+  (map first (zip copy1 (drop n copy2))))
 
 (defn empty? [coll]
   "Check if `coll` is empty.
