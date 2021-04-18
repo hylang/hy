@@ -248,6 +248,7 @@ class HyREPL(code.InteractiveConsole, object):
                 loader = HyLoader("__hystartup__", os.environ.get("HYSTARTUP"))
                 spec = importlib.util.spec_from_loader(loader.name, loader)
                 mod = importlib.util.module_from_spec(spec)
+                sys.modules.setdefault(mod.__name__, mod)
                 loader.exec_module(mod)
                 imports = mod.__dict__.get(
                     '__all__',
