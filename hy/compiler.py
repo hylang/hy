@@ -15,7 +15,7 @@ from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
 
 from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
 
-from hy._compat import (PY3_8, reraise)
+from hy._compat import PY3_8
 from hy.macros import require, macroexpand
 
 import textwrap
@@ -376,13 +376,13 @@ class HyASTCompiler(object):
             raise
         except HyLanguageError as e:
             # These are expected errors that should be passed to the user.
-            reraise(type(e), e, sys.exc_info()[2])
+            raise e
         except Exception as e:
             # These are unexpected errors that will--hopefully--never be seen
             # by the user.
             f_exc = traceback.format_exc()
             exc_msg = "Internal Compiler Bug 😱\n⤷ {}".format(f_exc)
-            reraise(HyCompileError, HyCompileError(exc_msg), sys.exc_info()[2])
+            raise HyCompileError(exc_msg)
 
     def _syntax_error(self, expr, message):
         return HySyntaxError(message, expr, self.filename, self.source)
@@ -1656,12 +1656,7 @@ class HyASTCompiler(object):
             # the compilation *process* (although compilation did technically
             # fail).
             # We wrap these exceptions and pass them through.
-            reraise(HyEvalError,
-                    HyEvalError(str(e),
-                                self.filename,
-                                body,
-                                self.source),
-                    sys.exc_info()[2])
+            raise HyEvalError(str(e), self.filename, body, self.source)
 
         return (self._compile_branch(body)
                 if mangle(root) == "eval_and_compile"

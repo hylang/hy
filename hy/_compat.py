@@ -10,13 +10,6 @@ PY3_9 = sys.version_info >= (3, 9)
 PY3_10 = sys.version_info >= (3, 10)
 
 
-def reraise(exc_type, value, traceback=None):
-    try:
-        raise value.with_traceback(traceback)
-    finally:
-        traceback = None
-
-
 if PY3_9:
 
     import ast

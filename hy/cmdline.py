@@ -199,8 +199,7 @@ class HyCompile(codeop.Compile, object):
             sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
             self._update_exc_info()
             exec_code = super(HyCompile, self).__call__(
-                'import hy._compat; hy._compat.reraise('
-                '_hy_last_type, _hy_last_value, _hy_last_traceback)',
+                'raise _hy_last_value.with_traceback(_hy_last_traceback)',
                 name, symbol)
             eval_code = super(HyCompile, self).__call__('None', name, 'eval')
 
