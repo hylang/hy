@@ -203,6 +203,14 @@ class HyCompile(codeop.Compile, object):
                 name, symbol)
             eval_code = super(HyCompile, self).__call__('None', name, 'eval')
 
+        except SyntaxError:
+            # Capture and save the error before we get to the superclass handler
+            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+            # Per the python REPL, SyntaxErrors should not display a traceback
+            sys.last_traceback = None
+            self._update_exc_info()
+            raise
+
         return exec_code, eval_code
 
 
