@@ -223,7 +223,7 @@ The differences that do exist are as follows:
       (self._format ent
                     stream
                     (+ indent (len rep) 1)
-                    (if last allowance 1)
+                    (if last? allowance 1)
                     context
                     level)
       (unless last?

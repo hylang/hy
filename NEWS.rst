@@ -21,6 +21,7 @@ Removals
 Bug Fixes
 ------------------------------
 * REPL now properly displays SyntaxErrors.
+* Fixed a bug in `pprint` in which `width` was ignored.
 
 1.0a1 (released 2021-04-12)
 ==============================
