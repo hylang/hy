@@ -41,8 +41,8 @@
 
     ::
 
-       => (import [itertools [count]])
-       => (list (take 5 (butlast (count 10))))
+       => (import [itertools [count islice]])
+       => (list (islice (butlast (count 10)) 0 5))
        [10, 11, 12, 13, 14]
   "
   (drop-last 1 coll))
@@ -315,13 +315,13 @@
 
     ::
 
-       => (import [itertools [count]])
-       => (list (take 5 (drop-last 100 (count 10))))
+       => (import [itertools [count islice]])
+       => (list (islice (drop-last 100 (count 10)) 5))
        [10, 11, 12, 13, 14]
   "
-  (import [itertools [tee]])
+  (import [itertools [tee islice]])
   (setv [copy1 copy2] (tee coll))
-  (map first (zip copy1 (drop n copy2))))
+  (gfor  [x _] (zip copy1 (islice copy2 n None))  x))
 
 (defn empty? [coll]
   "Check if `coll` is empty.
@@ -1133,7 +1133,8 @@
        => (list (rest []))
        []
   "
-  (drop 1 coll))
+  (import [itertools [islice]])
+  (islice coll 1 None))
 
 (defn repeatedly [func]
   "Yield result of running `func` repeatedly.
@@ -1141,8 +1142,8 @@
   Examples:
     ::
 
-       => (import [random [randint]])
-       => (list (take 5 (repeatedly (fn [] (randint 0 10)))))
+       => (import [random [randint]] [itertools [islice]])
+       => (list (islice (repeatedly (fn [] (randint 0 10))) 5))
        [6, 2, 0, 6, 7]
   "
   (while True
@@ -1182,20 +1183,10 @@
 
     ::
 
-       => (none? (some identity [0 \"\" []]))
-       True
-
-    ::
-
-       => (some identity [0 \"non-empty-string\" []])
-       'non-empty-string'
-
-    ::
-
        => (none? (some even? []))
        True
   "
-  (first (filter None (map pred coll))))
+  (next (filter None (map pred coll)) None))
 
 (defn string? [x]
   "Check if `x` is a string.

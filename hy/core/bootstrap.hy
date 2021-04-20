@@ -194,11 +194,11 @@
           ...    (- result)))
           => (compare \"lisp\" \"python\"
           ...         :keyfn (fn [x y]
-          ...                  (reduce - (map (fn [s] (ord (first s))) [x y]))))
+          ...                  (reduce - (map (fn [s] (ord (get s 0))) [x y]))))
           -4
           => (compare \"lisp\" \"python\"
           ...         :keyfn (fn [x y]
-          ...                   (reduce - (map (fn [s] (ord (first s))) [x y])))
+          ...                   (reduce - (map (fn [s] (ord (get s 0))) [x y])))
           ...         :reverse True)
           4
 
