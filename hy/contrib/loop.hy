@@ -93,8 +93,7 @@ tail-call optimization (TCO) in their Hy code.
        ...      acc
        ...      (recur (dec i) (* acc i)))))
        => (factorial 1000)"
-  (setv fnargs (map (fn [x] (first x)) bindings)
-        initargs (map second bindings))
+  (setv [fnargs initargs] (if bindings (zip #* bindings) [[] []]))
   `(do (require hy.contrib.loop)
        (hy.contrib.loop.defnr ~g!recur-fn [~@fnargs] ~@body)
        (~g!recur-fn ~@initargs)))

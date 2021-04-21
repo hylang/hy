@@ -44,6 +44,8 @@ be defined as::
 This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
 "
 
+(import [itertools [islice]])
+
 (defclass Sequence []
   "Container for construction of lazy sequences."
 
@@ -91,7 +93,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
 
    (defn __str__ [self]
      "string representation of this sequence"
-     (setv items (list (take (inc self.max-items-in-repr) self)))
+     (setv items (list (islice self (inc self.max-items-in-repr))))
      (.format (if (> (len items) self.max-items-in-repr)
                 "[{0}, ...]"
                 "[{0}]")

@@ -24,7 +24,7 @@
 
        => (import [hy.contrib.walk [walk]])
        => (setv a '(a b c d e f))
-       => (walk ord identity a)
+       => (walk ord (fn [x] x)  a)
        hy.models.Expression([
          97,
          98,
@@ -35,7 +35,7 @@
 
     ::
 
-       => (walk ord first a)
+       => (walk ord (fn [x] (get x 0)) a)
        97
   "
   (cond
@@ -199,12 +199,22 @@
              hy.models.List([
                hy.models.Integer(7)])])])])
   "
-  (walk (partial prewalk f) identity (f form)))
+  (walk (partial prewalk f) (fn [x] x) (f form)))
 
 (defn call? [form]
   "Checks whether form is a non-empty hy.models.Expression"
   (and (instance? hy.models.Expression form)
        form))
+
+(defn by2s [x]
+  #[[Returns the given iterable in pairs.
+  (list (by2s (range 6))) => [(, 0 1) (, 2 3) (, 4 5)] #]]
+  (setv x (iter x))
+  (while True
+    (try
+      (yield (, (next x) (next x)))
+      (except [StopIteration]
+        (break)))))
 
 (defn macroexpand-all [form [module-name None]]
   "Recursively performs all possible macroexpansions in form, using the ``require`` context of ``module-name``.
@@ -216,13 +226,13 @@
         quote-level 0
         ast-compiler (HyASTCompiler module))
   (defn traverse [form]
-    (walk expand identity form))
+    (walk expand (fn [x] x) form))
   (defn expand [form]
     (nonlocal quote-level)
     ;; manages quote levels
     (defn +quote [[x 1]]
       (nonlocal quote-level)
-      (setv head (first form))
+      (setv head (get form 0))
       (+= quote-level x)
       (when (neg? quote-level)
         (raise (TypeError "unquote outside of quasiquote")))
@@ -231,13 +241,13 @@
       `(~head ~@res))
     (if (call? form)
         (cond [quote-level
-               (cond [(in (first form) '[unquote unquote-splice])
+               (cond [(in (get form 0) '[unquote unquote-splice])
                       (+quote -1)]
-                     [(= (first form) 'quasiquote) (+quote)]
+                     [(= (get form 0) 'quasiquote) (+quote)]
                      [True (traverse form)])]
-              [(= (first form) 'quote) form]
-              [(= (first form) 'quasiquote) (+quote)]
-              [(= (first form) (hy.models.Symbol "require"))
+              [(= (get form 0) 'quote) form]
+              [(= (get form 0) 'quasiquote) (+quote)]
+              [(= (get form 0) (hy.models.Symbol "require"))
                (ast-compiler.compile form)
                (return)]
               [True (traverse (mexpand form module ast-compiler))])
@@ -268,8 +278,8 @@
           ;; Don't use a header more than once. It's the compiler's problem.
           (.remove headers header))
 
-      (and (isinstance arg hy.models.Expression) (in (first arg) headers))
-      (do (setv header (first arg))
+      (and (isinstance arg hy.models.Expression) (in (get arg 0) headers))
+      (do (setv header (get arg 0))
           (assoc sections header [])
           ;; Don't use a header more than once. It's the compiler's problem.
           (.remove headers header)
@@ -308,7 +318,7 @@
                    :expander self.expander
                    :protected protected
                    :quote-level quote-level)
-          identity
+          (fn [x] x)
           form))
 
   ;; manages quote levels
@@ -317,17 +327,17 @@
                                     :quote-level (+ self.quote-level x))))
 
   (defn handle-dot [self]
-    `(. ~(self.expand-symbols (first (self.tail)))
+    `(. ~(self.expand-symbols (get (self.tail) 0))
         ~@(walk (fn [form]
                   (if (symbol? form)
                       form  ; don't expand attrs
                       (self.expand-symbols form)))
-                identity
+                (fn [x] x)
                 (cut (self.tail)
                      1))))
 
   (defn head [self]
-    (first self.form))
+    (get self.form 0))
 
   (defn tail [self]
     (cut self.form 1))
@@ -336,31 +346,27 @@
     (setv tail (self.tail))
     ;; protect the "as" name binding the exception
     `(~(self.head) ~@(self.traverse tail (| self.protected
-                                            (if (and tail
-                                                     (-> tail
-                                                         first
-                                                         len
-                                                         (= 2)))
-                                                #{(first (first tail))}
+                                            (if (and tail (= (len (get tail 0)) 2))
+                                                #{(get tail 0 0)}
                                                 #{})))))
   (defn handle-args-list [self]
     (setv protected #{}
           argslist [])
-    (for [[header section] (-> self (.tail) first lambda-list .items)]
+    (for [[header section] (.items (lambda-list (get (.tail self) 0)))]
       (unless (in header [None 'unpack-iterable 'unpack-mapping])
           (.append argslist header))
       (cond [(in header [None '*])
              (for [pair section]
                (cond [(coll? pair)
-                      (.add protected (first pair))
+                      (.add protected (get pair 0))
                       (.append argslist
-                               `[~(first pair)
-                                 ~(self.expand-symbols (second pair))])]
+                               `[~(get pair 0)
+                                 ~(self.expand-symbols (get pair 1))])]
                      [True
                       (.add protected pair)
                       (.append argslist pair)]))]
             [(in header ['unpack-iterable 'unpack-mapping])
-             (.update protected (map second section))
+             (.update protected (gfor  [_ b #* _] section  b))
              (.extend argslist section)]))
     (, protected argslist))
 
@@ -401,7 +407,7 @@
 
   (defn handle-defclass [self]
     ;; don't expand the name of the class
-    `(~(self.head) ~(first (self.tail))
+    `(~(self.head) ~(get (self.tail) 0)
       ~@(self.traverse (cut (self.tail) 1))))
 
   (defn handle-special-form [self]
@@ -419,7 +425,7 @@
   ;; Quotation should suppress symbol expansion,
   ;; and local bindings should shadow those made by let.
   (defn handle-call [self]
-    (setv head (first self.form))
+    (setv head (get self.form 0))
     (if (in head '[fn fn*]) (self.handle-fn)
         (in head '[import
                    require
@@ -458,7 +464,7 @@
             (macro-error k "bind targets must be symbols")
             (if (in '. k)
                 (macro-error k "binding target may not contain a dot"))))
-  (setv bindings (dict (partition bindings))
+  (setv bindings (dict (by2s bindings))
         body (macroexpand-all body &name))
   (symbolexpand `(do ~@body)
                 (fn [symbol]
@@ -555,9 +561,9 @@
   (defn destructuring? [x]
     (or (instance? hy.models.List x)
         (and (instance? hy.models.Expression x)
-             (= (first x) ',))))
+             (= (get x 0) ',))))
 
-  (for [[k v] (partition bindings)]
+  (for [[k v] (by2s bindings)]
     (cond
       [(and (symbol? k) (in '. k))
        (macro-error k "binding target may not contain a dot")]
@@ -579,24 +585,24 @@
                         (macro-error k "bind target may not contain a dot")]
 
                        [(and (instance? hy.models.Expression x)
-                             (-> x first (in #{', 'unpack-iterable}) not))
+                             (not-in (get x 0) #{', 'unpack-iterable}))
                         (macro-error k "cannot destructure non-iterable unpacking expression")]
 
                        [(and (symbol? x) (in x unpacked-syms))
                         (do (.append keys `(get ~g!let ~(unmangle x)))
                             (.append values (.get unpacked-syms x x))
-                            (assoc replacements x (last keys)))]
+                            (assoc replacements x (get keys -1)))]
 
                        [True x]))
                    k))
 
         (do (.append values (symbolexpand (macroexpand-all v &name) expander))
             (.append keys `(get ~g!let ~(unmangle k)))
-            (assoc replacements k (last keys)))))
+            (assoc replacements k (get keys -1)))))
 
   `(do
      (setv ~g!let {}
-           ~@(interleave keys values))
+           ~@(sum (zip keys values) (,)))
      ~@(symbolexpand (macroexpand-all body &name)
                      expander)))
 

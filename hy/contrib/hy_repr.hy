@@ -127,11 +127,9 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (+ (hy-repr k) " " (hy-repr v)))))
   (+ "{" text "}")))
 (hy-repr-register hy.models.Dict :placeholder "{...}" (fn [x]
-  (setv text (.join "  " (gfor
-    [k v] (partition x)
-    (+ (hy-repr k) " " (hy-repr v)))))
-  (if (% (len x) 2)
-    (+= text (+ "  " (hy-repr (get x -1)))))
+  (setv text (.join " " (gfor
+    [i item] (enumerate x)
+    (+ (if (and i (= (% i 2) 0)) " " "") (hy-repr item)))))
   (+ "{" text "}")))
 (hy-repr-register hy.models.Expression (fn [x]
   (setv syntax {
@@ -141,8 +139,8 @@ To make the Hy REPL use it for output, invoke Hy like so::
     'unquote-splice "~@"
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
-  (if (and x (symbol? (first x)) (in (first x) syntax))
-    (+ (get syntax (first x)) (hy-repr (second x)))
+  (if (and x (symbol? (get x 0)) (in (get x 0) syntax))
+    (+ (get syntax (get x 0)) (hy-repr (get x 1)))
     (+ "(" (_cat x) ")"))))
 
 (hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
@@ -188,7 +186,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (_strftime-0 x "%H %M %S")
     (_repr-time-innards x))))
 (defn _repr-time-innards [x]
-  (.rstrip (+ " " (.join " " (filter identity [
+  (.rstrip (+ " " (.join " " (filter (fn [x] x) [
     (if x.microsecond (str x.microsecond))
     (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if x.fold (+ ":fold " (hy-repr x.fold)))])))))
@@ -205,13 +203,13 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (hy-repr x.default-factory)
     (hy-repr (dict x)))))
 
-(for [[types fmt] (partition [
-    [list hy.models.List] "[...]"
-    [set hy.models.Set] "#{...}"
-    frozenset "(frozenset #{...})"
-    dict-keys "(dict-keys [...])"
-    dict-values "(dict-values [...])"
-    dict-items "(dict-items [...])"])]
+(for [[types fmt] [
+    [[list hy.models.List] "[...]"]
+    [[set hy.models.Set] "#{...}"]
+    [frozenset "(frozenset #{...})"]
+    [dict-keys "(dict-keys [...])"]
+    [dict-values "(dict-values [...])"]
+    [dict-items "(dict-items [...])"]]]
   (defn mkrepr [fmt]
     (fn [x] (.replace fmt "..." (_cat x) 1)))
   (hy-repr-register types :placeholder fmt (mkrepr fmt)))

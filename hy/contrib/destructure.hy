@@ -33,9 +33,9 @@ would be equivalent to
           tasks-remaining (.get data ':tasks-remaining)
           tasks-completed (.get data ':tasks-completed)
           all-players (.get data ':players)
-          name (.get (nth all-players 0) ':name)
-          weapon1 (get (.get (nth all-players 0) ':weapons) 0)
-          weapon2 (get (.get (nth all-players 0) ':weapons) 1))
+          name (.get (get all-players 0) ':name)
+          weapon1 (get (.get (get all-players 0) ':weapons) 0)
+          weapon2 (get (.get (get all-players 0) ':weapons) 1))
 
 where ``data`` might be defined by
 
@@ -108,7 +108,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
 (require [hy.contrib.walk [let]])
 (import
   [itertools [starmap chain count]]
-  [functools [reduce]])
+  [functools [reduce]]
+  [hy.contrib.walk [by2s]])
 
 (defmacro! ifp [o!pred o!expr #* clauses]
   "Takes a binary predicate ``pred``, an expression ``expr``, and a set of
@@ -141,20 +142,20 @@ Iterator patterns are specified using round brackets. They are the same as list 
        0
   "
   (defn emit [pred expr args]
-    (setv split-at (fn [n coll] [(cut coll 0 n) (cut coll n)])
-          [clause more] (split-at (if (= :>> (second args)) 3 2) args)
+    (setv n (if (and (> (len args) 1) (= :>> (get args 1))) 3 2)
+          [clause more] [(cut args 0 n) (cut args n)]
           n (len clause)
           test (gensym))
     (if
       (= 0 n) `(raise (TypeError (+ "no option for " (repr ~expr))))
-      (= 1 n) (first clause)
-      (= 2 n) `(if (~pred ~(first clause) ~expr)
-                 ~(last clause)
+      (= 1 n) (get clause 0)
+      (= 2 n) `(if (~pred ~(get clause 0) ~expr)
+                 ~(get clause -1)
                  ~(emit pred expr more))
       `(do
-         (setv ~test (~pred ~(first clause) ~expr))
+         (setv ~test (~pred ~(get clause 0) ~expr))
          (if ~test
-           (~(last clause) ~test)
+           (~(get clause -1) ~test)
            ~(emit pred expr more)))))
   `~(emit g!pred g!expr clauses))
 
@@ -171,7 +172,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   "
   (setv gsyms [])
   `(do
-    (setv ~@(gfor [binds expr] (partition pairs)
+    (setv ~@(gfor [binds expr] (by2s pairs)
                   sym (destructure binds expr gsyms)
               sym))
     (del ~@gsyms)))
@@ -185,8 +186,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
         result (gensym 'dict=:))
   `(do
      (setv ~result {}
-           ~@(gfor [binds expr] (partition pairs)
-                   [k v] (partition [#* (destructure binds expr gsyms)])
+           ~@(gfor [binds expr] (by2s pairs)
+                   [k v] (by2s [#* (destructure binds expr gsyms)])
                    syms [(if (in k gsyms) k `(get ~result '~k)) v]
                syms))
      (del ~@gsyms)
@@ -232,7 +233,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (if (odd? (len xs))
     (raise (SyntaxError
              f"Cannot make dictionary out of odd-length iterable {xs}"))
-    (dict (partition xs))))
+    (dict (by2s xs))))
 
 (defn dest-dict [ddict result found binds gsyms]
   "Destructuring bind for mappings.
@@ -266,13 +267,13 @@ Iterator patterns are specified using round brackets. They are the same as list 
                     ':or []
                     ':as [lookup ddict]
                     ':strs (get-as str lookup)
-                    ':keys (get-as (comp hy.models.Keyword unmangle) lookup)
+                    ':keys (get-as (fn [x] (hy.models.Keyword (unmangle x))) lookup)
                     (destructure #* (expand-lookup target lookup) gsyms))))
        ((fn [xs] (reduce + xs result)))))
 
 (defn find-magics [bs [keys? False] [as? False]]
-  (setv x (first bs)
-        y (second bs))
+  (setv x (if bs (get bs 0))
+        y (if (> (len bs) 1) (get bs 1)))
   (if (none? x)
     [[] []]
     (if (keyword? x)
@@ -305,13 +306,15 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (setv [bs magics] (find-magics binds)
         n (len bs)
         bres (lfor [i t] (enumerate bs)
-               (destructure t `(nth ~dlist ~i) gsyms))
+               (destructure t `(.get (dict (enumerate ~dlist)) ~i) gsyms))
         err-msg "Invalid magic option :{} in list destructure"
         mres (lfor [m t] magics
                (ifp found m
                  ':as [t dlist]
                  ':& (destructure t (if (instance? hy.models.Dict t)
-                                      `(dict (partition (cut ~dlist ~n)))
+                                      `(dict (zip
+                                        (cut ~dlist ~n None 2)
+                                        (cut ~dlist ~(+ n 1) None 2)))
                                       `(cut ~dlist ~n))
                                   gsyms)
                  (raise (SyntaxError (.format err-msg m.name))))))
@@ -332,7 +335,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (setv [bs magics] (find-magics binds)
         copy-iter (gensym)
         tee (gensym))
-  (if (in ':as (map first magics))
+  (if (in ':as (sfor  [x #* _] magics  x))
     (.extend result [diter `(do
                               (import [itertools [tee :as ~tee]])
                               (setv [~diter ~copy-iter] (~tee ~diter))
@@ -359,8 +362,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
   Note that `#*` etc have no special meaning and are
   intepretted as any other argument.
   "
-  (setv [doc body] (if (string? (first doc+body))
-                     [(first doc+body) (rest doc+body)]
+  (setv [doc body] (if (string? (get doc+body 0))
+                     [(get doc+body 0) (rest doc+body)]
                      [None doc+body]))
   `(defn ~fn-name [#* ~g!args #** ~g!kwargs]
      ~doc
@@ -379,8 +382,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
 
 (defmacro/g! defn/a+ [fn-name args #* doc+body]
   "Async variant of ``defn+``."
-  (setv [doc body] (if (string? (first doc+body))
-                     [(first doc+body) (rest doc+body)]
+  (setv [doc body] (if (string? (get doc+body 0))
+                     [(get doc+body 0) (rest doc+body)]
                      [None doc+body]))
   `(defn/a ~fn-name [#* ~g!args #** ~g!kwargs]
      ~doc
@@ -397,7 +400,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   "let macro with full destructuring with `args`"
   (if (odd? (len args))
     (macro-error args "let bindings must be paired"))
-  `(let ~(lfor [bs expr] (partition args)
+  `(let ~(lfor [bs expr] (by2s args)
                sym (destructure bs expr)
            sym)
      ~@body))
