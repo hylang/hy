@@ -199,10 +199,17 @@ class HyCompile(codeop.Compile, object):
             sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
             self._update_exc_info()
             exec_code = super(HyCompile, self).__call__(
-                'import hy._compat; hy._compat.reraise('
-                '_hy_last_type, _hy_last_value, _hy_last_traceback)',
+                'raise _hy_last_value.with_traceback(_hy_last_traceback)',
                 name, symbol)
             eval_code = super(HyCompile, self).__call__('None', name, 'eval')
+
+        except SyntaxError:
+            # Capture and save the error before we get to the superclass handler
+            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
+            # Per the python REPL, SyntaxErrors should not display a traceback
+            sys.last_traceback = None
+            self._update_exc_info()
+            raise
 
         return exec_code, eval_code
 

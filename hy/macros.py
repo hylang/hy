@@ -10,7 +10,7 @@ import traceback
 
 from contextlib import contextmanager
 
-from hy._compat import reraise, PY3_8
+from hy._compat import PY3_8
 from hy.models import replace_hy_obj, Expression, Symbol, wrap_value
 from hy.lex import mangle, unmangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
@@ -166,7 +166,7 @@ def require(source_module, target_module, assignments, prefix=""):
                 package = None
             source_module = importlib.import_module(source_module, package)
         except ImportError as e:
-            reraise(HyRequireError, HyRequireError(e.args[0]), None)
+            raise HyRequireError(e.args[0]).with_traceback(None)
 
     source_macros = source_module.__dict__.setdefault('__macros__', {})
 
@@ -233,7 +233,7 @@ def macro_exceptions(module, macro_tree, compiler=None):
     except HyLanguageError as e:
         # These are user-level Hy errors occurring in the macro.
         # We want to pass them up to the user.
-        reraise(type(e), e, sys.exc_info()[2])
+        raise
     except Exception as e:
 
         if compiler:
@@ -249,10 +249,7 @@ def macro_exceptions(module, macro_tree, compiler=None):
         msg = "expanding macro {}\n  ".format(str(macro_tree[0]))
         msg += exc_msg
 
-        reraise(HyMacroExpansionError,
-                HyMacroExpansionError(
-                    msg, macro_tree, filename, source),
-                sys.exc_info()[2])
+        raise HyMacroExpansionError(msg, macro_tree, filename, source)
 
 
 def macroexpand(tree, module, compiler=None, once=False):

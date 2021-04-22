@@ -18,6 +18,10 @@ Removals
   * From `functools`: `reduce`
   * From `fractions`: `Fraction` (formerly `fraction`)
 
+Bug Fixes
+------------------------------
+* REPL now properly displays SyntaxErrors.
+
 1.0a1 (released 2021-04-12)
 ==============================
 

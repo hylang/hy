@@ -216,6 +216,17 @@ def test_bin_hy_error_parts_length():
     assert err_parts[2] == '    ^----^'
 
 
+def test_bin_hy_syntax_errors():
+    # https://github.com/hylang/hy/issues/2004
+    _, err = run_cmd("hy", "(defn foo [/])\n(defn bar [a a])")
+    assert 'SyntaxError: duplicate argument' in err
+
+    # https://github.com/hylang/hy/issues/2014
+    _, err = run_cmd("hy", "(defn foo []\n(import [re [*]]))")
+    assert 'SyntaxError: import * only allowed' in err
+    assert 'PrematureEndOfInput' not in err
+
+
 def test_bin_hy_stdin_bad_repr():
     # https://github.com/hylang/hy/issues/1389
     output, err = run_cmd("hy", """
