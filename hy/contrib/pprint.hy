@@ -71,7 +71,7 @@ The differences that do exist are as follows:
 
 (defn saferepr [object]
   "Version of (repr) which can handle recursive data structures."
-  (first (_safe-repr object {} None 0 True)))
+  (get (_safe-repr object {} None 0 True) 0))
 
 (defn readable? [object]
   "Determine if (saferepr object) is readable by (hy.eval)."
@@ -223,7 +223,7 @@ The differences that do exist are as follows:
       (self._format ent
                     stream
                     (+ indent (len rep) 1)
-                    (if last allowance 1)
+                    (if last? allowance 1)
                     context
                     level)
       (unless last?
@@ -324,7 +324,7 @@ The differences that do exist are as follows:
           (do
             (setv parts (re.findall r"\S*\s*" line))
             (assert parts)
-            (-> parts last not assert)
+            (assert (not (get parts -1)))
             (parts.pop)
             (setv max-width2 max-width
                   current "")

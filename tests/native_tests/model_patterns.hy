@@ -38,7 +38,8 @@
     (sym "do")
     (many FORM)]))))
   (defn f [loopers]
-    (setv [head tail] [(first loopers) (cut loopers 1)])
+    (setv head (if loopers (get loopers 0)))
+    (setv tail (cut loopers 1))
     (print head)
     (cond
       [(none? head)

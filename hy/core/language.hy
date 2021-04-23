@@ -41,8 +41,8 @@
 
     ::
 
-       => (import [itertools [count]])
-       => (list (take 5 (butlast (count 10))))
+       => (import [itertools [count islice]])
+       => (list (islice (butlast (count 10)) 0 5))
        [10, 11, 12, 13, 14]
   "
   (drop-last 1 coll))
@@ -69,64 +69,6 @@
        False
   "
   (and (iterable? coll) (not (string? coll))))
-
-(defn comp [#* fs]
-  "Return the function from composing the given functions `fs`.
-
-  Compose zero or more functions into a new function. The new function will
-  chain the given functions together, so ``((comp g f) x)`` is equivalent to
-  ``(g (f x))``. Called without arguments, ``comp`` returns ``identity``.
-
-  Examples:
-    ::
-
-       => (setv example (comp str +))
-       => (example 1 2 3)
-       \"6\"
-
-    ::
-
-       => (setv simple (comp))
-       => (simple \"hello\")
-       \"hello\"
-  "
-  (if (not fs) identity
-      (= 1 (len fs)) (first fs)
-      (do (setv rfs (reversed fs)
-                first-f (next rfs)
-                fs (tuple rfs))
-          (fn [#* args #** kwargs]
-            (setv res (first-f #* args #** kwargs))
-            (for [f fs]
-              (setv res (f res)))
-            res))))
-
-(defn complement [f]
-  "Returns a new function that returns the logically inverted result of `f`.
-
-  .. versionadded:: 0.12.0
-
-  Returns a new function that returns the same thing as ``f``, but logically
-  inverted. So, ``((complement f) x)`` is equivalent to ``(not (f x))``.
-
-  Examples:
-    ::
-
-       => (setv inverse (complement identity))
-       => (inverse True)
-       False
-
-    ::
-
-       => (inverse 1)
-       False
-
-    ::
-
-       => (inverse False)
-       True"
-  (fn [#* args #** kwargs]
-    (not (f #* args #** kwargs))))
 
 (defn constantly [value]
   "Create a new function that always returns `value` regardless of its input.
@@ -261,36 +203,6 @@
        (yield val)
        (.add seen val)))))
 
-(defn drop [count coll]
-  "Drop `count` elements from `coll` and yield back the rest.
-
-  Returns an iterator, skipping the first *n* members of *coll*.
-  Raises ``ValueError`` if *n* is negative.
-
-  Examples:
-    ::
-
-       => (list (drop 2 [1 2 3 4 5]))
-       [3, 4, 5]
-
-    ::
-
-       => (list (drop 4 [1 2 3 4 5]))
-       [5]
-
-    ::
-
-       => (list (drop 0 [1 2 3 4 5]))
-       [1, 2, 3, 4, 5]
-
-    ::
-
-       => (list (drop 6 [1 2 3 4 5]))
-       []
-  "
-  (import [itertools [islice]])
-  (islice coll count None))
-
 (defn drop-last [n coll]
   "Return a sequence of all but the last `n` elements in `coll`.
 
@@ -315,14 +227,13 @@
 
     ::
 
-       => (import [itertools [count]])
-       => (list (take 5 (drop-last 100 (count 10))))
+       => (import [itertools [count islice]])
+       => (list (islice (drop-last 100 (count 10)) 5))
        [10, 11, 12, 13, 14]
   "
-  (import [itertools [tee]])
-  (setv iters (tee coll))
-  (map first (zip #* [(get iters 0)
-                      (drop n (get iters 1))])))
+  (import [itertools [tee islice]])
+  (setv [copy1 copy2] (tee coll))
+  (gfor  [x _] (zip copy1 (islice copy2 n None))  x))
 
 (defn empty? [coll]
   "Check if `coll` is empty.
@@ -538,48 +449,6 @@
   (setv f (get (.stack inspect) (+ n 1) 0))
   (get f.f_globals "__name__"))
 
-(defn first [coll]
-  "Return first item from `coll`.
-
-  It is implemented as ``(next (iter coll) None)``, so it works with any
-  iterable, and if given an empty iterable, it will return ``None`` instead of
-  raising an exception.
-
-  Examples:
-    ::
-
-       => (first (range 10))
-       0
-
-    ::
-
-       (import [itertools [repeat]])
-       => (first (repeat 10))
-       10
-
-    ::
-
-       => (first [])
-       None"
-  (next (iter coll) None))
-
-(defn identity [x]
-  "Return `x`.
-
-
-  Examples:
-    ::
-
-       => (identity 4)
-       4
-
-    ::
-
-       => (list (map identity [1 2 3 4]))
-       [1 2 3 4]
-  "
-  x)
-
 (defn inc [n]
   "Increment `n` by 1.
 
@@ -657,44 +526,6 @@
     (except [ValueError] False)
     (except [TypeError] False)))
 
-(defn interleave [#* seqs]
-  "Return an iterable of the first item in each of `seqs`, then the second etc.
-
-  .. versionadded:: 0.10.1
-
-  Examples:
-    ::
-
-       => (list (interleave (range 5) (range 100 105)))
-       [0, 100, 1, 101, 2, 102, 3, 103, 4, 104]
-
-    ::
-
-       => (list (interleave (range 1000000) \"abc\"))
-       [0, 'a', 1, 'b', 2, 'c']
-  "
-  (import [itertools [chain]])
-  (chain.from-iterable (zip #* seqs)))
-
-(defn interpose [item seq]
-  "Return an iterable of the elements of `seq` separated by `item`.
-
-  .. versionadded:: 0.10.1
-
-  Examples:
-    ::
-
-       => (list (interpose \"!\" \"abcd\"))
-       ['a', '!', 'b', '!', 'c', '!', 'd']
-
-    ::
-
-       => (list (interpose -1 (range 5)))
-       [0, -1, 1, -1, 2, -1, 3, -1, 4]
-  "
-  (import [itertools [repeat]])
-  (drop 1 (interleave (repeat item) seq)))
-
 (defn iterable? [x]
   "Check if `x` is an iterable.
 
@@ -735,25 +566,6 @@
   "
   (isinstance x cabc.Iterable))
 
-(defn iterate [f x]
-  "Returns an iterator repeatedly applying `f` to seed `x`.. x, f(x), f(f(x))...
-
-  Examples:
-    ::
-
-       => (list (take 5 (iterate inc 5)))
-       [5, 6, 7, 8, 9]
-
-    ::
-
-       => (list (take 5 (iterate (fn [x] (* x x)) 5)))
-       [5, 25, 625, 390625, 152587890625]
-  "
-  (setv val x)
-  (while True
-    (yield val)
-    (setv val (f val))))
-
 (defn iterator? [x]
   "Check if `x` is an iterator.
 
@@ -787,47 +599,6 @@
        True
   "
   (isinstance x cabc.Iterator))
-
-(defn juxt [f #* fs]
-  "Return a function applying each `fs` to args, collecting results in a list.
-
-  .. versionadded:: 0.12.0
-
-  Return a function that applies each of the supplied functions to a
-  single set of arguments and collects the results into a list.
-
-  Examples:
-    ::
-
-       => ((juxt min max sum) (range 1 101))
-       [1, 100, 5050]
-
-    ::
-
-       => (dict (map (juxt identity ord) \"abcdef\"))
-       {'f': 102, 'd': 100, 'b': 98, 'e': 101, 'c': 99, 'a': 97}
-
-    ::
-
-       => ((juxt + - * /) 24 3)
-       [27, 21, 72, 8.0]
-  "
-  (setv fs (+ (, f) fs))
-  (fn [#* args #** kwargs]
-    (lfor f fs (f #* args #** kwargs))))
-
-(defn last [coll]
-  "Return last item from `coll`.
-
-  .. versionadded:: 0.11.0
-
-  Examples:
-    ::
-
-       => (last [2 4 6])
-       6
-  "
-  (get (tuple coll) -1))
 
 (defn macroexpand [form]
   "Return the full macro expansion of `form`.
@@ -886,35 +657,6 @@
   (import hy.macros)
   (setv module (calling-module))
   (hy.macros.macroexpand-1 form module (HyASTCompiler module)))
-
-(defn merge-with [f #* maps]
-  "Return the map of `maps` joined onto the first via the function `f`.
-
-  .. versionadded:: 0.10.1
-
-  Returns a map that consist of the rest of the maps joined onto first.
-  If a key occurs in more than one map, the mapping(s) from the latter
-  (left-to-right) will be combined with the mapping in the result by
-  calling ``(f val-in-result val-in-latter)``.
-
-  Examples:
-    ::
-
-       => (merge-with + {\"a\" 10 \"b\" 20} {\"a\" 1 \"c\" 30})
-       {u'a': 11L, u'c': 30L, u'b': 20L}
-  "
-  (import [functools [reduce]])
-  (if (any maps)
-    (do
-      (defn merge-entry [m e]
-        (setv k (get e 0) v (get e 1))
-        (setv (get m k) (if (in k m)
-                          (f (get m k) v)
-                          v))
-        m)
-      (defn merge2 [m1 m2]
-        (reduce merge-entry (.items m2) (or m1 {})))
-      (reduce merge2 maps))))
 
 (defn neg? [n]
   "Check if `n` is < 0.
@@ -990,48 +732,6 @@
   (import numbers)
   (instance? numbers.Number x))
 
-(defn nth [coll n [default None]]
-  "Return `n`th item in `coll` or `None` (specify `default`) if out of bounds.
-
-  Returns the *n*-th item in a collection, counting from 0. Return the
-  default value, ``None``, if out of bounds (unless specified otherwise).
-  Raises ``ValueError`` if *n* is negative.
-
-  Examples:
-    ::
-
-       => (nth [1 2 4 7] 1)
-       2
-
-    ::
-
-       => (nth [1 2 4 7] 3)
-       7
-
-    ::
-
-       => (none? (nth [1 2 4 7] 5))
-       True
-
-    ::
-
-       => (nth [1 2 4 7] 5 \"default\")
-       'default'
-
-    ::
-
-       => (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2))
-       5
-
-    ::
-
-       => (nth [1 2 4 7] -1)
-       Traceback (most recent call last):
-       ...
-       ValueError: Indices for islice() must be None or an integer: 0 <= x <= sys.maxsize.
-  "
-  (next (drop n coll) default))
-
 (defn odd? [^int n]
   "Check if `n` is an odd number.
 
@@ -1055,43 +755,6 @@
        False
   "
   (= (% n 2) 1))
-
-(setv _sentinel (object))
-(defn partition [coll [n 2] [step None] [fillvalue _sentinel]]
-  "Usage: ``(partition coll [n] [step] [fillvalue])``
-
-  Chunks *coll* into *n*-tuples (pairs by default).
-
-  Examples:
-    ::
-
-       => (list (partition (range 10)))  ; n=2
-       [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9)]
-
-    The *step* defaults to *n*, but can be more to skip elements,
-    or less for a sliding window with overlap::
-
-       => (list (partition (range 10) 2 3))
-       [(0, 1), (3, 4), (6, 7)]
-       => (list (partition (range 5) 2 1))
-       [(0, 1), (1, 2), (2, 3), (3, 4)]
-
-    The remainder, if any, is not included unless a *fillvalue* is specified::
-
-       => (list (partition (range 10) 3))
-       [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
-       => (list (partition (range 10) 3 :fillvalue \"x\"))
-       [(0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 'x', 'x')]
-  "
-  (import [itertools [zip-longest islice tee]])
-  (setv
-   step (or step n)
-   coll-clones (tee coll n)
-   slices (gfor start (range n)
-                (islice (get coll-clones start) start None step)))
-  (if (is fillvalue _sentinel)
-    (zip #* slices)
-    (zip-longest #* slices :fillvalue fillvalue)))
 
 (defn pos? [n]
   "Check if `n` is > 0.
@@ -1134,7 +797,8 @@
        => (list (rest []))
        []
   "
-  (drop 1 coll))
+  (import [itertools [islice]])
+  (islice coll 1 None))
 
 (defn repeatedly [func]
   "Yield result of running `func` repeatedly.
@@ -1142,25 +806,12 @@
   Examples:
     ::
 
-       => (import [random [randint]])
-       => (list (take 5 (repeatedly (fn [] (randint 0 10)))))
+       => (import [random [randint]] [itertools [islice]])
+       => (list (islice (repeatedly (fn [] (randint 0 10))) 5))
        [6, 2, 0, 6, 7]
   "
   (while True
     (yield (func))))
-
-(defn second [coll]
-  "Return second item from `coll`.
-
-  Returns the second member of *coll*. Equivalent to ``(get coll 1)``.
-
-  Examples:
-    ::
-
-       => (second [0 1 2])
-       1
-  "
-  (nth coll 1))
 
 (defn some [pred coll]
   "Return the first logical true value of applying `pred` in `coll`, else None.
@@ -1183,20 +834,10 @@
 
     ::
 
-       => (none? (some identity [0 \"\" []]))
-       True
-
-    ::
-
-       => (some identity [0 \"non-empty-string\" []])
-       'non-empty-string'
-
-    ::
-
        => (none? (some even? []))
        True
   "
-  (first (filter None (map pred coll))))
+  (next (filter None (map pred coll)) None))
 
 (defn string? [x]
   "Check if `x` is a string.
@@ -1213,69 +854,6 @@
        False
   "
   (isinstance x str))
-
-(defn take [count coll]
-  "Take `count` elements from `coll`.
-
-  Returns an iterator containing the first *n* members of *coll*.
-  Raises ``ValueError`` if *n* is negative.
-
-  Examples:
-    ::
-
-       => (list (take 3 [1 2 3 4 5]))
-       [1, 2, 3]
-
-    ::
-
-       => (import [itertools [repeat]])
-       => (list (take 4 (repeat \"s\")))
-       [u's', u's', u's', u's']
-
-    ::
-
-       => (list (take 0 (repeat \"s\")))
-       []
-  "
-  (import [itertools [islice]])
-  (islice coll None count))
-
-(defn take-nth [n coll]
-  "Return every `n`th member of `coll`.
-
-  Examples:
-    ::
-
-       => (list (take-nth 2 [1 2 3 4 5 6 7]))
-       [1, 3, 5, 7]
-
-    ::
-
-       => (list (take-nth 3 [1 2 3 4 5 6 7]))
-       [1, 4, 7]
-
-    ::
-
-       => (list (take-nth 4 [1 2 3 4 5 6 7]))
-       [1, 5]
-
-    ::
-
-       => (list (take-nth 10 [1 2 3 4 5 6 7]))
-       [1]
-
-  Raises:
-    ``ValueError``: for ``(not (pos? n))``."
-  (if (not (pos? n))
-    (raise (ValueError "n must be positive")))
-  (setv citer (iter coll) skip (dec n))
-  (for [val citer]
-    (yield val)
-    (for [_ (range skip)]
-      (try
-        (next citer)
-        (except [StopIteration]
-          (return))))))
 
 (defn zero? [n]
   "Check if `n` equals 0.
@@ -1379,12 +957,12 @@
 (setv __all__
   (list (map mangle
     '[butlast calling-module calling-module-name coll?
-      comp complement constantly dec distinct
-      disassemble drop drop-last empty? even? every? first
-      flatten float? gensym identity inc instance?
-      integer? integer-char? interleave interpose iterable?
-      iterate iterator? juxt keyword keyword? last list? macroexpand
-      macroexpand-1 mangle merge-with neg? none? nth
-      numeric? odd? parse-args partition pos? read read-str
-      repeatedly rest second some string? symbol?
-      take take-nth tuple? unmangle xor zero?])))
+      constantly dec distinct
+      disassemble drop-last empty? even? every?
+      flatten float? gensym inc instance?
+      integer? integer-char? iterable?
+      iterator? keyword keyword? list? macroexpand
+      macroexpand-1 mangle neg? none?
+      numeric? odd? parse-args pos? read read-str
+      repeatedly rest some string? symbol?
+      tuple? unmangle xor zero?])))

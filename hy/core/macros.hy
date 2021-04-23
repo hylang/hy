@@ -47,13 +47,13 @@
 
     retrieve name of first entry::
 
-       => (as-> (first data) it
+       => (as-> (get data 0) it
        ...      (:name it))
        \"hooded cuttlefish\"
 
     retrieve species of first entry::
 
-       => (as-> (first data) it
+       => (as-> (get data 0) it
        ...      (:classification it)
        ...      (:species it))
        \"Sepia prashadi\"
@@ -62,7 +62,7 @@
 
        => (as-> (filter (fn [entry] (= (:name entry)
        ...                           \"slender cuttlefish\")) data) it
-       ...      (first it)
+       ...      (get it 0)
        ...      (:discovered it)
        ...      (:name it))
        \"Sir Joseph Cooke Verco\"
@@ -73,9 +73,8 @@
        => (as-> (urlopen \"http://docs.hylang.org/en/stable/\") it
        ...      (.read it)
        ...      (.decode it \"utf-8\")
-       ...      (drop (.index it \"Welcome\") it)
-       ...      (take 30 it)
-       ...      (list it)
+       ...      (lfor  x it  :if (!= it \"Welcome\")  it)
+       ...      (cut it 0 30)
        ...      (.join \"\" it))
        \"Welcome to Hy’s documentation!\"
 
@@ -127,7 +126,7 @@
   .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
   "
   (if (odd? (len other-kvs))
-    (macro-error (last other-kvs)
+    (macro-error (get other-kvs -1)
                  "`assoc` takes an odd number of arguments"))
   (setv c (if other-kvs
             (gensym "c")
@@ -135,9 +134,8 @@
   `(setv ~@(+ (if other-kvs
                 [c coll]
                 [])
-              #* (gfor [k v] (partition (+ (, k1 v1)
-                                           other-kvs))
-                       [`(get ~c ~k) v]))))
+              (lfor [i x] (enumerate (+ (, k1 v1) other-kvs))
+                    (if (% i 2) x `(get ~c ~x))))))
 
 
 (defmacro cond [#* branches]
@@ -182,9 +180,9 @@
           (macro-error branch "each cond branch needs to be a nonempty list")
         (= (len branch) 1) (do
           (setv g (gensym))
-          [`(do (setv ~g ~(first branch)) ~g) g])
+          [`(do (setv ~g ~(get branch 0)) ~g) g])
         True
-          [(first branch) `(do ~@(cut branch 1))]))
+          [(get branch 0) `(do ~@(cut branch 1))]))
     [])))
 
 
@@ -205,7 +203,7 @@
   (setv ret head)
   (for [node args]
     (setv ret (if (isinstance node hy.models.Expression)
-                  `(~(first node) ~ret ~@(rest node))
+                  `(~(get node 0) ~ret ~@(rest node))
                   `(~node ~ret))))
   ret)
 
@@ -235,7 +233,7 @@
   (setv f (gensym))
   (defn build-form [expression]
     (if (isinstance expression hy.models.Expression)
-      `(~(first expression) ~f ~@(rest expression))
+      `(~(get expression 0) ~f ~@(rest expression))
       `(~expression ~f)))
   `(do
      (setv ~f ~form)
@@ -525,9 +523,9 @@
   (for [sym syms]
     (.extend gensyms [sym `(gensym ~(cut sym 2))]))
 
-  (setv [docstring body] (if (and (instance? str (first body))
+  (setv [docstring body] (if (and (instance? str (get body 0))
                                   (> (len body) 1))
-                             (, (first body) (tuple (rest body)))
+                             (, (get body 0) (tuple (rest body)))
                              (, None body)))
 
   `(defmacro ~name [~@args]
@@ -569,19 +567,19 @@
   (defn extract-o!-sym [arg]
     (cond [(and (symbol? arg) (.startswith arg "o!"))
            arg]
-          [(and (instance? hy.models.List arg) (.startswith (first arg) "o!"))
-           (first arg)]))
-  (setv os (list (filter identity (map extract-o!-sym args)))
+          [(and (instance? hy.models.List arg) (.startswith (get arg 0) "o!"))
+           (get arg 0)]))
+  (setv os (lfor  x (map extract-o!-sym args)  :if x  x)
         gs (lfor s os (hy.models.Symbol (+ "g!" (cut s 2)))))
 
-  (setv [docstring body] (if (and (instance? str (first body))
+  (setv [docstring body] (if (and (instance? str (get body 0))
                                   (> (len body) 1))
-                             (, (first body) (tuple (rest body)))
+                             (, (get body 0) (tuple (rest body)))
                              (, None body)))
 
   `(defmacro/g! ~name ~args
      ~docstring
-     `(do (setv ~@(interleave ~gs ~os))
+     `(do (setv ~@(sum (zip ~gs ~os) (,)))
           ~@~body)))
 
 

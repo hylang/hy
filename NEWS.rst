@@ -5,6 +5,15 @@ Unreleased
 
 Removals
 ------------------------------
+* All reimplementations of functions in the package `Toolz`_ have been
+  removed. Import these from Toolz (or `CyToolz`_) instead. Beware that
+  the Toolz functions are not all drop-in replacements for the old Hy
+  functions; e.g., `partition` has a different order of parameters.
+
+  * `complement`, `compose` (formerly `comp` in Hy), `drop`, `first`,
+    `identity`, `interleave`, `interpose`, `iterate`, `juxt`, `last`,
+    `merge-with`, `nth`, `partition`, `second`, `take-nth`, `take`
+
 * All aliases of objects in Python's standard library have been removed.
   Import these objects explicitly instead.
 
@@ -21,6 +30,10 @@ Removals
 Bug Fixes
 ------------------------------
 * REPL now properly displays SyntaxErrors.
+* Fixed a bug in `pprint` in which `width` was ignored.
+
+.. _Toolz: https://toolz.readthedocs.io
+.. _CyToolz: https://github.com/pytoolz/cytoolz
 
 1.0a1 (released 2021-04-12)
 ==============================

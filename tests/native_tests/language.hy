@@ -7,7 +7,7 @@
         [sys :as systest]
         re
         [operator [or_]]
-        [itertools [repeat]]
+        [itertools [repeat count islice]]
         [fractions [Fraction]]
         pickle
         [typing [get-type-hints List Dict]]
@@ -689,12 +689,12 @@
                                 "species" "Sepia braggi"}
                "discovered" {"year" 1907
                             "name" "Sir Joseph Cooke Verco"}}])
-  (assert (= (as-> (first data) x
+  (assert (= (as-> (get data 0) x
                    (:name x))
              "hooded cuttlefish"))
   (assert (= (as-> (filter (fn [entry] (= (:name entry)
                            "slender cuttlefish")) data) x
-                   (first x)
+                   (next x)
                    (:discovered x)
                    (:name x))
              "Sir Joseph Cooke Verco")))
@@ -760,14 +760,6 @@
   (assert (= [1] output)))
 
 
-(defn test-first []
-  "NATIVE: test first"
-  (assert (= (first [1 2 3 4 5]) 1))
-  (assert (= (first (range 10)) 0))
-  (assert (= (first (repeat 10)) 10))
-  (assert (is (first []) None)))
-
-
 (defn test-cut []
   "NATIVE: test cut"
   (assert (= (cut [1 2 3 4 5] 1) [2 3 4 5]))
@@ -778,7 +770,7 @@
 (defn test-rest []
   "NATIVE: test rest"
   (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5]))
-  (assert (= (list (take 3 (rest (iterate inc 8)))) [9 10 11]))
+  (assert (= (list (islice (rest (count 8)) 3)) [9 10 11]))
   (assert (= (list (rest [])) [])))
 
 
@@ -1201,7 +1193,7 @@
       "apple bloom" b"apple bloom" "⚘" b"\x00"
       [] #{} {}
       [1 2 3] #{1 2 3} {"a" 1 "b" 2}]]
-    (assert (= (hy.eval `(identity ~x)) x))
+    (assert (= (hy.eval `(get [~x] 0)) x))
     (assert (= (hy.eval x) x)))
 
   (setv kw :mykeyword)
@@ -1580,24 +1572,6 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
 
-(defn test-merge-with []
-  "NATIVE: test merge-with"
-  (assert (= (merge-with + {} {}) None))
-  (assert (= (merge-with + {"a" 10 "b" 20} {}) {"a" 10 "b" 20}))
-  (assert (= (merge-with + {} {"a" 10 "b" 20}) {"a" 10 "b" 20}))
-  (assert (= (merge-with + {"a" 10 "b" 20} {"a" 1 "c" 30})
-	     {"a" 11 "b" 20 "c" 30}))
-  (assert (= (merge-with +
-                         {:a 1  :b 2}
-                         {:a 9  :b 98  :c 0}
-                         {:a 10 :b 100 :c 10}
-                         {:a 5}
-                         {:c 5  :d 42})
-             {:d 42 :c 15 :a 25 :b 200}))
-  (assert (= (merge-with or_
-                         {"a" (set [1 2 3]) "b" (set [4 5 6])}
-                         {"a" (set [2 3 7 8]) "c" (set [1 2 3])})
-             {"a" (set [1 2 3 7 8]) "c" (set [1 2 3]) "b" (set [4 5 6])})))
 
 (defn test-calling-module-name []
   "NATIVE: Test the calling-module-name function"

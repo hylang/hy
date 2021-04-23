@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [itertools [repeat cycle]]
+  [itertools [repeat cycle islice]]
   pytest)
 
 ;;;; some simple helpers
@@ -44,7 +44,7 @@
                 [])
   ; with an infinite sequence
   (import itertools)
-  (assert-equal (list (take 5 (butlast (itertools.count 10))))
+  (assert-equal (list (islice (butlast (itertools.count 10)) 5))
                 [10 11 12 13 14]))
 
 (defn test-dec []
@@ -99,23 +99,6 @@
   (setv res (list (distinct [1 2 3 2 5 None 3 4 None])))
   (assert-equal res [1 2 3 5 None 4]))
 
-(defn test-drop []
-  "NATIVE: testing drop function"
-  (setv res (list (drop 2 [1 2 3 4 5])))
-  (assert-equal res [3 4 5])
-  (setv res (list (drop 3 (iter [1 2 3 4 5]))))
-  (assert-equal res [4 5])
-  (setv res (list (drop 3 (iter [1 2 3 None 4 5]))))
-  (assert-equal res [None 4 5])
-  (setv res (list (drop 0 [1 2 3 4 5])))
-  (assert-equal res [1 2 3 4 5])
-  (try (do (list (drop -1 [1 2 3 4 5])) (assert False))
-       (except [e [ValueError]] None))
-  (setv res (list (drop 6 (iter [1 2 3 4 5]))))
-  (assert-equal res [])
-  (setv res (list (take 5 (drop 2 (iterate inc 0)))))
-  (assert-equal res [2 3 4 5 6]))
-
 (defn test-drop-last []
   "NATIVE: testing drop-last function"
   (assert-equal (list (drop-last 5 (range 10 20)))
@@ -126,7 +109,7 @@
                 [])
   ; with an infinite sequence
   (import itertools)
-  (assert-equal (list (take 5 (drop-last 100 (itertools.count 10))))
+  (assert-equal (list (islice (drop-last 100 (itertools.count 10)) 5))
                 [10 11 12 13 14]))
 
 (defn test-empty? []
@@ -273,12 +256,6 @@ result['y in globals'] = 'y' in globals()")
   (assert (not (= s2 s3)))
   (assert (not (= (str s2) (str s3)))))
 
-(defn test-identity []
-  "NATIVE: testing the identity function"
-  (assert (= 4 (identity 4)))
-  (assert (= "hy" (identity "hy")))
-  (assert (= [1 2] (identity [1 2]))))
-
 (defn test-inc []
   "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
@@ -322,33 +299,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (integer-char? "foo"))
   (assert-false (integer-char? None)))
 
-(defn test-interleave []
-  "NATIVE: testing the interleave function"
-  ;; with more than 2 sequences
-  (assert-equal (list (take 9 (interleave (range 10)
-                                          (range 10 20)
-                                          (range 20 30))))
-                [0 10 20 1 11 21 2 12 22])
-  ;; with sequences of different length
-  (assert-equal (list (interleave (range 1000000)
-                                  (range 0 -3 -1)))
-                [0 0 1 -1 2 -2])
-  ;; with infinite sequences
-  (import itertools)
-  (assert-equal (list (take 10 (interleave (itertools.count)
-                                           (itertools.count 100))))
-                [0 100 1 101 2 102 3 103 4 104]))
-
-(defn test-interpose []
-  "NATIVE: testing the interpose function"
-  ;; with a list
-  (assert-equal (list (interpose "!" ["a" "b" "c"]))
-                ["a" "!" "b" "!" "c"])
-  ;; with an infinite sequence
-  (import itertools)
-  (assert-equal (list (take 7 (interpose -1 (itertools.count))))
-                [0 -1 1 -1 2 -1 3]))
-
 (defn test-iterable []
   "NATIVE: testing iterable? function"
   ;; should work for a string
@@ -373,15 +323,6 @@ result['y in globals'] = 'y' in globals()")
   ;; shouldn't work for an int
   (assert-false (iterable? 5)))
 
-(defn test-iterate []
-  "NATIVE: testing the iterate function"
-  (setv res (list (take 5 (iterate inc 5))))
-  (assert-equal res [5 6 7 8 9])
-  (setv res (list (take 3 (iterate (fn [x] (* x x)) 5))))
-  (assert-equal res [5 25 625])
-  (setv f (take 4 (iterate inc 5)))
-  (assert-equal (list f) [5 6 7 8]))
-
 (defn test-iterator []
   "NATIVE: testing iterator? function"
   ;; should not work for a list
@@ -400,13 +341,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (iterator? (repeat 3)))
   ;; should not work for an int
   (assert-false (iterator? 5)))
-
-(defn test-last []
-  "NATIVE: testing the last function"
-  (assert-equal (last [1 2 3 4]) 4)
-  (assert-equal (last [5]) 5))
-  (import itertools)
-  (assert-equal (last (take 5 (itertools.count 10))) 14)
 
 (defn test-neg []
   "NATIVE: testing the neg? function"
@@ -428,25 +362,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (none? f))
   (assert-false (none? 0))
   (assert-false (none? "")))
-
-(defn test-nth []
-  "NATIVE: testing the nth function"
-  (assert-equal 2 (nth [1 2 4 7] 1))
-  (assert-equal 7 (nth [1 2 4 7] 3))
-  (assert-none (nth [1 2 4 7] 5))
-  (assert-equal (nth [1 2 4 7] 5 "some default value")
-                "some default value")  ; with default specified
-  (try (do (nth [1 2 4 7] -1) (assert False))
-       (except [e [ValueError]] None))
-  ;; now for iterators
-  (assert-equal 2 (nth (iter [1 2 4 7]) 1))
-  (assert-equal 7 (nth (iter [1 2 4 7]) 3))
-  (assert-none (nth (iter [1 2 4 7]) 5))
-  (assert-equal (nth (iter [1 2 4 7]) 5 "some default value")
-                "some default value")  ; with default specified
-  (try (do (nth (iter [1 2 4 7]) -1) (assert False))
-       (except [e [ValueError]] None))
-  (assert-equal 5 (nth (take 3 (drop 2 [1 2 3 4 5 6])) 2)))
 
 (defn test-numeric? []
   "NATIVE: testing the numeric? function"
@@ -474,39 +389,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal parsed-args.strings ["a" "b"])
   (assert-equal parsed-args.numbers [1 2]))
 
-(defn test-partition []
-  "NATIVE: testing the partition function"
-  (setv ten (range 10))
-  ;; no remainder
-  (assert-equal (list (partition ten 3))
-                [(, 0 1 2) (, 3 4 5) (, 6 7 8)])
-  ;; pair by default
-  (assert-equal (list (partition ten))
-                [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)])
-  ;; length 1 is valid
-  (assert-equal (list (partition ten 1))
-                [(, 0) (, 1) (, 2) (, 3) (, 4) (, 5) (, 6) (, 7) (, 8) (, 9)])
-  ;; length 0 returns an empty sequence
-  (assert-equal (list (partition ten 0)) [])
-  ;; negative length raises ValueError
-  (try (do (partition ten -1) (assert False))
-       (except [ValueError]))
-  ;; keep remainder with a fillvalue
-  (assert-equal (list (partition ten 3 :fillvalue "x"))
-                [(, 0 1 2) (, 3 4 5) (, 6 7 8) (, 9 "x" "x")])
-  ;; skip elements with step > n
-  (assert-equal (list (partition ten 2 3))
-                [(, 0 1) (, 3 4) (, 6 7)])
-  ;; overlap with step < n
-  (assert-equal (list (partition (range 5) 2 1))
-                [(, 0 1) (, 1 2) (, 2 3) (, 3 4)])
-  ;; tee the input as necessary
-  ;; https://github.com/hylang/hy/issues/1237
-  (assert-equal (list (take 4 (partition (cycle [1 2 3]) 3)))
-                [(, 1 2 3) (, 1 2 3) (, 1 2 3) (, 1 2 3)])
-  (assert-equal (list (partition (iter (range 10))))
-                [(, 0 1) (, 2 3) (, 4 5) (, 6 7) (, 8 9)]))
-
 (defn test-pos []
   "NATIVE: testing the pos? function"
   (assert-true (pos? 2))
@@ -517,14 +399,9 @@ result['y in globals'] = 'y' in globals()")
 (defn test-repeatedly []
   "NATIVE: testing repeatedly"
   (setv r (repeatedly (fn [] (inc 4))))
-  (assert-equal (list (take 5 r)) [5 5 5 5 5])
-  (assert-equal (list (take 4 r)) [5 5 5 5])
-  (assert-equal (list (take 6 r)) [5 5 5 5 5 5]))
-
-(defn test-second []
-  "NATIVE: testing second"
-  (assert-equal 2 (second [1 2]))
-  (assert-equal 3 (second [2 3 4])))
+  (assert-equal (list (islice r 5)) [5 5 5 5 5])
+  (assert-equal (list (islice r 4)) [5 5 5 5])
+  (assert-equal (list (islice r 6)) [5 5 5 5 5 5]))
 
 (defn test-some []
   "NATIVE: testing the some function"
@@ -533,9 +410,9 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (some even? [1 2 3]))
   (assert-none (some even? []))
   ; 0, "" (empty string) and [] (empty list) are all logical false
-  (assert-none (some identity [0 "" []]))
+  (assert-none (some (fn [x] x) [0 "" []]))
   ; non-empty string is logical true
-  (assert-equal (some identity [0 "this string is non-empty" []])
+  (assert-equal (some (fn [x] x) [0 "this string is non-empty" []])
                 "this string is non-empty")
   ; None if collection is empty
   (assert-none (some even? [])))
@@ -547,45 +424,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (string? 5.3))
   (assert-true (string? (str 5.3)))
   (assert-false (string? None)))
-
-(defn test-take []
-  "NATIVE: testing the take function"
-  (setv res (list (take 3 [1 2 3 4 5])))
-  (assert-equal res [1 2 3])
-  (setv res (list (take 4 (repeat "s"))))
-  (assert-equal res ["s" "s" "s" "s"])
-  (setv res (list (take 0 (repeat "s"))))
-  (assert-equal res [])
-  (try (do (list (take -1 (repeat "s"))) (assert False))
-       (except [e [ValueError]] None))
-  (setv res (list (take 6 [1 2 None 4])))
-  (assert-equal res [1 2 None 4]))
-
-(defn test-take-nth []
-  "NATIVE: testing the take-nth function"
-  (setv res (list (take-nth 2 [1 2 3 4 5 6 7])))
-  (assert-equal res [1 3 5 7])
-  (setv res (list (take-nth 3 [1 2 3 4 5 6 7])))
-  (assert-equal res [1 4 7])
-  (setv res (list (take-nth 4 [1 2 3 4 5 6 7])))
-  (assert-equal res [1 5])
-  (setv res (list (take-nth 5 [1 2 3 4 5 6 7])))
-  (assert-equal res [1 6])
-  (setv res (list (take-nth 6 [1 2 3 4 5 6 7])))
-  (assert-equal res [1 7])
-  (setv res (list (take-nth 7 [1 2 3 4 5 6 7])))
-  (assert-equal res [1])
-  ;; what if there are None's in list
-  (setv res (list (take-nth 2 [1 2 3 None 5 6])))
-  (assert-equal res [1 3 5])
-  (setv res (list (take-nth 3 [1 2 3 None 5 6])))
-  (assert-equal res [1 None])
-  ;; using 0 should raise ValueError
-  (setv passed False)
-  (try
-   (setv res (list (take-nth 0 [1 2 3 4 5 6 7])))
-   (except [ValueError] (setv passed True)))
-  (assert passed))
 
 (defn test-doto []
   "NATIVE: testing doto macro"
@@ -613,13 +451,6 @@ result['y in globals'] = 'y' in globals()")
   (import tests.resources.bin)
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
 
-(defn test-complement []
-  "NATIVE: test complement"
-  (setv helper (complement identity))
-
-  (assert-true (helper False))
-  (assert-false (helper True)))
-
 (defn test-constantly []
   "NATIVE: test constantly"
   (setv helper (constantly 42))
@@ -627,21 +458,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-true (= (helper) 42))
   (assert-true (= (helper 1 2 3) 42))
   (assert-true (= (helper 1 2 :foo 3) 42)))
-
-(defn test-comp []
-  "NATIVE: test comp"
-  (assert-true ((comp odd? inc second) [1 2 3 4 5]))
-  (assert-true (= 1 ((comp first) [1 2 3])))
-  (assert-true ((comp even? inc +) 1 2 3 4 5))
-  (assert-true (= 5 ((comp) 5)))
-  (assert (is (comp) identity)))
-
-(defn test-juxt []
-  "NATIVE: test juxt"
-  (assert-equal ((juxt min max sum) [1 2 3 4 5 6])
-                [1 6 21])
-  (assert-equal ((juxt identity) 42)
-                [42]))
 
 (defn test-comment []
   (assert-none (comment <h1>This is merely a comment.</h1>

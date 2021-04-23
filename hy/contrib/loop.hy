@@ -41,20 +41,17 @@ tail-call optimization (TCO) in their Hy code.
   ;; free and should not be called from anywhere else during tail recursion.
 
   (setv result None)
-  ;; We have to put this in a list because of Python's
-  ;; weirdness around local variables.
-  ;; Assigning directly to it later would cause it to
-  ;; shadow in a new scope.
-  (setv active [False])
+  (setv active False)
   (setv accumulated [])
 
   (fn [#* args]
+    (nonlocal active)
     (.append accumulated args)
-    (when (not (first active))
-      (assoc active 0 True)
+    (when (not active)
+      (setv active True)
       (while (> (len accumulated) 0)
         (setv result (f #* (.pop accumulated))))
-      (assoc active 0 False)
+      (setv active False)
       result)))
 
 
@@ -96,8 +93,7 @@ tail-call optimization (TCO) in their Hy code.
        ...      acc
        ...      (recur (dec i) (* acc i)))))
        => (factorial 1000)"
-  (setv fnargs (map (fn [x] (first x)) bindings)
-        initargs (map second bindings))
+  (setv [fnargs initargs] (if bindings (zip #* bindings) [[] []]))
   `(do (require hy.contrib.loop)
        (hy.contrib.loop.defnr ~g!recur-fn [~@fnargs] ~@body)
        (~g!recur-fn ~@initargs)))

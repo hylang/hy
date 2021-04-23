@@ -167,6 +167,8 @@
     60)))
 
 (defn test-tag-fn []
+  (defn identity [x]
+    x)
   ;; test ordering
   (assert (= (#%(/ %1 %2) 2 4) 0.5))
   (assert (= (#%(/ %2 %1) 2 4) 2))
