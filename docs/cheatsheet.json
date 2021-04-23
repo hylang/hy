@@ -5,53 +5,19 @@
       {
         "name": "Collections",
         "methods": [
-          "hy.core.language.*map",
-          "hy.core.language.accumulate",
           "hy.core.language.butlast",
-          "hy.core.language.chain",
-          "hy.core.language.combinations",
-          "hy.core.language.multicombinations",
-          "hy.core.language.compress",
-          "hy.core.language.count",
-          "hy.core.language.cycle",
           "hy.core.language.distinct",
-          "hy.core.language.drop",
           "hy.core.language.drop-last",
-          "hy.core.language.drop-while",
-          "hy.core.language.first",
           "hy.core.language.flatten",
-          "hy.core.language.group-by",
-          "hy.core.language.interleave",
-          "hy.core.language.interpose",
-          "hy.core.language.islice",
-          "hy.core.language.iterate",
-          "hy.core.language.nth",
-          "hy.core.language.last",
-          "hy.core.language.partition",
-          "hy.core.language.permutations",
-          "hy.core.language.product",
-          "hy.core.language.remove",
-          "hy.core.language.repeat",
           "hy.core.language.repeatedly",
           "hy.core.language.rest",
-          "hy.core.language.reduce",
-          "hy.core.language.second",
-          "hy.core.language.some",
-          "hy.core.language.take",
-          "hy.core.language.take-nth",
-          "hy.core.language.take-while",
-          "hy.core.language.tee",
-          "hy.core.language.zip-longest"
+          "hy.core.language.some"
         ]
       },
       {
         "name": "Functions",
         "methods": [
-          "hy.core.language.comp",
-          "hy.core.language.complement",
-          "hy.core.language.constantly",
-          "hy.core.language.identity",
-          "hy.core.language.juxt"
+          "hy.core.language.constantly"
         ]
       },
       {
@@ -188,14 +154,12 @@
           "hy.core.shadow.**",
           "hy.core.shadow./",
           "hy.core.shadow.//",
-          "fractions.Fraction",
           "hy.core.language.inc"
         ]
       },
       {
         "name": "Dicts",
         "methods": [
-          "hy.core.language.merge-with",
           "hy.core.macros.assoc"
         ]
       },
@@ -301,8 +265,7 @@
       {
         "name": "Loop",
         "methods": [
-          "hy.contrib.loop.loop",
-          "hy.contrib.loop.--trampoline--"
+          "hy.contrib.loop.loop"
         ]
       },
       {
@@ -342,7 +305,7 @@
         "name": "Slicing",
         "methods": [
           "hy.contrib.slicing.ncut",
-          "hy.contrib.slicing.#|"
+          "hy.contrib.slicing.##:"
         ]
       }
     ]

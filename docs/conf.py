@@ -66,7 +66,7 @@ intersphinx_mapping = dict(
 # ** Generate Cheatsheet
 import json
 from pathlib import Path
-from hy.core.language import partition
+from itertools import zip_longest
 
 def refize(spec):
     role = ':hy:func:'
@@ -82,7 +82,8 @@ def refize(spec):
 
 
 def format_refs(refs, indent):
-    ref_groups = partition(map(refize, refs), fillvalue='')
+    args = [iter(map(refize, refs))]
+    ref_groups = zip_longest(*args, fillvalue="")
     return str.join(
         ' \\\n' + ' ' * (indent + 3),
         [str.join(' ', ref_group) for ref_group in ref_groups],
