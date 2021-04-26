@@ -106,7 +106,7 @@
             (get args 0)
             `(if* ~(get args 0)
                   ~(get args 1)
-                  (if ~@(cut args 2))))))
+                  (if ~@(cut args 2 None))))))
 
 (defmacro macro-error [expression reason [filename '__name__]]
   `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))

@@ -236,7 +236,7 @@
       (+= quote-level x)
       (when (neg? quote-level)
         (raise (TypeError "unquote outside of quasiquote")))
-      (setv res (traverse (cut form 1)))
+      (setv res (traverse (cut form 1 None)))
       (-= quote-level x)
       `(~head ~@res))
     (if (call? form)
@@ -333,14 +333,13 @@
                       form  ; don't expand attrs
                       (self.expand-symbols form)))
                 (fn [x] x)
-                (cut (self.tail)
-                     1))))
+                (cut (self.tail) 1 None))))
 
   (defn head [self]
     (get self.form 0))
 
   (defn tail [self]
-    (cut self.form 1))
+    (cut self.form 1 None))
 
   (defn handle-except [self]
     (setv tail (self.tail))
@@ -373,7 +372,7 @@
   (defn handle-fn [self]
     (setv [protected argslist] (self.handle-args-list))
     `(~(self.head) ~argslist
-       ~@(self.traverse (cut (self.tail) 1)(| protected self.protected))))
+       ~@(self.traverse (cut (self.tail) 1 None)(| protected self.protected))))
 
   ;; don't expand symbols in quotations
   (defn handle-quoted [self]
@@ -408,7 +407,7 @@
   (defn handle-defclass [self]
     ;; don't expand the name of the class
     `(~(self.head) ~(get (self.tail) 0)
-      ~@(self.traverse (cut (self.tail) 1))))
+      ~@(self.traverse (cut (self.tail) 1 None))))
 
   (defn handle-special-form [self]
     ;; don't expand other special form symbols in head position

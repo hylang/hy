@@ -39,7 +39,7 @@ or more manually using the tag macro as::
   (defn parse-indexing [sym]
     (if
       (and (isinstance sym hy.models.Expression) (= (get sym 0) :))
-      `(slice ~@(cut sym 1))
+      `(slice ~@(cut sym 1 None))
 
       (and (symbol? sym) (= sym '...))
       'Ellipsis

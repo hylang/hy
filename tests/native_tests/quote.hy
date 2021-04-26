@@ -21,7 +21,7 @@
   "NATIVE: check whether quote works on hoisted things"
   (setv f (quote (if True True True)))
   (assert (= (get f 0) (quote if)))
-  (assert (= (cut f 1) (quote (True True True)))))
+  (assert (= (cut f 1 None) (quote (True True True)))))
 
 
 (defn test-quoted-macroexpand []
@@ -30,7 +30,7 @@
   (setv q2 (quasiquote (-> a b c)))
   (assert (= q1 q2))
   (assert (= (get q1 0) (quote ->)))
-  (assert (= (cut q1 1) (quote (a b c)))))
+  (assert (= (cut q1 1 None) (quote (a b c)))))
 
 
 (defn test-quote-dicts []

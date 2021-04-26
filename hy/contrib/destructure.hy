@@ -143,7 +143,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   "
   (defn emit [pred expr args]
     (setv n (if (and (> (len args) 1) (= :>> (get args 1))) 3 2)
-          [clause more] [(cut args 0 n) (cut args n)]
+          [clause more] [(cut args n) (cut args n None)]
           n (len clause)
           test (gensym))
     (if
@@ -284,10 +284,10 @@ Iterator patterns are specified using round brackets. They are the same as list 
         (if as?
           (raise
             (SyntaxError ":as must be final magic in sequential destructure"))
-          (map + [[] [[x y]]] (find-magics (cut bs 2) True (= ':as x)))))
+          (map + [[] [[x y]]] (find-magics (cut bs 2 None) True (= ':as x)))))
       (if keys?
         (raise (SyntaxError f"Non-keyword argument {x} after keyword"))
-        (map + [[x] []] (find-magics (cut bs 1)))))))
+        (map + [[x] []] (find-magics (cut bs 1 None)))))))
 
 (defn dest-list [dlist result found binds gsyms]
   "
@@ -315,7 +315,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                                       `(dict (zip
                                         (cut ~dlist ~n None 2)
                                         (cut ~dlist ~(+ n 1) None 2)))
-                                      `(cut ~dlist ~n))
+                                      `(cut ~dlist ~n None))
                                   gsyms)
                  (raise (SyntaxError (.format err-msg m.name))))))
   (reduce + (chain bres mres) result))

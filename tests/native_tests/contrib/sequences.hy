@@ -9,7 +9,7 @@
 
 (defn test-infinite-sequence []
   "NATIVE: test creating infinite sequence"
-  (assert (= (list (cut (seq [n] n) 0 5))
+  (assert (= (list (cut (seq [n] n) 5))
              [0 1 2 3 4])))
 
 (defn test-indexing-sequence []
@@ -66,7 +66,7 @@
   (assert (= (get fibonacci 40)
              102334155)
           "40th element of fibonacci didn't match")
-  (assert (= (list (cut fibonacci 0 9))
+  (assert (= (list (cut fibonacci 9))
              [0 1 1 2 3 5 8 13 21])
           "taking 8 elements of fibonacci didn't match"))
 
@@ -81,7 +81,7 @@
                 prevs)))
     (defn previous-primes [n]
       "previous prime numbers"
-      (cut primes 0 (dec n)))
+      (cut primes (dec n)))
     (defn next-possible-prime [n]
       "next possible prime after nth prime"
       (inc (get primes (dec n))))
@@ -90,6 +90,6 @@
                     (while (divisible? guess (previous-primes n))
                       (setv guess (inc guess)))
                     guess)]))
-  (assert (= (list (cut primes 0 10))
+  (assert (= (list (cut primes 10))
              [2 3 5 7 11 13 17 19 23 29])
           "prime sequence didn't match"))

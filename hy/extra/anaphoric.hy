@@ -259,8 +259,8 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
                        a))
   `(fn [;; generate all %i symbols up to the maximum found in expr
         ~@(gfor i (range 1 (-> (lfor a %symbols
-                                     :if (.isdigit (cut a 1))
-                                     (int (cut a 1)))
+                                     :if (.isdigit (cut a 1 None))
+                                     (int (cut a 1 None)))
                                (or (, 0))
                                max
                                inc))
