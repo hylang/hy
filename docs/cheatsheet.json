@@ -9,7 +9,6 @@
           "hy.core.language.distinct",
           "hy.core.language.drop-last",
           "hy.core.language.flatten",
-          "hy.core.language.repeatedly",
           "hy.core.language.rest",
           "hy.core.language.some"
         ]

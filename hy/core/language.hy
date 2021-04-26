@@ -770,19 +770,6 @@
   (import [itertools [islice]])
   (islice coll 1 None))
 
-(defn repeatedly [func]
-  "Yield result of running `func` repeatedly.
-
-  Examples:
-    ::
-
-       => (import [random [randint]] [itertools [islice]])
-       => (list (islice (repeatedly (fn [] (randint 0 10))) 5))
-       [6, 2, 0, 6, 7]
-  "
-  (while True
-    (yield (func))))
-
 (defn some [pred coll]
   "Return the first logical true value of applying `pred` in `coll`, else None.
 
@@ -910,5 +897,5 @@
       iterator? keyword? list? macroexpand
       macroexpand-1 mangle neg? none?
       numeric? odd? parse-args pos? read read-str
-      repeatedly rest some string? symbol?
+      rest some string? symbol?
       tuple? unmangle xor zero?])))
