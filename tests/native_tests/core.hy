@@ -382,13 +382,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (pos? 0))
   (assert-requires-num pos?))
 
-(defn test-repeatedly []
-  "NATIVE: testing repeatedly"
-  (setv r (repeatedly (fn [] (inc 4))))
-  (assert-equal (list (islice r 5)) [5 5 5 5 5])
-  (assert-equal (list (islice r 4)) [5 5 5 5])
-  (assert-equal (list (islice r 6)) [5 5 5 5 5 5]))
-
 (defn test-some []
   "NATIVE: testing the some function"
   (assert-true (some even? [2 4 6]))
