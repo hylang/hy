@@ -27,6 +27,12 @@ Removals
   * From `functools`: `reduce`
   * From `fractions`: `Fraction` (formerly `fraction`)
 
+Other Breaking Changes
+------------------------------
+* Unary `cut` is now consistent with `slice`: A single index specifies
+  the stop index. Thus `(cut x n)` is translated to `x[:n]` instead of
+  `x[n:]`.
+
 Bug Fixes
 ------------------------------
 * REPL now properly displays SyntaxErrors.
