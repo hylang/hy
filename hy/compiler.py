@@ -865,6 +865,12 @@ class HyASTCompiler(object):
             ret[0] += self.compile(e)
             return ret[0].force_expr
 
+        if upper is None:
+            # cut with single index is an upper bound,
+            # this is consistent with slice and islice
+            upper = lower
+            lower = Symbol('None')
+
         s = asty.Subscript(
             expr,
             value=c(obj),
