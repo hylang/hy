@@ -473,36 +473,6 @@
   "
   (+ n 1))
 
-(defn instance? [klass x]
-  "Perform `isinstance` with reversed arguments.
-
-  Returns ``True`` if *x* is an instance of *class*.
-
-  Examples:
-    ::
-
-       => (instance? float 1.0)
-       True
-
-    ::
-
-       => (instance? int 7)
-       True
-
-    ::
-
-       => (instance? str (str \"foo\"))
-       True
-
-    ::
-
-       => (defclass TestClass [object])
-       => (setv inst (TestClass))
-       => (instance? TestClass inst)
-       True
-  "
-  (isinstance x klass))
-
 (defn integer? [x]
   "Check if `x` is an integer.
 
@@ -959,7 +929,7 @@
     '[butlast calling-module calling-module-name coll?
       constantly dec distinct
       disassemble drop-last empty? even? every?
-      flatten float? gensym inc instance?
+      flatten float? gensym inc
       integer? integer-char? iterable?
       iterator? keyword keyword? list? macroexpand
       macroexpand-1 mangle neg? none?
