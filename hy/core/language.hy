@@ -117,7 +117,7 @@
        => (keyword? foo)
        False
   "
-  (instance? Keyword k))
+  (isinstance k Keyword))
 
 (defn dec [n]
   "Decrement `n` by 1.
@@ -405,7 +405,7 @@
        => (symbol? '[a b c])
        False
   "
-  (instance? Symbol s))
+  (isinstance s Symbol))
 
 (import [threading [Lock]])
 (setv _gensym_counter 0)
@@ -730,7 +730,7 @@
        False
   "
   (import numbers)
-  (instance? numbers.Number x))
+  (isinstance x numbers.Number))
 
 (defn odd? [^int n]
   "Check if `n` is an odd number.

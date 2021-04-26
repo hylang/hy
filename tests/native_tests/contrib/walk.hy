@@ -192,7 +192,7 @@
         ;; let bindings should work in except block
         (assert (= bar 33))
         ;; but exception bindings can shadow let bindings
-        (assert (instance? Exception foo))))
+        (assert (isinstance foo Exception))))
     ;; let binding did not get clobbered.
     (assert (= foo 42))))
 
@@ -263,7 +263,7 @@
     (assert (= types 6)))
   ;; import happened in Python scope.
   (assert (in "types" (vars)))
-  (assert (instance? types.ModuleType types)))
+  (assert (isinstance types types.ModuleType)))
 
 (defn test-let-defclass []
   (let [Foo 42

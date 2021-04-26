@@ -94,8 +94,8 @@ To make the Hy REPL use it for output, invoke Hy like so::
 
   (global _quoting)
   (setv started-quoting False)
-  (when (and (not _quoting) (instance? hy.models.Object obj)
-             (not (instance? hy.models.Keyword obj)))
+  (when (and (not _quoting) (isinstance obj hy.models.Object)
+             (not (isinstance obj hy.models.Keyword)))
     (setv _quoting True)
     (setv started-quoting True))
 
@@ -113,7 +113,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
 
 (hy-repr-register tuple (fn [x]
   (if (hasattr x "_fields")
-    ; It's a named tuple. (We can't use `instance?` or so because
+    ; It's a named tuple. (We can't use `isinstance` or so because
     ; generated named-tuple classes don't actually inherit from
     ; collections.namedtuple.)
     (.format "({} {})"
@@ -147,7 +147,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
 (hy-repr-register [str bytes] (fn [x]
   (setv r (.lstrip (_base-repr x) "ub"))
   (+
-    (if (instance? bytes x) "b" "")
+    (if (isinstance x bytes) "b" "")
     (if (.startswith "\"" r)
       ; If Python's built-in repr produced a double-quoted string, use
       ; that.
@@ -218,7 +218,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
   (.join " " (map hy-repr obj)))
 
 (defn _base-repr [x]
-  (unless (instance? hy.models.Object x)
+  (unless (isinstance x hy.models.Object)
     (return (repr x)))
   ; Call (.repr x) using the first class of x that doesn't inherit from
   ; hy.models.Object.

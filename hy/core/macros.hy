@@ -523,7 +523,7 @@
   (for [sym syms]
     (.extend gensyms [sym `(gensym ~(cut sym 2 None))]))
 
-  (setv [docstring body] (if (and (instance? str (get body 0))
+  (setv [docstring body] (if (and (isinstance (get body 0) str)
                                   (> (len body) 1))
                              (, (get body 0) (tuple (rest body)))
                              (, None body)))
@@ -567,12 +567,12 @@
   (defn extract-o!-sym [arg]
     (cond [(and (symbol? arg) (.startswith arg "o!"))
            arg]
-          [(and (instance? hy.models.List arg) (.startswith (get arg 0) "o!"))
+          [(and (isinstance args hy.models.List) (.startswith (get arg 0) "o!"))
            (get arg 0)]))
   (setv os (lfor  x (map extract-o!-sym args)  :if x  x)
         gs (lfor s os (hy.models.Symbol (+ "g!" (cut s 2 None)))))
 
-  (setv [docstring body] (if (and (instance? str (get body 0))
+  (setv [docstring body] (if (and (isinstance (get body 0) str)
                                   (> (len body) 1))
                              (, (get body 0) (tuple (rest body)))
                              (, None body)))

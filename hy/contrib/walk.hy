@@ -39,9 +39,9 @@
        97
   "
   (cond
-   [(instance? hy.models.Expression form)
+   [(isinstance form hy.models.Expression)
     (outer (hy.models.Expression (map inner form)))]
-   [(or (instance? hy.models.Sequence form) (list? form))
+   [(or (isinstance form hy.models.Sequence) (list? form))
     ((type form) (outer (hy.models.Expression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
@@ -203,7 +203,7 @@
 
 (defn call? [form]
   "Checks whether form is a non-empty hy.models.Expression"
-  (and (instance? hy.models.Expression form)
+  (and (isinstance form hy.models.Expression)
        form))
 
 (defn by2s [x]
@@ -558,8 +558,8 @@
     replaced)
 
   (defn destructuring? [x]
-    (or (instance? hy.models.List x)
-        (and (instance? hy.models.Expression x)
+    (or (isinstance x hy.models.List)
+        (and (isinstance x hy.models.Expression)
              (= (get x 0) ',))))
 
   (for [[k v] (by2s bindings)]
@@ -583,7 +583,7 @@
                        [(and (symbol? x) (in '. x))
                         (macro-error k "bind target may not contain a dot")]
 
-                       [(and (instance? hy.models.Expression x)
+                       [(and (isinstance x hy.models.Expression)
                              (not-in (get x 0) #{', 'unpack-iterable}))
                         (macro-error k "cannot destructure non-iterable unpacking expression")]
 
