@@ -846,30 +846,6 @@
   "
   (= n 0))
 
-(defn keyword [value]
-  "Create a keyword from `value`.
-
-  Strings numbers and even objects with the __name__ magic will work.
-
-  Examples:
-    ::
-
-       => (keyword \"foo\")
-       hy.models.Keyword('foo')
-
-    ::
-
-       => (keyword 1)
-       hy.models.Keyword('foo')
-  "
-  (if (keyword? value)
-      (Keyword (unmangle value.name))
-      (if (string? value)
-          (Keyword (unmangle value))
-          (try
-            (unmangle (.__name__ value))
-            (except [] (Keyword (str value)))))))
-
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`.
 
@@ -931,7 +907,7 @@
       disassemble drop-last empty? even? every?
       flatten float? gensym inc
       integer? integer-char? iterable?
-      iterator? keyword keyword? list? macroexpand
+      iterator? keyword? list? macroexpand
       macroexpand-1 mangle neg? none?
       numeric? odd? parse-args pos? read read-str
       repeatedly rest some string? symbol?

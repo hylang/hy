@@ -61,7 +61,6 @@
           "hy.core.language.disassemble",
           "hy.eval",
           "hy.core.language.gensym",
-          "hy.core.language.keyword",
           "hy.core.language.macroexpand",
           "hy.core.language.macroexpand-1",
           "hy.core.language.mangle",
