@@ -869,8 +869,8 @@ Special Forms
    ``cut`` can be used to take a subset of a list and create a new list from it.
    The form takes at least one parameter specifying the list to cut. Two
    optional parameters can be used to give the start and end position of the
-   subset. If they are not supplied, the default value of ``None`` will be used
-   instead. The third optional parameter is used to control step between the elements.
+   subset. If only one is given, it is taken as the ``stop`` value.
+   The third optional parameter is used to control the step stride between the elements.
 
    ``cut`` follows the same rules as its Python counterpart. Negative indices are
    counted starting from the end of the list. Some example usage:
@@ -884,7 +884,7 @@ Special Forms
        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
        => (cut collection 5)
-       [5, 6, 7, 8, 9]
+       [0, 1, 2, 3, 4]
 
        => (cut collection 2 8)
        [2, 3, 4, 5, 6, 7]

@@ -74,7 +74,7 @@
        ...      (.read it)
        ...      (.decode it \"utf-8\")
        ...      (lfor  x it  :if (!= it \"Welcome\")  it)
-       ...      (cut it 0 30)
+       ...      (cut it 30)
        ...      (.join \"\" it))
        \"Welcome to Hy’s documentation!\"
 
@@ -182,7 +182,7 @@
           (setv g (gensym))
           [`(do (setv ~g ~(get branch 0)) ~g) g])
         True
-          [(get branch 0) `(do ~@(cut branch 1))]))
+          [(get branch 0) `(do ~@(cut branch 1 None))]))
     [])))
 
 
@@ -370,7 +370,7 @@
             (get args 0)
             `(if* (is-not ~(get args 0) None)
                   ~(get args 1)
-                  (lif ~@(cut args 2))))))
+                  (lif ~@(cut args 2 None))))))
 
 
 (defmacro lif-not [test not-branch [yes-branch None]]
@@ -521,7 +521,7 @@
                        (flatten body))))
         gensyms [])
   (for [sym syms]
-    (.extend gensyms [sym `(gensym ~(cut sym 2))]))
+    (.extend gensyms [sym `(gensym ~(cut sym 2 None))]))
 
   (setv [docstring body] (if (and (instance? str (get body 0))
                                   (> (len body) 1))
@@ -570,7 +570,7 @@
           [(and (instance? hy.models.List arg) (.startswith (get arg 0) "o!"))
            (get arg 0)]))
   (setv os (lfor  x (map extract-o!-sym args)  :if x  x)
-        gs (lfor s os (hy.models.Symbol (+ "g!" (cut s 2)))))
+        gs (lfor s os (hy.models.Symbol (+ "g!" (cut s 2 None)))))
 
   (setv [docstring body] (if (and (instance? str (get body 0))
                                   (> (len body) 1))
@@ -647,7 +647,7 @@
   "with-decorator tag macro"
   (if (empty? expr)
       (macro-error expr "missing function argument"))
-  (setv decorators (cut expr None -1)
+  (setv decorators (cut expr -1)
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))
 

@@ -540,7 +540,7 @@ in expansions."
 
   (setv output (traceback.format_exception_only
                  excinfo.type excinfo.value))
-  (setv output (cut (.splitlines (.strip (get output 0))) 1))
+  (setv output (cut (.splitlines (.strip (get output 0))) 1 None))
 
   (setv expected ["  File \"<string>\", line 1"
                   "    (defmacro blah [x] `(print ~@z)) (blah y)"

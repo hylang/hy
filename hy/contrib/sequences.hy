@@ -58,7 +58,7 @@ This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
   (defn __getitem__ [self n]
     "get nth item of sequence"
     (if (hasattr n "start")
-    (gfor x (range n.start n.stop (or n.step 1))
+    (gfor x (range (or n.start 0) n.stop (or n.step 1))
          (get self x))
     (do (when (neg? n)
          ; Call (len) to force the whole

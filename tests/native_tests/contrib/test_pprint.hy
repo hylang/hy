@@ -42,8 +42,8 @@
 
   ;; Break the cycles
   (d.clear)
-  (del (cut a))
-  (del (cut b))
+  (del (cut a None))
+  (del (cut b None))
 
   (for [safe (, a b d (, d d))]
     (assert (not (pprint.recursive? safe)))
