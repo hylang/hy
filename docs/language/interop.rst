@@ -20,7 +20,7 @@ You can embed Python code directly into a Hy program with the special operators
 :hy:func:`py <py>` and :hy:func:`pys <pys>`.
 
 Using a Python module from Hy is nice and easy: you just have to :ref:`import`
-it. If you have the following in ``greetings.py`` in Python::
+it. If you have the following in ``greetings.py`` in Python:
 
 .. code-block:: python
 
