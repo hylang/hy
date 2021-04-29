@@ -1652,16 +1652,11 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (is (type (read-str "0")) (type '0))))
 
 (defn test-keyword-creation []
-  "NATIVE: Test keyword creation"
-  (assert (= (keyword "foo") :foo))
-  (assert (= (keyword "foo_bar") :foo-bar))
-  (assert (= (keyword `foo) :foo))
-  (assert (= (keyword `foo-bar) :foo-bar))
-  (assert (= (keyword 'foo) :foo))
-  (assert (= (keyword 'foo-bar) :foo-bar))
-  (assert (= (keyword 1) :1))
-  (setv x :foo_bar)
-  (assert (= (keyword x) :foo-bar)))
+  (assert (= (hy.models.Keyword "foo") :foo))
+  (assert (= (hy.models.Keyword "foo_bar") :foo_bar))
+  (assert (= (hy.models.Keyword "foo-bar") :foo-bar))
+  (assert (!= :foo_bar :foo-bar))
+  (assert (= (hy.models.Keyword "") :)))
 
 (defn test-keywords []
   "Check keyword use in function calls"

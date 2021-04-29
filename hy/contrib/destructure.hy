@@ -121,13 +121,6 @@ Iterator patterns are specified using round brackets. They are the same as list 
   Examples:
     ::
 
-       => (ifp instance? 5
-       ...   str :string
-       ...   int :int)
-       :int
-
-    ::
-
        => (ifp = 4
        ...   3 :do-something
        ...   5 :do-something-else
@@ -221,7 +214,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
     (unless (none? gsyms)
       (.append gsyms dcoll))
     (f dcoll result found binds gsyms))
-  (ifp instance? binds
+  (ifp (fn [x y] (isinstance y x)) binds
        hy.models.Symbol [binds expr]
        hy.models.Dict (dispatch dest-dict)
        hy.models.Expression (dispatch dest-iter)
@@ -311,7 +304,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
         mres (lfor [m t] magics
                (ifp found m
                  ':as [t dlist]
-                 ':& (destructure t (if (instance? hy.models.Dict t)
+                 ':& (destructure t (if (isinstance t hy.models.Dict)
                                       `(dict (zip
                                         (cut ~dlist ~n None 2)
                                         (cut ~dlist ~(+ n 1) None 2)))

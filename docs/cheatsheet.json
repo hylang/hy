@@ -9,7 +9,6 @@
           "hy.core.language.distinct",
           "hy.core.language.drop-last",
           "hy.core.language.flatten",
-          "hy.core.language.repeatedly",
           "hy.core.language.rest",
           "hy.core.language.some"
         ]
@@ -25,7 +24,6 @@
         "methods": [
           "hy.core.language.pos?",
           "hy.core.language.coll?",
-          "hy.core.language.instance?",
           "hy.core.language.integer?",
           "hy.core.language.integer-char?",
           "hy.core.language.iterable?",
@@ -62,7 +60,6 @@
           "hy.core.language.disassemble",
           "hy.eval",
           "hy.core.language.gensym",
-          "hy.core.language.keyword",
           "hy.core.language.macroexpand",
           "hy.core.language.macroexpand-1",
           "hy.core.language.mangle",

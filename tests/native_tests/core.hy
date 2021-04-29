@@ -266,20 +266,6 @@ result['y in globals'] = 'y' in globals()")
     (defn __add__ [self other] (.format "__add__ got {}" other)))
   (assert-equal (inc (X)) "__add__ got 1"))
 
-(defn test-instance []
-  "NATIVE: testing instance? function"
-  (defclass Foo [object])
-  (defclass Foo2 [object])
-  (defclass Foo3 [Foo])
-  (setv foo (Foo))
-  (setv foo3 (Foo3))
-  (assert-true (instance? Foo foo))
-  (assert-false (instance? Foo2 foo))
-  (assert-true (instance? Foo foo3))
-  (assert-true (instance? float 1.0))
-  (assert-true (instance? int (int  3)))
-  (assert-true (instance? str (str "hello"))))
-
 (defn test-integer? []
   "NATIVE: testing the integer? function"
   (assert-true (integer? 0))
@@ -395,13 +381,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (pos? -1))
   (assert-false (pos? 0))
   (assert-requires-num pos?))
-
-(defn test-repeatedly []
-  "NATIVE: testing repeatedly"
-  (setv r (repeatedly (fn [] (inc 4))))
-  (assert-equal (list (islice r 5)) [5 5 5 5 5])
-  (assert-equal (list (islice r 4)) [5 5 5 5])
-  (assert-equal (list (islice r 6)) [5 5 5 5 5 5]))
 
 (defn test-some []
   "NATIVE: testing the some function"

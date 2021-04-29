@@ -117,7 +117,7 @@
        => (keyword? foo)
        False
   "
-  (instance? Keyword k))
+  (isinstance k Keyword))
 
 (defn dec [n]
   "Decrement `n` by 1.
@@ -405,7 +405,7 @@
        => (symbol? '[a b c])
        False
   "
-  (instance? Symbol s))
+  (isinstance s Symbol))
 
 (import [threading [Lock]])
 (setv _gensym_counter 0)
@@ -472,36 +472,6 @@
        13.3
   "
   (+ n 1))
-
-(defn instance? [klass x]
-  "Perform `isinstance` with reversed arguments.
-
-  Returns ``True`` if *x* is an instance of *class*.
-
-  Examples:
-    ::
-
-       => (instance? float 1.0)
-       True
-
-    ::
-
-       => (instance? int 7)
-       True
-
-    ::
-
-       => (instance? str (str \"foo\"))
-       True
-
-    ::
-
-       => (defclass TestClass [object])
-       => (setv inst (TestClass))
-       => (instance? TestClass inst)
-       True
-  "
-  (isinstance x klass))
 
 (defn integer? [x]
   "Check if `x` is an integer.
@@ -730,7 +700,7 @@
        False
   "
   (import numbers)
-  (instance? numbers.Number x))
+  (isinstance x numbers.Number))
 
 (defn odd? [^int n]
   "Check if `n` is an odd number.
@@ -800,19 +770,6 @@
   (import [itertools [islice]])
   (islice coll 1 None))
 
-(defn repeatedly [func]
-  "Yield result of running `func` repeatedly.
-
-  Examples:
-    ::
-
-       => (import [random [randint]] [itertools [islice]])
-       => (list (islice (repeatedly (fn [] (randint 0 10))) 5))
-       [6, 2, 0, 6, 7]
-  "
-  (while True
-    (yield (func))))
-
 (defn some [pred coll]
   "Return the first logical true value of applying `pred` in `coll`, else None.
 
@@ -876,30 +833,6 @@
   "
   (= n 0))
 
-(defn keyword [value]
-  "Create a keyword from `value`.
-
-  Strings numbers and even objects with the __name__ magic will work.
-
-  Examples:
-    ::
-
-       => (keyword \"foo\")
-       hy.models.Keyword('foo')
-
-    ::
-
-       => (keyword 1)
-       hy.models.Keyword('foo')
-  "
-  (if (keyword? value)
-      (Keyword (unmangle value.name))
-      (if (string? value)
-          (Keyword (unmangle value))
-          (try
-            (unmangle (.__name__ value))
-            (except [] (Keyword (str value)))))))
-
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`.
 
@@ -959,10 +892,10 @@
     '[butlast calling-module calling-module-name coll?
       constantly dec distinct
       disassemble drop-last empty? even? every?
-      flatten float? gensym inc instance?
+      flatten float? gensym inc
       integer? integer-char? iterable?
-      iterator? keyword keyword? list? macroexpand
+      iterator? keyword? list? macroexpand
       macroexpand-1 mangle neg? none?
       numeric? odd? parse-args pos? read read-str
-      repeatedly rest some string? symbol?
+      rest some string? symbol?
       tuple? unmangle xor zero?])))

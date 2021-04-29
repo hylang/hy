@@ -282,7 +282,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 (defn recur-sym-replace [d form]
   "Recursive symbol replacement."
   (cond
-    [(instance? hy.models.Symbol form)
+    [(isinstance form hy.models.Symbol)
       (.get d form form)]
     [(coll? form)
       ((type form) (gfor  x form  (recur-sym-replace d x)))]
