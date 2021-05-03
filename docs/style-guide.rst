@@ -791,7 +791,7 @@ convoluted, hard to understand expressions.
            (pow (int (sqrt x)))
            (= x)))
 
-    ;; OK. Much clearer that the previous example above.
+    ;; OK. Much clearer than the previous example above.
     (defn square? [x]
       (-> x
           sqrt
