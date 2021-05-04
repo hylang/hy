@@ -193,14 +193,13 @@
   (assert (= (mangle "\r") "hyx_XUdX"))
   (assert (= (mangle "\r") "hyx_XUdX"))
 
-  (setv c (try unichr (except [NameError] chr)))
-  (assert (= (mangle (c 127)) "hyx_XU7fX"))
-  (assert (= (mangle (c 128)) "hyx_XU80X"))
-  (assert (= (mangle (c 0xa0)) "hyx_XnoHbreak_spaceX"))
-  (assert (= (mangle (c 0x378)) "hyx_XU378X"))
-  (assert (= (mangle (c 0x200a) "hyx_Xhair_spaceX")))
-  (assert (= (mangle (c 0x2065)) "hyx_XU2065X"))
-  (assert (= (mangle (c 0x1000c)) "hyx_XU1000cX")))
+  (assert (= (mangle (chr 127)) "hyx_XU7fX"))
+  (assert (= (mangle (chr 128)) "hyx_XU80X"))
+  (assert (= (mangle (chr 0xa0)) "hyx_XnoHbreak_spaceX"))
+  (assert (= (mangle (chr 0x378)) "hyx_XU378X"))
+  (assert (= (mangle (chr 0x200a) "hyx_Xhair_spaceX")))
+  (assert (= (mangle (chr 0x2065)) "hyx_XU2065X"))
+  (assert (= (mangle (chr 0x1000c)) "hyx_XU1000cX")))
 
 
 (defn test-mangle-bad-indent []
