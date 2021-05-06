@@ -167,6 +167,30 @@ To make the Hy REPL use it for output, invoke Hy like so::
 (hy-repr-register Fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
+(hy-repr-register
+  hy.models.FComponent
+  (fn [x] (+
+    "{"
+    (hy-repr (get x 0))
+    (if x.conversion f" !{x.conversion}" "")
+    (if (> (len x) 1)
+      (+ " :" (if (isinstance (get x 1) hy.models.String)
+        (get x 1)
+        (hy-repr (get x 1))))
+      "")
+    "}")))
+
+(hy-repr-register
+  hy.models.FString
+  (fn [fstring]
+    (+ "f\""
+       #* (lfor component fstring
+                :setv s (hy-repr component)
+                (if (isinstance component hy.models.String)
+                    (-> s (cut 1 -1) (.replace "{" "{{") (.replace "}" "}}"))
+                    s))
+       "\"")))
+
 (setv _matchobject-type (type (re.match "" "")))
 (hy-repr-register _matchobject-type (fn [x]
   (.format "<{}.{} object; :span {} :match {}>"

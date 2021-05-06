@@ -30,7 +30,14 @@
     '[1 2 3] '(, 1 2 3) '#{1 2 3} '(frozenset #{1 2 3})
     {"a" 1  "b" 2  "a" 3} '{"a" 1  "b" 2  "a" 3}
     [1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
-    '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"} (f #* a #** b)]])
+    '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"} (f #* a #** b)]
+    'f"a{:a}"
+    'f"a{{{{(+ 1 1)}}}}"
+    'f"the answer is {(+ 2 2)}"
+    'f"the answer is {(+ 2 2) !r :4}"
+    'f"the answer is {(+ 2 2) = }"
+    'f"the answer is {(+ 2 2) = !r :4}"
+    'f"the answer is {(+ 2 2):{(+ 2 3)}}"])
   (for [original-val values]
     (setv evaled (hy.eval (read-str (hy-repr original-val))))
     (assert (= evaled original-val))
