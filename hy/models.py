@@ -8,6 +8,9 @@ from math import isnan, isinf
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
 from fractions import Fraction
+import operator
+from itertools import groupby
+from functools import reduce
 from colorama import Fore
 
 PRETTY = True
@@ -345,7 +348,14 @@ class FString(Sequence):
     Mimics ast.JoinedStr, but using String and FComponent.
     """
     def __new__(cls, s=None, brackets=None):
-        value = super().__new__(cls, s)
+        value = super().__new__(cls,
+          # Join adjacent string nodes for the sake of equality
+          # testing.
+              (node
+                  for is_string, components in groupby(s,
+                      lambda x: isinstance(x, String))
+                  for node in ([reduce(operator.add, components)]
+                      if is_string else components)))
         value.brackets = brackets
         return value
 
