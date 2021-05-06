@@ -1226,6 +1226,7 @@
   (assert (= f"hello world" "hello world"))
   (assert (= f"hello {(+ 1 1)} world" "hello 2 world"))
   (assert (= f"a{ (.upper (+ \"g\" \"k\")) }z" "aGKz"))
+  (assert (= f"a{1}{2}b" "a12b"))
 
   ; Referring to a variable
   (setv p "xyzzy")
