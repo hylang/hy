@@ -342,6 +342,11 @@ class FComponent(Sequence):
             self.conversion = other.conversion
         return self
 
+    def __repr__(self):
+        return 'hy.models.FComponent({})'.format(
+            super(Object, self).__repr__() +
+            ', conversion=' + repr(self.conversion))
+
 class FString(Sequence):
     """
     Generic Hy F-String object, for smarter f-string handling.

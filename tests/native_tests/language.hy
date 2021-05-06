@@ -1319,6 +1319,19 @@ cee\"} dee" "ey bee\ncee dee"))
     f"{pi =:{fill =}^{width =}.2f}"))
 
 
+(defn test-format-string-repr-roundtrip []
+  (for [orig [
+       'f"hello {(+ 1 1)} world"
+       'f"a{p !r:9}"
+       'f"{ foo = !s}"]]
+    (setv new (eval (repr orig)))
+    (assert (= (len new) (len orig)))
+    (for [[n o] (zip new orig)]
+      (when (hasattr o "conversion")
+        (assert (= n.conversion o.conversion)))
+      (assert (= n o)))))
+
+
 (defn test-import-syntax []
   "NATIVE: test the import syntax."
 
