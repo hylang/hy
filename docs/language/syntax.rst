@@ -78,8 +78,7 @@ format strings
 A format string (or "f-string", or "formatted string literal") is a string
 literal with embedded code, possibly accompanied by formatting commands. Hy
 f-strings work much like :ref:`Python f-strings <py:f-strings>` except that the
-embedded code is in Hy rather than Python, and they're supported on all
-versions of Python.
+embedded code is in Hy rather than Python.
 
 ::
 

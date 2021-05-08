@@ -8,6 +8,9 @@ from math import isnan, isinf
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
 from fractions import Fraction
+import operator
+from itertools import groupby
+from functools import reduce
 from colorama import Fore
 
 PRETTY = True
@@ -339,13 +342,25 @@ class FComponent(Sequence):
             self.conversion = other.conversion
         return self
 
+    def __repr__(self):
+        return 'hy.models.FComponent({})'.format(
+            super(Object, self).__repr__() +
+            ', conversion=' + repr(self.conversion))
+
 class FString(Sequence):
     """
     Generic Hy F-String object, for smarter f-string handling.
     Mimics ast.JoinedStr, but using String and FComponent.
     """
     def __new__(cls, s=None, brackets=None):
-        value = super().__new__(cls, s)
+        value = super().__new__(cls,
+          # Join adjacent string nodes for the sake of equality
+          # testing.
+              (node
+                  for is_string, components in groupby(s,
+                      lambda x: isinstance(x, String))
+                  for node in ([reduce(operator.add, components)]
+                      if is_string else components)))
         value.brackets = brackets
         return value
 

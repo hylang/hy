@@ -1226,6 +1226,7 @@
   (assert (= f"hello world" "hello world"))
   (assert (= f"hello {(+ 1 1)} world" "hello 2 world"))
   (assert (= f"a{ (.upper (+ \"g\" \"k\")) }z" "aGKz"))
+  (assert (= f"a{1}{2}b" "a12b"))
 
   ; Referring to a variable
   (setv p "xyzzy")
@@ -1317,6 +1318,19 @@ cee\"} dee" "ey bee\ncee dee"))
            ValueError
            :match r"I|invalid format spec(?:ifier)?")]
     f"{pi =:{fill =}^{width =}.2f}"))
+
+
+(defn test-format-string-repr-roundtrip []
+  (for [orig [
+       'f"hello {(+ 1 1)} world"
+       'f"a{p !r:9}"
+       'f"{ foo = !s}"]]
+    (setv new (eval (repr orig)))
+    (assert (= (len new) (len orig)))
+    (for [[n o] (zip new orig)]
+      (when (hasattr o "conversion")
+        (assert (= n.conversion o.conversion)))
+      (assert (= n o)))))
 
 
 (defn test-import-syntax []
