@@ -37,6 +37,7 @@ Other Breaking Changes
 * Unary `cut` is now consistent with `slice`: A single index specifies
   the stop index. Thus `(cut x n)` is translated to `x[:n]` instead of
   `x[n:]`.
+* `cmp` has been renamed to `chainc`.
 
 Bug Fixes
 ------------------------------

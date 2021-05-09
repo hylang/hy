@@ -175,26 +175,26 @@ Special Forms
      ...       (print "Try again")))
 
 
-.. hy:function:: (cmp [#* args])
+.. hy:function:: (chainc [#* args])
 
-   ``cmp`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
+   ``chainc`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
    required for unchained comparisons, which have only one comparison operator,
    nor for chains of the same operator. For those cases, you can use the
    comparison operators directly with Hy's usual prefix syntax, as in ``(= x 1)``
-   or ``(< 1 2 3)``. The use of ``cmp`` is to construct chains of heterogeneous
-   operators, such as ``x <= y < z``. It uses an infix syntax with the general
-   form
+   or ``(< 1 2 3)``. The use of ``chainc`` is to construct chains of
+   heterogeneous operators, such as ``x <= y < z``. It uses an infix syntax with
+   the general form
 
    ::
 
-       (cmp ARG OP ARG OP ARG…)
+       (chainc ARG OP ARG OP ARG…)
 
-   Hence, ``(cmp x <= y < z)`` is equivalent to ``(and (<= x y) (< y z))``,
+   Hence, ``(chainc x <= y < z)`` is equivalent to ``(and (<= x y) (< y z))``,
    including short-circuiting, except that ``y`` is only evaluated once.
 
    Each ``ARG`` is an arbitrary form, which does not itself use infix syntax. Use
    :hy:func:`py <py>` if you want fully Python-style operator syntax. You can
-   also nest ``cmp`` forms, although this is rarely useful. Each ``OP`` is a
+   also nest ``chainc`` forms, although this is rarely useful. Each ``OP`` is a
    literal comparison operator; other forms that resolve to a comparison operator
    are not allowed.
 

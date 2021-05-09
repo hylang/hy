@@ -307,18 +307,18 @@
 
 
 (defn test-chained-comparison []
-  (assert (cmp 2 = (+ 1 1) = (- 3 1)))
-  (assert (not (cmp 2 = (+ 1 1) = (+ 3 1))))
+  (assert (chainc 2 = (+ 1 1) = (- 3 1)))
+  (assert (not (chainc 2 = (+ 1 1) = (+ 3 1))))
 
-  (assert (cmp 2 = 2 > 1))
-  (assert (cmp 2 = (+ 1 1) > 1))
+  (assert (chainc 2 = 2 > 1))
+  (assert (chainc 2 = (+ 1 1) > 1))
   (setv x 2)
-  (assert (cmp 2 = x > 1))
-  (assert (cmp 2 = x > (> 4 3)))
-  (assert (not (cmp (> 4 3) = x > 1)))
+  (assert (chainc 2 = x > 1))
+  (assert (chainc 2 = x > (> 4 3)))
+  (assert (not (chainc (> 4 3) = x > 1)))
 
-  (assert (cmp 1 in [1] in [[1] [2 3]] not-in [5]))
-  (assert (not (cmp 1 in [1] not-in [[1] [2 3]] not-in [5]))))
+  (assert (chainc 1 in [1] in [[1] [2 3]] not-in [5]))
+  (assert (not (chainc 1 in [1] not-in [[1] [2 3]] not-in [5]))))
 
 
 (defn test-augassign []
