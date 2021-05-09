@@ -613,6 +613,7 @@ def test_bin_hy_tracebacks():
 
 
 def test_hystartup():
+    # spy == True and repl-output-fn == hy-repr
     os.environ["HYSTARTUP"] = "tests/resources/hystartup.hy"
     output, _ = run_cmd("hy", "[1 2]")
     assert "[1 2]" in output
@@ -622,3 +623,15 @@ def test_hystartup():
     assert "(hello-world)" not in output
     assert "1 + 1" in output
     assert "2" in output
+
+    output, _ = run_cmd("hy --repl-output-fn repr", "[1 2 3 4]")
+    assert "[1, 2, 3, 4]" in output
+    assert "[1 2 3 4]" not in output
+
+    # spy == False and repl-output-fn == hy-repr
+    os.environ["HYSTARTUP"] = "tests/resources/spy_off_startup.hy"
+    output, _ = run_cmd("hy --spy", "[1 2]")  # overwrite spy with cmdline arg
+    assert "[1 2]" in output
+    assert "[1, 2]" in output
+
+    del os.environ['HYSTARTUP']

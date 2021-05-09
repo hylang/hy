@@ -262,8 +262,8 @@ class HyREPL(code.InteractiveConsole, object):
                     [name for name in mod.__dict__ if not name.startswith("_")]
                 )
                 imports = {name: mod.__dict__[name] for name in imports}
-                spy = imports.get("repl_spy", spy)
-                output_fn = imports.get("repl_output_fn", output_fn)
+                spy = spy or imports.get("repl_spy")
+                output_fn = output_fn or imports.get("repl_output_fn")
 
                 # Load imports and defs
                 self.locals.update(imports)
