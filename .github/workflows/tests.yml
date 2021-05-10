@@ -1,0 +1,55 @@
+name: Run Tests
+
+on:
+  pull_request:
+  push:
+
+jobs:
+
+  test:
+
+    strategy:
+      matrix:
+        python:
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
+        allow-failure: [ false ]
+        include:
+          # https://github.com/hylang/hy/issues/2061
+          - python: '3.10-dev'
+            allow-failure: true
+          # TODO figure out why the PyPy installed by https://github.com/actions/setup-python fails :/
+          - python: 'pypy-3.7'
+            allow-failure: true
+
+    name: ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allow-failure }}
+
+    defaults:
+      run:
+        shell: 'bash -Eeuo pipefail -x {0}'
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-travis.txt
+
+      - name: Install Hy
+        run: |
+          pip install -e .
+          hy -c '(+ 2 2)' # basic smoke test
+
+      - name: Run pytest
+        run: pytest
