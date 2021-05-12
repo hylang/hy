@@ -44,6 +44,8 @@ Bug Fixes
 * Fixed a bug in `pprint` in which `width` was ignored.
 * Corrected `repr` and `hy-repr` for f-strings.
 * `hy-repr` won't use the registerd method of a supertype anymore
+* REPL `--spy` and `--repl-output-fn` can now overwrite `HYSTARTUP` values
+  when specified as a cmdline argument
 
 .. _Toolz: https://toolz.readthedocs.io
 .. _CyToolz: https://github.com/pytoolz/cytoolz
