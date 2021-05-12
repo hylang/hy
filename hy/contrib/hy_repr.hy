@@ -85,12 +85,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
        => (repr [1 2 3])
        '[1, 2, 3]'
   "
-  (setv [f placeholder] (next
-    (gfor
-      t (. (type obj) __mro__)
-      :if (in t _registry)
-      (get _registry t))
-    [_base-repr None]))
+  (setv [f placeholder] (.get _registry (type obj) [_base-repr None]))
 
   (global _quoting)
   (setv started-quoting False)
@@ -112,15 +107,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
         (setv _quoting False)))))
 
 (hy-repr-register tuple (fn [x]
-  (if (hasattr x "_fields")
-    ; It's a named tuple. (We can't use `isinstance` or so because
-    ; generated named-tuple classes don't actually inherit from
-    ; collections.namedtuple.)
-    (.format "({} {})"
-      (. (type x) __name__)
-      (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))
-    ; Otherwise, print it as a regular tuple.
-    (+ "(," (if x " " "") (_cat x) ")"))))
+  (+ "(," (if x " " "") (_cat x) ")")))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
   (setv text (.join "  " (gfor
     [k v] (.items x)
@@ -144,7 +131,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
     (+ "(" (_cat x) ")"))))
 
 (hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
-(hy-repr-register [str bytes] (fn [x]
+(hy-repr-register [hy.models.String str hy.models.Bytes bytes] (fn [x]
   (setv r (.lstrip (_base-repr x) "ub"))
   (+
     (if (isinstance x bytes) "b" "")
@@ -156,13 +143,13 @@ To make the Hy REPL use it for output, invoke Hy like so::
       ; convert it.
       (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\"")))))
 (hy-repr-register bool str)
-(hy-repr-register float (fn [x]
+(hy-repr-register [hy.models.Float float] (fn [x]
   (if
     (isnan x)  "NaN"
     (= x Inf)  "Inf"
     (= x -Inf) "-Inf"
                (_base-repr x))))
-(hy-repr-register complex (fn [x]
+(hy-repr-register [hy.models.Complex complex] (fn [x]
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
 (hy-repr-register Fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
@@ -242,6 +229,14 @@ To make the Hy REPL use it for output, invoke Hy like so::
   (.join " " (map hy-repr obj)))
 
 (defn _base-repr [x]
+  (when (and (isinstance x tuple) (hasattr x "_fields"))
+    ; It's a named tuple. (We can't use `isinstance` or so because
+    ; generated named-tuple classes don't actually inherit from
+    ; collections.namedtuple.)
+    (return (.format "({} {})"
+                     (. (type x) __name__)
+                     (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))))
+
   (unless (isinstance x hy.models.Object)
     (return (repr x)))
   ; Call (.repr x) using the first class of x that doesn't inherit from

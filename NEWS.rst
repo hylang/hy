@@ -43,6 +43,7 @@ Bug Fixes
 * REPL now properly displays SyntaxErrors.
 * Fixed a bug in `pprint` in which `width` was ignored.
 * Corrected `repr` and `hy-repr` for f-strings.
+* `hy-repr` won't use the registerd method of a supertype anymore
 
 .. _Toolz: https://toolz.readthedocs.io
 .. _CyToolz: https://github.com/pytoolz/cytoolz
