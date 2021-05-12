@@ -1237,7 +1237,7 @@ class HyASTCompiler(object):
         return ret + asty.Compare(
             expr, left=exprs[0], ops=ops, comparators=exprs[1:])
 
-    @special("cmp", [FORM, many(SYM + FORM)])
+    @special("chainc", [FORM, many(SYM + FORM)])
     def compile_chained_comparison(self, expr, root, arg1, args):
         ret = self.compile(arg1)
         arg1 = ret.force_expr

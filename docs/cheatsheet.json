@@ -106,7 +106,7 @@
           "eval-when-compile",
           "await",
           "break",
-          "cmp",
+          "chainc",
           "continue",
           "do",
           "for",
