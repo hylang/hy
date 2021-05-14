@@ -1,0 +1,27 @@
+name: Run tests
+
+on: [pull_request, push]
+
+jobs:
+  test:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [3.6, 3.7, 3.8, 3.9, 3.10-dev, pypy-3.7]
+
+    name: ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    env:
+      TERM: xterm-256color
+        # This is needed to avoid a terminfo-related crash when
+        # testing PyPy.
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - run: pip install -e .
+    - run: pip install pytest
+    - run: pytest
