@@ -1738,7 +1738,9 @@ class HyASTCompiler(object):
 
                 # Get the method name (the last named attribute
                 # in the chain of attributes)
-                attrs = [Symbol(a).replace(root) for a in root.split(".")[1:]]
+                attrs = [
+                    Symbol(a).replace(root) if a else None
+                    for a in root.split(".")[1:]]
                 if not all(attrs):
                     raise self._syntax_error(expr,
                          "cannot access empty attribute")

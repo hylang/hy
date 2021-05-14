@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 from contextlib import contextmanager
+import re
 from math import isnan, isinf
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
@@ -144,7 +145,14 @@ class Symbol(Object, str):
     Hy Symbol. Basically a string.
     """
 
-    def __new__(cls, s=None):
+    def __new__(cls, s, from_parser = False):
+        s = str(s)
+        if not from_parser:
+            # Check that the symbol is syntactically legal.
+            from hy.lex.lexer import identifier
+            from hy.lex.parser import symbol_like
+            if not re.fullmatch(identifier, s) or symbol_like(s) is not None:
+                raise ValueError(f'Syntactically illegal symbol: {s!r}')
         return super(Symbol, cls).__new__(cls, s)
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
