@@ -164,7 +164,13 @@ class Keyword(Object):
 
     __slots__ = ['name']
 
-    def __init__(self, value):
+    def __init__(self, value, from_parser = False):
+        value = str(value)
+        if not from_parser:
+            # Check that the keyword is syntactically legal.
+            from hy.lex.lexer import identifier
+            if value and (not re.fullmatch(identifier, value) or "." in value):
+                raise ValueError(f'Syntactically illegal keyword: {":" + value!r}')
         self.name = value
 
     def __repr__(self):

@@ -402,7 +402,7 @@ def symbol_like(obj):
             pass
 
     if obj.startswith(":") and "." not in obj:
-        return Keyword(obj[1:])
+        return Keyword(obj[1:], from_parser = True)
 
 
 @pg.error
