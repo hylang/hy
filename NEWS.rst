@@ -41,6 +41,7 @@ Other Breaking Changes
 
 Bug Fixes
 ------------------------------
+* Fixed issues with newer prereleases of Python 3.10.
 * REPL now properly displays SyntaxErrors.
 * Fixed a bug in `pprint` in which `width` was ignored.
 * Corrected `repr` and `hy-repr` for f-strings.
