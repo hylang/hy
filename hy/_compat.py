@@ -40,3 +40,11 @@ else:
 
     import astor.code_gen
     ast_unparse = astor.code_gen.to_source
+
+
+if not PY3_7:
+    # Shim `asyncio.run`.
+    import asyncio
+    def f(coro):
+        return asyncio.get_event_loop().run_until_complete(coro)
+    asyncio.run = f

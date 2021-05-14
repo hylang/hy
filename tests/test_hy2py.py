@@ -126,5 +126,4 @@ def assert_stuff(m):
     assert m.pys_accum == [0, 1, 2, 3, 4]
     assert m.py_accum == "01234"
 
-    assert (asyncio.get_event_loop().run_until_complete(m.coro())
-        == list("abcdef"))
+    assert asyncio.run(m.coro()) == list("abcdef")
