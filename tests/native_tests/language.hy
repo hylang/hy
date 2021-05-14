@@ -15,7 +15,7 @@
         pytest)
 (import sys)
 
-(import [hy._compat [PY3_8 PY3_10]])
+(import [hy._compat [PY3_8]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -892,9 +892,7 @@
   (for [[k v] (.items (dict
       :p1 int  :p3 str  :o1 str  :o2 int
       :k1 str  :k2 int  :kwargs bool))]
-    (assert (=
-      (. f __annotations__ [k])
-      (if PY3_10 v.__name__ v)))))
+    (assert (is (. f __annotations__ [k]) v))))
 
 
 (defn test-return []
