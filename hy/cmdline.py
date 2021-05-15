@@ -37,7 +37,6 @@ from hy.importer import runhy, HyLoader
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import Expression, String, Symbol
-from hy._compat import ast_unparse
 
 
 sys.last_type = None
@@ -320,7 +319,7 @@ class HyREPL(code.InteractiveConsole, object):
                 new_ast = ast.Module(
                     exec_ast.body + ([] if eval_ast is None else [ast.Expr(eval_ast.body)]),
                     type_ignores=[])
-                print(ast_unparse(new_ast))
+                print(ast.unparse(new_ast))
             except Exception:
                 msg = 'Exception in AST callback:\n{}\n'.format(
                     traceback.format_exc())
@@ -784,7 +783,7 @@ def hy2py_main():
         print()
 
     if not options.without_python:
-        _print_for_windows(ast_unparse(_ast))
+        _print_for_windows(ast.unparse(_ast))
 
     parser.exit(0)
 

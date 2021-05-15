@@ -166,12 +166,12 @@
        => (disassemble '(print \"Hello World!\") True)
        print('Hello World!')
   "
-  (import ast hy.compiler hy._compat)
+  (import ast hy.compiler)
 
   (setv compiled (hy.compiler.hy-compile tree (calling-module-name) :import-stdlib False))
   (if
     codegen
-      (hy._compat.ast-unparse compiled)
+      (ast.unparse compiled)
     hy._compat.PY3_9
       (ast.dump compiled :indent 1)
     True
