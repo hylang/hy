@@ -19,7 +19,7 @@ hy_dir = os.environ.get('HY_DIR', '')
 
 
 def hr(s=""):
-    return "hy --repl-output-fn=hy.contrib.hy-repr.hy-repr " + s
+    return "hy --repl-output-fn=hy.repr " + s
 
 
 def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):

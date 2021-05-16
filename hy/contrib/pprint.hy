@@ -32,7 +32,7 @@ The differences that do exist are as follows:
                  _recursion
                  _safe-tuple
                  _safe-key]]
-        [hy.contrib [hy-repr]]
+        hy.core.hy-repr
         [hy._compat [PY3_8 PY3_10]])
 
 (setv __all__ ["pprint" "pformat" "saferepr" "PrettyPrinter" "is_readable" "is_recursive" "pp"])
@@ -153,8 +153,8 @@ The differences that do exist are as follows:
                readable?
                recursive?)))
 
-  (when (in typ hy-repr._registry)
-    (return (, (hy-repr.hy-repr object) True False)))
+  (when (in typ hy.core.hy-repr._registry)
+    (return (, (hy.repr object) True False)))
 
   (if PY3_8
       (_safe-py-repr object context maxlevels level sort-dicts)
@@ -171,12 +171,12 @@ The differences that do exist are as follows:
           candidate (+ current part))
     (when (= i _last)
       (-= width allowance))
-    (if (-> candidate hy-repr.hy-repr len (> width))
-        (do (when current (yield (hy-repr.hy-repr current)))
+    (if (-> candidate hy.repr len (> width))
+        (do (when current (yield (hy.repr current)))
             (setv current part))
         (setv current candidate)))
   (when current
-    (yield (hy-repr.hy-repr current))))
+    (yield (hy.repr current))))
 
 (defclass PrettyPrinter [PyPrettyPrinter]
   "Handle pretty printing operations onto a stream using a set of
@@ -305,7 +305,7 @@ The differences that do exist are as follows:
   (assoc _dispatch str.__repr__ (fn [self object stream indent allowance context level]
     (setv write stream.write)
     (unless (len object)
-      (write (hy-repr.hy-repr object))
+      (write (hy.repr object))
       (return))
     (setv chunks []
           lines (object.splitlines True))
@@ -316,7 +316,7 @@ The differences that do exist are as follows:
     (setv max-width (- self._width indent)
           max-width1 max-width)
     (for [(, i line) (enumerate lines)]
-      (setv rep (hy-repr.hy-repr line))
+      (setv rep (hy.repr line))
       (when (= i (len line))
         (-= max-width1 allowance))
       (if (<= (len rep) max-width1)
@@ -333,13 +333,13 @@ The differences that do exist are as follows:
               (when (and (= j (dec (len parts)))
                          (= i (dec (len lines))))
                 (-= max-width2 allowance))
-              (if (> (len (hy-repr.hy-repr candidate)) max-width2)
+              (if (> (len (hy.repr candidate)) max-width2)
                   (do (if current
-                          (chunks.append (hy-repr.hy-repr current)))
+                          (chunks.append (hy.repr current)))
                       (setv current part))
                   (setv current candidate)))
             (if current
-                (chunks.append (hy-repr.hy-repr current))))))
+                (chunks.append (hy.repr current))))))
     (when (= (len chunks) 1)
       (write rep)
       (return))
@@ -353,7 +353,7 @@ The differences that do exist are as follows:
   (assoc _dispatch bytes.__repr__ (fn [self object stream indent allowance context level]
     (setv write stream.write)
     (when (<= (len object) 4)
-      (write (hy-repr.hy-repr object))
+      (write (hy.repr object))
       (return))
 
     ;; Need to offset by 3 to accomadate multiline

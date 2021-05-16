@@ -3,7 +3,6 @@
   io
   [pprint :as pypprint]
   [hy._compat [PY3_8]]
-  [hy.contrib.hy-repr :as hy-repr]
   [hy.contrib.pprint :as pprint])
 
 (defn large-list-b []
@@ -149,9 +148,9 @@
   (setv nested-tuple (, 1 (, 2 (, 3 (, 4 (, 5 6)))))
         nested-dict {1 {2 {3 {4 {5 {6 6}}}}}}
         nested-list [1 [2 [3 [4 [5 [6 []]]]]]])
-  (assert (= (pprint.pformat nested-tuple) (hy-repr.hy-repr nested-tuple)))
-  (assert (= (pprint.pformat nested-dict) (hy-repr.hy-repr nested-dict)))
-  (assert (= (pprint.pformat nested-list) (hy-repr.hy-repr nested-list)))
+  (assert (= (pprint.pformat nested-tuple) (hy.repr nested-tuple)))
+  (assert (= (pprint.pformat nested-dict) (hy.repr nested-dict)))
+  (assert (= (pprint.pformat nested-list) (hy.repr nested-list)))
 
   (assert (= (pprint.pformat nested-tuple :depth 1) "(, 1 (, ...))"))
   (assert (= (pprint.pformat nested-dict :depth 1) "{1 {...}}"))
@@ -179,7 +178,7 @@
   indent properly and prefer chunking in blocks of
   length 4"
   (setv letters b"abcdefghijklmnopqrstuvwxyz")
-  (assert (= (pprint.pformat letters :width 29) (hy-repr.hy-repr letters)))
+  (assert (= (pprint.pformat letters :width 29) (hy.repr letters)))
   (assert (= (pprint.pformat letters :width 22) #[[
 (+ b"abcdefghijklmnop"
    b"qrstuvwxyz")]]))
