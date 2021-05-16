@@ -291,13 +291,12 @@ class HyREPL(code.InteractiveConsole, object):
             self.output_fn = repr
         elif callable(output_fn):
             self.output_fn = output_fn
+        elif "." in output_fn:
+            parts = [mangle(x) for x in output_fn.split(".")]
+            module, f = '.'.join(parts[:-1]), parts[-1]
+            self.output_fn = getattr(importlib.import_module(module), f)
         else:
-            if "." in output_fn:
-                parts = [mangle(x) for x in output_fn.split(".")]
-                module, f = '.'.join(parts[:-1]), parts[-1]
-                self.output_fn = getattr(importlib.import_module(module), f)
-            else:
-                self.output_fn = getattr(builtins, mangle(output_fn))
+            self.output_fn = getattr(builtins, mangle(output_fn))
 
         # Pre-mangle symbols for repl recent results: *1, *2, *3
         self._repl_results_symbols = [mangle("*{}".format(i + 1)) for i in range(3)]
