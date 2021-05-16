@@ -18,8 +18,8 @@ import pytest
 hy_dir = os.environ.get('HY_DIR', '')
 
 
-def hr(s=""):
-    return "hy --repl-output-fn=hy.repr " + s
+def pyr(s=""):
+    return "hy --repl-output-fn=repr " + s
 
 
 def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
@@ -72,7 +72,7 @@ def test_bin_hy_stdin():
 
 def test_bin_hy_stdin_multiline():
     output, _ = run_cmd("hy", '(+ "a" "b"\n"c" "d")')
-    assert "'abcd'" in output
+    assert '"abcd"' in output
 
 
 def test_bin_hy_history():
@@ -80,18 +80,18 @@ def test_bin_hy_history():
                                  (+ "c" "d")
                                  (+ "e" "f")
                                  (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)''')
-    assert "'*1: ef, *2: cd, *3: ab,'" in output
+    assert '"*1: ef, *2: cd, *3: ab,"' in output
 
     output, _ = run_cmd("hy", '''(raise (Exception "TEST ERROR"))
                                  (+ "err: " (str *e))''')
-    assert "'err: TEST ERROR'" in output
+    assert '"err: TEST ERROR"' in output
 
 
 def test_bin_hy_stdin_comments():
     _, err_empty = run_cmd("hy", '')
 
     output, err = run_cmd("hy", '(+ "a" "b") ; "c"')
-    assert "'ab'" in output
+    assert '"ab"' in output
     assert err == err_empty
 
     _, err = run_cmd("hy", '; 1')
@@ -237,19 +237,19 @@ def test_bin_hy_stdin_bad_repr():
     assert "AZ" in output
 
 
-def test_bin_hy_stdin_hy_repr():
+def test_bin_hy_stdin_py_repr():
     output, _ = run_cmd("hy", '(+ [1] [2])')
+    assert "[1 2]" in output
+
+    output, _ = run_cmd(pyr(), '(+ [1] [2])')
     assert "[1, 2]" in output
 
-    output, _ = run_cmd(hr(), '(+ [1] [2])')
-    assert "[1 2]" in output
-
-    output, _ = run_cmd(hr("--spy"), '(+ [1] [2])')
+    output, _ = run_cmd(pyr("--spy"), '(+ [1] [2])')
     assert "[1]+[2]" in output.replace(' ', '')
-    assert "[1 2]" in output
+    assert "[1, 2]" in output
 
     # --spy should work even when an exception is thrown
-    output, _ = run_cmd(hr("--spy"), '(+ [1] [2] (foof))')
+    output, _ = run_cmd(pyr("--spy"), '(+ [1] [2] (foof))')
     assert "[1]+[2]" in output.replace(' ', '')
 
 def test_bin_hy_ignore_python_env():
@@ -613,11 +613,11 @@ def test_bin_hy_tracebacks():
 
 
 def test_hystartup():
-    # spy == True and repl-output-fn == hy-repr
+    # spy == True and custom repl-output-fn
     os.environ["HYSTARTUP"] = "tests/resources/hystartup.hy"
     output, _ = run_cmd("hy", "[1 2]")
-    assert "[1 2]" in output
     assert "[1, 2]" in output
+    assert "[1,_2]" in output
 
     output, _ = run_cmd("hy", "(hello-world)")
     assert "(hello-world)" not in output
@@ -627,11 +627,12 @@ def test_hystartup():
     output, _ = run_cmd("hy --repl-output-fn repr", "[1 2 3 4]")
     assert "[1, 2, 3, 4]" in output
     assert "[1 2 3 4]" not in output
+    assert "[1,_2,_3,_4]" not in output
 
-    # spy == False and repl-output-fn == hy-repr
+    # spy == False and custom repl-output-fn
     os.environ["HYSTARTUP"] = "tests/resources/spy_off_startup.hy"
     output, _ = run_cmd("hy --spy", "[1 2]")  # overwrite spy with cmdline arg
-    assert "[1 2]" in output
     assert "[1, 2]" in output
+    assert "[1,~2]" in output
 
     del os.environ['HYSTARTUP']
