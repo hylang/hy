@@ -288,7 +288,7 @@ class HyREPL(code.InteractiveConsole, object):
         self.print_last_value = True
 
         if output_fn is None:
-            self.output_fn = repr
+            self.output_fn = hy.repr
         elif callable(output_fn):
             self.output_fn = output_fn
         elif "." in output_fn:
