@@ -24,7 +24,9 @@ _jit_imports = dict(
     read_str = "hy.lex",
     mangle = "hy.lex",
     unmangle = "hy.lex",
-    eval = ["hy.compiler", "hy_eval"])
+    eval = ["hy.compiler", "hy_eval"],
+    repr = ["hy.core.hy_repr", "hy_repr"],
+    repr_register = ["hy.core.hy_repr", "hy_repr_register"])
 
 def __getattr__(k):
     if k not in _jit_imports:
