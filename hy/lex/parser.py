@@ -19,6 +19,10 @@ from .exceptions import LexException, PrematureEndOfInput
 pg = ParserGenerator([rule.name for rule in lexer.rules] + ['$end'])
 
 
+def sym(x):
+    return Symbol(x, from_parser = True)
+
+
 def set_boundaries(fun):
     @wraps(fun)
     def wrapped(state, p):
@@ -114,31 +118,31 @@ def term_discard(state, p):
 @pg.production("term : QUOTE term")
 @set_quote_boundaries
 def term_quote(state, p):
-    return Expression([Symbol("quote"), p[1]])
+    return Expression([sym("quote"), p[1]])
 
 
 @pg.production("term : QUASIQUOTE term")
 @set_quote_boundaries
 def term_quasiquote(state, p):
-    return Expression([Symbol("quasiquote"), p[1]])
+    return Expression([sym("quasiquote"), p[1]])
 
 
 @pg.production("term : UNQUOTE term")
 @set_quote_boundaries
 def term_unquote(state, p):
-    return Expression([Symbol("unquote"), p[1]])
+    return Expression([sym("unquote"), p[1]])
 
 
 @pg.production("term : UNQUOTESPLICE term")
 @set_quote_boundaries
 def term_unquote_splice(state, p):
-    return Expression([Symbol("unquote-splice"), p[1]])
+    return Expression([sym("unquote-splice"), p[1]])
 
 
 @pg.production("term : ANNOTATION term")
 @set_quote_boundaries
 def term_annotation(state, p):
-    return Expression([Symbol("annotate*"), p[1]])
+    return Expression([sym("annotate*"), p[1]])
 
 
 @pg.production("term : HASHSTARS term")
@@ -146,22 +150,22 @@ def term_annotation(state, p):
 def term_hashstars(state, p):
     n_stars = len(p[0].getstr()[1:])
     if n_stars == 1:
-        sym = "unpack-iterable"
+        s = "unpack-iterable"
     elif n_stars == 2:
-        sym = "unpack-mapping"
+        s = "unpack-mapping"
     else:
         raise LexException.from_lexer(
             "Too many stars in `#*` construct (if you want to unpack a symbol "
             "beginning with a star, separate it with whitespace)",
             state, p[0])
-    return Expression([Symbol(sym), p[1]])
+    return Expression([sym(s), p[1]])
 
 
 @pg.production("term : HASHOTHER term")
 @set_quote_boundaries
 def hash_other(state, p):
     # p == [(Token('HASHOTHER', '#foo'), bar)]
-    return Expression([Symbol(p[0].getstr()), p[1]])
+    return Expression([sym(p[0].getstr()), p[1]])
 
 
 @pg.production("set : HLCURLY list_contents RCURLY")
@@ -367,7 +371,7 @@ def t_identifier(state, p):
             '`(. <expression> <attr>)` or `(.<attr> <expression>)`)',
             state, p[0])
 
-    return Symbol(obj)
+    return sym(obj)
 
 
 def symbol_like(obj):
@@ -381,7 +385,7 @@ def symbol_like(obj):
     if '/' in obj:
         try:
             lhs, rhs = obj.split('/')
-            return Expression([Symbol('hy._Fraction'), Integer(lhs),
+            return Expression([sym('hy._Fraction'), Integer(lhs),
                                Integer(rhs)])
         except ValueError:
             pass
@@ -398,7 +402,7 @@ def symbol_like(obj):
             pass
 
     if obj.startswith(":") and "." not in obj:
-        return Keyword(obj[1:])
+        return Keyword(obj[1:], from_parser = True)
 
 
 @pg.error

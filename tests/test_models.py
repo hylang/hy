@@ -3,11 +3,25 @@
 # license. See the LICENSE.
 
 import copy
+import pytest
 import hy
-from hy.models import (wrap_value, replace_hy_obj, String, Integer, List,
-                       Dict, Set, Expression, Complex, Float, pretty)
+from hy.models import (
+    wrap_value, replace_hy_obj, Symbol, Keyword, String, Integer,
+    List, Dict, Set, Expression, Complex, Float, pretty)
 
 hy.models.COLORED = False
+
+
+def test_symbol_or_keyword():
+    for x in ("foo", "foo-bar", "foo_bar", "✈é😂⁂"):
+        assert str(Symbol(x)) == x
+        assert Keyword(x).name == x
+    for x in ("", ":foo", "5"):
+        with pytest.raises(ValueError): Symbol(x)
+        assert Keyword(x).name == x
+    for x in ("foo bar", "fib()"):
+        with pytest.raises(ValueError): Symbol(x)
+        with pytest.raises(ValueError): Keyword(x)
 
 
 def test_wrap_int():

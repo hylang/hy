@@ -48,6 +48,8 @@ Bug Fixes
 * `hy-repr` won't use the registerd method of a supertype anymore
 * REPL `--spy` and `--repl-output-fn` can now overwrite `HYSTARTUP` values
   when specified as a cmdline argument
+* The constructors of `Symbol` and `Keyword` now check that the input
+  would be syntactically legal
 
 .. _Toolz: https://toolz.readthedocs.io
 .. _CyToolz: https://github.com/pytoolz/cytoolz
