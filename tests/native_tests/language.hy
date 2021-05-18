@@ -11,11 +11,12 @@
         [fractions [Fraction]]
         pickle
         [typing [get-type-hints List Dict]]
+        asyncio
         [hy.errors [HyLanguageError HySyntaxError]]
         pytest)
 (import sys)
 
-(import [hy._compat [PY3_8 PY3_10]])
+(import [hy._compat [PY3_8]])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -892,9 +893,7 @@
   (for [[k v] (.items (dict
       :p1 int  :p3 str  :o1 str  :o2 int
       :k1 str  :k2 int  :kwargs bool))]
-    (assert (=
-      (. f __annotations__ [k])
-      (if PY3_10 v.__name__ v)))))
+    (assert (is (. f __annotations__ [k]) v))))
 
 
 (defn test-return []
@@ -1836,9 +1835,6 @@ cee\"} dee" "ey bee\ncee dee"))
              ["__module__" "__qualname__" "method1" "method2"])))
 
 
-(import [asyncio [get-event-loop sleep]])
-
-
 (defn test-unpacking-pep448-1star []
   (setv l [1 2 3])
   (setv p [4 5])
@@ -1860,21 +1856,16 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (fun #**d1 :e "eee" #**d2) [1 2 3 4 "eee" None])))
 
 
-(defn run-coroutine [coro]
-  "Run a coroutine until its done in the default event loop."""
-  (.run_until_complete (get-event-loop) (coro)))
-
-
 (defn test-fn/a []
-  (assert (= (run-coroutine (fn/a [] (await (sleep 0)) [1 2 3]))
+  (assert (= (asyncio.run ((fn/a [] (await (asyncio.sleep 0)) [1 2 3])))
              [1 2 3])))
 
 
 (defn test-defn/a []
   (defn/a coro-test []
-    (await (sleep 0))
+    (await (asyncio.sleep 0))
     [1 2 3])
-  (assert (= (run-coroutine coro-test) [1 2 3])))
+  (assert (= (asyncio.run (coro-test)) [1 2 3])))
 
 
 (defn test-decorated-defn/a []
@@ -1882,70 +1873,70 @@ cee\"} dee" "ey bee\ncee dee"))
 
   #@(decorator
       (defn/a coro-test []
-        (await (sleep 0))
+        (await (asyncio.sleep 0))
         42))
-  (assert (= (run-coroutine coro-test) 21)))
+  (assert (= (asyncio.run (coro-test)) 21)))
 
 
 (defn test-single-with/a []
-  (run-coroutine
-    (fn/a []
+  (asyncio.run
+    ((fn/a []
       (with/a [t (AsyncWithTest 1)]
-        (assert (= t 1))))))
+        (assert (= t 1)))))))
 
 (defn test-two-with/a []
-  (run-coroutine
-    (fn/a []
+  (asyncio.run
+    ((fn/a []
       (with/a [t1 (AsyncWithTest 1)
                t2 (AsyncWithTest 2)]
         (assert (= t1 1))
-        (assert (= t2 2))))))
+        (assert (= t2 2)))))))
 
 (defn test-thrice-with/a []
-  (run-coroutine
-    (fn/a []
+  (asyncio.run
+    ((fn/a []
       (with/a [t1 (AsyncWithTest 1)
                t2 (AsyncWithTest 2)
                t3 (AsyncWithTest 3)]
         (assert (= t1 1))
         (assert (= t2 2))
-        (assert (= t3 3))))))
+        (assert (= t3 3)))))))
 
 (defn test-quince-with/a []
-  (run-coroutine
-    (fn/a []
+  (asyncio.run
+    ((fn/a []
       (with/a [t1 (AsyncWithTest 1)
                t2 (AsyncWithTest 2)
                t3 (AsyncWithTest 3)
                _ (AsyncWithTest 4)]
         (assert (= t1 1))
         (assert (= t2 2))
-        (assert (= t3 3))))))
+        (assert (= t3 3)))))))
 
 (defn test-for-async []
   (defn/a numbers []
     (for [i [1 2]]
       (yield i)))
 
-  (run-coroutine
-    (fn/a []
+  (asyncio.run
+    ((fn/a []
       (setv x 0)
       (for [:async a (numbers)]
         (setv x (+ x a)))
-      (assert (= x 3)))))
+      (assert (= x 3))))))
 
 (defn test-for-async-else []
   (defn/a numbers []
     (for [i [1 2]]
       (yield i)))
 
-  (run-coroutine
-    (fn/a []
+  (asyncio.run
+    ((fn/a []
       (setv x 0)
       (for [:async a (numbers)]
         (setv x (+ x a))
         (else (setv x (+ x 50))))
-      (assert (= x 53)))))
+      (assert (= x 53))))))
 
 (defn test-variable-annotations []
   (defclass AnnotationContainer []

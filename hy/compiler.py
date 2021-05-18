@@ -1125,17 +1125,19 @@ class HyASTCompiler(object):
                 level = len(ast_module) - len(module)
                 if assignments == "ALL" and prefix == "":
                     node = asty.ImportFrom
-                    names = [ast.alias(name="*", asname=None)]
+                    names = [asty.alias(entry, name="*", asname=None)]
                 elif assignments == "ALL":
                     node = asty.Import
                     prefix = mangle(prefix)
-                    names = [ast.alias(
+                    names = [asty.alias(
+                        entry,
                         name=ast_module,
                         asname=prefix if prefix != module else None)]
                 else:
                     node = asty.ImportFrom
                     names = [
-                        ast.alias(
+                        asty.alias(
+                            entry,
                             name=mangle(k),
                             asname=None if v == k else mangle(v))
                         for k, v in assignments]

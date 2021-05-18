@@ -1,4 +1,4 @@
--r requirements-travis.txt
+pytest >= 6
 
 # test tools
 tox
