@@ -1,9 +1,9 @@
 "``hy.contrib.pprint`` is a port of python's built-in ``pprint`` that can pretty
 print objects using Hy syntax.
 
-Hy ``pprint`` leverages ``hy-repr`` for much of it's pretty printing and
+Hy ``pprint`` leverages ``hy.repr`` for much of it's pretty printing and
 therefor can be extended to work with arbitrary types using
-``hy-repr-register``. Like Python's ``pprint`` and ``hy-repr``, Hy ``pprint``
+``hy.repr-register``. Like Python's ``pprint`` and ``hy.repr``, Hy ``pprint``
 attempts to maintain round-trippability of it's input where possible. Unlike
 Python, however, Hy does not have `string literal concatenation`_,
 which is why strings and bytestrings are broken up using the form ``(+ ...)``.
