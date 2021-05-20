@@ -42,9 +42,7 @@ To make the Hy REPL use it for output, invoke Hy like so::
        '[1 cuddles 2]'
 
        If the type of an object passed to ``hy-repr`` doesn't have a registered
-       function, ``hy-repr`` will search the type's method resolution order
-       (its ``__mro__`` attribute) for the first type that does. If ``hy-repr``
-       doesn't find a candidate, it falls back on ``repr``.
+       function, ``hy-repr`` falls back on ``repr``.
 
        Registered functions often call ``hy-repr`` themselves. ``hy-repr`` will
        automatically detect self-references, even deeply nested ones, and
