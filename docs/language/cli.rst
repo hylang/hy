@@ -50,7 +50,7 @@ Command Line Options
 
 .. cmdoption:: --repl-output-fn
 
-   Format REPL output using specific function (e.g., hy.contrib.hy-repr.hy-repr)
+   Format REPL output using specific function (e.g., ``repr``)
 
    .. versionadded:: 0.13.0
 

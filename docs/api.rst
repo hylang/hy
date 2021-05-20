@@ -1316,8 +1316,9 @@ Loop
 Hy Repr
 *******
 
-.. hy:automodule:: hy.contrib.hy_repr
-   :members:
+.. hy:autofunction:: hy.repr
+
+.. hy:autofunction:: hy.repr-register
 
 PPrint
 ******

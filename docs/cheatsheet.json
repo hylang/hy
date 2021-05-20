@@ -268,8 +268,8 @@
       {
         "name": "Hy Repr",
         "methods": [
-          "hy.contrib.hy_repr.hy-repr",
-          "hy.contrib.hy_repr.hy-repr-register"
+          "hy.repr",
+          "hy.repr-register"
         ]
       },
       {
