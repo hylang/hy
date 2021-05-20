@@ -1,17 +1,6 @@
 ;; Copyright 2021 the authors.
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
-".. versionadded:: 0.13.0
-
-``hy.contrib.hy-repr`` is a module containing two functions.
-To import them, say::
-
-  (import [hy.contrib.hy-repr [hy-repr hy-repr-register]])
-
-To make the Hy REPL use it for output, invoke Hy like so::
-
-  $ hy --repl-output-fn=hy.contrib.hy-repr.hy-repr
-"
 
 (import
   [math [isnan]]
