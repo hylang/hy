@@ -40,7 +40,7 @@ if "+" in hy_version:
     hy_descriptive_version += " <strong style='color: red;'>(unstable)</strong>"
 
 exclude_patterns = ['_build', 'coreteam.rst']
-add_module_names = False
+add_module_names = True
 
 pygments_style = 'sphinx'
 
