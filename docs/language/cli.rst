@@ -39,9 +39,9 @@ Command Line Options
 
     => (defn salutationsnm [name] (print (+ "Hy " name "!")))
     def salutationsnm(name):
-        return print(((u'Hy ' + name) + u'!'))
+        return print('Hy ' + name + '!')
     => (salutationsnm "YourName")
-    salutationsnm(u'YourName')
+    salutationsnm('YourName')
     Hy YourName!
     =>
 

@@ -551,7 +551,7 @@ Special Forms
 
        => (setv names ["Alice" "Bob" "Charlie"])
        => (print names)
-       [u'Alice', u'Bob', u'Charlie']
+       ['Alice', 'Bob', 'Charlie']
 
        => (setv counter (fn [collection item] (.count collection item)))
        => (counter [1 2 3 4 5 2 3] 2)
