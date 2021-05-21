@@ -28,7 +28,7 @@
        => (defclass C)
        => (hy.repr-register C (fn [x] \"cuddles\"))
        => (hy.repr [1 (C) 2])
-       '[1 cuddles 2]'
+       \"[1 cuddles 2]\"
 
        If the type of an object passed to ``hy.repr`` doesn't have a registered
        function, ``hy.repr`` falls back on ``repr``.
@@ -48,7 +48,7 @@
       => (setv container (Container 5))
       => (setv container.value container)
       => (print (hy.repr container))
-      \"(Container HY THERE)\"
+      '(Container HY THERE)'
   "
   (for [typ (if (list? types) types [types])]
     (setv (get _registry typ) (, f placeholder))))
@@ -68,9 +68,9 @@
     ::
 
        => hy.repr [1 2 3])
-       '[1 2 3]'
+       \"[1 2 3]\"
        => (repr [1 2 3])
-       '[1, 2, 3]'
+       \"[1, 2, 3]\"
   "
   (setv [f placeholder] (.get _registry (type obj) [_base-repr None]))
 

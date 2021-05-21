@@ -147,16 +147,16 @@
         ...  (+ open-text (str left-val) \", \" (str right-val) close-text))
 
         => (format-pair 3)
-        '(3, None)'
+        \"(3, None)\"
 
         => (format-pair \"A\" \"B\")
-        '(A, B)'
+        \"(A, B)\"
 
         => (format-pair \"A\" \"B\" \"<\" \">\")
-        '<A, B>'
+        \"<A, B>\"
 
         => (format-pair \"A\" :open-text \"<\" :close-text \">\")
-        '<A, None>'
+        \"<A, None>\"
 
   #*
       The following parameter will contain a list of 0 or more positional arguments.

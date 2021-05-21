@@ -105,7 +105,7 @@
        ...   (setv collection {})
        ...   (assoc collection \"Dog\" \"Bark\")
        ...   (print collection))
-       {u'Dog': u'Bark'}
+       {\"Dog\" \"Bark\"}
 
     ::
 
@@ -113,7 +113,7 @@
        ...   (setv collection {})
        ...   (assoc collection \"Dog\" \"Bark\" \"Cat\" \"Meow\")
        ...   (print collection))
-       {u'Cat': u'Meow', u'Dog': u'Bark'}
+       {\"Cat\" \"Meow\"  \"Dog\" \"Bark\"}
 
     ::
 
@@ -121,7 +121,7 @@
        ...   (setv collection [1 2 3 4])
        ...   (assoc collection 2 None)
        ...   (print collection))
-       [1, 2, None, 4]
+       [1 2 None 4]
 
   .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
   "
@@ -219,7 +219,7 @@
     ::
 
        => (doto [] (.append 1) (.append 2) .reverse)
-       [2, 1]
+       [2 1]
 
     ::
 
@@ -228,7 +228,7 @@
        => (.append collection 2)
        => (.reverse collection)
        => collection
-       [2, 1]
+       [2 1]
   "
   (setv f (gensym))
   (defn build-form [expression]
