@@ -453,7 +453,7 @@ Special Forms
    creates a list comprehension. A simple use of ``lfor`` is::
 
        => (lfor x (range 5) (* 2 x))
-       [0, 2, 4, 6, 8]
+       [0 2 4 6 8]
 
    ``x`` is the name of a new variable, which is bound to each element of
    ``(range 5)``. Each such element in turn is used to evaluate the value
@@ -467,7 +467,7 @@ Special Forms
        ...  :if (!= x y)
        ...  :setv total (+ x y)
        ...  [x y total])
-       [[0, 1, 1], [0, 2, 2], [1, 0, 1], [1, 2, 3], [2, 0, 2], [2, 1, 3]]
+       [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
 
    When there are several iteration clauses (here, the pairs of forms ``x
    (range 3)`` and ``y (range 3)``), the result works like a nested loop or
@@ -514,7 +514,7 @@ Special Forms
     ::
 
         => (dfor x (range 5) [x (* x 10)])
-        {0: 0, 1: 10, 2: 20, 3: 30, 4: 40}
+        {0 0  1 10  2 20  3 30  4 40}
 
 
 .. hy:macro:: (gfor [binding iterable #* body])
@@ -532,9 +532,9 @@ Special Forms
        => (list (take-while
        ...  (fn [x] (< x 5))
        ...  (gfor x (count) :do (.append accum x) x)))
-       [0, 1, 2, 3, 4]
+       [0 1 2 3 4]
        => accum
-       [0, 1, 2, 3, 4, 5]
+       [0 1 2 3 4 5]
 
 .. hy:macro:: (sfor [binding iterable #* body])
 
@@ -551,7 +551,7 @@ Special Forms
 
        => (setv names ["Alice" "Bob" "Charlie"])
        => (print names)
-       [u'Alice', u'Bob', u'Charlie']
+       ['Alice', 'Bob', 'Charlie']
 
        => (setv counter (fn [collection item] (.count collection item)))
        => (counter [1 2 3 4 5 2 3] 2)
@@ -618,7 +618,6 @@ Special Forms
 
        => (setv spot (Cat))
        => (setv spot.colour "Black")
-       'Black'
        => (.speak spot)
        Meow
 
@@ -645,13 +644,13 @@ Special Forms
 
      => (setv test (list (range 10)))
      => test
-     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+     [0 1 2 3 4 5 6 7 8 9]
      => (del (cut test 2 4)) ;; remove items from 2 to 4 excluded
      => test
-     [0, 1, 4, 5, 6, 7, 8, 9]
+     [0 1 4 5 6 7 8 9]
      => (setv dic {"foo" "bar"})
      => dic
-     {"foo": "bar"}
+     {"foo" "bar"}
      => (del (get dic "foo"))
      => dic
      {}
@@ -887,19 +886,19 @@ Special Forms
 
        => (setv collection (range 10))
        => (cut collection)
-       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+       [0 1 2 3 4 5 6 7 8 9]
 
        => (cut collection 5)
-       [0, 1, 2, 3, 4]
+       [0 1 2 3 4]
 
        => (cut collection 2 8)
-       [2, 3, 4, 5, 6, 7]
+       [2 3 4 5 6 7]
 
        => (cut collection 2 8 2)
-       [2, 4, 6]
+       [2 4 6]
 
        => (cut collection -4 -2)
-       [6, 7]
+       [6 7]
 
 .. hy:function:: (raise [[exception None]])
 
@@ -974,7 +973,7 @@ Special Forms
 
        => (defn f [a b c d] [a b c d])
        => (f (unpack-iterable [1 2]) (unpack-mapping {"c" 3 "d" 4}))
-       [1, 2, 3, 4]
+       [1 2 3 4]
 
    ``unpack-iterable`` is usually written with the shorthand ``#*``, and
    ``unpack-mapping`` with ``#**``.
@@ -982,7 +981,7 @@ Special Forms
    ::
 
        => (f #* [1 2] #** {"c" 3 "d" 4})
-       [1, 2, 3, 4]
+       [1 2 3 4]
 
    Unpacking is allowed in a variety of contexts, and you can unpack
    more than once in one expression (:pep:`3132`, :pep:`448`).
@@ -991,13 +990,13 @@ Special Forms
 
        => (setv [a #* b c] [1 2 3 4 5])
        => [a b c]
-       [1, [2, 3, 4], 5]
+       [1 [2 3 4] 5]
        => [#* [1 2] #* [3 4]]
-       [1, 2, 3, 4]
+       [1 2 3 4]
        => {#** {1 2} #** {3 4}}
-       {1: 2, 3: 4}
+       {1 2  3 4}
        => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
-       [1, 2, 3, 4]
+       [1 2  3 4]
 
 .. hy:function:: (unquote [symbol])
 
@@ -1008,15 +1007,9 @@ Special Forms
 
        => (setv nickname "Cuddles")
        => (quasiquote (= nickname (unquote nickname)))
-       hy.models.Expression([
-         hy.models.Symbol('='),
-         hy.models.Symbol('nickname'),
-         'Cuddles'])
+       '(= nickname "Cuddles")
        => `(= nickname ~nickname)
-       hy.models.Expression([
-         hy.models.Symbol('='),
-         hy.models.Symbol('nickname'),
-         'Cuddles'])
+       '(= nickname "Cuddles")
 
 
 .. hy:function:: (unquote-splice [symbol])
@@ -1033,23 +1026,11 @@ Special Forms
 
        => (setv nums [1 2 3 4])
        => (quasiquote (+ (unquote-splice nums)))
-       hy.models.Expression([
-         hy.models.Symbol('+'),
-         1,
-         2,
-         3,
-         4])
+       '(+ 1 2 3 4)
        => `(+ ~@nums)
-       hy.models.Expression([
-         hy.models.Symbol('+'),
-         1,
-         2,
-         3,
-         4])
-       => `[1 2 ~@(if (neg? (first nums)) nums)]
-       hy.models.List([
-         hy.models.Integer(1),
-         hy.models.Integer(2)])
+       '(+ 1 2 3 4)
+       => `[1 2 ~@(if (neg? (get nums 0)) nums)]
+       '[1 2]
 
    Here, the last example evaluates to ``('+' 1 2)``, since the condition
    ``(< (nth nums 0) 0)`` is ``False``, which makes this ``if`` expression
@@ -1226,13 +1207,13 @@ Special Forms
        <generator object multiply at 0x978d8ec>
 
        => (list (multiply (range 10) (range 10)))
-       [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+       [0 1 4 9 16 25 36 49 64 81]
 
        => (import random)
        => (defn random-numbers [low high]
        ...  (while True (yield (.randint random low high))))
        => (list (take 15 (random-numbers 1 50)))
-       [7, 41, 6, 22, 32, 17, 5, 38, 18, 38, 17, 14, 23, 23, 19]
+       [7 41 6 22 32 17 5 38 18 38 17 14 23 23 19]
 
 
 .. hy:function:: (yield-from [object])
@@ -1243,6 +1224,17 @@ Special Forms
    want your coroutine to be able to delegate its processes to another
    coroutine, say, if using something fancy like
    `asyncio <https://docs.python.org/3.4/library/asyncio.html>`_.
+
+Hy
+---
+
+The ``hy`` module is auto imported into every Hy module and provides convient access to
+the following methods
+
+.. hy:autofunction:: hy.repr
+
+.. hy:autofunction:: hy.repr-register
+
 
 Core
 ----
@@ -1311,12 +1303,6 @@ Loop
 ****
 
 .. hy:automodule:: hy.contrib.loop
-   :members:
-
-Hy Repr
-*******
-
-.. hy:automodule:: hy.contrib.hy_repr
    :members:
 
 PPrint

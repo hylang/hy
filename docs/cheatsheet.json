@@ -1,5 +1,14 @@
 [
   {
+    "name": "Hy",
+    "categories": [
+      {
+        "name": "IO",
+        "methods": ["hy.repr", "hy.repr-register"]
+      }
+    ]
+  },
+  {
     "name": "Core",
     "categories": [
       {
@@ -15,9 +24,7 @@
       },
       {
         "name": "Functions",
-        "methods": [
-          "hy.core.language.constantly"
-        ]
+        "methods": ["hy.core.language.constantly"]
       },
       {
         "name": "Tests",
@@ -156,9 +163,7 @@
       },
       {
         "name": "Dicts",
-        "methods": [
-          "hy.core.macros.assoc"
-        ]
+        "methods": ["hy.core.macros.assoc"]
       },
       {
         "name": "Comparison",
@@ -221,9 +226,7 @@
       },
       {
         "name": "Reserved",
-        "methods": [
-          "hy.extra.reserved.names"
-        ]
+        "methods": ["hy.extra.reserved.names"]
       }
     ]
   },
@@ -261,16 +264,7 @@
       },
       {
         "name": "Loop",
-        "methods": [
-          "hy.contrib.loop.loop"
-        ]
-      },
-      {
-        "name": "Hy Repr",
-        "methods": [
-          "hy.contrib.hy_repr.hy-repr",
-          "hy.contrib.hy_repr.hy-repr-register"
-        ]
+        "methods": ["hy.contrib.loop.loop"]
       },
       {
         "name": "PPrint",
@@ -300,10 +294,7 @@
       },
       {
         "name": "Slicing",
-        "methods": [
-          "hy.contrib.slicing.ncut",
-          "hy.contrib.slicing.##:"
-        ]
+        "methods": ["hy.contrib.slicing.ncut", "hy.contrib.slicing.##:"]
       }
     ]
   }

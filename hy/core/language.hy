@@ -27,7 +27,7 @@
     ::
 
        => (list (butlast (range 10)))
-       [0, 1, 2, 3, 4, 5, 6, 7, 8]
+       [0 1 2 3 4 5 6 7 8]
 
     ::
 
@@ -43,7 +43,7 @@
 
        => (import [itertools [count islice]])
        => (list (islice (butlast (count 10)) 0 5))
-       [10, 11, 12, 13, 14]
+       [10 11 12 13 14]
   "
   (drop-last 1 coll))
 
@@ -184,7 +184,7 @@
     ::
 
        => (list (distinct [ 1 2 3 4 3 5 2 ]))
-       [1, 2, 3, 4, 5]
+       [1 2 3 4 5]
 
     ::
 
@@ -194,7 +194,7 @@
     ::
 
        => (list (distinct (iter [ 1 2 3 4 3 5 2 ])))
-       [1, 2, 3, 4, 5]
+       [1 2 3 4 5]
   "
   (setv seen (set) citer (iter coll))
   (for [val citer]
@@ -213,12 +213,12 @@
     ::
 
        => (list (drop-last 5 (range 10 20)))
-       [10, 11, 12, 13, 14]
+       [10 11 12 13 14]
 
     ::
 
        => (list (drop-last 0 (range 5)))
-       [0, 1, 2, 3, 4]
+       [0 1 2 3 4]
 
     ::
 
@@ -229,7 +229,7 @@
 
        => (import [itertools [count islice]])
        => (list (islice (drop-last 100 (count 10)) 5))
-       [10, 11, 12, 13, 14]
+       [10 11 12 13 14]
   "
   (import [itertools [tee islice]])
   (setv [copy1 copy2] (tee coll))
@@ -325,12 +325,12 @@
     ::
 
        => (flatten [1 2 [3 4] 5])
-       [1, 2, 3, 4, 5]
+       [1 2 3 4 5]
 
     ::
 
        => (flatten [\"foo\" (, 1 2) [1 [2 3] 4] \"bar\"])
-       ['foo', 1, 2, 1, 2, 3, 4, 'bar']
+       [\"foo\" 1 2 1 2 3 4 \"bar\"]
   "
   (if (coll? coll)
     (_flatten coll [])
@@ -424,12 +424,12 @@
     ::
 
       => (gensym)
-      hy.models.Symbol('_G\uffff1')
+      '_G￿1
 
     ::
 
       => (gensym \"x\")
-      hy.models.Symbol('_x\uffff2')
+      '_x￿2
 
    "
   (setv new_symbol None)
@@ -579,25 +579,12 @@
     ::
 
        => (macroexpand '(-> (a b) (x y)))
-       hy.models.Expression([
-         hy.models.Symbol('x'),
-         hy.models.Expression([
-           hy.models.Symbol('a'),
-           hy.models.Symbol('b')]),
-         hy.models.Symbol('y')])
+       '(x (a b) y)
 
     ::
 
        => (macroexpand '(-> (a b) (-> (c d) (e f))))
-       hy.models.Expression([
-         hy.models.Symbol('e'),
-         hy.models.Expression([
-           hy.models.Symbol('c'),
-           hy.models.Expression([
-             hy.models.Symbol('a'),
-             hy.models.Symbol('b')]),
-           hy.models.Symbol('d')]),
-         hy.models.Symbol('f')])
+       '(e (c (a b) d) f)
   "
   (import hy.macros)
   (setv module (calling-module))
@@ -612,17 +599,7 @@
     ::
 
        => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
-       hy.models.Expression([
-         hy.models.Symbol('_>'),
-         hy.models.Expression([
-           hy.models.Symbol('a'),
-           hy.models.Symbol('b')]),
-         hy.models.Expression([
-           hy.models.Symbol('c'),
-           hy.models.Symbol('d')]),
-         hy.models.Expression([
-           hy.models.Symbol('e'),
-           hy.models.Symbol('f')])])
+       '(-> (a b) (c d) (e f))
   "
   (import hy.macros)
   (setv module (calling-module))

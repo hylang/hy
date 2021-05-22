@@ -94,7 +94,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ::
 
        => (list (ap-map (* it 2) [1 2 3]))
-       [2, 4, 6]"
+       [2 4 6]"
   (rit `(gfor  ~it ~xs  ~(R form))))
 
 
@@ -108,12 +108,12 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ::
 
        => (list (ap-map-when odd? (* it 2) [1 2 3 4]))
-       [2, 2, 6, 4]
+       [2 2 6 4]
 
     ::
 
        => (list (ap-map-when even? (* it 2) [1 2 3 4]))
-       [1, 4, 3, 8]"
+       [1 4 3 8]"
   (rit `(gfor  ~it ~xs  (if (~predfn ~it) ~(R rep) ~it))))
 
 
@@ -124,7 +124,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ::
 
        => (list (ap-filter (> (* it 2) 6) [1 2 3 4 5]))
-       [4, 5]"
+       [4 5]"
   (rit `(gfor  ~it ~xs  :if ~(R form)  ~it)))
 
 
@@ -135,7 +135,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ::
 
        => (list (ap-reject (> (* it 2) 6) [1 2 3 4 5]))
-       [1, 2, 3]"
+       [1 2 3]"
   (rit `(gfor  ~it ~xs  :if (not ~(R form))  ~it)))
 
 
@@ -148,7 +148,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
        => (setv n [])
        => (ap-dotimes 3 (.append n it))
        => n
-       [0, 1, 2]"
+       [0 1 2]"
   (rit `(for [~it (range ~n)]
     ~@(R body))))
 
@@ -235,12 +235,12 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ::
 
        => (#%[%1 %6 42 [%2 %3] %* %4] 1 2 3 4 555 6 7 8)
-       [1, 6, 42, [2, 3], (7, 8), 4]
+       [1 6 42 [2 3] (, 7 8) 4]
 
     ::
 
        => (#% %** :foo 2)
-       {\"foo\": 2}
+       {\"foo\" 2}
 
     When used on an s-expression,
     ``#%`` is similar to Clojure's anonymous function literals--``#()``::

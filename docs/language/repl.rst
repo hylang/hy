@@ -27,13 +27,13 @@ Recent Evalution Results
 The results of the three most recent evaluations can be obtained by entering ``*1`` (most recent), ``*2``, and ``*3``. For example::
 
   => "first"
-  'first'
+  "first"
   => "second"
-  'second'
+  "second"
   => "third"
-  'third'
+  "third"
   => f"{*1},{*2},{*3}"
-  'third,second,first'
+  "third,second,first"
 
 .. note::
    The result of evaluating ``*i`` itself becomes the next most recent result, pushing ``*1`` to ``*2``, ``*2`` to ``*3``, and ``*3`` off the cache.

@@ -110,20 +110,19 @@ In addition, Hy has a Clojure-style literal syntax for
 :class:`fractions.Fraction`: ``1/3`` is equivalent to ``fractions.Fraction(1,
 3)``.
 
-The Hy REPL prints output in Python syntax by default::
-
-  => [1 2 3]
-  [1, 2, 3]
-
-But if you start Hy like this (a shell alias might be helpful)::
-
-  $ hy --repl-output-fn=hy.contrib.hy-repr.hy-repr
-
-the interactive mode will use :hy:func:`hy-repr-fn <hy.contrib.hy_repr.hy-repr-fn>` instead of Python's native
-``repr`` function to print out values, so you'll see values in Hy syntax::
+The Hy REPL prints output in Hy syntax by default, with the function :hy:func:`hy.repr`::
 
   => [1 2 3]
   [1 2 3]
+
+But if you start Hy like this::
+
+  $ hy --repl-output-fn=repr
+
+the REPL will use Python's native ``repr`` function instead, so you'll see values in Python syntax::
+
+  => [1 2 3]
+  [1, 2, 3]
 
 
 Basic operations

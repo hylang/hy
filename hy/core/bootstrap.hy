@@ -147,16 +147,16 @@
         ...  (+ open-text (str left-val) \", \" (str right-val) close-text))
 
         => (format-pair 3)
-        '(3, None)'
+        \"(3, None)\"
 
         => (format-pair \"A\" \"B\")
-        '(A, B)'
+        \"(A, B)\"
 
         => (format-pair \"A\" \"B\" \"<\" \">\")
-        '<A, B>'
+        \"<A, B>\"
 
         => (format-pair \"A\" :open-text \"<\" :close-text \">\")
-        '<A, None>'
+        \"<A, None>\"
 
   #*
       The following parameter will contain a list of 0 or more positional arguments.
@@ -227,50 +227,7 @@
           => (print-parameters #** {\"parameter-1\" 1 \"parameter-2\" 2})
           parameter-1 1
           parameter-2 2
-
-  Examples:
-    The following example uses all of ``/``, ``#*``, and
-    ``#**`` in order to show their interactions with each other. The function
-    renders an HTML tag.
-    It requires positional only argument ``tag-name``, a string which is the tag name.
-    It has one optional argument, ``delim``, which defaults to ``\"\"`` and is placed
-    between each child.
-    The rest of the arguments, ``children``, are the tag's children or content.
-    A single keyword-only argument, ``empty``, is included and defaults to ``False``.
-    ``empty`` changes how the tag is rendered if it has no children. Normally, a
-    tag with no children is rendered like ``<div></div>``. If ``empty`` is ``True``,
-    then it will render like ``<div />``.
-    The rest of the keyword arguments, ``props``, render as HTML attributes::
-
-       => (defn render-html-tag [tag-name / [delim \"\"] #* children [empty False] #** attrs]
-       ...  (setv rendered-attrs (.join \" \" (lfor (, key val) (.items attrs) (+ (unmangle (str key)) \"=\"\" (str val) \"\"\"))))
-       ...  (if rendered-attrs  ; If we have attributes, prefix them with a space after the tag name
-       ...    (setv rendered-attrs (+ \" \" rendered-attrs)))
-       ...  (setv rendered-children (.join delim children))
-       ...  (if (and (not children) empty)
-       ...    (+ \"<\" tag-name rendered-attrs \" />\")
-       ...    (+ \"<\" tag-name rendered-attrs \">\" rendered-children \"</\" tag-name \">\")))
-
-    ::
-
-       => (render-html-tag \"div\")
-       '<div></div'>
-
-    ::
-
-       => (render-html-tag \"img\" :empty True)
-       '<img />'
-
-    ::
-
-       => (render-html-tag \"img\" :id \"china\" :class \"big-image\" :empty True)
-       '<img id=\"china\" class=\"big-image\" />'
-
-    ::
-
-       => (render-html-tag \"p\" \" --- \" (render-html-tag \"span\" \"\" :class \"fancy\" \"I'm fancy!\") \"I'm to the right of fancy\" \"I'm alone :(\")
-       '<p><span class=\"fancy\">I\'m fancy!</span> --- I\'m to right right of fancy --- I\'m alone :(</p>'
-  "
+ "
   (if (not (= (type name) hy.models.Symbol))
     (macro-error name "defn takes a name as first argument"))
   `(setv ~name (fn* ~@args)))

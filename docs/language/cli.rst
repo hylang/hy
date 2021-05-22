@@ -39,9 +39,9 @@ Command Line Options
 
     => (defn salutationsnm [name] (print (+ "Hy " name "!")))
     def salutationsnm(name):
-        return print(((u'Hy ' + name) + u'!'))
+        return print('Hy ' + name + '!')
     => (salutationsnm "YourName")
-    salutationsnm(u'YourName')
+    salutationsnm('YourName')
     Hy YourName!
     =>
 
@@ -50,7 +50,7 @@ Command Line Options
 
 .. cmdoption:: --repl-output-fn
 
-   Format REPL output using specific function (e.g., hy.contrib.hy-repr.hy-repr)
+   Format REPL output using specific function (e.g., ``repr``)
 
    .. versionadded:: 0.13.0
 

@@ -38,6 +38,12 @@ Other Breaking Changes
   the stop index. Thus `(cut x n)` is translated to `x[:n]` instead of
   `x[n:]`.
 * `cmp` has been renamed to `chainc`.
+* `hy-repr` & `hy-repr-register` have been moved into `core` and are available
+  at `hy.repr` & `hy.repr-register` respectively.
+
+New Features
+------------------------------
+* `hy-repr` is now the default REPL output function.
 
 Bug Fixes
 ------------------------------

@@ -25,13 +25,7 @@
        => (import [hy.contrib.walk [walk]])
        => (setv a '(a b c d e f))
        => (walk ord (fn [x] x)  a)
-       hy.models.Expression([
-         97,
-         98,
-         99,
-         100,
-         101,
-         102])
+       '(97 98 99 100 101 102)
 
     ::
 
@@ -109,18 +103,7 @@
              hy.models.Integer(6),
              hy.models.List([
                hy.models.Integer(7)])])])])
-       hy.models.Expression([
-         hy.models.List([
-           hy.models.Integer(1),
-           hy.models.Integer(2),
-           hy.models.Integer(3)]),
-         hy.models.List([
-           hy.models.Integer(4),
-           hy.models.List([
-             hy.models.Integer(5),
-             hy.models.Integer(6),
-             hy.models.List([
-               hy.models.Integer(7)])])])])
+       '([1 2 3] [4 [5 6 [7]]]))
   "
   (walk (partial postwalk f) f form))
 
@@ -186,18 +169,7 @@
          hy.models.Integer(7)])
        Walking
        7
-       hy.models.Expression([
-         hy.models.List([
-           hy.models.Integer(1),
-           hy.models.Integer(2),
-           hy.models.Integer(3)]),
-         hy.models.List([
-           hy.models.Integer(4),
-           hy.models.List([
-             hy.models.Integer(5),
-             hy.models.Integer(6),
-             hy.models.List([
-               hy.models.Integer(7)])])])])
+       '([1 2 3] [4 [5 6 [7]]])
   "
   (walk (partial prewalk f) (fn [x] x) (f form)))
 

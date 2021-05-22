@@ -235,10 +235,7 @@ def read(from_file=sys.stdin, eof=""):
 
          => (read)
          (+ 2 2)
-         hy.models.Expression([
-           hy.models.Symbol('+'),
-           hy.models.Integer(2),
-           hy.models.Integer(2)])
+         '(+ 2 2)
 
       ::
 
@@ -302,9 +299,7 @@ def read_str(input):
       ::
 
          => (read-str "(print 1)")
-         hy.models.Expression([
-         hy.models.Symbol('print'),
-         hy.models.Integer(1)]
+         '(print 1)
 
       ::
 
