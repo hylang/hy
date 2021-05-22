@@ -1225,6 +1225,17 @@ Special Forms
    coroutine, say, if using something fancy like
    `asyncio <https://docs.python.org/3.4/library/asyncio.html>`_.
 
+Hy
+---
+
+The ``hy`` module is auto imported into every Hy module and provides convient access to
+the following methods
+
+.. hy:autofunction:: hy.repr
+
+.. hy:autofunction:: hy.repr-register
+
+
 Core
 ----
 
@@ -1293,13 +1304,6 @@ Loop
 
 .. hy:automodule:: hy.contrib.loop
    :members:
-
-Hy Repr
-*******
-
-.. hy:autofunction:: hy.repr
-
-.. hy:autofunction:: hy.repr-register
 
 PPrint
 ******
