@@ -294,7 +294,7 @@
       },
       {
         "name": "Slicing",
-        "methods": ["hy.contrib.slicing.ncut", "hy.contrib.slicing.##:"]
+        "methods": ["hy.contrib.slicing.ncut", "hy.contrib.slicing.#:"]
       }
     ]
   }

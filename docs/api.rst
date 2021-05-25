@@ -1098,7 +1098,7 @@ Special Forms
        At end of outer loop
 
 .. hy:function:: (with [#* args])
-                   
+
   Wrap execution of `body` within a context manager given as bracket `args`.
   ``with`` is used to wrap the execution of a block within a context manager. The
   context manager can then set up the local system and tear it down in a controlled
@@ -1123,7 +1123,7 @@ Special Forms
   case it returns ``None``. So, the previous example could also be written::
 
        => (print (with [f (open \"NEWS\")] (.read f)))
-           
+
 .. hy:function:: (with/a [#* args])
 
   Wrap execution of `body` within a context manager given as bracket `args`.
@@ -1236,8 +1236,14 @@ the following methods
 .. hy:autofunction:: hy.repr-register
 
 
+.. _Core:
+
 Core
 ----
+
+The following methods and macros are auto imported into all Hy modules as their
+base names, such that ``hy.core.language.butlast`` can be called with just ``butlast``.
+
 
 .. hy:automodule:: hy.core.language
    :members:
@@ -1263,62 +1269,72 @@ Core
    :macros:
    :tags:
 
+
+Additional Modules
+------------------
+
+These additional modules are provided along with Hy to provide Hy-thonic solutions
+to common problems. Unlike :ref:`Core`, they are not auto imported and their methods and
+macros must be explicitly :hy:func:`imported <import>` or :hy:func:`required <require>`
+respectively.
+
+
 Extra
------
+*****
 
 Anaphoric
-*********
+^^^^^^^^^
 
 .. hy:automodule:: hy.extra.anaphoric
    :members:
 
 Reserved
-*********
+^^^^^^^^^
 
 .. hy:automodule:: hy.extra.reserved
    :members:
 
 Contributor Modules
----------------------
+*********************
 
 Sequences
-*********
+^^^^^^^^^
 
 .. hy:automodule:: hy.contrib.sequences
    :members:
 
 Walk
-****
+^^^^
 
 .. hy:automodule:: hy.contrib.walk
    :members:
 
 Profile
-*******
+^^^^^^^
 
 .. hy:automodule:: hy.contrib.profile
    :members:
 
 Loop
-****
+^^^^
 
 .. hy:automodule:: hy.contrib.loop
    :members:
 
 PPrint
-******
+^^^^^^
 
 .. hy:automodule:: hy.contrib.pprint
    :members:
 
 Destructure
-***********
+^^^^^^^^^^^
 
 .. hy:automodule:: hy.contrib.destructure
    :members:
 
 Slicing
-*******
+^^^^^^^
 
 .. hy:automodule:: hy.contrib.slicing
    :members:
