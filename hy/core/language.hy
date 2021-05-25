@@ -168,7 +168,7 @@
   "
   (import ast hy.compiler)
 
-  (setv compiled (hy.compiler.hy-compile tree (calling-module-name) :import-stdlib False))
+  (setv compiled (hy.compiler.hy-compile tree (_calling-module-name) :import-stdlib False))
   (if
     codegen
       (ast.unparse compiled)
@@ -441,9 +441,9 @@
        (finally (.release _gensym_lock)))
   new_symbol)
 
-(defn calling-module-name [[n 1]]
+(defn _calling-module-name [[n 1]]
   "Get the name of the module calling `n` levels up the stack from the
-  `calling-module-name` function call (by default, one level up)"
+  `_calling-module-name` function call (by default, one level up)"
   (import inspect)
 
   (setv f (get (.stack inspect) (+ n 1) 0))
@@ -866,7 +866,7 @@
 
 (setv __all__
   (list (map mangle
-    '[butlast calling-module calling-module-name coll?
+    '[butlast coll?
       constantly dec distinct
       drop-last empty? even? every?
       flatten float? inc
