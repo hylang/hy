@@ -228,7 +228,7 @@
             form)))
   (expand form))
 
-(setv _mangled-special (frozenset (map mangle (special))))
+(setv _mangled-special (frozenset (map hy.mangle (special))))
 
 
 (defn lambda-list [form]
@@ -408,7 +408,7 @@
         (= head 'defclass) (self.handle-defclass)
         (= head 'quasiquote) (self.+quote)
         ;; must be checked last!
-        (in (mangle head) _mangled-special) (self.handle-special-form)
+        (in (hy.mangle head) _mangled-special) (self.handle-special-form)
         ;; Not a special form. Traverse it like a coll
         (self.handle-coll)))
 
@@ -513,7 +513,7 @@
   "
   (if (odd? (len bindings))
       (macro-error bindings "let bindings must be paired"))
-  (setv g!let (gensym 'let)
+  (setv g!let (hy.gensym 'let)
         replacements (OrderedDict)
         unpacked-syms (OrderedDict)
         keys []
@@ -525,7 +525,7 @@
     (cond
       [(not (symbol? symbol)) (macro-error symbol "bind targets must be symbol or destructing assignment")]
       [(in '. symbol) (macro-error symbol "binding target may not contain a dot")])
-    (setv replaced (gensym symbol))
+    (setv replaced (hy.gensym symbol))
     (assoc unpacked-syms symbol replaced)
     replaced)
 
@@ -560,7 +560,7 @@
                         (macro-error k "cannot destructure non-iterable unpacking expression")]
 
                        [(and (symbol? x) (in x unpacked-syms))
-                        (do (.append keys `(get ~g!let ~(unmangle x)))
+                        (do (.append keys `(get ~g!let ~(hy.unmangle x)))
                             (.append values (.get unpacked-syms x x))
                             (assoc replacements x (get keys -1)))]
 
@@ -568,7 +568,7 @@
                    k))
 
         (do (.append values (symbolexpand (macroexpand-all v &name) expander))
-            (.append keys `(get ~g!let ~(unmangle k)))
+            (.append keys `(get ~g!let ~(hy.unmangle k)))
             (assoc replacements k (get keys -1)))))
 
   `(do

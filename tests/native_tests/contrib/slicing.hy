@@ -4,13 +4,13 @@
 (require [hy.contrib.slicing [*]])
 
 (defn test-ncuts-slicing []
-  (assert (= (macroexpand '(ncut df 1:5:-1))           '(get df (slice 1 5 -1))))
-  (assert (= (macroexpand '(ncut df :))                '(get df (slice None None))))
-  (assert (= (macroexpand '(ncut df 1:5:-1 ["A" "B"])) '(get df (, (slice 1 5 -1) ["A" "B"]))))
-  (assert (= (macroexpand '(ncut df ::2 3 ...))         '(get df (, (slice None None 2) 3 Ellipsis))))
-  (assert (= (macroexpand '(ncut df (: 1/3 2.5 5j) ["A" "B"] abc:def 5))
+  (assert (= (hy.macroexpand '(ncut df 1:5:-1))           '(get df (slice 1 5 -1))))
+  (assert (= (hy.macroexpand '(ncut df :))                '(get df (slice None None))))
+  (assert (= (hy.macroexpand '(ncut df 1:5:-1 ["A" "B"])) '(get df (, (slice 1 5 -1) ["A" "B"]))))
+  (assert (= (hy.macroexpand '(ncut df ::2 3 ...))         '(get df (, (slice None None 2) 3 Ellipsis))))
+  (assert (= (hy.macroexpand '(ncut df (: 1/3 2.5 5j) ["A" "B"] abc:def 5))
              '(get df (, (slice 1/3 2.5 5j) ["A" "B"] abc:def 5))))
-  (assert (= (macroexpand '(ncut df (, 1 2) (: (f) (g 1 2) -2) :))
+  (assert (= (hy.macroexpand '(ncut df (, 1 2) (: (f) (g 1 2) -2) :))
              '(get df (, (, 1 2) (slice (f) (g 1 2) -2) (slice None None)))))
 
   (assert (= (ncut [1 2 3 4] 1::-1)) [2 1])

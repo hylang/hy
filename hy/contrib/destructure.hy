@@ -138,7 +138,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
     (setv n (if (and (> (len args) 1) (= :>> (get args 1))) 3 2)
           [clause more] [(cut args n) (cut args n None)]
           n (len clause)
-          test (gensym))
+          test (hy.gensym))
     (if
       (= 0 n) `(raise (TypeError (+ "no option for " (repr ~expr))))
       (= 1 n) (get clause 0)
@@ -176,7 +176,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   Same as ``setv+``, except returns a dictionary with symbols to be defined,
   instead of actually declaring them."
   (setv gsyms []
-        result (gensym 'dict=:))
+        result (hy.gensym 'dict=:))
   `(do
      (setv ~result {}
            ~@(gfor [binds expr] (by2s pairs)
@@ -201,7 +201,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   and :as must be last, if present.
   "
   (defn dispatch [f]
-    (setv dcoll (gensym f.__name__)
+    (setv dcoll (hy.gensym f.__name__)
       result [dcoll expr]
       seen #{})
     (defn found [magic target]
@@ -260,7 +260,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                     ':or []
                     ':as [lookup ddict]
                     ':strs (get-as str lookup)
-                    ':keys (get-as (fn [x] (hy.models.Keyword (unmangle x))) lookup)
+                    ':keys (get-as (fn [x] (hy.models.Keyword (hy.unmangle x))) lookup)
                     (destructure #* (expand-lookup target lookup) gsyms))))
        ((fn [xs] (reduce + xs result)))))
 
@@ -326,8 +326,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
   For example, try ``(destructure '(a b c :& more :as it) (count))``.
   "
   (setv [bs magics] (find-magics binds)
-        copy-iter (gensym)
-        tee (gensym))
+        copy-iter (hy.gensym)
+        tee (hy.gensym))
   (if (in ':as (sfor  [x #* _] magics  x))
     (.extend result [diter `(do
                               (import [itertools [tee :as ~tee]])
@@ -343,7 +343,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
           result))
 
 (defn _expanded-setv [actual args kwargs]
-  (macroexpand
+  (hy.macroexpand
     `(setv+ ~actual (+ (list ~args)
                           (lfor [k v] (.items ~kwargs)
                                 s [(hy.models.Keyword k) v]

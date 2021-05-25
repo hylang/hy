@@ -247,11 +247,11 @@ result['y in globals'] = 'y' in globals()")
 
 (defn test-gensym []
   "NATIVE: testing the gensym function"
-  (setv s1 (gensym))
+  (setv s1 (hy.gensym))
   (assert (isinstance s1 hy.models.Symbol))
   (assert (= 0 (.find s1 "_G\uffff")))
-  (setv s2 (gensym "xx"))
-  (setv s3 (gensym "xx"))
+  (setv s2 (hy.gensym "xx"))
+  (setv s3 (hy.gensym "xx"))
   (assert (= 0 (.find s2 "_xx\uffff")))
   (assert (not (= s2 s3)))
   (assert (not (= (str s2) (str s3)))))
@@ -461,7 +461,7 @@ result['y in globals'] = 'y' in globals()")
   (setv [out err] (.readouterr capsys))
   ;; https://github.com/hylang/hy/issues/1946
   (assert (.startswith (.strip out)
-            f"Help on function {(mangle '<-mangle->)} in module "))
+            f"Help on function {(hy.mangle '<-mangle->)} in module "))
   (assert (in "a fancy docstring" out))
   (assert (empty? err))
 

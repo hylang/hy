@@ -79,15 +79,15 @@
   (setv form '(do
                 (setv foo (fn [a [b 1]] (* b (inc a))))
                 (* b (foo 7)))
-        form1 (macroexpand
+        form1 (hy.macroexpand
                 '(smacrolet [b c]
                    (setv foo (fn [a [b 1]] (* b (inc a))))
                    (* b (foo 7))))
-        form2 (macroexpand
+        form2 (hy.macroexpand
                 '(smacrolet [a c]
                    (setv foo (fn [a [b 1]] (* b (inc a))))
                    (* b (foo 7))))
-        form3 (macroexpand
+        form3 (hy.macroexpand
                 '(smacrolet [foo bar]
                    (setv foo (fn [a [b 1]] (* b (inc a))))
                    (* b (foo 7)))))
@@ -366,7 +366,7 @@
   (assert (= 42 (+count 40))))
 
 (defmacro triple [a]
-  (setv g!a (gensym a))
+  (setv g!a (hy.gensym a))
   `(do
      (setv ~g!a ~a)
      (+ ~g!a ~g!a ~g!a)))

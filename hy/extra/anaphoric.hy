@@ -31,7 +31,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
   "Supply `it` as a gensym and R as a function to replace `it` with the
   given gensym throughout expressions."
   `(do
-    (setv it (gensym))
+    (setv it (hy.gensym))
     (defn R [form]
       "Replace `it` with a gensym throughout `form`."
       (recur-sym-replace {'it it} form))
@@ -180,7 +180,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
        => (ap-last (> it 5) (range 10))
        9"
-  (setv x (gensym))
+  (setv x (hy.gensym))
   (rit `(do
     (setv ~x None)
     (for  [~it ~xs  :if ~(R form)]
@@ -208,8 +208,8 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
        => (ap-reduce (+ it acc) (range 10))
        45"
   (setv
-    it (gensym)
-    acc (gensym))
+    it (hy.gensym)
+    acc (hy.gensym))
   (defn R [form]
     (recur-sym-replace {'it it  'acc acc} form))
   `(do

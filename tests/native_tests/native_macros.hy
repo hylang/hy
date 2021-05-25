@@ -155,7 +155,7 @@
   (import [hy.compiler [hy-compile]])
   (import [hy.lex [hy-parse]])
   (setv macro1 "(defmacro nif [expr pos zero neg]
-      (setv g (gensym))
+      (setv g (hy.gensym))
       `(do
          (setv ~g ~expr)
          (cond [(pos? ~g) ~pos]
@@ -171,8 +171,8 @@
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
   ;; and make sure there is something new that starts with _G\uffff
-  (assert (in (mangle "_G\uffff") s1))
-  (assert (in (mangle "_G\uffff") s2))
+  (assert (in (hy.mangle "_G\uffff") s1))
+  (assert (in (hy.mangle "_G\uffff") s2))
   ;; but make sure the two don't match each other
   (assert (not (= s1 s2))))
 
@@ -196,8 +196,8 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
-  (assert (in (mangle "_a\uffff") s1))
-  (assert (in (mangle "_a\uffff") s2))
+  (assert (in (hy.mangle "_a\uffff") s1))
+  (assert (in (hy.mangle "_a\uffff") s2))
   (assert (not (= s1 s2))))
 
 (defn test-defmacro/g! []
@@ -219,8 +219,8 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
-  (assert (in (mangle "_res\uffff") s1))
-  (assert (in (mangle "_res\uffff") s2))
+  (assert (in (hy.mangle "_res\uffff") s1))
+  (assert (in (hy.mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
@@ -248,8 +248,8 @@
   (setv _ast2 (hy-compile (hy-parse macro1) __name__))
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
-  (assert (in (mangle "_res\uffff") s1))
-  (assert (in (mangle "_res\uffff") s2))
+  (assert (in (hy.mangle "_res\uffff") s1))
+  (assert (in (hy.mangle "_res\uffff") s2))
   (assert (not (= s1 s2)))
 
   ;; defmacro/g! didn't like numbers initially because they
@@ -424,7 +424,7 @@ in expansions."
   (defn require-macros []
     (require [tests.resources.macros :as m])
 
-    (assert (in (mangle "m.test-macro") __macros__))
+    (assert (in (hy.mangle "m.test-macro") __macros__))
     (for [macro-name __macros__]
       (assert (not (and (in "with" macro-name)
                         (!= "with" macro-name))))))
@@ -475,18 +475,18 @@ in expansions."
               [test-module-macro]])
 
     ;; Make sure that `require` didn't add any of its `require`s
-    (assert (not (in (mangle "nonlocal-test-macro") __macros__)))
+    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
     ;; and that it didn't add its tags.
-    (assert (not (in (mangle "#test-module-tag") __macros__)))
+    (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
 
     ;; Now, require everything.
     (require [tests.resources.macro-with-require [*]])
 
     ;; Again, make sure it didn't add its required macros and/or tags.
-    (assert (not (in (mangle "nonlocal-test-macro") __macros__)))
+    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
 
     ;; Its tag(s) should be here now.
-    (assert (in (mangle "#test-module-tag") __macros__))
+    (assert (in (hy.mangle "#test-module-tag") __macros__))
 
     ;; The test macro expands to include this symbol.
     (setv module-name-var "tests.native_tests.native_macros")

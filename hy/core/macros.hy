@@ -129,7 +129,7 @@
     (macro-error (get other-kvs -1)
                  "`assoc` takes an odd number of arguments"))
   (setv c (if other-kvs
-            (gensym "c")
+            (hy.gensym "c")
             coll))
   `(setv ~@(+ (if other-kvs
                 [c coll]
@@ -179,7 +179,7 @@
         (not (and (is (type branch) hy.models.List) branch))
           (macro-error branch "each cond branch needs to be a nonempty list")
         (= (len branch) 1) (do
-          (setv g (gensym))
+          (setv g (hy.gensym))
           [`(do (setv ~g ~(get branch 0)) ~g) g])
         True
           [(get branch 0) `(do ~@(cut branch 1 None))]))
@@ -230,7 +230,7 @@
        => collection
        [2 1]
   "
-  (setv f (gensym))
+  (setv f (hy.gensym))
   (defn build-form [expression]
     (if (isinstance expression hy.models.Expression)
       `(~(get expression 0) ~f ~@(rest expression))
@@ -425,7 +425,7 @@
 
 
 (defn _do-n [count-form body]
-  `(for [~(gensym) (range ~count-form)]
+  `(for [~(hy.gensym) (range ~count-form)]
     ~@body))
 
 
@@ -456,7 +456,7 @@
     => (list-n 5 (+= counter 1) counter)
     [1 2 3 4 5]
   "
-  (setv l (gensym))
+  (setv l (hy.gensym))
   `(do
     (setv ~l [])
     ~(_do-n count-form [`(.append ~l (do ~@body))])
@@ -480,9 +480,9 @@
     expands to::
 
        => (do
-       ...   (setv a (gensym)
-       ...         b (gensym)
-       ...         c (gensym))
+       ...   (setv a (hy.gensym)
+       ...         b (hy.gensym)
+       ...         c (hy.gensym))
        ...   ...)
 
   .. seealso::
@@ -491,7 +491,7 @@
   "
   (setv syms [])
   (for [arg args]
-    (.extend syms [arg `(gensym '~arg)]))
+    (.extend syms [arg `(hy.gensym '~arg)]))
   `(do
     (setv ~@syms)
     ~@body))
@@ -507,7 +507,7 @@
   any symbol that starts with
   ``g!``.
 
-  For example, ``g!a`` would become ``(gensym \"a\")``.
+  For example, ``g!a`` would become ``(hy.gensym \"a\")``.
 
   .. seealso::
 
@@ -521,7 +521,7 @@
                        (flatten body))))
         gensyms [])
   (for [sym syms]
-    (.extend gensyms [sym `(gensym ~(cut sym 2 None))]))
+    (.extend gensyms [sym `(hy.gensym ~(cut sym 2 None))]))
 
   (setv [docstring body] (if (and (isinstance (get body 0) str)
                                   (> (len body) 1))
@@ -634,8 +634,8 @@
        ...   (print (* args.STRING args.n))
        ...   0)
 "
-  (setv retval (gensym)
-        restval (gensym))
+  (setv retval (hy.gensym)
+        restval (hy.gensym))
   `(when (= __name__ "__main__")
      (import sys)
      (setv ~retval ((fn [~@(or args `[#* ~restval])] ~@body) #* sys.argv))
@@ -689,8 +689,8 @@
 
    Use ``(help foo)`` instead for help with runtime objects."
    (setv symbol (str symbol))
-   (setv mangled (mangle symbol))
-   (setv builtins (gensym "builtins"))
+   (setv mangled (hy.mangle symbol))
+   (setv builtins (hy.gensym "builtins"))
    `(do (import [builtins :as ~builtins])
         (help (or (.get __macros__ ~mangled)
                   (.get (. ~builtins __macros__) ~mangled)
