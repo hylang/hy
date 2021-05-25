@@ -1,7 +1,6 @@
 API
 ===
 
-.. hy:autofunction:: hy.eval
 
 .. _special-forms:
 
@@ -1231,9 +1230,27 @@ Hy
 The ``hy`` module is auto imported into every Hy module and provides convient access to
 the following methods
 
+.. hy:autofunction:: hy.read-str
+
+.. hy:autofunction:: hy.read
+
+.. hy:autofunction:: hy.eval
+
 .. hy:autofunction:: hy.repr
 
 .. hy:autofunction:: hy.repr-register
+
+.. hy:autofunction:: hy.mangle
+
+.. hy:autofunction:: hy.unmangle
+
+.. hy:autofunction:: hy.disassemble
+
+.. hy:autofunction:: hy.macroexpand
+
+.. hy:autofunction:: hy.macroexpand-1
+
+.. hy:autofunction:: hy.gensym
 
 
 .. _Core:
@@ -1246,17 +1263,14 @@ base names, such that ``hy.core.language.butlast`` can be called with just ``but
 
 
 .. hy:automodule:: hy.core.language
-   :members:
+   :members: butlast, calling-module, calling-module-name,
+      coll?, constantly, dec, distinct, drop-last, empty?,
+      even?, every?, flatten, float?, inc, integer?, integer-char?,
+      iterable?, iterator?, keyword?, list?, neg?, none?, numeric?, odd?,
+      parse-args, pos?, rest, some, string?, symbol?, tuple?, xor, zero?
 
 .. hy:autofunction:: hy.core.language.calling-module
 
-.. hy:autofunction:: hy.core.language.mangle
-
-.. hy:autofunction:: hy.core.language.unmangle
-
-.. hy:autofunction:: hy.core.language.read-str
-
-.. hy:autofunction:: hy.core.language.read
 
 .. hy:automodule:: hy.core.shadow
    :members:

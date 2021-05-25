@@ -4,7 +4,24 @@
     "categories": [
       {
         "name": "IO",
-        "methods": ["hy.repr", "hy.repr-register"]
+        "methods": [
+          "hy.repr",
+          "hy.repr-register",
+          "hy.mangle",
+          "hy.unmangle",
+          "hy.read",
+          "hy.read-str"
+        ]
+      },
+      {
+        "name": "Reader",
+        "methods": [
+          "hy.eval",
+          "hy.gensym",
+          "hy.macroexpand",
+          "hy.macroexpand-1",
+          "hy.disassemble"
+        ]
       }
     ]
   },
@@ -63,16 +80,7 @@
           "hy.core.bootstrap.defn/a",
           "hy.core.language.calling-module",
           "hy.core.language.calling-module-name",
-          "hy.core.language.parse-args",
-          "hy.core.language.disassemble",
-          "hy.eval",
-          "hy.core.language.gensym",
-          "hy.core.language.macroexpand",
-          "hy.core.language.macroexpand-1",
-          "hy.core.language.mangle",
-          "hy.core.language.read",
-          "hy.core.language.read-str",
-          "hy.core.language.unmangle"
+          "hy.core.language.parse-args"
         ]
       },
       {
