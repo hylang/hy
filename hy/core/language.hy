@@ -868,11 +868,11 @@
   (list (map mangle
     '[butlast calling-module calling-module-name coll?
       constantly dec distinct
-      disassemble drop-last empty? even? every?
-      flatten float? gensym inc
+      drop-last empty? even? every?
+      flatten float? inc
       integer? integer-char? iterable?
-      iterator? keyword? list? macroexpand
-      macroexpand-1 mangle neg? none?
-      numeric? odd? parse-args pos? read read-str
+      iterator? keyword? list?
+      neg? none?
+      numeric? odd? parse-args pos?
       rest some string? symbol?
-      tuple? unmangle xor zero?])))
+      tuple? xor zero?])))
