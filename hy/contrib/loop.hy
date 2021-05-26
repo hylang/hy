@@ -69,7 +69,7 @@ tail-call optimization (TCO) in their Hy code.
 
 (defmacro defnr [name lambda-list #* body]
   (if (not (= (type name) hy.models.Symbol))
-    (macro-error name "defnr takes a name as first argument"))
+      (raise (TypeError "defnr takes a name as first argument")))
   `(do (require hy.contrib.loop)
        (setv ~name (hy.contrib.loop.fnr ~lambda-list ~@body))))
 

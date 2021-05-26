@@ -126,8 +126,7 @@
   .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
   "
   (if (odd? (len other-kvs))
-    (macro-error (get other-kvs -1)
-                 "`assoc` takes an odd number of arguments"))
+      (raise (ValueError "`assoc` takes an odd number of arguments")))
   (setv c (if other-kvs
             (hy.gensym "c")
             coll))
@@ -177,7 +176,7 @@
       branch branches
       (if
         (not (and (is (type branch) hy.models.List) branch))
-          (macro-error branch "each cond branch needs to be a nonempty list")
+        (raise (TypeError "each cond branch needs to be a nonempty list"))
         (= (len branch) 1) (do
           (setv g (hy.gensym))
           [`(do (setv ~g ~(get branch 0)) ~g) g])
@@ -646,7 +645,7 @@
 (defmacro "#@" [expr]
   "with-decorator tag macro"
   (if (empty? expr)
-      (macro-error expr "missing function argument"))
+      (raise (ValueError "missing function argument")))
   (setv decorators (cut expr -1)
         fndef (get expr -1))
   `(with-decorator ~@decorators ~fndef))

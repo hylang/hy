@@ -226,7 +226,7 @@
           parameter-2 2
  "
   (if (not (= (type name) hy.models.Symbol))
-    (macro-error name "defn takes a name as first argument"))
+      (raise (ValueError "defn takes a name as first argument")))
   `(setv ~name (fn* ~@args)))
 
 (defmacro defn/a [name lambda-list #* body]
@@ -242,7 +242,7 @@
        => (defn/a name [params] body)
   "
   (if (not (= (type name) hy.models.Symbol))
-    (macro-error name "defn/a takes a name as first argument"))
+      (raise (ValueError  "defn/a takes a name as first argument")))
   (if (not (isinstance lambda-list hy.models.List))
-    (macro-error name "defn/a takes a parameter list as second argument"))
+      (raise (ValueError "defn/a takes a parameter list as second argument")))
   `(setv ~name (fn/a ~lambda-list ~@body)))
