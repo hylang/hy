@@ -18,32 +18,32 @@
 
 (defn test-mangle-hyphen-underscore []
   ;; https://github.com/hylang/hy/issues/1635
-  (assert (= (mangle "-")               "hyx_XhyphenHminusX"))
-  (assert (= (mangle "-a")              "hyx_XhyphenHminusXa"))
-  (assert (= (mangle "-_a")             "hyx_XhyphenHminusX_a"))
-  (assert (= (mangle "_-a")             "_hyx_XhyphenHminusXa"))
-  (assert (= (mangle "__init__")        "__init__"))
-  (assert (= (mangle "--init--")        "hyx_XhyphenHminusX_init__"))
-  (assert (= (mangle "__dunder-name__") "__dunder_name__"))
-  (assert (= (mangle "-->")             "hyx_XhyphenHminusX_XgreaterHthan_signX"))
-  (assert (= (mangle "<--")             "hyx_XlessHthan_signX__"))
+  (assert (= (hy.mangle "-")               "hyx_XhyphenHminusX"))
+  (assert (= (hy.mangle "-a")              "hyx_XhyphenHminusXa"))
+  (assert (= (hy.mangle "-_a")             "hyx_XhyphenHminusX_a"))
+  (assert (= (hy.mangle "_-a")             "_hyx_XhyphenHminusXa"))
+  (assert (= (hy.mangle "__init__")        "__init__"))
+  (assert (= (hy.mangle "--init--")        "hyx_XhyphenHminusX_init__"))
+  (assert (= (hy.mangle "__dunder-name__") "__dunder_name__"))
+  (assert (= (hy.mangle "-->")             "hyx_XhyphenHminusX_XgreaterHthan_signX"))
+  (assert (= (hy.mangle "<--")             "hyx_XlessHthan_signX__"))
 
   ;; test various interactions
-  (assert (= (mangle "----")   "hyx_XhyphenHminusX___"))
-  (assert (= (mangle "--__")   "hyx_XhyphenHminusX___"))
-  (assert (= (mangle "__--")   "__hyx_XhyphenHminusX_"))
-  (assert (= (mangle "__--__") "__hyx_XhyphenHminusX___"))
-  (assert (= (mangle "--?")    "hyx_is_XhyphenHminusX_"))
-  (assert (= (mangle "__--?")  "__hyx_is_XhyphenHminusX_"))
+  (assert (= (hy.mangle "----")   "hyx_XhyphenHminusX___"))
+  (assert (= (hy.mangle "--__")   "hyx_XhyphenHminusX___"))
+  (assert (= (hy.mangle "__--")   "__hyx_XhyphenHminusX_"))
+  (assert (= (hy.mangle "__--__") "__hyx_XhyphenHminusX___"))
+  (assert (= (hy.mangle "--?")    "hyx_is_XhyphenHminusX_"))
+  (assert (= (hy.mangle "__--?")  "__hyx_is_XhyphenHminusX_"))
 
   ;; test unmangling choices
-  (assert (= (unmangle "hyx_XhyphenHminusX")        "-"))
-  (assert (= (unmangle "_")                         "_"))
-  (assert (= (unmangle "__init__")                  "__init__"))
-  (assert (= (unmangle "hyx_XhyphenHminusX_init__") "--init--"))
-  (assert (= (unmangle "__dunder_name__")           "__dunder-name__"))
-  (assert (= (unmangle "hyx_XhyphenHminusX_XgreaterHthan_signX") "-->"))
-  (assert (= (unmangle "hyx_XlessHthan_signX__")                 "<--")))
+  (assert (= (hy.unmangle "hyx_XhyphenHminusX")        "-"))
+  (assert (= (hy.unmangle "_")                         "_"))
+  (assert (= (hy.unmangle "__init__")                  "__init__"))
+  (assert (= (hy.unmangle "hyx_XhyphenHminusX_init__") "--init--"))
+  (assert (= (hy.unmangle "__dunder_name__")           "__dunder-name__"))
+  (assert (= (hy.unmangle "hyx_XhyphenHminusX_XgreaterHthan_signX") "-->"))
+  (assert (= (hy.unmangle "hyx_XlessHthan_signX__")                 "<--")))
 
 
 (defn test-underscore-number []
@@ -179,29 +179,29 @@
   (for [[a b] [["___ab-cd?" "___is_ab_cd"]
                ["if" "hyx_if"]
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
-    (assert (= (mangle a) b))
-    (assert (= (unmangle b) a))))
+    (assert (= (hy.mangle a) b))
+    (assert (= (hy.unmangle b) a))))
 
 
 (defn test-nongraphic []
   ; https://github.com/hylang/hy/issues/1694
 
-  (assert (= (mangle " ") "hyx_XspaceX"))
-  (assert (= (mangle "\a") "hyx_XU7X"))
-  (assert (= (mangle "\t") "hyx_XU9X"))
-  (assert (= (mangle "\n") "hyx_XUaX"))
-  (assert (= (mangle "\r") "hyx_XUdX"))
-  (assert (= (mangle "\r") "hyx_XUdX"))
+  (assert (= (hy.mangle " ") "hyx_XspaceX"))
+  (assert (= (hy.mangle "\a") "hyx_XU7X"))
+  (assert (= (hy.mangle "\t") "hyx_XU9X"))
+  (assert (= (hy.mangle "\n") "hyx_XUaX"))
+  (assert (= (hy.mangle "\r") "hyx_XUdX"))
+  (assert (= (hy.mangle "\r") "hyx_XUdX"))
 
-  (assert (= (mangle (chr 127)) "hyx_XU7fX"))
-  (assert (= (mangle (chr 128)) "hyx_XU80X"))
-  (assert (= (mangle (chr 0xa0)) "hyx_XnoHbreak_spaceX"))
-  (assert (= (mangle (chr 0x378)) "hyx_XU378X"))
-  (assert (= (mangle (chr 0x200a) "hyx_Xhair_spaceX")))
-  (assert (= (mangle (chr 0x2065)) "hyx_XU2065X"))
-  (assert (= (mangle (chr 0x1000c)) "hyx_XU1000cX")))
+  (assert (= (hy.mangle (chr 127)) "hyx_XU7fX"))
+  (assert (= (hy.mangle (chr 128)) "hyx_XU80X"))
+  (assert (= (hy.mangle (chr 0xa0)) "hyx_XnoHbreak_spaceX"))
+  (assert (= (hy.mangle (chr 0x378)) "hyx_XU378X"))
+  (assert (= (hy.mangle (chr 0x200a) "hyx_Xhair_spaceX")))
+  (assert (= (hy.mangle (chr 0x2065)) "hyx_XU2065X"))
+  (assert (= (hy.mangle (chr 0x1000c)) "hyx_XU1000cX")))
 
 
 (defn test-mangle-bad-indent []
   ; Shouldn't crash with IndentationError
-  (mangle "  0\n 0"))
+  (hy.mangle "  0\n 0"))

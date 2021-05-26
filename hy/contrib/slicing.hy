@@ -108,7 +108,7 @@ or more manually using the tag macro as::
     ::
 
        => (setv abc:def -2)
-       => (macroexpand '(ncut a abc:def (: (sum [1 2 3]) None abc:def)))
+       => (hy.macroexpand '(ncut a abc:def (: (sum [1 2 3]) None abc:def)))
        (get a (, abc:def (slice (sum [1 2 3]) None abc:def)))
 
     Pandas allows extensive slicing along single or multiple axes:

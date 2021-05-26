@@ -40,6 +40,9 @@ Other Breaking Changes
 * `cmp` has been renamed to `chainc`.
 * `hy-repr` & `hy-repr-register` have been moved into `core` and are available
   at `hy.repr` & `hy.repr-register` respectively.
+* `gensym`, `macroexpand`, `macroexpand-1`, and `disassemble` are no longer
+  automatically brought into scope. Call them as `hy.gensym`, `hy.macroexpand`, etc
+  or import them explicitly.
 
 New Features
 ------------------------------

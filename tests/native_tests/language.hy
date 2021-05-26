@@ -1475,7 +1475,7 @@ cee\"} dee" "ey bee\ncee dee"))
 
   (require [tests.resources [tlib macros :as m]])
   (assert (in "tlib.qplah" __macros__))
-  (assert (in (mangle "m.test-macro") __macros__))
+  (assert (in (hy.mangle "m.test-macro") __macros__))
   (require [os [path]])
   (with [(pytest.raises hy.errors.HyRequireError)]
     (hy.eval '(require [tests.resources [does-not-exist]]))))
@@ -1569,9 +1569,9 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-macroexpand []
   "Test macroexpand on ->"
-  (assert (= (macroexpand '(-> (a b) (x y)))
+  (assert (= (hy.macroexpand '(-> (a b) (x y)))
              '(x (a b) y)))
-  (assert (= (macroexpand '(-> (a b) (-> (c d) (e f))))
+  (assert (= (hy.macroexpand '(-> (a b) (-> (c d) (e f))))
              '(e (c (a b) d) f))))
 
 (defn test-macroexpand-with-named-import []
@@ -1579,11 +1579,11 @@ cee\"} dee" "ey bee\ncee dee"))
   (defmacro m-with-named-import []
     (import [math [pow]])
     (pow 2 3))
-  (assert (= (macroexpand '(m-with-named-import)) (** 2 3))))
+  (assert (= (hy.macroexpand '(m-with-named-import)) (** 2 3))))
 
 (defn test-macroexpand-1 []
   "Test macroexpand-1 on ->"
-  (assert (= (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
+  (assert (= (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
 
 
@@ -1595,16 +1595,16 @@ cee\"} dee" "ey bee\ncee dee"))
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
   (defn nos [x] (re.sub r"\s" "" x))
-  (assert (= (nos (disassemble '(do (leaky) (leaky) (macros))))
+  (assert (= (nos (hy.disassemble '(do (leaky) (leaky) (macros))))
     (nos (.format
       "Module(
           body=[Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
               Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
               Expr(value=Call(func=Name(id='macros', ctx=Load()), args=[], keywords=[]))]{})"
       (if PY3_8 ",type_ignores=[]" "")))))
-  (assert (= (nos (disassemble '(do (leaky) (leaky) (macros)) True))
+  (assert (= (nos (hy.disassemble '(do (leaky) (leaky) (macros)) True))
              "leaky()leaky()macros()"))
-  (assert (= (re.sub r"[()\n ]" "" (disassemble `(+ ~(+ 1 1) 40) True))
+  (assert (= (re.sub r"[()\n ]" "" (hy.disassemble `(+ ~(+ 1 1) 40) True))
              "2+40")))
 
 
@@ -1637,32 +1637,32 @@ cee\"} dee" "ey bee\ncee dee"))
   (import [io [StringIO]])
 
   (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
-  (assert (= (hy.eval (read stdin-buffer)) 4))
-  (assert (isinstance (read stdin-buffer) hy.models.Expression))
+  (assert (= (hy.eval (hy.read stdin-buffer)) 4))
+  (assert (isinstance (hy.read stdin-buffer) hy.models.Expression))
 
   "Multiline test"
   (setv stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
-  (assert (= (hy.eval (read stdin-buffer)) 42))
-  (assert (= (hy.eval (read stdin-buffer)) 1))
+  (assert (= (hy.eval (hy.read stdin-buffer)) 42))
+  (assert (= (hy.eval (hy.read stdin-buffer)) 1))
 
   "EOF test"
   (setv stdin-buffer (StringIO "(+ 2 2)"))
-  (read stdin-buffer)
+  (hy.read stdin-buffer)
   (with [(pytest.raises EOFError)]
-    (read stdin-buffer)))
+    (hy.read stdin-buffer)))
 
 (defn test-read-str []
   "NATIVE: test read-str"
-  (assert (= (read-str "(print 1)") '(print 1)))
-  (assert (is (type (read-str "(print 1)")) (type '(print 1))))
+  (assert (= (hy.read-str "(print 1)") '(print 1)))
+  (assert (is (type (hy.read-str "(print 1)")) (type '(print 1))))
 
   ; Watch out for false values: https://github.com/hylang/hy/issues/1243
-  (assert (= (read-str "\"\"") '""))
-  (assert (is (type (read-str "\"\"")) (type '"")))
-  (assert (= (read-str "[]") '[]))
-  (assert (is (type (read-str "[]")) (type '[])))
-  (assert (= (read-str "0") '0))
-  (assert (is (type (read-str "0")) (type '0))))
+  (assert (= (hy.read-str "\"\"") '""))
+  (assert (is (type (hy.read-str "\"\"")) (type '"")))
+  (assert (= (hy.read-str "[]") '[]))
+  (assert (is (type (hy.read-str "[]")) (type '[])))
+  (assert (= (hy.read-str "0") '0))
+  (assert (is (type (hy.read-str "0")) (type '0))))
 
 (defn test-keyword-creation []
   (assert (= (hy.models.Keyword "foo") :foo))

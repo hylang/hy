@@ -130,7 +130,7 @@ the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
 argument, as in ``(f :arg :foo)``.
 
 Keywords can be called like functions as shorthand for ``get``. ``(:foo obj)``
-is equivalent to ``(get obj (mangle "foo"))``. An optional ``default`` argument
+is equivalent to ``(get obj (hy.mangle "foo"))``. An optional ``default`` argument
 is also allowed: ``(:foo obj 2)`` or ``(:foo obj :default 2)`` returns ``2`` if
 ``(get obj "foo")`` raises a ``KeyError``.
 
@@ -177,8 +177,8 @@ Python-legal names. The steps are as follows:
 
 #. Finally, any leading underscores removed in the first step are added back
    to the mangled name.
-   Thus, ``(mangle '_tasty?)`` is ``"_is_tasty"`` instead of ``"is__tasty"``
-   and ``(mangle '__-_has-dashes?)`` is ``"__hyx_is_XhyphenHminusX_has_dashes"``.
+   Thus, ``(hy.mangle '_tasty?)`` is ``"_is_tasty"`` instead of ``"is__tasty"``
+   and ``(hy.mangle '__-_has-dashes?)`` is ``"__hyx_is_XhyphenHminusX_has_dashes"``.
 
 Mangling isn't something you should have to think about often, but you may see
 mangled names in error messages, the output of ``hy2py``, etc. A catch to be

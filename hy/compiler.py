@@ -1913,7 +1913,7 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
       If you want to evaluate a string, use ``read-str`` to convert it to a
       form first::
 
-         => (hy.eval (read-str "(+ 1 1)"))
+         => (hy.eval (hy.read-str "(+ 1 1)"))
          2
 
     Args:

@@ -9,7 +9,7 @@
 
 (defn special []
   "Return a frozenset of special operators, such as ``fn`` and ``+``."
-  (frozenset (map unmangle
+  (frozenset (map hy.unmangle
     (.keys hy.compiler._special_form_compilers))))
 
 (defn names []
@@ -31,7 +31,7 @@
   "
   (global _cache)
   (if (is _cache None) (do
-    (setv _cache (frozenset (map unmangle (+
+    (setv _cache (frozenset (map hy.unmangle (+
       hy.core.__all__
       (list (.keys hy.core.bootstrap.__macros__))
       (list (.keys hy.core.macros.__macros__))

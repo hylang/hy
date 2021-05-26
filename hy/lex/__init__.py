@@ -103,22 +103,22 @@ def mangle(s):
     Examples:
       ::
 
-         => (mangle 'foo-bar)
+         => (hy.mangle 'foo-bar)
          "foo_bar"
 
-         => (mangle 'foo-bar?)
+         => (hy.mangle 'foo-bar?)
          "is_foo_bar"
 
-         => (mangle '*)
+         => (hy.mangle '*)
          "hyx_XasteriskX"
 
-         => (mangle '_foo/a?)
+         => (hy.mangle '_foo/a?)
          "_hyx_is_fooXsolidusXa"
 
-         => (mangle '-->)
+         => (hy.mangle '-->)
          "hyx_XhyphenHminusX_XgreaterHthan_signX"
 
-         => (mangle '<--)
+         => (hy.mangle '<--)
          "hyx_XlessHthan_signX__"
     """
     def unicode_char_to_hex(uchr):
@@ -175,25 +175,25 @@ def unmangle(s):
     Examples:
       ::
 
-         => (unmangle 'foo_bar)
+         => (hy.unmangle 'foo_bar)
          "foo-bar"
 
-         => (unmangle 'is_foo_bar)
+         => (hy.unmangle 'is_foo_bar)
          "foo-bar?"
 
-         => (unmangle 'hyx_XasteriskX)
+         => (hy.unmangle 'hyx_XasteriskX)
          "*"
 
-         => (unmangle '_hyx_is_fooXsolidusXa)
+         => (hy.unmangle '_hyx_is_fooXsolidusXa)
          "_foo/a?"
 
-         => (unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
+         => (hy.unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
          "-->"
 
-         => (unmangle 'hyx_XlessHthan_signX__)
+         => (hy.unmangle 'hyx_XlessHthan_signX__)
          "<--"
 
-         => (unmangle '__dunder_name__)
+         => (hy.unmangle '__dunder_name__)
          "__dunder-name__"
     """
 
@@ -233,13 +233,13 @@ def read(from_file=sys.stdin, eof=""):
     Examples:
       ::
 
-         => (read)
+         => (hy.read)
          (+ 2 2)
          '(+ 2 2)
 
       ::
 
-         => (hy.eval (read))
+         => (hy.eval (hy.read))
          (+ 2 2)
          4
 
@@ -247,9 +247,9 @@ def read(from_file=sys.stdin, eof=""):
 
          => (import io)
          => (setv buffer (io.StringIO "(+ 2 2)\\n(- 2 1)"))
-         => (hy.eval (read :from-file buffer))
+         => (hy.eval (hy.read :from-file buffer))
          4
-         => (hy.eval (read :from-file buffer))
+         => (hy.eval (hy.read :from-file buffer))
          1
 
       ::
@@ -259,7 +259,7 @@ def read(from_file=sys.stdin, eof=""):
          35
          => (with [f (open "example.hy")]
          ...  (try (while True
-         ...         (setv exp (read f))
+         ...         (setv exp (hy.read f))
          ...         (print "OHY" exp)
          ...         (hy.eval exp))
          ...       (except [e EOFError]
@@ -292,18 +292,18 @@ def read(from_file=sys.stdin, eof=""):
 
 
 def read_str(input):
-    """This is essentially a wrapper around `read` which reads expressions from a
+    """This is essentially a wrapper around ``hy.read`` which reads expressions from a
     string
 
     Examples:
       ::
 
-         => (read-str "(print 1)")
+         => (hy.read-str "(print 1)")
          '(print 1)
 
       ::
 
-         => (hy.eval (read-str "(print 1)"))
+         => (hy.eval (hy.read-str "(print 1)"))
          1
   """
     return read(StringIO(str(input)))

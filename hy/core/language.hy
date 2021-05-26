@@ -156,14 +156,14 @@
   Examples:
     ::
 
-       => (disassemble '(print \"Hello World!\"))
+       => (hy.disassemble '(print \"Hello World!\"))
        Module(
         body=[
             Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
 
     ::
 
-       => (disassemble '(print \"Hello World!\") True)
+       => (hy.disassemble '(print \"Hello World!\") True)
        print('Hello World!')
   "
   (import ast hy.compiler)
@@ -423,12 +423,12 @@
   Examples:
     ::
 
-      => (gensym)
+      => (hy.gensym)
       '_G￿1
 
     ::
 
-      => (gensym \"x\")
+      => (hy.gensym \"x\")
       '_x￿2
 
    "
@@ -578,12 +578,12 @@
   Examples:
     ::
 
-       => (macroexpand '(-> (a b) (x y)))
+       => (hy.macroexpand '(-> (a b) (x y)))
        '(x (a b) y)
 
     ::
 
-       => (macroexpand '(-> (a b) (-> (c d) (e f))))
+       => (hy.macroexpand '(-> (a b) (-> (c d) (e f))))
        '(e (c (a b) d) f)
   "
   (import hy.macros)
@@ -598,7 +598,7 @@
   Examples:
     ::
 
-       => (macroexpand-1 '(-> (a b) (-> (c d) (e f))))
+       => (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
        '(-> (a b) (c d) (e f))
   "
   (import hy.macros)
@@ -868,11 +868,11 @@
   (list (map mangle
     '[butlast calling-module calling-module-name coll?
       constantly dec distinct
-      disassemble drop-last empty? even? every?
-      flatten float? gensym inc
+      drop-last empty? even? every?
+      flatten float? inc
       integer? integer-char? iterable?
-      iterator? keyword? list? macroexpand
-      macroexpand-1 mangle neg? none?
-      numeric? odd? parse-args pos? read read-str
+      iterator? keyword? list?
+      neg? none?
+      numeric? odd? parse-args pos?
       rest some string? symbol?
-      tuple? unmangle xor zero?])))
+      tuple? xor zero?])))

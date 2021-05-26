@@ -8,7 +8,7 @@
     [funcparserlib.parser [many]])
   (setv [body condition] (->> args (.parse (whole
     [(many (notpexpr "until")) (dolike "until")]))))
-  (setv g (gensym))
+  (setv g (hy.gensym))
   `(do
     (setv ~g True)
     (while (or ~g (not (do ~@condition)))

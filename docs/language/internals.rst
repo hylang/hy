@@ -182,7 +182,7 @@ For example::
   => (print x.name)
   foo-bar
 
-If needed, you can get the mangled name by calling :hy:func:`mangle <hy.core.language.mangle>`.
+If needed, you can get the mangled name by calling :hy:func:`mangle <hy.mangle>`.
 
 Hy Internal Theory
 ==================
@@ -383,11 +383,11 @@ where ``obscure-name`` is an attempt to pick some variable name as not to
 conflict with other code. But of course, while well-intentioned,
 this is no guarantee.
 
-The method :hy:func:`gensym <hy.core.language.gensym>` is designed to generate a new, unique symbol for just
+The method :hy:func:`gensym <hy.gensym>` is designed to generate a new, unique symbol for just
 such an occasion. A much better version of ``nif`` would be::
 
    (defmacro nif [expr pos-form zero-form neg-form]
-     (setv g (gensym))
+     (setv g (hy.gensym))
      `(do
         (setv ~g ~expr)
         (cond [(pos? ~g) ~pos-form]
@@ -404,9 +404,9 @@ basically expands to a ``setv`` form::
 expands to::
 
    (do
-     (setv a (gensym)
-           b (gensym)
-           c (gensym))
+     (setv a (hy.gensym)
+           b (hy.gensym)
+           c (hy.gensym))
      ...)
 
 so our re-written ``nif`` would look like::
@@ -421,7 +421,7 @@ so our re-written ``nif`` would look like::
 
 Finally, though we can make a new macro that does all this for us. :hy:func:`defmacro/g! <hy.core.macros.defmacro/g!>`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
-remainder of the symbol. So ``g!a`` would become ``(gensym "a")``.
+remainder of the symbol. So ``g!a`` would become ``(hy.gensym "a")``.
 
 Our final version of ``nif``, built with ``defmacro/g!`` becomes::
 

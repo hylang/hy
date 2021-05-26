@@ -38,10 +38,10 @@
     'f"the answer is {(+ 2 2) = !r :4}"
     'f"the answer is {(+ 2 2):{(+ 2 3)}}"])
   (for [original-val values]
-    (setv evaled (hy.eval (read-str (hy.repr original-val))))
+    (setv evaled (hy.eval (hy.read-str (hy.repr original-val))))
     (assert (= evaled original-val))
     (assert (is (type evaled) (type original-val))))
-  (assert (isnan (hy.eval (read-str (hy.repr NaN))))))
+  (assert (isnan (hy.eval (hy.read-str (hy.repr NaN))))))
 
 (defn test-hy-repr-roundtrip-from-str []
   (setv strs [
@@ -69,7 +69,7 @@
     ":akeyword"
     "'(f #* args #** kwargs)"])
   (for [original-str strs]
-    (setv rep (hy.repr (hy.eval (read-str original-str))))
+    (setv rep (hy.repr (hy.eval (hy.read-str original-str))))
     (assert (= rep original-str))))
 
 (defn test-hy-repr-no-roundtrip []
@@ -80,7 +80,7 @@
   (setv orig `[a ~5.0])
   (setv reprd (hy.repr orig))
   (assert (= reprd "'[a 5.0]"))
-  (setv result (hy.eval (read-str reprd)))
+  (setv result (hy.eval (hy.read-str reprd)))
 
   (assert (is (type (get orig 1)) float))
   (assert (is (type (get result 1)) hy.models.Float)))
