@@ -44,6 +44,7 @@ Other Breaking Changes
   automatically brought into scope. Call them as `hy.gensym`, `hy.macroexpand`, etc
   or import them explicitly.
 * made `calling-module-name` private and `calling-module` internal to Hy
+* `macro-error` has been removed, raise typical errors instead
 
 New Features
 ------------------------------
