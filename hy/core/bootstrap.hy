@@ -108,9 +108,6 @@
                   ~(get args 1)
                   (if ~@(cut args 2 None))))))
 
-(defmacro macro-error [expression reason [filename '__name__]]
-  `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
-
 (defmacro defn [name #* args]
   "Define `name` as a function with `args` as the signature, annotations, and body.
 
