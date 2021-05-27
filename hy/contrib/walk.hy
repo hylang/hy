@@ -323,7 +323,7 @@
   (defn handle-args-list [self]
     (setv protected #{}
           argslist [])
-    (for [[header section] (.items (lambda-list (get (.tail self) 0)))]
+    (for [[header section] (.items (lambda-list (get (.tail self) (if (= (self.head) "defn") 1 0))))]
       (unless (in header [None 'unpack-iterable 'unpack-mapping])
           (.append argslist header))
       (cond [(in header [None '*])
@@ -343,7 +343,7 @@
 
   (defn handle-fn [self]
     (setv [protected argslist] (self.handle-args-list))
-    `(~(self.head) ~argslist
+    `(~(self.head) ~@(if (= (self.head) "defn") [(get (.tail self) 0)] []) ~argslist
        ~@(self.traverse (cut (self.tail) 1 None)(| protected self.protected))))
 
   ;; don't expand symbols in quotations
@@ -398,7 +398,7 @@
   (defn handle-call [self]
     (setv head (get self.form 0))
     (cond
-      [(in head '[fn fn*]) (self.handle-fn)]
+      [(in head '[fn defn]) (self.handle-fn)]
       [(in head '[import
                   require
                   quote
