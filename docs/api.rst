@@ -457,7 +457,7 @@ Special Forms
        3
 
    In its square-bracketed first argument, ``for`` allows the same types of
-   clauses as :hy:macro:`lfor`.
+   clauses as :hy:function:`lfor`.
 
    ::
 
@@ -568,7 +568,7 @@ Special Forms
    .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
              index that is out of bounds.
 
-.. hy:macro:: (import [#* forms])
+.. hy:function:: (import [#* forms])
 
    ``import`` is used to import modules, like in Python. There are several ways
    that ``import`` can be used.
@@ -647,9 +647,9 @@ Special Forms
        (print (m 3))     ; prints 5
        (print (add 3 6)) ; raises NameError: name 'add' is not defined
 
-.. hy:macro:: (lfor [binding iterable #* body])
+.. hy:function:: (lfor [binding iterable #* body])
 
-   The comprehension forms ``lfor``, :hy:macro:`sfor`, :hy:macro:`dfor`, :hy:macro:`gfor`, and :hy:func:`for`
+   The comprehension forms ``lfor``, :hy:function:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
    :ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
    creates a list comprehension. A simple use of ``lfor`` is::
@@ -704,10 +704,10 @@ Special Forms
    contain Python statements, with the attendant consequences for calling
    ``return``. By contrast, ``for`` shares the caller's scope.
 
-.. hy:macro:: (dfor [binding iterable #* body])
+.. hy:function:: (dfor [binding iterable #* body])
 
     ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
-    is the same as that of `:hy:macro:`lfor` except that the final value form must be
+    is the same as that of `:hy:func:`lfor` except that the final value form must be
     a literal list of two elements, the first of which becomes each key and
     the second of which becomes each value.
 
@@ -719,10 +719,10 @@ Special Forms
         {0 0  1 10  2 20  3 30  4 40}
 
 
-.. hy:macro:: (gfor [binding iterable #* body])
+.. hy:function:: (gfor [binding iterable #* body])
 
    ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
-   is the same as that of :hy:macro:`lfor`. The difference is that ``gfor`` returns
+   is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
    an iterator, which evaluates and yields values one at a time.
 
    :strong:`Examples`
@@ -738,10 +738,10 @@ Special Forms
        => accum
        [0 1 2 3 4 5]
 
-.. hy:macro:: (sfor [binding iterable #* body])
+.. hy:function:: (sfor [binding iterable #* body])
 
    ``sfor`` creates a set comprehension. ``(sfor CLAUSES VALUE)`` is
-   equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:macro:`lfor`.
+   equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
 
 .. hy:function:: (setv [#* args])
 
