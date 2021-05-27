@@ -37,10 +37,6 @@ else:
         return str(inspect.signature(fn))
 
 
-CORE_MACROS = [
-    "hy.core.bootstrap",
-]
-
 EXTRA_MACROS = [
     "hy.core.macros",
 ]
@@ -213,7 +209,7 @@ def load_macros(module):
     removing any prior macros set.
     It is an error to call this on any module in `hy.core`.
     """
-    builtin_macros = CORE_MACROS + EXTRA_MACROS
+    builtin_macros = EXTRA_MACROS
     module.__macros__ = {}
 
     for builtin_mod_name in builtin_macros:
