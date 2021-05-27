@@ -688,7 +688,7 @@ class HyASTCompiler(object):
             expr, type=types.expr, name=name,
             body=body.stmts or [asty.Pass(expr)])
 
-    @special("if*", [FORM, FORM, maybe(FORM)])
+    @special("if", [FORM, FORM, maybe(FORM)])
     def compile_if(self, expr, _, cond, body, orel_expr):
         cond = self.compile(cond)
         body = self.compile(body)
