@@ -1441,49 +1441,77 @@ class HyASTCompiler(object):
     argument = OPTIONAL_ANNOTATION + (NASYM | brackets(NASYM, FORM))
     varargs = lambda unpack_type, wanted: OPTIONAL_ANNOTATION + pvalue(unpack_type, wanted)
     kwonly_delim = some(lambda x: isinstance(x, Symbol) and x == Symbol("*"))
-    @special(["fn", "fn*", "fn/a"], [
-        # The starred version is for internal use (particularly, in the
-        # definition of `defn`). It ensures that a FunctionDef is
-        # produced rather than a Lambda.
-        OPTIONAL_ANNOTATION,
-        brackets(
+    lambda_list = brackets(
             maybe(many(argument) + sym("/")),
             many(argument),
             maybe(kwonly_delim | varargs("unpack-iterable", NASYM)),
             many(argument),
-            maybe(varargs("unpack-mapping", NASYM))),
-        many(FORM)])
-    def compile_function_def(self, expr, root, returns, params, body):
-        force_functiondef = root in ("fn*", "fn/a")
-        node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
-        ret = Result()
-
-        # NOTE: Our evaluation order of return type annotations is
-        # different from Python: Python evalautes them after the argument
-        # annotations / defaults (as that's where they are in the source),
-        # but Hy evaluates them *first*, since here they come before the #
-        # argument list. Therefore, it would be more confusing for
-        # readability to evaluate them after like Python.
-
-        ret = Result()
-        returns_ann = None
-        if returns is not None:
-            returns_result = self.compile(returns)
-            ret += returns_result
-
+            maybe(varargs("unpack-mapping", NASYM)))
+    @special(["fn", "fn/a"], [OPTIONAL_ANNOTATION, lambda_list, many(FORM)])
+    def compile_function_lambda(self, expr, root, returns, params, body):
         posonly, args, rest, kwonly, kwargs = params
+        has_annotations = returns is not None or any(
+            isinstance(param, tuple) and param[0] is not None
+            for param in (posonly or []) + args + kwonly + [rest, kwargs]
+        )
+        body = self._compile_branch(body)
 
-        if not (posonly or posonly is None):
+        # Compile to lambda if we can
+        if not has_annotations and not body.stmts and root != "fn/a":
+            args, ret = self._compile_lambda_list(params, Result())
+            return ret + asty.Lambda(expr, args=args, body=body.force_expr)
+
+        # Otherwise create a standard function
+        node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
+        name = self.get_anon_var()
+        ret = self._compile_function_node(expr, node, name, params, returns, body)
+
+        # return its name as the final expr
+        return ret + Result(expr=ret.temp_variables[0])
+
+
+    @special(["defn"], [SYM, OPTIONAL_ANNOTATION, lambda_list, many(FORM)])
+    def compile_function_def(self, expr, root, name, returns, params, body):
+        node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
+        body = self._compile_branch(body)
+
+        return self._compile_function_node(
+            expr, node, mangle(self._nonconst(name)), params, returns, body
+        )
+
+    def _compile_function_node(self, expr, node, name, params, returns, body):
+        ret = Result()
+        args, ret = self._compile_lambda_list(params, ret)
+
+        if body.expr:
+            body += asty.Return(body.expr, value=body.expr)
+
+        ret += node(
+            expr,
+            name=name,
+            args=args,
+            body=body.stmts or [asty.Pass(expr)],
+            decorator_list=[],
+            returns=self.compile(returns).force_expr if returns is not None else None,
+        )
+
+        ast_name = asty.Name(expr, id=name, ctx=ast.Load())
+        return ret + Result(temp_variables=[ast_name, ret.stmts[-1]])
+
+    def _compile_lambda_list(self, params, ret):
+        posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
+
+        if not (posonly_parms or posonly_parms is None):
             raise self._syntax_error(
                 params, "positional only delimiter '/' must have an argument"
             )
 
-        posonly = posonly or []
+        posonly_parms = posonly_parms or []
 
         is_positional_arg = lambda x: isinstance(x[1], Symbol)
         invalid_non_default = next(
             (arg
-             for arg in dropwhile(is_positional_arg, posonly + args)
+             for arg in dropwhile(is_positional_arg, posonly_parms + args_parms)
              if is_positional_arg(arg)),
             None
         )
@@ -1492,49 +1520,28 @@ class HyASTCompiler(object):
                 invalid_non_default[1], "non-default argument follows default argument"
             )
 
-        posonly_ast, posonly_defaults, ret = self._compile_arguments_set(posonly, ret)
-        args_ast, args_defaults, ret = self._compile_arguments_set(args, ret)
-        kwonly_ast, kwonly_defaults, ret = self._compile_arguments_set(kwonly, ret, True)
+        posonly_ast, posonly_defaults, ret = self._compile_arguments_set(posonly_parms, ret)
+        args_ast, args_defaults, ret = self._compile_arguments_set(args_parms, ret)
+        kwonly_ast, kwonly_defaults, ret = self._compile_arguments_set(kwonly_parms, ret, True)
         rest_ast = kwargs_ast = None
 
-        if rest == Symbol("*"): # rest is a positional only marker
-            if not kwonly:
-                raise self._syntax_error(rest, "named arguments must follow bare *")
+        if rest_parms == Symbol("*"): # rest is a positional only marker
+            if not kwonly_parms:
+                raise self._syntax_error(rest_parms, "named arguments must follow bare *")
             rest_ast = None
-        elif rest: # rest is capturing varargs
-            [rest_ast], _, ret = self._compile_arguments_set([rest], ret)
-        if kwargs:
-            [kwargs_ast], _, ret = self._compile_arguments_set([kwargs], ret)
+        elif rest_parms: # rest is capturing varargs
+            [rest_ast], _, ret = self._compile_arguments_set([rest_parms], ret)
+        if kwargs_parms:
+            [kwargs_ast], _, ret = self._compile_arguments_set([kwargs_parms], ret)
 
-        args = ast.arguments(
+        return ast.arguments(
             args=args_ast,
             defaults=[*posonly_defaults, *args_defaults],
             vararg=rest_ast,
             posonlyargs=posonly_ast,
             kwonlyargs=kwonly_ast,
             kw_defaults=kwonly_defaults,
-            kwarg=kwargs_ast)
-
-        body = self._compile_branch(body)
-
-        if not force_functiondef and not body.stmts and returns is None:
-            return ret + asty.Lambda(expr, args=args, body=body.force_expr)
-
-        if body.expr:
-            body += asty.Return(body.expr, value=body.expr)
-
-        name = self.get_anon_var()
-
-        ret += node(expr,
-                    name=name,
-                    args=args,
-                    body=body.stmts or [asty.Pass(expr)],
-                    decorator_list=[],
-                    returns=returns_result.force_expr if returns is not None else None)
-
-        ast_name = asty.Name(expr, id=name, ctx=ast.Load())
-        ret += Result(expr=ast_name, temp_variables=[ast_name, ret.stmts[-1]])
-        return ret
+            kwarg=kwargs_ast), ret
 
     def _compile_arguments_set(self, decls, ret, is_kwonly=False):
         args_ast = []
@@ -1612,35 +1619,41 @@ class HyASTCompiler(object):
             body=bodyr.stmts or [asty.Pass(expr)])
 
     def _rewire_init(self, expr):
-        "Given a (setv …) form, append None to definitions of __init__."
+        "append None to definitions of __init__."
 
-        if not (isinstance(expr, Expression)
-                and len(expr) > 1
-                and isinstance(expr[0], Symbol)
-                and expr[0] == Symbol("setv")):
+        if (
+            isinstance(expr, Expression)
+            and expr[0] == Symbol("defn")
+            and expr[1] == Symbol("__init__")
+        ):
+            return Expression([*expr, Symbol("None")]).replace(expr)
+        elif not (isinstance(expr, Expression)
+            and len(expr) > 1
+            and isinstance(expr[0], Symbol)
+            and expr[0] == Symbol("setv")):
             return expr
+        else:
+            new_args = []
+            decls = list(expr[1:])
+            while decls:
+                if is_annotate_expression(decls[0]):
+                    # Handle annotations.
+                    ann = decls.pop(0)
+                else:
+                    ann = None
 
-        new_args = []
-        decls = list(expr[1:])
-        while decls:
-            if is_annotate_expression(decls[0]):
-                # Handle annotations.
-                ann = decls.pop(0)
-            else:
-                ann = None
+                if len(decls) < 2:
+                    break
+                k, v = (decls.pop(0), decls.pop(0))
+                if isinstance(k, Symbol) and mangle(k) == "__init__" and isinstance(v, Expression):
+                    v += Expression([Symbol("None")])
 
-            if len(decls) < 2:
-                break
-            k, v = (decls.pop(0), decls.pop(0))
-            if isinstance(k, Symbol) and mangle(k) == "__init__" and isinstance(v, Expression):
-                v += Expression([Symbol("None")])
+                if ann is not None:
+                    new_args.append(ann)
 
-            if ann is not None:
-                new_args.append(ann)
-
-            new_args.extend((k, v))
-        return (Expression([Symbol("setv")] + new_args + decls)
-            .replace(expr))
+                new_args.extend((k, v))
+            return (Expression([Symbol("setv")] + new_args + decls)
+                .replace(expr))
 
     @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
     def compile_eval_and_compile(self, expr, root, body):
