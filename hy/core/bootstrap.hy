@@ -66,21 +66,3 @@
         ((hy.macros.macro ~(str macro-name))
          (fn ~(+ `[&name] lambda-list)
            ~@body))))))
-
-(defmacro defn/a [name lambda-list #* body]
-  "Define `name` as a function with `lambda-list` signature and body `body`.
-
-  ``defn/a`` macro is a variant of ``defn`` that instead defines
-  coroutines. It takes three parameters: the *name* of the function to
-  define, a vector of *parameters*, and the *body* of the function:
-
-  Examples:
-    ::
-
-       => (defn/a name [params] body)
-  "
-  (if (not (= (type name) hy.models.Symbol))
-      (raise (ValueError  "defn/a takes a name as first argument")))
-  (if (not (isinstance lambda-list hy.models.List))
-      (raise (ValueError "defn/a takes a parameter list as second argument")))
-  `(setv ~name (fn/a ~lambda-list ~@body)))

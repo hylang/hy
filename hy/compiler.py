@@ -1469,8 +1469,7 @@ class HyASTCompiler(object):
         # return its name as the final expr
         return ret + Result(expr=ret.temp_variables[0])
 
-
-    @special(["defn"], [SYM, OPTIONAL_ANNOTATION, lambda_list, many(FORM)])
+    @special(["defn", "defn/a"], [SYM, OPTIONAL_ANNOTATION, lambda_list, many(FORM)])
     def compile_function_def(self, expr, root, name, returns, params, body):
         node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
         body = self._compile_branch(body)
