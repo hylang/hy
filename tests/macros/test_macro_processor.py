@@ -49,7 +49,7 @@ def test_preprocessor_expression():
 def test_preprocessor_exceptions():
     """ Test that macro expansion raises appropriate exceptions"""
     with pytest.raises(HyMacroExpansionError) as excinfo:
-        macroexpand(tokenize('(defn)')[0], __name__, HyASTCompiler(__name__))
+        macroexpand(tokenize('(when)')[0], __name__, HyASTCompiler(__name__))
     assert "_hy_anon_" not in excinfo.value.msg
 
 
