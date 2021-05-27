@@ -312,12 +312,12 @@ def pvalue(root, wanted):
     return pexpr(sym(root) + wanted) >> (lambda x: x[0])
 
 # Parse an annotation setting.
-OPTIONAL_ANNOTATION = maybe(pvalue("annotate*", FORM))
+OPTIONAL_ANNOTATION = maybe(pvalue("annotate", FORM))
 
 
 def is_annotate_expression(model):
     return (isinstance(model, Expression) and model and isinstance(model[0], Symbol)
-            and model[0] == Symbol("annotate*"))
+            and model[0] == Symbol("annotate"))
 
 
 class HyASTCompiler(object):
@@ -1338,7 +1338,7 @@ class HyASTCompiler(object):
                                            is_assignment_expr=is_assignment_expr)
         return result
 
-    @special(["annotate*"], [FORM, FORM])
+    @special(["annotate"], [FORM, FORM])
     def compile_basic_annotation(self, expr, root, ann, target):
         return self._compile_assign(ann, target, None)
 
@@ -1710,7 +1710,7 @@ class HyASTCompiler(object):
             # `.` forms here so the user gets a better error message.
             sroot = mangle(root)
 
-            bad_root = sroot in _bad_roots or (sroot == mangle("annotate*")
+            bad_root = sroot in _bad_roots or (sroot == mangle("annotate")
                                                and not allow_annotation_expression)
 
             if (sroot in _special_form_compilers or bad_root) and (
