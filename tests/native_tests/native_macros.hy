@@ -5,7 +5,7 @@
 (import os sys
         importlib
         pytest
-        [hy.errors [HyTypeError HyMacroExpansionError]])
+        [hy.errors [HySyntaxError HyTypeError HyMacroExpansionError]])
 
 (defmacro rev [#* body]
   "Execute the `body` statements in reverse"
@@ -65,25 +65,22 @@
 
 (defn test-macro-kw []
   "NATIVE: test that an error is raised when * or #** is used in a macro"
-  (try
+  (with [excifno (pytest.raises HySyntaxError)]
     (hy.eval '(defmacro f [* a b]))
-    (except [e HyTypeError]
-      (assert (= e.msg "macros cannot use '*', or '#**'")))
-    (else (assert False)))
+    (assert (= (. excinfo value msg) "macros cannot use '*'")))
 
-  (try
+  (with [excifno (pytest.raises HySyntaxError)]
     (hy.eval '(defmacro f [#** kw]))
-    (except [e HyTypeError]
-      (assert (= e.msg "macros cannot use '*', or '#**'")))
-    (else (assert False))))
+    (assert (= (. excinfo value msg) "macros cannot use '#**'"))))
 
 (defn test-macro-bad-name []
-  (with [excinfo (pytest.raises HyTypeError)]
+  (with [excinfo (pytest.raises HySyntaxError)]
     (hy.eval '(defmacro :kw [])))
-  (assert (= (. excinfo value msg) "received a `hy.models.Keyword' instead of a symbol or string for macro name"))
-  (with [excinfo (pytest.raises HyTypeError)]
-    (hy.eval '(defmacro "foo.bar" [])))
-  (assert (= (. excinfo value msg) "periods are not allowed in macro names")))
+  (assert (= (. excinfo value msg) "parse error for special form 'defmacro': got unexpected token: :kw"))
+
+  (with [excifno (pytest.raises HySyntaxError)]
+    (hy.eval '(defmacro "foo.bar" []))
+    (assert (= (. excinfo value msg) "periods are not allowed in macro names"))))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"

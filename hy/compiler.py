@@ -1497,6 +1497,34 @@ class HyASTCompiler(object):
         ast_name = asty.Name(expr, id=name, ctx=ast.Load())
         return ret + Result(temp_variables=[ast_name, ret.stmts[-1]])
 
+    @special("defmacro", [SYM | STR, lambda_list, many(FORM)])
+    def compile_macro_def(self, expr, root, name, params, body):
+        _, _, rest, _, kwargs = params
+
+        if "." in name:
+            raise self._syntax_error(name, "periods are not allowed in macro names")
+        if rest == Symbol("*"):
+            raise self._syntax_error(rest, "macros cannot use '*'")
+        if kwargs is not None:
+            raise self._syntax_error(kwargs, "macros cannot use '#**'")
+
+        ret = Result() + self.compile(Expression([
+            Symbol("eval-and-compile"),
+            Expression([
+                Expression([
+                    Symbol("hy.macros.macro"),
+                    str(name),
+                ]),
+                Expression([
+                    Symbol("fn"),
+                    List([Symbol("&name")] + list(expr[2])),
+                    *(body or [])
+                ])
+            ])
+        ]).replace(expr))
+
+        return ret + ret.expr_as_stmt()
+
     def _compile_lambda_list(self, params, ret):
         posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
 
