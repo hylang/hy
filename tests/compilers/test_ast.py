@@ -72,15 +72,15 @@ def test_dot_unpacking():
 
 
 def test_ast_bad_if():
-    "Make sure AST can't compile invalid if*"
-    cant_compile("(if*)")
-    cant_compile("(if* foobar)")
-    cant_compile("(if* 1 2 3 4 5)")
+    "Make sure AST can't compile invalid if"
+    cant_compile("(if)")
+    cant_compile("(if foobar)")
+    cant_compile("(if 1 2 3 4 5)")
 
 
 def test_ast_valid_if():
-    "Make sure AST can compile valid if*"
-    can_compile("(if* foo bar)")
+    "Make sure AST can compile valid if"
+    can_compile("(if foo bar)")
 
 
 def test_ast_valid_unary_op():
@@ -579,7 +579,7 @@ def test_setv_builtins():
       (defn get [self] 42)
       (defclass B []
         (defn get [self] 42))
-      (defn if* [self] 0))
+      (defn if [self] 0))
     """)
 
 

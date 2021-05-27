@@ -13,13 +13,11 @@
 
 (defn + [#* args]
   "Shadowed `+` operator adds `args`."
-  (if
-    (= (len args) 0)
+  (if (= (len args) 0)
       0
-    (= (len args) 1)
-      (+ (get args 0))
-    ; else
-      (reduce operator.add args)))
+      (if (= (len args) 1)
+          (+ (get args 0))
+          (reduce operator.add args))))
 
 (defn - [a1 #* a-rest]
   "Shadowed `-` operator subtracts each `a-rest` from `a1`."
@@ -29,13 +27,11 @@
 
 (defn * [#* args]
   "Shadowed `*` operator multiplies `args`."
-  (if
-    (= (len args) 0)
+  (if (= (len args) 0)
       1
-    (= (len args) 1)
-      (get args 0)
-    ; else
-      (reduce operator.mul args)))
+      (if (= (len args) 1)
+          (get args 0)
+          (reduce operator.mul args))))
 
 (defn ** [a1 a2 #* a-rest]
   "Shadowed `**` operator takes `a1` to the power of `a2`, ..., `a-rest`."
@@ -79,13 +75,11 @@
 
 (defn | [#* args]
   "Shadowed `|` operator performs bitwise-or on `a1` by each `a-rest`."
-  (if
-    (= (len args) 0)
+  (if (= (len args) 0)
       0
-    (= (len args) 1)
-      (get args 0)
-    ; else
-      (reduce operator.or_ args)))
+      (if (= (len args) 1)
+          (get args 0)
+          (reduce operator.or_ args))))
 
 (defn ^ [x y]
   "Shadowed `^` operator performs bitwise-xor on `x` and `y`."
@@ -169,13 +163,11 @@
        => (and True [] False True)
        []
   "
-  (if
-    (= (len args) 0)
+  (if (= (len args) 0)
       True
-    (= (len args) 1)
-      (get args 0)
-    ; else
-      (reduce (fn [x y] (and x y)) args)))
+      (if (= (len args) 1)
+          (get args 0)
+          (reduce (fn [x y] (and x y)) args))))
 
 (defn or [#* args]
   "Shadowed `or` keyword perform or on `args`.
@@ -208,13 +200,11 @@
        => (or True (print \"hello\"))
        True
 "
-  (if
-    (= (len args) 0)
+  (if (= (len args) 0)
       None
-    (= (len args) 1)
-      (get args 0)
-    ; else
-      (reduce (fn [x y] (or x y)) args)))
+      (if (= (len args) 1)
+          (get args 0)
+          (reduce (fn [x y] (or x y)) args))))
 
 (defn not [x]
   "Shadowed `not` keyword perform not on `x`.

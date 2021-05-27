@@ -362,27 +362,10 @@
 (defn test-if []
   "NATIVE: test if if works."
   ;; with an odd number of args, the last argument is the default case
-  (assert (= 1 (if 1)))
   (assert (= 1 (if 0 -1
                      1)))
   ;; with an even number of args, the default is None
-  (assert (is None (if)))
-  (assert (is None (if 0 1)))
-  ;; test deeper nesting
-  (assert (= 42
-             (if 0 0
-                 None 1
-                 "" 2
-                 1 42
-                 1 43)))
-  ;; test shortcutting
-  (setv x None)
-  (if 0 (setv x 0)
-      "" (setv x "")
-      42 (setv x 42)
-      43 (setv x 43)
-         (setv x "default"))
-  (assert (= x 42)))
+  (assert (is None (if 0 1))))
 
 
 (defn test-index []

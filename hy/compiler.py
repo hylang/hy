@@ -786,7 +786,7 @@ class HyASTCompiler(object):
         # form to set `msg` to a variable.
         msg_var = self.get_anon_var()
         return self.compile(mkexpr(
-            'if*', mkexpr('and', '__debug__', mkexpr('not', [test])),
+            'if', mkexpr('and', '__debug__', mkexpr('not', [test])),
                 mkexpr('do',
                     mkexpr('setv', msg_var, [msg]),
                     mkexpr('assert', 'False', msg_var))).replace(expr))

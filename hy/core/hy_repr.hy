@@ -131,11 +131,11 @@
       (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\"")))))
 (hy-repr-register bool str)
 (hy-repr-register [hy.models.Float float] (fn [x]
-  (if
-    (isnan x)  "NaN"
-    (= x Inf)  "Inf"
-    (= x -Inf) "-Inf"
-               (_base-repr x))))
+  (cond
+    [(isnan x)  "NaN"]
+    [(= x Inf)  "Inf"]
+    [(= x -Inf) "-Inf"]
+    [True (_base-repr x)])))
 (hy-repr-register [hy.models.Complex complex] (fn [x]
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
 (hy-repr-register Fraction (fn [x]

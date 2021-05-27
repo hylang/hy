@@ -45,18 +45,18 @@
           => foo
           3
      ]]
-     (if* (not (isinstance macro-name (, hy.models.Symbol hy.models.String)))
+     (if (not (isinstance macro-name (, hy.models.Symbol hy.models.String)))
           (raise
             (hy.errors.HyTypeError
               (% "received a `hy.models.%s' instead of a symbol or string for macro name"
                  (. (type macro-name) __name__))
               None __file__ None)))
-     (if* (in "." macro-name)
+     (if (in "." macro-name)
        (raise (hy.errors.HyTypeError
          "periods are not allowed in macro names"
          None __file__ None)))
      (for [arg lambda-list]
-       (if* (or (= arg '*)
+       (if (or (= arg '*)
                 (and (isinstance arg hy.models.Expression)
                      (= (get arg 0) 'unpack-mapping)))
             (raise (hy.errors.HyTypeError "macros cannot use '*', or '#**'"
