@@ -6,7 +6,6 @@
 
 (import operator)
 
-(require [hy.core.bootstrap [*]])
 (import [hy.lex [mangle]])
 
 (import [functools [reduce]])

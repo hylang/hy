@@ -18,8 +18,6 @@
 
 (import [hy.core.shadow [*]])
 
-(require [hy.core.bootstrap [*]])
-
 (defn butlast [coll]
   "Returns an iterator of all but the last item in *coll*.
 
