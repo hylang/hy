@@ -75,9 +75,6 @@
           "hy.core.macros.defmacro!",
           "hy.core.macros.comment",
           "hy.core.macros.doc",
-          "hy.core.bootstrap.defmacro",
-          "hy.core.bootstrap.if",
-          "hy.core.bootstrap.defn/a",
           "hy.core.language.calling-module",
           "hy.core.language.calling-module-name",
           "hy.core.language.parse-args"
@@ -105,7 +102,6 @@
       {
         "name": "Special Forms",
         "methods": [
-          "hy.core.bootstrap.defn",
           "hy.core.macros.when",
           "^",
           {
@@ -113,6 +109,13 @@
             "uri": "dot",
             "internal": true
           },
+          "annotate",
+          "fn",
+          "fn/a",
+          "defn",
+          "defn/a",
+          "defmacro",
+          "if",
           "assert",
           "get",
           "global",
