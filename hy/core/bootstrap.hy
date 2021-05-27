@@ -67,47 +67,6 @@
          (fn ~(+ `[&name] lambda-list)
            ~@body))))))
 
-(defmacro if [#* args]
-  "Conditionally evaluate alternating test and then expressions.
-
-  ``if / if*`` respect Python *truthiness*, that is, a *test* fails if it
-  evaluates to a \"zero\" (including values of ``len`` zero, ``None``, and
-  ``False``), and passes otherwise, but values with a ``__bool__`` method
-  can override this.
-
-  The ``if`` macro is for conditionally selecting an expression for evaluation.
-  The result of the selected expression becomes the result of the entire ``if``
-  form. ``if`` can select a group of expressions with the help of a ``do`` block.
-
-  ``if`` takes any number of alternating *test* and *then* expressions, plus an
-  optional *else* expression at the end, which defaults to ``None``. ``if`` checks
-  each *test* in turn, and selects the *then* corresponding to the first passed
-  test. ``if`` does not evaluate any expressions following its selection, similar
-  to the ``if/elif/else`` control structure from Python. If no tests pass, ``if``
-  selects *else*.
-
-  Examples:
-    ::
-
-       => (print (if (< n 0.0) \"negative\"
-                  (= n 0.0) \"zero\"
-                  (> n 0.0) \"positive\"
-                  \"not a number\"))
-
-    ::
-
-       => (if* (money-left? account)
-             (print \"let's go shopping\")
-             (print \"let's go and work\"))
-  "
-  (setv n (len args))
-  (if* n
-       (if* (= n 1)
-            (get args 0)
-            `(if* ~(get args 0)
-                  ~(get args 1)
-                  (if ~@(cut args 2 None))))))
-
 (defmacro defn [name #* args]
   "Define `name` as a function with `args` as the signature, annotations, and body.
 
