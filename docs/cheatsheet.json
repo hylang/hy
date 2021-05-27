@@ -89,7 +89,7 @@
           "hy.core.macros.cfor",
           "hy.core.macros.doto",
           "hy.core.macros.of",
-          "hy.core.macros.unless",
+          "hy.core.macros.when",
           "hy.core.macros.if-not",
           "hy.core.macros.lif",
           "hy.core.macros.lif-not",
@@ -102,7 +102,6 @@
       {
         "name": "Special Forms",
         "methods": [
-          "hy.core.macros.when",
           "^",
           {
             "name": "\\.",
