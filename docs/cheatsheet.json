@@ -155,7 +155,7 @@
         ]
       },
       {
-        "name": "Arithmatic",
+        "name": "Arithmetic",
         "methods": [
           "hy.core.language.dec",
           "hy.core.shadow.@",
