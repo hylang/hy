@@ -76,6 +76,8 @@ def assert_stuff(m):
     assert m.condexpr == "y"
     assert type(m.mylambda) is type(lambda x: x + "z")
     assert m.mylambda("a") == "az"
+    assert m.annotated_lambda_ret() == 1
+    assert m.annotated_lambda_params(1) == (1, "hello world!")
 
     assert m.fstring1 == "hello 2 world"
     assert m.fstring2 == "a'xyzzy'  "
