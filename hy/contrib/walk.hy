@@ -11,7 +11,7 @@
         [importlib [import-module]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
-        [hy.compiler [HyASTCompiler]]
+        [hy.compiler [HyASTCompiler calling-module]]
         [hy.extra.reserved [special]])
 
 (defn walk [inner outer form]

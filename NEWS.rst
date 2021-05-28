@@ -43,6 +43,7 @@ Other Breaking Changes
 * `gensym`, `macroexpand`, `macroexpand-1`, and `disassemble` are no longer
   automatically brought into scope. Call them as `hy.gensym`, `hy.macroexpand`, etc
   or import them explicitly.
+* made `calling-module-name` private and `calling-module` internal to Hy
 
 New Features
 ------------------------------

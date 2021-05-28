@@ -1586,12 +1586,6 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
              '(-> (a b) (c d) (e f)))))
 
-
-(defn test-calling-module-name []
-  "NATIVE: Test the calling-module-name function"
-  (assert (= (calling-module-name -1) "hy.core.language")))
-
-
 (defn test-disassemble []
   "NATIVE: Test the disassemble function"
   (defn nos [x] (re.sub r"\s" "" x))

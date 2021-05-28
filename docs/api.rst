@@ -1263,14 +1263,11 @@ base names, such that ``hy.core.language.butlast`` can be called with just ``but
 
 
 .. hy:automodule:: hy.core.language
-   :members: butlast, calling-module, calling-module-name,
+   :members: butlast,
       coll?, constantly, dec, distinct, drop-last, empty?,
       even?, every?, flatten, float?, inc, integer?, integer-char?,
       iterable?, iterator?, keyword?, list?, neg?, none?, numeric?, odd?,
       parse-args, pos?, rest, some, string?, symbol?, tuple?, xor, zero?
-
-.. hy:autofunction:: hy.core.language.calling-module
-
 
 .. hy:automodule:: hy.core.shadow
    :members:
