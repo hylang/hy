@@ -48,6 +48,8 @@ Other Breaking Changes
 New Features
 ------------------------------
 * `hy-repr` is now the default REPL output function.
+* Running the module a la `python -m hy` is now equivalent to running
+  the `hy` command.
 
 Bug Fixes
 ------------------------------
