@@ -870,9 +870,10 @@
 
 (defn test-defn-annotations []
 
-  (defn f [^int p1 p2 ^str p3 ^str [o1 None] ^int [o2 0]
+  (defn ^int f [^int p1 p2 ^str p3 ^str [o1 None] ^int [o2 0]
            ^str #* rest ^str k1 ^int [k2 0] ^bool #** kwargs])
 
+  (assert (is (. f __annotations__ ["return"]) int))
   (for [[k v] (.items (dict
       :p1 int  :p3 str  :o1 str  :o2 int
       :k1 str  :k2 int  :kwargs bool))]
