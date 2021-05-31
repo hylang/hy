@@ -429,12 +429,12 @@
   The bindings pairs the target symbol and the expansion form for that symbol.
   "
   (if (odd? (len bindings))
-      (macro-error bindings "bindings must be paired"))
+      (raise (ValueError "bindings must be paired")))
   (for [k (cut bindings None None 2)]
     (if-not (symbol? k)
-            (macro-error k "bind targets must be symbols")
+            (raise (TypeError "bind targets must be symbols"))
             (if (in '. k)
-                (macro-error k "binding target may not contain a dot"))))
+                (raise (ValueError "binding target may not contain a dot")))))
   (setv bindings (dict (by2s bindings))
         body (macroexpand-all body &name))
   (symbolexpand `(do ~@body)
@@ -512,7 +512,7 @@
   .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
   "
   (if (odd? (len bindings))
-      (macro-error bindings "let bindings must be paired"))
+      (raise (ValueError "let bindings must be paired")))
   (setv g!let (hy.gensym 'let)
         replacements (OrderedDict)
         unpacked-syms (OrderedDict)
@@ -523,8 +523,8 @@
 
   (defn destructuring-expander [symbol]
     (cond
-      [(not (symbol? symbol)) (macro-error symbol "bind targets must be symbol or destructing assignment")]
-      [(in '. symbol) (macro-error symbol "binding target may not contain a dot")])
+      [(not (symbol? symbol)) (raise (TypeError "bind targets must be symbol or destructing assignment"))]
+      [(in '. symbol) (raise (ValueError "binding target may not contain a dot"))])
     (setv replaced (hy.gensym symbol))
     (assoc unpacked-syms symbol replaced)
     replaced)
@@ -537,10 +537,10 @@
   (for [[k v] (by2s bindings)]
     (cond
       [(and (symbol? k) (in '. k))
-       (macro-error k "binding target may not contain a dot")]
+       (raise (ValueError "binding target may not contain a dot"))]
 
       [(not (or (symbol? k) (destructuring? k)))
-       (macro-error k "bind targets must be symbol or iterable unpacking assignment")])
+       (raise (TypeError "bind targets must be symbol or iterable unpacking assignment"))])
 
     (if (destructuring? k)
         (do
@@ -553,11 +553,11 @@
           (prewalk (fn [x]
                      (cond
                        [(and (symbol? x) (in '. x))
-                        (macro-error k "bind target may not contain a dot")]
+                        (raise (ValueError "bind target may not contain a dot"))]
 
                        [(and (isinstance x hy.models.Expression)
                              (not-in (get x 0) #{', 'unpack-iterable}))
-                        (macro-error k "cannot destructure non-iterable unpacking expression")]
+                        (raise (ValueError "cannot destructure non-iterable unpacking expression"))]
 
                        [(and (symbol? x) (in x unpacked-syms))
                         (do (.append keys `(get ~g!let ~(hy.unmangle x)))

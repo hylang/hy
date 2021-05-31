@@ -392,7 +392,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
 (defmacro let+ [args #* body]
   "let macro with full destructuring with `args`"
   (if (odd? (len args))
-    (macro-error args "let bindings must be paired"))
+      (raise (ValueError "let bindings must be paired")))
   `(let ~(lfor [bs expr] (by2s args)
                sym (destructure bs expr)
            sym)

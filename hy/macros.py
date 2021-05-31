@@ -8,8 +8,6 @@ import inspect
 import pkgutil
 import traceback
 
-from contextlib import contextmanager
-
 from hy._compat import PY3_8
 from hy.models import replace_hy_obj, Expression, Symbol, wrap_value
 from hy.lex import mangle, unmangle
@@ -226,30 +224,41 @@ def load_macros(module):
             module.__macros__.update(getattr(builtin_mod, '__macros__', {}))
 
 
-@contextmanager
-def macro_exceptions(module, macro_tree, compiler=None):
-    try:
-        yield
-    except HyLanguageError as e:
-        # These are user-level Hy errors occurring in the macro.
-        # We want to pass them up to the user.
-        raise
-    except Exception as e:
+class MacroExceptions():
+    """wrap non ``HyLanguageError``'s in ``HyMacroExpansionError`` preserving stack trace
 
-        if compiler:
-            filename = compiler.filename
-            source = compiler.source
+    used in lieu of ``@contextmanager`` to ensure stack trace contains only internal hy
+    modules for consistent filtering.
+    """
+
+    def __init__(self, module, macro_tree, compiler=None):
+        self.module = module
+        self.macro_tree = macro_tree
+        self.compiler = compiler
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type is None:
+            return True
+        elif not issubclass(exc_type, HyLanguageError):
+            if self.compiler:
+                filename = self.compiler.filename
+                source = self.compiler.source
+            else:
+                filename = None
+                source = None
+
+            exc_msg = '  '.join(traceback.format_exception_only(
+                sys.exc_info()[0], sys.exc_info()[1]))
+
+            msg = "expanding macro {}\n  ".format(str(self.macro_tree[0]))
+            msg += exc_msg
+
+            raise HyMacroExpansionError(msg, self.macro_tree, filename, source)
         else:
-            filename = None
-            source = None
-
-        exc_msg = '  '.join(traceback.format_exception_only(
-            sys.exc_info()[0], sys.exc_info()[1]))
-
-        msg = "expanding macro {}\n  ".format(str(macro_tree[0]))
-        msg += exc_msg
-
-        raise HyMacroExpansionError(msg, macro_tree, filename, source)
+            return False
 
 
 def macroexpand(tree, module, compiler=None, once=False):
@@ -317,7 +326,8 @@ def macroexpand(tree, module, compiler=None, once=False):
                 compiler = HyASTCompiler(module)
             opts['compiler'] = compiler
 
-        with macro_exceptions(module, tree, compiler):
+
+        with MacroExceptions(module, tree, compiler):
             obj = m(module.__name__, *tree[1:], **opts)
 
             if isinstance(obj, Expression):

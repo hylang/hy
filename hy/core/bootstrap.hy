@@ -108,9 +108,6 @@
                   ~(get args 1)
                   (if ~@(cut args 2 None))))))
 
-(defmacro macro-error [expression reason [filename '__name__]]
-  `(raise (hy.errors.HyMacroExpansionError ~reason ~filename ~expression None)))
-
 (defmacro defn [name #* args]
   "Define `name` as a function with `args` as the signature, annotations, and body.
 
@@ -229,7 +226,7 @@
           parameter-2 2
  "
   (if (not (= (type name) hy.models.Symbol))
-    (macro-error name "defn takes a name as first argument"))
+      (raise (ValueError "defn takes a name as first argument")))
   `(setv ~name (fn* ~@args)))
 
 (defmacro defn/a [name lambda-list #* body]
@@ -245,7 +242,7 @@
        => (defn/a name [params] body)
   "
   (if (not (= (type name) hy.models.Symbol))
-    (macro-error name "defn/a takes a name as first argument"))
+      (raise (ValueError  "defn/a takes a name as first argument")))
   (if (not (isinstance lambda-list hy.models.List))
-    (macro-error name "defn/a takes a parameter list as second argument"))
+      (raise (ValueError "defn/a takes a parameter list as second argument")))
   `(setv ~name (fn/a ~lambda-list ~@body)))
