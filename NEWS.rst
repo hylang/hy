@@ -49,6 +49,8 @@ Other Breaking Changes
 * `defn`, `defn/a` have been made a special forms
 * `annotate*` has been made public and renamed `annotate`
 * return annotation for `defn` has been moved to before the function name
+* Python reserved words can no longer be parameter names or
+  function call keywords
 
 New Features
 ------------------------------
