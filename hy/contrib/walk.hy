@@ -243,21 +243,21 @@
                       'unpack-mapping (hy.models.Symbol "#**")}
         header None)
   (for [arg form]
-    (if
-      (in arg headers)
-      (do (setv header arg)
-          (assoc sections header [])
-          ;; Don't use a header more than once. It's the compiler's problem.
-          (.remove headers header))
+    (cond
+      [(in arg headers)
+       (do (setv header arg)
+           (assoc sections header [])
+           ;; Don't use a header more than once. It's the compiler's problem.
+           (.remove headers header))]
 
-      (and (isinstance arg hy.models.Expression) (in (get arg 0) headers))
-      (do (setv header (get arg 0))
-          (assoc sections header [])
-          ;; Don't use a header more than once. It's the compiler's problem.
-          (.remove headers header)
-          (.append (get sections header) arg))
+      [(and (isinstance arg hy.models.Expression) (in (get arg 0) headers))
+       (do (setv header (get arg 0))
+           (assoc sections header [])
+           ;; Don't use a header more than once. It's the compiler's problem.
+           (.remove headers header)
+           (.append (get sections header) arg))]
 
-      (.append (get sections header) arg)))
+      [True (.append (get sections header) arg)]))
   sections)
 
 
@@ -323,7 +323,7 @@
   (defn handle-args-list [self]
     (setv protected #{}
           argslist [])
-    (for [[header section] (.items (lambda-list (get (.tail self) 0)))]
+    (for [[header section] (.items (lambda-list (get (.tail self) (if (= (self.head) "defn") 1 0))))]
       (unless (in header [None 'unpack-iterable 'unpack-mapping])
           (.append argslist header))
       (cond [(in header [None '*])
@@ -343,15 +343,15 @@
 
   (defn handle-fn [self]
     (setv [protected argslist] (self.handle-args-list))
-    `(~(self.head) ~argslist
+    `(~(self.head) ~@(if (= (self.head) "defn") [(get (.tail self) 0)] []) ~argslist
        ~@(self.traverse (cut (self.tail) 1 None)(| protected self.protected))))
 
   ;; don't expand symbols in quotations
   (defn handle-quoted [self]
     (if (call? self.form)
-        (if (in (self.head) '[unquote unquote-splice]) (self.+quote -1)
-            (= (self.head) 'quasiquote) (self.+quote)
-            (self.handle-coll))
+        (cond [(in (self.head) '[unquote unquote-splice]) (self.+quote -1)]
+              [(= (self.head) 'quasiquote) (self.+quote)]
+              [True (self.handle-coll)])
         (if (coll? self.form)
             (self.handle-coll)
             (self.handle-base))))
@@ -397,30 +397,32 @@
   ;; and local bindings should shadow those made by let.
   (defn handle-call [self]
     (setv head (get self.form 0))
-    (if (in head '[fn fn*]) (self.handle-fn)
-        (in head '[import
-                   require
-                   quote
-                   eval-and-compile
-                   eval-when-compile]) (self.handle-base)
-        (= head 'except) (self.handle-except)
-        (= head ".") (self.handle-dot)
-        (= head 'defclass) (self.handle-defclass)
-        (= head 'quasiquote) (self.+quote)
+    (cond
+      [(in head '[fn defn]) (self.handle-fn)]
+      [(in head '[import
+                  require
+                  quote
+                  eval-and-compile
+                  eval-when-compile]) (self.handle-base)]
+      [(= head 'except) (self.handle-except)]
+      [(= head ".") (self.handle-dot)]
+      [(= head 'defclass) (self.handle-defclass)]
+      [(= head 'quasiquote) (self.+quote)]
         ;; must be checked last!
-        (in (hy.mangle head) _mangled-special) (self.handle-special-form)
+      [(in (hy.mangle head) _mangled-special) (self.handle-special-form)]
         ;; Not a special form. Traverse it like a coll
-        (self.handle-coll)))
+      [True (self.handle-coll)]))
 
   (defn expand [self]
     "the main entry point. Call this to do  the expansion"
     (setv form self.form)
-    (if self.quote-level (self.handle-quoted)
-        (symbol? form) (self.handle-symbol)
-        (call? form) (self.handle-call)
-        (coll? form) (self.handle-coll)
+    (cond
+      [self.quote-level (self.handle-quoted)]
+      [(symbol? form) (self.handle-symbol)]
+      [(call? form) (self.handle-call)]
+      [(coll? form) (self.handle-coll)]
         ;; recursive base case--it's an atom. Put it back.
-        (self.handle-base))))
+      [True (self.handle-base)])))
 
 (defmacro smacrolet [bindings #* body]
   "symbol macro let.

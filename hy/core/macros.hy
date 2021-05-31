@@ -171,18 +171,19 @@
   (or branches
     (return))
 
-  `(if ~@(sum
-    (gfor
-      branch branches
-      (if
-        (not (and (is (type branch) hy.models.List) branch))
-        (raise (TypeError "each cond branch needs to be a nonempty list"))
-        (= (len branch) 1) (do
-          (setv g (hy.gensym))
-          [`(do (setv ~g ~(get branch 0)) ~g) g])
-        True
-          [(get branch 0) `(do ~@(cut branch 1 None))]))
-    [])))
+  (setv (, branch #* branches) branches)
+
+  (if (not (and (is (type branch) hy.models.List)
+                branch))
+      (raise (TypeError "each cond branch needs to be a nonempty list"))
+      `(if ~@(if (= (len branch) 1)
+                (do (setv g (hy.gensym))
+                    [`(do (setv ~g ~(get branch 0)) ~g)
+                     g
+                     `(cond ~@branches)])
+                [(get branch 0)
+                 `(do ~@(cut branch 1 None))
+                 `(cond ~@branches)]))))
 
 
 (defmacro -> [head #* args]
@@ -309,8 +310,9 @@
   "
   (if
     (empty? args) base
-    (= (len args) 1) `(get ~base ~@args)
-    `(get ~base (, ~@args))))
+    (if (= (len args) 1)
+        `(get ~base ~@args)
+        `(get ~base (, ~@args)))))
 
 
 (defmacro if-not [test not-branch [yes-branch None]]
@@ -330,7 +332,7 @@
              (print \"let's go and work\")
              (print \"let's go shopping\"))
   "
-  `(if* (not ~test) ~not-branch ~yes-branch))
+  `(if (not ~test) ~not-branch ~yes-branch))
 
 
 (defmacro lif [#* args]
@@ -364,12 +366,12 @@
        \"false\"
   "
   (setv n (len args))
-  (if* n
-       (if* (= n 1)
-            (get args 0)
-            `(if* (is-not ~(get args 0) None)
-                  ~(get args 1)
-                  (lif ~@(cut args 2 None))))))
+  (if n
+      (if (= n 1)
+          (get args 0)
+          `(if (is-not ~(get args 0) None)
+               ~(get args 1)
+               (lif ~@(cut args 2 None))))))
 
 
 (defmacro lif-not [test not-branch [yes-branch None]]
@@ -388,7 +390,7 @@
        => (lif-not False \"true\" \"false\")
        \"false\"
 "
-  `(if* (is ~test None) ~not-branch ~yes-branch))
+  `(if (is ~test None) ~not-branch ~yes-branch))
 
 
 (defmacro when [test #* body]

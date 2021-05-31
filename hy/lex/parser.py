@@ -142,7 +142,7 @@ def term_unquote_splice(state, p):
 @pg.production("term : ANNOTATION term")
 @set_quote_boundaries
 def term_annotation(state, p):
-    return Expression([sym("annotate*"), p[1]])
+    return Expression([sym("annotate"), p[1]])
 
 
 @pg.production("term : HASHSTARS term")

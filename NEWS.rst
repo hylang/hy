@@ -45,6 +45,9 @@ Other Breaking Changes
   or import them explicitly.
 * made `calling-module-name` private and `calling-module` internal to Hy
 * `macro-error` has been removed, raise typical errors instead
+* `if` now only accepts one test, if branch, and else branch
+* `defn`, `defn/a` have been made a special forms
+* `annotate*` has been made public and renamed `annotate`
 
 New Features
 ------------------------------

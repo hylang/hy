@@ -139,17 +139,17 @@ Iterator patterns are specified using round brackets. They are the same as list 
           [clause more] [(cut args n) (cut args n None)]
           n (len clause)
           test (hy.gensym))
-    (if
-      (= 0 n) `(raise (TypeError (+ "no option for " (repr ~expr))))
-      (= 1 n) (get clause 0)
-      (= 2 n) `(if (~pred ~(get clause 0) ~expr)
-                 ~(get clause -1)
-                 ~(emit pred expr more))
-      `(do
-         (setv ~test (~pred ~(get clause 0) ~expr))
-         (if ~test
-           (~(get clause -1) ~test)
-           ~(emit pred expr more)))))
+    (cond
+      [(= 0 n) `(raise (TypeError (+ "no option for " (repr ~expr))))]
+      [(= 1 n) (get clause 0)]
+      [(= 2 n) `(if (~pred ~(get clause 0) ~expr)
+                    ~(get clause -1)
+                    ~(emit pred expr more))]
+      [True `(do
+               (setv ~test (~pred ~(get clause 0) ~expr))
+               (if ~test
+                   (~(get clause -1) ~test)
+                   ~(emit pred expr more)))]))
   `~(emit g!pred g!expr clauses))
 
 (defmacro setv+ [#* pairs]

@@ -18,8 +18,6 @@
 
 (import [hy.core.shadow [*]])
 
-(require [hy.core.bootstrap [*]])
-
 (defn butlast [coll]
   "Returns an iterator of all but the last item in *coll*.
 
@@ -172,10 +170,9 @@
   (if
     codegen
       (ast.unparse compiled)
-    hy._compat.PY3_9
-      (ast.dump compiled :indent 1)
-    True
-      (ast.dump compiled)))
+      (if hy._compat.PY3_9
+          (ast.dump compiled :indent 1)
+          (ast.dump compiled))))
 
 (defn distinct [coll]
   "Return a generator from the original collection `coll` with no duplicates.

@@ -50,6 +50,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv boolexpr (and (or True False) (not (and True False))))
 (setv condexpr (if "" "x" "y"))
 (setv mylambda (fn [x] (+ x "z")))
+(setv annotated-lambda-ret (fn ^int [] 1))
+(setv annotated-lambda-params (fn [^int a * ^str [b "hello world!"]] (, a b)))
 
 (setv fstring1 f"hello {(+ 1 1)} world")
 (setv p "xyzzy")
