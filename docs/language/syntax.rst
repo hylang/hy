@@ -127,7 +127,9 @@ the function ``f`` with the keyword argument named ``foo`` set to ``3``. Hence,
 trying to call a function on a literal keyword may fail: ``(f :foo)`` yields
 the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
 the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
-argument, as in ``(f :arg :foo)``.
+argument, as in ``(f :arg :foo)``. It is important to note that a keyword argument
+cannot be a Python reserved word. This will raise a ``SyntaxError`` similar to Python.
+See :ref:`defn <reserved_param_names>` for examples.
 
 Keywords can be called like functions as shorthand for ``get``. ``(:foo obj)``
 is equivalent to ``(get obj (hy.mangle "foo"))``. An optional ``default`` argument

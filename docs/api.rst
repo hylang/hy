@@ -269,6 +269,35 @@ Special Forms
            parameter-1 1
            parameter-2 2
 
+   .. _reserved_param_names:
+
+   .. note::
+
+      Parameter names cannot be Python reserved words nor can a function
+      be called with keyword arguments that are Python reserved words. This means
+      that the following will raise a `SyntaxError` as they would in Python::
+
+         (defn afunc [a b if])
+         Traceback (most recent call last):
+           File "<stdin>", line 1
+             (defn afunc [a b if])
+                              ^
+         hy.errors.HySyntaxError: parameter name cannot be Python reserved word
+
+         (dict :a 1 :from 2)
+         Traceback (most recent call last):
+           File "<stdin>", line 1
+             (dict :a 1 :from 2)
+                        ^
+         hy.errors.HySyntaxError: keyword argument cannot be Python reserved word
+
+      This only applies to parameter names and a keyword argument name. The value of
+      the parameter or keyword argument can still be a keyword of a reserved word::
+
+         => (defn test [a] a)
+         => (test :a :from)
+         :from
+
 .. hy:function:: (defn/a [name lambda-list #* body])
 
    Define `name` as a function with `lambda-list` signature and body `body`.
