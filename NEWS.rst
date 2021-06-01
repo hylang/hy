@@ -48,6 +48,7 @@ Other Breaking Changes
 * `if` now only accepts one test, if branch, and else branch
 * `defn`, `defn/a` have been made a special forms
 * `annotate*` has been made public and renamed `annotate`
+* return annotation for `defn` has been moved to before the function name
 
 New Features
 ------------------------------

@@ -40,8 +40,8 @@ Special Forms
       ; Equivalent to: def func(a: int, b: str = None, c: int = 1): ...
       (defn func [^int a ^str [b None] ^int [c 1]] ...)
 
-      ; Function return annotations have different ordering
-      (defn add1 ^int [^int x] (+ x 1))
+      ; Function return annotations come before the function name (if it exists)
+      (defn ^int add1 [^int x] (+ x 1))
       (fn ^int [^int y] (+ y 2))
 
    The rules are:
@@ -51,8 +51,6 @@ Special Forms
      interpreted as a bitwise XOR like the Python operator.
    - The annotation always comes (and is evaluated) *before* the value being annotated. This is
      unlike Python, where it comes and is evaluated *after* the value being annotated.
-   - The exception to the previous rule is function *return* annotation.  In
-     this case, the annotation comes just before the parameter list.
 
    Note that variable annotations are only supported on Python 3.6+.
 
@@ -73,7 +71,7 @@ Special Forms
 
       (setv (annotate int) x 1)
 
-      (defn add1 (annotate int) [(annotate int) x] (+ x 1))
+      (defn (annotate int) add1 [(annotate int) x] (+ x 1))
 
 
 .. _dot:
