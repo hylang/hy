@@ -87,6 +87,15 @@ class Object(object):
         return (f"hy.models.{self.__class__.__name__}"
                 f"({super(Object, self).__repr__()})")
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        else:
+            return super(Object, self).__eq__(other)
+
+    def __hash__(self):
+        return super().__hash__()
+
 
 _wrappers = {}
 
