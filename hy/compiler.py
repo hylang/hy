@@ -3,19 +3,18 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from itertools import dropwhile
+from itertools import dropwhile, takewhile
 from hy.models import (Object, Expression, Keyword, Integer, Complex,
                        String, FComponent, FString, Bytes, Symbol,
                        Float, List, Set, Dict, Sequence, as_model)
-from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
-                               notpexpr, dolike, pexpr, times, Tag, tag, unpack)
-from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a
+from hy.model_patterns import (FORM, SYM, KEYWORD, STR, LITERAL, sym, brackets, whole,
+                               notpexpr, dolike, pexpr, times, Tag, tag, unpack, braces)
+from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a, forward_decl
 from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
                        HySyntaxError, HyEvalError, HyInternalError)
 
-from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException
+from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException, isidentifier
 
-from hy._compat import PY3_8
 from hy.macros import require, macroexpand
 
 import textwrap
@@ -631,6 +630,172 @@ class HyASTCompiler(object):
         return ret + asty.Raise(
             expr, type=ret.expr, exc=exc,
             inst=None, tback=None, cause=cause)
+
+    notsym = lambda *dissallowed: some(
+        lambda x: isinstance(x, Symbol) and str(x) not in dissallowed
+    )
+    keepsym = lambda wanted: some(lambda x: x == Symbol(wanted))
+    _pattern = forward_decl()
+    _pattern.define(
+        (
+            SYM
+            | LITERAL
+            | brackets(many(_pattern | unpack("iterable")))
+            | pexpr(keepsym("."), many(SYM))
+            | pexpr(keepsym("|"), many(_pattern))
+            | pexpr(keepsym(","), many(_pattern))
+            | braces(
+                many(LITERAL + _pattern), maybe(pvalue("unpack-mapping", SYM))
+            )
+            | pexpr(
+                notsym(".", "|", ",", "unpack-mapping", "unpack-iterable"),
+                many(_pattern),
+                many(KEYWORD + _pattern),
+            )
+        )
+        + maybe(sym(":as") + SYM)
+    )
+    match_clause = _pattern + maybe(sym(":if") + FORM)
+
+    @special(
+        ((3, 10), "match"), [FORM, many(match_clause + FORM)]
+    )
+    def compile_match_expression(self, expr, root, subject, clauses):
+        subject = self.compile(subject)
+        return_var = asty.Name(expr, id=mangle(self.get_anon_var()), ctx=ast.Store())
+
+        lifted_if_defs = []
+        match_cases = []
+        for *pattern, guard, body in clauses:
+            if guard and body == Keyword("as"):
+                raise self._syntax_error(body, ":as clause cannot come after :if guard")
+
+            body = self._compile_branch([body])
+            body += asty.Assign(pattern[0], targets=[return_var], value=body.force_expr)
+            body += body.expr_as_stmt()
+            body = body.stmts
+
+            pattern = self._compile_pattern(pattern)
+
+            if guard:
+                guard = self.compile(guard)
+                if guard.stmts:
+                    fname = self.get_anon_var()
+                    guardret = Result() + asty.FunctionDef(
+                        guard,
+                        name=fname,
+                        args=ast.arguments(
+                            args=[],
+                            varargs=None,
+                            kwarg=None,
+                            posonlyargs=[],
+                            kwonlyargs=[],
+                            kw_defaults=[],
+                            defaults=[],
+                        ),
+                        body=guard.stmts + [asty.Return(guard.expr, value=guard.expr)],
+                        decorator_list=[],
+                    )
+                    lifted_if_defs.append(guardret)
+                    guard = Result(expr=ast.parse(f"{fname}()").body[0].value)
+
+            match_cases.append(
+                ast.match_case(
+                    pattern=pattern,
+                    guard=guard.force_expr if guard else None,
+                    body=body,
+                )
+            )
+
+        returnable = Result(
+            expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),
+            temp_variables=[return_var],
+        )
+        ret = Result() + subject
+        ret += subject.expr_as_stmt()
+        ret += asty.Assign(expr, targets=[return_var], value=asty.Constant(expr, value=None))
+        if not match_cases:
+            return ret + returnable
+
+        for lifted_if in lifted_if_defs:
+            ret += lifted_if
+        ret += asty.Match(expr, subject=subject.force_expr, cases=match_cases)
+        return ret + returnable
+
+    def _compile_pattern(self, pattern):
+        value, assignment = pattern
+        if assignment is not None:
+            return asty.MatchAs(
+                value,
+                pattern=self._compile_pattern((value, None)),
+                name=mangle(self._nonconst(assignment)),
+            )
+
+        if str(value) in ("None", "True", "False"):
+            return asty.MatchSingleton(
+                value,
+                value=self.compile(value).force_expr.value,
+            )
+        elif (
+            isinstance(value, (String, Integer, Float, Complex, Bytes))
+            or isinstance(value, Symbol)
+            and "." in value
+        ):
+            return asty.MatchValue(
+                value,
+                value=self.compile(value).expr,
+            )
+        elif value == Symbol("_"):
+            return asty.MatchAs(value)
+        elif isinstance(value, Symbol):
+            return asty.MatchAs(value, name=mangle(value))
+        elif isinstance(value, Expression) and value[0] == Symbol("|"):
+            return asty.MatchOr(
+                value,
+                patterns=[self._compile_pattern(v) for v in value[1]],
+            )
+        elif isinstance(value, Expression) and value[0] == Symbol("."):
+            root, syms = value
+            dotform = mkexpr(root, *syms).replace(value)
+            return asty.MatchValue(
+                value,
+                value=self.compile(dotform).expr,
+            )
+        elif (
+            isinstance(value, List)
+            or isinstance(value, Expression)
+            and value[0] == Symbol(",")
+        ):
+            patterns = value[0] if isinstance(value, List) else value[1:][0]
+            patterns = [
+                self._compile_pattern((v, None) if is_unpack("iterable", v) else v)
+                for v in patterns
+            ]
+            return asty.MatchSequence(value, patterns=patterns)
+        elif is_unpack("iterable", value):
+            return asty.MatchStar(value, name=mangle(value[1]))
+
+        elif isinstance(value, Dict):
+            kvs, rest = value
+            keys, values = zip(*kvs) if kvs else ([], [])
+            return asty.MatchMapping(
+                value,
+                keys=[self.compile(key).expr for key in keys],
+                patterns=[self._compile_pattern(v) for v in values],
+                rest=mangle(rest) if rest else None,
+            )
+        elif isinstance(value, Expression):
+            root, args, kwargs = value
+            keywords, values = zip(*kwargs) if kwargs else ([], [])
+            return asty.MatchClass(
+                value,
+                cls=asty.Name(root, id=mangle(root), ctx=ast.Load()),
+                patterns=[self._compile_pattern(v) for v in args],
+                kwd_attrs=[kwd.name for kwd in keywords],
+                kwd_patterns=[self._compile_pattern(value) for value in values],
+            )
+        else:
+            raise self._syntax_error(value, "unsuported")
 
     @special("try",
        [many(notpexpr("except", "else", "finally")),
