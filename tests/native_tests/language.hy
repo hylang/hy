@@ -139,7 +139,6 @@
       (setv True 1)
       (defn None [] (print "hello"))
       (defn True [] (print "hello"))
-      (defn f [True] (print "hello"))
       (for [True [1 2 3]] (print "hello"))
       (lfor  True [1 2 3]  True)
       (lfor  :setv True 1  True)
@@ -148,7 +147,14 @@
       (defclass True [])]]
     (with [e (pytest.raises HyLanguageError)]
       (hy.eval form))
-    (assert (in "Can't assign" e.value.msg))))
+    (assert (in "Can't assign" e.value.msg)))
+
+  (for [form '[(defn f [True] (print "hello"))
+               (defn f [a b break])
+               (defn f [a [from 1]])]])
+  (with [e (pytest.raises HySyntaxError)]
+    (hy.eval form))
+  (assert (in "parameter name cannot be" e.value.msg)))
 
 
 (defn test-no-str-as-sym []

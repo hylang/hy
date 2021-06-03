@@ -30,6 +30,7 @@ import sys
 import copy
 import builtins
 import __future__
+import keyword
 
 from collections import defaultdict
 from functools import reduce
@@ -411,6 +412,11 @@ class HyASTCompiler(object):
                         expr, arg=None, value=ret.force_expr))
 
             elif with_kwargs and isinstance(expr, Keyword):
+                if keyword.iskeyword(expr.name):
+                    raise self._syntax_error(
+                        expr, "keyword argument cannot be Python reserved word"
+                    )
+
                 try:
                     value = next(exprs_iter)
                 except StopIteration:
@@ -1527,6 +1533,26 @@ class HyASTCompiler(object):
 
     def _compile_lambda_list(self, params, ret):
         posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
+
+        py_reserved_param = next(
+            (
+                sym
+                for param in (
+                    (posonly_parms or [])
+                    + args_parms
+                    + kwonly_parms
+                    + [rest_parms, kwargs_parms]
+                )
+                if isinstance(param, tuple)
+                for sym in [param[1][0] if isinstance(param[1], List) else param[1]]
+                if keyword.iskeyword(str(sym))
+            ),
+            None,
+        )
+        if py_reserved_param:
+            raise self._syntax_error(
+                py_reserved_param, "parameter name cannot be Python reserved word"
+            )
 
         if not (posonly_parms or posonly_parms is None):
             raise self._syntax_error(
