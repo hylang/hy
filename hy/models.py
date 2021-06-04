@@ -54,8 +54,8 @@ class Object(object):
     `abc` starting at the first column would have `start_column` 1 and
     `end_column` 3.
     """
-    properties = ["module", "_start_line", "end_line", "_start_column",
-                  "end_column"]
+    properties = ["module", "_start_line", "_end_line", "_start_column",
+                  "_end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, Object):
@@ -82,6 +82,22 @@ class Object(object):
     @start_column.setter
     def start_column(self, value):
         self._start_column = value
+
+    @property
+    def end_line(self):
+        return getattr(self, "_end_line", 1)
+
+    @end_line.setter
+    def end_line(self, value):
+        self._end_line = value
+
+    @property
+    def end_column(self):
+        return getattr(self, "_end_column", 1)
+
+    @end_column.setter
+    def end_column(self, value):
+        self._end_column = value
 
     def __repr__(self):
         return (f"hy.models.{self.__class__.__name__}"

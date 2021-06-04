@@ -169,6 +169,7 @@ def test_bin_hy_error_parts_length():
 
     (setv test-expr (hy-parse "(+ 1\n\n'a 2 3\n\n 1)"))
     (setv test-expr.start-line {})
+    (setv test-expr.end-line {})
     (setv test-expr.start-column {})
     (setv test-expr.end-column {})
 
@@ -180,7 +181,7 @@ def test_bin_hy_error_parts_length():
     """
 
     # Up-arrows right next to each other.
-    _, err = run_cmd("hy", prg_str.format(3, 1, 2))
+    _, err = run_cmd("hy", prg_str.format(3, 3, 1, 2))
 
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
@@ -198,7 +199,7 @@ def test_bin_hy_error_parts_length():
         assert obs.startswith(exp)
 
     # Make sure only one up-arrow is printed
-    _, err = run_cmd("hy", prg_str.format(3, 1, 1))
+    _, err = run_cmd("hy", prg_str.format(3, 3, 1, 1))
 
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
@@ -207,7 +208,7 @@ def test_bin_hy_error_parts_length():
 
     # Make sure lines are printed in between arrows separated by more than one
     # character.
-    _, err = run_cmd("hy", prg_str.format(3, 1, 6))
+    _, err = run_cmd("hy", prg_str.format(3, 3, 1, 6))
     print(err)
 
     msg_idx = err.rindex("HyLanguageError:")

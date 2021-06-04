@@ -150,6 +150,12 @@ class Asty(object):
                 x, 'start_line', getattr(x, 'lineno', None)),
             col_offset=getattr(
                 x, 'start_column', getattr(x, 'col_offset', None)),
+            end_lineno=getattr(
+                x, 'end_line', getattr(x, 'end_lineno', None)
+            ),
+            end_col_offset=getattr(
+                x, 'end_column', getattr(x, 'end_col_offset', None)
+            ),
             **kwargs)))
         return getattr(Asty, name)
 asty = Asty()
@@ -212,6 +218,22 @@ class Result(object):
             return self._expr.col_offset
         if self.stmts:
             return self.stmts[-1].col_offset
+        return None
+
+    @property
+    def end_col_offset(self):
+        if self._expr is not None:
+            return self._expr.end_col_offset
+        if self.stmts:
+            return self.stmts[-1].end_col_offset
+        return None
+
+    @property
+    def end_lineno(self):
+        if self._expr is not None:
+            return self._expr.end_lineno
+        if self.stmts:
+            return self.stmts[-1].end_lineno
         return None
 
     def is_expr(self):
