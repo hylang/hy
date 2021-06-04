@@ -61,8 +61,8 @@ In Hy, :ref:`with` returns the value of its last body form, so you can use it
 like an ordinary function call::
 
    (print (+
-     (len (with [o (open "foo")] (.read o))
-     (len (with [o (open "bar")] (.read o))))))
+     (len (with [o (open "foo")] (.read o)))
+     (len (with [o (open "bar")] (.read o)))))
 
 To be even more concise, you can put a ``with`` form in a :hy:func:`gfor <gfor>`::
 
