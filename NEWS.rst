@@ -51,12 +51,15 @@ Other Breaking Changes
 * return annotation for `defn` has been moved to before the function name
 * Python reserved words can no longer be parameter names or
   function call keywords
+* hy models are no longer equal to their associated Python values. `(= 1 '1)  ; => False`
 
 New Features
 ------------------------------
 * `hy-repr` is now the default REPL output function.
 * Running the module a la `python -m hy` is now equivalent to running
   the `hy` command.
+* `hy.as-model` has been added to create canonical model trees from
+  unquote spliced expressions
 
 Bug Fixes
 ------------------------------
