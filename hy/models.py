@@ -100,13 +100,36 @@ class Object(object):
 _wrappers = {}
 
 
-def wrap_value(x):
-    """Wrap `x` into the corresponding Hy type.
+def as_model(x):
+    """Recurisvely promote an object ``x`` into its canonical model form.
 
-    This allows replace_hy_obj to convert a non Hy object to a Hy object.
+    When creating macros its possible to return non-Hy model objects or
+    even create an expression with non-Hy model elements::
 
-    This also allows a macro to return an unquoted expression transparently.
+       => (defmacro hello []
+       ...  "world!")
 
+       => (defmacro print-inc [a]
+       ...  `(print ~(+ a 1)))
+       => (print-inc 1)
+       2  ; in this case the unquote form (+ 1 1) would splice the literal
+          ; integer ``2`` into the print statement, *not* the model representation
+          ; ``(hy.model.Integer 2)``
+
+    This is perfectly fine, because Hy autoboxes these literal values into their
+    respective model forms at compilation time.
+
+    The one case where this distinction between the spliced composit form and
+    the canonical model tree representation matters, is when comparing some
+    spliced model tree with another known tree::
+
+       => (= `(print ~(+ 1 1)) '(print 2))
+       False  ; False because the literal int ``2`` in the spliced form is not
+              ; equal to the ``(hy.model.Integer 2)`` value in the known form.
+
+       => (= (hy.as-model `(print ~(+ 1 1)) '(print 2)))
+       True  ; True because ``as-model`` has walked the expression and promoted
+             ; the literal int ``2`` to its model for ``(hy.model.Integer 2)``
     """
 
     new = _wrappers.get(type(x), lambda y: y)(x)
@@ -118,7 +141,7 @@ def wrap_value(x):
 
 
 def replace_hy_obj(obj, other):
-    return wrap_value(obj).replace(other)
+    return as_model(obj).replace(other)
 
 
 def repr_indent(obj):
@@ -393,7 +416,7 @@ class List(Sequence):
 
 
 def recwrap(f):
-    return lambda l: f(wrap_value(x) for x in l)
+    return lambda l: f(as_model(x) for x in l)
 
 _wrappers[FComponent] = recwrap(FComponent)
 _wrappers[FString] = recwrap(FString)
@@ -438,7 +461,7 @@ class Dict(Sequence, _ColoredModel):
         return list(zip(self.keys(), self.values()))
 
 _wrappers[Dict] = recwrap(Dict)
-_wrappers[dict] = lambda d: Dict(wrap_value(x) for x in sum(d.items(), ()))
+_wrappers[dict] = lambda d: Dict(as_model(x) for x in sum(d.items(), ()))
 
 
 class Expression(Sequence):
@@ -449,7 +472,7 @@ class Expression(Sequence):
 
 _wrappers[Expression] = recwrap(Expression)
 _wrappers[Fraction] = lambda e: Expression(
-    [Symbol("hy._Fraction"), wrap_value(e.numerator), wrap_value(e.denominator)])
+    [Symbol("hy._Fraction"), as_model(e.numerator), as_model(e.denominator)])
 
 
 class Set(Sequence):

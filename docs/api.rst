@@ -1482,6 +1482,7 @@ the following methods
 
 .. hy:autofunction:: hy.gensym
 
+.. hy:autofunction:: hy.as-model
 
 .. _Core:
 

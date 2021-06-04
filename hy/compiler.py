@@ -6,7 +6,7 @@
 from itertools import dropwhile
 from hy.models import (Object, Expression, Keyword, Integer, Complex,
                        String, FComponent, FString, Bytes, Symbol,
-                       Float, List, Set, Dict, Sequence, wrap_value)
+                       Float, List, Set, Dict, Sequence, as_model)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a
@@ -2124,7 +2124,7 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
     filename = getattr(tree, 'filename', filename)
     source = getattr(tree, 'source', source)
 
-    tree = wrap_value(tree)
+    tree = as_model(tree)
     if not isinstance(tree, Object):
         raise TypeError("`tree` must be a hy.models.Object or capable of "
                         "being promoted to one")

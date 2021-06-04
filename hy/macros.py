@@ -9,7 +9,7 @@ import pkgutil
 import traceback
 
 from hy._compat import PY3_8
-from hy.models import replace_hy_obj, Expression, Symbol, wrap_value
+from hy.models import replace_hy_obj, Expression, Symbol, as_model
 from hy.lex import mangle, unmangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
                        HyRequireError)
@@ -334,7 +334,7 @@ def macroexpand(tree, module, compiler=None, once=False):
         if once:
             break
 
-    tree = wrap_value(tree)
+    tree = as_model(tree)
     return tree
 
 

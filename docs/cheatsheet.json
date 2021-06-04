@@ -20,7 +20,8 @@
           "hy.gensym",
           "hy.macroexpand",
           "hy.macroexpand-1",
-          "hy.disassemble"
+          "hy.disassemble",
+          "hy.as-model"
         ]
       }
     ]
