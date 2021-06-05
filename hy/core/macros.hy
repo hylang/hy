@@ -422,7 +422,7 @@
        (if conditional
          None
          (do statement))"
-  `(if-not ~test (do ~@body)))
+  `(if (not ~test) (do ~@body)))
 
 
 (defn _do-n [count-form body]
