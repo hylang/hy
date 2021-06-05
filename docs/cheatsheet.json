@@ -132,6 +132,7 @@
           "sfor",
           "setv",
           "setx",
+          "match",
           "defclass",
           "del",
           "nonlocal",

@@ -64,6 +64,7 @@ New Features
   unquote spliced expressions
 * Hy will raise a `SyntaxError` if attempting to use a special form
   on an unsupported version of Python
+* support for Python 3.10's ``match`` statement
 
 Bug Fixes
 ------------------------------

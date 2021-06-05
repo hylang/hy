@@ -62,7 +62,8 @@ html_context = dict(
 highlight_language = 'clojure'
 
 intersphinx_mapping = dict(
-    py = ('https://docs.python.org/3/', None))
+    py = ('https://docs.python.org/3/', None),
+    py3_10 = ('https://docs.python.org/3.10/', None))
 # ** Generate Cheatsheet
 import json
 from pathlib import Path
