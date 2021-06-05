@@ -315,26 +315,6 @@
         `(get ~base (, ~@args)))))
 
 
-(defmacro if-not [test not-branch [yes-branch None]]
-  "Like `if`, but execute the first branch when the test fails
-
-  .. versionadded:: 0.10.0
-
-  ``if-not`` is similar to ``if*`` but the second expression will be executed
-  when the condition fails while the third and final expression is executed when
-  the test succeeds -- the opposite order of ``if*``. The final expression is
-  again optional and defaults to ``None``.
-
-  Examples:
-    ::
-
-       => (if-not (money-left? account)
-             (print \"let's go and work\")
-             (print \"let's go shopping\"))
-  "
-  `(if (not ~test) ~not-branch ~yes-branch))
-
-
 (defmacro lif [#* args]
   "Like `if`, but anything that is not None is considered true.
 
@@ -372,25 +352,6 @@
           `(if (is-not ~(get args 0) None)
                ~(get args 1)
                (lif ~@(cut args 2 None))))))
-
-
-(defmacro lif-not [test not-branch [yes-branch None]]
-  "Like `if-not`, but anything that is not None is considered true.
-
-  .. versionadded:: 0.11.0
-
-  Examples:
-    ::
-
-       => (lif-not None \"true\" \"false\")
-       \"true\"
-
-    ::
-
-       => (lif-not False \"true\" \"false\")
-       \"false\"
-"
-  `(if (is ~test None) ~not-branch ~yes-branch))
 
 
 (defmacro when [test #* body]
