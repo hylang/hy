@@ -323,7 +323,7 @@
   (defn handle-args-list [self]
     (setv protected #{}
           argslist [])
-    (for [[header section] (.items (lambda-list (get (.tail self) (if (= (self.head) "defn") 1 0))))]
+    (for [[header section] (.items (lambda-list (get (.tail self) (if (= (self.head) (hy.models.Symbol "defn")) 1 0))))]
       (unless (in header [None 'unpack-iterable 'unpack-mapping])
           (.append argslist header))
       (cond [(in header [None '*])
@@ -343,7 +343,9 @@
 
   (defn handle-fn [self]
     (setv [protected argslist] (self.handle-args-list))
-    `(~(self.head) ~@(if (= (self.head) "defn") [(get (.tail self) 0)] []) ~argslist
+    `(~(self.head) ~@(if (= (self.head) (hy.models.Symbol "defn"))
+                        [(get (.tail self) 0)]
+                        []) ~argslist
        ~@(self.traverse (cut (self.tail) 1 None)(| protected self.protected))))
 
   ;; don't expand symbols in quotations
@@ -405,7 +407,7 @@
                   eval-and-compile
                   eval-when-compile]) (self.handle-base)]
       [(= head 'except) (self.handle-except)]
-      [(= head ".") (self.handle-dot)]
+      [(= head '.) (self.handle-dot)]
       [(= head 'defclass) (self.handle-defclass)]
       [(= head 'quasiquote) (self.+quote)]
         ;; must be checked last!

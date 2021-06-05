@@ -22,7 +22,7 @@ def sym(wanted):
     "Parse and skip the given symbol or keyword."
     if wanted.startswith(":"):
         return skip(a(Keyword(wanted[1:])))
-    return skip(some(lambda x: isinstance(x, Symbol) and x == wanted))
+    return skip(some(lambda x: x == Symbol(wanted)))
 
 def whole(parsers):
     """Parse the parsers in the given list one after another, then
@@ -52,10 +52,10 @@ def dolike(head):
 def notpexpr(*disallowed_heads):
     """Parse any object other than a hy.models.Expression beginning with a
     hy.models.Symbol equal to one of the disallowed_heads."""
+    disallowed_heads = list(map(Symbol, disallowed_heads))
     return some(lambda x: not (
         isinstance(x, Expression) and
         x and
-        isinstance(x[0], Symbol) and
         x[0] in disallowed_heads))
 
 def unpack(kind):
@@ -63,8 +63,7 @@ def unpack(kind):
     return some(lambda x:
         isinstance(x, Expression)
         and len(x) > 0
-        and isinstance(x[0], Symbol)
-        and x[0] == "unpack-" + kind)
+        and x[0] == Symbol("unpack-" + kind))
 
 def times(lo, hi, parser):
     """Parse `parser` several times (`lo` to `hi`) in a row. `hi` can be

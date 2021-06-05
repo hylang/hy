@@ -1131,7 +1131,7 @@
   (assert (= 1 (hy.eval (quote 1))))
   (assert (= "foobar" (hy.eval (quote "foobar"))))
   (setv x (quote 42))
-  (assert (= x (hy.eval x)))
+  (assert (= 42 (hy.eval x)))
   (assert (= 27 (hy.eval (+ (quote (*)) (* [(quote 3)] 3)))))
   (assert (= None (hy.eval (quote (print "")))))
 
@@ -1155,7 +1155,7 @@
 
 (defn test-eval-globals []
   "NATIVE: test eval with explicit global dict"
-  (assert (= 'bar (hy.eval (quote foo) {'foo 'bar})))
+  (assert (= 'bar (hy.eval (quote foo) {"foo" 'bar})))
   (assert (= 1 (do (setv d {}) (hy.eval '(setv x 1) d) (hy.eval (quote x) d))))
   (setv d1 {}  d2 {})
   (hy.eval '(setv x 1) d1)
@@ -1569,7 +1569,7 @@ cee\"} dee" "ey bee\ncee dee"))
   (defmacro m-with-named-import []
     (import [math [pow]])
     (pow 2 3))
-  (assert (= (hy.macroexpand '(m-with-named-import)) (** 2 3))))
+  (assert (= (hy.macroexpand '(m-with-named-import)) (hy.models.Float (** 2 3)))))
 
 (defn test-macroexpand-1 []
   "Test macroexpand-1 on ->"

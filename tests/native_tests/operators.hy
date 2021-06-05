@@ -16,7 +16,7 @@
     (.append defns `(defn ~(hy.models.Symbol (+ "test_operator_" o "_real")) []
       (setv f-name ~(hy.models.String o))
       ~@(prewalk :form body :f (fn [x]
-        (if (and (symbol? x) (= x "f")) o x)))))
+          (if (and (symbol? x) (= x (hy.models.Symbol "f"))) o x)))))
     (.append defns `(defn ~(hy.models.Symbol (+ "test_operator_" o "_shadow")) []
       (setv f-name ~(hy.models.String o))
       (setv f ~o)

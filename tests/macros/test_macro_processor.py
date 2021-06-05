@@ -24,7 +24,7 @@ def test_preprocessor_simple():
     obj = macroexpand(tokenize('(test "one" "two")')[0],
                       __name__,
                       HyASTCompiler(__name__))
-    assert obj == List(["one", "two"])
+    assert obj == List([String("one"), String("two")])
     assert type(obj) == List
 
 

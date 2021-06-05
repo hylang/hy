@@ -167,8 +167,8 @@
   ; Mangling should only happen during compilation.
   (assert (!= 'foo? 'is_foo))
   (setv sym 'foo?)
-  (assert (= sym "foo?"))
-  (assert (!= sym "is_foo"))
+  (assert (= sym (hy.models.Symbol "foo?")))
+  (assert (!= sym (hy.models.Symbol "is_foo")))
   (setv out (hy.eval `(do
                      (setv ~sym 10)
                      [foo? is_foo])))

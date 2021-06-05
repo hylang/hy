@@ -66,7 +66,7 @@
   (assert (= (get q 1) (quote foo)))
   (setv qq (quasiquote (a b c (unquote (+ 1 2)))))
   (assert (= (len qq) 4))
-  (assert (= qq (quote (a b c 3)))))
+  (assert (= (hy.as-model qq) (quote (a b c 3)))))
 
 
 (defn test-unquote-splice []
@@ -79,7 +79,7 @@
 
 (defn test-nested-quasiquote []
   "NATIVE: test nested quasiquotes"
-  (setv qq `(1 `~(+ 1 ~(+ 2 3) ~@None) 4))
+  (setv qq (hy.as-model `(1 `~(+ 1 ~(+ 2 3) ~@None) 4)))
   (setv q (quote (1 `~(+ 1 5) 4)))
   (assert (= (len q) 3))
   (assert (= (get qq 1) (quote `~(+ 1 5))))
