@@ -30,7 +30,8 @@ _jit_imports = dict(
     gensym="hy.core.language",
     macroexpand="hy.core.language",
     macroexpand_1="hy.core.language",
-    disassemble="hy.core.language")
+    disassemble="hy.core.language",
+    as_model="hy.models")
 
 def __getattr__(k):
     if k not in _jit_imports:

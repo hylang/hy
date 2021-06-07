@@ -48,8 +48,8 @@
 ;; test that expressions within f-strings are also walked
 ;; https://github.com/hylang/hy/issues/1843
 (defn test-walking-update []
-  (assert (= (prewalk inc-ints walk-form) walk-form-inc))
-  (assert (= (postwalk inc-ints walk-form) walk-form-inc)))
+  (assert (= (hy.as-model (prewalk inc-ints walk-form)) walk-form-inc))
+  (assert (= (hy.as-model (postwalk inc-ints walk-form)) walk-form-inc)))
 
 (defmacro foo-walk []
   42)
@@ -57,7 +57,7 @@
 (defn test-macroexpand-all []
   ;; make sure a macro from the current module works
   (assert (= (macroexpand-all '(foo-walk))
-             42))
+             '42))
   (assert (= (macroexpand-all '(-> 1 a))
              '(a 1)))
   ;; macros within f-strings should also be expanded
@@ -171,13 +171,13 @@
     (assert (= a "x"))
     (assert (= 'a a-symbol))
     (assert (= `a a-symbol))
-    (assert (= `(foo ~a)
+    (assert (= (hy.as-model `(foo ~a))
                '(foo "x")))
-    (assert (= `(foo `(bar a ~a ~~a))
+    (assert (= (hy.as-model `(foo `(bar a ~a ~~a)))
                '(foo `(bar a ~a ~"x"))))
-    (assert (= `(foo ~@[a])
+    (assert (= (hy.as-model `(foo ~@[a]))
                '(foo "x")))
-    (assert (= `(foo `(bar [a] ~@[a] ~@~(hy.models.List [a 'a `a]) ~~@[a]))
+    (assert (= (hy.as-model `(foo `(bar [a] ~@[a] ~@~(hy.models.List [a 'a `a]) ~~@[a])))
                '(foo `(bar [a] ~@[a] ~@["x" a a] ~"x"))))))
 
 (defn test-let-except []

@@ -6,7 +6,7 @@
 from itertools import dropwhile
 from hy.models import (Object, Expression, Keyword, Integer, Complex,
                        String, FComponent, FString, Bytes, Symbol,
-                       Float, List, Set, Dict, Sequence, wrap_value)
+                       Float, List, Set, Dict, Sequence, as_model)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a
@@ -294,8 +294,7 @@ class Result(object):
 def is_unpack(kind, x):
     return (isinstance(x, Expression)
             and len(x) > 0
-            and isinstance(x[0], Symbol)
-            and x[0] == "unpack-" + kind)
+            and x[0] == Symbol("unpack-" + kind))
 
 
 def make_hy_model(outer, x, rest):
@@ -317,7 +316,7 @@ OPTIONAL_ANNOTATION = maybe(pvalue("annotate", FORM))
 
 
 def is_annotate_expression(model):
-    return (isinstance(model, Expression) and model and isinstance(model[0], Symbol)
+    return (isinstance(model, Expression) and model
             and model[0] == Symbol("annotate"))
 
 
@@ -703,7 +702,7 @@ class HyASTCompiler(object):
         orel = Result()
         if orel_expr is not None:
             if isinstance(orel_expr, Expression) and isinstance(orel_expr[0],
-               Symbol) and orel_expr[0] == 'if*':
+               Symbol) and orel_expr[0] == Symbol('if*'):
                 # Nested ifs: don't waste temporaries
                 root = self.temp_if is None
                 nested = True
@@ -917,7 +916,7 @@ class HyASTCompiler(object):
             ctx = self.compile(ctx)
             ret += ctx
             variable = (None
-                if isinstance(variable, Symbol) and variable == Symbol('_')
+                if variable == Symbol('_')
                 else self._storeize(variable, self.compile(variable)))
             items.append(asty.withitem(expr,
                                        context_expr=ctx.force_expr,
@@ -1332,7 +1331,7 @@ class HyASTCompiler(object):
             return asty.Constant(expr, value=None)
 
         result = Result()
-        is_assignment_expr = root == Symbol("setx")
+        is_assignment_expr = root == "setx"
         for decl in decls:
             if is_assignment_expr:
                 ann = None
@@ -1446,7 +1445,7 @@ class HyASTCompiler(object):
     NASYM = some(lambda x: isinstance(x, Symbol) and x not in (Symbol("/"), Symbol("*")))
     argument = OPTIONAL_ANNOTATION + (NASYM | brackets(NASYM, FORM))
     varargs = lambda unpack_type, wanted: OPTIONAL_ANNOTATION + pvalue(unpack_type, wanted)
-    kwonly_delim = some(lambda x: isinstance(x, Symbol) and x == Symbol("*"))
+    kwonly_delim = some(lambda x: x == Symbol("*"))
     lambda_list = brackets(
             maybe(many(argument) + sym("/")),
             many(argument),
@@ -1682,7 +1681,6 @@ class HyASTCompiler(object):
             return Expression([*expr, Symbol("None")]).replace(expr)
         elif not (isinstance(expr, Expression)
             and len(expr) > 1
-            and isinstance(expr[0], Symbol)
             and expr[0] == Symbol("setv")):
             return expr
         else:
@@ -1738,7 +1736,7 @@ class HyASTCompiler(object):
 
     @special(["py", "pys"], [STR])
     def compile_inline_python(self, expr, root, code):
-        exec_mode = root == Symbol("pys")
+        exec_mode = root == "pys"
 
         try:
             o = ast.parse(
@@ -2124,7 +2122,7 @@ def hy_compile(tree, module, root=ast.Module, get_expr=False,
     filename = getattr(tree, 'filename', filename)
     source = getattr(tree, 'source', source)
 
-    tree = wrap_value(tree)
+    tree = as_model(tree)
     if not isinstance(tree, Object):
         raise TypeError("`tree` must be a hy.models.Object or capable of "
                         "being promoted to one")

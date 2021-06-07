@@ -312,12 +312,12 @@ def test_lex_line_counting_multi_inner():
 def test_dicts():
     """ Ensure that we can tokenize a dict. """
     objs = tokenize("{foo bar bar baz}")
-    assert objs == [Dict(["foo", "bar", "bar", "baz"])]
+    assert objs == [Dict([Symbol("foo"), Symbol("bar"), Symbol("bar"), Symbol("baz")])]
 
     objs = tokenize("(bar {foo bar bar baz})")
     assert objs == [Expression([Symbol("bar"),
-                                Dict(["foo", "bar",
-                                      "bar", "baz"])])]
+                                Dict([Symbol("foo"), Symbol("bar"),
+                                      Symbol("bar"), Symbol("baz")])])]
 
     objs = tokenize("{(foo bar) (baz quux)}")
     assert objs == [Dict([
@@ -332,7 +332,7 @@ def test_sets():
     assert objs == [Set([Integer(1), Integer(2)])]
     objs = tokenize("(bar #{foo bar baz})")
     assert objs == [Expression([Symbol("bar"),
-                                Set(["foo", "bar", "baz"])])]
+                                Set([Symbol("foo"), Symbol("bar"), Symbol("baz")])])]
 
     objs = tokenize("#{(foo bar) (baz quux)}")
     assert objs == [Set([
@@ -372,10 +372,10 @@ def test_nospace():
 def test_escapes():
     """ Ensure we can escape things """
     entry = tokenize(r"""(foo "foo\n")""")[0]
-    assert entry[1] == "foo\n"
+    assert entry[1] == String("foo\n")
 
     entry = tokenize(r"""(foo r"foo\s")""")[0]
-    assert entry[1] == r"foo\s"
+    assert entry[1] == String(r"foo\s")
 
 
 def test_unicode_escapes():
@@ -426,21 +426,21 @@ def test_discard():
     assert tokenize("#_ #_1 2") == []
     assert tokenize("#_ #_ #_1 2 3") == []
     # trailing
-    assert tokenize("0") == [0]
-    assert tokenize("0 #_1") == [0]
-    assert tokenize("0 #_1 #_2") == [0]
+    assert tokenize("0") == [Integer(0)]
+    assert tokenize("0 #_1") == [Integer(0)]
+    assert tokenize("0 #_1 #_2") == [Integer(0)]
     # leading
-    assert tokenize("2") == [2]
-    assert tokenize("#_1 2") == [2]
-    assert tokenize("#_0 #_1 2") == [2]
-    assert tokenize("#_ #_0 1 2") == [2]
+    assert tokenize("2") == [Integer(2)]
+    assert tokenize("#_1 2") == [Integer(2)]
+    assert tokenize("#_0 #_1 2") == [Integer(2)]
+    assert tokenize("#_ #_0 1 2") == [Integer(2)]
     # both
-    assert tokenize("#_1 2 #_3") == [2]
-    assert tokenize("#_0 #_1 2 #_ #_3 4") == [2]
+    assert tokenize("#_1 2 #_3") == [Integer(2)]
+    assert tokenize("#_0 #_1 2 #_ #_3 4") == [Integer(2)]
     # inside
-    assert tokenize("0 #_1 2") == [0, 2]
-    assert tokenize("0 #_1 #_2 3") == [0, 3]
-    assert tokenize("0 #_ #_1 2 3") == [0, 3]
+    assert tokenize("0 #_1 2") == [Integer(0), Integer(2)]
+    assert tokenize("0 #_1 #_2 3") == [Integer(0), Integer(3)]
+    assert tokenize("0 #_ #_1 2 3") == [Integer(0), Integer(3)]
     # in List
     assert tokenize("[]") == [List([])]
     assert tokenize("[#_1]") == [List([])]

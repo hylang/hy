@@ -57,7 +57,7 @@ tail-call optimization (TCO) in their Hy code.
 
 (defmacro/g! fnr [signature #* body]
   (setv new-body (prewalk
-    (fn [x] (if (and (symbol? x) (= x "recur")) g!recur-fn x))
+    (fn [x] (if (and (symbol? x) (= x (hy.models.Symbol "recur"))) g!recur-fn x))
     body))
   `(do
     (import [hy.contrib.loop [__trampoline__]])

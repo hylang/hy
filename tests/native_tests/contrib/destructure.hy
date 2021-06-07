@@ -26,15 +26,15 @@
   ;; dict=:
   (assert (= (dict=: (a (b (c)) d)
                      [1 [2 [3 4 5] 6] 7 8])
-             {"a" 1  "b" 2  "c" 3  "d" 7}))
+             {'a 1  'b 2  'c 3  'd 7}))
   ;; dict=: :&
   (setv D (dict=: (a (b (c :& inner)) d :& outer)
                   [1 [2 [3 4 5] 6] 7 8]))
-  (assert (= (lfor k "abcd" (get D k))
+  (assert (= (lfor k "abcd" (get D (hy.models.Symbol k)))
              [1 2 3 7]))
-  (assert (= (list (get D "inner"))
+  (assert (= (list (get D 'inner))
              [4 5]))
-  (assert (= (list (get D "outer"))
+  (assert (= (list (get D 'outer))
              [8]))
   ;; infinite
   (setv+ (a b c) (cycle [1 2]))
@@ -150,7 +150,7 @@
          {"a" "a"  "b" "b"  "c" "c"})
   (assert (= [a b c]
              ["a" "b" "c"]))
-  (assert (= full {'a "a"  'b "b"  'c "c"})))
+  (assert (= full {"a" "a"  "b" "b"  "c" "c"})))
 
 (defn test-both []
   (setv data {"cells" [{"type" "x"  "count" 3}
@@ -192,22 +192,22 @@
                 :as full}
                 data))
   (setv+ expected
-         {'full {'cells [{'type "x"
-                          'count 3}
-                         {'type "y"
-                          'count 6}]
-                 'format ["pretty"
+         {'full {"cells" [{"type" "x"
+                          "count" 3}
+                         {"type" "y"
+                          "count" 6}]
+                 "format" ["pretty"
                           "purple"]
-                 'options "xyzq"}
+                 "options" "xyzq"}
           'foo 42
           'the-rest ["y" "z" "q"]
           'X "x"
           'color "purple"
           'style "pretty"
-          'cells [{'type "x"
-                   'count 3}
-                  {'type "y"
-                   'count 6}]
+          'cells [{"type" "x"
+                   "count" 3}
+                  {"type" "y"
+                   "count" 6}]
           'y-count 6
           'type "x"
           'count 3})

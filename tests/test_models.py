@@ -6,7 +6,7 @@ import copy
 import pytest
 import hy
 from hy.models import (
-    wrap_value, replace_hy_obj, Symbol, Keyword, String, Integer,
+    as_model, replace_hy_obj, Symbol, Keyword, String, Integer,
     List, Dict, Set, Expression, Complex, Float, pretty)
 
 hy.models.COLORED = False
@@ -26,13 +26,13 @@ def test_symbol_or_keyword():
 
 def test_wrap_int():
     """ Test conversion of integers."""
-    wrapped = wrap_value(0)
+    wrapped = as_model(0)
     assert type(wrapped) == Integer
 
 
 def test_wrap_tuple():
     """ Test conversion of tuples."""
-    wrapped = wrap_value((Integer(0),))
+    wrapped = as_model((Integer(0),))
     assert type(wrapped) == List
     assert type(wrapped[0]) == Integer
     assert wrapped == List([Integer(0)])
@@ -40,7 +40,7 @@ def test_wrap_tuple():
 
 def test_wrap_nested_expr():
     """ Test conversion of Expressions with embedded non-HyObjects."""
-    wrapped = wrap_value(Expression([0]))
+    wrapped = as_model(Expression([0]))
     assert type(wrapped) == Expression
     assert type(wrapped[0]) == Integer
     assert wrapped == Expression([Integer(0)])
