@@ -270,16 +270,6 @@
   (assert (= (bar! 2) 1)))
 
 
-(defn test-if-not []
-  (assert (= (if-not True :yes :no)
-             :no))
-  (assert (= (if-not False :yes :no)
-             :yes))
-  (assert (none? (if-not True :yes)))
-  (assert (= (if-not False :yes)
-             :yes)))
-
-
 (defn test-lif []
   "test that lif works as expected"
   ;; None is false
@@ -301,21 +291,6 @@
                   0 2
                   3)
              2)))
-
-(defn test-lif-not []
-  "test that lif-not works as expected"
-  ; None is false
-  (assert (= (lif-not None "false" "true") "false"))
-
-  ; But everything else is True!  Even falsey things.
-  (assert (= (lif-not True "false" "true") "true"))
-  (assert (= (lif-not False "false" "true") "true"))
-  (assert (= (lif-not 0 "false" "true") "true"))
-  (assert (= (lif-not "some-string" "false" "true") "true"))
-  (assert (= (lif-not "" "false" "true") "true"))
-  (assert (= (lif-not (+ 1 2 3) "false" "true") "true"))
-  (assert (= (lif-not None "false" "true") "false"))
-  (assert (= (lif-not 0 "false" "true") "true")))
 
 
 (defn test-defmain []

@@ -121,15 +121,15 @@ The differences that do exist are as follows:
             (and (issubclass typ tuple) (is r tuple.__repr__)))
     (cond
       [(issubclass typ list)
-       (if-not object
-               (return (, "[]" True False))
-               (setv format "[%s]"))]
+       (if object
+          (setv format "[%s]")
+          (return (, "[]" True False)))]
 
       [(= (len object) 1) (setv format "(, %s)")]
 
-      [True (if-not object
-                    (return (, "(,)" True False))
-                    (setv format "(, %s)"))])
+      [True (if object
+                (setv format "(, %s)")
+                (return (, "(,)" True False)))])
     (setv objid (id object))
     (when (and maxlevels (>= level maxlevels))
       (return (, (% format "...") False (in objid context))))
@@ -144,8 +144,8 @@ The differences that do exist are as follows:
     (for [o object]
       (setv (, orepr oreadable? orecur?) (_safe-repr o context maxlevels level sort-dicts))
       (append orepr)
-      (if-not oreadable?
-              (setv readable? False))
+      (if (not oreadable?)
+          (setv readable? False))
       (if orecur?
           (setv recursive? True)))
     (del (get context objid))
