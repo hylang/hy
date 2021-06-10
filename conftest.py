@@ -1,5 +1,8 @@
+import sys
 import os
 import importlib
+from operator import or_
+from functools import reduce
 
 import py
 import pytest
@@ -15,7 +18,15 @@ os.environ.pop("HYSTARTUP", None)
 
 
 def pytest_ignore_collect(path, config):
-    return (("py3_8_only" in path.basename and not PY3_8) or None)
+    versions = [
+        (sys.version_info < (3, 8), "sub_py3_7_only"),
+        (PY3_8, "py3_8_only"),
+    ]
+
+    return reduce(
+        or_,
+        (name in path.basename and not condition for condition, name in versions),
+    )
 
 
 def pyimport_patch_mismatch(self, **kwargs):

@@ -62,6 +62,8 @@ New Features
   the `hy` command.
 * `hy.as-model` has been added to create canonical model trees from
   unquote spliced expressions
+* Hy will raise a `SyntaxError` if attempting to use a special form
+  on an unsupported version of Python
 
 Bug Fixes
 ------------------------------
