@@ -136,55 +136,35 @@
               (lfor [i x] (enumerate (+ (, k1 v1) other-kvs))
                     (if (% i 2) x `(get ~c ~x))))))
 
-
 (defmacro cond [#* branches]
-  "Build a nested if clause with each `branch` a [cond result] bracket pair.
+  #[[Build a nested if clause with each `branch` a cond result pair.
 
-  Examples:
-    ::
+     Examples:
+     ::
 
-       => (cond [condition-1 result-1]
-       ...      [condition-2 result-2])
-       (if condition-1 result-1
-         (if condition-2 result-2))
+        => (cond condition-1 result-1
+        ...      condition-2 result-2)
+        (if condition-1 result-1
+            (if condition-2 result-2))
 
-    If only the condition is given in a branch, then the condition is also used as
-    the result. The expansion of this single argument version is demonstrated
-    below::
+     As shown below, only the first matching result block is executed::
 
-       => (cond [condition-1]
-       ...       [condition-2])
-       (if condition-1 condition-1
-         (if condition-2 condition-2))
+        => (defn check-value [value]
+        ...   (cond (< value 5) (print "value is smaller than 5")
+        ...         (= value 5) (print "value is equal to 5")
+        ...         (> value 5) (print "value is greater than 5")
+        ...         (print "value is something that it should not be")))
 
-    As shown below, only the first matching result block is executed::
-
-       => (defn check-value [value]
-       ...   (cond [(< value 5) (print \"value is smaller than 5\")]
-       ...         [(= value 5) (print \"value is equal to 5\")]
-       ...         [(> value 5) (print \"value is greater than 5\")]
-       ...         [True (print \"value is something that it should not be\")]))
-
-       => (check-value 6)
-       \"value is greater than 5\"
-"
-  (or branches
-    (return))
-
-  (setv (, branch #* branches) branches)
-
-  (if (not (and (is (type branch) hy.models.List)
-                branch))
-      (raise (TypeError "each cond branch needs to be a nonempty list"))
-      `(if ~@(if (= (len branch) 1)
-                (do (setv g (hy.gensym))
-                    [`(do (setv ~g ~(get branch 0)) ~g)
-                     g
-                     `(cond ~@branches)])
-                [(get branch 0)
-                 `(do ~@(cut branch 1 None))
-                 `(cond ~@branches)]))))
-
+        => (check-value 6)
+        "value is greater than 5"
+     ]]
+  (setv n (len branches))
+  (if n
+      (if (= n 1)
+          (get branches 0)
+          `(if ~(get branches 0)
+               ~(get branches 1)
+               (cond ~@(cut branches 2 None))))))
 
 (defmacro -> [head #* args]
   "Thread `head` first through the `rest` of the forms.
@@ -527,10 +507,10 @@
        42
   "
   (defn extract-o!-sym [arg]
-    (cond [(and (symbol? arg) (.startswith arg "o!"))
-           arg]
-          [(and (isinstance args hy.models.List) (.startswith (get arg 0) "o!"))
-           (get arg 0)]))
+    (cond (and (symbol? arg) (.startswith arg "o!")) arg
+
+          (and (isinstance args hy.models.List) (.startswith (get arg 0) "o!"))
+          (get arg 0)))
   (setv os (lfor  x (map extract-o!-sym args)  :if x  x)
         gs (lfor s os (hy.models.Symbol (+ "g!" (cut s 2 None)))))
 
