@@ -133,10 +133,10 @@
 (hy-repr-register [hy.models.Float float] (fn [x]
   (setv fx (float x))
   (cond
-    [(isnan fx)  "NaN"]
-    [(= fx Inf)  "Inf"]
-    [(= fx -Inf) "-Inf"]
-    [True (_base-repr x)])))
+    (isnan fx)  "NaN"
+    (= fx Inf)  "Inf"
+    (= fx -Inf) "-Inf"
+    (_base-repr x))))
 
 (hy-repr-register [hy.models.Complex complex] (fn [x]
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))

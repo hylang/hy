@@ -15,7 +15,6 @@
 
 ;; using (cond) allows -i to take precedence over -c
 
-(cond [args.i
-       (print (str args.i))]
-      [args.c
-       (print (str "got c"))])
+(cond
+  args.i (print (str args.i))
+  args.c (print (str "got c")))

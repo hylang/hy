@@ -33,13 +33,16 @@
        97
   "
   (cond
-   [(isinstance form hy.models.Expression)
-    (outer (hy.models.Expression (map inner form)))]
-   [(or (isinstance form hy.models.Sequence) (list? form))
-    ((type form) (outer (hy.models.Expression (map inner form))))]
-   [(coll? form)
-    (walk inner outer (list form))]
-   [True (outer form)]))
+   (isinstance form hy.models.Expression)
+   (outer (hy.models.Expression (map inner form)))
+
+   (or (isinstance form hy.models.Sequence) (list? form))
+   ((type form) (outer (hy.models.Expression (map inner form))))
+
+   (coll? form)
+   (walk inner outer (list form))
+
+   (outer form)))
 
 (defn postwalk [f form]
   "Performs depth-first, post-order traversal of ``form``. Calls ``f`` on
@@ -180,7 +183,9 @@
 
 (defn by2s [x]
   #[[Returns the given iterable in pairs.
-  (list (by2s (range 6))) => [(, 0 1) (, 2 3) (, 4 5)] #]]
+    (list (by2s (range 6))) => [(, 0 1) (, 2 3) (, 4 5)]
+   ]]
+
   (setv x (iter x))
   (while True
     (try
@@ -212,17 +217,17 @@
       (-= quote-level x)
       `(~head ~@res))
     (if (call? form)
-        (cond [quote-level
-               (cond [(in (get form 0) '[unquote unquote-splice])
-                      (+quote -1)]
-                     [(= (get form 0) 'quasiquote) (+quote)]
-                     [True (traverse form)])]
-              [(= (get form 0) 'quote) form]
-              [(= (get form 0) 'quasiquote) (+quote)]
-              [(= (get form 0) (hy.models.Symbol "require"))
-               (ast-compiler.compile form)
-               (return)]
-              [True (traverse (mexpand form module ast-compiler))])
+        (cond quote-level
+              (cond (in (get form 0) '[unquote unquote-splice]) (+quote -1)
+                    (= (get form 0) 'quasiquote) (+quote)
+                    (traverse form))
+              (= (get form 0) 'quote) form
+              (= (get form 0) 'quasiquote) (+quote)
+              (= (get form 0) (hy.models.Symbol "require"))
+              (do (ast-compiler.compile form)
+                  (return))
+
+              (traverse (mexpand form module ast-compiler)))
         (if (coll? form)
             (traverse form)
             form)))
@@ -244,20 +249,20 @@
         header None)
   (for [arg form]
     (cond
-      [(in arg headers)
-       (do (setv header arg)
+      (in arg headers)
+      (do (setv header arg)
            (assoc sections header [])
            ;; Don't use a header more than once. It's the compiler's problem.
-           (.remove headers header))]
+           (.remove headers header))
 
-      [(and (isinstance arg hy.models.Expression) (in (get arg 0) headers))
-       (do (setv header (get arg 0))
+      (and (isinstance arg hy.models.Expression) (in (get arg 0) headers))
+      (do (setv header (get arg 0))
            (assoc sections header [])
            ;; Don't use a header more than once. It's the compiler's problem.
            (.remove headers header)
-           (.append (get sections header) arg))]
+           (.append (get sections header) arg))
 
-      [True (.append (get sections header) arg)]))
+      (.append (get sections header) arg)))
   sections)
 
 
@@ -326,19 +331,20 @@
     (for [[header section] (.items (lambda-list (get (.tail self) (if (= (self.head) (hy.models.Symbol "defn")) 1 0))))]
       (unless (in header [None 'unpack-iterable 'unpack-mapping])
           (.append argslist header))
-      (cond [(in header [None '*])
-             (for [pair section]
-               (cond [(coll? pair)
-                      (.add protected (get pair 0))
-                      (.append argslist
-                               `[~(get pair 0)
-                                 ~(self.expand-symbols (get pair 1))])]
-                     [True
-                      (.add protected pair)
-                      (.append argslist pair)]))]
-            [(in header ['unpack-iterable 'unpack-mapping])
-             (.update protected (gfor  [_ b #* _] section  b))
-             (.extend argslist section)]))
+      (cond (in header [None '*])
+            (for [pair section]
+               (cond (coll? pair)
+                     (do (.add protected (get pair 0))
+                         (.append argslist
+                                  `[~(get pair 0)
+                                    ~(self.expand-symbols (get pair 1))]))
+
+                     (do (.add protected pair)
+                         (.append argslist pair))))
+
+            (in header ['unpack-iterable 'unpack-mapping])
+            (do (.update protected (gfor  [_ b #* _] section  b))
+                (.extend argslist section))))
     (, protected argslist))
 
   (defn handle-fn [self]
@@ -351,9 +357,9 @@
   ;; don't expand symbols in quotations
   (defn handle-quoted [self]
     (if (call? self.form)
-        (cond [(in (self.head) '[unquote unquote-splice]) (self.+quote -1)]
-              [(= (self.head) 'quasiquote) (self.+quote)]
-              [True (self.handle-coll)])
+        (cond (in (self.head) '[unquote unquote-splice]) (self.+quote -1)
+              (= (self.head) 'quasiquote) (self.+quote)
+              (self.handle-coll))
         (if (coll? self.form)
             (self.handle-coll)
             (self.handle-base))))
@@ -400,31 +406,31 @@
   (defn handle-call [self]
     (setv head (get self.form 0))
     (cond
-      [(in head '[fn defn]) (self.handle-fn)]
-      [(in head '[import
+      (in head '[fn defn]) (self.handle-fn)
+      (in head '[import
                   require
                   quote
                   eval-and-compile
-                  eval-when-compile]) (self.handle-base)]
-      [(= head 'except) (self.handle-except)]
-      [(= head '.) (self.handle-dot)]
-      [(= head 'defclass) (self.handle-defclass)]
-      [(= head 'quasiquote) (self.+quote)]
+                  eval-when-compile]) (self.handle-base)
+      (= head 'except) (self.handle-except)
+      (= head '.) (self.handle-dot)
+      (= head 'defclass) (self.handle-defclass)
+      (= head 'quasiquote) (self.+quote)
         ;; must be checked last!
-      [(in (hy.mangle head) _mangled-special) (self.handle-special-form)]
+      (in (hy.mangle head) _mangled-special) (self.handle-special-form)
         ;; Not a special form. Traverse it like a coll
-      [True (self.handle-coll)]))
+      (self.handle-coll)))
 
   (defn expand [self]
     "the main entry point. Call this to do  the expansion"
     (setv form self.form)
     (cond
-      [self.quote-level (self.handle-quoted)]
-      [(symbol? form) (self.handle-symbol)]
-      [(call? form) (self.handle-call)]
-      [(coll? form) (self.handle-coll)]
+      self.quote-level (self.handle-quoted)
+      (symbol? form) (self.handle-symbol)
+      (call? form) (self.handle-call)
+      (coll? form) (self.handle-coll)
         ;; recursive base case--it's an atom. Put it back.
-      [True (self.handle-base)])))
+      (self.handle-base))))
 
 (defmacro smacrolet [bindings #* body]
   "symbol macro let.
@@ -527,8 +533,8 @@
 
   (defn destructuring-expander [symbol]
     (cond
-      [(not (symbol? symbol)) (raise (TypeError "bind targets must be symbol or destructing assignment"))]
-      [(in '. symbol) (raise (ValueError "binding target may not contain a dot"))])
+      (not (symbol? symbol)) (raise (TypeError "bind targets must be symbol or destructing assignment"))
+      (in '. symbol) (raise (ValueError "binding target may not contain a dot")))
     (setv replaced (hy.gensym symbol))
     (assoc unpacked-syms symbol replaced)
     replaced)
@@ -540,11 +546,11 @@
 
   (for [[k v] (by2s bindings)]
     (cond
-      [(and (symbol? k) (in '. k))
-       (raise (ValueError "binding target may not contain a dot"))]
+      (and (symbol? k) (in '. k))
+      (raise (ValueError "binding target may not contain a dot"))
 
-      [(not (or (symbol? k) (destructuring? k)))
-       (raise (TypeError "bind targets must be symbol or iterable unpacking assignment"))])
+      (not (or (symbol? k) (destructuring? k)))
+      (raise (TypeError "bind targets must be symbol or iterable unpacking assignment")))
 
     (if (destructuring? k)
         (do
@@ -556,19 +562,19 @@
           ;; dict
           (prewalk (fn [x]
                      (cond
-                       [(and (symbol? x) (in '. x))
-                        (raise (ValueError "bind target may not contain a dot"))]
+                       (and (symbol? x) (in '. x))
+                       (raise (ValueError "bind target may not contain a dot"))
 
-                       [(and (isinstance x hy.models.Expression)
-                             (not-in (get x 0) #{', 'unpack-iterable}))
-                        (raise (ValueError "cannot destructure non-iterable unpacking expression"))]
+                       (and (isinstance x hy.models.Expression)
+                            (not-in (get x 0) #{', 'unpack-iterable}))
+                       (raise (ValueError "cannot destructure non-iterable unpacking expression"))
 
-                       [(and (symbol? x) (in x unpacked-syms))
-                        (do (.append keys `(get ~g!let ~(hy.unmangle x)))
-                            (.append values (.get unpacked-syms x x))
-                            (assoc replacements x (get keys -1)))]
+                       (and (symbol? x) (in x unpacked-syms))
+                       (do (.append keys `(get ~g!let ~(hy.unmangle x)))
+                           (.append values (.get unpacked-syms x x))
+                           (assoc replacements x (get keys -1)))
 
-                       [True x]))
+                       x))
                    k))
 
         (do (.append values (symbolexpand (macroexpand-all v &name) expander))

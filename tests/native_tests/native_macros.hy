@@ -155,9 +155,9 @@
       (setv g (hy.gensym))
       `(do
          (setv ~g ~expr)
-         (cond [(pos? ~g) ~pos]
-               [(zero? ~g) ~zero]
-               [(neg? ~g) ~neg])))
+         (cond (pos? ~g) ~pos
+               (zero? ~g) ~zero
+               (neg? ~g) ~neg)))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -181,9 +181,9 @@
       (with-gensyms [a]
         `(do
            (setv ~a ~expr)
-           (cond [(pos? ~a) ~pos]
-                 [(zero? ~a) ~zero]
-                 [(neg? ~a) ~neg]))))
+           (cond (pos? ~a) ~pos
+                 (zero? ~a) ~zero
+                 (neg? ~a) ~neg))))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -204,9 +204,9 @@
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
-           (cond [(pos? ~g!res) ~pos]
-                 [(zero? ~g!res) ~zero]
-                 [(neg? ~g!res) ~neg])))
+           (cond (pos? ~g!res) ~pos
+                 (zero? ~g!res) ~zero
+                 (neg? ~g!res) ~neg)))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -233,9 +233,9 @@
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
-           (cond [(pos? ~g!res) ~pos]
-                 [(zero? ~g!res) ~zero]
-                 [(neg? ~g!res) ~neg])))
+           (cond (pos? ~g!res) ~pos
+                 (zero? ~g!res) ~zero
+                 (neg? ~g!res) ~neg)))
 
     (print (nif (inc -1) 1 0 -1))
     ")

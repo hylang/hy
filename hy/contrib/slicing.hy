@@ -38,17 +38,17 @@ or more manually using the tag macro as::
 
   (defn parse-indexing [sym]
     (cond
-      [(and (isinstance sym hy.models.Expression) (= (get sym 0) :))
-       `(slice ~@(cut sym 1 None))]
+      (and (isinstance sym hy.models.Expression) (= (get sym 0) :))
+      `(slice ~@(cut sym 1 None))
 
-      [(and (symbol? sym) (= sym '...))
-       'Ellipsis]
+      (and (symbol? sym) (= sym '...))
+      'Ellipsis
 
-      [(and (isinstance sym (, hy.models.Keyword hy.models.Symbol))
-            (in ":" (str sym)))
-       (try `(slice ~@(parse-colon sym)) (except [ValueError] sym))]
+      (and (isinstance sym (, hy.models.Keyword hy.models.Symbol))
+           (in ":" (str sym)))
+      (try `(slice ~@(parse-colon sym)) (except [ValueError] sym))
 
-      [True sym])))
+      sym)))
 
 (defmacro ncut [seq key1 #* keys]
   "N-Dimensional ``cut`` macro with shorthand slice notation.

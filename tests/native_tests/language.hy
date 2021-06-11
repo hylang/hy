@@ -350,8 +350,8 @@
 (defn test-cond []
   "NATIVE: test if cond sorta works."
   (cond
-   [(= 1 2) (assert (is True False))]
-   [(is None None) (setv x True) (assert x)])
+   (= 1 2) (assert (is True False))
+   (is None None) (setv x True) (assert x))
   (assert (= (cond) None))
 
   (assert (= (cond
@@ -361,7 +361,7 @@
 
   ;make sure test is only evaluated once
   (setv x 0)
-  (cond [(do (+= x 1) True)])
+  (cond (do (+= x 1) True))
   (assert (= x 1)))
 
 
