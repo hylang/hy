@@ -582,145 +582,234 @@ def compile_if(compiler, expr, _, cond, body, orel_expr):
 # * The `for` family
 # ------------------------------------------------
 
-loopers = many(
-    tag('setv', sym(":setv") + FORM + FORM) |
-    tag('if', sym(":if") + FORM) |
-    tag('do', sym(":do") + FORM) |
-    tag('afor', sym(":async") + FORM + FORM) |
-    tag('for', FORM + FORM))
+def _compile_looper_parts(compiler, parts):
+    return [
+        Tag(
+            p.tag,
+            compiler.compile(p.value)
+            if p.tag in ["if", "do"]
+            else [
+                compiler._storeize(p.value[0], compiler.compile(p.value[0])),
+                compiler.compile(p.value[1]),
+            ],
+        )
+        for p in parts
+    ]
 
-@pattern_macro(["for"], [brackets(loopers),
-    many(notpexpr("else")) + maybe(dolike("else"))])
-@pattern_macro(["lfor", "sfor", "gfor"], [loopers, FORM])
-@pattern_macro(["dfor"], [loopers, brackets(FORM, FORM)])
-def compile_comprehension(compiler, expr, root, parts, final):
-    node_class = {
-        "for":  asty.For,
-        "lfor": asty.ListComp,
-        "dfor": asty.DictComp,
-        "sfor": asty.SetComp,
-        "gfor": asty.GeneratorExp}[root]
-    is_for = root == "for"
 
-    orel = []
-    if is_for:
-        # Get the `else`.
-        body, else_expr = final
-        if else_expr is not None:
-            orel.append(compiler._compile_branch(else_expr))
-            orel[0] += orel[0].expr_as_stmt()
-    else:
-        # Get the final value (and for dictionary
-        # comprehensions, the final key).
-        if node_class is asty.DictComp:
-            key, elt = map(compiler.compile, final)
+def _compile_manual_loop(parts, base_case, orelse=None):
+    def f(parts):
+        # This function is called recursively to construct
+        # the nested loop.
+        if not parts:
+            return base_case
+        (tagname, v), parts = parts[0], parts[1:]
+        if tagname in ("for", "afor"):
+            orel = orelse and orelse.pop().stmts
+            node = asty.AsyncFor if tagname == "afor" else asty.For
+            return v[1] + node(
+                v[1],
+                target=v[0],
+                iter=v[1].force_expr,
+                body=f(parts).stmts,
+                orelse=orel or [],
+            )
+        elif tagname == "setv":
+            return (
+                v[1]
+                + asty.Assign(v[1], targets=[v[0]], value=v[1].force_expr)
+                + f(parts)
+            )
+        elif tagname == "if":
+            return v + asty.If(v, test=v.force_expr, body=f(parts).stmts, orelse=[])
+        elif tagname == "do":
+            return v + v.expr_as_stmt() + f(parts)
         else:
-            key = None
-            elt = compiler.compile(final)
+            raise ValueError("can't happen")
 
-    # Compile the parts.
-    if is_for:
-        parts = parts[0]
-    if not parts:
-        return Result(expr=ast.parse({
-            asty.For: "None",
-            asty.ListComp: "[]",
-            asty.DictComp: "{}",
-            asty.SetComp: "{1}.__class__()",
-            asty.GeneratorExp: "(_ for _ in [])"}[node_class]).body[0].value)
-    parts = [
-        Tag(p.tag, compiler.compile(p.value) if p.tag in ["if", "do"] else [
-            compiler._storeize(p.value[0], compiler.compile(p.value[0])),
-            compiler.compile(p.value[1])])
-        for p in parts]
+    return f(parts)
 
-    # Produce a result.
-    if (is_for or elt.stmts or (key is not None and key.stmts) or
-        any(p.tag == 'do' or (p.value[1].stmts if p.tag in ("for", "afor", "setv") else p.value.stmts)
-            for p in parts)):
-        # The desired comprehension can't be expressed as a
-        # real Python comprehension. We'll write it as a nested
-        # loop in a function instead.
-        def f(parts):
-            # This function is called recursively to construct
-            # the nested loop.
-            if not parts:
-                if is_for:
-                    if body:
-                        bd = compiler._compile_branch(body)
-                        return bd + bd.expr_as_stmt()
-                    return Result(stmts=[asty.Pass(expr)])
-                if node_class is asty.DictComp:
-                    ret = key + elt
-                    val = asty.Tuple(
-                        key, ctx=ast.Load(),
-                        elts=[key.force_expr, elt.force_expr])
-                else:
-                    ret = elt
-                    val = elt.force_expr
-                return ret + asty.Expr(
-                    elt, value=asty.Yield(elt, value=val))
-            (tagname, v), parts = parts[0], parts[1:]
-            if tagname in ("for", "afor"):
-                orelse = orel and orel.pop().stmts
-                node = asty.AsyncFor if tagname == "afor" else asty.For
-                return v[1] + node(
-                    v[1], target=v[0], iter=v[1].force_expr, body=f(parts).stmts,
-                    orelse=orelse)
-            elif tagname == "setv":
-                return v[1] + asty.Assign(
-                    v[1], targets=[v[0]], value=v[1].force_expr) + f(parts)
-            elif tagname == "if":
-                return v + asty.If(
-                    v, test=v.force_expr, body=f(parts).stmts, orelse=[])
-            elif tagname == "do":
-                return v + v.expr_as_stmt() + f(parts)
-            else:
-                raise ValueError("can't happen")
-        if is_for:
-            return f(parts)
-        fname = compiler.get_anon_var()
-        # Define the generator function.
-        ret = Result() + asty.FunctionDef(
-            expr,
-            name=fname,
-            args=ast.arguments(
-                args=[], vararg=None, kwarg=None, posonlyargs=[],
-                kwonlyargs=[], kw_defaults=[], defaults=[]),
-            body=f(parts).stmts,
-            decorator_list=[])
-        # Immediately call the new function. Unless the user asked
-        # for a generator, wrap the call in `[].__class__(...)` or
-        # `{}.__class__(...)` or `{1}.__class__(...)` to get the
-        # right type. We don't want to just use e.g. `list(...)`
-        # because the name `list` might be rebound.
-        return ret + Result(expr=ast.parse(
+
+def _is_real_comprehension(elt, parts, key=None):
+    "can this looper construct be expressed as a real python comprehension"
+    return not (
+        elt.stmts
+        or (key is not None and key.stmts)
+        or any(
+            p.tag == "do"
+            or (p.value[1].stmts if p.tag in ("for", "afor", "setv") else p.value.stmts)
+            for p in parts
+        )
+    )
+
+
+def _create_generator_function_comprehension(compiler, expr, parts, base_case, node):
+    fname = compiler.get_anon_var()
+    # Define the generator function.
+    ret = Result() + asty.FunctionDef(
+        expr,
+        name=fname,
+        args=ast.arguments(
+            args=[],
+            vararg=None,
+            kwarg=None,
+            posonlyargs=[],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[],
+        ),
+        body=_compile_manual_loop(parts, base_case).stmts,
+        decorator_list=[],
+    )
+    # Immediately call the new function. Unless the user asked
+    # for a generator, wrap the call in `[].__class__(...)` or
+    # `{}.__class__(...)` or `{1}.__class__(...)` to get the
+    # right type. We don't want to just use e.g. `list(...)`
+    # because the name `list` might be rebound.
+    return ret + Result(
+        expr=ast.parse(
             "{}({}())".format(
-                {asty.ListComp: "[].__class__",
-                 asty.DictComp: "{}.__class__",
-                 asty.SetComp: "{1}.__class__",
-                 asty.GeneratorExp: ""}[node_class],
-                fname)).body[0].value)
+                {
+                    asty.ListComp: "[].__class__",
+                    asty.SetComp: "{1}.__class__",
+                    asty.DictComp: "{}.__class__",
+                    asty.GeneratorExp: "",
+                }[node],
+                fname,
+            )
+        )
+        .body[0]
+        .value
+    )
 
-    # We can produce a real comprehension.
+
+def _compile_comprehension_generators(parts):
     generators = []
     for tagname, v in parts:
         if tagname in ("for", "afor"):
-            generators.append(ast.comprehension(
-                target=v[0], iter=v[1].expr, ifs=[],
-                is_async=int(tagname == "afor")))
+            generators.append(
+                ast.comprehension(
+                    target=v[0],
+                    iter=v[1].expr,
+                    ifs=[],
+                    is_async=int(tagname == "afor"),
+                )
+            )
         elif tagname == "setv":
-            generators.append(ast.comprehension(
-                target=v[0],
-                iter=asty.Tuple(v[1], elts=[v[1].expr], ctx=ast.Load()),
-                ifs=[], is_async=0))
+            generators.append(
+                ast.comprehension(
+                    target=v[0],
+                    iter=asty.Tuple(v[1], elts=[v[1].expr], ctx=ast.Load()),
+                    ifs=[],
+                    is_async=0,
+                )
+            )
         elif tagname == "if":
             generators[-1].ifs.append(v.expr)
         else:
             raise ValueError("can't happen")
-    if node_class is asty.DictComp:
-        return asty.DictComp(expr, key=key.expr, value=elt.expr, generators=generators)
-    return node_class(expr, elt=elt.expr, generators=generators)
+    return generators
+
+
+_loopers = many(
+    tag("setv", sym(":setv") + FORM + FORM)
+    | tag("if", sym(":if") + FORM)
+    | tag("do", sym(":do") + FORM)
+    | tag("afor", sym(":async") + FORM + FORM)
+    | tag("for", FORM + FORM)
+)
+
+
+@pattern_macro(
+    "for", [brackets(_loopers), many(notpexpr("else")) + maybe(dolike("else"))]
+)
+def compile_for_loop(compiler, expr, root, parts, final):
+    body, else_expr = final
+
+    orel = []
+    if else_expr is not None:
+        orel.append(compiler._compile_branch(else_expr))
+        orel[0] += orel[0].expr_as_stmt()
+
+    parts = parts[0]
+    if not parts:
+        return asty.Constant(expr, value=None)
+
+    parts = _compile_looper_parts(compiler, parts)
+
+    if body:
+        bd = compiler._compile_branch(body)
+        base_case = bd + bd.expr_as_stmt()
+    else:
+        base_case = Result(stmts=[asty.Pass(expr)])
+    return _compile_manual_loop(parts, base_case, orelse=orel)
+
+
+@pattern_macro(["lfor", "sfor", "gfor"], [_loopers, FORM])
+def compile_sequence_comprehension(compiler, expr, root, parts, final):
+    node_class = {
+        "lfor": asty.ListComp,
+        "gfor": asty.GeneratorExp,
+        "sfor": asty.SetComp,
+    }[root]
+
+    elt = compiler.compile(final)
+    if not parts:
+        return Result(
+            expr=ast.parse(
+                {
+                    asty.ListComp: "[]",
+                    asty.SetComp: "{1}.__class__()",
+                    asty.GeneratorExp: "(_ for _ in [])",
+                }[node_class]
+            )
+            .body[0]
+            .value
+        )
+
+    parts = _compile_looper_parts(compiler, parts)
+
+    if _is_real_comprehension(elt, parts):
+        return node_class(
+            expr,
+            elt=elt.expr,
+            generators=_compile_comprehension_generators(parts),
+        )
+    else:
+        ret = elt
+        val = elt.force_expr
+        base_case = ret + asty.Expr(elt, value=asty.Yield(elt, value=val))
+        return _create_generator_function_comprehension(
+            compiler, expr, parts, base_case, node_class
+        )
+
+
+@pattern_macro("dfor", [_loopers, brackets(FORM, FORM)])
+def compile_dict_comprehension(compiler, expr, root, parts, final):
+    # Get the final value (and for dictionary
+    # comprehensions, the final key).
+    key, elt = map(compiler.compile, final)
+
+    # Compile the parts.
+    if not parts:
+        return Result(expr=asty.Dict(expr, keys=[], values=[]))
+    parts = _compile_looper_parts(compiler, parts)
+
+    # Produce a result.
+    if _is_real_comprehension(elt, parts, key):
+        return asty.DictComp(
+            expr,
+            key=key.expr,
+            value=elt.expr,
+            generators=_compile_comprehension_generators(parts),
+        )
+    else:
+        ret = key + elt
+        val = asty.Tuple(key, ctx=ast.Load(), elts=[key.force_expr, elt.force_expr])
+        base_case = ret + asty.Expr(elt, value=asty.Yield(elt, value=val))
+        return _create_generator_function_comprehension(
+            compiler, expr, parts, base_case, asty.DictComp
+        )
 
 # ------------------------------------------------
 # * More looping
