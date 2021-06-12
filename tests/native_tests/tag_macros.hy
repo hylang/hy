@@ -91,7 +91,7 @@
     ((wraps func)
        (fn [#* args #** kwargs]
          (func #* (map inc args)
-               #** (dfor [k v] (.items kwargs) [k (inc v)])))))
+               #** (dfor [[k v] (.items kwargs)] [k (inc v)])))))
 
   #@(increment-arguments
      (defn foo [#* args #** kwargs]

@@ -165,8 +165,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
   "
   (setv gsyms [])
   `(do
-    (setv ~@(gfor [binds expr] (by2s pairs)
-                  sym (destructure binds expr gsyms)
+    (setv ~@(gfor [[binds expr] (by2s pairs)
+                  sym (destructure binds expr gsyms)]
               sym))
     (del ~@gsyms)))
 
@@ -179,9 +179,9 @@ Iterator patterns are specified using round brackets. They are the same as list 
         result (hy.gensym 'dict=:))
   `(do
      (setv ~result {}
-           ~@(gfor [binds expr] (by2s pairs)
+           ~@(gfor [[binds expr] (by2s pairs)
                    [k v] (by2s [#* (destructure binds expr gsyms)])
-                   syms [(if (in k gsyms) k `(get ~result '~k)) v]
+                   syms [(if (in k gsyms) k `(get ~result '~k)) v]]
                syms))
      (del ~@gsyms)
      ~result))
@@ -252,8 +252,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
                    ~(if (isinstance target hy.models.Symbol)
                         (.get default target)))])
   (defn get-as [to-key targets]
-    (lfor t targets
-          sym (expand-lookup t (to-key t))
+    (lfor [t targets
+          sym (expand-lookup t (to-key t))]
       sym))
   (->> (.items binds)
        (starmap (fn [target lookup]
@@ -299,10 +299,10 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (.append result `(list ~(.pop result)))
   (setv [bs magics] (find-magics binds)
         n (len bs)
-        bres (lfor [i t] (enumerate bs)
+        bres (lfor [[i t] (enumerate bs)]
                (destructure t `(.get (dict (enumerate ~dlist)) ~i) gsyms))
         err-msg "Invalid magic option :{} in list destructure"
-        mres (lfor [m t] magics
+        mres (lfor [[m t] magics]
                (ifp found m
                  ':as [t dlist]
                  ':& (destructure t (if (isinstance t hy.models.Dict)
@@ -329,15 +329,15 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (setv [bs magics] (find-magics binds)
         copy-iter (hy.gensym)
         tee (hy.gensym))
-  (if (in ':as (sfor  [x #* _] magics  x))
+  (if (in ':as (sfor  [[x #* _] magics]  x))
     (.extend result [diter `(do
                               (import [itertools [tee :as ~tee]])
                               (setv [~diter ~copy-iter] (~tee ~diter))
                               ~diter)])
     (.append result `(iter ~(.pop result))))
   (reduce +
-          (+ (lfor t bs (destructure t `(next ~diter None) gsyms))
-             (lfor [m t] magics
+          (+ (lfor [t bs] (destructure t `(next ~diter None) gsyms))
+             (lfor [[m t] magics]
                (ifp found m
                  ':& [t diter]
                  ':as [t copy-iter])))
@@ -346,8 +346,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
 (defn _expanded-setv [actual args kwargs]
   (hy.macroexpand
     `(setv+ ~actual (+ (list ~args)
-                          (lfor [k v] (.items ~kwargs)
-                                s [(hy.models.Keyword k) v]
+                          (lfor [[k v] (.items ~kwargs)
+                                s [(hy.models.Keyword k) v]]
                             s)))))
 
 (defmacro/g! defn+ [fn-name args #* doc+body]
@@ -394,7 +394,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   "let macro with full destructuring with `args`"
   (if (% (len args) 2)
       (raise (ValueError "let bindings must be paired")))
-  `(let ~(lfor [bs expr] (by2s args)
-               sym (destructure bs expr)
+  `(let ~(lfor [[bs expr] (by2s args)
+               sym (destructure bs expr)]
            sym)
      ~@body))

@@ -143,8 +143,8 @@
       (defn None [] (print "hello"))
       (defn True [] (print "hello"))
       (for [True [1 2 3]] (print "hello"))
-      (lfor  True [1 2 3]  True)
-      (lfor  :setv True 1  True)
+      (lfor  [True [1 2 3]]  True)
+      (lfor  [:setv True 1]  True)
       (with [True x] (print "hello"))
       (try 1 (except [True AssertionError] 2))
       (defclass True [])]]

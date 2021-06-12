@@ -95,7 +95,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
        => (list (ap-map (* it 2) [1 2 3]))
        [2 4 6]"
-  (rit `(gfor  ~it ~xs  ~(R form))))
+  (rit `(gfor  [~it ~xs]  ~(R form))))
 
 
 (defmacro ap-map-when [predfn rep xs]
@@ -114,7 +114,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
        => (list (ap-map-when (fn [x] (= (% x 2) 0)) (* it 2) [1 2 3 4]))
        [1 4 3 8]"
-  (rit `(gfor  ~it ~xs  (if (~predfn ~it) ~(R rep) ~it))))
+  (rit `(gfor  [~it ~xs]  (if (~predfn ~it) ~(R rep) ~it))))
 
 
 (defmacro ap-filter [form xs]
@@ -125,7 +125,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
        => (list (ap-filter (> (* it 2) 6) [1 2 3 4 5]))
        [4 5]"
-  (rit `(gfor  ~it ~xs  :if ~(R form)  ~it)))
+  (rit `(gfor  [~it ~xs  :if ~(R form)]  ~it)))
 
 
 (defmacro ap-reject [form xs]
@@ -136,7 +136,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
        => (list (ap-reject (> (* it 2) 6) [1 2 3 4 5]))
        [1 2 3]"
-  (rit `(gfor  ~it ~xs  :if (not ~(R form))  ~it)))
+  (rit `(gfor  [~it ~xs  :if (not ~(R form))]  ~it)))
 
 
 (defmacro ap-dotimes [n #* body]
@@ -164,7 +164,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
        => (ap-first (> it 5) (range 10))
        6"
   (rit `(next
-    (gfor  ~it ~xs  :if ~(R form)  ~it)
+    (gfor  [~it ~xs  :if ~(R form)]  ~it)
     None)))
 
 
@@ -253,17 +253,17 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     ``#%`` determines the parameter list by the presence of a ``%*`` or ``%**``
     symbol and by the maximum ``%i`` symbol found *anywhere* in the expression,
     so nesting of ``#%`` forms is not recommended."
-  (setv %symbols (sfor a (flatten [expr])
-                       :if (and (isinstance a hy.models.Symbol)
-                                (.startswith a '%))
+  (setv %symbols (sfor [a (flatten [expr])
+                        :if (and (isinstance a hy.models.Symbol)
+                                 (.startswith a '%))]
                        a))
   `(fn [;; generate all %i symbols up to the maximum found in expr
-        ~@(gfor i (range 1 (-> (lfor a %symbols
-                                     :if (.isdigit (cut a 1 None))
+        ~@(gfor [i (range 1 (-> (lfor [a %symbols
+                                     :if (.isdigit (cut a 1 None))]
                                      (int (cut a 1 None)))
                                (or (, 0))
                                max
-                               inc))
+                               inc))]
                 (hy.models.Symbol (+ "%" (str i))))
         ;; generate the #* parameter only if '%* is present in expr
         ~@(if (in '%* %symbols)
@@ -286,6 +286,6 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     [(isinstance form hy.models.Symbol)
       (.get d form form)]
     [(coll? form)
-      ((type form) (gfor  x form  (recur-sym-replace d x)))]
+      ((type form) (gfor  [x form]  (recur-sym-replace d x)))]
     [True
       form]))

@@ -32,7 +32,7 @@ or more manually using the tag macro as::
 "
 (eval-and-compile
   (defn parse-colon [sym]
-    (lfor index (.split (str sym) ":")
+    (lfor [index (.split (str sym) ":")]
           (if index (int index))))
 
   (defn parse-indexing [sym]

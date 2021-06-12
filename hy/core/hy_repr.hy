@@ -97,12 +97,12 @@
   (+ "(," (if x " " "") (_cat x) ")")))
 (hy-repr-register dict :placeholder "{...}" (fn [x]
   (setv text (.join "  " (gfor
-    [k v] (.items x)
+    [[k v] (.items x)]
     (+ (hy-repr k) " " (hy-repr v)))))
   (+ "{" text "}")))
 (hy-repr-register hy.models.Dict :placeholder "{...}" (fn [x]
   (setv text (.join " " (gfor
-    [i item] (enumerate x)
+    [[i item] (enumerate x)]
     (+ (if (and i (= (% i 2) 0)) " " "") (hy-repr item)))))
   (+ "{" text "}")))
 (hy-repr-register hy.models.Expression (fn [x]
@@ -160,8 +160,8 @@
   hy.models.FString
   (fn [fstring]
     (+ "f\""
-       #* (lfor component fstring
-                :setv s (hy-repr component)
+       #* (lfor [component fstring
+                :setv s (hy-repr component)]
                 (if (isinstance component hy.models.String)
                     (-> s (cut 1 -1) (.replace "{" "{{") (.replace "}" "}}"))
                     s))
@@ -224,7 +224,7 @@
     ; collections.namedtuple.)
     (return (.format "({} {})"
                      (. (type x) __name__)
-                     (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))))
+                     (.join " " (gfor [[k v] (zip x._fields x)] (+ ":" k " " (hy-repr v)))))))
 
   (unless (isinstance x hy.models.Object)
     (return (repr x)))
@@ -232,7 +232,7 @@
   ; hy.models.Object.
   (.__repr__
     (next (gfor
-      t (. (type x) __mro__)
-      :if (not (issubclass t hy.models.Object))
+      [t (. (type x) __mro__)
+      :if (not (issubclass t hy.models.Object))]
       t))
     x))

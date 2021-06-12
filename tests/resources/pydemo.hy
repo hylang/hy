@@ -35,12 +35,12 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv emptyset #{})
 (setv emptydict {})
 
-(setv mylistcomp (lfor x (range 10) :if (% x 2) x))
-(setv mysetcomp (sfor x (range 5) :if (not (% x 2)) x))
-(setv mydictcomp (dfor k "abcde" :if (!= k "c") [k (.upper k)]))
+(setv mylistcomp (lfor [x (range 10) :if (% x 2)] x))
+(setv mysetcomp (sfor [x (range 5) :if (not (% x 2))] x))
+(setv mydictcomp (dfor [k "abcde" :if (!= k "c")] [k (.upper k)]))
 
 (import [itertools [cycle]])
-(setv mygenexpr (gfor x (cycle [1 2 3]) :if (!= x 2) x))
+(setv mygenexpr (gfor [x (cycle [1 2 3]) :if (!= x 2)] x))
 
 (setv attr-ref str.upper)
 (setv subscript (get "hello" 2))
@@ -181,6 +181,6 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (for [:async item (async-loop ["c" "d"])]
     (.append values item))
   (.extend values (lfor
-    :async item (async-loop ["e" "f"])
+    [:async item (async-loop ["e" "f"])]
     item))
   values)

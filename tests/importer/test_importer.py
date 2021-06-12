@@ -125,7 +125,7 @@ def test_eval():
     assert eval_str('(.strip " fooooo   ")') == 'fooooo'
     assert eval_str(
         '(if True "this is if true" "this is if false")') == "this is if true"
-    assert eval_str('(lfor num (range 100) :if (= (% num 2) 1) (pow num 2))') == [
+    assert eval_str('(lfor [num (range 100) :if (= (% num 2) 1)] (pow num 2))') == [
         pow(num, 2) for num in range(100) if num % 2 == 1]
 
 

@@ -20,8 +20,8 @@
 
   (setv a ["apple" None "banana"])
   (setv filtered (lfor
-    i (range (len a))
-    :if (is-not (setx v (get a i)) None)
+    [i (range (len a))
+    :if (is-not (setx v (get a i)) None)]
     v))
   (assert (= filtered ["apple" "banana"]))
   (assert (= v "banana"))

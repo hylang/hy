@@ -394,7 +394,7 @@
                       (.add protected pair)
                       (.append argslist pair)]))]
             [(in header ['unpack-iterable 'unpack-mapping])
-             (.update protected (gfor  [_ b #* _] section  b))
+             (.update protected (gfor  [[_ b #* _] section]  b))
              (.extend argslist section)]))
     (, protected argslist))
 

@@ -318,7 +318,7 @@ result['y in globals'] = 'y' in globals()")
   (assert (= (list-n 3 (.pop l)) [9 8 7])))
 
 (defn test-cfor []
-  (assert (= (cfor tuple x (range 10) :if (% x 2) x) (, 1 3 5 7 9)))
-  (assert (= (cfor all x [1 3 8 5] (< x 10))) True)
-  (assert (= (cfor dict x "ABCD" [x True])
+  (assert (= (cfor tuple [x (range 10) :if (% x 2)] x) (, 1 3 5 7 9)))
+  (assert (= (cfor all [x [1 3 8 5]] (< x 10))) True)
+  (assert (= (cfor dict [x "ABCD"] [x True])
              {"A" True  "B" True  "C" True  "D" True})))
