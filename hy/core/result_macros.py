@@ -745,7 +745,7 @@ def compile_for_loop(compiler, expr, root, parts, final):
     return _compile_manual_loop(parts, base_case, orelse=orel)
 
 
-@pattern_macro(["lfor", "sfor", "gfor"], [_loopers, FORM])
+@pattern_macro(["lfor", "sfor", "gfor"], [brackets(_loopers), FORM])
 def compile_sequence_comprehension(compiler, expr, root, parts, final):
     node_class = {
         "lfor": asty.ListComp,
@@ -754,6 +754,7 @@ def compile_sequence_comprehension(compiler, expr, root, parts, final):
     }[root]
 
     elt = compiler.compile(final)
+    parts = parts[0]
     if not parts:
         return Result(
             expr=ast.parse(
@@ -784,13 +785,14 @@ def compile_sequence_comprehension(compiler, expr, root, parts, final):
         )
 
 
-@pattern_macro("dfor", [_loopers, brackets(FORM, FORM)])
+@pattern_macro("dfor", [brackets(_loopers), brackets(FORM, FORM)])
 def compile_dict_comprehension(compiler, expr, root, parts, final):
     # Get the final value (and for dictionary
     # comprehensions, the final key).
     key, elt = map(compiler.compile, final)
 
     # Compile the parts.
+    parts = parts[0]
     if not parts:
         return Result(expr=asty.Dict(expr, keys=[], values=[]))
     parts = _compile_looper_parts(compiler, parts)
