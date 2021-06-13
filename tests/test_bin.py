@@ -358,8 +358,8 @@ def test_bin_hy_builtins():
 def test_bin_hy_shadowing_core():
     # make sure we don't shadow user symbols with hy's core
     # https://github.com/hylang/hy/issues/791
-    output, _ = run_cmd("hy", "(defn keyword? [x] True)\n(keyword? 4)")
-    assert "True" in output
+    output, _ = run_cmd("hy", "(defn dec [x] (+ 66 x))\n(dec 4)")
+    assert "70" in output
 
 
 def test_bin_hy_main():

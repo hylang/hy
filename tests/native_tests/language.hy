@@ -83,46 +83,49 @@
 (defn test-setv-returns-none []
   "NATIVE: test that setv always returns None"
 
-  (assert (none? (setv)))
-  (assert (none? (setv x 1)))
+  (defn an [x]
+    (assert (is x None)))
+
+  (an (setv))
+  (an (setv x 1))
   (assert (= x 1))
-  (assert (none? (setv x 2)))
+  (an (setv x 2))
   (assert (= x 2))
-  (assert (none? (setv y 2  z 3)))
+  (an (setv y 2  z 3))
   (assert (= y 2))
   (assert (= z 3))
-  (assert (none? (setv [y z] [7 8])))
+  (an (setv [y z] [7 8]))
   (assert (= y 7))
   (assert (= z 8))
-  (assert (none? (setv (, y z) [9 10])))
+  (an (setv (, y z) [9 10]))
   (assert (= y 9))
   (assert (= z 10))
 
   (setv p 11)
   (setv p (setv q 12))
   (assert (= q 12))
-  (assert (none? p))
+  (an p)
 
-  (assert (none? (setv x (defn phooey [] (setv p 1) (+ p 6)))))
-  (assert (none? (setv x (defclass C))))
-  (assert (none? (setv x (for [i (range 3)] i (inc i)))))
-  (assert (none? (setv x (assert True))))
+  (an (setv x (defn phooey [] (setv p 1) (+ p 6))))
+  (an (setv x (defclass C)))
+  (an (setv x (for [i (range 3)] i (inc i))))
+  (an (setv x (assert True)))
 
-  (assert (none? (setv x (with [(open "README.md" "r")] 3))))
+  (an (setv x (with [(open "README.md" "r")] 3)))
   (assert (= x 3))
-  (assert (none? (setv x (try (/ 1 2) (except [ZeroDivisionError] "E1")))))
+  (an (setv x (try (/ 1 2) (except [ZeroDivisionError] "E1"))))
   (assert (= x .5))
-  (assert (none? (setv x (try (/ 1 0) (except [ZeroDivisionError] "E2")))))
+  (an (setv x (try (/ 1 0) (except [ZeroDivisionError] "E2"))))
   (assert (= x "E2"))
 
   ; https://github.com/hylang/hy/issues/1052
-  (assert (none? (setv (get {} "x") 42)))
+  (an (setv (get {} "x") 42))
   (setv l [])
   (defclass Foo [object]
     (defn __setattr__ [self attr val]
       (.append l [attr val])))
   (setv x (Foo))
-  (assert (none? (setv x.eggs "ham")))
+  (an (setv x.eggs "ham"))
   (assert (not (hasattr x "eggs")))
   (assert (= l [["eggs" "ham"]])))
 
@@ -898,7 +901,7 @@
   (defn f [x]
     (return)
     5)
-  (assert (none? (f "q")))
+  (assert (is (f "q") None))
 
   ; `return` in `when`
   (defn f [x]
@@ -912,13 +915,13 @@
   (setv accum [])
   (defn f [x]
     (while True
-      (when (zero? x)
+      (when (= x 0)
         (return))
       (.append accum x)
       (-= x 1))
     (.append accum "this should never be appended")
     1)
-  (assert (none? (f 5)))
+  (assert (is (f 5) None))
   (assert (= accum [5 4 3 2 1]))
 
   ; `return` of a `do`
@@ -1098,7 +1101,7 @@
 (defn test-empty-keyword []
   "NATIVE: test that the empty keyword is recognized"
   (assert (= : :))
-  (assert (keyword? ':))
+  (assert (isinstance ': hy.models.Keyword))
   (assert (!= : ":"))
   (assert (= (. ': name) "")))
 
@@ -1208,7 +1211,7 @@
 (defn test-quote-bracket-string-delim []
   (assert (= (. '#[my delim[hello world]my delim] brackets) "my delim"))
   (assert (= (. '#[[squid]] brackets) ""))
-  (assert (none? (. '"squid" brackets))))
+  (assert (is (. '"squid" brackets) None)))
 
 
 (defn test-format-strings []
@@ -1667,7 +1670,7 @@ cee\"} dee" "ey bee\ncee dee"))
 (defmacro identify-keywords [#* elts]
   `(list
     (map
-     (fn [x] (if (keyword? x) "keyword" "other"))
+     (fn [x] (if (isinstance x hy.models.Keyword) "keyword" "other"))
      ~elts)))
 
 (defn test-keywords-and-macros []
@@ -1701,7 +1704,7 @@ cee\"} dee" "ey bee\ncee dee"))
   ; a single string is the return value, not a docstring
   ; (https://github.com/hylang/hy/issues/1402)
   (defn f3 [] "not a docstring")
-  (assert (none? (. f3 __doc__)))
+  (assert (is (. f3 __doc__) None))
   (assert (= (f3) "not a docstring")))
 
 (defn test-module-docstring []

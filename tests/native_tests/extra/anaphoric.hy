@@ -5,6 +5,9 @@
 (import [hy.errors [HyMacroExpansionError]])
 (require [hy.extra.anaphoric [*]])
 
+(defn even? [x] (= (% x 2) 0))
+(defn odd?  [x] (= (% x 2) 1))
+
 (defn test-ap-if []
   (ap-if True (assert (is it True)))
   (ap-if False True (assert (is it False)))

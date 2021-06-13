@@ -58,7 +58,7 @@
 (defclass SuppressZDE [object]
   (defn __enter__ [self])
   (defn __exit__ [self exc-type exc-value traceback]
-    (and (not (none? exc-type)) (issubclass exc-type ZeroDivisionError))))
+    (and (is-not exc-type None) (issubclass exc-type ZeroDivisionError))))
 
 (defn test-exception-suppressing-with []
   ; https://github.com/hylang/hy/issues/1320
@@ -67,15 +67,15 @@
   (assert (= x 5))
 
   (setv y (with [(SuppressZDE)] (/ 1 0)))
-  (assert (none? y))
+  (assert (is y None))
 
   (setv z (with [(SuppressZDE)] (/ 1 0) 5))
-  (assert (none? z))
+  (assert (is z None))
 
   (defn f [] (with [(SuppressZDE)] (/ 1 0)))
-  (assert (none? (f)))
+  (assert (is (f) None))
 
   (setv w 7  l [])
   (setv w (with [(SuppressZDE)] (.append l w) (/ 1 0) 5))
-  (assert (none? w))
+  (assert (is w None))
   (assert (= l [7])))

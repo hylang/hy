@@ -155,9 +155,9 @@
       (setv g (hy.gensym))
       `(do
          (setv ~g ~expr)
-         (cond [(pos? ~g) ~pos]
-               [(zero? ~g) ~zero]
-               [(neg? ~g) ~neg])))
+         (cond [(> ~g 0) ~pos]
+               [(= ~g 0) ~zero]
+               [(< ~g 0) ~neg])))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -181,9 +181,9 @@
       (with-gensyms [a]
         `(do
            (setv ~a ~expr)
-           (cond [(pos? ~a) ~pos]
-                 [(zero? ~a) ~zero]
-                 [(neg? ~a) ~neg]))))
+           (cond [(> ~a 0) ~pos]
+                 [(= ~a 0) ~zero]
+                 [(< ~a 0) ~neg]))))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -204,9 +204,9 @@
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
-           (cond [(pos? ~g!res) ~pos]
-                 [(zero? ~g!res) ~zero]
-                 [(neg? ~g!res) ~neg])))
+           (cond [(> ~g!res 0) ~pos]
+                 [(= ~g!res 0) ~zero]
+                 [(< ~g!res 0) ~neg])))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -233,9 +233,9 @@
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
-           (cond [(pos? ~g!res) ~pos]
-                 [(zero? ~g!res) ~zero]
-                 [(neg? ~g!res) ~neg])))
+           (cond [(> ~g!res 0) ~pos]
+                 [(= ~g!res 0) ~zero]
+                 [(< ~g!res 0) ~neg])))
 
     (print (nif (inc -1) 1 0 -1))
     ")
@@ -300,7 +300,7 @@
   (setv __name__ "__main__")
 
   (defn main [x]
-    (print (integer? x))
+    (print (isinstance x int))
     x)
 
   (try

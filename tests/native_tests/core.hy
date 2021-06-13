@@ -184,20 +184,23 @@ result['y in globals'] = 'y' in globals()")
 
 (defn test-filter []
   "NATIVE: testing the filter function"
-  (setv res (list (filter pos? [ 1 2 3 -4 5])))
+  (setv res (list (filter (fn [x] (> x 0)) [ 1 2 3 -4 5])))
   (assert-equal res [ 1 2 3 5 ])
   ;; test with iter
-  (setv res (list (filter pos? (iter [ 1 2 3 -4 5 -6]))))
+  (setv res (list (filter (fn [x] (> x 0)) (iter [ 1 2 3 -4 5 -6]))))
   (assert-equal res [ 1 2 3 5])
-  (setv res (list (filter neg? [ -1 -4 5 3 4])))
+  (setv res (list (filter (fn [x] (< x 0)) [ -1 -4 5 3 4])))
   (assert-false (= res [1 2]))
   ;; test with empty list
-  (setv res (list (filter neg? [])))
+  (setv res (list (filter (fn [x] (< x 0)) [])))
   (assert-equal res [])
   ;; test with None in the list
-  (setv res (list (filter even? (filter numeric? [1 2 None 3 4 None 4 6]))))
+  (setv res (list
+    (filter (fn [x] (not (% x 2)))
+      (filter (fn [x] (isinstance x int))
+        [1 2 None 3 4 None 4 6]))))
   (assert-equal res [2 4 4 6])
-  (setv res (list (filter none? [1 2 None 3 4 None 4 6])))
+  (setv res (list (filter (fn [x] (is x None)) [1 2 None 3 4 None 4 6])))
   (assert-equal res [None None]))
 
 (defn test-flatten []
@@ -463,7 +466,7 @@ result['y in globals'] = 'y' in globals()")
   (assert (.startswith (.strip out)
             f"Help on function {(hy.mangle '<-mangle->)} in module "))
   (assert (in "a fancy docstring" out))
-  (assert (empty? err))
+  (assert (not err))
 
   (defmacro "#pillgrums" [x]
     "Look at the quality of that picture!"
@@ -471,7 +474,7 @@ result['y in globals'] = 'y' in globals()")
   (doc "#pillgrums")
   (setv [out err] (.readouterr capsys))
   (assert (in "Look at the quality of that picture!" out))
-  (assert (empty? err))
+  (assert (not err))
 
   ;; make sure doc raises an error instead of
   ;; presenting a default value help screen
@@ -506,7 +509,7 @@ result['y in globals'] = 'y' in globals()")
   (assert (= (list-n 3 (.pop l)) [9 8 7])))
 
 (defn test-cfor []
-  (assert (= (cfor tuple x (range 10) :if (odd? x) x) (, 1 3 5 7 9)))
+  (assert (= (cfor tuple x (range 10) :if (% x 2) x) (, 1 3 5 7 9)))
   (assert (= (cfor all x [1 3 8 5] (< x 10))) True)
   (assert (= (cfor dict x "ABCD" [x True])
              {"A" True  "B" True  "C" True  "D" True})))

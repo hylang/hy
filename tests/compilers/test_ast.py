@@ -658,7 +658,7 @@ def test_module_prelude():
     assert isinstance(hy_ast.body[0], ast.Import)
     assert hy_ast.body[0].module == 'hy'
 
-    hy_ast = can_compile('(setv flag (keyword? hy.models.Symbol))',
+    hy_ast = can_compile('(setv flag (dec hy.models.Symbol))',
                          import_stdlib=True)
     assert len(hy_ast.body) == 2
     assert isinstance(hy_ast.body[0], ast.Import)
