@@ -50,7 +50,7 @@
       => (print (hy.repr container))
       '(Container HY THERE)'
   "
-  (for [typ (if (list? types) types [types])]
+  (for [typ (if (isinstance types list) types [types])]
     (setv (get _registry typ) (, f placeholder))))
 
 (setv _quoting False)
@@ -83,7 +83,7 @@
 
   (setv oid (id obj))
   (when (in oid _seen)
-    (return (if (none? placeholder) "..." placeholder)))
+    (return (if (is placeholder None) "..." placeholder)))
   (.add _seen oid)
 
   (try
@@ -113,7 +113,7 @@
     'unquote-splice "~@"
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
-  (if (and x (symbol? (get x 0)) (in (get x 0) syntax))
+  (if (and x (in (get x 0) syntax))
     (+ (get syntax (get x 0)) (hy-repr (get x 1)))
     (+ "(" (_cat x) ")"))))
 
@@ -188,7 +188,7 @@
 (defn _repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter (fn [x] x) [
     (if x.microsecond (str x.microsecond))
-    (if (not (none? x.tzinfo)) (+ ":tzinfo " (hy-repr x.tzinfo)))
+    (if (is-not x.tzinfo None) (+ ":tzinfo " (hy-repr x.tzinfo)))
     (if x.fold (+ ":fold " (hy-repr x.fold)))])))))
 (defn _strftime-0 [x fmt]
   ; Remove leading 0s in `strftime`. This is a substitute for the `-`

@@ -66,7 +66,9 @@
        => (coll? \"abc\")
        False
   "
-  (and (iterable? coll) (not (string? coll))))
+  (and
+    (isinstance coll cabc.Iterable)
+    (not (isinstance coll str))))
 
 (defn constantly [value]
   "Create a new function that always returns `value` regardless of its input.
@@ -121,7 +123,7 @@
   "Decrement `n` by 1.
 
   Returns one less than *x*. Equivalent to ``(- x 1)``. Raises ``TypeError``
-  if ``(not (numeric? x))``.
+  if *x* is not numeric.
 
   Examples:
     ::
@@ -450,7 +452,7 @@
   "Increment `n` by 1.
 
   Returns one more than *x*. Equivalent to ``(+ x 1)``. Raises ``TypeError``
-  if ``(not (numeric? x))``.
+  if *x* is not numeric.
 
   Examples:
     ::
@@ -755,17 +757,17 @@
   Examples:
     ::
 
-       => (some even? [2 4 6])
+       => (some (fn [x] (= (% x 2) 0)) [2 4 6])
        True
 
     ::
 
-       => (none? (some even? [1 3 5]))
+       => (is (some (fn [x] (= (% x 2) 0)) [1 3 5]) None)
        True
 
     ::
 
-       => (none? (some even? []))
+       => (is (some (fn [x] (= (% x 2) 0)) []) None)
        True
   "
   (next (filter None (map pred coll)) None))
@@ -854,10 +856,12 @@
     (for [item arg]
       (if value-of-keyword?
           (.append (get keyword-arguments -1) item)
-          (if (keyword? item)
+          (if (isinstance item Keyword)
               (.append keyword-arguments [item.name])
               (.append positional-arguments item)))
-      (setv value-of-keyword? (and (not value-of-keyword?) (keyword? item))))
+      (setv value-of-keyword? (and
+        (not value-of-keyword?)
+        (isinstance item Keyword))))
     (parser.add-argument #* positional-arguments #** (dict keyword-arguments)))
   (.parse-args parser args))
 
