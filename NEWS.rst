@@ -54,6 +54,7 @@ Other Breaking Changes
 * Python reserved words can no longer be parameter names or
   function call keywords
 * hy models are no longer equal to their associated Python values. `(= 1 '1)  ; => False`
+* `defclass` no longer automagically adds `None` to end of `__init__` forms
 
 New Features
 ------------------------------
