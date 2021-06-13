@@ -26,9 +26,13 @@ Removals
     (formerly `take-while`), `tee`, `zip-longest`
   * From `functools`: `reduce`
   * From `fractions`: `Fraction` (formerly `fraction`)
+
+* The following core predicate functions have been removed. Use
+  `isinstance` etc. instead.
+
+  * `empty?`, `even?`, `every?`, `float?`, `integer-char?`, `integer?`, `iterable?`, `iterator?`, `keyword?`, `list?`, `neg?`, `none?`, `numeric?`, `odd?`, `pos?`, `some`, `string?`, `symbol?`, `tuple?`, `zero?`
 * Several other core functions and macros have been removed:
 
-  * `instance?`: Use `isinstance` instead.
   * `keyword`: Use `(hy.models.Keyword (hy.unmangle …))` instead.
   * `repeatedly`: Use `toolz.iterate` instead.
   * `if-not`: Use `(if (not …) …)` instead.
