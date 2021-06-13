@@ -98,27 +98,6 @@
   (fn [#* args #** kwargs]
     value))
 
-(defn keyword? [k]
-  "Check whether `k` is a keyword.
-
-  .. versionadded:: 0.10.1
-
-  Check whether *foo* is a :ref:`keyword<hy.models.Keyword>`.
-
-  Examples:
-    ::
-
-       => (keyword? :foo)
-       True
-
-    ::
-
-       => (setv foo 1)
-       => (keyword? foo)
-       False
-  "
-  (isinstance k Keyword))
-
 (defn dec [n]
   "Decrement `n` by 1.
 
@@ -234,84 +213,6 @@
   (setv [copy1 copy2] (tee coll))
   (gfor  [x _] (zip copy1 (islice copy2 n None))  x))
 
-(defn empty? [coll]
-  "Check if `coll` is empty.
-
-  Returns ``True`` if *coll* is empty. Equivalent to ``(= 0 (len coll))``.
-
-  Examples:
-    ::
-
-       => (empty? [])
-       True
-
-    ::
-
-       => (empty? "")
-       True
-
-    ::
-
-       => (empty? (, 1 2))
-       False
-  "
-  (= 0 (len coll)))
-
-(defn even? [n]
-  "Check if `n` is an even number.
-
-  Returns ``True`` if *x* is even. Raises ``TypeError`` if
-  ``(not (numeric? x))``.
-
-  Examples:
-    ::
-
-       => (even? 2)
-       True
-
-    ::
-
-       => (even? 13)
-       False
-
-    ::
-
-       => (even? 0)
-       True
-  "
-  (= (% n 2) 0))
-
-(defn every? [pred coll]
-  "Check if `pred` is true applied to every x in `coll`.
-
-  .. versionadded:: 0.10.0
-
-  Returns ``True`` if ``(pred x)`` is logical true for every *x* in *coll*,
-  otherwise ``False``. Return ``True`` if *coll* is empty.
-
-  Examples:
-    ::
-
-       => (every? even? [2 4 6])
-       True
-
-    ::
-
-       => (every? even? [1 3 5])
-       False
-
-    ::
-
-       => (every? even? [2 4 5])
-       False
-
-    ::
-
-       => (every? even? [])
-       True
-  "
-  (all (map pred coll)))
-
 (defn flatten [coll]
   "Return a single flat list expanding all members of `coll`.
 
@@ -341,70 +242,6 @@
           (_flatten b result)))
     (.append result coll))
   result)
-
-(defn float? [x]
-  "Returns ``True`` if *x* is a float.
-
-  Examples:
-    ::
-
-       => (float? 3.2)
-       True
-
-    ::
-
-       => (float? -2)
-       False
-  "
-  (isinstance x float))
-
-(defn list? [x]
-  "Check if x is a `list`
-
-  Examples:
-    ::
-
-       => (list? '(inc 41))
-       True
-
-    ::
-
-       => (list? '42)
-       False
-  "
-  (isinstance x list))
-
-(defn tuple? [x]
-  "Check if x is a `tuple`
-
-  Examples:
-    ::
-
-       => (tuple? (, 42 44))
-       True
-
-    ::
-
-       => (tuple? [42 44])
-       False
-  "
-  (isinstance x tuple))
-
-(defn symbol? [s]
-  "Check if `s` is a symbol.
-
-  Examples:
-    ::
-
-       => (symbol? 'foo)
-       True
-
-    ::
-
-       => (symbol? '[a b c])
-       False
-  "
-  (isinstance s Symbol))
 
 (import [threading [Lock]])
 (setv _gensym_counter 0)
@@ -472,103 +309,6 @@
   "
   (+ n 1))
 
-(defn integer? [x]
-  "Check if `x` is an integer.
-
-  Examples:
-    ::
-
-       => (integer? 3)
-       True
-
-    ::
-
-       => (integer? -2.4)
-       False
-  "
-  (isinstance x int))
-
-(defn integer-char? [x]
-  "Check if char `x` parses as an integer."
-  (try
-    (integer? (int x))
-    (except [ValueError] False)
-    (except [TypeError] False)))
-
-(defn iterable? [x]
-  "Check if `x` is an iterable.
-
-  Returns ``True`` if *x* is iterable. Iterable objects return a new iterator
-  when ``(iter x)`` is called. Contrast with :hy:func:`iterator? <hy.core.language.iterator?>`.
-
-  Examples:
-    ::
-
-       => ;; works for strings
-       => (iterable? (str \"abcde\"))
-       True
-
-    ::
-
-       => ;; works for lists
-       => (iterable? [1 2 3 4 5])
-       True
-
-    ::
-
-       => ;; works for tuples
-       => (iterable? (, 1 2 3))
-       True
-
-    ::
-
-       => ;; works for dicts
-       => (iterable? {:a 1 :b 2 :c 3})
-       True
-
-    ::
-
-       => ;; works for iterators/generators
-       => (import [itertools [repeat]])
-       => (iterable? (repeat 3))
-       True
-  "
-  (isinstance x cabc.Iterable))
-
-(defn iterator? [x]
-  "Check if `x` is an iterator.
-
-  Returns ``True`` if *x* is an iterator. Iterators are objects that return
-  themselves as an iterator when ``(iter x)`` is called. Contrast with
-  :hy:func:`iterable? <hy.core.language.iterable?>`.
-
-  Examples:
-    ::
-
-       => ;; doesn't work for a list
-       => (iterator? [1 2 3 4 5])
-       False
-
-    ::
-
-       => ;; but we can get an iter from the list
-       => (iterator? (iter [1 2 3 4 5]))
-       True
-
-    ::
-
-       => ;; doesn't work for dict
-       => (iterator? {:a 1 :b 2 :c 3})
-       False
-
-    ::
-
-       => ;; create an iterator from the dict
-       => (iterator? (iter {:a 1 :b 2 :c 3}))
-       True
-  "
-  (isinstance x cabc.Iterator))
-
 (defn macroexpand [form]
   "Return the full macro expansion of `form`.
 
@@ -604,128 +344,6 @@
   (setv module (calling-module))
   (hy.macros.macroexpand-1 form module (HyASTCompiler module)))
 
-(defn neg? [n]
-  "Check if `n` is < 0.
-
-  Returns ``True`` if *x* is less than zero. Raises ``TypeError`` if
-  ``(not (numeric? x))``.
-
-  Examples:
-    ::
-
-       => (neg? -2)
-       True
-
-    ::
-
-       => (neg? 3)
-       False
-
-    ::
-
-       => (neg? 0)
-       False
-  "
-  (< n 0))
-
-(defn none? [x]
-  "Check if `x` is None
-
-  Examples:
-    ::
-
-       => (none? None)
-       True
-
-    ::
-
-       => (none? 0)
-       False
-
-    ::
-
-       => (setv x None)
-       => (none? x)
-       True
-
-    ::
-
-       => ;; list.append always returns None
-       => (none? (.append [1 2 3] 4))
-       True
-  "
-  (is x None))
-
-(defn numeric? [x]
-  "Check if `x` is an instance of numbers.Number.
-
-  Examples:
-    ::
-
-       => (numeric? -2)
-       True
-
-    ::
-
-       => (numeric? 3.2)
-       True
-
-    ::
-
-       => (numeric? \"foo\")
-       False
-  "
-  (import numbers)
-  (isinstance x numbers.Number))
-
-(defn odd? [^int n]
-  "Check if `n` is an odd number.
-
-  Returns ``True`` if *x* is odd. Raises ``TypeError`` if
-  ``(not (numeric? x))``.
-
-  Examples:
-    ::
-
-       => (odd? 13)
-       True
-
-    ::
-
-       => (odd? 2)
-       False
-
-    ::
-
-       => (odd? 0)
-       False
-  "
-  (= (% n 2) 1))
-
-(defn pos? [n]
-  "Check if `n` is > 0.
-
-  Returns ``True`` if *x* is greater than zero. Raises ``TypeError``
-  if ``(not (numeric? x))``.
-
-  Examples:
-    ::
-
-       => (pos? 3)
-       True
-
-    ::
-
-       => (pos? -2)
-       False
-
-    ::
-
-       => (pos? 0)
-       False
-  "
-  (> n 0))
-
 (defn rest [coll]
   "Get all the elements of `coll`, except the first.
 
@@ -745,69 +363,6 @@
   "
   (import [itertools [islice]])
   (islice coll 1 None))
-
-(defn some [pred coll]
-  "Return the first logical true value of applying `pred` in `coll`, else None.
-
-  .. versionadded:: 0.10.0
-
-  Returns the first logically-true value of ``(pred x)`` for any ``x`` in
-  *coll*, otherwise ``None``. Return ``None`` if *coll* is empty.
-
-  Examples:
-    ::
-
-       => (some (fn [x] (= (% x 2) 0)) [2 4 6])
-       True
-
-    ::
-
-       => (is (some (fn [x] (= (% x 2) 0)) [1 3 5]) None)
-       True
-
-    ::
-
-       => (is (some (fn [x] (= (% x 2) 0)) []) None)
-       True
-  "
-  (next (filter None (map pred coll)) None))
-
-(defn string? [x]
-  "Check if `x` is a string.
-
-  Examples:
-    ::
-
-       => (string? \"foo\")
-       True
-
-    ::
-
-       => (string? -2)
-       False
-  "
-  (isinstance x str))
-
-(defn zero? [n]
-  "Check if `n` equals 0.
-
-  Examples:
-    ::
-
-       => (zero? 3)
-       False
-
-    ::
-
-       => (zero? -2)
-       False
-
-    ::
-
-       => (zero? 0)
-       True
-  "
-  (= n 0))
 
 (defn xor [a b]
   "Perform exclusive or between `a` and `b`.
@@ -869,11 +424,8 @@
   (list (map mangle
     '[butlast coll?
       constantly dec distinct
-      drop-last empty? even? every?
-      flatten float? inc
-      integer? integer-char? iterable?
-      iterator? keyword? list?
-      neg? none?
-      numeric? odd? parse-args pos?
-      rest some string? symbol?
-      tuple? xor zero?])))
+      drop-last
+      flatten inc
+      parse-args
+      rest
+      xor])))
