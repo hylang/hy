@@ -112,33 +112,6 @@
   (assert-equal (list (islice (drop-last 100 (itertools.count 10)) 5))
                 [10 11 12 13 14]))
 
-(defn test-empty? []
-  "NATIVE: testing the empty? function"
-  (assert-true (empty? ""))
-  (assert-false (empty? "None"))
-  (assert-true (empty? (,)))
-  (assert-false (empty? (, None)))
-  (assert-true (empty? []))
-  (assert-false (empty? [None]))
-  (assert-true (empty? {}))
-  (assert-false (empty? {"a" None}))
-  (assert-true (empty? (set)))
-  (assert-false (empty? (set [None]))))
-
-(defn test-even []
-  "NATIVE: testing the even? function"
-  (assert-true (even? -2))
-  (assert-false (even? 1))
-  (assert-true (even? 0))
-  (assert-requires-num even?))
-
-(defn test-every? []
-  "NATIVE: testing the every? function"
-  (assert-true (every? even? [2 4 6]))
-  (assert-false (every? even? [1 3 5]))
-  (assert-false (every? even? [2 4 5]))
-  (assert-true (every? even? [])))
-
 (setv globalvar 1)
 (defn test-exec []
   (setv localvar 1)
@@ -223,31 +196,6 @@ result['y in globals'] = 'y' in globals()")
   (try (flatten 12.34)
        (except [e [TypeError]] (assert (in "not a collection" (str e))))))
 
-(defn test-float? []
-  "NATIVE: testing the float? function"
-  (assert-true (float? 4.2))
-  (assert-false (float? 0))
-  (assert-false (float? -3))
-  (assert-true (float? -3.2))
-  (assert-false (float? "foo")))
-
-(defn test-symbol? []
-  "NATIVE: testing the symbol? function"
-  (assert-false (symbol? "hello"))
-  (assert-false (symbol? [1 2 3]))
-  (assert-false (symbol? '[a b c]))
-  (assert-true (symbol? 'im-symbol)))
-
-(defn test-list? []
-  "NATIVE: testing the list? function"
-  (assert-false (list? "hello"))
-  (assert-true (list? [1 2 3])))
-
-(defn test-tuple? []
-  "NATIVE: testing the tuple? function"
-  (assert-false (tuple? [4 5]))
-  (assert-true (tuple? (, 4 5))))
-
 (defn test-gensym []
   "NATIVE: testing the gensym function"
   (setv s1 (hy.gensym))
@@ -269,105 +217,6 @@ result['y in globals'] = 'y' in globals()")
     (defn __add__ [self other] (.format "__add__ got {}" other)))
   (assert-equal (inc (X)) "__add__ got 1"))
 
-(defn test-integer? []
-  "NATIVE: testing the integer? function"
-  (assert-true (integer? 0))
-  (assert-true (integer? 3))
-  (assert-true (integer? -3))
-  (assert-true (integer? (int "-3")))
-  (assert-true (integer? (int 3)))
-  (assert-false (integer? 4.2))
-  (assert-false (integer? None))
-  (assert-false (integer? "foo")))
-
-(defn test-integer-char? []
-  "NATIVE: testing the integer-char? function"
-  (assert-true (integer-char? "1"))
-  (assert-true (integer-char? "-1"))
-  (assert-true (integer-char? (str (int 300))))
-  (assert-false (integer-char? "foo"))
-  (assert-false (integer-char? None)))
-
-(defn test-iterable []
-  "NATIVE: testing iterable? function"
-  ;; should work for a string
-  (setv s (str "abcde"))
-  (assert-true (iterable? s))
-  ;; should work for unicode
-  (setv u "hello")
-  (assert-true (iterable? u))
-  (assert-true (iterable? (iter u)))
-  ;; should work for a list
-  (setv l [1 2 3 4])
-  (assert-true (iterable? l))
-  (assert-true (iterable? (iter l)))
-  ;; should work for a dict
-  (setv d {:a 1 :b 2 :c 3})
-  (assert-true (iterable? d))
-  ;; should work for a tuple?
-  (setv t (, 1 2 3 4))
-  (assert-true (iterable? t))
-  ;; should work for a generator
-  (assert-true (iterable? (repeat 3)))
-  ;; shouldn't work for an int
-  (assert-false (iterable? 5)))
-
-(defn test-iterator []
-  "NATIVE: testing iterator? function"
-  ;; should not work for a list
-  (setv l [1 2 3 4])
-  (assert-false (iterator? l))
-  ;; should work for an iter over a list
-  (setv i (iter [1 2 3 4]))
-  (assert-true (iterator? i))
-  ;; should not work for a dict
-  (setv d {:a 1 :b 2 :c 3})
-  (assert-false (iterator? d))
-  ;; should not work for a tuple?
-  (setv t (, 1 2 3 4))
-  (assert-false (iterator? t))
-  ;; should work for a generator
-  (assert-true (iterator? (repeat 3)))
-  ;; should not work for an int
-  (assert-false (iterator? 5)))
-
-(defn test-neg []
-  "NATIVE: testing the neg? function"
-  (assert-true (neg? -2))
-  (assert-false (neg? 1))
-  (assert-false (neg? 0))
-  (assert-requires-num neg?))
-
-(defn test-zero []
-  "NATIVE: testing the zero? function"
-  (assert-false (zero? -2))
-  (assert-false (zero? 1))
-  (assert-true (zero? 0)))
-
-(defn test-none []
-  "NATIVE: testing for `is None`"
-  (assert-true (none? None))
-  (setv f None)
-  (assert-true (none? f))
-  (assert-false (none? 0))
-  (assert-false (none? "")))
-
-(defn test-numeric? []
-  "NATIVE: testing the numeric? function"
-  (assert-true (numeric? 1))
-  (assert-true (numeric? 3.4))
-  (assert-true (numeric? 0.0))
-  (assert-true (numeric? -1.45))
-  (assert-false (numeric? "Foo"))
-  (assert-false (numeric? None)))
-
-(defn test-odd []
-  "NATIVE: testing the odd? function"
-  (assert-true (odd? -3))
-  (assert-true (odd? 1))
-  (assert-false (odd? 0))
-  (assert-requires-num odd?))
-
 (defn test-parse-args []
   "NATIVE: testing the parse-args function"
   ; https://github.com/hylang/hy/issues/1875
@@ -378,35 +227,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal parsed-args.strings ["a" "b"])
   (assert-equal parsed-args.numbers [1 2]))
 
-(defn test-pos []
-  "NATIVE: testing the pos? function"
-  (assert-true (pos? 2))
-  (assert-false (pos? -1))
-  (assert-false (pos? 0))
-  (assert-requires-num pos?))
-
-(defn test-some []
-  "NATIVE: testing the some function"
-  (assert-true (some even? [2 4 6]))
-  (assert-none (some even? [1 3 5]))
-  (assert-true (some even? [1 2 3]))
-  (assert-none (some even? []))
-  ; 0, "" (empty string) and [] (empty list) are all logical false
-  (assert-none (some (fn [x] x) [0 "" []]))
-  ; non-empty string is logical true
-  (assert-equal (some (fn [x] x) [0 "this string is non-empty" []])
-                "this string is non-empty")
-  ; None if collection is empty
-  (assert-none (some even? [])))
-
-(defn test-string? []
-  "NATIVE: testing string?"
-  (assert-true (string? "foo"))
-  (assert-true (string? ""))
-  (assert-false (string? 5.3))
-  (assert-true (string? (str 5.3)))
-  (assert-false (string? None)))
-
 (defn test-doto []
   "NATIVE: testing doto macro"
   (setv collection [])
@@ -416,17 +236,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal res (set [1 2]))
   (setv res (doto [] (.append 1) (.append 2) .reverse))
   (assert-equal res [2 1]))
-
-(defn test-is-keyword []
-  "NATIVE: testing the keyword? function"
-  (assert (keyword? ':bar))
-  (assert (keyword? ':baz))
-  (setv x :bar)
-  (assert (keyword? x))
-  (assert (not (keyword? "foo")))
-  (assert (not (keyword? ":foo")))
-  (assert (not (keyword? 1)))
-  (assert (not (keyword? None))))
 
 (defn test-import-init-hy []
   "NATIVE: testing import of __init__.hy"
