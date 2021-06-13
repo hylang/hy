@@ -111,7 +111,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   [functools [reduce]]
   [hy.contrib.walk [by2s]])
 
-(defmacro! ifp [o!pred o!expr #* clauses]
+(defmacro! condp [o!pred o!expr #* clauses]
   "Takes a binary predicate ``pred``, an expression ``expr``, and a set of
   clauses. Each clause can be of the form ``cond res`` or ``cond :>> res``. For
   each clause, if ``(pred cond expr)`` evaluates to true, returns ``res`` in
@@ -121,7 +121,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   Examples:
     ::
 
-       => (ifp = 4
+       => (condp = 4
        ...   3 :do-something
        ...   5 :do-something-else
        ...   :no-match)
@@ -129,7 +129,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
 
     ::
 
-       => (ifp (fn [x f] (f x)) ':a
+       => (condp (fn [x f] (f x)) ':a
        ...   {:b 1} :>> inc
        ...   {:a 1} :>> dec)
        0
@@ -214,7 +214,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
     (unless (none? gsyms)
       (.append gsyms dcoll))
     (f dcoll result found binds gsyms))
-  (ifp (fn [x y] (isinstance y x)) binds
+  (condp (fn [x y] (isinstance y x)) binds
        hy.models.Symbol [binds expr]
        hy.models.Dict (dispatch dest-dict)
        hy.models.Expression (dispatch dest-iter)
@@ -256,7 +256,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
       sym))
   (->> (.items binds)
        (starmap (fn [target lookup]
-                  (ifp found target
+                  (condp found target
                     ':or []
                     ':as [lookup ddict]
                     ':strs (get-as str lookup)
@@ -302,7 +302,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                (destructure t `(.get (dict (enumerate ~dlist)) ~i) gsyms))
         err-msg "Invalid magic option :{} in list destructure"
         mres (lfor [m t] magics
-               (ifp found m
+               (condp found m
                  ':as [t dlist]
                  ':& (destructure t (if (isinstance t hy.models.Dict)
                                       `(dict (zip
@@ -337,7 +337,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   (reduce +
           (+ (lfor t bs (destructure t `(next ~diter None) gsyms))
              (lfor [m t] magics
-               (ifp found m
+               (condp found m
                  ':& [t diter]
                  ':as [t copy-iter])))
           result))
