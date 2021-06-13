@@ -54,6 +54,7 @@ Other Breaking Changes
 * Python reserved words can no longer be parameter names or
   function call keywords
 * hy models are no longer equal to their associated Python values. `(= 1 '1)  ; => False`
+* brackets have been dropped from `cond` and it no longer accepts single condition branches
 
 New Features
 ------------------------------
