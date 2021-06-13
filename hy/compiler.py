@@ -102,6 +102,15 @@ _decoratables = (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
 _bad_roots = tuple(mangle(x) for x in (
     "unquote", "unquote-splice", "unpack-mapping", "except"))
 
+def unsupported_special_form_fn(min_version):
+    major, minor = min_version
+    def fn(compiler, expr, root, *args):
+        raise compiler._syntax_error(
+            expr,
+            f"{root} requires Python {major}.{minor} or later",
+        )
+
+    return fn
 
 def special(names, pattern):
     """Declare special operators. The decorated method and the given pattern
@@ -110,8 +119,12 @@ def special(names, pattern):
     def dec(fn):
         for name in names if isinstance(names, list) else [names]:
             if isinstance(name, tuple):
-                condition, name = name
-                if not condition:
+                min_version, name = name
+                if sys.version_info < min_version:
+                    _special_form_compilers[mangle(name)] = (
+                        unsupported_special_form_fn(min_version),
+                        many(FORM),
+                    )
                     continue
             _special_form_compilers[mangle(name)] = (fn, pattern)
         return fn
@@ -1325,7 +1338,7 @@ class HyASTCompiler(object):
             expr, target=target, value=ret.force_expr, op=op())
 
     @special("setv", [many(OPTIONAL_ANNOTATION + FORM + FORM)])
-    @special((PY3_8, "setx"), [times(1, 1, SYM + FORM)])
+    @special(((3, 8), "setx"), [times(1, 1, SYM + FORM)])
     def compile_def_expression(self, expr, root, decls):
         if not decls:
             return asty.Constant(expr, value=None)
