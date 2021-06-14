@@ -4,7 +4,7 @@
 
 "Parser combinators for pattern-matching Hy model trees."
 
-from hy.models import Expression, Symbol, Keyword, String, List
+from hy.models import Expression, Symbol, Keyword, String, List, Dict, Integer, Float, Complex, Bytes
 from funcparserlib.parser import (
     some, skip, many, finished, a, Parser, NoParseError, State)
 from functools import reduce
@@ -17,6 +17,8 @@ FORM = some(lambda _: True)
 SYM = some(lambda x: isinstance(x, Symbol))
 KEYWORD = some(lambda x: isinstance(x, Keyword))
 STR = some(lambda x: isinstance(x, String))  # matches literal strings only!
+LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes)))
+
 
 def sym(wanted):
     "Parse and skip the given symbol or keyword."
@@ -40,6 +42,10 @@ def _grouped(group_type, parsers): return (
 def brackets(*parsers):
     "Parse the given parsers inside square brackets."
     return _grouped(List, parsers)
+
+def braces(*parsers):
+    "Parse the given parsers inside curly braces"
+    return _grouped(Dict, parsers)
 
 def pexpr(*parsers):
     "Parse the given parsers inside a parenthesized expression."

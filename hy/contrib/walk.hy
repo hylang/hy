@@ -8,6 +8,7 @@
 "
 
 (import [functools [partial]]
+        [itertools [islice]]
         [importlib [import-module]]
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
@@ -320,6 +321,58 @@
                                             (if (and tail (= (len (get tail 0)) 2))
                                                 #{(get tail 0 0)}
                                                 #{})))))
+
+  (defn handle-match [self]
+    ;; protect name bindings from match patterns
+    (setv [expr #* cases] (self.tail)
+          new-expr (self.expand-symbols expr)
+          new-cases [])
+    (defn traverse-clauses [args]
+      (unless args
+        (return))
+      (setv a (next (islice args 1 None) None)
+            index (cond
+                    [(and (= a :as) (= (get args 3) :if)) 6]
+                    [(in a (, :as :if)) 4]
+                    [True 2])
+            [clause more] [(cut args None index) (cut args index None)]
+            protected #{}
+            [pattern #* body] clause)
+
+      (when (= (get body 0) :as)
+        (protected.add (get body 1)))
+
+      (defn handle-match-symbol [form]
+        (if (in "." form)
+            (self.expand-symbols form)
+            (do
+              (.add protected form)
+              form)))
+
+      (defn handle-match-call [form]
+        (setv head (get form 0))
+        (setv tail (cut form 1 None))
+        (cond
+          [(= head '.) (self.expand-symbols form)]
+          [True `(~head ~@(traverse-pattern tail))]))
+
+      (defn handle-pattern-form [form]
+        (cond
+          [(and (symbol? form) (!= form '_)) (handle-match-symbol form)]
+          [(call? form) (handle-match-call form)]
+          [(coll? form) (traverse-pattern form)]
+          [True form]))
+
+      (defn traverse-pattern [pattern]
+        (walk handle-pattern-form (fn [x] x) pattern))
+
+      (setv new-pattern (handle-pattern-form pattern))
+      (setv new-body (self.expand-symbols body (| protected self.protected)))
+      (.extend new-cases [new-pattern #* new-body])
+      (traverse-clauses more))
+    (traverse-clauses cases)
+    `(~(self.head) ~new-expr ~@new-cases))
+
   (defn handle-args-list [self]
     (setv protected #{}
           argslist [])
@@ -409,6 +462,7 @@
       [(= head 'except) (self.handle-except)]
       [(= head '.) (self.handle-dot)]
       [(= head 'defclass) (self.handle-defclass)]
+      [(= head 'match) (self.handle-match)]
       [(= head 'quasiquote) (self.+quote)]
         ;; must be checked last!
       [(in (hy.mangle head) _mangled-special) (self.handle-special-form)]

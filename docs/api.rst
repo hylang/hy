@@ -816,6 +816,48 @@ Special Forms
        ...  (print x "is greater than 0"))
        3 is greater than 0
 
+.. hy:function:: (match [subject #* cases])
+
+   The ``match`` form creates a :ref:`match statement <py3_10:match>`. It
+   requires Python 3.10 or later. The first argument should be the subject,
+   and any remaining arguments should be pairs of patterns and results. The
+   ``match`` form returns the value of the corresponding result, or
+   ``None`` if no case matched. For example::
+
+       => (match (+ 1 1)
+       ...  1 "one"
+       ...  2 "two"
+       ...  3 "three")
+       "two"
+
+   You can use :hy:func:`do` to build a complex result form. Patterns, as
+   in Python match statements, are interpreted specially and can't be
+   arbitrary forms. Use ``(| …)`` for OR patterns, ``PATTERN :as NAME`` for
+   AS patterns, and syntax like the usual Hy syntax for literal, capture,
+   value, sequence, mapping, and class patterns. Guards are specified
+   with ``:if FORM``. Here's a more complex example::
+
+       => (match (, 100 200)
+       ...  [100 300]               "Case 1"
+       ...  [100 200] :if flag      "Case 2"
+       ...  [900   y]               f"Case 3, y: {y}"
+       ...  [100 (| 100 200) :as y] f"Case 4, y: {y}"
+       ...  _                       "Case 5, I match anything!")
+
+   This will match case 2 if ``flag`` is true and case 4 otherwise.
+
+   ``match`` can also match against class instances by keyword (or
+   positionally if its ``__match_args__`` attribute is defined, see
+   `pep 636 <https://www.python.org/dev/peps/pep-0636/#appendix-a-quick-intro>`_)::
+
+      => (with-decorator
+      ...  dataclass
+      ...  (defclass Point []
+      ...    (^int x)
+      ...    (^int y)))
+      => (match (Point 1 2)
+      ...  (Point 1 x) :if (= (% x 2) 0) x
+      2
 
 .. hy:function:: (defclass [class-name super-classes #* body])
 
