@@ -211,7 +211,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                                        magic.name)))
           (do (.add seen magic)
             True))))
-    (unless (none? gsyms)
+    (unless (is gsyms None)
       (.append gsyms dcoll))
     (f dcoll result found binds gsyms))
   (ifp (fn [x y] (isinstance y x)) binds
@@ -223,7 +223,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
                              (repr binds))))))
 
 (defn iterable->dict [xs]
-  (if (odd? (len xs))
+  (if (% (len xs) 2)
     (raise (SyntaxError
              f"Cannot make dictionary out of odd-length iterable {xs}"))
     (dict (by2s xs))))
@@ -247,7 +247,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
         default (iterable->dict (.get binds ':or '{})))
   (defn expand-lookup [target key]
     [target `(.get ~ddict
-                   ~(if (keyword? key) `(quote ~key) key)
+                   ~(if (isinstance key hy.models.Keyword)
+                        `(quote ~key) key)
                    ~(if (isinstance target hy.models.Symbol)
                         (.get default target)))])
   (defn get-as [to-key targets]
@@ -267,10 +268,10 @@ Iterator patterns are specified using round brackets. They are the same as list 
 (defn find-magics [bs [keys? False] [as? False]]
   (setv x (if bs (get bs 0))
         y (if (> (len bs) 1) (get bs 1)))
-  (if (none? x)
+  (if (is x None)
     [[] []]
-    (if (keyword? x)
-      (if (or (none? y) (keyword? y))
+    (if (isinstance x hy.models.Keyword)
+      (if (or (is y None) (isinstance y hy.models.Keyword))
         (raise (SyntaxError
                  (.format "Unpaired keyword :{} in list destructure"
                           x.name)))
@@ -355,7 +356,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
   Note that `#*` etc have no special meaning and are
   intepretted as any other argument.
   "
-  (setv [doc body] (if (string? (get doc+body 0))
+  (setv [doc body] (if (isinstance (get doc+body 0) str)
                      [(get doc+body 0) (rest doc+body)]
                      [None doc+body]))
   `(defn ~fn-name [#* ~g!args #** ~g!kwargs]
@@ -375,7 +376,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
 
 (defmacro/g! defn/a+ [fn-name args #* doc+body]
   "Async variant of ``defn+``."
-  (setv [doc body] (if (string? (get doc+body 0))
+  (setv [doc body] (if (isinstance (get doc+body 0) str)
                      [(get doc+body 0) (rest doc+body)]
                      [None doc+body]))
   `(defn/a ~fn-name [#* ~g!args #** ~g!kwargs]
@@ -391,7 +392,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
 
 (defmacro let+ [args #* body]
   "let macro with full destructuring with `args`"
-  (if (odd? (len args))
+  (if (% (len args) 2)
       (raise (ValueError "let bindings must be paired")))
   `(let ~(lfor [bs expr] (by2s args)
                sym (destructure bs expr)

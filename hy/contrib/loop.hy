@@ -57,7 +57,7 @@ tail-call optimization (TCO) in their Hy code.
 
 (defmacro/g! fnr [signature #* body]
   (setv new-body (prewalk
-    (fn [x] (if (and (symbol? x) (= x (hy.models.Symbol "recur"))) g!recur-fn x))
+    (fn [x] (if (= x 'recur) g!recur-fn x))
     body))
   `(do
     (import [hy.contrib.loop [__trampoline__]])
@@ -89,7 +89,7 @@ tail-call optimization (TCO) in their Hy code.
        => (require [hy.contrib.loop [loop]])
        => (defn factorial [n]
        ...  (loop [[i n] [acc 1]]
-       ...    (if (zero? i)
+       ...    (if (= i 0)
        ...      acc
        ...      (recur (dec i) (* acc i)))))
        => (factorial 1000)"

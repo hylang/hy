@@ -107,12 +107,12 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
   Examples:
     ::
 
-       => (list (ap-map-when odd? (* it 2) [1 2 3 4]))
+       => (list (ap-map-when (fn [x] (% x 2)) (* it 2) [1 2 3 4]))
        [2 2 6 4]
 
     ::
 
-       => (list (ap-map-when even? (* it 2) [1 2 3 4]))
+       => (list (ap-map-when (fn [x] (= (% x 2) 0)) (* it 2) [1 2 3 4]))
        [1 4 3 8]"
   (rit `(gfor  ~it ~xs  (if (~predfn ~it) ~(R rep) ~it))))
 
@@ -213,7 +213,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
   (defn R [form]
     (recur-sym-replace {'it it  'acc acc} form))
   `(do
-    (setv ~acc ~(if (none? initial-value)
+    (setv ~acc ~(if (is initial-value None)
       `(do
         (setv ~g!xs (iter ~g!xs))
         (next ~g!xs))
@@ -254,7 +254,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
     symbol and by the maximum ``%i`` symbol found *anywhere* in the expression,
     so nesting of ``#%`` forms is not recommended."
   (setv %symbols (sfor a (flatten [expr])
-                       :if (and (symbol? a)
+                       :if (and (isinstance a hy.models.Symbol)
                                 (.startswith a '%))
                        a))
   `(fn [;; generate all %i symbols up to the maximum found in expr
@@ -281,6 +281,7 @@ variable name, as in ``(print \"My favorite Stephen King book is\" 'it)``."
 
 (defn recur-sym-replace [d form]
   "Recursive symbol replacement."
+  (import collections.abc)
   (cond
     [(isinstance form hy.models.Symbol)
       (.get d form form)]
