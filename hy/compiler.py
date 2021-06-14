@@ -1856,8 +1856,7 @@ class HyASTCompiler(object):
             bodyr += self.compile(docstring).expr_as_stmt()
 
         for e in body:
-            e = self.compile(self._rewire_init(
-                macroexpand(e, self.module, self)))
+            e = self.compile(macroexpand(e, self.module, self))
             bodyr += e + e.expr_as_stmt()
 
         return bases + asty.ClassDef(
@@ -1869,42 +1868,6 @@ class HyASTCompiler(object):
             kwargs=None,
             bases=bases_expr,
             body=bodyr.stmts or [asty.Pass(expr)])
-
-    def _rewire_init(self, expr):
-        "append None to definitions of __init__."
-
-        if (
-            isinstance(expr, Expression)
-            and expr[0] == Symbol("defn")
-            and expr[1] == Symbol("__init__")
-        ):
-            return Expression([*expr, Symbol("None")]).replace(expr)
-        elif not (isinstance(expr, Expression)
-            and len(expr) > 1
-            and expr[0] == Symbol("setv")):
-            return expr
-        else:
-            new_args = []
-            decls = list(expr[1:])
-            while decls:
-                if is_annotate_expression(decls[0]):
-                    # Handle annotations.
-                    ann = decls.pop(0)
-                else:
-                    ann = None
-
-                if len(decls) < 2:
-                    break
-                k, v = (decls.pop(0), decls.pop(0))
-                if isinstance(k, Symbol) and mangle(k) == "__init__" and isinstance(v, Expression):
-                    v += Expression([Symbol("None")])
-
-                if ann is not None:
-                    new_args.append(ann)
-
-                new_args.extend((k, v))
-            return (Expression([Symbol("setv")] + new_args + decls)
-                .replace(expr))
 
     @special(["eval-and-compile", "eval-when-compile"], [many(FORM)])
     def compile_eval_and_compile(self, expr, root, body):

@@ -114,20 +114,6 @@
   (assert foo 2)
   (assert (.greet a) "hello"))
 
-(defn test-defclass-implicit-none-for-init []
-  "NATIVE: test that defclass adds an implicit None to __init__"
-  (defclass A []
-    (setv __init__ (fn [self] (setv self.x 1) 42)))
-  (defclass B []
-    (defn __init__ [self]
-      (setv self.x 2)
-      42))
-
-  (setv a (A))
-  (setv b (B))
-  (assert (= a.x 1))
-  (assert (= b.x 2)))
-
 (defn test-class-sideeffects []
   "NATIVE: test that defclass runs all expressions"
   (defn set-sentinel []
