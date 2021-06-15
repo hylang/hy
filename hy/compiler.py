@@ -1855,9 +1855,8 @@ class HyASTCompiler(object):
         if docstring is not None:
             bodyr += self.compile(docstring).expr_as_stmt()
 
-        for e in body:
-            e = self.compile(macroexpand(e, self.module, self))
-            bodyr += e + e.expr_as_stmt()
+        e = self._compile_branch(body)
+        bodyr += e + e.expr_as_stmt()
 
         return bases + asty.ClassDef(
             expr,
