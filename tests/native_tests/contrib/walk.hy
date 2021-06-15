@@ -418,3 +418,14 @@
     (assert (= c [1 2]))
     (assert (= head 0))
     (assert (= tail [:bar [1 2]]))))
+
+(defn test-let-optional []
+  (let [a 1
+        b 6
+        d 2]
+       (defn foo [* [a a] b [c d]]
+         (, a b c))
+       (assert (= (foo :b "b")
+                  (, 1 "b" 2)))
+       (assert (= (foo :b 20 :a 10 :c 30)
+                  (, 10 20 30)))))
