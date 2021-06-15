@@ -10,13 +10,19 @@
   ;
   ; `op` can also be a list of operators, in which case two tests are
   ; created for each operator.
-  (import [hy.contrib.walk [prewalk]])
+  (import [collections.abc [Iterable]])
   (setv defns [])
   (for [o (if (isinstance op hy.models.Symbol) [op] op)]
+    (defn replace [x]
+      (if (= x 'f)
+        o
+      (if (and (isinstance x Iterable) (not (isinstance x (, str bytes))))
+        ((type x) (map replace x))
+      (if True
+        x))))
     (.append defns `(defn ~(hy.models.Symbol (+ "test_operator_" o "_real")) []
       (setv f-name ~(hy.models.String o))
-      ~@(prewalk :form body :f (fn [x]
-          (if (= x 'f) o x)))))
+      ~@(replace body)))
     (.append defns `(defn ~(hy.models.Symbol (+ "test_operator_" o "_shadow")) []
       (setv f-name ~(hy.models.String o))
       (setv f ~o)
