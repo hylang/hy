@@ -288,6 +288,10 @@ def macroexpand(tree, module, compiler=None, once=False):
 
         with MacroExceptions(module, tree, compiler):
             obj = m(module.__name__, *tree[1:])
+            from hy.compiler import Result
+            from ast import AST
+            if isinstance(obj, (Result, AST)):
+                return obj
 
             if isinstance(obj, Expression):
                 obj.module = inspect.getmodule(m)

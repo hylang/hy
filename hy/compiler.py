@@ -1911,8 +1911,11 @@ class HyASTCompiler(object):
     def compile_expression(self, expr, *, allow_annotation_expression=False):
         # Perform macro expansions
         expr = macroexpand(expr, self.module, self)
-        if not isinstance(expr, Expression):
-            # Go through compile again if the type changed.
+        if isinstance(expr, (Result, ast.AST)):
+            # Use this as-is.
+            return expr
+        elif not isinstance(expr, Expression):
+            # Go through compile again if we have a different type of model.
             return self.compile(expr)
 
         if not expr:
