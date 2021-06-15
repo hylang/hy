@@ -1723,7 +1723,7 @@ class HyASTCompiler(object):
                 Expression([
                     Symbol("fn"),
                     List([Symbol("&name")] + list(expr[2])),
-                    *(body or [])
+                    *body
                 ])
             ])
         ]).replace(expr))
