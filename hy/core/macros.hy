@@ -125,7 +125,7 @@
 
   .. note:: ``assoc`` modifies the datastructure in place and returns ``None``.
   "
-  (if (odd? (len other-kvs))
+  (if (% (len other-kvs) 2)
       (raise (ValueError "`assoc` takes an odd number of arguments")))
   (setv c (if other-kvs
             (hy.gensym "c")
@@ -309,7 +309,7 @@
        Callable[[int, str], str]
   "
   (if
-    (empty? args) base
+    (not args) base
     (if (= (len args) 1)
         `(get ~base ~@args)
         `(get ~base (, ~@args)))))
@@ -527,7 +527,7 @@
        42
   "
   (defn extract-o!-sym [arg]
-    (cond [(and (symbol? arg) (.startswith arg "o!"))
+    (cond [(and (isinstance arg hy.models.Symbol) (.startswith arg "o!"))
            arg]
           [(and (isinstance args hy.models.List) (.startswith (get arg 0) "o!"))
            (get arg 0)]))
@@ -601,13 +601,13 @@
   `(when (= __name__ "__main__")
      (import sys)
      (setv ~retval ((fn [~@(or args `[#* ~restval])] ~@body) #* sys.argv))
-     (if (integer? ~retval)
+     (if (isinstance ~retval int)
        (sys.exit ~retval))))
 
 
 (defmacro "#@" [expr]
   "with-decorator tag macro"
-  (if (empty? expr)
+  (if (not expr)
       (raise (ValueError "missing function argument")))
   (setv decorators (cut expr -1)
         fndef (get expr -1))
@@ -668,7 +668,7 @@
 
   Examples:
   ::
-     => (cfor tuple x (range 10) :if (odd? x) x)
+     => (cfor tuple x (range 10) :if (% x 2) x)
      (, 1 3 5 7 9)
 
   The equivalent in python would be:

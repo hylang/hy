@@ -232,7 +232,7 @@ The differences that do exist are as follows:
   (defn _format-items [self items stream indent allowance context level]
     (setv write stream.write)
     (+= indent self._indent-per-level)
-    (when (pos? self._indent-per-level)
+    (when self._indent-per-level
       (write (* (dec self._indent-per-level) " ")))
 
     (setv delimnl (+ "\n" (* " " indent))

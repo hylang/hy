@@ -36,7 +36,7 @@
   (cond
    [(isinstance form hy.models.Expression)
     (outer (hy.models.Expression (map inner form)))]
-   [(or (isinstance form hy.models.Sequence) (list? form))
+   [(or (isinstance form (, hy.models.Sequence list)))
     ((type form) (outer (hy.models.Expression (map inner form))))]
    [(coll? form)
     (walk inner outer (list form))]
@@ -207,7 +207,7 @@
       (nonlocal quote-level)
       (setv head (get form 0))
       (+= quote-level x)
-      (when (neg? quote-level)
+      (when (< quote-level 0)
         (raise (TypeError "unquote outside of quasiquote")))
       (setv res (traverse (cut form 1 None)))
       (-= quote-level x)
@@ -276,16 +276,16 @@
           self.quote-level quote-level))
 
   (defn expand-symbols [self form [protected None] [quote-level None]]
-    (if (none? protected)
+    (if (is protected None)
         (setv protected self.protected))
-    (if (none? quote-level)
+    (if (is quote-level None)
         (setv quote-level self.quote-level))
     (symbolexpand form self.expander protected quote-level))
 
   (defn traverse [self form [protected None] [quote-level None]]
-    (if (none? protected)
+    (if (is protected None)
         (setv protected self.protected))
-    (if (none? quote-level)
+    (if (is quote-level None)
         (setv quote-level self.quote-level))
     (walk (partial symbolexpand
                    :expander self.expander
@@ -302,7 +302,7 @@
   (defn handle-dot [self]
     `(. ~(self.expand-symbols (get (self.tail) 0))
         ~@(walk (fn [form]
-                  (if (symbol? form)
+                  (if (isinstance form hy.models.Symbol)
                       form  ; don't expand attrs
                       (self.expand-symbols form)))
                 (fn [x] x)
@@ -358,10 +358,14 @@
 
       (defn handle-pattern-form [form]
         (cond
-          [(and (symbol? form) (!= form '_)) (handle-match-symbol form)]
-          [(call? form) (handle-match-call form)]
-          [(coll? form) (traverse-pattern form)]
-          [True form]))
+          [(and (isinstance form hy.models.Symbol) (!= form '_))
+            (handle-match-symbol form)]
+          [(call? form)
+            (handle-match-call form)]
+          [(coll? form)
+            (traverse-pattern form)]
+          [True
+            form]))
 
       (defn traverse-pattern [pattern]
         (walk handle-pattern-form (fn [x] x) pattern))
@@ -474,7 +478,7 @@
     (setv form self.form)
     (cond
       [self.quote-level (self.handle-quoted)]
-      [(symbol? form) (self.handle-symbol)]
+      [(isinstance form hy.models.Symbol) (self.handle-symbol)]
       [(call? form) (self.handle-call)]
       [(coll? form) (self.handle-coll)]
         ;; recursive base case--it's an atom. Put it back.
@@ -486,10 +490,10 @@
   Replaces symbols in body, but only where it would be a valid let binding.
   The bindings pairs the target symbol and the expansion form for that symbol.
   "
-  (if (odd? (len bindings))
+  (if (% (len bindings) 2)
       (raise (ValueError "bindings must be paired")))
   (for [k (cut bindings None None 2)]
-    (if (not (symbol? k))
+    (if (not (isinstance k hy.models.Symbol))
       (raise (TypeError "bind targets must be symbols")))
     (if (in '. k)
       (raise (ValueError "binding target may not contain a dot"))))
@@ -569,7 +573,7 @@
 
   .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
   "
-  (if (odd? (len bindings))
+  (if (% (len bindings) 2)
       (raise (ValueError "let bindings must be paired")))
   (setv g!let (hy.gensym 'let)
         replacements (OrderedDict)
@@ -581,7 +585,7 @@
 
   (defn destructuring-expander [symbol]
     (cond
-      [(not (symbol? symbol)) (raise (TypeError "bind targets must be symbol or destructing assignment"))]
+      [(not (isinstance symbol hy.models.Symbol)) (raise (TypeError "bind targets must be symbol or destructing assignment"))]
       [(in '. symbol) (raise (ValueError "binding target may not contain a dot"))])
     (setv replaced (hy.gensym symbol))
     (assoc unpacked-syms symbol replaced)
@@ -594,10 +598,10 @@
 
   (for [[k v] (by2s bindings)]
     (cond
-      [(and (symbol? k) (in '. k))
+      [(and (isinstance k hy.models.Symbol) (in '. k))
        (raise (ValueError "binding target may not contain a dot"))]
 
-      [(not (or (symbol? k) (destructuring? k)))
+      [(not (or (isinstance k hy.models.Symbol) (destructuring? k)))
        (raise (TypeError "bind targets must be symbol or iterable unpacking assignment"))])
 
     (if (destructuring? k)
@@ -610,14 +614,14 @@
           ;; dict
           (prewalk (fn [x]
                      (cond
-                       [(and (symbol? x) (in '. x))
+                       [(and (isinstance x hy.models.Symbol) (in '. x))
                         (raise (ValueError "bind target may not contain a dot"))]
 
                        [(and (isinstance x hy.models.Expression)
                              (not-in (get x 0) #{', 'unpack-iterable}))
                         (raise (ValueError "cannot destructure non-iterable unpacking expression"))]
 
-                       [(and (symbol? x) (in x unpacked-syms))
+                       [(and (isinstance x hy.models.Symbol) (in x unpacked-syms))
                         (do (.append keys `(get ~g!let ~(hy.unmangle x)))
                             (.append values (.get unpacked-syms x x))
                             (assoc replacements x (get keys -1)))]

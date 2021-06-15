@@ -209,8 +209,8 @@ Special Forms
        every even number::
 
            => (defn zig-zag-sum [#* numbers]
-                (setv odd-numbers (lfor x numbers :if (odd? x) x)
-                      even-numbers (lfor x numbers :if (even? x) x))
+                (setv odd-numbers (lfor x numbers :if (% x 2) x)
+                      even-numbers (lfor x numbers :if (= (% x 2) 0) x))
                 (- (sum odd-numbers) (sum even-numbers)))
 
            => (zig-zag-sum)
@@ -1300,7 +1300,7 @@ Special Forms
        '(+ 1 2 3 4)
        => `(+ ~@nums)
        '(+ 1 2 3 4)
-       => `[1 2 ~@(if (neg? (get nums 0)) nums)]
+       => `[1 2 ~@(if (< (get nums 0) 0) nums)]
        '[1 2]
 
    Here, the last example evaluates to ``('+' 1 2)``, since the condition
@@ -1537,10 +1537,9 @@ base names, such that ``hy.core.language.butlast`` can be called with just ``but
 
 .. hy:automodule:: hy.core.language
    :members: butlast,
-      coll?, constantly, dec, distinct, drop-last, empty?,
-      even?, every?, flatten, float?, inc, integer?, integer-char?,
-      iterable?, iterator?, keyword?, list?, neg?, none?, numeric?, odd?,
-      parse-args, pos?, rest, some, string?, symbol?, tuple?, xor, zero?
+      coll?, constantly, dec, distinct, drop-last,
+      flatten, inc,
+      parse-args, rest, xor
 
 .. hy:automodule:: hy.core.shadow
    :members:

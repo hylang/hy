@@ -27,7 +27,7 @@ def pytest_ignore_collect(path, config):
     return reduce(
         or_,
         (name in path.basename and not condition for condition, name in versions),
-    )
+    ) or None
 
 
 def pyimport_patch_mismatch(self, **kwargs):

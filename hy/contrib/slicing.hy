@@ -33,15 +33,14 @@ or more manually using the tag macro as::
 (eval-and-compile
   (defn parse-colon [sym]
     (lfor index (.split (str sym) ":")
-          (if (empty? index) None
-              (int index))))
+          (if index (int index))))
 
   (defn parse-indexing [sym]
     (cond
       [(and (isinstance sym hy.models.Expression) (= (get sym 0) :))
        `(slice ~@(cut sym 1 None))]
 
-      [(and (symbol? sym) (= sym '...))
+      [(= sym '...)
        'Ellipsis]
 
       [(and (isinstance sym (, hy.models.Keyword hy.models.Symbol))

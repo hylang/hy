@@ -42,7 +42,7 @@
     (setv tail (cut loopers 1 None))
     (print head)
     (cond
-      [(none? head)
+      [(is head None)
         `(do ~@body)]
       [(= (len head) 1)
         `(while ~@head ~(f tail))]

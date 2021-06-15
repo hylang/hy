@@ -12,11 +12,11 @@
   ; created for each operator.
   (import [hy.contrib.walk [prewalk]])
   (setv defns [])
-  (for [o (if (coll? op) op [op])]
+  (for [o (if (isinstance op hy.models.Symbol) [op] op)]
     (.append defns `(defn ~(hy.models.Symbol (+ "test_operator_" o "_real")) []
       (setv f-name ~(hy.models.String o))
       ~@(prewalk :form body :f (fn [x]
-          (if (and (symbol? x) (= x (hy.models.Symbol "f"))) o x)))))
+          (if (= x 'f) o x)))))
     (.append defns `(defn ~(hy.models.Symbol (+ "test_operator_" o "_shadow")) []
       (setv f-name ~(hy.models.String o))
       (setv f ~o)

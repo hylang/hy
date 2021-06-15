@@ -24,7 +24,7 @@
   None)
 
 (defn inc-ints [x]
-  (if (integer? x) (+ x 1) x))
+  (if (isinstance x int) (+ x 1) x))
 
 (defn test-walk-identity []
   (assert (= (walk (fn [x] x) (fn [x] x) walk-form)
@@ -100,7 +100,7 @@
                       (* b (bar 7))))))
 
 (defn test-let-basic []
-  (assert (zero? (let [a 0] a)))
+  (assert (= (let [a 0] a) 0))
   (setv a "a"
         b "b")
   (let [a "x"
@@ -124,7 +124,7 @@
 ;; let should substitute within f-strings
 ;; related to https://github.com/hylang/hy/issues/1843
 (defn test-let-fstring []
-  (assert (zero? (let [a 0] a)))
+  (assert (= (let [a 0] a) 0))
   (setv a "a"
         b "b")
   (let [a "x"
@@ -226,14 +226,14 @@
 
 (defn test-let-break []
   (for [x (range 3)]
-    (let [done (odd? x)]
+    (let [done (% x 2)]
       (if done (break))))
   (assert (= x 1)))
 
 (defn test-let-continue []
   (let [foo []]
     (for [x (range 10)]
-      (let [odd (odd? x)]
+      (let [odd (% x 2)]
         (if odd (continue))
         (.append foo x)))
     (assert (= foo [0 2 4 6 8]))))
