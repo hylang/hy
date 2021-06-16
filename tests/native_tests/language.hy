@@ -1782,19 +1782,6 @@ cee\"} dee" "ey bee\ncee dee"))
         (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
 
-(require [hy.contrib.walk [let]])
-
-(defn test-let-optional []
-  (let [a 1
-        b 6
-        d 2]
-       (defn foo [* [a a] b [c d]]
-         (, a b c))
-       (assert (= (foo :b "b")
-                  (, 1 "b" 2)))
-       (assert (= (foo :b 20 :a 10 :c 30)
-                  (, 10 20 30)))))
-
 (defn test-pep-3115 []
   (defclass member-table [dict]
     (defn __init__ [self]
