@@ -2,6 +2,8 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
+(import pytest)
+
 (defmacro op-and-shadow-test [op #* body]
   ; Creates two tests with the given `body`, one where all occurrences
   ; of the symbol `f` are syntactically replaced with `op` (a test of
@@ -30,11 +32,12 @@
   `(do ~@defns))
 
 (defmacro forbid [expr]
-  `(assert (try
-    (hy.eval '~expr)
-    (except [[TypeError SyntaxError]] True)
-    (else (raise AssertionError)))))
-
+  (setv e (gensym))
+  `(do
+     (with [~e (pytest.raises Exception)]
+       (hy.eval '~expr))
+     (assert (issubclass (. ~e type)
+       (, TypeError SyntaxError hy.errors.HyMacroExpansionError)))))
 
 (op-and-shadow-test +
 
