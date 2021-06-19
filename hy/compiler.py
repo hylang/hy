@@ -6,7 +6,7 @@
 from itertools import dropwhile, takewhile
 from hy.models import (Object, Expression, Keyword, Integer, Complex,
                        String, FComponent, FString, Bytes, Symbol,
-                       Float, List, Set, Dict, Sequence, as_model)
+                       Float, List, Set, Dict, Sequence, as_model, is_unpack)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, LITERAL, sym, brackets, whole,
                                notpexpr, dolike, pexpr, times, Tag, tag, unpack, braces)
 from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a, forward_decl
@@ -323,12 +323,6 @@ class Result(object):
             ", ".join(ast.dump(x) for x in self.stmts),
             ast.dump(self.expr) if self.expr else None
         ))
-
-
-def is_unpack(kind, x):
-    return (isinstance(x, Expression)
-            and len(x) > 0
-            and x[0] == Symbol("unpack-" + kind))
 
 
 def make_hy_model(outer, x, rest):
