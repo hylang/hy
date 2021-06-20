@@ -3,36 +3,19 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from itertools import dropwhile, takewhile
-from hy.models import (Object, Expression, Keyword, Integer, Complex,
-                       String, FComponent, FString, Bytes, Symbol,
-                       Float, List, Set, Dict, Sequence, as_model, is_unpack)
-from hy.model_patterns import (FORM, SYM, KEYWORD, STR, LITERAL, sym, brackets, whole,
-                               notpexpr, dolike, pexpr, times, Tag, tag, unpack, braces)
-from funcparserlib.parser import some, many, oneplus, maybe, NoParseError, a, forward_decl
-from hy.errors import (HyCompileError, HyTypeError, HyLanguageError,
-                       HySyntaxError, HyEvalError, HyInternalError)
-
-from hy.lex import mangle, unmangle, hy_parse, parse_one_thing, LexException, isidentifier
-
-from hy.macros import require, macroexpand
-
-import textwrap
-import pkgutil
-import traceback
-import itertools
-import importlib
-import inspect
-import types
-import ast
-import sys
-import copy
-import builtins
 import __future__
-import keyword
+import ast, copy, importlib, inspect, keyword, pkgutil
+import traceback, types
 
-from collections import defaultdict
-from functools import reduce
+from funcparserlib.parser import NoParseError, many
+
+from hy.models import (Object, Expression, Keyword, Integer, Complex,
+    String, FComponent, FString, Bytes, Symbol, Float, List, Set,
+    Dict, as_model, is_unpack)
+from hy.model_patterns import (FORM, KEYWORD, unpack)
+from hy.errors import (HyCompileError, HyLanguageError, HySyntaxError)
+from hy.lex import mangle
+from hy.macros import macroexpand
 
 
 hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
