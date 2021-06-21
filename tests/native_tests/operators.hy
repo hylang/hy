@@ -49,6 +49,7 @@
   (assert (= (f 1 2) 3))
   (assert (= (f 1 2 3 4) 10))
   (assert (= (f 1 2 3 4 5) 15))
+  (assert (= (f #* [1 2 3 4 5]) 15))
 
   ; with strings
   (assert (= (f "a" "b" "c")
@@ -276,7 +277,8 @@
   (assert (= (f 0 0) 0))
   (assert (= (f 1 2 3) 3))
   (assert (= (f 1 0 3) 0))
-  (assert (= (f "a" 1 True [1]) [1])))
+  (assert (= (f "a" 1 True [1]) [1]))
+  (assert (= (f #* [1 2 3]) 3)))
 
 
 (op-and-shadow-test or
