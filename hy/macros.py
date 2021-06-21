@@ -116,7 +116,7 @@ def _same_modules(source_module, target_module):
 def require(source_module, target_module, assignments, prefix=""):
     """Load macros from one module into the namespace of another.
 
-    This function is called from the `require` special form in the compiler.
+    This function is called from the macro also named `require`.
 
     Parameters
     ----------
