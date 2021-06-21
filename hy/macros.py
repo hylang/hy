@@ -9,8 +9,11 @@ import pkgutil
 import traceback
 from ast import AST
 
+from funcparserlib.parser import NoParseError
+
 from hy._compat import PY3_8
-from hy.models import replace_hy_obj, Expression, Symbol, as_model
+from hy.model_patterns import whole
+from hy.models import replace_hy_obj, Expression, Symbol, as_model, is_unpack
 from hy.lex import mangle, unmangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
                        HyRequireError)
@@ -22,16 +25,60 @@ EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 def macro(name):
     """Decorator to define a macro called `name`.
     """
-    name = mangle(name)
-    def _(fn):
-        fn = rename_function(fn, name)
+    return lambda fn: install_macro(name, fn, fn)
 
-        module = inspect.getmodule(fn)
-        module_macros = module.__dict__.setdefault('__macros__', {})
-        module_macros[name] = fn
 
+def pattern_macro(names, pattern, shadow = None):
+    pattern = whole(pattern)
+    py_version_required = None
+    if isinstance(names, tuple):
+        py_version_required, names = names
+
+    def dec(fn):
+
+        def wrapper_maker(name):
+            def wrapper(hy_compiler, *args):
+
+                if (shadow and
+                        any(is_unpack("iterable", x) for x in args)):
+                    # Try a shadow function call with this name instead.
+                    return Expression([
+                        Symbol('hy.core.shadow.' + name),
+                        *args]).replace(hy_compiler.this)
+
+                expr = hy_compiler.this
+                root = unmangle(expr[0])
+
+                if (py_version_required and
+                        sys.version_info < py_version_required):
+                    raise hy_compiler._syntax_error(expr,
+                       '`{}` requires Python {} or later'.format(
+                          root,
+                          '.'.join(map(str, py_version_required))))
+
+                try:
+                    parse_tree = pattern.parse(args)
+                except NoParseError as e:
+                    raise hy_compiler._syntax_error(
+                        expr[min(e.state.pos + 1, len(expr) - 1)],
+                        "parse error for pattern macro '{}': {}".format(
+                            root, e.msg.replace("<EOF>", "end of form")))
+                return fn(hy_compiler, expr, root, *parse_tree)
+            return wrapper
+
+        for name in ([names] if isinstance(names, str) else names):
+            install_macro(name, wrapper_maker(name), fn)
         return fn
-    return _
+
+    return dec
+
+
+def install_macro(name, fn, module_of):
+    name = mangle(name)
+    fn = rename_function(fn, name)
+    (inspect.getmodule(module_of).__dict__
+        .setdefault('__macros__', {})[name]) = fn
+    return fn
 
 
 def _same_modules(source_module, target_module):
