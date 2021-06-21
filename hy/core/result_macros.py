@@ -173,7 +173,7 @@ def render_quoted_form(compiler, form, level):
 # * Python operators
 # ------------------------------------------------
 
-@pattern_macro(["not", "~"], [FORM])
+@pattern_macro(["not", "~"], [FORM], shadow = True)
 def compile_unary_operator(compiler, expr, root, arg):
     ops = {"not": ast.Not,
            "~": ast.Invert}
@@ -181,7 +181,7 @@ def compile_unary_operator(compiler, expr, root, arg):
     return operand + asty.UnaryOp(
         expr, op=ops[root](), operand=operand.force_expr)
 
-@pattern_macro(["and", "or"], [many(FORM)])
+@pattern_macro(["and", "or"], [many(FORM)], shadow = True)
 def compile_logical_or_and_and_operator(compiler, expr, operator, args):
     ops = {"and": (ast.And, True),
            "or": (ast.Or, None)}
@@ -246,8 +246,10 @@ def get_c_op(compiler, sym):
             "Illegal comparison operator: " + str(sym))
     return c_ops[k]()
 
-@pattern_macro(["=", "is", "<", "<=", ">", ">="], [oneplus(FORM)])
-@pattern_macro(["!=", "is-not", "in", "not-in"], [times(2, Inf, FORM)])
+@pattern_macro(["=", "is", "<", "<=", ">", ">="], [oneplus(FORM)],
+    shadow = True)
+@pattern_macro(["!=", "is-not", "in", "not-in"], [times(2, Inf, FORM)],
+    shadow = True)
 def compile_compare_op_expression(compiler, expr, root, args):
     if len(args) == 1:
         return (compiler.compile(args[0]) +
@@ -286,10 +288,10 @@ m_ops = {"+": (ast.Add, "+"),
          "&": (ast.BitAnd, "&"),
          "@": (ast.MatMult, "@")}
 
-@pattern_macro(["+", "*", "|"], [many(FORM)])
-@pattern_macro(["-", "/", "&", "@"], [oneplus(FORM)])
-@pattern_macro(["**", "//", "<<", ">>"], [times(2, Inf, FORM)])
-@pattern_macro(["%", "^"], [times(2, 2, FORM)])
+@pattern_macro(["+", "*", "|"], [many(FORM)], shadow = True)
+@pattern_macro(["-", "/", "&", "@"], [oneplus(FORM)], shadow = True)
+@pattern_macro(["**", "//", "<<", ">>"], [times(2, Inf, FORM)], shadow = True)
+@pattern_macro(["%", "^"], [times(2, 2, FORM)], shadow = True)
 def compile_maths_expression(compiler, expr, root, args):
     if len(args) == 0:
         # Return the identity element for this operator.
@@ -431,7 +433,7 @@ def compile_del_expression(compiler, expr, name, args):
 # * Subsetting
 # ------------------------------------------------
 
-@pattern_macro("get", [FORM, oneplus(FORM)])
+@pattern_macro("get", [FORM, oneplus(FORM)], shadow = True)
 def compile_index_expression(compiler, expr, name, obj, indices):
     indices, ret, _ = compiler._compile_collect(indices)
     ret += compiler.compile(obj)
