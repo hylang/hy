@@ -2,13 +2,13 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy.extra.reserved [special names]])
+(import [hy.extra.reserved [macros names]])
 
-(defn test-reserved-special []
-  (assert (is (type (special)) frozenset))
-  (assert (in "and" (special)))
-  (assert (not-in "False" (special)))
-  (assert (not-in "pass" (special))))
+(defn test-reserved-macros []
+  (assert (is (type (macros)) frozenset))
+  (assert (in "and" (macros)))
+  (assert (not-in "False" (macros)))
+  (assert (not-in "pass" (macros))))
 
 (defn test-reserved-names []
   (assert (is (type (names)) frozenset))
