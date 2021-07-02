@@ -238,6 +238,7 @@ _tb_hidden_modules = {m for m in map(_module_filter_name,
                                       'hy.cmdline', 'hy.lex.parser',
                                       'hy.importer', 'hy._compat',
                                       'hy.macros', 'hy.models',
+                                      'hy.core.result_macros',
                                       'rply'])
                       if m is not None}
 

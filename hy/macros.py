@@ -7,16 +7,16 @@ import importlib
 import inspect
 import pkgutil
 import traceback
+from ast import AST
 
 from hy._compat import PY3_8
 from hy.models import replace_hy_obj, Expression, Symbol, as_model
 from hy.lex import mangle, unmangle
 from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
                        HyRequireError)
+import hy.compiler
 
-EXTRA_MACROS = [
-    "hy.core.macros",
-]
+EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
 
 def macro(name):
@@ -290,9 +290,7 @@ def macroexpand(tree, module, compiler=None, once=False):
             if compiler:
                 compiler.this = tree
             obj = m(compiler, *tree[1:])
-            from hy.compiler import Result
-            from ast import AST
-            if isinstance(obj, (Result, AST)):
+            if isinstance(obj, (hy.compiler.Result, AST)):
                 return obj
 
             if isinstance(obj, Expression):
