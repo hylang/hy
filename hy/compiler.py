@@ -1559,11 +1559,6 @@ class HyASTCompiler(object):
         else:
             result = self.compile(value)
 
-        invalid_name = False
-        if ann is not None:
-            # An annotation / annotated assignment is more strict with the target expression.
-            invalid_name = not isinstance(ld_name.expr, (ast.Name, ast.Attribute, ast.Subscript))
-
         if (result.temp_variables
                 and isinstance(name, Symbol)
                 and '.' not in name):
@@ -2210,24 +2205,6 @@ def hy_eval(hytree, locals=None, module=None, ast_callback=None,
     # Then eval the expression context and return that
     return eval(ast_compile(expr, filename, "eval"),
                 module.__dict__, locals)
-
-
-def _module_file_source(module_name, filename, source):
-    """Try to obtain missing filename and source information from a module name
-    without actually loading the module.
-    """
-    if filename is None or source is None:
-        mod_loader = pkgutil.get_loader(module_name)
-        if mod_loader:
-            if filename is None:
-                filename = mod_loader.get_filename(module_name)
-            if source is None:
-                source = mod_loader.get_source(module_name)
-
-    # We need a non-None filename.
-    filename = filename or '<string>'
-
-    return filename, source
 
 
 def hy_compile(tree, module, root=ast.Module, get_expr=False,
