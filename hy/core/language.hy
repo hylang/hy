@@ -309,7 +309,7 @@
   "
   (+ n 1))
 
-(defn macroexpand [form]
+(defn macroexpand [form [result-ok False]]
   "Return the full macro expansion of `form`.
 
   .. versionadded:: 0.10.0
@@ -327,7 +327,7 @@
   "
   (import hy.macros)
   (setv module (calling-module))
-  (hy.macros.macroexpand form module (HyASTCompiler module)))
+  (hy.macros.macroexpand form module (HyASTCompiler module) :result-ok result-ok))
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of `form`.

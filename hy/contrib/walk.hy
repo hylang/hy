@@ -13,7 +13,7 @@
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
         [hy.compiler [HyASTCompiler calling-module]]
-        [hy.extra.reserved [special]])
+        hy.extra.reserved)
 
 (defn walk [inner outer form]
   "``walk`` traverses ``form``, an arbitrary data structure. Applies
@@ -220,13 +220,16 @@
               [(= (get form 0) (hy.models.Symbol "require"))
                (ast-compiler.compile form)
                (return)]
-              [True (traverse (mexpand form ast-compiler.module ast-compiler))])
+              [(in (get form 0) '[except unpack-mapping])
+               (hy.models.Expression [(get form 0) #* (traverse (cut form 1 None))])]
+              [True (traverse (mexpand form ast-compiler.module ast-compiler :result-ok False))])
         (if (coll? form)
             (traverse form)
             form)))
   (expand form))
 
-(setv _mangled-special (frozenset (map hy.mangle (special))))
+(setv _mangled-core-macros (frozenset
+  (map hy.mangle (hy.extra.reserved.macros))))
 
 
 (defn lambda-list [form]
@@ -466,7 +469,8 @@
       [(= head 'match) (self.handle-match)]
       [(= head 'quasiquote) (self.+quote)]
         ;; must be checked last!
-      [(in (hy.mangle head) _mangled-special) (self.handle-special-form)]
+      [(in (hy.mangle head) _mangled-core-macros)
+        (self.handle-special-form)]
         ;; Not a special form. Traverse it like a coll
       [True (self.handle-coll)]))
 
