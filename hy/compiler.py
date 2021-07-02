@@ -72,42 +72,7 @@ def calling_module(n=1):
     return module
 
 
-_special_form_compilers = {}
 _model_compilers = {}
-# _bad_roots are fake special operators, which are used internally
-# by other special forms (e.g., `except` in `try`) but can't be
-# used to construct special forms themselves.
-_bad_roots = tuple(mangle(x) for x in (
-    "unquote", "unquote-splice", "unpack-mapping", "except"))
-
-def unsupported_special_form_fn(min_version):
-    major, minor = min_version
-    def fn(compiler, expr, root, *args):
-        raise compiler._syntax_error(
-            expr,
-            f"{root} requires Python {major}.{minor} or later",
-        )
-
-    return fn
-
-def special(names, pattern):
-    """Declare special operators. The decorated method and the given pattern
-    is assigned to _special_form_compilers for each of the listed names."""
-    pattern = whole(pattern)
-    def dec(fn):
-        for name in names if isinstance(names, list) else [names]:
-            if isinstance(name, tuple):
-                min_version, name = name
-                if sys.version_info < min_version:
-                    _special_form_compilers[mangle(name)] = (
-                        unsupported_special_form_fn(min_version),
-                        many(FORM),
-                    )
-                    continue
-            _special_form_compilers[mangle(name)] = (fn, pattern)
-        return fn
-    return dec
-
 
 def builds_model(*model_types):
     "Assign the decorated method to _model_compilers for the given types."
@@ -520,77 +485,47 @@ class HyASTCompiler(object):
         root = args.pop(0)
         func = None
 
-        if isinstance(root, Symbol):
-            # First check if `root` is a special operator, unless it has an
-            # `unpack-iterable` in it, since Python's operators (`+`,
-            # etc.) can't unpack. An exception to this exception is that
-            # tuple literals (`,`) can unpack. Finally, we allow unpacking in
-            # `.` forms here so the user gets a better error message.
-            sroot = mangle(root)
+        if isinstance(root, Symbol) and root.startswith("."):
+            # (.split "test test") -> "test test".split()
+            # (.a.b.c x v1 v2) -> (.c (. x a b) v1 v2) ->  x.a.b.c(v1, v2)
 
-            bad_root = sroot in _bad_roots or (sroot == mangle("annotate")
-                                               and not allow_annotation_expression)
+            # Get the method name (the last named attribute
+            # in the chain of attributes)
+            attrs = [
+                Symbol(a).replace(root) if a else None
+                for a in root.split(".")[1:]]
+            if not all(attrs):
+                raise self._syntax_error(expr,
+                     "cannot access empty attribute")
+            root = attrs.pop()
 
-            if (sroot in _special_form_compilers or bad_root) and (
-                    sroot in (mangle(","), mangle(".")) or
-                    not any(is_unpack("iterable", x) for x in args)):
-                if bad_root:
-                    raise self._syntax_error(expr,
-                        "The special form '{}' is not allowed here".format(root))
-                # `sroot` is a special operator. Get the build method and
-                # pattern-match the arguments.
-                build_method, pattern = _special_form_compilers[sroot]
-                try:
-                    parse_tree = pattern.parse(args)
-                except NoParseError as e:
-                    raise self._syntax_error(
-                        expr[min(e.state.pos + 1, len(expr) - 1)],
-                        "parse error for special form '{}': {}".format(
-                            root, e.msg.replace("<EOF>", "end of form")))
-                return Result() + build_method(
-                    self, expr, unmangle(sroot), *parse_tree)
+            # Get the object we're calling the method on
+            # (extracted with the attribute access DSL)
+            # Skip past keywords and their arguments.
+            try:
+                kws, obj, rest = (
+                    many(KEYWORD + FORM | unpack("mapping")) +
+                    FORM +
+                    many(FORM)).parse(args)
+            except NoParseError:
+                raise self._syntax_error(expr,
+                    "attribute access requires object")
+            # Reconstruct `args` to exclude `obj`.
+            args = [x for p in kws for x in p] + list(rest)
+            if is_unpack("iterable", obj):
+                raise self._syntax_error(obj,
+                    "can't call a method on an unpacking form")
+            func = self.compile(Expression(
+                [Symbol(".").replace(root), obj] +
+                attrs))
 
-            if root.startswith("."):
-                # (.split "test test") -> "test test".split()
-                # (.a.b.c x v1 v2) -> (.c (. x a b) v1 v2) ->  x.a.b.c(v1, v2)
+            # And get the method
+            func += asty.Attribute(root,
+                                   value=func.force_expr,
+                                   attr=mangle(root),
+                                   ctx=ast.Load())
 
-                # Get the method name (the last named attribute
-                # in the chain of attributes)
-                attrs = [
-                    Symbol(a).replace(root) if a else None
-                    for a in root.split(".")[1:]]
-                if not all(attrs):
-                    raise self._syntax_error(expr,
-                         "cannot access empty attribute")
-                root = attrs.pop()
-
-                # Get the object we're calling the method on
-                # (extracted with the attribute access DSL)
-                # Skip past keywords and their arguments.
-                try:
-                    kws, obj, rest = (
-                        many(KEYWORD + FORM | unpack("mapping")) +
-                        FORM +
-                        many(FORM)).parse(args)
-                except NoParseError:
-                    raise self._syntax_error(expr,
-                        "attribute access requires object")
-                # Reconstruct `args` to exclude `obj`.
-                args = [x for p in kws for x in p] + list(rest)
-                if is_unpack("iterable", obj):
-                    raise self._syntax_error(obj,
-                        "can't call a method on an unpacking form")
-                func = self.compile(Expression(
-                    [Symbol(".").replace(root), obj] +
-                    attrs))
-
-                # And get the method
-                func += asty.Attribute(root,
-                                       value=func.force_expr,
-                                       attr=mangle(root),
-                                       ctx=ast.Load())
-
-        elif is_annotate_expression(root):
+        if is_annotate_expression(root):
             # Flatten and compile the annotation expression.
             ann_expr = Expression(root + args).replace(root)
             return self.compile_expression(ann_expr, allow_annotation_expression=True)

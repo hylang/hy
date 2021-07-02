@@ -37,8 +37,7 @@ class Completer(object):
         if not isinstance(namespace, dict):
             raise TypeError('namespace must be a dictionary')
         self.namespace = namespace
-        self.path = [hy.compiler._special_form_compilers,
-                     builtins.__dict__,
+        self.path = [builtins.__dict__,
                      namespace]
 
         namespace.setdefault('__macros__', {})
