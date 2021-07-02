@@ -8,10 +8,7 @@ import sys
 import os
 import inspect
 import pkgutil
-import re
-import io
 import types
-import tempfile
 import importlib
 import builtins
 
@@ -19,7 +16,7 @@ from functools import partial
 from contextlib import contextmanager
 
 import hy
-from hy.compiler import hy_compile, hy_ast_compile_flags
+from hy.compiler import hy_compile
 from hy.lex import hy_parse
 
 
