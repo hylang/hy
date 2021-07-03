@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import
-  [itertools [repeat cycle islice]]
+  itertools [repeat cycle islice]
   pytest)
 
 ;;;; some simple helpers

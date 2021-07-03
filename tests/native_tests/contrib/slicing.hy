@@ -1,7 +1,7 @@
 (import pytest
-        [hy.errors [HyMacroExpansionError HySyntaxError]]
-        [hy.lex [hy-parse exceptions]])
-(require [hy.contrib.slicing [*]])
+        hy.errors [HyMacroExpansionError HySyntaxError]
+        hy.lex [hy-parse exceptions])
+(require hy.contrib.slicing *)
 
 (defn test-ncuts-slicing []
   (assert (= (hy.macroexpand-1 '(ncut df 1:5:-1))           '(get df (slice 1 5 -1))))

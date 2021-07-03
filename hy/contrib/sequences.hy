@@ -12,8 +12,8 @@ resulting in recursive computation.
 To use these macros, you need to require them and import some other names like
 so::
 
-   (require [hy.contrib.sequences [defseq seq]])
-   (import [hy.contrib.sequences [Sequence end-sequence]])
+   (require hy.contrib.sequences [defseq seq])
+   (import hy.contrib.sequences [Sequence end-sequence])
 
 The simplest sequence can be defined as ``(seq [n] n)``. This defines a sequence
 that starts as ``[0 1 2 3 ...]`` and continues forever. In order to define a
@@ -44,7 +44,7 @@ be defined as::
 This results in the sequence ``[0 1 1 2 3 5 8 13 21 34 ...]``.
 "
 
-(import [itertools [islice]])
+(import itertools [islice])
 
 (defclass Sequence []
   "Container for construction of lazy sequences."

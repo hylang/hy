@@ -165,7 +165,7 @@ def test_bin_hy_error_parts_length():
     expression."""
     prg_str = """
     (import hy.errors
-            [hy.importer [hy-parse]])
+            hy.importer [hy-parse])
 
     (setv test-expr (hy-parse "(+ 1\n\n'a 2 3\n\n 1)"))
     (setv test-expr.start-line {})
@@ -223,7 +223,7 @@ def test_bin_hy_syntax_errors():
     assert 'SyntaxError: duplicate argument' in err
 
     # https://github.com/hylang/hy/issues/2014
-    _, err = run_cmd("hy", "(defn foo []\n(import [re [*]]))")
+    _, err = run_cmd("hy", "(defn foo []\n(import re *))")
     assert 'SyntaxError: import * only allowed' in err
     assert 'PrematureEndOfInput' not in err
 

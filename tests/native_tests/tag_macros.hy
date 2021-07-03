@@ -3,7 +3,7 @@
 ;; license. See the LICENSE.
 
 (import pytest
-        [functools [wraps]])
+        functools [wraps])
 
 
 (defn test-tag-macro []

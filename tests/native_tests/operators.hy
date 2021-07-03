@@ -12,7 +12,7 @@
   ;
   ; `op` can also be a list of operators, in which case two tests are
   ; created for each operator.
-  (import [collections.abc [Iterable]])
+  (import collections.abc [Iterable])
   (setv defns [])
   (for [o (if (isinstance op hy.models.Symbol) [op] op)]
     (defn replace [x]

@@ -1,8 +1,8 @@
 (import pytest
-        [dataclasses [dataclass]]
-        [hy.errors [HySyntaxError]])
+        dataclasses [dataclass]
+        hy.errors [HySyntaxError])
 
-(require [hy.contrib.walk [let]])
+(require hy.contrib.walk [let])
 
 (defn test-pattern-matching []
   (assert (is (match 0

@@ -32,7 +32,7 @@ tail-call optimization (TCO) in their Hy code.
     -- Wikipedia (https://en.wikipedia.org/wiki/Tail_call)
 "
 
-(import [hy.contrib.walk [prewalk]])
+(import hy.contrib.walk [prewalk])
 
 (defn __trampoline__ [f]
   "Wrap f function and make it tail-call optimized."
@@ -60,7 +60,7 @@ tail-call optimization (TCO) in their Hy code.
     (fn [x] (if (= x 'recur) g!recur-fn x))
     body))
   `(do
-    (import [hy.contrib.loop [__trampoline__]])
+    (import hy.contrib.loop [__trampoline__])
     (with-decorator
       __trampoline__
       (defn ~g!recur-fn [~@signature] ~@new-body))
@@ -86,7 +86,7 @@ tail-call optimization (TCO) in their Hy code.
   Examples:
     ::
 
-       => (require [hy.contrib.loop [loop]])
+       => (require hy.contrib.loop [loop])
        => (defn factorial [n]
        ...  (loop [[i n] [acc 1]]
        ...    (if (= i 0)

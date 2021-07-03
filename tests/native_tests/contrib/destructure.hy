@@ -4,9 +4,9 @@
 
 (import pytest)
 (import collections.abc)
-(import [itertools [cycle count islice]])
-(import [hy.contrib.destructure [destructure]])
-(require [hy.contrib.destructure [setv+ dict=: defn+ fn+ let+]])
+(import itertools [cycle count islice])
+(import hy.contrib.destructure [destructure])
+(require hy.contrib.destructure [setv+ dict=: defn+ fn+ let+])
 
 (defn iterator? [x]
   (isinstance x collections.abc.Iterator))

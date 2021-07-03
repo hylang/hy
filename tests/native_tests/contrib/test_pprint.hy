@@ -1,9 +1,9 @@
 (import
   pytest
   io
-  [pprint :as pypprint]
-  [hy._compat [PY3_8]]
-  [hy.contrib.pprint :as pprint])
+  pprint :as pypprint
+  hy._compat [PY3_8]
+  hy.contrib.pprint :as pprint)
 
 (defn large-list-b []
   (list (range 200)))

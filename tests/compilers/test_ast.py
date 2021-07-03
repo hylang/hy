@@ -272,36 +272,33 @@ def test_ast_import_mangle_dotted():
 
 def test_ast_good_import_from():
     "Make sure AST can compile valid selective import"
-    can_compile("(import [x [y]])")
+    can_compile("(import x [y])")
 
 
 def test_ast_require():
     "Make sure AST respects (require) syntax"
     can_compile("(require tests.resources.tlib)")
-    can_compile('(require [tests.resources.tlib [qplah parald "#taggart"]])')
-    can_compile("(require [tests.resources.tlib [*]])")
-    can_compile("(require [tests.resources.tlib :as foobar])")
-    can_compile("(require [tests.resources.tlib [qplah :as quiz]])")
-    can_compile("(require [tests.resources.tlib [qplah :as quiz parald]])")
+    can_compile('(require tests.resources.tlib [qplah parald "#taggart"])')
+    can_compile("(require tests.resources.tlib *)")
+    can_compile("(require tests.resources.tlib :as foobar)")
+    can_compile("(require tests.resources.tlib [qplah :as quiz])")
+    can_compile("(require tests.resources.tlib [qplah :as quiz parald])")
     cant_compile("(require [tests.resources.tlib])")
-    cant_compile("(require [tests.resources.tlib [* qplah]])")
-    cant_compile("(require [tests.resources.tlib [qplah *]])")
-    cant_compile("(require [tests.resources.tlib [* *]])")
-    cant_compile("(require [tests.resources.tlib [#taggart]]")
+    cant_compile("(require tests.resources.tlib [#taggart]")
 
 
 def test_ast_import_require_dotted():
     """As in Python, it should be a compile-time error to attempt to
 import a dotted name."""
-    cant_compile("(import [spam [foo.bar]])")
-    cant_compile("(require [spam [foo.bar]])")
+    cant_compile("(import spam [foo.bar])")
+    cant_compile("(require spam [foo.bar])")
 
 
 def test_ast_multi_require():
     # https://github.com/hylang/hy/issues/1903
     x = can_compile("""(require
-      [tests.resources.tlib [qplah]]
-      [tests.resources.macros [threadtail-set-cd]])""")
+      tests.resources.tlib [qplah]
+      tests.resources.macros [threadtail-set-cd])""")
     assert sum(1 for stmt in x.body if isinstance(stmt, ast.Expr)) == 2
     dump = ast.dump(x)
     assert "qplah" in dump
@@ -623,7 +620,7 @@ def test_futures_imports():
     """Make sure __future__ imports go first, especially when builtins are
     automatically added (e.g. via use of a builtin name like `rest`)."""
     hy_ast = can_compile((
-        '(import [__future__ [print_function]])\n'
+        '(import __future__ [print_function])\n'
         '(import sys)\n'
         '(setv some [1 2])'
         '(print (list (rest some)))'))

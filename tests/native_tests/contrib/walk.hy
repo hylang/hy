@@ -2,8 +2,8 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy.contrib.walk [*]])
-(require [hy.contrib.walk [*]])
+(import hy.contrib.walk *)
+(require hy.contrib.walk *)
 
 (import pytest)
 
@@ -69,7 +69,7 @@
 
   (defmacro require-macro []
     `(do
-       (require [tests.resources.macros [test-macro :as my-test-macro]])
+       (require tests.resources.macros [test-macro :as my-test-macro])
        (my-test-macro)))
 
   (assert (= (get (macroexpand-all '(require-macro)) -1)

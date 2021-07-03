@@ -7,16 +7,10 @@
 ;;;;
 
 (import itertools)
-(import functools)
-(import operator)  ; shadow not available yet
-(import sys)
-(import [collections.abc :as cabc])
-(import [hy.models [Keyword Symbol]])
-(import [hy.lex [tokenize mangle unmangle read read-str]])
-(import [hy.lex.exceptions [LexException PrematureEndOfInput]])
-(import [hy.compiler [HyASTCompiler calling-module]])
-
-(import [hy.core.shadow [*]])
+(import collections.abc [Iterable])
+(import hy.models [Keyword Symbol]
+        hy.lex [mangle unmangle]
+        hy.compiler [HyASTCompiler calling-module])
 
 (defn butlast [coll]
   "Returns an iterator of all but the last item in *coll*.
@@ -39,7 +33,7 @@
 
     ::
 
-       => (import [itertools [count islice]])
+       => (import itertools [count islice])
        => (list (islice (butlast (count 10)) 0 5))
        [10 11 12 13 14]
   "
@@ -67,7 +61,7 @@
        False
   "
   (and
-    (isinstance coll cabc.Iterable)
+    (isinstance coll Iterable)
     (not (isinstance coll str))))
 
 (defn constantly [value]
@@ -205,11 +199,11 @@
 
     ::
 
-       => (import [itertools [count islice]])
+       => (import itertools [count islice])
        => (list (islice (drop-last 100 (count 10)) 5))
        [10 11 12 13 14]
   "
-  (import [itertools [tee islice]])
+  (import itertools [tee islice])
   (setv [copy1 copy2] (tee coll))
   (gfor  [x _] (zip copy1 (islice copy2 n None))  x))
 
@@ -243,7 +237,7 @@
     (.append result coll))
   result)
 
-(import [threading [Lock]])
+(import threading [Lock])
 (setv _gensym_counter 0)
 (setv _gensym_lock (Lock))
 
@@ -361,7 +355,7 @@
        => (list (rest []))
        []
   "
-  (import [itertools [islice]])
+  (import itertools [islice])
   (islice coll 1 None))
 
 (defn xor [a b]

@@ -17,12 +17,12 @@ These macros make debugging where bottlenecks exist easier."
   Examples:
     ::
 
-       => (require [hy.contrib.profile [profile/calls]])
+       => (require hy.contrib.profile [profile/calls])
        => (profile/calls (print \"hey there\"))
   "
   `(do
-     (import [pycallgraph [PyCallGraph]]
-             [pycallgraph.output [GraphvizOutput]])
+     (import pycallgraph [PyCallGraph]
+             pycallgraph.output [GraphvizOutput])
      (with [(PyCallGraph :output (GraphvizOutput))]
            ~@body)))
 
@@ -33,7 +33,7 @@ These macros make debugging where bottlenecks exist easier."
   Examples:
     ::
 
-       => (require [hy.contrib.profile [profile/cpu]])
+       => (require hy.contrib.profile [profile/cpu])
        => (profile/cpu (print \"hey there\"))
 
     .. code-block:: bash
@@ -51,7 +51,7 @@ These macros make debugging where bottlenecks exist easier."
   `(do
      (import cProfile pstats)
 
-     (import [io [StringIO]])
+     (import io [StringIO])
 
      (setv ~g!hy-pr (.Profile cProfile))
      (.enable ~g!hy-pr)

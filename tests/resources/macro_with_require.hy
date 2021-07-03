@@ -1,6 +1,6 @@
 ;; Require all the macros and make sure they don't pollute namespaces/modules
 ;; that require `*` from this.
-(require [tests.resources.macros [*]])
+(require tests.resources.macros *)
 
 (defmacro test-module-macro [a]
   "The variable `macro-level-var' here should not bind to the same-named symbol
