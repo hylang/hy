@@ -2,10 +2,11 @@ API
 ===
 
 
-.. _special-forms:
+Core Macros
+-----------
 
-Special Forms
--------------
+The following macros are auto imported into all Hy modules as their
+base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:data:: ^
 
@@ -1496,6 +1497,11 @@ Special Forms
    coroutine, say, if using something fancy like
    `asyncio <https://docs.python.org/3.4/library/asyncio.html>`_.
 
+.. hy:automodule:: hy.core.macros
+   :members:
+   :macros:
+   :tags:
+
 Hy
 ---
 
@@ -1528,10 +1534,10 @@ the following methods
 
 .. _Core:
 
-Core
-----
+Core Functions
+--------------
 
-The following methods and macros are auto imported into all Hy modules as their
+The following functions are auto imported into all Hy modules as their
 base names, such that ``hy.core.language.butlast`` can be called with just ``butlast``.
 
 
@@ -1543,12 +1549,6 @@ base names, such that ``hy.core.language.butlast`` can be called with just ``but
 
 .. hy:automodule:: hy.core.shadow
    :members:
-
-.. hy:automodule:: hy.core.macros
-   :members:
-   :macros:
-   :tags:
-
 
 Additional Modules
 ------------------
