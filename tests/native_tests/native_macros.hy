@@ -74,13 +74,13 @@
     (assert (= (. excinfo value msg) "macros cannot use '#**'"))))
 
 (defn test-macro-bad-name []
-  (with [excinfo (pytest.raises HySyntaxError)]
+  (with [e (pytest.raises HySyntaxError)]
     (hy.eval '(defmacro :kw [])))
-  (assert (= (. excinfo value msg) "parse error for special form 'defmacro': got unexpected token: :kw"))
+  (assert (in "got unexpected token: :kw" e.value.msg))
 
-  (with [excifno (pytest.raises HySyntaxError)]
-    (hy.eval '(defmacro "foo.bar" []))
-    (assert (= (. excinfo value msg) "periods are not allowed in macro names"))))
+  (with [e (pytest.raises HySyntaxError)]
+    (hy.eval '(defmacro "foo.bar" [])))
+  (assert (in "periods are not allowed in macro names" e.value.msg)))
 
 (defn test-fn-calling-macro []
   "NATIVE: test macro calling a plain function"

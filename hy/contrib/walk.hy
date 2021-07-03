@@ -13,7 +13,7 @@
         [collections [OrderedDict]]
         [hy.macros [macroexpand :as mexpand]]
         [hy.compiler [HyASTCompiler calling-module]]
-        [hy.extra.reserved [special]])
+        hy.extra.reserved)
 
 (defn walk [inner outer form]
   "``walk`` traverses ``form``, an arbitrary data structure. Applies
@@ -189,15 +189,12 @@
       (except [StopIteration]
         (break)))))
 
-(defn macroexpand-all [form [module-name None]]
+(defn macroexpand-all [form [ast-compiler None]]
   "Recursively performs all possible macroexpansions in form, using the ``require`` context of ``module-name``.
   `macroexpand-all` assumes the calling module's context if unspecified.
   "
-  (setv module (or (and module-name
-                        (import-module module-name))
-                   (calling-module))
-        quote-level 0
-        ast-compiler (HyASTCompiler module))
+  (setv quote-level 0
+        ast-compiler (or ast-compiler (HyASTCompiler (calling-module))))
   (defn traverse [form]
     (walk expand (fn [x] x) form))
   (defn expand [form]
@@ -223,13 +220,16 @@
               [(= (get form 0) (hy.models.Symbol "require"))
                (ast-compiler.compile form)
                (return)]
-              [True (traverse (mexpand form module ast-compiler))])
+              [(in (get form 0) '[except unpack-mapping])
+               (hy.models.Expression [(get form 0) #* (traverse (cut form 1 None))])]
+              [True (traverse (mexpand form ast-compiler.module ast-compiler :result-ok False))])
         (if (coll? form)
             (traverse form)
             form)))
   (expand form))
 
-(setv _mangled-special (frozenset (map hy.mangle (special))))
+(setv _mangled-core-macros (frozenset
+  (map hy.mangle (hy.extra.reserved.macros))))
 
 
 (defn lambda-list [form]
@@ -469,7 +469,8 @@
       [(= head 'match) (self.handle-match)]
       [(= head 'quasiquote) (self.+quote)]
         ;; must be checked last!
-      [(in (hy.mangle head) _mangled-special) (self.handle-special-form)]
+      [(in (hy.mangle head) _mangled-core-macros)
+        (self.handle-special-form)]
         ;; Not a special form. Traverse it like a coll
       [True (self.handle-coll)]))
 
@@ -498,7 +499,7 @@
     (if (in '. k)
       (raise (ValueError "binding target may not contain a dot"))))
   (setv bindings (dict (by2s bindings))
-        body (macroexpand-all body &name))
+        body (macroexpand-all body &compiler))
   (symbolexpand `(do ~@body)
                 (fn [symbol]
                   (.get bindings symbol symbol))))
@@ -607,8 +608,8 @@
     (if (destructuring? k)
         (do
           ;; append the setv unpacking form
-          (.append keys (symbolexpand (macroexpand-all k &name) destructuring-expander))
-          (.append values (symbolexpand (macroexpand-all v &name) expander))
+          (.append keys (symbolexpand (macroexpand-all k &compiler) destructuring-expander))
+          (.append values (symbolexpand (macroexpand-all v &compiler) expander))
 
           ;; add the keys we replaced in the unpacking form into the let
           ;; dict
@@ -629,14 +630,14 @@
                        [True x]))
                    k))
 
-        (do (.append values (symbolexpand (macroexpand-all v &name) expander))
+        (do (.append values (symbolexpand (macroexpand-all v &compiler) expander))
             (.append keys `(get ~g!let ~(hy.unmangle k)))
             (assoc replacements k (get keys -1)))))
 
   `(do
      (setv ~g!let {}
            ~@(sum (zip keys values) (,)))
-     ~@(symbolexpand (macroexpand-all body &name)
+     ~@(symbolexpand (macroexpand-all body &compiler)
                      expander)))
 
 ;; (defmacro macrolet [])

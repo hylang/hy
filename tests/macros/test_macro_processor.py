@@ -2,7 +2,7 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from hy.macros import macro, macroexpand
+from hy.macros import macro, macroexpand, macroexpand_1
 from hy.lex import tokenize
 
 from hy.models import String, List, Symbol, Expression, Float
@@ -66,6 +66,6 @@ def test_macroexpand_source_data():
     ast = Expression([Symbol('#@'), String('a')])
     ast.start_line = 3
     ast.start_column = 5
-    bad = macroexpand(ast, "hy.core.macros")
+    bad = macroexpand_1(ast, "hy.core.macros")
     assert bad.start_line == 3
     assert bad.start_column == 5

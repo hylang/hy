@@ -52,13 +52,15 @@ Other Breaking Changes
 * made `calling-module-name` private and `calling-module` internal to Hy
 * `macro-error` has been removed, raise typical errors instead
 * `if` now only accepts one test, if branch, and else branch
-* `defn`, `defn/a` have been made a special forms
 * `annotate*` has been made public and renamed `annotate`
 * return annotation for `defn` has been moved to before the function name
 * Python reserved words can no longer be parameter names or
   function call keywords
 * hy models are no longer equal to their associated Python values. `(= 1 '1)  ; => False`
 * `defclass` no longer automagically adds `None` to end of `__init__` forms
+* All special forms have been replaced with macros. This won't affect
+  most preexisting code, but it does mean that user-defined macros can
+  now shadow names like `setv`.
 
 New Features
 ------------------------------

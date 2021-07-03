@@ -164,6 +164,12 @@ def repr_indent(obj):
     return repr(obj).replace("\n", "\n  ")
 
 
+def is_unpack(kind, x):
+    return (isinstance(x, Expression)
+            and len(x) > 0
+            and x[0] == Symbol("unpack-" + kind))
+
+
 class String(Object, str):
     """
     Generic Hy String object. Helpful to store string literals from Hy
