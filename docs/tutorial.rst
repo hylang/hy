@@ -65,11 +65,9 @@ separated from each other by whitespace, but some forms, such as string
 literals (``"Hy, world!"``), can contain whitespace themselves. An
 **expression** is a form enclosed in parentheses; its first child form, called
 the **head**, determines what the expression does, and should generally be a
-function, macro, or special operator. Functions are the most ordinary sort of
-head, whereas macros (described in more detail below) are functions executed at
-compile-time instead and return code to be executed at run-time. Special
-operators are one of :ref:`a fixed set of names <special-forms>` that are
-hard-coded into the compiler, and used to implement everything else.
+function or macro. Functions are the most ordinary sort of head, whereas macros
+(described in more detail below) are functions executed at compile-time instead
+and return code to be executed at run-time.
 
 Comments start with a ``;`` character and continue till the end of the line. A
 comment is functionally equivalent to whitespace. ::
@@ -156,9 +154,9 @@ executes and returns the form ``THEN`` if ``CONDITION`` is true (according to
 in its place.
 
 What if you want to use more than form in place of the ``THEN`` or ``ELSE``
-clauses, or in place of ``CONDITION``, for that matter? Use the special
-operator :hy:func:`do` (known more traditionally in Lisp as ``progn``), which
-combines several forms into one, returning the last::
+clauses, or in place of ``CONDITION``, for that matter? Use the macro
+:hy:func:`do` (known more traditionally in Lisp as ``progn``), which combines
+several forms into one, returning the last::
 
    (if (do (print "Let's check.") (= 1 1))
      (do

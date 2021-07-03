@@ -83,8 +83,8 @@ Expression
 ``hy.models.Expression`` inherits :ref:`Sequence` for
 parenthesized ``()`` expressions. The compilation result of those
 expressions depends on the first element of the list: the compiler
-dispatches expressions between compiler special-forms, user-defined
-macros, and regular Python function calls.
+dispatches expressions between macros and and regular Python
+function calls.
 
 .. _hydict:
 
