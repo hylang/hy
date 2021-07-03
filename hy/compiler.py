@@ -384,6 +384,10 @@ class HyASTCompiler(object):
         self.filename = filename
         self.source = source
 
+        self.this = None
+          # Set in `macroexpand` to the current expression being
+          # macro-expanded, so it can be accessed as `&compiler.this`.
+
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})

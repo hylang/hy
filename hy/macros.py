@@ -287,6 +287,8 @@ def macroexpand(tree, module, compiler=None, once=False):
             break
 
         with MacroExceptions(module, tree, compiler):
+            if compiler:
+                compiler.this = tree
             obj = m(compiler, *tree[1:])
             from hy.compiler import Result
             from ast import AST
