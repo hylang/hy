@@ -103,11 +103,11 @@ prompts. The following shows a number of possibilities::
   (import
     re
     json
-    [pathlib [Path]]
-    [hy.contrib.pprint [pp pformat]])
+    pathlib [Path]
+    hy.contrib.pprint [pp pformat])
 
   (require
-    [hy.extra.anaphoric [%]])
+    hy.extra.anaphoric [%])
 
   (setv
     ;; Spy and output-fn will be set automatically for all hy repls
