@@ -8,7 +8,8 @@ import inspect
 import pkgutil
 import traceback
 from ast import AST
-from collections.abc import Iterable
+from typing import Optional, Union
+from types import ModuleType
 
 from funcparserlib.parser import NoParseError
 
@@ -114,34 +115,36 @@ def _same_modules(source_module, target_module):
             source_filename == target_filename)
 
 
-def require(source_module, assignments, target_module=None, prefix=""):
+def require(
+    source_module: Union[str, ModuleType],
+    assignments: Union[str, list],
+    target_module: Optional[Union[str, ModuleType]] = None,
+    prefix: str = "",
+) -> bool:
     """Load macros from one module into the namespace of another.
 
     This function is called from the macro also named `require`.
 
-    Parameters
-    ----------
-    source_module: str or types.ModuleType
-        The module from which macros are to be imported.
+    Args:
+        source_module: The module from which macros are to be imported.
+        assignments: The string "ALL" or a list of bare macro names or
+           (macro name, alias) pairs.
+        target_module: The module into which the macros will be loaded.  If `None`,
+            then the caller's namespace. The latter is useful during evaluation of
+            generated AST/bytecode.
+        prefix: If nonempty, its value is prepended to the name of each imported macro.
+            This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
+            which looks like an attribute of a module. Defaults to "".
 
-    target_module: str, types.ModuleType or None
-        The module into which the macros will be loaded.  If `None`, then
-        the caller's namespace.
-        The latter is useful during evaluation of generated AST/bytecode.
-
-    assignments: str or list of tuples of strs
-        The string "ALL" or a list of macro name and alias pairs.
-
-    prefix: str, optional ("")
-        If nonempty, its value is prepended to the name of each imported macro.
-        This allows one to emulate namespaced macros, like
-        "mymacromodule.mymacro", which looks like an attribute of a module.
-
-    Returns
-    -------
-    out: boolean
+    Returns:
         Whether or not macros were actually transferred.
     """
+    if assignments != "ALL":
+        assignments = [
+            (binding if isinstance(binding, (tuple, list)) else (binding, binding))
+            for binding in assignments
+        ]
+
     if target_module is None:
         parent_frame = inspect.stack()[1][0]
         target_namespace = parent_frame.f_globals
@@ -163,7 +166,7 @@ def require(source_module, assignments, target_module=None, prefix=""):
     if _same_modules(source_module, target_module):
         return False
 
-    if not inspect.ismodule(source_module):
+    if not isinstance(source_module, ModuleType):
         try:
             if source_module.startswith("."):
                 source_dirs = source_module.split(".")
@@ -185,8 +188,8 @@ def require(source_module, assignments, target_module=None, prefix=""):
 
     if not source_module.__macros__:
         if assignments != "ALL":
-            for binding in assignments:
-                name, alias = binding if isinstance(binding, Iterable) else (binding, binding)
+            for name, alias in assignments:
+
                 try:
                     require(f"{source_module.__name__}.{mangle(name)}",
                             "ALL",

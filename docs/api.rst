@@ -1108,6 +1108,23 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       to do introspection of the current module's set of defined macros, which isn't
       really supported anyway.
 
+   .. note::
+
+      :strong:`Re-requiring shadowed macros`
+
+      Note that it's possible for a user to define a ``require`` macro that would
+      block ``require`` statements from working correctly. The core ``require`` macro
+      is syntactic sugar for the underlying ``hy.macros.require`` method which can be
+      used to re-require a shadowed ``require`` form::
+
+         => (defmacro require [x] "will block subsequent require statements")
+         => (require [hy.contrib.walk [let]])
+         "will block subsequent require statements"
+
+         => (hy.macros.require "hy.core.result_macros" ["require"])
+         => (require [hy.contrib.walk [let]])  ; will compile correctly
+
+
 .. hy:function:: (return [object])
 
    ``return`` compiles to a :py:keyword:`return` statement. It exits the
