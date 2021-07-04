@@ -8,6 +8,7 @@ import inspect
 import pkgutil
 import traceback
 from ast import AST
+from collections.abc import Iterable
 
 from funcparserlib.parser import NoParseError
 
@@ -113,7 +114,7 @@ def _same_modules(source_module, target_module):
             source_filename == target_filename)
 
 
-def require(source_module, target_module, assignments, prefix=""):
+def require(source_module, assignments, target_module=None, prefix=""):
     """Load macros from one module into the namespace of another.
 
     This function is called from the macro also named `require`.
@@ -184,11 +185,12 @@ def require(source_module, target_module, assignments, prefix=""):
 
     if not source_module.__macros__:
         if assignments != "ALL":
-            for name, alias in assignments:
+            for binding in assignments:
+                name, alias = binding if isinstance(binding, Iterable) else (binding, binding)
                 try:
                     require(f"{source_module.__name__}.{mangle(name)}",
-                            target_module,
                             "ALL",
+                            target_module,
                             prefix=alias)
                 except HyRequireError as e:
                     raise HyRequireError(f"Cannot import name '{name}'"

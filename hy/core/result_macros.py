@@ -1438,7 +1438,7 @@ def compile_import_or_require(compiler, expr, root, entries):
             ret += node(
                 expr, module=module or None, names=names, level=level)
 
-        elif require(ast_module, compiler.module, assignments=assignments,
+        elif require(ast_module, assignments, compiler.module,
                      prefix=prefix):
             # Actually calling `require` is necessary for macro expansions
             # occurring during compilation.
@@ -1447,8 +1447,6 @@ def compile_import_or_require(compiler, expr, root, entries):
             ret += compiler.compile(Expression([
                 Symbol('hy.macros.require'),
                 String(ast_module),
-                Symbol('None'),
-                Keyword('assignments'),
                 (String("ALL") if assignments == "ALL" else
                     [[String(k), String(v)] for k, v in assignments]),
                 Keyword('prefix'),

@@ -268,11 +268,11 @@ class HyREPL(code.InteractiveConsole, object):
                 self.locals.update(imports)
 
                 # load module macros
-                require(mod, self.module, assignments='ALL')
+                require(mod, 'ALL', target_module=self.module)
             except Exception as e:
                 print(e)
         # Load cmdline-specific macros.
-        require('hy.cmdline', self.module, assignments='ALL')
+        require('hy.cmdline', 'ALL', target_module=self.module)
 
         self.hy_compiler = HyASTCompiler(self.module)
 
@@ -463,7 +463,7 @@ def set_path(filename):
 
 def run_command(source, filename=None):
     __main__ = importlib.import_module('__main__')
-    require("hy.cmdline", __main__, assignments="ALL")
+    require("hy.cmdline", "ALL", __main__)
     try:
         tree = hy_parse(source, filename=filename)
     except HyLanguageError:
