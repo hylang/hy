@@ -692,6 +692,6 @@
 
 
 ;; Placeholder macros
-(for [s '[unquote unquote-splice unpack-mapping except]]
+(for [s '[unquote unquote-splice unpack-mapping except finally else]]
   (hy.compiler.hy-eval `(defmacro ~s [#* args]
     (raise (ValueError ~f"`{(str s)}` is not allowed here")))))
