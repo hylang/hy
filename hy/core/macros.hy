@@ -691,9 +691,7 @@
   `(~f (gfor ~@generator)))
 
 
-(defn forbid [s]
-  (raise (ValueError f"`{s}` is not allowed here")))
-(defmacro unquote [#* args] (forbid "unquote"))
-(defmacro unquote-splice [#* args] (forbid "unquote-splice"))
-(defmacro unpack-mapping [#* args] (forbid "unpack-mapping"))
-(defmacro except [#* args] (forbid "except"))
+;; Placeholder macros
+(for [s '[unquote unquote-splice unpack-mapping except]]
+  (hy.compiler.hy-eval `(defmacro ~s [#* args]
+    (raise (ValueError ~f"`{(str s)}` is not allowed here")))))
