@@ -61,19 +61,16 @@ class Install(install):
         # https://github.com/pypa/setuptools/issues/456
         return install.run(self)
 
-install_requires = [
-    'rply>=0.7.7',
-    'funcparserlib>=0.3.6',
-    'colorama']
-if sys.version_info < (3, 9):
-    install_requires.append('astor>=0.8')
-if os.name == 'nt':
-    install_requires.append('pyreadline>=2.1')
-
 setup(
     name=PKG,
     version=__version__,
-    install_requires=install_requires,
+    install_requires=[
+        'rply>=0.7.7',
+        'funcparserlib>=0.3.6',
+        'colorama',
+        'astor>=0.8 ; python_version < "3.9"',
+        'pyreadline>=2.1 ; os_name == "nt"',
+    ],
     cmdclass=dict(install=Install),
     entry_points={
         'console_scripts': [
