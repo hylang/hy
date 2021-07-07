@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+1.0a2 (released 2021-07-07)
 ==============================
 
 Removals
@@ -30,60 +30,71 @@ Removals
 * The following core predicate functions have been removed. Use
   `isinstance` etc. instead.
 
-  * `empty?`, `even?`, `every?`, `float?`, `integer-char?`, `integer?`, `iterable?`, `iterator?`, `keyword?`, `list?`, `neg?`, `none?`, `numeric?`, `odd?`, `pos?`, `some`, `string?`, `symbol?`, `tuple?`, `zero?`
+  * `empty?`, `even?`, `every?`, `float?`, `integer-char?`,
+    `integer?`, `iterable?`, `iterator?`, `keyword?`, `list?`, `neg?`,
+    `none?`, `numeric?`, `odd?`, `pos?`, `some`, `string?`, `symbol?`,
+    `tuple?`, `zero?`
+
 * Several other core functions and macros have been removed:
 
   * `keyword`: Use `(hy.models.Keyword (hy.unmangle …))` instead.
   * `repeatedly`: Use `toolz.iterate` instead.
   * `if-not`: Use `(if (not …) …)` instead.
   * `lif-not`: Use `(lif (not …) …)` instead.
+  * `macro-error`: Use `raise` instead.
+  * `calling-module`: Now internal to Hy.
+  * `calling-module-name`: Now internal to Hy.
 
 Other Breaking Changes
 ------------------------------
-* Unary `cut` is now consistent with `slice`: A single index specifies
-  the stop index. Thus `(cut x n)` is translated to `x[:n]` instead of
-  `x[n:]`.
+* `if` no longer allows more than three arguments. Use `cond` instead.
+* `cut` with exactly two arguments (the object to be cut and the
+  index) now works like Python slicing syntax and the `slice`
+  function: `(cut x n)` gets the first `n` elements instead of
+  everything after the first `n`.
+* In `defn`, the return-value annotation, if any, is now placed before
+  the function name instead of after.
+* Python reserved words are no longer allowed as parameter names, nor
+  as keywords in keyword function calls.
+* Hy model objects are no longer equal to ordinary Python values.
+  For example, `(!= 1 '1)`. You can promote values to models with
+  `hy.as-model` before making such a check.
+* The following functions are now called as attributes of the `hy` module:
+
+  * `hy.disassemble`, `hy.gensym`, `hy.macroexpand`,
+    `hy.macroexpand-1`, `hy.repr` (formerly
+    `hy.contrib.hy-repr.hy-repr`), `hy.repr-register` (formerly
+    `hy.contrib.hy-repr.hy-repr-register`)
+
 * `cmp` has been renamed to `chainc`.
-* `hy-repr` & `hy-repr-register` have been moved into `core` and are available
-  at `hy.repr` & `hy.repr-register` respectively.
-* `gensym`, `macroexpand`, `macroexpand-1`, and `disassemble` are no longer
-  automatically brought into scope. Call them as `hy.gensym`, `hy.macroexpand`, etc
-  or import them explicitly.
-* made `calling-module-name` private and `calling-module` internal to Hy
-* `macro-error` has been removed, raise typical errors instead
-* `if` now only accepts one test, if branch, and else branch
-* `annotate*` has been made public and renamed `annotate`
-* return annotation for `defn` has been moved to before the function name
-* Python reserved words can no longer be parameter names or
-  function call keywords
-* hy models are no longer equal to their associated Python values. `(= 1 '1)  ; => False`
-* `defclass` no longer automagically adds `None` to end of `__init__` forms
+* `defclass` no longer automatically adds `None` to the end of
+  `__init__` method definitions.
 * All special forms have been replaced with macros. This won't affect
   most preexisting code, but it does mean that user-defined macros can
   now shadow names like `setv`.
+* `hy.repr` no longer uses the registered method of a supertype.
+* The constructors of `Symbol` and `Keyword` now check that the input
+  would be syntactically legal.
+* Attempting to call a core macro not implemented on the current
+  version of Python is now an error.
+* `hy.extra.reserved.special` has been replaced with
+  `hy.extra.reserved.macros`.
 
 New Features
 ------------------------------
 * `hy-repr` is now the default REPL output function.
-* Running the module a la `python -m hy` is now equivalent to running
-  the `hy` command.
-* `hy.as-model` has been added to create canonical model trees from
-  unquote spliced expressions
-* Hy will raise a `SyntaxError` if attempting to use a special form
-  on an unsupported version of Python
-* support for Python 3.10's ``match`` statement
+* The command `python -m hy` now works the same as `hy`.
+* New function `hy.as-model`.
+* New macro `match` (Python 3.10 only).
+* `annotate` is now a user-visible macro.
 
 Bug Fixes
 ------------------------------
 * Fixed issues with newer prereleases of Python 3.10.
-* REPL now properly displays SyntaxErrors.
+* The REPL now properly displays `SyntaxError`\s.
 * Fixed a bug in `pprint` in which `width` was ignored.
-* Corrected `repr` and `hy-repr` for f-strings.
-* `hy-repr` won't use the registerd method of a supertype anymore
-* REPL `--spy` and `--repl-output-fn` can now overwrite `HYSTARTUP` values
-  when specified as a cmdline argument
-* The constructors of `Symbol` and `Keyword` now check that the input
-  would be syntactically legal
+* Corrected `repr` and `hy.repr` for f-strings.
+* `--spy` and `--repl-output-fn` can now overwrite `HYSTARTUP` values.
 
 .. _Toolz: https://toolz.readthedocs.io
 .. _CyToolz: https://github.com/pytoolz/cytoolz
