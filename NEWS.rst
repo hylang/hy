@@ -1,5 +1,13 @@
 .. default-role:: code
 
+1.0a3 (released 2021-07-09)
+==============================
+
+Bug Fixes
+------------------------------
+* Fixed a dependency-management bug that prevented installation of Hy
+  from a wheel on Pythons < 3.9.
+
 1.0a2 (released 2021-07-07)
 ==============================
 
