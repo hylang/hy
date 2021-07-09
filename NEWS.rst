@@ -1,5 +1,15 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Other Breaking Changes
+------------------------------
+* `import` and `require` no longer need outer brackets.
+  `(import [foo [bar]])` is now `(import foo [bar])`
+  and `(import [foo :as baz])` is now `(import foo :as baz)`.
+  To import all names from a module, use `(import foo *)`.
+
 1.0a3 (released 2021-07-09)
 ==============================
 
