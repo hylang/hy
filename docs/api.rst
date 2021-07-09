@@ -1502,6 +1502,27 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    :macros:
    :tags:
 
+Placeholder macros
+~~~~~~~~~~~~~~~~~~
+
+There are a few core macros that are unusual in that all they do, when
+expanded, is crash, regardless of their arguments:
+
+- ``else``
+- ``except``
+- ``finally``
+- ``unpack-mapping``
+- ``unquote``
+- ``unquote-splice``
+
+The purpose of these macros is merely to reserve their names. Each
+symbol is interpreted specially by one or more other core macros
+(e.g., ``else`` in ``while``) and thus, in these contexts, any
+definition of these names as a function or macro would be ignored. If
+you really want to, you can override these names like any others, but
+beware that, for example, trying to call your new ``else`` inside
+``while`` may not work.
+
 Hy
 ---
 
