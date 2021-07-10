@@ -14,7 +14,7 @@ To use these macros, you need to require them like so:
 
 .. code-block:: hy
 
-    (require [hy.contrib.destructure [setv+ fn+ defn+ let+ defn/a+ fn/a+]])
+    (require hy.contrib.destructure [setv+ fn+ defn+ let+ defn/a+ fn/a+])
 
 Destructuring allows one to easily peek inside a data structure and assign names to values within. For example,
 
@@ -105,11 +105,11 @@ Iterator Pattern
 Iterator patterns are specified using round brackets. They are the same as list patterns, but can be safely used with infinite generators. The iterator pattern does not allow for recursive destructuring within the ``:as`` special option.
 "
 
-(require [hy.contrib.walk [let]])
+(require hy.contrib.walk [let])
 (import
-  [itertools [starmap chain count]]
-  [functools [reduce]]
-  [hy.contrib.walk [by2s]])
+  itertools [starmap chain count]
+  functools [reduce]
+  hy.contrib.walk [by2s])
 
 (defmacro! ifp [o!pred o!expr #* clauses]
   "Takes a binary predicate ``pred``, an expression ``expr``, and a set of
@@ -331,7 +331,7 @@ Iterator patterns are specified using round brackets. They are the same as list 
         tee (hy.gensym))
   (if (in ':as (sfor  [x #* _] magics  x))
     (.extend result [diter `(do
-                              (import [itertools [tee :as ~tee]])
+                              (import itertools [tee :as ~tee])
                               (setv [~diter ~copy-iter] (~tee ~diter))
                               ~diter)])
     (.append result `(iter ~(.pop result))))

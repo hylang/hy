@@ -293,5 +293,5 @@ def test_docstring():
 
 def test_hy_python_require():
     # https://github.com/hylang/hy/issues/1911
-    test = "(do (require [tests.resources.macros [test-macro]]) (test-macro) blah)"
+    test = "(do (require tests.resources.macros [test-macro]) (test-macro) blah)"
     assert hy.eval(hy.read_str(test)) == 1

@@ -1379,10 +1379,10 @@ def compile_class_expression(compiler, expr, root, name, rest):
 def importlike(*name_types):
     name = some(lambda x: isinstance(x, name_types) and "." not in x)
     return [many(
-        SYM |
-        brackets(SYM, sym(":as"), name) |
-        brackets(SYM, brackets(many(
-            name + maybe(sym(":as") + name)))))]
+        SYM + maybe(sym("*")
+                    | (sym(":as") + name)
+                    | brackets(many(
+                        name + maybe(sym(":as") + name)))))]
 
 @pattern_macro("import", importlike(Symbol))
 @pattern_macro("require", importlike(Symbol, String))
@@ -1394,49 +1394,44 @@ def compile_import_or_require(compiler, expr, root, entries):
         prefix = ""
 
         if isinstance(entry, Symbol):
-            # e.g., (import foo)
-            module, prefix = entry, entry
-        elif isinstance(entry, List) and isinstance(entry[1], Symbol):
-            # e.g., (import [foo :as bar])
-            module, prefix = entry
+            # e.g., (import foo *)
+            module = entry
         else:
-            # e.g., (import [foo [bar baz :as MyBaz bing]])
-            # or (import [foo [*]])
-            module, kids = entry
-            kids = kids[0]
-            if (Symbol('*'), None) in kids:
-                if len(kids) != 1:
-                    star = kids[kids.index((Symbol('*'), None))][0]
-                    raise compiler._syntax_error(star,
-                        "* in an import name list must be on its own")
+            module, rest = entry
+            if rest is None:
+                # e.g., (import foo)
+                prefix = module
+            elif isinstance(rest, Symbol):
+                # e.g., (import foo :as bar)
+                prefix = rest
             else:
-                assignments = [(k, v or k) for k, v in kids]
+                # e.g., (import foo [bar baz :as MyBaz bing])
+                assignments = [(k, v or k) for k, v in rest[0]]
 
         ast_module = mangle(module)
 
         if root == "import":
-            module = ast_module.lstrip(".")
-            level = len(ast_module) - len(module)
+            module_name = ast_module.lstrip(".")
+            level = len(ast_module) - len(module_name)
             if assignments == "ALL" and prefix == "":
                 node = asty.ImportFrom
-                names = [asty.alias(entry, name="*", asname=None)]
+                names = [asty.alias(module, name="*", asname=None)]
             elif assignments == "ALL":
                 node = asty.Import
-                prefix = mangle(prefix)
                 names = [asty.alias(
-                    entry,
+                    module,
                     name=ast_module,
-                    asname=prefix if prefix != module else None)]
+                    asname=mangle(prefix) if prefix != module else None)]
             else:
                 node = asty.ImportFrom
                 names = [
                     asty.alias(
-                        entry,
+                        module,
                         name=mangle(k),
                         asname=None if v == k else mangle(v))
                     for k, v in assignments]
             ret += node(
-                expr, module=module or None, names=names, level=level)
+                expr, module=module_name or None, names=names, level=level)
 
         elif require(ast_module, compiler.module, assignments=assignments,
                      prefix=prefix):

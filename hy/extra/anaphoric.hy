@@ -15,7 +15,7 @@ concise and easy to read.
 
 To use these macros you need to require the ``hy.extra.anaphoric`` module like so:
 
-``(require [hy.extra.anaphoric [*]])``
+``(require hy.extra.anaphoric *)``
 
 These macros are implemented by replacing any use of the designated
 anaphoric symbols (``it``, in most cases) with a gensym. Consequently,

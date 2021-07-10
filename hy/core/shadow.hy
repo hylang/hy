@@ -6,9 +6,9 @@
 
 (import operator)
 
-(import [hy.lex [mangle]])
+(import hy.lex [mangle])
 
-(import [functools [reduce]])
+(import functools [reduce])
 
 (defn + [#* args]
   "Shadowed `+` operator adds `args`."

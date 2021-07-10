@@ -69,7 +69,7 @@
 
     more convoluted example to load web page and retrieve data from it::
 
-       => (import [urllib.request [urlopen]])
+       => (import urllib.request [urlopen])
        => (as-> (urlopen \"http://docs.hylang.org/en/stable/\") it
        ...      (.read it)
        ...      (.decode it \"utf-8\")
@@ -653,7 +653,7 @@
    (setv symbol (str symbol))
    (setv mangled (hy.mangle symbol))
    (setv builtins (hy.gensym "builtins"))
-   `(do (import [builtins :as ~builtins])
+   `(do (import builtins :as ~builtins)
         (help (or (.get __macros__ ~mangled)
                   (.get (. ~builtins __macros__) ~mangled)
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))

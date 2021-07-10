@@ -7,12 +7,12 @@
 .. versionadded:: 0.11.0
 "
 
-(import [functools [partial]]
-        [itertools [islice]]
-        [importlib [import-module]]
-        [collections [OrderedDict]]
-        [hy.macros [macroexpand :as mexpand]]
-        [hy.compiler [HyASTCompiler calling-module]]
+(import functools [partial]
+        itertools [islice]
+        importlib [import-module]
+        collections [OrderedDict]
+        hy.macros [macroexpand :as mexpand]
+        hy.compiler [HyASTCompiler calling-module]
         hy.extra.reserved)
 
 (defn walk [inner outer form]
@@ -23,7 +23,7 @@
   Examples:
     ::
 
-       => (import [hy.contrib.walk [walk]])
+       => (import hy.contrib.walk [walk])
        => (setv a '(a b c d e f))
        => (walk ord (fn [x] x)  a)
        '(97 98 99 100 101 102)
@@ -49,7 +49,7 @@
   Examples:
     ::
 
-       => (import [hy.contrib.walk [postwalk]])
+       => (import hy.contrib.walk [postwalk])
        => (setv trail '([1 2 3] [4 [5 6 [7]]]))
        => (defn walking [x]
        ...   (print \"Walking\" x :sep \"\\n\")
@@ -115,7 +115,7 @@
   Examples:
     ::
 
-       => (import [hy.contrib.walk [prewalk]])
+       => (import hy.contrib.walk [prewalk])
        => (setv trail '([1 2 3] [4 [5 6 [7]]]))
        => (defn walking [x]
        ...  (print \"Walking\" x :sep \"\\n\")

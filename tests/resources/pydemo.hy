@@ -39,7 +39,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv mysetcomp (sfor x (range 5) :if (not (% x 2)) x))
 (setv mydictcomp (dfor k "abcde" :if (!= k "c") [k (.upper k)]))
 
-(import [itertools [cycle]])
+(import itertools [cycle])
 (setv mygenexpr (gfor x (cycle [1 2 3]) :if (!= x 2) x))
 
 (setv attr-ref str.upper)
@@ -64,9 +64,9 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (del (get delstatement 1))
 
 (import math)
-(import [math [sqrt]])
-(import [math [sin :as sine]])
-(import [datetime [*]])
+(import math [sqrt])
+(import math [sin :as sine])
+(import datetime *)
 
 (setv if-block "")
 (if 0
@@ -153,7 +153,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (setv attr1 5)
   (setv attr2 6))
 
-(import [contextlib [closing]])
+(import contextlib [closing])
 (setv closed [])
 (defclass Closeable []
   (defn close [self] (.append closed self.x)))
@@ -173,7 +173,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv py-accum (py "''.join(map(str, pys_accum))"))
 
 (defn/a coro []
-  (import asyncio [tests.resources [AsyncWithTest async-loop]])
+  (import asyncio
+          tests.resources [AsyncWithTest async-loop])
   (await (asyncio.sleep 0))
   (setv values ["a"])
   (with/a [t (AsyncWithTest "b")]

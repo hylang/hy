@@ -3,14 +3,14 @@
 ;; license. See the LICENSE.
 
 (import
-  [math [isnan]]
-  [fractions [Fraction]]
+  math [isnan]
+  fractions [Fraction]
   re
   datetime
   collections)
 
 (try
-  (import [_collections_abc [dict-keys dict-values dict-items]])
+  (import _collections_abc [dict-keys dict-values dict-items])
   (except [ImportError]
     (defclass C)
     (setv [dict-keys dict-values dict-items] [C C C])))

@@ -5,7 +5,7 @@
 (import os sys
         importlib
         pytest
-        [hy.errors [HySyntaxError HyTypeError HyMacroExpansionError]])
+        hy.errors [HySyntaxError HyTypeError HyMacroExpansionError])
 
 (defmacro rev [#* body]
   "Execute the `body` statements in reverse"
@@ -149,8 +149,8 @@
 
 (defn test-gensym-in-macros []
   (import ast)
-  (import [hy.compiler [hy-compile]])
-  (import [hy.lex [hy-parse]])
+  (import hy.compiler [hy-compile])
+  (import hy.lex [hy-parse])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (hy.gensym))
       `(do
@@ -175,8 +175,8 @@
 
 (defn test-with-gensym []
   (import ast)
-  (import [hy.compiler [hy-compile]])
-  (import [hy.lex [hy-parse]])
+  (import hy.compiler [hy-compile])
+  (import hy.lex [hy-parse])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (with-gensyms [a]
         `(do
@@ -199,8 +199,8 @@
 
 (defn test-defmacro/g! []
   (import ast)
-  (import [hy.compiler [hy-compile]])
-  (import [hy.lex [hy-parse]])
+  (import hy.compiler [hy-compile])
+  (import hy.lex [hy-parse])
   (setv macro1 "(defmacro/g! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -228,8 +228,8 @@
 (defn test-defmacro! []
   ;; defmacro! must do everything defmacro/g! can
   (import ast)
-  (import [hy.compiler [hy-compile]])
-  (import [hy.lex [hy-parse]])
+  (import hy.compiler [hy-compile])
+  (import hy.lex [hy-parse])
   (setv macro1 "(defmacro! nif [expr pos zero neg]
         `(do
            (setv ~g!res ~expr)
@@ -349,7 +349,7 @@ in expansions."
 
   (setv nonlocal-test-macro (get __macros__ "nonlocal_test_macro"))
 
-  (require [tests.resources.macro-with-require [*]])
+  (require tests.resources.macro-with-require *)
 
   (setv module-name-var "tests.native_tests.native_macros.test-macro-namespace-resolution")
   (assert (= (+ "This macro was created in tests.resources.macros, "
@@ -394,7 +394,7 @@ in expansions."
   (assert (not (os.path.isfile pyc-file)))
 
   (defn require-macros []
-    (require [tests.resources.macros :as m])
+    (require tests.resources.macros :as m)
 
     (assert (in (hy.mangle "m.test-macro") __macros__))
     (for [macro-name __macros__]
@@ -443,8 +443,8 @@ in expansions."
   (assert (not (os.path.isfile pyc-file)))
 
   (defn test-requires-and-macros []
-    (require [tests.resources.macro-with-require
-              [test-module-macro]])
+    (require tests.resources.macro-with-require
+             [test-module-macro])
 
     ;; Make sure that `require` didn't add any of its `require`s
     (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
@@ -452,7 +452,7 @@ in expansions."
     (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
 
     ;; Now, require everything.
-    (require [tests.resources.macro-with-require [*]])
+    (require tests.resources.macro-with-require *)
 
     ;; Again, make sure it didn't add its required macros and/or tags.
     (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
@@ -490,8 +490,8 @@ in expansions."
 
 
 (defn test-recursive-require-star []
-  "(require [foo [*]]) should pull in macros required by `foo`."
-  (require [tests.resources.macro-with-require [*]])
+  "(require foo *) should pull in macros required by `foo`."
+  (require tests.resources.macro-with-require *)
 
   (test-macro)
   (assert (= blah 1)))
@@ -499,7 +499,7 @@ in expansions."
 
 (defn test-macro-errors []
   (import traceback
-          [hy.importer [hy-parse]])
+          hy.importer [hy-parse])
 
   (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
 

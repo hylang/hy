@@ -2,10 +2,10 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(require [hy.contrib.sequences [seq defseq]])
+(require hy.contrib.sequences [seq defseq])
 
 (import
-  [hy.contrib.sequences [Sequence end-sequence]])
+  hy.contrib.sequences [Sequence end-sequence])
 
 (defn test-infinite-sequence []
   "NATIVE: test creating infinite sequence"

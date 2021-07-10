@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(require [hy.extra.anaphoric [ap-last]])
+(require hy.extra.anaphoric [ap-last])
 
 (defn test-anaphoric-single-require []
   ; https://github.com/hylang/hy/issues/1853#issuecomment-568192529

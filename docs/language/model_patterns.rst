@@ -35,8 +35,8 @@ a pattern for a ``try`` form of the above kind:
 
 .. code-block:: clj
 
-    (import [funcparserlib.parser [maybe many]])
-    (import [hy.model-patterns [*]])
+    (import funcparserlib.parser [maybe many])
+    (import hy.model-patterns [*])
     (setv parser (whole [
       (sym "try")
       (many (notpexpr "except" "else" "finally"))
@@ -98,8 +98,8 @@ Here's how you could write a simple macro using model patterns:
 .. code-block:: clj
 
     (defmacro pairs [#* args]
-      (import [funcparserlib.parser [many]])
-      (import [hy.model-patterns [whole SYM FORM]])
+      (import funcparserlib.parser [many])
+      (import hy.model-patterns [whole SYM FORM])
       (setv [args] (->> args (.parse (whole [
         (many (+ SYM FORM))]))))
       `[~@(->> args (map (fn [x]

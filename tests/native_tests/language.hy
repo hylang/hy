@@ -2,21 +2,21 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [tests.resources [kwtest function-with-a-dash AsyncWithTest]]
-        [os.path [exists isdir isfile]]
-        [sys :as systest]
+(import tests.resources [kwtest function-with-a-dash AsyncWithTest]
+        os.path [exists isdir isfile]
+        sys :as systest
         re
-        [operator [or_]]
-        [itertools [repeat count islice]]
-        [fractions [Fraction]]
+        operator [or_]
+        itertools [repeat count islice]
+        fractions [Fraction]
         pickle
-        [typing [get-type-hints List Dict]]
+        typing [get-type-hints List Dict]
         asyncio
-        [hy.errors [HyLanguageError HySyntaxError]]
+        hy.errors [HyLanguageError HySyntaxError]
         pytest)
 (import sys)
 
-(import [hy._compat [PY3_8]])
+(import hy._compat [PY3_8])
 
 (defn test-sys-argv []
   "NATIVE: test sys.argv"
@@ -1332,21 +1332,22 @@ cee\"} dee" "ey bee\ncee dee"))
   (import sys os)
 
   ;; from os.path import basename
-  (import [os.path [basename]])
+  (import os.path [basename])
   (assert (= (basename "/some/path") "path"))
 
   ;; import os.path as p
-  (import [os.path :as p])
+  (import os.path :as p)
   (assert (= p.basename basename))
 
   ;; from os.path import basename as bn
-  (import [os.path [basename :as bn]])
+  (import os.path [basename :as bn])
   (assert (= bn basename))
 
   ;; Multiple stuff to import
-  (import sys [os.path [dirname]]
-          [os.path :as op]
-          [os.path [dirname :as dn]])
+  (import sys
+          os.path [dirname]
+          os.path :as op
+          os.path [dirname :as dn])
   (assert (= (dirname "/some/path") "/some"))
   (assert (= op.dirname dirname))
   (assert (= dn dirname)))
@@ -1432,7 +1433,7 @@ cee\"} dee" "ey bee\ncee dee"))
   (with [(pytest.raises NameError)]
     (hyx_XairplaneX 1 2 3 4))
 
-  (require [tests.resources.tlib [qplah]])
+  (require tests.resources.tlib [qplah])
   (assert (= (qplah 1 2 3) [8 1 2 3]))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
@@ -1445,7 +1446,7 @@ cee\"} dee" "ey bee\ncee dee"))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
 
-  (require [tests.resources.tlib :as T])
+  (require tests.resources.tlib :as T)
   (assert (= (T.parald 1 2 3) [9 1 2 3]))
   (assert (= (T.✈ "silly") "plane silly"))
   (assert (= (T.hyx_XairplaneX "foolish") "plane foolish"))
@@ -1453,25 +1454,25 @@ cee\"} dee" "ey bee\ncee dee"))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
 
-  (require [tests.resources.tlib [parald :as p]])
+  (require tests.resources.tlib [parald :as p])
   (assert (= (p 1 2 3) [9 1 2 3]))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
 
-  (require [tests.resources.tlib ["#taggart"]])
+  (require tests.resources.tlib ["#taggart"])
   (assert (= #taggart 15 [10 15]))
 
-  (require [tests.resources.tlib [*]])
+  (require tests.resources.tlib *)
   (assert (= (parald 1 2 3) [9 1 2 3]))
   (assert (= (✈ "silly") "plane silly"))
   (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
 
-  (require [tests.resources [tlib macros :as m]])
+  (require tests.resources [tlib macros :as m])
   (assert (in "tlib.qplah" __macros__))
   (assert (in (hy.mangle "m.test-macro") __macros__))
-  (require [os [path]])
+  (require os [path])
   (with [(pytest.raises hy.errors.HyRequireError)]
-    (hy.eval '(require [tests.resources [does-not-exist]]))))
+    (hy.eval '(require tests.resources [does-not-exist]))))
 
 
 (defn test-require-native []
@@ -1481,19 +1482,19 @@ cee\"} dee" "ey bee\ncee dee"))
   (import tests.native_tests.native_macros)
   (with [(pytest.raises NameError)]
     (rev 1))
-  (require [tests.native_tests.native_macros [rev]])
+  (require tests.native_tests.native_macros [rev])
   (setv x [])
   (rev (.append x 1) (.append x 2) (.append x 3))
   (assert (= x [3 2 1])))
 
 (defn test-relative-require []
-  (require [..resources.macros [test-macro]])
+  (require ..resources.macros [test-macro])
   (assert (in "test_macro" __macros__))
 
-  (require [.native-macros [rev]])
+  (require .native-macros [rev])
   (assert (in "rev" __macros__))
 
-  (require [. [native-macros :as m]])
+  (require . [native-macros :as m])
   (assert (in "m.rev" __macros__)))
 
 
@@ -1570,7 +1571,7 @@ cee\"} dee" "ey bee\ncee dee"))
 (defn test-macroexpand-with-named-import []
   ; https://github.com/hylang/hy/issues/1207
   (defmacro m-with-named-import []
-    (import [math [pow]])
+    (import math [pow])
     (pow 2 3))
   (assert (= (hy.macroexpand '(m-with-named-import)) (hy.models.Float (** 2 3)))))
 
@@ -1621,7 +1622,7 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-read []
   "NATIVE: test that read takes something for stdin and reads"
-  (import [io [StringIO]])
+  (import io [StringIO])
 
   (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
   (assert (= (hy.eval (hy.read stdin-buffer)) 4))
@@ -1708,13 +1709,13 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (f3) "not a docstring")))
 
 (defn test-module-docstring []
-  (import [tests.resources.module-docstring-example :as m])
+  (import tests.resources.module-docstring-example :as m)
   (assert (= m.__doc__ "This is the module docstring."))
   (assert (= m.foo 5)))
 
 (defn test-relative-import []
   "Make sure relative imports work properly"
-  (import [..resources [tlib]])
+  (import ..resources [tlib])
   (assert (= tlib.SECRET-MESSAGE "Hello World")))
 
 

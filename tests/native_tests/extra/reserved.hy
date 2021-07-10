@@ -2,7 +2,7 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
-(import [hy.extra.reserved [macros names]])
+(import hy.extra.reserved [macros names])
 
 (defn test-reserved-macros []
   (assert (is (type (macros)) frozenset))
