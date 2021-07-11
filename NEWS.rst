@@ -10,6 +10,10 @@ Other Breaking Changes
   and `(import [foo :as baz])` is now `(import foo :as baz)`.
   To import all names from a module, use `(import foo *)`.
 
+Bug Fixes
+------------------------------
+* Improved error messages for illegal uses of `finally` and `else`.
+
 1.0a3 (released 2021-07-09)
 ==============================
 
