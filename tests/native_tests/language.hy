@@ -779,14 +779,6 @@
   (with [(open "README.md" "r")] (do)))
 
 
-(defn test-context-yield []
-  "NATIVE: test yields inside of with statements don't try to return before Python 3.3"
-  (defn f []
-    (with [(open "README.md")] (yield 123)))
-
-  (assert (= (next (f)) 123)))
-
-
 (defn test-with-return []
   "NATIVE: test that with returns stuff"
   (defn read-file [filename]
