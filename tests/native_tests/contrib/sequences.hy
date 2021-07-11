@@ -8,12 +8,10 @@
   hy.contrib.sequences [Sequence end-sequence])
 
 (defn test-infinite-sequence []
-  "NATIVE: test creating infinite sequence"
   (assert (= (list (cut (seq [n] n) 5))
              [0 1 2 3 4])))
 
 (defn test-indexing-sequence []
-  "NATIVE: test indexing sequence"
   (defseq shorty [n]
     (cond [(< n 10) n]
           [True (end-sequence)]))
@@ -29,7 +27,6 @@
           "getting element -1 failed"))
 
 (defn test-slicing-sequence []
-  "NATIVE: test slicing sequence"
   (defseq shorty [n]
     (cond [(< n 10) n]
           [True (end-sequence)]))
@@ -51,7 +48,6 @@
           "negative cut failed"))
 
 (defn test-recursive-sequence []
-  "NATIVE: test defining a recursive sequence"
   (defseq fibonacci [n]
     (cond [(= n 0) 0]
           [(= n 1) 1]
@@ -71,7 +67,6 @@
           "taking 8 elements of fibonacci didn't match"))
 
 (defn test-nested-functions []
-  "NATIVE: test that defining nested functions is possible"
   (defseq primes [n]
     "infinite sequence of prime numbers"
     (defn divisible? [n prevs]

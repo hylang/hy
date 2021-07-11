@@ -4,7 +4,6 @@
 
 
 (defn test-quote []
-  "NATIVE: test for quoting functionality"
   (setv q (quote (a b c)))
   (assert (= (len q) 3))
   (assert (= q (hy.models.Expression [(quote a) (quote b) (quote c)]))))
@@ -18,14 +17,13 @@
 
 
 (defn test-quoted-hoistable []
-  "NATIVE: check whether quote works on hoisted things"
   (setv f (quote (if True True True)))
   (assert (= (get f 0) (quote if)))
   (assert (= (cut f 1 None) (quote (True True True)))))
 
 
 (defn test-quoted-macroexpand []
-  "NATIVE: check that we don't expand macros in quoted expressions"
+  "Don't expand macros in quoted expressions."
   (setv q1 (quote (-> a b c)))
   (setv q2 (quasiquote (-> a b c)))
   (assert (= q1 q2))
@@ -34,7 +32,6 @@
 
 
 (defn test-quote-dicts []
-  "NATIVE: test quoting dicts"
   (setv q (quote {foo bar baz quux}))
   (assert (= (len q) 4))
   (assert (= (get q 0) (quote foo)))
@@ -45,7 +42,6 @@
 
 
 (defn test-quote-expr-in-dict []
-  "NATIVE: test quoting nested exprs in dict"
   (setv q (quote {(foo bar) 0}))
   (assert (= (len q) 2))
   (setv qq (get q 0))
@@ -53,14 +49,13 @@
 
 
 (defn test-quasiquote []
-  "NATIVE: test that quasiquote and quote are equivalent for simple cases"
+  "Quasiquote and quote are equivalent for simple cases."
   (setv q (quote (a b c)))
   (setv qq (quasiquote (a b c)))
   (assert (= q qq)))
 
 
 (defn test-unquote []
-  "NATIVE: test that unquote works as expected"
   (setv q (quote (unquote foo)))
   (assert (= (len q) 2))
   (assert (= (get q 1) (quote foo)))
@@ -70,7 +65,6 @@
 
 
 (defn test-unquote-splice []
-  "NATIVE: test splicing unquotes"
   (setv q (quote (c d e)))
   (setv qq `(a b ~@q f ~@q ~@0 ~@False ~@None g ~@(when False 1) h))
   (assert (= (len qq) 11))
@@ -78,7 +72,6 @@
 
 
 (defn test-nested-quasiquote []
-  "NATIVE: test nested quasiquotes"
   (setv qq (hy.as-model `(1 `~(+ 1 ~(+ 2 3) ~@None) 4)))
   (setv q (quote (1 `~(+ 1 5) 4)))
   (assert (= (len q) 3))
@@ -90,7 +83,6 @@
   `(do ~@body))
 
 (defn test-unquote-splice []
-  "NATIVE: test unquote-splice does what's intended"
   (assert (=
     (doodle
       [1 2 3]
