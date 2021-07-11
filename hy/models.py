@@ -1,7 +1,6 @@
 # Copyright 2021 the authors.
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
-from __future__ import unicode_literals
 
 from contextlib import contextmanager
 import re

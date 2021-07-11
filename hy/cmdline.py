@@ -2,8 +2,6 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from __future__ import print_function
-
 import colorama
 colorama.init()
 
