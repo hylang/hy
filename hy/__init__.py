@@ -1,4 +1,3 @@
-__appname__ = 'hy'
 try:
     from hy.version import __version__
 except ImportError:

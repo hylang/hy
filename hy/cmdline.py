@@ -485,9 +485,8 @@ def run_repl(hr=None, **kwargs):
     with filtered_hy_exceptions(), \
          extend_linecache(hr.cmdline_cache), \
          completion(Completer(namespace)):
-        hr.interact("{appname} {version} using "
+        hr.interact("Hy {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
-                        appname=hy.__appname__,
                         version=hy.__version__,
                         py=platform.python_implementation(),
                         build=platform.python_build()[0],
