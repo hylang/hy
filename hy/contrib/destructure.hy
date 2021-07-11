@@ -109,7 +109,8 @@ Iterator patterns are specified using round brackets. They are the same as list 
 (import
   itertools [starmap chain count]
   functools [reduce]
-  hy.contrib.walk [by2s])
+  hy.contrib.walk [by2s]
+  hy.pyops *)
 
 (defmacro! ifp [o!pred o!expr #* clauses]
   "Takes a binary predicate ``pred``, an expression ``expr``, and a set of
