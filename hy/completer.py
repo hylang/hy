@@ -16,13 +16,14 @@ docomplete = True
 
 try:
     import readline
-except ImportError:
-    try:
-        import pyreadline.rlmain
-        import pyreadline.unicode_helper  # NOQA
-        import readline
-    except ImportError:
+except AttributeError as e:
+    # https://github.com/pyreadline/pyreadline/issues/65
+    if "module 'collections' has no attribute 'Callable'" in str(e):
         docomplete = False
+    else:
+        raise
+except ImportError:
+    docomplete = False
 
 if docomplete:
     if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
