@@ -400,17 +400,18 @@
 
   (defn handle-fn [self]
     (setv [protected argslist] (.handle-args-list self))
+    (setv defn? (= (.head self) 'defn))
     `(; The operator
       ~(.head self)
       ; The name of the function, in the case of `defn`
-      ~@(if (= (.head self) 'defn)
+      ~@(if defn?
         [(get (.tail self) 0)]
         [])
       ; The lambda list
       ~argslist
       ; The function body
       ~@(self.traverse
-        (cut (.tail self) 1 None)
+        (cut (.tail self) (if defn? 2 1) None)
         (| protected self.protected))))
 
   ;; don't expand symbols in quotations
