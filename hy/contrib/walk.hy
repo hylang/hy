@@ -399,11 +399,20 @@
     (, protected argslist))
 
   (defn handle-fn [self]
-    (setv [protected argslist] (self.handle-args-list))
-    `(~(self.head) ~@(if (= (self.head) (hy.models.Symbol "defn"))
-                        [(get (.tail self) 0)]
-                        []) ~argslist
-       ~@(self.traverse (cut (self.tail) 1 None)(| protected self.protected))))
+    (setv [protected argslist] (.handle-args-list self))
+    (setv defn? (= (.head self) 'defn))
+    `(; The operator
+      ~(.head self)
+      ; The name of the function, in the case of `defn`
+      ~@(if defn?
+        [(get (.tail self) 0)]
+        [])
+      ; The lambda list
+      ~argslist
+      ; The function body
+      ~@(self.traverse
+        (cut (.tail self) (if defn? 2 1) None)
+        (| protected self.protected))))
 
   ;; don't expand symbols in quotations
   (defn handle-quoted [self]

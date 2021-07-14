@@ -419,6 +419,18 @@
     (assert (= head 0))
     (assert (= tail [:bar [1 2]]))))
 
+(defn test-no-extra-eval-of-function-args []
+  ; https://github.com/hylang/hy/issues/2116
+  (setv l [])
+  (defn f []
+    (.append l 1))
+  (let [a 1]
+    (assert (= a 1))
+    (defn g [[b (f)]]
+      5))
+  (assert (= (g) 5))
+  (assert (= l [1])))
+
 (defn test-let-optional []
   (let [a 1
         b 6
