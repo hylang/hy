@@ -1,4 +1,3 @@
-__appname__ = 'hy'
 try:
     from hy.version import __version__
 except ImportError:
@@ -27,11 +26,11 @@ _jit_imports = dict(
     eval = ["hy.compiler", "hy_eval"],
     repr = ["hy.core.hy_repr", "hy_repr"],
     repr_register = ["hy.core.hy_repr", "hy_repr_register"],
-    gensym="hy.core.language",
-    macroexpand="hy.core.language",
-    macroexpand_1="hy.core.language",
-    disassemble="hy.core.language",
-    as_model="hy.models")
+    gensym = "hy.core.language",
+    macroexpand = "hy.core.language",
+    macroexpand_1 = "hy.core.language",
+    disassemble = "hy.core.language",
+    as_model = "hy.models")
 
 def __getattr__(k):
     if k not in _jit_imports:

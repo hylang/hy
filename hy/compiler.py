@@ -3,7 +3,6 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-import __future__
 import ast, copy, importlib, inspect, keyword, pkgutil
 import traceback, types
 
@@ -18,8 +17,7 @@ from hy.lex import mangle
 from hy.macros import macroexpand
 
 
-hy_ast_compile_flags = (__future__.CO_FUTURE_DIVISION |
-                        __future__.CO_FUTURE_PRINT_FUNCTION)
+hy_ast_compile_flags = 0
 
 
 def ast_compile(a, filename, mode):

@@ -59,9 +59,6 @@ diff:
 r: d tox diff
 
 python:
-ifeq (Python 2.6,$(findstring Python 2.6,$(shell python -V 2>&1)))
-	$(pip) install unittest2
-endif
 	$(pip) install -r requirements-travis.txt
 	$(pip) install coveralls
 	$(pip) install -e .

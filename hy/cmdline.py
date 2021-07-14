@@ -2,8 +2,6 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from __future__ import print_function
-
 import colorama
 colorama.init()
 
@@ -334,11 +332,7 @@ class HyREPL(code.InteractiveConsole, object):
             sys.last_traceback = self.locals.get('_hy_last_traceback',
                                                  sys.last_traceback)
 
-        # Sadly, this method in Python 2.7 ignores an overridden `sys.excepthook`.
-        if sys.excepthook is sys.__excepthook__:
-            error_fn(*args, **kwargs)
-        else:
-            sys.excepthook(sys.last_type, sys.last_value, sys.last_traceback)
+        sys.excepthook(sys.last_type, sys.last_value, sys.last_traceback)
 
         self.locals[mangle("*e")] = sys.last_value
 
@@ -487,9 +481,8 @@ def run_repl(hr=None, **kwargs):
     with filtered_hy_exceptions(), \
          extend_linecache(hr.cmdline_cache), \
          completion(Completer(namespace)):
-        hr.interact("{appname} {version} using "
+        hr.interact("Hy {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
-                        appname=hy.__appname__,
                         version=hy.__version__,
                         py=platform.python_implementation(),
                         build=platform.python_build()[0],

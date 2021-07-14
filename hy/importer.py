@@ -2,8 +2,6 @@
 # This file is part of Hy, which is free software licensed under the Expat
 # license. See the LICENSE.
 
-from __future__ import absolute_import
-
 import sys
 import os
 import inspect

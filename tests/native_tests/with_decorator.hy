@@ -32,8 +32,7 @@
   (assert (= cls.attr2 456)))
 
 
-(defn test-decorator-clobbing []
-  "NATIVE: Tests whether nested decorators work"
+(defn test-nested-decorators []
   (do
     (defn dec1 [f] (fn [] (+ (f) 1)))
     (defn dec2 [f] (fn [] (+ (f) 2)))

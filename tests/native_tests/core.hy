@@ -27,7 +27,6 @@
          (else (assert False)))))
 
 (defn test-coll? []
-  "NATIVE: testing coll?"
   (assert-true (coll? [1 2 3]))
   (assert-true (coll? {"a" 1 "b" 2}))
   (assert-true (coll? (range 10)))
@@ -35,7 +34,6 @@
   (assert-false (coll? 1)))
 
 (defn test-butlast []
-  "NATIVE: testing butlast function"
   (assert-equal (list (butlast (range 10)))
                 [0 1 2 3 4 5 6 7 8])
   (assert-equal (list (butlast [1]))
@@ -48,14 +46,12 @@
                 [10 11 12 13 14]))
 
 (defn test-dec []
-  "NATIVE: testing the dec function"
   (assert-equal 0 (dec 1))
   (assert-equal -1 (dec 0))
   (assert-equal 0 (dec (dec 2)))
   (assert-requires-num dec))
 
 (defn test-setv []
-  "NATIVE: testing setv mutation"
   (setv x 1)
   (setv y 1)
   (assert-equal x y)
@@ -85,7 +81,6 @@
   (assert-equal (set (foopermutations [2 3 1])) p))
 
 (defn test-distinct []
-  "NATIVE: testing the distinct function"
   (setv res (list (distinct [ 1 2 3 4 3 5 2 ])))
   (assert-equal res [1 2 3 4 5])
   ;; distinct of an empty list should be []
@@ -100,7 +95,6 @@
   (assert-equal res [1 2 3 5 None 4]))
 
 (defn test-drop-last []
-  "NATIVE: testing drop-last function"
   (assert-equal (list (drop-last 5 (range 10 20)))
                 [10 11 12 13 14])
   (assert-equal (list (drop-last 0 (range 5)))
@@ -156,7 +150,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-false (get result "y in globals")))
 
 (defn test-filter []
-  "NATIVE: testing the filter function"
   (setv res (list (filter (fn [x] (> x 0)) [ 1 2 3 -4 5])))
   (assert-equal res [ 1 2 3 5 ])
   ;; test with iter
@@ -177,7 +170,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal res [None None]))
 
 (defn test-flatten []
-  "NATIVE: testing the flatten function"
   (setv res (flatten [1 2 [3 4] 5]))
   (assert-equal res [1 2 3 4 5])
   (setv res (flatten ["foo" (, 1 2) [1 [2 3] 4] "bar"]))
@@ -197,7 +189,6 @@ result['y in globals'] = 'y' in globals()")
        (except [e [TypeError]] (assert (in "not a collection" (str e))))))
 
 (defn test-gensym []
-  "NATIVE: testing the gensym function"
   (setv s1 (hy.gensym))
   (assert (isinstance s1 hy.models.Symbol))
   (assert (= 0 (.find s1 "_G\uffff")))
@@ -208,7 +199,6 @@ result['y in globals'] = 'y' in globals()")
   (assert (not (= (str s2) (str s3)))))
 
 (defn test-inc []
-  "NATIVE: testing the inc function"
   (assert-equal 3 (inc 2))
   (assert-equal 0 (inc -1))
   (assert-requires-num inc)
@@ -218,7 +208,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal (inc (X)) "__add__ got 1"))
 
 (defn test-parse-args []
-  "NATIVE: testing the parse-args function"
   ; https://github.com/hylang/hy/issues/1875
   (setv parsed-args (parse-args [["strings" :nargs "+" :help "Strings"]
                                  ["-n" :action "append" :type int :help "Numbers" "--numbers"]]
@@ -228,7 +217,6 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal parsed-args.numbers [1 2]))
 
 (defn test-doto []
-  "NATIVE: testing doto macro"
   (setv collection [])
   (doto collection (.append 1) (.append 2) (.append 3))
   (assert-equal collection [1 2 3])
@@ -238,12 +226,10 @@ result['y in globals'] = 'y' in globals()")
   (assert-equal res [2 1]))
 
 (defn test-import-init-hy []
-  "NATIVE: testing import of __init__.hy"
   (import tests.resources.bin)
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
 
 (defn test-constantly []
-  "NATIVE: test constantly"
   (setv helper (constantly 42))
 
   (assert-true (= (helper) 42))

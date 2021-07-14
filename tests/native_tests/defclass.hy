@@ -3,13 +3,11 @@
 ;; license. See the LICENSE.
 
 (defn test-defclass []
-  "NATIVE: test defclass simple mechanism"
   (defclass A)
   (assert (isinstance (A) A)))
 
 
 (defn test-defclass-inheritance []
-  "NATIVE: test defclass inheritance"
   (defclass A [])
   (assert (isinstance (A) object))
   (defclass A [object])
@@ -25,7 +23,6 @@
 
 
 (defn test-defclass-attrs []
-  "NATIVE: test defclass attributes"
   (defclass A []
     (setv x 42))
   (assert (= A.x 42))
@@ -33,7 +30,6 @@
 
 
 (defn test-defclass-attrs-fn []
-  "NATIVE: test defclass attributes with fn"
   (defclass B []
     (setv x 42)
     (setv y (fn [self value]
@@ -46,7 +42,6 @@
 
 
 (defn test-defclass-dynamic-inheritance []
-  "NATIVE: test defclass with dynamic inheritance"
   (defclass A [((fn [] (if True list dict)))]
     (setv x 42))
   (assert (isinstance (A) list))
@@ -56,7 +51,6 @@
 
 
 (defn test-defclass-no-fn-leak []
-  "NATIVE: test defclass attributes with fn"
   (defclass A []
     (setv x (fn [] 1)))
   (try
@@ -66,7 +60,6 @@
    (except [NameError])))
 
 (defn test-defclass-docstring []
-  "NATIVE: test defclass docstring"
   (defclass A []
     (setv __doc__ "doc string")
     (setv x 1))
@@ -89,7 +82,6 @@
   (assert (in "end" mL.__doc__)))
 
 (defn test-defclass-macroexpand []
-  "NATIVE: test defclass with macro expand"
   (defmacro M [] `(defn x [self x] (setv self._x x)))
   (defclass A [] (M))
   (setv a (A))
@@ -97,7 +89,7 @@
   (assert (= a._x 1)))
 
 (defn test-defclass-syntax []
-  "NATIVE: test defclass syntax with properties and methods and side-effects"
+  "defclass syntax with properties and methods and side-effects"
   (setv foo 1)
   (defclass A []
     (setv x 1)
@@ -115,7 +107,7 @@
   (assert (.greet a) "hello"))
 
 (defn test-class-sideeffects []
-  "NATIVE: test that defclass runs all expressions"
+  "defclass should run all expressions."
   (defn set-sentinel []
     (setv set-sentinel.set True))
   (setv set-sentinel.set False)

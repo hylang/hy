@@ -12,8 +12,7 @@
   (quasiquote (do (unquote-splice (list (reversed body))))))
 
 
-(defn test-rev-macro []
-  "NATIVE: test stararged native macros"
+(defn test-stararged-native-macro []
   (setv x [])
   (rev (.append x 1) (.append x 2) (.append x 3))
   (assert (= x [3 2 1])))
@@ -64,7 +63,8 @@
   (foo x y))
 
 (defn test-macro-kw []
-  "NATIVE: test that an error is raised when * or #** is used in a macro"
+  "An error is raised when * or #** is used in a macro"
+
   (with [excifno (pytest.raises HySyntaxError)]
     (hy.eval '(defmacro f [* a b]))
     (assert (= (. excinfo value msg) "macros cannot use '*'")))
@@ -82,8 +82,7 @@
     (hy.eval '(defmacro "foo.bar" [])))
   (assert (in "periods are not allowed in macro names" e.value.msg)))
 
-(defn test-fn-calling-macro []
-  "NATIVE: test macro calling a plain function"
+(defn test-macro-calling-fn []
   (assert (= 3 (bar 1 2))))
 
 (defn test-optional-and-unpacking-in-macro []
@@ -103,18 +102,18 @@
   (assert (= f.__doc__ "hello world")))
 
 (defn test-midtree-yield []
-  "NATIVE: test yielding with a returnable"
+  "Test yielding with a returnable."
   (defn kruft [] (yield) (+ 1 1)))
 
 (defn test-midtree-yield-in-for []
-  "NATIVE: test yielding in a for with a return"
+  "Test yielding in a for with a return."
   (defn kruft-in-for []
     (for [i (range 5)]
       (yield i))
     (+ 1 2)))
 
 (defn test-midtree-yield-in-while []
-  "NATIVE: test yielding in a while with a return"
+  "Test yielding in a while with a return."
   (defn kruft-in-while []
     (setv i 0)
     (while (< i 5)
@@ -123,7 +122,6 @@
     (+ 2 3)))
 
 (defn test-multi-yield []
-  "NATIVE: testing multiple yields"
   (defn multi-yield []
     (for [i (range 3)]
       (yield i))
@@ -271,7 +269,6 @@
 
 
 (defn test-lif []
-  "test that lif works as expected"
   ;; None is false
   (assert (= (lif None "true" "false") "false"))
 
@@ -294,7 +291,6 @@
 
 
 (defn test-defmain []
-  "NATIVE: make sure defmain is clean"
   (global __name__)
   (setv oldname __name__)
   (setv __name__ "__main__")

@@ -149,7 +149,6 @@
 
 
 (defn test-for-loop []
-  "NATIVE: test for loops"
   (setv count1 0 count2 0)
   (for [x [1 2 3 4 5]]
     (setv count1 (+ count1 x))
@@ -196,11 +195,8 @@
 
 
 (defn test-nasty-for-nesting []
-  "NATIVE: test nesting for loops harder"
   ;; This test and feature is dedicated to @nedbat.
-
-  ;; OK. This next test will ensure that we call the else branch exactly
-  ;; once.
+  ;; Ensure that we call the else branch exactly once.
   (setv flag 0)
   (for [x (range 2)
         y (range 2)]
