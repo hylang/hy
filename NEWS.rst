@@ -9,10 +9,12 @@ Other Breaking Changes
   `(import [foo [bar]])` is now `(import foo [bar])`
   and `(import [foo :as baz])` is now `(import foo :as baz)`.
   To import all names from a module, use `(import foo *)`.
+* Dropped support for `pyreadline`
 
 Bug Fixes
 ------------------------------
 * Improved error messages for illegal uses of `finally` and `else`.
+* Fixed a crash on Windows due to Readline
 
 1.0a3 (released 2021-07-09)
 ==============================

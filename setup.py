@@ -69,7 +69,6 @@ setup(
         'funcparserlib>=0.3.6',
         'colorama',
         'astor>=0.8 ; python_version < "3.9"',
-        'pyreadline>=2.1 ; os_name == "nt"',
     ],
     cmdclass=dict(install=Install),
     entry_points={
