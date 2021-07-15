@@ -1568,7 +1568,10 @@ base names, such that ``hy.core.language.butlast`` can be called with just ``but
       flatten, inc,
       parse-args, rest, xor
 
-.. hy:automodule:: hy.core.shadow
+Python Operators
+----------------
+
+.. hy:automodule:: hy.pyops
    :members:
 
 Additional Modules

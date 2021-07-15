@@ -74,7 +74,8 @@ Finally, Hy offers several generalizations to Python's binary operators.
 Operators can be given more than two arguments (e.g., ``(+ 1 2 3)``), including
 augmented assignment operators (e.g., ``(+= x 1 2 3)``). They are also provided
 as ordinary first-class functions of the same name, allowing them to be passed
-to higher-order functions: ``(sum xs)`` could be written ``(reduce + xs)``.
+to higher-order functions: ``(sum xs)`` could be written ``(reduce + xs)``,
+after importing the function ``+`` from the module ``hy.pyops``.
 
 The Hy compiler works by reading Hy source code into Hy model objects and
 compiling the Hy model objects into Python abstract syntax tree (:py:mod:`ast`)
