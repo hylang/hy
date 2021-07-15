@@ -33,6 +33,12 @@ _jit_imports = dict(
     as_model = "hy.models")
 
 def __getattr__(k):
+    if k == 'pyops':
+        global pyops
+        import hy.pyops
+        pyops = hy.pyops
+        return pyops
+
     if k not in _jit_imports:
         raise AttributeError(f'module {__name__!r} has no attribute {k!r}')
     v = _jit_imports[k]
