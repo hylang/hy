@@ -2,13 +2,29 @@
 ;; This file is part of Hy, which is free software licensed under the Expat
 ;; license. See the LICENSE.
 
+"Python provides various :ref:`binary and unary operators
+<py:expressions>`. These are usually invoked in Hy using core macros of
+the same name: for example, ``(+ 1 2)`` calls the core macro named
+``+``, which uses Python's addition operator. An exception to the names
+being the same is that Python's ``==`` is called ``=`` in Hy.
+
+By importing from the module ``hy.pyops`` (typically with a star import,
+as in ``(import hy.pyops *)``), you can also use these operators as
+functions. Functions are first-class objects, so you can say things like
+``(map - xs)`` to negate all the numbers in the list ``xs``. Since
+macros shadow functions, forms like ``(- 1 2)`` will still call the
+macro instead of the function.
+
+The functions in ``hy.pyops`` have the same semantics as their macro
+equivalents, with one exception: functions can't short-circuit, so the
+functions for the logical operators, such as ``and``, unconditionally
+evaluate all arguments."
+
 ;;;; Hy shadow functions
 
-(import operator)
-
-(import hy.lex [mangle])
-
-(import functools [reduce])
+(import
+  functools [reduce]
+  operator)
 
 (defn + [#* args]
   "Shadowed `+` operator adds `args`."
@@ -265,7 +281,7 @@
   coll)
 
 (setv __all__
-  (list (map mangle [
+  (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
     '<< '>> '& '| '^ '~
     '< '> '<= '>= '= '!=

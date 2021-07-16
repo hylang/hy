@@ -3,6 +3,7 @@
 ;; license. See the LICENSE.
 
 (import pytest)
+(import hy.pyops *)
 
 (defmacro op-and-shadow-test [op #* body]
   ; Creates two tests with the given `body`, one where all occurrences

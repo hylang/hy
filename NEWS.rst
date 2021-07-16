@@ -9,6 +9,9 @@ Other Breaking Changes
   `(import [foo [bar]])` is now `(import foo [bar])`
   and `(import [foo :as baz])` is now `(import foo :as baz)`.
   To import all names from a module, use `(import foo *)`.
+* Functions that provide first-class Python operators, such as ``+``
+  in constructs like ``(reduce + xs)``, are no longer brought
+  into scope automatically. Say ``(import hy.pyops *)`` to get them.
 
 Bug Fixes
 ------------------------------

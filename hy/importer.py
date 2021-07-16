@@ -176,11 +176,10 @@ def _inject_builtins():
     # do this manually, or else we end up in a weird circular import
     # problem in `load_macros` with importlib trying to import
     # `hy.core` before macros have been injected.
-    for m in "hy.core.shadow", "hy.core.language":
-        builtins.__dict__.update({
-            k: v
-            for k, v in importlib.import_module(m).__dict__.items()
-            if not k.startswith("_") and k != "hy"})
+    builtins.__dict__.update({
+        k: v
+        for k, v in importlib.import_module("hy.core.language").__dict__.items()
+        if not k.startswith("_") and k != "hy"})
 
     # Set the marker so we don't inject again.
     builtins.__hy_injected__ = True

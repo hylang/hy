@@ -33,6 +33,5 @@
   (if (is _cache None) (do
     (setv _cache (| (macros) (frozenset (map hy.unmangle (+
       hy.core.language.__all__
-      hy.core.shadow.__all__
       keyword.kwlist)))))))
   _cache)

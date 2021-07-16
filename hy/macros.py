@@ -43,7 +43,7 @@ def pattern_macro(names, pattern, shadow = None):
                         any(is_unpack("iterable", x) for x in args)):
                     # Try a shadow function call with this name instead.
                     return Expression([
-                        Symbol('hy.core.shadow.' + name),
+                        Symbol('hy.pyops.' + name),
                         *args]).replace(hy_compiler.this)
 
                 expr = hy_compiler.this
