@@ -22,11 +22,9 @@ evaluate all arguments."
 
 ;;;; Hy shadow functions
 
-(import operator)
-
-(import hy.lex [mangle])
-
-(import functools [reduce])
+(import
+  functools [reduce]
+  operator)
 
 (defn + [#* args]
   "Shadowed `+` operator adds `args`."
@@ -283,7 +281,7 @@ evaluate all arguments."
   coll)
 
 (setv __all__
-  (list (map mangle [
+  (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
     '<< '>> '& '| '^ '~
     '< '> '<= '>= '= '!=
