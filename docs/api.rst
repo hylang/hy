@@ -1574,70 +1574,9 @@ Python Operators
 .. hy:automodule:: hy.pyops
    :members:
 
-Additional Modules
-------------------
-
-These additional modules are provided along with Hy to provide Hy-thonic solutions
-to common problems. Unlike :ref:`Core`, they are not auto imported and their methods and
-macros must be explicitly :hy:func:`imported <import>` or :hy:func:`required <require>`
-respectively.
-
 Reserved
 --------
 
 .. hy:automodule:: hy.reserved
    :members:
 
-Extra
-*****
-
-Anaphoric
-^^^^^^^^^
-
-.. hy:automodule:: hy.extra.anaphoric
-   :members:
-
-Contributor Modules
-*********************
-
-Sequences
-^^^^^^^^^
-
-.. hy:automodule:: hy.contrib.sequences
-   :members:
-
-Walk
-^^^^
-
-.. hy:automodule:: hy.contrib.walk
-   :members:
-
-Profile
-^^^^^^^
-
-.. hy:automodule:: hy.contrib.profile
-   :members:
-
-Loop
-^^^^
-
-.. hy:automodule:: hy.contrib.loop
-   :members:
-
-PPrint
-^^^^^^
-
-.. hy:automodule:: hy.contrib.pprint
-   :members:
-
-Destructure
-^^^^^^^^^^^
-
-.. hy:automodule:: hy.contrib.destructure
-   :members:
-
-Slicing
-^^^^^^^
-
-.. hy:automodule:: hy.contrib.slicing
-   :members:
