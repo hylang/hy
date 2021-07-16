@@ -1582,6 +1582,11 @@ to common problems. Unlike :ref:`Core`, they are not auto imported and their met
 macros must be explicitly :hy:func:`imported <import>` or :hy:func:`required <require>`
 respectively.
 
+Reserved
+--------
+
+.. hy:automodule:: hy.reserved
+   :members:
 
 Extra
 *****
@@ -1590,12 +1595,6 @@ Anaphoric
 ^^^^^^^^^
 
 .. hy:automodule:: hy.extra.anaphoric
-   :members:
-
-Reserved
-^^^^^^^^^
-
-.. hy:automodule:: hy.extra.reserved
    :members:
 
 Contributor Modules

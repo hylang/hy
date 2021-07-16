@@ -9,7 +9,7 @@
         collections [OrderedDict]
         hy.macros [macroexpand :as mexpand]
         hy.compiler [HyASTCompiler calling-module]
-        hy.extra.reserved)
+        hy.reserved)
 
 (defn walk [inner outer form]
   "``walk`` traverses ``form``, an arbitrary data structure. Applies
@@ -225,7 +225,7 @@
   (expand form))
 
 (setv _mangled-core-macros (frozenset
-  (map hy.mangle (hy.extra.reserved.macros))))
+  (map hy.mangle (hy.reserved.macros))))
 
 
 (defn lambda-list [form]

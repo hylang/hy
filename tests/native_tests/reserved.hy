@@ -1,4 +1,4 @@
-(import hy.extra.reserved [macros names])
+(import hy.reserved [macros names])
 
 (defn test-reserved-macros []
   (assert (is (type (macros)) frozenset))

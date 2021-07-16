@@ -211,7 +211,7 @@
       },
       {
         "name": "Reserved",
-        "methods": ["hy.extra.reserved.names"]
+        "methods": ["hy.reserved.names"]
       }
     ]
   },
