@@ -80,6 +80,7 @@ setup(
     },
     packages=find_packages(exclude=['tests*']),
     package_data={
+        'hy': ['*.hy', '__pycache__/*'],
         'hy.contrib': ['*.hy', '__pycache__/*'],
         'hy.core': ['*.hy', '__pycache__/*'],
         'hy.extra': ['*.hy', '__pycache__/*'],
