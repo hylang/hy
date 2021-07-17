@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 
-import glob
-import importlib
-import inspect
-import os
-import sys
-
 from setuptools import find_packages, setup
-from setuptools.command.install import install
 import fastentrypoints   # Monkey-patches setuptools.
 
 from get_version import __version__
@@ -20,44 +13,6 @@ long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
-class Install(install):
-    def __compile_hy_bytecode(self):
-        for path in sorted(glob.iglob('hy/**.hy', recursive=True)):
-            importlib.util.cache_from_source(path, optimize=self.optimize)
-
-    def run(self):
-        # Don't bother messing around with deps if they wouldn't be installed anyway.
-        # Code is based on setuptools's install.py.
-        if not (self.old_and_unmanageable or self.single_version_externally_managed
-                or not self._called_from_setup(inspect.currentframe())):
-            easy_install = self.distribution.get_command_class('easy_install')
-
-            cmd = easy_install(
-                self.distribution, args="x", root=self.root, record=self.record,
-            )
-            cmd.ensure_finalized()
-            cmd.always_copy_from = '.'
-            cmd.package_index.scan(glob.glob('*.egg'))
-
-            cmd.args = self.distribution.install_requires
-
-            # Avoid deprecation warnings on new setuptools versions.
-            if 'show_deprecation' in inspect.signature(cmd.run).parameters:
-                cmd.run(show_deprecation=False)
-            else:
-                cmd.run()
-
-            # Make sure any new packages get picked up.
-            import site
-            importlib.reload(site)
-            importlib.invalidate_caches()
-
-        self.__compile_hy_bytecode()
-
-        # The deps won't be reinstalled because of:
-        # https://github.com/pypa/setuptools/issues/456
-        return install.run(self)
-
 setup(
     name=PKG,
     version=__version__,
@@ -67,7 +22,6 @@ setup(
         'colorama',
         'astor>=0.8 ; python_version < "3.9"',
     ],
-    cmdclass=dict(install=Install),
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
