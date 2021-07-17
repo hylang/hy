@@ -139,17 +139,10 @@ def render_quoted_form(compiler, form, level):
         for x in form:
             f_contents, splice = render_quoted_form(compiler, x, level)
             if splice:
-                contents.append(Expression([
-                    Symbol("list"),
-                    Expression([Symbol("or"), f_contents, List()])]))
-            else:
-                contents.append(List([f_contents]))
-        if form:
-            # If there are arguments, they can be spliced
-            # so we build a sum...
-            body = [Expression([Symbol("+"), List()] + contents)]
-        else:
-            body = [List()]
+                f_contents = Expression([Symbol("unpack-iterable"),
+                                         Expression([Symbol("or"), f_contents, List()])])
+            contents.append(f_contents)
+        body = [List(contents)]
 
         if isinstance(form, FString) and form.brackets is not None:
             body.extend([Keyword("brackets"), form.brackets])
@@ -166,7 +159,7 @@ def render_quoted_form(compiler, form, level):
         if form.brackets is not None:
             body.extend([Keyword("brackets"), form.brackets])
 
-    ret = Expression([Symbol(name)] + body).replace(form)
+    ret = Expression([Symbol(name), *body]).replace(form)
     return ret, False
 
 # ------------------------------------------------
