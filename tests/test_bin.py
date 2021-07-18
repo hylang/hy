@@ -112,7 +112,7 @@ def test_bin_hy_stdin_assignment():
 def test_bin_hy_stdin_as_arrow():
     # https://github.com/hylang/hy/issues/1255
     output, _ = run_cmd("hy", "(as-> 0 it (inc it) (inc it))")
-    assert re.match(r"=>\s+2L?\s+=>", output)
+    assert re.match(r"=>\s+2\s+=>", output)
 
 
 def test_bin_hy_stdin_error_underline_alignment():
