@@ -725,12 +725,6 @@
   (assert (= (cut [1 2 3 4 5]) [1 2 3 4 5])))
 
 
-(defn test-rest []
-  (assert (= (list (rest [1 2 3 4 5])) [2 3 4 5]))
-  (assert (= (list (islice (rest (count 8)) 3)) [9 10 11]))
-  (assert (= (list (rest [])) [])))
-
-
 (defn test-importas []
   (assert (!= (len systest.path) 0)))
 
@@ -989,25 +983,6 @@
   (assert (= l ["a" "b"]))
   (setv x (or 0 (del (get l 1))))
   (assert (= l ["a"])))
-
-(defn test-xor []
-
-  ; Test each cell of the truth table.
-  (assert (is (xor False  False) False))
-  (assert (is (xor False True)  True))
-  (assert (is (xor True  False) True))
-  (assert (is (xor True  True)  False))
-
-  ; Same thing, but with numbers.
-  (assert (is (xor 0 0) 0))
-  (assert (is (xor 0 1) 1))
-  (assert (is (xor 1 0) 1))
-  (assert (is (xor 1 1) False))
-
-  ; Of two distinct false values, the second is returned.
-  (assert (is (xor False 0) 0))
-  (assert (is (xor 0 False) False)))
-
 
 (defn test-if-return-branching []
   ; thanks, kirbyfan64
