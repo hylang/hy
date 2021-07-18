@@ -353,13 +353,6 @@ def test_bin_hy_builtins():
     assert type(builtins.quit) is hy.cmdline.HyQuitter
 
 
-def test_bin_hy_shadowing_core():
-    # make sure we don't shadow user symbols with hy's core
-    # https://github.com/hylang/hy/issues/791
-    output, _ = run_cmd("hy", "(defn dec [x] (+ 66 x))\n(dec 4)")
-    assert "70" in output
-
-
 def test_bin_hy_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
