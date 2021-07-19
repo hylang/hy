@@ -1,8 +1,3 @@
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
-
-
 (defn test-hyphen []
   (setv a-b 1)
   (assert (= a-b 1))

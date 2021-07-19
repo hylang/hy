@@ -1,7 +1,4 @@
 ;;; Hy core macros
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
 
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core

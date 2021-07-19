@@ -1,7 +1,4 @@
 ;;; Hy tail-call optimization
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
 
 "The loop/recur macro allows you to construct functions that use tail-call
 optimization to allow arbitrary levels of recursion.

@@ -1,7 +1,3 @@
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
-
 "Python provides various :ref:`binary and unary operators
 <py:expressions>`. These are usually invoked in Hy using core macros of
 the same name: for example, ``(+ 1 2)`` calls the core macro named

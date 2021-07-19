@@ -1,7 +1,4 @@
 ;;; Hy Multi-Index Slicing module
-;; Copyright 2021 the authors.
-;; this file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
 "Macros for elegantly slicing and dicing multi-axis and multidimensional sequences.
 
 Libraries like ``numpy`` and ``pandas`` make extensive use of python's slicing syntax

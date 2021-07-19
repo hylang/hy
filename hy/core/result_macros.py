@@ -1,7 +1,3 @@
-# Copyright 2021 the authors.
-# This file is part of Hy, which is free software licensed under the Expat
-# license. See the LICENSE.
-
 """This file contains Hy's core macros that are written in Python and
 return compiler Result objects (or Python AST objects) rather than Hy
 model trees. These macros serve the role of special forms in other
