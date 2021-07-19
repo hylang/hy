@@ -291,11 +291,11 @@ def test_ast_multi_require():
     # https://github.com/hylang/hy/issues/1903
     x = can_compile("""(require
       tests.resources.tlib [qplah]
-      tests.resources.macros [threadtail-set-cd])""")
+      tests.resources.macros [test-macro])""")
     assert sum(1 for stmt in x.body if isinstance(stmt, ast.Expr)) == 2
     dump = ast.dump(x)
     assert "qplah" in dump
-    assert "threadtail" in dump
+    assert "test-macro" in dump
 
 
 def test_ast_good_get():
@@ -610,13 +610,12 @@ def test_eval_generator_with_return():
 
 
 def test_futures_imports():
-    """Make sure __future__ imports go first, especially when builtins are
-    automatically added (e.g. via use of a builtin name like `rest`)."""
+    """Make sure __future__ imports go first."""
     hy_ast = can_compile(
         '(import __future__ [print_function])'
         '(import sys)'
         '(setv some [1 2])'
-        '(print (list (rest some)))')
+        '(print (cut some 1 None))')
 
     assert hy_ast.body[0].module == '__future__'
 
@@ -648,7 +647,7 @@ def test_module_prelude():
     assert isinstance(hy_ast.body[0], ast.Import)
     assert hy_ast.body[0].module == 'hy'
 
-    hy_ast = can_compile('(setv flag (dec hy.models.Symbol))',
+    hy_ast = can_compile('(setv flag (- hy.models.Symbol 1))',
                          import_stdlib=True)
     assert len(hy_ast.body) == 2
     assert isinstance(hy_ast.body[0], ast.Import)

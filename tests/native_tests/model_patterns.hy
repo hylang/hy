@@ -2,8 +2,9 @@
   (import
     hy.model-patterns [whole FORM notpexpr dolike]
     funcparserlib.parser [many])
-  (setv [body condition] (->> args (.parse (whole
-    [(many (notpexpr "until")) (dolike "until")]))))
+  (setv [body condition] (.parse
+    (whole [(many (notpexpr "until")) (dolike "until")])
+    args))
   (setv g (hy.gensym))
   `(do
     (setv ~g True)
@@ -26,13 +27,15 @@
   (import
     hy.model-patterns [whole FORM sym SYM]
     funcparserlib.parser [many])
-  (setv [loopers body] (->> args (.parse (whole [
-    (many (|
-      (>> (+ (sym "while") FORM) (fn [x] [x]))
-      (+ (sym "for") SYM (sym "in") FORM)
-      (+ (sym "for") SYM (sym "from") FORM (sym "to") FORM)))
-    (sym "do")
-    (many FORM)]))))
+  (setv [loopers body] (.parse
+    (whole [
+      (many (|
+        (>> (+ (sym "while") FORM) (fn [x] [x]))
+        (+ (sym "for") SYM (sym "in") FORM)
+        (+ (sym "for") SYM (sym "from") FORM (sym "to") FORM)))
+      (sym "do")
+      (many FORM)])
+    args))
   (defn f [loopers]
     (setv head (if loopers (get loopers 0)))
     (setv tail (cut loopers 1 None))
@@ -46,7 +49,7 @@
         `(for [~@head] ~(f tail))]
       [True ; (= (len head) 3)
         (setv [sym from to] head)
-        `(for [~sym (range ~from (inc ~to))] ~(f tail))]))
+        `(for [~sym (range ~from (+ ~to 1))] ~(f tail))]))
   (f loopers))
 
 (defn test-loop []

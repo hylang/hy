@@ -19,11 +19,11 @@
 
 (defn test-quoted-macroexpand []
   "Don't expand macros in quoted expressions."
-  (setv q1 (quote (-> a b c)))
-  (setv q2 (quasiquote (-> a b c)))
+  (require tests.resources.macros [test-macro])
+  (setv q1 (quote (test-macro)))
+  (setv q2 (quasiquote (test-macro)))
   (assert (= q1 q2))
-  (assert (= (get q1 0) (quote ->)))
-  (assert (= (cut q1 1 None) (quote (a b c)))))
+  (assert (= (get q1 0) (quote test-macro))))
 
 
 (defn test-quote-dicts []

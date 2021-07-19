@@ -109,9 +109,11 @@ def test_bin_hy_stdin_assignment():
     assert "BY" not in output
 
 
-def test_bin_hy_stdin_as_arrow():
+def test_bin_hy_multi_setv():
     # https://github.com/hylang/hy/issues/1255
-    output, _ = run_cmd("hy", "(as-> 0 it (inc it) (inc it))")
+    output, _ = run_cmd("hy", """(do
+      (setv  it 0  it (+ it 1)  it (+ it 1))
+      it)""".replace("\n", " "))
     assert re.match(r"=>\s+2\s+=>", output)
 
 

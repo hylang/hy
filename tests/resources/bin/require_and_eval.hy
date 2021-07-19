@@ -1,3 +1,3 @@
-(require hy.extra.anaphoric [ap-if])
+(require tests.resources.macros [test-macro])
 
-(print (hy.eval '(ap-if (+ "a" "b") (+ it "c"))))
+(print (hy.eval '(do (test-macro) (cut "zabc" blah None))))

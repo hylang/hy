@@ -68,9 +68,9 @@
         (, 1 3 (, (, 1 0) (, 1 1) (, 1 2) (, 1 3)) 7)
         (, 1 3 (, (, 1 0) (, 1 1) (, 1 2) (, 1 3)) 9)]]
 
-    ['(f x (range 4) :do (unless (% x 2) (continue)) (* x 2))
+    ['(f x (range 4) :do (if (not (% x 2)) (continue)) (* x 2))
       [2 6]]
-    ['(f x (range 4) :setv p 9 :do (unless (% x 2) (continue)) (* x 2))
+    ['(f x (range 4) :setv p 9 :do (if (not (% x 2)) (continue)) (* x 2))
       [2 6]]
     ['(f x (range 20) :do (when (= x 3) (break)) (* x 2))
       [0 2 4]]
@@ -133,18 +133,18 @@
 
   ; An `lfor` that gets compiled to a real comprehension
   (setv x 0)
-  (assert (= (lfor x [1 2 3] (inc x)) [2 3 4]))
+  (assert (= (lfor x [1 2 3] (+ x 1)) [2 3 4]))
   (assert (= x 0))
 
   ; An `lfor` that gets compiled to a loop
   (setv x 0  l [])
-  (assert (= (lfor x [4 5 6] :do (.append l 1) (inc x)) [5 6 7]))
+  (assert (= (lfor x [4 5 6] :do (.append l 1) (+ x 1)) [5 6 7]))
   (assert (= l [1 1 1]))
   (assert (= x 0))
 
   ; An `sfor` that gets compiled to a real comprehension
   (setv x 0)
-  (assert (= (sfor x [1 2 3] (inc x)) #{2 3 4}))
+  (assert (= (sfor x [1 2 3] (+ x 1)) #{2 3 4}))
   (assert (= x 0)))
 
 

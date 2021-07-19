@@ -60,10 +60,17 @@
   (assert (is (match x [0] 0) None))
   (assert (= x (match x (set z) z)))
 
-
-  (assert (= (match [0 1 2]
-                    [0 #* x] :as z :if (as-> z $ (+ $ [3]) (len $) (= $ 4)) 0)
-             0))
+  (assert (=
+    (match [0 1 2] [0 #* x]
+      :as z
+      :if (do
+        (setv
+          $ z
+          $ (+ $ [3])
+          $ (len $))
+        (= $ 4))
+       0)
+    0))
 
   (with-decorator
     dataclass

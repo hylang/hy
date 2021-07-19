@@ -14,7 +14,5 @@
   (assert (in "class" (names)))
   (assert (in "defclass" (names)))
   (assert (in "defmacro" (names)))
-  (assert (in "->" (names)))
-  (assert (in "dec" (names)))
   (assert (not-in "foo" (names)))
   (assert (not-in "hy" (names))))

@@ -15,6 +15,11 @@
 
 (import hy._compat [PY3_8])
 
+
+(defmacro mac [x expr]
+  `(~@expr ~x))
+
+
 (defn test-sys-argv []
   ;; BTW, this also tests inline comments. Which suck to implement.
   (assert (isinstance sys.argv list)))
@@ -94,7 +99,7 @@
 
   (an (setv x (defn phooey [] (setv p 1) (+ p 6))))
   (an (setv x (defclass C)))
-  (an (setv x (for [i (range 3)] i (inc i))))
+  (an (setv x (for [i (range 3)] i (+ i 1))))
   (an (setv x (assert True)))
 
   (an (setv x (with [(open "README.md" "r")] 3)))
@@ -831,7 +836,7 @@
 
 
 (defn test-macro-call-in-called-lambda []
-  (assert (= ((fn [] (-> 2 (+ 1 1) (* 1 2)))) 8)))
+  (assert (= ((fn [] (mac 2 (- 10 1)))) 7)))
 
 
 (defn test-and []
@@ -1384,10 +1389,10 @@ cee\"} dee" "ey bee\ncee dee"))
 
 
 (defn test-macroexpand []
-  (assert (= (hy.macroexpand '(-> (a b) (x y)))
-             '(x (a b) y)))
-  (assert (= (hy.macroexpand '(-> (a b) (-> (c d) (e f))))
-             '(e (c (a b) d) f))))
+  (assert (= (hy.macroexpand '(mac (a b) (x y)))
+             '(x y (a b))))
+  (assert (= (hy.macroexpand '(mac (a b) (mac 5)))
+             '(a b 5))))
 
 (defn test-macroexpand-with-named-import []
   ; https://github.com/hylang/hy/issues/1207
@@ -1397,8 +1402,8 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (hy.macroexpand '(m-with-named-import)) (hy.models.Float (** 2 3)))))
 
 (defn test-macroexpand-1 []
-  (assert (= (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
-             '(-> (a b) (c d) (e f)))))
+  (assert (= (hy.macroexpand-1 '(mac (a b) (mac 5)))
+             '(mac 5 (a b)))))
 
 (defn test-disassemble []
   (defn nos [x] (re.sub r"\s" "" x))
