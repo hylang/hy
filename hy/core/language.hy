@@ -70,7 +70,7 @@
   (global _gensym_counter)
   (global _gensym_lock)
   (.acquire _gensym_lock)
-  (try (do (setv _gensym_counter (inc _gensym_counter))
+  (try (do (setv _gensym_counter (+ _gensym_counter 1))
            (setv new_symbol (Symbol (.format "_{}\uffff{}" g _gensym_counter))))
        (finally (.release _gensym_lock)))
   new_symbol)
