@@ -358,20 +358,6 @@ def test_bin_hy_shadowing_core():
     assert "70" in output
 
 
-def test_bin_hy_main():
-    output, _ = run_cmd("hy tests/resources/bin/main.hy")
-    assert "Hello World" in output
-
-
-def test_bin_hy_main_args():
-    output, _ = run_cmd("hy tests/resources/bin/main.hy test 123 -m -B 9")
-    assert "<test|123|-m|-B|9>" in output
-
-
-def test_bin_hy_main_exitvalue():
-    run_cmd("hy tests/resources/bin/main.hy exit1", expect=1)
-
-
 def test_bin_hy_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
@@ -420,11 +406,6 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
     assert "The macro returned: boink" in output
 
 
-def test_bin_hy_module_main():
-    output, _ = run_cmd("hy -m tests.resources.bin.main")
-    assert "Hello World" in output
-
-
 def test_bin_hy_module_main_file():
     output, _ = run_cmd("hy -m tests.resources.bin")
     assert "This is a __main__.hy" in output
@@ -465,15 +446,6 @@ def test_bin_hyc_file_sys_path():
 
         output, _ = run_cmd(f"{binary} {test_file}")
         assert file_relative_path in output
-
-
-def test_bin_hy_module_main_args():
-    output, _ = run_cmd("hy -m tests.resources.bin.main test 123 -B")
-    assert "<test|123|-B>" in output
-
-
-def test_bin_hy_module_main_exitvalue():
-    run_cmd("hy -m tests.resources.bin.main exit1", expect=1)
 
 
 def test_bin_hy_module_no_main():

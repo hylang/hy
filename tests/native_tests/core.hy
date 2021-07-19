@@ -124,22 +124,9 @@ result['y in globals'] = 'y' in globals()")
   (assert (not (= s2 s3)))
   (assert (not (= (str s2) (str s3)))))
 
-(defn test-doto []
-  (setv collection [])
-  (doto collection (.append 1) (.append 2) (.append 3))
-  (assert-equal collection [1 2 3])
-  (setv res (doto (set) (.add 2) (.add 1)))
-  (assert-equal res (set [1 2]))
-  (setv res (doto [] (.append 1) (.append 2) .reverse))
-  (assert-equal res [2 1]))
-
 (defn test-import-init-hy []
   (import tests.resources.bin)
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
-
-(defn test-comment []
-  (assert-none (comment <h1>This is merely a comment.</h1>
-                        <p> Move along. (Nothing to see here.)</p>)))
 
 (defn test-doc [capsys]
   ;; https://github.com/hylang/hy/issues/1970
@@ -176,36 +163,3 @@ result['y in globals'] = 'y' in globals()")
   ;; presenting a default value help screen
   (with [(pytest.raises NameError)]
     (doc does-not-exist)))
-
-
-(defn test-do-n []
-  (setv n 0)
-
-  (do-n 1 (+= n 1))
-  (assert (= n 1))
-  (do-n 3 (+= n 1))
-  (assert (= n 4))
-  (do-n 0 (+= n 1))
-  (assert (= n 4))
-  (do-n -2 (+= n 1))
-  (assert (= n 4))
-
-  (do-n 2 (+= n 1) (+= n 2))
-  (assert (= n 10))
-
-  (do-n 2 (+= n 1) (+= n 2) (break))
-  (assert (= n 13)))
-
-
-(defn test-list-n []
-
-  (assert (= (list-n 4 1) [1 1 1 1]))
-
-  (setv l (list (range 10)))
-  (assert (= (list-n 3 (.pop l)) [9 8 7])))
-
-(defn test-cfor []
-  (assert (= (cfor tuple x (range 10) :if (% x 2) x) (, 1 3 5 7 9)))
-  (assert (= (cfor all x [1 3 8 5] (< x 10))) True)
-  (assert (= (cfor dict x "ABCD" [x True])
-             {"A" True  "B" True  "C" True  "D" True})))
