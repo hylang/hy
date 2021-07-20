@@ -18,6 +18,10 @@ Bug Fixes
 * `let` should no longer re-evaluate default arguments.
 * Improved error messages for illegal uses of `finally` and `else`.
 
+New Features
+------------------------------
+* the attribute access macro `.` now accepts method calls.
+
 1.0a3 (released 2021-07-09)
 ==============================
 

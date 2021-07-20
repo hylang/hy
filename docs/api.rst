@@ -88,19 +88,19 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    ::
 
-       (. foo bar baz [(+ 1 2)] frob)
+       (. foo (bar "qux")  baz [(+ 1 2)] frob)
 
    Compiles down to:
 
    .. code-block:: python
 
-       foo.bar.baz[1 + 2].frob
+       foo.bar("qux").baz[1 + 2].frob
 
    ``.`` compiles its first argument (in the example, *foo*) as the object on
    which to do the attribute dereference. It uses bare symbols as attributes
-   to access (in the example, *bar*, *baz*, *frob*), and compiles the contents
-   of lists (in the example, ``[(+ 1 2)]``) for indexation. Other arguments
-   raise a compilation error.
+   to access (in the example, *baz*, *frob*), Expressions as method calls (as in *bar*),
+   and compiles the contents of lists (in the example, ``[(+ 1 2)]``) for indexation.
+   Other arguments raise a compilation error.
 
    Access to unknown attributes raises an :exc:`AttributeError`. Access to
    unknown keys raises an :exc:`IndexError` (on lists and tuples) or a
