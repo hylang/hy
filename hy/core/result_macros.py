@@ -440,23 +440,56 @@ def compile_index_expression(compiler, expr, name, obj, indices):
 
     return ret
 
-@pattern_macro(".", [FORM, many(SYM | brackets(FORM))])
+
+
+notsym = lambda *dissallowed: some(
+    lambda x: isinstance(x, Symbol) and str(x) not in dissallowed
+)
+
+
+@pattern_macro(
+    ".",
+    [
+        FORM,
+        many(
+            SYM
+            | brackets(FORM)
+            | pexpr(notsym("unpack-iterable", "unpack-mapping"), many(FORM))
+        ),
+    ],
+)
 def compile_attribute_access(compiler, expr, name, invocant, keys):
     ret = compiler.compile(invocant)
 
     for attr in keys:
         if isinstance(attr, Symbol):
-            ret += asty.Attribute(attr,
-                                  value=ret.force_expr,
-                                  attr=mangle(attr),
-                                  ctx=ast.Load())
-        else: # attr is a hy List
+            ret += asty.Attribute(
+                attr, value=ret.force_expr, attr=mangle(attr), ctx=ast.Load()
+            )
+        elif isinstance(attr, Expression):
+            root, args = attr
+            func = asty.Attribute(
+                root, value=ret.force_expr, attr=mangle(root), ctx=ast.Load()
+            )
+
+            args, funcret, keywords = compiler._compile_collect(args, with_kwargs=True)
+            ret += (
+                funcret
+                + func
+                + asty.Call(expr, func=func, args=args, keywords=keywords)
+            )
+        else:  # attr is a hy List
             compiled_attr = compiler.compile(attr[0])
-            ret = compiled_attr + ret + asty.Subscript(
-                attr,
-                value=ret.force_expr,
-                slice=ast.Index(value=compiled_attr.force_expr),
-                ctx=ast.Load())
+            ret = (
+                compiled_attr
+                + ret
+                + asty.Subscript(
+                    attr,
+                    value=ret.force_expr,
+                    slice=ast.Index(value=compiled_attr.force_expr),
+                    ctx=ast.Load(),
+                )
+            )
 
     return ret
 
@@ -820,9 +853,6 @@ def compile_with_expression(compiler, expr, root, args, body):
 # * `switch`
 # ------------------------------------------------
 
-notsym = lambda *dissallowed: some(
-    lambda x: isinstance(x, Symbol) and str(x) not in dissallowed
-)
 keepsym = lambda wanted: some(lambda x: x == Symbol(wanted))
 _pattern = forward_decl()
 _pattern.define(

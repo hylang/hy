@@ -4,6 +4,7 @@
 
 (import tests.resources [kwtest function-with-a-dash AsyncWithTest]
         os.path [exists isdir isfile]
+        os
         sys :as systest
         re
         operator [or_]
@@ -1528,6 +1529,9 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (is (. foo [(+ 1 1)] __class__) mycls))
   (assert (= (. foo [(+ 1 1)] __class__ __name__ [0]) "m"))
   (assert (= (. foo [(+ 1 1)] __class__ __name__ [1]) "y"))
+  (assert (= (. os (getcwd) (isalpha) __class__ __name__ [0]) "b"))
+  (assert (= (. "ab hello" (strip "ab ") (upper)) "HELLO"))
+  (assert (= (. "hElLO\twoRld" (expandtabs :tabsize 4) (lower)) "hello   world"))
 
   (setv bar (mycls))
   (setv (. foo [1]) bar)
