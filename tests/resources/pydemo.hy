@@ -1,7 +1,3 @@
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
-
 ;; This Hy module is intended to concisely demonstrate all of
 ;; Python's major syntactic features for the purpose of testing hy2py.
 "This is a module docstring."

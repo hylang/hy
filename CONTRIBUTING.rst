@@ -52,21 +52,6 @@ unsure of the proposed change, create an issue to discuss it before
 you write any code. This will allow others to give feedback on your
 idea, and it can avoid wasted work.
 
-File headers
-------------
-
-Every Python or Hy file in the source tree that is potentially
-copyrightable should have the following header (but with ``;;`` in
-place of ``#`` for Hy files)::
-
-      # Copyright [current year] the authors.
-      # This file is part of Hy, which is free software licensed under the Expat
-      # license. See the LICENSE.
-
-As a rule of thumb, a file can be considered potentially copyrightable
-if it includes at least 10 lines that contain something other than
-comments or whitespace. If in doubt, include the header.
-
 Commit formatting
 -----------------
 

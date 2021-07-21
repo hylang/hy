@@ -1,9 +1,3 @@
-;;; Hy profiling macros
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
-
-;;; These macros make debugging where bottlenecks exist easier.
 "Hy Profiling macros
 
 These macros make debugging where bottlenecks exist easier."

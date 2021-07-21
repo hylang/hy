@@ -1,7 +1,4 @@
 ;;; Hy anaphoric macros
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
 ".. versionadded:: 0.9.12
 
 The anaphoric macros module makes functional programming in Hy very

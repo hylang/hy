@@ -1,7 +1,4 @@
 ;;; Hy destructuring bind
-;; Copyright 2021 the authors.
-;; This file is part of Hy, which is free software licensed under the Expat
-;; license. See the LICENSE.
 "
 This module is heavily inspired by destructuring from Clojure and provides very
 similar semantics. It provides several macros that allow for destructuring within

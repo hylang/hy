@@ -1,8 +1,3 @@
-# Copyright 2020 the authors.
-# This file is part of Hy, which is free software licensed under the Expat
-# license. See the LICENSE.
-
-
 def kwtest(*args, **kwargs):
     return kwargs
 

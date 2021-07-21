@@ -1,7 +1,3 @@
-# Copyright 2021 the authors.
-# This file is part of Hy, which is free software licensed under the Expat
-# license. See the LICENSE.
-
 "Parser combinators for pattern-matching Hy model trees."
 
 from hy.models import Expression, Symbol, Keyword, String, List, Dict, Integer, Float, Complex, Bytes

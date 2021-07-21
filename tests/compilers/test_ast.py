@@ -1,8 +1,3 @@
-# -*- encoding: utf-8 -*-
-# Copyright 2021 the authors.
-# This file is part of Hy, which is free software licensed under the Expat
-# license. See the LICENSE.
-
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, HyError
 from hy.lex import hy_parse
