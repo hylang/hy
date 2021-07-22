@@ -115,28 +115,19 @@ def require(source_module, target_module, assignments, prefix=""):
 
     This function is called from the macro also named `require`.
 
-    Parameters
-    ----------
-    source_module: str or types.ModuleType
-        The module from which macros are to be imported.
+    Args:
+        source_module (Union[str, ModuleType]): The module from which macros are
+            to be imported.
+        target_module (Optional[Union[str, ModuleType]]): The module into which the
+            macros will be loaded.  If `None`, then the caller's namespace.
+            The latter is useful during evaluation of generated AST/bytecode.
+        assignments (Union[str, typing.Sequence[str]]): The string "ALL" or a list of macro name and alias pairs.
+        prefix (str): If nonempty, its value is prepended to the name of each imported macro.
+            This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
+            which looks like an attribute of a module. Defaults to ""
 
-    target_module: str, types.ModuleType or None
-        The module into which the macros will be loaded.  If `None`, then
-        the caller's namespace.
-        The latter is useful during evaluation of generated AST/bytecode.
-
-    assignments: str or list of tuples of strs
-        The string "ALL" or a list of macro name and alias pairs.
-
-    prefix: str, optional ("")
-        If nonempty, its value is prepended to the name of each imported macro.
-        This allows one to emulate namespaced macros, like
-        "mymacromodule.mymacro", which looks like an attribute of a module.
-
-    Returns
-    -------
-    out: boolean
-        Whether or not macros were actually transferred.
+    Returns:
+        bool: Whether or not macros were actually transferred.
     """
     if target_module is None:
         parent_frame = inspect.stack()[1][0]
@@ -287,24 +278,18 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     outer-most namespace--e.g.  the one given by the `module` parameter--is used
     as a fallback.
 
-    Parameters
-    ----------
-    tree: hy.models.Object or list
-        Hy AST tree.
+    Args:
+        tree (Union[Object, list]): Hy AST tree.
+        module (Union[str, ModuleType]): Module used to determine the local
+            namespace for macros.
+        compiler (Optional[HyASTCompiler] ): The compiler object passed to
+            expanded macros. Defaults to None
+        once (bool): Only expand the first macro in `tree`. Defaults to False
+        result_ok (bool): Whether or not it's okay to return a compiler `Result` instance.
+            Defaults to True.
 
-    module: str or types.ModuleType
-        Module used to determine the local namespace for macros.
-
-    compiler: HyASTCompiler, optional
-        The compiler object passed to expanded macros.
-
-    once: boolean, optional
-        Only expand the first macro in `tree`.
-
-    Returns
-    ------
-    out: hy.models.Object
-        Returns a mutated tree with macros expanded.
+    Returns:
+        Union[Object, Result]: A mutated tree with macros expanded.
     """
     if not inspect.ismodule(module):
         module = importlib.import_module(module)
