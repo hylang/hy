@@ -29,7 +29,7 @@
   `(do ~@defns))
 
 (defmacro forbid [expr]
-  (setv e (gensym))
+  (setv e (hy.gensym))
   `(do
      (with [~e (pytest.raises Exception)]
        (hy.eval '~expr))
