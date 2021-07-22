@@ -1,7 +1,3 @@
-;;;; This contains some of the core Hy functions used
-;;;; to make functional programming slightly easier.
-;;;;
-
 (import itertools)
 (import collections.abc [Iterable])
 (import hy.models [Keyword Symbol]
