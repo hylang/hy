@@ -121,6 +121,21 @@
     (hy.eval '(match 1
                      1 :if True :as x x))))
 
+(defn test-matching-side-effects []
+  (setv x 0)
+  (defn foo []
+    (nonlocal x)
+    (+= x 1)
+    x)
+  (match (foo)
+         n (assert (= n 1)))
+  (match (do (setv y x) (foo))
+         n (assert (= n 2)))
+  (match (do (foo) (foo))
+         n (assert (= n 4)))
+  (match (do (foo) (foo) x)
+         n (assert (= n 6))))
+
 (defn test-let-with-pattern-matching []
   (let [x [1 2 3]
         y (dict :a 1 :b 2 :c 3)

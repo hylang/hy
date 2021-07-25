@@ -927,7 +927,6 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
         temp_variables=[return_var],
     )
     ret = Result() + subject
-    ret += subject.expr_as_stmt()
     ret += asty.Assign(expr, targets=[return_var], value=asty.Constant(expr, value=None))
     if not match_cases:
         return ret + returnable
