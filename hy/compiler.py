@@ -10,6 +10,7 @@ from hy.model_patterns import (FORM, KEYWORD, unpack)
 from hy.errors import (HyCompileError, HyLanguageError, HySyntaxError)
 from hy.lex import mangle
 from hy.macros import macroexpand
+from hy.scoping import ScopeGlobal
 
 
 hy_ast_compile_flags = 0
@@ -322,6 +323,8 @@ class HyASTCompiler:
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})
+
+        self.scope = ScopeGlobal(self)
 
     def get_anon_var(self, base="_hy_anon_var"):
         self.anon_var_count += 1
@@ -804,7 +807,8 @@ def hy_compile(
         # Import hy for compile time, but save the compiled AST.
         stdlib_ast = compiler.compile(mkexpr("eval-and-compile", mkexpr("import", "hy")))
 
-    result = compiler.compile(tree)
+    with compiler.scope:
+        result = compiler.compile(tree)
     expr = result.force_expr
 
     if not get_expr:
