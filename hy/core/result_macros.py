@@ -1386,13 +1386,17 @@ def compile_class_expression(compiler, expr, root, name, rest):
     if docstring is not None:
         bodyr += compiler.compile(docstring).expr_as_stmt()
 
-    e = compiler._compile_branch(body)
-    bodyr += e + e.expr_as_stmt()
+    name = mangle(compiler._nonconst(name))
+    compiler.scope.define(name)
+
+    with compiler.scope.create(ScopeFn):
+        e = compiler._compile_branch(body)
+        bodyr += e + e.expr_as_stmt()
 
     return bases + asty.ClassDef(
         expr,
         decorator_list=[],
-        name=mangle(compiler._nonconst(name)),
+        name=name,
         keywords=keywords,
         starargs=None,
         kwargs=None,
