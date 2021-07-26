@@ -17,6 +17,7 @@ Bug Fixes
 ------------------------------
 * `let` should no longer re-evaluate default arguments.
 * Improved error messages for illegal uses of `finally` and `else`.
+* `match` should no longer re-evaluate subect.
 
 New Features
 ------------------------------
