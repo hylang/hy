@@ -173,6 +173,8 @@ class String(Object, str):
     """
     def __new__(cls, s=None, brackets=None):
         value = super(String, cls).__new__(cls, s)
+        if brackets is not None and f"]{brackets}]" in value:
+            raise ValueError(f"Syntactically illegal bracket string: {s!r}")
         value.brackets = brackets
         return value
 
@@ -410,6 +412,16 @@ class FComponent(Sequence):
             super(Object, self).__repr__() +
             ', conversion=' + repr(self.conversion))
 
+
+def _string_in_node(string, node):
+    if isinstance(node, String) and string in node:
+        return True
+    elif isinstance(node, (FComponent, FString)):
+        return any(_string_in_node(string, node) for node in node)
+    else:
+        return False
+
+
 class FString(Sequence):
     """
     Generic Hy F-String object, for smarter f-string handling.
@@ -422,8 +434,11 @@ class FString(Sequence):
               (node
                   for is_string, components in groupby(s,
                       lambda x: isinstance(x, String))
-                  for node in ([reduce(operator.add, components)]
+                  for node in ([reduce(lambda left, right: String(left + right), components)]
                       if is_string else components)))
+
+        if brackets is not None and _string_in_node(f"]{brackets}]", value):
+            raise ValueError(f"Syntactically illegal bracket string: {s!r}")
         value.brackets = brackets
         return value
 

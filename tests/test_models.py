@@ -2,7 +2,7 @@ import copy
 import pytest
 import hy
 from hy.models import (
-    as_model, replace_hy_obj, Symbol, Keyword, String, Integer,
+    FComponent, FString, as_model, replace_hy_obj, Symbol, Keyword, String, Integer,
     List, Dict, Set, Expression, Complex, Float, pretty)
 
 hy.models.COLORED = False
@@ -46,6 +46,19 @@ def test_replace_int():
     """ Test replacing integers."""
     replaced = replace_hy_obj(0, Integer(13))
     assert replaced == Integer(0)
+
+
+def test_invalid_bracket_strings():
+    for string, brackets in [("]foo]", "foo"), ("something ]f] else", "f")]:
+        with pytest.raises(ValueError):
+            String(string, brackets)
+    for nodes, brackets in [
+        ([String("hello"), String("world ]foo]")], "foo"),
+        ([String("something"), FComponent([String("world")]), String("]f]")], "f"),
+        ([String("something"), FComponent([Integer(1), String("]f]")])], "f"),
+    ]:
+        with pytest.raises(ValueError):
+            FString(nodes, brackets=brackets)
 
 
 def test_replace_string_type():
