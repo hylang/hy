@@ -1155,17 +1155,18 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
         isinstance(param, tuple) and param[0] is not None
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
-    body = compiler._compile_branch(body)
+    args, ret = compile_lambda_list(compiler, params)
+    with compiler.scope.create(ScopeFn, args):
+        body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
     if not has_annotations and not body.stmts and root != "fn/a":
-        args, ret = compile_lambda_list(compiler, params, Result())
         return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
     # Otherwise create a standard function
     node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
     name = compiler.get_anon_var()
-    ret = compile_function_node(compiler, expr, node, name, params, returns, body)
+    ret += compile_function_node(compiler, expr, node, name, args, returns, body)
 
     # return its name as the final expr
     return ret + Result(expr=ret.temp_variables[0])
@@ -1173,16 +1174,19 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
 @pattern_macro(["defn", "defn/a"], [OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)])
 def compile_function_def(compiler, expr, root, returns, name, params, body):
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
-    body = compiler._compile_branch(body)
+    args, ret = compile_lambda_list(compiler, params)
+    name = mangle(compiler._nonconst(name))
+    compiler.scope.define(name)
+    with compiler.scope.create(ScopeFn, args):
+        body = compiler._compile_branch(body)
 
-    return compile_function_node(
+    return ret + compile_function_node(
         compiler, expr, node,
-        mangle(compiler._nonconst(name)), params, returns, body
+        name, args, returns, body
     )
 
-def compile_function_node(compiler, expr, node, name, params, returns, body):
+def compile_function_node(compiler, expr, node, name, args, returns, body):
     ret = Result()
-    args, ret = compile_lambda_list(compiler, params, ret)
 
     if body.expr:
         body += asty.Return(body.expr, value=body.expr)
@@ -1227,7 +1231,8 @@ def compile_macro_def(compiler, expr, root, name, params, body):
 
     return ret + ret.expr_as_stmt()
 
-def compile_lambda_list(compiler, params, ret):
+def compile_lambda_list(compiler, params):
+    ret = Result()
     posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
 
     py_reserved_param = next(
