@@ -404,7 +404,14 @@ def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False):
 @pattern_macro(["global", "nonlocal"], [oneplus(SYM)])
 def compile_global_or_nonlocal(compiler, expr, root, syms):
     node = asty.Global if root == "global" else asty.Nonlocal
-    return node(expr, names=list(map(mangle, syms)))
+    ret = node(expr, names=[mangle(s) for s in syms])
+
+    try:
+        compiler.scope.define_nonlocal(ret, root)
+    except SyntaxError as e:
+        raise compiler._syntax_error(expr, e.msg)
+
+    return ret if ret.names else Result()
 
 @pattern_macro("del", [many(FORM)])
 def compile_del_expression(compiler, expr, name, args):
