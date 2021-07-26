@@ -1009,7 +1009,7 @@ def compile_pattern(compiler, pattern):
             kwd_patterns=[compile_pattern(compiler, value) for value in values],
         )
     else:
-        raise compiler._syntax_error(value, "unsuported")
+        raise compiler._syntax_error(value, "unsupported")
 
 # ------------------------------------------------
 # * `raise` and `try`
