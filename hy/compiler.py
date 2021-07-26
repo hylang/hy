@@ -69,21 +69,42 @@ def builds_model(*model_types):
 # Provide asty.Foo(x, ...) as shorthand for
 # ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
+# Also provides asty.parse(x, ...) which recursively
+# copies x's position data onto the parse result.
 class Asty:
+    POS_ATTRS = {
+        'lineno': 'start_line',
+        'col_offset': 'start_column',
+        'end_lineno': 'end_line',
+        'end_col_offset': 'end_column',
+    }
+
+    @staticmethod
+    def _get_pos(node):
+        return {
+            attr: getattr(node, hy_attr,
+                          getattr(node, attr, None))
+            for attr, hy_attr in Asty.POS_ATTRS.items()
+        }
+
+    @staticmethod
+    def _replace_pos(node, pos):
+        for attr, value in pos.items():
+            if hasattr(node, attr):
+                setattr(node, attr, value)
+        for child in ast.iter_child_nodes(node):
+            Asty._replace_pos(child, pos)
+
+    def parse(self, x, *args, **kwargs):
+        res = ast.parse(*args, **kwargs)
+        Asty._replace_pos(res, Asty._get_pos(x))
+        return res
+
     def __getattr__(self, name):
-        setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
-            lineno=getattr(
-                x, 'start_line', getattr(x, 'lineno', None)),
-            col_offset=getattr(
-                x, 'start_column', getattr(x, 'col_offset', None)),
-            end_lineno=getattr(
-                x, 'end_line', getattr(x, 'end_lineno', None)
-            ),
-            end_col_offset=getattr(
-                x, 'end_column', getattr(x, 'end_col_offset', None)
-            ),
-            **kwargs)))
+        setattr(Asty, name, staticmethod(
+            lambda x, **kwargs: getattr(ast, name)(**Asty._get_pos(x), **kwargs)))
         return getattr(Asty, name)
+
 asty = Asty()
 
 

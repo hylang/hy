@@ -78,7 +78,8 @@ def compile_inline_python(compiler, expr, root, code):
     exec_mode = root == "pys"
 
     try:
-        o = ast.parse(
+        o = asty.parse(
+            expr,
             textwrap.dedent(code) if exec_mode else code,
             compiler.filename,
             'exec' if exec_mode else 'eval').body
@@ -645,7 +646,8 @@ def compile_comprehension(compiler, expr, root, parts, final):
     if is_for:
         parts = parts[0]
     if not parts:
-        return Result(expr=ast.parse({
+        return Result(expr=asty.parse(
+            expr, {
             asty.For: "None",
             asty.ListComp: "[]",
             asty.DictComp: "{}",
@@ -717,7 +719,8 @@ def compile_comprehension(compiler, expr, root, parts, final):
         # `{}.__class__(...)` or `{1}.__class__(...)` to get the
         # right type. We don't want to just use e.g. `list(...)`
         # because the name `list` might be rebound.
-        return ret + Result(expr=ast.parse(
+        return ret + Result(expr=asty.parse(
+            expr,
             "{}({}())".format(
                 {asty.ListComp: "[].__class__",
                  asty.DictComp: "{}.__class__",
@@ -912,7 +915,7 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
                     decorator_list=[],
                 )
                 lifted_if_defs.append(guardret)
-                guard = Result(expr=ast.parse(f"{fname}()").body[0].value)
+                guard = Result(expr=asty.parse(guard, f"{fname}()").body[0].value)
 
         match_cases.append(
             ast.match_case(
