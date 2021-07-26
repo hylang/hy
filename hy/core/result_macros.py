@@ -1459,6 +1459,7 @@ def compile_import_or_require(compiler, expr, root, entries):
                 node = asty.ImportFrom
                 names = [asty.alias(module, name="*", asname=None)]
             elif assignments == "ALL":
+                compiler.scope.define(mangle(prefix))
                 node = asty.Import
                 names = [asty.alias(
                     module,
@@ -1466,12 +1467,14 @@ def compile_import_or_require(compiler, expr, root, entries):
                     asname=mangle(prefix) if prefix != module else None)]
             else:
                 node = asty.ImportFrom
-                names = [
-                    asty.alias(
-                        module,
-                        name=mangle(k),
-                        asname=None if v == k else mangle(v))
-                    for k, v in assignments]
+                names = []
+                for k, v in assignments:
+                    compiler.scope.define(mangle(v))
+                    names.append(
+                        asty.alias(
+                            module,
+                            name=mangle(k),
+                            asname=None if v == k else mangle(v)))
             ret += node(
                 expr, module=module_name or None, names=names, level=level)
 
