@@ -1,4 +1,4 @@
-import ast, copy, importlib, inspect, keyword, pkgutil
+import ast, copy, importlib, inspect, keyword
 import traceback, types
 
 from funcparserlib.parser import NoParseError, many
