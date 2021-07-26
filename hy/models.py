@@ -436,7 +436,9 @@ def recwrap(f):
     return lambda l: f(as_model(x) for x in l)
 
 _wrappers[FComponent] = recwrap(FComponent)
-_wrappers[FString] = recwrap(FString)
+_wrappers[FString] = lambda fstr: FString(
+    (as_model(x) for x in fstr), brackets=fstr.brackets
+)
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
 _wrappers[tuple] = recwrap(List)
