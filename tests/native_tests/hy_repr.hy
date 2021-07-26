@@ -63,6 +63,10 @@
     "'{1 10  2 20}" "'{2 20  1 10}"
     "'asymbol"
     ":akeyword"
+    "'#[[bracketed string]]"
+    "'#[delim[bracketed string]delim]"
+    "'#[delim[brack'eted string]delim]"
+    "'#[f-delim[the answer is {(+ 2 2) :{(+ 2 3)}}]f-delim]"
     "'(f #* args #** kwargs)"])
   (for [original-str strs]
     (setv rep (hy.repr (hy.eval (hy.read-str original-str))))

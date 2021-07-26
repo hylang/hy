@@ -116,15 +116,17 @@
 (hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
 (hy-repr-register [hy.models.String str hy.models.Bytes bytes] (fn [x]
   (setv r (.lstrip (_base-repr x) "ub"))
-  (+
-    (if (isinstance x bytes) "b" "")
-    (if (.startswith "\"" r)
-      ; If Python's built-in repr produced a double-quoted string, use
-      ; that.
-      r
-      ; Otherwise, we have a single-quoted string, which isn't valid Hy, so
-      ; convert it.
-      (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\"")))))
+  (if (is-not None (getattr x "brackets" None))
+    f"#[{x.brackets}[{x}]{x.brackets}]"
+    (+
+      (if (isinstance x bytes) "b" "")
+      (if (.startswith "\"" r)
+        ; If Python's built-in repr produced a double-quoted string, use
+        ; that.
+        r
+        ; Otherwise, we have a single-quoted string, which isn't valid Hy, so
+        ; convert it.
+        (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\""))))))
 (hy-repr-register bool str)
 (hy-repr-register [hy.models.Float float] (fn [x]
   (setv fx (float x))
@@ -155,13 +157,20 @@
 (hy-repr-register
   hy.models.FString
   (fn [fstring]
-    (+ "f\""
-       #* (lfor component fstring
-                :setv s (hy-repr component)
-                (if (isinstance component hy.models.String)
-                    (-> s (cut 1 -1) (.replace "{" "{{") (.replace "}" "}}"))
-                    s))
-       "\"")))
+    (if (is-not None fstring.brackets)
+      (+ "#[" fstring.brackets "["
+         #* (lfor component fstring
+                  (if (isinstance component hy.models.String)
+                      (-> (str component) (.replace "{" "{{") (.replace "}" "}}"))
+                      (hy-repr component)))
+         "]" fstring.brackets "]")
+      (+ "f\""
+         #* (lfor component fstring
+                  :setv s (hy-repr component)
+                  (if (isinstance component hy.models.String)
+                      (-> s (cut 1 -1) (.replace "{" "{{") (.replace "}" "}}"))
+                      s))
+         "\""))))
 
 (setv _matchobject-type (type (re.match "" "")))
 (hy-repr-register _matchobject-type (fn [x]
