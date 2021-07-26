@@ -1132,7 +1132,12 @@ def compile_catch_expression(compiler, expr, var, exceptions, body):
     else:
         types = compiler.compile(exceptions_list)
 
-    body = compiler._compile_branch(body)
+    # Create a "fake" scope for the exception variable.
+    # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
+    with compiler.scope.create(ScopeLet) as scope:
+        if name:
+            scope.add(name, name)
+        body = compiler._compile_branch(body)
     body += asty.Assign(expr, targets=[var], value=body.force_expr)
     body += body.expr_as_stmt()
 
