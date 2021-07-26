@@ -12,7 +12,7 @@ import pytest
 
 import hy
 from hy.lex import hy_parse
-from hy.errors import HyLanguageError
+from hy.errors import HyLanguageError, hy_exc_handler
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import hy_eval, hy_compile
 from hy.importer import HyLoader
@@ -291,3 +291,18 @@ def test_hy_python_require():
     # https://github.com/hylang/hy/issues/1911
     test = "(do (require tests.resources.macros [test-macro]) (test-macro) blah)"
     assert hy.eval(hy.read_str(test)) == 1
+
+
+def test_filtered_importlib_frames(capsys):
+    path = os.getcwd() + "/tests/resources/importer/compiler_error.hy"
+    testLoader = HyLoader("tests.resources.importer.compiler_error", path)
+    spec = importlib.util.spec_from_loader(testLoader.name, testLoader)
+    mod = importlib.util.module_from_spec(spec)
+
+    with pytest.raises(PrematureEndOfInput) as execinfo:
+        testLoader.exec_module(mod)
+
+    hy_exc_handler(execinfo.type, execinfo.value, execinfo.tb)
+    captured_w_filtering = capsys.readouterr()[-1].strip()
+
+    assert "importlib._" not in captured_w_filtering

@@ -1,9 +1,11 @@
 import sys
+import platform
 
 PY3_7 = sys.version_info >= (3, 7)
 PY3_8 = sys.version_info >= (3, 8)
 PY3_9 = sys.version_info >= (3, 9)
 PY3_10 = sys.version_info >= (3, 10)
+PYPY = platform.python_implementation() == "PyPy"
 
 
 if not PY3_9:

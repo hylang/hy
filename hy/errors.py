@@ -8,6 +8,7 @@ from functools import reduce
 from colorama import Fore
 from contextlib import contextmanager
 from hy import _initialize_env_var
+from hy._compat import PYPY
 
 _hy_filter_internal_errors = _initialize_env_var('HY_FILTER_INTERNAL_ERRORS',
                                                  True)
@@ -237,6 +238,13 @@ _tb_hidden_modules = {m for m in map(_module_filter_name,
                                       'hy.core.result_macros',
                                       'rply'])
                       if m is not None}
+
+# We can't derive these easily from just their module names due
+# to missing magic attributes in internal importlib modules
+_tb_hidden_modules.update(
+    f"<builtin>/frozen {x}" if PYPY else f"<frozen {x}>"
+    for x in ("importlib._bootstrap", "importlib._bootstrap_external")
+)
 
 
 def hy_exc_filter(exc_type, exc_value, exc_traceback):
