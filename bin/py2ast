@@ -4,4 +4,4 @@ import sys
 import ast
 
 
-print(ast.dump(ast.parse(open(sys.argv[1], 'r').read())))
+print(ast.dump(ast.parse(open(sys.argv[1]).read())))

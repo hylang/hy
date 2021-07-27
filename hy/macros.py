@@ -255,7 +255,7 @@ class MacroExceptions():
             exc_msg = '  '.join(traceback.format_exception_only(
                 sys.exc_info()[0], sys.exc_info()[1]))
 
-            msg = "expanding macro {}\n  ".format(str(self.macro_tree[0]))
+            msg = f"expanding macro {str(self.macro_tree[0])}\n  "
             msg += exc_msg
 
             raise HyMacroExpansionError(msg, self.macro_tree, filename, source)
@@ -345,9 +345,9 @@ def rename_function(func, new_name):
     level.
     """
     c = func.__code__
-    new_code = type(c)(*[getattr(c, 'co_{}'.format(a))
+    new_code = type(c)(*(getattr(c, f'co_{a}')
                          if a != 'name' else str(new_name)
-                         for a in code_obj_args])
+                         for a in code_obj_args))
 
     _fn = type(func)(new_code, func.__globals__, str(new_name),
                      func.__defaults__, func.__closure__)

@@ -31,7 +31,7 @@ def hy_parse(source, filename='<string>'):
     return res
 
 
-class ParserState(object):
+class ParserState:
     def __init__(self, source, filename):
         self.source = source
         self.filename = filename
@@ -154,7 +154,7 @@ def mangle(s):
                  # allowed at the start of an identifier.
                else '{0}{1}{0}'.format(mangle_delim,
                    unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
-                   or 'U{}'.format(unicode_char_to_hex(c)))
+                   or f'U{unicode_char_to_hex(c)}')
             for c in s)
 
     # Step 5: Add back leading underscores

@@ -61,9 +61,9 @@ class HyLanguageError(HyError):
         if isinstance(self, SyntaxError):
             syntax_error_args = (self.filename, self.lineno, self.offset,
                                  self.text)
-            super(HyLanguageError, self).__init__(message, syntax_error_args)
+            super().__init__(message, syntax_error_args)
         else:
-            super(HyLanguageError, self).__init__(message)
+            super().__init__(message)
 
     def compute_lineinfo(self, expression, filename, source, lineno, colno):
 
@@ -107,10 +107,10 @@ class HyLanguageError(HyError):
         # Syntax errors are special and annotate the traceback (instead of what
         # we would do in the message that follows the traceback).
         if isinstance(self, SyntaxError):
-            return super(HyLanguageError, self).__str__()
+            return super().__str__()
         # When there isn't extra source information, use the normal message.
         elif not self.text:
-            return super(HyLanguageError, self).__str__()
+            return super().__str__()
 
         # Re-purpose Python's builtin syntax error formatting.
         output = traceback.format_exception_only(
@@ -141,7 +141,7 @@ class HyLanguageError(HyError):
                 output[arrow_idx] = Fore.GREEN + output[arrow_idx] + Fore.RESET
             for idx, line in enumerate(output[::msg_idx]):
                 if line.strip().startswith(
-                        'File "{}", line'.format(self.filename)):
+                        f'File "{self.filename}", line'):
                     output[idx] = Fore.RED + line + Fore.RESET
 
         # This resulting string will come after a "<class-name>:" prompt, so

@@ -15,7 +15,7 @@ try:
                        .replace('-', '+', 1).replace('-', '.'))
 
     with open(VERSIONFILE, "wt") as o:
-        o.write("__version__ = {!r}\n".format(__version__))
+        o.write(f"__version__ = {__version__!r}\n")
 
 except (subprocess.CalledProcessError, OSError):
     if os.path.exists(VERSIONFILE):

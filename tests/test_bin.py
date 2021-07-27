@@ -42,10 +42,10 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
 def rm(fpath):
     try:
         os.remove(fpath)
-    except (IOError, OSError):
+    except OSError:
         try:
             os.rmdir(fpath)
-        except (IOError, OSError):
+        except OSError:
             pass
 
 
@@ -500,12 +500,12 @@ def test_bin_hy_circular_macro_require():
     test_file = "tests/resources/bin/circular_macro_require.hy"
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(f"hy {test_file}")
     assert "42" == output.strip()
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(f"hy {test_file}")
     assert "42" == output.strip()
 
 def test_bin_hy_macro_require():
@@ -518,12 +518,12 @@ def test_bin_hy_macro_require():
     test_file = "tests/resources/bin/require_and_eval.hy"
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(f"hy {test_file}")
     assert "abc" == output.strip()
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(f"hy {test_file}")
     assert "abc" == output.strip()
 
 

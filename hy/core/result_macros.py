@@ -84,7 +84,7 @@ def compile_inline_python(compiler, expr, root, code):
     except (SyntaxError, ValueError) as e:
         raise compiler._syntax_error(
             expr,
-            "Python parse error in '{}': {}".format(root, e))
+            f"Python parse error in '{root}': {e}")
 
     return Result(stmts=o) if exec_mode else o
 
@@ -806,7 +806,7 @@ def compile_break_or_continue_expression(compiler, expr, root):
 
 @pattern_macro(["with", "with/a"], [
     brackets(times(1, Inf, FORM + FORM)) |
-        brackets((FORM >> (lambda x: [(Symbol('_'), x)]))),
+        brackets(FORM >> (lambda x: [(Symbol('_'), x)])),
     many(FORM)])
 def compile_with_expression(compiler, expr, root, args, body):
     body = compiler._compile_branch(body)

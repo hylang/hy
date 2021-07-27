@@ -167,7 +167,7 @@ def test_lex_nan_and_inf():
 def test_lex_expression_complex():
     """ Make sure expressions can produce complex """
 
-    def t(x): return tokenize("(foo {})".format(x))
+    def t(x): return tokenize(f"(foo {x})")
 
     def f(x): return [Expression([Symbol("foo"), x])]
 

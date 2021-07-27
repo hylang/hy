@@ -48,7 +48,7 @@ import sys
 from {0} import {1}
 
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.argv[0] = re.sub(r'(-script\\.pyw?|\\.exe)?$', '', sys.argv[0])
     sys.exit({2}())'''
 
 
@@ -73,8 +73,7 @@ def get_args(cls, dist, header=None):  # noqa: D205,D400
                 spec, group, name)
             # pylint: disable=E1101
             args = cls._get_script_args(type_, name, header, script_text)
-            for res in args:
-                yield res
+            yield from args
 
 
 # pylint: disable=E1101
@@ -87,7 +86,7 @@ def main():
     import shutil
     import sys
     dests = sys.argv[1:] or ['.']
-    filename = re.sub('\.pyc$', '.py', __file__)
+    filename = re.sub(r'\.pyc$', '.py', __file__)
 
     for dst in dests:
         shutil.copy(filename, dst)

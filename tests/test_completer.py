@@ -21,6 +21,6 @@ def test_history_custom_location():
             readline.clear_history()
             readline.add_history(expected_entry)
 
-        with open(history_location, "r") as hf:
+        with open(history_location) as hf:
             actual_entry = hf.readline()
             assert expected_entry in actual_entry

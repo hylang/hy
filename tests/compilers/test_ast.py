@@ -612,11 +612,11 @@ def test_eval_generator_with_return():
 def test_futures_imports():
     """Make sure __future__ imports go first, especially when builtins are
     automatically added (e.g. via use of a builtin name like `rest`)."""
-    hy_ast = can_compile((
+    hy_ast = can_compile(
         '(import __future__ [print_function])\n'
         '(import sys)\n'
         '(setv some [1 2])'
-        '(print (list (rest some)))'))
+        '(print (list (rest some)))')
 
     assert hy_ast.body[0].module == '__future__'
 

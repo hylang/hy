@@ -69,7 +69,7 @@ def builds_model(*model_types):
 # Provide asty.Foo(x, ...) as shorthand for
 # ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
-class Asty(object):
+class Asty:
     def __getattr__(self, name):
         setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
             lineno=getattr(
@@ -87,7 +87,7 @@ class Asty(object):
 asty = Asty()
 
 
-class Result(object):
+class Result:
     """
     Smart representation of the result of a hy->AST compilation
 
@@ -225,13 +225,13 @@ class Result(object):
             return self + Result(stmts=[other])
 
         if not isinstance(other, Result):
-            raise TypeError("Can't add %r with non-compiler result %r" % (
+            raise TypeError("Can't add {!r} with non-compiler result {!r}".format(
                 self, other))
 
         # Check for expression context clobbering
         if self.expr and not self.__used_expr:
             traceback.print_stack()
-            print("Bad boy clobbered expr %s with %s" % (
+            print("Bad boy clobbered expr {} with {}".format(
                 ast.dump(self.expr),
                 ast.dump(other.expr)))
 
@@ -269,7 +269,7 @@ def is_annotate_expression(model):
             and model[0] == Symbol("annotate"))
 
 
-class HyASTCompiler(object):
+class HyASTCompiler:
     """A Hy-to-Python AST compiler"""
 
     def __init__(self, module, filename=None, source=None):
@@ -330,7 +330,7 @@ class HyASTCompiler(object):
             # These are unexpected errors that will--hopefully--never be seen
             # by the user.
             f_exc = traceback.format_exc()
-            exc_msg = "Internal Compiler Bug 😱\n⤷ {}".format(f_exc)
+            exc_msg = f"Internal Compiler Bug 😱\n⤷ {f_exc}"
             raise HyCompileError(exc_msg)
 
     def _syntax_error(self, expr, message):
@@ -369,7 +369,7 @@ class HyASTCompiler(object):
                     value = next(exprs_iter)
                 except StopIteration:
                     raise self._syntax_error(expr,
-                        "Keyword argument {kw} needs a value.".format(kw=expr))
+                        f"Keyword argument {expr} needs a value.")
 
                 if not expr:
                     raise self._syntax_error(expr,
@@ -623,7 +623,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
         module = calling_module(n=2)
 
     if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+        raise TypeError(f'Invalid module type: {type(module)}')
 
     return module
 
@@ -768,7 +768,7 @@ def hy_compile(
             module = importlib.import_module(mangle(module))
 
     if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+        raise TypeError(f'Invalid module type: {type(module)}')
 
     filename = getattr(tree, 'filename', filename)
     source = getattr(tree, 'source', source)
