@@ -12,12 +12,15 @@ Other Breaking Changes
 * Functions that provide first-class Python operators, such as ``+``
   in constructs like ``(reduce + xs)``, are no longer brought
   into scope automatically. Say ``(import hy.pyops *)`` to get them.
+* The constructors of `String` and `FString` now check that the input
+  would be syntactically legal.
 
 Bug Fixes
 ------------------------------
 * `let` should no longer re-evaluate default arguments.
 * Improved error messages for illegal uses of `finally` and `else`.
 * `match` should no longer re-evaluate subect.
+* `hy-repr` now properly formats bracketed strings.
 
 New Features
 ------------------------------
