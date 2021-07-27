@@ -57,7 +57,11 @@ Do this:
 
        $ pip install -r requirements-dev.txt
 
-5. Do awesome things; make someone shriek in delight/disgust at what
+5. Install the pre-commit hooks::
+
+       $ pre-commit install
+
+6. Do awesome things; make someone shriek in delight/disgust at what
    you have wrought.
 
 
