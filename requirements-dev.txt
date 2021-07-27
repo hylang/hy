@@ -8,3 +8,4 @@ Pygments >= 1.6
 Sphinx==3.5.4
 sphinx_rtd_theme
 git+https://github.com/hylang/sphinxcontrib-hydomain.git
+pre-commit
