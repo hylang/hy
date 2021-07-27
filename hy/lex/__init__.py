@@ -16,11 +16,11 @@ def hy_parse(source, filename='<string>'):
     """Parse a Hy source string.
 
     Args:
-      source (string): Source code to parse.
-      filename (string, optional): File name corresponding to source.  Defaults to "<string>".
+      source (str): Source code to parse.
+      filename (str): File name corresponding to source.  Defaults to "<string>".
 
     Returns:
-      out : hy.models.Expression
+      Expression: the parsed models wrapped in an hy.models.Expression
     """
     _source = re.sub(r'\A#!.*', '', source)
     res = Expression([Symbol("do")] +
@@ -41,8 +41,11 @@ def tokenize(source, filename=None):
     """ Tokenize a Lisp file or string buffer into internal Hy objects.
 
     Args:
-    source (str): The source to tokenize.
-    filename (str, optional): The filename corresponding to `source`.
+       source (str): The source to tokenize.
+       filename (Optional[str]): The filename corresponding to `source`.
+
+    Returns:
+       typing.List[Object]: list of hy object models
     """
     from hy.lex.lexer import lexer
     from hy.lex.parser import parser
