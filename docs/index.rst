@@ -7,7 +7,7 @@ The Hy Manual
 
 :PyPI: https://pypi.python.org/pypi/hy
 :Source: https://github.com/hylang/hy
-:Discussions: `https://github.com/hylang/hy/discussions`_
+:Discussions: https://github.com/hylang/hy/discussions
 :Stack Overflow: `The [hy] tag <https://stackoverflow.com/questions/tagged/hy>`_
 
 Hy is a Lisp dialect that's embedded in Python. Since Hy transforms its Lisp
