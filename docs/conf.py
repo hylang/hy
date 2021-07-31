@@ -61,7 +61,8 @@ highlight_language = 'clojure'
 
 intersphinx_mapping = dict(
     py = ('https://docs.python.org/3/', None),
-    py3_10 = ('https://docs.python.org/3.10/', None))
+    py3_10 = ('https://docs.python.org/3.10/', None),
+    hyrule = ('https://hyrule.readthedocs.io/en/master/', None))
 # ** Generate Cheatsheet
 import json
 from pathlib import Path

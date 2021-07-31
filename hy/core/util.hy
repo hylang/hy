@@ -87,11 +87,9 @@
   Examples:
     ::
 
+       => (require hyrule [->])
        => (hy.macroexpand '(-> (a b) (x y)))
        '(x (a b) y)
-
-    ::
-
        => (hy.macroexpand '(-> (a b) (-> (c d) (e f))))
        '(e (c (a b) d) f)
   "
@@ -107,6 +105,7 @@
   Examples:
     ::
 
+       => (require hyrule [->])
        => (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
        '(-> (a b) (c d) (e f))
   "

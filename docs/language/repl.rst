@@ -104,10 +104,10 @@ prompts. The following shows a number of possibilities::
     re
     json
     pathlib [Path]
-    hy.contrib.pprint [pp pformat])
+    hyrule [pp pformat])
 
   (require
-    hy.extra.anaphoric [%])
+    hyrule [%])
 
   (setv
     ;; Spy and output-fn will be set automatically for all hy repls
