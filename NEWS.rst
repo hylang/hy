@@ -12,8 +12,18 @@ Other Breaking Changes
 * Functions that provide first-class Python operators, such as ``+``
   in constructs like ``(reduce + xs)``, are no longer brought
   into scope automatically. Say ``(import hy.pyops *)`` to get them.
+* Lots of objects (listed below) have been spun off to a new package
+  called `Hyrule`_, from which you can `import` or `require` them.
+  Thus Hy now brings only the `hy` module and a limited set of core
+  macros into scope automatically.
+
+  * Functions: `butlast`, `coll?`, `constantly`, `dec`, `destructure`, `distinct`, `drop-last`, `end-sequence`, `flatten`, `inc`, `macroexpand-all`, `parse-args`, `pformat`, `postwalk`, `pp`, `pprint`, `prewalk`, `readable?`, `recursive?`, `rest`, `saferepr`, `walk`
+  * Classes: `PrettyPrinter`, `Sequence`
+  * Macros: `#%`, `#:`, `->`, `->>`, `ap-dotimes`, `ap-each`, `ap-each-while`, `ap-filter`, `ap-first`, `ap-if`, `ap-last`, `ap-map`, `ap-map-when`, `ap-reduce`, `ap-reject`, `as->`, `assoc`, `cfor`, `comment`, `defmacro!`, `defmacro/g!`, `defmain`, `defn+`, `defn/a+`, `defseq`, `dict=:`, `do-n`, `doto`, `fn+`, `fn/a+`, `ifp`, `let`, `let+`, `lif`, `list-n`, `loop`, `ncut`, `of`, `profile/calls`, `profile/cpu`, `rit`, `seq`, `setv+`, `smacrolet`, `unless`, `with-gensyms`
+
 * The constructors of `String` and `FString` now check that the input
   would be syntactically legal.
+* `hy.extra.reserved` has been renamed to `hy.reserved`.
 
 Bug Fixes
 ------------------------------
@@ -25,6 +35,8 @@ Bug Fixes
 New Features
 ------------------------------
 * the attribute access macro `.` now accepts method calls.
+
+.. _Hyrule: https://github.com/hylang/hyrule
 
 1.0a3 (released 2021-07-09)
 ==============================
