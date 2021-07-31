@@ -722,7 +722,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      iteration clause before the ``:do``.
    - ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
      RVALUE)``.
-   - ``:if CONDITION``, which is equivalent to ``:do (unless CONDITION
+   - ``:if CONDITION``, which is equivalent to ``:do (if (not CONDITION)
      (continue))``.
 
    For ``lfor``, ``sfor``, ``gfor``, and ``dfor``, variables are scoped as
@@ -1553,20 +1553,6 @@ the following methods
 
 .. hy:autofunction:: hy.as-model
 
-.. _Core:
-
-Core Functions
---------------
-
-The following functions are auto imported into all Hy modules as their
-base names, such that ``hy.core.language.butlast`` can be called with just ``butlast``.
-
-
-.. hy:automodule:: hy.core.language
-   :members: butlast,
-      coll?, constantly, dec, distinct, drop-last,
-      flatten, inc,
-      parse-args, rest, xor
 
 Python Operators
 ----------------

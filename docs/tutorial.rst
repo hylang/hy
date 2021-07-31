@@ -313,7 +313,7 @@ character long, but since Hy allows most Unicode characters in the name of a
 macro (or ordinary variable), you won't out of characters soon. ::
 
   => (defmacro "#↻" [code]
-  ...  (setv op (get code -1) params (list (butlast code)))
+  ...  (setv op (get code -1) params (list (cut code -1)))
   ...  `(~op ~@params))
   => #↻(1 2 3 +)
   6

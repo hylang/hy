@@ -119,9 +119,9 @@ prompts. The following shows a number of possibilities::
 
   ;; Functions and Macros will be available in the repl without qualification
   (defn slurp [path]
-    (let [path (Path path)]
-      (when (path.exists)
-        (path.read-text))))
+    (setv path (Path path))
+    (when (path.exists)
+      (path.read-text)))
 
   (defmacro greet [person]
     `(print ~person))
