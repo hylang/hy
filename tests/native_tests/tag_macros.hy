@@ -86,8 +86,8 @@
     "Increments each argument passed to the decorated function."
     ((wraps func)
        (fn [#* args #** kwargs]
-         (func #* (map inc args)
-               #** (dfor [k v] (.items kwargs) [k (inc v)])))))
+         (func #* (gfor  x args  (+ x 1))
+               #** (dfor [k v] (.items kwargs) [k (+ v 1)])))))
 
   #@(increment-arguments
      (defn foo [#* args #** kwargs]

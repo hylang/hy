@@ -313,7 +313,7 @@ character long, but since Hy allows most Unicode characters in the name of a
 macro (or ordinary variable), you won't out of characters soon. ::
 
   => (defmacro "#↻" [code]
-  ...  (setv op (get code -1) params (list (butlast code)))
+  ...  (setv op (get code -1) params (list (cut code -1)))
   ...  `(~op ~@params))
   => #↻(1 2 3 +)
   6
@@ -328,6 +328,22 @@ which imports the module and makes macros available at compile-time.
    => (require tutorial.macros)
    => (tutorial.macros.rev (1 2 3 +))
    6
+
+Hyrule
+======
+
+`Hyrule <https://github.com/hylang/hyrule>`_ is Hy's standard utility library.
+It provides a variety of functions and macros that are useful for writing Hy
+programs. ::
+
+    => (import hyrule [inc])
+    => (list (map inc [1 2 3]))
+    [2 3 4]
+    => (require hyrule [assoc])
+    => (setv d {})
+    => (assoc d  "a" 1  "b" 2)
+    => d
+    {"a" 1  "b" 2}
 
 Next steps
 ==========

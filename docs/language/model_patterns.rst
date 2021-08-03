@@ -100,10 +100,10 @@ Here's how you could write a simple macro using model patterns:
     (defmacro pairs [#* args]
       (import funcparserlib.parser [many])
       (import hy.model-patterns [whole SYM FORM])
-      (setv [args] (->> args (.parse (whole [
-        (many (+ SYM FORM))]))))
-      `[~@(->> args (map (fn [x]
-        (, (str (get x 0)) (get x 1)))))])
+      (setv [args] (.parse
+        (whole [(many (+ SYM FORM))])
+        args))
+      `[~@(gfor  [a1 a2] args  (, (str a1) a2))])
 
     (print (pairs  a 1  b 2  c 3))
     ; => [["a" 1] ["b" 2] ["c" 3]]

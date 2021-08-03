@@ -225,7 +225,7 @@ such an occasion. A much better version of ``nif`` would be::
               [(< ~g 0) ~neg-form])))
 
 This is an easy case, since there is only one symbol. But if there is
-a need for several gensym's there is a second macro :hy:func:`with-gensyms <hy.core.macros.with-gensyms>` that
+a need for several gensym's there is a second macro :hy:func:`with-gensyms <hyrule.with-gensyms>` that
 basically expands to a ``setv`` form::
 
    (with-gensyms [a b c]
@@ -249,7 +249,7 @@ so our re-written ``nif`` would look like::
                 [(= ~g 0) ~zero-form]
                 [(< ~g 0) ~neg-form]))))
 
-Finally, though we can make a new macro that does all this for us. :hy:func:`defmacro/g! <hy.core.macros.defmacro/g!>`
+Finally, though we can make a new macro that does all this for us. :hy:func:`defmacro/g! <hyrule.defmacro/g!>`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
 remainder of the symbol. So ``g!a`` would become ``(hy.gensym "a")``.
 

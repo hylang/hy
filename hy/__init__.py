@@ -26,10 +26,10 @@ _jit_imports = dict(
     eval = ["hy.compiler", "hy_eval"],
     repr = ["hy.core.hy_repr", "hy_repr"],
     repr_register = ["hy.core.hy_repr", "hy_repr_register"],
-    gensym = "hy.core.language",
-    macroexpand = "hy.core.language",
-    macroexpand_1 = "hy.core.language",
-    disassemble = "hy.core.language",
+    gensym = "hy.core.util",
+    macroexpand = "hy.core.util",
+    macroexpand_1 = "hy.core.util",
+    disassemble = "hy.core.util",
     as_model = "hy.models")
 
 def __getattr__(k):

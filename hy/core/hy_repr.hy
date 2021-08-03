@@ -161,14 +161,18 @@
       (+ "#[" fstring.brackets "["
          #* (lfor component fstring
                   (if (isinstance component hy.models.String)
-                      (-> (str component) (.replace "{" "{{") (.replace "}" "}}"))
+                      (.replace (.replace (str component)
+                        "{" "{{")
+                        "}" "}}")
                       (hy-repr component)))
          "]" fstring.brackets "]")
       (+ "f\""
          #* (lfor component fstring
                   :setv s (hy-repr component)
                   (if (isinstance component hy.models.String)
-                      (-> s (cut 1 -1) (.replace "{" "{{") (.replace "}" "}}"))
+                      (.replace (.replace (cut s 1 -1)
+                        "{" "{{")
+                        "}" "}}")
                       s))
          "\""))))
 
@@ -231,7 +235,7 @@
                      (. (type x) __name__)
                      (.join " " (gfor [k v] (zip x._fields x) (+ ":" k " " (hy-repr v)))))))
 
-  (unless (isinstance x hy.models.Object)
+  (when (not (isinstance x hy.models.Object))
     (return (repr x)))
   ; Call (.repr x) using the first class of x that doesn't inherit from
   ; hy.models.Object.

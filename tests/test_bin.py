@@ -109,10 +109,12 @@ def test_bin_hy_stdin_assignment():
     assert "BY" not in output
 
 
-def test_bin_hy_stdin_as_arrow():
+def test_bin_hy_multi_setv():
     # https://github.com/hylang/hy/issues/1255
-    output, _ = run_cmd("hy", "(as-> 0 it (inc it) (inc it))")
-    assert re.match(r"=>\s+2L?\s+=>", output)
+    output, _ = run_cmd("hy", """(do
+      (setv  it 0  it (+ it 1)  it (+ it 1))
+      it)""".replace("\n", " "))
+    assert re.match(r"=>\s+2\s+=>", output)
 
 
 def test_bin_hy_stdin_error_underline_alignment():
@@ -351,27 +353,6 @@ def test_bin_hy_builtins():
     assert type(builtins.quit) is hy.cmdline.HyQuitter
 
 
-def test_bin_hy_shadowing_core():
-    # make sure we don't shadow user symbols with hy's core
-    # https://github.com/hylang/hy/issues/791
-    output, _ = run_cmd("hy", "(defn dec [x] (+ 66 x))\n(dec 4)")
-    assert "70" in output
-
-
-def test_bin_hy_main():
-    output, _ = run_cmd("hy tests/resources/bin/main.hy")
-    assert "Hello World" in output
-
-
-def test_bin_hy_main_args():
-    output, _ = run_cmd("hy tests/resources/bin/main.hy test 123 -m -B 9")
-    assert "<test|123|-m|-B|9>" in output
-
-
-def test_bin_hy_main_exitvalue():
-    run_cmd("hy tests/resources/bin/main.hy exit1", expect=1)
-
-
 def test_bin_hy_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
@@ -420,11 +401,6 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
     assert "The macro returned: boink" in output
 
 
-def test_bin_hy_module_main():
-    output, _ = run_cmd("hy -m tests.resources.bin.main")
-    assert "Hello World" in output
-
-
 def test_bin_hy_module_main_file():
     output, _ = run_cmd("hy -m tests.resources.bin")
     assert "This is a __main__.hy" in output
@@ -465,15 +441,6 @@ def test_bin_hyc_file_sys_path():
 
         output, _ = run_cmd(f"{binary} {test_file}")
         assert file_relative_path in output
-
-
-def test_bin_hy_module_main_args():
-    output, _ = run_cmd("hy -m tests.resources.bin.main test 123 -B")
-    assert "<test|123|-B>" in output
-
-
-def test_bin_hy_module_main_exitvalue():
-    run_cmd("hy -m tests.resources.bin.main exit1", expect=1)
 
 
 def test_bin_hy_module_no_main():

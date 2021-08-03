@@ -28,7 +28,6 @@
   "
   (global _cache)
   (if (is _cache None) (do
-    (setv _cache (| (macros) (frozenset (map hy.unmangle (+
-      hy.core.language.__all__
-      keyword.kwlist)))))))
+    (setv _cache (| (macros) (frozenset (map hy.unmangle
+      keyword.kwlist))))))
   _cache)

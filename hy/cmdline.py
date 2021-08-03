@@ -427,6 +427,7 @@ def ideas_macro(ETname):
 
 
 ;;; this one plays with command line bits
+(require hyrule [->])
 (import [sh [cat grep]])
 (-> (cat "/usr/share/dict/words") (grep "-E" "bro$"))
 

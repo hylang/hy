@@ -2,8 +2,6 @@
         dataclasses [dataclass]
         hy.errors [HySyntaxError])
 
-(require hy.contrib.walk [let])
-
 (defn test-pattern-matching []
   (assert (is (match 0
                      0 :if False False
@@ -62,10 +60,17 @@
   (assert (is (match x [0] 0) None))
   (assert (= x (match x (set z) z)))
 
-
-  (assert (= (match [0 1 2]
-                    [0 #* x] :as z :if (as-> z $ (+ $ [3]) (len $) (= $ 4)) 0)
-             0))
+  (assert (=
+    (match [0 1 2] [0 #* x]
+      :as z
+      :if (do
+        (setv
+          $ z
+          $ (+ $ [3])
+          $ (len $))
+        (= $ 4))
+       0)
+    0))
 
   (with-decorator
     dataclass
@@ -135,22 +140,3 @@
          n (assert (= n 4)))
   (match (do (foo) (foo) x)
          n (assert (= n 6))))
-
-(defn test-let-with-pattern-matching []
-  (let [x [1 2 3]
-        y (dict :a 1 :b 2 :c 3)
-        b 1
-        a 1
-        _ 42]
-    (assert (= [2 3]
-               (match x
-                      [1 #* x] x)))
-    (assert (= [3 [1 2 3] [1 2 3]]
-               (match x
-                      [_ _ 3 :as a] :as b :if (= a 3) [a b x])))
-    (assert (= [1 2]
-               (match [1 2]
-                      x x)))
-    (assert (= 42
-               (match [1 2 3]
-                    _ _)))))
