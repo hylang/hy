@@ -69,15 +69,6 @@
   `(if ~test (do ~@body)))
 
 
-(defmacro "#@" [expr]
-  "with-decorator tag macro"
-  (if (not expr)
-      (raise (ValueError "missing function argument")))
-  (setv decorators (cut expr -1)
-        fndef (get expr -1))
-  `(with-decorator ~@decorators ~fndef))
-
-
 (defmacro doc [symbol]
   "macro documentation
 

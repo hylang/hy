@@ -20,7 +20,8 @@ import builtins
 
 import hy
 
-from hy.lex import hy_parse, mangle
+from hy.lex import read_module, mangle
+from hy.lex.reader import HyReader
 from contextlib import contextmanager
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.compiler import (HyASTCompiler, hy_eval, hy_compile,
@@ -31,6 +32,8 @@ from hy.importer import runhy, HyLoader
 from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import Expression, String, Symbol
+
+from hy._compat import PY3_9
 
 
 sys.last_type = None
@@ -120,6 +123,7 @@ class HyCompile(codeop.Compile, object):
         self.locals = locals
         self.ast_callback = ast_callback
         self.hy_compiler = hy_compiler
+        self.reader = HyReader()
 
         super(HyCompile, self).__init__()
 
@@ -153,28 +157,20 @@ class HyCompile(codeop.Compile, object):
         hash_digest = hashlib.sha1(source.encode("utf-8").strip()).hexdigest()
         name = '{}-{}'.format(filename.strip('<>'), hash_digest)
 
-        try:
-            hy_ast = hy_parse(source, filename=name)
-        except Exception:
-            # Capture a traceback without the compiler/REPL frames.
-            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
-            self._update_exc_info()
-            raise
-
         self._cache(source, name)
 
         try:
-            hy_ast = hy_parse(source, filename=filename)
             root_ast = ast.Interactive if symbol == 'single' else ast.Module
 
             # Our compiler doesn't correspond to a real, fixed source file, so
             # we need to [re]set these.
-            self.hy_compiler.filename = filename
+            self.hy_compiler.filename = name
             self.hy_compiler.source = source
+            hy_ast = read_module(source, filename=name, reader=self.reader)
             exec_ast, eval_ast = hy_compile(hy_ast, self.module, root=root_ast,
                                             get_expr=True,
                                             compiler=self.hy_compiler,
-                                            filename=filename, source=source,
+                                            filename=name, source=source,
                                             import_stdlib=False)
 
             if self.ast_callback:
@@ -183,26 +179,23 @@ class HyCompile(codeop.Compile, object):
             exec_code = super(HyCompile, self).__call__(exec_ast, name, symbol)
             eval_code = super(HyCompile, self).__call__(eval_ast, name, 'eval')
 
-        except HyLanguageError:
-            # Hy will raise exceptions during compile-time that Python would
-            # raise during run-time (e.g. import errors for `require`).  In
-            # order to work gracefully with the Python world, we convert such
-            # Hy errors to code that purposefully reraises those exceptions in
-            # the places where Python code expects them.
+        except Exception as e:
+            # Capture and save the error before we handle further
             sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
             self._update_exc_info()
-            exec_code = super(HyCompile, self).__call__(
-                'raise _hy_last_value.with_traceback(_hy_last_traceback)',
-                name, symbol)
-            eval_code = super(HyCompile, self).__call__('None', name, 'eval')
-
-        except SyntaxError:
-            # Capture and save the error before we get to the superclass handler
-            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
-            # Per the python REPL, SyntaxErrors should not display a traceback
-            sys.last_traceback = None
-            self._update_exc_info()
-            raise
+            if isinstance(e, (PrematureEndOfInput, SyntaxError)):
+                raise
+            if isinstance(e, (HyLanguageError, Exception)):
+                # Hy will raise exceptions during compile-time that Python would
+                # raise during run-time (e.g. import errors for `require`).  In
+                # order to work gracefully with the Python world, we convert such
+                # Hy errors to code that purposefully reraises those exceptions in
+                # the places where Python code expects them.
+                # Capture a traceback without the compiler/REPL frames.
+                exec_code = super(HyCompile, self).__call__(
+                    'raise _hy_last_value.with_traceback(_hy_last_traceback)',
+                    name, symbol)
+                eval_code = super(HyCompile, self).__call__('None', name, 'eval')
 
         return exec_code, eval_code
 
@@ -300,7 +293,7 @@ class HyREPL(code.InteractiveConsole, object):
         self.locals['_hy_repl'] = self
 
         # Compile an empty statement to load the standard prelude
-        exec_ast = hy_compile(hy_parse(''), self.module, compiler=self.hy_compiler, import_stdlib=True)
+        exec_ast = hy_compile(read_module(''), self.module, compiler=self.hy_compiler, import_stdlib=True)
         if self.ast_callback:
             self.ast_callback(exec_ast, None)
 
@@ -335,6 +328,7 @@ class HyREPL(code.InteractiveConsole, object):
     def showsyntaxerror(self, filename=None):
         if filename is None:
             filename = self.filename
+        self.print_last_value = False
 
         self._error_wrap(super(HyREPL, self).showsyntaxerror,
                          exc_info_override=True,
@@ -455,14 +449,14 @@ def set_path(filename):
 def run_command(source, filename=None):
     __main__ = importlib.import_module('__main__')
     require("hy.cmdline", __main__, assignments="ALL")
-    try:
-        tree = hy_parse(source, filename=filename)
-    except HyLanguageError:
-        hy_exc_handler(*sys.exc_info())
-        return 1
 
     with filtered_hy_exceptions():
-        hy_eval(tree, __main__.__dict__, __main__, filename=filename, source=source)
+        try:
+            tree = read_module(source, filename=filename)
+            hy_eval(tree, __main__.__dict__, __main__, filename=filename, source=source)
+        except HyLanguageError:
+            hy_exc_handler(*sys.exc_info())
+            return 1
     return 0
 
 
@@ -492,10 +486,10 @@ def run_repl(hr=None, **kwargs):
 
 def run_icommand(source, **kwargs):
     if os.path.exists(source):
+        filename = source
         set_path(source)
         with io.open(source, "r", encoding='utf-8') as f:
             source = f.read()
-        filename = source
     else:
         filename = '<string>'
 
@@ -756,7 +750,7 @@ def hy2py_main():
             source = source_file.read()
 
     with filtered_hy_exceptions():
-        hst = hy_parse(source, filename=filename)
+        hst = read_module(source, filename=filename)
 
     if options.with_source:
         _print_for_windows(hst)
@@ -767,7 +761,11 @@ def hy2py_main():
         _ast = hy_compile(hst, '__main__', filename=filename, source=source)
 
     if options.with_ast:
-        _print_for_windows(ast.dump(_ast))
+        if PY3_9:
+            dump = ast.dump(_ast, indent=2)
+        else:
+            dump = ast.dump(_ast)
+        _print_for_windows(dump)
         print()
         print()
 

@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-import re
 from math import isnan, isinf
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
@@ -7,6 +6,7 @@ from fractions import Fraction
 import operator
 from itertools import groupby
 from functools import reduce
+from types import GeneratorType
 from colorama import Fore
 
 PRETTY = True
@@ -112,7 +112,7 @@ _wrappers = {}
 
 
 def as_model(x):
-    """Recurisvely promote an object ``x`` into its canonical model form.
+    """Recursively promote an object ``x`` into its canonical model form.
 
     When creating macros its possible to return non-Hy model objects or
     even create an expression with non-Hy model elements::
@@ -178,6 +178,9 @@ class String(Object, str):
         value.brackets = brackets
         return value
 
+    def __add__(self, other):
+        return self.__class__(super().__add__(other))
+
 _wrappers[str] = String
 
 
@@ -200,10 +203,12 @@ class Symbol(Object, str):
         s = str(s)
         if not from_parser:
             # Check that the symbol is syntactically legal.
-            from hy.lex.lexer import identifier
-            from hy.lex.parser import symbol_like
-            if not re.fullmatch(identifier, s) or symbol_like(s) is not None:
+            # import here to prevent circular imports.
+            from hy.lex.reader import symbol_like
+            sym = symbol_like(s)
+            if not isinstance(sym, Symbol):
                 raise ValueError(f'Syntactically illegal symbol: {s!r}')
+            return sym
         return super(Symbol, cls).__new__(cls, s)
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
@@ -219,8 +224,11 @@ class Keyword(Object):
         value = str(value)
         if not from_parser:
             # Check that the keyword is syntactically legal.
-            from hy.lex.lexer import identifier
-            if value and (not re.fullmatch(identifier, value) or "." in value):
+            # import here to prevent circular imports.
+            from hy.lex.reader import NON_IDENT
+            if value and ("." in value
+                          or any(c.isspace() for c in value)
+                          or set(NON_IDENT).intersection(value)):
                 raise ValueError(f'Syntactically illegal keyword: {":" + value!r}')
         self.name = value
 
@@ -456,6 +464,7 @@ _wrappers[FString] = lambda fstr: FString(
 )
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
+_wrappers[GeneratorType] = recwrap(List)
 _wrappers[tuple] = recwrap(List)
 
 
