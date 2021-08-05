@@ -1,181 +1,69 @@
 import re
 
-from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
+import hy.errors
 from hy.models import Expression, Symbol
 
-try:
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO
+from .exceptions import LexException, PrematureEndOfInput  # NOQA
 from .mangle import isidentifier, mangle, unmangle
+from .reader import HyReader
 
+__all__ = [
+    "mangle",
+    "unmangle",
+    "isidentifier",
+    "read",
+    "read_many",
+    "read_module",
+]
 
-def hy_parse(source, filename='<string>'):
-    """Parse a Hy source string.
+class Module:
+    def __init__(self, base, source, filename):
+        self._base = base
+        self.source = source
+        self.filename = filename
+    def __getattr__(self, attr):
+        return getattr(self._base, attr)
+    def __iter__(self):
+        yield from self._base
+
+def read_many(source, filename=None, reader=None):
+    """Parse Hy source as a sequence of forms.
 
     Args:
       source (str): Source code to parse.
-      filename (str): File name corresponding to source.  Defaults to "<string>".
+      filename (str): File name corresponding to source.  Defaults to None.
+      reader (HyReader): Existing reader, if any, to use.  Defaults to None.
 
     Returns:
-      Expression: the parsed models wrapped in an hy.models.Expression
+      typing.Iterable[Expression]: the sequence of parsed models, each wrapped in a hy.models.Expression
     """
-    _source = re.sub(r'\A#!.*', '', source)
-    res = Expression([Symbol("do")] +
-                       tokenize(_source + "\n",
-                                filename=filename))
-    res.source = source
-    res.filename = filename
-    return res
+    if reader is None:
+        reader = HyReader()
+    return reader.parse(source, filename)
 
 
-class ParserState(object):
-    def __init__(self, source, filename):
-        self.source = source
-        self.filename = filename
+def read(source):
+    filename = "<string>"
+    parser = HyReader()
+    try:
+        return next(parser.parse(source, filename))
+    except StopIteration:
+        return None
 
 
-def tokenize(source, filename=None):
-    """ Tokenize a Lisp file or string buffer into internal Hy objects.
+def read_module(source, filename='<string>', reader=None):
+    """Parse a Hy source file's contents. Treats the input as a complete module.
+    Also removes any shebang line at the beginning of the source.
 
     Args:
-       source (str): The source to tokenize.
-       filename (Optional[str]): The filename corresponding to `source`.
+      source (string): Source code to parse.
+      filename (string, optional): File name corresponding to source.  Defaults to "<string>".
+      reader (HyReader, optional): Reader to use, if a new reader should not be created.
 
     Returns:
-       typing.List[Object]: list of hy object models
+      out : hy.models.Expression
     """
-    from hy.lex.lexer import lexer
-    from hy.lex.parser import parser
-    from rply.errors import LexingError
-    try:
-        return parser.parse(lexer.lex(source),
-                            state=ParserState(source, filename))
-    except LexingError as e:
-        pos = e.getsourcepos()
-        raise LexException("Could not identify the next token.",
-                           None, filename, source,
-                           max(pos.lineno, 1),
-                           max(pos.colno, 1))
-    except LexException as e:
-        raise e
-
-
-def parse_one_thing(src_string):
-    """Parse the first form from the string. Return it and the
-    remainder of the string."""
-    import re
-    from hy.lex.lexer import lexer
-    from hy.lex.parser import parser
-    from rply.errors import LexingError
-    tokens = []
-    err = None
-    for token in lexer.lex(src_string):
-        tokens.append(token)
-        try:
-            model, = parser.parse(
-                iter(tokens),
-                state=ParserState(src_string, filename=None))
-        except (LexingError, LexException) as e:
-            err = e
-        else:
-            return model, src_string[re.match(
-                r'.+\n' * (model.end_line - 1)
-                    + '.' * model.end_column,
-                src_string).end():]
-    if err:
-        raise err
-    raise ValueError("No form found")
-
-
-
-
-def read(from_file=sys.stdin, eof=""):
-    """Read from input and returns a tokenized string.
-
-    Can take a given input buffer to read from, and a single byte as EOF
-    (defaults to an empty string).
-
-    Reads the next Hy expression from *from-file* (defaulting to ``sys.stdin``), and
-    can take a single byte as EOF (defaults to an empty string). Raises ``EOFError``
-    if *from-file* ends before a complete expression can be parsed.
-
-    Examples:
-      ::
-
-         => (hy.read)
-         (+ 2 2)
-         '(+ 2 2)
-
-      ::
-
-         => (hy.eval (hy.read))
-         (+ 2 2)
-         4
-
-      ::
-
-         => (import io)
-         => (setv buffer (io.StringIO "(+ 2 2)\\n(- 2 1)"))
-         => (hy.eval (hy.read :from-file buffer))
-         4
-         => (hy.eval (hy.read :from-file buffer))
-         1
-
-      ::
-
-         => (with [f (open "example.hy" "w")]
-         ...  (.write f "(print 'hello)\\n(print \"hyfriends!\")"))
-         35
-         => (with [f (open "example.hy")]
-         ...  (try (while True
-         ...         (setv exp (hy.read f))
-         ...         (print "OHY" exp)
-         ...         (hy.eval exp))
-         ...       (except [e EOFError]
-         ...         (print "EOF!"))))
-         OHY hy.models.Expression([
-           hy.models.Symbol('print'),
-           hy.models.Expression([
-             hy.models.Symbol('quote'),
-             hy.models.Symbol('hello')])])
-         hello
-         OHY hy.models.Expression([
-           hy.models.Symbol('print'),
-           hy.models.String('hyfriends!')])
-         hyfriends!
-         EOF!
-    """
-    buff = ""
-    while True:
-        inn = str(from_file.readline())
-        if inn == eof:
-            raise EOFError("Reached end of file")
-        buff += inn
-        try:
-            parsed = next(iter(tokenize(buff)), None)
-        except (PrematureEndOfInput, IndexError):
-            pass
-        else:
-            break
-    return parsed
-
-
-def read_str(input):
-    """This is essentially a wrapper around ``hy.read`` which reads expressions from a
-    string
-
-    Examples:
-      ::
-
-         => (hy.read-str "(print 1)")
-         '(print 1)
-
-      ::
-
-         => (hy.eval (hy.read-str "(print 1)"))
-         1
-  """
-    return read(StringIO(str(input)))
-
-
+    _source = re.sub(r'\A#!.*', '', source)
+    res = read_many(_source, filename=filename, reader=reader)
+    res = Module(res, source, filename)
+    return res
