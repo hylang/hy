@@ -136,9 +136,9 @@ result['y in globals'] = 'y' in globals()")
   (setv [out err] (.readouterr capsys))
   (assert (in "Gets help for a macro function" out))
 
-  (doc "#@")
-  (setv [out err] (.readouterr capsys))
-  (assert (in "with-decorator tag macro" out))
+  ;; (doc "#@")
+  ;; (setv [out err] (.readouterr capsys))
+  ;; (assert (in "with-decorator tag macro" out))
 
   (defmacro <-mangle-> []
     "a fancy docstring"

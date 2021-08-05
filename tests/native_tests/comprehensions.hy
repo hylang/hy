@@ -18,7 +18,7 @@
   (assert (is (type (gfor x "abc" :do (setv y 1) x)) types.GeneratorType)))
 
 
-#@ ((pytest.mark.parametrize "specialop" ["for" "lfor" "sfor" "gfor" "dfor"])
+#@(pytest.mark.parametrize "specialop" ["for" "lfor" "sfor" "gfor" "dfor"])
 (defn test-fors [specialop]
 
   (setv cases [
@@ -96,7 +96,7 @@
     (setv result (hy.eval expr))
     (when (= specialop "dfor")
       (setv result (.keys result)))
-    (assert (= (sorted result) answer) (str expr)))))
+    (assert (= (sorted result) answer) (str expr))))
 
 
 (defn test-fors-no-loopers []

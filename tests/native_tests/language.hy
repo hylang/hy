@@ -1055,7 +1055,7 @@
 (defn test-format-strings []
   (assert (= f"hello world" "hello world"))
   (assert (= f"hello {(+ 1 1)} world" "hello 2 world"))
-  (assert (= f"a{ (.upper (+ \"g\" \"k\")) }z" "aGKz"))
+  (assert (= f"a{ (.upper (+ "g" "k")) }z" "aGKz"))
   (assert (= f"a{1}{2}b" "a12b"))
 
   ; Referring to a variable
@@ -1072,8 +1072,8 @@
      3)}z" "a6z"))
 
   ; Newlines in replacement fields
-  (assert (= f"ey {\"bee
-cee\"} dee" "ey bee\ncee dee"))
+  (assert (= f"ey {"bee
+cee"} dee" "ey bee\ncee dee"))
 
   ; Conversion characters and format specifiers
   (setv p:9 "other")
@@ -1088,9 +1088,10 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= f"a{!r !r}" "a'bar'"))
 
   ; Fun with `r`
-  (assert (= f"hello {r\"\\n\"}" r"hello \n"))
-  (assert (= f"hello {r\"\n\"}" "hello \n"))
+  ;; (assert (= f"hello {r\"\\n\"}" r"hello \n"))
+  ;; (assert (= f"hello {r\"\n\"}" "hello \n"))
     ; The `r` applies too late to avoid interpreting a backslash.
+    ; addendum: not any more!
 
   ; Braces escaped via doubling
   (assert (= f"ab{{cde" "ab{cde"))
@@ -1445,35 +1446,17 @@ cee\"} dee" "ey bee\ncee dee"))
   (with [(pytest.raises NameError)]
     (setv x [#* spam]  y 1)))
 
-(defn test-read []
-  (import io [StringIO])
-
-  (setv stdin-buffer (StringIO "(+ 2 2)\n(- 2 2)"))
-  (assert (= (hy.eval (hy.read stdin-buffer)) 4))
-  (assert (isinstance (hy.read stdin-buffer) hy.models.Expression))
-
-  ; Multiline test
-  (setv stdin-buffer (StringIO "(\n+\n41\n1\n)\n(-\n2\n1\n)"))
-  (assert (= (hy.eval (hy.read stdin-buffer)) 42))
-  (assert (= (hy.eval (hy.read stdin-buffer)) 1))
-
-  ; EOF test
-  (setv stdin-buffer (StringIO "(+ 2 2)"))
-  (hy.read stdin-buffer)
-  (with [(pytest.raises EOFError)]
-    (hy.read stdin-buffer)))
-
 (defn test-read-str []
-  (assert (= (hy.read-str "(print 1)") '(print 1)))
-  (assert (is (type (hy.read-str "(print 1)")) (type '(print 1))))
+  (assert (= (hy.read "(print 1)") '(print 1)))
+  (assert (is (type (hy.read "(print 1)")) (type '(print 1))))
 
   ; Watch out for false values: https://github.com/hylang/hy/issues/1243
-  (assert (= (hy.read-str "\"\"") '""))
-  (assert (is (type (hy.read-str "\"\"")) (type '"")))
-  (assert (= (hy.read-str "[]") '[]))
-  (assert (is (type (hy.read-str "[]")) (type '[])))
-  (assert (= (hy.read-str "0") '0))
-  (assert (is (type (hy.read-str "0")) (type '0))))
+  (assert (= (hy.read "\"\"") '""))
+  (assert (is (type (hy.read "\"\"")) (type '"")))
+  (assert (= (hy.read "[]") '[]))
+  (assert (is (type (hy.read "[]")) (type '[])))
+  (assert (= (hy.read "0") '0))
+  (assert (is (type (hy.read "0")) (type '0))))
 
 (defn test-keyword-creation []
   (assert (= (hy.models.Keyword "foo") :foo))
@@ -1663,10 +1646,10 @@ cee\"} dee" "ey bee\ncee dee"))
 (defn test-decorated-defn/a []
   (defn decorator [func] (fn/a [] (/ (await (func)) 2)))
 
-  #@(decorator
-      (defn/a coro-test []
-        (await (asyncio.sleep 0))
-        42))
+  #@[decorator]
+  (defn/a coro-test []
+    (await (asyncio.sleep 0))
+    42)
   (assert (= (asyncio.run (coro-test)) 21)))
 
 

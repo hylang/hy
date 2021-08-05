@@ -144,7 +144,7 @@
 (defn test-gensym-in-macros []
   (import ast)
   (import hy.compiler [hy-compile])
-  (import hy.lex [hy-parse])
+  (import hy.lex [read-module])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (hy.gensym))
       `(do
@@ -157,8 +157,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
-  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast1 (hy-compile (read-module macro1) __name__))
+  (setv _ast2 (hy-compile (read-module macro1) __name__))
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
   ;; and make sure there is something new that starts with _G\uffff
@@ -250,7 +250,7 @@ in expansions."
 
   (require-macros))
 
-#@(pytest.mark.xfail
+#@ pytest.mark.xfail
 (defn test-macro-from-module []
   "Macros loaded from an external module, which itself `require`s macros, should
  work without having to `require` the module's macro dependencies (due to
@@ -322,7 +322,7 @@ in expansions."
   ;; There doesn't seem to be a way--via standard import mechanisms--to
   ;; ensure that an imported module used the cached bytecode.  We'll simply have
   ;; to trust that the .pyc loading convention was followed.
-  (test-requires-and-macros)))
+  (test-requires-and-macros))
 
 
 (defn test-recursive-require-star []
@@ -335,9 +335,9 @@ in expansions."
 
 (defn test-macro-errors []
   (import traceback
-          hy.importer [hy-parse])
+          hy.importer [read-module])
 
-  (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
+  (setv test-expr (read-module "(defmacro blah [x] `(print ~@z)) (blah y)"))
 
   (with [excinfo (pytest.raises HyMacroExpansionError)]
     (hy.eval test-expr))

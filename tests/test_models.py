@@ -206,13 +206,13 @@ def test_compound_model_repr():
             assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
             # `str` should be pretty, even under `pretty(False)`.
-            assert str(hy.read_str(k)) == v
+            assert str(hy.read(k)) == v
         for k in PRETTY_STRINGS.keys():
-            assert eval(repr(hy.read_str(k))) == hy.read_str(k)
+            assert eval(repr(hy.read(k))) == hy.read(k)
     with pretty(True):
         for model in HY_LIST_MODELS:
             assert eval(repr(model())).__class__ is model
             assert eval(repr(model([1, 2]))) == model([1, 2])
             assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
-            assert repr(hy.read_str(k)) == v
+            assert repr(hy.read(k)) == v
