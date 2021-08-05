@@ -37,7 +37,7 @@ Compound Models
 ---------------
 
 Parenthesized and bracketed lists are parsed as compound models by the
-Hy parser.
+Hy reader.
 
 Hy uses pretty-printing reprs for its compound models by default.
 If this is causing issues,
@@ -124,7 +124,7 @@ which compile down to unicode string literals (``str``) in Python.
 ``String``\s are immutable.
 
 Hy literal strings can span multiple lines, and are considered by the
-parser as a single unit, respecting the Python escapes for unicode
+reader as a single unit, respecting the Python escapes for unicode
 strings.
 
 ``String``\s have an attribute ``brackets`` that stores the custom

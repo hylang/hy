@@ -8,7 +8,7 @@ Hy's REPL (read-eval-print loop) [#]_ functionality is implemented in the ``hy.c
 
 From a high level, a single cycle of the REPL consists of the following steps:
 
-1. tokenize and parse input with ``hy.lex.hy_parse``, generating Hy AST [#]_;
+1. read input with ``hy.lex.read_module``, generating Hy AST [#]_;
 2. compile Hy AST to Python AST with ``hy.compiler.hy_compile`` [#]_;
 3. execute the Python code with ``eval``; and
 4. print output, formatted with ``output_fn``.

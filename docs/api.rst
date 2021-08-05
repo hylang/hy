@@ -1529,9 +1529,11 @@ Hy
 The ``hy`` module is auto imported into every Hy module and provides convient access to
 the following methods
 
-.. hy:autofunction:: hy.read-str
-
 .. hy:autofunction:: hy.read
+
+.. hy:autofunction:: hy.read_many
+
+.. hy:autofunction:: hy.read_module
 
 .. hy:autofunction:: hy.eval
 
