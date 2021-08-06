@@ -464,7 +464,6 @@ _wrappers[FString] = lambda fstr: FString(
 )
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
-_wrappers[GeneratorType] = recwrap(List)
 _wrappers[tuple] = recwrap(List)
 
 
@@ -526,3 +525,18 @@ class Set(Sequence):
 
 _wrappers[Set] = recwrap(Set)
 _wrappers[set] = recwrap(Set)
+
+
+class Module(Object):
+    """
+    Hy module. A sequence of top-level expressions.
+    """
+
+    def __init__(self, gen, source, filename):
+        super().__init__()
+        self._gen = gen
+        self.source = source
+        self.filename = filename
+
+    def __iter__(self):
+        yield from self._gen

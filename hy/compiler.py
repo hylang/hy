@@ -5,10 +5,10 @@ from funcparserlib.parser import NoParseError, many
 
 from hy.models import (Object, Expression, Keyword, Integer, Complex,
     String, FComponent, FString, Bytes, Symbol, Float, List, Set,
-    Dict, as_model, is_unpack)
+    Dict, Module, as_model, is_unpack)
 from hy.model_patterns import (FORM, KEYWORD, unpack)
 from hy.errors import (HyCompileError, HyLanguageError, HySyntaxError)
-from hy.lex import mangle, Module
+from hy.lex import mangle
 from hy.macros import macroexpand
 
 
@@ -445,6 +445,17 @@ class HyASTCompiler(object):
             raise self._syntax_error(name, "Can't assign to constant")
         return name
 
+    @builds_model(Module)
+    def compile_module(self, module):
+        result = Result()
+        last = None
+        for node in module:
+            if last is not None:
+                result += last.expr_as_stmt()
+            last = self.compile(node)
+            result += last
+        return result
+
     @builds_model(Expression)
     def compile_expression(self, expr, *, allow_annotation_expression=False):
         # Perform macro expansions
@@ -773,35 +784,22 @@ def hy_compile(
     filename = getattr(tree, 'filename', filename)
     source = getattr(tree, 'source', source)
 
+    tree = as_model(tree)
+    if not isinstance(tree, Object):
+        raise TypeError("`tree` must be a hy.models.Object or capable of "
+                        "being promoted to one")
+
     compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
 
     if import_stdlib:
         # Import hy for compile time, but save the compiled AST.
         stdlib_ast = compiler.compile(mkexpr("eval-and-compile", mkexpr("import", "hy")))
 
-    if isinstance(tree, Module):
-        result = Result()
-        last = None
-        for node in tree:
-            if last is not None:
-                result += last.expr_as_stmt()
-            last = compiler.compile(node)
-            result += last
-        if last is not None:
-            if get_expr:
-                expr = last.force_expr
-            else:
-                result += last.expr_as_stmt()
-    else:
-        tree = as_model(tree)
-        if not isinstance(tree, Object):
-            raise TypeError("`tree` must be a hy.models.Object or capable of "
-                            "being promoted to one")
-        result = compiler.compile(tree)
-        expr = result.force_expr
+    result = compiler.compile(tree)
+    expr = result.force_expr
 
-        if not get_expr:
-            result += result.expr_as_stmt()
+    if not get_expr:
+        result += result.expr_as_stmt()
 
     body = []
 

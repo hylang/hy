@@ -1,9 +1,7 @@
 import re
 
-import hy.errors
-from hy.models import Expression, Symbol
+from hy.models import Module
 
-from .exceptions import LexException, PrematureEndOfInput  # NOQA
 from .mangle import isidentifier, mangle, unmangle
 from .reader import HyReader
 
@@ -15,16 +13,6 @@ __all__ = [
     "read_many",
     "read_module",
 ]
-
-class Module:
-    def __init__(self, base, source, filename):
-        self._base = base
-        self.source = source
-        self.filename = filename
-    def __getattr__(self, attr):
-        return getattr(self._base, attr)
-    def __iter__(self):
-        yield from self._base
 
 def read_many(source, filename=None, reader=None):
     """Parse Hy source as a sequence of forms.
@@ -61,7 +49,7 @@ def read_module(source, filename='<string>', reader=None):
       reader (HyReader, optional): Reader to use, if a new reader should not be created.
 
     Returns:
-      out : hy.models.Expression
+      out : Module
     """
     _source = re.sub(r'\A#!.*', '', source)
     res = read_many(_source, filename=filename, reader=reader)

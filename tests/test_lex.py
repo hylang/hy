@@ -6,11 +6,11 @@ import pytest
 from math import isnan
 from hy.models import (Expression, Integer, Float, Complex, Symbol,
                        String, Dict, List, Set, Keyword)
-from hy.lex import Module, read_many as _read_many
+from hy.lex import read_many as _read_many
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy.errors import hy_exc_handler
 
-def read_many(s): return list(Module(_read_many(s), s, None))
+def read_many(s): return list(_read_many(s))
 def peoi(): return pytest.raises(PrematureEndOfInput)
 def lexe(): return pytest.raises(LexException)
 
