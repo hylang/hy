@@ -3,13 +3,8 @@
   fractions [Fraction]
   re
   datetime
-  collections)
-
-(try
-  (import _collections_abc [dict-keys dict-values dict-items])
-  (except [ImportError]
-    (defclass C)
-    (setv [dict-keys dict-values dict-items] [C C C])))
+  collections
+  _collections_abc [dict-keys dict-values dict-items])
 
 (setv _registry {})
 (defn hy-repr-register [types f [placeholder None]]
