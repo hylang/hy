@@ -19,7 +19,7 @@ Other Breaking Changes
 
   * Functions: `butlast`, `coll?`, `constantly`, `dec`, `destructure`, `distinct`, `drop-last`, `end-sequence`, `flatten`, `inc`, `macroexpand-all`, `parse-args`, `pformat`, `postwalk`, `pp`, `pprint`, `prewalk`, `readable?`, `recursive?`, `rest`, `saferepr`, `walk`
   * Classes: `PrettyPrinter`, `Sequence`
-  * Macros: `#%`, `#:`, `->`, `->>`, `ap-dotimes`, `ap-each`, `ap-each-while`, `ap-filter`, `ap-first`, `ap-if`, `ap-last`, `ap-map`, `ap-map-when`, `ap-reduce`, `ap-reject`, `as->`, `assoc`, `cfor`, `comment`, `defmacro!`, `defmacro/g!`, `defmain`, `defn+`, `defn/a+`, `defseq`, `dict=:`, `do-n`, `doto`, `fn+`, `fn/a+`, `ifp`, `let`, `let+`, `lif`, `list-n`, `loop`, `ncut`, `of`, `profile/calls`, `profile/cpu`, `rit`, `seq`, `setv+`, `smacrolet`, `unless`, `with-gensyms`
+  * Macros: `#%`, `#:`, `->`, `->>`, `ap-dotimes`, `ap-each`, `ap-each-while`, `ap-filter`, `ap-first`, `ap-if`, `ap-last`, `ap-map`, `ap-map-when`, `ap-reduce`, `ap-reject`, `as->`, `assoc`, `cfor`, `comment`, `defmacro!`, `defmacro/g!`, `defmain`, `defn+`, `defn/a+`, `defseq`, `dict=:`, `do-n`, `doto`, `fn+`, `fn/a+`, `ifp`, `let`, `let+`, `lif`, `list-n`, `loop`, `ncut`, `of`, `profile/calls`, `profile/cpu`, `seq`, `setv+`, `smacrolet`, `unless`, `with-gensyms`
 
 * The constructors of `String` and `FString` now check that the input
   would be syntactically legal.
