@@ -78,6 +78,8 @@
 !(deque [1 2.5 None "hello"])
 !(ChainMap {})
 !(ChainMap {1 2} {3 4})
+!(OrderedDict [])
+!(OrderedDict [(, 1 2) (, 3 4)])
 
 ;; * Expressions
 

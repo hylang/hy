@@ -219,10 +219,14 @@
   (re.sub r"(\A| )0([0-9])" r"\1\2" (.strftime x fmt)))
 
 (hy-repr-register collections.ChainMap (fn [x]
-  (.format "(ChainMap {})" (_cat x.maps))))
+  (.format "(ChainMap {})"
+    (_cat x.maps))))
 (hy-repr-register collections.Counter (fn [x]
   (.format "(Counter {})"
     (hy-repr (dict x)))))
+(hy-repr-register collections.OrderedDict (fn [x]
+  (.format "(OrderedDict {})"
+    (hy-repr (list (.items x))))))
 (hy-repr-register collections.defaultdict (fn [x]
   (.format "(defaultdict {} {})"
     (hy-repr x.default-factory)
