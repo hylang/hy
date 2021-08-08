@@ -119,6 +119,10 @@
   (hy.repr-register C (fn [x] "cuddles"))
   (assert (= (hy.repr (C)) "cuddles"))
 
+  ; https://github.com/hylang/hy/issues/1873
+  (defclass D [C])
+  (assert (not-in "cuddles" (hy.repr (D))))
+
   (defclass Container [object]
     (defn __init__ [self value]
       (setv self.value value)))
