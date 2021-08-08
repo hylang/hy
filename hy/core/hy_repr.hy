@@ -104,9 +104,18 @@
     'unquote-splice "~@"
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
-  (if (and x (in (get x 0) syntax))
-    (+ (get syntax (get x 0)) (hy-repr (get x 1)))
-    (+ "(" (_cat x) ")"))))
+  (cond
+    [(and x (in (get x 0) syntax))
+      (+ (get syntax (get x 0)) (hy-repr (get x 1)))]
+    [(and
+         (= (len x) 3)
+         (= (get x 0) 'hy._Fraction)
+         (all (gfor
+           i (cut x 1 None)
+           (isinstance i (, int hy.models.Integer)))))
+        (.join "/" (map hy-repr (cut x 1 None)))]
+    [True
+      (+ "(" (_cat x) ")")])))
 
 (hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
 (hy-repr-register [hy.models.String str hy.models.Bytes bytes] (fn [x]
