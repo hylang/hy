@@ -2,75 +2,38 @@
   hy._compat [PY3_7]
   math [isnan])
 
+(defn test-hy-repr-roundtrip-from-str []
+  ; Test that a variety of objects round-trip from strings.
+
+  (for [original-str (lfor
+        x (with [o (open "tests/resources/hy_repr_str_tests.txt")]
+          (list o))
+        :setv x (.rstrip x)
+        :if (and x (not (.startswith x ";")))
+        x (if (.startswith x "!")
+          [(cut x 1 None) (+ "'" (cut x 1 None))]
+          [x])
+        x)]
+
+    (setv rep (hy.repr (hy.eval (hy.read-str original-str))))
+    (assert (= rep original-str))))
+
 (defn test-hy-repr-roundtrip-from-value []
-  ; Test that a variety of values round-trip properly.
+  ; As the previous test, but round-tripping of objects themselves
+  ; instead of their string representations. This is a weaker test
+  ; appropriate for objects that have different, but equivalent,
+  ; hy-reprs from the input syntax.
+
   (setv values [
-    None False True
-    5 5.1 '5 '5.1 Inf -Inf
-    (int 5)
-    1/2
-    5j 5.1j 2+1j 1.2+3.4j Inf-Infj
-    "" b""
-    '"" 'b""
-    "apple bloom" b"apple bloom" "⚘"
-    '"apple bloom" 'b"apple bloom" '"⚘"
-    "single ' quotes" b"single ' quotes"
-    "\"double \" quotes\"" b"\"double \" quotes\""
-    'mysymbol :mykeyword
-    [] (,) #{} (frozenset #{})
-    '[] '(,) '#{} '(frozenset #{})
-    '['[]]
-    '(+ 1 2)
-    [1 2 3] (, 1 2 3) #{1 2 3} (frozenset #{1 2 3})
-    '[1 2 3] '(, 1 2 3) '#{1 2 3} '(frozenset #{1 2 3})
-    {"a" 1  "b" 2  "a" 3} '{"a" 1  "b" 2  "a" 3}
-    [1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
-    '[1 [2 3] (, 4 (, mysymbol :mykeyword)) {"a" b"hello"} (f #* a #** b)]
-    'f"a{:a}"
-    'f"a{{{{(+ 1 1)}}}}"
-    'f"the answer is {(+ 2 2)}"
-    'f"the answer is {(+ 2 2) !r :4}"
+    {"a" 1  "b" 2  "a" 3}
+    '{"a" 1  "b" 2  "a" 3}
     'f"the answer is {(+ 2 2) = }"
-    'f"the answer is {(+ 2 2) = !r :4}"
-    'f"the answer is {(+ 2 2):{(+ 2 3)}}"])
+    'f"the answer is {(+ 2 2) = !r :4}"])
+
   (for [original-val values]
     (setv evaled (hy.eval (hy.read-str (hy.repr original-val))))
     (assert (= evaled original-val))
-    (assert (is (type evaled) (type original-val))))
-  (assert (isnan (hy.eval (hy.read-str (hy.repr NaN))))))
-
-(defn test-hy-repr-roundtrip-from-str []
-  (setv strs [
-    "'Inf"
-    "'-Inf"
-    "'NaN"
-    "1+2j"
-    "NaN+NaNj"
-    "'NaN+NaNj"
-    "[1 2 3]"
-    "'[1 2 3]"
-    "[1 'a 3]"
-    "'[1 a 3]"
-    "'[1 'a 3]"
-    "[1 '[2 3] 4]"
-    "'[1 [2 3] 4]"
-    "'[1 '[2 3] 4]"
-    "'[1 `[2 3] 4]"
-    "'[1 `[~foo ~@bar] 4]"
-    "'[1 `[~(+ 1 2) ~@(+ [1] [2])] 4]"
-    "'[1 `[~(do (print x 'y) 1)] 4]"
-    "{1 10  2 20}" "{2 20  1 10}"
-    "'{1 10  2 20}" "'{2 20  1 10}"
-    "'asymbol"
-    ":akeyword"
-    "'#[[bracketed string]]"
-    "'#[delim[bracketed string]delim]"
-    "'#[delim[brack'eted string]delim]"
-    "'#[f-delim[the answer is {(+ 2 2) :{(+ 2 3)}}]f-delim]"
-    "'(f #* args #** kwargs)"])
-  (for [original-str strs]
-    (setv rep (hy.repr (hy.eval (hy.read-str original-str))))
-    (assert (= rep original-str))))
+    (assert (is (type evaled) (type original-val)))))
 
 (defn test-hy-repr-no-roundtrip []
   ; Test one of the corner cases in which hy-repr doesn't

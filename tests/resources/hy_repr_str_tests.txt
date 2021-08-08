@@ -1,0 +1,97 @@
+;; One test case per line.
+;; Lines starting with `;` are comments.
+;; Lines starting with `!` specify two tests: one with a leading
+;; single quote and one without.
+
+;; * Numeric
+
+!None
+!False
+!True
+
+!5
+!5.1
+
+!Inf
+!-Inf
+!NaN
+
+1/2
+
+!5j
+!5.1j
+!2+1j
+!1.2+3.4j
+!Inf-Infj
+!NaN+NaNj
+
+;; * Symbols and keywords
+
+'mysymbol
+'my♥symbol?
+:mykeyword
+:my♥keyword?
+:
+
+;; * Stringy thingies
+
+!""
+!b""
+
+!"apple bloom"
+!b"apple bloom"
+!"⚘"
+
+!"single ' quotes"
+!b"single ' quotes"
+!"\"double \" quotes\""
+!b"\"double \" quotes\""
+
+'#[[bracketed string]]
+'#[delim[bracketed string]delim]
+'#[delim[brack'eted string]delim]
+
+;; * Collections
+
+![]
+!(,)
+!#{}
+!(frozenset #{})
+!{}
+
+!['[]]
+![1 2 3]
+!(, 1 2 3)
+!#{1 2 3}
+'#{3 2 1 2}
+!(frozenset #{1 2 3})
+!{"a" 1  "b" 2}
+!{"b" 2  "a" 1}
+
+'[1 a 3]
+![1 'a 3]
+![1 '[2 3] 4]
+
+;; * Expressions
+
+'(+ 1 2)
+'(f a b)
+'(f #* args #** kwargs)
+![1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
+
+;; * Quasiquoting
+
+'[1 `[2 3] 4]
+'[1 `[~foo ~@bar] 4]
+'[1 `[~(+ 1 2) ~@(+ [1] [2])] 4]
+'[1 `[~(do (print x 'y) 1)] 4]
+
+;; * F-strings
+
+'f"a{:a}"
+'f"a{{{{(+ 1 1)}}}}"
+'f"the answer is {(+ 2 2)}"
+'f"the answer is {(+ 2 2) !r :4}"
+'f"the answer is {(+ 2 2) :{(+ 2 3)}}"
+
+'#[f-delim[the answer is {(+ 2 2) :{(+ 2 3)}}]f-delim]
