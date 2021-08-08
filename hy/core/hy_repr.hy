@@ -230,6 +230,7 @@
     [[list hy.models.List] "[...]"]
     [[set hy.models.Set] "#{...}"]
     [frozenset "(frozenset #{...})"]
+    [collections.deque "(deque [...])"]
     [dict-keys "(dict-keys [...])"]
     [dict-values "(dict-values [...])"]
     [dict-items "(dict-items [...])"]]]

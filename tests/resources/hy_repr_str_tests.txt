@@ -74,6 +74,9 @@
 ![1 'a 3]
 ![1 '[2 3] 4]
 
+!(deque [])
+!(deque [1 2.5 None "hello"])
+
 ;; * Expressions
 
 '(+ 1 2)
