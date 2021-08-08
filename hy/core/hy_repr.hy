@@ -131,6 +131,8 @@
         ; Otherwise, we have a single-quoted string, which isn't valid Hy, so
         ; convert it.
         (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\""))))))
+(hy-repr-register bytearray (fn [x]
+  f"(bytearray {(hy-repr (bytes x))})"))
 (hy-repr-register bool str)
 (hy-repr-register [hy.models.Float float] (fn [x]
   (setv fx (float x))

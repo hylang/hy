@@ -37,9 +37,11 @@
 
 !""
 !b""
+!(bytearray b"")
 
 !"apple bloom"
 !b"apple bloom"
+!(bytearray b"apple bloom")
 !"⚘"
 
 !"single ' quotes"
