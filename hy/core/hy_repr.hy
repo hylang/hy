@@ -147,6 +147,14 @@
 (hy-repr-register Fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
+(hy-repr-register [range slice] (fn [x]
+  (setv op (. (type x) __name__))
+  (if (= x.step (if (is (type x) range) 1))
+    (if (= x.start (if (is (type x) range) 0))
+      f"({op} {x.stop})"
+      f"({op} {x.start} {x.stop})")
+    f"({op} {x.start} {x.stop} {x.step})")))
+
 (hy-repr-register
   hy.models.FComponent
   (fn [x] (+

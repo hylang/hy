@@ -97,3 +97,16 @@
 'f"the answer is {(+ 2 2) :{(+ 2 3)}}"
 
 '#[f-delim[the answer is {(+ 2 2) :{(+ 2 3)}}]f-delim]
+
+;; * Ranges and slices
+
+!(range 5)
+!(slice 5)
+!(range 2 5)
+!(slice 2 5)
+!(range 5 2)
+!(slice 5 2)
+!(range 0 5 2)
+!(slice 0 5 2)
+!(range 0 5 -2)
+!(slice 0 5 -2)
