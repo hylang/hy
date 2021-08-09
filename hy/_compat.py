@@ -14,6 +14,12 @@ if not PY3_9:
     ast.unparse = astor.code_gen.to_source
 
 
+if not PY3_8:
+    # Shim `re.Pattern`.
+    import re
+    re.Pattern = type(re.compile(""))
+
+
 if not PY3_7:
     # Shim `asyncio.run`.
     import asyncio

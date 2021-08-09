@@ -197,6 +197,24 @@
     _matchobject-type.__name__
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
+(hy-repr-register re.Pattern (fn [x]
+  (setv flags (& x.flags (~ re.UNICODE)))
+    ; We remove re.UNICODE since it's redundant with the type
+    ; of the pattern, and Python's `repr` omits it, too.
+  (.format "(re.compile {}{})"
+    (hy-repr x.pattern)
+    (if flags
+      (+ " " (do
+        ; Convert `flags` from an integer to a list of names.
+        (setv flags (re.RegexFlag flags))
+        (setv flags (lfor
+          f (sorted re.RegexFlag)
+          :if (& f flags)
+          (+ "re." f.name)))
+        (if (= (len flags) 1)
+          (get flags 0)
+          (.format "(| {})" (.join " " flags)))))
+      ""))))
 
 (hy-repr-register datetime.datetime (fn [x]
   (.format "(datetime.datetime {}{})"

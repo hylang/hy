@@ -4,7 +4,9 @@
 
 (defn test-hy-repr-roundtrip-from-str []
   ; Test that a variety of objects round-trip from strings.
-  (import collections [deque ChainMap OrderedDict])
+  (import
+    collections [deque ChainMap OrderedDict]
+    re)
 
   (for [original-str (lfor
         x (with [o (open "tests/resources/hy_repr_str_tests.txt")]

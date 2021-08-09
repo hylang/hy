@@ -117,3 +117,12 @@
 !(slice 0 5 2)
 !(range 0 5 -2)
 !(slice 0 5 -2)
+
+;; * Regexen
+
+!(re.compile "foo")
+!(re.compile "\\Ax\\Z")
+!(re.compile "'")
+!(re.compile "\"")
+!(re.compile "foo" re.IGNORECASE)
+!(re.compile "foo" (| re.IGNORECASE re.MULTILINE))
