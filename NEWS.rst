@@ -34,6 +34,7 @@ Bug Fixes
 
 New Features
 ------------------------------
+* `hy.repr` now supports several more standard types.
 * the attribute access macro `.` now accepts method calls.
 
 .. _Hyrule: https://github.com/hylang/hyrule
