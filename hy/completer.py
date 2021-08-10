@@ -103,7 +103,7 @@ def completion(completer=None):
 
         try:
             readline.read_history_file(history)
-        except IOError:
+        except OSError:
             pass
 
         readline.parse_and_bind(readline_bind)
@@ -114,5 +114,5 @@ def completion(completer=None):
         if docomplete:
             try:
                 readline.write_history_file(history)
-            except IOError:
+            except OSError:
                 pass
