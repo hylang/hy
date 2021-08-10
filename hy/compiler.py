@@ -225,13 +225,12 @@ class Result:
             return self + Result(stmts=[other])
 
         if not isinstance(other, Result):
-            raise TypeError("Can't add %r with non-compiler result %r" % (
-                self, other))
+            raise TypeError(f"Can't add {self!r} with non-compiler result {other!r}")
 
         # Check for expression context clobbering
         if self.expr and not self.__used_expr:
             traceback.print_stack()
-            print("Bad boy clobbered expr %s with %s" % (
+            print("Bad boy clobbered expr {} with {}".format(
                 ast.dump(self.expr),
                 ast.dump(other.expr)))
 
