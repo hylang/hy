@@ -31,7 +31,7 @@ def hy_parse(source, filename='<string>'):
     return res
 
 
-class ParserState(object):
+class ParserState:
     def __init__(self, source, filename):
         self.source = source
         self.filename = filename

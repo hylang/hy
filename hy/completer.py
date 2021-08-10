@@ -28,7 +28,7 @@ if docomplete:
         readline_bind = "tab: complete"
 
 
-class Completer(object):
+class Completer:
 
     def __init__(self, namespace={}):
         if not isinstance(namespace, dict):

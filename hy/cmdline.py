@@ -38,7 +38,7 @@ sys.last_value = None
 sys.last_traceback = None
 
 
-class HyQuitter(object):
+class HyQuitter:
     def __init__(self, name):
         self.name = name
 
@@ -54,7 +54,7 @@ class HyQuitter(object):
             pass
         raise SystemExit(code)
 
-class HyHelper(object):
+class HyHelper:
     def __repr__(self):
         return ("Use (help) for interactive help, or (help object) for help "
                 "about object.")
@@ -109,7 +109,7 @@ def _hy_maybe_compile(compiler, source, filename, symbol):
 codeop._maybe_compile = _hy_maybe_compile
 
 
-class HyCompile(codeop.Compile, object):
+class HyCompile(codeop.Compile):
     """This compiler uses `linecache` like
     `IPython.core.compilerop.CachingCompiler`.
     """
@@ -207,7 +207,7 @@ class HyCompile(codeop.Compile, object):
         return exec_code, eval_code
 
 
-class HyCommandCompiler(codeop.CommandCompiler, object):
+class HyCommandCompiler(codeop.CommandCompiler):
     def __init__(self, *args, **kwargs):
         self.compiler = HyCompile(*args, **kwargs)
 
@@ -223,7 +223,7 @@ class HyCommandCompiler(codeop.CommandCompiler, object):
             return None
 
 
-class HyREPL(code.InteractiveConsole, object):
+class HyREPL(code.InteractiveConsole):
     def __init__(self, spy=False, output_fn=None, locals=None,
                  filename="<stdin>"):
 

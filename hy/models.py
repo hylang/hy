@@ -39,7 +39,7 @@ class _ColoredModel:
             return text
 
 
-class Object(object):
+class Object:
     """
     Generic Hy Object model. This is helpful to inject things into all the
     Hy lexing Objects at once.
