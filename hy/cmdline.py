@@ -6,7 +6,6 @@ import code
 import ast
 import sys
 import os
-import io
 import importlib
 import py_compile
 import traceback
@@ -493,7 +492,7 @@ def run_repl(hr=None, **kwargs):
 def run_icommand(source, **kwargs):
     if os.path.exists(source):
         set_path(source)
-        with io.open(source, "r", encoding='utf-8') as f:
+        with open(source, "r", encoding='utf-8') as f:
             source = f.read()
         filename = source
     else:
@@ -752,7 +751,7 @@ def hy2py_main():
     else:
         filename = options.FILE
         set_path(filename)
-        with io.open(options.FILE, 'r', encoding='utf-8') as source_file:
+        with open(options.FILE, 'r', encoding='utf-8') as source_file:
             source = source_file.read()
 
     with filtered_hy_exceptions():
