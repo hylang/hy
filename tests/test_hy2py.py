@@ -59,7 +59,7 @@ def assert_stuff(m):
     assert m.mylistcomp == [1, 3, 5, 7, 9]
     assert m.mysetcomp == {0, 2, 4}
     assert m.mydictcomp == dict(a="A", b="B", d="D", e="E")
-    assert type(m.mygenexpr) is type( (x for x in [1, 2, 3]) )
+    assert type(m.mygenexpr) is type(x for x in [1, 2, 3])
     assert list(itertools.islice(m.mygenexpr, 5)) == [1, 3, 1, 3, 1]
 
     assert m.attr_ref is str.upper
