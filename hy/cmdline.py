@@ -121,7 +121,7 @@ class HyCompile(codeop.Compile):
         self.ast_callback = ast_callback
         self.hy_compiler = hy_compiler
 
-        super(HyCompile, self).__init__()
+        super().__init__()
 
         self.flags |= hy_ast_compile_flags
 
@@ -180,8 +180,8 @@ class HyCompile(codeop.Compile):
             if self.ast_callback:
                 self.ast_callback(exec_ast, eval_ast)
 
-            exec_code = super(HyCompile, self).__call__(exec_ast, name, symbol)
-            eval_code = super(HyCompile, self).__call__(eval_ast, name, 'eval')
+            exec_code = super().__call__(exec_ast, name, symbol)
+            eval_code = super().__call__(eval_ast, name, 'eval')
 
         except HyLanguageError:
             # Hy will raise exceptions during compile-time that Python would
@@ -191,10 +191,10 @@ class HyCompile(codeop.Compile):
             # the places where Python code expects them.
             sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
             self._update_exc_info()
-            exec_code = super(HyCompile, self).__call__(
+            exec_code = super().__call__(
                 'raise _hy_last_value.with_traceback(_hy_last_traceback)',
                 name, symbol)
-            eval_code = super(HyCompile, self).__call__('None', name, 'eval')
+            eval_code = super().__call__('None', name, 'eval')
 
         except SyntaxError:
             # Capture and save the error before we get to the superclass handler
@@ -213,7 +213,7 @@ class HyCommandCompiler(codeop.CommandCompiler):
 
     def __call__(self, *args, **kwargs):
         try:
-            return super(HyCommandCompiler, self).__call__(*args, **kwargs)
+            return super().__call__(*args, **kwargs)
         except PrematureEndOfInput:
             # We have to do this here, because `codeop._maybe_compile` won't
             # take `None` for a return value (at least not in Python 2.7) and
@@ -231,8 +231,8 @@ class HyREPL(code.InteractiveConsole):
         # (e.g. using `importlib.import_module`).
         # We let `InteractiveConsole` initialize `self.locals` when it's
         # `None`.
-        super(HyREPL, self).__init__(locals=locals,
-                                     filename=filename)
+        super().__init__(locals=locals,
+                         filename=filename)
 
         module_name = self.locals.get('__name__', '__console__')
         # Make sure our newly created module is properly introduced to
@@ -336,12 +336,12 @@ class HyREPL(code.InteractiveConsole):
         if filename is None:
             filename = self.filename
 
-        self._error_wrap(super(HyREPL, self).showsyntaxerror,
+        self._error_wrap(super().showsyntaxerror,
                          exc_info_override=True,
                          filename=filename)
 
     def showtraceback(self):
-        self._error_wrap(super(HyREPL, self).showtraceback)
+        self._error_wrap(super().showtraceback)
 
     def runcode(self, code):
         try:
@@ -358,7 +358,7 @@ class HyREPL(code.InteractiveConsole):
 
     def runsource(self, source, filename='<stdin>', symbol='exec'):
         try:
-            res = super(HyREPL, self).runsource(source, filename, symbol)
+            res = super().runsource(source, filename, symbol)
         except (HyMacroExpansionError, HyRequireError):
             # We need to handle these exceptions ourselves, because the base
             # method only handles `OverflowError`, `SyntaxError` and
