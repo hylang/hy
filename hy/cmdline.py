@@ -663,7 +663,7 @@ def cmdline_handler(scriptname, argv):
                     runhy.run_path(filename, run_name='__main__')
                 return 0
             except FileNotFoundError as e:
-                print("hy: Can't open file '{0}': [Errno {1}] {2}".format(
+                print("hy: Can't open file '{}': [Errno {}] {}".format(
                       e.filename, e.errno, e.strerror), file=sys.stderr)
                 sys.exit(e.errno)
             except HyLanguageError:
