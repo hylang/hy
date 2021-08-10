@@ -101,7 +101,7 @@ def format_row(category, divider_loc):
 def format_table(table_spec):
     table_name = table_spec['name']
     categories = table_spec['categories']
-    longest_cat_name = max([len(category['name']) for category in categories])
+    longest_cat_name = max(len(category['name']) for category in categories)
     table = [
         table_name,
         '-' * len(table_name),
