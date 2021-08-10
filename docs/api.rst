@@ -1565,4 +1565,3 @@ Reserved
 
 .. hy:automodule:: hy.reserved
    :members:
-
