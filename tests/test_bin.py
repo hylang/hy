@@ -297,10 +297,6 @@ def test_bin_hy_icmd_file():
     output, _ = run_cmd("hy -i resources/icmd_test_file.hy", "(ideas)")
     assert "Hy!" in output
 
-    file_relative_path = os.path.realpath(os.path.split('tests/resources/relative_import.hy')[0])
-
-    output, _ = run_cmd("hy -i tests/resources/relative_import.hy None")
-    assert file_relative_path in output
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy --spy -i \"(+ [] [])\"", "(+ 1 1)")
