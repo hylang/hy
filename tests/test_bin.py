@@ -446,7 +446,7 @@ def test_bin_hy_module_no_main():
 
 def test_bin_hy_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
-    assert output.strip().endswith('/hy')
+    assert os.path.basename(output.strip()) == 'hy'
 
 
 def test_bin_hy_file_no_extension():

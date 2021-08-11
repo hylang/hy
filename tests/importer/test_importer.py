@@ -265,10 +265,10 @@ def test_shadowed_basename():
         assert os.path.isfile('tests/resources/importer/foo/some_mod.py')
 
         foo = importlib.import_module('foo')
-        assert foo.__file__.endswith('foo/__init__.hy')
+        assert os.path.basename(foo.__file__) == '__init__.hy'
         assert foo.ext == 'hy'
         some_mod = importlib.import_module('foo.some_mod')
-        assert some_mod.__file__.endswith('foo/some_mod.hy')
+        assert os.path.basename(some_mod.__file__) == 'some_mod.hy'
         assert some_mod.ext == 'hy'
     finally:
         sys.path.pop(0)
