@@ -464,12 +464,12 @@ def test_bin_hy_circular_macro_require():
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "42" == output.strip()
+    assert output.strip() == "42"
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "42" == output.strip()
+    assert output.strip() == "42"
 
 def test_bin_hy_macro_require():
     """Confirm that a `require` will load macros into the non-module namespace
@@ -482,12 +482,12 @@ def test_bin_hy_macro_require():
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "abc" == output.strip()
+    assert output.strip() == "abc"
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "abc" == output.strip()
+    assert output.strip() == "abc"
 
 
 def test_bin_hy_tracebacks():
