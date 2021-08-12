@@ -1,7 +1,6 @@
 import os
 import sys
 import ast
-import tempfile
 import runpy
 import importlib
 
@@ -84,28 +83,18 @@ def test_import_error_cleanup():
 
 @pytest.mark.skipif(sys.dont_write_bytecode,
                     reason="Bytecode generation is suppressed")
-def test_import_autocompiles():
+def test_import_autocompiles(tmp_path):
     "Test that (import) byte-compiles the module."
 
-    with tempfile.NamedTemporaryFile(suffix='.hy', delete=True) as f:
-        f.write(b'(defn pyctest [s] (+ "X" s "Y"))')
-        f.flush()
+    p = tmp_path / 'mymodule.hy'
+    p.write_text('(defn pyctest [s] (+ "X" s "Y"))')
 
-        pyc_path = importlib.util.cache_from_source(f.name)
+    spec = importlib.util.spec_from_file_location('mymodule', p)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
 
-        try:
-            os.remove(pyc_path)
-        except OSError:
-            pass
-
-        spec = importlib.util.spec_from_file_location('mymodule', f.name)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        assert hasattr(module, 'pyctest')
-        assert os.path.exists(pyc_path)
-
-        os.remove(pyc_path)
+    assert hasattr(module, 'pyctest')
+    assert os.path.exists(importlib.util.cache_from_source(p))
 
 
 def test_eval():
