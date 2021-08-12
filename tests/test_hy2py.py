@@ -10,10 +10,11 @@ def test_direct_import():
 
 def test_hy2py_import(tmpdir):
     import subprocess
-    python_code = subprocess.check_output(
-        ["hy2py", "tests/resources/pydemo.hy"]).decode("UTF-8")
     path = tmpdir.join("pydemo.py")
-    path.write(python_code)
+    with open(path, "wb") as o:
+        subprocess.check_call(
+            ["hy2py", "tests/resources/pydemo.hy"],
+            stdout = o)
     assert_stuff(hy.importer._import_from_path("pydemo", path))
 
 
