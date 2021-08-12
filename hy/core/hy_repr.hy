@@ -3,13 +3,8 @@
   fractions [Fraction]
   re
   datetime
-  collections)
-
-(try
-  (import _collections_abc [dict-keys dict-values dict-items])
-  (except [ImportError]
-    (defclass C)
-    (setv [dict-keys dict-values dict-items] [C C C])))
+  collections
+  _collections_abc [dict-keys dict-values dict-items])
 
 (setv _registry {})
 (defn hy-repr-register [types f [placeholder None]]
@@ -109,9 +104,18 @@
     'unquote-splice "~@"
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
-  (if (and x (in (get x 0) syntax))
-    (+ (get syntax (get x 0)) (hy-repr (get x 1)))
-    (+ "(" (_cat x) ")"))))
+  (cond
+    [(and x (in (get x 0) syntax))
+      (+ (get syntax (get x 0)) (hy-repr (get x 1)))]
+    [(and
+         (= (len x) 3)
+         (= (get x 0) 'hy._Fraction)
+         (all (gfor
+           i (cut x 1 None)
+           (isinstance i (, int hy.models.Integer)))))
+        (.join "/" (map hy-repr (cut x 1 None)))]
+    [True
+      (+ "(" (_cat x) ")")])))
 
 (hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
 (hy-repr-register [hy.models.String str hy.models.Bytes bytes] (fn [x]
@@ -127,6 +131,8 @@
         ; Otherwise, we have a single-quoted string, which isn't valid Hy, so
         ; convert it.
         (+ "\"" (.replace (cut r 1 -1) "\"" "\\\"") "\""))))))
+(hy-repr-register bytearray (fn [x]
+  f"(bytearray {(hy-repr (bytes x))})"))
 (hy-repr-register bool str)
 (hy-repr-register [hy.models.Float float] (fn [x]
   (setv fx (float x))
@@ -140,6 +146,14 @@
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
 (hy-repr-register Fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
+
+(hy-repr-register [range slice] (fn [x]
+  (setv op (. (type x) __name__))
+  (if (= x.step (if (is (type x) range) 1))
+    (if (= x.start (if (is (type x) range) 0))
+      f"({op} {x.stop})"
+      f"({op} {x.start} {x.stop})")
+    f"({op} {x.start} {x.stop} {x.step})")))
 
 (hy-repr-register
   hy.models.FComponent
@@ -183,6 +197,24 @@
     _matchobject-type.__name__
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
+(hy-repr-register re.Pattern (fn [x]
+  (setv flags (& x.flags (~ re.UNICODE)))
+    ; We remove re.UNICODE since it's redundant with the type
+    ; of the pattern, and Python's `repr` omits it, too.
+  (.format "(re.compile {}{})"
+    (hy-repr x.pattern)
+    (if flags
+      (+ " " (do
+        ; Convert `flags` from an integer to a list of names.
+        (setv flags (re.RegexFlag flags))
+        (setv flags (lfor
+          f (sorted re.RegexFlag)
+          :if (& f flags)
+          (+ "re." f.name)))
+        (if (= (len flags) 1)
+          (get flags 0)
+          (.format "(| {})" (.join " " flags)))))
+      ""))))
 
 (hy-repr-register datetime.datetime (fn [x]
   (.format "(datetime.datetime {}{})"
@@ -204,9 +236,15 @@
   ; flag for when Python isn't built with glibc.
   (re.sub r"(\A| )0([0-9])" r"\1\2" (.strftime x fmt)))
 
+(hy-repr-register collections.ChainMap (fn [x]
+  (.format "(ChainMap {})"
+    (_cat x.maps))))
 (hy-repr-register collections.Counter (fn [x]
   (.format "(Counter {})"
     (hy-repr (dict x)))))
+(hy-repr-register collections.OrderedDict (fn [x]
+  (.format "(OrderedDict {})"
+    (hy-repr (list (.items x))))))
 (hy-repr-register collections.defaultdict (fn [x]
   (.format "(defaultdict {} {})"
     (hy-repr x.default-factory)
@@ -216,6 +254,7 @@
     [[list hy.models.List] "[...]"]
     [[set hy.models.Set] "#{...}"]
     [frozenset "(frozenset #{...})"]
+    [collections.deque "(deque [...])"]
     [dict-keys "(dict-keys [...])"]
     [dict-values "(dict-values [...])"]
     [dict-items "(dict-items [...])"]]]
