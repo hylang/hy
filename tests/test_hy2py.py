@@ -1,4 +1,4 @@
-import math, itertools, asyncio
+import os, math, itertools, asyncio
 from hy import mangle
 import hy.importer
 
@@ -14,7 +14,8 @@ def test_hy2py_import(tmpdir):
     with open(path, "wb") as o:
         subprocess.check_call(
             ["hy2py", "tests/resources/pydemo.hy"],
-            stdout = o)
+            stdout = o,
+            env = {**os.environ, 'PYTHONIOENCODING': 'UTF-8'})
     assert_stuff(hy.importer._import_from_path("pydemo", path))
 
 
