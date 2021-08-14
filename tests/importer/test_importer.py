@@ -95,7 +95,7 @@ def test_import_autocompiles():
 
         try:
             os.remove(pyc_path)
-        except (IOError, OSError):
+        except OSError:
             pass
 
         spec = importlib.util.spec_from_file_location('mymodule', f.name)

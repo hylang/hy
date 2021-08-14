@@ -69,7 +69,7 @@ def builds_model(*model_types):
 # Provide asty.Foo(x, ...) as shorthand for
 # ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
-class Asty(object):
+class Asty:
     def __getattr__(self, name):
         setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
             lineno=getattr(
@@ -87,7 +87,7 @@ class Asty(object):
 asty = Asty()
 
 
-class Result(object):
+class Result:
     """
     Smart representation of the result of a hy->AST compilation
 
@@ -225,13 +225,12 @@ class Result(object):
             return self + Result(stmts=[other])
 
         if not isinstance(other, Result):
-            raise TypeError("Can't add %r with non-compiler result %r" % (
-                self, other))
+            raise TypeError(f"Can't add {self!r} with non-compiler result {other!r}")
 
         # Check for expression context clobbering
         if self.expr and not self.__used_expr:
             traceback.print_stack()
-            print("Bad boy clobbered expr %s with %s" % (
+            print("Bad boy clobbered expr {} with {}".format(
                 ast.dump(self.expr),
                 ast.dump(other.expr)))
 
@@ -269,7 +268,7 @@ def is_annotate_expression(model):
             and model[0] == Symbol("annotate"))
 
 
-class HyASTCompiler(object):
+class HyASTCompiler:
     """A Hy-to-Python AST compiler"""
 
     def __init__(self, module, filename=None, source=None):

@@ -42,10 +42,10 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
 def rm(fpath):
     try:
         os.remove(fpath)
-    except (IOError, OSError):
+    except OSError:
         try:
             os.rmdir(fpath)
-        except (IOError, OSError):
+        except OSError:
             pass
 
 

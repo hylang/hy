@@ -39,7 +39,7 @@ class _ColoredModel:
             return text
 
 
-class Object(object):
+class Object:
     """
     Generic Hy Object model. This is helpful to inject things into all the
     Hy lexing Objects at once.
@@ -102,7 +102,7 @@ class Object(object):
         if type(self) != type(other):
             return False
         else:
-            return super(Object, self).__eq__(other)
+            return super().__eq__(other)
 
     def __hash__(self):
         return super().__hash__()
@@ -172,7 +172,7 @@ class String(Object, str):
     Python version.
     """
     def __new__(cls, s=None, brackets=None):
-        value = super(String, cls).__new__(cls, s)
+        value = super().__new__(cls, s)
         if brackets is not None and f"]{brackets}]" in value:
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
         value.brackets = brackets
@@ -204,7 +204,7 @@ class Symbol(Object, str):
             from hy.lex.parser import symbol_like
             if not re.fullmatch(identifier, s) or symbol_like(s) is not None:
                 raise ValueError(f'Syntactically illegal symbol: {s!r}')
-        return super(Symbol, cls).__new__(cls, s)
+        return super().__new__(cls, s)
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
 _wrappers[type(None)] = lambda foo: Symbol("None")
@@ -296,7 +296,7 @@ class Integer(Object, int):
         else:
             # We've got a non-string; convert straight.
             number = int(number)
-        return super(Integer, cls).__new__(cls, number)
+        return super().__new__(cls, number)
 
 
 _wrappers[int] = Integer
@@ -317,7 +317,7 @@ class Float(Object, float):
     """
 
     def __new__(cls, num, *args, **kwargs):
-        value = super(Float, cls).__new__(cls, strip_digit_separators(num))
+        value = super().__new__(cls, strip_digit_separators(num))
         check_inf_nan_cap(num, value)
         return value
 
@@ -332,7 +332,7 @@ class Complex(Object, complex):
 
     def __new__(cls, real, imag=0, *args, **kwargs):
         if isinstance(real, str):
-            value = super(Complex, cls).__new__(
+            value = super().__new__(
                 cls, strip_digit_separators(real)
             )
             p1, _, p2 = real.lstrip("+-").replace("-", "+").partition("+")
@@ -340,7 +340,7 @@ class Complex(Object, complex):
             if p2:
                 check_inf_nan_cap(p2, value.imag)
             return value
-        return super(Complex, cls).__new__(cls, real, imag)
+        return super().__new__(cls, real, imag)
 
 _wrappers[complex] = Complex
 
@@ -358,14 +358,14 @@ class Sequence(Object, tuple, _ColoredModel):
         return self
 
     def __add__(self, other):
-        return self.__class__(super(Sequence, self).__add__(
+        return self.__class__(super().__add__(
             tuple(other) if isinstance(other, list) else other))
 
     def __getslice__(self, start, end):
-        return self.__class__(super(Sequence, self).__getslice__(start, end))
+        return self.__class__(super().__getslice__(start, end))
 
     def __getitem__(self, item):
-        ret = super(Sequence, self).__getitem__(item)
+        ret = super().__getitem__(item)
 
         if isinstance(item, slice):
             return self.__class__(ret)
@@ -375,7 +375,7 @@ class Sequence(Object, tuple, _ColoredModel):
     color = None
 
     def __repr__(self):
-        return str(self) if PRETTY else super(Sequence, self).__repr__()
+        return str(self) if PRETTY else super().__repr__()
 
     def __str__(self):
         with pretty():
