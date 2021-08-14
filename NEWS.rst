@@ -31,6 +31,9 @@ Bug Fixes
 * Improved error messages for illegal uses of `finally` and `else`.
 * `match` should no longer re-evaluate subect.
 * `hy-repr` now properly formats bracketed strings.
+* When standard output can't accommodate Unicode, `hy2py` now crashes
+  instead of emitting incorrect Python code.
+* Fixed a bug with self-requiring files on Windows.
 
 New Features
 ------------------------------
