@@ -1,9 +1,9 @@
-import os
 import sys
 import ast
 import runpy
 import importlib
 
+from pathlib import Path
 from fractions import Fraction
 from importlib import reload
 
@@ -95,7 +95,7 @@ def test_import_autocompiles(tmp_path):
         return module
 
     assert import_from_path(p).pyctest('flim') == 'XflimY'
-    assert os.path.exists(importlib.util.cache_from_source(p))
+    assert Path(importlib.util.cache_from_source(p)).exists()
 
     # Try running the bytecode.
     assert (
@@ -130,10 +130,10 @@ def test_reload(tmp_path, monkeypatch):
     """
 
     def unlink(filename):
-        os.unlink(source)
+        Path(source).unlink()
         bytecode = importlib.util.cache_from_source(source)
-        if os.path.isfile(bytecode):
-            os.unlink(bytecode)
+        if Path(bytecode).is_file():
+            Path(bytecode).unlink()
 
     TESTFN = 'testfn'
     source = tmp_path / (TESTFN + ".hy")
@@ -237,10 +237,10 @@ def test_shadowed_basename(monkeypatch):
     """
     monkeypatch.syspath_prepend('tests/resources/importer')
     foo = importlib.import_module('foo')
-    assert os.path.basename(foo.__file__) == '__init__.hy'
+    assert Path(foo.__file__).name == '__init__.hy'
     assert foo.ext == 'hy'
     some_mod = importlib.import_module('foo.some_mod')
-    assert os.path.basename(some_mod.__file__) == 'some_mod.hy'
+    assert Path(some_mod.__file__).name == 'some_mod.hy'
     assert some_mod.ext == 'hy'
 
 
