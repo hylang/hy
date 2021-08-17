@@ -89,13 +89,20 @@ def test_import_autocompiles(tmp_path):
     p = tmp_path / 'mymodule.hy'
     p.write_text('(defn pyctest [s] (+ "X" s "Y"))')
 
-    spec = importlib.util.spec_from_file_location('mymodule', p)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    def import_from_path(path):
+        spec = importlib.util.spec_from_file_location('mymodule', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
-    assert hasattr(module, 'pyctest')
+    assert import_from_path(p).pyctest('flim') == 'XflimY'
     assert os.path.exists(importlib.util.cache_from_source(p))
 
+    # Try running the bytecode.
+    assert (
+        import_from_path(importlib.util.cache_from_source(p))
+           .pyctest('flam')
+        == 'XflamY')
 
 def test_eval():
     def eval_str(s):
