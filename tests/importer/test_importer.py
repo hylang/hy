@@ -20,11 +20,9 @@ from hy.importer import HyLoader
 def test_basics():
     "Make sure the basics of the importer work"
 
-    assert os.path.isfile('tests/resources/__init__.py')
     resources_mod = importlib.import_module('tests.resources')
     assert hasattr(resources_mod, 'kwtest')
 
-    assert os.path.isfile('tests/resources/bin/__init__.hy')
     bin_mod = importlib.import_module('tests.resources.bin')
     assert hasattr(bin_mod, '_null_fn_for_import_test')
 
@@ -255,11 +253,6 @@ def test_shadowed_basename():
     """
     sys.path.insert(0, os.path.realpath('tests/resources/importer'))
     try:
-        assert os.path.isfile('tests/resources/importer/foo/__init__.hy')
-        assert os.path.isfile('tests/resources/importer/foo/__init__.py')
-        assert os.path.isfile('tests/resources/importer/foo/some_mod.hy')
-        assert os.path.isfile('tests/resources/importer/foo/some_mod.py')
-
         foo = importlib.import_module('foo')
         assert os.path.basename(foo.__file__) == '__init__.hy'
         assert foo.ext == 'hy'
