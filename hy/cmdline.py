@@ -758,7 +758,7 @@ def hy2py_main():
         hst = hy_parse(source, filename=filename)
 
     if options.with_source:
-        _print_for_windows(hst)
+        print(hst)
         print()
         print()
 
@@ -766,28 +766,15 @@ def hy2py_main():
         _ast = hy_compile(hst, '__main__', filename=filename, source=source)
 
     if options.with_ast:
-        _print_for_windows(ast.dump(_ast))
+        print(ast.dump(_ast))
         print()
         print()
 
     if not options.without_python:
-        _print_for_windows(ast.unparse(_ast))
+        print(ast.unparse(_ast))
 
     parser.exit(0)
 
-
-# need special printing on Windows in case the
-# codepage doesn't support utf-8 characters
-def _print_for_windows(src):
-    import platform
-    if platform.system() == "Windows":
-        for line in src.split("\n"):
-            try:
-                print(line)
-            except:
-                print(line.encode('utf-8'))
-    else:
-        print(src)
 
 # remove PYTHON* environment variables,
 # such as "PYTHONPATH"

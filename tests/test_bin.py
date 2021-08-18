@@ -297,10 +297,6 @@ def test_bin_hy_icmd_file():
     output, _ = run_cmd("hy -i resources/icmd_test_file.hy", "(ideas)")
     assert "Hy!" in output
 
-    file_relative_path = os.path.realpath(os.path.split('tests/resources/relative_import.hy')[0])
-
-    output, _ = run_cmd("hy -i tests/resources/relative_import.hy None")
-    assert file_relative_path in output
 
 def test_bin_hy_icmd_and_spy():
     output, _ = run_cmd("hy --spy -i \"(+ [] [])\"", "(+ 1 1)")
@@ -424,7 +420,7 @@ def test_bin_hy_file_sys_path():
     file_relative_path = os.path.realpath(file_path)
 
     output, _ = run_cmd("hy tests/resources/relative_import.hy")
-    assert file_relative_path in output
+    assert repr(file_relative_path) in output
 
 def test_bin_hyc_file_sys_path():
     # similar to test_bin_hy_file_sys_path, test hyc and hy2py to make sure
@@ -440,7 +436,7 @@ def test_bin_hyc_file_sys_path():
         assert not os.path.exists(cache_from_source(file_relative_path))
 
         output, _ = run_cmd(f"{binary} {test_file}")
-        assert file_relative_path in output
+        assert repr(file_relative_path) in output
 
 
 def test_bin_hy_module_no_main():
@@ -450,7 +446,7 @@ def test_bin_hy_module_no_main():
 
 def test_bin_hy_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
-    assert output.strip().endswith('/hy')
+    assert os.path.basename(output.strip()) == 'hy'
 
 
 def test_bin_hy_file_no_extension():
@@ -468,12 +464,12 @@ def test_bin_hy_circular_macro_require():
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "42" == output.strip()
+    assert output.strip() == "WOWIE"
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "42" == output.strip()
+    assert output.strip() == "WOWIE"
 
 def test_bin_hy_macro_require():
     """Confirm that a `require` will load macros into the non-module namespace
@@ -486,12 +482,12 @@ def test_bin_hy_macro_require():
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "abc" == output.strip()
+    assert output.strip() == "abc"
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
     output, _ = run_cmd("hy {}".format(test_file))
-    assert "abc" == output.strip()
+    assert output.strip() == "abc"
 
 
 def test_bin_hy_tracebacks():

@@ -1,4 +1,5 @@
 import sys
+import os
 import builtins
 import importlib
 import inspect
@@ -107,7 +108,7 @@ def _same_modules(source_module, target_module):
     target_filename = _get_filename(target_module)
 
     return (source_filename and target_filename and
-            source_filename == target_filename)
+            os.path.samefile(source_filename, target_filename))
 
 
 def require(source_module, target_module, assignments, prefix=""):

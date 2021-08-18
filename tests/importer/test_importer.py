@@ -1,10 +1,9 @@
-import os
 import sys
 import ast
-import tempfile
 import runpy
 import importlib
 
+from pathlib import Path
 from fractions import Fraction
 from importlib import reload
 
@@ -21,11 +20,9 @@ from hy.importer import HyLoader
 def test_basics():
     "Make sure the basics of the importer work"
 
-    assert os.path.isfile('tests/resources/__init__.py')
     resources_mod = importlib.import_module('tests.resources')
     assert hasattr(resources_mod, 'kwtest')
 
-    assert os.path.isfile('tests/resources/bin/__init__.hy')
     bin_mod = importlib.import_module('tests.resources.bin')
     assert hasattr(bin_mod, '_null_fn_for_import_test')
 
@@ -55,8 +52,9 @@ def test_stringer():
 
 
 def test_imports():
-    path = os.getcwd() + "/tests/resources/importer/a.hy"
-    testLoader = HyLoader("tests.resources.importer.a", path)
+    testLoader = HyLoader(
+        "tests.resources.importer.a",
+        "tests/resources/importer/a.hy")
     spec = importlib.util.spec_from_loader(testLoader.name, testLoader)
     mod = importlib.util.module_from_spec(spec)
 
@@ -84,29 +82,26 @@ def test_import_error_cleanup():
 
 @pytest.mark.skipif(sys.dont_write_bytecode,
                     reason="Bytecode generation is suppressed")
-def test_import_autocompiles():
+def test_import_autocompiles(tmp_path):
     "Test that (import) byte-compiles the module."
 
-    with tempfile.NamedTemporaryFile(suffix='.hy', delete=True) as f:
-        f.write(b'(defn pyctest [s] (+ "X" s "Y"))')
-        f.flush()
+    p = tmp_path / 'mymodule.hy'
+    p.write_text('(defn pyctest [s] (+ "X" s "Y"))')
 
-        pyc_path = importlib.util.cache_from_source(f.name)
-
-        try:
-            os.remove(pyc_path)
-        except OSError:
-            pass
-
-        spec = importlib.util.spec_from_file_location('mymodule', f.name)
+    def import_from_path(path):
+        spec = importlib.util.spec_from_file_location('mymodule', path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        return module
 
-        assert hasattr(module, 'pyctest')
-        assert os.path.exists(pyc_path)
+    assert import_from_path(p).pyctest('flim') == 'XflimY'
+    assert Path(importlib.util.cache_from_source(p)).exists()
 
-        os.remove(pyc_path)
-
+    # Try running the bytecode.
+    assert (
+        import_from_path(importlib.util.cache_from_source(p))
+           .pyctest('flam')
+        == 'XflamY')
 
 def test_eval():
     def eval_str(s):
@@ -125,7 +120,7 @@ def test_eval():
         pow(num, 2) for num in range(100) if num % 2 == 1]
 
 
-def test_reload():
+def test_reload(tmp_path, monkeypatch):
     """Generate a test module, confirm that it imports properly (and puts the
     module in `sys.modules`), then modify the module so that it produces an
     error when reloaded.  Next, fix the error, reload, and check that the
@@ -135,18 +130,16 @@ def test_reload():
     """
 
     def unlink(filename):
-        os.unlink(source)
+        Path(source).unlink()
         bytecode = importlib.util.cache_from_source(source)
-        if os.path.isfile(bytecode):
-            os.unlink(bytecode)
+        if Path(bytecode).is_file():
+            Path(bytecode).unlink()
 
     TESTFN = 'testfn'
-    source = TESTFN + os.extsep + "hy"
-    with open(source, "w") as f:
-        f.write("(setv a 1)")
-        f.write("(setv b 2)")
+    source = tmp_path / (TESTFN + ".hy")
+    source.write_text("(setv a 1)  (setv b 2)")
 
-    sys.path.insert(0, os.curdir)
+    monkeypatch.syspath_prepend(tmp_path)
     try:
         mod = importlib.import_module(TESTFN)
         assert TESTFN in sys.modules
@@ -160,9 +153,7 @@ def test_reload():
         unlink(source)
 
         # Now damage the module.
-        with open(source, "w") as f:
-            f.write("(setv a 10)")
-            f.write("(setv b (// 20 0))")
+        source.write_text("(setv a 10)  (setv b (// 20 0))")
 
         with pytest.raises(ZeroDivisionError):
             reload(mod)
@@ -179,9 +170,7 @@ def test_reload():
         # Now fix the issue and reload the module.
         unlink(source)
 
-        with open(source, "w") as f:
-            f.write("(setv a 11)")
-            f.write("(setv b (// 20 1))")
+        source.write_text("(setv a 11)  (setv b (// 20 1))")
 
         reload(mod)
 
@@ -191,13 +180,10 @@ def test_reload():
         assert mod.a == 11
         assert mod.b == 20
 
-        # Now cause a syntax error
+        # Now cause a syntax error (a missing parenthesis)
         unlink(source)
 
-        with open(source, "w") as f:
-            # Missing paren...
-            f.write("(setv a 11")
-            f.write("(setv b (// 20 1))")
+        source.write_text("(setv a 11  (setv b (// 20 1))")
 
         with pytest.raises(PrematureEndOfInput):
             reload(mod)
@@ -211,9 +197,7 @@ def test_reload():
         # Fix it and retry
         unlink(source)
 
-        with open(source, "w") as f:
-            f.write("(setv a 12)")
-            f.write("(setv b (// 10 1))")
+        source.write_text("(setv a 12)  (setv b (// 10 1))")
 
         reload(mod)
 
@@ -224,10 +208,8 @@ def test_reload():
         assert mod.b == 10
 
     finally:
-        del sys.path[0]
         if TESTFN in sys.modules:
             del sys.modules[TESTFN]
-        unlink(source)
 
 
 def test_reload_reexecute(capsys):
@@ -242,49 +224,34 @@ def test_reload_reexecute(capsys):
     assert capsys.readouterr().out == 'hello world\n'
 
 
-def test_circular():
+def test_circular(monkeypatch):
     """Test circular imports by creating a temporary file/module that calls a
     function that imports itself."""
-    sys.path.insert(0, os.path.abspath('tests/resources/importer'))
-    try:
-        mod = runpy.run_module('circular')
-        assert mod['f']() == 1
-    finally:
-        sys.path.pop(0)
+    monkeypatch.syspath_prepend('tests/resources/importer')
+    assert runpy.run_module('circular')['f']() == 1
 
 
-def test_shadowed_basename():
+def test_shadowed_basename(monkeypatch):
     """Make sure Hy loads `.hy` files instead of their `.py` counterparts (.e.g
     `__init__.py` and `__init__.hy`).
     """
-    sys.path.insert(0, os.path.realpath('tests/resources/importer'))
-    try:
-        assert os.path.isfile('tests/resources/importer/foo/__init__.hy')
-        assert os.path.isfile('tests/resources/importer/foo/__init__.py')
-        assert os.path.isfile('tests/resources/importer/foo/some_mod.hy')
-        assert os.path.isfile('tests/resources/importer/foo/some_mod.py')
-
-        foo = importlib.import_module('foo')
-        assert foo.__file__.endswith('foo/__init__.hy')
-        assert foo.ext == 'hy'
-        some_mod = importlib.import_module('foo.some_mod')
-        assert some_mod.__file__.endswith('foo/some_mod.hy')
-        assert some_mod.ext == 'hy'
-    finally:
-        sys.path.pop(0)
+    monkeypatch.syspath_prepend('tests/resources/importer')
+    foo = importlib.import_module('foo')
+    assert Path(foo.__file__).name == '__init__.hy'
+    assert foo.ext == 'hy'
+    some_mod = importlib.import_module('foo.some_mod')
+    assert Path(some_mod.__file__).name == 'some_mod.hy'
+    assert some_mod.ext == 'hy'
 
 
-def test_docstring():
+def test_docstring(monkeypatch):
     """Make sure a module's docstring is loaded."""
-    sys.path.insert(0, os.path.realpath('tests/resources/importer'))
-    try:
-        mod = importlib.import_module('docstring')
-        expected_doc = ("This module has a docstring.\n\n"
-                        "It covers multiple lines, too!\n")
-        assert mod.__doc__ == expected_doc
-        assert mod.a == 1
-    finally:
-        sys.path.pop(0)
+    monkeypatch.syspath_prepend('tests/resources/importer')
+    mod = importlib.import_module('docstring')
+    expected_doc = ("This module has a docstring.\n\n"
+                    "It covers multiple lines, too!\n")
+    assert mod.__doc__ == expected_doc
+    assert mod.a == 1
 
 
 def test_hy_python_require():
@@ -294,8 +261,9 @@ def test_hy_python_require():
 
 
 def test_filtered_importlib_frames(capsys):
-    path = os.getcwd() + "/tests/resources/importer/compiler_error.hy"
-    testLoader = HyLoader("tests.resources.importer.compiler_error", path)
+    testLoader = HyLoader(
+       "tests.resources.importer.compiler_error",
+       "tests/resources/importer/compiler_error.hy")
     spec = importlib.util.spec_from_loader(testLoader.name, testLoader)
     mod = importlib.util.module_from_spec(spec)
 
