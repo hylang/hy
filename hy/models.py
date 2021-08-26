@@ -171,12 +171,20 @@ class String(Object, str):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
+
     def __new__(cls, s=None, brackets=None):
         value = super().__new__(cls, s)
         if brackets is not None and f"]{brackets}]" in value:
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
         value.brackets = brackets
         return value
+
+    def __repr__(self):
+        return 'hy.models.String({}{})'.format(
+            super(Object, self).__repr__(),
+            '' if self.brackets is None else
+                f', brackets={self.brackets!r}')
+
 
 _wrappers[str] = String
 

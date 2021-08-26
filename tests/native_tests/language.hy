@@ -1163,6 +1163,12 @@ cee\"} dee" "ey bee\ncee dee"))
       (assert (= n o)))))
 
 
+(defn test-repr-with-brackets []
+  (assert (= (repr '"foo") "hy.models.String('foo')"))
+  (assert (= (repr '#[[foo]]) "hy.models.String('foo', brackets='')"))
+  (assert (= (repr '#[xx[foo]xx]) "hy.models.String('foo', brackets='xx')")))
+
+
 (defn test-import-syntax []
   ;; Simple import
   (import sys os)
