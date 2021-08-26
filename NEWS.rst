@@ -34,6 +34,8 @@ Bug Fixes
 * When standard output can't accommodate Unicode, `hy2py` now crashes
   instead of emitting incorrect Python code.
 * Fixed a bug with self-requiring files on Windows.
+* The `repr` and `str` of string models now include `brackets` if
+  necessary.
 
 New Features
 ------------------------------
