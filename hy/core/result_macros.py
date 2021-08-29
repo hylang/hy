@@ -24,6 +24,7 @@ from hy.lex import mangle, unmangle
 from hy.macros import pattern_macro, require
 from hy.errors import (HyTypeError, HyEvalError, HyInternalError)
 from hy.compiler import Result, asty, mkexpr, hy_eval
+from hy.scoping import ScopeFn, ScopeGen, ScopeGlobal, ScopeLet
 
 # ------------------------------------------------
 # * Helpers
