@@ -41,6 +41,7 @@ New Features
 ------------------------------
 * `hy.repr` now supports several more standard types.
 * the attribute access macro `.` now accepts method calls.
+* `as_model` checks for self-references in its argument.
 
 .. _Hyrule: https://github.com/hylang/hyrule
 

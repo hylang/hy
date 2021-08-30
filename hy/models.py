@@ -109,7 +109,7 @@ class Object:
 
 
 _wrappers = {}
-
+_seen = set()
 
 def as_model(x):
     """Recurisvely promote an object ``x`` into its canonical model form.
@@ -142,6 +142,9 @@ def as_model(x):
        True  ; True because ``as-model`` has walked the expression and promoted
              ; the literal int ``2`` to its model for ``(hy.model.Integer 2)``
     """
+
+    if id(x) in _seen:
+        raise HyWrapperError("Self-referential structure detected in {!r}".format(x))
 
     new = _wrappers.get(type(x), lambda y: y)(x)
     if not isinstance(new, Object):
@@ -471,7 +474,15 @@ class List(Sequence):
 
 
 def recwrap(f):
-    return lambda l: f(as_model(x) for x in l)
+
+    def lambda_to_return(l):
+        _seen.add(id(l))
+        try:
+            return f(as_model(x) for x in l)
+        finally:
+            _seen.remove(id(l))
+
+    return lambda_to_return
 
 _wrappers[FComponent] = recwrap(FComponent)
 _wrappers[FString] = lambda fstr: FString(
@@ -517,8 +528,15 @@ class Dict(Sequence, _ColoredModel):
     def items(self):
         return list(zip(self.keys(), self.values()))
 
+def _dict_wrapper(d):
+    _seen.add(id(d))
+    try:
+        return Dict(as_model(x) for x in sum(d.items(), ()))
+    finally:
+        _seen.remove(id(d))
+
 _wrappers[Dict] = recwrap(Dict)
-_wrappers[dict] = lambda d: Dict(as_model(x) for x in sum(d.items(), ()))
+_wrappers[dict] = _dict_wrapper
 
 
 class Expression(Sequence):
