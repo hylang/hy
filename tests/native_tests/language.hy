@@ -1163,6 +1163,24 @@ cee\"} dee" "ey bee\ncee dee"))
       (assert (= n o)))))
 
 
+(defn test-repr-with-brackets []
+  (assert (= (repr '"foo") "hy.models.String('foo')"))
+  (assert (= (repr '#[[foo]]) "hy.models.String('foo', brackets='')"))
+  (assert (= (repr '#[xx[foo]xx]) "hy.models.String('foo', brackets='xx')"))
+  (assert (= (repr '#[xx[]xx]) "hy.models.String('', brackets='xx')"))
+
+  (for [g [repr str]]
+    (defn f [x] (re.sub r"\n\s+" "" (g x) :count 1))
+    (assert (= (f 'f"foo")
+      "hy.models.FString([hy.models.String('foo')])"))
+    (assert (= (f '#[f[foo]f])
+      "hy.models.FString([hy.models.String('foo')], brackets='f')"))
+    (assert (= (f '#[f-x[foo]f-x])
+      "hy.models.FString([hy.models.String('foo')], brackets='f-x')"))
+    (assert (= (f '#[f-x[]f-x])
+      "hy.models.FString(brackets='f-x')"))))
+
+
 (defn test-import-syntax []
   ;; Simple import
   (import sys os)

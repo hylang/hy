@@ -171,12 +171,20 @@ class String(Object, str):
     scripts. It's either a ``str`` or a ``unicode``, depending on the
     Python version.
     """
+
     def __new__(cls, s=None, brackets=None):
         value = super().__new__(cls, s)
         if brackets is not None and f"]{brackets}]" in value:
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
         value.brackets = brackets
         return value
+
+    def __repr__(self):
+        return 'hy.models.String({}{})'.format(
+            super(Object, self).__repr__(),
+            '' if self.brackets is None else
+                f', brackets={self.brackets!r}')
+
 
 _wrappers[str] = String
 
@@ -375,9 +383,12 @@ class Sequence(Object, tuple, _ColoredModel):
     color = None
 
     def __repr__(self):
-        return str(self) if PRETTY else super().__repr__()
+        return self._pretty_str() if PRETTY else super().__repr__()
 
     def __str__(self):
+        return self._pretty_str()
+
+    def _pretty_str(self):
         with pretty():
             if self:
                 return self._colored("hy.models.{}{}\n  {}{}".format(
@@ -442,6 +453,18 @@ class FString(Sequence):
         value.brackets = brackets
         return value
 
+    def __repr__(self):
+        return self._suffixize(super().__repr__())
+    def __str__(self):
+        return self._suffixize(super().__str__())
+    def _suffixize(self, x):
+        if self.brackets is None:
+           return x
+        return '{}{}brackets={!r})'.format(
+           x[:-1],  # Clip off the final close paren
+           '' if x[-2] == '(' else ', ',
+           self.brackets)
+
 
 class List(Sequence):
     color = Fore.CYAN
@@ -465,7 +488,7 @@ class Dict(Sequence, _ColoredModel):
     """
     color = Fore.GREEN
 
-    def __str__(self):
+    def _pretty_str(self):
         with pretty():
             if self:
                 pairs = []
