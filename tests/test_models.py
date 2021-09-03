@@ -1,6 +1,7 @@
 import copy
 import pytest
 import hy
+from hy.errors import HyWrapperError
 from hy.models import (
     FComponent, FString, as_model, replace_hy_obj, Symbol, Keyword, String, Integer,
     List, Dict, Set, Expression, Complex, Float, pretty)
@@ -216,3 +217,26 @@ def test_compound_model_repr():
             assert eval(repr(model([1, 2, 3]))) == model([1, 2, 3])
         for k, v in PRETTY_STRINGS.items():
             assert repr(hy.read_str(k)) == v
+
+
+def test_recursive_model_detection():
+    """ Check for self-references:
+    https://github.com/hylang/hy/issues/2153
+    """
+    self_ref_list = [1, 2, 3]
+    self_ref_dict = {1: 1, 2: 2}
+    self_ref_list[1] = self_ref_list
+    self_ref_dict[2] = self_ref_dict
+
+    mutually_ref_list = [1, 2, 3]
+    mutually_ref_dict = {1: 1, 2: 2}
+    mutually_ref_list[1] = mutually_ref_dict
+    mutually_ref_dict[2] = mutually_ref_list
+
+    for structure in [self_ref_list,
+                      self_ref_dict,
+                      mutually_ref_list,
+                      mutually_ref_dict]:
+        with pytest.raises(HyWrapperError) as exc:
+            as_model(structure)
+        assert "Self-referential" in str(exc)
