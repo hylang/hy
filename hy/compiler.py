@@ -323,9 +323,9 @@ class HyASTCompiler:
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})
 
-    def get_anon_var(self):
+    def get_anon_var(self, base="_hy_anon_var"):
         self.anon_var_count += 1
-        return "_hy_anon_var_%s" % self.anon_var_count
+        return f"{base}_{self.anon_var_count}"
 
     def compile_atom(self, atom):
         # Compilation methods may mutate the atom, so copy it first.
