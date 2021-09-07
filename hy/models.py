@@ -122,7 +122,7 @@ _seen = set()
 
 
 def as_model(x):
-    """Recurisvely promote an object ``x`` into its canonical model form.
+    """Recursively promote an object ``x`` into its canonical model form.
 
     When creating macros its possible to return non-Hy model objects or
     even create an expression with non-Hy model elements::
@@ -195,6 +195,9 @@ class String(Object, str):
             super(Object, self).__repr__(),
             "" if self.brackets is None else f", brackets={self.brackets!r}",
         )
+
+    def __add__(self, other):
+        return self.__class__(super().__add__(other))
 
 
 _wrappers[str] = String
@@ -476,9 +479,7 @@ class FString(Sequence):
                 node
                 for is_string, components in groupby(s, lambda x: isinstance(x, String))
                 for node in (
-                    [reduce(lambda left, right: String(left + right), components)]
-                    if is_string
-                    else components
+                    [reduce(operator.add, components)] if is_string else components
                 )
             ),
         )
