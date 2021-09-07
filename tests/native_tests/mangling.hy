@@ -221,7 +221,7 @@
       x (map chr (range (+ sys.maxunicode 1)))
       :if (in "_" (unicodedata.normalize "NFKC" x))
       x))
-    hy.lex.normalizes-to-underscore)))
+    hy.lex.mangling.normalizes-to-underscore)))
 
 
 (defn test-pep3131 []
