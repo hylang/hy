@@ -1397,7 +1397,7 @@ def compile_class_expression(compiler, expr, root, name, rest):
 def importlike(*name_types):
     name = some(lambda x: isinstance(x, name_types) and "." not in x)
     return [many(
-        SYM + maybe(sym("*")
+        SYM + maybe(sym("*") >> (lambda _: "*")
                     | (sym(":as") + name)
                     | brackets(many(
                         name + maybe(sym(":as") + name)))))]
@@ -1411,20 +1411,19 @@ def compile_import_or_require(compiler, expr, root, entries):
         assignments = "ALL"
         prefix = ""
 
-        if isinstance(entry, Symbol):
+        module, rest = entry
+        if rest is None:
+            # e.g., (import foo)
+            prefix = module
+        elif rest == "*":
             # e.g., (import foo *)
-            module = entry
+            pass
+        elif isinstance(rest, Symbol):
+            # e.g., (import foo :as bar)
+            prefix = rest
         else:
-            module, rest = entry
-            if rest is None:
-                # e.g., (import foo)
-                prefix = module
-            elif isinstance(rest, Symbol):
-                # e.g., (import foo :as bar)
-                prefix = rest
-            else:
-                # e.g., (import foo [bar baz :as MyBaz bing])
-                assignments = [(k, v or k) for k, v in rest[0]]
+            # e.g., (import foo [bar baz :as MyBaz bing])
+            assignments = [(k, v or k) for k, v in rest[0]]
 
         ast_module = mangle(module)
 
