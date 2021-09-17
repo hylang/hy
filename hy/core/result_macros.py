@@ -18,7 +18,8 @@ from hy.models import (Expression, Keyword, Integer, Complex, String,
     FComponent, FString, Bytes, Symbol, Float, List, Dict, Sequence,
     is_unpack)
 from hy.model_patterns import (FORM, SYM, KEYWORD, STR, LITERAL, sym,
-    brackets, notpexpr, dolike, pexpr, times, Tag, tag, unpack, braces)
+    brackets, notpexpr, dolike, pexpr, times, Tag, tag, unpack, braces,
+    keepsym)
 from hy.lex import mangle, unmangle
 from hy.macros import pattern_macro, require
 from hy.errors import (HyTypeError, HyEvalError, HyInternalError)
@@ -849,7 +850,6 @@ def compile_with_expression(compiler, expr, root, args, body):
 # * `switch`
 # ------------------------------------------------
 
-keepsym = lambda wanted: some(lambda x: x == Symbol(wanted))
 _pattern = forward_decl()
 _pattern.define(
     (
@@ -1397,8 +1397,8 @@ def compile_class_expression(compiler, expr, root, name, rest):
 def importlike(*name_types):
     name = some(lambda x: isinstance(x, name_types) and "." not in x)
     return [many(
-        SYM + maybe(sym("*") >> (lambda _: "*")
-                    | (sym(":as") + name)
+        SYM + maybe(keepsym("*")
+                    | (keepsym(":as") + name)
                     | brackets(many(
                         name + maybe(sym(":as") + name)))))]
 
@@ -1415,12 +1415,12 @@ def compile_import_or_require(compiler, expr, root, entries):
         if rest is None:
             # e.g., (import foo)
             prefix = module
-        elif rest == "*":
+        elif rest == Symbol("*"):
             # e.g., (import foo *)
             pass
-        elif isinstance(rest, Symbol):
+        elif rest[0] == Keyword("as"):
             # e.g., (import foo :as bar)
-            prefix = rest
+            prefix = rest[1]
         else:
             # e.g., (import foo [bar baz :as MyBaz bing])
             assignments = [(k, v or k) for k, v in rest[0]]
