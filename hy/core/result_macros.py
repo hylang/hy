@@ -805,7 +805,7 @@ def compile_break_or_continue_expression(compiler, expr, root):
 # ------------------------------------------------
 
 @pattern_macro(["with", "with/a"], [
-    brackets(times(1, Inf, FORM + FORM)) |
+    brackets(oneplus(FORM + FORM)) |
         brackets(FORM >> (lambda x: [(Symbol('_'), x)])),
     many(FORM)])
 def compile_with_expression(compiler, expr, root, args, body):
