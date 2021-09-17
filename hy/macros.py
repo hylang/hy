@@ -9,7 +9,7 @@ from ast import AST
 
 from funcparserlib.parser import NoParseError
 
-from hy._compat import PY3_8
+from hy._compat import PY3_8, PY3_10
 from hy.model_patterns import whole
 from hy.models import replace_hy_obj, Expression, Symbol, as_model, is_unpack
 from hy.lex import mangle, unmangle
@@ -361,3 +361,5 @@ code_obj_args = ['argcount', 'posonlyargcount', 'kwonlyargcount', 'nlocals', 'st
                  'firstlineno', 'lnotab', 'freevars', 'cellvars']
 if not PY3_8:
     code_obj_args.remove("posonlyargcount")
+if PY3_10:
+    code_obj_args[code_obj_args.index("lnotab")] = "linetable"
