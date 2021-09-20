@@ -219,3 +219,103 @@
   (for [x (f)]
     (else (.append l "z")))
   (assert (= l ["a" "a" "a" "z"])))
+
+
+(defmacro eval-isolated [#*body]
+  `(hy.eval '(do ~@body) :module "<test>" :locals {}))
+
+
+(defn test-lfor-nonlocal []
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (lfor i (range 20)
+        (do
+          (nonlocal x)
+          i))))
+  (assert (in "no binding for nonlocal 'x'" err.value.msg))
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (lfor i (range 20)
+        (do
+          (nonlocal x)
+          (setv x i)))))
+  (assert (in "no binding for nonlocal 'x'" err.value.msg))
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (lfor i (range 20)
+        (do
+          (nonlocal i)
+          (setv i 2)))))
+  (assert (in "name 'i' is assigned to before nonlocal declaration" err.value.msg))
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (defn foo []
+        (lfor i (range 20)
+          (do
+            (nonlocal x)
+            (setv x i))))))
+  (assert (in "no binding for nonlocal 'x'" err.value.msg))
+
+  (eval-isolated
+    (setv x 2)
+    (defn foo []
+      (lfor i (range 20)
+        (do
+          (global x)
+          (setv x i))))
+    (foo)
+    (assert (= x 19)))
+
+  (defn bar []
+    (setv x 2)
+    (defn foo []
+      (lfor i (range 20)
+        (do
+          (nonlocal x)
+          (setv x i))))
+    (foo)
+    (assert (= x 19)))
+  (bar))
+
+(defn test-lfor-global []
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (lfor i (range 20)
+        (do
+          (global i)
+          (setv i 2)))))
+  (assert (in "name 'i' is assigned to before global declaration" err.value.msg))
+
+  (eval-isolated
+    (lfor i (range 20)
+      (do
+        (global x)
+        (setv x i)))
+    (assert (= x 19)))
+
+  (eval-isolated
+    (defn foo []
+      (lfor i (range 20)
+        (do
+          (global x)
+          (setv x i))))
+    (foo)
+    (assert (= x 19)))
+
+  (eval-isolated
+    (defn bar []
+      (setv x 2)
+      (defn foo []
+        (lfor i (range 20)
+          (do
+            (global x)
+            (setv x i))))
+      (foo)
+      (assert (= x 2)))
+    (bar)
+    (assert (= x 19))))
