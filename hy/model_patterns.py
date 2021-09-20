@@ -18,9 +18,16 @@ LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes))
 
 def sym(wanted):
     "Parse and skip the given symbol or keyword."
+    return _sym(wanted, skip)
+
+def keepsym(wanted):
+    "Parse the given symbol or keyword."
+    return _sym(wanted)
+
+def _sym(wanted, f = lambda x: x):
     if wanted.startswith(":"):
-        return skip(a(Keyword(wanted[1:])))
-    return skip(some(lambda x: x == Symbol(wanted)))
+        return f(a(Keyword(wanted[1:])))
+    return f(some(lambda x: x == Symbol(wanted)))
 
 def whole(parsers):
     """Parse the parsers in the given list one after another, then

@@ -9,7 +9,7 @@ from ast import AST
 
 from funcparserlib.parser import NoParseError
 
-from hy._compat import PY3_8, PY3_10
+from hy._compat import code_replace
 from hy.model_patterns import whole
 from hy.models import replace_hy_obj, Expression, Symbol, as_model, is_unpack
 from hy.lex import mangle, unmangle
@@ -341,25 +341,10 @@ def macroexpand_1(tree, module, compiler=None):
     return macroexpand(tree, module, compiler, once=True)
 
 
-def rename_function(func, new_name):
-    """Creates a copy of a function and [re]sets the name at the code-object
-    level.
-    """
-    c = func.__code__
-    new_code = type(c)(*(getattr(c, 'co_{}'.format(a))
-                         if a != 'name' else str(new_name)
-                         for a in code_obj_args))
-
-    _fn = type(func)(new_code, func.__globals__, str(new_name),
-                     func.__defaults__, func.__closure__)
-    _fn.__dict__.update(func.__dict__)
-
-    return _fn
-
-code_obj_args = ['argcount', 'posonlyargcount', 'kwonlyargcount', 'nlocals', 'stacksize',
-                 'flags', 'code', 'consts', 'names', 'varnames', 'filename', 'name',
-                 'firstlineno', 'lnotab', 'freevars', 'cellvars']
-if not PY3_8:
-    code_obj_args.remove("posonlyargcount")
-if PY3_10:
-    code_obj_args[code_obj_args.index("lnotab")] = "linetable"
+def rename_function(f, new_name):
+    """Create a copy of a function, but with a new name."""
+    f = type(f)(
+        code_replace(f.__code__, co_name = new_name), f.__globals__,
+        str(new_name), f.__defaults__, f.__closure__)
+    f.__dict__.update(f.__dict__)
+    return f

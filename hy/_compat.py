@@ -20,6 +20,21 @@ if not PY3_8:
     re.Pattern = type(re.compile(""))
 
 
+# Provide a function substitute for `CodeType.replace`.
+if PY3_8:
+    def code_replace(code_obj, **kwargs):
+        return code_obj.replace(**kwargs)
+else:
+    _code_args = ['co_' + c for c in (
+        'argcount', 'kwonlyargcount', 'nlocals', 'stacksize', 'flags',
+        'code', 'consts', 'names', 'varnames', 'filename', 'name',
+        'firstlineno', 'lnotab', 'freevars', 'cellvars')]
+    def code_replace(code_obj, **kwargs):
+        return type(code_obj)(*(
+            kwargs.get(k, getattr(code_obj, k))
+            for k in _code_args))
+
+
 if not PY3_7:
     # Shim `asyncio.run`.
     import asyncio

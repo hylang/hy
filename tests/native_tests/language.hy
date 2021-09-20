@@ -1327,24 +1327,24 @@ cee\"} dee" "ey bee\ncee dee"))
 
 (defn test-require-native []
   (with [(pytest.raises NameError)]
-    (rev 1))
-  (import tests.native_tests.native_macros)
+    (test-macro-2))
+  (import tests.resources.macros)
   (with [(pytest.raises NameError)]
-    (rev 1))
-  (require tests.native_tests.native_macros [rev])
-  (setv x [])
-  (rev (.append x 1) (.append x 2) (.append x 3))
-  (assert (= x [3 2 1])))
+    (test-macro-2))
+  (require tests.resources.macros [test-macro-2])
+  (test-macro-2)
+  (assert (= qup 2)))
+
 
 (defn test-relative-require []
   (require ..resources.macros [test-macro])
   (assert (in "test_macro" __macros__))
 
-  (require .native-macros [rev])
-  (assert (in "rev" __macros__))
+  (require .language-beside [xyzzy])
+  (assert (in "xyzzy" __macros__))
 
-  (require . [native-macros :as m])
-  (assert (in "m.rev" __macros__)))
+  (require . [language-beside :as lb])
+  (assert (in "lb.xyzzy" __macros__)))
 
 
 (defn test-encoding-nightmares []
