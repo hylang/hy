@@ -492,3 +492,161 @@
        (assert (= (foo :b 20 :a 10 :c 30)
                   (, 10 20 30)))))
 
+
+(defmacro eval-isolated [#*body]
+  `(hy.eval '(do ~@body) :module "<test>" :locals {}))
+
+
+(defn test-let-bound-nonlocal []
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (let [foo 99]
+        (nonlocal undefined))))
+  (assert (in "no binding for nonlocal 'undefined'" err.value.msg))
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (defn bax []
+        (let [other 99]
+          (let [foo 99]
+            (nonlocal undefined)
+            other)))))
+  (assert (in "no binding for nonlocal 'undefined'" err.value.msg))
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (defn bax []
+        (let [other 99]
+          (let [unrelated 99]
+            (nonlocal unrelated)
+            other)))))
+  (assert (in "no binding for nonlocal 'unrelated'" err.value.msg))
+
+  (with [err (pytest.raises SyntaxError)]
+    (eval-isolated
+      (defn outer []
+        (let [fox 42]
+          (defn bar []
+            (let [unrelated 99]
+              (nonlocal something-else)  ; error, nothing to bind to
+              (setv fox 2))
+            (setv fox 3))))))
+  (assert (in "no binding for nonlocal 'something_else'" err.value.msg))
+
+  (eval-isolated
+    (defn outer []
+      (defn bax []
+        (let [other 99]
+          (let [unrelated 99]
+            ; should be elided, allowing this to compile
+            (nonlocal other)
+            other)))
+      (bax))
+    (assert (= 99 (outer))))
+
+  (let [fox 42]
+    (defn baz []
+      (let [unrelated 99]
+        (nonlocal fox)  ; should bind to outer let from within bar
+        (setv fox 2))
+      (setv fox 3))  ; `nonlocal` affects everything in the Python scope
+    (assert (= fox 42))
+    (baz)
+    (assert (= fox 3)))
+
+  (setv hound 43)
+  (defn bay []
+    (let [unrelated 99]
+      (nonlocal hound)  ; this should bind to outer `hound` as expected
+      (setv hound 2))
+    (setv hound 3))  ; `nonlocal` affects everything in the Python scope
+  (assert (= hound 43))
+  (bay)
+  (assert (= hound 3))
+
+  (let [fox 42]
+    (setv wolf 44)
+    (defn bax []
+      (let [other 99]
+        (let [unrelated 99]
+          ; only binds `fox` and `wolf`; `other` is elided (allowing this to compile)
+          (nonlocal fox wolf other)
+          (setv fox 1)
+          (setv wolf 2))
+        (setv fox 3))
+      (setv wolf 4))
+    (assert (= fox 42))
+    (assert (= wolf 44))
+    (bax)
+    (assert (= fox 3))
+    (assert (= wolf 4))))
+
+
+(defn test-let-bound-global []
+
+  (eval-isolated
+    (defn outer []
+      (let [fox 42]
+        (defn bar []
+          (let [something-else 33]
+            (let [unrelated 99]
+              (global something-else)
+              (setv something-else 2))))
+        (bar)))
+    (outer)
+    (assert (= something-else 2)))
+
+  (eval-isolated
+    (defn bax []
+      (let [other 99]
+        (let [unrelated 99]
+          (global other)
+          (setv other 2))
+        (setv other 3)))  ; `global` affects everything in the Python scope
+    (bax)
+    (assert (= other 3)))
+
+  (eval-isolated
+    (let [fox 42]
+      (defn baz []
+        (let [unrelated 99]
+          (global fox)  ; should bind outside any let scope
+          (setv fox 2))
+        (setv fox 3))  ; `global` affects everything in the Python scope
+      (assert (= fox 42))
+      (baz)
+      (assert (= fox 42)))
+    (assert (= fox 3)))
+
+  (eval-isolated
+    (setv hound 43)
+    (defn bay []
+      (let [unrelated 99]
+        (global hound)  ; this should bind to global `hound` as expected
+        (setv hound 2))
+      (setv hound 3))  ; `global` affects everything in the Python scope
+    (assert (= hound 43))
+    (bay)
+    (assert (= hound 3)))
+
+  (eval-isolated
+    (let [fox 42]
+      (setv wolf 44)
+      (defn bax []
+        (let [other 99]
+          (let [unrelated 99]
+            (global fox wolf other)
+            (setv fox 1)
+            (setv wolf 2)
+            (setv other 3))
+          (setv fox 4))
+        (setv wolf 5))
+      (assert (= fox 42))
+      (assert (= wolf 44))
+      (bax)
+      (assert (= fox 42))
+      (assert (= wolf 5))
+      (assert (= other 3)))
+    (assert (= fox 4))
+    (assert (= wolf 5))
+    (assert (= other 3))))
