@@ -24,12 +24,15 @@ jobs:
       TERM: xterm-256color
         # This is needed to avoid a terminfo-related crash when
         # testing PyPy.
+      PYTHONPATH: .
 
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - run: pip install -e .
+    - run: pip install . && rm -r hy
+        # We want to be sure we're testing the installed version,
+        # instead of running from the source tree.
     - run: pip install pytest
     - run: pytest
