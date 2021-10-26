@@ -22,6 +22,7 @@ setup(
         'colorama',
         'astor>=0.8 ; python_version < "3.9"',
     ],
+    python_requires = '>= 3.7, <= 3.10',
     entry_points={
         'console_scripts': [
             'hy = hy.cmdline:hy_main',
