@@ -47,10 +47,3 @@ def __getattr__(k):
     globals()[k] = getattr(
         importlib.import_module(module), original_name)
     return globals()[k]
-
-import hy._compat
-if not hy._compat.PY3_7:
-    # `__getattr__` isn't supported, so we'll just import everything
-    # now.
-    for k in _jit_imports:
-        __getattr__(k)

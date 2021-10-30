@@ -1,5 +1,4 @@
 (import
-  hy._compat [PY3_7]
   math [isnan])
 
 (defn test-hy-repr-roundtrip-from-str []
@@ -112,9 +111,7 @@
   (import re)
   (setv mo (re.search "b+" "aaaabbbccc"))
   (assert (= (hy.repr mo)
-    (.format
-      #[[<{} object; :span (, 4 7) :match "bbb">]]
-      (if PY3_7 "re.Match" (+ (. (type mo) __module__) ".SRE_Match"))))))
+    #[[<re.Match object; :span (, 4 7) :match "bbb">]])))
 
 (defn test-hy-repr-custom []
 

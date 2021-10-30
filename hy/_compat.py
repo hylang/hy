@@ -1,7 +1,6 @@
 import sys
 import platform
 
-PY3_7 = sys.version_info >= (3, 7)
 PY3_8 = sys.version_info >= (3, 8)
 PY3_9 = sys.version_info >= (3, 9)
 PY3_10 = sys.version_info >= (3, 10)
@@ -33,11 +32,3 @@ else:
         return type(code_obj)(*(
             kwargs.get(k, getattr(code_obj, k))
             for k in _code_args))
-
-
-if not PY3_7:
-    # Shim `asyncio.run`.
-    import asyncio
-    def f(coro):
-        return asyncio.get_event_loop().run_until_complete(coro)
-    asyncio.run = f

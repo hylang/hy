@@ -1,5 +1,5 @@
-;; Tests where the emitted code relies on Python ≥3.8.
-;; conftest.py skips this file when running on Python <3.8.
+;; Tests where the emitted code relies on Python ≤3.7.
+;; conftest.py skips this file when running on Python ≥3.8.
 
 (import pytest)
 

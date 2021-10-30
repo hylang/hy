@@ -3,6 +3,10 @@
 Unreleased
 ==============================
 
+Removals
+------------------------------
+* Python 3.6 is no longer supported.
+
 Other Breaking Changes
 ------------------------------
 * `import` and `require` no longer need outer brackets.
