@@ -115,10 +115,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    new function. In the following example, an anonymous function is defined and
    passed to another function for filtering output::
 
-       => (setv people [{:name "Alice" :age 20}
-       ...             {:name "Bob" :age 25}
-       ...             {:name "Charlie" :age 50}
-       ...             {:name "Dave" :age 5}])
+       => (setv people [(dict :name "Alice" :age 20)
+       ...              (dict :name "Bob" :age 25)
+       ...              (dict :name "Charlie" :age 50)
+       ...              (dict :name "Dave" :age 5)])
 
        => (defn display-people [people filter]
        ...  (for [person people] (if (filter person) (print (:name person)))))
