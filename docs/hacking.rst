@@ -86,7 +86,7 @@ Documentation is located in ``docs/``. We use `Sphinx
 To build the docs in HTML::
 
     $ cd docs
-    $ make html
+    $ sphinx-build . _build -b html
 
 Write docs---docs are good! Even this doc!
 
