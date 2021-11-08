@@ -1,8 +1,5 @@
 pytest >= 6
 
-# test tools
-tox
-
 # documentation
 Pygments >= 1.6
 Sphinx>=4.2.0
