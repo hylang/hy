@@ -11,7 +11,7 @@ Join our Hyve!
 
 Please come hack on Hy!
 
-Please come hang out with us on ``#hy`` on ``irc.freenode.net``!
+Please come hang out with us on `the Github Discussions page <https://github.com/hylang/hy/discussions>`_!
 
 Please talk about it on Twitter with the ``#hy`` hashtag!
 
