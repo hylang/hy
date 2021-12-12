@@ -66,5 +66,9 @@ setup(
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",
-    ]
+    ],
+    project_urls={
+        "Documentation": "https://docs.hylang.org/",
+        "Source": "https://github.com/hylang/hy",
+    }
 )
