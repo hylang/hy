@@ -140,3 +140,123 @@
          n (assert (= n 4)))
   (match (do (foo) (foo) x)
          n (assert (= n 6))))
+
+(defn test-let-match []
+  (let [x 3]
+    (assert (match x 3 True))))
+
+(defn test-let-match-simple []
+  (let [x 3  y 4]
+    (match x
+           y (assert (= x y)))
+    (match 7
+           y (assert (= 7 y))))
+
+  (setv [x y] [3 4])
+  (let [x 1  y 2]
+    (assert (= [x y] [1 2]))
+    (match [5 6]
+           [x y] (assert (= [x y] [5 6]))
+           _ (assert False))
+    (assert (= [x y] [5 6])))
+  (assert (= [x y] [3 4])))
+
+#@(dataclass
+  (defclass Point []
+    (^int x)
+    (^int y)))
+
+(defn test-let-match-pattern []
+  (setv [x y] [1 2]
+        p (Point 5 6))
+  (let [x 3  y 4]
+    (match p
+      (Point x y)
+        (assert (= [x y] [5 6]))
+      _ (assert False))
+    (assert (= [x y] [5 6])))
+  (assert (= [x y] [1 2]))
+
+  (let [x 3  y 4]
+    (match p
+      (Point :x n  :y m)
+        (assert (= [n m] [5 6]))
+      _ (assert False)))
+
+  (let [x 3  y 4]
+    (match p
+      (Point :x x  :y y)
+        (assert (= [x y] [5 6]))
+      _ (assert False))
+    (assert (= [x y] [5 6])))
+  (assert (= [x y] [1 2]))
+
+  (with [(pytest.raises TypeError)]
+    (let [Point [x y]]
+      (match p
+        (Point x y)
+          (assert False))))
+
+  (assert (= "right" (let [x (Point 3 4)]
+    (match 3
+      x.x "right"
+      _ "wrong"))))
+
+  (let [x (Point 3 6)
+        y 9]
+    (match p
+      (Point :y x.y) :as y
+        (assert (= y.y x.y))
+      _ (assert False))
+    (match p
+      (Point :x x) :as q
+        (assert (= x q.x))
+      _ (assert False))
+    (assert (= x 5))
+    (assert (= y.y p.y)))
+
+  (let [x (Point 3 6)
+        y 9]
+    (match p
+      (Point :y (. x y)) :as y
+        (assert (= (. y y) (. x y)))
+      _ (assert False))
+    (assert (= y.y p.y))))
+
+(defn test-let-match-guard []
+  (setv x 1  y 2)
+  (let [x 3  y 4]
+    (match (Point 3 4)
+      (Point :y m :x n) :if (= [n m] [x y]) True
+      _ (assert False)))
+  (let [x 3  y 4
+        n 5  m 6]
+    (match (Point 3 4)
+      (Point :y m :x n) :if (= [n m] [x y]) True
+      _ (assert False))))
+
+(defn test-let-with-pattern-matching []
+  (let [x [1 2 3]
+        y (dict :a 1 :b 2 :c 3)
+        b 1
+        a 1
+        _ 42]
+    (assert (= [2 3]
+               (match x
+                      [1 #* x] x)))
+    (assert (= [3 [2 3] [2 3]]
+               (match x
+                      [_ 3 :as a] :as b :if (= a 3) [a b x])))
+    (assert (= [1 2]
+               (match [1 2]
+                      x x)))
+    (assert (= 42
+               (match [1 2 3]
+                    _ _)))
+    (assert (= {"a" 1  "c" 3}
+               (match y
+                      {"b" b #**e} e)))
+    (assert (= {"a" 1  "c" 3}
+               (match y
+                      {"b" b #**a} a)))
+    (assert (= b 2))))
