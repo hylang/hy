@@ -869,6 +869,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        ...   (x))
        1
 
+   Note that let-bound variables continue to exist in the surrounding
+   Python scope. As such, ``let``-bound objects may not be eligible for
+   garbage collection as soon as the ``let`` ends. To ensure there are
+   no references to ``let``-bound objects as soon as possible, use
+   ``del`` at the end of the ``let``, or wrap the ``let`` in a function.
+
    .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
 
 
