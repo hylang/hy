@@ -217,7 +217,7 @@ class Result:
             return Result() + asty.Expr(self.expr, value=self.expr)
         return Result()
 
-    def rename(self, new_name):
+    def rename(self, compiler, new_name):
         """Rename the Result's temporary variables to a `new_name`.
 
         We know how to handle ast.Names and ast.FunctionDefs.
@@ -226,7 +226,7 @@ class Result:
         for var in self.temp_variables:
             if isinstance(var, ast.Name):
                 var.id = new_name
-                var.arg = new_name
+                compiler.scope.assign(var)
             elif isinstance(var, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 var.name = new_name
             else:
@@ -446,6 +446,8 @@ class HyASTCompiler:
             new_name = typ(elts=new_elts)
         elif isinstance(name, ast.Name):
             new_name = ast.Name(id=name.id)
+            if func == ast.Store:
+                self.scope.assign(new_name)
         elif isinstance(name, ast.Subscript):
             new_name = ast.Subscript(value=name.value, slice=name.slice)
         elif isinstance(name, ast.Attribute):
@@ -573,7 +575,8 @@ class HyASTCompiler:
             return asty.Constant(symbol, value =
                 ast.literal_eval(mangle(symbol)))
 
-        return asty.Name(symbol, id=mangle(symbol), ctx=ast.Load())
+        return self.scope.access(asty.Name(
+            symbol, id=mangle(symbol), ctx=ast.Load()))
 
     @builds_model(Keyword)
     def compile_keyword(self, obj):

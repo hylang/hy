@@ -374,7 +374,7 @@ def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False):
     if (result.temp_variables
             and isinstance(name, Symbol)
             and '.' not in name):
-        result.rename(compiler._nonconst(name))
+        result.rename(compiler, compiler._nonconst(name))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
             result.expr = None
