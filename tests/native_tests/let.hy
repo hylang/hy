@@ -1,33 +1,5 @@
-(require
-  hyrule [let smacrolet])
-(import
-  sys)
-
-
-(defn test-smacrolet []
-  (setv form '(do
-                (setv foo (fn [a [b 1]] (* b (inc a))))
-                (* b (foo 7)))
-        form1 (hy.macroexpand
-                '(smacrolet [b c]
-                   (setv foo (fn [a [b 1]] (* b (inc a))))
-                   (* b (foo 7))))
-        form2 (hy.macroexpand
-                '(smacrolet [a c]
-                   (setv foo (fn [a [b 1]] (* b (inc a))))
-                   (* b (foo 7))))
-        form3 (hy.macroexpand
-                '(smacrolet [foo bar]
-                   (setv foo (fn [a [b 1]] (* b (inc a))))
-                   (* b (foo 7)))))
-  (assert (= form1 '(do
-                      (setv foo (fn [a [b 1]] (* b (inc a))))
-                      (* c (foo 7)))))
-  (assert (= form2 form))
-  (assert (= form3 '(do
-                      (setv bar (fn [a [b 1]] (* b (inc a))))
-                      (* b (bar 7))))))
-
+(import types
+        pytest)
 
 (defn test-let-basic []
   (assert (= (let [a 0] a) 0))
@@ -69,6 +41,9 @@
 
 (defn test-let-sequence []
   ;; assignments happen in sequence, not parallel.
+  (setv a "x"
+        b "y"
+        c "z")
   (let [a "a"
         b "b"
         ab (+ a b)]
@@ -100,6 +75,45 @@
                (, 1 1)))))
 
 
+(defn test-let-if-result []
+  (let [af None]
+    (setv af (if (> 5 3) (do 5 5) (do 3 3)))
+    (assert (= af 5))))
+
+
+(defn test-let-for []
+  (let [x 99]
+    (for [x (range 20)])
+    (assert (= x 19))))
+
+
+(defn test-let-generator []
+  (let [x 99]
+    (lfor x (range 20) :do x x)  ; force making a function
+    (assert (= x 99))))
+
+
+(defn test-generator-scope []
+  (setv x 20)
+  (lfor n (range 10) (setv x n))
+  (assert (= x 9))
+
+  (lfor n (range 10) (setv y n))
+  (assert (= y 9))
+
+  (lfor n (range 0) (setv z n))
+  (with [(pytest.raises UnboundLocalError)]
+    z)
+
+  (defn foo []
+    (defclass Foo []
+      (lfor x (, 2) (setv z 3))
+      (with [(pytest.raises NameError)]
+        z))
+    (assert (not-in "z" (locals))))
+  (foo))
+
+
 (defn test-let-quasiquote []
   (setv a-symbol 'a)
   (let [a "x"]
@@ -128,9 +142,21 @@
         ;; let bindings should work in except block
         (assert (= bar 33))
         ;; but exception bindings can shadow let bindings
+        (assert (= (get (locals) "foo") foo))
         (assert (isinstance foo Exception))))
     ;; let binding did not get clobbered.
     (assert (= foo 42))))
+
+
+(defn test-let-with []
+  (let [foo 42]
+    (assert (= foo 42))
+    (with [foo (pytest.raises ZeroDivisionError)]
+      (do
+        (assert (!= foo 42))
+        1/0
+        (assert False)))
+    (assert (is (. foo type) ZeroDivisionError))))
 
 
 (defn test-let-mutation []
@@ -149,7 +175,7 @@
       (do
         foo
         (assert False))
-      (except [le LookupError]
+      (except [le UnboundLocalError]
         (setv error le)))
     (setv foo 16)
     (assert (= foo 16))
@@ -199,27 +225,93 @@
 
 (defn test-let-import []
   (let [types 6]
-    ;; imports don't fail, even if using a let-bound name
+    (assert (= types 6))
+    ;; imports shadow let-bound names
     (import types)
-    ;; let-bound name is not affected
-    (assert (= types 6)))
+    (assert (in "types" (vars)))
+    (assert (isinstance types types.ModuleType)))
   ;; import happened in Python scope.
   (assert (in "types" (vars)))
   (assert (isinstance types types.ModuleType)))
 
 
+(defn test-let-defn []
+  (let [foo 42
+        bar 99
+        quux "quux"
+        baz "baz"]
+    (assert (= foo 42))
+    ;; the name of the defn should be unaffected by the let
+    (defn foo [bar]  ; let bindings do not apply in param list
+      ;; let bindings apply inside fn body
+      (nonlocal baz) ;; nonlocal should allow access to outer let bindings
+      (setv x foo)
+      (assert (isinstance x types.FunctionType))
+      (assert (= (get (locals) "bar") bar))
+      (setv y baz)
+      (setv baz bar)
+      (setv baz f"foo's {baz = }")
+      ;; quux is local, so should shadow the let binding
+      (setv quux "foo quux")
+      (assert (= (get (locals) "quux") quux))
+      quux)
+    (assert (= quux "quux"))
+    (assert (= foo (get (locals) "foo")))
+    (assert (isinstance foo types.FunctionType))
+    (assert (= baz "baz"))
+    (assert (= (foo 2) "foo quux"))
+    (assert (= baz "foo's baz = 2")))
+  ;; defn happened in Python scope
+  (assert (= foo (get (locals) "foo")))
+  (assert (isinstance foo types.FunctionType))
+  (assert (= (foo 2) "foo quux")))
+
+
+(defn test-nested-assign []
+  (let [fox 42]
+    (defn bar []
+      (let [unrelated 99]
+        (setv fox 3))
+      (assert (= (get (locals) "fox") fox))
+      (assert (= fox 3)))
+    (bar)
+    (assert (= fox 42))))
+
+
+(defn test-let-nested-nonlocal []
+  (let [fox 42]
+    (defn bar []
+      (let [unrelated 99]
+        (defn baz []
+          (nonlocal fox)
+          (setv fox 2)))
+      (setv fox 3)
+      (assert (= fox 3))
+      (baz)
+      (assert (= fox 2)))
+    (assert (= fox 42)))
+  (bar))
+
+
 (defn test-let-defclass []
   (let [Foo 42
-        quux object]
-    ;; the name of the class is just a symbol, even if it's a let binding
-    (defclass Foo [quux]  ; let bindings apply in inheritance list
+        quux "quux"
+        baz object]
+    (assert (= Foo 42))
+    ;; the name of the class should be unaffected by the let
+    (defclass Foo [baz]  ; let bindings apply in inheritance list
       ;; let bindings apply inside class body
-      (setv x Foo)
-      ;; quux is not local
-      (setv quux "quux"))
-    (assert (= quux "quux")))
-  ;; defclass always creates a python-scoped variable, even if it's a let binding name
-  (assert (= Foo.x 42)))
+      (defn baz [self] Foo)
+      ;; quux is local
+      (setv quux "foo quux"))
+    (assert (= quux "quux"))
+    (assert (= Foo (get (locals) "Foo")))
+    (assert (= Foo.quux "foo quux"))
+    (assert (= (.baz (Foo)) Foo)))
+  ;; defclass happened in Python scope
+  (assert (= Foo (get (locals) "Foo")))
+  (assert (= Foo.quux "foo quux"))
+  (assert (= (.baz (Foo)) Foo)))
 
 
 (defn test-let-dot []
@@ -307,6 +399,7 @@
 (defn test-let-closure []
   (let [count 0]
     (defn +count [[x 1]]
+      (nonlocal count)
       (+= count x)
       count))
   ;; let bindings can still exist outside of a let body
@@ -388,7 +481,7 @@
   (assert (= l [1])))
 
 
-(defn test-let-optional []
+(defn test-let-optional-2 []
   (let [a 1
         b 6
         d 2]
