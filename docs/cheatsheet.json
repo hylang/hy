@@ -76,6 +76,7 @@
           "sfor",
           "setv",
           "setx",
+          "let",
           "match",
           "defclass",
           "del",

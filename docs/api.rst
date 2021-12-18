@@ -725,12 +725,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    - ``:if CONDITION``, which is equivalent to ``:do (if (not CONDITION)
      (continue))``.
 
-   For ``lfor``, ``sfor``, ``gfor``, and ``dfor``, variables are scoped as
-   if the comprehension form were its own function, so variables defined by
-   an iteration clause or ``:setv`` are not visible outside the form. In
-   fact, these forms are implemented as generator functions whenever they
-   contain Python statements, with the attendant consequences for calling
-   ``return``. By contrast, ``for`` shares the caller's scope.
+   For ``lfor``, ``sfor``, ``gfor``, and ``dfor``,  variables defined by
+   an iteration clause or ``:setv`` are not visible outside the form.
+   However, variables defined within the body, such as via a ``setx``
+   expression, will be visible outside the form.
+   By contrast, iteration and ``:setv`` clauses for ``for`` share the
+   caller's scope and are visible outside the form.
 
 .. hy:function:: (dfor [binding iterable #* body])
 
@@ -816,6 +816,61 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        => (when (> (setx x (+ 1 2)) 0)
        ...  (print x "is greater than 0"))
        3 is greater than 0
+
+
+.. hy:function:: (let [bindings #* body])
+
+   ``let`` creates lexically-scoped names for local variables. This form takes a
+   list of binding pairs followed by a *body* which gets executed. A let-bound
+   name ceases to refer to that local outside the ``let`` form, but arguments in
+   nested functions and bindings in nested ``let`` forms can shadow these names.
+
+
+   :strong:`Examples`
+
+   ::
+
+       => (let [x 5   ; creates new local bound names 'x and 'y
+                y 6]
+       ...  (print x y)
+       ...  (let [x 7]  ; new local and name binding that shadows 'x
+       ...    (print x y))
+       ...  (print x y))  ; 'x refers to the first local again
+       5 6
+       7 6
+       5 6
+
+   ``let`` can also bind names using
+   Python's `extended iterable unpacking`_ syntax to destructure iterables::
+
+       => (let [[head #* tail] (, 0 1 2)]
+       ...   [head tail])
+       [0 [1 2]]
+
+   Basic assignments (e.g. ``setv``, ``+=``) will update the local
+   variable named by a let binding when they assign to a let-bound name.
+   But assignments via ``import`` are always hoisted to normal Python
+   scope, and likewise, ``defn`` or ``defclass`` will assign the
+   function or class in the Python scope, even if it shares the name of
+   a let binding. To avoid this hoisting, use
+   ``importlib.import_module``, ``fn``, or ``type`` (or whatever
+   metaclass) instead.
+
+   Like the ``let*`` of many other Lisps, ``let`` executes the variable
+   assignments one-by-one, in the order written::
+
+       => (let [x 5
+       ...       y (+ x 1)]
+       ...   (print x y))
+       5 6
+
+       => (let [x 1
+       ...      x (fn [] x)]
+       ...   (x))
+       1
+
+   .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
+
 
 .. hy:function:: (match [subject #* cases])
 
