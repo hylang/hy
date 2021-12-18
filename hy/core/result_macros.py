@@ -10,6 +10,7 @@ these, or to one of the model builders in hy.compiler."""
 
 import ast, keyword, textwrap
 from itertools import dropwhile
+from contextlib import nullcontext
 
 from funcparserlib.parser import (some, many, oneplus, maybe,
     forward_decl)
@@ -24,7 +25,7 @@ from hy.lex import mangle, unmangle
 from hy.macros import pattern_macro, require
 from hy.errors import (HyTypeError, HyEvalError, HyInternalError)
 from hy.compiler import Result, asty, mkexpr, hy_eval
-from hy.scoping import ScopeFn, ScopeGen, ScopeGlobal, ScopeLet
+from hy.scoping import ScopeFn, ScopeGen, ScopeGlobal, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------
 # * Helpers
@@ -634,6 +635,33 @@ def compile_comprehension(compiler, expr, root, parts, final):
         "gfor": asty.GeneratorExp}[root]
     is_for = root == "for"
 
+    ctx = nullcontext() if is_for else compiler.scope.create(ScopeGen)
+    scope = ctx.__enter__()  # XXX turns into `with ...:` in immediately following commit
+
+    # Compile the parts.
+    if is_for:
+        parts = parts[0]
+    if not parts:
+        return Result(expr=asty.parse(
+            expr, {
+                asty.For: "None",
+                asty.ListComp: "[]",
+                asty.DictComp: "{}",
+                asty.SetComp: "{1}.__class__()",
+                asty.GeneratorExp: "(_ for _ in [])"
+            }[node_class]).body[0].value)
+    new_parts = []
+    for p in parts:
+        if p.tag in ("if", "do"):
+            tag_value = compiler.compile(p.value)
+        else:
+            tag_value = [compiler._storeize(p.value[0], compiler.compile(p.value[0])),
+                    compiler.compile(p.value[1])]
+            if not is_for:
+                scope.iterator(tag_value[0])
+        new_parts.append(Tag(p.tag, tag_value))
+    parts = new_parts
+
     orel = []
     if is_for:
         # Get the `else`.
@@ -649,23 +677,6 @@ def compile_comprehension(compiler, expr, root, parts, final):
         else:
             key = None
             elt = compiler.compile(final)
-
-    # Compile the parts.
-    if is_for:
-        parts = parts[0]
-    if not parts:
-        return Result(expr=asty.parse(
-            expr, {
-            asty.For: "None",
-            asty.ListComp: "[]",
-            asty.DictComp: "{}",
-            asty.SetComp: "{1}.__class__()",
-            asty.GeneratorExp: "(_ for _ in [])"}[node_class]).body[0].value)
-    parts = [
-        Tag(p.tag, compiler.compile(p.value) if p.tag in ["if", "do"] else [
-            compiler._storeize(p.value[0], compiler.compile(p.value[0])),
-            compiler.compile(p.value[1])])
-        for p in parts]
 
     # Produce a result.
     if (is_for or elt.stmts or (key is not None and key.stmts) or
@@ -714,13 +725,46 @@ def compile_comprehension(compiler, expr, root, parts, final):
             return f(parts)
         fname = compiler.get_anon_var()
         # Define the generator function.
-        ret = Result() + asty.FunctionDef(
+        stmts = []
+        ret = Result()
+        assignment_names = scope.finalize()
+        if scope.exposing_assignments and assignment_names:
+            # expose inner assignments to outer scope
+            unlocal_type = (
+                asty.Nonlocal
+                if is_inside_function_scope(scope.parent)
+                else asty.Global
+            )
+            stmts.append(unlocal_type(expr, names=assignment_names))
+
+            # create a fake assignment statement so python places these
+            # names in the immediately outer scope
+            if_body = []
+            if scope.nonlocal_vars:
+                if_body.append(
+                    asty.Nonlocal(expr, names=list(sorted(scope.nonlocal_vars)))
+                )
+            assignments = asty.Tuple(
+                expr,
+                elts=[asty.Name(expr, id=var, ctx=ast.Store())
+                      for var in assignment_names],
+                ctx=ast.Store())
+            if_body.append(
+                asty.Assign(
+                    expr,
+                    targets=[assignments],
+                    value=asty.Constant(expr, value=None),
+                )
+            )
+            ret += asty.If(expr, test=asty.Constant(expr, value=False), body=if_body, orelse=[])
+
+        ret += asty.FunctionDef(
             expr,
             name=fname,
             args=ast.arguments(
                 args=[], vararg=None, kwarg=None, posonlyargs=[],
                 kwonlyargs=[], kw_defaults=[], defaults=[]),
-            body=f(parts).stmts,
+            body=stmts + f(parts).stmts,
             decorator_list=[])
         # Immediately call the new function. Unless the user asked
         # for a generator, wrap the call in `[].__class__(...)` or
