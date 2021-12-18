@@ -10,6 +10,7 @@ these, or to one of the model builders in hy.compiler."""
 
 import ast, keyword, textwrap
 from itertools import dropwhile
+from contextlib import nullcontext
 
 from funcparserlib.parser import (some, many, oneplus, maybe,
     forward_decl)
@@ -24,6 +25,7 @@ from hy.lex import mangle, unmangle
 from hy.macros import pattern_macro, require
 from hy.errors import (HyTypeError, HyEvalError, HyInternalError)
 from hy.compiler import Result, asty, mkexpr, hy_eval
+from hy.scoping import ScopeFn, ScopeGen, ScopeGlobal, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------
 # * Helpers
@@ -78,7 +80,8 @@ def compile_inline_python(compiler, expr, root, code):
     exec_mode = root == "pys"
 
     try:
-        o = ast.parse(
+        o = asty.parse(
+            expr,
             textwrap.dedent(code) if exec_mode else code,
             compiler.filename,
             'exec' if exec_mode else 'eval').body
@@ -357,22 +360,25 @@ def compile_def_expression(compiler, expr, root, decls):
 def compile_basic_annotation(compiler, expr, root, ann, target):
     return compile_assign(compiler, ann, target, None)
 
-def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False):
+def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False, let_scope = None):
     # Ensure that assignment expressions have a result and no annotation.
     assert not is_assignment_expr or (value is not None and ann is None)
-
-    ld_name = compiler.compile(name)
 
     annotate_only = value is None
     if annotate_only:
         result = Result()
     else:
-        result = compiler.compile(value)
+        with let_scope or nullcontext():
+            result = compiler.compile(value)
+        if let_scope:
+            name = let_scope.add(name)
+
+    ld_name = compiler.compile(name)
 
     if (result.temp_variables
             and isinstance(name, Symbol)
             and '.' not in name):
-        result.rename(compiler._nonconst(name))
+        result.rename(compiler, compiler._nonconst(name))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
             result.expr = None
@@ -402,7 +408,14 @@ def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False):
 @pattern_macro(["global", "nonlocal"], [oneplus(SYM)])
 def compile_global_or_nonlocal(compiler, expr, root, syms):
     node = asty.Global if root == "global" else asty.Nonlocal
-    return node(expr, names=list(map(mangle, syms)))
+    ret = node(expr, names=[mangle(s) for s in syms])
+
+    try:
+        compiler.scope.define_nonlocal(ret, root)
+    except SyntaxError as e:
+        raise compiler._syntax_error(expr, e.msg)
+
+    return ret if ret.names else Result()
 
 @pattern_macro("del", [many(FORM)])
 def compile_del_expression(compiler, expr, name, args):
@@ -625,125 +638,170 @@ def compile_comprehension(compiler, expr, root, parts, final):
         "gfor": asty.GeneratorExp}[root]
     is_for = root == "for"
 
-    orel = []
-    if is_for:
-        # Get the `else`.
-        body, else_expr = final
-        if else_expr is not None:
-            orel.append(compiler._compile_branch(else_expr))
-            orel[0] += orel[0].expr_as_stmt()
-    else:
-        # Get the final value (and for dictionary
-        # comprehensions, the final key).
-        if node_class is asty.DictComp:
-            key, elt = map(compiler.compile, final)
+    ctx = nullcontext() if is_for else compiler.scope.create(ScopeGen)
+    with ctx as scope:
+
+        # Compile the parts.
+        if is_for:
+            parts = parts[0]
+        if not parts:
+            return Result(expr=asty.parse(
+                expr, {
+                    asty.For: "None",
+                    asty.ListComp: "[]",
+                    asty.DictComp: "{}",
+                    asty.SetComp: "{1}.__class__()",
+                    asty.GeneratorExp: "(_ for _ in [])"
+                }[node_class]).body[0].value)
+        new_parts = []
+        for p in parts:
+            if p.tag in ("if", "do"):
+                tag_value = compiler.compile(p.value)
+            else:
+                tag_value = [compiler._storeize(p.value[0], compiler.compile(p.value[0])),
+                        compiler.compile(p.value[1])]
+                if not is_for:
+                    scope.iterator(tag_value[0])
+            new_parts.append(Tag(p.tag, tag_value))
+        parts = new_parts
+
+        orel = []
+        if is_for:
+            # Get the `else`.
+            body, else_expr = final
+            if else_expr is not None:
+                orel.append(compiler._compile_branch(else_expr))
+                orel[0] += orel[0].expr_as_stmt()
         else:
-            key = None
-            elt = compiler.compile(final)
+            # Get the final value (and for dictionary
+            # comprehensions, the final key).
+            if node_class is asty.DictComp:
+                key, elt = map(compiler.compile, final)
+            else:
+                key = None
+                elt = compiler.compile(final)
 
-    # Compile the parts.
-    if is_for:
-        parts = parts[0]
-    if not parts:
-        return Result(expr=ast.parse({
-            asty.For: "None",
-            asty.ListComp: "[]",
-            asty.DictComp: "{}",
-            asty.SetComp: "{1}.__class__()",
-            asty.GeneratorExp: "(_ for _ in [])"}[node_class]).body[0].value)
-    parts = [
-        Tag(p.tag, compiler.compile(p.value) if p.tag in ["if", "do"] else [
-            compiler._storeize(p.value[0], compiler.compile(p.value[0])),
-            compiler.compile(p.value[1])])
-        for p in parts]
-
-    # Produce a result.
-    if (is_for or elt.stmts or (key is not None and key.stmts) or
-        any(p.tag == 'do' or (p.value[1].stmts if p.tag in ("for", "afor", "setv") else p.value.stmts)
-            for p in parts)):
-        # The desired comprehension can't be expressed as a
-        # real Python comprehension. We'll write it as a nested
-        # loop in a function instead.
-        def f(parts):
-            # This function is called recursively to construct
-            # the nested loop.
-            if not parts:
-                if is_for:
-                    if body:
-                        bd = compiler._compile_branch(body)
-                        return bd + bd.expr_as_stmt()
-                    return Result(stmts=[asty.Pass(expr)])
-                if node_class is asty.DictComp:
-                    ret = key + elt
-                    val = asty.Tuple(
-                        key, ctx=ast.Load(),
-                        elts=[key.force_expr, elt.force_expr])
+        # Produce a result.
+        if (is_for or elt.stmts or (key is not None and key.stmts) or
+            any(p.tag == 'do' or (p.value[1].stmts if p.tag in ("for", "afor", "setv") else p.value.stmts)
+                for p in parts)):
+            # The desired comprehension can't be expressed as a
+            # real Python comprehension. We'll write it as a nested
+            # loop in a function instead.
+            def f(parts):
+                # This function is called recursively to construct
+                # the nested loop.
+                if not parts:
+                    if is_for:
+                        if body:
+                            bd = compiler._compile_branch(body)
+                            return bd + bd.expr_as_stmt()
+                        return Result(stmts=[asty.Pass(expr)])
+                    if node_class is asty.DictComp:
+                        ret = key + elt
+                        val = asty.Tuple(
+                            key, ctx=ast.Load(),
+                            elts=[key.force_expr, elt.force_expr])
+                    else:
+                        ret = elt
+                        val = elt.force_expr
+                    return ret + asty.Expr(
+                        elt, value=asty.Yield(elt, value=val))
+                (tagname, v), parts = parts[0], parts[1:]
+                if tagname in ("for", "afor"):
+                    orelse = orel and orel.pop().stmts
+                    node = asty.AsyncFor if tagname == "afor" else asty.For
+                    return v[1] + node(
+                        v[1], target=v[0], iter=v[1].force_expr, body=f(parts).stmts,
+                        orelse=orelse)
+                elif tagname == "setv":
+                    return v[1] + asty.Assign(
+                        v[1], targets=[v[0]], value=v[1].force_expr) + f(parts)
+                elif tagname == "if":
+                    return v + asty.If(
+                        v, test=v.force_expr, body=f(parts).stmts, orelse=[])
+                elif tagname == "do":
+                    return v + v.expr_as_stmt() + f(parts)
                 else:
-                    ret = elt
-                    val = elt.force_expr
-                return ret + asty.Expr(
-                    elt, value=asty.Yield(elt, value=val))
-            (tagname, v), parts = parts[0], parts[1:]
+                    raise ValueError("can't happen")
+            if is_for:
+                return f(parts)
+            fname = compiler.get_anon_var()
+            # Define the generator function.
+            stmts = []
+            ret = Result()
+            assignment_names = scope.finalize()
+            if scope.exposing_assignments and assignment_names:
+                # expose inner assignments to outer scope
+                unlocal_type = (
+                    asty.Nonlocal
+                    if is_inside_function_scope(scope.parent)
+                    else asty.Global
+                )
+                stmts.append(unlocal_type(expr, names=assignment_names))
+
+                # create a fake assignment statement so python places these
+                # names in the immediately outer scope
+                if_body = []
+                if scope.nonlocal_vars:
+                    if_body.append(
+                        asty.Nonlocal(expr, names=list(sorted(scope.nonlocal_vars)))
+                    )
+                assignments = asty.Tuple(
+                    expr,
+                    elts=[asty.Name(expr, id=var, ctx=ast.Store())
+                          for var in assignment_names],
+                    ctx=ast.Store())
+                if_body.append(
+                    asty.Assign(
+                        expr,
+                        targets=[assignments],
+                        value=asty.Constant(expr, value=None),
+                    )
+                )
+                ret += asty.If(expr, test=asty.Constant(expr, value=False), body=if_body, orelse=[])
+
+            ret += asty.FunctionDef(
+                expr,
+                name=fname,
+                args=ast.arguments(
+                    args=[], vararg=None, kwarg=None, posonlyargs=[],
+                    kwonlyargs=[], kw_defaults=[], defaults=[]),
+                body=stmts + f(parts).stmts,
+                decorator_list=[])
+            # Immediately call the new function. Unless the user asked
+            # for a generator, wrap the call in `[].__class__(...)` or
+            # `{}.__class__(...)` or `{1}.__class__(...)` to get the
+            # right type. We don't want to just use e.g. `list(...)`
+            # because the name `list` might be rebound.
+            return ret + Result(expr=asty.parse(
+                expr,
+                "{}({}())".format(
+                    {asty.ListComp: "[].__class__",
+                     asty.DictComp: "{}.__class__",
+                     asty.SetComp: "{1}.__class__",
+                     asty.GeneratorExp: ""}[node_class],
+                    fname)).body[0].value)
+
+        # We can produce a real comprehension.
+        generators = []
+        for tagname, v in parts:
             if tagname in ("for", "afor"):
-                orelse = orel and orel.pop().stmts
-                node = asty.AsyncFor if tagname == "afor" else asty.For
-                return v[1] + node(
-                    v[1], target=v[0], iter=v[1].force_expr, body=f(parts).stmts,
-                    orelse=orelse)
+                generators.append(ast.comprehension(
+                    target=v[0], iter=v[1].expr, ifs=[],
+                    is_async=int(tagname == "afor")))
             elif tagname == "setv":
-                return v[1] + asty.Assign(
-                    v[1], targets=[v[0]], value=v[1].force_expr) + f(parts)
+                generators.append(ast.comprehension(
+                    target=v[0],
+                    iter=asty.Tuple(v[1], elts=[v[1].expr], ctx=ast.Load()),
+                    ifs=[], is_async=0))
             elif tagname == "if":
-                return v + asty.If(
-                    v, test=v.force_expr, body=f(parts).stmts, orelse=[])
-            elif tagname == "do":
-                return v + v.expr_as_stmt() + f(parts)
+                generators[-1].ifs.append(v.expr)
             else:
                 raise ValueError("can't happen")
-        if is_for:
-            return f(parts)
-        fname = compiler.get_anon_var()
-        # Define the generator function.
-        ret = Result() + asty.FunctionDef(
-            expr,
-            name=fname,
-            args=ast.arguments(
-                args=[], vararg=None, kwarg=None, posonlyargs=[],
-                kwonlyargs=[], kw_defaults=[], defaults=[]),
-            body=f(parts).stmts,
-            decorator_list=[])
-        # Immediately call the new function. Unless the user asked
-        # for a generator, wrap the call in `[].__class__(...)` or
-        # `{}.__class__(...)` or `{1}.__class__(...)` to get the
-        # right type. We don't want to just use e.g. `list(...)`
-        # because the name `list` might be rebound.
-        return ret + Result(expr=ast.parse(
-            "{}({}())".format(
-                {asty.ListComp: "[].__class__",
-                 asty.DictComp: "{}.__class__",
-                 asty.SetComp: "{1}.__class__",
-                 asty.GeneratorExp: ""}[node_class],
-                fname)).body[0].value)
-
-    # We can produce a real comprehension.
-    generators = []
-    for tagname, v in parts:
-        if tagname in ("for", "afor"):
-            generators.append(ast.comprehension(
-                target=v[0], iter=v[1].expr, ifs=[],
-                is_async=int(tagname == "afor")))
-        elif tagname == "setv":
-            generators.append(ast.comprehension(
-                target=v[0],
-                iter=asty.Tuple(v[1], elts=[v[1].expr], ctx=ast.Load()),
-                ifs=[], is_async=0))
-        elif tagname == "if":
-            generators[-1].ifs.append(v.expr)
-        else:
-            raise ValueError("can't happen")
-    if node_class is asty.DictComp:
-        return asty.DictComp(expr, key=key.expr, value=elt.expr, generators=generators)
-    return node_class(expr, elt=elt.expr, generators=generators)
+        if node_class is asty.DictComp:
+            return asty.DictComp(expr, key=key.expr, value=elt.expr, generators=generators)
+        return node_class(expr, elt=elt.expr, generators=generators)
 
 # ------------------------------------------------
 # * More looping
@@ -912,7 +970,7 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
                     decorator_list=[],
                 )
                 lifted_if_defs.append(guardret)
-                guard = Result(expr=ast.parse(f"{fname}()").body[0].value)
+                guard = Result(expr=asty.parse(guard, f"{fname}()").body[0].value)
 
         match_cases.append(
             ast.match_case(
@@ -939,11 +997,11 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
 def compile_pattern(compiler, pattern):
     value, assignment = pattern
     if assignment is not None:
-        return asty.MatchAs(
+        return compiler.scope.assign(asty.MatchAs(
             value,
             pattern=compile_pattern(compiler, (value, None)),
-            name=mangle(compiler._nonconst(assignment)),
-        )
+            name=mangle(compiler._nonconst(assignment))
+        ))
 
     if str(value) in ("None", "True", "False"):
         return asty.MatchSingleton(
@@ -962,7 +1020,7 @@ def compile_pattern(compiler, pattern):
     elif value == Symbol("_"):
         return asty.MatchAs(value)
     elif isinstance(value, Symbol):
-        return asty.MatchAs(value, name=mangle(value))
+        return compiler.scope.assign(asty.MatchAs(value, name=mangle(value)))
     elif isinstance(value, Expression) and value[0] == Symbol("|"):
         return asty.MatchOr(
             value,
@@ -987,29 +1045,30 @@ def compile_pattern(compiler, pattern):
         ]
         return asty.MatchSequence(value, patterns=patterns)
     elif is_unpack("iterable", value):
-        return asty.MatchStar(value, name=mangle(value[1]))
+        return compiler.scope.assign(asty.MatchStar(value, name=mangle(value[1])))
 
     elif isinstance(value, Dict):
         kvs, rest = value
         keys, values = zip(*kvs) if kvs else ([], [])
-        return asty.MatchMapping(
+        # Call `scope.assign` for the assignment to `rest`.
+        return compiler.scope.assign(asty.MatchMapping(
             value,
             keys=[compiler.compile(key).expr for key in keys],
             patterns=[compile_pattern(compiler, v) for v in values],
             rest=mangle(rest) if rest else None,
-        )
+        ))
     elif isinstance(value, Expression):
         root, args, kwargs = value
         keywords, values = zip(*kwargs) if kwargs else ([], [])
         return asty.MatchClass(
             value,
-            cls=asty.Name(root, id=mangle(root), ctx=ast.Load()),
+            cls=compiler.scope.access(asty.Name(root, id=mangle(root), ctx=ast.Load())),
             patterns=[compile_pattern(compiler, v) for v in args],
             kwd_attrs=[kwd.name for kwd in keywords],
             kwd_patterns=[compile_pattern(compiler, value) for value in values],
         )
     else:
-        raise compiler._syntax_error(value, "unsuported")
+        raise compiler._syntax_error(value, "unsupported")
 
 # ------------------------------------------------
 # * `raise` and `try`
@@ -1121,7 +1180,12 @@ def compile_catch_expression(compiler, expr, var, exceptions, body):
     else:
         types = compiler.compile(exceptions_list)
 
-    body = compiler._compile_branch(body)
+    # Create a "fake" scope for the exception variable.
+    # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
+    with compiler.scope.create(ScopeLet) as scope:
+        if name:
+            scope.add(name, name)
+        body = compiler._compile_branch(body)
     body += asty.Assign(expr, targets=[var], value=body.force_expr)
     body += body.expr_as_stmt()
 
@@ -1151,17 +1215,18 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
         isinstance(param, tuple) and param[0] is not None
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
-    body = compiler._compile_branch(body)
+    args, ret = compile_lambda_list(compiler, params)
+    with compiler.scope.create(ScopeFn, args):
+        body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
     if not has_annotations and not body.stmts and root != "fn/a":
-        args, ret = compile_lambda_list(compiler, params, Result())
         return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
     # Otherwise create a standard function
     node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
     name = compiler.get_anon_var()
-    ret = compile_function_node(compiler, expr, node, name, params, returns, body)
+    ret += compile_function_node(compiler, expr, node, name, args, returns, body)
 
     # return its name as the final expr
     return ret + Result(expr=ret.temp_variables[0])
@@ -1169,16 +1234,19 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
 @pattern_macro(["defn", "defn/a"], [OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)])
 def compile_function_def(compiler, expr, root, returns, name, params, body):
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
-    body = compiler._compile_branch(body)
+    args, ret = compile_lambda_list(compiler, params)
+    name = mangle(compiler._nonconst(name))
+    compiler.scope.define(name)
+    with compiler.scope.create(ScopeFn, args):
+        body = compiler._compile_branch(body)
 
-    return compile_function_node(
+    return ret + compile_function_node(
         compiler, expr, node,
-        mangle(compiler._nonconst(name)), params, returns, body
+        name, args, returns, body
     )
 
-def compile_function_node(compiler, expr, node, name, params, returns, body):
+def compile_function_node(compiler, expr, node, name, args, returns, body):
     ret = Result()
-    args, ret = compile_lambda_list(compiler, params, ret)
 
     if body.expr:
         body += asty.Return(body.expr, value=body.expr)
@@ -1223,7 +1291,8 @@ def compile_macro_def(compiler, expr, root, name, params, body):
 
     return ret + ret.expr_as_stmt()
 
-def compile_lambda_list(compiler, params, ret):
+def compile_lambda_list(compiler, params):
+    ret = Result()
     posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
 
     py_reserved_param = next(
@@ -1377,13 +1446,17 @@ def compile_class_expression(compiler, expr, root, name, rest):
     if docstring is not None:
         bodyr += compiler.compile(docstring).expr_as_stmt()
 
-    e = compiler._compile_branch(body)
-    bodyr += e + e.expr_as_stmt()
+    name = mangle(compiler._nonconst(name))
+    compiler.scope.define(name)
+
+    with compiler.scope.create(ScopeFn):
+        e = compiler._compile_branch(body)
+        bodyr += e + e.expr_as_stmt()
 
     return bases + asty.ClassDef(
         expr,
         decorator_list=[],
-        name=mangle(compiler._nonconst(name)),
+        name=name,
         keywords=keywords,
         starargs=None,
         kwargs=None,
@@ -1434,6 +1507,7 @@ def compile_import_or_require(compiler, expr, root, entries):
                 node = asty.ImportFrom
                 names = [asty.alias(module, name="*", asname=None)]
             elif assignments == "ALL":
+                compiler.scope.define(mangle(prefix))
                 node = asty.Import
                 names = [asty.alias(
                     module,
@@ -1441,12 +1515,14 @@ def compile_import_or_require(compiler, expr, root, entries):
                     asname=mangle(prefix) if prefix != module else None)]
             else:
                 node = asty.ImportFrom
-                names = [
-                    asty.alias(
-                        module,
-                        name=mangle(k),
-                        asname=None if v == k else mangle(v))
-                    for k, v in assignments]
+                names = []
+                for k, v in assignments:
+                    compiler.scope.define(mangle(v))
+                    names.append(
+                        asty.alias(
+                            module,
+                            name=mangle(k),
+                            asname=None if v == k else mangle(v)))
             ret += node(
                 expr, module=module_name or None, names=names, level=level)
 
@@ -1496,3 +1572,15 @@ def compile_assert_expression(compiler, expr, root, test, msg):
             mkexpr('do',
                 mkexpr('setv', msg_var, [msg]),
                 mkexpr('assert', 'False', msg_var))).replace(expr))
+
+@pattern_macro("let", [brackets(many(OPTIONAL_ANNOTATION + FORM + FORM)), many(FORM)])
+def compile_let(compiler, expr, root, bindings, body):
+    res = Result()
+    bindings = bindings[0]
+    scope = compiler.scope.create(ScopeLet)
+
+    for ann, target, value in bindings:
+        res += compile_assign(compiler, ann, target, value, let_scope=scope)
+
+    with scope:
+       return res + compiler.compile(mkexpr("do", *body).replace(expr))

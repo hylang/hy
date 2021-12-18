@@ -23,11 +23,17 @@ Other Breaking Changes
 
   * Functions: `butlast`, `coll?`, `constantly`, `dec`, `destructure`, `distinct`, `drop-last`, `end-sequence`, `flatten`, `inc`, `macroexpand-all`, `parse-args`, `pformat`, `postwalk`, `pp`, `pprint`, `prewalk`, `readable?`, `recursive?`, `rest`, `saferepr`, `walk`
   * Classes: `PrettyPrinter`, `Sequence`
-  * Macros: `#%`, `#:`, `->`, `->>`, `ap-dotimes`, `ap-each`, `ap-each-while`, `ap-filter`, `ap-first`, `ap-if`, `ap-last`, `ap-map`, `ap-map-when`, `ap-reduce`, `ap-reject`, `as->`, `assoc`, `cfor`, `comment`, `defmacro!`, `defmacro/g!`, `defmain`, `defn+`, `defn/a+`, `defseq`, `dict=:`, `do-n`, `doto`, `fn+`, `fn/a+`, `ifp`, `let`, `let+`, `lif`, `list-n`, `loop`, `ncut`, `of`, `profile/calls`, `profile/cpu`, `seq`, `setv+`, `smacrolet`, `unless`, `with-gensyms`
+  * Macros: `#%`, `#:`, `->`, `->>`, `ap-dotimes`, `ap-each`, `ap-each-while`, `ap-filter`, `ap-first`, `ap-if`, `ap-last`, `ap-map`, `ap-map-when`, `ap-reduce`, `ap-reject`, `as->`, `assoc`, `cfor`, `comment`, `defmacro!`, `defmacro/g!`, `defmain`, `defn+`, `defn/a+`, `defseq`, `dict=:`, `do-n`, `doto`, `fn+`, `fn/a+`, `ifp`, `let+`, `lif`, `list-n`, `loop`, `ncut`, `of`, `profile/calls`, `profile/cpu`, `seq`, `setv+`, `smacrolet`, `unless`, `with-gensyms`
 
 * The constructors of `String` and `FString` now check that the input
   would be syntactically legal.
 * `hy.extra.reserved` has been renamed to `hy.reserved`.
+* Hy scoping rules more closely follow Python scoping in certain edge cases.
+* `let` is now a core macro. Semantics of `let` have changed in certain
+  edge cases: Any assignment or assignment-like operations (`with`, `match`,
+  etc.) will *assign* to the let-bound name, while any definintions or
+  definition-like operations (`defn`, `defclass`, `import`) will *shadow* the
+  let-bound name (and will also continue to be defined after the `let`-scope ends).
 
 Bug Fixes
 ------------------------------
@@ -40,6 +46,9 @@ Bug Fixes
 * Fixed a bug with self-requiring files on Windows.
 * The `repr` and `str` of string models now include `brackets` if
   necessary.
+* Complex comprehensions are now always treated as inline expressions for
+  variable scoping, rather than creating a new block scope. Specifically,
+  assignments within comprehensions are now always visible to the surrounding code.
 
 New Features
 ------------------------------

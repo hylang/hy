@@ -194,8 +194,8 @@ def test_ast_bad_global():
 
 def test_ast_good_nonlocal():
     "Make sure AST can compile valid nonlocal"
-    can_compile("(nonlocal a)")
-    can_compile("(nonlocal foo bar)")
+    can_compile("(do (setv a 0) (nonlocal a))")
+    can_compile("(do (setv foo 0 bar 0) (nonlocal foo bar))")
 
 
 def test_ast_bad_nonlocal():

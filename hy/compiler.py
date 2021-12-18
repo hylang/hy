@@ -1,4 +1,4 @@
-import ast, copy, importlib, inspect, keyword, pkgutil
+import ast, copy, importlib, inspect, keyword
 import traceback, types
 
 from funcparserlib.parser import NoParseError, many
@@ -10,6 +10,7 @@ from hy.model_patterns import (FORM, KEYWORD, unpack)
 from hy.errors import (HyCompileError, HyLanguageError, HySyntaxError)
 from hy.lex import mangle
 from hy.macros import macroexpand
+from hy.scoping import ScopeGlobal
 
 
 hy_ast_compile_flags = 0
@@ -69,21 +70,42 @@ def builds_model(*model_types):
 # Provide asty.Foo(x, ...) as shorthand for
 # ast.Foo(..., lineno=x.start_line, col_offset=x.start_column) or
 # ast.Foo(..., lineno=x.lineno, col_offset=x.col_offset)
+# Also provides asty.parse(x, ...) which recursively
+# copies x's position data onto the parse result.
 class Asty:
+    POS_ATTRS = {
+        'lineno': 'start_line',
+        'col_offset': 'start_column',
+        'end_lineno': 'end_line',
+        'end_col_offset': 'end_column',
+    }
+
+    @staticmethod
+    def _get_pos(node):
+        return {
+            attr: getattr(node, hy_attr,
+                          getattr(node, attr, None))
+            for attr, hy_attr in Asty.POS_ATTRS.items()
+        }
+
+    @staticmethod
+    def _replace_pos(node, pos):
+        for attr, value in pos.items():
+            if hasattr(node, attr):
+                setattr(node, attr, value)
+        for child in ast.iter_child_nodes(node):
+            Asty._replace_pos(child, pos)
+
+    def parse(self, x, *args, **kwargs):
+        res = ast.parse(*args, **kwargs)
+        Asty._replace_pos(res, Asty._get_pos(x))
+        return res
+
     def __getattr__(self, name):
-        setattr(Asty, name, staticmethod(lambda x, **kwargs: getattr(ast, name)(
-            lineno=getattr(
-                x, 'start_line', getattr(x, 'lineno', None)),
-            col_offset=getattr(
-                x, 'start_column', getattr(x, 'col_offset', None)),
-            end_lineno=getattr(
-                x, 'end_line', getattr(x, 'end_lineno', None)
-            ),
-            end_col_offset=getattr(
-                x, 'end_column', getattr(x, 'end_col_offset', None)
-            ),
-            **kwargs)))
+        setattr(Asty, name, staticmethod(
+            lambda x, **kwargs: getattr(ast, name)(**Asty._get_pos(x), **kwargs)))
         return getattr(Asty, name)
+
 asty = Asty()
 
 
@@ -195,7 +217,7 @@ class Result:
             return Result() + asty.Expr(self.expr, value=self.expr)
         return Result()
 
-    def rename(self, new_name):
+    def rename(self, compiler, new_name):
         """Rename the Result's temporary variables to a `new_name`.
 
         We know how to handle ast.Names and ast.FunctionDefs.
@@ -204,7 +226,7 @@ class Result:
         for var in self.temp_variables:
             if isinstance(var, ast.Name):
                 var.id = new_name
-                var.arg = new_name
+                compiler.scope.assign(var)
             elif isinstance(var, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 var.name = new_name
             else:
@@ -302,9 +324,11 @@ class HyASTCompiler:
         # compilation.
         self.module.__dict__.setdefault('__macros__', {})
 
-    def get_anon_var(self):
+        self.scope = ScopeGlobal(self)
+
+    def get_anon_var(self, base="_hy_anon_var"):
         self.anon_var_count += 1
-        return "_hy_anon_var_%s" % self.anon_var_count
+        return f"{base}_{self.anon_var_count}"
 
     def compile_atom(self, atom):
         # Compilation methods may mutate the atom, so copy it first.
@@ -422,6 +446,8 @@ class HyASTCompiler:
             new_name = typ(elts=new_elts)
         elif isinstance(name, ast.Name):
             new_name = ast.Name(id=name.id)
+            if func == ast.Store:
+                self.scope.assign(new_name)
         elif isinstance(name, ast.Subscript):
             new_name = ast.Subscript(value=name.value, slice=name.slice)
         elif isinstance(name, ast.Attribute):
@@ -549,7 +575,8 @@ class HyASTCompiler:
             return asty.Constant(symbol, value =
                 ast.literal_eval(mangle(symbol)))
 
-        return asty.Name(symbol, id=mangle(symbol), ctx=ast.Load())
+        return self.scope.access(asty.Name(
+            symbol, id=mangle(symbol), ctx=ast.Load()))
 
     @builds_model(Keyword)
     def compile_keyword(self, obj):
@@ -783,7 +810,8 @@ def hy_compile(
         # Import hy for compile time, but save the compiled AST.
         stdlib_ast = compiler.compile(mkexpr("eval-and-compile", mkexpr("import", "hy")))
 
-    result = compiler.compile(tree)
+    with compiler.scope:
+        result = compiler.compile(tree)
     expr = result.force_expr
 
     if not get_expr:
