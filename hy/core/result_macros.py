@@ -360,17 +360,20 @@ def compile_def_expression(compiler, expr, root, decls):
 def compile_basic_annotation(compiler, expr, root, ann, target):
     return compile_assign(compiler, ann, target, None)
 
-def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False):
+def compile_assign(compiler, ann, name, value, *, is_assignment_expr = False, let_scope = None):
     # Ensure that assignment expressions have a result and no annotation.
     assert not is_assignment_expr or (value is not None and ann is None)
-
-    ld_name = compiler.compile(name)
 
     annotate_only = value is None
     if annotate_only:
         result = Result()
     else:
-        result = compiler.compile(value)
+        with let_scope or nullcontext():
+            result = compiler.compile(value)
+        if let_scope:
+            name = let_scope.add(name)
+
+    ld_name = compiler.compile(name)
 
     if (result.temp_variables
             and isinstance(name, Symbol)
@@ -1569,3 +1572,15 @@ def compile_assert_expression(compiler, expr, root, test, msg):
             mkexpr('do',
                 mkexpr('setv', msg_var, [msg]),
                 mkexpr('assert', 'False', msg_var))).replace(expr))
+
+@pattern_macro("let", [brackets(many(OPTIONAL_ANNOTATION + FORM + FORM)), many(FORM)])
+def compile_let(compiler, expr, root, bindings, body):
+    res = Result()
+    bindings = bindings[0]
+    scope = compiler.scope.create(ScopeLet)
+
+    for ann, target, value in bindings:
+        res += compile_assign(compiler, ann, target, value, let_scope=scope)
+
+    with scope:
+       return res + compiler.compile(mkexpr("do", *body).replace(expr))
