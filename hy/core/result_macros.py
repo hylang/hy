@@ -994,11 +994,11 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
 def compile_pattern(compiler, pattern):
     value, assignment = pattern
     if assignment is not None:
-        return asty.MatchAs(
+        return compiler.scope.assign(asty.MatchAs(
             value,
             pattern=compile_pattern(compiler, (value, None)),
-            name=mangle(compiler._nonconst(assignment)),
-        )
+            name=mangle(compiler._nonconst(assignment))
+        ))
 
     if str(value) in ("None", "True", "False"):
         return asty.MatchSingleton(
@@ -1017,7 +1017,7 @@ def compile_pattern(compiler, pattern):
     elif value == Symbol("_"):
         return asty.MatchAs(value)
     elif isinstance(value, Symbol):
-        return asty.MatchAs(value, name=mangle(value))
+        return compiler.scope.assign(asty.MatchAs(value, name=mangle(value)))
     elif isinstance(value, Expression) and value[0] == Symbol("|"):
         return asty.MatchOr(
             value,
@@ -1042,23 +1042,24 @@ def compile_pattern(compiler, pattern):
         ]
         return asty.MatchSequence(value, patterns=patterns)
     elif is_unpack("iterable", value):
-        return asty.MatchStar(value, name=mangle(value[1]))
+        return compiler.scope.assign(asty.MatchStar(value, name=mangle(value[1])))
 
     elif isinstance(value, Dict):
         kvs, rest = value
         keys, values = zip(*kvs) if kvs else ([], [])
-        return asty.MatchMapping(
+        # Call `scope.assign` for the assignment to `rest`.
+        return compiler.scope.assign(asty.MatchMapping(
             value,
             keys=[compiler.compile(key).expr for key in keys],
             patterns=[compile_pattern(compiler, v) for v in values],
             rest=mangle(rest) if rest else None,
-        )
+        ))
     elif isinstance(value, Expression):
         root, args, kwargs = value
         keywords, values = zip(*kwargs) if kwargs else ([], [])
         return asty.MatchClass(
             value,
-            cls=asty.Name(root, id=mangle(root), ctx=ast.Load()),
+            cls=compiler.scope.access(asty.Name(root, id=mangle(root), ctx=ast.Load())),
             patterns=[compile_pattern(compiler, v) for v in args],
             kwd_attrs=[kwd.name for kwd in keywords],
             kwd_patterns=[compile_pattern(compiler, value) for value in values],
