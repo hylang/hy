@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+1.0a4 (released 2022-01-09)
 ==============================
 
 Removals
@@ -13,9 +13,6 @@ Other Breaking Changes
   `(import [foo [bar]])` is now `(import foo [bar])`
   and `(import [foo :as baz])` is now `(import foo :as baz)`.
   To import all names from a module, use `(import foo *)`.
-* Functions that provide first-class Python operators, such as ``+``
-  in constructs like ``(reduce + xs)``, are no longer brought
-  into scope automatically. Say ``(import hy.pyops *)`` to get them.
 * Lots of objects (listed below) have been spun off to a new package
   called `Hyrule`_, from which you can `import` or `require` them.
   Thus Hy now brings only the `hy` module and a limited set of core
@@ -25,37 +22,42 @@ Other Breaking Changes
   * Classes: `PrettyPrinter`, `Sequence`
   * Macros: `#%`, `#:`, `->`, `->>`, `ap-dotimes`, `ap-each`, `ap-each-while`, `ap-filter`, `ap-first`, `ap-if`, `ap-last`, `ap-map`, `ap-map-when`, `ap-reduce`, `ap-reject`, `as->`, `assoc`, `cfor`, `comment`, `defmacro!`, `defmacro/g!`, `defmain`, `defn+`, `defn/a+`, `defseq`, `dict=:`, `do-n`, `doto`, `fn+`, `fn/a+`, `ifp`, `let+`, `lif`, `list-n`, `loop`, `ncut`, `of`, `profile/calls`, `profile/cpu`, `seq`, `setv+`, `smacrolet`, `unless`, `with-gensyms`
 
+* Functions that provide first-class Python operators, such as `+`
+  in constructs like `(reduce + xs)`, are no longer brought
+  into scope automatically. Say `(import hy.pyops *)` to get them.
+* Hy scoping rules more closely follow Python scoping in certain edge
+  cases.
+* `let` is now a core macro with somewhat different semantics. In
+  particular, definition-like core macros (`defn`, `defclass`,
+  `import`) now introduce new names that shadow corresponding
+  `let`-bound names and persist outside the body of the `let`.
 * The constructors of `String` and `FString` now check that the input
-  would be syntactically legal.
+  would be syntactically legal as a literal.
 * `hy.extra.reserved` has been renamed to `hy.reserved`.
-* Hy scoping rules more closely follow Python scoping in certain edge cases.
-* `let` is now a core macro. Semantics of `let` have changed in certain
-  edge cases: Any assignment or assignment-like operations (`with`, `match`,
-  etc.) will *assign* to the let-bound name, while any definintions or
-  definition-like operations (`defn`, `defclass`, `import`) will *shadow* the
-  let-bound name (and will also continue to be defined after the `let`-scope ends).
 
 Bug Fixes
 ------------------------------
-* `let` should no longer re-evaluate default arguments.
-* Improved error messages for illegal uses of `finally` and `else`.
-* `match` should no longer re-evaluate subect.
-* `hy-repr` now properly formats bracketed strings.
+* In comprehension forms other than `for`, assignments (other than
+  `:setv` and loop clauses) are now always visible in the surrounding
+  scope.
+* `match` now only evaluates the subject once.
+* `let` will no longer re-evaluate the default arguments of a
+  function it's used in.
+* `hy.repr` now properly formats bracket strings.
+* The `repr` and `str` of string models now include `brackets` if
+  necessary.
 * When standard output can't accommodate Unicode, `hy2py` now crashes
   instead of emitting incorrect Python code.
 * Fixed a bug with self-requiring files on Windows.
-* The `repr` and `str` of string models now include `brackets` if
-  necessary.
-* Complex comprehensions are now always treated as inline expressions for
-  variable scoping, rather than creating a new block scope. Specifically,
-  assignments within comprehensions are now always visible to the surrounding code.
+* Improved error messages for illegal uses of `finally` and `else`.
 
 New Features
 ------------------------------
 * `hy.repr` now supports several more standard types.
-* the attribute access macro `.` now accepts method calls.
-* `as_model` checks for self-references in its argument.
-* New function `hy.model_patterns.keepsym`
+* The attribute access macro `.` now allows method calls. For example,
+  `(. x (f a))` is equivalent to `(x.f a)`.
+* `hy.as-model` checks for self-references in its argument.
+* New function `hy.model_patterns.keepsym`.
 
 .. _Hyrule: https://github.com/hylang/hyrule
 
