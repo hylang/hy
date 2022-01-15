@@ -16,6 +16,7 @@ import linecache
 import hashlib
 import codeop
 import builtins
+from pathlib import Path
 
 import hy
 
@@ -726,33 +727,21 @@ def hyc_main():
     return rv
 
 
-# entry point for cmd line script "hy2py"
-def hy2py_main():
-    options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
-                   formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser = argparse.ArgumentParser(**options)
-    parser.add_argument("FILE", type=str, nargs='?',
-                        help="Input Hy code (use STDIN if \"-\" or "
-                             "not provided)")
-    parser.add_argument("--with-source", "-s", action="store_true",
-                        help="Show the parsed source structure")
-    parser.add_argument("--with-ast", "-a", action="store_true",
-                        help="Show the generated AST")
-    parser.add_argument("--without-python", "-np", action="store_true",
-                        help=("Do not show the Python code generated "
-                              "from the AST"))
-
-    options = parser.parse_args(sys.argv[1:])
-
-    if options.FILE is None or options.FILE == '-':
+def hy2py_file(options):
+    if options.FILE is None or str(options.FILE) == '-':
         sys.path.insert(0, "")
         filename = '<stdin>'
         source = sys.stdin.read()
     else:
-        filename = options.FILE
-        set_path(filename)
-        with open(options.FILE, 'r', encoding='utf-8') as source_file:
-            source = source_file.read()
+        if options.FILE.is_dir():
+            sys.stderr.write("to compile module use 'module' subcommand\n")
+            return 1
+
+        else:
+            filename = str(options.FILE)
+            set_path(filename)
+            with options.FILE.open('r', encoding='utf-8') as source_file:
+                source = source_file.read()
 
     with filtered_hy_exceptions():
         hst = hy_parse(source, filename=filename)
@@ -763,7 +752,8 @@ def hy2py_main():
         print()
 
     with filtered_hy_exceptions():
-        _ast = hy_compile(hst, '__main__', filename=filename, source=source)
+        _ast = hy_compile(hst, options.as_module or '__main__',
+                          filename=filename, source=source)
 
     if options.with_ast:
         print(ast.dump(_ast))
@@ -773,7 +763,87 @@ def hy2py_main():
     if not options.without_python:
         print(ast.unparse(_ast))
 
-    parser.exit(0)
+
+def compile_file(source, filename, module):
+    with filtered_hy_exceptions():
+        hst = hy_parse(source, filename=filename)
+        _ast = hy_compile(hst, module, filename=filename, source=source)
+
+    return ast.unparse(_ast)
+
+
+def compile_directory(in_dir, out_dir, module=None):
+    if module is None:
+        module = in_dir.name
+
+    for file in in_dir.rglob('*.hy'):
+        if not file.is_file():
+            continue
+        relative = file.relative_to(in_dir)
+
+        mod_name = (
+            f'{module}.'
+            f'{".".join(relative.parent.parts + (Path(file.name).stem, ))}'
+        )
+
+        print(f'compiling {mod_name}')
+        with file.open('r', encoding='utf-8') as f:
+            compiled = compile_file(f.read(), str(file), mod_name)
+
+        out_file = (out_dir / relative).with_suffix('.py')
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+
+        with out_file.open('w') as f:
+            f.write(compiled)
+
+
+def hy2py_module(options):
+    if not options.MODULE.is_dir():
+        sys.stderr.write("MODULE should be directory\n")
+        return 1
+
+    options.OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    compile_directory(options.MODULE, options.OUT_DIR)
+
+
+# entry point for cmd line script "hy2py"
+def hy2py_main():
+    options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
+                   formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(**options)
+    subparser = parser.add_subparsers(required=True)
+
+    file_parser = subparser.add_parser("file", aliases=["f"],
+                                       help="compile single file")
+    module_parser = subparser.add_parser("module", aliases=["m"],
+                                         help="compile module")
+
+    file_parser.add_argument("FILE", type=Path, nargs='?',
+                             help="Input Hy code (use STDIN if \"-\" or "
+                                  "not provided)")
+    file_parser.add_argument("--as-module", "-m", type=str,
+                             help=("compile file as modle "
+                                   "(`module_name/main.hy` "
+                                   "will be `module_name.main`)"))
+    file_parser.add_argument("--with-source", "-s", action="store_true",
+                             help="Show the parsed source structure")
+    file_parser.add_argument("--with-ast", "-a", action="store_true",
+                             help="Show the generated AST")
+    file_parser.add_argument("--without-python", "-np", action="store_true",
+                             help=("Do not show the Python code generated "
+                                   "from the AST"))
+    file_parser.set_defaults(func=hy2py_file)
+
+    module_parser.add_argument("MODULE", type=Path,
+                               help="Path to module directory")
+    module_parser.add_argument("OUT_DIR", type=Path,
+                               help="Output directory for compiled files")
+    module_parser.set_defaults(func=hy2py_module)
+
+    options = parser.parse_args(sys.argv[1:])
+
+    parser.exit(options.func(options))
 
 
 # remove PYTHON* environment variables,
