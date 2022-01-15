@@ -772,15 +772,19 @@ def compile_file(source, filename, module):
     return ast.unparse(_ast)
 
 
-def compile_directory(in_dir, out_dir, module=None):
-    if module is None:
-        module = in_dir.name
+def hy2py_module(options):
+    if not options.MODULE.is_dir():
+        sys.stderr.write("MODULE should be directory\n")
+        return 1
 
-    for file in in_dir.rglob('*.hy'):
+    options.OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    module = options.MODULE.name
+    for file in options.MODULE.rglob('*.hy'):
         if not file.is_file():
             continue
-        relative = file.relative_to(in_dir)
 
+        relative = file.relative_to(options.MODULE)
         mod_name = (
             f'{module}.'
             f'{".".join(relative.parent.parts + (Path(file.name).stem, ))}'
@@ -790,21 +794,25 @@ def compile_directory(in_dir, out_dir, module=None):
         with file.open('r', encoding='utf-8') as f:
             compiled = compile_file(f.read(), str(file), mod_name)
 
-        out_file = (out_dir / relative).with_suffix('.py')
+        out_file = (options.OUT_DIR / relative).with_suffix('.py')
         out_file.parent.mkdir(parents=True, exist_ok=True)
 
         with out_file.open('w') as f:
             f.write(compiled)
 
+    if options.copy_py:
+        for file in options.MODULE.rglob('*.py'):
+            if not file.is_file():
+                continue
 
-def hy2py_module(options):
-    if not options.MODULE.is_dir():
-        sys.stderr.write("MODULE should be directory\n")
-        return 1
+            relative = file.relative_to(options.MODULE)
+            out_file = options.OUT_DIR / relative
+            out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    options.OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    compile_directory(options.MODULE, options.OUT_DIR)
+            print(f'copying {relative}')
+            with file.open('r', encoding='utf-8') as in_f:
+                with out_file.open('w') as out_f:
+                    out_f.write(in_f.read())
 
 
 # entry point for cmd line script "hy2py"
@@ -839,6 +847,8 @@ def hy2py_main():
                                help="Path to module directory")
     module_parser.add_argument("OUT_DIR", type=Path,
                                help="Output directory for compiled files")
+    module_parser.add_argument("--copy-py", "-c", action="store_true",
+                               help="copy python files to OUT_DIR")
     module_parser.set_defaults(func=hy2py_module)
 
     options = parser.parse_args(sys.argv[1:])
