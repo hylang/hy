@@ -99,7 +99,7 @@ Clojure is to Java; a better analogy is `CoffeeScript's
     (print (len [1 10 100]))           ; 3
 
 The same goes for third-party Python libraries from `PyPI <https://pypi.org>`_
-and elsewhere. Here's a tiny `CherryPy <https://cherrypy.org>`_ web application
+and elsewhere. Here's a tiny `CherryPy <https://cherrypy.dev>`_ web application
 in Hy::
 
     (import cherrypy)
