@@ -73,16 +73,16 @@ first line with a blank line.
 Testing
 -------
 
+Tests can be run by executing `pytest` in the root of this repository.
+
 New features and bug fixes should be tested. If you've caused an
 xfail_ test to start passing, remove the xfail mark. If you're
 testing a bug that has a GitHub issue, include a comment with the URL
 of the issue.
 
-No PR may be merged if it causes any tests to fail. You can run the
-test suite and check the style of your code with ``make d``. The byte-compiled
-versions of the test files can be purged using ``git clean -dfx tests/``.
-If you want to run the tests while skipping the slow ones in ``test_bin.py``,
-use ``pytest --ignore=tests/test_bin.py``.
+No PR may be merged if it causes any tests to fail.
+The byte-compiled versions of the test files can be purged using ``git clean -dfx tests/``.
+If you want to run the tests while skipping the slow ones in ``test_bin.py``, use ``pytest --ignore=tests/test_bin.py``.
 
 NEWS and AUTHORS
 ----------------
