@@ -17,6 +17,8 @@ import hashlib
 import codeop
 import builtins
 from pathlib import Path
+from functools import reduce
+from operator import truediv
 
 import hy
 
@@ -728,6 +730,8 @@ def hyc_main():
 
 
 def hy2py_file(options):
+    module = '__main__'
+
     if options.FILE is None or str(options.FILE) == '-':
         sys.path.insert(0, "")
         filename = '<stdin>'
@@ -738,8 +742,23 @@ def hy2py_file(options):
             return 1
 
         else:
+            if options.as_module:
+                module_parts = len(options.as_module.split('.'))
+                module_dir = str(reduce(truediv,
+                                        map(Path,
+                                            (options
+                                                .FILE
+                                                .resolve(strict=True)
+                                                .parts[:-module_parts]))))
+                if module_dir not in sys.path:
+                    sys.path.insert(0, module_dir)
+
+                module = options.as_module
+
+            else:
+                set_path(filename)
+
             filename = str(options.FILE)
-            set_path(filename)
             with options.FILE.open('r', encoding='utf-8') as source_file:
                 source = source_file.read()
 
@@ -752,8 +771,7 @@ def hy2py_file(options):
         print()
 
     with filtered_hy_exceptions():
-        _ast = hy_compile(hst, options.as_module or '__main__',
-                          filename=filename, source=source)
+        _ast = hy_compile(hst, module, filename=filename, source=source)
 
     if options.with_ast:
         print(ast.dump(_ast))
@@ -776,6 +794,11 @@ def hy2py_module(options):
     if not options.MODULE.is_dir():
         sys.stderr.write("MODULE should be directory\n")
         return 1
+
+    # add parent module directory to sys.path to be able to import it
+    full_path = str(options.MODULE.resolve(strict=True).parent)
+    if full_path not in sys.path:
+        sys.path.insert(0, full_path)
 
     options.OUT_DIR.mkdir(parents=True, exist_ok=True)
 
