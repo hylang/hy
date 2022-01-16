@@ -823,9 +823,9 @@ def hy2py_module(options):
         with out_file.open('w') as f:
             f.write(compiled)
 
-    if options.copy_py:
-        for file in options.MODULE.rglob('*.py'):
-            if not file.is_file():
+    if options.copy:
+        for file in options.MODULE.rglob('*'):
+            if not file.is_file() or file.suffix == '.hy':
                 continue
 
             relative = file.relative_to(options.MODULE)
@@ -833,8 +833,8 @@ def hy2py_module(options):
             out_file.parent.mkdir(parents=True, exist_ok=True)
 
             print(f'copying {relative}')
-            with file.open('r', encoding='utf-8') as in_f:
-                with out_file.open('w') as out_f:
+            with file.open('rb') as in_f:
+                with out_file.open('wb') as out_f:
                     out_f.write(in_f.read())
 
 
@@ -870,8 +870,8 @@ def hy2py_main():
                                help="Path to module directory")
     module_parser.add_argument("OUT_DIR", type=Path,
                                help="Output directory for compiled files")
-    module_parser.add_argument("--copy-py", "-c", action="store_true",
-                               help="copy python files to OUT_DIR")
+    module_parser.add_argument("--copy", "-c", action="store_true",
+                               help="copy non hy files to OUT_DIR")
     module_parser.set_defaults(func=hy2py_module)
 
     options = parser.parse_args(sys.argv[1:])
