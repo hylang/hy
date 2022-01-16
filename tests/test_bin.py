@@ -430,7 +430,7 @@ def test_bin_hyc_file_sys_path():
     test_file = 'tests/resources/relative_import_compile_time.hy'
     file_relative_path = os.path.realpath(os.path.dirname(test_file))
 
-    for binary in ("hy", "hyc", "hy2py"):
+    for binary in ("hy", "hyc", "hy2py file"):
         # Ensure we hit the compiler
         rm(cache_from_source(test_file))
         assert not os.path.exists(cache_from_source(file_relative_path))

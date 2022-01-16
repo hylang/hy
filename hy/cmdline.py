@@ -742,6 +742,7 @@ def hy2py_file(options):
             return 1
 
         else:
+            filename = str(options.FILE)
             if options.as_module:
                 module_parts = len(options.as_module.split('.'))
                 module_dir = str(reduce(truediv,
@@ -758,7 +759,6 @@ def hy2py_file(options):
             else:
                 set_path(filename)
 
-            filename = str(options.FILE)
             with options.FILE.open('r', encoding='utf-8') as source_file:
                 source = source_file.read()
 
