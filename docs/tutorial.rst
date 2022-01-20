@@ -95,7 +95,7 @@ Hy              Python            Type
 ``1.2``         ``1.2``           :class:`float`
 ``4j``          ``4j``            :class:`complex`
 ``True``        ``True``          :class:`bool`
-``None``        ``None``          :class:`NoneType`
+``None``        ``None``          ``NoneType``
 ``"hy"``        ``'hy'``          :class:`str`
 ``b"hy"``       ``b'hy'``         :class:`bytes`
 ``(, 1 2 3)``   ``(1, 2, 3)``     :class:`tuple`
@@ -131,7 +131,7 @@ Set variables with :hy:func:`setv`::
     (setv zone-plane 8)
 
 Access the elements of a list, dictionary, or other data structure with
-:hy:func:`get <hy.core.shadow.get>`::
+:hy:func:`get <hy.pyops.get>`::
 
     (setv fruit ["apple" "banana" "cantaloupe"])
     (print (get fruit 0))  ; => apple
@@ -142,7 +142,7 @@ Access a range of elements in an ordered structure with :hy:func:`cut`::
 
     (print (cut "abcdef" 1 4))  ; => bcd
 
-Conditional logic can be built with :ref:`if`::
+Conditional logic can be built with :hy:func:`if`::
 
     (if (= 1 1)
       (print "Math works. The universe is safe.")
@@ -181,7 +181,7 @@ The macro ``(when CONDITION THEN-1 THEN-2 …)`` is shorthand for ``(if CONDITIO
 (do THEN-1 THEN-2 …))``. ``unless`` works the same as ``when``, but inverts the
 condition with ``not``.
 
-Hy's basic loops are :ref:`while` and :ref:`for`::
+Hy's basic loops are :hy:func:`while` and :hy:func:`for`::
 
     (setv x 3)
     (while (> x 0)
@@ -201,7 +201,7 @@ with one element per iteration. ::
 Functions, classes, and modules
 ===============================
 
-Define named functions with :hy:func:`defn <hy.core.bootstrap.defn>`::
+Define named functions with :hy:func:`defn`::
 
     (defn fib [n]
       (if (< n 2)
@@ -209,7 +209,7 @@ Define named functions with :hy:func:`defn <hy.core.bootstrap.defn>`::
         (+ (fib (- n 1)) (fib (- n 2)))))
     (print (fib 8))  ; => 21
 
-Define anonymous functions with :hy:func:`fn <fn>`::
+Define anonymous functions with :hy:func:`fn`::
 
     (print (list (filter (fn [x] (% x 2)) (range 10))))
       ; => [1, 3, 5, 7, 9]
@@ -250,7 +250,7 @@ attribute or call a method of an arbitrary form ``FORM``, you must use the
 syntax ``(. FORM x)`` or ``(.get-x FORM)``.
 
 Access an external module, whether written in Python or Hy, with
-:ref:`import`::
+:hy:func:`import`::
 
     (import math)
     (print (math.sqrt 2))  ; => 1.4142135623730951
@@ -303,9 +303,10 @@ Our macro ``m`` has an especially simple return value, an integer, which at
 compile-time is converted to an integer literal. In general, macros can return
 arbitrary Hy forms to be executed as code. There are several special operators
 and macros that make it easy to construct forms programmatically, such as
-:hy:func:`quote` (``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``), and
-:hy:func:`defmacro! <hy.core.bootstrap.defmacro!>`. The previous chapter has :hy:func:`a simple example <while>`
-of using ````` and ``~`` to define a new control construct ``do-while``.
+:hy:func:`quote` (``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote`
+(``~``), and :hy:func:`defmacro! <hyrule.macrotools.defmacro!>`. The previous
+chapter has :ref:`a simple example <do-while>` of using ````` and ``~`` to
+define a new control construct ``do-while``.
 
 Sometimes it's nice to be able to call a one-parameter macro without
 parentheses. Tag macros allow this. The name of a tag macro is often just one
