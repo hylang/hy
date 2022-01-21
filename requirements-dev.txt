@@ -1,5 +1,9 @@
 pytest >= 6
 
+# autoformatting
+black==22.1.0
+isort==5.10.1
+
 # documentation
 Pygments >= 1.6
 Sphinx>=4.2.0
