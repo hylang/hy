@@ -55,7 +55,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    Note that variable annotations are only supported on Python 3.6+.
 
-   For annotating items with generic types, the :hy:func:`of <hy.core.macros.of>` macro will likely be of use.
+   For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
+   macro will likely be of use.
 
    .. note::
 
