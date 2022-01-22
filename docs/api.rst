@@ -53,8 +53,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    - The annotation always comes (and is evaluated) *before* the value being annotated. This is
      unlike Python, where it comes and is evaluated *after* the value being annotated.
 
-   Note that variable annotations are only supported on Python 3.6+.
-
    For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
    macro will likely be of use.
 
