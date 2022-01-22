@@ -333,7 +333,7 @@ which imports the module and makes macros available at compile-time.
 Hyrule
 ======
 
-`Hyrule <https://github.com/hylang/hyrule>`_ is Hy's standard utility library.
+`Hyrule <https://pypi.org/project/hyrule>`_ is Hy's standard utility library.
 It provides a variety of functions and macros that are useful for writing Hy
 programs. ::
 
