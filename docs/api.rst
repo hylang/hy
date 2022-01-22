@@ -390,19 +390,20 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: break
 
-   ``break`` is used to break out from a loop. It terminates the loop immediately.
-   The following example has an infinite ``while`` loop that is terminated as soon
-   as the user enters *k*.
+   ``break`` compiles to a :py:keyword:`break` statement, which terminates the
+   enclosing loop. The following example has an infinite ``while`` loop that
+   ends when the user enters "k"::
 
-   :strong:`Examples`
+       (while True
+         (if (= (input "> ") "k")
+           (break)
+           (print "Try again")))
 
-   ::
-
-     => (while True
-     ...   (if (= "k" (input "? "))
-     ...       (break)
-     ...       (print "Try again")))
-
+   In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
+   ``break`` only breaks out of the innermost iteration, not the whole form. To
+   jump out of the whole form, enclose it in a :hy:func:`block
+   <hyrule.control.block>` and use ``block-ret`` instead of ``break``, or
+   enclose it in a function and use :hy:func:`return`.
 
 .. hy:function:: (chainc [#* args])
 
@@ -436,21 +437,26 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: continue
 
-   ``continue`` returns execution to the start of a loop. In the following example,
-   ``(side-effect1)`` is called for each iteration. ``(side-effect2)``, however,
-   is only called on every other value in the list.
-
-   :strong:`Examples`
+   ``continue`` compiles to a :py:keyword:`continue` statement, which returns
+   execution to the start of a loop. In the following example, ``(.append
+   output x)`` is executed on each iteration, whereas ``(.append evens x)`` is
+   only executed for even numbers.
 
    ::
 
-       => ;; assuming that (side-effect1) and (side-effect2) are functions and
-       => ;; collection is a list of numerical values
-       => (for [x collection]
-       ...   (side-effect1 x)
-       ...   (if (% x 2)
-       ...     (continue))
-       ...   (side-effect2))
+       (setv  output []  evens [])
+       (for [x (range 10)]
+         (.append output x)
+         (when (% x 2)
+           (continue))
+         (.append evens x))
+
+   In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
+   ``continue`` applies to the innermost iteration, not the whole form. To jump
+   to the next step of an outer iteration, try rewriting your loop as multiple
+   nested loops and interposing a :hy:func:`block <hyrule.control.block>`, as
+   in ``(for [x xs] (block (for [y ys] …)))``. You can then use ``block-ret``
+   in place of ``continue``.
 
 .. hy:function:: (do [#* body])
 
