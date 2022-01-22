@@ -104,10 +104,11 @@ prompts. The following shows a number of possibilities::
     re
     json
     pathlib [Path]
+    hy.pypos *
     hyrule [pp pformat])
 
   (require
-    hyrule [%])
+    hyrule [unless])
 
   (setv
     ;; Spy and output-fn will be set automatically for all hy repls
