@@ -490,7 +490,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        3
 
    In its square-bracketed first argument, ``for`` allows the same types of
-   clauses as :hy:function:`lfor`.
+   clauses as :hy:func:`lfor`.
 
    ::
 
@@ -579,7 +579,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    multiple *index* or *key* values are provided, they are used to access
    successive elements in a nested structure. Example usage:
 
-   :string:`Examples`
+   :strong:`Examples`
 
    ::
 
@@ -682,7 +682,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (lfor [binding iterable #* body])
 
-   The comprehension forms ``lfor``, :hy:function:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
+   The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
    :ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
    creates a list comprehension. A simple use of ``lfor`` is::
