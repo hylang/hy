@@ -3,13 +3,15 @@ import contextlib
 import os
 import re
 import sys
+from types import ModuleType
+from typing import Optional
 
 import hy.compiler
 import hy.macros
 
 # Lazily import `readline` to work around
 # https://bugs.python.org/issue2675#msg265564
-readline = None
+readline: Optional[ModuleType] = None
 
 
 def init_readline():
