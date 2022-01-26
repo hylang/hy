@@ -221,6 +221,25 @@
   (assert (= l ["a" "a" "a" "z"])))
 
 
+(defn test-multidimensional-for-break-continue []
+  "`break` and `continue` only affect the innermost generated loop."
+
+  (setv out "")
+  (for [x "abc"  y "123"]
+    (+= out x y)
+    (when (= (+ x y) "b2")
+      (break)))
+  (assert (= out "a1a2a3b1b2c1c2c3"))
+
+  (setv out "")
+  (for [c "xyz"  d "12"]
+    (+= out c d)
+    (when (= (+ c d) "y1")
+      (continue))
+    (+= out "-"))
+  (assert (= out "x1-x2-y1y2-z1-z2-")))
+
+
 (defmacro eval-isolated [#*body]
   `(hy.eval '(do ~@body) :module "<test>" :locals {}))
 

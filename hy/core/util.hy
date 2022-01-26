@@ -42,7 +42,9 @@
 (setv _gensym_lock (Lock))
 
 (defn gensym [[g "G"]]
-  "Generate a unique symbol for use in macros without accidental name clashes.
+  #[[Generate a symbol with a unique name. The argument will be included in the
+  generated symbol, as an aid to debugging. Typically one calls ``hy.gensym``
+  without an argument.
 
   .. versionadded:: 0.9.12
 
@@ -50,18 +52,23 @@
 
      Section :ref:`using-gensym`
 
-  Examples:
-    ::
+  The below example uses the return value of ``f`` twice but calls it only
+  once, and uses ``hy.gensym`` for the temporary variable to avoid collisions
+  with any other variable names.
 
-      => (hy.gensym)
-      '_G￿1
+  ::
 
-    ::
+      (defmacro selfadd [x]
+        (setv g (hy.gensym))
+        `(do
+           (setv ~g ~x)
+           (+ ~g ~g)))
 
-      => (hy.gensym \"x\")
-      '_x￿2
+      (defn f []
+        (print "This is only executed once.")
+        4)
 
-   "
+      (print (selfadd (f)))]]
   (setv new_symbol None)
   (global _gensym_counter)
   (global _gensym_lock)

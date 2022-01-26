@@ -104,49 +104,49 @@
       {
         "name": "Arithmetic",
         "methods": [
-          "hy.core.shadow.@",
-          "hy.core.shadow.%",
-          "hy.core.shadow.+",
-          "hy.core.shadow.-",
-          "hy.core.shadow.*",
-          "hy.core.shadow.**",
-          "hy.core.shadow./",
-          "hy.core.shadow.//"
+          "hy.pyops.@",
+          "hy.pyops.%",
+          "hy.pyops.+",
+          "hy.pyops.-",
+          "hy.pyops.*",
+          "hy.pyops.**",
+          "hy.pyops./",
+          "hy.pyops.//"
         ]
       },
       {
         "name": "Comparison",
         "methods": [
           "hy.core.macros.cond",
-          "hy.core.shadow.<",
-          "hy.core.shadow.>",
-          "hy.core.shadow.<=",
-          "hy.core.shadow.>=",
-          "hy.core.shadow.=",
-          "hy.core.shadow.\\!=",
-          "hy.core.shadow.is",
-          "hy.core.shadow.not?",
-          "hy.core.shadow.in",
-          "hy.core.shadow.not-in"
+          "hy.pyops.<",
+          "hy.pyops.>",
+          "hy.pyops.<=",
+          "hy.pyops.>=",
+          "hy.pyops.=",
+          "hy.pyops.\\!=",
+          "hy.pyops.is",
+          "hy.pyops.not?",
+          "hy.pyops.in",
+          "hy.pyops.not-in"
         ]
       },
       {
         "name": "Bitwise",
         "methods": [
-          "hy.core.shadow.\\<\\<",
-          "hy.core.shadow.>>",
-          "hy.core.shadow.&",
-          "hy.core.shadow.|",
-          "hy.core.shadow.^",
-          "hy.core.shadow.~"
+          "hy.pyops.\\<\\<",
+          "hy.pyops.>>",
+          "hy.pyops.&",
+          "hy.pyops.|",
+          "hy.pyops.^",
+          "hy.pyops.~"
         ]
       },
       {
         "name": "Logic",
         "methods": [
-          "hy.core.shadow.not",
-          "hy.core.shadow.and",
-          "hy.core.shadow.or"
+          "hy.pyops.not",
+          "hy.pyops.and",
+          "hy.pyops.or"
         ]
       }
     ]
