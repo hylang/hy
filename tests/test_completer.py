@@ -1,11 +1,12 @@
 import os
 import sys
-from hy.completer import completion
 import pytest
+import hy.completer
 
+hy.completer.init_readline()
 
 @pytest.mark.skipif(
-    "readline" not in sys.modules,
+    not hy.completer.readline,
     reason="Module 'readline' is not available.")
 def test_history_custom_location(tmp_path):
     import readline
@@ -15,7 +16,7 @@ def test_history_custom_location(tmp_path):
     history_location = tmp_path / ".hy-custom-history"
     os.environ["HY_HISTORY"] = str(history_location)
 
-    with completion():
+    with hy.completer.completion():
         readline.clear_history()
         readline.add_history(expected_entry)
 

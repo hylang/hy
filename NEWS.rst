@@ -1,5 +1,15 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Bug Fixes
+------------------------------
+* Readline is now imported only when necessary to avoid triggering a
+  CPython bug regarding the standard module `curses` (`bpo-2675`_).
+
+.. _bpo-2675: https://bugs.python.org/issue2675#msg265564
+
 1.0a4 (released 2022-01-09)
 ==============================
 

@@ -8,24 +8,19 @@ import hy.macros
 import hy.compiler
 
 
-docomplete = True
-
-try:
-    import readline
-except AttributeError as e:
-    # https://github.com/pyreadline/pyreadline/issues/65
-    if "module 'collections' has no attribute 'Callable'" in str(e):
-        docomplete = False
-    else:
-        raise
-except ImportError:
-    docomplete = False
-
-if docomplete:
-    if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
-        readline_bind = "bind ^I rl_complete"
-    else:
-        readline_bind = "tab: complete"
+# Lazily import `readline` to work around
+# https://bugs.python.org/issue2675#msg265564
+readline = None
+def init_readline():
+    global readline
+    try:
+        import readline
+    except AttributeError as e:
+        # https://github.com/pyreadline/pyreadline/issues/65
+        if "module 'collections' has no attribute 'Callable'" not in str(e):
+            raise
+    except ImportError:
+        pass
 
 
 class Completer:
@@ -86,33 +81,42 @@ class Completer:
         except IndexError:
             return None
 
-
 @contextlib.contextmanager
 def completion(completer=None):
     delims = "()[]{} "
+
+    init_readline()
+    if not readline:
+        # We have nothing to do. Act like a null context manager.
+        yield
+        return
+
     if not completer:
         completer = Completer()
 
-    if docomplete:
-        readline.set_completer(completer.complete)
-        readline.set_completer_delims(delims)
+    if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
+        readline_bind = "bind ^I rl_complete"
+    else:
+        readline_bind = "tab: complete"
 
-        history = os.environ.get(
-            "HY_HISTORY", os.path.expanduser("~/.hy-history"))
-        readline.parse_and_bind("set blink-matching-paren on")
+    readline.set_completer(completer.complete)
+    readline.set_completer_delims(delims)
 
-        try:
-            readline.read_history_file(history)
-        except OSError:
-            pass
+    history = os.environ.get(
+        "HY_HISTORY", os.path.expanduser("~/.hy-history"))
+    readline.parse_and_bind("set blink-matching-paren on")
 
-        readline.parse_and_bind(readline_bind)
+    try:
+        readline.read_history_file(history)
+    except OSError:
+        pass
+
+    readline.parse_and_bind(readline_bind)
 
     try:
         yield
     finally:
-        if docomplete:
-            try:
-                readline.write_history_file(history)
-            except OSError:
-                pass
+        try:
+            readline.write_history_file(history)
+        except OSError:
+            pass
