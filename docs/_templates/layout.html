@@ -1,0 +1,15 @@
+{% extends "!layout.html" %}
+
+{% block extrabody %}
+{% if has_active_alpha %}
+<div class="wy-nav-content-wrap">
+    <div id="dev-warning" class="wy-nav-content" style="overflow-wrap: breakword; padding: 1em 1em 0.1em 1em; background: #ffe761;">
+        <p>
+            Hy is currently in an active alpha cycle. Make sure you're looking
+            at the correct version of the documentation for your install by
+            using the version selector in the bottom-left corner of this page.
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
