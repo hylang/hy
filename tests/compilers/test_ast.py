@@ -1,18 +1,17 @@
+import ast
+
+import pytest
+
 from hy.compiler import hy_compile, hy_eval
-from hy.errors import HyLanguageError, HyError
+from hy.errors import HyError, HyLanguageError
 from hy.lex import hy_parse
 from hy.lex.exceptions import LexException, PrematureEndOfInput
-
-import ast
-import pytest
 
 
 def _ast_spotcheck(arg, root, secondary):
     if "." in arg:
         local, full = arg.split(".", 1)
-        return _ast_spotcheck(full,
-                              getattr(root, local),
-                              getattr(secondary, local))
+        return _ast_spotcheck(full, getattr(root, local), getattr(secondary, local))
     assert getattr(root, arg) == getattr(secondary, arg)
 
 
@@ -40,11 +39,12 @@ def s(x):
 
 def test_ast_bad_type():
     "Make sure AST breakage can happen"
+
     class C:
         pass
 
     with pytest.raises(TypeError):
-        hy_compile(C(), __name__, filename='<string>', source='')
+        hy_compile(C(), __name__, filename="<string>", source="")
 
 
 def test_empty_expr():
@@ -166,11 +166,11 @@ def test_ast_good_assert():
     """Make sure AST can compile valid asserts. Asserts may or may not
     include a label."""
     can_compile("(assert 1)")
-    can_compile("(assert 1 \"Assert label\")")
-    can_compile("(assert 1 (+ \"spam \" \"eggs\"))")
+    can_compile('(assert 1 "Assert label")')
+    can_compile('(assert 1 (+ "spam " "eggs"))')
     can_compile("(assert 1 12345)")
     can_compile("(assert 1 None)")
-    can_compile("(assert 1 (+ 2 \"incoming eggsception\"))")
+    can_compile('(assert 1 (+ 2 "incoming eggsception"))')
 
 
 def test_ast_bad_assert():
@@ -209,8 +209,8 @@ def test_ast_good_defclass():
     can_compile("(defclass a)")
     can_compile("(defclass a [])")
     can_compile("(defclass a [] None 42)")
-    can_compile("(defclass a [] None \"test\")")
-    can_compile("(defclass a [] None (print \"foo\"))")
+    can_compile('(defclass a [] None "test")')
+    can_compile('(defclass a [] None (print "foo"))')
 
 
 def test_ast_good_defclass_with_metaclass():
@@ -282,16 +282,18 @@ def test_ast_require():
 
 def test_ast_import_require_dotted():
     """As in Python, it should be a compile-time error to attempt to
-import a dotted name."""
+    import a dotted name."""
     cant_compile("(import spam [foo.bar])")
     cant_compile("(require spam [foo.bar])")
 
 
 def test_ast_multi_require():
     # https://github.com/hylang/hy/issues/1903
-    x = can_compile("""(require
+    x = can_compile(
+        """(require
       tests.resources.tlib [qplah]
-      tests.resources.macros [test-macro])""")
+      tests.resources.macros [test-macro])"""
+    )
     assert sum(1 for stmt in x.body if isinstance(stmt, ast.Expr)) == 2
     dump = ast.dump(x)
     assert "qplah" in dump
@@ -349,66 +351,66 @@ def test_nullary_break_continue():
 
 
 def test_ast_expression_basics():
-    """ Ensure basic AST expression conversion works. """
+    """Ensure basic AST expression conversion works."""
     code = can_compile("(foo bar)").body[0]
-    tree = ast.Expr(value=ast.Call(
-        func=ast.Name(
-            id="foo",
-            ctx=ast.Load(),
-        ),
-        args=[
-            ast.Name(id="bar", ctx=ast.Load())
-        ],
-        keywords=[],
-        starargs=None,
-        kwargs=None,
-    ))
+    tree = ast.Expr(
+        value=ast.Call(
+            func=ast.Name(
+                id="foo",
+                ctx=ast.Load(),
+            ),
+            args=[ast.Name(id="bar", ctx=ast.Load())],
+            keywords=[],
+            starargs=None,
+            kwargs=None,
+        )
+    )
 
     _ast_spotcheck("value.func.id", code, tree)
 
 
 def test_ast_anon_fns_basics():
-    """ Ensure anon fns work. """
+    """Ensure anon fns work."""
     code = can_compile("(fn [x] (* x x))").body[0].value
     assert type(code) == ast.Lambda
-    code = can_compile("(fn [x] (print \"multiform\") (* x x))").body[0]
+    code = can_compile('(fn [x] (print "multiform") (* x x))').body[0]
     assert type(code) == ast.FunctionDef
     can_compile("(fn [x])")
     cant_compile("(fn)")
 
 
 def test_ast_non_decoratable():
-    """ Ensure decorating garbage breaks """
+    """Ensure decorating garbage breaks"""
     cant_compile("(with-decorator (foo) (* x x))")
 
 
 def test_ast_lambda_lists():
     """Ensure the compiler chokes on invalid lambda-lists"""
-    cant_compile('(fn [[a b c]] a)')
-    cant_compile('(fn [[1 2]] (list 1 2))')
+    cant_compile("(fn [[a b c]] a)")
+    cant_compile("(fn [[1 2]] (list 1 2))")
 
 
 def test_ast_print():
-    code = can_compile("(print \"foo\")").body[0]
+    code = can_compile('(print "foo")').body[0]
 
     assert type(code.value) == ast.Call
 
 
 def test_ast_tuple():
-    """ Ensure tuples work. """
+    """Ensure tuples work."""
     code = can_compile("(, 1 2 3)").body[0].value
     assert type(code) == ast.Tuple
 
 
 def test_lambda_list_keywords_rest():
-    """ Ensure we can compile functions with lambda list keywords."""
+    """Ensure we can compile functions with lambda list keywords."""
     can_compile("(fn [x #* xs] (print xs))")
     cant_compile("(fn [x #* xs #* ys] (print xs))")
     can_compile("(fn [[a None] #* xs] (print xs))")
 
 
 def test_lambda_list_keywords_kwargs():
-    """ Ensure we can compile functions with #** kwargs."""
+    """Ensure we can compile functions with #** kwargs."""
     can_compile("(fn [x #** kw] (list x kw))")
     cant_compile("(fn [x #** xs #** ys] (list x xs ys))")
     can_compile("(fn [[x None] #** kw] (list x kw))")
@@ -417,18 +419,17 @@ def test_lambda_list_keywords_kwargs():
 def test_lambda_list_keywords_kwonly():
     kwonly_demo = "(fn [* a [b 2]] (print 1) (print a b))"
     code = can_compile(kwonly_demo)
-    for i, kwonlyarg_name in enumerate(('a', 'b')):
+    for i, kwonlyarg_name in enumerate(("a", "b")):
         assert kwonlyarg_name == code.body[0].args.kwonlyargs[i].arg
     assert code.body[0].args.kw_defaults[0] is None
     assert code.body[0].args.kw_defaults[1].n == 2
 
 
 def test_lambda_list_keywords_mixed():
-    """ Ensure we can mix them up."""
+    """Ensure we can mix them up."""
     can_compile("(fn [x #* xs #** kw] (list x xs kw))")
-    cant_compile("(fn [x #* xs &fasfkey {bar \"baz\"}])")
-    can_compile("(fn [x #* xs kwoxs #** kwxs]"
-                "  (list x xs kwxs kwoxs))")
+    cant_compile('(fn [x #* xs &fasfkey {bar "baz"}])')
+    can_compile("(fn [x #* xs kwoxs #** kwxs]" "  (list x xs kwxs kwoxs))")
 
 
 def test_missing_keyword_argument_value():
@@ -444,7 +445,9 @@ def test_ast_unicode_strings():
     def _compile_string(s):
         hy_s = hy.models.String(s)
 
-        code = hy_compile([hy_s], __name__, filename='<string>', source=s, import_stdlib=False)
+        code = hy_compile(
+            [hy_s], __name__, filename="<string>", source=s, import_stdlib=False
+        )
         # We put hy_s in a list so it isn't interpreted as a docstring.
 
         # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Str(s=xxx)]))])
@@ -475,23 +478,33 @@ def test_format_string():
 
 
 def test_ast_bracket_string():
-    assert s(r'#[[empty delims]]') == 'empty delims'
-    assert s(r'#[my delim[fizzle]my delim]') == 'fizzle'
-    assert s(r'#[[]]') == ''
-    assert s(r'#[my delim[]my delim]') == ''
-    assert type(s('#[X[hello]X]')) is str
-    assert s(r'#[X[raw\nstring]X]') == 'raw\\nstring'
-    assert s(r'#[foozle[aa foozli bb ]foozle]') == 'aa foozli bb '
-    assert s(r'#[([unbalanced](]') == 'unbalanced'
-    assert s(r'#[(1💯@)} {a![hello world](1💯@)} {a!]') == 'hello world'
-    assert (s(r'''#[X[
+    assert s(r"#[[empty delims]]") == "empty delims"
+    assert s(r"#[my delim[fizzle]my delim]") == "fizzle"
+    assert s(r"#[[]]") == ""
+    assert s(r"#[my delim[]my delim]") == ""
+    assert type(s("#[X[hello]X]")) is str
+    assert s(r"#[X[raw\nstring]X]") == "raw\\nstring"
+    assert s(r"#[foozle[aa foozli bb ]foozle]") == "aa foozli bb "
+    assert s(r"#[([unbalanced](]") == "unbalanced"
+    assert s(r"#[(1💯@)} {a![hello world](1💯@)} {a!]") == "hello world"
+    assert (
+        s(
+            r"""#[X[
 Remove the leading newline, please.
-]X]''') == 'Remove the leading newline, please.\n')
-    assert (s(r'''#[X[
+]X]"""
+        )
+        == "Remove the leading newline, please.\n"
+    )
+    assert (
+        s(
+            r"""#[X[
 
 
 Only one leading newline should be removed.
-]X]''') == '\n\nOnly one leading newline should be removed.\n')
+]X]"""
+        )
+        == "\n\nOnly one leading newline should be removed.\n"
+    )
 
 
 def test_compile_error():
@@ -531,7 +544,7 @@ def test_attribute_empty():
     cant_compile("foo.")
     cant_compile(".foo")
     cant_compile('"bar".foo')
-    cant_compile('[2].foo')
+    cant_compile("[2].foo")
 
 
 def test_bad_setv():
@@ -541,7 +554,7 @@ def test_bad_setv():
 
 def test_defn():
     """Ensure that defn works correctly in various corner cases"""
-    cant_compile("(defn \"hy\" [] 1)")
+    cant_compile('(defn "hy" [] 1)')
     cant_compile("(defn :hy [] 1)")
     can_compile("(defn &hy [] 1)")
     cant_compile('(defn hy "foo")')
@@ -551,13 +564,15 @@ def test_setv_builtins():
     """Ensure that assigning to a builtin fails, unless in a class"""
     cant_compile("(setv None 42)")
     can_compile("(defclass A [] (defn get [self] 42))")
-    can_compile("""
+    can_compile(
+        """
     (defclass A []
       (defn get [self] 42)
       (defclass B []
         (defn get [self] 42))
       (defn if [self] 0))
-    """)
+    """
+    )
 
 
 def test_top_level_unquote():
@@ -599,12 +614,14 @@ def test_eval_generator_with_return():
 def test_futures_imports():
     """Make sure __future__ imports go first."""
     hy_ast = can_compile(
-        '(import __future__ [print_function])'
-        '(import sys)'
-        '(setv some [1 2])'
-        '(print (cut some 1 None))')
+        "(import __future__ [print_function])"
+        "(import sys)"
+        "(setv some [1 2])"
+        "(print (cut some 1 None))"
+    )
 
-    assert hy_ast.body[0].module == '__future__'
+    assert hy_ast.body[0].module == "__future__"
+
 
 def test_inline_python():
     can_compile('(py "1 + 1")')
@@ -622,20 +639,19 @@ def test_bad_tag_macros():
 
 def test_models_accessible():
     # https://github.com/hylang/hy/issues/1045
-    can_eval('hy.models.Symbol')
-    can_eval('hy.models.List')
-    can_eval('hy.models.Dict')
+    can_eval("hy.models.Symbol")
+    can_eval("hy.models.List")
+    can_eval("hy.models.Dict")
 
 
 def test_module_prelude():
     """Make sure the hy prelude appears at the top of a compiled module."""
-    hy_ast = can_compile('', import_stdlib=True)
+    hy_ast = can_compile("", import_stdlib=True)
     assert len(hy_ast.body) == 1
     assert isinstance(hy_ast.body[0], ast.Import)
-    assert hy_ast.body[0].module == 'hy'
+    assert hy_ast.body[0].module == "hy"
 
-    hy_ast = can_compile('(setv flag (- hy.models.Symbol 1))',
-                         import_stdlib=True)
+    hy_ast = can_compile("(setv flag (- hy.models.Symbol 1))", import_stdlib=True)
     assert len(hy_ast.body) == 2
     assert isinstance(hy_ast.body[0], ast.Import)
-    assert hy_ast.body[0].module == 'hy'
+    assert hy_ast.body[0].module == "hy"

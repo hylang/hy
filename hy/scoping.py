@@ -237,11 +237,12 @@ class ScopeLet(ScopeBase):
             raise ValueError("cannot specify name for compound targets")
         if isinstance(target, List):
             return List(map(self.add, target)).replace(target)
-        if (isinstance(target, Expression) and target and
-                target[0] in (Symbol(","), Symbol("unpack-iterable"))):
-            return Expression([target[0], *map(self.add, target[1:])]).replace(
-                target
-            )
+        if (
+            isinstance(target, Expression)
+            and target
+            and target[0] in (Symbol(","), Symbol("unpack-iterable"))
+        ):
+            return Expression([target[0], *map(self.add, target[1:])]).replace(target)
         raise ValueError(f"invalid binding target: {type(target)}")
 
 
@@ -291,8 +292,11 @@ class ScopeFn(ScopeBase):
         self.defined.add(name)
 
     def define_nonlocal(self, node, root):
-        ((self.nonlocal_vars if root == "nonlocal" else self.defined)
-            .update(node.names))
+        (
+            (self.nonlocal_vars if root == "nonlocal" else self.defined).update(
+                node.names
+            )
+        )
         for n in self.seen:
             if n.name in node.names:
                 raise SyntaxError(

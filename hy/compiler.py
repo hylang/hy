@@ -1,17 +1,36 @@
-import ast, copy, importlib, inspect, keyword
-import traceback, types
+import ast
+import copy
+import importlib
+import inspect
+import keyword
+import traceback
+import types
 
 from funcparserlib.parser import NoParseError, many
 
-from hy.models import (Object, Expression, Keyword, Integer, Complex,
-    String, FComponent, FString, Bytes, Symbol, Float, List, Set,
-    Dict, as_model, is_unpack)
-from hy.model_patterns import (FORM, KEYWORD, unpack)
-from hy.errors import (HyCompileError, HyLanguageError, HySyntaxError)
+from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
 from hy.lex import mangle
 from hy.macros import macroexpand
+from hy.model_patterns import FORM, KEYWORD, unpack
+from hy.models import (
+    Bytes,
+    Complex,
+    Dict,
+    Expression,
+    FComponent,
+    Float,
+    FString,
+    Integer,
+    Keyword,
+    List,
+    Object,
+    Set,
+    String,
+    Symbol,
+    as_model,
+    is_unpack,
+)
 from hy.scoping import ScopeGlobal
-
 
 hy_ast_compile_flags = 0
 
@@ -47,7 +66,7 @@ def calling_module(n=1):
     module = inspect.getmodule(frame_up)
     if module is None:
         # This works for modules like `__main__`
-        module_name = frame_up.f_globals.get('__name__', None)
+        module_name = frame_up.f_globals.get("__name__", None)
         if module_name:
             try:
                 module = importlib.import_module(module_name)
@@ -58,12 +77,15 @@ def calling_module(n=1):
 
 _model_compilers = {}
 
+
 def builds_model(*model_types):
     "Assign the decorated method to _model_compilers for the given types."
+
     def _dec(fn):
         for t in model_types:
             _model_compilers[t] = fn
         return fn
+
     return _dec
 
 
@@ -74,17 +96,16 @@ def builds_model(*model_types):
 # copies x's position data onto the parse result.
 class Asty:
     POS_ATTRS = {
-        'lineno': 'start_line',
-        'col_offset': 'start_column',
-        'end_lineno': 'end_line',
-        'end_col_offset': 'end_column',
+        "lineno": "start_line",
+        "col_offset": "start_column",
+        "end_lineno": "end_line",
+        "end_col_offset": "end_column",
     }
 
     @staticmethod
     def _get_pos(node):
         return {
-            attr: getattr(node, hy_attr,
-                          getattr(node, attr, None))
+            attr: getattr(node, hy_attr, getattr(node, attr, None))
             for attr, hy_attr in Asty.POS_ATTRS.items()
         }
 
@@ -102,9 +123,15 @@ class Asty:
         return res
 
     def __getattr__(self, name):
-        setattr(Asty, name, staticmethod(
-            lambda x, **kwargs: getattr(ast, name)(**Asty._get_pos(x), **kwargs)))
+        setattr(
+            Asty,
+            name,
+            staticmethod(
+                lambda x, **kwargs: getattr(ast, name)(**Asty._get_pos(x), **kwargs)
+            ),
+        )
         return getattr(Asty, name)
+
 
 asty = Asty()
 
@@ -133,6 +160,7 @@ class Result:
     The Result object is interoperable with python AST objects: when an AST
     object gets added to a Result object, it gets converted on-the-fly.
     """
+
     __slots__ = ("stmts", "temp_variables", "_expr", "__used_expr")
 
     def __init__(self, *, stmts=(), expr=None, temp_variables=()):
@@ -199,7 +227,8 @@ class Result:
         return ast.Constant(
             value=None,
             lineno=self.stmts[-1].lineno if self.stmts else 0,
-            col_offset=self.stmts[-1].col_offset if self.stmts else 0)
+            col_offset=self.stmts[-1].col_offset if self.stmts else 0,
+        )
 
     def expr_as_stmt(self):
         """Convert the Result's expression context to a statement
@@ -230,8 +259,9 @@ class Result:
             elif isinstance(var, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 var.name = new_name
             else:
-                raise TypeError("Don't know how to rename a %s!" % (
-                    var.__class__.__name__))
+                raise TypeError(
+                    "Don't know how to rename a %s!" % (var.__class__.__name__)
+                )
         self.temp_variables = []
 
     def __add__(self, other):
@@ -252,9 +282,11 @@ class Result:
         # Check for expression context clobbering
         if self.expr and not self.__used_expr:
             traceback.print_stack()
-            print("Bad boy clobbered expr {} with {}".format(
-                ast.dump(self.expr),
-                ast.dump(other.expr)))
+            print(
+                "Bad boy clobbered expr {} with {}".format(
+                    ast.dump(self.expr), ast.dump(other.expr)
+                )
+            )
 
         # Fairly obvious addition
         result = Result()
@@ -265,29 +297,29 @@ class Result:
         return result
 
     def __str__(self):
-        return (
-            "Result(stmts=[%s], expr=%s)"
-        % (
+        return "Result(stmts=[%s], expr=%s)" % (
             ", ".join(ast.dump(x) for x in self.stmts),
-            ast.dump(self.expr) if self.expr else None
-        ))
+            ast.dump(self.expr) if self.expr else None,
+        )
 
 
 def make_hy_model(outer, x, rest):
-   return outer(
-      [Symbol(a) if type(a) is str else
-              a[0] if type(a) is list else a
-          for a in x] +
-      (rest or []))
+    return outer(
+        [Symbol(a) if type(a) is str else a[0] if type(a) is list else a for a in x]
+        + (rest or [])
+    )
+
+
 def mkexpr(*items, **kwargs):
-   return make_hy_model(Expression, items, kwargs.get('rest'))
+    return make_hy_model(Expression, items, kwargs.get("rest"))
+
+
 def mklist(*items, **kwargs):
-   return make_hy_model(List, items, kwargs.get('rest'))
+    return make_hy_model(List, items, kwargs.get("rest"))
 
 
 def is_annotate_expression(model):
-    return (isinstance(model, Expression) and model
-            and model[0] == Symbol("annotate"))
+    return isinstance(model, Expression) and model and model[0] == Symbol("annotate")
 
 
 class HyASTCompiler:
@@ -317,12 +349,12 @@ class HyASTCompiler:
         self.source = source
 
         self.this = None
-          # Set in `macroexpand` to the current expression being
-          # macro-expanded, so it can be accessed as `&compiler.this`.
+        # Set in `macroexpand` to the current expression being
+        # macro-expanded, so it can be accessed as `&compiler.this`.
 
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
-        self.module.__dict__.setdefault('__macros__', {})
+        self.module.__dict__.setdefault("__macros__", {})
 
         self.scope = ScopeGlobal(self)
 
@@ -379,8 +411,7 @@ class HyASTCompiler:
                     compiled_exprs.append(None)
                     compiled_exprs.append(ret.force_expr)
                 elif with_kwargs:
-                    keywords.append(asty.keyword(
-                        expr, arg=None, value=ret.force_expr))
+                    keywords.append(asty.keyword(expr, arg=None, value=ret.force_expr))
 
             elif with_kwargs and isinstance(expr, Keyword):
                 if keyword.iskeyword(expr.name):
@@ -391,19 +422,22 @@ class HyASTCompiler:
                 try:
                     value = next(exprs_iter)
                 except StopIteration:
-                    raise self._syntax_error(expr,
-                        "Keyword argument {kw} needs a value.".format(kw=expr))
+                    raise self._syntax_error(
+                        expr, "Keyword argument {kw} needs a value.".format(kw=expr)
+                    )
 
                 if not expr:
-                    raise self._syntax_error(expr,
-                        "Can't call a function with the empty keyword")
+                    raise self._syntax_error(
+                        expr, "Can't call a function with the empty keyword"
+                    )
 
                 compiled_value = self.compile(value)
                 ret += compiled_value
 
                 arg = str(expr)[1:]
-                keywords.append(asty.keyword(
-                    expr, arg=mangle(arg), value=compiled_value.force_expr))
+                keywords.append(
+                    asty.keyword(expr, arg=mangle(arg), value=compiled_value.force_expr)
+                )
 
             else:
                 ret += self.compile(expr)
@@ -434,8 +468,9 @@ class HyASTCompiler:
 
         if isinstance(name, Result):
             if not name.is_expr():
-                raise self._syntax_error(expr,
-                    "Can't assign or delete a non-expression")
+                raise self._syntax_error(
+                    expr, "Can't assign or delete a non-expression"
+                )
             name = name.expr
 
         if isinstance(name, (ast.Tuple, ast.List)):
@@ -453,13 +488,17 @@ class HyASTCompiler:
         elif isinstance(name, ast.Attribute):
             new_name = ast.Attribute(value=name.value, attr=name.attr)
         elif isinstance(name, ast.Starred):
-            new_name = ast.Starred(
-                value=self._storeize(expr, name.value, func))
+            new_name = ast.Starred(value=self._storeize(expr, name.value, func))
         else:
-            raise self._syntax_error(expr, "Can't assign or delete a " + (
-                "constant"
-                if isinstance(name, ast.Constant)
-                else type(expr).__name__))
+            raise self._syntax_error(
+                expr,
+                "Can't assign or delete a "
+                + (
+                    "constant"
+                    if isinstance(name, ast.Constant)
+                    else type(expr).__name__
+                ),
+            )
 
         new_name.ctx = func()
         ast.copy_location(new_name, name)
@@ -482,8 +521,9 @@ class HyASTCompiler:
             return self.compile(expr)
 
         if not expr:
-            raise self._syntax_error(expr,
-                "empty expressions are not allowed at top level")
+            raise self._syntax_error(
+                expr, "empty expressions are not allowed at top level"
+            )
 
         args = list(expr)
         root = args.pop(0)
@@ -496,11 +536,10 @@ class HyASTCompiler:
             # Get the method name (the last named attribute
             # in the chain of attributes)
             attrs = [
-                Symbol(a).replace(root) if a else None
-                for a in root.split(".")[1:]]
+                Symbol(a).replace(root) if a else None for a in root.split(".")[1:]
+            ]
             if not all(attrs):
-                raise self._syntax_error(expr,
-                     "cannot access empty attribute")
+                raise self._syntax_error(expr, "cannot access empty attribute")
             root = attrs.pop()
 
             # Get the object we're calling the method on
@@ -508,26 +547,22 @@ class HyASTCompiler:
             # Skip past keywords and their arguments.
             try:
                 kws, obj, rest = (
-                    many(KEYWORD + FORM | unpack("mapping")) +
-                    FORM +
-                    many(FORM)).parse(args)
+                    many(KEYWORD + FORM | unpack("mapping")) + FORM + many(FORM)
+                ).parse(args)
             except NoParseError:
-                raise self._syntax_error(expr,
-                    "attribute access requires object")
+                raise self._syntax_error(expr, "attribute access requires object")
             # Reconstruct `args` to exclude `obj`.
             args = [x for p in kws for x in p] + list(rest)
             if is_unpack("iterable", obj):
-                raise self._syntax_error(obj,
-                    "can't call a method on an unpacking form")
-            func = self.compile(Expression(
-                [Symbol(".").replace(root), obj] +
-                attrs))
+                raise self._syntax_error(
+                    obj, "can't call a method on an unpacking form"
+                )
+            func = self.compile(Expression([Symbol(".").replace(root), obj] + attrs))
 
             # And get the method
-            func += asty.Attribute(root,
-                                   value=func.force_expr,
-                                   attr=mangle(root),
-                                   ctx=ast.Load())
+            func += asty.Attribute(
+                root, value=func.force_expr, attr=mangle(root), ctx=ast.Load()
+            )
 
         if is_annotate_expression(root):
             # Flatten and compile the annotation expression.
@@ -539,14 +574,13 @@ class HyASTCompiler:
 
         args, ret, keywords = self._compile_collect(args, with_kwargs=True)
 
-        return func + ret + asty.Call(
-            expr, func=func.expr, args=args, keywords=keywords)
+        return (
+            func + ret + asty.Call(expr, func=func.expr, args=args, keywords=keywords)
+        )
 
     @builds_model(Integer, Float, Complex)
     def compile_numeric_literal(self, x):
-        f = {Integer: int,
-             Float: float,
-             Complex: complex}[type(x)]
+        f = {Integer: int, Float: float, Complex: complex}[type(x)]
         return asty.Num(x, n=f(x))
 
     @builds_model(Symbol)
@@ -555,45 +589,45 @@ class HyASTCompiler:
             glob, local = symbol.rsplit(".", 1)
 
             if not glob:
-                raise self._syntax_error(symbol,
-                    'cannot access attribute on anything other than a name (in order to get attributes of expressions, use `(. <expression> {attr})` or `(.{attr} <expression>)`)'.format(attr=local))
+                raise self._syntax_error(
+                    symbol,
+                    "cannot access attribute on anything other than a name (in order to get attributes of expressions, use `(. <expression> {attr})` or `(.{attr} <expression>)`)".format(
+                        attr=local
+                    ),
+                )
 
             if not local:
-                raise self._syntax_error(symbol,
-                    'cannot access empty attribute')
+                raise self._syntax_error(symbol, "cannot access empty attribute")
 
             glob = Symbol(glob).replace(symbol)
             ret = self.compile_symbol(glob)
 
-            return asty.Attribute(
-                symbol,
-                value=ret,
-                attr=mangle(local),
-                ctx=ast.Load())
+            return asty.Attribute(symbol, value=ret, attr=mangle(local), ctx=ast.Load())
 
         if mangle(symbol) in ("None", "False", "True"):
-            return asty.Constant(symbol, value =
-                ast.literal_eval(mangle(symbol)))
+            return asty.Constant(symbol, value=ast.literal_eval(mangle(symbol)))
 
-        return self.scope.access(asty.Name(
-            symbol, id=mangle(symbol), ctx=ast.Load()))
+        return self.scope.access(asty.Name(symbol, id=mangle(symbol), ctx=ast.Load()))
 
     @builds_model(Keyword)
     def compile_keyword(self, obj):
         ret = Result()
         ret += asty.Call(
             obj,
-            func=asty.Attribute(obj,
-                                value=asty.Attribute(
-                                    obj,
-                                    value=asty.Name(obj, id="hy", ctx=ast.Load()),
-                                    attr="models",
-                                    ctx=ast.Load()
-                                ),
-                                attr="Keyword",
-                                ctx=ast.Load()),
+            func=asty.Attribute(
+                obj,
+                value=asty.Attribute(
+                    obj,
+                    value=asty.Name(obj, id="hy", ctx=ast.Load()),
+                    attr="models",
+                    ctx=ast.Load(),
+                ),
+                attr="Keyword",
+                ctx=ast.Load(),
+            ),
             args=[asty.Str(obj, s=obj.name)],
-            keywords=[])
+            keywords=[],
+        )
         return ret
 
     @builds_model(String, Bytes)
@@ -612,8 +646,13 @@ class HyASTCompiler:
             spec = asty.JoinedStr(fcomponent, values=elts)
         else:
             spec = None
-        return value + ret + asty.FormattedValue(
-            fcomponent, value=value.expr, conversion=conversion, format_spec=spec)
+        return (
+            value
+            + ret
+            + asty.FormattedValue(
+                fcomponent, value=value.expr, conversion=conversion, format_spec=spec
+            )
+        )
 
     @builds_model(FString)
     def compile_fstring(self, fstring):
@@ -637,10 +676,10 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
     string name of a module, and (optionally) the calling frame; otherwise,
     raise an error."""
 
-    module = getattr(compiler, 'module', None) or module
+    module = getattr(compiler, "module", None) or module
 
     if isinstance(module, str):
-        if module.startswith('<') and module.endswith('>'):
+        if module.startswith("<") and module.endswith(">"):
             module = types.ModuleType(module)
         else:
             module = importlib.import_module(mangle(module))
@@ -649,7 +688,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
         module = calling_module(n=2)
 
     if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+        raise TypeError("Invalid module type: {}".format(type(module)))
 
     return module
 
@@ -733,23 +772,27 @@ def hy_eval(
         raise TypeError("Locals must be a dictionary")
 
     # Does the Hy AST object come with its own information?
-    filename = getattr(hytree, 'filename', filename) or '<string>'
-    source = getattr(hytree, 'source', source)
+    filename = getattr(hytree, "filename", filename) or "<string>"
+    source = getattr(hytree, "source", source)
 
-    _ast, expr = hy_compile(hytree, module, get_expr=True,
-                            compiler=compiler, filename=filename,
-                            source=source, import_stdlib=import_stdlib)
+    _ast, expr = hy_compile(
+        hytree,
+        module,
+        get_expr=True,
+        compiler=compiler,
+        filename=filename,
+        source=source,
+        import_stdlib=import_stdlib,
+    )
 
     if ast_callback:
         ast_callback(_ast, expr)
 
     # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, filename, "exec"),
-         module.__dict__, locals)
+    eval(ast_compile(_ast, filename, "exec"), module.__dict__, locals)
 
     # Then eval the expression context and return that
-    return eval(ast_compile(expr, filename, "eval"),
-                module.__dict__, locals)
+    return eval(ast_compile(expr, filename, "eval"), module.__dict__, locals)
 
 
 def hy_compile(
@@ -788,27 +831,30 @@ def hy_compile(
     module = get_compiler_module(module, compiler, False)
 
     if isinstance(module, str):
-        if module.startswith('<') and module.endswith('>'):
+        if module.startswith("<") and module.endswith(">"):
             module = types.ModuleType(module)
         else:
             module = importlib.import_module(mangle(module))
 
     if not inspect.ismodule(module):
-        raise TypeError('Invalid module type: {}'.format(type(module)))
+        raise TypeError("Invalid module type: {}".format(type(module)))
 
-    filename = getattr(tree, 'filename', filename)
-    source = getattr(tree, 'source', source)
+    filename = getattr(tree, "filename", filename)
+    source = getattr(tree, "source", source)
 
     tree = as_model(tree)
     if not isinstance(tree, Object):
-        raise TypeError("`tree` must be a hy.models.Object or capable of "
-                        "being promoted to one")
+        raise TypeError(
+            "`tree` must be a hy.models.Object or capable of " "being promoted to one"
+        )
 
     compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
 
     if import_stdlib:
         # Import hy for compile time, but save the compiled AST.
-        stdlib_ast = compiler.compile(mkexpr("eval-and-compile", mkexpr("import", "hy")))
+        stdlib_ast = compiler.compile(
+            mkexpr("eval-and-compile", mkexpr("import", "hy"))
+        )
 
     with compiler.scope:
         result = compiler.compile(tree)
@@ -821,16 +867,20 @@ def hy_compile(
 
     if issubclass(root, ast.Module):
         # Pull out a single docstring and prepend to the resulting body.
-        if (result.stmts and
-            isinstance(result.stmts[0], ast.Expr) and
-            isinstance(result.stmts[0].value, ast.Str)):
+        if (
+            result.stmts
+            and isinstance(result.stmts[0], ast.Expr)
+            and isinstance(result.stmts[0].value, ast.Str)
+        ):
 
             body += [result.stmts.pop(0)]
 
         # Pull out any __future__ imports, since they are required to be at the beginning.
-        while (result.stmts and
-            isinstance(result.stmts[0], ast.ImportFrom) and
-            result.stmts[0].module == '__future__'):
+        while (
+            result.stmts
+            and isinstance(result.stmts[0], ast.ImportFrom)
+            and result.stmts[0].module == "__future__"
+        ):
 
             body += [result.stmts.pop(0)]
 

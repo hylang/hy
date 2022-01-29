@@ -1,2 +1,2 @@
-print('This is test_mod.py')
-ext = 'py'
+print("This is test_mod.py")
+ext = "py"

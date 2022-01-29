@@ -3,7 +3,7 @@ import re
 import sys
 import unicodedata
 
-from hy.lex.exceptions import PrematureEndOfInput, LexException  # NOQA
+from hy.lex.exceptions import LexException, PrematureEndOfInput  # NOQA
 from hy.models import Expression, Symbol
 
 try:
@@ -12,7 +12,7 @@ except ImportError:
     from StringIO import StringIO
 
 
-def hy_parse(source, filename='<string>'):
+def hy_parse(source, filename="<string>"):
     """Parse a Hy source string.
 
     Args:
@@ -22,10 +22,8 @@ def hy_parse(source, filename='<string>'):
     Returns:
       Expression: the parsed models wrapped in an hy.models.Expression
     """
-    _source = re.sub(r'\A#!.*', '', source)
-    res = Expression([Symbol("do")] +
-                       tokenize(_source + "\n",
-                                filename=filename))
+    _source = re.sub(r"\A#!.*", "", source)
+    res = Expression([Symbol("do")] + tokenize(_source + "\n", filename=filename))
     res.source = source
     res.filename = filename
     return res
@@ -38,7 +36,7 @@ class ParserState:
 
 
 def tokenize(source, filename=None):
-    """ Tokenize a Lisp file or string buffer into internal Hy objects.
+    """Tokenize a Lisp file or string buffer into internal Hy objects.
 
     Args:
        source (str): The source to tokenize.
@@ -47,18 +45,23 @@ def tokenize(source, filename=None):
     Returns:
        typing.List[Object]: list of hy object models
     """
+    from rply.errors import LexingError
+
     from hy.lex.lexer import lexer
     from hy.lex.parser import parser
-    from rply.errors import LexingError
+
     try:
-        return parser.parse(lexer.lex(source),
-                            state=ParserState(source, filename))
+        return parser.parse(lexer.lex(source), state=ParserState(source, filename))
     except LexingError as e:
         pos = e.getsourcepos()
-        raise LexException("Could not identify the next token.",
-                           None, filename, source,
-                           max(pos.lineno, 1),
-                           max(pos.colno, 1))
+        raise LexException(
+            "Could not identify the next token.",
+            None,
+            filename,
+            source,
+            max(pos.lineno, 1),
+            max(pos.colno, 1),
+        )
     except LexException as e:
         raise e
 
@@ -67,30 +70,38 @@ def parse_one_thing(src_string):
     """Parse the first form from the string. Return it and the
     remainder of the string."""
     import re
+
+    from rply.errors import LexingError
+
     from hy.lex.lexer import lexer
     from hy.lex.parser import parser
-    from rply.errors import LexingError
+
     tokens = []
     err = None
     for token in lexer.lex(src_string):
         tokens.append(token)
         try:
-            model, = parser.parse(
-                iter(tokens),
-                state=ParserState(src_string, filename=None))
+            (model,) = parser.parse(
+                iter(tokens), state=ParserState(src_string, filename=None)
+            )
         except (LexingError, LexException) as e:
             err = e
         else:
-            return model, src_string[re.match(
-                r'.+\n' * (model.end_line - 1)
-                    + '.' * model.end_column,
-                src_string).end():]
+            return (
+                model,
+                src_string[
+                    re.match(
+                        r".+\n" * (model.end_line - 1) + "." * model.end_column,
+                        src_string,
+                    ).end() :
+                ],
+            )
     if err:
         raise err
     raise ValueError("No form found")
 
 
-mangle_delim = 'X'
+mangle_delim = "X"
 
 
 def mangle(s):
@@ -118,12 +129,19 @@ def mangle(s):
          => (hy.mangle '<--)
          "hyx_XlessHthan_signX__"
     """
+
     def unicode_char_to_hex(uchr):
         # Covert a unicode char to hex string, without prefix
         if len(uchr) == 1 and ord(uchr) < 128:
-            return format(ord(uchr), 'x')
-        return (uchr.encode('unicode-escape').decode('utf-8')
-            .lstrip('\\U').lstrip('\\u').lstrip('\\x').lstrip('0'))
+            return format(ord(uchr), "x")
+        return (
+            uchr.encode("unicode-escape")
+            .decode("utf-8")
+            .lstrip("\\U")
+            .lstrip("\\u")
+            .lstrip("\\x")
+            .lstrip("0")
+        )
 
     assert s
     s = str(s)
@@ -132,8 +150,8 @@ def mangle(s):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
     # Step 1: Remove and save leading underscores
-    s2 = s.lstrip('_')
-    leading_underscores = '_' * (len(s) - len(s2))
+    s2 = s.lstrip("_")
+    leading_underscores = "_" * (len(s) - len(s2))
     s = s2
 
     # Step 2: Convert hyphens without introducing a new leading underscore
@@ -141,21 +159,23 @@ def mangle(s):
 
     # Step 3: Convert trailing `?` to leading `is_`
     if s.endswith("?"):
-        s = 'is_' + s[:-1]
+        s = "is_" + s[:-1]
 
     # Step 4: Convert invalid characters or reserved words
     if not isidentifier(leading_underscores + s):
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
-        s = 'hyx_' + ''.join(
-            c
-               if c != mangle_delim and isidentifier('S' + c)
-                 # We prepend the "S" because some characters aren't
-                 # allowed at the start of an identifier.
-               else '{0}{1}{0}'.format(mangle_delim,
-                   unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
-                   or 'U{}'.format(unicode_char_to_hex(c)))
-            for c in s)
+        s = "hyx_" + "".join(
+            c if c != mangle_delim and isidentifier("S" + c)
+            # We prepend the "S" because some characters aren't
+            # allowed at the start of an identifier.
+            else "{0}{1}{0}".format(
+                mangle_delim,
+                unicodedata.name(c, "").lower().replace("-", "H").replace(" ", "_")
+                or "U{}".format(unicode_char_to_hex(c)),
+            )
+            for c in s
+        )
 
     # Step 5: Add back leading underscores
     s = leading_underscores + s
@@ -198,21 +218,23 @@ def unmangle(s):
 
     prefix = ""
     suffix = ""
-    m = re.fullmatch(r'(_+)(.*?)(_*)', s, re.DOTALL)
+    m = re.fullmatch(r"(_+)(.*?)(_*)", s, re.DOTALL)
     if m:
         prefix, s, suffix = m.groups()
 
-    if s.startswith('hyx_'):
-        s = re.sub('{0}(U)?([_a-z0-9H]+?){0}'.format(mangle_delim),
-            lambda mo:
-               chr(int(mo.group(2), base=16))
-               if mo.group(1)
-               else unicodedata.lookup(
-                   mo.group(2).replace('_', ' ').replace('H', '-').upper()),
-            s[len('hyx_'):])
-    if s.startswith('is_'):
-        s = s[len("is_"):] + "?"
-    s = s.replace('_', '-')
+    if s.startswith("hyx_"):
+        s = re.sub(
+            "{0}(U)?([_a-z0-9H]+?){0}".format(mangle_delim),
+            lambda mo: chr(int(mo.group(2), base=16))
+            if mo.group(1)
+            else unicodedata.lookup(
+                mo.group(2).replace("_", " ").replace("H", "-").upper()
+            ),
+            s[len("hyx_") :],
+        )
+    if s.startswith("is_"):
+        s = s[len("is_") :] + "?"
+    s = s.replace("_", "-")
 
     return prefix + s + suffix
 
@@ -302,12 +324,12 @@ def read_str(input):
 
          => (hy.eval (hy.read-str "(print 1)"))
          1
-  """
+    """
     return read(StringIO(str(input)))
 
 
 def isidentifier(x):
-    if x in ('True', 'False', 'None'):
+    if x in ("True", "False", "None"):
         return True
     if keyword.iskeyword(x):
         return False

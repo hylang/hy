@@ -1,18 +1,18 @@
 import os
+import pkgutil
 import re
 import sys
 import traceback
-import pkgutil
-
-from functools import reduce
-from colorama import Fore
 from contextlib import contextmanager
+from functools import reduce
+
+from colorama import Fore
+
 from hy import _initialize_env_var
 from hy._compat import PYPY
 
-_hy_filter_internal_errors = _initialize_env_var('HY_FILTER_INTERNAL_ERRORS',
-                                                 True)
-COLORED = _initialize_env_var('HY_COLORED_ERRORS', False)
+_hy_filter_internal_errors = _initialize_env_var("HY_FILTER_INTERNAL_ERRORS", True)
+COLORED = _initialize_env_var("HY_COLORED_ERRORS", False)
 
 
 class HyError(Exception):
@@ -59,8 +59,7 @@ class HyLanguageError(HyError):
         self.compute_lineinfo(expression, filename, source, lineno, colno)
 
         if isinstance(self, SyntaxError):
-            syntax_error_args = (self.filename, self.lineno, self.offset,
-                                 self.text)
+            syntax_error_args = (self.filename, self.lineno, self.offset, self.text)
             super().__init__(message, syntax_error_args)
         else:
             super().__init__(message)
@@ -69,20 +68,19 @@ class HyLanguageError(HyError):
 
         # NOTE: We use `SyntaxError`'s field names (i.e. `text`, `offset`,
         # `msg`) for compatibility and print-outs.
-        self.text = getattr(expression, 'source', source)
-        self.filename = getattr(expression, 'filename', filename)
+        self.text = getattr(expression, "source", source)
+        self.filename = getattr(expression, "filename", filename)
 
         if self.text:
             lines = self.text.splitlines()
 
-            self.lineno = getattr(expression, 'start_line', lineno)
-            self.offset = getattr(expression, 'start_column', colno)
-            end_column = getattr(expression, 'end_column',
-                                 len(lines[self.lineno-1]))
-            end_line = getattr(expression, 'end_line', self.lineno)
+            self.lineno = getattr(expression, "start_line", lineno)
+            self.offset = getattr(expression, "start_column", colno)
+            end_column = getattr(expression, "end_column", len(lines[self.lineno - 1]))
+            end_line = getattr(expression, "end_line", self.lineno)
 
             # Trim the source down to the essentials.
-            self.text = '\n'.join(lines[self.lineno-1:end_line])
+            self.text = "\n".join(lines[self.lineno - 1 : end_line])
 
             if end_column:
                 if self.lineno == end_line:
@@ -115,38 +113,39 @@ class HyLanguageError(HyError):
         # Re-purpose Python's builtin syntax error formatting.
         output = traceback.format_exception_only(
             SyntaxError,
-            SyntaxError(self.msg, (self.filename, self.lineno, self.offset,
-                                   self.text)))
+            SyntaxError(self.msg, (self.filename, self.lineno, self.offset, self.text)),
+        )
 
-        arrow_idx, _ = next(((i, x) for i, x in enumerate(output)
-                             if x.strip() == '^'),
-                            (None, None))
+        arrow_idx, _ = next(
+            ((i, x) for i, x in enumerate(output) if x.strip() == "^"), (None, None)
+        )
         if arrow_idx:
             msg_idx = arrow_idx + 1
         else:
-            msg_idx, _ = next((i, x) for i, x in enumerate(output)
-                              if x.startswith('SyntaxError: '))
+            msg_idx, _ = next(
+                (i, x) for i, x in enumerate(output) if x.startswith("SyntaxError: ")
+            )
 
         # Get rid of erroneous error-type label.
-        output[msg_idx] = re.sub('^SyntaxError: ', '', output[msg_idx])
+        output[msg_idx] = re.sub("^SyntaxError: ", "", output[msg_idx])
 
         # Extend the text arrow, when given enough source info.
         if arrow_idx and self.arrow_offset:
-            output[arrow_idx] = '{}{}^\n'.format(output[arrow_idx].rstrip('\n'),
-                                                 '-' * (self.arrow_offset - 1))
+            output[arrow_idx] = "{}{}^\n".format(
+                output[arrow_idx].rstrip("\n"), "-" * (self.arrow_offset - 1)
+            )
 
         if COLORED:
             output[msg_idx:] = [Fore.YELLOW + o + Fore.RESET for o in output[msg_idx:]]
             if arrow_idx:
                 output[arrow_idx] = Fore.GREEN + output[arrow_idx] + Fore.RESET
             for idx, line in enumerate(output[::msg_idx]):
-                if line.strip().startswith(
-                        'File "{}", line'.format(self.filename)):
+                if line.strip().startswith('File "{}", line'.format(self.filename)):
                     output[idx] = Fore.RED + line + Fore.RESET
 
         # This resulting string will come after a "<class-name>:" prompt, so
         # put it down a line.
-        output.insert(0, '\n')
+        output.insert(0, "\n")
 
         # Avoid "...expected str instance, ColoredString found"
         return reduce(lambda x, y: x + y, output)
@@ -190,7 +189,7 @@ class HyEvalError(HyLanguageError):
 
 
 class HyIOError(HyInternalError, IOError):
-    """ Subclass used to distinguish between IOErrors raised by Hy itself as
+    """Subclass used to distinguish between IOErrors raised by Hy itself as
     opposed to Hy programs.
     """
 
@@ -225,19 +224,30 @@ def _module_filter_name(module_name):
         else:
             # Normalize filename endings, because tracebacks will use `pyc` when
             # the loader says `py`.
-            return filename.replace('.pyc', '.py')
+            return filename.replace(".pyc", ".py")
     except Exception:
         return None
 
 
-_tb_hidden_modules = {m for m in map(_module_filter_name,
-                                     ['hy.compiler', 'hy.lex',
-                                      'hy.cmdline', 'hy.lex.parser',
-                                      'hy.importer', 'hy._compat',
-                                      'hy.macros', 'hy.models',
-                                      'hy.core.result_macros',
-                                      'rply'])
-                      if m is not None}
+_tb_hidden_modules = {
+    m
+    for m in map(
+        _module_filter_name,
+        [
+            "hy.compiler",
+            "hy.lex",
+            "hy.cmdline",
+            "hy.lex.parser",
+            "hy.importer",
+            "hy._compat",
+            "hy.macros",
+            "hy.models",
+            "hy.core.result_macros",
+            "rply",
+        ],
+    )
+    if m is not None
+}
 
 # We can't derive these easily from just their module names due
 # to missing magic attributes in internal importlib modules
@@ -260,8 +270,10 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
     # frame = (filename, line number, function name*, text)
     new_tb = []
     for frame in traceback.extract_tb(exc_traceback):
-        if not (frame[0].replace('.pyc', '.py') in _tb_hidden_modules or
-                os.path.dirname(frame[0]) in _tb_hidden_modules):
+        if not (
+            frame[0].replace(".pyc", ".py") in _tb_hidden_modules
+            or os.path.dirname(frame[0]) in _tb_hidden_modules
+        ):
             new_tb += [frame]
 
     lines = traceback.format_list(new_tb)
@@ -269,7 +281,7 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
     lines.insert(0, "Traceback (most recent call last):\n")
 
     lines.extend(traceback.format_exception_only(exc_type, exc_value))
-    output = ''.join(lines)
+    output = "".join(lines)
 
     return output
 
@@ -278,7 +290,7 @@ def hy_exc_handler(exc_type, exc_value, exc_traceback):
     """A `sys.excepthook` handler that uses `hy_exc_filter` to
     remove internal Hy frames from a traceback print-out.
     """
-    if os.environ.get('HY_DEBUG', False):
+    if os.environ.get("HY_DEBUG", False):
         return sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
     try:

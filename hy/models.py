@@ -1,16 +1,18 @@
-from contextlib import contextmanager
-import re
-from math import isnan, isinf
-from hy import _initialize_env_var
-from hy.errors import HyWrapperError
-from fractions import Fraction
 import operator
-from itertools import groupby
+import re
+from contextlib import contextmanager
+from fractions import Fraction
 from functools import reduce
+from itertools import groupby
+from math import isinf, isnan
+
 from colorama import Fore
 
+from hy import _initialize_env_var
+from hy.errors import HyWrapperError
+
 PRETTY = True
-COLORED = _initialize_env_var('HY_COLORED_AST_OBJECTS', False)
+COLORED = _initialize_env_var("HY_COLORED_AST_OBJECTS", False)
 
 
 @contextmanager
@@ -49,8 +51,8 @@ class Object:
     `abc` starting at the first column would have `start_column` 1 and
     `end_column` 3.
     """
-    properties = ["module", "_start_line", "_end_line", "_start_column",
-                  "_end_column"]
+
+    properties = ["module", "_start_line", "_end_line", "_start_column", "_end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, Object):
@@ -58,7 +60,11 @@ class Object:
                 if not hasattr(self, attr) and hasattr(other, attr):
                     setattr(self, attr, getattr(other, attr))
         else:
-            raise TypeError("Can't replace a non Hy object '{}' with a Hy object '{}'".format(repr(other), repr(self)))
+            raise TypeError(
+                "Can't replace a non Hy object '{}' with a Hy object '{}'".format(
+                    repr(other), repr(self)
+                )
+            )
 
         return self
 
@@ -95,8 +101,9 @@ class Object:
         self._end_column = value
 
     def __repr__(self):
-        return (f"hy.models.{self.__class__.__name__}"
-                f"({super(Object, self).__repr__()})")
+        return (
+            f"hy.models.{self.__class__.__name__}" f"({super(Object, self).__repr__()})"
+        )
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -110,6 +117,7 @@ class Object:
 
 _wrappers = {}
 _seen = set()
+
 
 def as_model(x):
     """Recurisvely promote an object ``x`` into its canonical model form.
@@ -163,9 +171,7 @@ def repr_indent(obj):
 
 
 def is_unpack(kind, x):
-    return (isinstance(x, Expression)
-            and len(x) > 0
-            and x[0] == Symbol("unpack-" + kind))
+    return isinstance(x, Expression) and len(x) > 0 and x[0] == Symbol("unpack-" + kind)
 
 
 class String(Object, str):
@@ -183,10 +189,10 @@ class String(Object, str):
         return value
 
     def __repr__(self):
-        return 'hy.models.String({}{})'.format(
+        return "hy.models.String({}{})".format(
             super(Object, self).__repr__(),
-            '' if self.brackets is None else
-                f', brackets={self.brackets!r}')
+            "" if self.brackets is None else f", brackets={self.brackets!r}",
+        )
 
 
 _wrappers[str] = String
@@ -197,7 +203,9 @@ class Bytes(Object, bytes):
     Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending
     on the Python version.
     """
+
     pass
+
 
 _wrappers[bytes] = Bytes
 
@@ -207,15 +215,17 @@ class Symbol(Object, str):
     Hy Symbol. Basically a string.
     """
 
-    def __new__(cls, s, from_parser = False):
+    def __new__(cls, s, from_parser=False):
         s = str(s)
         if not from_parser:
             # Check that the symbol is syntactically legal.
             from hy.lex.lexer import identifier
             from hy.lex.parser import symbol_like
+
             if not re.fullmatch(identifier, s) or symbol_like(s) is not None:
-                raise ValueError(f'Syntactically illegal symbol: {s!r}')
+                raise ValueError(f"Syntactically illegal symbol: {s!r}")
         return super().__new__(cls, s)
+
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
 _wrappers[type(None)] = lambda foo: Symbol("None")
@@ -224,13 +234,14 @@ _wrappers[type(None)] = lambda foo: Symbol("None")
 class Keyword(Object):
     """Generic Hy Keyword object."""
 
-    __slots__ = ['name']
+    __slots__ = ["name"]
 
-    def __init__(self, value, from_parser = False):
+    def __init__(self, value, from_parser=False):
         value = str(value)
         if not from_parser:
             # Check that the keyword is syntactically legal.
             from hy.lex.lexer import identifier
+
             if value and (not re.fullmatch(identifier, value) or "." in value):
                 raise ValueError(f'Syntactically illegal keyword: {":" + value!r}')
         self.name = value
@@ -261,6 +272,7 @@ class Keyword(Object):
 
     def __call__(self, data, default=_sentinel):
         from hy.lex import mangle
+
         try:
             return data[mangle(self.name)]
         except KeyError:
@@ -271,19 +283,25 @@ class Keyword(Object):
     # __getstate__ and __setstate__ are required for Pickle protocol
     # 0, because we have __slots__.
     def __getstate__(self):
-        return {k: getattr(self, k)
+        return {
+            k: getattr(self, k)
             for k in self.properties + self.__slots__
-            if hasattr(self, k)}
+            if hasattr(self, k)
+        }
+
     def __setstate__(self, state):
         for k, v in state.items():
             setattr(self, k, v)
 
+
 def strip_digit_separators(number):
     # Don't strip a _ or , if it's the first character, as _42 and
     # ,42 aren't valid numbers
-    return (number[0] + number[1:].replace("_", "").replace(",", "")
-            if isinstance(number, str) and len(number) > 1
-            else number)
+    return (
+        number[0] + number[1:].replace("_", "").replace(",", "")
+        if isinstance(number, str) and len(number) > 1
+        else number
+    )
 
 
 class Integer(Object, int):
@@ -332,6 +350,7 @@ class Float(Object, float):
         check_inf_nan_cap(num, value)
         return value
 
+
 _wrappers[float] = Float
 
 
@@ -343,15 +362,14 @@ class Complex(Object, complex):
 
     def __new__(cls, real, imag=0, *args, **kwargs):
         if isinstance(real, str):
-            value = super().__new__(
-                cls, strip_digit_separators(real)
-            )
+            value = super().__new__(cls, strip_digit_separators(real))
             p1, _, p2 = real.lstrip("+-").replace("-", "+").partition("+")
             check_inf_nan_cap(p1, value.imag if "j" in p1 else value.real)
             if p2:
                 check_inf_nan_cap(p2, value.imag)
             return value
         return super().__new__(cls, real, imag)
+
 
 _wrappers[complex] = Complex
 
@@ -369,8 +387,9 @@ class Sequence(Object, tuple, _ColoredModel):
         return self
 
     def __add__(self, other):
-        return self.__class__(super().__add__(
-            tuple(other) if isinstance(other, list) else other))
+        return self.__class__(
+            super().__add__(tuple(other) if isinstance(other, list) else other)
+        )
 
     def __getslice__(self, start, end):
         return self.__class__(super().__getslice__(start, end))
@@ -394,12 +413,14 @@ class Sequence(Object, tuple, _ColoredModel):
     def _pretty_str(self):
         with pretty():
             if self:
-                return self._colored("hy.models.{}{}\n  {}{}".format(
-                    self._colored(self.__class__.__name__),
-                    self._colored("(["),
-                    self._colored(",\n  ").join(map(repr_indent, self)),
-                    self._colored("])"),
-                ))
+                return self._colored(
+                    "hy.models.{}{}\n  {}{}".format(
+                        self._colored(self.__class__.__name__),
+                        self._colored("(["),
+                        self._colored(",\n  ").join(map(repr_indent, self)),
+                        self._colored("])"),
+                    )
+                )
             else:
                 return self._colored(f"hy.models.{self.__class__.__name__}()")
 
@@ -410,6 +431,7 @@ class FComponent(Sequence):
     The first node in the contained sequence is the value being formatted,
     the rest of the sequence contains the nodes in the format spec (if any).
     """
+
     def __new__(cls, s=None, conversion=None):
         value = super().__new__(cls, s)
         value.conversion = conversion
@@ -422,9 +444,9 @@ class FComponent(Sequence):
         return self
 
     def __repr__(self):
-        return 'hy.models.FComponent({})'.format(
-            super(Object, self).__repr__() +
-            ', conversion=' + repr(self.conversion))
+        return "hy.models.FComponent({})".format(
+            super(Object, self).__repr__() + ", conversion=" + repr(self.conversion)
+        )
 
 
 def _string_in_node(string, node):
@@ -441,15 +463,22 @@ class FString(Sequence):
     Generic Hy F-String object, for smarter f-string handling.
     Mimics ast.JoinedStr, but using String and FComponent.
     """
+
     def __new__(cls, s=None, brackets=None):
-        value = super().__new__(cls,
-          # Join adjacent string nodes for the sake of equality
-          # testing.
-              (node
-                  for is_string, components in groupby(s,
-                      lambda x: isinstance(x, String))
-                  for node in ([reduce(lambda left, right: String(left + right), components)]
-                      if is_string else components)))
+        value = super().__new__(
+            cls,
+            # Join adjacent string nodes for the sake of equality
+            # testing.
+            (
+                node
+                for is_string, components in groupby(s, lambda x: isinstance(x, String))
+                for node in (
+                    [reduce(lambda left, right: String(left + right), components)]
+                    if is_string
+                    else components
+                )
+            ),
+        )
 
         if brackets is not None and _string_in_node(f"]{brackets}]", value):
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
@@ -458,15 +487,18 @@ class FString(Sequence):
 
     def __repr__(self):
         return self._suffixize(super().__repr__())
+
     def __str__(self):
         return self._suffixize(super().__str__())
+
     def _suffixize(self, x):
         if self.brackets is None:
-           return x
-        return '{}{}brackets={!r})'.format(
-           x[:-1],  # Clip off the final close paren
-           '' if x[-2] == '(' else ', ',
-           self.brackets)
+            return x
+        return "{}{}brackets={!r})".format(
+            x[:-1],  # Clip off the final close paren
+            "" if x[-2] == "(" else ", ",
+            self.brackets,
+        )
 
 
 class List(Sequence):
@@ -474,7 +506,6 @@ class List(Sequence):
 
 
 def recwrap(f):
-
     def lambda_to_return(l):
         _seen.add(id(l))
         try:
@@ -483,6 +514,7 @@ def recwrap(f):
             _seen.remove(id(l))
 
     return lambda_to_return
+
 
 _wrappers[FComponent] = recwrap(FComponent)
 _wrappers[FString] = lambda fstr: FString(
@@ -497,25 +529,29 @@ class Dict(Sequence, _ColoredModel):
     """
     Dict (just a representation of a dict)
     """
+
     color = Fore.GREEN
 
     def _pretty_str(self):
         with pretty():
             if self:
                 pairs = []
-                for k, v in zip(self[::2],self[1::2]):
+                for k, v in zip(self[::2], self[1::2]):
                     k, v = repr_indent(k), repr_indent(v)
                     pairs.append(
-                        ("{0}{c}\n  {1}\n  "
-                         if '\n' in k+v
-                         else "{0}{c} {1}").format(k, v, c=self._colored(',')))
+                        ("{0}{c}\n  {1}\n  " if "\n" in k + v else "{0}{c} {1}").format(
+                            k, v, c=self._colored(",")
+                        )
+                    )
                 if len(self) % 2 == 1:
-                    pairs.append("{}  {}\n".format(
-                        repr_indent(self[-1]), self._colored("# odd")))
+                    pairs.append(
+                        "{}  {}\n".format(repr_indent(self[-1]), self._colored("# odd"))
+                    )
                 return "{}\n  {}{}".format(
                     self._colored("hy.models.Dict(["),
-                    "{c}\n  ".format(c=self._colored(',')).join(pairs),
-                    self._colored("])"))
+                    "{c}\n  ".format(c=self._colored(",")).join(pairs),
+                    self._colored("])"),
+                )
             else:
                 return self._colored("hy.models.Dict()")
 
@@ -528,12 +564,14 @@ class Dict(Sequence, _ColoredModel):
     def items(self):
         return list(zip(self.keys(), self.values()))
 
+
 def _dict_wrapper(d):
     _seen.add(id(d))
     try:
         return Dict(as_model(x) for x in sum(d.items(), ()))
     finally:
         _seen.remove(id(d))
+
 
 _wrappers[Dict] = recwrap(Dict)
 _wrappers[dict] = _dict_wrapper
@@ -543,18 +581,23 @@ class Expression(Sequence):
     """
     Hy S-Expression. Basically just a list.
     """
+
     color = Fore.YELLOW
+
 
 _wrappers[Expression] = recwrap(Expression)
 _wrappers[Fraction] = lambda e: Expression(
-    [Symbol("hy._Fraction"), as_model(e.numerator), as_model(e.denominator)])
+    [Symbol("hy._Fraction"), as_model(e.numerator), as_model(e.denominator)]
+)
 
 
 class Set(Sequence):
     """
     Hy set (just a representation of a set)
     """
+
     color = Fore.RED
+
 
 _wrappers[Set] = recwrap(Set)
 _wrappers[set] = recwrap(Set)

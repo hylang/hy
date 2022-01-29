@@ -1,2 +1,2 @@
-print('This is __init__.py')
-ext = 'py'
+print("This is __init__.py")
+ext = "py"

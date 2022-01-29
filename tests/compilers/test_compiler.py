@@ -1,8 +1,8 @@
 import ast
+import types
 
 from hy import compiler
-from hy.models import Expression, List, Symbol, Integer
-import types
+from hy.models import Expression, Integer, List, Symbol
 
 
 def make_expression(*args):
@@ -18,11 +18,8 @@ def test_compiler_bare_names():
     """
     Check that the compiler doesn't drop bare names from code branches
     """
-    e = make_expression(Symbol("do"),
-                        Symbol("a"),
-                        Symbol("b"),
-                        Symbol("c"))
-    ret = compiler.HyASTCompiler(types.ModuleType('test')).compile(e)
+    e = make_expression(Symbol("do"), Symbol("a"), Symbol("b"), Symbol("c"))
+    ret = compiler.HyASTCompiler(types.ModuleType("test")).compile(e)
 
     # We expect two statements and a final expr.
 
@@ -44,17 +41,16 @@ def test_compiler_yield_return():
     should not generate a return statement. From 3.3 onwards a return
     value should be generated.
     """
-    e = make_expression(Symbol("fn"),
-                        List(),
-                        Expression([Symbol("yield"),
-                                    Integer(2)]),
-                        Expression([Symbol("+"),
-                                    Integer(1),
-                                    Integer(1)]))
-    ret = compiler.HyASTCompiler(types.ModuleType('test')).compile_atom(e)
+    e = make_expression(
+        Symbol("fn"),
+        List(),
+        Expression([Symbol("yield"), Integer(2)]),
+        Expression([Symbol("+"), Integer(1), Integer(1)]),
+    )
+    ret = compiler.HyASTCompiler(types.ModuleType("test")).compile_atom(e)
 
     assert len(ret.stmts) == 1
-    stmt, = ret.stmts
+    (stmt,) = ret.stmts
     assert isinstance(stmt, ast.FunctionDef)
     body = stmt.body
     assert len(body) == 2

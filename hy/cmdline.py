@@ -1,36 +1,39 @@
 import colorama
+
 colorama.init()
 
 import argparse
-import code
 import ast
-import sys
-import os
-import importlib
-import py_compile
-import traceback
-import runpy
-import types
-import time
-import linecache
-import hashlib
-import codeop
 import builtins
+import code
+import codeop
+import hashlib
+import importlib
+import linecache
+import os
+import py_compile
+import runpy
+import sys
+import time
+import traceback
+import types
+from contextlib import contextmanager
 
 import hy
-
+from hy.compiler import HyASTCompiler, hy_ast_compile_flags, hy_compile, hy_eval
+from hy.completer import Completer, completion
+from hy.errors import (
+    HyLanguageError,
+    HyMacroExpansionError,
+    HyRequireError,
+    filtered_hy_exceptions,
+    hy_exc_handler,
+)
+from hy.importer import HyLoader, runhy
 from hy.lex import hy_parse, mangle
-from contextlib import contextmanager
 from hy.lex.exceptions import PrematureEndOfInput
-from hy.compiler import (HyASTCompiler, hy_eval, hy_compile,
-                         hy_ast_compile_flags)
-from hy.errors import (HyLanguageError, HyRequireError, HyMacroExpansionError,
-                       filtered_hy_exceptions, hy_exc_handler)
-from hy.importer import runhy, HyLoader
-from hy.completer import completion, Completer
 from hy.macros import macro, require
 from hy.models import Expression, String, Symbol
-
 
 sys.last_type = None
 sys.last_value = None
@@ -53,19 +56,24 @@ class HyQuitter:
             pass
         raise SystemExit(code)
 
+
 class HyHelper:
     def __repr__(self):
-        return ("Use (help) for interactive help, or (help object) for help "
-                "about object.")
+        return (
+            "Use (help) for interactive help, or (help object) for help "
+            "about object."
+        )
 
     def __call__(self, *args, **kwds):
         import pydoc
+
         return pydoc.help(*args, **kwds)
 
 
-builtins.quit = HyQuitter('quit')
-builtins.exit = HyQuitter('exit')
+builtins.quit = HyQuitter("quit")
+builtins.exit = HyQuitter("exit")
 builtins.help = HyHelper()
+
 
 @contextmanager
 def extend_linecache(add_cmdline_cache):
@@ -93,7 +101,7 @@ def _hy_maybe_compile(compiler, source, filename, symbol):
 
     for line in source.split("\n"):
         line = line.strip()
-        if line and line[0] != ';':
+        if line and line[0] != ";":
             # Leave it alone (could do more with Hy syntax)
             break
     else:
@@ -113,8 +121,9 @@ class HyCompile(codeop.Compile):
     `IPython.core.compilerop.CachingCompiler`.
     """
 
-    def __init__(self, module, locals, ast_callback=None,
-                 hy_compiler=None, cmdline_cache={}):
+    def __init__(
+        self, module, locals, ast_callback=None, hy_compiler=None, cmdline_cache={}
+    ):
         self.module = module
         self.locals = locals
         self.ast_callback = ast_callback
@@ -127,30 +136,31 @@ class HyCompile(codeop.Compile):
         self.cmdline_cache = cmdline_cache
 
     def _cache(self, source, name):
-        entry = (len(source),
-                 time.time(),
-                 [line + '\n' for line in source.splitlines()],
-                 name)
+        entry = (
+            len(source),
+            time.time(),
+            [line + "\n" for line in source.splitlines()],
+            name,
+        )
 
         linecache.cache[name] = entry
         self.cmdline_cache[name] = entry
 
     def _update_exc_info(self):
-            self.locals['_hy_last_type'] = sys.last_type
-            self.locals['_hy_last_value'] = sys.last_value
-            # Skip our frame.
-            sys.last_traceback = getattr(sys.last_traceback, 'tb_next',
-                                         sys.last_traceback)
-            self.locals['_hy_last_traceback'] = sys.last_traceback
+        self.locals["_hy_last_type"] = sys.last_type
+        self.locals["_hy_last_value"] = sys.last_value
+        # Skip our frame.
+        sys.last_traceback = getattr(sys.last_traceback, "tb_next", sys.last_traceback)
+        self.locals["_hy_last_traceback"] = sys.last_traceback
 
     def __call__(self, source, filename="<input>", symbol="single"):
 
-        if source == 'pass':
+        if source == "pass":
             # We need to return a no-op to signal that no more input is needed.
             return (compile(source, filename, symbol),) * 2
 
         hash_digest = hashlib.sha1(source.encode("utf-8").strip()).hexdigest()
-        name = '{}-{}'.format(filename.strip('<>'), hash_digest)
+        name = "{}-{}".format(filename.strip("<>"), hash_digest)
 
         try:
             hy_ast = hy_parse(source, filename=name)
@@ -164,23 +174,28 @@ class HyCompile(codeop.Compile):
 
         try:
             hy_ast = hy_parse(source, filename=filename)
-            root_ast = ast.Interactive if symbol == 'single' else ast.Module
+            root_ast = ast.Interactive if symbol == "single" else ast.Module
 
             # Our compiler doesn't correspond to a real, fixed source file, so
             # we need to [re]set these.
             self.hy_compiler.filename = filename
             self.hy_compiler.source = source
-            exec_ast, eval_ast = hy_compile(hy_ast, self.module, root=root_ast,
-                                            get_expr=True,
-                                            compiler=self.hy_compiler,
-                                            filename=filename, source=source,
-                                            import_stdlib=False)
+            exec_ast, eval_ast = hy_compile(
+                hy_ast,
+                self.module,
+                root=root_ast,
+                get_expr=True,
+                compiler=self.hy_compiler,
+                filename=filename,
+                source=source,
+                import_stdlib=False,
+            )
 
             if self.ast_callback:
                 self.ast_callback(exec_ast, eval_ast)
 
             exec_code = super().__call__(exec_ast, name, symbol)
-            eval_code = super().__call__(eval_ast, name, 'eval')
+            eval_code = super().__call__(eval_ast, name, "eval")
 
         except HyLanguageError:
             # Hy will raise exceptions during compile-time that Python would
@@ -191,9 +206,9 @@ class HyCompile(codeop.Compile):
             sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
             self._update_exc_info()
             exec_code = super().__call__(
-                'raise _hy_last_value.with_traceback(_hy_last_traceback)',
-                name, symbol)
-            eval_code = super().__call__('None', name, 'eval')
+                "raise _hy_last_value.with_traceback(_hy_last_traceback)", name, symbol
+            )
+            eval_code = super().__call__("None", name, "eval")
 
         except SyntaxError:
             # Capture and save the error before we get to the superclass handler
@@ -223,22 +238,19 @@ class HyCommandCompiler(codeop.CommandCompiler):
 
 
 class HyREPL(code.InteractiveConsole):
-    def __init__(self, spy=False, output_fn=None, locals=None,
-                 filename="<stdin>"):
+    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"):
 
         # Create a proper module for this REPL so that we can obtain it easily
         # (e.g. using `importlib.import_module`).
         # We let `InteractiveConsole` initialize `self.locals` when it's
         # `None`.
-        super().__init__(locals=locals,
-                         filename=filename)
+        super().__init__(locals=locals, filename=filename)
 
-        module_name = self.locals.get('__name__', '__console__')
+        module_name = self.locals.get("__name__", "__console__")
         # Make sure our newly created module is properly introduced to
         # `sys.modules`, and consistently use its namespace as `self.locals`
         # from here on.
-        self.module = sys.modules.setdefault(module_name,
-                                             types.ModuleType(module_name))
+        self.module = sys.modules.setdefault(module_name, types.ModuleType(module_name))
         self.module.__dict__.update(self.locals)
         self.locals = self.module.__dict__
 
@@ -250,8 +262,8 @@ class HyREPL(code.InteractiveConsole):
                 sys.modules.setdefault(mod.__name__, mod)
                 loader.exec_module(mod)
                 imports = mod.__dict__.get(
-                    '__all__',
-                    [name for name in mod.__dict__ if not name.startswith("_")]
+                    "__all__",
+                    [name for name in mod.__dict__ if not name.startswith("_")],
                 )
                 imports = {name: mod.__dict__[name] for name in imports}
                 spy = spy or imports.get("repl_spy")
@@ -261,20 +273,22 @@ class HyREPL(code.InteractiveConsole):
                 self.locals.update(imports)
 
                 # load module macros
-                require(mod, self.module, assignments='ALL')
+                require(mod, self.module, assignments="ALL")
             except Exception as e:
                 print(e)
         # Load cmdline-specific macros.
-        require('hy.cmdline', self.module, assignments='ALL')
+        require("hy.cmdline", self.module, assignments="ALL")
 
         self.hy_compiler = HyASTCompiler(self.module)
 
         self.cmdline_cache = {}
-        self.compile = HyCommandCompiler(self.module,
-                                         self.locals,
-                                         ast_callback=self.ast_callback,
-                                         hy_compiler=self.hy_compiler,
-                                         cmdline_cache=self.cmdline_cache)
+        self.compile = HyCommandCompiler(
+            self.module,
+            self.locals,
+            ast_callback=self.ast_callback,
+            hy_compiler=self.hy_compiler,
+            cmdline_cache=self.cmdline_cache,
+        )
 
         self.spy = spy
         self.last_value = None
@@ -286,7 +300,7 @@ class HyREPL(code.InteractiveConsole):
             self.output_fn = output_fn
         elif "." in output_fn:
             parts = [mangle(x) for x in output_fn.split(".")]
-            module, f = '.'.join(parts[:-1]), parts[-1]
+            module, f = ".".join(parts[:-1]), parts[-1]
             self.output_fn = getattr(importlib.import_module(module), f)
         else:
             self.output_fn = getattr(builtins, mangle(output_fn))
@@ -296,10 +310,12 @@ class HyREPL(code.InteractiveConsole):
         self.locals.update({sym: None for sym in self._repl_results_symbols})
 
         # Allow access to the running REPL instance
-        self.locals['_hy_repl'] = self
+        self.locals["_hy_repl"] = self
 
         # Compile an empty statement to load the standard prelude
-        exec_ast = hy_compile(hy_parse(''), self.module, compiler=self.hy_compiler, import_stdlib=True)
+        exec_ast = hy_compile(
+            hy_parse(""), self.module, compiler=self.hy_compiler, import_stdlib=True
+        )
         if self.ast_callback:
             self.ast_callback(exec_ast, None)
 
@@ -309,12 +325,13 @@ class HyREPL(code.InteractiveConsole):
                 # Mush the two AST chunks into a single module for
                 # conversion into Python.
                 new_ast = ast.Module(
-                    exec_ast.body + ([] if eval_ast is None else [ast.Expr(eval_ast.body)]),
-                    type_ignores=[])
+                    exec_ast.body
+                    + ([] if eval_ast is None else [ast.Expr(eval_ast.body)]),
+                    type_ignores=[],
+                )
                 print(ast.unparse(new_ast))
             except Exception:
-                msg = 'Exception in AST callback:\n{}\n'.format(
-                    traceback.format_exc())
+                msg = "Exception in AST callback:\n{}\n".format(traceback.format_exc())
                 self.write(msg)
 
     def _error_wrap(self, error_fn, exc_info_override=False, *args, **kwargs):
@@ -322,10 +339,11 @@ class HyREPL(code.InteractiveConsole):
 
         if exc_info_override:
             # Use a traceback that doesn't have the REPL frames.
-            sys.last_type = self.locals.get('_hy_last_type', sys.last_type)
-            sys.last_value = self.locals.get('_hy_last_value', sys.last_value)
-            sys.last_traceback = self.locals.get('_hy_last_traceback',
-                                                 sys.last_traceback)
+            sys.last_type = self.locals.get("_hy_last_type", sys.last_type)
+            sys.last_value = self.locals.get("_hy_last_value", sys.last_value)
+            sys.last_traceback = self.locals.get(
+                "_hy_last_traceback", sys.last_traceback
+            )
 
         sys.excepthook(sys.last_type, sys.last_value, sys.last_traceback)
 
@@ -335,9 +353,9 @@ class HyREPL(code.InteractiveConsole):
         if filename is None:
             filename = self.filename
 
-        self._error_wrap(super().showsyntaxerror,
-                         exc_info_override=True,
-                         filename=filename)
+        self._error_wrap(
+            super().showsyntaxerror, exc_info_override=True, filename=filename
+        )
 
     def showtraceback(self):
         self._error_wrap(super().showtraceback)
@@ -355,7 +373,7 @@ class HyREPL(code.InteractiveConsole):
             self.print_last_value = False
             self.showtraceback()
 
-    def runsource(self, source, filename='<stdin>', symbol='exec'):
+    def runsource(self, source, filename="<stdin>", symbol="exec"):
         try:
             res = super().runsource(source, filename, symbol)
         except (HyMacroExpansionError, HyRequireError):
@@ -390,8 +408,11 @@ class HyREPL(code.InteractiveConsole):
 
 @macro("koan")
 def koan_macro(ETname):
-    return Expression([Symbol('print'),
-                       String("""
+    return Expression(
+        [
+            Symbol("print"),
+            String(
+                """
   Ummon asked the head monk, "What sutra are you lecturing on?"
   "The Nirvana Sutra."
   "The Nirvana Sutra has the Four Virtues, hasn't it?"
@@ -403,13 +424,19 @@ def koan_macro(ETname):
   Ummon struck the cup and asked, "You understand?"
   "No," said the monk.
   "Then," said Ummon, "You'd better go on with your lectures on the sutra."
-""")])
+"""
+            ),
+        ]
+    )
 
 
 @macro("ideas")
 def ideas_macro(ETname):
-    return Expression([Symbol('print'),
-                       String(r"""
+    return Expression(
+        [
+            Symbol("print"),
+            String(
+                r"""
 
     => (import [sh [figlet]])
     => (figlet "Hi, Hy!")
@@ -438,21 +465,24 @@ def ideas_macro(ETname):
 ;;; swaggin' functional bits (Python rulez)
 (max (map (fn [x] (len x)) ["hi" "my" "name" "is" "paul"]))
 
-""")])
+"""
+            ),
+        ]
+    )
 
 
 def set_path(filename):
     """Emulate Python cmdline behavior by setting `sys.path` relative
     to the executed file's location."""
     path = os.path.realpath(os.path.dirname(filename))
-    if sys.path[0] == '':
+    if sys.path[0] == "":
         sys.path[0] = path
     else:
         sys.path.insert(0, path)
 
 
 def run_command(source, filename=None):
-    __main__ = importlib.import_module('__main__')
+    __main__ = importlib.import_module("__main__")
     require("hy.cmdline", __main__, assignments="ALL")
     try:
         tree = hy_parse(source, filename=filename)
@@ -467,6 +497,7 @@ def run_command(source, filename=None):
 
 def run_repl(hr=None, **kwargs):
     import platform
+
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
@@ -474,17 +505,19 @@ def run_repl(hr=None, **kwargs):
         hr = HyREPL(**kwargs)
 
     namespace = hr.locals
-    with filtered_hy_exceptions(), \
-         extend_linecache(hr.cmdline_cache), \
-         completion(Completer(namespace)):
-        hr.interact("Hy {version} using "
-                    "{py}({build}) {pyversion} on {os}".format(
-                        version=hy.__version__,
-                        py=platform.python_implementation(),
-                        build=platform.python_build()[0],
-                        pyversion=platform.python_version(),
-                        os=platform.system()
-                    ))
+    with filtered_hy_exceptions(), extend_linecache(hr.cmdline_cache), completion(
+        Completer(namespace)
+    ):
+        hr.interact(
+            "Hy {version} using "
+            "{py}({build}) {pyversion} on {os}".format(
+                version=hy.__version__,
+                py=platform.python_implementation(),
+                build=platform.python_build()[0],
+                pyversion=platform.python_version(),
+                os=platform.system(),
+            )
+        )
 
     return 0
 
@@ -492,11 +525,11 @@ def run_repl(hr=None, **kwargs):
 def run_icommand(source, **kwargs):
     if os.path.exists(source):
         set_path(source)
-        with open(source, "r", encoding='utf-8') as f:
+        with open(source, "r", encoding="utf-8") as f:
             source = f.read()
         filename = source
     else:
-        filename = '<string>'
+        filename = "<string>"
 
     hr = HyREPL(**kwargs)
     with filtered_hy_exceptions():
@@ -521,32 +554,64 @@ FILE
   arguments passed to program in sys.argv[1:]
 """
 
-class HyArgError(Exception): pass
+
+class HyArgError(Exception):
+    pass
+
 
 def cmdline_handler(scriptname, argv):
     # We need to terminate interpretation of options after certain
     # options, such as `-c`. So, we can't use `argparse`.
 
     defs = [
-        dict(name=["-h", "--help"], action="help",
-            help="show this help message and exit"),
-        dict(name=["-c"], dest="command", terminate=True,
-            help="program passed in as a string"),
-        dict(name=["-m"], dest="mod", terminate=True,
-            help="module to run, passed in as a string"),
-        dict(name=["-E"], action='store_true',
-            help="ignore PYTHON* environment variables"),
-        dict(name=["-B"], action='store_true',
-            help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x"),
-        dict(name=["-i"], dest="icommand", terminate=True,
-            help="program passed in as a string, then stay in REPL"),
-        dict(name=["--spy"], action="store_true",
-            help="print equivalent Python code before executing"),
-        dict(name=["--repl-output-fn"], dest="repl_output_fn",
+        dict(
+            name=["-h", "--help"], action="help", help="show this help message and exit"
+        ),
+        dict(
+            name=["-c"],
+            dest="command",
+            terminate=True,
+            help="program passed in as a string",
+        ),
+        dict(
+            name=["-m"],
+            dest="mod",
+            terminate=True,
+            help="module to run, passed in as a string",
+        ),
+        dict(
+            name=["-E"],
+            action="store_true",
+            help="ignore PYTHON* environment variables",
+        ),
+        dict(
+            name=["-B"],
+            action="store_true",
+            help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x",
+        ),
+        dict(
+            name=["-i"],
+            dest="icommand",
+            terminate=True,
+            help="program passed in as a string, then stay in REPL",
+        ),
+        dict(
+            name=["--spy"],
+            action="store_true",
+            help="print equivalent Python code before executing",
+        ),
+        dict(
+            name=["--repl-output-fn"],
+            dest="repl_output_fn",
             help="function for printing REPL output "
-                "(e.g., hy.contrib.hy-repr.hy-repr)"),
-        dict(name=["-v", "--version"], action="version",
-            help="show program's version number and exit")]
+            "(e.g., hy.contrib.hy-repr.hy-repr)",
+        ),
+        dict(
+            name=["-v", "--version"],
+            action="version",
+            help="show program's version number and exit",
+        ),
+    ]
 
     # Get the path of the Hy cmdline executable and swap it with
     # `sys.executable` (saving the original, just in case).
@@ -562,95 +627,99 @@ def cmdline_handler(scriptname, argv):
     options = {}
 
     def err(fmt, *args):
-        raise HyArgError('hy: ' + fmt.format(*args))
+        raise HyArgError("hy: " + fmt.format(*args))
 
     def proc_opt(opt, arg=None, item=None, i=None):
-        matches = [o for o in defs if opt in o['name']]
+        matches = [o for o in defs if opt in o["name"]]
         if not matches:
-            err('unrecognized option: {}', opt)
+            err("unrecognized option: {}", opt)
         [match] = matches
-        if 'dest' in match:
+        if "dest" in match:
             if arg:
                 pass
             elif i is not None and i + 1 < len(item):
-                arg = item[i + 1 + (item[i + 1] == '='):]
+                arg = item[i + 1 + (item[i + 1] == "=") :]
             elif argv:
                 arg = argv.pop(0)
             else:
-                err('option {}: expected one argument', opt)
-            options[match['dest']] = arg
+                err("option {}: expected one argument", opt)
+            options[match["dest"]] = arg
         else:
-            options[match['name'][-1].lstrip('-')] = True
-        if 'terminate' in match:
-            return 'terminate'
-        return 'dest' in match
+            options[match["name"][-1].lstrip("-")] = True
+        if "terminate" in match:
+            return "terminate"
+        return "dest" in match
 
     # Collect options.
     while argv:
         item = argv.pop(0)
-        if item == '--':
+        if item == "--":
             break
-        elif item.startswith('--'):
+        elif item.startswith("--"):
             # One double-hyphen option.
-            opt, _, arg = item.partition('=')
-            if proc_opt(opt, arg=arg) == 'terminate':
+            opt, _, arg = item.partition("=")
+            if proc_opt(opt, arg=arg) == "terminate":
                 break
-        elif item.startswith('-') and item != '-':
+        elif item.startswith("-") and item != "-":
             # One or more single-hyphen options.
             for i in range(1, len(item)):
-                x = proc_opt('-' + item[i], item=item, i=i)
+                x = proc_opt("-" + item[i], item=item, i=i)
                 if x:
                     break
-            if x == 'terminate':
+            if x == "terminate":
                 break
         else:
             # We're done with options. Add the item back.
             argv.insert(0, item)
             break
 
-    if 'E' in options:
+    if "E" in options:
         _remove_python_envs()
 
-    if 'B' in options:
+    if "B" in options:
         sys.dont_write_bytecode = True
 
-    if 'help' in options:
-        print('usage:', USAGE)
-        print('')
-        print('optional arguments:')
+    if "help" in options:
+        print("usage:", USAGE)
+        print("")
+        print("optional arguments:")
         for o in defs:
-            print(', '.join(o['name']) +
-                ('=' + o['dest'].upper() if 'dest' in o else ''))
-            print('    ' + o['help'] +
-                (' (terminates option list)'
-                    if o.get('terminate')
-                    else ''))
+            print(
+                ", ".join(o["name"]) + ("=" + o["dest"].upper() if "dest" in o else "")
+            )
+            print(
+                "    "
+                + o["help"]
+                + (" (terminates option list)" if o.get("terminate") else "")
+            )
         print(EPILOG)
         return 0
 
-    if 'version' in options:
+    if "version" in options:
         print(VERSION)
         return 0
 
-    if 'command' in options:
-        sys.argv = ['-c'] + argv
-        return run_command(options['command'], filename='<string>')
+    if "command" in options:
+        sys.argv = ["-c"] + argv
+        return run_command(options["command"], filename="<string>")
 
-    if 'mod' in options:
-        set_path('')
+    if "mod" in options:
+        set_path("")
         sys.argv = [program] + argv
-        runpy.run_module(options['mod'], run_name='__main__', alter_sys=True)
+        runpy.run_module(options["mod"], run_name="__main__", alter_sys=True)
         return 0
 
-    if 'icommand' in options:
-        return run_icommand(options['icommand'],
-            spy=options.get('spy'),
-            output_fn=options.get('repl_output_fn'))
+    if "icommand" in options:
+        return run_icommand(
+            options["icommand"],
+            spy=options.get("spy"),
+            output_fn=options.get("repl_output_fn"),
+        )
 
     if argv:
         if argv[0] == "-":
             # Read the program from stdin
-            return run_command(sys.stdin.read(), filename='<stdin>')
+            return run_command(sys.stdin.read(), filename="<stdin>")
 
         else:
             # User did "hy <filename>"
@@ -660,19 +729,21 @@ def cmdline_handler(scriptname, argv):
             try:
                 sys.argv = argv
                 with filtered_hy_exceptions():
-                    runhy.run_path(filename, run_name='__main__')
+                    runhy.run_path(filename, run_name="__main__")
                 return 0
             except FileNotFoundError as e:
-                print("hy: Can't open file '{}': [Errno {}] {}".format(
-                      e.filename, e.errno, e.strerror), file=sys.stderr)
+                print(
+                    "hy: Can't open file '{}': [Errno {}] {}".format(
+                        e.filename, e.errno, e.strerror
+                    ),
+                    file=sys.stderr,
+                )
                 sys.exit(e.errno)
             except HyLanguageError:
                 hy_exc_handler(*sys.exc_info())
                 sys.exit(1)
 
-    return run_repl(
-        spy=options.get('spy'),
-        output_fn=options.get('repl_output_fn'))
+    return run_repl(spy=options.get("spy"), output_fn=options.get("repl_output_fn"))
 
 
 # entry point for cmd line script "hy"
@@ -687,21 +758,23 @@ def hy_main():
 
 def hyc_main():
     parser = argparse.ArgumentParser(prog="hyc")
-    parser.add_argument("files", metavar="FILE", nargs='*',
-                        help=('File(s) to compile (use STDIN if only'
-                              ' "-" or nothing is provided)'))
+    parser.add_argument(
+        "files",
+        metavar="FILE",
+        nargs="*",
+        help=("File(s) to compile (use STDIN if only" ' "-" or nothing is provided)'),
+    )
     parser.add_argument("-v", action="version", version=VERSION)
 
     options = parser.parse_args(sys.argv[1:])
 
     rv = 0
-    if len(options.files) == 0 or (
-            len(options.files) == 1 and options.files[0] == '-'):
+    if len(options.files) == 0 or (len(options.files) == 1 and options.files[0] == "-"):
         while True:
             filename = sys.stdin.readline()
             if not filename:
                 break
-            filename = filename.rstrip('\n')
+            filename = filename.rstrip("\n")
             set_path(filename)
             try:
                 py_compile.compile(filename, doraise=True)
@@ -728,30 +801,44 @@ def hyc_main():
 
 # entry point for cmd line script "hy2py"
 def hy2py_main():
-    options = dict(prog="hy2py", usage="%(prog)s [options] [FILE]",
-                   formatter_class=argparse.RawDescriptionHelpFormatter)
+    options = dict(
+        prog="hy2py",
+        usage="%(prog)s [options] [FILE]",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser = argparse.ArgumentParser(**options)
-    parser.add_argument("FILE", type=str, nargs='?',
-                        help="Input Hy code (use STDIN if \"-\" or "
-                             "not provided)")
-    parser.add_argument("--with-source", "-s", action="store_true",
-                        help="Show the parsed source structure")
-    parser.add_argument("--with-ast", "-a", action="store_true",
-                        help="Show the generated AST")
-    parser.add_argument("--without-python", "-np", action="store_true",
-                        help=("Do not show the Python code generated "
-                              "from the AST"))
+    parser.add_argument(
+        "FILE",
+        type=str,
+        nargs="?",
+        help='Input Hy code (use STDIN if "-" or ' "not provided)",
+    )
+    parser.add_argument(
+        "--with-source",
+        "-s",
+        action="store_true",
+        help="Show the parsed source structure",
+    )
+    parser.add_argument(
+        "--with-ast", "-a", action="store_true", help="Show the generated AST"
+    )
+    parser.add_argument(
+        "--without-python",
+        "-np",
+        action="store_true",
+        help=("Do not show the Python code generated " "from the AST"),
+    )
 
     options = parser.parse_args(sys.argv[1:])
 
-    if options.FILE is None or options.FILE == '-':
+    if options.FILE is None or options.FILE == "-":
         sys.path.insert(0, "")
-        filename = '<stdin>'
+        filename = "<stdin>"
         source = sys.stdin.read()
     else:
         filename = options.FILE
         set_path(filename)
-        with open(options.FILE, 'r', encoding='utf-8') as source_file:
+        with open(options.FILE, "r", encoding="utf-8") as source_file:
             source = source_file.read()
 
     with filtered_hy_exceptions():
@@ -763,7 +850,7 @@ def hy2py_main():
         print()
 
     with filtered_hy_exceptions():
-        _ast = hy_compile(hst, '__main__', filename=filename, source=source)
+        _ast = hy_compile(hst, "__main__", filename=filename, source=source)
 
     if options.with_ast:
         print(ast.dump(_ast))
