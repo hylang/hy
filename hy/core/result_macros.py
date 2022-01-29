@@ -617,24 +617,23 @@ def compile_unpack_iterable(compiler, expr, root, arg):
 # ------------------------------------------------
 
 
-@pattern_macro("if", [FORM, FORM, maybe(FORM)])
+@pattern_macro("if", [FORM, FORM, FORM])
 def compile_if(compiler, expr, _, cond, body, orel_expr):
     cond = compiler.compile(cond)
     body = compiler.compile(body)
 
     nested = root = False
     orel = Result()
-    if orel_expr is not None:
-        if (
-            isinstance(orel_expr, Expression)
-            and isinstance(orel_expr[0], Symbol)
-            and orel_expr[0] == Symbol("if*")
-        ):
-            # Nested ifs: don't waste temporaries
-            root = compiler.temp_if is None
-            nested = True
-            compiler.temp_if = compiler.temp_if or compiler.get_anon_var()
-        orel = compiler.compile(orel_expr)
+    if (
+        isinstance(orel_expr, Expression)
+        and isinstance(orel_expr[0], Symbol)
+        and orel_expr[0] == Symbol("if*")
+    ):
+        # Nested ifs: don't waste temporaries
+        root = compiler.temp_if is None
+        nested = True
+        compiler.temp_if = compiler.temp_if or compiler.get_anon_var()
+    orel = compiler.compile(orel_expr)
 
     if not cond.stmts and isinstance(cond.force_expr, ast.Name):
         name = cond.force_expr.id
