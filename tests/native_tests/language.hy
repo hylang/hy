@@ -367,11 +367,7 @@
 
 (defn test-if []
   ;; with an odd number of args, the last argument is the default case
-  (assert (= 1 (if 0 -1
-                     1)))
-  ;; with an even number of args, the default is None
-  (assert (is None (if 0 1))))
-
+  (assert (= 1 (if 0 -1 1))))
 
 (defn test-index []
   (assert (= (get {"one" "two"} "one") "two"))
@@ -1389,14 +1385,14 @@ cee\"} dee" "ey bee\ncee dee"))
 
 
 (defn test-break-breaking []
-  (defn holy-grail [] (for [x (range 10)] (if (= x 5) (break))) x)
+  (defn holy-grail [] (for [x (range 10)] (when (= x 5) (break))) x)
   (assert (= (holy-grail) 5)))
 
 
 (defn test-continue-continuation []
   (setv y [])
   (for [x (range 10)]
-    (if (!= x 5)
+    (when (!= x 5)
       (continue))
     (.append y x))
   (assert (= y [5])))
@@ -1634,7 +1630,7 @@ cee\"} dee" "ey bee\ncee dee"))
       (setv self.member-names []))
 
     (defn __setitem__ [self key value]
-      (if (not-in key self)
+      (when (not-in key self)
           (.append self.member-names key))
       (dict.__setitem__ self key value)))
 

@@ -191,7 +191,7 @@
 (defn test-let-break []
   (for [x (range 3)]
     (let [done (% x 2)]
-      (if done (break))))
+      (when done (break))))
   (assert (= x 1)))
 
 
@@ -199,7 +199,7 @@
   (let [foo []]
     (for [x (range 10)]
       (let [odd (% x 2)]
-        (if odd (continue))
+        (when odd (continue))
         (.append foo x)))
     (assert (= foo [0 2 4 6 8]))))
 

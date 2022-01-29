@@ -147,13 +147,14 @@
 (hy-repr-register Fraction (fn [x]
   (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
-(hy-repr-register [range slice] (fn [x]
-  (setv op (. (type x) __name__))
-  (if (= x.step (if (is (type x) range) 1))
-    (if (= x.start (if (is (type x) range) 0))
-      f"({op} {x.stop})"
-      f"({op} {x.start} {x.stop})")
-    f"({op} {x.start} {x.stop} {x.step})")))
+(hy-repr-register [range slice]
+                  (fn [x]
+                    (setv op (. (type x) __name__))
+                    (if (= x.step (if (is (type x) range) 1 None))
+                        (if (= x.start (if (is (type x) range) 0 None))
+                            f"({op} {x.stop})"
+                            f"({op} {x.start} {x.stop})")
+                        f"({op} {x.start} {x.stop} {x.step})")))
 
 (hy-repr-register
   hy.models.FComponent
@@ -228,9 +229,9 @@
     (_repr-time-innards x))))
 (defn _repr-time-innards [x]
   (.rstrip (+ " " (.join " " (filter (fn [x] x) [
-    (if x.microsecond (str x.microsecond))
-    (if (is-not x.tzinfo None) (+ ":tzinfo " (hy-repr x.tzinfo)))
-    (if x.fold (+ ":fold " (hy-repr x.fold)))])))))
+    (when x.microsecond (str x.microsecond))
+    (when (is-not x.tzinfo None) (+ ":tzinfo " (hy-repr x.tzinfo)))
+    (when x.fold (+ ":fold " (hy-repr x.fold)))])))))
 (defn _strftime-0 [x fmt]
   ; Remove leading 0s in `strftime`. This is a substitute for the `-`
   ; flag for when Python isn't built with glibc.

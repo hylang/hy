@@ -1809,6 +1809,7 @@ def compile_assert_expression(compiler, expr, root, test, msg):
             mkexpr(
                 "do", mkexpr("setv", msg_var, [msg]), mkexpr("assert", "False", msg_var)
             ),
+            Symbol("None"),
         ).replace(expr)
     )
 

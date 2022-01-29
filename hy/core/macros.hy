@@ -55,12 +55,12 @@
        => (when conditional statement)
        (if conditional (do statement))
   "
-  `(if ~test (do ~@body)))
+  `(if ~test (do ~@body) None))
 
 
 (defmacro "#@" [expr]
   "with-decorator tag macro"
-  (if (not expr)
+  (when (not expr)
       (raise (ValueError "missing function argument")))
   (setv decorators (cut expr -1)
         fndef (get expr -1))

@@ -68,9 +68,9 @@
         (, 1 3 (, (, 1 0) (, 1 1) (, 1 2) (, 1 3)) 7)
         (, 1 3 (, (, 1 0) (, 1 1) (, 1 2) (, 1 3)) 9)]]
 
-    ['(f x (range 4) :do (if (not (% x 2)) (continue)) (* x 2))
+    ['(f x (range 4) :do (when (not (% x 2)) (continue)) (* x 2))
       [2 6]]
-    ['(f x (range 4) :setv p 9 :do (if (not (% x 2)) (continue)) (* x 2))
+    ['(f x (range 4) :setv p 9 :do (when (not (% x 2)) (continue)) (* x 2))
       [2 6]]
     ['(f x (range 20) :do (when (= x 3) (break)) (* x 2))
       [0 2 4]]
