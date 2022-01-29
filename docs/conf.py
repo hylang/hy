@@ -49,7 +49,9 @@ html_use_smartypants = False
 html_show_sphinx = False
 
 html_context = dict(
-    hy_descriptive_version = hy_descriptive_version)
+    hy_descriptive_version = hy_descriptive_version,
+    has_active_alpha = True,
+)
 
 intersphinx_mapping = dict(
     py = ('https://docs.python.org/3/', None))
