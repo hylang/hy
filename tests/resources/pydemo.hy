@@ -9,6 +9,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 
 (setv identifier-that-has☝️💯☝️-to-be-mangled "ponies")
 (setv 𝔫𝔬𝔯𝔪𝔞𝔩𝔦𝔷𝔢-𝔱𝔥𝔦𝔰 "ok")
+(setv def "variable")
+(setv 𝕚𝕗 "if")
 
 (setv mynumber (+ 1 2))
 (setv myhex 0x123)
@@ -117,11 +119,12 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (else
     (setv ran-try-else True)))
 
-(defn fun [a b [c 9] [d 10] #* args #** kwargs]
+(defn fun [a b [c 9] [from 10] #* args #** kwargs]
   "function docstring"
-  [a b c d args (sorted (.items kwargs))])
+  [a b c from args (sorted (.items kwargs))])
 (setv funcall1 (fun 1 2 3 4 "a" "b" "c" :k1 "v1" :k2 "v2"))
 (setv funcall2 (fun 7 8 #* [9 10 11] #** {"x1" "y1"  "x2" "y2"}))
+(setv funcall3 (fun "x" "y" :from "spain"))
 
 (defn returner []
   (return 1)
