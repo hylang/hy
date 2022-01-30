@@ -203,7 +203,10 @@
   (assert (= (hy.mangle (chr 0x378)) "hyx_XU378X"))
   (assert (= (hy.mangle (chr 0x200a) "hyx_Xhair_spaceX")))
   (assert (= (hy.mangle (chr 0x2065)) "hyx_XU2065X"))
-  (assert (= (hy.mangle (chr 0x1000c)) "hyx_XU1000cX")))
+  (assert (= (hy.mangle (chr 0x1000c)) "hyx_XU1000cX"))
+
+  (setv a b "onesym")
+  (assert (= a b "onesym")))
 
 
 (defn test-mangle-bad-indent []

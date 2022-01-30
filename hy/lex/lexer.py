@@ -8,7 +8,7 @@ lg = LexerGenerator()
 end_quote_set = r"\s\)\]\}"
 end_quote = r"(?![%s])" % end_quote_set
 
-identifier = r'[^()\[\]{}\'"\s;]+'
+identifier = r'[^()\[\]{}\'" \t\n\r\f\v;]+'
 
 lg.add("LPAREN", r"\(")
 lg.add("RPAREN", r"\)")
@@ -56,7 +56,7 @@ lg.add("IDENTIFIER", identifier)
 
 
 lg.ignore(r";.*(?=\r|\n|$)")
-lg.ignore(r"\s+")
+lg.ignore(r"[ \t\n\r\f\v]")
 
 
 lexer = lg.build()
