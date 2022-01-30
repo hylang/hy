@@ -200,3 +200,47 @@
 (defn test-mangle-bad-indent []
   ; Shouldn't crash with IndentationError
   (hy.mangle "  0\n 0"))
+
+
+(defn test-normalize-to-underscore-list []
+  (import sys unicodedata)
+  (assert (=
+    (.join "" (gfor
+      x (map chr (range (+ sys.maxunicode 1)))
+      :if (in "_" (unicodedata.normalize "NFKC" x))
+      x))
+    hy.lex.normalizes-to-underscore)))
+
+
+(defn test-pep3131 []
+  ; https://github.com/hylang/hy/issues/2216
+  (import unicodedata)
+
+  (setv 𝔥𝔢𝔩𝔩𝔬 15)
+  (assert (= 𝔥𝔢𝔩𝔩𝔬 15))
+  (assert (= hello 15))
+
+  (setv oﬃce "space")
+  (assert (= oﬃce "space"))
+  (assert (= office "space"))
+
+  ; Full-blown normalization is the last step of mangling. So if a
+  ; character isn't Python-legal to start with, it never gets
+  ; normalized.
+  (setv ⅓ .3)
+  (assert (!= (unicodedata.normalize "NFKC" "⅓") "⅓"))
+  (assert (= ⅓ .3))
+  (assert (= hyx_Xvulgar_fraction_one_thirdX .3))
+
+  ; We still have to recognize characters that would get normalized to
+  ; the ASCII underscore as underscores, like Python does.
+  (assert (= (hy.mangle "_﹏a") "__a"))
+  (assert (= (hy.mangle "﹏a") "_a"))
+  (assert (= (hy.mangle "_﹏⁂") "__hyx_XasterismX"))
+  (assert (= (hy.mangle "_﹏⁂﹏") "__hyx_XasterismX_"))
+
+  ; By contrast, characters that would normalize to the ASCII hyphen
+  ; or question mark don't get the special treatment of the ASCII
+  ; versions.
+  (assert (= (hy.mangle "foo﹖") "hyx_fooXsmall_question_markX"))
+  (assert (= (hy.mangle "a－b") "hyx_aXfullwidth_hyphenHminusXb")))

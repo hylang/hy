@@ -39,6 +39,7 @@ def assert_stuff(m):
     )
 
     assert getattr(m, mangle("identifier-that-has☝️💯☝️-to-be-mangled")) == "ponies"
+    assert m.normalize_this == "ok"
 
     assert m.mynumber == 3
     assert m.myhex == 0x123

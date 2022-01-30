@@ -103,6 +103,7 @@ def parse_one_thing(src_string):
 
 mangle_delim = "X"
 
+normalizes_to_underscore = "_︳︴﹍﹎﹏＿"
 
 def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
@@ -137,7 +138,7 @@ def mangle(s):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
     # Step 1: Remove and save leading underscores
-    s2 = s.lstrip("_")
+    s2 = s.lstrip(normalizes_to_underscore)
     leading_underscores = "_" * (len(s) - len(s2))
     s = s2
 
@@ -167,6 +168,9 @@ def mangle(s):
 
     # Step 5: Add back leading underscores
     s = leading_underscores + s
+
+    # Normalize Unicode per PEP 3131.
+    s = unicodedata.normalize('NFKC', s)
 
     assert isidentifier(s)
     return s
