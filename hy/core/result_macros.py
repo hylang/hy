@@ -9,7 +9,6 @@ these, or to one of the model builders in hy.compiler."""
 # ------------------------------------------------
 
 import ast
-import keyword
 import textwrap
 from contextlib import nullcontext
 from itertools import dropwhile
@@ -1486,26 +1485,6 @@ def compile_macro_def(compiler, expr, root, name, params, body):
 def compile_lambda_list(compiler, params):
     ret = Result()
     posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
-
-    py_reserved_param = next(
-        (
-            sym
-            for param in (
-                (posonly_parms or [])
-                + args_parms
-                + kwonly_parms
-                + [rest_parms, kwargs_parms]
-            )
-            if isinstance(param, tuple)
-            for sym in [param[1][0] if isinstance(param[1], List) else param[1]]
-            if keyword.iskeyword(str(sym))
-        ),
-        None,
-    )
-    if py_reserved_param:
-        raise compiler._syntax_error(
-            py_reserved_param, "parameter name cannot be Python reserved word"
-        )
 
     if not (posonly_parms or posonly_parms is None):
         raise compiler._syntax_error(
