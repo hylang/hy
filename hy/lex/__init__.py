@@ -149,13 +149,13 @@ def mangle(s):
     if s.endswith("?"):
         s = "is_" + s[:-1]
 
-    # Step 4: Convert invalid characters or reserved words
-    if not isidentifier(leading_underscores + s):
+    # Step 4: Convert invalid characters
+    if not (leading_underscores + s).isidentifier():
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
         s = "hyx_" + "".join(
             c
-               if c != mangle_delim and isidentifier('S' + c)
+               if c != mangle_delim and ('S' + c).isidentifier()
                  # We prepend the "S" because some characters aren't
                  # allowed at the start of an identifier.
                else '{0}{1}{0}'.format(
@@ -172,7 +172,7 @@ def mangle(s):
     # Normalize Unicode per PEP 3131.
     s = unicodedata.normalize('NFKC', s)
 
-    assert isidentifier(s)
+    assert s.isidentifier()
     return s
 
 
@@ -318,11 +318,3 @@ def read_str(input):
          1
     """
     return read(StringIO(str(input)))
-
-
-def isidentifier(x):
-    if x in ("True", "False", "None"):
-        return True
-    if keyword.iskeyword(x):
-        return False
-    return x.isidentifier()

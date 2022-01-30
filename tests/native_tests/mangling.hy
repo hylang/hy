@@ -132,9 +132,19 @@
 
 
 (defn test-python-keyword []
+
   (setv if 3)
   (assert (= if 3))
-  (assert (= hyx_if 3)))
+  (assert (= (hy.mangle "if") "if"))
+
+  ; Macros shadow functions, as usual.
+  (defn if [x y z]
+    "a function"
+    50)
+  (assert (= (if 0 1 2) 2))
+  (assert (= ((do if) 0 1 2) 50))
+  (assert (= if.__name__ "if"))
+  (assert (= if.__doc__ "a function")))
 
 
 (defn test-operator []
@@ -172,7 +182,6 @@
 
 (defn test-functions []
   (for [[a b] [["___ab-cd?" "___is_ab_cd"]
-               ["if" "hyx_if"]
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (hy.mangle a) b))
     (assert (= (hy.unmangle b) a))))
