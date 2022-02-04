@@ -111,26 +111,15 @@ def test_list_slice():
     assert sl5 == List([])
 
 
-hydict = Dict(["a", 1, "b", 2, "c", 3])
-
-
-def test_dict_items():
+def test_hydict_methods():
+    hydict = Dict(["a", 1, "b", 2, "c", 3])
     assert hydict.items() == [("a", 1), ("b", 2), ("c", 3)]
-
-
-def test_dict_keys():
     assert hydict.keys() == ["a", "b", "c"]
-
-
-def test_dict_values():
     assert hydict.values() == [1, 2, 3]
 
 
-hyset = Set([3, 1, 2, 2])
-
-
 def test_set():
-    assert list(hyset) == [3, 1, 2, 2]
+    assert list(Set([3, 1, 2, 2])) == [3, 1, 2, 2]
 
 
 def test_number_model_copy():
