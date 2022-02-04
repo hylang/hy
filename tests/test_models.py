@@ -112,10 +112,10 @@ def test_list_slice():
 
 
 def test_hydict_methods():
-    hydict = Dict(["a", 1, "b", 2, "c", 3])
-    assert hydict.items() == [("a", 1), ("b", 2), ("c", 3)]
-    assert hydict.keys() == ["a", "b", "c"]
-    assert hydict.values() == [1, 2, 3]
+    hydict = Dict(["a", 1, "z", 9, "b", 2, "a", 3, "c", 4])
+    assert hydict.items() == [("a", 1), ("z", 9), ("b", 2), ("a", 3), ("c", 4)]
+    assert hydict.keys() == ["a", "z", "b", "a", "c"]
+    assert hydict.values() == [1, 9, 2, 3, 4]
 
 
 def test_set():
