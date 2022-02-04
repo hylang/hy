@@ -378,16 +378,20 @@ def test_bin_hyc_missing_file():
 
 
 def test_bin_hy_builtins():
-    # hy.cmdline replaces builtins.exit and builtins.quit
-    # for use by hy's repl.
-    import hy.cmdline  # NOQA
+    # The REPL replaces `builtins.help` etc.
 
-    # this test will fail if run from IPython because IPython deletes
-    # builtins.exit and builtins.quit
-    assert str(builtins.exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
-    assert type(builtins.exit) is hy.cmdline.HyQuitter
-    assert str(builtins.quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
-    assert type(builtins.quit) is hy.cmdline.HyQuitter
+    output, _ = run_cmd("hy", 'quit')
+    assert "Use (quit) or Ctrl-D (i.e. EOF) to exit" in output
+
+    output, _ = run_cmd("hy", 'exit')
+    assert "Use (exit) or Ctrl-D (i.e. EOF) to exit" in output
+
+    output, _ = run_cmd("hy", 'help')
+    assert "Use (help) for interactive help, or (help object) for help about object." in output
+
+    # Just importing `hy.cmdline` doesn't modify these objects.
+    import hy.cmdline
+    assert "help(object)" in str(builtins.help)
 
 
 def test_bin_hy_no_main():

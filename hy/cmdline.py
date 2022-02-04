@@ -70,11 +70,6 @@ class HyHelper:
         return pydoc.help(*args, **kwds)
 
 
-builtins.quit = HyQuitter("quit")
-builtins.exit = HyQuitter("exit")
-builtins.help = HyHelper()
-
-
 @contextmanager
 def extend_linecache(add_cmdline_cache):
     _linecache_checkcache = linecache.checkcache
@@ -500,6 +495,10 @@ def run_repl(hr=None, **kwargs):
 
     sys.ps1 = "=> "
     sys.ps2 = "... "
+
+    builtins.quit = HyQuitter('quit')
+    builtins.exit = HyQuitter('exit')
+    builtins.help = HyHelper()
 
     if not hr:
         hr = HyREPL(**kwargs)
