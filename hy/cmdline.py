@@ -1,7 +1,3 @@
-import colorama
-
-colorama.init()
-
 import argparse
 import ast
 import builtins
@@ -491,7 +487,7 @@ def run_command(source, filename=None):
 
 
 def run_repl(hr=None, **kwargs):
-    import platform
+    import platform, colorama
 
     sys.ps1 = "=> "
     sys.ps2 = "... "
@@ -499,6 +495,8 @@ def run_repl(hr=None, **kwargs):
     builtins.quit = HyQuitter('quit')
     builtins.exit = HyQuitter('exit')
     builtins.help = HyHelper()
+
+    colorama.init()
 
     if not hr:
         hr = HyREPL(**kwargs)
