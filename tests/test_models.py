@@ -41,13 +41,11 @@ def test_symbol_or_keyword():
 
 
 def test_wrap_int():
-    """Test conversion of integers."""
     wrapped = as_model(0)
     assert type(wrapped) == Integer
 
 
 def test_wrap_tuple():
-    """Test conversion of tuples."""
     wrapped = as_model((Integer(0),))
     assert type(wrapped) == List
     assert type(wrapped[0]) == Integer
@@ -63,7 +61,6 @@ def test_wrap_nested_expr():
 
 
 def test_replace_int():
-    """Test replacing integers."""
     replaced = replace_hy_obj(0, Integer(13))
     assert replaced == Integer(0)
 
@@ -81,14 +78,12 @@ def test_invalid_bracket_strings():
             FString(nodes, brackets=brackets)
 
 
-def test_replace_string_type():
-    """Test replacing python string"""
+def test_replace_str():
     replaced = replace_hy_obj("foo", String("bar"))
     assert replaced == String("foo")
 
 
 def test_replace_tuple():
-    """Test replacing tuples."""
     replaced = replace_hy_obj((0,), Integer(13))
     assert type(replaced) == List
     assert type(replaced[0]) == Integer
