@@ -63,7 +63,13 @@ Do this:
 
    This will ensure your code adheres to the formatting conventions enforced via continuous integration (CI).
 
-6. Do awesome things; make someone shriek in delight/disgust at what
+6. Optionally, tell ``git blame`` to ignore the commits listed in ``.git-blame-ignore-revs``::
+
+       $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+   This file is intended to contains commits with large diffs but negligible semantic changes.
+
+7. Do awesome things; make someone shriek in delight/disgust at what
    you have wrought.
 
 
