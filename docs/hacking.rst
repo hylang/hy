@@ -57,7 +57,13 @@ Do this:
 
        $ pip install -r requirements-dev.txt
 
-5. Do awesome things; make someone shriek in delight/disgust at what
+5. Optionally, enable the `pre-commit <https://pre-commit.com/>`_ hooks defined in ``.pre-commit-config.yaml``::
+
+       $ pre-commit install
+
+   This will ensure your code adheres to the formatting conventions enforced via continuous integration (CI).
+
+6. Do awesome things; make someone shriek in delight/disgust at what
    you have wrought.
 
 
