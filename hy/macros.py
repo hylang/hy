@@ -1,58 +1,60 @@
-import sys
-import os
 import builtins
 import importlib
 import inspect
+import os
 import pkgutil
+import sys
 import traceback
 from ast import AST
 
 from funcparserlib.parser import NoParseError
 
-from hy._compat import code_replace
-from hy.model_patterns import whole
-from hy.models import replace_hy_obj, Expression, Symbol, as_model, is_unpack
-from hy.lex import mangle, unmangle
-from hy.errors import (HyLanguageError, HyMacroExpansionError, HyTypeError,
-                       HyRequireError)
 import hy.compiler
+from hy._compat import code_replace
+from hy.errors import (
+    HyLanguageError,
+    HyMacroExpansionError,
+    HyRequireError,
+    HyTypeError,
+)
+from hy.lex import mangle, unmangle
+from hy.model_patterns import whole
+from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
 
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
 
 def macro(name):
-    """Decorator to define a macro called `name`.
-    """
+    """Decorator to define a macro called `name`."""
     return lambda fn: install_macro(name, fn, fn)
 
 
-def pattern_macro(names, pattern, shadow = None):
+def pattern_macro(names, pattern, shadow=None):
     pattern = whole(pattern)
     py_version_required = None
     if isinstance(names, tuple):
         py_version_required, names = names
 
     def dec(fn):
-
         def wrapper_maker(name):
             def wrapper(hy_compiler, *args):
 
-                if (shadow and
-                        any(is_unpack("iterable", x) for x in args)):
+                if shadow and any(is_unpack("iterable", x) for x in args):
                     # Try a shadow function call with this name instead.
-                    return Expression([
-                        Symbol('hy.pyops.' + name),
-                        *args]).replace(hy_compiler.this)
+                    return Expression([Symbol("hy.pyops." + name), *args]).replace(
+                        hy_compiler.this
+                    )
 
                 expr = hy_compiler.this
                 root = unmangle(expr[0])
 
-                if (py_version_required and
-                        sys.version_info < py_version_required):
-                    raise hy_compiler._syntax_error(expr,
-                       '`{}` requires Python {} or later'.format(
-                          root,
-                          '.'.join(map(str, py_version_required))))
+                if py_version_required and sys.version_info < py_version_required:
+                    raise hy_compiler._syntax_error(
+                        expr,
+                        "`{}` requires Python {} or later".format(
+                            root, ".".join(map(str, py_version_required))
+                        ),
+                    )
 
                 try:
                     parse_tree = pattern.parse(args)
@@ -60,11 +62,14 @@ def pattern_macro(names, pattern, shadow = None):
                     raise hy_compiler._syntax_error(
                         expr[min(e.state.pos + 1, len(expr) - 1)],
                         "parse error for pattern macro '{}': {}".format(
-                            root, e.msg.replace("<EOF>", "end of form")))
+                            root, e.msg.replace("<EOF>", "end of form")
+                        ),
+                    )
                 return fn(hy_compiler, expr, root, *parse_tree)
+
             return wrapper
 
-        for name in ([names] if isinstance(names, str) else names):
+        for name in [names] if isinstance(names, str) else names:
             install_macro(name, wrapper_maker(name), fn)
         return fn
 
@@ -74,8 +79,7 @@ def pattern_macro(names, pattern, shadow = None):
 def install_macro(name, fn, module_of):
     name = mangle(name)
     fn = rename_function(fn, name)
-    (inspect.getmodule(module_of).__dict__
-        .setdefault('__macros__', {})[name]) = fn
+    (inspect.getmodule(module_of).__dict__.setdefault("__macros__", {})[name]) = fn
     return fn
 
 
@@ -107,8 +111,11 @@ def _same_modules(source_module, target_module):
     source_filename = _get_filename(source_module)
     target_filename = _get_filename(target_module)
 
-    return (source_filename and target_filename and
-            os.path.samefile(source_filename, target_filename))
+    return (
+        source_filename
+        and target_filename
+        and os.path.samefile(source_filename, target_filename)
+    )
 
 
 def require(source_module, target_module, assignments, prefix=""):
@@ -133,15 +140,16 @@ def require(source_module, target_module, assignments, prefix=""):
     if target_module is None:
         parent_frame = inspect.stack()[1][0]
         target_namespace = parent_frame.f_globals
-        target_module = target_namespace.get('__name__', None)
+        target_module = target_namespace.get("__name__", None)
     elif isinstance(target_module, str):
         target_module = importlib.import_module(target_module)
         target_namespace = target_module.__dict__
     elif inspect.ismodule(target_module):
         target_namespace = target_module.__dict__
     else:
-        raise HyTypeError('`target_module` is not a recognized type: {}'.format(
-            type(target_module)))
+        raise HyTypeError(
+            "`target_module` is not a recognized type: {}".format(type(target_module))
+        )
 
     # Let's do a quick check to make sure the source module isn't actually
     # the module being compiled (e.g. when `runpy` executes a module's code
@@ -155,11 +163,10 @@ def require(source_module, target_module, assignments, prefix=""):
         try:
             if source_module.startswith("."):
                 source_dirs = source_module.split(".")
-                target_dirs = (getattr(target_module, "__name__", target_module)
-                               .split("."))
-                while (len(source_dirs) > 1
-                       and source_dirs[0] == ""
-                       and target_dirs):
+                target_dirs = getattr(target_module, "__name__", target_module).split(
+                    "."
+                )
+                while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
                     source_dirs.pop(0)
                     target_dirs.pop()
                 package = ".".join(target_dirs + source_dirs[:-1])
@@ -169,25 +176,29 @@ def require(source_module, target_module, assignments, prefix=""):
         except ImportError as e:
             raise HyRequireError(e.args[0]).with_traceback(None)
 
-    source_macros = source_module.__dict__.setdefault('__macros__', {})
+    source_macros = source_module.__dict__.setdefault("__macros__", {})
 
     if not source_module.__macros__:
         if assignments != "ALL":
             for name, alias in assignments:
                 try:
-                    require(f"{source_module.__name__}.{mangle(name)}",
-                            target_module,
-                            "ALL",
-                            prefix=alias)
+                    require(
+                        f"{source_module.__name__}.{mangle(name)}",
+                        target_module,
+                        "ALL",
+                        prefix=alias,
+                    )
                 except HyRequireError as e:
-                    raise HyRequireError(f"Cannot import name '{name}'"
-                                         f" from '{source_module.__name__}'"
-                                         f" ({source_module.__file__})")
+                    raise HyRequireError(
+                        f"Cannot import name '{name}'"
+                        f" from '{source_module.__name__}'"
+                        f" ({source_module.__file__})"
+                    )
             return True
         else:
             return False
 
-    target_macros = target_namespace.setdefault('__macros__', {})
+    target_macros = target_namespace.setdefault("__macros__", {})
 
     if prefix:
         prefix += "."
@@ -199,14 +210,17 @@ def require(source_module, target_module, assignments, prefix=""):
 
     for name, alias in name_assigns:
         _name = mangle(name)
-        alias = mangle('#' + prefix + unmangle(alias)[1:]
-            if unmangle(alias).startswith('#')
-            else prefix + alias)
+        alias = mangle(
+            "#" + prefix + unmangle(alias)[1:]
+            if unmangle(alias).startswith("#")
+            else prefix + alias
+        )
         if _name in source_module.__macros__:
             target_macros[alias] = source_macros[_name]
         else:
-            raise HyRequireError('Could not require name {} from {}'.format(
-                _name, source_module))
+            raise HyRequireError(
+                "Could not require name {} from {}".format(_name, source_module)
+            )
 
     return True
 
@@ -223,11 +237,11 @@ def load_macros(module):
         builtin_mod = importlib.import_module(builtin_mod_name)
 
         # This may overwrite macros in the module.
-        if hasattr(builtin_mod, '__macros__'):
-            module.__macros__.update(getattr(builtin_mod, '__macros__', {}))
+        if hasattr(builtin_mod, "__macros__"):
+            module.__macros__.update(getattr(builtin_mod, "__macros__", {}))
 
 
-class MacroExceptions():
+class MacroExceptions:
     """wrap non ``HyLanguageError``'s in ``HyMacroExpansionError`` preserving stack trace
 
     used in lieu of ``@contextmanager`` to ensure stack trace contains only internal hy
@@ -253,8 +267,9 @@ class MacroExceptions():
                 filename = None
                 source = None
 
-            exc_msg = '  '.join(traceback.format_exception_only(
-                sys.exc_info()[0], sys.exc_info()[1]))
+            exc_msg = "  ".join(
+                traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1])
+            )
 
             msg = "expanding macro {}\n  ".format(str(self.macro_tree[0]))
             msg += exc_msg
@@ -304,15 +319,18 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
             break
 
         fn = mangle(fn)
-        expr_modules = (([] if not hasattr(tree, 'module') else [tree.module])
-            + [module])
+        expr_modules = ([] if not hasattr(tree, "module") else [tree.module]) + [module]
         expr_modules.append(builtins)
 
         # Choose the first namespace with the macro.
-        m = next((mod.__macros__[fn]
-                  for mod in expr_modules
-                  if fn in getattr(mod, '__macros__', ())),
-                 None)
+        m = next(
+            (
+                mod.__macros__[fn]
+                for mod in expr_modules
+                if fn in getattr(mod, "__macros__", ())
+            ),
+            None,
+        )
         if not m:
             break
 
@@ -344,7 +362,11 @@ def macroexpand_1(tree, module, compiler=None):
 def rename_function(f, new_name):
     """Create a copy of a function, but with a new name."""
     f = type(f)(
-        code_replace(f.__code__, co_name = new_name), f.__globals__,
-        str(new_name), f.__defaults__, f.__closure__)
+        code_replace(f.__code__, co_name=new_name),
+        f.__globals__,
+        str(new_name),
+        f.__defaults__,
+        f.__closure__,
+    )
     f.__dict__.update(f.__dict__)
     return f

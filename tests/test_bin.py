@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 
+import builtins
 import os
 import re
 import shlex
 import subprocess
-import builtins
-
 from importlib.util import cache_from_source
 
 import pytest
 
-
-hy_dir = os.environ.get('HY_DIR', '')
+hy_dir = os.environ.get("HY_DIR", "")
 
 
 def pyr(s=""):
@@ -27,13 +25,15 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
 
     cmd = shlex.split(cmd)
     cmd[0] = os.path.join(hy_dir, cmd[0])
-    p = subprocess.Popen(cmd,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         universal_newlines=True,
-                         shell=False,
-                         env=env)
+    p = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        shell=False,
+        env=env,
+    )
     output = p.communicate(input=stdin_data)
     assert p.wait() == expect
     return output
@@ -54,15 +54,15 @@ def test_bin_hy():
 
 
 def test_bin_hy_stdin():
-    output, _ = run_cmd("hy", '(koan)')
+    output, _ = run_cmd("hy", "(koan)")
     assert "monk" in output
 
-    output, _ = run_cmd("hy --spy", '(koan)')
+    output, _ = run_cmd("hy --spy", "(koan)")
     assert "monk" in output
     assert "\n  Ummon" in output
 
     # --spy should work even when an exception is thrown
-    output, _ = run_cmd("hy --spy", '(foof)')
+    output, _ = run_cmd("hy --spy", "(foof)")
     assert "foof()" in output
 
 
@@ -72,25 +72,31 @@ def test_bin_hy_stdin_multiline():
 
 
 def test_bin_hy_history():
-    output, _ = run_cmd("hy", '''(+ "a" "b")
+    output, _ = run_cmd(
+        "hy",
+        """(+ "a" "b")
                                  (+ "c" "d")
                                  (+ "e" "f")
-                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)''')
+                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)""",
+    )
     assert '"*1: ef, *2: cd, *3: ab,"' in output
 
-    output, _ = run_cmd("hy", '''(raise (Exception "TEST ERROR"))
-                                 (+ "err: " (str *e))''')
+    output, _ = run_cmd(
+        "hy",
+        """(raise (Exception "TEST ERROR"))
+                                 (+ "err: " (str *e))""",
+    )
     assert '"err: TEST ERROR"' in output
 
 
 def test_bin_hy_stdin_comments():
-    _, err_empty = run_cmd("hy", '')
+    _, err_empty = run_cmd("hy", "")
 
     output, err = run_cmd("hy", '(+ "a" "b") ; "c"')
     assert '"ab"' in output
     assert err == err_empty
 
-    _, err = run_cmd("hy", '; 1')
+    _, err = run_cmd("hy", "; 1")
     assert err == err_empty
 
 
@@ -111,9 +117,14 @@ def test_bin_hy_stdin_assignment():
 
 def test_bin_hy_multi_setv():
     # https://github.com/hylang/hy/issues/1255
-    output, _ = run_cmd("hy", """(do
+    output, _ = run_cmd(
+        "hy",
+        """(do
       (setv  it 0  it (+ it 1)  it (+ it 1))
-      it)""".replace("\n", " "))
+      it)""".replace(
+            "\n", " "
+        ),
+    )
     assert re.match(r"=>\s+2\s+=>", output)
 
 
@@ -125,19 +136,26 @@ def test_bin_hy_stdin_error_underline_alignment():
     err_parts = err[msg_idx:].splitlines()
     assert err_parts[1].startswith("    ^----------^")
     assert err_parts[2].startswith("expanding macro mabcdefghi")
-    assert (err_parts[3].startswith("  TypeError: mabcdefghi") or
-            # PyPy can use a function's `__name__` instead of
-            # `__code__.co_name`.
-            err_parts[3].startswith("  TypeError: (mabcdefghi)"))
+    assert (
+        err_parts[3].startswith("  TypeError: mabcdefghi")
+        or
+        # PyPy can use a function's `__name__` instead of
+        # `__code__.co_name`.
+        err_parts[3].startswith("  TypeError: (mabcdefghi)")
+    )
 
 
 def test_bin_hy_stdin_except_do():
     # https://github.com/hylang/hy/issues/533
 
-    output, _ = run_cmd("hy", '(try (/ 1 0) (except [ZeroDivisionError] "hello"))')  # noqa
+    output, _ = run_cmd(
+        "hy", '(try (/ 1 0) (except [ZeroDivisionError] "hello"))'
+    )  # noqa
     assert "hello" in output
 
-    output, _ = run_cmd("hy", '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))')  # noqa
+    output, _ = run_cmd(
+        "hy", '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))'
+    )  # noqa
     assert "aaa" not in output
     assert "bbb" not in output
     assert "ccc" in output
@@ -152,9 +170,12 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
     # https://github.com/hylang/hy/issues/1412
     # The chief test of interest here is the returncode assertion
     # inside run_cmd.
-    _, err = run_cmd("hy", """
+    _, err = run_cmd(
+        "hy",
+        """
         (import hy.errors)
-        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
+        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""",
+    )
     assert "AZ" in err
 
 
@@ -185,13 +206,15 @@ def test_bin_hy_error_parts_length():
     assert msg_idx
     err_parts = err[msg_idx:].splitlines()[1:]
 
-    expected = ['  File "<string>", line 3',
-                '    \'a 2 3',
-                '    ^^',
-                'this',
-                'is',
-                'a',
-                'message']
+    expected = [
+        '  File "<string>", line 3',
+        "    'a 2 3",
+        "    ^^",
+        "this",
+        "is",
+        "a",
+        "message",
+    ]
 
     for obs, exp in zip(err_parts, expected):
         assert obs.startswith(exp)
@@ -202,7 +225,7 @@ def test_bin_hy_error_parts_length():
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
     err_parts = err[msg_idx:].splitlines()[1:]
-    assert err_parts[2] == '    ^'
+    assert err_parts[2] == "    ^"
 
     # Make sure lines are printed in between arrows separated by more than one
     # character.
@@ -212,47 +235,51 @@ def test_bin_hy_error_parts_length():
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
     err_parts = err[msg_idx:].splitlines()[1:]
-    assert err_parts[2] == '    ^----^'
+    assert err_parts[2] == "    ^----^"
 
 
 def test_bin_hy_syntax_errors():
     # https://github.com/hylang/hy/issues/2004
     _, err = run_cmd("hy", "(defn foo [/])\n(defn bar [a a])")
-    assert 'SyntaxError: duplicate argument' in err
+    assert "SyntaxError: duplicate argument" in err
 
     # https://github.com/hylang/hy/issues/2014
     _, err = run_cmd("hy", "(defn foo []\n(import re *))")
-    assert 'SyntaxError: import * only allowed' in err
-    assert 'PrematureEndOfInput' not in err
+    assert "SyntaxError: import * only allowed" in err
+    assert "PrematureEndOfInput" not in err
 
 
 def test_bin_hy_stdin_bad_repr():
     # https://github.com/hylang/hy/issues/1389
-    output, err = run_cmd("hy", """
+    output, err = run_cmd(
+        "hy",
+        """
          (defclass BadRepr [] (defn __repr__ [self] (/ 0)))
          (BadRepr)
-         (+ "A" "Z")""")
+         (+ "A" "Z")""",
+    )
     assert "ZeroDivisionError" in err
     assert "AZ" in output
 
 
 def test_bin_hy_stdin_py_repr():
-    output, _ = run_cmd("hy", '(+ [1] [2])')
+    output, _ = run_cmd("hy", "(+ [1] [2])")
     assert "[1 2]" in output
 
-    output, _ = run_cmd(pyr(), '(+ [1] [2])')
+    output, _ = run_cmd(pyr(), "(+ [1] [2])")
     assert "[1, 2]" in output
 
-    output, _ = run_cmd(pyr("--spy"), '(+ [1] [2])')
-    assert "[1]+[2]" in output.replace(' ', '')
+    output, _ = run_cmd(pyr("--spy"), "(+ [1] [2])")
+    assert "[1]+[2]" in output.replace(" ", "")
     assert "[1, 2]" in output
 
     # --spy should work even when an exception is thrown
-    output, _ = run_cmd(pyr("--spy"), '(+ [1] [2] (foof))')
-    assert "[1]+[2]" in output.replace(' ', '')
+    output, _ = run_cmd(pyr("--spy"), "(+ [1] [2] (foof))")
+    assert "[1]+[2]" in output.replace(" ", "")
+
 
 def test_bin_hy_ignore_python_env():
-    os.environ.update({"PYTHONTEST": '0'})
+    os.environ.update({"PYTHONTEST": "0"})
     output, _ = run_cmd("hy -c '(print (do (import os) (. os environ)))'")
     assert "PYTHONTEST" in output
     output, _ = run_cmd("hy -m tests.resources.bin.printenv")
@@ -262,33 +289,44 @@ def test_bin_hy_ignore_python_env():
 
     output, _ = run_cmd("hy -E -c '(print (do (import os) (. os environ)))'")
     assert "PYTHONTEST" not in output
-    os.environ.update({"PYTHONTEST": '0'})
+    os.environ.update({"PYTHONTEST": "0"})
     output, _ = run_cmd("hy -E -m tests.resources.bin.printenv")
     assert "PYTHONTEST" not in output
-    os.environ.update({"PYTHONTEST": '0'})
+    os.environ.update({"PYTHONTEST": "0"})
     output, _ = run_cmd("hy -E tests/resources/bin/printenv.hy")
     assert "PYTHONTEST" not in output
 
+
 def test_bin_hy_cmd():
-    output, _ = run_cmd("hy -c \"(koan)\"")
+    output, _ = run_cmd('hy -c "(koan)"')
     assert "monk" in output
 
-    _, err = run_cmd("hy -c \"(koan\"", expect=1)
+    _, err = run_cmd('hy -c "(koan"', expect=1)
     assert "Premature end of input" in err
 
     # https://github.com/hylang/hy/issues/1879
     output, _ = run_cmd(
-        """hy -c '(setv x "bing") (defn f [] (+ "fiz" x)) (print (f))'""")
-    assert 'fizbing' in output
+        """hy -c '(setv x "bing") (defn f [] (+ "fiz" x)) (print (f))'"""
+    )
+    assert "fizbing" in output
 
     # https://github.com/hylang/hy/issues/1894
-    output, _ = run_cmd(' '.join(('hy -c ',
-        repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
-        'AA', 'ZZ', '-m')))
-    assert '<-c|AA|ZZ|-m>' in output
+    output, _ = run_cmd(
+        " ".join(
+            (
+                "hy -c ",
+                repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
+                "AA",
+                "ZZ",
+                "-m",
+            )
+        )
+    )
+    assert "<-c|AA|ZZ|-m>" in output
+
 
 def test_bin_hy_icmd():
-    output, _ = run_cmd("hy -i \"(koan)\"", "(ideas)")
+    output, _ = run_cmd('hy -i "(koan)"', "(ideas)")
     assert "monk" in output
     assert "figlet" in output
 
@@ -299,7 +337,7 @@ def test_bin_hy_icmd_file():
 
 
 def test_bin_hy_icmd_and_spy():
-    output, _ = run_cmd("hy --spy -i \"(+ [] [])\"", "(+ 1 1)")
+    output, _ = run_cmd('hy --spy -i "(+ [] [])"', "(+ 1 1)")
     assert "[] + []" in output
 
 
@@ -312,15 +350,17 @@ def test_bin_hy_file_with_args():
     assert "usage" in run_cmd("hy tests/resources/argparse_ex.hy -h")[0]
     assert "got c" in run_cmd("hy tests/resources/argparse_ex.hy -c bar")[0]
     assert "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo")[0]
-    assert "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo -c bar")[0]  # noqa
+    assert (
+        "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo -c bar")[0]
+    )  # noqa
 
 
 def test_bin_hyc():
     _, err = run_cmd("hyc", expect=0)
-    assert err == ''
+    assert err == ""
 
     _, err = run_cmd("hyc -", expect=0)
-    assert err == ''
+    assert err == ""
 
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
@@ -341,6 +381,7 @@ def test_bin_hy_builtins():
     # hy.cmdline replaces builtins.exit and builtins.quit
     # for use by hy's repl.
     import hy.cmdline  # NOQA
+
     # this test will fail if run from IPython because IPython deletes
     # builtins.exit and builtins.quit
     assert str(builtins.exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
@@ -354,20 +395,26 @@ def test_bin_hy_no_main():
     assert "This Should Still Work" in output
 
 
-@pytest.mark.parametrize('scenario', ["normal", "prevent_by_force",
-                                      "prevent_by_env", "prevent_by_option"])
-@pytest.mark.parametrize('cmd_fmt', [['hy', '{fpath}'],
-                                     ['hy', '-m', '{modname}'],
-                                     ['hy', '-c', "'(import {modname})'"]])
+@pytest.mark.parametrize(
+    "scenario", ["normal", "prevent_by_force", "prevent_by_env", "prevent_by_option"]
+)
+@pytest.mark.parametrize(
+    "cmd_fmt",
+    [
+        ["hy", "{fpath}"],
+        ["hy", "-m", "{modname}"],
+        ["hy", "-c", "'(import {modname})'"],
+    ],
+)
 def test_bin_hy_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
 
-    if scenario == 'prevent_by_option':
-        cmd_fmt.insert(1, '-B')
+    if scenario == "prevent_by_option":
+        cmd_fmt.insert(1, "-B")
 
-    cmd = ' '.join(cmd_fmt).format(**locals())
+    cmd = " ".join(cmd_fmt).format(**locals())
 
     rm(cache_from_source(fpath))
 
@@ -416,18 +463,19 @@ def test_bin_hy_file_sys_path():
     adopts the file's location in `sys.path`, instead of the runner's current
     dir (e.g. '' in `sys.path`).
     """
-    file_path, _ = os.path.split('tests/resources/relative_import.hy')
+    file_path, _ = os.path.split("tests/resources/relative_import.hy")
     file_relative_path = os.path.realpath(file_path)
 
     output, _ = run_cmd("hy tests/resources/relative_import.hy")
     assert repr(file_relative_path) in output
+
 
 def test_bin_hyc_file_sys_path():
     # similar to test_bin_hy_file_sys_path, test hyc and hy2py to make sure
     # they can find the relative import at compile time
     # https://github.com/hylang/hy/issues/2021
 
-    test_file = 'tests/resources/relative_import_compile_time.hy'
+    test_file = "tests/resources/relative_import_compile_time.hy"
     file_relative_path = os.path.realpath(os.path.dirname(test_file))
 
     for binary in ("hy", "hyc", "hy2py"):
@@ -446,7 +494,7 @@ def test_bin_hy_module_no_main():
 
 def test_bin_hy_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
-    assert os.path.basename(output.strip()) == 'hy'
+    assert os.path.basename(output.strip()) == "hy"
 
 
 def test_bin_hy_file_no_extension():
@@ -471,6 +519,7 @@ def test_bin_hy_circular_macro_require():
     output, _ = run_cmd("hy {}".format(test_file))
     assert output.strip() == "WOWIE"
 
+
 def test_bin_hy_macro_require():
     """Confirm that a `require` will load macros into the non-module namespace
     (i.e. `exec(code, locals)`) used by `runpy.run_path`.
@@ -494,23 +543,22 @@ def test_bin_hy_tracebacks():
     """Make sure the printed tracebacks are correct."""
 
     # We want the filtered tracebacks.
-    os.environ['HY_DEBUG'] = ''
+    os.environ["HY_DEBUG"] = ""
 
     def req_err(x):
-        assert (x == 'hy.errors.HyRequireError: No module named '
-            "'not_a_real_module'")
+        assert x == "hy.errors.HyRequireError: No module named " "'not_a_real_module'"
 
     # Modeled after
     #   > python -c 'import not_a_real_module'
     #   Traceback (most recent call last):
     #     File "<string>", line 1, in <module>
     #   ImportError: No module named not_a_real_module
-    _, error = run_cmd('hy', '(require not-a-real-module)')
+    _, error = run_cmd("hy", "(require not-a-real-module)")
     error_lines = error.splitlines()
-    if error_lines[-1] == '':
+    if error_lines[-1] == "":
         del error_lines[-1]
     assert len(error_lines) <= 10
-      # Rough check for the internal traceback filtering
+    # Rough check for the internal traceback filtering
     req_err(error_lines[4])
 
     _, error = run_cmd('hy -c "(require not-a-real-module)"', expect=1)
@@ -519,7 +567,7 @@ def test_bin_hy_tracebacks():
     req_err(error_lines[-1])
 
     output, error = run_cmd('hy -i "(require not-a-real-module)"')
-    assert output.startswith('=> ')
+    assert output.startswith("=> ")
     print(error.splitlines())
     req_err(error.splitlines()[2])
 
@@ -531,11 +579,12 @@ def test_bin_hy_tracebacks():
     #   SyntaxError: EOL while scanning string literal
     _, error = run_cmd(r'hy -c "(print \""', expect=1)
     peoi_re = (
-        r'Traceback \(most recent call last\):\n'
+        r"Traceback \(most recent call last\):\n"
         r'  File "(?:<string>|string-[0-9a-f]+)", line 1\n'
         r'    \(print "\n'
-        r'           \^\n'
-        r'hy.lex.exceptions.PrematureEndOfInput: Partial string literal\n')
+        r"           \^\n"
+        r"hy.lex.exceptions.PrematureEndOfInput: Partial string literal\n"
+    )
     assert re.search(peoi_re, error)
 
     # Modeled after
@@ -546,7 +595,7 @@ def test_bin_hy_tracebacks():
     #   SyntaxError: EOL while scanning string literal
     #   >>>
     output, error = run_cmd(r'hy -i "(print \""')
-    assert output.startswith('=> ')
+    assert output.startswith("=> ")
     assert re.match(peoi_re, error)
 
     # Modeled after
@@ -558,8 +607,9 @@ def test_bin_hy_tracebacks():
     error_lines = error.splitlines()
     assert error_lines[3] == '  File "<string>", line 1, in <module>'
     # PyPy will add "global" to this error message, so we work around that.
-    assert error_lines[-1].strip().replace(' global', '') == (
-        "NameError: name 'a' is not defined")
+    assert error_lines[-1].strip().replace(" global", "") == (
+        "NameError: name 'a' is not defined"
+    )
 
     # Modeled after
     #   > python -c 'compile()'
@@ -569,7 +619,7 @@ def test_bin_hy_tracebacks():
     output, error = run_cmd('hy -c "(compile)"', expect=1)
     error_lines = error.splitlines()
     assert error_lines[-2] == '  File "<string>", line 1, in <module>'
-    assert error_lines[-1].startswith('TypeError')
+    assert error_lines[-1].startswith("TypeError")
 
 
 def test_hystartup():
@@ -595,4 +645,4 @@ def test_hystartup():
     assert "[1, 2]" in output
     assert "[1,~2]" in output
 
-    del os.environ['HYSTARTUP']
+    del os.environ["HYSTARTUP"]

@@ -1,13 +1,12 @@
-import sys
-import os
-import inspect
-import pkgutil
-import types
-import importlib
 import builtins
-
-from functools import partial
+import importlib
+import inspect
+import os
+import pkgutil
+import sys
+import types
 from contextlib import contextmanager
+from functools import partial
 
 import hy
 from hy.compiler import hy_compile
@@ -48,8 +47,7 @@ def loader_module_obj(loader):
 
     if module is None:
         tmp_mod = True
-        module = sys.modules.setdefault(loader.name,
-                                        types.ModuleType(loader.name))
+        module = sys.modules.setdefault(loader.name, types.ModuleType(loader.name))
         module.__file__ = loader.path
         module.__name__ = loader.name
 
@@ -78,8 +76,7 @@ def _hy_code_from_file(filename, loader_type=None):
     return code
 
 
-def _get_code_from_file(run_name, fname=None,
-                        hy_src_check=lambda x: x.endswith('.hy')):
+def _get_code_from_file(run_name, fname=None, hy_src_check=lambda x: x.endswith(".hy")):
     """A patch of `runpy._get_code_from_file` that will also run and cache Hy
     code.
     """
@@ -98,20 +95,24 @@ def _get_code_from_file(run_name, fname=None,
             with open(fname, "rb") as f:
                 # This code differs from `runpy`'s only in that we
                 # force decoding into UTF-8.
-                source = f.read().decode('utf-8')
-            code = compile(source, fname, 'exec')
+                source = f.read().decode("utf-8")
+            code = compile(source, fname, "exec")
 
     return (code, fname)
 
 
-importlib.machinery.SOURCE_SUFFIXES.insert(0, '.hy')
+importlib.machinery.SOURCE_SUFFIXES.insert(0, ".hy")
 _py_source_to_code = importlib.machinery.SourceFileLoader.source_to_code
 
+
 def _could_be_hy_src(filename):
-    return (os.path.isfile(filename) and
-        (filename.endswith('.hy') or
-         not any(filename.endswith(ext)
-                 for ext in importlib.machinery.SOURCE_SUFFIXES[1:])))
+    return os.path.isfile(filename) and (
+        filename.endswith(".hy")
+        or not any(
+            filename.endswith(ext) for ext in importlib.machinery.SOURCE_SUFFIXES[1:]
+        )
+    )
+
 
 def _hy_source_to_code(self, data, path, _optimize=-1):
     if _could_be_hy_src(path):
@@ -121,6 +122,7 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
             data = hy_compile(hy_tree, module)
 
     return _py_source_to_code(self, data, path, _optimize=_optimize)
+
 
 importlib.machinery.SourceFileLoader.source_to_code = _hy_source_to_code
 
@@ -139,14 +141,13 @@ HyLoader = importlib.machinery.SourceFileLoader
 
 # We create a separate version of runpy, "runhy", that prefers Hy source over
 # Python.
-runhy = importlib.import_module('runpy')
+runhy = importlib.import_module("runpy")
 
-runhy._get_code_from_file = partial(_get_code_from_file,
-                                    hy_src_check=_could_be_hy_src)
+runhy._get_code_from_file = partial(_get_code_from_file, hy_src_check=_could_be_hy_src)
 
-del sys.modules['runpy']
+del sys.modules["runpy"]
 
-runpy = importlib.import_module('runpy')
+runpy = importlib.import_module("runpy")
 
 _runpy_get_code_from_file = runpy._get_code_from_file
 runpy._get_code_from_file = _get_code_from_file
@@ -162,7 +163,7 @@ def _import_from_path(name, path):
 
 def _inject_builtins():
     """Inject the Hy core macros into Python's builtins if necessary"""
-    if hasattr(builtins, '__hy_injected__'):
+    if hasattr(builtins, "__hy_injected__"):
         return
     hy.macros.load_macros(builtins)
     # Set the marker so we don't inject again.

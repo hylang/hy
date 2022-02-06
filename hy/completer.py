@@ -1,16 +1,17 @@
+import builtins
 import contextlib
 import os
 import re
 import sys
-import builtins
 
-import hy.macros
 import hy.compiler
-
+import hy.macros
 
 # Lazily import `readline` to work around
 # https://bugs.python.org/issue2675#msg265564
 readline = None
+
+
 def init_readline():
     global readline
     try:
@@ -24,17 +25,15 @@ def init_readline():
 
 
 class Completer:
-
     def __init__(self, namespace={}):
         if not isinstance(namespace, dict):
-            raise TypeError('namespace must be a dictionary')
+            raise TypeError("namespace must be a dictionary")
         self.namespace = namespace
-        self.path = [builtins.__dict__,
-                     namespace]
+        self.path = [builtins.__dict__, namespace]
 
-        namespace.setdefault('__macros__', {})
+        namespace.setdefault("__macros__", {})
 
-        self.path.append(namespace['__macros__'])
+        self.path.append(namespace["__macros__"])
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer
@@ -57,8 +56,9 @@ class Completer:
         matches = []
         for w in words:
             if w[:n] == attr:
-                matches.append("{}.{}".format(
-                    expr.replace("_", "-"), w.replace("_", "-")))
+                matches.append(
+                    "{}.{}".format(expr.replace("_", "-"), w.replace("_", "-"))
+                )
         return matches
 
     def global_matches(self, text):
@@ -81,6 +81,7 @@ class Completer:
         except IndexError:
             return None
 
+
 @contextlib.contextmanager
 def completion(completer=None):
     delims = "()[]{} "
@@ -94,7 +95,7 @@ def completion(completer=None):
     if not completer:
         completer = Completer()
 
-    if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
+    if sys.platform == "darwin" and "libedit" in readline.__doc__:
         readline_bind = "bind ^I rl_complete"
     else:
         readline_bind = "tab: complete"
@@ -102,8 +103,7 @@ def completion(completer=None):
     readline.set_completer(completer.complete)
     readline.set_completer_delims(delims)
 
-    history = os.environ.get(
-        "HY_HISTORY", os.path.expanduser("~/.hy-history"))
+    history = os.environ.get("HY_HISTORY", os.path.expanduser("~/.hy-history"))
     readline.parse_and_bind("set blink-matching-paren on")
 
     try:

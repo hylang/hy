@@ -2,7 +2,6 @@ from hy.errors import HySyntaxError
 
 
 class LexException(HySyntaxError):
-
     @classmethod
     def from_lexer(cls, message, state, token):
         lineno = None
@@ -24,12 +23,7 @@ class LexException(HySyntaxError):
             lineno = lineno or 1
             colno = colno or 1
 
-        return cls(message,
-                   None,
-                   state.filename,
-                   source,
-                   lineno,
-                   colno)
+        return cls(message, None, state.filename, source, lineno, colno)
 
 
 class PrematureEndOfInput(LexException):
