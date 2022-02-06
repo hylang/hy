@@ -94,6 +94,18 @@
 
 
 (defn test-generator-scope []
+  (let [x 10]
+    (assert (= (lfor x (range 5) :if (> x 1) x) [2 3 4]))
+    (assert (= x 10)))
+
+  (let [x 10
+        l []]
+    (for [x (range 5) :if (> x 1)]
+      (.append l x))
+    (assert (= l [ 2 3 4]))
+    (assert (= x 4)))
+
+
   (setv x 20)
   (lfor n (range 10) (setv x n))
   (assert (= x 9))
