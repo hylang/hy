@@ -357,6 +357,12 @@ class ScopeGen(ScopeFn):
             self.assignments.append(node)
         return node.node
 
+    @NodeRef.wrap
+    def access(self, node):
+        if not node.name in self.iterators:
+            self.seen.append(node)
+        return node.node
+
     def iterator(self, target):
         """
         Declare an iteration variable name for this scope; as in Python, the
