@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# fmt: off
 
 import builtins
 import os
@@ -8,6 +9,7 @@ import subprocess
 from importlib.util import cache_from_source
 
 import pytest
+
 
 hy_dir = os.environ.get("HY_DIR", "")
 
@@ -71,20 +73,14 @@ def test_bin_hy_stdin_multiline():
 
 
 def test_bin_hy_history():
-    output, _ = run_cmd(
-        "hy",
-        """(+ "a" "b")
+    output, _ = run_cmd("hy", '''(+ "a" "b")
                                  (+ "c" "d")
                                  (+ "e" "f")
-                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)""",
-    )
+                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)''')
     assert '"*1: ef, *2: cd, *3: ab,"' in output
 
-    output, _ = run_cmd(
-        "hy",
-        """(raise (Exception "TEST ERROR"))
-                                 (+ "err: " (str *e))""",
-    )
+    output, _ = run_cmd("hy", '''(raise (Exception "TEST ERROR"))
+                                 (+ "err: " (str *e))''')
     assert '"err: TEST ERROR"' in output
 
 
@@ -116,14 +112,9 @@ def test_bin_hy_stdin_assignment():
 
 def test_bin_hy_multi_setv():
     # https://github.com/hylang/hy/issues/1255
-    output, _ = run_cmd(
-        "hy",
-        """(do
+    output, _ = run_cmd("hy", """(do
       (setv  it 0  it (+ it 1)  it (+ it 1))
-      it)""".replace(
-            "\n", " "
-        ),
-    )
+      it)""".replace("\n", " "))
     assert re.match(r"=>\s+2\s+=>", output)
 
 
@@ -147,19 +138,18 @@ def test_bin_hy_stdin_error_underline_alignment():
 def test_bin_hy_stdin_except_do():
     # https://github.com/hylang/hy/issues/533
 
-    output, _ = run_cmd(
-        "hy", '(try (/ 1 0) (except [ZeroDivisionError] "hello"))'
-    )  # noqa
+    output, _ = run_cmd("hy",
+        '(try (/ 1 0) (except [ZeroDivisionError] "hello"))')
     assert "hello" in output
 
-    output, _ = run_cmd(
-        "hy", '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))'
-    )  # noqa
+    output, _ = run_cmd("hy",
+        '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))')
     assert "aaa" not in output
     assert "bbb" not in output
     assert "ccc" in output
 
-    output, _ = run_cmd("hy", '(if True (do "xxx" "yyy" "zzz"))')
+    output, _ = run_cmd("hy",
+        '(if True (do "xxx" "yyy" "zzz"))')
     assert "xxx" not in output
     assert "yyy" not in output
     assert "zzz" in output
@@ -169,12 +159,9 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
     # https://github.com/hylang/hy/issues/1412
     # The chief test of interest here is the returncode assertion
     # inside run_cmd.
-    _, err = run_cmd(
-        "hy",
-        """
+    _, err = run_cmd("hy", """
         (import hy.errors)
-        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""",
-    )
+        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
     assert "AZ" in err
 
 
@@ -250,13 +237,10 @@ def test_bin_hy_syntax_errors():
 
 def test_bin_hy_stdin_bad_repr():
     # https://github.com/hylang/hy/issues/1389
-    output, err = run_cmd(
-        "hy",
-        """
+    output, err = run_cmd("hy", """
          (defclass BadRepr [] (defn __repr__ [self] (/ 0)))
          (BadRepr)
-         (+ "A" "Z")""",
-    )
+         (+ "A" "Z")""")
     assert "ZeroDivisionError" in err
     assert "AZ" in output
 
@@ -310,17 +294,9 @@ def test_bin_hy_cmd():
     assert "fizbing" in output
 
     # https://github.com/hylang/hy/issues/1894
-    output, _ = run_cmd(
-        " ".join(
-            (
-                "hy -c ",
-                repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
-                "AA",
-                "ZZ",
-                "-m",
-            )
-        )
-    )
+    output, _ = run_cmd(' '.join(('hy -c ',
+        repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
+        'AA', 'ZZ', '-m')))
     assert "<-c|AA|ZZ|-m>" in output
 
 
@@ -346,12 +322,11 @@ def test_bin_hy_missing_file():
 
 
 def test_bin_hy_file_with_args():
-    assert "usage" in run_cmd("hy tests/resources/argparse_ex.hy -h")[0]
-    assert "got c" in run_cmd("hy tests/resources/argparse_ex.hy -c bar")[0]
-    assert "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo")[0]
-    assert (
-        "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo -c bar")[0]
-    )  # noqa
+    cmd = "hy tests/resources/argparse_ex.hy"
+    assert "usage" in run_cmd(f"{cmd} -h")[0]
+    assert "got c" in run_cmd(f"{cmd} -c bar")[0]
+    assert "foo" in run_cmd(f"{cmd} -i foo")[0]
+    assert "foo" in run_cmd(f"{cmd} -i foo -c bar")[0]
 
 
 def test_bin_hyc():
