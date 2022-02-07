@@ -6,6 +6,8 @@ import keyword
 import traceback
 import types
 
+'single quoted string'
+
 from funcparserlib.parser import NoParseError, many
 
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
