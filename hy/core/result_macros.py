@@ -698,9 +698,9 @@ loopers = many(
 )
 
 
-def _compile_tags(compiler, tags, scope=None):
+def _parse_tags(compiler, tags, scope=None):
     """
-    Compiles list of generator `Tag`s from the parsed `tags` expression list.
+    Parses list of generator `Tag`s from the parsed `tags` expression list.
     When given a `ScopGen` `scope`, adds comprehension targets to the scope's
     seen iterators.
     """
@@ -719,44 +719,46 @@ def _compile_tags(compiler, tags, scope=None):
     return parsed
 
 
-def _compile_nested_for(parts, body, else_clause=None):
+def _compile_nested_for(generators, body, else_clause=None):
     """
-    Compiles a nested for loop from generator clauses `parts` with the
-    inner body of result `body`. Optionally, add an `else` clause
+    Compiles a nested for loop from generator clauses `generators` with the
+    inner body of result `body`. Optionally, add an `else_clause`
     to the outer for loop with `else_clause`
     """
 
-    def f(parts, else_clause=None):
-        if not parts:
+    def f(generators, else_clause=None):
+        if not generators:
             return body
-        (tagname, v), parts = parts[0], parts[1:]
+        (tagname, v), generators = generators[0], generators[1:]
         if tagname in ("for", "afor"):
             node = asty.AsyncFor if tagname == "afor" else asty.For
             return v[1] + node(
                 v[1],
                 target=v[0],
                 iter=v[1].force_expr,
-                body=f(parts).stmts,
+                # `else_clause` only applied to outer `for`, drop it for inner
+                # loops.
+                body=f(generators).stmts,
                 orelse=else_clause and else_clause.stmts or [],
             )
         elif tagname == "setv":
             return (
                 v[1]
                 + asty.Assign(v[1], targets=[v[0]], value=v[1].force_expr)
-                + f(parts, else_clause)
+                + f(generators, else_clause)
             )
         elif tagname == "if":
             return v + asty.If(
-                v, test=v.force_expr, body=f(parts, else_clause).stmts, orelse=[]
+                v, test=v.force_expr, body=f(generators, else_clause).stmts, orelse=[]
             )
         elif tagname == "do":
-            return v + v.expr_as_stmt() + f(parts, else_clause)
+            return v + v.expr_as_stmt() + f(generators, else_clause)
         else:
             raise ValueError(
                 "Found unsupported tag '{tagname}' while compiling generator tags"
             )
 
-    return f(parts, else_clause)
+    return f(generators, else_clause)
 
 
 def _is_real_python_generator(exprs, parts):
@@ -774,7 +776,7 @@ def _is_real_python_generator(exprs, parts):
     )
 
 
-def _generators_from_parts(tags):
+def _generators_from_tags(tags):
     """
     Compiles `ast.comprehension`'s from list of `Tag`'s `tags`.
     """
@@ -807,13 +809,13 @@ def _generators_from_parts(tags):
     return generators
 
 
-def _compile_comprehension_generator_func(
-    compiler, scope, expr, parts, node_class, body_ret
+def _compile_comprehension_as_generator_func(
+    compiler, scope, expr, generators, node_class, elt_yield_ret
 ):
     """
     The desired comprehension can't be expressed as a real Python
     comprehension. We'll write it as a nested loop in a generator function
-    instead.
+    instead and invoke it immedietly against the given `node_class`.
     """
     fname = compiler.get_anon_var()
     # Define the generator function.
@@ -870,14 +872,13 @@ def _compile_comprehension_generator_func(
             kw_defaults=[],
             defaults=[],
         ),
-        body=stmts + _compile_nested_for(parts, body_ret).stmts,
+        body=stmts + _compile_nested_for(generators, elt_yield_ret).stmts,
         decorator_list=[],
     )
-    # Immediately call the new function. Unless the user asked
-    # for a generator, wrap the call in `[].__class__(...)` or
-    # `{}.__class__(...)` or `{1}.__class__(...)` to get the
-    # right type. We don't want to just use e.g. `list(...)`
-    # because the name `list` might be rebound.
+    # Immediately call the new function. Unless the user asked for a generator,
+    # wrap the call in `[].__class__(...)` or `{}.__class__(...)` or
+    # `{1}.__class__(...)` to get the right type. We don't want to just use e.g.
+    # `list(...)` because the name `list` might be rebound.
     return ret + Result(
         expr=asty.parse(
             expr,
@@ -918,20 +919,22 @@ def compile_sequential_comprehension(compiler, expr, root, tags, final):
         )
 
     with compiler.scope.create(ScopeGen) as scope:
-        parts = _compile_parts(compiler, tags, scope)
+        # compiling elt before parts to ensure ScopeGen has seen it when it
+        # compiles the comprehension's iterators
         elt = compiler.compile(final)
+        tags = _parse_tags(compiler, tags, scope)
 
         # Produce a result.
-        if _is_real_python_generator([elt], parts):
+        if _is_real_python_generator([elt], tags):
             return node_class(
-                expr, elt=elt.expr, generators=_generators_from_parts(parts)
+                expr, elt=elt.expr, generators=_generators_from_tags(tags)
             )
         else:
             ret = elt
             val = elt.force_expr
             body_ret = ret + asty.Expr(elt, value=asty.Yield(elt, value=val))
-            return _compile_comprehension_generator_func(
-                compiler, scope, expr, parts, node_class, body_ret
+            return _compile_comprehension_as_generator_func(
+                compiler, scope, expr, tags, node_class, body_ret
             )
 
 
@@ -941,15 +944,17 @@ def compile_dict_comprehension(compiler, expr, root, tags, final):
         return Result(expr=asty.Dict(expr, keys=[], values=[]))
 
     with compiler.scope.create(ScopeGen) as scope:
-        parts = _compile_parts(compiler, tags, scope)
+        # compiling key & value before tags to ensure they are not renamed
+        # when in let scope
         key, value = map(compiler.compile, final)
+        tags = _parse_tags(compiler, tags, scope)
 
-        if _is_real_python_generator([key, value], parts):
+        if _is_real_python_generator([key, value], tags):
             return asty.DictComp(
                 expr,
                 key=key.expr,
                 value=value.expr,
-                generators=_generators_from_parts(parts),
+                generators=_generators_from_tags(tags),
             )
         else:
             ret = key + value
@@ -957,8 +962,8 @@ def compile_dict_comprehension(compiler, expr, root, tags, final):
                 key, ctx=ast.Load(), elts=[key.force_expr, value.force_expr]
             )
             body_ret = ret + asty.Expr(value, value=asty.Yield(value, value=val))
-            return _compile_comprehension_generator_func(
-                compiler, scope, expr, parts, asty.DictComp, body_ret
+            return _compile_comprehension_as_generator_func(
+                compiler, scope, expr, tags, asty.DictComp, body_ret
             )
 
 
@@ -969,15 +974,14 @@ def compile_for(compiler, expr, root, tags, final):
     if not tags[0]:
         return Result(expr=asty.Constant(expr, value=None))
 
-    parts = _compile_parts(compiler, tags[0])
+    # compile parts before body and else expr to ensure iteration var is
+    # renamed when in let
+    parts = _parse_tags(compiler, tags[0])
     body, else_expr = final
     if else_expr is not None:
         else_expr = compiler._compile_branch(else_expr)
         else_expr += else_expr.expr_as_stmt()
 
-    # The desired comprehension can't be expressed as a
-    # real Python comprehension. We'll write it as a nested
-    # loop in a function instead.
     if body:
         bd = compiler._compile_branch(body)
         body_ret = bd + bd.expr_as_stmt()
