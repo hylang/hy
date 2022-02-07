@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# fmt: off
 
 import builtins
 import os
@@ -8,6 +9,7 @@ import subprocess
 from importlib.util import cache_from_source
 
 import pytest
+
 
 hy_dir = os.environ.get("HY_DIR", "")
 
@@ -38,7 +40,6 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
     assert p.wait() == expect
     return output
 
-
 def rm(fpath):
     try:
         os.remove(fpath)
@@ -54,12 +55,12 @@ def test_bin_hy():
 
 
 def test_bin_hy_stdin():
-    output, _ = run_cmd("hy", "(koan)")
-    assert "monk" in output
+    output, _ = run_cmd("hy", '(.upper "hello")')
+    assert "HELLO" in output
 
-    output, _ = run_cmd("hy --spy", "(koan)")
-    assert "monk" in output
-    assert "\n  Ummon" in output
+    output, _ = run_cmd("hy --spy", '(.upper "hello")')
+    assert ".upper()" in output
+    assert "HELLO" in output
 
     # --spy should work even when an exception is thrown
     output, _ = run_cmd("hy --spy", "(foof)")
@@ -72,20 +73,14 @@ def test_bin_hy_stdin_multiline():
 
 
 def test_bin_hy_history():
-    output, _ = run_cmd(
-        "hy",
-        """(+ "a" "b")
+    output, _ = run_cmd("hy", '''(+ "a" "b")
                                  (+ "c" "d")
                                  (+ "e" "f")
-                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)""",
-    )
+                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)''')
     assert '"*1: ef, *2: cd, *3: ab,"' in output
 
-    output, _ = run_cmd(
-        "hy",
-        """(raise (Exception "TEST ERROR"))
-                                 (+ "err: " (str *e))""",
-    )
+    output, _ = run_cmd("hy", '''(raise (Exception "TEST ERROR"))
+                                 (+ "err: " (str *e))''')
     assert '"err: TEST ERROR"' in output
 
 
@@ -117,14 +112,9 @@ def test_bin_hy_stdin_assignment():
 
 def test_bin_hy_multi_setv():
     # https://github.com/hylang/hy/issues/1255
-    output, _ = run_cmd(
-        "hy",
-        """(do
+    output, _ = run_cmd("hy", """(do
       (setv  it 0  it (+ it 1)  it (+ it 1))
-      it)""".replace(
-            "\n", " "
-        ),
-    )
+      it)""".replace("\n", " "))
     assert re.match(r"=>\s+2\s+=>", output)
 
 
@@ -148,19 +138,18 @@ def test_bin_hy_stdin_error_underline_alignment():
 def test_bin_hy_stdin_except_do():
     # https://github.com/hylang/hy/issues/533
 
-    output, _ = run_cmd(
-        "hy", '(try (/ 1 0) (except [ZeroDivisionError] "hello"))'
-    )  # noqa
+    output, _ = run_cmd("hy",
+        '(try (/ 1 0) (except [ZeroDivisionError] "hello"))')
     assert "hello" in output
 
-    output, _ = run_cmd(
-        "hy", '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))'
-    )  # noqa
+    output, _ = run_cmd("hy",
+        '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))')
     assert "aaa" not in output
     assert "bbb" not in output
     assert "ccc" in output
 
-    output, _ = run_cmd("hy", '(if True (do "xxx" "yyy" "zzz"))')
+    output, _ = run_cmd("hy",
+        '(if True (do "xxx" "yyy" "zzz"))')
     assert "xxx" not in output
     assert "yyy" not in output
     assert "zzz" in output
@@ -170,12 +159,9 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
     # https://github.com/hylang/hy/issues/1412
     # The chief test of interest here is the returncode assertion
     # inside run_cmd.
-    _, err = run_cmd(
-        "hy",
-        """
+    _, err = run_cmd("hy", """
         (import hy.errors)
-        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""",
-    )
+        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
     assert "AZ" in err
 
 
@@ -251,13 +237,10 @@ def test_bin_hy_syntax_errors():
 
 def test_bin_hy_stdin_bad_repr():
     # https://github.com/hylang/hy/issues/1389
-    output, err = run_cmd(
-        "hy",
-        """
+    output, err = run_cmd("hy", """
          (defclass BadRepr [] (defn __repr__ [self] (/ 0)))
          (BadRepr)
-         (+ "A" "Z")""",
-    )
+         (+ "A" "Z")""")
     assert "ZeroDivisionError" in err
     assert "AZ" in output
 
@@ -298,10 +281,10 @@ def test_bin_hy_ignore_python_env():
 
 
 def test_bin_hy_cmd():
-    output, _ = run_cmd('hy -c "(koan)"')
-    assert "monk" in output
+    output, _ = run_cmd("""hy -c '(print (.upper "hello"))'""")
+    assert "HELLO" in output
 
-    _, err = run_cmd('hy -c "(koan"', expect=1)
+    _, err = run_cmd("""hy -c '(print (.upper "hello")'""", expect=1)
     assert "Premature end of input" in err
 
     # https://github.com/hylang/hy/issues/1879
@@ -311,29 +294,21 @@ def test_bin_hy_cmd():
     assert "fizbing" in output
 
     # https://github.com/hylang/hy/issues/1894
-    output, _ = run_cmd(
-        " ".join(
-            (
-                "hy -c ",
-                repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
-                "AA",
-                "ZZ",
-                "-m",
-            )
-        )
-    )
+    output, _ = run_cmd(' '.join(('hy -c ',
+        repr('(import sys) (print (+ "<" (.join "|" sys.argv) ">"))'),
+        'AA', 'ZZ', '-m')))
     assert "<-c|AA|ZZ|-m>" in output
 
 
 def test_bin_hy_icmd():
-    output, _ = run_cmd('hy -i "(koan)"', "(ideas)")
-    assert "monk" in output
-    assert "figlet" in output
+    output, _ = run_cmd("""hy -i '(.upper "hello")'""", '(.upper "bye")')
+    assert "HELLO" in output
+    assert "BYE" in output
 
 
 def test_bin_hy_icmd_file():
-    output, _ = run_cmd("hy -i resources/icmd_test_file.hy", "(ideas)")
-    assert "Hy!" in output
+    output, _ = run_cmd("hy -i tests/resources/icmd_test_file.hy", '(.upper species)')
+    assert "CUTTLEFISH" in output
 
 
 def test_bin_hy_icmd_and_spy():
@@ -347,12 +322,11 @@ def test_bin_hy_missing_file():
 
 
 def test_bin_hy_file_with_args():
-    assert "usage" in run_cmd("hy tests/resources/argparse_ex.hy -h")[0]
-    assert "got c" in run_cmd("hy tests/resources/argparse_ex.hy -c bar")[0]
-    assert "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo")[0]
-    assert (
-        "foo" in run_cmd("hy tests/resources/argparse_ex.hy -i foo -c bar")[0]
-    )  # noqa
+    cmd = "hy tests/resources/argparse_ex.hy"
+    assert "usage" in run_cmd(f"{cmd} -h")[0]
+    assert "got c" in run_cmd(f"{cmd} -c bar")[0]
+    assert "foo" in run_cmd(f"{cmd} -i foo")[0]
+    assert "foo" in run_cmd(f"{cmd} -i foo -c bar")[0]
 
 
 def test_bin_hyc():
@@ -378,16 +352,20 @@ def test_bin_hyc_missing_file():
 
 
 def test_bin_hy_builtins():
-    # hy.cmdline replaces builtins.exit and builtins.quit
-    # for use by hy's repl.
-    import hy.cmdline  # NOQA
+    # The REPL replaces `builtins.help` etc.
 
-    # this test will fail if run from IPython because IPython deletes
-    # builtins.exit and builtins.quit
-    assert str(builtins.exit) == "Use (exit) or Ctrl-D (i.e. EOF) to exit"
-    assert type(builtins.exit) is hy.cmdline.HyQuitter
-    assert str(builtins.quit) == "Use (quit) or Ctrl-D (i.e. EOF) to exit"
-    assert type(builtins.quit) is hy.cmdline.HyQuitter
+    output, _ = run_cmd("hy", 'quit')
+    assert "Use (quit) or Ctrl-D (i.e. EOF) to exit" in output
+
+    output, _ = run_cmd("hy", 'exit')
+    assert "Use (exit) or Ctrl-D (i.e. EOF) to exit" in output
+
+    output, _ = run_cmd("hy", 'help')
+    assert "Use (help) for interactive help, or (help object) for help about object." in output
+
+    # Just importing `hy.cmdline` doesn't modify these objects.
+    import hy.cmdline
+    assert "help(object)" in str(builtins.help)
 
 
 def test_bin_hy_no_main():

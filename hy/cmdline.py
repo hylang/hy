@@ -1,7 +1,3 @@
-import colorama
-
-colorama.init()
-
 import argparse
 import ast
 import builtins
@@ -68,11 +64,6 @@ class HyHelper:
         import pydoc
 
         return pydoc.help(*args, **kwds)
-
-
-builtins.quit = HyQuitter("quit")
-builtins.exit = HyQuitter("exit")
-builtins.help = HyHelper()
 
 
 @contextmanager
@@ -406,71 +397,6 @@ class HyREPL(code.InteractiveConsole):
         return res
 
 
-@macro("koan")
-def koan_macro(ETname):
-    return Expression(
-        [
-            Symbol("print"),
-            String(
-                """
-  Ummon asked the head monk, "What sutra are you lecturing on?"
-  "The Nirvana Sutra."
-  "The Nirvana Sutra has the Four Virtues, hasn't it?"
-  "It has."
-  Ummon asked, picking up a cup, "How many virtues has this?"
-  "None at all," said the monk.
-  "But ancient people said it had, didn't they?" said Ummon.
-  "What do you think of what they said?"
-  Ummon struck the cup and asked, "You understand?"
-  "No," said the monk.
-  "Then," said Ummon, "You'd better go on with your lectures on the sutra."
-"""
-            ),
-        ]
-    )
-
-
-@macro("ideas")
-def ideas_macro(ETname):
-    return Expression(
-        [
-            Symbol("print"),
-            String(
-                r"""
-
-    => (import [sh [figlet]])
-    => (figlet "Hi, Hy!")
-     _   _ _     _   _       _
-    | | | (_)   | | | |_   _| |
-    | |_| | |   | |_| | | | | |
-    |  _  | |_  |  _  | |_| |_|
-    |_| |_|_( ) |_| |_|\__, (_)
-            |/         |___/
-
-
-;;; string things
-(.join ", " ["what" "the" "heck"])
-
-
-;;; this one plays with command line bits
-(require hyrule [->])
-(import [sh [cat grep]])
-(-> (cat "/usr/share/dict/words") (grep "-E" "bro$"))
-
-
-;;; filtering a list w/ a lambda
-(filter (fn [x] (= (% x 2) 0)) (range 0 10))
-
-
-;;; swaggin' functional bits (Python rulez)
-(max (map (fn [x] (len x)) ["hi" "my" "name" "is" "paul"]))
-
-"""
-            ),
-        ]
-    )
-
-
 def set_path(filename):
     """Emulate Python cmdline behavior by setting `sys.path` relative
     to the executed file's location."""
@@ -496,10 +422,16 @@ def run_command(source, filename=None):
 
 
 def run_repl(hr=None, **kwargs):
-    import platform
+    import platform, colorama
 
     sys.ps1 = "=> "
     sys.ps2 = "... "
+
+    builtins.quit = HyQuitter('quit')
+    builtins.exit = HyQuitter('exit')
+    builtins.help = HyHelper()
+
+    colorama.init()
 
     if not hr:
         hr = HyREPL(**kwargs)

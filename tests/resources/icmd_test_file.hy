@@ -1,1 +1,1 @@
-(print "Hy!")
+(setv species "cuttlefish")

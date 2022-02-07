@@ -50,8 +50,7 @@ def check_trace_output(capsys, execinfo, expected):
     assert output[3:] == expected
 
 
-def test_lex_exception():
-    """Ensure tokenize throws a fit on a partial input"""
+def test_lex_no_delim():
     with peoi():
         tokenize("(foo")
     with peoi():
@@ -62,8 +61,7 @@ def test_lex_exception():
         tokenize('(foo "bar')
 
 
-def test_unbalanced_exception():
-    """Ensure the tokenization fails on unbalanced expressions"""
+def test_lex_extra_end_delim():
     with lexe():
         tokenize("(bar))")
     with lexe():
@@ -71,7 +69,6 @@ def test_unbalanced_exception():
 
 
 def test_lex_single_quote_err():
-    'Ensure tokenizing "\' " throws a LexException that can be stringified'
     # https://github.com/hylang/hy/issues/1252
     with lexe() as execinfo:
         tokenize("' ")
