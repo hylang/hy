@@ -422,13 +422,15 @@ def run_command(source, filename=None):
 
 
 def run_repl(hr=None, **kwargs):
-    import platform, colorama
+    import platform
+
+    import colorama
 
     sys.ps1 = "=> "
     sys.ps2 = "... "
 
-    builtins.quit = HyQuitter('quit')
-    builtins.exit = HyQuitter('exit')
+    builtins.quit = HyQuitter("quit")
+    builtins.exit = HyQuitter("exit")
     builtins.help = HyHelper()
 
     colorama.init()
