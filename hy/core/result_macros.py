@@ -32,6 +32,7 @@ from hy.model_patterns import (
     dolike,
     keepsym,
     notpexpr,
+    parse_if,
     pexpr,
     sym,
     tag,
@@ -1059,13 +1060,13 @@ def compile_with_expression(compiler, expr, root, args, body):
 
 
 # ------------------------------------------------
-# * `switch`
+# * `match`
 # ------------------------------------------------
-
 _pattern = forward_decl()
 _pattern.define(
     (
         SYM
+        | KEYWORD
         | LITERAL
         | brackets(many(_pattern | unpack("iterable")))
         | pexpr(keepsym("."), many(SYM))
@@ -1074,7 +1075,7 @@ _pattern.define(
         | braces(many(LITERAL + _pattern), maybe(pvalue("unpack-mapping", SYM)))
         | pexpr(
             notsym(".", "|", ",", "unpack-mapping", "unpack-iterable"),
-            many(_pattern),
+            many(parse_if(lambda x: not isinstance(x, Keyword), _pattern)),
             many(KEYWORD + _pattern),
         )
     )
@@ -1224,6 +1225,16 @@ def compile_pattern(compiler, pattern):
             patterns=[compile_pattern(compiler, v) for v in args],
             kwd_attrs=[kwd.name for kwd in keywords],
             kwd_patterns=[compile_pattern(compiler, value) for value in values],
+        )
+    elif isinstance(value, Keyword):
+        return asty.MatchClass(
+            value,
+            cls=compiler.compile(Symbol("hy.models.Keyword")).expr,
+            patterns=[
+                asty.MatchValue(value, value=asty.Constant(value, value=value.name))
+            ],
+            kwd_attrs=[],
+            kwd_patterns=[],
         )
     else:
         raise compiler._syntax_error(value, "unsupported")

@@ -9,8 +9,13 @@ Bug Fixes
   CPython bug regarding the standard module `curses` (`bpo-2675`_).
 * Elements of `builtins` such as `help` are no longer overridden until
   the Hy REPL actually starts.
+* Crash when using Keywords as `match` value.
 
 .. _bpo-2675: https://bugs.python.org/issue2675#msg265564
+
+New Features
+------------------------------
+* new function `hy.model_patterns.parse_if`
 
 1.0a4 (released 2022-01-09)
 ==============================

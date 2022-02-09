@@ -37,6 +37,9 @@
   (assert (= [0 1] (match [0 1 2] [#* x 2] x)))
   (assert (= 5 (match {"hello" 5} {"hello" x} x)))
   (assert (= :as (match 1 1 :if True ':as)))
+  (assert (= :as (match :hello
+                        :hello ':as
+                        any-binding :not-found)))
   (assert (is (match {}
                      {0 [1 2 {}]} 0
                      {0 [1 2 {}] 1 [[]]} 1
