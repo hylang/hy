@@ -5,6 +5,8 @@ import sys
 import traceback
 from contextlib import contextmanager
 from functools import reduce
+from types import TracebackType
+from typing import Generator, Optional, Set, Type
 
 from colorama import Fore
 
@@ -35,25 +37,26 @@ class HyLanguageError(HyError):
 
     def __init__(
         self,
-        message,
-        expression=None,
-        filename=None,
-        source=None,
-        lineno=1,
-        colno=1,
+        message: str,
+        expression: Optional[object] = None,
+        filename: Optional[str] = None,
+        source: Optional[str] = None,
+        lineno: int = 1,
+        colno: int = 1,
     ):
         """
         Args:
-            message (str): The message to display for this error.
-            expression (Optional[Object]): The Hy expression generating this error.
-            filename (Optional[str]): The filename for the source code generating this error.
-                Expression-provided information will take precedence of this value. Defaults to `None`.
-            source (Optional[str]): The actual source code generating this error.  Expression-provided
-                information will take precedence of this value. Defaults to `None`.
-            lineno (int): The line number of the error.  Expression-provided information will
+            message: The message to display for this error.
+            expression: The Hy expression generating this error.
+            filename: The filename for the source code generating this error.
+                Expression-provided information will take precedence of this value.
+                Defaults to `None`.
+            source: The actual source code generating this error.  Expression-provided
+                information will take precedence of this value.  Defaults to `None`.
+            lineno: The line number of the error.  Expression-provided information will
                 take precedence of this value. Defaults to `1`.
-            colno (int): The column number of the error.  Expression-provided information
-                will take precedence of this value. Defaults to `1`.
+            colno: The column number of the error.  Expression-provided information will
+                take precedence of this value. Defaults to `1`.
         """
         self.msg = message
         self.compute_lineinfo(expression, filename, source, lineno, colno)
@@ -64,7 +67,14 @@ class HyLanguageError(HyError):
         else:
             super().__init__(message)
 
-    def compute_lineinfo(self, expression, filename, source, lineno, colno):
+    def compute_lineinfo(
+        self,
+        expression: Optional[object],
+        filename: Optional[str],
+        source: Optional[str],
+        lineno: int,
+        colno: int,
+    ) -> None:
 
         # NOTE: We use `SyntaxError`'s field names (i.e. `text`, `offset`,
         # `msg`) for compatibility and print-outs.
@@ -98,7 +108,7 @@ class HyLanguageError(HyError):
             self.offset = colno
             self.arrow_offset = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Provide an exception message that includes SyntaxError-like source
         line information when available.
         """
@@ -207,7 +217,7 @@ class HyWrapperError(HyError, TypeError):
     """
 
 
-def _module_filter_name(module_name):
+def _module_filter_name(module_name: str) -> Optional[str]:
     try:
         compiler_loader = pkgutil.get_loader(module_name)
         if not compiler_loader:
@@ -229,7 +239,7 @@ def _module_filter_name(module_name):
         return None
 
 
-_tb_hidden_modules = {
+_tb_hidden_modules: Set[str] = {
     m
     for m in map(
         _module_filter_name,
@@ -257,7 +267,11 @@ _tb_hidden_modules.update(
 )
 
 
-def hy_exc_filter(exc_type, exc_value, exc_traceback):
+def hy_exc_filter(
+    exc_type: Type[BaseException],
+    exc_value: BaseException,
+    exc_traceback: TracebackType,
+) -> str:
     """Produce exceptions print-outs with all frames originating from the
     modules in `_tb_hidden_modules` filtered out.
 
@@ -286,7 +300,11 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
     return output
 
 
-def hy_exc_handler(exc_type, exc_value, exc_traceback):
+def hy_exc_handler(
+    exc_type: Type[BaseException],
+    exc_value: BaseException,
+    exc_traceback: TracebackType,
+) -> None:
     """A `sys.excepthook` handler that uses `hy_exc_filter` to
     remove internal Hy frames from a traceback print-out.
     """
@@ -302,7 +320,7 @@ def hy_exc_handler(exc_type, exc_value, exc_traceback):
 
 
 @contextmanager
-def filtered_hy_exceptions():
+def filtered_hy_exceptions() -> Generator[None, None, None]:
     """Temporarily apply a `sys.excepthook` that filters Hy internal frames
     from tracebacks.
 
