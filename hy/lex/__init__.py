@@ -166,14 +166,15 @@ def mangle(s):
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
         s = "hyx_" + "".join(
-            c if c != mangle_delim and isidentifier("S" + c)
-            # We prepend the "S" because some characters aren't
-            # allowed at the start of an identifier.
-            else "{0}{1}{0}".format(
-                mangle_delim,
-                unicodedata.name(c, "").lower().replace("-", "H").replace(" ", "_")
-                or "U{}".format(unicode_char_to_hex(c)),
-            )
+            c
+               if c != mangle_delim and isidentifier('S' + c)
+                 # We prepend the "S" because some characters aren't
+                 # allowed at the start of an identifier.
+               else '{0}{1}{0}'.format(
+                   mangle_delim,
+                   unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
+                       or 'U{}'.format(unicode_char_to_hex(c))
+               )
             for c in s
         )
 
