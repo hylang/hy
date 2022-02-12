@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import operator
 import re
+import typing as T
 from contextlib import contextmanager
 from fractions import Fraction
 from functools import reduce
@@ -34,8 +37,10 @@ class _ColoredModel:
     Mixin that provides a helper function for models that have color.
     """
 
-    def _colored(self, text):
-        if COLORED:
+    color: T.Optional[str]
+
+    def _colored(self, text: str) -> str:
+        if COLORED and self.color is not None:
             return self.color + text + Fore.RESET
         else:
             return text
@@ -52,9 +57,14 @@ class Object:
     `end_column` 3.
     """
 
+    _start_line: int
+    _end_line: int
+    _start_column: int
+    _end_column: int
+
     properties = ["module", "_start_line", "_end_line", "_start_column", "_end_column"]
 
-    def replace(self, other, recursive=False):
+    def replace(self, other: T.Any, recursive=False):
         if isinstance(other, Object):
             for attr in self.properties:
                 if not hasattr(self, attr) and hasattr(other, attr):
@@ -73,7 +83,7 @@ class Object:
         return getattr(self, "_start_line", 1)
 
     @start_line.setter
-    def start_line(self, value):
+    def start_line(self, value: int):
         self._start_line = value
 
     @property
@@ -81,7 +91,7 @@ class Object:
         return getattr(self, "_start_column", 1)
 
     @start_column.setter
-    def start_column(self, value):
+    def start_column(self, value: int):
         self._start_column = value
 
     @property
@@ -89,7 +99,7 @@ class Object:
         return getattr(self, "_end_line", 1)
 
     @end_line.setter
-    def end_line(self, value):
+    def end_line(self, value: int):
         self._end_line = value
 
     @property
@@ -97,7 +107,7 @@ class Object:
         return getattr(self, "_end_column", 1)
 
     @end_column.setter
-    def end_column(self, value):
+    def end_column(self, value: int):
         self._end_column = value
 
     def __repr__(self):
@@ -115,8 +125,8 @@ class Object:
         return super().__hash__()
 
 
-_wrappers = {}
-_seen = set()
+_wrappers: dict[type, T.Any] = {}
+_seen: set[int] = set()
 
 
 def as_model(x):
@@ -181,7 +191,9 @@ class String(Object, str):
     Python version.
     """
 
-    def __new__(cls, s=None, brackets=None):
+    brackets: T.Optional[str]
+
+    def __new__(cls, s: str, brackets: T.Optional[str] = None):
         value = super().__new__(cls, s)
         if brackets is not None and f"]{brackets}]" in value:
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
@@ -215,7 +227,7 @@ class Symbol(Object, str):
     Hy Symbol. Basically a string.
     """
 
-    def __new__(cls, s, from_parser=False):
+    def __new__(cls, s: str, from_parser: bool = False):
         s = str(s)
         if not from_parser:
             # Check that the symbol is syntactically legal.
@@ -234,7 +246,7 @@ _wrappers[type(None)] = lambda foo: Symbol("None")
 class Keyword(Object):
     """Generic Hy Keyword object."""
 
-    __slots__ = ["name"]
+    __slots__: list[str] = ["name"]
 
     def __init__(self, value, from_parser=False):
         value = str(value)
@@ -392,7 +404,9 @@ class Sequence(Object, tuple, _ColoredModel):
         )
 
     def __getslice__(self, start, end):
-        return self.__class__(super().__getslice__(start, end))
+        return T.cast(
+            tuple, self.__class__(super(tuple, self)).__getslice__(start, end)
+        )
 
     def __getitem__(self, item):
         ret = super().__getitem__(item)
@@ -464,6 +478,8 @@ class FString(Sequence):
     Mimics ast.JoinedStr, but using String and FComponent.
     """
 
+    brackets: T.Optional[str]
+
     def __new__(cls, s=None, brackets=None):
         value = super().__new__(
             cls,
@@ -482,7 +498,7 @@ class FString(Sequence):
 
         if brackets is not None and _string_in_node(f"]{brackets}]", value):
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
-        value.brackets = brackets
+        setattr(value, "brackets", brackets)
         return value
 
     def __repr__(self):
@@ -505,7 +521,7 @@ class List(Sequence):
     color = Fore.CYAN
 
 
-def recwrap(f):
+def recwrap(f: T.Callable):
     def lambda_to_return(l):
         _seen.add(id(l))
         try:
@@ -582,6 +598,8 @@ class Expression(Sequence):
     Hy S-Expression. Basically just a list.
     """
 
+    source: str
+    filename: str
     color = Fore.YELLOW
 
 
