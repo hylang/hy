@@ -137,3 +137,17 @@ def tag(tag_name, parser):
     with `tag` set to the given tag name and `value` set to the parser's
     value."""
     return parser >> (lambda x: Tag(tag_name, x))
+
+
+def parse_if(pred, parser):
+    """
+    Return a parser that parses a token with `parser` if it satisfies the
+    predicate `pred`.
+    """
+
+    @Parser
+    def _parse_if(tokens, s):
+        some(pred).run(tokens, s)
+        return parser.run(tokens, s)
+
+    return _parse_if

@@ -235,6 +235,7 @@ class Keyword(Object):
     """Generic Hy Keyword object."""
 
     __slots__ = ["name"]
+    __match_args__ = ("name",)
 
     def __init__(self, value, from_parser=False):
         value = str(value)
