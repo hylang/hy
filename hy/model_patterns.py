@@ -1,10 +1,12 @@
 "Parser combinators for pattern-matching Hy model trees."
 
-from collections import namedtuple
 from functools import reduce
 from itertools import repeat
 from math import isinf
 from operator import add
+from typing import Any, Callable, NamedTuple
+from typing import Sequence as SequenceT
+from typing import Type, TypeVar, Union
 
 from funcparserlib.parser import (
     NoParseError,
@@ -26,6 +28,7 @@ from hy.models import (
     Integer,
     Keyword,
     List,
+    Object,
     String,
     Symbol,
 )
@@ -35,6 +38,9 @@ SYM = some(lambda x: isinstance(x, Symbol))
 KEYWORD = some(lambda x: isinstance(x, Keyword))
 STR = some(lambda x: isinstance(x, String))  # matches literal strings only!
 LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes)))
+
+
+_T = TypeVar("_T")
 
 
 def sym(wanted):
@@ -47,39 +53,41 @@ def keepsym(wanted):
     return _sym(wanted)
 
 
-def _sym(wanted, f=lambda x: x):
+def _sym(wanted: str, f: Callable = lambda x: x):
     if wanted.startswith(":"):
         return f(a(Keyword(wanted[1:])))
     return f(some(lambda x: x == Symbol(wanted)))
 
 
-def whole(parsers):
+def whole(parsers: SequenceT[Parser]):
     """Parse the parsers in the given list one after another, then
     expect the end of the input."""
     if len(parsers) == 0:
-        return finished >> (lambda x: [])
+        return finished >> (lambda _: [])
     if len(parsers) == 1:
         return parsers[0] + finished >> (lambda x: x[:-1])
     return reduce(add, parsers) + skip(finished)
 
 
-def _grouped(group_type, parsers):
+def _grouped(group_type: Type[Object], parsers: SequenceT[Parser]):
     return some(lambda x: isinstance(x, group_type)) >> (
-        lambda x: group_type(whole(parsers).parse(x)).replace(x, recursive=False)
+        lambda x: group_type(whole(parsers).parse(x)).replace(  # type:ignore
+            x, recursive=False
+        )
     )
 
 
-def brackets(*parsers):
+def brackets(*parsers: Parser):
     "Parse the given parsers inside square brackets."
     return _grouped(List, parsers)
 
 
-def braces(*parsers):
+def braces(*parsers: Parser):
     "Parse the given parsers inside curly braces"
     return _grouped(Dict, parsers)
 
 
-def pexpr(*parsers):
+def pexpr(*parsers: Parser):
     "Parse the given parsers inside a parenthesized expression."
     return _grouped(Expression, parsers)
 
@@ -107,7 +115,7 @@ def unpack(kind):
     )
 
 
-def times(lo, hi, parser):
+def times(lo: int, hi: Union[int, float], parser: Parser[Any, _T]) -> Parser[Any, _T]:
     """Parse `parser` several times (`lo` to `hi`) in a row. `hi` can be
     float('inf'). The result is a list no matter the number of instances."""
 
@@ -119,7 +127,7 @@ def times(lo, hi, parser):
             result.append(v)
         end = s.max
         try:
-            for _ in repeat(1) if isinf(hi) else range(hi - lo):
+            for _ in repeat(1) if isinf(hi) else range(int(hi - lo)):
                 (v, s) = parser.run(tokens, s)
                 result.append(v)
         except NoParseError as e:
@@ -129,10 +137,15 @@ def times(lo, hi, parser):
     return f
 
 
-Tag = namedtuple("Tag", ["tag", "value"])
+class Tag(NamedTuple):
+    tag: str
+
+    # A generic should be used but is blocked on
+    # https://github.com/python/mypy/issues/685
+    value: Any
 
 
-def tag(tag_name, parser):
+def tag(tag_name: str, parser: Parser[_T, Any]) -> Parser[_T, Tag]:
     """Matches the given parser and produces a named tuple `(Tag tag value)`
     with `tag` set to the given tag name and `value` set to the parser's
     value."""
