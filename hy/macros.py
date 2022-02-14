@@ -163,9 +163,8 @@ def require(source_module, target_module, assignments, prefix=""):
         try:
             if source_module.startswith("."):
                 source_dirs = source_module.split(".")
-                target_dirs = getattr(target_module, "__name__", target_module).split(
-                    "."
-                )
+                target_dirs = (getattr(target_module, "__name__", target_module)
+                    .split("."))
                 while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
                     source_dirs.pop(0)
                     target_dirs.pop()
