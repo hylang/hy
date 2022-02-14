@@ -160,17 +160,16 @@ def require(source_module, target_module, assignments, prefix=""):
         return False
 
     if not inspect.ismodule(source_module):
+        package = None
+        if source_module.startswith("."):
+            source_dirs = source_module.split(".")
+            target_dirs = (getattr(target_module, "__name__", target_module)
+                .split("."))
+            while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
+                source_dirs.pop(0)
+                target_dirs.pop()
+            package = ".".join(target_dirs + source_dirs[:-1])
         try:
-            if source_module.startswith("."):
-                source_dirs = source_module.split(".")
-                target_dirs = (getattr(target_module, "__name__", target_module)
-                    .split("."))
-                while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
-                    source_dirs.pop(0)
-                    target_dirs.pop()
-                package = ".".join(target_dirs + source_dirs[:-1])
-            else:
-                package = None
             source_module = importlib.import_module(source_module, package)
         except ImportError as e:
             raise HyRequireError(e.args[0]).with_traceback(None)
@@ -178,24 +177,23 @@ def require(source_module, target_module, assignments, prefix=""):
     source_macros = source_module.__dict__.setdefault("__macros__", {})
 
     if not source_module.__macros__:
-        if assignments != "ALL":
-            for name, alias in assignments:
-                try:
-                    require(
-                        f"{source_module.__name__}.{mangle(name)}",
-                        target_module,
-                        "ALL",
-                        prefix=alias,
-                    )
-                except HyRequireError as e:
-                    raise HyRequireError(
-                        f"Cannot import name '{name}'"
-                        f" from '{source_module.__name__}'"
-                        f" ({source_module.__file__})"
-                    )
-            return True
-        else:
+        if assignments == "ALL":
             return False
+        for name, alias in assignments:
+            try:
+                require(
+                    f"{source_module.__name__}.{mangle(name)}",
+                    target_module,
+                    "ALL",
+                    prefix=alias,
+                )
+            except HyRequireError as e:
+                raise HyRequireError(
+                    f"Cannot import name '{name}'"
+                    f" from '{source_module.__name__}'"
+                    f" ({source_module.__file__})"
+                )
+        return True
 
     target_macros = target_namespace.setdefault("__macros__", {})
 
@@ -203,11 +201,9 @@ def require(source_module, target_module, assignments, prefix=""):
         prefix += "."
 
     if assignments == "ALL":
-        name_assigns = [(k, k) for k in source_macros.keys()]
-    else:
-        name_assigns = assignments
+        assignments = [(k, k) for k in source_macros.keys()]
 
-    for name, alias in name_assigns:
+    for name, alias in assignments:
         _name = mangle(name)
         alias = mangle(
             "#" + prefix + unmangle(alias)[1:]
