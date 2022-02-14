@@ -22,82 +22,121 @@ evaluate all arguments."
   functools [reduce]
   operator)
 
-(defn + [#* args]
-  "Shadowed `+` operator adds `args`."
+
+(defmacro defop [op lambda-list doc #* body]
+  "An internal macro for concisely describing the docstrings of operators."
+  (setv name (get doc 0))
+  (setv d (dfor
+    [k v] (zip (cut doc 1 None 2) (cut doc 2 None 2))
+    [k.name (if (= v 'None) None (str v))]))
+  (setv pyop (.get d "pyop" (.replace (str op) "-" " ")))
+  `(defn ~op ~lambda-list
+    ~(.format "The {} operator. {}\n\n{}"
+      name
+      "Its effect can be defined by the equivalent Python:"
+      (.join "\n" (filter (fn [x] x) [
+        (when (in "nullary" d)
+          f"- ``({op})`` → ``{(:nullary d)}``")
+        (when (in "unary" d)
+          f"- ``({op} x)`` → ``{(:unary d)}``")
+        (when (.get d "binary" True)
+          f"- ``({op} x y)`` → ``x {pyop} y``")
+        (when (.get d "n-ary" True)
+          f"- ``({op} a1 a2 … an)`` → ``a1 {pyop} a2 {pyop} … {pyop} an``")])))
+    ~@body))
+
+
+(defop + [#* args]
+  ["addition"
+    :nullary "0"
+    :unary "+x"]
   (if (= (len args) 0)
       0
       (if (= (len args) 1)
           (+ (get args 0))
           (reduce operator.add args))))
 
-(defn - [a1 #* a-rest]
-  "Shadowed `-` operator subtracts each `a-rest` from `a1`."
+(defop - [a1 #* a-rest]
+  ["subtraction"
+    :pyop "-"
+    :unary "-x"]
   (if a-rest
     (reduce operator.sub a-rest a1)
     (- a1)))
 
-(defn * [#* args]
-  "Shadowed `*` operator multiplies `args`."
+(defop * [#* args]
+  ["multiplication"
+    :nullary "0"
+    :unary "x"]
   (if (= (len args) 0)
       1
       (if (= (len args) 1)
           (get args 0)
           (reduce operator.mul args))))
 
-(defn ** [a1 a2 #* a-rest]
-  "Shadowed `**` operator takes `a1` to the power of `a2`, ..., `a-rest`."
+(defop ** [a1 a2 #* a-rest]
+  ["exponentiation"]
   ; We use `_foldr` instead of `reduce` because exponentiation
   ; is right-associative.
   (_foldr operator.pow (+ (, a1 a2) a-rest)))
 (defn _foldr [f xs]
   (reduce (fn [x y] (f y x)) (cut xs None None -1)))
 
-(defn / [a1 #* a-rest]
-  "Shadowed `/` operator divides `a1` by each `a-rest`."
+(defop / [a1 #* a-rest]
+  ["division"
+    :unary "1 / x"]
   (if a-rest
     (reduce operator.truediv a-rest a1)
     (/ 1 a1)))
 
-(defn // [a1 a2 #* a-rest]
-  "Shadowed `//` operator floor divides `a1` by `a2`, ..., `a-rest`."
+(defop // [a1 a2 #* a-rest]
+  ["floor division"]
   (reduce operator.floordiv (+ (, a2) a-rest) a1))
 
-(defn % [x y]
-  "Shadowed `%` operator takes `x` modulo `y`."
+(defop % [x y]
+  ["modulus"
+    :n-ary None]
   (% x y))
 
-(defn @ [a1 #* a-rest]
-  "Shadowed `@` operator matrix multiples `a1` by each `a-rest`."
+(defop @ [a1 #* a-rest]
+  ["matrix multiplication"]
   (reduce operator.matmul a-rest a1))
 
-(defn << [a1 a2 #* a-rest]
-  "Shadowed `<<` operator performs left-shift on `a1` by `a2`, ..., `a-rest`."
+(defop << [a1 a2 #* a-rest]
+  ["left shift"]
   (reduce operator.lshift (+ (, a2) a-rest) a1))
 
-(defn >> [a1 a2 #* a-rest]
-  "Shadowed `>>` operator performs right-shift on `a1` by `a2`, ..., `a-rest`."
+(defop >> [a1 a2 #* a-rest]
+  ["right shift"]
   (reduce operator.rshift (+ (, a2) a-rest) a1))
 
-(defn & [a1 #* a-rest]
-  "Shadowed `&` operator performs bitwise-and on `a1` by each `a-rest`."
+(defop & [a1 #* a-rest]
+  ["bitwise AND"
+    :unary "x"]
   (if a-rest
     (reduce operator.and_ a-rest a1)
     a1))
 
-(defn | [#* args]
-  "Shadowed `|` operator performs bitwise-or on `a1` by each `a-rest`."
+(defop | [#* args]
+  ["bitwise OR"
+    :nullary "0"
+    :unary "x"]
   (if (= (len args) 0)
       0
       (if (= (len args) 1)
           (get args 0)
           (reduce operator.or_ args))))
 
-(defn ^ [x y]
-  "Shadowed `^` operator performs bitwise-xor on `x` and `y`."
+(defop ^ [x y]
+  ["bitwise XOR"
+    :n-ary None]
   (^ x y))
 
-(defn ~ [x]
-  "Shadowed `~` operator performs bitwise-negation on `x`."
+(defop ~ [x]
+  ["bitwise NOT"
+    :unary "~x"
+    :binary None
+    :n-ary None]
   (~ x))
 
 (defn comp-op [op a1 a-rest]
@@ -105,112 +144,51 @@ evaluate all arguments."
   (if a-rest
     (and #* (gfor (, x y) (zip (+ (, a1) a-rest) a-rest) (op x y)))
     True))
-(defn < [a1 #* a-rest]
-  "Shadowed `<` operator perform lt comparison on `a1` by each `a-rest`."
+(defop < [a1 #* a-rest]
+  ["less-than" :unary "True"]
   (comp-op operator.lt a1 a-rest))
-(defn <= [a1 #* a-rest]
-  "Shadowed `<=` operator perform le comparison on `a1` by each `a-rest`."
+(defop <= [a1 #* a-rest]
+  ["less-than-or-equal-to" :unary "True"]
   (comp-op operator.le a1 a-rest))
-(defn = [a1 #* a-rest]
-  "Shadowed `=` operator perform eq comparison on `a1` by each `a-rest`."
+(defop = [a1 #* a-rest]
+  ["equality" :pyop "==" :unary "True"]
   (comp-op operator.eq a1 a-rest))
-(defn is [a1 #* a-rest]
-  "Shadowed `is` keyword perform is on `a1` by each `a-rest`."
+(defop is [a1 #* a-rest]
+  ["identicality test" :unary "True"]
   (comp-op operator.is_ a1 a-rest))
-(defn != [a1 a2 #* a-rest]
-  "Shadowed `!=` operator perform neq comparison on `a1` by `a2`, ..., `a-rest`."
+(defop != [a1 a2 #* a-rest]
+  ["inequality"]
   (comp-op operator.ne a1 (+ (, a2) a-rest)))
-(defn is-not [a1 a2 #* a-rest]
-  "Shadowed `is-not` keyword perform is-not on `a1` by `a2`, ..., `a-rest`."
+(defop is-not [a1 a2 #* a-rest]
+  ["negated identicality test"]
   (comp-op operator.is-not a1 (+ (, a2) a-rest)))
-(defn in [a1 a2 #* a-rest]
-  "Shadowed `in` keyword perform `a1` in `a2` in …."
+(defop in [a1 a2 #* a-rest]
+  ["membership test"]
   (comp-op (fn [x y] (in x y)) a1 (+ (, a2) a-rest)))
-(defn not-in [a1 a2 #* a-rest]
-  "Shadowed `not in` keyword perform `a1` not in `a2` not in…."
+(defop not-in [a1 a2 #* a-rest]
+  ["negated membership test"]
   (comp-op (fn [x y] (not-in x y)) a1 (+ (, a2) a-rest)))
-(defn >= [a1 #* a-rest]
-  "Shadowed `>=` operator perform ge comparison on `a1` by each `a-rest`."
+(defop >= [a1 #* a-rest]
+  ["greater-than-or-equal-to" :unary "True"]
   (comp-op operator.ge a1 a-rest))
-(defn > [a1 #* a-rest]
-  "Shadowed `>` operator perform gt comparison on `a1` by each `a-rest`."
+(defop > [a1 #* a-rest]
+  ["greater-than" :unary "True"]
   (comp-op operator.gt a1 a-rest))
 
-(defn and [#* args]
-  "Shadowed `and` keyword perform and on `args`.
-
-  ``and`` is used in logical expressions. It takes at least two parameters.
-  If all parameters evaluate to ``True``, the last parameter is returned.
-  In any other case, the first false value will be returned.
-
-  .. note::
-
-    ``and`` short-circuits and stops evaluating parameters as soon as the first
-    false is encountered.
-
-  Examples:
-    ::
-
-       => (and True False)
-       False
-
-    ::
-
-       => (and False (print \"hello\"))
-       False
-
-    ::
-
-       => (and True True)
-       True
-
-    ::
-
-       => (and True 1)
-       1
-
-    ::
-
-       => (and True [] False True)
-       []
-  "
+(defop and [#* args]
+  ["logical conjuction"
+    :nullary "True"
+    :unary "x"]
   (if (= (len args) 0)
       True
       (if (= (len args) 1)
           (get args 0)
           (reduce (fn [x y] (and x y)) args))))
 
-(defn or [#* args]
-  "Shadowed `or` keyword perform or on `args`.
-
-  ``or`` is used in logical expressions. It takes at least two parameters. It
-  will return the first non-false parameter. If no such value exists, the last
-  parameter will be returned.
-
-  Examples:
-    ::
-
-       => (or True False)
-       True
-
-    ::
-
-       => (or False False)
-       False
-
-    ::
-
-       => (or False 1 True False)
-       1
-
-    .. note:: ``or`` short-circuits and stops evaluating parameters as soon as the
-              first true value is encountered.
-
-    ::
-
-       => (or True (print \"hello\"))
-       True
-"
+(defop or [#* args]
+  ["logical disjunction"
+    :nullary "None"
+    :unary "x"]
   (if (= (len args) 0)
       None
       (if (= (len args) 1)
@@ -218,28 +196,10 @@ evaluate all arguments."
           (reduce (fn [x y] (or x y)) args))))
 
 (defn not [x]
-  "Shadowed `not` keyword perform not on `x`.
-
-  ``not`` is used in logical expressions. It takes a single parameter and
-  returns a reversed truth value. If ``True`` is given as a parameter, ``False``
-  will be returned, and vice-versa.
-
-  Examples:
-    ::
-
-       => (not True)
-       False
-
-    ::
-
-       => (not False)
-       True
-
-    ::
-
-       => (not None)
-       True
-  "
+  ["logical negation"
+    :unary "not x"
+    :binary None
+    :n-ary None]
   (not x))
 
 (defn get [coll key1 #* keys]
