@@ -36,6 +36,9 @@ New Features
   keyword arguments. Hy includes a workaround for a CPython bug that
   prevents the generation of legal Python code for these cases
   (`bpo-46520`_).
+* You can now set the variable `_hy_export_macros` to control what macros are
+  collected by `(require module *)`
+* New macro `export`
 * new function `hy.model_patterns.parse_if`
 
 .. _bpo-2675: https://bugs.python.org/issue2675#msg265564
