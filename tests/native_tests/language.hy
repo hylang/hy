@@ -1317,12 +1317,19 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (✈ "silly") "plane silly"))
   (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
 
-  (require tests.resources [tlib macros :as m])
+  (require tests.resources [tlib  macros :as m  exports-none])
   (assert (in "tlib.qplah" __macros__))
   (assert (in (hy.mangle "m.test-macro") __macros__))
+  (assert (in (hy.mangle "exports-none.cinco") __macros__))
   (require os [path])
   (with [(pytest.raises hy.errors.HyRequireError)]
-    (hy.eval '(require tests.resources [does-not-exist]))))
+    (hy.eval '(require tests.resources [does-not-exist])))
+
+  (require tests.resources.exports *)
+  (assert (= (casey 1 2 3) [11 1 2 3]))
+  (assert (= (☘ 1 2 3) [13 1 2 3]))
+  (with [(pytest.raises NameError)]
+    (brother 1 2 3 4)))
 
 
 (defn test-require-native []

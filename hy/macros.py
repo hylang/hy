@@ -129,7 +129,8 @@ def require(source_module, target_module, assignments, prefix=""):
         target_module (Optional[Union[str, ModuleType]]): The module into which the
             macros will be loaded.  If `None`, then the caller's namespace.
             The latter is useful during evaluation of generated AST/bytecode.
-        assignments (Union[str, typing.Sequence[str]]): The string "ALL" or a list of macro name and alias pairs.
+        assignments (Union[str, typing.Sequence[str]]): The string "ALL", the string
+            "EXPORTS", or a list of macro name and alias pairs.
         prefix (str): If nonempty, its value is prepended to the name of each imported macro.
             This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
             which looks like an attribute of a module. Defaults to ""
@@ -175,9 +176,11 @@ def require(source_module, target_module, assignments, prefix=""):
             raise HyRequireError(e.args[0]).with_traceback(None)
 
     source_macros = source_module.__dict__.setdefault("__macros__", {})
+    source_exports = getattr(source_module, "_hy_export_macros",
+        [k for k in source_macros.keys() if not k.startswith('_')])
 
     if not source_module.__macros__:
-        if assignments == "ALL":
+        if assignments in ("ALL", "EXPORTS"):
             return False
         for name, alias in assignments:
             try:
@@ -200,10 +203,10 @@ def require(source_module, target_module, assignments, prefix=""):
     if prefix:
         prefix += "."
 
-    if assignments == "ALL":
-        assignments = [(k, k) for k in source_macros.keys()]
-
-    for name, alias in assignments:
+    for name, alias in (assignments if assignments not in ("ALL", "EXPORTS") else (
+            (k, k)
+            for k in source_macros.keys()
+            if assignments == "ALL" or k in source_exports)):
         _name = mangle(name)
         alias = mangle(
             "#" + prefix + unmangle(alias)[1:]
