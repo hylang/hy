@@ -597,36 +597,27 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (import [#* forms])
 
-   ``import`` is used to import modules, like in Python. There are several ways
-   that ``import`` can be used.
+   ``import`` compiles to an :py:keyword:`import` statement, which makes objects
+   in a different module available in the current module. Hy's syntax for the
+   various kinds of import looks like this::
 
-   :strong:`Examples`
-
-   ::
-
-       ;; Imports each of these modules
-       ;;
-       ;; Python:
-       ;; import sys
-       ;; import os.path
+       ;; Import each of these modules
+       ;; Python: import sys, os.path
        (import sys os.path)
 
-       ;; Import from a module
-       ;;
-       ;; Python: from os.path import exists, isdir, isfile
-       (import os.path [exists isdir isfile])
+       ;; Import several names from a single module
+       ;; Python: from os.path import exists, isdir as is_dir, isfile
+       (import os.path [exists  isdir :as dir?  isfile])
 
        ;; Import with an alias
-       ;;
        ;; Python: import sys as systest
        (import sys :as systest)
 
        ;; You can list as many imports as you like of different types.
-       ;;
        ;; Python:
-       ;; from tests.resources import kwtest, function_with_a_dash
-       ;; from os.path import exists, isdir as is_dir, isfile as is_file
-       ;; import sys as systest
+       ;;     from tests.resources import kwtest, function_with_a_dash
+       ;;     from os.path import exists, isdir as is_dir, isfile as is_file
+       ;;     import sys as systest
        (import tests.resources [kwtest function-with-a-dash]
                os.path [exists
                         isdir :as dir?
@@ -634,9 +625,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
                sys :as systest)
 
        ;; Import all module functions into current namespace
-       ;;
        ;; Python: from sys import *
        (import sys *)
+
+   ``__all__`` can be set to control what's imported by ``import *``, as in
+   Python, but beware that all names in ``__all__`` must be :ref:`mangled
+   <mangling>`. The macro :hy:func:`export <hy.core.macros.export>` is a handy
+   way to set ``__all__`` in a Hy program.
 
 .. hy:function:: (eval-and-compile [#* body])
 
@@ -1093,17 +1088,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (require [#* args])
 
-   ``require`` is used to import macros from one or more given modules. It allows
-   parameters in all the same formats as ``import``. The ``require`` form itself
-   produces no code in the final program: its effect is purely at compile-time, for
-   the benefit of macro expansion. Specifically, ``require`` imports each named
-   module and then makes each requested macro available in the current module.
+   ``require`` is used to get macros from one or more given modules. It allows
+   parameters in all the same formats as ``import``. ``require`` imports each
+   named module and then makes each requested macro available in the current
+   module.
 
-   The following are all equivalent ways to call a macro named ``foo`` in the module ``mymodule``:
-
-   :strong:`Examples`
-
-   ::
+   The following are all equivalent ways to call a macro named ``foo`` in the
+   module ``mymodule``::
 
        (require mymodule)
        (mymodule.foo 1)
@@ -1119,6 +1110,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (require mymodule [foo :as bar])
        (bar 1)
+
+   To define which macros are collected by ``(require mymodule *)``, set the
+   variable ``_hy_export_macros`` (analogous to Python's ``__all__``) to a list
+   of :ref:`mangled <mangling>` macro names, which is accomplished most
+   conveniently with :hy:func:`export <hy.core.macros.export>`. The default
+   behavior is to collect all macros other than those whose mangled names begin
+   with an ASCII underscore (``_``).
 
    :strong:`Macros that call macros`
 
