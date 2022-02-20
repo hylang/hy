@@ -1,23 +1,32 @@
+from __future__ import annotations
+
 import keyword
 import re
 import sys
 import unicodedata
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from rply import Token
 
 from hy.lex.exceptions import LexException, PrematureEndOfInput  # NOQA
-from hy.models import Expression, Symbol
+from hy.models import Expression, Object, Symbol
 
 try:
     from io import StringIO
 except ImportError:
     from StringIO import StringIO
 
+if TYPE_CHECKING:
+    from typing import List, Optional, Tuple, Union
 
-def hy_parse(source, filename="<string>"):
+
+def hy_parse(source: str, filename: str = "<string>") -> Expression:
     """Parse a Hy source string.
 
     Args:
-      source (str): Source code to parse.
-      filename (str): File name corresponding to source.  Defaults to "<string>".
+      source: Source code to parse.
+      filename: File name corresponding to source.  Defaults to "<string>".
 
     Returns:
       Expression: the parsed models wrapped in an hy.models.Expression
@@ -29,21 +38,21 @@ def hy_parse(source, filename="<string>"):
     return res
 
 
+@dataclass
 class ParserState:
-    def __init__(self, source, filename):
-        self.source = source
-        self.filename = filename
+    source: str
+    filename: Optional[str]
 
 
-def tokenize(source, filename=None):
+def tokenize(source: str, filename: Optional[str] = None) -> List[Object]:
     """Tokenize a Lisp file or string buffer into internal Hy objects.
 
     Args:
-       source (str): The source to tokenize.
-       filename (Optional[str]): The filename corresponding to `source`.
+       source: The source to tokenize.
+       filename: The filename corresponding to `source`.
 
     Returns:
-       typing.List[Object]: list of hy object models
+       List of hy object models
     """
     from rply.errors import LexingError
 
@@ -66,7 +75,7 @@ def tokenize(source, filename=None):
         raise e
 
 
-def parse_one_thing(src_string):
+def parse_one_thing(src_string: str) -> Tuple[str, str]:
     """Parse the first form from the string. Return it and the
     remainder of the string."""
     import re
@@ -76,8 +85,8 @@ def parse_one_thing(src_string):
     from hy.lex.lexer import lexer
     from hy.lex.parser import parser
 
-    tokens = []
-    err = None
+    tokens: List[Token] = []
+    err: Optional[Exception] = None
     for token in lexer.lex(src_string):
         tokens.append(token)
         try:
@@ -87,14 +96,14 @@ def parse_one_thing(src_string):
         except (LexingError, LexException) as e:
             err = e
         else:
+            match = re.match(
+                r".+\n" * (model.end_line - 1) + "." * model.end_column,
+                src_string,
+            )
+            assert match is not None
             return (
                 model,
-                src_string[
-                    re.match(
-                        r".+\n" * (model.end_line - 1) + "." * model.end_column,
-                        src_string,
-                    ).end() :
-                ],
+                src_string[match.end() :],
             )
     if err:
         raise err
@@ -104,7 +113,7 @@ def parse_one_thing(src_string):
 mangle_delim = "X"
 
 
-def mangle(s):
+def mangle(s: str) -> str:
     """Stringify the argument and convert it to a valid Python identifier
     according to :ref:`Hy's mangling rules <mangling>`.
 
@@ -184,7 +193,7 @@ def mangle(s):
     return s
 
 
-def unmangle(s):
+def unmangle(s: str) -> str:
     """Stringify the argument and try to convert it to a pretty unmangled
     form. This may not round-trip, because different Hy symbol names can
     mangle to the same Python identifier. See :ref:`Hy's mangling rules <mangling>`.
@@ -239,7 +248,9 @@ def unmangle(s):
     return prefix + s + suffix
 
 
-def read(from_file=sys.stdin, eof=""):
+def read(
+    from_file: StringIO = sys.stdin, eof: Union[str, bytes] = ""
+) -> Optional[Object]:
     """Read from input and returns a tokenized string.
 
     Can take a given input buffer to read from, and a single byte as EOF
@@ -310,7 +321,7 @@ def read(from_file=sys.stdin, eof=""):
     return parsed
 
 
-def read_str(input):
+def read_str(input: str):
     """This is essentially a wrapper around ``hy.read`` which reads expressions from a
     string
 
@@ -328,7 +339,7 @@ def read_str(input):
     return read(StringIO(str(input)))
 
 
-def isidentifier(x):
+def isidentifier(x: str) -> bool:
     if x in ("True", "False", "None"):
         return True
     if keyword.iskeyword(x):
