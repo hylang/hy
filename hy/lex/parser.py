@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import re
 from functools import wraps
+from typing import TYPE_CHECKING
 
 from rply import ParserGenerator
 
@@ -22,14 +25,17 @@ from hy.models import (
 from .exceptions import LexException, PrematureEndOfInput
 from .lexer import lexer
 
+if TYPE_CHECKING:
+    from typing import Callable
+
 pg = ParserGenerator([rule.name for rule in lexer.rules] + ["$end"])
 
 
-def sym(x):
+def sym(x: str) -> Symbol:
     return Symbol(x, from_parser=True)
 
 
-def set_boundaries(fun):
+def set_boundaries(fun: Callable):
     @wraps(fun)
     def wrapped(state, p):
         start = p[0].source_pos
@@ -51,7 +57,7 @@ def set_boundaries(fun):
     return wrapped
 
 
-def set_quote_boundaries(fun):
+def set_quote_boundaries(fun: Callable):
     @wraps(fun)
     def wrapped(state, p):
         start = p[0].source_pos
@@ -282,7 +288,7 @@ def _format_string(state, p, rest, allow_recursion=True):
             values.append(String(literal_chars))
         if not rest:
             break
-        if match.group() != "{":
+        if match and match.group() != "{":
             continue
 
         # Look for the end of the replacement field, allowing
