@@ -1,9 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from hy.errors import HySyntaxError
+
+if TYPE_CHECKING:
+    from rply.token import Token
+
+    from hy.lex import ParserState
 
 
 class LexException(HySyntaxError):
     @classmethod
-    def from_lexer(cls, message, state, token):
+    def from_lexer(cls, message: str, state: ParserState, token: Token):
         lineno = None
         colno = None
         source = state.source
