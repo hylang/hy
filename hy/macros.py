@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import builtins
 import importlib
+import importlib.machinery
 import inspect
 import os
 import pkgutil
 import sys
 import traceback
 from ast import AST
+from typing import TYPE_CHECKING, cast
 
 from funcparserlib.parser import NoParseError
 
@@ -21,6 +25,17 @@ from hy.lex import mangle, unmangle
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
 
+if TYPE_CHECKING:
+    from types import ModuleType
+    from typing import Callable, List, Optional
+    from typing import Sequence as SequenceT
+    from typing import Tuple, TypeVar, Union
+
+    from hy.compiler import HyASTCompiler, Result
+    from hy.models import Object
+
+    F = TypeVar("F", bound=Callable)
+
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
 
@@ -29,7 +44,7 @@ def macro(name):
     return lambda fn: install_macro(name, fn, fn)
 
 
-def pattern_macro(names, pattern, shadow=None):
+def pattern_macro(names: Union[str, Tuple[str, ...]], pattern, shadow=None):
     pattern = whole(pattern)
     py_version_required = None
     if isinstance(names, tuple):
@@ -76,7 +91,7 @@ def pattern_macro(names, pattern, shadow=None):
     return dec
 
 
-def install_macro(name, fn, module_of):
+def install_macro(name: str, fn: F, module_of) -> F:
     name = mangle(name)
     fn = rename_function(fn, name)
     (inspect.getmodule(module_of).__dict__.setdefault("__macros__", {})[name]) = fn
@@ -118,24 +133,28 @@ def _same_modules(source_module, target_module):
     )
 
 
-def require(source_module, target_module, assignments, prefix=""):
+def require(
+    source_module: Union[str, ModuleType],
+    target_module: Optional[Union[str, ModuleType]],
+    assignments: Union[str, SequenceT[str]],
+    prefix: str = "",
+) -> bool:
     """Load macros from one module into the namespace of another.
 
     This function is called from the macro also named `require`.
 
     Args:
-        source_module (Union[str, ModuleType]): The module from which macros are
-            to be imported.
-        target_module (Optional[Union[str, ModuleType]]): The module into which the
-            macros will be loaded.  If `None`, then the caller's namespace.
+        source_module: The module from which macros are to be imported.
+        target_module: The module into which the macros will be loaded.
+            If `None`, then the caller's namespace.
             The latter is useful during evaluation of generated AST/bytecode.
-        assignments (Union[str, typing.Sequence[str]]): The string "ALL" or a list of macro name and alias pairs.
-        prefix (str): If nonempty, its value is prepended to the name of each imported macro.
+        assignments: The string "ALL" or a list of macro name and alias pairs.
+        prefix: If nonempty, its value is prepended to the name of each imported macro.
             This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
             which looks like an attribute of a module. Defaults to ""
 
     Returns:
-        bool: Whether or not macros were actually transferred.
+        Whether or not macros were actually transferred.
     """
     if target_module is None:
         parent_frame = inspect.stack()[1][0]
@@ -279,7 +298,13 @@ class MacroExceptions:
             return False
 
 
-def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
+def macroexpand(
+    tree: Union[Object, List],
+    module: Union[str, ModuleType],
+    compiler: Optional[HyASTCompiler] = None,
+    once: bool = False,
+    result_ok: bool = True,
+) -> Union[Object, Result]:
     """Expand the toplevel macros for the given Hy AST tree.
 
     Load the macros from the given `module`, then expand the (top-level) macros
@@ -295,20 +320,17 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     as a fallback.
 
     Args:
-        tree (Union[Object, list]): Hy AST tree.
-        module (Union[str, ModuleType]): Module used to determine the local
-            namespace for macros.
-        compiler (Optional[HyASTCompiler] ): The compiler object passed to
-            expanded macros. Defaults to None
-        once (bool): Only expand the first macro in `tree`. Defaults to False
-        result_ok (bool): Whether or not it's okay to return a compiler `Result` instance.
-            Defaults to True.
+        tree: Hy AST tree.
+        module : Module used to determine the local namespace for macros.
+        compiler: The compiler object passed to expanded macros.
+        once: Only expand the first macro in `tree`. Defaults to False
+        result_ok : Whether or not it's okay to return a compiler `Result` instance.
 
     Returns:
-        Union[Object, Result]: A mutated tree with macros expanded.
+        A mutated tree with macros expanded.
     """
     if not inspect.ismodule(module):
-        module = importlib.import_module(module)
+        module = importlib.import_module(cast(str, module))
 
     assert not compiler or compiler.module == module
 
@@ -342,7 +364,7 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
                 return obj if result_ok else tree
 
             if isinstance(obj, Expression):
-                obj.module = inspect.getmodule(m)
+                setattr(obj, "module", inspect.getmodule(m))
 
             tree = replace_hy_obj(obj, tree)
 
@@ -359,7 +381,7 @@ def macroexpand_1(tree, module, compiler=None):
     return macroexpand(tree, module, compiler, once=True)
 
 
-def rename_function(f, new_name):
+def rename_function(f: F, new_name: str) -> F:
     """Create a copy of a function, but with a new name."""
     f = type(f)(
         code_replace(f.__code__, co_name=new_name),
