@@ -1,10 +1,14 @@
+from __future__ import annotations
+
+import typing as T
+
 try:
     from hy.version import __version__
 except ImportError:
     __version__ = "unknown"
 
 
-def _initialize_env_var(env_var, default_val):
+def _initialize_env_var(env_var: str, default_val: T.Any) -> bool:
     import os
 
     return bool(os.environ.get(env_var, default_val))
@@ -36,7 +40,7 @@ _jit_imports = dict(
 )
 
 
-def __getattr__(k):
+def __getattr__(k: str):
     if k == "pyops":
         global pyops
         import hy.pyops
