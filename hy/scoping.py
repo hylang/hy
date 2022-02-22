@@ -4,20 +4,22 @@ from __future__ import annotations
 
 import ast
 import itertools
+import typing as T
 from abc import ABC, abstractmethod
-from typing import List as ListT
-from typing import Optional, Protocol
-from typing import Set as SetT
-from typing import Type, TypeVar, Union
 
 import hy._compat
 from hy.errors import HyInternalError
 from hy.lex import mangle
 from hy.models import Expression, List, Symbol
 
+if T.TYPE_CHECKING:
+    from hy.compiler import HyASTCompiler
 
-class _CompilerT(Protocol):
-    scope: ScopeBase
+    ScopeBaseT = T.TypeVar("ScopeBaseT", bound="ScopeBase")
+
+    NodeT = T.Union[ast.Name, ast.Global, ast.Nonlocal]
+    if hy._compat.PY3_10:
+        NodeT = T.Union[NodeT, ast.MatchAs, ast.MatchStar, ast.MatchMapping]
 
 
 def is_function_scope(scope):
@@ -42,11 +44,6 @@ def nearest_python_scope(scope):
     return cur
 
 
-_NodeT = Union[ast.Name, ast.Global, ast.Nonlocal]
-if hy._compat.PY3_10:
-    _NodeT = Union[_NodeT, ast.MatchAs, ast.MatchStar, ast.MatchMapping]
-
-
 class NodeRef:
     """
     Wrapper for AST nodes that have symbol names, so that we can rename them if
@@ -56,8 +53,8 @@ class NodeRef:
     `names` provided by the `ast` node.
     """
 
-    node: _NodeT
-    index: Optional[int]
+    node: NodeT
+    index: T.Optional[int]
     _accessor: str
 
     ACCESSOR = {
@@ -74,7 +71,7 @@ class NodeRef:
             }
         )
 
-    def __init__(self, node: _NodeT, index: Optional[int] = None):
+    def __init__(self, node: NodeT, index: T.Optional[int] = None):
         self.node = node
         self.index = index
         self._accessor = NodeRef.ACCESSOR[type(self.node)]
@@ -98,7 +95,7 @@ class NodeRef:
     def wrap(f):
         "Decorator to convert AST node parameter to NodeRef."
 
-        def _wrapper(self, node: _NodeT, index: Optional[int] = None):
+        def _wrapper(self, node: NodeT, index: T.Optional[int] = None):
             if not isinstance(node, NodeRef):
                 node = NodeRef(node, index)
             return f(self, node)
@@ -112,18 +109,15 @@ class NodeRef:
         )
 
 
-_ScopeBaseT = TypeVar("_ScopeBaseT", bound="ScopeBase")
-
-
 class ScopeBase(ABC):
-    parent: Optional[ScopeBase]
-    compiler: _CompilerT
+    parent: T.Optional[ScopeBase]
+    compiler: HyASTCompiler
 
-    def __init__(self, compiler: _CompilerT):
+    def __init__(self, compiler: HyASTCompiler):
         self.parent = None
         self.compiler = compiler
 
-    def create(self, scope_type: Type[_ScopeBaseT], *args) -> _ScopeBaseT:
+    def create(self, scope_type: T.Type[ScopeBaseT], *args) -> ScopeBaseT:
         "Create new scope from this one."
         return scope_type(self.compiler, *args)
 
@@ -132,7 +126,7 @@ class ScopeBase(ABC):
         self.compiler.scope = self
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> T.Literal[False]:
         assert self.parent is not None
         self.compiler.scope = self.parent
         self.parent = None
@@ -145,7 +139,7 @@ class ScopeBase(ABC):
         ...
 
     @abstractmethod
-    def assign(self, node: _NodeT, index=None):
+    def assign(self, node: NodeT, index=None):
         "Called when a symbol is assigned to."
         ...
 
@@ -166,16 +160,16 @@ class ScopeBase(ABC):
 class ScopeGlobal(ScopeBase):
     """Global scope."""
 
-    defined: SetT
+    defined: set
     """All symbols created or assigned in this scope."""
 
-    nonlocal_vars: ListT
+    nonlocal_vars: list
     """List of all `nonlocal`s defined in this scope.
 
     Deliberately not a `set` so we can maintain the order they were defined in.
     """
 
-    def __init__(self, compiler: _CompilerT):
+    def __init__(self, compiler: HyASTCompiler):
         super().__init__(compiler)
         self.defined = set()
         self.nonlocal_vars = []
@@ -212,6 +206,8 @@ class ScopeLet(ScopeBase):
     accessed/assigned. Defined symbols are never renamed.
     """
 
+    parent: ScopeBase
+
     def __init__(self, compiler):
         super().__init__(compiler)
         self.bindings = {}
@@ -235,12 +231,13 @@ class ScopeLet(ScopeBase):
         return node.node
 
     def define(self, name):
+        assert self.parent is not None
         self.bindings.pop(name, None)
         self.parent.define(name)
 
     def define_nonlocal(self, node, root):
         # remove nonlocal defs of any let scopes in this Python scope
-        cur = self
+        cur: ScopeBase = self
         while isinstance(cur, ScopeLet):
             for name in node.names:
                 if root == "nonlocal":
@@ -251,7 +248,9 @@ class ScopeLet(ScopeBase):
             cur = cur.parent
         cur.define_nonlocal(node, root)
 
-    def add(self, target, new_name=None):
+    def add(
+        self, target: T.Union[str, Expression, Symbol], new_name: T.Optional[str] = None
+    ) -> T.Union[str, Expression, List]:
         """Add a new let-binding target, mapped to a new, unique name."""
         if isinstance(target, (str, Symbol)):
             if "." in target:
@@ -279,13 +278,13 @@ class ScopeLet(ScopeBase):
 class ScopeFn(ScopeBase):
     """Scope that corresponds to Python's own function or class scopes."""
 
-    defined: SetT
+    defined: set
     """All vars defined in this scope."""
 
-    seen: ListT
+    seen: list
     """All vars accessed in this scope."""
 
-    nonlocal_vars: SetT
+    nonlocal_vars: set
     """All `nonlocal`s defined in this scope."""
 
     is_fn: bool
@@ -295,7 +294,7 @@ class ScopeFn(ScopeBase):
     `False` if tracking a class.
     """
 
-    def __init__(self, compiler: _CompilerT, args: Optional[ast.arguments] = None):
+    def __init__(self, compiler: HyASTCompiler, args: T.Optional[ast.arguments] = None):
         super().__init__(compiler)
 
         self.defined = set()
