@@ -176,11 +176,11 @@ def replace_hy_obj(obj, other):
     return as_model(obj).replace(other)
 
 
-def repr_indent(obj):
+def repr_indent(obj: T.Any) -> str:
     return repr(obj).replace("\n", "\n  ")
 
 
-def is_unpack(kind, x):
+def is_unpack(kind: str, x) -> bool:
     return isinstance(x, Expression) and len(x) > 0 and x[0] == Symbol("unpack-" + kind)
 
 
