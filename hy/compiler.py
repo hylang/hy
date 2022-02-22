@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import copy
 import importlib
@@ -5,6 +7,7 @@ import inspect
 import keyword
 import traceback
 import types
+import typing as T
 
 from funcparserlib.parser import NoParseError, many
 
@@ -32,35 +35,44 @@ from hy.models import (
 )
 from hy.scoping import ScopeGlobal
 
+if T.TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from hy.models import Sequence
+    from hy.scoping import ScopeBase
+
+    SequenceT = T.TypeVar("SequenceT", bound=Sequence)
+
+
 hy_ast_compile_flags = 0
 
 
-def ast_compile(a, filename, mode):
+def ast_compile(a: ast.AST, filename: str, mode: str) -> types.CodeType:
     """Compile AST.
 
     Args:
-        a (ast.AST): instance of `ast.AST`
-        filename (str): Filename used for run-time error messages
-        mode (str): `compile` mode parameter
+        a: An AST node
+        filename: Filename used for run-time error messages
+        mode: `compile` mode parameter
 
     Returns:
-        types.CodeType: instance of `types.CodeType`
+        instance of `types.CodeType`
     """
     return compile(a, filename, mode, hy_ast_compile_flags)
 
 
-def calling_module(n=1):
+def calling_module(n: int = 1) -> T.Optional[types.ModuleType]:
     """Get the module calling, if available.
 
     As a fallback, this will import a module using the calling frame's
     globals value of `__name__`.
 
     Args:
-        n (int): The number of levels up the stack from this function call.
+        n: The number of levels up the stack from this function call.
             The default is `1` (level up).
 
     Returns:
-        types.ModuleType: The module at stack level `n + 1` or `None`.
+        The module at stack level `n + 1` or `None`.
     """
     frame_up = inspect.stack(0)[n + 1][0]
     module = inspect.getmodule(frame_up)
@@ -75,10 +87,10 @@ def calling_module(n=1):
     return module
 
 
-_model_compilers = {}
+_model_compilers: dict[T.Type[Object], T.Callable] = {}
 
 
-def builds_model(*model_types):
+def builds_model(*model_types: T.Type[Object]) -> T.Callable:
     "Assign the decorated method to _model_compilers for the given types."
 
     def _dec(fn):
@@ -103,7 +115,7 @@ class Asty:
     }
 
     @staticmethod
-    def _get_pos(node):
+    def _get_pos(node) -> dict[str, T.Optional[str]]:
         return {
             attr: getattr(node, hy_attr, getattr(node, attr, None))
             for attr, hy_attr in Asty.POS_ATTRS.items()
@@ -122,7 +134,7 @@ class Asty:
         Asty._replace_pos(res, Asty._get_pos(x))
         return res
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         setattr(
             Asty,
             name,
@@ -161,9 +173,20 @@ class Result:
     object gets added to a Result object, it gets converted on-the-fly.
     """
 
-    __slots__ = ("stmts", "temp_variables", "_expr", "__used_expr")
+    stmts: list[ast.AST]
+    temp_variables: list[ast.AST]
+    _expr: T.Optional[ast.AST]
 
-    def __init__(self, *, stmts=(), expr=None, temp_variables=()):
+    __slots__ = ("stmts", "temp_variables", "_expr", "__used_expr")
+    __used_expr: bool
+
+    def __init__(
+        self,
+        *,
+        stmts: T.Iterable[ast.AST] = (),
+        expr: T.Optional[ast.AST] = None,
+        temp_variables: T.Iterable[ast.AST] = (),
+    ):
         self.stmts = list(stmts)
         self.temp_variables = list(temp_variables)
         self._expr = expr
@@ -176,7 +199,7 @@ class Result:
         return self._expr
 
     @expr.setter
-    def expr(self, value):
+    def expr(self, value: ast.AST):
         self.__used_expr = False
         self._expr = value
 
@@ -230,7 +253,7 @@ class Result:
             col_offset=self.stmts[-1].col_offset if self.stmts else 0,
         )
 
-    def expr_as_stmt(self):
+    def expr_as_stmt(self) -> Result:
         """Convert the Result's expression context to a statement
 
         This is useful when we want to use the stored expression in a
@@ -246,7 +269,7 @@ class Result:
             return Result() + asty.Expr(self.expr, value=self.expr)
         return Result()
 
-    def rename(self, compiler, new_name):
+    def rename(self, compiler, new_name: str) -> None:
         """Rename the Result's temporary variables to a `new_name`.
 
         We know how to handle ast.Names and ast.FunctionDefs.
@@ -264,7 +287,7 @@ class Result:
                 )
         self.temp_variables = []
 
-    def __add__(self, other):
+    def __add__(self, other: T.Union[ast.stmt, ast.expr, ast.excepthandler, Result]):
         # If we add an ast statement, convert it first
         if isinstance(other, ast.stmt):
             return self + Result(stmts=[other])
@@ -282,6 +305,7 @@ class Result:
         # Check for expression context clobbering
         if self.expr and not self.__used_expr:
             traceback.print_stack()
+            assert other.expr is not None
             print(
                 "Bad boy clobbered expr {} with {}".format(
                     ast.dump(self.expr), ast.dump(other.expr)
@@ -296,14 +320,16 @@ class Result:
 
         return result
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Result(stmts=[%s], expr=%s)" % (
             ", ".join(ast.dump(x) for x in self.stmts),
             ast.dump(self.expr) if self.expr else None,
         )
 
 
-def make_hy_model(outer, x, rest):
+def make_hy_model(
+    outer: T.Type[SequenceT], x: Iterable, rest: T.Optional[list]
+) -> SequenceT:
     return outer(
         [Symbol(a) if type(a) is str else a[0] if type(a) is list else a for a in x]
         + (rest or [])
@@ -325,20 +351,33 @@ def is_annotate_expression(model):
 class HyASTCompiler:
     """A Hy-to-Python AST compiler"""
 
-    def __init__(self, module, filename=None, source=None):
+    anon_var_count: int
+    temp_if: T.Optional[T.Any]
+    module: types.ModuleType
+    filename: T.Optional[str]
+    source: T.Optional[str]
+    module_name: T.Optional[str]
+    scope: ScopeBase
+
+    def __init__(
+        self,
+        module: T.Union[str, types.ModuleType],
+        filename: T.Optional[str] = None,
+        source: T.Optional[str] = None,
+    ):
         """
         Args:
-            module (Union[str, types.ModuleType]): Module name or object in which the Hy tree is evaluated.
-            filename (Optional[str]): The name of the file for the source to be compiled.
+            module: Module name or object in which the Hy tree is evaluated.
+            filename: The name of the file for the source to be compiled.
                 This is optional information for informative error messages and
                 debugging.
-            source (Optional[str]): The source for the file, if any, being compiled.  This is optional
+            source: The source for the file, if any, being compiled.  This is optional
                 information for informative error messages and debugging.
         """
         self.anon_var_count = 0
         self.temp_if = None
 
-        if not inspect.ismodule(module):
+        if not isinstance(module, types.ModuleType):
             self.module = importlib.import_module(module)
         else:
             self.module = module
@@ -358,16 +397,16 @@ class HyASTCompiler:
 
         self.scope = ScopeGlobal(self)
 
-    def get_anon_var(self, base="_hy_anon_var"):
+    def get_anon_var(self, base: str = "_hy_anon_var") -> str:
         self.anon_var_count += 1
         return f"{base}_{self.anon_var_count}"
 
-    def compile_atom(self, atom):
+    def compile_atom(self, atom: T.Union[Object, Result]) -> Result:
         # Compilation methods may mutate the atom, so copy it first.
         atom = copy.copy(atom)
         return Result() + _model_compilers[type(atom)](self, atom)
 
-    def compile(self, tree):
+    def compile(self, tree: T.Optional[T.Union[Object, Result]]) -> Result:
         if tree is None:
             return Result()
         try:
@@ -391,7 +430,9 @@ class HyASTCompiler:
     def _syntax_error(self, expr, message):
         return HySyntaxError(message, expr, self.filename, self.source)
 
-    def _compile_collect(self, exprs, with_kwargs=False, dict_display=False):
+    def _compile_collect(
+        self, exprs: T.Iterable[ast.expr], with_kwargs=False, dict_display=False
+    ) -> tuple[list, Result, list]:
         """Collect the expression contexts from a list of compiled expression.
 
         This returns a list of the expression contexts, and the sum of the
@@ -445,7 +486,7 @@ class HyASTCompiler:
 
         return compiled_exprs, ret, keywords
 
-    def _compile_branch(self, exprs):
+    def _compile_branch(self, exprs: T.Sequence[ast.expr]):
         """Make a branch out of an iterable of Result objects
 
         This generates a Result from the given sequence of Results, forcing each
@@ -461,7 +502,12 @@ class HyASTCompiler:
             ret += self.compile(exprs[-1])
         return ret
 
-    def _storeize(self, expr, name, func=None):
+    def _storeize(
+        self,
+        expr: ast.expr,
+        name: T.Union[Result, ast.Tuple, ast.List, ast.Name, ast.expr],
+        func: T.Optional[T.Type[ast.Store]] = None,
+    ) -> ast.Name:
         """Return a new `name` object with an ast.Store() context"""
         if not func:
             func = ast.Store
@@ -471,8 +517,9 @@ class HyASTCompiler:
                 raise self._syntax_error(
                     expr, "Can't assign or delete a non-expression"
                 )
-            name = name.expr
+            name = T.cast(ast.expr, name.expr)
 
+        new_name: ast.expr
         if isinstance(name, (ast.Tuple, ast.List)):
             typ = type(name)
             new_elts = []
@@ -579,12 +626,12 @@ class HyASTCompiler:
         )
 
     @builds_model(Integer, Float, Complex)
-    def compile_numeric_literal(self, x):
+    def compile_numeric_literal(self, x: T.Union[Integer, Float, Complex]):
         f = {Integer: int, Float: float, Complex: complex}[type(x)]
         return asty.Num(x, n=f(x))
 
     @builds_model(Symbol)
-    def compile_symbol(self, symbol):
+    def compile_symbol(self, symbol: str):
         if "." in symbol:
             glob, local = symbol.rsplit(".", 1)
 
@@ -694,15 +741,15 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
 
 def hy_eval(
-    hytree,
-    locals=None,
-    module=None,
-    ast_callback=None,
-    compiler=None,
-    filename=None,
-    source=None,
-    import_stdlib=True,
-):
+    hytree: Object,
+    locals: T.Optional[dict] = None,
+    module: T.Optional[T.Union[str, types.ModuleType]] = None,
+    ast_callback: T.Optional[T.Callable] = None,
+    compiler: T.Optional[HyASTCompiler] = None,
+    filename: T.Optional[str] = None,
+    source: T.Optional[str] = None,
+    import_stdlib: bool = True,
+) -> T.Any:
     """Evaluates a quoted expression and returns the value.
 
     If you're evaluating hand-crafted AST trees, make sure the line numbers
@@ -722,36 +769,36 @@ def hy_eval(
          2
 
     Args:
-      hytree (Object):
+      hytree:
           The Hy AST object to evaluate.
 
-      locals (Optional[dict]):
+      locals:
           Local environment in which to evaluate the Hy tree.  Defaults to the
           calling frame.
 
-      module (Optional[Union[str, types.ModuleType]]):
+      module:
           Module, or name of the module, to which the Hy tree is assigned and
           the global values are taken.
           The module associated with `compiler` takes priority over this value.
           When neither `module` nor `compiler` is specified, the calling frame's
           module is used.
 
-      ast_callback (Optional[Callable]):
+      ast_callback:
           A callback that is passed the Hy compiled tree and resulting
           expression object, in that order, after compilation but before
           evaluation.
 
-      compiler (Optional[HyASTCompiler]):
+      compiler:
           An existing Hy compiler to use for compilation.  Also serves as
           the `module` value when given.
 
-      filename (Optional[str]):
+      filename:
           The filename corresponding to the source for `tree`.  This will be
           overridden by the `filename` field of `tree`, if any; otherwise, it
           defaults to "<string>".  When `compiler` is given, its `filename` field
           value is always used.
 
-      source (Optional[str]):
+      source:
           A string containing the source code for `tree`.  This will be
           overridden by the `source` field of `tree`, if any; otherwise,
           if `None`, an attempt will be made to obtain it from the module given by
@@ -759,7 +806,7 @@ def hy_eval(
           used.
 
     Returns:
-      Any: Result of evaluating the Hy compiled tree.
+      Result of evaluating the Hy compiled tree.
     """
 
     module = get_compiler_module(module, compiler, True)
@@ -796,37 +843,41 @@ def hy_eval(
 
 
 def hy_compile(
-    tree,
-    module,
-    root=ast.Module,
-    get_expr=False,
-    compiler=None,
-    filename=None,
-    source=None,
-    import_stdlib=True,
-):
+    tree: Object,
+    module: T.Union[str, types.ModuleType],
+    root: T.Type[ast.AST] = ast.Module,
+    get_expr: bool = False,
+    compiler: T.Optional[HyASTCompiler] = None,
+    filename: T.Optional[str] = None,
+    source: T.Optional[str] = None,
+    import_stdlib: bool = True,
+) -> T.Union[
+    tuple[Expression, T.Union[ast.AST, types.ModuleType]],
+    types.ModuleType,
+    ast.AST,
+]:
     """Compile a hy.models.Object tree into a Python AST Module.
 
     Args:
-        tree (Object): The Hy AST object to compile.
-        module (Union[str, types.ModuleType]): Module, or name of the module, in which the Hy tree is evaluated.
+        tree: The Hy AST object to compile.
+        module: Module, or name of the module, in which the Hy tree is evaluated.
             The module associated with `compiler` takes priority over this value.
-        root (Type[ast.AST]): Root object for the Python AST tree.
-        get_expr (bool): If true, return a tuple with `(root_obj, last_expression)`.
-        compiler (Optional[HyASTCompiler]): An existing Hy compiler to use for compilation.  Also serves as
+        root: Root object for the Python AST tree.
+        get_expr: If true, return a tuple with `(root_obj, last_expression)`.
+        compiler: An existing Hy compiler to use for compilation.  Also serves as
             the `module` value when given.
-        filename (Optional[str]): The filename corresponding to the source for `tree`.  This will be
+        filename: The filename corresponding to the source for `tree`.  This will be
             overridden by the `filename` field of `tree`, if any; otherwise, it
             defaults to "<string>".  When `compiler` is given, its `filename` field
             value is always used.
-        source (Optional[str]): A string containing the source code for `tree`.  This will be
+        source: A string containing the source code for `tree`.  This will be
             overridden by the `source` field of `tree`, if any; otherwise,
             if `None`, an attempt will be made to obtain it from the module given by
             `module`.  When `compiler` is given, its `source` field value is always
             used.
 
     Returns:
-        ast.AST: A Python AST tree
+        A Python AST tree
     """
     module = get_compiler_module(module, compiler, False)
 
