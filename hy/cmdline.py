@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import ast
 import builtins
@@ -5,6 +7,7 @@ import code
 import codeop
 import hashlib
 import importlib
+import importlib.util
 import linecache
 import os
 import py_compile
@@ -13,6 +16,7 @@ import sys
 import time
 import traceback
 import types
+import typing as T
 from contextlib import contextmanager
 
 import hy
@@ -37,15 +41,16 @@ sys.last_traceback = None
 
 
 class HyQuitter:
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Use (%s) or Ctrl-D (i.e. EOF) to exit" % (self.name)
 
-    __str__ = __repr__
+    def __str__(self) -> str:
+        return self.__repr__()
 
-    def __call__(self, code=None):
+    def __call__(self, code=None) -> None:
         try:
             sys.stdin.close()
         except:
@@ -54,7 +59,7 @@ class HyQuitter:
 
 
 class HyHelper:
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "Use (help) for interactive help, or (help object) for help "
             "about object."
@@ -213,10 +218,10 @@ class HyCompile(codeop.Compile):
 
 
 class HyCommandCompiler(codeop.CommandCompiler):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.compiler = HyCompile(*args, **kwargs)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> T.Optional[types.CodeType]:
         try:
             return super().__call__(*args, **kwargs)
         except PrematureEndOfInput:
@@ -229,7 +234,9 @@ class HyCommandCompiler(codeop.CommandCompiler):
 
 
 class HyREPL(code.InteractiveConsole):
-    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"):
+    def __init__(
+        self, spy=False, output_fn=None, locals=None, filename="<stdin>"
+    ) -> None:
 
         # Create a proper module for this REPL so that we can obtain it easily
         # (e.g. using `importlib.import_module`).
@@ -249,6 +256,7 @@ class HyREPL(code.InteractiveConsole):
             try:
                 loader = HyLoader("__hystartup__", os.environ.get("HYSTARTUP"))
                 spec = importlib.util.spec_from_loader(loader.name, loader)
+                assert spec is not None
                 mod = importlib.util.module_from_spec(spec)
                 sys.modules.setdefault(mod.__name__, mod)
                 loader.exec_module(mod)
@@ -325,7 +333,7 @@ class HyREPL(code.InteractiveConsole):
                 msg = "Exception in AST callback:\n{}\n".format(traceback.format_exc())
                 self.write(msg)
 
-    def _error_wrap(self, error_fn, exc_info_override=False, *args, **kwargs):
+    def _error_wrap(self, error_fn, exc_info_override: bool = False, *_args, **_kwargs):
         sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
 
         if exc_info_override:
@@ -336,11 +344,15 @@ class HyREPL(code.InteractiveConsole):
                 "_hy_last_traceback", sys.last_traceback
             )
 
-        sys.excepthook(sys.last_type, sys.last_value, sys.last_traceback)
+        sys.excepthook(
+            T.cast(T.Type[BaseException], sys.last_type),
+            T.cast(BaseException, sys.last_value),
+            sys.last_traceback,
+        )
 
         self.locals[mangle("*e")] = sys.last_value
 
-    def showsyntaxerror(self, filename=None):
+    def showsyntaxerror(self, filename=None) -> None:
         if filename is None:
             filename = self.filename
 
@@ -351,7 +363,7 @@ class HyREPL(code.InteractiveConsole):
     def showtraceback(self):
         self._error_wrap(super().showtraceback)
 
-    def runcode(self, code):
+    def runcode(self, code) -> None:
         try:
             eval(code[0], self.locals)
             self.last_value = eval(code[1], self.locals)
