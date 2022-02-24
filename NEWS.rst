@@ -3,6 +3,13 @@
 Unreleased
 ==============================
 
+Breaking Changes
+------------------------------
+* `cond` has a new unbracketed syntax::
+
+     (cond [a b] [x y z])     ; Old
+     (cond  a b  x (do y z))  ; New
+
 Bug Fixes
 ------------------------------
 * Readline is now imported only when necessary to avoid triggering a
