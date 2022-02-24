@@ -4,7 +4,7 @@
 ;;; They are automatically required in every module, except inside hy.core
 
 
-(defmacro cond [#* branches]
+(defmacro cond [#* args]
   "Build a nested if clause with each `branch` a [cond result] bracket pair.
 
   Examples:
@@ -35,22 +35,16 @@
        => (check-value 6)
        \"value is greater than 5\"
 "
-  (or branches
-    (return))
+  (if (% (len args) 2)
+    (raise (TypeError "`cond` needs an even number of arguments"))
+    (_cond args)))
 
-  (setv (, branch #* branches) branches)
-
-  (if (not (and (is (type branch) hy.models.List)
-                branch))
-      (raise (TypeError "each cond branch needs to be a nonempty list"))
-      `(if ~@(if (= (len branch) 1)
-                (do (setv g (hy.gensym))
-                    [`(do (setv ~g ~(get branch 0)) ~g)
-                     g
-                     `(cond ~@branches)])
-                [(get branch 0)
-                 `(do ~@(cut branch 1 None))
-                 `(cond ~@branches)]))))
+(defn _cond [args]
+  (if args
+    `(if ~(get args 0)
+      ~(get args 1)
+      ~(_cond (cut args 2 None)))
+    'None))
 
 
 (defmacro when [test #* body]
