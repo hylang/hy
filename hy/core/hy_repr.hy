@@ -105,17 +105,17 @@
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
   (cond
-    [(and x (in (get x 0) syntax))
-      (+ (get syntax (get x 0)) (hy-repr (get x 1)))]
-    [(and
+    (and x (in (get x 0) syntax))
+      (+ (get syntax (get x 0)) (hy-repr (get x 1)))
+    (and
          (= (len x) 3)
          (= (get x 0) 'hy._Fraction)
          (all (gfor
            i (cut x 1 None)
            (isinstance i (, int hy.models.Integer)))))
-        (.join "/" (map hy-repr (cut x 1 None)))]
-    [True
-      (+ "(" (_cat x) ")")])))
+        (.join "/" (map hy-repr (cut x 1 None)))
+    True
+      (+ "(" (_cat x) ")"))))
 
 (hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
 (hy-repr-register [hy.models.String str hy.models.Bytes bytes] (fn [x]
@@ -137,10 +137,10 @@
 (hy-repr-register [hy.models.Float float] (fn [x]
   (setv fx (float x))
   (cond
-    [(isnan fx)  "NaN"]
-    [(= fx Inf)  "Inf"]
-    [(= fx -Inf) "-Inf"]
-    [True (_base-repr x)])))
+    (isnan fx)  "NaN"
+    (= fx Inf)  "Inf"
+    (= fx -Inf) "-Inf"
+    True        (_base-repr x))))
 
 (hy-repr-register [hy.models.Complex complex] (fn [x]
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
