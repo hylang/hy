@@ -149,9 +149,9 @@
       (setv g (hy.gensym))
       `(do
          (setv ~g ~expr)
-         (cond [(> ~g 0) ~pos]
-               [(= ~g 0) ~zero]
-               [(< ~g 0) ~neg])))
+         (cond (> ~g 0) ~pos
+               (= ~g 0) ~zero
+               (< ~g 0) ~neg)))
 
     (print (nif (inc -1) 1 0 -1))
     ")

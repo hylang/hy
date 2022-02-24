@@ -340,18 +340,18 @@
 
 (defn test-cond []
   (cond
-   [(= 1 2) (assert (is True False))]
-   [(is None None) (setv x True) (assert x)])
+    (= 1 2) (assert (is True False))
+    (is None None) (do (setv x True) (assert x)))
   (assert (is (cond) None))
 
   (assert (= (cond
-    [False]
-    [[]]
-    [8]) 8))
+    False 1
+    [] 2
+    True 8) 8))
 
   ;make sure test is only evaluated once
   (setv x 0)
-  (cond [(do (+= x 1) True)])
+  (assert (= (cond (do (+= x 1) True) 2) 2))
   (assert (= x 1)))
 
 
