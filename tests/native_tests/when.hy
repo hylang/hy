@@ -4,4 +4,7 @@
   (assert (= (when True 1 3) 3))
   (assert (= (when False 2) None))
   (assert (= (when (= 1 2) 42) None))
-  (assert (= (when (= 2 2) 42) 42)))
+  (assert (= (when (= 2 2) 42) 42))
+
+  (assert (is (when (do (setv x 3) True)) None))
+  (assert (= x 3)))
