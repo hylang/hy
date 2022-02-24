@@ -349,10 +349,20 @@
     [] 2
     True 8) 8))
 
-  ;make sure test is only evaluated once
   (setv x 0)
-  (assert (= (cond (do (+= x 1) True) 2) 2))
-  (assert (= x 1)))
+  (assert (is (cond  False 1  [] 2  x 3) None))
+
+  (with [e (pytest.raises hy.errors.HyMacroExpansionError)]
+    (hy.eval '(cond 1)))
+  (assert (in "needs an even number of arguments" e.value.msg))
+
+  ; Make sure each test is only evaluated once, and `cond`
+  ; short-circuits.
+  (setv x 1)
+  (assert (= "first" (cond
+    (do (*= x 2) True) (do (*= x 3) "first")
+    (do (*= x 5) True) (do (*= x 7) "second"))))
+  (assert (= x 6)))
 
 
 (defn test-if []
