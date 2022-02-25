@@ -342,12 +342,12 @@
   (cond
    [(= 1 2) (assert (is True False))]
    [(is None None) (setv x True) (assert x)])
-  (assert (= (cond) None))
+  (assert (is (cond) None))
 
   (assert (= (cond
     [False]
     [[]]
-    [8])) 8)
+    [8]) 8))
 
   ;make sure test is only evaluated once
   (setv x 0)
