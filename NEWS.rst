@@ -5,6 +5,9 @@ Unreleased
 
 Breaking Changes
 ------------------------------
+* `if` now requires all three arguments. For cases with less than
+  three arguments (i.e., with no else-clause), `when` is a drop-in
+  replacement.
 * `cond` has a new unbracketed syntax::
 
      (cond [a b] [x y z])     ; Old
