@@ -43,18 +43,13 @@
 
 
 (defmacro when [test #* body]
-  "Execute `body` when `test` is true
+  #[[Shorthand for ``(if test (do …) None)``. See :hy:func:`if`. For a logically negated version, see Hyrule's :hy:func:`unless <hyrule.control.unless>`.
+  ::
 
-  ``when`` is similar to ``unless``, except it tests when the given conditional is
-  ``True``. It is not possible to have an ``else`` block in a ``when`` macro. The
-  following shows the expansion of the macro.
-
-  Examples:
-    ::
-
-       => (when conditional statement)
-       (if conditional (do statement))
-  "
+      (when panic
+        (log.write panic)
+        (print "Process returned:" panic.msg)
+        (return panic))]]
   `(if ~test (do ~@body) None))
 
 
