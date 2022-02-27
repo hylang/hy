@@ -1,3 +1,5 @@
+# fmt: off
+
 import ast
 
 import pytest
@@ -487,24 +489,14 @@ def test_ast_bracket_string():
     assert s(r"#[foozle[aa foozli bb ]foozle]") == "aa foozli bb "
     assert s(r"#[([unbalanced](]") == "unbalanced"
     assert s(r"#[(1💯@)} {a![hello world](1💯@)} {a!]") == "hello world"
-    assert (
-        s(
-            r"""#[X[
+    assert (s(r'''#[X[
 Remove the leading newline, please.
-]X]"""
-        )
-        == "Remove the leading newline, please.\n"
-    )
-    assert (
-        s(
-            r"""#[X[
+]X]''') == 'Remove the leading newline, please.\n')
+    assert (s(r'''#[X[
 
 
 Only one leading newline should be removed.
-]X]"""
-        )
-        == "\n\nOnly one leading newline should be removed.\n"
-    )
+]X]''') == '\n\nOnly one leading newline should be removed.\n')
 
 
 def test_compile_error():
