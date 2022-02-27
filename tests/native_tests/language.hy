@@ -366,7 +366,6 @@
 
 
 (defn test-if []
-  ;; with an odd number of args, the last argument is the default case
   (assert (= 1 (if 0 -1 1))))
 
 (defn test-index []
