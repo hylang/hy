@@ -205,9 +205,9 @@ A first pass might be something like::
    (defmacro nif [expr pos-form zero-form neg-form]
      `(do
        (setv obscure-name ~expr)
-       (cond [(> obscure-name 0) ~pos-form]
-             [(= obscure-name 0) ~zero-form]
-             [(< obscure-name 0) ~neg-form])))
+       (cond (> obscure-name 0) ~pos-form
+             (= obscure-name 0) ~zero-form
+             (< obscure-name 0) ~neg-form)))
 
 where ``obscure-name`` is an attempt to pick some variable name as not to
 conflict with other code. But of course, while well-intentioned,
@@ -220,9 +220,9 @@ such an occasion. A much better version of ``nif`` would be::
      (setv g (hy.gensym))
      `(do
         (setv ~g ~expr)
-        (cond [(> ~g 0) ~pos-form]
-              [(= ~g 0) ~zero-form]
-              [(< ~g 0) ~neg-form])))
+        (cond (> ~g 0) ~pos-form
+              (= ~g 0) ~zero-form
+              (< ~g 0) ~neg-form)))
 
 This is an easy case, since there is only one symbol. But if there is
 a need for several gensym's there is a second macro :hy:func:`with-gensyms <hyrule.macrotools.with-gensyms>` that
@@ -245,9 +245,9 @@ so our re-written ``nif`` would look like::
      (with-gensyms [g]
        `(do
           (setv ~g ~expr)
-          (cond [(> ~g 0) ~pos-form]
-                [(= ~g 0) ~zero-form]
-                [(< ~g 0) ~neg-form]))))
+          (cond (> ~g 0) ~pos-form
+                (= ~g 0) ~zero-form
+                (< ~g 0) ~neg-form))))
 
 Finally, though we can make a new macro that does all this for us. :hy:func:`defmacro/g! <hyrule.macrotools.defmacro/g!>`
 will take all symbols that begin with ``g!`` and automatically call ``gensym`` with the
@@ -258,6 +258,6 @@ Our final version of ``nif``, built with ``defmacro/g!`` becomes::
    (defmacro/g! nif [expr pos-form zero-form neg-form]
      `(do
         (setv ~g!res ~expr)
-        (cond [(> ~g!res 0) ~pos-form]
-              [(= ~g!res 0) ~zero-form]
-              [(< ~g!res 0) ~neg-form])))
+        (cond (> ~g!res 0) ~pos-form
+              (= ~g!res 0) ~zero-form
+              (< ~g!res 0) ~neg-form)))

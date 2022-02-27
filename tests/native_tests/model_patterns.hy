@@ -41,15 +41,15 @@
     (setv tail (cut loopers 1 None))
     (print head)
     (cond
-      [(is head None)
-        `(do ~@body)]
-      [(= (len head) 1)
-        `(while ~@head ~(f tail))]
-      [(= (len head) 2)
-        `(for [~@head] ~(f tail))]
-      [True ; (= (len head) 3)
+       (is head None)
+        `(do ~@body)
+       (= (len head) 1)
+        `(while ~@head ~(f tail))
+       (= (len head) 2)
+        `(for [~@head] ~(f tail))
+       True (do ; (= (len head) 3)
         (setv [sym from to] head)
-        `(for [~sym (range ~from (+ ~to 1))] ~(f tail))]))
+        `(for [~sym (range ~from (+ ~to 1))] ~(f tail)))))
   (f loopers))
 
 (defn test-loop []

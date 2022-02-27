@@ -4,53 +4,42 @@
 ;;; They are automatically required in every module, except inside hy.core
 
 
-(defmacro cond [#* branches]
-  "Build a nested if clause with each `branch` a [cond result] bracket pair.
+(defmacro cond [#* args]
+  "Shorthand for a nested sequence of :hy:func:`if` forms, like an
+  :py:keyword:`if`-:py:keyword:`elif`-:py:keyword:`else` ladder in
+  Python. Syntax such as
+  ::
 
-  Examples:
-    ::
+      (cond
+        condition1 result1
+        condition2 result2)
 
-       => (cond [condition-1 result-1]
-       ...      [condition-2 result-2])
-       (if condition-1 result-1
-         (if condition-2 result-2))
+  is equivalent to
+  ::
 
-    If only the condition is given in a branch, then the condition is also used as
-    the result. The expansion of this single argument version is demonstrated
-    below::
+      (if condition1
+        result1
+        (if condition2
+          result2
+          None))
 
-       => (cond [condition-1]
-       ...       [condition-2])
-       (if condition-1 condition-1
-         (if condition-2 condition-2))
+  Notice that ``None`` is returned when no conditions match; use
+  ``True`` as the final condition to change the fallback result. Use
+  :hy:func:`do` to execute several forms as part of a single condition
+  or result.
 
-    As shown below, only the first matching result block is executed::
+  With no arguments, ``cond`` returns ``None``. With an odd number of
+  arguments, ``cond`` raises an error."
+  (if (% (len args) 2)
+    (raise (TypeError "`cond` needs an even number of arguments"))
+    (_cond args)))
 
-       => (defn check-value [value]
-       ...   (cond [(< value 5) (print \"value is smaller than 5\")]
-       ...         [(= value 5) (print \"value is equal to 5\")]
-       ...         [(> value 5) (print \"value is greater than 5\")]
-       ...         [True (print \"value is something that it should not be\")]))
-
-       => (check-value 6)
-       \"value is greater than 5\"
-"
-  (or branches
-    (return))
-
-  (setv (, branch #* branches) branches)
-
-  (if (not (and (is (type branch) hy.models.List)
-                branch))
-      (raise (TypeError "each cond branch needs to be a nonempty list"))
-      `(if ~@(if (= (len branch) 1)
-                (do (setv g (hy.gensym))
-                    [`(do (setv ~g ~(get branch 0)) ~g)
-                     g
-                     `(cond ~@branches)])
-                [(get branch 0)
-                 `(do ~@(cut branch 1 None))
-                 `(cond ~@branches)]))))
+(defn _cond [args]
+  (if args
+    `(if ~(get args 0)
+      ~(get args 1)
+      ~(_cond (cut args 2 None)))
+    'None))
 
 
 (defmacro when [test #* body]
