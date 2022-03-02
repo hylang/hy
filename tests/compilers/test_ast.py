@@ -73,7 +73,7 @@ def test_ast_bad_if():
 
 def test_ast_valid_if():
     "Make sure AST can compile valid if"
-    can_compile("(if foo bar)")
+    can_compile("(if foo bar baz)")
 
 
 def test_ast_valid_unary_op():

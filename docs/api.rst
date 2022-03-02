@@ -348,26 +348,20 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         => foo
         3
 
-.. hy:function:: (if [test then [else None])
+.. hy:function:: (if [test then else])
 
-   Evalute a test.
+   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.
+   ::
 
-   ``if`` respects Python *truthiness*, that is, a *test* fails if it
-   evaluates to a "zero" (including values of ``len`` zero, ``None``, and
-   ``False``), and passes otherwise, but values with a ``__bool__`` method
-   can override this.
+     (if (has-money-left account)
+       (print "Let's go shopping!")
+       (print "Back to work."))
 
-   ``if`` takes a *test* and *then* expression, plus an
-   optional *else* expression at the end, which defaults to ``None``.
-   If no tests pass, ``if`` selects *else*.
+   See also:
 
-   Examples:
-     ::
-
-        => (if (money-left? account)
-              (print \"let's go shopping\")
-              (print \"let's go and work\"))
-
+   - :hy:func:`do`, to execute several forms as part of any of ``if``'s three arguments.
+   - :hy:func:`when <hy.core.macros.when>`, for shorthand for ``(if condition (do …) None)``.
+   - :hy:func:`cond <hy.core.macros.cond>`, for shorthand for nested ``if`` forms.
 
 .. hy:function:: (await [obj])
 

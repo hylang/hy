@@ -148,7 +148,7 @@ def test_bin_hy_stdin_except_do():
     assert "ccc" in output
 
     output, _ = run_cmd("hy",
-        '(if True (do "xxx" "yyy" "zzz"))')
+        '(when True "xxx" "yyy" "zzz")')
     assert "xxx" not in output
     assert "yyy" not in output
     assert "zzz" in output

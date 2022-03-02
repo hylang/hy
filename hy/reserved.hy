@@ -27,7 +27,7 @@
        True
   "
   (global _cache)
-  (if (is _cache None) (do
+  (when (is _cache None)
     (setv _cache (| (macros) (frozenset (map hy.unmangle
-      keyword.kwlist))))))
+                                             keyword.kwlist)))))
   _cache)
