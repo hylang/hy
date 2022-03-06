@@ -1,12 +1,13 @@
 "Parser combinators for pattern-matching Hy model trees."
 
+import typing as T
 from functools import reduce
 from itertools import repeat
 from math import isinf
 from operator import add
-from typing import Any, Callable, NamedTuple
-from typing import Sequence as SequenceT
-from typing import Type, TypeVar, Union
+
+if T.TYPE_CHECKING:
+    _T = T.TypeVar("_T")
 
 from funcparserlib.parser import (
     NoParseError,
@@ -40,9 +41,6 @@ STR = some(lambda x: isinstance(x, String))  # matches literal strings only!
 LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes)))
 
 
-_T = TypeVar("_T")
-
-
 def sym(wanted):
     "Parse and skip the given symbol or keyword."
     return _sym(wanted, skip)
@@ -53,13 +51,13 @@ def keepsym(wanted):
     return _sym(wanted)
 
 
-def _sym(wanted: str, f: Callable = lambda x: x):
+def _sym(wanted: str, f: T.Callable = lambda x: x):
     if wanted.startswith(":"):
         return f(a(Keyword(wanted[1:])))
     return f(some(lambda x: x == Symbol(wanted)))
 
 
-def whole(parsers: SequenceT[Parser]):
+def whole(parsers: T.Sequence[Parser]):
     """Parse the parsers in the given list one after another, then
     expect the end of the input."""
     if len(parsers) == 0:
@@ -69,7 +67,7 @@ def whole(parsers: SequenceT[Parser]):
     return reduce(add, parsers) + skip(finished)
 
 
-def _grouped(group_type: Type[Object], parsers: SequenceT[Parser]):
+def _grouped(group_type: T.Type[Object], parsers: T.Sequence[Parser]):
     return some(lambda x: isinstance(x, group_type)) >> (
         lambda x: group_type(whole(parsers).parse(x)).replace(  # type:ignore
             x, recursive=False
@@ -115,7 +113,9 @@ def unpack(kind):
     )
 
 
-def times(lo: int, hi: Union[int, float], parser: Parser[Any, _T]) -> Parser[Any, _T]:
+def times(
+    lo: int, hi: T.Union[int, float], parser: Parser[T.Any, _T]
+) -> Parser[T.Any, _T]:
     """Parse `parser` several times (`lo` to `hi`) in a row. `hi` can be
     float('inf'). The result is a list no matter the number of instances."""
 
@@ -137,15 +137,15 @@ def times(lo: int, hi: Union[int, float], parser: Parser[Any, _T]) -> Parser[Any
     return f
 
 
-class Tag(NamedTuple):
+class Tag(T.NamedTuple):
     tag: str
 
     # A generic should be used but is blocked on
     # https://github.com/python/mypy/issues/685
-    value: Any
+    value: T.Any
 
 
-def tag(tag_name: str, parser: Parser[_T, Any]) -> Parser[_T, Tag]:
+def tag(tag_name: str, parser: Parser[_T, T.Any]) -> Parser[_T, Tag]:
     """Matches the given parser and produces a named tuple `(Tag tag value)`
     with `tag` set to the given tag name and `value` set to the parser's
     value."""
