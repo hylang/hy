@@ -7,12 +7,14 @@ these, or to one of the model builders in hy.compiler."""
 # ------------------------------------------------
 # * Imports
 # ------------------------------------------------
+from __future__ import annotations
 
 import ast
 import keyword
 import textwrap
 from contextlib import nullcontext
 from itertools import dropwhile
+from typing import TYPE_CHECKING
 
 from funcparserlib.parser import forward_decl, many, maybe, oneplus, some
 
@@ -62,6 +64,14 @@ from hy.scoping import (
     is_inside_function_scope,
 )
 
+if TYPE_CHECKING:
+    import typing as T
+
+    from hy.compiler import HyASTCompiler
+    from hy.models import Object
+
+    BinaryBoolOp = T.Literal["and", "or"]
+
 # ------------------------------------------------
 # * Helpers
 # ------------------------------------------------
@@ -82,12 +92,14 @@ OPTIONAL_ANNOTATION = maybe(pvalue("annotate", FORM))
 
 
 @pattern_macro("do", [many(FORM)])
-def compile_do(self, expr, root, body):
+def compile_do(self: HyASTCompiler, expr: Expression, root: str, body: Expression):
     return self._compile_branch(body)
 
 
 @pattern_macro(["eval-and-compile", "eval-when-compile"], [many(FORM)])
-def compile_eval_and_compile(compiler, expr, root, body):
+def compile_eval_and_compile(
+    compiler: HyASTCompiler, expr: Expression, root: str, body: Expression
+):
     new_expr = Expression([Symbol("do").replace(expr[0])]).replace(expr)
 
     try:
@@ -110,7 +122,12 @@ def compile_eval_and_compile(compiler, expr, root, body):
         # the compilation *process* (although compilation did technically
         # fail).
         # We wrap these exceptions and pass them through.
-        raise HyEvalError(str(e), compiler.filename, body, compiler.source)
+        raise HyEvalError(
+            message=str(e),
+            expression=body,
+            filename=compiler.filename,
+            source=compiler.source,
+        )
 
     return (
         compiler._compile_branch(body)
@@ -120,8 +137,10 @@ def compile_eval_and_compile(compiler, expr, root, body):
 
 
 @pattern_macro(["py", "pys"], [STR])
-def compile_inline_python(compiler, expr, root, code):
-    exec_mode = root == "pys"
+def compile_inline_python(
+    compiler: HyASTCompiler, expr: Expression, root: str, code: str
+):
+    exec_mode: bool = root == "pys"
 
     try:
         o = asty.parse(
@@ -144,14 +163,18 @@ def compile_inline_python(compiler, expr, root, code):
 
 
 @pattern_macro(["quote", "quasiquote"], [FORM])
-def compile_quote(compiler, expr, root, arg):
-    level = Inf if root == "quote" else 0  # Only quasiquotes can unquote
+def compile_quote(compiler: HyASTCompiler, expr: Expression, root: str, arg):
+    level: T.Union[float, int] = (
+        Inf if root == "quote" else 0
+    )  # Only quasiquotes can unquote
     stmts, _ = render_quoted_form(compiler, arg, level)
     ret = compiler.compile(stmts)
     return ret
 
 
-def render_quoted_form(compiler, form, level):
+def render_quoted_form(
+    compiler: HyASTCompiler, form: Expression, level: T.Union[int, float]
+) -> tuple[Expression, bool]:
     """
     Render a quoted form as a new hy Expression.
 
@@ -166,16 +189,16 @@ def render_quoted_form(compiler, form, level):
     """
 
     op = None
-    if isinstance(form, Expression) and form and isinstance(form[0], Symbol):
+    if form and isinstance(form, Expression) and isinstance(form[0], Symbol):
         op = unmangle(mangle(form[0]))
     if level == 0 and op in ("unquote", "unquote-splice"):
         if len(form) != 2:
             raise HyTypeError(
-                "`%s' needs 1 argument, got %s" % op,
-                len(form) - 1,
-                compiler.filename,
-                form,
-                compiler.source,
+                message="`%s' needs 1 argument, got %s" % op,
+                expression=form,
+                filename=compiler.filename,
+                source=compiler.source,
+                lineno=len(form) - 1,
             )
         return form[1], op == "unquote-splice"
     elif op == "quasiquote":
@@ -226,15 +249,26 @@ def render_quoted_form(compiler, form, level):
 
 
 @pattern_macro(["not", "~"], [FORM], shadow=True)
-def compile_unary_operator(compiler, expr, root, arg):
+def compile_unary_operator(compiler: HyASTCompiler, expr: Expression, root: str, arg):
     ops = {"not": ast.Not, "~": ast.Invert}
     operand = compiler.compile(arg)
     return operand + asty.UnaryOp(expr, op=ops[root](), operand=operand.force_expr)
 
 
 @pattern_macro(["and", "or"], [many(FORM)], shadow=True)
-def compile_logical_or_and_and_operator(compiler, expr, operator, args):
-    ops = {"and": (ast.And, True), "or": (ast.Or, None)}
+def compile_logical_or_and_and_operator(
+    compiler: HyASTCompiler,
+    expr: Expression,
+    operator: T.Literal["and", "or"],
+    args: T.Sequence[T.Union[Object, Result, None]],
+) -> Result:
+    ops: dict[
+        BinaryBoolOp,
+        tuple[T.Union[T.Type[ast.And], T.Type[ast.Or]], T.Union[bool, None]],
+    ] = {
+        "and": (ast.And, True),
+        "or": (ast.Or, None),
+    }
     opnode, default = ops[operator]
     osym = expr[0]
     if len(args) == 0:
@@ -296,7 +330,7 @@ c_ops = {
 c_ops = {mangle(k): v for k, v in c_ops.items()}
 
 
-def get_c_op(compiler, sym):
+def get_c_op(compiler: HyASTCompiler, sym):
     k = mangle(sym)
     if k not in c_ops:
         raise compiler._syntax_error(sym, "Illegal comparison operator: " + str(sym))
@@ -305,7 +339,9 @@ def get_c_op(compiler, sym):
 
 @pattern_macro(["=", "is", "<", "<=", ">", ">="], [oneplus(FORM)], shadow=True)
 @pattern_macro(["!=", "is-not", "in", "not-in"], [times(2, Inf, FORM)], shadow=True)
-def compile_compare_op_expression(compiler, expr, root, args):
+def compile_compare_op_expression(
+    compiler: HyASTCompiler, expr: Expression, root: str, args
+):
     if len(args) == 1:
         return compiler.compile(args[0]) + asty.Constant(expr, value=True)
 
@@ -315,7 +351,9 @@ def compile_compare_op_expression(compiler, expr, root, args):
 
 
 @pattern_macro("chainc", [FORM, many(SYM + FORM)])
-def compile_chained_comparison(compiler, expr, root, arg1, args):
+def compile_chained_comparison(
+    compiler: HyASTCompiler, expr: Expression, root: str, arg1, args
+):
     ret = compiler.compile(arg1)
     arg1 = ret.force_expr
 
@@ -348,7 +386,9 @@ m_ops = {
 @pattern_macro(["-", "/", "&", "@"], [oneplus(FORM)], shadow=True)
 @pattern_macro(["**", "//", "<<", ">>"], [times(2, Inf, FORM)], shadow=True)
 @pattern_macro(["%", "^"], [times(2, 2, FORM)], shadow=True)
-def compile_maths_expression(compiler, expr, root, args):
+def compile_maths_expression(
+    compiler: HyASTCompiler, expr: Expression, root: str, args
+):
     if len(args) == 0:
         # Return the identity element for this operator.
         return asty.Num(expr, n=({"+": 0, "|": 0, "*": 1}[root]))
@@ -389,7 +429,9 @@ a_ops = {x + "=": v for x, v in m_ops.items()}
 @pattern_macro(
     [x for x, (_, v) in a_ops.items() if v is None], [FORM, times(1, 1, FORM)]
 )
-def compile_augassign_expression(compiler, expr, root, target, values):
+def compile_augassign_expression(
+    compiler: HyASTCompiler, expr: Expression, root: str, target, values
+):
     if len(values) > 1:
         return compiler.compile(
             mkexpr(root, [target], mkexpr(a_ops[root][1], rest=values)).replace(expr)
@@ -408,7 +450,7 @@ def compile_augassign_expression(compiler, expr, root, target, values):
 
 @pattern_macro("setv", [many(OPTIONAL_ANNOTATION + FORM + FORM)])
 @pattern_macro(((3, 8), "setx"), [times(1, 1, SYM + FORM)])
-def compile_def_expression(compiler, expr, root, decls):
+def compile_def_expression(compiler: HyASTCompiler, expr: Expression, root: str, decls):
     if not decls:
         return asty.Constant(expr, value=None)
 
@@ -428,12 +470,20 @@ def compile_def_expression(compiler, expr, root, decls):
 
 
 @pattern_macro(["annotate"], [FORM, FORM])
-def compile_basic_annotation(compiler, expr, root, ann, target):
+def compile_basic_annotation(
+    compiler: HyASTCompiler, expr: Expression, root: str, ann, target
+):
     return compile_assign(compiler, ann, target, None)
 
 
 def compile_assign(
-    compiler, ann, name, value, *, is_assignment_expr=False, let_scope=None
+    compiler: HyASTCompiler,
+    ann,
+    name,
+    value,
+    *,
+    is_assignment_expr=False,
+    let_scope=None,
 ):
     # Ensure that assignment expressions have a result and no annotation.
     assert not is_assignment_expr or (value is not None and ann is None)
@@ -484,7 +534,9 @@ def compile_assign(
 
 
 @pattern_macro(["global", "nonlocal"], [oneplus(SYM)])
-def compile_global_or_nonlocal(compiler, expr, root, syms):
+def compile_global_or_nonlocal(
+    compiler: HyASTCompiler, expr: Expression, root: str, syms
+):
     node = asty.Global if root == "global" else asty.Nonlocal
     ret = node(expr, names=[mangle(s) for s in syms])
 
@@ -497,7 +549,7 @@ def compile_global_or_nonlocal(compiler, expr, root, syms):
 
 
 @pattern_macro("del", [many(FORM)])
-def compile_del_expression(compiler, expr, name, args):
+def compile_del_expression(compiler: HyASTCompiler, expr: Expression, name: str, args):
     if not args:
         return asty.Pass(expr)
 
@@ -517,7 +569,9 @@ def compile_del_expression(compiler, expr, name, args):
 
 
 @pattern_macro("get", [FORM, oneplus(FORM)], shadow=True)
-def compile_index_expression(compiler, expr, name, obj, indices):
+def compile_index_expression(
+    compiler: HyASTCompiler, expr: Expression, name: str, obj, indices
+):
     indices, ret, _ = compiler._compile_collect(indices)
     ret += compiler.compile(obj)
 
@@ -545,7 +599,9 @@ notsym = lambda *dissallowed: some(
         ),
     ],
 )
-def compile_attribute_access(compiler, expr, name, invocant, keys):
+def compile_attribute_access(
+    compiler: HyASTCompiler, expr: Expression, name: str, invocant, keys
+):
     ret = compiler.compile(invocant)
 
     for attr in keys:
@@ -582,7 +638,9 @@ def compile_attribute_access(compiler, expr, name, invocant, keys):
 
 
 @pattern_macro("cut", [FORM, maybe(FORM), maybe(FORM), maybe(FORM)])
-def compile_cut_expression(compiler, expr, name, obj, lower, upper, step):
+def compile_cut_expression(
+    compiler: HyASTCompiler, expr: Expression, name, obj, lower, upper, step
+):
     ret = [Result()]
 
     def c(e):
@@ -605,7 +663,7 @@ def compile_cut_expression(compiler, expr, name, obj, lower, upper, step):
 
 
 @pattern_macro("unpack-iterable", [FORM])
-def compile_unpack_iterable(compiler, expr, root, arg):
+def compile_unpack_iterable(compiler, expr: Expression, root: str, arg):
     ret = compiler.compile(arg)
     ret += asty.Starred(expr, value=ret.force_expr, ctx=ast.Load())
     return ret
@@ -617,7 +675,7 @@ def compile_unpack_iterable(compiler, expr, root, arg):
 
 
 @pattern_macro("if", [FORM, FORM, maybe(FORM)])
-def compile_if(compiler, expr, _, cond, body, orel_expr):
+def compile_if(compiler: HyASTCompiler, expr: Expression, _, cond, body, orel_expr):
     cond = compiler.compile(cond)
     body = compiler.compile(body)
 
@@ -703,7 +761,9 @@ loopers = many(
 )
 @pattern_macro(["lfor", "sfor", "gfor"], [loopers, FORM])
 @pattern_macro(["dfor"], [loopers, brackets(FORM, FORM)])
-def compile_comprehension(compiler, expr, root, parts, final):
+def compile_comprehension(
+    compiler: HyASTCompiler, expr: Expression, root, parts, final
+):
     node_class = {
         "for": asty.For,
         "lfor": asty.ListComp,
@@ -943,7 +1003,9 @@ def compile_comprehension(compiler, expr, root, parts, final):
 
 
 @pattern_macro(["while"], [FORM, many(notpexpr("else")), maybe(dolike("else"))])
-def compile_while_expression(compiler, expr, root, cond, body, else_expr):
+def compile_while_expression(
+    compiler: HyASTCompiler, expr: Expression, root, cond, body, else_expr
+):
     cond_compiled = compiler.compile(cond)
 
     body = compiler._compile_branch(body)
@@ -1017,7 +1079,9 @@ def compile_break_or_continue_expression(compiler, expr, root):
         many(FORM),
     ],
 )
-def compile_with_expression(compiler, expr, root, args, body):
+def compile_with_expression(
+    compiler: HyASTCompiler, expr: Expression, root, args, body
+):
     body = compiler._compile_branch(body)
 
     # Store the result of the body in a tempvar
@@ -1084,7 +1148,9 @@ match_clause = _pattern + maybe(sym(":if") + FORM)
 
 
 @pattern_macro(((3, 10), "match"), [FORM, many(match_clause + FORM)])
-def compile_match_expression(compiler, expr, root, subject, clauses):
+def compile_match_expression(
+    compiler: HyASTCompiler, expr: Expression, root, subject, clauses
+):
     subject = compiler.compile(subject)
     return_var = asty.Name(expr, id=mangle(compiler.get_anon_var()), ctx=ast.Store())
 
@@ -1148,7 +1214,7 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
     return ret + returnable
 
 
-def compile_pattern(compiler, pattern):
+def compile_pattern(compiler: HyASTCompiler, pattern):
     value, assignment = pattern
     if assignment is not None:
         return compiler.scope.assign(
@@ -1235,7 +1301,9 @@ def compile_pattern(compiler, pattern):
 
 
 @pattern_macro("raise", [maybe(FORM), maybe(sym(":from") + FORM)])
-def compile_raise_expression(compiler, expr, root, exc, cause):
+def compile_raise_expression(
+    compiler: HyASTCompiler, expr: Expression, root, exc, cause
+):
     ret = Result()
 
     if exc is not None:
@@ -1268,7 +1336,9 @@ def compile_raise_expression(compiler, expr, root, exc, cause):
         maybe(dolike("finally")),
     ],
 )
-def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbody):
+def compile_try_expression(
+    compiler: HyASTCompiler, expr: Expression, root, body, catchers, orelse, finalbody
+):
     body = compiler._compile_branch(body)
 
     return_var = asty.Name(expr, id=mangle(compiler.get_anon_var()), ctx=ast.Store())
@@ -1320,7 +1390,9 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
     return handler_results + x + returnable
 
 
-def compile_catch_expression(compiler, expr, var, exceptions, body):
+def compile_catch_expression(
+    compiler: HyASTCompiler, expr: Expression, var, exceptions, body
+):
     # exceptions catch should be either:
     # [[list of exceptions]]
     # or
@@ -1380,7 +1452,9 @@ lambda_list = brackets(
 
 
 @pattern_macro(["fn", "fn/a"], [OPTIONAL_ANNOTATION, lambda_list, many(FORM)])
-def compile_function_lambda(compiler, expr, root, returns, params, body):
+def compile_function_lambda(
+    compiler: HyASTCompiler, expr: Expression, root, returns, params, body
+):
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
         isinstance(param, tuple) and param[0] is not None
@@ -1404,7 +1478,9 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
 
 
 @pattern_macro(["defn", "defn/a"], [OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)])
-def compile_function_def(compiler, expr, root, returns, name, params, body):
+def compile_function_def(
+    compiler: HyASTCompiler, expr: Expression, root, returns, name, params, body
+):
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
     args, ret = compile_lambda_list(compiler, params)
     name = mangle(compiler._nonconst(name))
@@ -1415,7 +1491,9 @@ def compile_function_def(compiler, expr, root, returns, name, params, body):
     return ret + compile_function_node(compiler, expr, node, name, args, returns, body)
 
 
-def compile_function_node(compiler, expr, node, name, args, returns, body):
+def compile_function_node(
+    compiler: HyASTCompiler, expr: Expression, node, name, args, returns, body
+):
     ret = Result()
 
     if body.expr:
@@ -1435,7 +1513,9 @@ def compile_function_node(compiler, expr, node, name, args, returns, body):
 
 
 @pattern_macro("defmacro", [SYM | STR, lambda_list, many(FORM)])
-def compile_macro_def(compiler, expr, root, name, params, body):
+def compile_macro_def(
+    compiler: HyASTCompiler, expr: Expression, root, name, params, body
+):
     _, _, rest, _, kwargs = params
 
     if "." in name:
@@ -1473,7 +1553,7 @@ def compile_macro_def(compiler, expr, root, name, params, body):
     return ret + ret.expr_as_stmt()
 
 
-def compile_lambda_list(compiler, params):
+def compile_lambda_list(compiler: HyASTCompiler, params):
     ret = Result()
     posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
 
@@ -1552,7 +1632,7 @@ def compile_lambda_list(compiler, params):
     )
 
 
-def compile_arguments_set(compiler, decls, ret, is_kwonly=False):
+def compile_arguments_set(compiler: HyASTCompiler, decls, ret, is_kwonly=False):
     args_ast = []
     args_defaults = []
 
@@ -1596,7 +1676,7 @@ _decoratables = (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
 
 
 @pattern_macro("with-decorator", [oneplus(FORM)])
-def compile_decorate_expression(compiler, expr, name, args):
+def compile_decorate_expression(compiler: HyASTCompiler, expr: Expression, name, args):
     decs, fn = args[:-1], compiler.compile(args[-1])
     if not fn.stmts or not isinstance(fn.stmts[-1], _decoratables):
         raise compiler._syntax_error(args[-1], "Decorated a non-function")
@@ -1606,7 +1686,7 @@ def compile_decorate_expression(compiler, expr, name, args):
 
 
 @pattern_macro("return", [maybe(FORM)])
-def compile_return(compiler, expr, root, arg):
+def compile_return(compiler: HyASTCompiler, expr: Expression, root, arg):
     ret = Result()
     if arg is None:
         return asty.Return(expr, value=None)
@@ -1615,7 +1695,7 @@ def compile_return(compiler, expr, root, arg):
 
 
 @pattern_macro("yield", [maybe(FORM)])
-def compile_yield_expression(compiler, expr, root, arg):
+def compile_yield_expression(compiler: HyASTCompiler, expr: Expression, root, arg):
     ret = Result()
     if arg is not None:
         ret += compiler.compile(arg)
@@ -1623,7 +1703,9 @@ def compile_yield_expression(compiler, expr, root, arg):
 
 
 @pattern_macro(["yield-from", "await"], [FORM])
-def compile_yield_from_or_await_expression(compiler, expr, root, arg):
+def compile_yield_from_or_await_expression(
+    compiler: HyASTCompiler, expr: Expression, root, arg
+):
     ret = Result() + compiler.compile(arg)
     node = asty.YieldFrom if root == "yield-from" else asty.Await
     return ret + node(expr, value=ret.force_expr)
@@ -1635,7 +1717,9 @@ def compile_yield_from_or_await_expression(compiler, expr, root, arg):
 
 
 @pattern_macro("defclass", [SYM, maybe(brackets(many(FORM)) + maybe(STR) + many(FORM))])
-def compile_class_expression(compiler, expr, root, name, rest):
+def compile_class_expression(
+    compiler: HyASTCompiler, expr: Expression, root, name, rest
+):
     base_list, docstring, body = rest or ([[]], None, [])
 
     bases_expr, bases, keywords = compiler._compile_collect(
@@ -1687,7 +1771,7 @@ def importlike(*name_types):
 
 @pattern_macro("import", importlike(Symbol))
 @pattern_macro("require", importlike(Symbol, String))
-def compile_import_or_require(compiler, expr, root, entries):
+def compile_import_or_require(compiler: HyASTCompiler, expr: Expression, root, entries):
     ret = Result()
 
     for entry in entries:
@@ -1773,13 +1857,15 @@ def compile_import_or_require(compiler, expr, root, entries):
 
 
 @pattern_macro(",", [many(FORM)])
-def compile_tuple(compiler, expr, root, args):
+def compile_tuple(compiler: HyASTCompiler, expr: Expression, root, args):
     elts, ret, _ = compiler._compile_collect(args)
     return ret + asty.Tuple(expr, elts=elts, ctx=ast.Load())
 
 
 @pattern_macro("assert", [FORM, maybe(FORM)])
-def compile_assert_expression(compiler, expr, root, test, msg):
+def compile_assert_expression(
+    compiler: HyASTCompiler, expr: Expression, root, test, msg
+):
     if msg is None or type(msg) is Symbol:
         ret = compiler.compile(test)
         return ret + asty.Assert(
@@ -1804,7 +1890,7 @@ def compile_assert_expression(compiler, expr, root, test, msg):
 
 
 @pattern_macro("let", [brackets(many(OPTIONAL_ANNOTATION + FORM + FORM)), many(FORM)])
-def compile_let(compiler, expr, root, bindings, body):
+def compile_let(compiler: HyASTCompiler, expr: Expression, root, bindings, body):
     res = Result()
     bindings = bindings[0]
     scope = compiler.scope.create(ScopeLet)
