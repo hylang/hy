@@ -8,8 +8,8 @@ import os
 import pkgutil
 import sys
 import traceback
+import typing as T
 from ast import AST
-from typing import TYPE_CHECKING, cast
 
 from funcparserlib.parser import NoParseError
 
@@ -25,16 +25,16 @@ from hy.lex import mangle, unmangle
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
 
-if TYPE_CHECKING:
+if T.TYPE_CHECKING:
     from types import ModuleType
-    from typing import Callable, List, Optional
-    from typing import Sequence as SequenceT
-    from typing import Tuple, TypeVar, Union
+
+    from funcparserlib.parser import Parser
 
     from hy.compiler import HyASTCompiler, Result
     from hy.models import Object
 
-    F = TypeVar("F", bound=Callable)
+    MacroNames = T.Union[str, list[str]]
+    F = T.TypeVar("F", bound=T.Callable)
 
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
@@ -44,8 +44,12 @@ def macro(name):
     return lambda fn: install_macro(name, fn, fn)
 
 
-def pattern_macro(names: Union[str, Tuple[str, ...]], pattern, shadow=None):
-    pattern = whole(pattern)
+def pattern_macro(
+    names: T.Union[MacroNames, T.Tuple[str, MacroNames]],
+    pattern: T.Sequence[Parser],
+    shadow: bool = False,
+):
+    pattern_whole = whole(pattern)
     py_version_required = None
     if isinstance(names, tuple):
         py_version_required, names = names
@@ -72,7 +76,7 @@ def pattern_macro(names: Union[str, Tuple[str, ...]], pattern, shadow=None):
                     )
 
                 try:
-                    parse_tree = pattern.parse(args)
+                    parse_tree = pattern_whole.parse(args)
                 except NoParseError as e:
                     raise hy_compiler._syntax_error(
                         expr[min(e.state.pos + 1, len(expr) - 1)],
@@ -134,9 +138,9 @@ def _same_modules(source_module, target_module):
 
 
 def require(
-    source_module: Union[str, ModuleType],
-    target_module: Optional[Union[str, ModuleType]],
-    assignments: Union[str, SequenceT[str]],
+    source_module: T.Union[str, ModuleType],
+    target_module: T.Optional[T.Union[str, ModuleType]],
+    assignments: T.Union[str, T.Sequence[str]],
     prefix: str = "",
 ) -> bool:
     """Load macros from one module into the namespace of another.
@@ -299,12 +303,12 @@ class MacroExceptions:
 
 
 def macroexpand(
-    tree: Union[Object, List],
-    module: Union[str, ModuleType],
-    compiler: Optional[HyASTCompiler] = None,
+    tree: T.Union[Object, T.List],
+    module: T.Union[str, ModuleType],
+    compiler: T.Optional[HyASTCompiler] = None,
     once: bool = False,
     result_ok: bool = True,
-) -> Union[Object, Result]:
+) -> T.Union[Object, Result]:
     """Expand the toplevel macros for the given Hy AST tree.
 
     Load the macros from the given `module`, then expand the (top-level) macros
@@ -330,7 +334,7 @@ def macroexpand(
         A mutated tree with macros expanded.
     """
     if not inspect.ismodule(module):
-        module = importlib.import_module(cast(str, module))
+        module = importlib.import_module(T.cast(str, module))
 
     assert not compiler or compiler.module == module
 
