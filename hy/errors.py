@@ -5,13 +5,19 @@ import sys
 import traceback
 from contextlib import contextmanager
 from functools import reduce
-from types import TracebackType
-from typing import Generator, Optional, Set, Type
+from typing import TYPE_CHECKING
 
 from colorama import Fore
 
 from hy import _initialize_env_var
 from hy._compat import PYPY
+
+if TYPE_CHECKING:
+    import typing as T
+    from types import TracebackType
+
+    from hy.models import Expression
+
 
 _hy_filter_internal_errors = _initialize_env_var("HY_FILTER_INTERNAL_ERRORS", True)
 COLORED = _initialize_env_var("HY_COLORED_ERRORS", False)
@@ -38,9 +44,9 @@ class HyLanguageError(HyError):
     def __init__(
         self,
         message: str,
-        expression: Optional[object] = None,
-        filename: Optional[str] = None,
-        source: Optional[str] = None,
+        expression: T.Optional[Expression] = None,
+        filename: T.Optional[str] = None,
+        source: T.Optional[str] = None,
         lineno: int = 1,
         colno: int = 1,
     ):
@@ -69,9 +75,9 @@ class HyLanguageError(HyError):
 
     def compute_lineinfo(
         self,
-        expression: Optional[object],
-        filename: Optional[str],
-        source: Optional[str],
+        expression: T.Optional[object],
+        filename: T.Optional[str],
+        source: T.Optional[str],
         lineno: int,
         colno: int,
     ) -> None:
@@ -217,7 +223,7 @@ class HyWrapperError(HyError, TypeError):
     """
 
 
-def _module_filter_name(module_name: str) -> Optional[str]:
+def _module_filter_name(module_name: str) -> T.Optional[str]:
     try:
         compiler_loader = pkgutil.get_loader(module_name)
         if not compiler_loader:
@@ -239,7 +245,7 @@ def _module_filter_name(module_name: str) -> Optional[str]:
         return None
 
 
-_tb_hidden_modules: Set[str] = {
+_tb_hidden_modules: set[str] = {
     m
     for m in map(
         _module_filter_name,
@@ -268,7 +274,7 @@ _tb_hidden_modules.update(
 
 
 def hy_exc_filter(
-    exc_type: Type[BaseException],
+    exc_type: T.Type[BaseException],
     exc_value: BaseException,
     exc_traceback: TracebackType,
 ) -> str:
@@ -301,7 +307,7 @@ def hy_exc_filter(
 
 
 def hy_exc_handler(
-    exc_type: Type[BaseException],
+    exc_type: T.Type[BaseException],
     exc_value: BaseException,
     exc_traceback: TracebackType,
 ) -> None:
@@ -320,7 +326,7 @@ def hy_exc_handler(
 
 
 @contextmanager
-def filtered_hy_exceptions() -> Generator[None, None, None]:
+def filtered_hy_exceptions() -> T.Generator[None, None, None]:
     """Temporarily apply a `sys.excepthook` that filters Hy internal frames
     from tracebacks.
 
