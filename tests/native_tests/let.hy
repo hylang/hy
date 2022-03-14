@@ -93,27 +93,6 @@
     (assert (= x 99))))
 
 
-(defn test-generator-scope []
-  (setv x 20)
-  (lfor n (range 10) (setv x n))
-  (assert (= x 9))
-
-  (lfor n (range 10) (setv y n))
-  (assert (= y 9))
-
-  (lfor n (range 0) (setv z n))
-  (with [(pytest.raises UnboundLocalError)]
-    z)
-
-  (defn foo []
-    (defclass Foo []
-      (lfor x (, 2) (setv z 3))
-      (with [(pytest.raises NameError)]
-        z))
-    (assert (not-in "z" (locals))))
-  (foo))
-
-
 (defn test-let-quasiquote []
   (setv a-symbol 'a)
   (let [a "x"]
