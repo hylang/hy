@@ -21,6 +21,7 @@ Bug Fixes
   the Hy REPL actually starts.
 * Crash when using Keywords as `match` value.
 * Fixed a scoping bug in comprehensions in `let` bodies.
+* Tab completion in the Hy REPL now properly unmangles symbol names.
 
 .. _bpo-2675: https://bugs.python.org/issue2675#msg265564
 
