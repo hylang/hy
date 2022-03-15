@@ -4,8 +4,8 @@ import os
 import re
 import sys
 
-import hy.compiler
 import hy.macros
+from hy import mangle, unmangle
 
 # Lazily import `readline` to work around
 # https://bugs.python.org/issue2675#msg265564
@@ -24,6 +24,21 @@ def init_readline():
         pass
 
 
+def maybe_unmangle(text):
+    try:
+        unmangled = unmangle(text)
+    except KeyError:
+        unmangled = text
+    return (unmangled, text)
+
+
+def canonicalize(text):
+    try:
+        return unmangle(mangle(text)) if text else ""
+    except KeyError:
+        return text
+
+
 class Completer:
     def __init__(self, namespace={}):
         if not isinstance(namespace, dict):
@@ -37,38 +52,39 @@ class Completer:
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer
-        m = re.match(r"(\S+(\.[\w-]+)*)\.([\w-]*)$", text)
+        m = re.match(r"(\S+(\.[\S]+)*)\.([\S]*)$", text)
 
         if m:
-            expr, attr = m.group(1, 3)
-            attr = attr.replace("-", "_")
-            expr = expr.replace("-", "_")
+            expr, orig_attr = m.group(1, 3)
+            attr = canonicalize(orig_attr)
         else:
             return []
 
         try:
-            obj = eval(expr, self.namespace)
-            words = dir(obj)
+            sym, *syms = expr.split(".")
+            obj = self.namespace[mangle(sym)]
+            for sym in syms:
+                obj = getattr(obj, mangle(sym))
+            words = map(maybe_unmangle, dir(obj))
         except Exception:
             return []
 
-        n = len(attr)
-        matches = []
-        for w in words:
-            if w[:n] == attr:
-                matches.append(
-                    "{}.{}".format(expr.replace("_", "-"), w.replace("_", "-"))
-                )
+        matches = [
+            f"{expr}.{unmangled}"
+            for unmangled, w in words
+            if unmangled.startswith(attr) or w.startswith(orig_attr)
+        ]
         return matches
 
     def global_matches(self, text):
+        canonicalized = canonicalize(text)
         matches = []
         for p in self.path:
             for k in p.keys():
                 if isinstance(k, str):
-                    k = k.replace("_", "-")
-                    if k.startswith(text):
-                        matches.append(k)
+                    unmangled, k = maybe_unmangle(k)
+                    if unmangled.startswith(canonicalized) or k.startswith(text):
+                        matches.append(unmangled)
         return matches
 
     def complete(self, text, state):
