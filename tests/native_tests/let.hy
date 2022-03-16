@@ -93,6 +93,39 @@
     (assert (= x 99))))
 
 
+(defn test-let-comprehension-scope []
+  ; https://github.com/hylang/hy/issues/2224
+
+  (setv x 100)
+
+  (let [x 10]
+    (assert (=
+      (lfor  x (range 5)  :if (> x 1)  x)
+      [2 3 4]))
+    (assert (= x 10)))
+
+  (let [x 15]
+    (assert (=
+      (lfor  y (range 3)  :setv x (* y 2)  (+ y x))
+      [0 3 6]))
+    (assert (= x 15)))
+
+  (let [x 20]
+    (assert (=
+      (lfor  z "abc"  :do (setv x (.upper z))  (+ z x))
+      ["aA" "bB" "cC"]))
+    (assert (= x "C")))
+
+  (let [x 25
+        l []]
+    (for [x (range 5)  :if (> x 1)]
+      (.append l x))
+    (assert (= l [2 3 4]))
+    (assert (= x 4)))
+
+  (assert (= x 100)))
+
+
 (defn test-let-quasiquote []
   (setv a-symbol 'a)
   (let [a "x"]
