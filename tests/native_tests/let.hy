@@ -93,25 +93,37 @@
     (assert (= x 99))))
 
 
-(defn test-generator-scope []
-  (setv x 20)
-  (lfor n (range 10) (setv x n))
-  (assert (= x 9))
+(defn test-let-comprehension-scope []
+  ; https://github.com/hylang/hy/issues/2224
 
-  (lfor n (range 10) (setv y n))
-  (assert (= y 9))
+  (setv x 100)
 
-  (lfor n (range 0) (setv z n))
-  (with [(pytest.raises UnboundLocalError)]
-    z)
+  (let [x 10]
+    (assert (=
+      (lfor  x (range 5)  :if (> x 1)  x)
+      [2 3 4]))
+    (assert (= x 10)))
 
-  (defn foo []
-    (defclass Foo []
-      (lfor x (, 2) (setv z 3))
-      (with [(pytest.raises NameError)]
-        z))
-    (assert (not-in "z" (locals))))
-  (foo))
+  (let [x 15]
+    (assert (=
+      (lfor  y (range 3)  :setv x (* y 2)  (+ y x))
+      [0 3 6]))
+    (assert (= x 15)))
+
+  (let [x 20]
+    (assert (=
+      (lfor  z "abc"  :do (setv x (.upper z))  (+ z x))
+      ["aA" "bB" "cC"]))
+    (assert (= x "C")))
+
+  (let [x 25
+        l []]
+    (for [x (range 5)  :if (> x 1)]
+      (.append l x))
+    (assert (= l [2 3 4]))
+    (assert (= x 4)))
+
+  (assert (= x 100)))
 
 
 (defn test-let-quasiquote []

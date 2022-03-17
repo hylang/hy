@@ -855,6 +855,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    ``importlib.import_module``, ``fn``, or ``type`` (or whatever
    metaclass) instead.
 
+   If ``lfor``, ``sfor``, ``dfor``, or ``gfor`` (but not ``for``) is in
+   the body of a ``let``, assignments in iteration clauses and ``:setv``
+   clauses will create a new variable in the comprehenion form's own
+   scope, without touching any outer let-bound variable of the same
+   name.
+
    Like the ``let*`` of many other Lisps, ``let`` executes the variable
    assignments one-by-one, in the order written::
 
