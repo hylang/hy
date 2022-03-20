@@ -106,10 +106,7 @@ class Object:
         )
 
     def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        else:
-            return super().__eq__(other)
+        return type(self) is type(other) and super().__eq__(other)
 
     def __hash__(self):
         return super().__hash__()
