@@ -498,23 +498,23 @@ def cmdline_handler(scriptname, argv):
     # options, such as `-c`. So, we can't use `argparse`.
 
     defs = [
-        dict(name=["-h", "--help"], action="help",
-            help="show this help message and exit"),
-        dict(name=["-c"], dest="command", terminate=True,
-            help="program passed in as a string"),
-        dict(name=["-m"], dest="mod", terminate=True,
-            help="module to run, passed in as a string"),
-        dict(name=["-E"], action='store_true',
-            help="ignore PYTHON* environment variables"),
         dict(name=["-B"], action='store_true',
             help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x"),
+        dict(name=["-c"], dest="command", terminate=True,
+            help="program passed in as a string"),
+        dict(name=["-E"], action='store_true',
+            help="ignore PYTHON* environment variables"),
+        dict(name=["-h", "--help"], action="help",
+            help="show this help message and exit"),
         dict(name=["-i"], dest="icommand", terminate=True,
             help="program passed in as a string, then stay in REPL"),
-        dict(name=["--spy"], action="store_true",
-            help="print equivalent Python code before executing"),
+        dict(name=["-m"], dest="mod", terminate=True,
+            help="module to run, passed in as a string"),
         dict(name=["--repl-output-fn"], dest="repl_output_fn",
             help="function for printing REPL output "
                 "(e.g., hy.contrib.hy-repr.hy-repr)"),
+        dict(name=["--spy"], action="store_true",
+            help="print equivalent Python code before executing"),
         dict(name=["-v", "--version"], action="version",
             help="show program's version number and exit")]
 
