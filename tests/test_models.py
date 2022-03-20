@@ -122,6 +122,36 @@ def test_set():
     assert list(Set([3, 1, 2, 2])) == [3, 1, 2, 2]
 
 
+def test_equality():
+    # https://github.com/hylang/hy/issues/1363
+
+    assert String("foo") == String("foo")
+    assert String("foo") == hy.as_model("foo")
+    assert String("foo") != String("fo")
+    assert String("foo") != "foo"
+    assert "foo" != String("foo")
+
+    assert Symbol("foo") == Symbol("foo")
+    assert Symbol("foo") != Symbol("fo")
+    assert Symbol("foo") != String("foo")
+    assert Symbol("foo") != "foo"
+
+    assert Integer(5) == Integer(5)
+    assert Integer(5) == hy.as_model(5)
+    assert Integer(5) != Integer(6)
+    assert Integer(5) != 5
+    assert 5 != Integer(5)
+
+    l = [Integer(1), Integer(2)]
+    assert List(l) == List(l)
+    assert List(l) == hy.as_model(l)
+    assert List(l) == hy.as_model(tuple(l))
+    assert List(l) != List(list(reversed(l)))
+    assert List(l) != List([Integer(1), Integer(3)])
+    assert List(l) != l
+    assert List(l) != tuple(l)
+
+
 def test_number_model_copy():
     i = Integer(42)
     assert i == copy.copy(i)
