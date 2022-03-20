@@ -10,8 +10,6 @@ from importlib.util import cache_from_source
 
 import pytest
 
-hy_dir = os.environ.get("HY_DIR", "")
-
 
 def pyr(s=""):
     return "hy --repl-output-fn=repr " + s
@@ -24,10 +22,8 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
     else:
         env.pop("PYTHONDONTWRITEBYTECODE", None)
 
-    cmd = shlex.split(cmd)
-    cmd[0] = os.path.join(hy_dir, cmd[0])
     p = subprocess.Popen(
-        cmd,
+        shlex.split(cmd),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
