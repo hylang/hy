@@ -501,22 +501,21 @@ def cmdline_handler(scriptname, argv):
         dict(name=["-B"], action='store_true',
             help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x"),
         dict(name=["-c"], dest="command", terminate=True,
-            help="program passed in as a string"),
+            help="program passed in as string"),
         dict(name=["-E"], action='store_true',
-            help="ignore PYTHON* environment variables"),
+            help="ignore PYTHON* environment variables (such as PYTHONPATH)"),
         dict(name=["-h", "--help"], action="help",
-            help="show this help message and exit"),
+            help="print this help message and exit"),
         dict(name=["-i"], dest="icommand", terminate=True,
-            help="program passed in as a string, then stay in REPL"),
+            help="program passed in as string, then stay in REPL"),
         dict(name=["-m"], dest="mod", terminate=True,
-            help="module to run, passed in as a string"),
+            help="run library module as a script"),
         dict(name=["--repl-output-fn"], dest="repl_output_fn",
-            help="function for printing REPL output "
-                "(e.g., hy.contrib.hy-repr.hy-repr)"),
+            help="function for printing REPL output (e.g., repr)"),
         dict(name=["--spy"], action="store_true",
             help="print equivalent Python code before executing"),
         dict(name=["-v", "--version"], action="version",
-            help="show program's version number and exit")]
+            help="print the Hy version number and exit")]
 
     # Get the path of the Hy cmdline executable and swap it with
     # `sys.executable` (saving the original, just in case).
