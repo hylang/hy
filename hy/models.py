@@ -108,6 +108,11 @@ class Object:
     def __eq__(self, other):
         return type(self) is type(other) and super().__eq__(other)
 
+    def __ne__(self, other):
+        # We need this in case another superclass of our subclass
+        # overrides `__ne__`.
+        return object.__ne__(self, other)
+
     def __hash__(self):
         return super().__hash__()
 
