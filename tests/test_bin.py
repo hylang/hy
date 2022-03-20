@@ -256,6 +256,16 @@ def test_stdin_py_repr():
     assert "[1]+[2]" in output.replace(" ", "")
 
 
+def test_mangle_m():
+    # https://github.com/hylang/hy/issues/1445
+
+    output, _ = run_cmd("hy -m tests.resources.hello_world")
+    assert "hello world" in output
+
+    output, _ = run_cmd("hy -m tests.resources.hello-world")
+    assert "hello world" in output
+
+
 def test_ignore_python_env():
     os.environ.update({"PYTHONTEST": "0"})
     output, _ = run_cmd("hy -c '(print (do (import os) (. os environ)))'")

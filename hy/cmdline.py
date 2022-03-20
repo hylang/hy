@@ -640,7 +640,7 @@ def cmdline_handler(scriptname, argv):
     if "mod" in options:
         set_path("")
         sys.argv = [program] + argv
-        runpy.run_module(options["mod"], run_name="__main__", alter_sys=True)
+        runpy.run_module(hy.mangle(options["mod"]), run_name="__main__", alter_sys=True)
         return 0
 
     if "icommand" in options:
