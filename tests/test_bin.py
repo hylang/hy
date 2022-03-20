@@ -15,7 +15,9 @@ def pyr(s=""):
     return "hy --repl-output-fn=repr " + s
 
 
-def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
+def run_cmd(
+        cmd, stdin_data=None, expect=0, dontwritebytecode=False,
+        stdout=subprocess.PIPE):
     env = dict(os.environ)
     if dontwritebytecode:
         env["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -25,7 +27,7 @@ def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
     p = subprocess.Popen(
         shlex.split(cmd),
         stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
+        stdout=stdout,
         stderr=subprocess.PIPE,
         universal_newlines=True,
         shell=False,
@@ -629,3 +631,21 @@ def test_hystartup():
     assert "[1,~2]" in output
 
     del os.environ["HYSTARTUP"]
+
+
+def test_output_buffering(tmp_path):
+    tf = tmp_path / "file.txt"
+
+    pf = tmp_path / "program.hy"
+    pf.write_text(f'''
+        (print "line 1")
+        (import  sys  pathlib [Path])
+        (print :file sys.stderr (.strip (.read-text (Path #[=[{tf}]=]))))
+        (print "line 2")''')
+    pf = shlex.quote(str(pf))
+
+    for flag, expected in ("", ""), ("--unbuffered", "line 1"):
+        with open(tf, "wb") as o:
+            _, stderr = run_cmd(f"hy {flag} {pf}", stdout=o)
+        assert stderr.strip() == expected
+        assert tf.read_text().splitlines() == ["line 1", "line 2"]

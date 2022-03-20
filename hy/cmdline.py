@@ -5,6 +5,7 @@ import code
 import codeop
 import hashlib
 import importlib
+import io
 import linecache
 import os
 import py_compile
@@ -514,6 +515,8 @@ def cmdline_handler(scriptname, argv):
             help="function for printing REPL output (e.g., repr)"),
         dict(name=["--spy"], action="store_true",
             help="print equivalent Python code before executing"),
+        dict(name=["-u", "--unbuffered"], action="store_true",
+            help="force the stdout and stderr streams to be unbuffered; this option has no effect on stdin; also PYTHONUNBUFFERED=x"),
         dict(name=["-v", "--version"], action="version",
             help="print the Hy version number and exit")]
 
@@ -582,6 +585,12 @@ def cmdline_handler(scriptname, argv):
 
     if "B" in options:
         sys.dont_write_bytecode = True
+
+    if "unbuffered" in options:
+        for k in "stdout", "stderr":
+            setattr(sys, k, io.TextIOWrapper(
+                open(getattr(sys, k).fileno(), "wb", 0),
+                write_through=True))
 
     if "help" in options:
         print("usage:", USAGE)

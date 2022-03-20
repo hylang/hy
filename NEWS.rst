@@ -41,6 +41,7 @@ New Features
   collected by `(require module *)`
 * New macro `export`
 * new function `hy.model_patterns.parse_if`
+* Added a command-line option `-u` (or `--unbuffered`) per CPython.
 
 .. _bpo-2675: https://bugs.python.org/issue2675#msg265564
 .. _bpo-46520: https://bugs.python.org/issue46520
