@@ -111,14 +111,6 @@
          (setv (get hy.&reader.reader-table ~dispatch-key)
                (get __reader_macros__ ~dispatch-key)))))
 
-(defmacro "#@" [expr]
-  "with-decorator tag macro"
-  (when (not expr)
-      (raise (ValueError "missing function argument")))
-  (setv decorators (cut expr -1)
-        fndef (get expr -1))
-  `(with-decorator ~@decorators ~fndef))
-
 
 (defmacro doc [symbol]
   "macro documentation

@@ -244,7 +244,7 @@ in expansions."
 
   (require-macros))
 
-#@(
+(with-decorator
   pytest.mark.xfail
   (defn test-macro-from-module []
     "
