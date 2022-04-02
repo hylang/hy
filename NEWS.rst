@@ -13,6 +13,12 @@ Breaking Changes
      (cond [a b] [x y z])     ; Old
      (cond  a b  x (do y z))  ; New
 
+* The mangling rules have been refined to account for Python's
+  treatment of distinct names as referring to the same variable if
+  they're NFKC-equivalent. Very little real code should be affected.
+* Non-ASCII whitespace is no longer ignored by the lexer like ASCII
+  whitespace.
+
 Bug Fixes
 ------------------------------
 * Readline is now imported only when necessary to avoid triggering a
@@ -24,11 +30,16 @@ Bug Fixes
 * Tab completion in the Hy REPL now properly unmangles symbol names.
 * `!=` with model objects is now consistent with `=`.
 
-.. _bpo-2675: https://bugs.python.org/issue2675#msg265564
-
 New Features
 ------------------------------
+* Python reserved words are allowed once more as parameter names and
+  keyword arguments. Hy includes a workaround for a CPython bug that
+  prevents the generation of legal Python code for these cases
+  (`bpo-46520`_).
 * new function `hy.model_patterns.parse_if`
+
+.. _bpo-2675: https://bugs.python.org/issue2675#msg265564
+.. _bpo-46520: https://bugs.python.org/issue46520
 
 1.0a4 (released 2022-01-09)
 ==============================

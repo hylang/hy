@@ -109,6 +109,10 @@ def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
     according to :ref:`Hy's mangling rules <mangling>`.
 
+    If the argument is already both legal as a Python identifier and normalized
+    according to Unicode normalization form KC (NFKC), it will be returned
+    unchanged. Thus, ``mangle`` is idempotent.
+
     Examples:
       ::
 
@@ -129,6 +133,7 @@ def mangle(s):
 
          => (hy.mangle '<--)
          "hyx_XlessHthan_signX__"
+
     """
 
     assert s
@@ -178,8 +183,12 @@ def mangle(s):
 
 def unmangle(s):
     """Stringify the argument and try to convert it to a pretty unmangled
-    form. This may not round-trip, because different Hy symbol names can
-    mangle to the same Python identifier. See :ref:`Hy's mangling rules <mangling>`.
+    form. See :ref:`Hy's mangling rules <mangling>`.
+
+    Unmangling may not round-trip, because different Hy symbol names can mangle
+    to the same Python identifier. In particular, Python itself already
+    considers distinct strings that have the same normalized form (according to
+    NFKC), such as ``hello`` and ``𝔥𝔢𝔩𝔩𝔬``, to be the same identifier.
 
     Examples:
       ::
@@ -204,6 +213,7 @@ def unmangle(s):
 
          => (hy.unmangle '__dunder_name__)
          "__dunder-name__"
+
     """
 
     s = str(s)
