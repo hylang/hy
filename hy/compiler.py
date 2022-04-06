@@ -414,11 +414,6 @@ class HyASTCompiler:
                     keywords.append(asty.keyword(expr, arg=None, value=ret.force_expr))
 
             elif with_kwargs and isinstance(expr, Keyword):
-                if keyword.iskeyword(expr.name):
-                    raise self._syntax_error(
-                        expr, "keyword argument cannot be Python reserved word"
-                    )
-
                 try:
                     value = next(exprs_iter)
                 except StopIteration:

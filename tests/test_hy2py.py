@@ -39,6 +39,10 @@ def assert_stuff(m):
     )
 
     assert getattr(m, mangle("identifier-that-has☝️💯☝️-to-be-mangled")) == "ponies"
+    assert m.normalize_this == "ok"
+    assert getattr(m, "def") == "variable"
+    assert m.𝕕𝕖𝕗 == "variable"
+    assert getattr(m, "if") == "if"
 
     assert m.mynumber == 3
     assert m.myhex == 0x123
@@ -113,6 +117,7 @@ def assert_stuff(m):
     assert m.fun.__doc__ == "function docstring"
     assert m.funcall1 == [1, 2, 3, 4, ("a", "b", "c"), [("k1", "v1"), ("k2", "v2")]]
     assert m.funcall2 == [7, 8, 9, 10, (11,), [("x1", "y1"), ("x2", "y2")]]
+    assert m.funcall3 == ["x", "y", 9, "spain", (), []]
 
     assert m.myret == 1
     assert m.myyield == ["a", "b", "c"]

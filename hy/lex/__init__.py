@@ -103,10 +103,16 @@ def parse_one_thing(src_string):
 
 mangle_delim = "X"
 
+normalizes_to_underscore = "_︳︴﹍﹎﹏＿"
+
 
 def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
     according to :ref:`Hy's mangling rules <mangling>`.
+
+    If the argument is already both legal as a Python identifier and normalized
+    according to Unicode normalization form KC (NFKC), it will be returned
+    unchanged. Thus, ``mangle`` is idempotent.
 
     Examples:
       ::
@@ -128,20 +134,8 @@ def mangle(s):
 
          => (hy.mangle '<--)
          "hyx_XlessHthan_signX__"
-    """
 
-    def unicode_char_to_hex(uchr):
-        # Covert a unicode char to hex string, without prefix
-        if len(uchr) == 1 and ord(uchr) < 128:
-            return format(ord(uchr), "x")
-        return (
-            uchr.encode("unicode-escape")
-            .decode("utf-8")
-            .lstrip("\\U")
-            .lstrip("\\u")
-            .lstrip("\\x")
-            .lstrip("0")
-        )
+    """
 
     assert s
     s = str(s)
@@ -150,7 +144,7 @@ def mangle(s):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
     # Step 1: Remove and save leading underscores
-    s2 = s.lstrip("_")
+    s2 = s.lstrip(normalizes_to_underscore)
     leading_underscores = "_" * (len(s) - len(s2))
     s = s2
 
@@ -161,18 +155,18 @@ def mangle(s):
     if s.endswith("?"):
         s = "is_" + s[:-1]
 
-    # Step 4: Convert invalid characters or reserved words
-    if not isidentifier(leading_underscores + s):
+    # Step 4: Convert invalid characters
+    if not (leading_underscores + s).isidentifier():
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
         s = "hyx_" + "".join(
-            c if c != mangle_delim and isidentifier("S" + c)
+            c if c != mangle_delim and ("S" + c).isidentifier()
             # We prepend the "S" because some characters aren't
             # allowed at the start of an identifier.
             else "{0}{1}{0}".format(
                 mangle_delim,
                 unicodedata.name(c, "").lower().replace("-", "H").replace(" ", "_")
-                or "U{}".format(unicode_char_to_hex(c)),
+                or "U{:x}".format(ord(c)),
             )
             for c in s
         )
@@ -180,14 +174,21 @@ def mangle(s):
     # Step 5: Add back leading underscores
     s = leading_underscores + s
 
-    assert isidentifier(s)
+    # Normalize Unicode per PEP 3131.
+    s = unicodedata.normalize("NFKC", s)
+
+    assert s.isidentifier()
     return s
 
 
 def unmangle(s):
     """Stringify the argument and try to convert it to a pretty unmangled
-    form. This may not round-trip, because different Hy symbol names can
-    mangle to the same Python identifier. See :ref:`Hy's mangling rules <mangling>`.
+    form. See :ref:`Hy's mangling rules <mangling>`.
+
+    Unmangling may not round-trip, because different Hy symbol names can mangle
+    to the same Python identifier. In particular, Python itself already
+    considers distinct strings that have the same normalized form (according to
+    NFKC), such as ``hello`` and ``𝔥𝔢𝔩𝔩𝔬``, to be the same identifier.
 
     Examples:
       ::
@@ -212,6 +213,7 @@ def unmangle(s):
 
          => (hy.unmangle '__dunder_name__)
          "__dunder-name__"
+
     """
 
     s = str(s)
@@ -326,11 +328,3 @@ def read_str(input):
          1
     """
     return read(StringIO(str(input)))
-
-
-def isidentifier(x):
-    if x in ("True", "False", "None"):
-        return True
-    if keyword.iskeyword(x):
-        return False
-    return x.isidentifier()

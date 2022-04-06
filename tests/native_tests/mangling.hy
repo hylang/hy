@@ -132,9 +132,19 @@
 
 
 (defn test-python-keyword []
+
   (setv if 3)
   (assert (= if 3))
-  (assert (= hyx_if 3)))
+  (assert (= (hy.mangle "if") "if"))
+
+  ; Macros shadow functions, as usual.
+  (defn if [x y z]
+    "a function"
+    50)
+  (assert (= (if 0 1 2) 2))
+  (assert (= ((do if) 0 1 2) 50))
+  (assert (= if.__name__ "if"))
+  (assert (= if.__doc__ "a function")))
 
 
 (defn test-operator []
@@ -172,7 +182,6 @@
 
 (defn test-functions []
   (for [[a b] [["___ab-cd?" "___is_ab_cd"]
-               ["if" "hyx_if"]
                ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (hy.mangle a) b))
     (assert (= (hy.unmangle b) a))))
@@ -194,9 +203,56 @@
   (assert (= (hy.mangle (chr 0x378)) "hyx_XU378X"))
   (assert (= (hy.mangle (chr 0x200a) "hyx_Xhair_spaceX")))
   (assert (= (hy.mangle (chr 0x2065)) "hyx_XU2065X"))
-  (assert (= (hy.mangle (chr 0x1000c)) "hyx_XU1000cX")))
+  (assert (= (hy.mangle (chr 0x1000c)) "hyx_XU1000cX"))
+
+  (setv a b "onesym")
+  (assert (= a b "onesym")))
 
 
 (defn test-mangle-bad-indent []
   ; Shouldn't crash with IndentationError
   (hy.mangle "  0\n 0"))
+
+
+(defn test-normalize-to-underscore-list []
+  (import sys unicodedata)
+  (assert (=
+    (.join "" (gfor
+      x (map chr (range (+ sys.maxunicode 1)))
+      :if (in "_" (unicodedata.normalize "NFKC" x))
+      x))
+    hy.lex.normalizes-to-underscore)))
+
+
+(defn test-pep3131 []
+  ; https://github.com/hylang/hy/issues/2216
+  (import unicodedata)
+
+  (setv 𝔥𝔢𝔩𝔩𝔬 15)
+  (assert (= 𝔥𝔢𝔩𝔩𝔬 15))
+  (assert (= hello 15))
+
+  (setv oﬃce "space")
+  (assert (= oﬃce "space"))
+  (assert (= office "space"))
+
+  ; Full-blown normalization is the last step of mangling. So if a
+  ; character isn't Python-legal to start with, it never gets
+  ; normalized.
+  (setv ⅓ .3)
+  (assert (!= (unicodedata.normalize "NFKC" "⅓") "⅓"))
+  (assert (= ⅓ .3))
+  (assert (= hyx_Xvulgar_fraction_one_thirdX .3))
+
+  ; We still have to recognize characters that would get normalized to
+  ; the ASCII underscore as underscores, like Python does.
+  (assert (= (hy.mangle "_﹏a") "__a"))
+  (assert (= (hy.mangle "﹏a") "_a"))
+  (assert (= (hy.mangle "_﹏⁂") "__hyx_XasterismX"))
+  (assert (= (hy.mangle "_﹏⁂﹏") "__hyx_XasterismX_"))
+
+  ; By contrast, characters that would normalize to the ASCII hyphen
+  ; or question mark don't get the special treatment of the ASCII
+  ; versions.
+  (assert (= (hy.mangle "foo﹖") "hyx_fooXsmall_question_markX"))
+  (assert (= (hy.mangle "a－b") "hyx_aXfullwidth_hyphenHminusXb")))
