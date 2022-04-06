@@ -105,6 +105,7 @@ mangle_delim = "X"
 
 normalizes_to_underscore = "_︳︴﹍﹎﹏＿"
 
+
 def mangle(s):
     """Stringify the argument and convert it to a valid Python identifier
     according to :ref:`Hy's mangling rules <mangling>`.
@@ -159,15 +160,14 @@ def mangle(s):
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
         s = "hyx_" + "".join(
-            c
-               if c != mangle_delim and ('S' + c).isidentifier()
-                 # We prepend the "S" because some characters aren't
-                 # allowed at the start of an identifier.
-               else '{0}{1}{0}'.format(
-                   mangle_delim,
-                   unicodedata.name(c, '').lower().replace('-', 'H').replace(' ', '_')
-                       or 'U{:x}'.format(ord(c))
-               )
+            c if c != mangle_delim and ("S" + c).isidentifier()
+            # We prepend the "S" because some characters aren't
+            # allowed at the start of an identifier.
+            else "{0}{1}{0}".format(
+                mangle_delim,
+                unicodedata.name(c, "").lower().replace("-", "H").replace(" ", "_")
+                or "U{:x}".format(ord(c)),
+            )
             for c in s
         )
 
@@ -175,7 +175,7 @@ def mangle(s):
     s = leading_underscores + s
 
     # Normalize Unicode per PEP 3131.
-    s = unicodedata.normalize('NFKC', s)
+    s = unicodedata.normalize("NFKC", s)
 
     assert s.isidentifier()
     return s
