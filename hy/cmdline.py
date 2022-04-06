@@ -499,26 +499,60 @@ def cmdline_handler(scriptname, argv):
     # options, such as `-c`. So, we can't use `argparse`.
 
     defs = [
-        dict(name=["-B"], action='store_true',
-            help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x"),
-        dict(name=["-c"], dest="command", terminate=True,
-            help="program passed in as string"),
-        dict(name=["-E"], action='store_true',
-            help="ignore PYTHON* environment variables (such as PYTHONPATH)"),
-        dict(name=["-h", "--help"], action="help",
-            help="print this help message and exit"),
-        dict(name=["-i"], dest="icommand", terminate=True,
-            help="program passed in as string, then stay in REPL"),
-        dict(name=["-m"], dest="mod", terminate=True,
-            help="run library module as a script"),
-        dict(name=["--repl-output-fn"], dest="repl_output_fn",
-            help="function for printing REPL output (e.g., repr)"),
-        dict(name=["--spy"], action="store_true",
-            help="print equivalent Python code before executing"),
-        dict(name=["-u", "--unbuffered"], action="store_true",
-            help="force the stdout and stderr streams to be unbuffered; this option has no effect on stdin; also PYTHONUNBUFFERED=x"),
-        dict(name=["-v", "--version"], action="version",
-            help="print the Hy version number and exit")]
+        dict(
+            name=["-B"],
+            action="store_true",
+            help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x",
+        ),
+        dict(
+            name=["-c"],
+            dest="command",
+            terminate=True,
+            help="program passed in as string",
+        ),
+        dict(
+            name=["-E"],
+            action="store_true",
+            help="ignore PYTHON* environment variables (such as PYTHONPATH)",
+        ),
+        dict(
+            name=["-h", "--help"],
+            action="help",
+            help="print this help message and exit",
+        ),
+        dict(
+            name=["-i"],
+            dest="icommand",
+            terminate=True,
+            help="program passed in as string, then stay in REPL",
+        ),
+        dict(
+            name=["-m"],
+            dest="mod",
+            terminate=True,
+            help="run library module as a script",
+        ),
+        dict(
+            name=["--repl-output-fn"],
+            dest="repl_output_fn",
+            help="function for printing REPL output (e.g., repr)",
+        ),
+        dict(
+            name=["--spy"],
+            action="store_true",
+            help="print equivalent Python code before executing",
+        ),
+        dict(
+            name=["-u", "--unbuffered"],
+            action="store_true",
+            help="force the stdout and stderr streams to be unbuffered; this option has no effect on stdin; also PYTHONUNBUFFERED=x",
+        ),
+        dict(
+            name=["-v", "--version"],
+            action="version",
+            help="print the Hy version number and exit",
+        ),
+    ]
 
     # Get the path of the Hy cmdline executable and swap it with
     # `sys.executable` (saving the original, just in case).
@@ -588,9 +622,13 @@ def cmdline_handler(scriptname, argv):
 
     if "unbuffered" in options:
         for k in "stdout", "stderr":
-            setattr(sys, k, io.TextIOWrapper(
-                open(getattr(sys, k).fileno(), "wb", 0),
-                write_through=True))
+            setattr(
+                sys,
+                k,
+                io.TextIOWrapper(
+                    open(getattr(sys, k).fileno(), "wb", 0), write_through=True
+                ),
+            )
 
     if "help" in options:
         print("usage:", USAGE)
