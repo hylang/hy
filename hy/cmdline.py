@@ -5,6 +5,7 @@ import code
 import codeop
 import hashlib
 import importlib
+import io
 import linecache
 import os
 import py_compile
@@ -499,35 +500,42 @@ def cmdline_handler(scriptname, argv):
 
     defs = [
         dict(
-            name=["-h", "--help"], action="help", help="show this help message and exit"
-        ),
-        dict(
-            name=["-c"],
-            dest="command",
-            terminate=True,
-            help="program passed in as a string",
-        ),
-        dict(
-            name=["-m"],
-            dest="mod",
-            terminate=True,
-            help="module to run, passed in as a string",
-        ),
-        dict(
-            name=["-E"],
-            action="store_true",
-            help="ignore PYTHON* environment variables",
-        ),
-        dict(
             name=["-B"],
             action="store_true",
             help="don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x",
         ),
         dict(
+            name=["-c"],
+            dest="command",
+            terminate=True,
+            help="program passed in as string",
+        ),
+        dict(
+            name=["-E"],
+            action="store_true",
+            help="ignore PYTHON* environment variables (such as PYTHONPATH)",
+        ),
+        dict(
+            name=["-h", "--help"],
+            action="help",
+            help="print this help message and exit",
+        ),
+        dict(
             name=["-i"],
             dest="icommand",
             terminate=True,
-            help="program passed in as a string, then stay in REPL",
+            help="program passed in as string, then stay in REPL",
+        ),
+        dict(
+            name=["-m"],
+            dest="mod",
+            terminate=True,
+            help="run library module as a script",
+        ),
+        dict(
+            name=["--repl-output-fn"],
+            dest="repl_output_fn",
+            help="function for printing REPL output (e.g., repr)",
         ),
         dict(
             name=["--spy"],
@@ -535,15 +543,14 @@ def cmdline_handler(scriptname, argv):
             help="print equivalent Python code before executing",
         ),
         dict(
-            name=["--repl-output-fn"],
-            dest="repl_output_fn",
-            help="function for printing REPL output "
-            "(e.g., hy.contrib.hy-repr.hy-repr)",
+            name=["-u", "--unbuffered"],
+            action="store_true",
+            help="force the stdout and stderr streams to be unbuffered; this option has no effect on stdin; also PYTHONUNBUFFERED=x",
         ),
         dict(
             name=["-v", "--version"],
             action="version",
-            help="show program's version number and exit",
+            help="print the Hy version number and exit",
         ),
     ]
 
@@ -613,6 +620,16 @@ def cmdline_handler(scriptname, argv):
     if "B" in options:
         sys.dont_write_bytecode = True
 
+    if "unbuffered" in options:
+        for k in "stdout", "stderr":
+            setattr(
+                sys,
+                k,
+                io.TextIOWrapper(
+                    open(getattr(sys, k).fileno(), "wb", 0), write_through=True
+                ),
+            )
+
     if "help" in options:
         print("usage:", USAGE)
         print("")
@@ -640,7 +657,7 @@ def cmdline_handler(scriptname, argv):
     if "mod" in options:
         set_path("")
         sys.argv = [program] + argv
-        runpy.run_module(options["mod"], run_name="__main__", alter_sys=True)
+        runpy.run_module(hy.mangle(options["mod"]), run_name="__main__", alter_sys=True)
         return 0
 
     if "icommand" in options:

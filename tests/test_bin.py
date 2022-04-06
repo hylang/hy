@@ -10,26 +10,24 @@ from importlib.util import cache_from_source
 
 import pytest
 
-hy_dir = os.environ.get("HY_DIR", "")
-
 
 def pyr(s=""):
     return "hy --repl-output-fn=repr " + s
 
 
-def run_cmd(cmd, stdin_data=None, expect=0, dontwritebytecode=False):
+def run_cmd(
+        cmd, stdin_data=None, expect=0, dontwritebytecode=False,
+        stdout=subprocess.PIPE):
     env = dict(os.environ)
     if dontwritebytecode:
         env["PYTHONDONTWRITEBYTECODE"] = "1"
     else:
         env.pop("PYTHONDONTWRITEBYTECODE", None)
 
-    cmd = shlex.split(cmd)
-    cmd[0] = os.path.join(hy_dir, cmd[0])
     p = subprocess.Popen(
-        cmd,
+        shlex.split(cmd),
         stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
+        stdout=stdout,
         stderr=subprocess.PIPE,
         universal_newlines=True,
         shell=False,
@@ -49,11 +47,11 @@ def rm(fpath):
             pass
 
 
-def test_bin_hy():
+def test_simple():
     run_cmd("hy", "")
 
 
-def test_bin_hy_stdin():
+def test_stdin():
     output, _ = run_cmd("hy", '(.upper "hello")')
     assert "HELLO" in output
 
@@ -66,12 +64,12 @@ def test_bin_hy_stdin():
     assert "foof()" in output
 
 
-def test_bin_hy_stdin_multiline():
+def test_stdin_multiline():
     output, _ = run_cmd("hy", '(+ "a" "b"\n"c" "d")')
     assert '"abcd"' in output
 
 
-def test_bin_hy_history():
+def test_history():
     output, _ = run_cmd("hy", '''(+ "a" "b")
                                  (+ "c" "d")
                                  (+ "e" "f")
@@ -83,7 +81,7 @@ def test_bin_hy_history():
     assert '"err: TEST ERROR"' in output
 
 
-def test_bin_hy_stdin_comments():
+def test_stdin_comments():
     _, err_empty = run_cmd("hy", "")
 
     output, err = run_cmd("hy", '(+ "a" "b") ; "c"')
@@ -94,7 +92,7 @@ def test_bin_hy_stdin_comments():
     assert err == err_empty
 
 
-def test_bin_hy_stdin_assignment():
+def test_stdin_assignment():
     # If the last form is an assignment, don't print the value.
 
     output, _ = run_cmd("hy", '(setv x (+ "A" "Z"))')
@@ -109,7 +107,7 @@ def test_bin_hy_stdin_assignment():
     assert "BY" not in output
 
 
-def test_bin_hy_multi_setv():
+def test_multi_setv():
     # https://github.com/hylang/hy/issues/1255
     output, _ = run_cmd("hy", """(do
       (setv  it 0  it (+ it 1)  it (+ it 1))
@@ -117,7 +115,7 @@ def test_bin_hy_multi_setv():
     assert re.match(r"=>\s+2\s+=>", output)
 
 
-def test_bin_hy_stdin_error_underline_alignment():
+def test_stdin_error_underline_alignment():
     _, err = run_cmd("hy", "(defmacro mabcdefghi [x] x)\n(mabcdefghi)")
 
     msg_idx = err.rindex("    (mabcdefghi)")
@@ -134,7 +132,7 @@ def test_bin_hy_stdin_error_underline_alignment():
     )
 
 
-def test_bin_hy_stdin_except_do():
+def test_stdin_except_do():
     # https://github.com/hylang/hy/issues/533
 
     output, _ = run_cmd("hy",
@@ -154,7 +152,7 @@ def test_bin_hy_stdin_except_do():
     assert "zzz" in output
 
 
-def test_bin_hy_stdin_unlocatable_hytypeerror():
+def test_stdin_unlocatable_hytypeerror():
     # https://github.com/hylang/hy/issues/1412
     # The chief test of interest here is the returncode assertion
     # inside run_cmd.
@@ -164,7 +162,7 @@ def test_bin_hy_stdin_unlocatable_hytypeerror():
     assert "AZ" in err
 
 
-def test_bin_hy_error_parts_length():
+def test_error_parts_length():
     """Confirm that exception messages print arrows surrounding the affected
     expression."""
     prg_str = """
@@ -223,7 +221,7 @@ def test_bin_hy_error_parts_length():
     assert err_parts[2] == "    ^----^"
 
 
-def test_bin_hy_syntax_errors():
+def test_syntax_errors():
     # https://github.com/hylang/hy/issues/2004
     _, err = run_cmd("hy", "(defn foo [/])\n(defn bar [a a])")
     assert "SyntaxError: duplicate argument" in err
@@ -234,7 +232,7 @@ def test_bin_hy_syntax_errors():
     assert "PrematureEndOfInput" not in err
 
 
-def test_bin_hy_stdin_bad_repr():
+def test_stdin_bad_repr():
     # https://github.com/hylang/hy/issues/1389
     output, err = run_cmd("hy", """
          (defclass BadRepr [] (defn __repr__ [self] (/ 0)))
@@ -244,7 +242,7 @@ def test_bin_hy_stdin_bad_repr():
     assert "AZ" in output
 
 
-def test_bin_hy_stdin_py_repr():
+def test_stdin_py_repr():
     output, _ = run_cmd("hy", "(+ [1] [2])")
     assert "[1 2]" in output
 
@@ -260,7 +258,17 @@ def test_bin_hy_stdin_py_repr():
     assert "[1]+[2]" in output.replace(" ", "")
 
 
-def test_bin_hy_ignore_python_env():
+def test_mangle_m():
+    # https://github.com/hylang/hy/issues/1445
+
+    output, _ = run_cmd("hy -m tests.resources.hello_world")
+    assert "hello world" in output
+
+    output, _ = run_cmd("hy -m tests.resources.hello-world")
+    assert "hello world" in output
+
+
+def test_ignore_python_env():
     os.environ.update({"PYTHONTEST": "0"})
     output, _ = run_cmd("hy -c '(print (do (import os) (. os environ)))'")
     assert "PYTHONTEST" in output
@@ -279,7 +287,7 @@ def test_bin_hy_ignore_python_env():
     assert "PYTHONTEST" not in output
 
 
-def test_bin_hy_cmd():
+def test_cmd():
     output, _ = run_cmd("""hy -c '(print (.upper "hello"))'""")
     assert "HELLO" in output
 
@@ -299,28 +307,28 @@ def test_bin_hy_cmd():
     assert "<-c|AA|ZZ|-m>" in output
 
 
-def test_bin_hy_icmd():
+def test_icmd():
     output, _ = run_cmd("""hy -i '(.upper "hello")'""", '(.upper "bye")')
     assert "HELLO" in output
     assert "BYE" in output
 
 
-def test_bin_hy_icmd_file():
+def test_icmd_file():
     output, _ = run_cmd("hy -i tests/resources/icmd_test_file.hy", '(.upper species)')
     assert "CUTTLEFISH" in output
 
 
-def test_bin_hy_icmd_and_spy():
+def test_icmd_and_spy():
     output, _ = run_cmd('hy --spy -i "(+ [] [])"', "(+ 1 1)")
     assert "[] + []" in output
 
 
-def test_bin_hy_missing_file():
+def test_missing_file():
     _, err = run_cmd("hy foobarbaz", expect=2)
     assert "No such file" in err
 
 
-def test_bin_hy_file_with_args():
+def test_file_with_args():
     cmd = "hy tests/resources/argparse_ex.hy"
     assert "usage" in run_cmd(f"{cmd} -h")[0]
     assert "got c" in run_cmd(f"{cmd} -c bar")[0]
@@ -328,7 +336,7 @@ def test_bin_hy_file_with_args():
     assert "foo" in run_cmd(f"{cmd} -i foo -c bar")[0]
 
 
-def test_bin_hyc():
+def test_hyc():
     _, err = run_cmd("hyc", expect=0)
     assert err == ""
 
@@ -345,12 +353,12 @@ def test_bin_hyc():
     rm(cache_from_source(path))
 
 
-def test_bin_hyc_missing_file():
+def test_hyc_missing_file():
     _, err = run_cmd("hyc foobarbaz", expect=1)
     assert "[Errno 2]" in err
 
 
-def test_bin_hy_builtins():
+def test_builtins():
     # The REPL replaces `builtins.help` etc.
 
     output, _ = run_cmd("hy", 'quit')
@@ -367,7 +375,7 @@ def test_bin_hy_builtins():
     assert "help(object)" in str(builtins.help)
 
 
-def test_bin_hy_no_main():
+def test_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
 
@@ -383,7 +391,7 @@ def test_bin_hy_no_main():
         ["hy", "-c", "'(import {modname})'"],
     ],
 )
-def test_bin_hy_byte_compile(scenario, cmd_fmt):
+def test_byte_compile(scenario, cmd_fmt):
 
     modname = "tests.resources.bin.bytecompile"
     fpath = modname.replace(".", "/") + ".hy"
@@ -421,19 +429,19 @@ def test_bin_hy_byte_compile(scenario, cmd_fmt):
     assert "The macro returned: boink" in output
 
 
-def test_bin_hy_module_main_file():
+def test_module_main_file():
     output, _ = run_cmd("hy -m tests.resources.bin")
     assert "This is a __main__.hy" in output
 
     output, _ = run_cmd("hy -m .tests.resources.bin", expect=1)
 
 
-def test_bin_hy_file_main_file():
+def test_file_main_file():
     output, _ = run_cmd("hy tests/resources/bin")
     assert "This is a __main__.hy" in output
 
 
-def test_bin_hy_file_sys_path():
+def test_file_sys_path():
     """The test resource `relative_import.hy` will perform an absolute import
     of a module in its directory: a directory that is not on the `sys.path` of
     the script executing the module (i.e. `hy`).  We want to make sure that Hy
@@ -447,8 +455,8 @@ def test_bin_hy_file_sys_path():
     assert repr(file_relative_path) in output
 
 
-def test_bin_hyc_file_sys_path():
-    # similar to test_bin_hy_file_sys_path, test hyc and hy2py to make sure
+def testc_file_sys_path():
+    # similar to test_file_sys_path, test hyc and hy2py to make sure
     # they can find the relative import at compile time
     # https://github.com/hylang/hy/issues/2021
 
@@ -464,23 +472,23 @@ def test_bin_hyc_file_sys_path():
         assert repr(file_relative_path) in output
 
 
-def test_bin_hy_module_no_main():
+def test_module_no_main():
     output, _ = run_cmd("hy -m tests.resources.bin.nomain")
     assert "This Should Still Work" in output
 
 
-def test_bin_hy_sys_executable():
+def test_sys_executable():
     output, _ = run_cmd("hy -c '(do (import sys) (print sys.executable))'")
     assert os.path.basename(output.strip()) == "hy"
 
 
-def test_bin_hy_file_no_extension():
+def test_file_no_extension():
     """Confirm that a file with no extension is processed as Hy source"""
     output, _ = run_cmd("hy tests/resources/no_extension")
     assert "This Should Still Work" in output
 
 
-def test_bin_hy_circular_macro_require():
+def test_circular_macro_require():
     """Confirm that macros can require themselves during expansion and when
     run from the command line."""
 
@@ -497,7 +505,7 @@ def test_bin_hy_circular_macro_require():
     assert output.strip() == "WOWIE"
 
 
-def test_bin_hy_macro_require():
+def test_macro_require():
     """Confirm that a `require` will load macros into the non-module namespace
     (i.e. `exec(code, locals)`) used by `runpy.run_path`.
     In other words, this confirms that the AST generated for a `require` will
@@ -516,7 +524,7 @@ def test_bin_hy_macro_require():
     assert output.strip() == "abc"
 
 
-def test_bin_hy_tracebacks():
+def test_tracebacks():
     """Make sure the printed tracebacks are correct."""
 
     # We want the filtered tracebacks.
@@ -623,3 +631,21 @@ def test_hystartup():
     assert "[1,~2]" in output
 
     del os.environ["HYSTARTUP"]
+
+
+def test_output_buffering(tmp_path):
+    tf = tmp_path / "file.txt"
+
+    pf = tmp_path / "program.hy"
+    pf.write_text(f'''
+        (print "line 1")
+        (import  sys  pathlib [Path])
+        (print :file sys.stderr (.strip (.read-text (Path #[=[{tf}]=]))))
+        (print "line 2")''')
+    pf = shlex.quote(str(pf))
+
+    for flag, expected in ("", ""), ("--unbuffered", "line 1"):
+        with open(tf, "wb") as o:
+            _, stderr = run_cmd(f"hy {flag} {pf}", stdout=o)
+        assert stderr.strip() == expected
+        assert tf.read_text().splitlines() == ["line 1", "line 2"]
