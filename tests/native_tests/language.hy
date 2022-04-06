@@ -1354,6 +1354,19 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (in "lb.xyzzy" __macros__)))
 
 
+(defn test-export-objects []
+  ; We use `hy.eval` here because of a Python limitation that
+  ; importing `*` is only allowed at the module level.
+  (hy.eval '(do
+    (import tests.resources.exports *)
+    (assert (= (jan) 21))
+    (assert (= (♥) 23))
+    (with [(pytest.raises NameError)]
+      (wayne))
+    (import tests.resources.exports [wayne])
+    (assert (= (wayne) 22)))))
+
+
 (defn test-encoding-nightmares []
   (assert (= (len "ℵℵℵ♥♥♥\t♥♥\r\n") 11)))
 

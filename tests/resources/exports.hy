@@ -1,3 +1,12 @@
+(defn jan []
+  21)
+
+(defn wayne []
+  22)
+
+(defn ♥ []
+  23)
+
 (defmacro casey [#* tree]
   `[11 ~@tree])
 
@@ -7,4 +16,6 @@
 (defmacro ☘ [#* tree]
   `[13 ~@tree])
 
-(setv _hy_export_macros (tuple (map hy.mangle ["casey" "☘"])))
+(export
+  :objects [jan ♥]
+  :macros [casey ☘])

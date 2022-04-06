@@ -78,6 +78,38 @@
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 
+(defmacro export [#* args]
+  "A convenience macro for defining ``__all__`` and ``_hy_export_macros``, which
+  control which Python objects and macros (respectively) are collected by ``*``
+  imports in :hy:func:`import` and :hy:func:`require` (respectively). ``export``
+  allows you to provide the names as symbols instead of strings, and it calls
+  :hy:func:`hy.mangle` for you on each name.
+
+  The syntax is ``(export objects macros)``, where ``objects`` refers to Python
+  objects and ``macros`` to macros. Keyword arguments are allowed. For example,
+  ::
+
+   (export
+     :objects [my-fun MyClass]
+     :macros [my-macro])
+
+  exports the function ``my-fun``, the class ``MyClass``, and the macro
+  ``my-macro``."
+  (defn f [[objects None] [macros None]]
+    `(do
+      ~(when (is-not objects None)
+        `(setv __all__ ~(lfor  x objects  (hy.models.String (hy.mangle x)))))
+      ~(when (is-not macros None)
+        `(setv _hy_export_macros ~(lfor  x macros  (hy.models.String (hy.mangle x)))))))
+  (hy.eval `(f ~@(gfor
+    a (map hy.as-model args)
+    (if (isinstance a hy.models.Keyword)
+      a
+      (if (isinstance a hy.models.List)
+        (lfor  x a  (hy.models.String x))
+        (raise (TypeError "arguments must be keywords or lists of symbols"))))))))
+
+
 ;; Placeholder macros
 (for [s '[unquote unquote-splice unpack-mapping except finally else]]
   (hy.compiler.hy-eval `(defmacro ~s [#* args]
