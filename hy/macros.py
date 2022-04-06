@@ -164,8 +164,7 @@ def require(source_module, target_module, assignments, prefix=""):
         package = None
         if source_module.startswith("."):
             source_dirs = source_module.split(".")
-            target_dirs = (getattr(target_module, "__name__", target_module)
-                .split("."))
+            target_dirs = getattr(target_module, "__name__", target_module).split(".")
             while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
                 source_dirs.pop(0)
                 target_dirs.pop()
@@ -176,8 +175,11 @@ def require(source_module, target_module, assignments, prefix=""):
             raise HyRequireError(e.args[0]).with_traceback(None)
 
     source_macros = source_module.__dict__.setdefault("__macros__", {})
-    source_exports = getattr(source_module, "_hy_export_macros",
-        [k for k in source_macros.keys() if not k.startswith('_')])
+    source_exports = getattr(
+        source_module,
+        "_hy_export_macros",
+        [k for k in source_macros.keys() if not k.startswith("_")],
+    )
 
     if not source_module.__macros__:
         if assignments in ("ALL", "EXPORTS"):
@@ -203,10 +205,15 @@ def require(source_module, target_module, assignments, prefix=""):
     if prefix:
         prefix += "."
 
-    for name, alias in (assignments if assignments not in ("ALL", "EXPORTS") else (
+    for name, alias in (
+        assignments
+        if assignments not in ("ALL", "EXPORTS")
+        else (
             (k, k)
             for k in source_macros.keys()
-            if assignments == "ALL" or k in source_exports)):
+            if assignments == "ALL" or k in source_exports
+        )
+    ):
         _name = mangle(name)
         alias = mangle(
             "#" + prefix + unmangle(alias)[1:]
