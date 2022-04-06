@@ -3,6 +3,7 @@ import os
 import sys
 from functools import reduce
 from operator import or_
+from pathlib import Path
 
 import pytest
 
@@ -37,9 +38,4 @@ def pytest_collect_file(parent, path):
         and NATIVE_TESTS in path.dirname + os.sep
         and path.basename != "__init__.hy"
     ):
-
-        if hasattr(pytest.Module, "from_parent"):
-            pytest_mod = pytest.Module.from_parent(parent, fspath=path)
-        else:
-            pytest_mod = pytest.Module(path, parent)
-        return pytest_mod
+        return pytest.Module.from_parent(parent, path=Path(path))

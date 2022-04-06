@@ -1272,6 +1272,7 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= x "KL"))
   (assert (= y 1)))
 
+
 (defn test-require []
   (with [(pytest.raises NameError)]
     (qplah 1 2 3 4))
@@ -1316,12 +1317,19 @@ cee\"} dee" "ey bee\ncee dee"))
   (assert (= (✈ "silly") "plane silly"))
   (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
 
-  (require tests.resources [tlib macros :as m])
+  (require tests.resources [tlib  macros :as m  exports-none])
   (assert (in "tlib.qplah" __macros__))
   (assert (in (hy.mangle "m.test-macro") __macros__))
+  (assert (in (hy.mangle "exports-none.cinco") __macros__))
   (require os [path])
   (with [(pytest.raises hy.errors.HyRequireError)]
-    (hy.eval '(require tests.resources [does-not-exist]))))
+    (hy.eval '(require tests.resources [does-not-exist])))
+
+  (require tests.resources.exports *)
+  (assert (= (casey 1 2 3) [11 1 2 3]))
+  (assert (= (☘ 1 2 3) [13 1 2 3]))
+  (with [(pytest.raises NameError)]
+    (brother 1 2 3 4)))
 
 
 (defn test-require-native []
@@ -1344,6 +1352,19 @@ cee\"} dee" "ey bee\ncee dee"))
 
   (require . [language-beside :as lb])
   (assert (in "lb.xyzzy" __macros__)))
+
+
+(defn test-export-objects []
+  ; We use `hy.eval` here because of a Python limitation that
+  ; importing `*` is only allowed at the module level.
+  (hy.eval '(do
+    (import tests.resources.exports *)
+    (assert (= (jan) 21))
+    (assert (= (♥) 23))
+    (with [(pytest.raises NameError)]
+      (wayne))
+    (import tests.resources.exports [wayne])
+    (assert (= (wayne) 22)))))
 
 
 (defn test-encoding-nightmares []

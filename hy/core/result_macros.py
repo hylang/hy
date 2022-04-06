@@ -1680,7 +1680,7 @@ def compile_import_or_require(compiler, expr, root, entries):
     ret = Result()
 
     for entry in entries:
-        assignments = "ALL"
+        assignments = "EXPORTS"
         prefix = ""
 
         module, rest = entry
@@ -1702,10 +1702,10 @@ def compile_import_or_require(compiler, expr, root, entries):
         if root == "import":
             module_name = ast_module.lstrip(".")
             level = len(ast_module) - len(module_name)
-            if assignments == "ALL" and prefix == "":
+            if assignments == "EXPORTS" and prefix == "":
                 node = asty.ImportFrom
                 names = [asty.alias(module, name="*", asname=None)]
-            elif assignments == "ALL":
+            elif assignments == "EXPORTS":
                 compiler.scope.define(mangle(prefix))
                 node = asty.Import
                 names = [
@@ -1742,8 +1742,8 @@ def compile_import_or_require(compiler, expr, root, entries):
                         Symbol("None"),
                         Keyword("assignments"),
                         (
-                            String("ALL")
-                            if assignments == "ALL"
+                            String("EXPORTS")
+                            if assignments == "EXPORTS"
                             else [[String(k), String(v)] for k, v in assignments]
                         ),
                         Keyword("prefix"),
