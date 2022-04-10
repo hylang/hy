@@ -1816,14 +1816,6 @@ def compile_import(compiler, expr, root, entries):
 # ------------------------------------------------
 # * Miscellany
 # ------------------------------------------------
-
-
-@pattern_macro(",", [many(FORM)])
-def compile_tuple(compiler, expr, root, args):
-    elts, ret, _ = compiler._compile_collect(args)
-    return ret + asty.Tuple(expr, elts=elts, ctx=ast.Load())
-
-
 @pattern_macro("assert", [FORM, maybe(FORM)])
 def compile_assert_expression(compiler, expr, root, test, msg):
     if msg is None or type(msg) is Symbol:

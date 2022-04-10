@@ -614,6 +614,18 @@ _wrappers[Set] = recwrap(Set)
 _wrappers[set] = recwrap(Set)
 
 
+class Tuple(Sequence):
+    """
+    Hy tuple representation.
+    """
+
+    color = Fore.BLUE
+
+
+_wrappers[Tuple] = recwrap(Tuple)
+_wrappers[tuple] = recwrap(Tuple)
+
+
 class Module(Object):
     """
     Hy module. A sequence of top-level expressions.
