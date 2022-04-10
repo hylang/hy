@@ -271,7 +271,7 @@ class HyREPL(code.InteractiveConsole):
         # Load cmdline-specific macros.
         require("hy.cmdline", self.module, assignments="ALL")
 
-        self.hy_compiler = HyASTCompiler(self.module)
+        self.hy_compiler = HyASTCompiler(self.module, module_name)
 
         self.cmdline_cache = {}
         self.compile = HyCommandCompiler(
