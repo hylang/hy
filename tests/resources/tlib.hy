@@ -11,6 +11,6 @@
 
 (defreader upper
   (let [node (&reader.parse-one-form)]
-    (if (isinstance node (, hy.models.Symbol hy.models.String))
+    (if (isinstance node #(hy.models.Symbol hy.models.String))
         (.__class__ node (.upper node))
         (raise (TypeError f"Cannot uppercase {(type node)}")))))

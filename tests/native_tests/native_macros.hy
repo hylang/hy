@@ -38,7 +38,7 @@
   (assert (= (a-list) [1 2]))
 
   (defmacro a-tuple [#* b] b)
-  (assert (= (a-tuple 1 2) [1 2]))
+  (assert (= (a-tuple 1 2) #(1 2)))
 
   (defmacro a-dict [] {1 2})
   (assert (= (a-dict) {1 2}))

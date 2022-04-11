@@ -53,7 +53,7 @@
 (defn test-dict-views []
   (assert (= (hy.repr (.keys {1 2})) "(dict-keys [1])"))
   (assert (= (hy.repr (.values {1 2})) "(dict-values [2])"))
-  (assert (= (hy.repr (.items {1 2})) "(dict-items [(, 1 2)])")))
+  (assert (= (hy.repr (.items {1 2})) "(dict-items [#(1 2)])")))
 
 (defn test-datetime []
   (import datetime :as D)
@@ -111,7 +111,7 @@
   (import re)
   (setv mo (re.search "b+" "aaaabbbccc"))
   (assert (= (hy.repr mo)
-    #[[<re.Match object; :span (, 4 7) :match "bbb">]])))
+    #[[<re.Match object; :span #(4 7) :match "bbb">]])))
 
 (defn test-hy-repr-custom []
 

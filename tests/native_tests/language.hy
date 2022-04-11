@@ -88,7 +88,7 @@
   (an (setv [y z] [7 8]))
   (assert (= y 7))
   (assert (= z 8))
-  (an (setv (, y z) [9 10]))
+  (an (setv #(y z) [9 10]))
   (assert (= y 9))
   (assert (= z 10))
 
@@ -379,8 +379,8 @@
 (defn test-fn []
   (setv square (fn [x] (* x x)))
   (assert (= 4 (square 2)))
-  (setv lambda_list (fn [test #* args] (, test args)))
-  (assert (= (, 1 (, 2 3)) (lambda_list 1 2 3))))
+  (setv lambda_list (fn [test #* args] #(test args)))
+  (assert (= #(1 #(2 3)) (lambda_list 1 2 3))))
 
 
 (defn test-imported-bits []
@@ -416,7 +416,7 @@
   (defclass X [object] [])
   (defclass M [object]
     (defn meth [self #* args #** kwargs]
-      (.join " " (+ (, "meth") args
+      (.join " " (+ #("meth") args
         (tuple (map (fn [k] (get kwargs k)) (sorted (.keys kwargs))))))))
 
   (setv x (X))
@@ -671,7 +671,7 @@
 
 
 (defn test-for-do []
-  (do (do (do (do (do (do (do (do (do (setv (, x y) (, 0 0)))))))))))
+  (do (do (do (do (do (do (do (do (do (setv #(x y) #(0 0)))))))))))
   (for [- [1 2]]
     (do
      (setv x (+ x 1))
@@ -990,7 +990,7 @@
   (assert (= (hy.eval 'b"") b""))
   (assert (= (hy.eval ':) :))
   (assert (= (hy.eval '[]) []))
-  (assert (= (hy.eval '(,)) (,)))
+  (assert (= (hy.eval '#()) #()))
   (assert (= (hy.eval '{}) {}))
   (assert (= (hy.eval '#{}) #{})))
 
@@ -1030,9 +1030,8 @@
   (assert (= (get (hy.eval `[~kw]) 0) kw))
   (assert (= (hy.eval kw) kw))
 
-  ; Tuples wrap to hy.models.Lists, not hy.models.Expressions.
-  (assert (= (hy.eval (,)) []))
-  (assert (= (hy.eval (, 1 2 3)) [1 2 3]))
+  (assert (= (hy.eval #()) #()))
+  (assert (= (hy.eval #(1 2 3)) #(1 2 3)))
 
   (assert (= (hy.eval `(+ "a" ~(+ "b" "c"))) "abc"))
 
@@ -1207,7 +1206,7 @@ cee"} dee" "ey bee\ncee dee"))
 
 (defn test-lambda-keyword-lists []
   (defn foo [x #* xs #** kw] [x xs kw])
-  (assert (= (foo 10 20 30) [10 (, 20 30) {}])))
+  (assert (= (foo 10 20 30) [10 #(20 30) {}])))
 
 
 (defn test-optional-arguments []
@@ -1594,9 +1593,9 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= (kwonly-foo-no-default :foo "quux") "quux"))
   ;; keyword-only with other arg types works
   (defn function-of-various-args [a b #* args foo #** kwargs]
-    (, a b args foo kwargs))
+    #(a b args foo kwargs))
   (assert (= (function-of-various-args 1 2 3 4 :foo 5 :bar 6 :quux 7)
-             (, 1 2 (, 3 4)  5 {"bar" 6 "quux" 7}))))
+             #(1 2 #(3 4)  5 {"bar" 6 "quux" 7}))))
 
 
 (defn test-extended-unpacking-1star-lvalues []
@@ -1663,10 +1662,10 @@ cee"} dee" "ey bee\ncee dee"))
   (setv l [1 2 3])
   (setv p [4 5])
   (assert (= ["a" #*l "b" #*p #*l] ["a" 1 2 3 "b" 4 5 1 2 3]))
-  (assert (= (, "a" #*l "b" #*p #*l) (, "a" 1 2 3 "b" 4 5 1 2 3)))
+  (assert (= #("a" #*l "b" #*p #*l) #("a" 1 2 3 "b" 4 5 1 2 3)))
   (assert (= #{"a" #*l "b" #*p #*l} #{"a" "b" 1 2 3 4 5}))
   (defn f [#* args] args)
-  (assert (= (f "a" #*l "b" #*p #*l) (, "a" 1 2 3 "b" 4 5 1 2 3)))
+  (assert (= (f "a" #*l "b" #*p #*l) #("a" 1 2 3 "b" 4 5 1 2 3)))
   (assert (= (+ #*l #*p) 15))
   (assert (= (and #*l) 3)))
 

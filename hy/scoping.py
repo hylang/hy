@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import hy._compat
 from hy.errors import HyInternalError
 from hy.lex import mangle
-from hy.models import Expression, List, Symbol
+from hy.models import Expression, List, Symbol, Tuple
 
 
 def is_function_scope(scope):
@@ -235,12 +235,12 @@ class ScopeLet(ScopeBase):
             return new_name
         if new_name is not None:
             raise ValueError("cannot specify name for compound targets")
-        if isinstance(target, List):
-            return List(map(self.add, target)).replace(target)
+        if isinstance(target, (List, Tuple)):
+            return target.__class__(map(self.add, target)).replace(target)
         if (
             isinstance(target, Expression)
             and target
-            and target[0] in (Symbol(","), Symbol("unpack-iterable"))
+            and target[0] == Symbol("unpack-iterable")
         ):
             return Expression([target[0], *map(self.add, target[1:])]).replace(target)
         raise ValueError(f"invalid binding target: {type(target)}")

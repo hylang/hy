@@ -115,7 +115,7 @@
          (= (get x 0) 'hy._Fraction)
          (all (gfor
            i (cut x 1 None)
-           (isinstance i (, int hy.models.Integer)))))
+           (isinstance i #(int hy.models.Integer)))))
         (.join "/" (map hy-repr (cut x 1 None)))
     True
       (+ "(" (_cat x) ")"))))

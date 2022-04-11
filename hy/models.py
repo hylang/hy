@@ -533,7 +533,6 @@ _wrappers[FString] = lambda fstr: FString(
 )
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
-_wrappers[tuple] = recwrap(List)
 
 
 class Dict(Sequence, _ColoredModel):
