@@ -17,6 +17,7 @@ import types
 from contextlib import contextmanager
 
 import hy
+from hy._compat import PY3_9
 from hy.compiler import HyASTCompiler, hy_ast_compile_flags, hy_compile, hy_eval
 from hy.completer import Completer, completion
 from hy.errors import (
@@ -804,7 +805,7 @@ def hy2py_main():
         _ast = hy_compile(hst, "__main__", filename=filename, source=source)
 
     if options.with_ast:
-        print(ast.dump(_ast))
+        print(ast.dump(_ast, **(dict(indent=2) if PY3_9 else {})))
         print()
         print()
 
