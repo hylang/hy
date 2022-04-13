@@ -1,5 +1,4 @@
 import operator
-import re
 from contextlib import contextmanager
 from fractions import Fraction
 from functools import reduce
@@ -224,11 +223,13 @@ class Symbol(Object, str):
         s = str(s)
         if not from_parser:
             # Check that the symbol is syntactically legal.
-            from hy.lex.lexer import identifier
-            from hy.lex.parser import symbol_like
+            # import here to prevent circular imports.
+            from hy.lex.hy_reader import symbol_like
 
-            if not re.fullmatch(identifier, s) or symbol_like(s) is not None:
+            sym = symbol_like(s)
+            if not isinstance(sym, Symbol):
                 raise ValueError(f"Syntactically illegal symbol: {s!r}")
+            return sym
         return super().__new__(cls, s)
 
 
@@ -246,9 +247,15 @@ class Keyword(Object):
         value = str(value)
         if not from_parser:
             # Check that the keyword is syntactically legal.
-            from hy.lex.lexer import identifier
+            # import here to prevent circular imports.
+            from hy.lex.hy_reader import HyReader
+            from hy.lex.reader import isnormalizedspace
 
-            if value and (not re.fullmatch(identifier, value) or "." in value):
+            if value and (
+                "." in value
+                or any(isnormalizedspace(c) for c in value)
+                or HyReader.NON_IDENT.intersection(value)
+            ):
                 raise ValueError(f'Syntactically illegal keyword: {":" + value!r}')
         self.name = value
 

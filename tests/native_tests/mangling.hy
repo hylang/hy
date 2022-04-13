@@ -59,10 +59,6 @@
 
 (defn test-py-forbidden-ascii []
 
-  (setv # "no comment")
-  (assert (= # "no comment"))
-  (assert (= hyx_Xnumber_signX "no comment"))
-
   (setv $ "dosh")
   (assert (= $ "dosh"))
   (assert (= hyx_Xdollar_signX "dosh")))

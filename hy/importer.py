@@ -10,7 +10,7 @@ from functools import partial
 
 import hy
 from hy.compiler import hy_compile
-from hy.lex import hy_parse
+from hy.lex import read_module
 
 
 @contextmanager
@@ -117,7 +117,7 @@ def _could_be_hy_src(filename):
 def _hy_source_to_code(self, data, path, _optimize=-1):
     if _could_be_hy_src(path):
         source = data.decode("utf-8")
-        hy_tree = hy_parse(source, filename=path)
+        hy_tree = read_module(source, filename=path)
         with loader_module_obj(self) as module:
             data = hy_compile(hy_tree, module)
 

@@ -17,7 +17,7 @@
           [x])
         x)]
 
-    (setv rep (hy.repr (hy.eval (hy.read-str original-str))))
+    (setv rep (hy.repr (hy.eval (hy.read original-str))))
     (assert (= rep original-str))))
 
 (defn test-hy-repr-roundtrip-from-value []
@@ -33,7 +33,7 @@
     'f"the answer is {(+ 2 2) = !r :4}"])
 
   (for [original-val values]
-    (setv evaled (hy.eval (hy.read-str (hy.repr original-val))))
+    (setv evaled (hy.eval (hy.read (hy.repr original-val))))
     (assert (= evaled original-val))
     (assert (is (type evaled) (type original-val)))))
 
@@ -45,7 +45,7 @@
   (setv orig `[a ~5.0])
   (setv reprd (hy.repr orig))
   (assert (= reprd "'[a 5.0]"))
-  (setv result (hy.eval (hy.read-str reprd)))
+  (setv result (hy.eval (hy.read reprd)))
 
   (assert (is (type (get orig 1)) float))
   (assert (is (type (get result 1)) hy.models.Float)))

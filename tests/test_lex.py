@@ -5,7 +5,7 @@ from math import isnan
 import pytest
 
 from hy.errors import hy_exc_handler
-from hy.lex import tokenize
+from hy.lex import read_many
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy.models import (
     Complex,
@@ -15,10 +15,15 @@ from hy.models import (
     Integer,
     Keyword,
     List,
+    Module,
     Set,
     String,
     Symbol,
 )
+
+
+def tokenize(s):
+    return list(Module(read_many(s), s, None))
 
 
 def peoi():
@@ -47,10 +52,11 @@ def check_trace_output(capsys, execinfo, expected):
     # Make sure the filtered frames aren't the same as the unfiltered ones.
     assert output != captured_wo_filtering.split("\n")
     # Remove the origin frame lines.
-    assert output[3:] == expected
+    assert output[5:] == expected
 
 
-def test_lex_no_delim():
+def test_lex_exception():
+    """Ensure tokenize throws a fit on a partial input"""
     with peoi():
         tokenize("(foo")
     with peoi():
@@ -61,7 +67,8 @@ def test_lex_no_delim():
         tokenize('(foo "bar')
 
 
-def test_lex_extra_end_delim():
+def test_unbalanced_exception():
+    """Ensure the tokenization fails on unbalanced expressions"""
     with lexe():
         tokenize("(bar))")
     with lexe():
@@ -130,8 +137,10 @@ def test_lex_strings_exception():
         [
             '  File "<string>", line 1',
             '    "\\x8"',
-            "    ^",
-            'hy.lex.exceptions.LexException: Can\'t convert "\\x8" to a hy.models.String',
+            "        ^",
+            "hy.lex.exceptions.LexException: (unicode error)"
+            " 'unicodeescape' codec can't decode bytes in position 0-2:"
+            " truncated \\xXX escape (<string>, line 1)",
         ],
     )
 
@@ -250,7 +259,7 @@ def test_lex_bad_attrs():
         [
             '  File "<string>", line 1',
             "    1.foo",
-            "    ^",
+            "        ^",
             "hy.lex.exceptions.LexException: Cannot access attribute on anything other"
             " than a name (in order to get attributes of expressions,"
             " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
@@ -566,7 +575,7 @@ def test_lex_exception_filtering(capsys):
             '  File "<string>", line 2',
             "    (foo",
             "       ^",
-            "hy.lex.exceptions.PrematureEndOfInput: Premature end of input",
+            "hy.lex.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form",
         ],
     )
 
@@ -579,7 +588,7 @@ def test_lex_exception_filtering(capsys):
         [
             '  File "<string>", line 3',
             "    1.foo",
-            "    ^",
+            "        ^",
             "hy.lex.exceptions.LexException: Cannot access attribute on anything other"
             " than a name (in order to get attributes of expressions,"
             " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
