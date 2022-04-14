@@ -13,17 +13,24 @@ def test_direct_import():
     assert_stuff(tests.resources.pydemo)
 
 
-def test_hy2py_import(tmpdir):
+def test_hy2py_import():
+    import contextlib
+    import os
     import subprocess
 
-    path = tmpdir.join("pydemo.py")
-    with open(path, "wb") as o:
-        subprocess.check_call(
-            ["hy2py", "tests/resources/pydemo.hy"],
-            stdout=o,
-            env={**os.environ, "PYTHONIOENCODING": "UTF-8"},
-        )
-    assert_stuff(hy.importer._import_from_path("pydemo", path))
+    path = "tests/resources/pydemo_as_py.py"
+    try:
+        with open(path, "wb") as o:
+            subprocess.check_call(
+                ["hy2py", "tests/resources/pydemo.hy"],
+                stdout=o,
+                env={**os.environ, "PYTHONIOENCODING": "UTF-8"},
+            )
+        import tests.resources.pydemo_as_py as m
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(path)
+    assert_stuff(m)
 
 
 def assert_stuff(m):
