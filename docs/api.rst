@@ -1088,13 +1088,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (require [#* args])
 
-   ``require`` is used to get macros from one or more given modules. It allows
-   parameters in all the same formats as ``import``. ``require`` imports each
-   named module and then makes each requested macro available in the current
-   module.
+   ``require`` is used to import macros and reader macros from one or more given
+   modules. It allows parameters in all the same formats as ``import``.
+   ``require`` imports each named module and then makes each requested macro
+   available in the current module.
 
    The following are all equivalent ways to call a macro named ``foo`` in the
-   module ``mymodule``::
+   module ``mymodule``.
+
+   :strong:`Examples`
+
+   ::
 
        (require mymodule)
        (mymodule.foo 1)
@@ -1110,6 +1114,38 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (require mymodule [foo :as bar])
        (bar 1)
+
+   Reader macros are required using ``:readers [...]``.
+   The ``:macros`` kwarg can be optionally added for readability::
+
+       => (require mymodule :readers [!])
+       => (require mymodule [foo] :readers [!])
+       => (require mymodule :readers [!] [foo])
+       => (require mymodule :macros [foo] :readers [!])
+
+   Do note however, that requiring ``:readers``, but not specifying any regular
+   macros, will not bring that module's macros in under their absolute paths::
+
+       => (require mymodule :readers [!])
+       => (mymodule.foo)
+       Traceback (most recent call last):
+         File "stdin-cd49eaaabebc174c87ebe6bf15f2f8a28660feba", line 1, in <module>
+           (mymodule.foo)
+       NameError: name 'mymodule' is not defined
+
+   Unlike requiring regular macros, reader macros cannot be renamed
+   with ``:as``, and are not made available under their absolute paths
+   to their source module::
+
+      => (require mymodule :readers [!])
+      HySyntaxError: ...
+
+      => (require mymodule :readers [! :as &])
+      HySyntaxError: ...
+
+      => (require mymodule)
+      => mymodule.! x
+      NameError: name 'mymodule' is not defined
 
    To define which macros are collected by ``(require mymodule *)``, set the
    variable ``_hy_export_macros`` (analogous to Python's ``__all__``) to a list
