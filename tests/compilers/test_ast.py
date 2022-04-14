@@ -273,7 +273,7 @@ def test_ast_good_import_from():
 def test_ast_require():
     "Make sure AST respects (require) syntax"
     can_compile("(require tests.resources.tlib)")
-    can_compile('(require tests.resources.tlib [qplah parald "#taggart"])')
+    can_compile("(require tests.resources.tlib [qplah parald])")
     can_compile("(require tests.resources.tlib *)")
     can_compile("(require tests.resources.tlib :as foobar)")
     can_compile("(require tests.resources.tlib [qplah :as quiz])")
@@ -629,13 +629,6 @@ def test_inline_python():
     cant_compile('(py "1 +")')
     can_compile('(pys "if 1:\n  2")')
     cant_compile('(pys "if 1\n  2")')
-
-
-def test_bad_tag_macros():
-    # https://github.com/hylang/hy/issues/1965
-    cant_compile('(defmacro "#a" [] (raise (ValueError))) #a ()')
-    cant_compile('(defmacro "#a" [x] (raise (ValueError))) #a ()')
-    can_compile('(defmacro "#a" [x] 3) #a ()')
 
 
 def test_models_accessible():

@@ -1437,7 +1437,7 @@ def compile_function_node(compiler, expr, node, name, args, returns, body):
     return ret + Result(temp_variables=[ast_name, ret.stmts[-1]])
 
 
-@pattern_macro("defmacro", [SYM | STR, lambda_list, many(FORM)])
+@pattern_macro("defmacro", [SYM, lambda_list, many(FORM)])
 def compile_macro_def(compiler, expr, root, name, params, body):
     _, _, rest, _, kwargs = params
 
@@ -1689,7 +1689,7 @@ def assignment_shape(module, rest):
             + times(
                 0,
                 2,
-                (maybe(sym(":macros")) + importlike(Symbol, String))
+                (maybe(sym(":macros")) + importlike(Symbol))
                 | (keepsym(":readers") + brackets(many(SYM))),
             )
         )

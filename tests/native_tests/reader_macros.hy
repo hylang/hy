@@ -65,6 +65,6 @@
 
   ;; test can't redefine :macros or :readers assignment brackets
   (with [(pytest.raises hy.errors.HySyntaxError)]
-    (eval-module #[[(require tests.resources.tlib ["#taggart"] ["#upper"])]]))
+    (eval-module #[[(require tests.resources.tlib [taggart] [upper])]]))
   (with [(pytest.raises hy.errors.HySyntaxError)]
     (eval-module #[[(require tests.resources.tlib :readers [taggart] :readers [upper])]])))

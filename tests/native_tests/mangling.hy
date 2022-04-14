@@ -109,12 +109,13 @@
   (assert (= x "aabb")))
 
 
-(defmacro "#tm---x" [form]
+(defreader rm---x
+  (setv form (.parse-one-form &reader))
   [form form])
-(defn test-tag-macro []
+(defn test-reader-macro []
   (setv x "")
-  (assert (= #tm---x (do (+= x "a") 1) [1 1]))
-  (assert (= #tm___x (do (+= x "b") 2) [2 2]))
+  (assert (= #rm---x (do (+= x "a") 1) [1 1]))
+  (assert (= #rm___x (do (+= x "b") 2) [2 2]))
   (assert (= x "aabb")))
 
 

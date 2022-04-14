@@ -1291,7 +1291,6 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
   (assert (= (tests.resources.tlib.✈ "silly") "plane silly"))
   (assert (= (tests.resources.tlib.hyx_XairplaneX "foolish") "plane foolish"))
-  (assert (= #tests.resources.tlib.taggart 15 [10 15]))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
 
@@ -1299,7 +1298,6 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= (T.parald 1 2 3) [9 1 2 3]))
   (assert (= (T.✈ "silly") "plane silly"))
   (assert (= (T.hyx_XairplaneX "foolish") "plane foolish"))
-  (assert (= #T.taggart 15 [10 15]))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
 
@@ -1307,9 +1305,6 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= (p 1 2 3) [9 1 2 3]))
   (with [(pytest.raises NameError)]
     (parald 1 2 3 4))
-
-  (require tests.resources.tlib ["#taggart"])
-  (assert (= #taggart 15 [10 15]))
 
   (require tests.resources.tlib *)
   (assert (= (parald 1 2 3) [9 1 2 3]))

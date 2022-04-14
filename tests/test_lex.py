@@ -468,13 +468,6 @@ def test_complex():
     assert entry == Symbol("J")
 
 
-def test_tag_macro():
-    """Ensure tag macros are handled properly"""
-    entry = tokenize("#^()")
-    assert entry[0][0] == Symbol("#^")
-    assert len(entry[0]) == 2
-
-
 def test_lex_comment_382():
     """Ensure that we can tokenize sources with a comment at the end"""
     entry = tokenize("foo ;bar\n;baz")
