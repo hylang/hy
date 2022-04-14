@@ -334,20 +334,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         => (infix (1 + 1))
         2
 
-   The name of the macro can be given as a string literal instead of a symbol. If the name starts with `#`, the macro can be called on a single argument without parentheses; such a macro is called a tag macro.
-
-     ::
-
-        => (defmacro "#x2" [form]
-        ...  `(do ~form ~form))
-
-     ::
-
-        => (setv foo 1)
-        => #x2 (+= foo 1)
-        => foo
-        3
-
 .. hy:function:: (if [test then else])
 
    ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.

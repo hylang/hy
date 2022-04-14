@@ -310,17 +310,6 @@ and macros that make it easy to construct forms programmatically, such as
 chapter has :ref:`a simple example <do-while>` of using ````` and ``~`` to
 define a new control construct ``do-while``.
 
-Sometimes it's nice to be able to call a one-parameter macro without
-parentheses. Tag macros allow this. The name of a tag macro is often just one
-character long, but since Hy allows most Unicode characters in the name of a
-macro (or ordinary variable), you won't out of characters soon. ::
-
-  => (defmacro "#↻" [code]
-  ...  (setv op (get code -1) params (list (cut code -1)))
-  ...  `(~op ~@params))
-  => #↻(1 2 3 +)
-  6
-
 What if you want to use a macro that's defined in a different module?
 ``import`` won't help, because it merely translates to a Python ``import``
 statement that's executed at run-time, and macros are expanded at compile-time,
