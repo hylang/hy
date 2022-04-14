@@ -3,6 +3,14 @@
 Unreleased
 ==============================
 
+Removals
+------------------------------
+* Tag macros have been removed. Use reader macros instead, rewriting
+  `(defmacro "#foo" [arg] …)` as
+  `(defreader foo (setv arg (.parse-one-form &reader)) …)`.
+* `hy.read-str` has been removed. Use `hy.read`, which now accepts
+  strings, instead.
+
 Breaking Changes
 ------------------------------
 * `if` now requires all three arguments. For cases with less than
@@ -12,6 +20,16 @@ Breaking Changes
 
      (cond [a b] [x y z])     ; Old
      (cond  a b  x (do y z))  ; New
+
+* `@#` is now a reader macro and has been moved to Hyrule.
+* `defmacro` once again requires the macro name as a symbol, not
+  a string literal.
+* The parser has been completely rewritten. It is mostly
+  backwards-compatible, with two exceptions:
+
+  - Unescaped double quotes are now allowed inside replacement
+    fields of f-strings.
+  - A bare `#` is no longer a legal symbol.
 
 * The mangling rules have been refined to account for Python's
   treatment of distinct names as referring to the same variable if
@@ -33,6 +51,7 @@ Bug Fixes
 
 New Features
 ------------------------------
+* Added user-defined reader macros, defined with `defreader`.
 * Python reserved words are allowed once more as parameter names and
   keyword arguments. Hy includes a workaround for a CPython bug that
   prevents the generation of legal Python code for these cases
