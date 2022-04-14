@@ -1619,6 +1619,23 @@ the following methods
 
 .. hy:autofunction:: hy.as-model
 
+.. _reader-macros:
+
+Reader Macros
+-------------
+
+Like regular macros, reader macros should return a Hy form that will then be
+passed to the compiler for execution. Reader macros access the Hy reader using
+the ``&reader`` name. It gives access to all of the text- and form-parsing logic
+that Hy uses to parse itself. See :py:class:`HyReader <hy.lex.hy_reader.HyReader>` and
+its base class :py:class:`Reader <hy.lex.reader.Reader>` for details regarding
+the available processing methods.
+
+.. autoclass:: hy.lex.hy_reader.HyReader
+   :members: parse, parse_one_form, parse_forms_until, read_default, fill_pos
+
+.. autoclass:: hy.lex.reader.Reader
+   :members:
 
 Python Operators
 ----------------
