@@ -47,6 +47,7 @@ class Completer:
         self.path = [builtins.__dict__, namespace]
 
         namespace.setdefault("__macros__", {})
+        namespace.setdefault("__reader_macros__", {})
 
         self.path.append(namespace["__macros__"])
 

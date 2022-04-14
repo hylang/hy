@@ -74,7 +74,9 @@
    (setv builtins (hy.gensym "builtins"))
    `(do (import builtins :as ~builtins)
         (help (or (.get __macros__ ~mangled)
+                  (.get __reader_macros__ ~mangled)
                   (.get (. ~builtins __macros__) ~mangled)
+                  (.get (. ~builtins __reader_macros__) ~mangled)
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 

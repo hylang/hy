@@ -356,6 +356,7 @@ class HyASTCompiler:
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
         self.module.__dict__.setdefault("__macros__", {})
+        self.module.__dict__.setdefault("__reader_macros__", {})
 
         self.scope = ScopeGlobal(self)
 
