@@ -29,6 +29,11 @@ def macro(name):
     return lambda fn: install_macro(name, fn, fn)
 
 
+def reader_macro(name, fn):
+    fn = rename_function(fn, name)
+    inspect.getmodule(fn).__dict__.setdefault("__reader_macros__", {})[name] = fn
+
+
 def pattern_macro(names, pattern, shadow=None):
     pattern = whole(pattern)
     py_version_required = None

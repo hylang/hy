@@ -3,7 +3,6 @@
 ;;; These macros form the hy language
 ;;; They are automatically required in every module, except inside hy.core
 
-
 (defmacro cond [#* args]
   "Shorthand for a nested sequence of :hy:func:`if` forms, like an
   :py:keyword:`if`-:py:keyword:`elif`-:py:keyword:`else` ladder in
@@ -52,6 +51,65 @@
         (return panic))]]
   `(if ~test (do ~@body) None))
 
+(defmacro defreader [key #* body]
+  "Define a new reader macro.
+
+  Reader macros are expanded at read time and allow you to modify the behavior
+  of the Hy reader. Access to the currently instantiated `HyReader` is available
+  in the `body` as `&reader`.
+
+  Reader macro names can be any symbol and are callable by prefixing the name
+  with a ``#``. i.e. ``(defreader upper ...)`` is called with ``#upper``.
+
+  Examples:
+
+     The following is a primitive example of a reader macro that adds Python's
+     colon ``:`` slice sugar into Hy::
+
+        => (defreader slice
+        ...   (defn parse-node []
+        ...     (let [node (when (!= \":\" (.peekc &reader))
+        ...                  (.parse-one-form &reader))]
+        ...       (if (= node '...) 'Ellipse node)))
+        ...
+        ...   (with [(&reader.end-identifier \":\")]
+        ...     (let [nodes []]
+        ...       (&reader.slurp-space)
+        ...       (nodes.append (parse-node))
+        ...       (while (&reader.peek-and-getc \":\")
+        ...         (nodes.append (parse-node)))
+        ...
+        ...       `(slice ~@nodes))))
+
+        => (setv an-index 42)
+        => #slice a:(+ 1 2):\"column\"
+        (slice 42 3 column)
+
+     See the :ref:`reader macros docs <reader macros>` for more detailed
+     information on how reader macros work and are defined.
+  "
+  (when (not (isinstance &compiler.scope hy.scoping.ScopeGlobal))
+    (raise (&compiler._syntax-error
+             &compiler.this
+             f"Cannot define reader macro outside of global scope.")))
+
+  (when (not (isinstance key hy.models.Symbol))
+    (raise (ValueError f"expected a name, but got {key}")))
+
+  (if (and body (isinstance (get body 0) hy.models.String))
+      (setv [docstr #* body] body)
+      (setv docstr None))
+
+  (setv dispatch-key (hy.mangle (+ "#" (str key))))
+  `(do (eval-and-compile
+         (hy.macros.reader-macro
+           ~dispatch-key
+           (fn [&reader &key]
+             ~@(if docstr [docstr] [])
+             ~@body)))
+       (eval-when-compile
+         (setv (get hy.&reader.reader-table ~dispatch-key)
+               (get __reader_macros__ ~dispatch-key)))))
 
 (defmacro "#@" [expr]
   "with-decorator tag macro"
