@@ -149,3 +149,9 @@ def assert_stuff(m):
     assert m.py_accum == "01234"
 
     assert asyncio.run(m.coro()) == list("abcdef")
+
+    assert m.cheese == [1, 1]
+    assert m.mac_results == ["x", "x"]
+
+    assert m.tendies == [2, 2]
+    assert m.chicken_results == ["y", "y"]

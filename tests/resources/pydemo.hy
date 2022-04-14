@@ -1,5 +1,7 @@
 ;; This Hy module is intended to concisely demonstrate all of
 ;; Python's major syntactic features for the purpose of testing hy2py.
+;; It also tries out macros and reader macros to ensure they work with
+;; hy2py.
 "This is a module docstring."
 
 (setv mystring (* "foo" 3))
@@ -185,3 +187,18 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
     :async item (async-loop ["e" "f"])
     item))
   values)
+
+(defmacro macaroni [expr]
+  `[~expr ~expr])
+(setv cheese [])
+(setv mac-results (macaroni (do
+  (.append cheese 1)
+  "x")))
+
+(defreader chicken-strips
+  (setv expr (.parse-one-form &reader))
+  `[~expr ~expr])
+(setv tendies [])
+(setv chicken-results #chicken-strips (do
+  (.append tendies 2)
+  "y"))
