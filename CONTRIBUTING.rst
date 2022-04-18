@@ -44,9 +44,6 @@ help you with these finicky things or do them for you if necessary.
 Deciding what to do
 -------------------
 
-Issues tagged good-first-bug_ are expected to be relatively easy to
-fix, so they may be good targets for your first PR for Hy.
-
 If you're proposing a major change to the Hy language, or you're
 unsure of the proposed change, create an issue to discuss it before
 you write any code. This will allow others to give feedback on your
@@ -185,7 +182,6 @@ http://contributor-covenant.org/version/1/1/0/.
 .. _issue tracker: https://github.com/hylang/hy/issues
 .. _GitHub: https://github.com/hylang/hy
 .. _This getting-started guide: http://rogerdudler.github.io/git-guide/
-.. _good-first-bug: https://github.com/hylang/hy/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-bug
 .. _the Github Discussions page: https://github.com/hylang/hy/discussions
 .. _Stack Overflow: https://stackoverflow.com/questions/tagged/hy
 .. _xfail: https://docs.pytest.org/en/latest/skipping.html#mark-a-test-function-as-expected-to-fail
