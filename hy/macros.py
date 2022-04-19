@@ -29,6 +29,11 @@ def macro(name):
     return lambda fn: install_macro(name, fn, fn)
 
 
+def reader_macro(name, fn):
+    fn = rename_function(fn, name)
+    inspect.getmodule(fn).__dict__.setdefault("__reader_macros__", {})[name] = fn
+
+
 def pattern_macro(names, pattern, shadow=None):
     pattern = whole(pattern)
     py_version_required = None
@@ -118,6 +123,90 @@ def _same_modules(source_module, target_module):
     )
 
 
+def derive_target_module(target_module, parent_frame):
+    if target_module is None:
+        target_namespace = parent_frame.f_globals
+        target_module = target_namespace.get("__name__", None)
+    elif isinstance(target_module, str):
+        target_module = importlib.import_module(target_module)
+        target_namespace = target_module.__dict__
+    elif inspect.ismodule(target_module):
+        target_namespace = target_module.__dict__
+    else:
+        raise HyTypeError(
+            "`target_module` is not a recognized type: {}".format(type(target_module))
+        )
+    return target_module, target_namespace
+
+
+def import_module_from_string(module_name, package_module):
+    package = None
+    if module_name.startswith("."):
+        source_dirs = module_name.split(".")
+        target_dirs = getattr(package_module, "__name__", package_module).split(".")
+        while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
+            source_dirs.pop(0)
+            target_dirs.pop()
+        package = ".".join(target_dirs + source_dirs[:-1])
+    try:
+        return importlib.import_module(module_name, package)
+    except ImportError as e:
+        raise HyRequireError(e.args[0]).with_traceback(None)
+
+
+def require_reader(source_module, target_module, assignments=None):
+    target_module, target_namespace = derive_target_module(
+        target_module, inspect.stack()[1][0]
+    )
+
+    if _same_modules(source_module, target_module):
+        return False
+
+    if not inspect.ismodule(source_module):
+        source_module = import_module_from_string(source_module, target_module)
+
+    source_macros = source_module.__dict__.setdefault("__reader_macros__", {})
+
+    if not source_module.__reader_macros__:
+        if assignments:
+            for name in assignments:
+                try:
+                    require_reader(
+                        f"{source_module.__name__}.{mangle(name)}", target_module
+                    )
+                except HyRequireError as e:
+                    raise HyRequireError(
+                        f"Cannot import reader '{name}'"
+                        f" from '{source_module.__name__}'"
+                        f" ({source_module.__file__})"
+                    )
+            return True
+        else:
+            return False
+
+    target_macros = target_namespace.setdefault("__reader_macros__", {})
+
+    for name in assignments or list(source_macros.keys()):
+        _name = mangle("#" + name)
+        if _name in source_module.__reader_macros__:
+            target_macros[_name] = source_macros[_name]
+        else:
+            raise HyRequireError(
+                "Could not require name {} from {}".format(_name, source_module)
+            )
+
+    return True
+
+
+def enable_readers(module, reader, names):
+    _, namespace = derive_target_module(module, inspect.stack()[1][0])
+    for name in names:
+        _name = mangle("#" + name)
+        if _name not in namespace["__reader_macros__"]:
+            raise NameError(f"reader {name} is not defined")
+        reader.reader_table[_name] = namespace["__reader_macros__"][_name]
+
+
 def require(source_module, target_module, assignments, prefix=""):
     """Load macros from one module into the namespace of another.
 
@@ -138,19 +227,9 @@ def require(source_module, target_module, assignments, prefix=""):
     Returns:
         bool: Whether or not macros were actually transferred.
     """
-    if target_module is None:
-        parent_frame = inspect.stack()[1][0]
-        target_namespace = parent_frame.f_globals
-        target_module = target_namespace.get("__name__", None)
-    elif isinstance(target_module, str):
-        target_module = importlib.import_module(target_module)
-        target_namespace = target_module.__dict__
-    elif inspect.ismodule(target_module):
-        target_namespace = target_module.__dict__
-    else:
-        raise HyTypeError(
-            "`target_module` is not a recognized type: {}".format(type(target_module))
-        )
+    target_module, target_namespace = derive_target_module(
+        target_module, inspect.stack()[1][0]
+    )
 
     # Let's do a quick check to make sure the source module isn't actually
     # the module being compiled (e.g. when `runpy` executes a module's code
@@ -161,18 +240,7 @@ def require(source_module, target_module, assignments, prefix=""):
         return False
 
     if not inspect.ismodule(source_module):
-        package = None
-        if source_module.startswith("."):
-            source_dirs = source_module.split(".")
-            target_dirs = getattr(target_module, "__name__", target_module).split(".")
-            while len(source_dirs) > 1 and source_dirs[0] == "" and target_dirs:
-                source_dirs.pop(0)
-                target_dirs.pop()
-            package = ".".join(target_dirs + source_dirs[:-1])
-        try:
-            source_module = importlib.import_module(source_module, package)
-        except ImportError as e:
-            raise HyRequireError(e.args[0]).with_traceback(None)
+        source_module = import_module_from_string(source_module, target_module)
 
     source_macros = source_module.__dict__.setdefault("__macros__", {})
     source_exports = getattr(
@@ -237,6 +305,7 @@ def load_macros(module):
     """
     builtin_macros = EXTRA_MACROS
     module.__macros__ = {}
+    module.__reader_macros__ = {}
 
     for builtin_mod_name in builtin_macros:
         builtin_mod = importlib.import_module(builtin_mod_name)
@@ -244,6 +313,11 @@ def load_macros(module):
         # This may overwrite macros in the module.
         if hasattr(builtin_mod, "__macros__"):
             module.__macros__.update(getattr(builtin_mod, "__macros__", {}))
+
+        if hasattr(builtin_mod, "__reader_macros__"):
+            module.__reader_macros__.update(
+                getattr(builtin_mod, "__reader_macros__", {})
+            )
 
 
 class MacroExceptions:

@@ -310,17 +310,6 @@ and macros that make it easy to construct forms programmatically, such as
 chapter has :ref:`a simple example <do-while>` of using ````` and ``~`` to
 define a new control construct ``do-while``.
 
-Sometimes it's nice to be able to call a one-parameter macro without
-parentheses. Tag macros allow this. The name of a tag macro is often just one
-character long, but since Hy allows most Unicode characters in the name of a
-macro (or ordinary variable), you won't out of characters soon. ::
-
-  => (defmacro "#↻" [code]
-  ...  (setv op (get code -1) params (list (cut code -1)))
-  ...  `(~op ~@params))
-  => #↻(1 2 3 +)
-  6
-
 What if you want to use a macro that's defined in a different module?
 ``import`` won't help, because it merely translates to a Python ``import``
 statement that's executed at run-time, and macros are expanded at compile-time,
@@ -331,6 +320,28 @@ which imports the module and makes macros available at compile-time.
    => (require tutorial.macros)
    => (tutorial.macros.rev (1 2 3 +))
    6
+
+Hy also supports reader macros, which are similar to ordinary macros, but
+operate on raw source text rather than pre-parsed Hy forms. They can choose how
+much of the source code to consume after the point they are called, and return
+any code. Thus, reader macros can add entirely new syntax to Hy. For example,
+you could add a literal notation for Python's :class:`decimal.Decimal` class
+like so::
+
+    => (import  decimal [Decimal]  fractions [Fraction])
+    => (defreader d
+    ...   (.slurp-space &reader)
+    ...   `(Decimal ~(.read-ident &reader)))
+    => (print (repr #d .1))
+    Decimal('0.1')
+    => (print (Fraction #d .1))
+    1/10
+    => ;; Contrast with the normal floating-point .1:
+    => (print (Fraction .1))
+    3602879701896397/36028797018963968
+
+``require`` can pull in a reader macro defined in a different module with
+syntax like ``(require mymodule :readers [d])``.
 
 Hyrule
 ======

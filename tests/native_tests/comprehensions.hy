@@ -18,7 +18,8 @@
   (assert (is (type (gfor x "abc" :do (setv y 1) x)) types.GeneratorType)))
 
 
-#@ ((pytest.mark.parametrize "specialop" ["for" "lfor" "sfor" "gfor" "dfor"])
+(with-decorator (pytest.mark.parametrize "specialop"
+  ["for" "lfor" "sfor" "gfor" "dfor"])
 (defn test-fors [specialop]
 
   (setv cases [

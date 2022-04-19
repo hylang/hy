@@ -18,7 +18,7 @@ from funcparserlib.parser import forward_decl, many, maybe, oneplus, some
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
 from hy.lex import mangle, unmangle
-from hy.macros import pattern_macro, require
+from hy.macros import pattern_macro, require, require_reader
 from hy.model_patterns import (
     FORM,
     KEYWORD,
@@ -54,13 +54,7 @@ from hy.models import (
     Symbol,
     is_unpack,
 )
-from hy.scoping import (
-    ScopeFn,
-    ScopeGen,
-    ScopeGlobal,
-    ScopeLet,
-    is_inside_function_scope,
-)
+from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------
 # * Helpers
@@ -1443,7 +1437,7 @@ def compile_function_node(compiler, expr, node, name, args, returns, body):
     return ret + Result(temp_variables=[ast_name, ret.stmts[-1]])
 
 
-@pattern_macro("defmacro", [SYM | STR, lambda_list, many(FORM)])
+@pattern_macro("defmacro", [SYM, lambda_list, many(FORM)])
 def compile_macro_def(compiler, expr, root, name, params, body):
     _, _, rest, _, kwargs = params
 
@@ -1662,72 +1656,69 @@ def compile_class_expression(compiler, expr, root, name, rest):
 
 def importlike(*name_types):
     name = some(lambda x: isinstance(x, name_types) and "." not in x)
-    return [
+    return (
+        keepsym("*")
+        | (keepsym(":as") + name)
+        | brackets(many(name + maybe(sym(":as") + name)))
+    )
+
+
+def assignment_shape(module, rest):
+    prefix = ""
+    assignments = "EXPORTS"
+    if rest is None:
+        # (import foo)
+        prefix = module
+    elif rest == Symbol("*"):
+        # (import foo *)
+        pass
+    elif rest[0] == Keyword("as"):
+        # (import foo :as bar)
+        prefix = rest[1]
+    else:
+        # (import foo [bar baz :as MyBaz bing])
+        assignments = [(k, v or k) for k, v in rest[0]]
+    return prefix, assignments
+
+
+@pattern_macro(
+    "require",
+    [
         many(
             SYM
-            + maybe(
-                keepsym("*")
-                | (keepsym(":as") + name)
-                | brackets(many(name + maybe(sym(":as") + name)))
+            + times(
+                0,
+                2,
+                (maybe(sym(":macros")) + importlike(Symbol))
+                | (keepsym(":readers") + brackets(many(SYM))),
             )
         )
-    ]
-
-
-@pattern_macro("import", importlike(Symbol))
-@pattern_macro("require", importlike(Symbol, String))
-def compile_import_or_require(compiler, expr, root, entries):
+    ],
+)
+def compile_require(compiler, expr, root, entries):
     ret = Result()
-
     for entry in entries:
-        assignments = "EXPORTS"
-        prefix = ""
+        module, assignments = entry
+        readers, rest = (
+            [names for key, names in assignments if (key == Keyword("readers")) == flag]
+            for flag in (True, False)
+        )
+        if len(rest) > 1 or len(readers) > 1:
+            raise compiler._syntax_error(
+                entry,
+                f"redefinition of ':{'macros' if len(rest) > 1 else 'readers'}' brackets.",
+            )
 
-        module, rest = entry
-        if rest is None:
-            # e.g., (import foo)
-            prefix = module
-        elif rest == Symbol("*"):
-            # e.g., (import foo *)
-            pass
-        elif rest[0] == Keyword("as"):
-            # e.g., (import foo :as bar)
-            prefix = rest[1]
-        else:
-            # e.g., (import foo [bar baz :as MyBaz bing])
-            assignments = [(k, v or k) for k, v in rest[0]]
+        rest = rest[0] if rest else None  # None used for prefixed macro import
+        readers = readers and readers[0]
 
+        prefix, assignments = assignment_shape(module, rest)
         ast_module = mangle(module)
 
-        if root == "import":
-            module_name = ast_module.lstrip(".")
-            level = len(ast_module) - len(module_name)
-            if assignments == "EXPORTS" and prefix == "":
-                node = asty.ImportFrom
-                names = [asty.alias(module, name="*", asname=None)]
-            elif assignments == "EXPORTS":
-                compiler.scope.define(mangle(prefix))
-                node = asty.Import
-                names = [
-                    asty.alias(
-                        module,
-                        name=ast_module,
-                        asname=mangle(prefix) if prefix != module else None,
-                    )
-                ]
-            else:
-                node = asty.ImportFrom
-                names = []
-                for k, v in assignments:
-                    compiler.scope.define(mangle(v))
-                    names.append(
-                        asty.alias(
-                            module, name=mangle(k), asname=None if v == k else mangle(v)
-                        )
-                    )
-            ret += node(expr, module=module_name or None, names=names, level=level)
-
-        elif require(
+        # we don't want to import all macros as prefixed if we're specifically
+        # importing readers but not macros
+        # (require a-module :readers ["!"])
+        if (rest or not readers) and require(
             ast_module, compiler.module, assignments=assignments, prefix=prefix
         ):
             # Actually calling `require` is necessary for macro expansions
@@ -1752,6 +1743,72 @@ def compile_import_or_require(compiler, expr, root, entries):
                 ).replace(expr)
             )
             ret += ret.expr_as_stmt()
+
+        if readers and require_reader(ast_module, compiler.module, readers[0]):
+            reader_assignments = [String(reader) for reader in readers[0]]
+            ret += compiler.compile(
+                mkexpr(
+                    "do",
+                    mkexpr(
+                        "hy.macros.require-reader",
+                        String(ast_module),
+                        "None",
+                        Keyword("assignments"),
+                        [reader_assignments],
+                    ),
+                    mkexpr(
+                        "eval-when-compile",
+                        mkexpr(
+                            "hy.macros.enable-readers",
+                            "None",
+                            "hy.&reader",
+                            [reader_assignments],
+                        ),
+                    ),
+                ).replace(expr)
+            )
+            ret += ret.expr_as_stmt()
+    return ret
+
+
+@pattern_macro("import", [many(SYM + maybe(importlike(Symbol)))])
+def compile_import(compiler, expr, root, entries):
+    ret = Result()
+
+    for entry in entries:
+        assignments = "EXPORTS"
+        prefix = ""
+
+        module, _ = entry
+        prefix, assignments = assignment_shape(*entry)
+        ast_module = mangle(module)
+
+        module_name = ast_module.lstrip(".")
+        level = len(ast_module) - len(module_name)
+        if assignments == "EXPORTS" and prefix == "":
+            node = asty.ImportFrom
+            names = [asty.alias(module, name="*", asname=None)]
+        elif assignments == "EXPORTS":
+            compiler.scope.define(mangle(prefix))
+            node = asty.Import
+            names = [
+                asty.alias(
+                    module,
+                    name=ast_module,
+                    asname=mangle(prefix) if prefix != module else None,
+                )
+            ]
+        else:
+            node = asty.ImportFrom
+            names = []
+            for k, v in assignments:
+                compiler.scope.define(mangle(v))
+                names.append(
+                    asty.alias(
+                        module, name=mangle(k), asname=None if v == k else mangle(v)
+                    )
+                )
+        ret += node(expr, module=module_name or None, names=names, level=level)
 
     return ret
 

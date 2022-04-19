@@ -334,20 +334,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         => (infix (1 + 1))
         2
 
-   The name of the macro can be given as a string literal instead of a symbol. If the name starts with `#`, the macro can be called on a single argument without parentheses; such a macro is called a tag macro.
-
-     ::
-
-        => (defmacro "#x2" [form]
-        ...  `(do ~form ~form))
-
-     ::
-
-        => (setv foo 1)
-        => #x2 (+= foo 1)
-        => foo
-        3
-
 .. hy:function:: (if [test then else])
 
    ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.
@@ -1088,13 +1074,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (require [#* args])
 
-   ``require`` is used to get macros from one or more given modules. It allows
-   parameters in all the same formats as ``import``. ``require`` imports each
-   named module and then makes each requested macro available in the current
-   module.
+   ``require`` is used to import macros and reader macros from one or more given
+   modules. It allows parameters in all the same formats as ``import``.
+   ``require`` imports each named module and then makes each requested macro
+   available in the current module.
 
    The following are all equivalent ways to call a macro named ``foo`` in the
-   module ``mymodule``::
+   module ``mymodule``.
+
+   :strong:`Examples`
+
+   ::
 
        (require mymodule)
        (mymodule.foo 1)
@@ -1110,6 +1100,38 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (require mymodule [foo :as bar])
        (bar 1)
+
+   Reader macros are required using ``:readers [...]``.
+   The ``:macros`` kwarg can be optionally added for readability::
+
+       => (require mymodule :readers [!])
+       => (require mymodule [foo] :readers [!])
+       => (require mymodule :readers [!] [foo])
+       => (require mymodule :macros [foo] :readers [!])
+
+   Do note however, that requiring ``:readers``, but not specifying any regular
+   macros, will not bring that module's macros in under their absolute paths::
+
+       => (require mymodule :readers [!])
+       => (mymodule.foo)
+       Traceback (most recent call last):
+         File "stdin-cd49eaaabebc174c87ebe6bf15f2f8a28660feba", line 1, in <module>
+           (mymodule.foo)
+       NameError: name 'mymodule' is not defined
+
+   Unlike requiring regular macros, reader macros cannot be renamed
+   with ``:as``, and are not made available under their absolute paths
+   to their source module::
+
+      => (require mymodule :readers [!])
+      HySyntaxError: ...
+
+      => (require mymodule :readers [! :as &])
+      HySyntaxError: ...
+
+      => (require mymodule)
+      => mymodule.! x
+      NameError: name 'mymodule' is not defined
 
    To define which macros are collected by ``(require mymodule *)``, set the
    variable ``_hy_export_macros`` (analogous to Python's ``__all__``) to a list
@@ -1593,9 +1615,11 @@ Hy
 The ``hy`` module is auto imported into every Hy module and provides convient access to
 the following methods
 
-.. hy:autofunction:: hy.read-str
-
 .. hy:autofunction:: hy.read
+
+.. hy:autofunction:: hy.read_many
+
+.. hy:autofunction:: hy.read_module
 
 .. hy:autofunction:: hy.eval
 
@@ -1617,6 +1641,23 @@ the following methods
 
 .. hy:autofunction:: hy.as-model
 
+.. _reader-macros:
+
+Reader Macros
+-------------
+
+Like regular macros, reader macros should return a Hy form that will then be
+passed to the compiler for execution. Reader macros access the Hy reader using
+the ``&reader`` name. It gives access to all of the text- and form-parsing logic
+that Hy uses to parse itself. See :py:class:`HyReader <hy.lex.hy_reader.HyReader>` and
+its base class :py:class:`Reader <hy.lex.reader.Reader>` for details regarding
+the available processing methods.
+
+.. autoclass:: hy.lex.hy_reader.HyReader
+   :members: parse, parse_one_form, parse_forms_until, read_default, fill_pos
+
+.. autoclass:: hy.lex.reader.Reader
+   :members:
 
 Python Operators
 ----------------

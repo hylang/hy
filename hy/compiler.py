@@ -23,6 +23,7 @@ from hy.models import (
     Integer,
     Keyword,
     List,
+    Module,
     Object,
     Set,
     String,
@@ -355,6 +356,7 @@ class HyASTCompiler:
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
         self.module.__dict__.setdefault("__macros__", {})
+        self.module.__dict__.setdefault("__reader_macros__", {})
 
         self.scope = ScopeGlobal(self)
 
@@ -503,6 +505,17 @@ class HyASTCompiler:
         if str(name) in ("None", "True", "False"):
             raise self._syntax_error(name, "Can't assign to constant")
         return name
+
+    @builds_model(Module)
+    def compile_module(self, module):
+        result = Result()
+        last = None
+        for node in module:
+            if last is not None:
+                result += last.expr_as_stmt()
+            last = self.compile(node)
+            result += last
+        return result
 
     @builds_model(Expression)
     def compile_expression(self, expr, *, allow_annotation_expression=False):

@@ -113,13 +113,13 @@ Evaluating strings of Hy code from Python
 -----------------------------------------
 
 Evaluating a string (or ``file`` object) containing a Hy expression requires
-two separate steps. First, use the ``read_str`` function (or ``read`` for a
-``file`` object) to turn the expression into a Hy model:
+two separate steps. First, use the ``read`` function to turn the expression
+into a Hy model:
 
 .. code-block:: python
 
     >>> import hy
-    >>> expr = hy.read_str("(- (/ (+ 1 3 88) 2) 8)")
+    >>> expr = hy.read("(- (/ (+ 1 3 88) 2) 8)")
 
 Then, use the ``hy.eval`` function to evaluate it:
 

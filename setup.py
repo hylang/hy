@@ -18,7 +18,6 @@ setup(
     name=PKG,
     version=__version__,
     install_requires=[
-        "rply>=0.7.7",
         "funcparserlib>=1.0.0a0",
         "colorama",
         'astor>=0.8 ; python_version < "3.9"',

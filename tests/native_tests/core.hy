@@ -128,6 +128,10 @@ result['y in globals'] = 'y' in globals()")
   (import tests.resources.bin)
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
 
+(defreader some-tag
+  "Some tag macro"
+  '1)
+
 (defn test-doc [capsys]
   ;; https://github.com/hylang/hy/issues/1970
   ;; Let's first make sure we can doc the builtin macros
@@ -136,9 +140,9 @@ result['y in globals'] = 'y' in globals()")
   (setv [out err] (.readouterr capsys))
   (assert (in "Gets help for a macro function" out))
 
-  (doc "#@")
+  (doc "#some-tag")
   (setv [out err] (.readouterr capsys))
-  (assert (in "with-decorator tag macro" out))
+  (assert (in "Some tag macro" out))
 
   (defmacro <-mangle-> []
     "a fancy docstring"
@@ -149,14 +153,6 @@ result['y in globals'] = 'y' in globals()")
   (assert (.startswith (.strip out)
             f"Help on function {(hy.mangle '<-mangle->)} in module "))
   (assert (in "a fancy docstring" out))
-  (assert (not err))
-
-  (defmacro "#pillgrums" [x]
-    "Look at the quality of that picture!"
-    x)
-  (doc "#pillgrums")
-  (setv [out err] (.readouterr capsys))
-  (assert (in "Look at the quality of that picture!" out))
   (assert (not err))
 
   ;; make sure doc raises an error instead of

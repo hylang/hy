@@ -59,10 +59,6 @@
 
 (defn test-py-forbidden-ascii []
 
-  (setv # "no comment")
-  (assert (= # "no comment"))
-  (assert (= hyx_Xnumber_signX "no comment"))
-
   (setv $ "dosh")
   (assert (= $ "dosh"))
   (assert (= hyx_Xdollar_signX "dosh")))
@@ -113,12 +109,13 @@
   (assert (= x "aabb")))
 
 
-(defmacro "#tm---x" [form]
+(defreader rm---x
+  (setv form (.parse-one-form &reader))
   [form form])
-(defn test-tag-macro []
+(defn test-reader-macro []
   (setv x "")
-  (assert (= #tm---x (do (+= x "a") 1) [1 1]))
-  (assert (= #tm___x (do (+= x "b") 2) [2 2]))
+  (assert (= #rm---x (do (+= x "a") 1) [1 1]))
+  (assert (= #rm___x (do (+= x "b") 2) [2 2]))
   (assert (= x "aabb")))
 
 
@@ -221,7 +218,7 @@
       x (map chr (range (+ sys.maxunicode 1)))
       :if (in "_" (unicodedata.normalize "NFKC" x))
       x))
-    hy.lex.normalizes-to-underscore)))
+    hy.lex.mangling.normalizes-to-underscore)))
 
 
 (defn test-pep3131 []

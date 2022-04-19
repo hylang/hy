@@ -243,7 +243,6 @@ _tb_hidden_modules = {
             "hy.macros",
             "hy.models",
             "hy.core.result_macros",
-            "rply",
         ],
     )
     if m is not None

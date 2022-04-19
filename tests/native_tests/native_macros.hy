@@ -75,7 +75,7 @@
   (assert (in "got unexpected token: :kw" e.value.msg))
 
   (with [e (pytest.raises HySyntaxError)]
-    (hy.eval '(defmacro "foo.bar" [])))
+    (hy.eval '(defmacro foo.bar [])))
   (assert (in "periods are not allowed in macro names" e.value.msg)))
 
 (defn test-macro-calling-fn []
@@ -144,7 +144,7 @@
 (defn test-gensym-in-macros []
   (import ast)
   (import hy.compiler [hy-compile])
-  (import hy.lex [hy-parse])
+  (import hy.lex [read-module])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (hy.gensym))
       `(do
@@ -157,8 +157,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (hy-parse macro1) __name__))
-  (setv _ast2 (hy-compile (hy-parse macro1) __name__))
+  (setv _ast1 (hy-compile (read-module macro1) __name__))
+  (setv _ast2 (hy-compile (read-module macro1) __name__))
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
   ;; and make sure there is something new that starts with _G\uffff
@@ -192,10 +192,6 @@ in expansions."
                 "expanded in tests.native_tests.native_macros.test-macro-namespace-resolution "
                 "and passed the value 2.")
              (test-module-macro 2)))
-  (assert (= (+ "This macro was created in tests.resources.macros, "
-                "expanded in tests.native_tests.native_macros.test-macro-namespace-resolution "
-                "and passed the value 2.")
-             #test-module-tag 2))
 
   ;; Now, let's use a `require`d macro that depends on another macro defined only
   ;; in this scope.
@@ -203,9 +199,7 @@ in expansions."
     (.format "This is the local version of `nonlocal-test-macro` returning {}!" (int x)))
 
   (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
-             (test-module-macro-2 3)))
-  (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
-             #test-module-tag-2 3)))
+             (test-module-macro-2 3))))
 
 (defn test-requires-pollutes-core []
   ;; https://github.com/hylang/hy/issues/1978
@@ -250,79 +244,77 @@ in expansions."
 
   (require-macros))
 
-#@(pytest.mark.xfail
-(defn test-macro-from-module []
-  "Macros loaded from an external module, which itself `require`s macros, should
- work without having to `require` the module's macro dependencies (due to
- [minimal] macro namespace resolution).
+(with-decorator
+  pytest.mark.xfail
+  (defn test-macro-from-module []
+    "
+    Macros loaded from an external module, which itself `require`s macros, should
+    work without having to `require` the module's macro dependencies (due to
+    [minimal] macro namespace resolution).
 
- In doing so we also confirm that a module's `__macros__` attribute is correctly
- loaded and used.
+    In doing so we also confirm that a module's `__macros__` attribute is correctly
+    loaded and used.
 
- Additionally, we confirm that `require` statements are executed via loaded bytecode."
+    Additionally, we confirm that `require` statements are executed via loaded bytecode.
+    "
 
-  (setv pyc-file (importlib.util.cache-from-source
-                   (os.path.realpath
-                     (os.path.join
-                       "tests" "resources" "macro_with_require.hy"))))
+    (setv pyc-file (importlib.util.cache-from-source
+                     (os.path.realpath
+                       (os.path.join
+                         "tests" "resources" "macro_with_require.hy"))))
 
-  ;; Remove any cached byte-code, so that this runs from source and
-  ;; gets evaluated in this module.
-  (when (os.path.isfile pyc-file)
-    (os.unlink pyc-file)
+    ;; Remove any cached byte-code, so that this runs from source and
+    ;; gets evaluated in this module.
+    (when (os.path.isfile pyc-file)
+      (os.unlink pyc-file)
+      (.clear sys.path_importer_cache)
+      (when (in  "tests.resources.macro_with_require" sys.modules)
+        (del (get sys.modules "tests.resources.macro_with_require"))
+        (__macros__.clear)))
+
+    ;; Ensure that bytecode isn't present when we require this module.
+    (assert (not (os.path.isfile pyc-file)))
+
+    (defn test-requires-and-macros []
+      (require tests.resources.macro-with-require
+               [test-module-macro])
+
+      ;; Make sure that `require` didn't add any of its `require`s
+      (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
+      ;; and that it didn't add its tags.
+      (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
+
+      ;; Now, require everything.
+      (require tests.resources.macro-with-require *)
+
+      ;; Again, make sure it didn't add its required macros and/or tags.
+      (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
+
+      ;; Its tag(s) should be here now.
+      (assert (in (hy.mangle "#test-module-tag") __macros__))
+
+      ;; The test macro expands to include this symbol.
+      (setv module-name-var "tests.native_tests.native_macros")
+      (assert (= (+ "This macro was created in tests.resources.macros, "
+                    "expanded in tests.native_tests.native_macros "
+                    "and passed the value 1.")
+                 (test-module-macro 1))))
+
+    (test-requires-and-macros)
+
+    ;; Now that bytecode is present, reload the module, clear the `require`d
+    ;; macros and tags, and rerun the tests.
+    (assert (os.path.isfile pyc-file))
+
+    ;; Reload the module and clear the local macro context.
     (.clear sys.path_importer_cache)
-    (when (in  "tests.resources.macro_with_require" sys.modules)
-      (del (get sys.modules "tests.resources.macro_with_require"))
-      (__macros__.clear)))
+    (del (get sys.modules "tests.resources.macro_with_require"))
+    (.clear __macros__)
 
-  ;; Ensure that bytecode isn't present when we require this module.
-  (assert (not (os.path.isfile pyc-file)))
-
-  (defn test-requires-and-macros []
-    (require tests.resources.macro-with-require
-             [test-module-macro])
-
-    ;; Make sure that `require` didn't add any of its `require`s
-    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
-    ;; and that it didn't add its tags.
-    (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
-
-    ;; Now, require everything.
-    (require tests.resources.macro-with-require *)
-
-    ;; Again, make sure it didn't add its required macros and/or tags.
-    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
-
-    ;; Its tag(s) should be here now.
-    (assert (in (hy.mangle "#test-module-tag") __macros__))
-
-    ;; The test macro expands to include this symbol.
-    (setv module-name-var "tests.native_tests.native_macros")
-    (assert (= (+ "This macro was created in tests.resources.macros, "
-                  "expanded in tests.native_tests.native_macros "
-                  "and passed the value 1.")
-               (test-module-macro 1)))
-
-    (assert (= (+ "This macro was created in tests.resources.macros, "
-                  "expanded in tests.native_tests.native_macros "
-                  "and passed the value 1.")
-               #test-module-tag 1)))
-
-  (test-requires-and-macros)
-
-  ;; Now that bytecode is present, reload the module, clear the `require`d
-  ;; macros and tags, and rerun the tests.
-  (assert (os.path.isfile pyc-file))
-
-  ;; Reload the module and clear the local macro context.
-  (.clear sys.path_importer_cache)
-  (del (get sys.modules "tests.resources.macro_with_require"))
-  (.clear __macros__)
-
-  ;; There doesn't seem to be a way--via standard import mechanisms--to
-  ;; ensure that an imported module used the cached bytecode.  We'll simply have
-  ;; to trust that the .pyc loading convention was followed.
-  (test-requires-and-macros)))
+    ;; There doesn't seem to be a way--via standard import mechanisms--to
+    ;; ensure that an imported module used the cached bytecode.  We'll simply have
+    ;; to trust that the .pyc loading convention was followed.
+    (test-requires-and-macros)))
 
 
 (defn test-recursive-require-star []
@@ -335,9 +327,9 @@ in expansions."
 
 (defn test-macro-errors []
   (import traceback
-          hy.importer [hy-parse])
+          hy.importer [read-module])
 
-  (setv test-expr (hy-parse "(defmacro blah [x] `(print ~@z)) (blah y)"))
+  (setv test-expr (read-module "(defmacro blah [x] `(print ~@z)) (blah y)"))
 
   (with [excinfo (pytest.raises HyMacroExpansionError)]
     (hy.eval test-expr))

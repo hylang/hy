@@ -164,7 +164,8 @@
     (assert (= [x y] [5 6])))
   (assert (= [x y] [3 4])))
 
-#@(dataclass
+(with-decorator
+  dataclass
   (defclass Point []
     (^int x)
     (^int y)))

@@ -6,7 +6,7 @@ import pytest
 
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyError, HyLanguageError
-from hy.lex import hy_parse
+from hy.lex import read_module
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 
 
@@ -18,16 +18,16 @@ def _ast_spotcheck(arg, root, secondary):
 
 
 def can_compile(expr, import_stdlib=False):
-    return hy_compile(hy_parse(expr), __name__, import_stdlib=import_stdlib)
+    return hy_compile(read_module(expr), __name__, import_stdlib=import_stdlib)
 
 
 def can_eval(expr):
-    return hy_eval(hy_parse(expr))
+    return hy_eval(read_module(expr))
 
 
 def cant_compile(expr):
     with pytest.raises(HyError) as excinfo:
-        hy_compile(hy_parse(expr), __name__)
+        hy_compile(read_module(expr), __name__)
     # Anything that can't be compiled should raise a user friendly
     # error, otherwise it's a compiler bug.
     assert issubclass(excinfo.type, HyLanguageError)
@@ -273,7 +273,7 @@ def test_ast_good_import_from():
 def test_ast_require():
     "Make sure AST respects (require) syntax"
     can_compile("(require tests.resources.tlib)")
-    can_compile('(require tests.resources.tlib [qplah parald "#taggart"])')
+    can_compile("(require tests.resources.tlib [qplah parald])")
     can_compile("(require tests.resources.tlib *)")
     can_compile("(require tests.resources.tlib :as foobar)")
     can_compile("(require tests.resources.tlib [qplah :as quiz])")
@@ -475,8 +475,8 @@ def test_format_string():
     assert cant_compile('f"hello {(+ 1 1) world"')
     assert cant_compile('f"hello (+ 1 1)} world"')
     assert cant_compile('f"hello {(+ 1 1} world"')
-    assert can_compile(r'f"hello {\"n\"} world"')
-    assert can_compile(r'f"hello {\"\\n\"} world"')
+    assert can_compile(r'f"hello {"n"} world"')
+    assert can_compile(r'f"hello {"\\n"} world"')
 
 
 def test_ast_bracket_string():
@@ -518,11 +518,11 @@ def test_for_compile_error():
     """Ensure we get compile error in tricky 'for' cases"""
     with pytest.raises(PrematureEndOfInput) as excinfo:
         can_compile("(fn [] (for)")
-    assert excinfo.value.msg == "Premature end of input"
+    assert excinfo.value.msg.startswith("Premature end of input")
 
     with pytest.raises(LexException) as excinfo:
-        can_compile("(fn [] (for)))")
-    assert excinfo.value.msg == "Ran into a RPAREN where it wasn't expected."
+        can_compile("(fn [] (for [x y] x)))")
+    assert excinfo.value.msg == "Ran into a ')' where it wasn't expected."
 
     cant_compile("(fn [] (for [x] x))")
 
@@ -629,13 +629,6 @@ def test_inline_python():
     cant_compile('(py "1 +")')
     can_compile('(pys "if 1:\n  2")')
     cant_compile('(pys "if 1\n  2")')
-
-
-def test_bad_tag_macros():
-    # https://github.com/hylang/hy/issues/1965
-    cant_compile('(defmacro "#a" [] (raise (ValueError))) #a ()')
-    cant_compile('(defmacro "#a" [x] (raise (ValueError))) #a ()')
-    can_compile('(defmacro "#a" [x] 3) #a ()')
 
 
 def test_models_accessible():

@@ -167,9 +167,9 @@ def test_error_parts_length():
     expression."""
     prg_str = """
     (import hy.errors
-            hy.importer [hy-parse])
+            hy.importer [read-module])
 
-    (setv test-expr (hy-parse "(+ 1\n\n'a 2 3\n\n 1)"))
+    (setv test-expr (read-module "(+ 1\n\n'a 2 3\n\n 1)"))
     (setv test-expr.start-line {})
     (setv test-expr.end-line {})
     (setv test-expr.start-column {})
@@ -568,7 +568,7 @@ def test_tracebacks():
         r'  File "(?:<string>|string-[0-9a-f]+)", line 1\n'
         r'    \(print "\n'
         r"           \^\n"
-        r"hy.lex.exceptions.PrematureEndOfInput: Partial string literal\n"
+        r"hy.lex.exceptions.PrematureEndOfInput"
     )
     assert re.search(peoi_re, error)
 
