@@ -2,13 +2,16 @@
 Why Hy?
 =======
 
-Hy is a multi-paradigm general-purpose programming language in the `Lisp family
-<https://en.wikipedia.org/wiki/Lisp_(programming_language)>`_. It's implemented
-as a kind of alternative syntax for Python. Compared to Python, Hy offers a
-variety of extra features, generalizations, and syntactic simplifications, as
-would be expected of a Lisp. Compared to other Lisps, Hy provides direct access
-to Python's built-ins and third-party Python libraries, while allowing you to
-freely mix imperative, functional, and object-oriented styles of programming.
+Hy (named after the insect order Hymenoptera, since Paul Tagliamonte
+was studying swarm behavior when he created the language) is a
+multi-paradigm general-purpose programming language in the `Lisp
+family <https://en.wikipedia.org/wiki/Lisp_(programming_language)>`_.
+It's implemented as a kind of alternative syntax for Python. Compared
+to Python, Hy offers a variety of extra features, generalizations, and
+syntactic simplifications, as would be expected of a Lisp. Compared to
+other Lisps, Hy provides direct access to Python's built-ins and
+third-party Python libraries, while allowing you to freely mix
+imperative, functional, and object-oriented styles of programming.
 
 
 Hy versus Python

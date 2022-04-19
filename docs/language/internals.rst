@@ -159,12 +159,18 @@ valid numeric python literals will be turned into their Hy counterpart.
 Symbol
 ~~~~~~~~
 
-``hy.models.Symbol`` is the model used to represent symbols in the Hy
-language. Like ``String``, it inherits from ``str`` (or ``unicode`` on Python
-2).
+``hy.models.Symbol`` is the model used to represent symbols in the Hy language.
+Like ``String``, it inherits from ``str``.
 
-Symbols are :ref:`mangled <mangling>` when they are compiled
-to Python variable names.
+Literal symbols can be denoted with a single quote, as in ``'cinco``. To
+convert a string to a symbol at run-time (or while expanding a macro), use
+``hy.models.Symbol`` as a constructor, as in ``(hy.models.Symbol "cinco")``.
+Thus, ``hy.models.Symbol`` plays a role similar to the ``intern`` function in
+other Lisps.
+
+Symbols are :ref:`mangled <mangling>` when they are compiled to Python variable
+names, but not before: ``(!= 'a_b 'a-b)`` although ``(= (hy.mangle 'a_b)
+(hy.mangle 'a-b))``.
 
 .. _hykeyword:
 
