@@ -396,8 +396,10 @@ class HyReader(Reader):
         delim = "".join(delim)
         is_fstring = delim == "f" or delim.startswith("f-")
 
-        # discard single initial newline, if any
-        self.peek_and_getc("\n")
+        # discard single initial newline, if any, accounting for all
+        # three styles of newline
+        self.peek_and_getc("\x0d")
+        self.peek_and_getc("\x0a")
 
         index = -1
 
@@ -447,7 +449,8 @@ class HyReader(Reader):
                     # remove "{" from end of string component
                     s.pop()
                     break
-        res = "".join(s)
+        res = "".join(s).replace("\x0d\x0a", "\x0a").replace("\x0d", "\x0a")
+
         if prefix is not None:
             res = eval(f'{prefix}"""{res}"""')
         if is_fstring:

@@ -51,6 +51,8 @@ Bug Fixes
 * Tab completion in the Hy REPL now properly unmangles symbol names.
 * `!=` with model objects is now consistent with `=`.
 * Module names supplied to `hy -m` are now mangled.
+* Literal newlines (of all three styles) are now recognized properly
+  in string and bytes literals.
 
 New Features
 ------------------------------

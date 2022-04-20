@@ -499,11 +499,12 @@ Only one leading newline should be removed.
 ]X]''') == '\n\nOnly one leading newline should be removed.\n')
 
 
-@pytest.mark.xfail
 def test_literal_newlines():
     # https://github.com/hylang/hy/issues/2239
     assert s('"\r\nhello\r\nworld"') == "\nhello\nworld"
     assert s('r"\r\nhello\r\nworld"') == "\nhello\nworld"
+    assert s('b"\r\nhello\r\nworld"') == b"\nhello\nworld"
+    assert s('br"\r\nhello\r\nworld"') == b"\nhello\nworld"
     assert s("#[[\r\nhello\r\nworld]]") == "hello\nworld"
     assert s("#[[\rhello\rworld]]") == "hello\nworld"
 
