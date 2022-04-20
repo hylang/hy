@@ -36,6 +36,9 @@ Breaking Changes
   they're NFKC-equivalent. Very little real code should be affected.
 * Non-ASCII whitespace is no longer ignored by the lexer like ASCII
   whitespace.
+* Tuples are now defined by the form `#(1 2 3)` and compile to the model
+  `hy.models.Tuple`
+* Tuples now wrap to `hy.models.Tuple` during model promotion
 
 Bug Fixes
 ------------------------------
@@ -61,6 +64,7 @@ New Features
 * New macro `export`
 * new function `hy.model_patterns.parse_if`
 * Added a command-line option `-u` (or `--unbuffered`) per CPython.
+* new function `hy.model_patterns.in_tuple`
 
 .. _bpo-2675: https://bugs.python.org/issue2675#msg265564
 .. _bpo-46520: https://bugs.python.org/issue46520
