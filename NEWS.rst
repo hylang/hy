@@ -32,6 +32,8 @@ Breaking Changes
   - Unrecognized backslash escapes in string and byte literals are
     now syntax errors. (They've been `deprecated in Python since 3.6
     <https://docs.python.org/3.6/reference/lexical_analysis.html#index-23>`_.)
+  - ``u`` is no longer allowed as a string prefix. (It had no effect,
+    anyway.)
   - A bare `#` is no longer a legal symbol.
 
 * The mangling rules have been refined to account for Python's

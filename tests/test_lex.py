@@ -18,6 +18,7 @@ from hy.models import (
     Module,
     Set,
     String,
+    FString,
     Bytes,
     Symbol,
 )
@@ -436,6 +437,17 @@ def test_nospace():
 
     assert entry.end_line == 1
     assert entry.end_column == 13
+
+
+def test_string_prefixes():
+    s = lambda x: tokenize(x)[0]
+
+    assert s(r'b"hello"') == Bytes(b"hello")
+    assert s(r'rb"hello"') == Bytes(b"hello")
+    assert s(r'fr"hello"') == FString([String("hello")])
+
+    for bad in list("zRBFu") + ["bf", "rr", "rbr"]:
+        with lexe(): s(bad + '"hello"')
 
 
 def test_escapes():

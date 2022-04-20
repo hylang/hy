@@ -250,6 +250,15 @@ class HyReader(Reader):
 
     @reader_for('"')
     def prefixed_string(self, _, prefix=""):
+        prefix_chars = set(prefix)
+        if (
+                len(prefix_chars) != len(prefix) or
+                prefix_chars - set("bfr") or
+                set("bf") <= prefix_chars):
+            raise LexException.from_reader(
+                f"invalid string prefix {prefix!r}", self
+            )
+
         escaping = False
 
         def quote_closing(c):

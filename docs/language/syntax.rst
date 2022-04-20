@@ -69,7 +69,8 @@ Like Python, Hy treats all string literals as sequences of Unicode characters
 by default. You may prefix a plain string literal (but not a bracket string)
 with ``b`` to treat it as a sequence of bytes.
 
-Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase.
+Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase,
+and doesn't allow the no-op prefix ``u``.
 
 .. _syntax-fstrings:
 
