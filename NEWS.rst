@@ -25,10 +25,13 @@ Breaking Changes
 * `defmacro` once again requires the macro name as a symbol, not
   a string literal.
 * The parser has been completely rewritten. It is mostly
-  backwards-compatible, with two exceptions:
+  backwards-compatible, with a few exceptions:
 
   - Unescaped double quotes are now allowed inside replacement
     fields of f-strings.
+  - Unrecognized backslash escapes in string and byte literals are
+    now syntax errors. (They've been `deprecated in Python since 3.6
+    <https://docs.python.org/3.6/reference/lexical_analysis.html#index-23>`_.)
   - A bare `#` is no longer a legal symbol.
 
 * The mangling rules have been refined to account for Python's

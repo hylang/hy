@@ -60,9 +60,10 @@ following the opening delimiter with no effect on the content. Any leading
 newlines past the first are preserved.
 
 Plain string literals support :ref:`a variety of backslash escapes
-<py:strings>`. To create a "raw string" that interprets all backslashes
-literally, prefix the string with ``r``, as in ``r"slash\not"``. Bracket
-strings are always raw strings and don't allow the ``r`` prefix.
+<py:strings>`. Unrecognized escape sequences are a syntax error. To create
+a "raw string" that interprets all backslashes literally, prefix the string
+with ``r``, as in ``r"slash\not"``. Bracket strings are always raw strings
+and don't allow the ``r`` prefix.
 
 Like Python, Hy treats all string literals as sequences of Unicode characters
 by default. You may prefix a plain string literal (but not a bracket string)

@@ -259,6 +259,14 @@ class HyReader(Reader):
                 return 0
             if c == '"' and not escaping:
                 return 1
+            if (escaping and
+                    "r" not in prefix and
+                    # https://docs.python.org/3/reference/lexical_analysis.html#string-and-bytes-literals
+                    c not in ("\n\r\\'\"abfnrtv01234567x" +
+                        ("" if "b" in prefix else "NuU"))):
+                raise LexException.from_reader(
+                    "invalid escape sequence \\" + c, self
+                )
             escaping = False
             return 0
 
