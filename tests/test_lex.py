@@ -8,18 +8,18 @@ from hy.errors import hy_exc_handler
 from hy.lex import read_many
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy.models import (
+    Bytes,
     Complex,
     Dict,
     Expression,
     Float,
+    FString,
     Integer,
     Keyword,
     List,
     Module,
     Set,
     String,
-    FString,
-    Bytes,
     Symbol,
 )
 
@@ -447,7 +447,8 @@ def test_string_prefixes():
     assert s(r'fr"hello"') == FString([String("hello")])
 
     for bad in list("zRBFu") + ["bf", "rr", "rbr"]:
-        with lexe(): s(bad + '"hello"')
+        with lexe():
+            s(bad + '"hello"')
 
 
 def test_escapes():
@@ -460,14 +461,17 @@ def test_escapes():
     assert s(r'r"foo\x5a"') == String("foo\\x5a")
     assert s(r'rb"foo\x5a"') == Bytes(b"foo\\x5a")
     # An invalid escape sequence
-    with lexe(): s(r'"foo\s"')
-    with lexe(): s(r'b"foo\s"')
+    with lexe():
+        s(r'"foo\s"')
+    with lexe():
+        s(r'b"foo\s"')
     # In a raw string
     assert s(r'r"foo\s"') == String("foo\\s")
     assert s(r'rb"foo\s"') == Bytes(b"foo\\s")
     # An escape sequence that's valid in strings, but not bytes.
     assert s(r'"foo\u005a"') == String("fooZ")
-    with lexe(): s(r'b"foo\u005a"')
+    with lexe():
+        s(r'b"foo\u005a"')
 
 
 def test_unicode_escapes():
