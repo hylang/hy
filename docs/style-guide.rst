@@ -68,12 +68,12 @@ That's not how to think of Lisp code; think tree structure, not delimiters.
 .. code-block:: clj
 
     ;; PREFERRED
-    (foo (, arg1
-            arg2))
+    (foo #(arg1
+           arg2))
 
     ;; BAD. And evil.
     ;; Same bracket structure as above, but not enough indent.
-    (foo (, arg1
+    (foo #(arg1
       arg2))
 
     ;; PREFERRED. Same indent as above, but now it matches the brackets.
@@ -84,10 +84,10 @@ That's not how to think of Lisp code; think tree structure, not delimiters.
     ;; Look at what happens if we remove them.
     ;; Can you tell where they should go by the indentation?
 
-    (foo (, arg1
-            arg2
+    (foo #(arg1
+           arg2
 
-    (foo (, arg1
+    (foo #(arg1
       arg2
 
     (fn [arg
@@ -97,7 +97,7 @@ That's not how to think of Lisp code; think tree structure, not delimiters.
 
     ;; Reconstruction of the bad example by indent.
     ;; Not what we started with, is it?
-    (foo (, arg1)
+    (foo #(arg1)
       arg2)
 
     ;; Beware of brackets with reader syntax.

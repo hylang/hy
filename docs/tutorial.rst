@@ -100,7 +100,7 @@ Hy              Python            Type
 ``None``        ``None``          ``NoneType``
 ``"hy"``        ``'hy'``          :class:`str`
 ``b"hy"``       ``b'hy'``         :class:`bytes`
-``(, 1 2 3)``   ``(1, 2, 3)``     :class:`tuple`
+``#(1 2 3)``    ``(1, 2, 3)``     :class:`tuple`
 ``[1 2 3]``     ``[1, 2, 3]``     :class:`list`
 ``#{1 2 3}``    ``{1, 2, 3}``     :class:`set`
 ``{1 2  3 4}``  ``{1: 2, 3: 4}``  :class:`dict`

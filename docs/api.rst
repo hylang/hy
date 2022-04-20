@@ -258,7 +258,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        arguments and their values::
 
            => (defn print-parameters [#** kwargs]
-           ...    (for [(, k v) (.items kwargs)] (print k v)))
+           ...    (for [#(k v) (.items kwargs)] (print k v)))
 
            => (print-parameters :parameter-1 1 :parameter-2 2)
            parameter_1 1
@@ -565,7 +565,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
       => (do
       ...  (setv animals {"dog" "bark" "cat" "meow"}
-      ...        numbers (, "zero" "one" "two" "three")
+      ...        numbers #("zero" "one" "two" "three")
       ...        nested [0 1 ["a" "b" "c"] 3 4])
       ...  (print (get animals "dog"))
       ...  (print (get numbers 2))
@@ -823,7 +823,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    ``let`` can also bind names using
    Python's `extended iterable unpacking`_ syntax to destructure iterables::
 
-       => (let [[head #* tail] (, 0 1 2)]
+       => (let [[head #* tail] #(0 1 2)]
        ...   [head tail])
        [0 [1 2]]
 
@@ -885,7 +885,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    value, sequence, mapping, and class patterns. Guards are specified
    with ``:if FORM``. Here's a more complex example::
 
-       => (match (, 100 200)
+       => (match #(100 200)
        ...  [100 300]               "Case 1"
        ...  [100 200] :if flag      "Case 2"
        ...  [900   y]               f"Case 3, y: {y}"
@@ -1558,7 +1558,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    ::
 
        => (defn multiply [bases coefficients]
-       ...  (for [(, base coefficient) (zip bases coefficients)]
+       ...  (for [#(base coefficient) (zip bases coefficients)]
        ...   (yield (* base coefficient))))
 
        => (multiply (range 5) (range 5))
