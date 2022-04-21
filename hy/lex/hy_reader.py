@@ -250,6 +250,14 @@ class HyReader(Reader):
 
     @reader_for('"')
     def prefixed_string(self, _, prefix=""):
+        prefix_chars = set(prefix)
+        if (
+            len(prefix_chars) != len(prefix)
+            or prefix_chars - set("bfr")
+            or set("bf") <= prefix_chars
+        ):
+            raise LexException.from_reader(f"invalid string prefix {prefix!r}", self)
+
         escaping = False
 
         def quote_closing(c):
@@ -259,6 +267,15 @@ class HyReader(Reader):
                 return 0
             if c == '"' and not escaping:
                 return 1
+            if (
+                escaping
+                and "r" not in prefix
+                and
+                # https://docs.python.org/3/reference/lexical_analysis.html#string-and-bytes-literals
+                c
+                not in ("\n\r\\'\"abfnrtv01234567x" + ("" if "b" in prefix else "NuU"))
+            ):
+                raise LexException.from_reader("invalid escape sequence \\" + c, self)
             escaping = False
             return 0
 
@@ -396,8 +413,10 @@ class HyReader(Reader):
         delim = "".join(delim)
         is_fstring = delim == "f" or delim.startswith("f-")
 
-        # discard single initial newline, if any
-        self.peek_and_getc("\n")
+        # discard single initial newline, if any, accounting for all
+        # three styles of newline
+        self.peek_and_getc("\x0d")
+        self.peek_and_getc("\x0a")
 
         index = -1
 
@@ -447,7 +466,8 @@ class HyReader(Reader):
                     # remove "{" from end of string component
                     s.pop()
                     break
-        res = "".join(s)
+        res = "".join(s).replace("\x0d\x0a", "\x0a").replace("\x0d", "\x0a")
+
         if prefix is not None:
             res = eval(f'{prefix}"""{res}"""')
         if is_fstring:

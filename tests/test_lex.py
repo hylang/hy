@@ -8,10 +8,12 @@ from hy.errors import hy_exc_handler
 from hy.lex import read_many
 from hy.lex.exceptions import LexException, PrematureEndOfInput
 from hy.models import (
+    Bytes,
     Complex,
     Dict,
     Expression,
     Float,
+    FString,
     Integer,
     Keyword,
     List,
@@ -437,13 +439,39 @@ def test_nospace():
     assert entry.end_column == 13
 
 
-def test_escapes():
-    """Ensure we can escape things"""
-    entry = tokenize(r"""(foo "foo\n")""")[0]
-    assert entry[1] == String("foo\n")
+def test_string_prefixes():
+    s = lambda x: tokenize(x)[0]
 
-    entry = tokenize(r"""(foo r"foo\s")""")[0]
-    assert entry[1] == String(r"foo\s")
+    assert s(r'b"hello"') == Bytes(b"hello")
+    assert s(r'rb"hello"') == Bytes(b"hello")
+    assert s(r'fr"hello"') == FString([String("hello")])
+
+    for bad in list("zRBFu") + ["bf", "rr", "rbr"]:
+        with lexe():
+            s(bad + '"hello"')
+
+
+def test_escapes():
+    s = lambda x: tokenize(x)[0]
+
+    # A valid escape sequence
+    assert s(r'"foo\x5a"') == String("fooZ")
+    assert s(r'b"foo\x5a"') == Bytes(b"fooZ")
+    # In a raw string
+    assert s(r'r"foo\x5a"') == String("foo\\x5a")
+    assert s(r'rb"foo\x5a"') == Bytes(b"foo\\x5a")
+    # An invalid escape sequence
+    with lexe():
+        s(r'"foo\s"')
+    with lexe():
+        s(r'b"foo\s"')
+    # In a raw string
+    assert s(r'r"foo\s"') == String("foo\\s")
+    assert s(r'rb"foo\s"') == Bytes(b"foo\\s")
+    # An escape sequence that's valid in strings, but not bytes.
+    assert s(r'"foo\u005a"') == String("fooZ")
+    with lexe():
+        s(r'b"foo\u005a"')
 
 
 def test_unicode_escapes():
