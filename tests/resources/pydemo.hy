@@ -27,12 +27,12 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv num-expr (+ 3 (* 5 2) (- 6 (// 8 2)) (* (+ 1 2) (- 3 5)))) ; = 9
 
 (setv mylist [1 2 3])
-(setv mytuple (, "a" "b" "c"))
+(setv mytuple #("a" "b" "c"))
 (setv myset #{4 5 6})
 (setv mydict {7 8  9 900  10 15})
 
 (setv emptylist [])
-(setv emptytuple (,))
+(setv emptytuple #())
 (setv emptyset #{})
 (setv emptydict {})
 
@@ -52,7 +52,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv condexpr (if "" "x" "y"))
 (setv mylambda (fn [x] (+ x "z")))
 (setv annotated-lambda-ret (fn ^int [] 1))
-(setv annotated-lambda-params (fn [^int a * ^str [b "hello world!"]] (, a b)))
+(setv annotated-lambda-params (fn [^int a * ^str [b "hello world!"]] #(a b)))
 
 (setv fstring1 f"hello {(+ 1 1)} world")
 (setv p "xyzzy")

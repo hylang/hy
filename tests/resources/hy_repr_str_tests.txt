@@ -56,14 +56,14 @@
 ;; * Collections
 
 ![]
-!(,)
+!#()
 !#{}
 !(frozenset #{})
 !{}
 
 !['[]]
 ![1 2 3]
-!(, 1 2 3)
+!#(1 2 3)
 !#{1 2 3}
 '#{3 2 1 2}
 !(frozenset #{1 2 3})
@@ -79,14 +79,14 @@
 !(ChainMap {})
 !(ChainMap {1 2} {3 4})
 !(OrderedDict [])
-!(OrderedDict [(, 1 2) (, 3 4)])
+!(OrderedDict [#(1 2) #(3 4)])
 
 ;; * Expressions
 
 '(+ 1 2)
 '(f a b)
 '(f #* args #** kwargs)
-![1 [2 3] (, 4 (, 'mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
+![1 [2 3] #(4 #('mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
 
 ;; * Quasiquoting
 

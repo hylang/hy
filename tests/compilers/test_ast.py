@@ -400,7 +400,7 @@ def test_ast_print():
 
 def test_ast_tuple():
     """Ensure tuples work."""
-    code = can_compile("(, 1 2 3)").body[0].value
+    code = can_compile("#(1 2 3)").body[0].value
     assert type(code) == ast.Tuple
 
 

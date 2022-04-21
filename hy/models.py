@@ -533,7 +533,6 @@ _wrappers[FString] = lambda fstr: FString(
 )
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
-_wrappers[tuple] = recwrap(List)
 
 
 class Dict(Sequence, _ColoredModel):
@@ -612,6 +611,18 @@ class Set(Sequence):
 
 _wrappers[Set] = recwrap(Set)
 _wrappers[set] = recwrap(Set)
+
+
+class Tuple(Sequence):
+    """
+    Hy tuple representation.
+    """
+
+    color = Fore.BLUE
+
+
+_wrappers[Tuple] = recwrap(Tuple)
+_wrappers[tuple] = recwrap(Tuple)
 
 
 class Module(Object):

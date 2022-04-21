@@ -31,8 +31,8 @@
   (assert (= A.B 0))
   (assert (= z 2))
 
-  (assert (= 0 (match (,) [] 0)))
-  (assert (= [0 [0 1 2]] (match (, 0 1 2) [#* x] [0 x])))
+  (assert (= 0 (match #() [] 0)))
+  (assert (= [0 [0 1 2]] (match #(0 1 2) [#* x] [0 x])))
   (assert (= [2] (match [0 1 2] [0 1 #* x] x)))
   (assert (= [0 1] (match [0 1 2] [#* x 2] x)))
   (assert (= 5 (match {"hello" 5} {"hello" x} x)))
@@ -114,7 +114,7 @@
   (assert (= [-1 0 1 2 (Point 1 2) [(Point -1 0) (Point 1 2)]]
              (match [(Point -1 0) (Point 1 2)]
 
-                    (, (Point x1 y1) (Point x2 y2) :as p2) :as whole
+                    #((Point x1 y1) (Point x2 y2) :as p2) :as whole
                     [x1 y1 x2 y2 p2 whole])))
   (assert (= (match [1 2 3]
                     x x)

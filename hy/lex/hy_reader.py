@@ -15,6 +15,7 @@ from hy.models import (
     Set,
     String,
     Symbol,
+    Tuple,
     as_model,
 )
 
@@ -313,6 +314,7 @@ class HyReader(Reader):
     @reader_for("[", (List, "]"))
     @reader_for("{", (Dict, "}"))
     @reader_for("#{", (Set, "}"))
+    @reader_for("#(", (Tuple, ")"))
     def sequence(seq_type, closer):
         return lambda self, _: seq_type(self.parse_forms_until(closer))
 

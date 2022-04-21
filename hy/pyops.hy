@@ -78,7 +78,7 @@ evaluate all arguments."
   ["exponentiation"]
   ; We use `_foldr` instead of `reduce` because exponentiation
   ; is right-associative.
-  (_foldr operator.pow (+ (, a1 a2) a-rest)))
+  (_foldr operator.pow (+ #(a1 a2) a-rest)))
 (defn _foldr [f xs]
   (reduce (fn [x y] (f y x)) (cut xs None None -1)))
 
@@ -91,7 +91,7 @@ evaluate all arguments."
 
 (defop // [a1 a2 #* a-rest]
   ["floor division"]
-  (reduce operator.floordiv (+ (, a2) a-rest) a1))
+  (reduce operator.floordiv (+ #(a2) a-rest) a1))
 
 (defop % [x y]
   ["modulus"
@@ -104,11 +104,11 @@ evaluate all arguments."
 
 (defop << [a1 a2 #* a-rest]
   ["left shift"]
-  (reduce operator.lshift (+ (, a2) a-rest) a1))
+  (reduce operator.lshift (+ #(a2) a-rest) a1))
 
 (defop >> [a1 a2 #* a-rest]
   ["right shift"]
-  (reduce operator.rshift (+ (, a2) a-rest) a1))
+  (reduce operator.rshift (+ #(a2) a-rest) a1))
 
 (defop & [a1 #* a-rest]
   ["bitwise AND"
@@ -142,7 +142,7 @@ evaluate all arguments."
 (defn comp-op [op a1 a-rest]
   "Helper for shadow comparison operators"
   (if a-rest
-    (and #* (gfor (, x y) (zip (+ (, a1) a-rest) a-rest) (op x y)))
+    (and #* (gfor #(x y) (zip (+ #(a1) a-rest) a-rest) (op x y)))
     True))
 (defop < [a1 #* a-rest]
   ["less-than" :unary "True"]
@@ -158,16 +158,16 @@ evaluate all arguments."
   (comp-op operator.is_ a1 a-rest))
 (defop != [a1 a2 #* a-rest]
   ["inequality"]
-  (comp-op operator.ne a1 (+ (, a2) a-rest)))
+  (comp-op operator.ne a1 (+ #(a2) a-rest)))
 (defop is-not [a1 a2 #* a-rest]
   ["negated identicality test"]
-  (comp-op operator.is-not a1 (+ (, a2) a-rest)))
+  (comp-op operator.is-not a1 (+ #(a2) a-rest)))
 (defop in [a1 a2 #* a-rest]
   ["membership test"]
-  (comp-op (fn [x y] (in x y)) a1 (+ (, a2) a-rest)))
+  (comp-op (fn [x y] (in x y)) a1 (+ #(a2) a-rest)))
 (defop not-in [a1 a2 #* a-rest]
   ["negated membership test"]
-  (comp-op (fn [x y] (not-in x y)) a1 (+ (, a2) a-rest)))
+  (comp-op (fn [x y] (not-in x y)) a1 (+ #(a2) a-rest)))
 (defop >= [a1 #* a-rest]
   ["greater-than-or-equal-to" :unary "True"]
   (comp-op operator.ge a1 a-rest))
@@ -222,7 +222,7 @@ evaluate all arguments."
 
        => (do
        ...   (setv animals {\"dog\" \"bark\" \"cat\" \"meow\"}
-       ...         numbers (, \"zero\" \"one\" \"two\" \"three\")
+       ...         numbers #(\"zero\" \"one\" \"two\" \"three\")
        ...         nested [0 1 [\"a\" \"b\" \"c\"] 3 4])
        ...   (print (get animals \"dog\"))
        ...   (print (get numbers 2))

@@ -17,6 +17,7 @@ from hy.models import (
     Set,
     String,
     Symbol,
+    Tuple,
     as_model,
     pretty,
     replace_hy_obj,
@@ -47,9 +48,9 @@ def test_wrap_int():
 
 def test_wrap_tuple():
     wrapped = as_model((Integer(0),))
-    assert type(wrapped) == List
+    assert type(wrapped) == Tuple
     assert type(wrapped[0]) == Integer
-    assert wrapped == List([Integer(0)])
+    assert wrapped == Tuple([Integer(0)])
 
 
 def test_wrap_nested_expr():
@@ -85,9 +86,9 @@ def test_replace_str():
 
 def test_replace_tuple():
     replaced = replace_hy_obj((0,), Integer(13))
-    assert type(replaced) == List
+    assert type(replaced) == Tuple
     assert type(replaced[0]) == Integer
-    assert replaced == List([Integer(0)])
+    assert replaced == Tuple([Integer(0)])
 
 
 def test_list_add():
@@ -145,7 +146,6 @@ def test_equality():
     l = [Integer(1), Integer(2)]
     assert List(l) == List(l)
     assert List(l) == hy.as_model(l)
-    assert List(l) == hy.as_model(tuple(l))
     assert List(l) != List(list(reversed(l)))
     assert List(l) != List([Integer(1), Integer(3)])
     assert List(l) != l

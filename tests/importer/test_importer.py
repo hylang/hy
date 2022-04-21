@@ -108,7 +108,7 @@ def test_eval():
 
     assert eval_str("[1 2 3]") == [1, 2, 3]
     assert eval_str('{"dog" "bark" "cat" "meow"}') == {"dog": "bark", "cat": "meow"}
-    assert eval_str("(, 1 2 3)") == (1, 2, 3)
+    assert eval_str("#(1 2 3)") == (1, 2, 3)
     assert eval_str("#{3 1 2}") == {1, 2, 3}
     assert eval_str("1/2") == Fraction(1, 2)
     assert eval_str('(.strip " fooooo   ")') == "fooooo"

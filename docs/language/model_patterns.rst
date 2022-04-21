@@ -51,7 +51,7 @@ You can run the parser with ``(.parse parser form)``. The result is:
 
 .. code-block:: clj
 
-    (,
+    #(
       ['(foo1) '(foo2)]
       [
         '([EType1] [(foo3)])
@@ -103,7 +103,7 @@ Here's how you could write a simple macro using model patterns:
       (setv [args] (.parse
         (whole [(many (+ SYM FORM))])
         args))
-      `[~@(gfor  [a1 a2] args  (, (str a1) a2))])
+      `[~@(gfor  [a1 a2] args  #((str a1) a2))])
 
     (print (pairs  a 1  b 2  c 3))
     ; => [["a" 1] ["b" 2] ["c" 3]]

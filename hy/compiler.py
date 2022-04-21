@@ -28,6 +28,7 @@ from hy.models import (
     Set,
     String,
     Symbol,
+    Tuple,
     as_model,
     is_unpack,
 )
@@ -677,6 +678,11 @@ class HyASTCompiler:
     def compile_dict(self, m):
         keyvalues, ret, _ = self._compile_collect(m, dict_display=True)
         return ret + asty.Dict(m, keys=keyvalues[::2], values=keyvalues[1::2])
+
+    @builds_model(Tuple)
+    def compile_tuple(self, expression):
+        elts, ret, _ = self._compile_collect(expression)
+        return ret + asty.Tuple(expression, elts=elts, ctx=ast.Load())
 
 
 def get_compiler_module(module=None, compiler=None, calling_frame=False):

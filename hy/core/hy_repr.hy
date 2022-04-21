@@ -42,7 +42,7 @@
       '(Container HY THERE)'
   "
   (for [typ (if (isinstance types list) types [types])]
-    (setv (get _registry typ) (, f placeholder))))
+    (setv (get _registry typ) #(f placeholder))))
 
 (setv _quoting False)
 (setv _seen (set))
@@ -84,8 +84,11 @@
       (when started-quoting
         (setv _quoting False)))))
 
-(hy-repr-register tuple (fn [x]
-  (+ "(," (if x " " "") (_cat x) ")")))
+(hy-repr-register
+  [tuple hy.models.Tuple]
+  (fn [x]
+    (+ "#(" (_cat x) ")")))
+
 (hy-repr-register dict :placeholder "{...}" (fn [x]
   (setv text (.join "  " (gfor
     [k v] (.items x)
@@ -112,7 +115,7 @@
          (= (get x 0) 'hy._Fraction)
          (all (gfor
            i (cut x 1 None)
-           (isinstance i (, int hy.models.Integer)))))
+           (isinstance i #(int hy.models.Integer)))))
         (.join "/" (map hy-repr (cut x 1 None)))
     True
       (+ "(" (_cat x) ")"))))

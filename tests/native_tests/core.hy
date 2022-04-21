@@ -40,7 +40,7 @@
        (except [e [NameError]] (assert (in "name 'b' is not defined" (str e)))))
   (import itertools)
   (setv foopermutations (fn [x] (itertools.permutations x)))
-  (setv p (set [(, 1 3 2) (, 3 2 1) (, 2 1 3) (, 3 1 2) (, 1 2 3) (, 2 3 1)]))
+  (setv p (set [#(1 3 2) #(3 2 1) #(2 1 3) #(3 1 2) #(1 2 3) #(2 3 1)]))
   (assert-equal (set (itertools.permutations [1 2 3])) p)
   (assert-equal (set (foopermutations [3 1 2])) p)
   (setv permutations- itertools.permutations)

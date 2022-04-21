@@ -29,6 +29,7 @@ from hy.model_patterns import (
     braces,
     brackets,
     dolike,
+    in_tuple,
     keepsym,
     notpexpr,
     parse_if,
@@ -52,6 +53,7 @@ from hy.models import (
     Sequence,
     String,
     Symbol,
+    Tuple,
     is_unpack,
 )
 from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
@@ -1061,12 +1063,12 @@ _pattern.define(
         | KEYWORD
         | LITERAL
         | brackets(many(_pattern | unpack("iterable")))
+        | in_tuple(many(_pattern | unpack("iterable")))
         | pexpr(keepsym("."), many(SYM))
         | pexpr(keepsym("|"), many(_pattern))
-        | pexpr(keepsym(","), many(_pattern))
         | braces(many(LITERAL + _pattern), maybe(pvalue("unpack-mapping", SYM)))
         | pexpr(
-            notsym(".", "|", ",", "unpack-mapping", "unpack-iterable"),
+            notsym(".", "|", "unpack-mapping", "unpack-iterable"),
             many(parse_if(lambda x: not isinstance(x, Keyword), _pattern)),
             many(KEYWORD + _pattern),
         )
@@ -1182,12 +1184,8 @@ def compile_pattern(compiler, pattern):
             value,
             value=compiler.compile(dotform).expr,
         )
-    elif (
-        isinstance(value, List)
-        or isinstance(value, Expression)
-        and value[0] == Symbol(",")
-    ):
-        patterns = value[0] if isinstance(value, List) else value[1:][0]
+    elif isinstance(value, (Tuple, List)):
+        patterns = value[0]
         patterns = [
             compile_pattern(compiler, (v, None) if is_unpack("iterable", v) else v)
             for v in patterns
@@ -1816,14 +1814,6 @@ def compile_import(compiler, expr, root, entries):
 # ------------------------------------------------
 # * Miscellany
 # ------------------------------------------------
-
-
-@pattern_macro(",", [many(FORM)])
-def compile_tuple(compiler, expr, root, args):
-    elts, ret, _ = compiler._compile_collect(args)
-    return ret + asty.Tuple(expr, elts=elts, ctx=ast.Load())
-
-
 @pattern_macro("assert", [FORM, maybe(FORM)])
 def compile_assert_expression(compiler, expr, root, test, msg):
     if msg is None or type(msg) is Symbol:

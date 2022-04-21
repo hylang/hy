@@ -28,6 +28,7 @@ from hy.models import (
     List,
     String,
     Symbol,
+    Tuple,
 )
 
 FORM = some(lambda _: True)
@@ -72,6 +73,10 @@ def _grouped(group_type, parsers):
 def brackets(*parsers):
     "Parse the given parsers inside square brackets."
     return _grouped(List, parsers)
+
+
+def in_tuple(*parsers):
+    return _grouped(Tuple, parsers)
 
 
 def braces(*parsers):

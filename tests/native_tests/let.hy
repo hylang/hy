@@ -70,9 +70,9 @@
 
 (defn test-let-special []
   ;; special forms in function position still work as normal
-  (let [, 1]
-    (assert (= (, , ,)
-               (, 1 1)))))
+  (let [import 1]
+    (assert (= #(import import)
+               #(1 1)))))
 
 
 (defn test-let-if-result []
@@ -224,7 +224,7 @@
       (yield a)
       (yield b)))
   (assert (= (tuple (grind))
-             (, 0 1 2))))
+             #(0 1 2))))
 
 
 (defn test-let-return []
@@ -356,12 +356,12 @@
         b 1
         c 2]
     (defn foo [a b]
-      (, a b c))
+      #(a b c))
     (assert (= (foo 100 200)
-               (, 100 200 2)))
+               #(100 200 2)))
     (setv c 300)
     (assert (= (foo 1000 2000)
-               (, 1000 2000 300)))
+               #(1000 2000 300)))
     (assert (= a 0))
     (assert (= b 1))
     (assert (= c 300))))
@@ -376,11 +376,11 @@
       (-= a 1)
       (setv xs (list xs))
       (.append xs 42)
-      (, &rest a b c xs))
+      #(&rest a b c xs))
     (assert (= xs 6))
     (assert (= a 88))
     (assert (= (foo 1 2 3 4)
-               (, 12 0 2 64 [3 4 42])))
+               #(12 0 2 64 [3 4 42])))
     (assert (= xs 6))
     (assert (= c 64))
     (assert (= a 88))))
@@ -390,10 +390,10 @@
   (let [kws 6
         &kwargs 13]
     (defn foo [#** kws]
-      (, &kwargs kws))
+      #(&kwargs kws))
     (assert (= kws 6))
     (assert (= (foo :a 1)
-               (, 13 {"a" 1})))))
+               #(13 {"a" 1})))))
 
 
 (defn test-let-optional []
@@ -401,11 +401,11 @@
         b 6
         d 2]
     (defn foo [[a a] [b None] [c d]]
-      (, a b c))
+      #(a b c))
     (assert (= (foo)
-               (, 1 None 2)))
+               #(1 None 2)))
     (assert (= (foo 10 20 30)
-               (, 10 20 30)))))
+               #(10 20 30)))))
 
 
 (defn test-let-closure []
@@ -456,8 +456,8 @@
 (defn test-let-unpacking []
   (let [[a b] [1 2]
         [lhead #* ltail] (range 3)
-        (, thead #* ttail) (range 3)
-        [nhead #* (, c #* nrest)] [0 1 2]]
+        #(thead #* ttail) (range 3)
+        [nhead #* #(c #* nrest)] [0 1 2]]
     (assert (= a 1))
     (assert (= b 2))
     (assert (= lhead 0))
@@ -498,11 +498,11 @@
         b 6
         d 2]
        (defn foo [* [a a] b [c d]]
-         (, a b c))
+         #(a b c))
        (assert (= (foo :b "b")
-                  (, 1 "b" 2)))
+                  #(1 "b" 2)))
        (assert (= (foo :b 20 :a 10 :c 30)
-                  (, 10 20 30)))))
+                  #(10 20 30)))))
 
 
 (defmacro eval-isolated [#*body]

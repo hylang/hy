@@ -16,7 +16,7 @@
       (cond
         (= x 'f)
           o
-        (and (isinstance x Iterable) (not (isinstance x (, str bytes))))
+        (and (isinstance x Iterable) (not (isinstance x #(str bytes))))
           ((type x) (map replace x))
         True
           x))
@@ -35,7 +35,7 @@
      (with [~e (pytest.raises Exception)]
        (hy.eval '~expr))
      (assert (issubclass (. ~e type)
-       (, TypeError SyntaxError hy.errors.HyMacroExpansionError)))))
+       #(TypeError SyntaxError hy.errors.HyMacroExpansionError)))))
 
 (op-and-shadow-test +
 
@@ -104,7 +104,7 @@
   (assert (= (f 16 5) 1))
   (assert (= (f 8 2) 0))
   (assert (= (f "aa %s bb" 15) "aa 15 bb"))
-  (assert (= (f "aa %s bb %s cc" (, "X" "Y")) "aa X bb Y cc"))
+  (assert (= (f "aa %s bb %s cc" #("X" "Y")) "aa X bb Y cc"))
   (forbid (f 1 2 3)))
 
 
