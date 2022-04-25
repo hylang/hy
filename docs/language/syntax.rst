@@ -9,6 +9,12 @@ identifiers
 
 An identifier consists of a nonempty sequence of Unicode characters that are not whitespace nor any of the following: ``( ) [ ] { } ' "``. Hy first tries to parse each identifier into a numeric literal, then into a keyword if that fails, and finally into a symbol if that fails.
 
+ellipsis
+--------
+
+As a special case, the identifier ``...`` refers to the :class:`Ellipsis`
+object, as in Python.
+
 numeric literals
 ----------------
 

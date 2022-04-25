@@ -8,6 +8,7 @@ import types
 
 from funcparserlib.parser import NoParseError, many
 
+from hy._compat import PY3_8
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
 from hy.lex import mangle
 from hy.macros import macroexpand
@@ -594,6 +595,13 @@ class HyASTCompiler:
 
     @builds_model(Symbol)
     def compile_symbol(self, symbol):
+        if symbol == Symbol("..."):
+            return (
+                asty.Constant(symbol, value=Ellipsis)
+                if PY3_8
+                else asty.Ellipsis(symbol)
+            )
+
         if "." in symbol:
             glob, local = symbol.rsplit(".", 1)
 

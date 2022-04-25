@@ -648,6 +648,16 @@
   (assert (= [1] output)))
 
 
+(defn test-ellipsis []
+  (global Ellipsis)
+  (assert (is ... Ellipsis))
+  (setv e Ellipsis)
+  (setv Ellipsis 14)
+  (assert (= Ellipsis 14))
+  (assert (!= ... 14))
+  (assert (is ... e)))
+
+
 (defn test-cut []
   (assert (= (cut [1 2 3 4 5] 3) [1 2 3]))
   (assert (= (cut [1 2 3 4 5] 1 None) [2 3 4 5]))

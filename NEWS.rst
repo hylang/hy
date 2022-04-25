@@ -69,6 +69,7 @@ New Features
 * You can now set the variable `_hy_export_macros` to control what macros are
   collected by `(require module *)`
 * New macro `export`
+* `...` is now understood to refer to `Ellipsis`, as in Python.
 * new function `hy.model_patterns.parse_if`
 * Added a command-line option `-u` (or `--unbuffered`) per CPython.
 * new function `hy.model_patterns.in_tuple`
