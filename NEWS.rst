@@ -72,6 +72,7 @@ New Features
 * new function `hy.model_patterns.parse_if`
 * Added a command-line option `-u` (or `--unbuffered`) per CPython.
 * new function `hy.model_patterns.in_tuple`
+* new core macro `delmacro` to delete user defined or require'd macros.
 
 .. _bpo-2675: https://bugs.python.org/issue2675#msg265564
 .. _bpo-46520: https://bugs.python.org/issue46520
