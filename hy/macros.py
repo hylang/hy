@@ -179,30 +179,15 @@ def require_reader(source_module, target_module, assignments=None):
         source_module = import_module_from_string(source_module, target_module)
 
     source_macros = source_module.__dict__.setdefault("__reader_macros__", {})
-
-    if not source_module.__reader_macros__:
-        if assignments:
-            for name in assignments:
-                try:
-                    require_reader(
-                        f"{source_module.__name__}.{mangle(name)}", target_module
-                    )
-                except HyRequireError as e:
-                    raise HyRequireError(
-                        f"Cannot import reader '{name}'"
-                        f" from '{source_module.__name__}'"
-                        f" ({source_module.__file__})"
-                    )
-            return True
-        else:
-            return False
-
     target_macros = target_namespace.setdefault("__reader_macros__", {})
 
-    for name in assignments or list(source_macros.keys()):
-        _name = mangle("#" + name)
-        if _name in source_module.__reader_macros__:
-            target_macros[_name] = source_macros[_name]
+    assignments = (
+        source_macros.keys() if assignments == "ALL" else map(mangle, assignments)
+    )
+
+    for name in assignments:
+        if name in source_module.__reader_macros__:
+            target_macros[name] = source_macros[name]
         else:
             raise HyRequireError(
                 "Could not require name {} from {}".format(_name, source_module)
