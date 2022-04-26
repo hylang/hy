@@ -167,7 +167,7 @@ def import_module_from_string(module_name, package_module):
         raise HyRequireError(e.args[0]).with_traceback(None)
 
 
-def require_reader(source_module, target_module, assignments=None):
+def require_reader(source_module, target_module, assignments):
     target_module, target_namespace = derive_target_module(
         target_module, inspect.stack()[1][0]
     )
@@ -198,11 +198,13 @@ def require_reader(source_module, target_module, assignments=None):
 
 def enable_readers(module, reader, names):
     _, namespace = derive_target_module(module, inspect.stack()[1][0])
+    names = (
+        namespace["__reader_macros__"].keys() if names == "ALL" else map(mangle, names)
+    )
     for name in names:
-        _name = mangle("#" + name)
-        if _name not in namespace["__reader_macros__"]:
+        if name not in namespace["__reader_macros__"]:
             raise NameError(f"reader {name} is not defined")
-        reader.reader_table[_name] = namespace["__reader_macros__"][_name]
+        reader.reader_table[name] = namespace["__reader_macros__"][name]
 
 
 def require(source_module, target_module, assignments, prefix=""):
