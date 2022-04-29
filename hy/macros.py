@@ -5,6 +5,7 @@ import os
 import pkgutil
 import sys
 import traceback
+import warnings
 from ast import AST
 
 from funcparserlib.parser import NoParseError
@@ -84,7 +85,19 @@ def pattern_macro(names, pattern, shadow=None):
 def install_macro(name, fn, module_of):
     name = mangle(name)
     fn = rename_function(fn, name)
-    (inspect.getmodule(module_of).__dict__.setdefault("__macros__", {})[name]) = fn
+    calling_module = inspect.getmodule(module_of)
+    macros_obj = calling_module.__dict__.setdefault("__macros__", {})
+    if name in getattr(builtins, "__macros__", {}):
+        warnings.warn(
+            (
+                f"{name} already refers to: `{name}` in module: `builtins`,"
+                f" being replaced by: `{calling_module.__name__}.{name}`"
+            ),
+            RuntimeWarning,
+            stacklevel=3,
+        )
+
+    macros_obj[name] = fn
     return fn
 
 

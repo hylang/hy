@@ -357,3 +357,25 @@ in expansions."
                  (fn []))
                (wrap-error-test))))
   (assert (in "HyWrapperError" (str excinfo.value))))
+
+(defn test-delmacro
+  []
+  ;; test deletion of user defined macro
+  (defmacro delete-me [] "world")
+  (delmacro delete-me)
+  (with [exc (pytest.raises NameError)]
+    (delete-me))
+  ;; test deletion of required macros
+  (require tests.resources.tlib [qplah parald])
+  (assert (and (qplah 1) (parald 1)))
+
+  (delmacro qplah parald)
+  (with [exc (pytest.raises NameError)]
+    (hy.eval '(qplah)))
+  (with [exc (pytest.raises NameError)]
+    (hy.eval '(parald))))
+
+(defn test-macro-redefinition-warning
+  []
+  (with [(pytest.warns RuntimeWarning :match "require already refers to")]
+    (hy.eval '(defmacro require [] 1))))
