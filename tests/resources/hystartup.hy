@@ -6,3 +6,6 @@
 
 (defmacro hello-world []
   `(+ 1 1))
+
+(defreader rad
+  '(+ "totally" "rad"))
