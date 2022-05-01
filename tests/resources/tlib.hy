@@ -14,3 +14,9 @@
     (if (isinstance node #(hy.models.Symbol hy.models.String))
         (.__class__ node (.upper node))
         (raise (TypeError f"Cannot uppercase {(type node)}")))))
+
+(defreader lower
+  (setv node (&reader.parse-one-form))
+  (if (isinstance node #(hy.models.Symbol hy.models.String))
+    (.__class__ node (.lower node))
+    (raise (TypeError f"Cannot lowercase {(type node)}"))))

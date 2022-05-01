@@ -1688,7 +1688,7 @@ def assignment_shape(module, rest):
                 0,
                 2,
                 (maybe(sym(":macros")) + importlike(Symbol))
-                | (keepsym(":readers") + brackets(many(SYM))),
+                | (keepsym(":readers") + (keepsym("*") | brackets(many(SYM)))),
             )
         )
     ],
@@ -1742,30 +1742,34 @@ def compile_require(compiler, expr, root, entries):
             )
             ret += ret.expr_as_stmt()
 
-        if readers and require_reader(ast_module, compiler.module, readers[0]):
-            reader_assignments = [String(reader) for reader in readers[0]]
-            ret += compiler.compile(
-                mkexpr(
-                    "do",
+        if readers:
+            reader_assignments = (
+                "ALL"
+                if readers == Symbol("*")
+                else ["#" + reader for reader in readers[0]]
+            )
+            if require_reader(ast_module, compiler.module, reader_assignments):
+                ret += compiler.compile(
                     mkexpr(
-                        "hy.macros.require-reader",
-                        String(ast_module),
-                        "None",
-                        Keyword("assignments"),
-                        [reader_assignments],
-                    ),
-                    mkexpr(
-                        "eval-when-compile",
+                        "do",
                         mkexpr(
-                            "hy.macros.enable-readers",
+                            "hy.macros.require-reader",
+                            String(ast_module),
                             "None",
-                            "hy.&reader",
                             [reader_assignments],
                         ),
-                    ),
-                ).replace(expr)
-            )
-            ret += ret.expr_as_stmt()
+                        mkexpr(
+                            "eval-when-compile",
+                            mkexpr(
+                                "hy.macros.enable-readers",
+                                "None",
+                                "hy.&reader",
+                                [reader_assignments],
+                            ),
+                        ),
+                    ).replace(expr)
+                )
+                ret += ret.expr_as_stmt()
     return ret
 
 

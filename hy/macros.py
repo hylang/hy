@@ -167,7 +167,7 @@ def import_module_from_string(module_name, package_module):
         raise HyRequireError(e.args[0]).with_traceback(None)
 
 
-def require_reader(source_module, target_module, assignments=None):
+def require_reader(source_module, target_module, assignments):
     target_module, target_namespace = derive_target_module(
         target_module, inspect.stack()[1][0]
     )
@@ -179,30 +179,15 @@ def require_reader(source_module, target_module, assignments=None):
         source_module = import_module_from_string(source_module, target_module)
 
     source_macros = source_module.__dict__.setdefault("__reader_macros__", {})
-
-    if not source_module.__reader_macros__:
-        if assignments:
-            for name in assignments:
-                try:
-                    require_reader(
-                        f"{source_module.__name__}.{mangle(name)}", target_module
-                    )
-                except HyRequireError as e:
-                    raise HyRequireError(
-                        f"Cannot import reader '{name}'"
-                        f" from '{source_module.__name__}'"
-                        f" ({source_module.__file__})"
-                    )
-            return True
-        else:
-            return False
-
     target_macros = target_namespace.setdefault("__reader_macros__", {})
 
-    for name in assignments or list(source_macros.keys()):
-        _name = mangle("#" + name)
-        if _name in source_module.__reader_macros__:
-            target_macros[_name] = source_macros[_name]
+    assignments = (
+        source_macros.keys() if assignments == "ALL" else map(mangle, assignments)
+    )
+
+    for name in assignments:
+        if name in source_module.__reader_macros__:
+            target_macros[name] = source_macros[name]
         else:
             raise HyRequireError(
                 "Could not require name {} from {}".format(_name, source_module)
@@ -213,11 +198,13 @@ def require_reader(source_module, target_module, assignments=None):
 
 def enable_readers(module, reader, names):
     _, namespace = derive_target_module(module, inspect.stack()[1][0])
+    names = (
+        namespace["__reader_macros__"].keys() if names == "ALL" else map(mangle, names)
+    )
     for name in names:
-        _name = mangle("#" + name)
-        if _name not in namespace["__reader_macros__"]:
+        if name not in namespace["__reader_macros__"]:
             raise NameError(f"reader {name} is not defined")
-        reader.reader_table[_name] = namespace["__reader_macros__"][_name]
+        reader.reader_table[name] = namespace["__reader_macros__"][name]
 
 
 def require(source_module, target_module, assignments, prefix=""):

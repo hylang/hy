@@ -63,6 +63,13 @@
         [(qplah 1) #upper "hello"]]f])
       [[8 1] "HELLO"])))
 
+  ;; test require :readers *
+  (assert (=
+      (eval-module #[=[
+        (require tests.resources.tlib :readers *)
+        [#upper "eVeRy" #lower "ReAdEr"]]=])
+      ["EVERY" "reader"]))
+
   ;; test can't redefine :macros or :readers assignment brackets
   (with [(pytest.raises hy.errors.HySyntaxError)]
     (eval-module #[[(require tests.resources.tlib [taggart] [upper])]]))
