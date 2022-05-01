@@ -263,8 +263,6 @@ class HyREPL(code.InteractiveConsole):
                 require(mod, self.module, assignments="ALL")
             except Exception as e:
                 print(e)
-        # Load cmdline-specific macros.
-        require("hy.cmdline", self.module, assignments="ALL")
 
         self.hy_compiler = HyASTCompiler(self.module, module_name)
 
