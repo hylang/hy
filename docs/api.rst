@@ -1104,6 +1104,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Reader macros are required using ``:readers [...]``.
    The ``:macros`` kwarg can be optionally added for readability::
 
+       => (require mymodule :readers *)
        => (require mymodule :readers [!])
        => (require mymodule [foo] :readers [!])
        => (require mymodule :readers [!] [foo])
@@ -1139,6 +1140,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    conveniently with :hy:func:`export <hy.core.macros.export>`. The default
    behavior is to collect all macros other than those whose mangled names begin
    with an ASCII underscore (``_``).
+
+   When requiring reader macros, ``(require mymodule :readers *)`` will collect
+   all reader macros both defined and required within ``mymodule``.
 
    :strong:`Macros that call macros`
 
