@@ -619,6 +619,11 @@ def test_hystartup():
     assert "1 + 1" in output
     assert "2" in output
 
+    output, _ = run_cmd("hy", "#rad")
+    assert "#rad" not in output
+    assert "'totally' + 'rad'" in output
+    assert "'totallyrad'" in output
+
     output, _ = run_cmd("hy --repl-output-fn repr", "[1 2 3 4]")
     assert "[1, 2, 3, 4]" in output
     assert "[1 2 3 4]" not in output

@@ -31,7 +31,7 @@ from hy.importer import HyLoader, runhy
 from hy.lex import mangle, read_module
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.lex.hy_reader import HyReader
-from hy.macros import require
+from hy.macros import enable_readers, require, require_reader
 
 sys.last_type = None
 sys.last_value = None
@@ -124,6 +124,11 @@ class HyCompile(codeop.Compile):
         self.reader = HyReader()
 
         super().__init__()
+
+        if hasattr(self.module, "__reader_macros__"):
+            enable_readers(
+                self.module, self.reader, self.module.__reader_macros__.keys()
+            )
 
         self.flags |= hy_ast_compile_flags
 
@@ -261,10 +266,9 @@ class HyREPL(code.InteractiveConsole):
 
                 # load module macros
                 require(mod, self.module, assignments="ALL")
+                require_reader(mod, self.module, assignments="ALL")
             except Exception as e:
                 print(e)
-        # Load cmdline-specific macros.
-        require("hy.cmdline", self.module, assignments="ALL")
 
         self.hy_compiler = HyASTCompiler(self.module, module_name)
 
