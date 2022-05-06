@@ -30,3 +30,19 @@
   (defn dec2 [f] (fn [] (+ (f) "b")))
   (defn [dec1 dec2] f [] "c")
   (assert (= (f) "cba")))
+
+
+(defn test-evaluation-order []
+  (setv l [])
+  (defn foo [f]
+    (.append l "foo")
+    (fn []
+      (.append l "foo fn")
+      (f)))
+  (defn
+    [(do (.append l "dec") foo)]     ; Decorator list
+    bar                              ; Function name
+    [[arg (do (.append l "arg") 1)]] ; Lambda list
+    (.append l "bar body") arg)      ; Body
+  (.append l (bar))
+  (assert (= l ["dec" "arg" "foo" "foo fn" "bar body" 1])))
