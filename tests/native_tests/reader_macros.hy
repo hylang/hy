@@ -6,18 +6,16 @@
 
   pytest)
 
-(with-decorator
-  contextmanager
-  (defn temp-module [module-name]
-    (let [module (types.ModuleType module-name)
-          old-module (sys.modules.get module-name)]
-      (setv (get sys.modules module-name) module)
-      (try
-        (yield module)
-        (finally
-          (if old-module
-              (setv (get sys.modules module-name) module)
-              (sys.modules.pop module-name)))))))
+(defn [contextmanager] temp-module [module-name]
+  (let [module (types.ModuleType module-name)
+        old-module (sys.modules.get module-name)]
+    (setv (get sys.modules module-name) module)
+    (try
+      (yield module)
+      (finally
+        (if old-module
+            (setv (get sys.modules module-name) module)
+            (sys.modules.pop module-name))))))
 
 
 (defn eval-isolated [tree [module None]]

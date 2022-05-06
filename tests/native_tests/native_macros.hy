@@ -244,77 +244,75 @@ in expansions."
 
   (require-macros))
 
-(with-decorator
-  pytest.mark.xfail
-  (defn test-macro-from-module []
-    "
-    Macros loaded from an external module, which itself `require`s macros, should
-    work without having to `require` the module's macro dependencies (due to
-    [minimal] macro namespace resolution).
+(defn [(pytest.mark.xfail)] test-macro-from-module []
+  "
+  Macros loaded from an external module, which itself `require`s macros, should
+  work without having to `require` the module's macro dependencies (due to
+  [minimal] macro namespace resolution).
 
-    In doing so we also confirm that a module's `__macros__` attribute is correctly
-    loaded and used.
+  In doing so we also confirm that a module's `__macros__` attribute is correctly
+  loaded and used.
 
-    Additionally, we confirm that `require` statements are executed via loaded bytecode.
-    "
+  Additionally, we confirm that `require` statements are executed via loaded bytecode.
+  "
 
-    (setv pyc-file (importlib.util.cache-from-source
-                     (os.path.realpath
-                       (os.path.join
-                         "tests" "resources" "macro_with_require.hy"))))
+  (setv pyc-file (importlib.util.cache-from-source
+                   (os.path.realpath
+                     (os.path.join
+                       "tests" "resources" "macro_with_require.hy"))))
 
-    ;; Remove any cached byte-code, so that this runs from source and
-    ;; gets evaluated in this module.
-    (when (os.path.isfile pyc-file)
-      (os.unlink pyc-file)
-      (.clear sys.path_importer_cache)
-      (when (in  "tests.resources.macro_with_require" sys.modules)
-        (del (get sys.modules "tests.resources.macro_with_require"))
-        (__macros__.clear)))
-
-    ;; Ensure that bytecode isn't present when we require this module.
-    (assert (not (os.path.isfile pyc-file)))
-
-    (defn test-requires-and-macros []
-      (require tests.resources.macro-with-require
-               [test-module-macro])
-
-      ;; Make sure that `require` didn't add any of its `require`s
-      (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
-      ;; and that it didn't add its tags.
-      (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
-
-      ;; Now, require everything.
-      (require tests.resources.macro-with-require *)
-
-      ;; Again, make sure it didn't add its required macros and/or tags.
-      (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
-
-      ;; Its tag(s) should be here now.
-      (assert (in (hy.mangle "#test-module-tag") __macros__))
-
-      ;; The test macro expands to include this symbol.
-      (setv module-name-var "tests.native_tests.native_macros")
-      (assert (= (+ "This macro was created in tests.resources.macros, "
-                    "expanded in tests.native_tests.native_macros "
-                    "and passed the value 1.")
-                 (test-module-macro 1))))
-
-    (test-requires-and-macros)
-
-    ;; Now that bytecode is present, reload the module, clear the `require`d
-    ;; macros and tags, and rerun the tests.
-    (assert (os.path.isfile pyc-file))
-
-    ;; Reload the module and clear the local macro context.
+  ;; Remove any cached byte-code, so that this runs from source and
+  ;; gets evaluated in this module.
+  (when (os.path.isfile pyc-file)
+    (os.unlink pyc-file)
     (.clear sys.path_importer_cache)
-    (del (get sys.modules "tests.resources.macro_with_require"))
-    (.clear __macros__)
+    (when (in  "tests.resources.macro_with_require" sys.modules)
+      (del (get sys.modules "tests.resources.macro_with_require"))
+      (__macros__.clear)))
 
-    ;; There doesn't seem to be a way--via standard import mechanisms--to
-    ;; ensure that an imported module used the cached bytecode.  We'll simply have
-    ;; to trust that the .pyc loading convention was followed.
-    (test-requires-and-macros)))
+  ;; Ensure that bytecode isn't present when we require this module.
+  (assert (not (os.path.isfile pyc-file)))
+
+  (defn test-requires-and-macros []
+    (require tests.resources.macro-with-require
+             [test-module-macro])
+
+    ;; Make sure that `require` didn't add any of its `require`s
+    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
+    ;; and that it didn't add its tags.
+    (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
+
+    ;; Now, require everything.
+    (require tests.resources.macro-with-require *)
+
+    ;; Again, make sure it didn't add its required macros and/or tags.
+    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
+
+    ;; Its tag(s) should be here now.
+    (assert (in (hy.mangle "#test-module-tag") __macros__))
+
+    ;; The test macro expands to include this symbol.
+    (setv module-name-var "tests.native_tests.native_macros")
+    (assert (= (+ "This macro was created in tests.resources.macros, "
+                  "expanded in tests.native_tests.native_macros "
+                  "and passed the value 1.")
+               (test-module-macro 1))))
+
+  (test-requires-and-macros)
+
+  ;; Now that bytecode is present, reload the module, clear the `require`d
+  ;; macros and tags, and rerun the tests.
+  (assert (os.path.isfile pyc-file))
+
+  ;; Reload the module and clear the local macro context.
+  (.clear sys.path_importer_cache)
+  (del (get sys.modules "tests.resources.macro_with_require"))
+  (.clear __macros__)
+
+  ;; There doesn't seem to be a way--via standard import mechanisms--to
+  ;; ensure that an imported module used the cached bytecode.  We'll simply have
+  ;; to trust that the .pyc loading convention was followed.
+  (test-requires-and-macros))
 
 
 (defn test-recursive-require-star []

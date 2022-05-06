@@ -1,19 +1,17 @@
 (defn test-decorated-1line-function []
   (defn foodec [func]
     (fn [] (+ (func) 1)))
-  (with-decorator foodec
-    (defn tfunction []
-      (* 2 2)))
+  (defn [foodec] tfunction []
+    (* 2 2))
   (assert (= (tfunction) 5)))
 
 
 (defn test-decorated-multiline-function []
   (defn bazdec [func]
     (fn [] (+ (func) "x")))
-  (with-decorator bazdec
-    (defn f []
-      (setv intermediate "i")
-      (+ intermediate "b")))
+  (defn [bazdec] f []
+    (setv intermediate "i")
+    (+ intermediate "b"))
   (assert (= (f) "ibx")))
 
 
@@ -21,18 +19,15 @@
   (defn bardec [cls]
     (setv cls.attr2 456)
     cls)
-  (with-decorator bardec
-    (defclass cls []
-      (setv attr1 123)))
+  (defclass [bardec] cls []
+    (setv attr1 123))
   (assert (= cls.attr1 123))
   (assert (= cls.attr2 456)))
 
 
-(defn test-nested-decorators []
+(defn test-stacked-decorators []
   (do
     (defn dec1 [f] (fn [] (+ (f) 1)))
     (defn dec2 [f] (fn [] (+ (f) 2)))
-    (with-decorator dec1
-      (with-decorator dec2
-        (defn f [] 1)))
+    (defn [dec1 dec2] f [] 1)
     (assert (= (f) 4))))
