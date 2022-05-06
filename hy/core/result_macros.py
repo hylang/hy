@@ -1404,15 +1404,13 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
     return ret + Result(expr=ret.temp_variables[0])
 
 
-@pattern_macro(["defn", "defn/a"], [
-    maybe(brackets(many(FORM))),
-    OPTIONAL_ANNOTATION,
-    SYM, lambda_list,
-    many(FORM)])
+@pattern_macro(
+    ["defn", "defn/a"],
+    [maybe(brackets(many(FORM))), OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)],
+)
 def compile_function_def(compiler, expr, root, decorators, returns, name, params, body):
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
-    decorators, ret, _ = compiler._compile_collect(
-        decorators[0] if decorators else [])
+    decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
     args, ret2 = compile_lambda_list(compiler, params)
     ret += ret2
     name = mangle(compiler._nonconst(name))
@@ -1421,7 +1419,8 @@ def compile_function_def(compiler, expr, root, decorators, returns, name, params
         body = compiler._compile_branch(body)
 
     return ret + compile_function_node(
-        compiler, expr, node, decorators, name, args, returns, body)
+        compiler, expr, node, decorators, name, args, returns, body
+    )
 
 
 def compile_function_node(compiler, expr, node, decorators, name, args, returns, body):
@@ -1610,16 +1609,18 @@ def compile_yield_from_or_await_expression(compiler, expr, root, arg):
 # ------------------------------------------------
 
 
-@pattern_macro("defclass", [
-    maybe(brackets(many(FORM))), SYM, maybe(brackets(many(FORM)) +
-       maybe(STR) +
-       many(FORM))])
+@pattern_macro(
+    "defclass",
+    [
+        maybe(brackets(many(FORM))),
+        SYM,
+        maybe(brackets(many(FORM)) + maybe(STR) + many(FORM)),
+    ],
+)
 def compile_class_expression(compiler, expr, root, decorators, name, rest):
     base_list, docstring, body = rest or ([[]], None, [])
 
-    decorators, ret, _ = compiler._compile_collect(
-        decorators[0] if decorators else []
-    )
+    decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
     bases_expr, ret2, keywords = compiler._compile_collect(
         base_list[0], with_kwargs=True
     )
