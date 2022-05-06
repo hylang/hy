@@ -26,7 +26,7 @@
 
 
 (defn test-stacked-decorators []
-  (defn dec1 [f] (fn [] (+ (f) 1)))
-  (defn dec2 [f] (fn [] (+ (f) 2)))
-  (defn [dec1 dec2] f [] 1)
-  (assert (= (f) 4)))
+  (defn dec1 [f] (fn [] (+ (f) "a")))
+  (defn dec2 [f] (fn [] (+ (f) "b")))
+  (defn [dec1 dec2] f [] "c")
+  (assert (= (f) "cba")))
