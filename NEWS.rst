@@ -10,6 +10,8 @@ Removals
   `(defreader foo (setv arg (.parse-one-form &reader)) …)`.
 * `hy.read-str` has been removed. Use `hy.read`, which now accepts
   strings, instead.
+* `with-decorator` and `#@` have been removed in favor of decorator
+  lists (see below).
 
 Breaking Changes
 ------------------------------
@@ -21,7 +23,6 @@ Breaking Changes
      (cond [a b] [x y z])     ; Old
      (cond  a b  x (do y z))  ; New
 
-* `@#` is now a reader macro and has been moved to Hyrule.
 * `defmacro` once again requires the macro name as a symbol, not
   a string literal.
 * The parser has been completely rewritten. It is mostly
@@ -66,6 +67,8 @@ New Features
   keyword arguments. Hy includes a workaround for a CPython bug that
   prevents the generation of legal Python code for these cases
   (`bpo-46520`_).
+* `defn` and `defclass` now allow a decorator list as their first
+  argument.
 * You can now set the variable `_hy_export_macros` to control what macros are
   collected by `(require module *)`
 * New macro `export`
