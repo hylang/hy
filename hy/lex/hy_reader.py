@@ -315,13 +315,14 @@ class HyReader(Reader):
 
     @reader_for("^")
     def annotate_or_xor(self, _):
-        suffix = self.read_ident(just_peeking=True)
-        if suffix == "":
+        next_char = self.peekc()
+        if not next_char or isnormalizedspace(next_char):
             return sym("^")
-        if suffix == "=":
+        elif next_char == "=":
             self.getc()
             return sym("^=")
-        return mkexpr("annotate", self.parse_one_form())
+        else:
+            return mkexpr("annotate", self.parse_one_form())
 
     ###
     # Sequences
