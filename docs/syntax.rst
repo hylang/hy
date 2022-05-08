@@ -4,8 +4,76 @@
 Syntax
 ==============
 
+.. _models:
+
+Models
+------
+
+Hy models are a very thin layer on top of regular Python objects,
+representing Hy source code as data. Models only add source position
+information, and a handful of methods to support clean manipulation of
+Hy source code, for instance in macros. To achieve that goal, Hy models
+are mixins of a base Python class and :ref:`Object`.
+
+.. _hyobject:
+
+Object
+~~~~~~
+
+``hy.models.Object`` is the base class of Hy models. It only
+implements one method, ``replace``, which replaces the source position
+of the current object with the one passed as argument. This allows us to
+keep track of the original position of expressions that get modified by
+macros, be that in the compiler or in pure hy macros.
+
+``Object`` is not intended to be used directly to instantiate Hy
+models, but only as a mixin for other classes.
+
+Compound Models
+~~~~~~~~~~~~~~~
+
+Parenthesized and bracketed lists are parsed as compound models by the
+Hy reader.
+
+Hy uses pretty-printing reprs for its compound models by default.
+If this is causing issues,
+it can be turned off globally by setting ``hy.models.PRETTY`` to ``False``,
+or temporarily by using the ``hy.models.pretty`` context manager.
+
+Hy also attempts to color pretty reprs and errors using ``colorama``. These can
+be turned off globally by setting ``hy.models.COLORED`` and ``hy.errors.COLORED``,
+respectively, to ``False``.
+
+.. _hysequence:
+
+Sequence
+~~~~~~~~
+
+``hy.models.Sequence`` is the abstract base class of "iterable" Hy
+models, such as hy.models.Expression and hy.models.List.
+
+Adding a Sequence to another iterable object reuses the class of the
+left-hand-side object, a useful behavior when you want to concatenate Hy
+objects in a macro, for instance.
+
+Sequences are (mostly) immutable: you can't add, modify, or remove
+elements. You can still append to a variable containing a Sequence with
+``+=`` and otherwise construct new Sequences out of old ones.
+
 identifiers
 -----------
+
+An uninterrupted string of characters, excluding spaces, brackets,
+quotes, double-quotes and comments, is parsed as an identifier.
+
+Identifiers are resolved to atomic models during the parsing phase in
+the following order:
+
+ - :ref:`Integer <hy_numeric_models>`
+ - :ref:`Float <hy_numeric_models>`
+ - :ref:`Complex <hy_numeric_models>` (if the atom isn't a bare ``j``)
+ - :ref:`Keyword` (if the atom starts with ``:``)
+ - :ref:`Symbol`
 
 An identifier consists of a nonempty sequence of Unicode characters that are not whitespace nor any of the following: ``( ) [ ] { } ' "``. Hy first tries to parse each identifier into a numeric literal, then into a keyword if that fails, and finally into a symbol if that fails.
 
@@ -14,6 +82,8 @@ ellipsis
 
 As a special case, the identifier ``...`` refers to the :class:`Ellipsis`
 object, as in Python.
+
+.. _hy_numeric_models:
 
 numeric literals
 ----------------
@@ -36,8 +106,39 @@ for visually separating digits.
 Unlike Python, Hy provides literal forms for NaN and infinity: ``NaN``,
 ``Inf``, and ``-Inf``.
 
+``hy.models.Integer`` represents integer literals, using the ``int``
+type.
+
+``hy.models.Float`` represents floating-point literals.
+
+``hy.models.Complex`` represents complex literals.
+
+Numeric models are parsed using the corresponding Python routine, and
+valid numeric python literals will be turned into their Hy counterpart.
+
+.. _hystring:
+
 string literals
 ---------------
+
+In the input stream, double-quoted strings, respecting the Python
+notation for strings, are parsed as a single token, which is directly
+parsed as a :ref:`String`.
+
+``hy.models.String`` represents string literals (including bracket strings),
+which compile down to unicode string literals (``str``) in Python.
+
+``String``\s are immutable.
+
+Hy literal strings can span multiple lines, and are considered by the
+reader as a single unit, respecting the Python escapes for unicode
+strings.
+
+``String``\s have an attribute ``brackets`` that stores the custom
+delimiter used for a bracket string (e.g., ``"=="`` for ``#[==[hello
+world]==]`` and the empty string for ``#[[hello world]]``).
+``String``\s that are not produced by bracket strings have their
+``brackets`` set to ``None``.
 
 Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
 strings like Python. The single-quote character ``'`` is reserved for
@@ -74,6 +175,9 @@ and don't allow the ``r`` prefix.
 Like Python, Hy treats all string literals as sequences of Unicode characters
 by default. You may prefix a plain string literal (but not a bracket string)
 with ``b`` to treat it as a sequence of bytes.
+
+``hy.models.Bytes`` is like ``String``, but for sequences of bytes.
+It inherits from ``bytes``.
 
 Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase,
 and doesn't allow the no-op prefix ``u``.
@@ -144,7 +248,22 @@ is equivalent to ``(get obj (hy.mangle "foo"))``. An optional ``default`` argume
 is also allowed: ``(:foo obj 2)`` or ``(:foo obj :default 2)`` returns ``2`` if
 ``(get obj "foo")`` raises a ``KeyError``.
 
+``hy.models.Keyword`` represents keywords in Hy. Keywords are
+symbols starting with a ``:``. See :ref:`syntax-keywords`.
+
+The ``.name`` attribute of a ``hy.models.Keyword`` provides
+the (:ref:`unmangled <mangling>`) string representation of the keyword without the initial ``:``.
+For example::
+
+  => (setv x :foo-bar)
+  => (print x.name)
+  foo-bar
+
+If needed, you can get the mangled name by calling :hy:func:`mangle <hy.mangle>`.
+
 .. _mangling:
+
+.. _hysymbol:
 
 symbols
 -------
@@ -153,6 +272,19 @@ Symbols are identifiers that are neither legal numeric literals nor legal
 keywords. In most contexts, symbols are compiled to Python variable names. Some
 example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``, ``just✈wrong``,
 and ``🦑``.
+
+``hy.models.Symbol`` is the model used to represent symbols in the Hy language.
+Like ``String``, it inherits from ``str``.
+
+Literal symbols can be denoted with a single quote, as in ``'cinco``. To
+convert a string to a symbol at run-time (or while expanding a macro), use
+``hy.models.Symbol`` as a constructor, as in ``(hy.models.Symbol "cinco")``.
+Thus, ``hy.models.Symbol`` plays a role similar to the ``intern`` function in
+other Lisps.
+
+Symbols are :ref:`mangled <mangling>` when they are compiled to Python variable
+names, but not before: ``(!= 'a_b 'a-b)`` although ``(= (hy.mangle 'a_b)
+(hy.mangle 'a-b))``.
 
 Since the rules for Hy symbols are much more permissive than the rules for
 Python identifiers, Hy uses a mangling algorithm to convert its own names to
@@ -208,6 +340,36 @@ can mangle to the same string and hence compile to the same Python variable.
 The chief practical consequence of this is that (non-initial) ``-`` and ``_`` are
 interchangeable in all symbol names, so you shouldn't use, e.g., both
 ``foo-bar`` and ``foo_bar`` as separate variables.
+
+.. _hyexpression:
+
+expressions
+~~~~~~~~~~~
+
+``hy.models.Expression`` inherits :ref:`Sequence` for
+parenthesized ``()`` expressions. The compilation result of those
+expressions depends on the first element of the list: the compiler
+dispatches expressions between macros and and regular Python
+function calls.
+
+.. _hylist:
+
+lists
+-----
+
+``hy.models.List`` is a :ref:`Sequence` for bracketed ``[]``
+lists, which, when used as a top-level expression, translate to Python
+list literals in the compilation phase.
+
+.. _hydict:
+
+dictionaries
+------------
+
+``hy.models.Dict`` inherits :ref:`Sequence` for curly-bracketed
+``{}`` expressions, which compile down to a Python dictionary literal.
+
+
 
 discard prefix
 --------------
