@@ -23,7 +23,12 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
 
    whyhy
    tutorial
-   language/index
+   syntax
+   repl
+   cli
+   interop
+   model_patterns
    cheatsheet
    api
+   internals
    hacking
