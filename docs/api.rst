@@ -898,13 +898,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    positionally if its ``__match_args__`` attribute is defined, see
    `pep 636 <https://www.python.org/dev/peps/pep-0636/#appendix-a-quick-intro>`_)::
 
-      => (with-decorator
-      ...  dataclass
-      ...  (defclass Point []
-      ...    (^int x)
-      ...    (^int y)))
+      => (import  dataclasses [dataclass])
+      => (defclass [dataclass] Point []
+      ...  (^int x)
+      ...  (^int y))
       => (match (Point 1 2)
-      ...  (Point 1 x) :if (= (% x 2) 0) x
+      ...  (Point 1 x) :if (= (% x 2) 0) x)
       2
 
 .. hy:function:: (defclass [class-name super-classes #* body])
