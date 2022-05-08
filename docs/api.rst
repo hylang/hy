@@ -164,6 +164,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    If there at least two body forms, and the first of them is a string literal,
    this string becomes the :term:`py:docstring` of the function.
 
+   ``defn`` accepts two additional, optional arguments: a bracketed list of
+   :term:`decorators <py:decorator>` and an annotation (see :hy:data:`^`) for
+   the return value. These are placed before the function name (in that order,
+   if both are present)::
+
+       (defn [decorator1 decorator2] ^annotation name [params] …)
+
    Parameters may be prefixed with the following special symbols. If you use more
    than one, they can only appear in the given order (so all positional only arguments
    must precede ``/``, all positional or keyword arguments must precede a ``#*`` rest
@@ -908,8 +915,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (defclass [class-name super-classes #* body])
 
-   New classes are declared with ``defclass``. It can take optional parameters in the following order:
-   a list defining (a) possible super class(es) and a string (:term:`py:docstring`).
+   New classes are declared with ``defclass``. It can take optional parameters
+   in the following order: a list defining (a) possible super class(es) and a
+   string (:term:`py:docstring`). The class name may also be preceded by a list
+   of :term:`decorators <py:decorator>`, as in :hy:func:`defn`.
 
    :strong:`Examples`
 
