@@ -24,11 +24,11 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
    whyhy
    tutorial
    syntax
+   macros
    repl
    cli
    interop
    model_patterns
    cheatsheet
    api
-   internals
    hacking

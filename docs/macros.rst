@@ -1,12 +1,6 @@
-=========================
-Internal Hy Documentation
-=========================
-
-.. note:: These bits are mostly useful for folks who hack on Hy itself,
-    but can also be used for those delving deeper in macro programming.
-
-Hy Macros
-=========
+======
+Macros
+======
 
 .. _using-gensym:
 
