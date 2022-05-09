@@ -96,7 +96,6 @@
           "while",
           "with",
           "with/a",
-          "with-decorator",
           "yield",
           "yield-from"
         ]

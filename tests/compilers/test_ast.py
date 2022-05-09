@@ -381,11 +381,6 @@ def test_ast_anon_fns_basics():
     cant_compile("(fn)")
 
 
-def test_ast_non_decoratable():
-    """Ensure decorating garbage breaks"""
-    cant_compile("(with-decorator (foo) (* x x))")
-
-
 def test_ast_lambda_lists():
     """Ensure the compiler chokes on invalid lambda-lists"""
     cant_compile("(fn [[a b c]] a)")

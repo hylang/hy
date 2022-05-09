@@ -164,6 +164,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    If there at least two body forms, and the first of them is a string literal,
    this string becomes the :term:`py:docstring` of the function.
 
+   ``defn`` accepts two additional, optional arguments: a bracketed list of
+   :term:`decorators <py:decorator>` and an annotation (see :hy:data:`^`) for
+   the return value. These are placed before the function name (in that order,
+   if both are present)::
+
+       (defn [decorator1 decorator2] ^annotation name [params] …)
+
    Parameters may be prefixed with the following special symbols. If you use more
    than one, they can only appear in the given order (so all positional only arguments
    must precede ``/``, all positional or keyword arguments must precede a ``#*`` rest
@@ -898,19 +905,20 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    positionally if its ``__match_args__`` attribute is defined, see
    `pep 636 <https://www.python.org/dev/peps/pep-0636/#appendix-a-quick-intro>`_)::
 
-      => (with-decorator
-      ...  dataclass
-      ...  (defclass Point []
-      ...    (^int x)
-      ...    (^int y)))
+      => (import  dataclasses [dataclass])
+      => (defclass [dataclass] Point []
+      ...  (^int x)
+      ...  (^int y))
       => (match (Point 1 2)
-      ...  (Point 1 x) :if (= (% x 2) 0) x
+      ...  (Point 1 x) :if (= (% x 2) 0) x)
       2
 
 .. hy:function:: (defclass [class-name super-classes #* body])
 
-   New classes are declared with ``defclass``. It can take optional parameters in the following order:
-   a list defining (a) possible super class(es) and a string (:term:`py:docstring`).
+   New classes are declared with ``defclass``. It can take optional parameters
+   in the following order: a list defining (a) possible super class(es) and a
+   string (:term:`py:docstring`). The class name may also be preceded by a list
+   of :term:`decorators <py:decorator>`, as in :hy:func:`defn`.
 
    :strong:`Examples`
 
@@ -1503,50 +1511,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
     ``with/a`` returns the value of its last form, unless it suppresses an exception
     (because the context manager's ``__aexit__`` method returned true), in which
     case it returns ``None``.
-
-.. hy:function:: (with-decorator [#* args])
-
-   ``with-decorator`` is used to wrap a function with another. The function
-   performing the decoration should accept a single value: the function being
-   decorated, and return a new function. ``with-decorator`` takes a minimum
-   of two parameters: the function performing decoration and the function
-   being decorated. More than one decorator function can be applied; they
-   will be applied in order from outermost to innermost, ie. the first
-   decorator will be the outermost one, and so on. Decorators with arguments
-   are called just like a function call.
-
-   ::
-
-      (with-decorator decorator-fun
-         (defn some-function [] ...)
-
-      (with-decorator decorator1 decorator2 ...
-         (defn some-function [] ...)
-
-      (with-decorator (decorator arg) ..
-         (defn some-function [] ...)
-
-
-   In the following example, ``inc-decorator`` is used to decorate the function
-   ``addition`` with a function that takes two parameters and calls the
-   decorated function with values that are incremented by 1. When
-   the decorated ``addition`` is called with values 1 and 1, the end result
-   will be 4 (``1+1 + 1+1``).
-
-   ::
-
-       => (defn inc-decorator [func]
-       ...  (fn [value-1 value-2] (func (+ value-1 1) (+ value-2 1))))
-       => (defn inc2-decorator [func]
-       ...  (fn [value-1 value-2] (func (+ value-1 2) (+ value-2 2))))
-
-       => (with-decorator inc-decorator (defn addition [a b] (+ a b)))
-       => (addition 1 1)
-       4
-       => (with-decorator inc2-decorator inc-decorator
-       ...  (defn addition [a b] (+ a b)))
-       => (addition 1 1)
-       8
 
 .. hy:function:: (yield [object])
 

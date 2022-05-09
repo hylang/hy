@@ -1398,25 +1398,32 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
     # Otherwise create a standard function
     node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
     name = compiler.get_anon_var()
-    ret += compile_function_node(compiler, expr, node, name, args, returns, body)
+    ret += compile_function_node(compiler, expr, node, [], name, args, returns, body)
 
     # return its name as the final expr
     return ret + Result(expr=ret.temp_variables[0])
 
 
-@pattern_macro(["defn", "defn/a"], [OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)])
-def compile_function_def(compiler, expr, root, returns, name, params, body):
+@pattern_macro(
+    ["defn", "defn/a"],
+    [maybe(brackets(many(FORM))), OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)],
+)
+def compile_function_def(compiler, expr, root, decorators, returns, name, params, body):
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
-    args, ret = compile_lambda_list(compiler, params)
+    decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
+    args, ret2 = compile_lambda_list(compiler, params)
+    ret += ret2
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
     with compiler.scope.create(ScopeFn, args):
         body = compiler._compile_branch(body)
 
-    return ret + compile_function_node(compiler, expr, node, name, args, returns, body)
+    return ret + compile_function_node(
+        compiler, expr, node, decorators, name, args, returns, body
+    )
 
 
-def compile_function_node(compiler, expr, node, name, args, returns, body):
+def compile_function_node(compiler, expr, node, decorators, name, args, returns, body):
     ret = Result()
 
     if body.expr:
@@ -1427,7 +1434,7 @@ def compile_function_node(compiler, expr, node, name, args, returns, body):
         name=name,
         args=args,
         body=body.stmts or [asty.Pass(expr)],
-        decorator_list=[],
+        decorator_list=decorators,
         returns=compiler.compile(returns).force_expr if returns is not None else None,
     )
 
@@ -1573,19 +1580,6 @@ def compile_arguments_set(compiler, decls, ret, is_kwonly=False):
     return args_ast, args_defaults, ret
 
 
-_decoratables = (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
-
-
-@pattern_macro("with-decorator", [oneplus(FORM)])
-def compile_decorate_expression(compiler, expr, name, args):
-    decs, fn = args[:-1], compiler.compile(args[-1])
-    if not fn.stmts or not isinstance(fn.stmts[-1], _decoratables):
-        raise compiler._syntax_error(args[-1], "Decorated a non-function")
-    decs, ret, _ = compiler._compile_collect(decs)
-    fn.stmts[-1].decorator_list = decs + fn.stmts[-1].decorator_list
-    return ret + fn
-
-
 @pattern_macro("return", [maybe(FORM)])
 def compile_return(compiler, expr, root, arg):
     ret = Result()
@@ -1615,13 +1609,22 @@ def compile_yield_from_or_await_expression(compiler, expr, root, arg):
 # ------------------------------------------------
 
 
-@pattern_macro("defclass", [SYM, maybe(brackets(many(FORM)) + maybe(STR) + many(FORM))])
-def compile_class_expression(compiler, expr, root, name, rest):
+@pattern_macro(
+    "defclass",
+    [
+        maybe(brackets(many(FORM))),
+        SYM,
+        maybe(brackets(many(FORM)) + maybe(STR) + many(FORM)),
+    ],
+)
+def compile_class_expression(compiler, expr, root, decorators, name, rest):
     base_list, docstring, body = rest or ([[]], None, [])
 
-    bases_expr, bases, keywords = compiler._compile_collect(
+    decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
+    bases_expr, ret2, keywords = compiler._compile_collect(
         base_list[0], with_kwargs=True
     )
+    ret += ret2
 
     bodyr = Result()
 
@@ -1635,9 +1638,9 @@ def compile_class_expression(compiler, expr, root, name, rest):
         e = compiler._compile_branch(body)
         bodyr += e + e.expr_as_stmt()
 
-    return bases + asty.ClassDef(
+    return ret + asty.ClassDef(
         expr,
-        decorator_list=[],
+        decorator_list=decorators,
         name=name,
         keywords=keywords,
         starargs=None,

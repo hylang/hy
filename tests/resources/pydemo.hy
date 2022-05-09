@@ -139,8 +139,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
     (yield x)))
 (setv myyield (list (generator)))
 
-(with-decorator (fn [f] (setv f.newattr "hello") f)
-  (defn mydecorated []))
+(defn [(fn [f] (setv f.newattr "hello") f)] mydecorated [])
 
 (setv myglobal 102)
 (defn set-global []
