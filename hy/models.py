@@ -41,10 +41,9 @@ class _ColoredModel:
 
 
 class Object:
-    """
-    Generic Hy Object model. This is helpful to inject things into all the
-    Hy lexing Objects at once.
+    "An abstract base class for Hy models, which represent forms."
 
+    """
     The position properties (`start_line`, `end_line`, `start_column`,
     `end_column`) are each 1-based and inclusive. For example, a symbol
     `abc` starting at the first column would have `start_column` 1 and
@@ -177,9 +176,12 @@ def is_unpack(kind, x):
 
 class String(Object, str):
     """
-    Generic Hy String object. Helpful to store string literals from Hy
-    scripts. It's either a ``str`` or a ``unicode``, depending on the
-    Python version.
+    Represents a literal string (:class:`str`).
+
+    :ivar brackets: The custom delimiter used by the bracket string that parsed to this
+      object, or :data:`None` if it wasn't a bracket string. The outer square brackets
+      and ``#`` aren't included, so the ``brackets`` attribute of the literal
+      ``#[[hello]]`` is the empty string.
     """
 
     def __new__(cls, s=None, brackets=None):
@@ -204,8 +206,7 @@ _wrappers[str] = String
 
 class Bytes(Object, bytes):
     """
-    Generic Hy Bytes object. It's either a ``bytes`` or a ``str``, depending
-    on the Python version.
+    Represents a literal bytestring (:class:`bytes`).
     """
 
     pass
@@ -216,7 +217,10 @@ _wrappers[bytes] = Bytes
 
 class Symbol(Object, str):
     """
-    Hy Symbol. Basically a string.
+    Represents a symbol.
+
+    Symbol objects behave like strings under operations like :hy:func:`get`,
+    :func:`len`, and :class:`bool`; in particular, ``(bool (hy.models.Symbol "False"))`` is true. Use :hy:func:`hy.eval` to evaluate a symbol.
     """
 
     def __new__(cls, s, from_parser=False):
@@ -238,7 +242,12 @@ _wrappers[type(None)] = lambda foo: Symbol("None")
 
 
 class Keyword(Object):
-    """Generic Hy Keyword object."""
+    """
+    Represents a keyword, such as ``:foo``.
+
+    :ivar name: The string content of the keyword, not including the leading ``:``. No
+      mangling is performed.
+    """
 
     __slots__ = ["name"]
     __match_args__ = ("name",)
@@ -279,11 +288,19 @@ class Keyword(Object):
         return self.name != other.name
 
     def __bool__(self):
+        """The empty keyword ``:`` is false. All others are true."""
         return bool(self.name)
 
     _sentinel = object()
 
     def __call__(self, data, default=_sentinel):
+        """Get the element of ``data`` named ``(hy.mangle self.name)``. Thus, ``(:foo
+        bar)`` is equivalent to ``(get bar (hy.mangle "foo"))``.
+
+        The optional second parameter is a default value; if provided, any
+        :class:`KeyError` from :hy:func:`get` will be caught, and the default returned
+        instead."""
+
         from hy.lex import mangle
 
         try:
@@ -319,8 +336,7 @@ def strip_digit_separators(number):
 
 class Integer(Object, int):
     """
-    Internal representation of a Hy Integer. May raise a ValueError as if
-    int(foo) was called, given Integer(foo).
+    Represents a literal integer (:class:`int`).
     """
 
     def __new__(cls, number, *args, **kwargs):
@@ -354,8 +370,7 @@ def check_inf_nan_cap(arg, value):
 
 class Float(Object, float):
     """
-    Internal representation of a Hy Float. May raise a ValueError as if
-    float(foo) was called, given Float(foo).
+    Represents a literal floating-point real number (:class:`float`).
     """
 
     def __new__(cls, num, *args, **kwargs):
@@ -369,8 +384,7 @@ _wrappers[float] = Float
 
 class Complex(Object, complex):
     """
-    Internal representation of a Hy Complex. May raise a ValueError as if
-    complex(foo) was called, given Complex(foo).
+    Represents a literal floating-point complex number (:class:`complex`).
     """
 
     def __new__(cls, real, imag=0, *args, **kwargs):
@@ -389,7 +403,11 @@ _wrappers[complex] = Complex
 
 class Sequence(Object, tuple, _ColoredModel):
     """
-    An abstract type for sequence-like models to inherit from.
+    An abstract base class for sequence-like forms. Sequence models can be operated on
+    like tuples: you can iterate over them, index into them, and append them with ``+``,
+    but you can't add, remove, or replace elements. Appending a sequence to another
+    iterable object reuses the class of the left-hand-side object, which is useful when
+    e.g. you want to concatenate models in a macro.
     """
 
     def replace(self, other, recursive=True):
@@ -440,9 +458,9 @@ class Sequence(Object, tuple, _ColoredModel):
 
 class FComponent(Sequence):
     """
-    Analogue of ast.FormattedValue.
-    The first node in the contained sequence is the value being formatted,
-    the rest of the sequence contains the nodes in the format spec (if any).
+    An analog of :class:`ast.FormattedValue`. The first node in the contained sequence
+    is the value being formatted. The rest of the sequence contains the nodes in the
+    format spec (if any).
     """
 
     def __new__(cls, s=None, conversion=None):
@@ -473,8 +491,10 @@ def _string_in_node(string, node):
 
 class FString(Sequence):
     """
-    Generic Hy F-String object, for smarter f-string handling.
-    Mimics ast.JoinedStr, but using String and FComponent.
+    Represents a format string as an iterable collection of :class:`hy.models.String`
+    and :class:`hy.models.FComponent`. The design mimics :class:`ast.JoinedStr`.
+
+    :ivar brackets: As in :class:`hy.models.String`.
     """
 
     def __new__(cls, s=None, brackets=None):
@@ -513,6 +533,15 @@ class FString(Sequence):
 
 
 class List(Sequence):
+    """
+    Represents a literal :class:`list`.
+
+    Many macros use this model type specially, for something other than defining a
+    :class:`list`. For example, :hy:func:`defn` expects its function parameters as a
+    square-bracket-delimited list, and :hy:func:`for` expects a list of iteration
+    clauses.
+    """
+
     color = Fore.CYAN
 
 
@@ -537,7 +566,10 @@ _wrappers[list] = recwrap(List)
 
 class Dict(Sequence, _ColoredModel):
     """
-    Dict (just a representation of a dict)
+    Represents a literal :class:`dict`. ``keys``, ``values``, and ``items`` methods are
+    provided, each returning a list, although this model type does none of the
+    normalization of a real :class:`dict`. In the case of an odd number of child models,
+    ``keys`` returns the last child whereas ``values`` and ``items`` ignores it.
     """
 
     color = Fore.GREEN
@@ -589,7 +621,7 @@ _wrappers[dict] = _dict_wrapper
 
 class Expression(Sequence):
     """
-    Hy S-Expression. Basically just a list.
+    Represents a parenthesized Hy expression.
     """
 
     color = Fore.YELLOW
@@ -603,7 +635,8 @@ _wrappers[Fraction] = lambda e: Expression(
 
 class Set(Sequence):
     """
-    Hy set (just a representation of a set)
+    Represents a literal :class:`set`. Unlike actual sets, the model retains duplicates
+    and the order of elements.
     """
 
     color = Fore.RED
@@ -615,7 +648,7 @@ _wrappers[set] = recwrap(Set)
 
 class Tuple(Sequence):
     """
-    Hy tuple representation.
+    Represents a literal :class:`tuple`.
     """
 
     color = Fore.BLUE

@@ -4,289 +4,206 @@
 Syntax
 ==============
 
+This chapter describes how Hy source code is understood at the level of text,
+as well as the abstract syntax objects that the reader (a.k.a. the parser)
+turns text into, as when invoked with :hy:func:`hy.read`. The basic units of
+syntax at the textual level are called **forms**, and the basic objects
+representing forms are called **models**.
+
 .. _models:
 
-Models
-------
+An introduction to models
+-------------------------
 
-Hy models are a very thin layer on top of regular Python objects,
-representing Hy source code as data. Models only add source position
-information, and a handful of methods to support clean manipulation of
-Hy source code, for instance in macros. To achieve that goal, Hy models
-are mixins of a base Python class and :ref:`Object`.
+Reading a Hy program produces a nested structure of model objects. Models can
+be very similar to the kind of value they represent (such as :class:`Integer
+<hy.models.Integer>`, which is a subclass of :class:`int`) or they can be
+somewhat different (such as :class:`Set <hy.models.Set>`, which is ordered,
+unlike actual :class:`set`\s). All models inherit from :class:`Object
+<hy.models.Object>`, which stores textual position information, so tracebacks
+can point to the right place in the code. The compiler takes whatever models
+are left over after parsing and macro expansion and translates them into Python
+:mod:`ast` nodes (e.g., :class:`Integer <hy.models.Integer>` becomes
+:class:`ast.Constant`), which can then be evaluated or rendered as Python code.
+Macros (that is, regular macros, as opposed to reader macros) operate on the
+model level, taking some models as arguments and returning more models for
+compilation or further macro expansion; they're free to do quite different
+things with a given model than the compiler does, if it pleases them to, like
+using an :class:`Integer <hy.models.Integer>` to construct a :class:`Symbol
+<hy.models.Symbol>`.
+
+In general, a model doesn't count as equal to the value it represents. For
+example, ``(= (hy.models.String "foo") "foo")`` returns :data:`False`. But you
+can promote a value to its corresponding model with :hy:func:`hy.as-model`, or
+you can demote a model with the usual Python constructors like :py:class:`str`
+or :py:class:`int`, or you can evaluate a model as Hy code with
+:hy:func:`hy.eval`.
+
+Models can be created with the constructors, with the :hy:func:`quote` or
+:hy:func:`quasiquote` macros, or with :hy:func:`hy.as-model`. Explicit creation
+is often not necessary, because the compiler will autopromote (via
+:hy:func:`hy.as-model`) any object it's trying to evaluate.
+
+Note that when you want plain old data structures and don't intend to produce
+runnable Hy source code, you'll usually be better off using Python's basic data
+structures (:class:`tuple`, :class:`list`, :class:`dict`, etc.) than models.
+Yes, "homoiconicity" is a fun word, but a Hy :class:`List <hy.models.List>`
+won't provide any advantage over a Python :class:`list` when you're managing a
+list of email addresses or something.
+
+The default representation of models (via :hy:func:`hy.repr`) uses quoting for
+readability, so ``(hy.models.Integer 5)`` is represented as ``'5``. Python
+representations (via :func:`repr`) use the constructors, and by default are
+pretty-printed; you can disable this globally by setting ``hy.models.PRETTY``
+to ``False``, or temporarily with the context manager ``hy.models.pretty``. You
+can also color these Python representations with ``colorama`` by setting
+``hy.models.COLORED`` to ``True``.
 
 .. _hyobject:
 
-Object
-~~~~~~
+.. autoclass:: hy.models.Object
 
-``hy.models.Object`` is the base class of Hy models. It only
-implements one method, ``replace``, which replaces the source position
-of the current object with the one passed as argument. This allows us to
-keep track of the original position of expressions that get modified by
-macros, be that in the compiler or in pure hy macros.
+Non-form syntactic elements
+---------------------------
 
-``Object`` is not intended to be used directly to instantiate Hy
-models, but only as a mixin for other classes.
+Shebang
+~~~~~~~
 
-Compound Models
-~~~~~~~~~~~~~~~
+If a Hy program begins with ``#!``, Hy assumes the first line is a `shebang
+line <https://en.wikipedia.org/wiki/Shebang_(Unix)>`_ and ignores it. It's up
+to your OS to do something more interesting with it.
 
-Parenthesized and bracketed lists are parsed as compound models by the
-Hy reader.
+Whitespace
+~~~~~~~~~~
 
-Hy uses pretty-printing reprs for its compound models by default.
-If this is causing issues,
-it can be turned off globally by setting ``hy.models.PRETTY`` to ``False``,
-or temporarily by using the ``hy.models.pretty`` context manager.
+Hy has lax whitespace rules less similar to Python's than to those of most
+other programming languages. Whitespace can separate forms (e.g., ``a b`` is
+two forms whereas ``ab`` is one) and it can occur inside some forms (like
+string literals), but it's otherwise ignored by the reader, producing no
+models.
 
-Hy also attempts to color pretty reprs and errors using ``colorama``. These can
-be turned off globally by setting ``hy.models.COLORED`` and ``hy.errors.COLORED``,
-respectively, to ``False``.
+The reader only grants this special treatment to the ASCII whitespace
+characters, namely U+0009 (horizontal tab), U+000A (line feed), U+000B
+(vertical tab), U+000C (form feed), U+000D (carriage return), and U+0020
+(space). Non-ASCII whitespace characters, such as U+2009 (THIN SPACE), are
+treated as any other character. So yes, you can have exotic whitespace
+characters in variable names, although this is only especially useful for
+obfuscated code contests.
 
-.. _hysequence:
-
-Sequence
+Comments
 ~~~~~~~~
 
-``hy.models.Sequence`` is the abstract base class of "iterable" Hy
-models, such as hy.models.Expression and hy.models.List.
+Comments begin with a semicolon (``;``) and continue through the end of the
+line.
 
-Adding a Sequence to another iterable object reuses the class of the
-left-hand-side object, a useful behavior when you want to concatenate Hy
-objects in a macro, for instance.
+There are no multi-line comments in the style of C's ``/* … */``, but you can
+use the :ref:`discard prefix <discard-prefix>` or :ref:`string literals
+<string-literals>` for similar purposes.
 
-Sequences are (mostly) immutable: you can't add, modify, or remove
-elements. You can still append to a variable containing a Sequence with
-``+=`` and otherwise construct new Sequences out of old ones.
+.. _discard-prefix:
 
-identifiers
+Discard prefix
+~~~~~~~~~~~~~~
+
+Like Clojure, Hy supports the Extensible Data Notation discard prefix ``#_``,
+which can be thought of as another kind of comment. When the reader encounters
+``#_``, it reads and then discards the following form. Thus ``#_`` is similar
+to ``;`` except that normal parsing resumes after the next form ends rather
+than at the start of the next line: ``[dilly #_ and krunk]`` is equivalent to
+``[dilly krunk]``, whereas ``[dilly ; and krunk]`` is equivalent to just
+``[dilly``. Comments indicated by ``;`` can be nested within forms discarded by
+``#_``, but ``#_`` has no special meaning within a comment indicated by ``;``.
+
+Identifiers
 -----------
 
-An uninterrupted string of characters, excluding spaces, brackets,
-quotes, double-quotes and comments, is parsed as an identifier.
+Identifiers are a broad class of syntax in Hy, comprising not only variable
+names, but any nonempty sequence of characters that aren't ASCII whitespace nor
+one of the following: ``()[]{};"'``. The reader will attempt to read each
+identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
+it as a :ref:`keyword <keywords>` if that fails, then fall back on reading it
+as a :ref:`symbol <symbols>` if that fails.
 
-Identifiers are resolved to atomic models during the parsing phase in
-the following order:
+.. _numeric-literals:
 
- - :ref:`Integer <hy_numeric_models>`
- - :ref:`Float <hy_numeric_models>`
- - :ref:`Complex <hy_numeric_models>` (if the atom isn't a bare ``j``)
- - :ref:`Keyword` (if the atom starts with ``:``)
- - :ref:`Symbol`
+Numeric literals
+~~~~~~~~~~~~~~~~
 
-An identifier consists of a nonempty sequence of Unicode characters that are not whitespace nor any of the following: ``( ) [ ] { } ' "``. Hy first tries to parse each identifier into a numeric literal, then into a keyword if that fails, and finally into a symbol if that fails.
+All of :ref:`Python's syntax for numeric literals <py:numbers>` is supported in
+Hy, resulting in a :class:`Integer <hy.models.Integer>`, :class:`Float
+<hy.models.Float>`, or :class:`Complex <hy.models.Complex>`. Hy also provides a
+few extensions:
 
-ellipsis
---------
+- Commas (``,``) can be used like underscores (``_``) to separate digits
+  without changing the result. Thus, ``10_000_000_000`` may also be written
+  ``10,000,000,000``.
+- ``NaN``, ``Inf``, and ``-Inf`` are understood as literals. Each produces a
+  :class:`Float <hy.models.Float>`.
+- Hy allows complex literals as understood by the constructor for
+  :class:`complex`, such as ``5+4j``. (This is also legal Python, but Hy reads
+  it as a single :class:`Complex <hy.models.Complex>`, and doesn't otherwise
+  support infix addition or subtraction, whereas Python parses it as an
+  addition expression.)
 
-As a special case, the identifier ``...`` refers to the :class:`Ellipsis`
-object, as in Python.
+.. autoclass:: hy.models.Integer
+.. autoclass:: hy.models.Float
+.. autoclass:: hy.models.Complex
 
-.. _hy_numeric_models:
+.. _keywords:
 
-numeric literals
-----------------
+Keywords
+~~~~~~~~
 
-In addition to regular numbers, standard notation from Python for non-base 10
-integers is used. ``0x`` for Hex, ``0o`` for Octal, ``0b`` for Binary.
+An identifier starting with a colon (``:``), such as ``:foo``, is a
+:class:`Keyword <hy.models.Keyword>`.
 
-.. code-block:: clj
+Literal keywords are most often used for their special treatment in
+:ref:`expressions <expressions>` that aren't macro calls: they set
+:std:term:`keyword arguments <keyword argument>`, rather than being passed in
+as values. For example, ``(f :foo 3)`` calls the function ``f`` with the
+parameter ``foo`` set to ``3``. The keyword is also :ref:`mangled <mangling>`
+at compile-time. To prevent a literal keyword from being treated specially in
+an expression, you can :hy:func:`quote` the keyword, or you can use it itself
+as a keyword argument, as in ``(f :foo :bar)``.
 
-    (print 0x80 0b11101 0o102 30)
+Otherwise, keywords are simple model objects that evaluate to themselves. Users
+of other Lisps should note that it's often a better idea to use a string than a
+keyword, because the rest of Python uses strings for cases in which other Lisps
+would use keywords. In particular, strings are typically more appropriate than
+keywords as the keys of a dictionary. Notice that ``(dict :a 1 :b 2)`` is
+equivalent to ``{"a" 1 "b" 2}``, which is different from ``{:a 1 :b 2}`` (see
+:ref:`dict-literals`).
 
-Underscores and commas can appear anywhere in a numeric literal except the very
-beginning. They have no effect on the value of the literal, but they're useful
-for visually separating digits.
+The empty keyword ``:`` is syntactically legal, but you can't compile a
+function call with an empty keyword argument.
 
-.. code-block:: clj
+.. autoclass:: hy.models.Keyword
+   :members:  __bool__, __call__
 
-    (print 10,000,000,000 10_000_000_000)
+.. _symbols:
 
-Unlike Python, Hy provides literal forms for NaN and infinity: ``NaN``,
-``Inf``, and ``-Inf``.
+Symbols
+~~~~~~~
 
-``hy.models.Integer`` represents integer literals, using the ``int``
-type.
+Symbols are the catch-all category of identifiers. In most contexts, symbols
+are compiled to Python variable names, after being :ref:`mangled <mangling>`.
+You can create symbol objects with the :hy:func:`quote` operator or by calling
+the :class:`Symbol <hy.models.Symbol>` constructor (thus, :class:`Symbol
+<hy.models.Symbol>` plays a role similar to the ``intern`` function in other
+Lisps). Some example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``,
+``just✈wrong``, and ``🦑``.
 
-``hy.models.Float`` represents floating-point literals.
+As a special case, the symbol ``...`` compiles to the :class:`Ellipsis` object,
+as in Python.
 
-``hy.models.Complex`` represents complex literals.
-
-Numeric models are parsed using the corresponding Python routine, and
-valid numeric python literals will be turned into their Hy counterpart.
-
-.. _hystring:
-
-string literals
----------------
-
-In the input stream, double-quoted strings, respecting the Python
-notation for strings, are parsed as a single token, which is directly
-parsed as a :ref:`String`.
-
-``hy.models.String`` represents string literals (including bracket strings),
-which compile down to unicode string literals (``str``) in Python.
-
-``String``\s are immutable.
-
-Hy literal strings can span multiple lines, and are considered by the
-reader as a single unit, respecting the Python escapes for unicode
-strings.
-
-``String``\s have an attribute ``brackets`` that stores the custom
-delimiter used for a bracket string (e.g., ``"=="`` for ``#[==[hello
-world]==]`` and the empty string for ``#[[hello world]]``).
-``String``\s that are not produced by bracket strings have their
-``brackets`` set to ``None``.
-
-Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
-strings like Python. The single-quote character ``'`` is reserved for
-preventing the evaluation of a form (e.g., ``'(+ 1 1)``), as in most Lisps.
-
-.. _syntax-bracket-strings:
-
-Python's so-called triple-quoted strings (e.g., ``'''hello'''`` and
-``"""hello"""``) aren't supported. However, in Hy, unlike Python, any string
-literal can contain newlines. Furthermore, Hy supports an alternative form of
-string literal called a "bracket string" similar to Lua's long brackets.
-Bracket strings have customizable delimiters, like the here-documents of other
-languages. A bracket string begins with ``#[FOO[`` and ends with ``]FOO]``,
-where ``FOO`` is any string not containing ``[`` or ``]``, including the empty
-string. (If ``FOO`` is exactly ``f`` or begins with ``f-``, the bracket string
-is interpreted as a :ref:`format string <syntax-fstrings>`.) For example::
-
-   => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
-   "That's very kind of yuo [sic]" Tom wrote back.
-   => (print #[==[1 + 1 = 2]==])
-   1 + 1 = 2
-
-A bracket string can contain newlines, but if it begins with one, the newline
-is removed, so you can begin the content of a bracket string on the line
-following the opening delimiter with no effect on the content. Any leading
-newlines past the first are preserved.
-
-Plain string literals support :ref:`a variety of backslash escapes
-<py:strings>`. Unrecognized escape sequences are a syntax error. To create
-a "raw string" that interprets all backslashes literally, prefix the string
-with ``r``, as in ``r"slash\not"``. Bracket strings are always raw strings
-and don't allow the ``r`` prefix.
-
-Like Python, Hy treats all string literals as sequences of Unicode characters
-by default. You may prefix a plain string literal (but not a bracket string)
-with ``b`` to treat it as a sequence of bytes.
-
-``hy.models.Bytes`` is like ``String``, but for sequences of bytes.
-It inherits from ``bytes``.
-
-Unlike Python, Hy only recognizes string prefixes (``r``, etc.) in lowercase,
-and doesn't allow the no-op prefix ``u``.
-
-.. _syntax-fstrings:
-
-format strings
---------------
-
-A format string (or "f-string", or "formatted string literal") is a string
-literal with embedded code, possibly accompanied by formatting commands. Hy
-f-strings work much like :ref:`Python f-strings <py:f-strings>` except that the
-embedded code is in Hy rather than Python.
-
-::
-
-    => (print f"The sum is {(+ 1 1)}.")
-    The sum is 2.
-
-Since ``!`` and ``:`` are identifier characters in Hy, Hy decides where the
-code in a replacement field ends, and any conversion or format specifier
-begins, by parsing exactly one form. You can use ``do`` to combine several
-forms into one, as usual. Whitespace may be necessary to terminate the form::
-
-    => (setv foo "a")
-    => (print f"{foo:x<5}")
-    …
-    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
-    => (print f"{foo :x<5}")
-    axxxx
-
-Unlike Python, whitespace is allowed between a conversion and a format
-specifier.
-
-Also unlike Python, comments and backslashes are allowed in replacement fields.
-Hy's lexer will still process the whole format string normally, like any other
-string, before any replacement fields are considered, so you may need to
-backslash your backslashes, and you can't comment out a closing brace or the
-string delimiter.
-
-Hy's f-strings are compatible with Python's "=" debugging syntax, subject to
-the above limitations on delimiting identifiers. For example::
-
-    => (setv foo "bar")
-    => (print f"{foo = }")
-    foo = 'bar'
-    => (print f"{foo = !s :_^7}")
-    foo = __bar__
-
-.. _syntax-keywords:
-
-keywords
---------
-
-An identifier headed by a colon, such as ``:foo``, is a keyword. If a
-literal keyword appears in a function call, it's used to indicate a keyword
-argument rather than passed in as a value. For example, ``(f :foo 3)`` calls
-the function ``f`` with the keyword argument named ``foo`` set to ``3``. Hence,
-trying to call a function on a literal keyword may fail: ``(f :foo)`` yields
-the error ``Keyword argument :foo needs a value``. To avoid this, you can quote
-the keyword, as in ``(f ':foo)``, or use it as the value of another keyword
-argument, as in ``(f :arg :foo)``. It is important to note that a keyword argument
-cannot be a Python reserved word. This will raise a ``SyntaxError`` similar to Python.
-See :ref:`defn <reserved_param_names>` for examples.
-
-Keywords can be called like functions as shorthand for ``get``. ``(:foo obj)``
-is equivalent to ``(get obj (hy.mangle "foo"))``. An optional ``default`` argument
-is also allowed: ``(:foo obj 2)`` or ``(:foo obj :default 2)`` returns ``2`` if
-``(get obj "foo")`` raises a ``KeyError``.
-
-``hy.models.Keyword`` represents keywords in Hy. Keywords are
-symbols starting with a ``:``. See :ref:`syntax-keywords`.
-
-The ``.name`` attribute of a ``hy.models.Keyword`` provides
-the (:ref:`unmangled <mangling>`) string representation of the keyword without the initial ``:``.
-For example::
-
-  => (setv x :foo-bar)
-  => (print x.name)
-  foo-bar
-
-If needed, you can get the mangled name by calling :hy:func:`mangle <hy.mangle>`.
+.. autoclass:: hy.models.Symbol
 
 .. _mangling:
 
-.. _hysymbol:
+Mangling
+~~~~~~~~
 
-symbols
--------
-
-Symbols are identifiers that are neither legal numeric literals nor legal
-keywords. In most contexts, symbols are compiled to Python variable names. Some
-example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``, ``just✈wrong``,
-and ``🦑``.
-
-``hy.models.Symbol`` is the model used to represent symbols in the Hy language.
-Like ``String``, it inherits from ``str``.
-
-Literal symbols can be denoted with a single quote, as in ``'cinco``. To
-convert a string to a symbol at run-time (or while expanding a macro), use
-``hy.models.Symbol`` as a constructor, as in ``(hy.models.Symbol "cinco")``.
-Thus, ``hy.models.Symbol`` plays a role similar to the ``intern`` function in
-other Lisps.
-
-Symbols are :ref:`mangled <mangling>` when they are compiled to Python variable
-names, but not before: ``(!= 'a_b 'a-b)`` although ``(= (hy.mangle 'a_b)
-(hy.mangle 'a-b))``.
-
-Since the rules for Hy symbols are much more permissive than the rules for
+Since the rules for Hy symbols and keywords are much more permissive than the rules for
 Python identifiers, Hy uses a mangling algorithm to convert its own names to
 Python-legal names. The steps are as follows:
 
@@ -332,66 +249,205 @@ Python-legal names. The steps are as follows:
    guaranteed that any names are equal as strings if and only if they refer to
    the same Python identifier.
 
+You can invoke the mangler yourself with the function :hy:func:`hy.mangle`, and try to undo this (perhaps not quite successfully) with :hy:func:`hy.unmangle`.
+
 Mangling isn't something you should have to think about often, but you may see
 mangled names in error messages, the output of ``hy2py``, etc. A catch to be
 aware of is that mangling, as well as the inverse "unmangling" operation
-offered by the ``unmangle`` function, isn't one-to-one. Two different symbols
+offered by :hy:func:`hy.unmangle`, isn't one-to-one. Two different symbols
 can mangle to the same string and hence compile to the same Python variable.
 The chief practical consequence of this is that (non-initial) ``-`` and ``_`` are
-interchangeable in all symbol names, so you shouldn't use, e.g., both
-``foo-bar`` and ``foo_bar`` as separate variables.
+interchangeable under mangling, so you can't use e.g. ``foo-bar`` and
+``foo_bar`` as separate variables.
 
-.. _hyexpression:
+.. _string-literals:
 
-expressions
+.. _hystring:
+
+String literals
+---------------
+
+Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
+strings like Python. The single-quote character ``'`` is reserved for
+preventing the evaluation of a form, (e.g., ``'(+ 1 1)``), as in most Lisps
+(see :ref:`more-sugar`). Python's so-called triple-quoted strings (e.g.,
+``'''hello'''`` and ``"""hello"""``) aren't supported. However, in Hy, unlike
+Python, any string literal can contain newlines; furthermore, Hy has
+:ref:`bracket strings <bracket-strings>`. For consistency with Python's
+triple-quoted strings, all literal newlines in literal strings are read as in
+``"\n"`` (U+000A, line feed) regardless of the newline style in the actual
+code.
+
+String literals support :ref:`a variety of backslash escapes <py:strings>`.
+Unrecognized escape sequences are a syntax error. To create a "raw string" that
+interprets all backslashes literally, prefix the string with ``r``, as in
+``r"slash\not"``.
+
+Like Python, Hy treats all string literals as sequences of Unicode characters
+by default. The result is the model type :class:`String <hy.models.String>`.
+You may prefix a string literal with ``b`` to treat it as a sequence of bytes,
+producing :class:`Bytes <hy.models.Bytes>` instead.
+
+Unlike Python, Hy only recognizes string prefixes (``r``, ``b``, and ``f``) in
+lowercase, and doesn't allow the no-op prefix ``u``.
+
+.. autoclass:: hy.models.String
+.. autoclass:: hy.models.Bytes
+
+.. _bracket-strings:
+
+Bracket strings
+~~~~~~~~~~~~~~~
+
+Hy supports an alternative form of string literal called a "bracket string"
+similar to Lua's long brackets. Bracket strings have customizable delimiters,
+like the here-documents of other languages. A bracket string begins with
+``#[FOO[`` and ends with ``]FOO]``, where ``FOO`` is any string not containing
+``[`` or ``]``, including the empty string. (If ``FOO`` is exactly ``f`` or
+begins with ``f-``, the bracket string is interpreted as a :ref:`format string
+<syntax-fstrings>`.) For example::
+
+   => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
+   "That's very kind of yuo [sic]" Tom wrote back.
+   => (print #[==[1 + 1 = 2]==])
+   1 + 1 = 2
+
+Bracket strings are always raw Unicode strings, and don't allow the ``r`` or
+``b`` prefixes.
+
+A bracket string can contain newlines, but if it begins with one, the newline
+is removed, so you can begin the content of a bracket string on the line
+following the opening delimiter with no effect on the content. Any leading
+newlines past the first are preserved.
+
+.. _syntax-fstrings:
+
+Format strings
+~~~~~~~~~~~~~~
+
+A format string (or "f-string", or "formatted string literal") is a string
+literal with embedded code, possibly accompanied by formatting commands. The
+result is an :class:`FString <hy.models.FString>`, Hy f-strings work much like
+:ref:`Python f-strings <py:f-strings>` except that the embedded code is in Hy
+rather than Python.
+
+::
+
+    => (print f"The sum is {(+ 1 1)}.")
+    The sum is 2.
+
+Since ``=``, ``!``, and ``:`` are identifier characters in Hy, Hy decides where
+the code in a replacement field ends (and any debugging ``=``, conversion
+specifier, or format specifier begins) by parsing exactly one form. You can use
+``do`` to combine several forms into one, as usual. Whitespace may be necessary
+to terminate the form::
+
+    => (setv foo "a")
+    => (print f"{foo:x<5}")
+    …
+    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
+    => (print f"{foo :x<5}")
+    axxxx
+
+Unlike Python, whitespace is allowed between a conversion and a format
+specifier.
+
+Also unlike Python, comments and backslashes are allowed in replacement fields.
+The same reader is used for the form to be evaluated as for elsewhere in the
+language. Thus e.g. ``f"{"a"}"`` is legal, and equivalent to ``"a"``.
+
+.. autoclass:: hy.models.FString
+.. autoclass:: hy.models.FComponent
+
+.. _hysequence:
+
+Sequential forms
+----------------
+
+Sequential forms (:class:`Sequence <hy.models.Sequence>`) are nested forms
+comprising any number of other forms, in a defined order.
+
+.. autoclass:: hy.models.Sequence
+
+.. _expressions:
+
+Expressions
 ~~~~~~~~~~~
 
-``hy.models.Expression`` inherits :ref:`Sequence` for
-parenthesized ``()`` expressions. The compilation result of those
-expressions depends on the first element of the list: the compiler
-dispatches expressions between macros and and regular Python
-function calls.
+Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
+parentheses: ``( … )``. The compiler evaluates expressions by checking the
+first element. If it's a symbol, and the symbol has the name of a currently
+defined macro, the macro is called. Otherwise, the expression is compiled into
+a Python-level call, with the first element being the calling object. The
+remaining forms are understood as arguments. Use :hy:func:`unpack-iterable` or
+:hy:func:`unpack-mapping` to break up data structures into individual arguments
+at runtime.
+
+The empty expression ``()`` is legal at the reader level, but has no inherent
+meaning. Trying to compile it is an error.
+
+.. autoclass:: hy.models.Expression
 
 .. _hylist:
 
-lists
------
+List, tuple, and set literals
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``hy.models.List`` is a :ref:`Sequence` for bracketed ``[]``
-lists, which, when used as a top-level expression, translate to Python
-list literals in the compilation phase.
+Literal :class:`list`\s (:class:`List <hy.models.List>`), :class:`tuple`\s
+(:class:`Tuple <hy.models.Tuple>`), and :class:`set`\s (:class:`Set
+<hy.models.Set>`) are denoted respectively by ``[ … ]``, ``#( … )``, and ``#{ …
+}``.
 
-.. _hydict:
+.. autoclass:: hy.models.List
+.. autoclass:: hy.models.Tuple
+.. autoclass:: hy.models.Set
 
-dictionaries
-------------
+.. _dict-literals:
 
-``hy.models.Dict`` inherits :ref:`Sequence` for curly-bracketed
-``{}`` expressions, which compile down to a Python dictionary literal.
+Dictionary literals
+~~~~~~~~~~~~~~~~~~~
 
+Literal dictionaries (:class:`dict`, :class:`Dict <hy.models.Dict>`) are
+denoted by ``{ … }``. Odd-numbered child forms become the keys whereas
+even-numbered child forms become the values. For example, ``{"a" 1 "b" 2}``
+produces a dictionary mapping ``"a"`` to ``1`` and ``"b"`` to ``2``. Trying to
+compile a :class:`Dict <hy.models.Dict>` with an odd number of child models is
+an error.
 
+As in Python, calling :class:`dict` with keyword arguments is often more
+convenient than using a literal dictionary.
 
-discard prefix
---------------
+.. autoclass:: hy.models.Dict
 
-Hy supports the Extensible Data Notation discard prefix, like Clojure.
-Any form prefixed with ``#_`` is discarded instead of compiled.
-This completely removes the form so it doesn't evaluate to anything,
-not even None.
-It's often more useful than linewise comments for commenting out a
-form, because it respects code structure even when part of another
-form is on the same line. For example:
+.. _more-sugar:
 
-.. code-block:: clj
+Additional sugar
+----------------
 
-   => (print "Hy" "cruel" "World!")
-   Hy cruel World!
-   => (print "Hy" #_"cruel" "World!")
-   Hy World!
-   => (+ 1 1 (print "Math is hard!"))
-   Math is hard!
-   Traceback (most recent call last):
-      ...
-   TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
-   => (+ 1 1 #_(print "Math is hard!"))
-   2
+Syntactic sugar is available to construct two-item :ref:`expressions
+<expressions>` with certain macros. When the sugary characters are encountered
+by the reader, a new expression is created with the corresponding macro as the
+first element and the next parsed form as the second. Thus, since ``'`` is
+short for ``quote``, ``'FORM`` is read as ``(quote FORM)``. No parentheses are
+required. This is all resolved at the reader level, so the model that gets
+produced is the same whether you take your code with sugar or without.
+
+========================== ================
+Macro                      Syntax
+========================== ================
+:hy:func:`annotate`        ```^FORM``
+:hy:func:`quasiquote`      ```FORM``
+:hy:func:`quote`           ``'FORM``
+:hy:func:`unpack-iterable` ``#* FORM``
+:hy:func:`unpack-mapping`  ``#** FORM``
+:hy:func:`unquote`         ``~FORM``
+:hy:func:`unquote-splice`  ``~@FORM``
+========================== ================
+
+Reader macros
+-------------
+
+A hash (``#``) followed by a :ref:`symbol <symbols>` invokes the :ref:`reader
+macro <reader-macros>` named by the symbol. (Trying to call an undefined reader
+macro is a syntax error.) Parsing of the remaining source code is under control
+of the reader macro until it returns.
