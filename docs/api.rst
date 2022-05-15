@@ -1330,7 +1330,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    run, or the last form of ``else`` if no exception was raised, or the ``try``
    body if there is no ``else`` clause.
 
-.. hy:data:: unpack-iterable/unpack-mapping
+.. hy:function:: (unpack-iterable)
+.. hy:function:: (unpack-mapping)
 
    (Also known as the splat operator, star operator, argument expansion, argument
    explosion, argument gathering, and varargs, among others...)
@@ -1608,6 +1609,11 @@ the following methods
 .. hy:autofunction:: hy.gensym
 
 .. hy:autofunction:: hy.as-model
+
+.. hy:data:: hy.errors.COLORED
+
+   This variable is initially :py:data:`False`. If it's set to a true value, Hy
+   will color its error messages with ``colorama``.
 
 .. _reader-macros:
 
