@@ -19,7 +19,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    They implement `PEP 526 <https://www.python.org/dev/peps/pep-0526/>`_ and
    `PEP 3107 <https://www.python.org/dev/peps/pep-3107/>`_.
 
-   Syntax sugar for :hy:func:`annotate`.
+   Syntax sugar for :hy:func:`annotate` where the type comes first.
 
    Here is some example syntax of all three usages:
 
@@ -54,17 +54,15 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
    macro will likely be of use.
 
-.. hy:function:: (annotate [value])
+.. hy:function:: (annotate [value type])
 
    Expanded form of :hy:data:`#^`.  Syntactically equal to ``#^`` and usable wherever
    you might use ``#^``::
 
-      (= '#^int '(annotate int))
-      True
+      (setv (annotate x int) 1)
+      (setv #^int x 1)  ; the type comes first when using #^int
 
-      (setv (annotate int) x 1)
-
-      (defn (annotate int) add1 [(annotate int) x] (+ x 1))
+      (defn (annotate add1 int) [(annotate x int)] (+ x 1))
 
 
 .. _dot:

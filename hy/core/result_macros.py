@@ -70,7 +70,7 @@ def pvalue(root, wanted):
 
 
 def maybe_annotated(target):
-    return pexpr(sym("annotate") + FORM + target) | target >> (lambda x: (None, x))
+    return pexpr(sym("annotate") + target + FORM) | target >> (lambda x: (x, None))
 
 
 # ------------------------------------------------
@@ -416,7 +416,7 @@ def compile_def_expression(compiler, expr, root, decls):
             ann = None
             name, value = decl
         else:
-            (ann, name), value = decl
+            (name, ann), value = decl
 
         result += compile_assign(
             compiler, ann, name, value, is_assignment_expr=is_assignment_expr
@@ -425,7 +425,7 @@ def compile_def_expression(compiler, expr, root, decls):
 
 
 @pattern_macro(["annotate"], [FORM, FORM])
-def compile_basic_annotation(compiler, expr, root, ann, target):
+def compile_basic_annotation(compiler, expr, root, target, ann):
     return compile_assign(compiler, ann, target, None)
 
 
@@ -1383,10 +1383,10 @@ lambda_list = brackets(
 
 @pattern_macro(["fn", "fn/a"], [maybe_annotated(lambda_list), many(FORM)])
 def compile_function_lambda(compiler, expr, root, params, body):
-    returns, params = params
+    params, returns = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
-        isinstance(param, tuple) and param[0] is not None
+        isinstance(param, tuple) and param[1] is not None
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
     args, ret = compile_lambda_list(compiler, params)
@@ -1411,7 +1411,7 @@ def compile_function_lambda(compiler, expr, root, params, body):
     [maybe(brackets(many(FORM))), maybe_annotated(SYM), lambda_list, many(FORM)],
 )
 def compile_function_def(compiler, expr, root, decorators, name, params, body):
-    returns, name = name
+    name, returns = name
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
     args, ret2 = compile_lambda_list(compiler, params)
@@ -1500,7 +1500,7 @@ def compile_lambda_list(compiler, params):
 
     posonly_parms = posonly_parms or []
 
-    is_positional_arg = lambda x: isinstance(x[1], Symbol)
+    is_positional_arg = lambda x: isinstance(x[0], Symbol)
     invalid_non_default = next(
         (
             arg
@@ -1511,7 +1511,7 @@ def compile_lambda_list(compiler, params):
     )
     if invalid_non_default:
         raise compiler._syntax_error(
-            invalid_non_default[1], "non-default argument follows default argument"
+            invalid_non_default[0], "non-default argument follows default argument"
         )
 
     posonly_ast, posonly_defaults, ret = compile_arguments_set(
@@ -1552,7 +1552,7 @@ def compile_arguments_set(compiler, decls, ret, is_kwonly=False):
     args_ast = []
     args_defaults = []
 
-    for ann, decl in decls:
+    for decl, ann in decls:
         default = None
 
         # funcparserlib will check to make sure that the only times we
@@ -1861,7 +1861,7 @@ def compile_let(compiler, expr, root, bindings, body):
     bindings = bindings[0]
     scope = compiler.scope.create(ScopeLet)
 
-    for (ann, target), value in bindings:
+    for (target, ann), value in bindings:
         res += compile_assign(compiler, ann, target, value, let_scope=scope)
 
     with scope:
