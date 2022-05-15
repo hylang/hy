@@ -1442,16 +1442,21 @@ def compile_function_node(compiler, expr, node, decorators, name, args, returns,
     return ret + Result(temp_variables=[ast_name, ret.stmts[-1]])
 
 
-@pattern_macro("defmacro", [SYM, lambda_list, many(FORM)])
+@pattern_macro(
+    "defmacro",
+    [
+        SYM,
+        brackets(
+            maybe(many(argument) + sym("/")),
+            many(argument),
+            maybe(varargs("unpack-iterable", NASYM)),
+        ),
+        many(FORM),
+    ],
+)
 def compile_macro_def(compiler, expr, root, name, params, body):
-    _, _, rest, _, kwargs = params
-
     if "." in name:
         raise compiler._syntax_error(name, "periods are not allowed in macro names")
-    if rest == Symbol("*"):
-        raise compiler._syntax_error(rest, "macros cannot use '*'")
-    if kwargs is not None:
-        raise compiler._syntax_error(kwargs, "macros cannot use '#**'")
 
     ret = Result() + compiler.compile(
         Expression(
