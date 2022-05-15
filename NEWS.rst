@@ -46,6 +46,8 @@ Breaking Changes
   `hy.models.Tuple`
 * Tuples now wrap to `hy.models.Tuple` during model promotion
 * Fraction literals have been removed
+* Annotations now use `#^` instead of `^`
+* ``annotate`` takes the target first and the type second. i.e. ``(annotate x int)``
 
 Bug Fixes
 ------------------------------
