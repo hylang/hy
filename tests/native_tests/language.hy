@@ -754,8 +754,8 @@
 
 (defn test-defn-annotations []
 
-  (defn ^int f [^(get List int) p1 p2 ^str p3 ^str [o1 None] ^int [o2 0]
-           ^str #* rest ^str k1 ^int [k2 0] ^bool #** kwargs])
+  (defn #^int f [#^(get List int) p1 p2 #^str p3 #^str [o1 None] #^int [o2 0]
+           #^str #* rest #^str k1 #^int [k2 0] #^bool #** kwargs])
 
   (assert (is (. f __annotations__ ["return"]) int))
   (for [[k v] (.items (dict
@@ -1766,8 +1766,8 @@ cee"} dee" "ey bee\ncee dee"))
 
 (defn test-variable-annotations []
   (defclass AnnotationContainer []
-    (setv ^int x 1 y 2)
-    (^bool z))
+    (setv #^int x 1 y 2)
+    (#^bool z))
 
   (setv annotations (get-type-hints AnnotationContainer))
   (assert (= (get annotations "x") int))

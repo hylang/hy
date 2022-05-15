@@ -76,8 +76,8 @@
     0))
 
   (defclass [dataclass] Point []
-    (^int x)
-    (^int y))
+    (#^int x)
+    (#^int y))
 
   (assert (= 0 (match (Point 1 0) (Point 1 :y var) var)))
   (assert (is None (match (Point 0 0) (Point 1 :y var) var)))
@@ -163,8 +163,8 @@
   (assert (= [x y] [3 4])))
 
 (defclass [dataclass] Point []
-  (^int x)
-  (^int y))
+  (#^int x)
+  (#^int y))
 
 (defn test-let-match-pattern []
   (setv [x y] [1 2]
