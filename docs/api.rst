@@ -341,6 +341,20 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         => (infix (1 + 1))
         2
 
+   .. note:: because all values are passed to macros unevaluated, ``defmacro``
+             cannot use keyword arguments, or kwargs. All arguments are passed
+             in positionally. Parameters can still be given default values
+             however::
+
+                => (defmacro a-macro [a [b 1]]
+                ...  `[~a ~b])
+                => (a-macro 2)
+                [2 1]
+                => (a-macro 2 3)
+                [2 3]
+                => (a-macro :b 3)
+                [:b 3]
+
 .. hy:function:: (if [test then else])
 
    ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.
