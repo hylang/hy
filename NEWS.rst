@@ -45,6 +45,7 @@ Breaking Changes
 * Tuples are now defined by the form `#(1 2 3)` and compile to the model
   `hy.models.Tuple`
 * Tuples now wrap to `hy.models.Tuple` during model promotion
+* Fraction literals have been removed
 
 Bug Fixes
 ------------------------------
