@@ -60,6 +60,7 @@ Bug Fixes
 * Module names supplied to `hy -m` are now mangled.
 * Literal newlines (of all three styles) are now recognized properly
   in string and bytes literals.
+* ``defmacro`` no longer allows arguments after ``#* args``
 
 New Features
 ------------------------------
