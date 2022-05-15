@@ -106,10 +106,6 @@ Hy              Python            Type
 ``{1 2  3 4}``  ``{1: 2, 3: 4}``  :class:`dict`
 ==============  ================  =================
 
-In addition, Hy has a Clojure-style literal syntax for
-:class:`fractions.Fraction`: ``1/3`` is equivalent to ``fractions.Fraction(1,
-3)``.
-
 The Hy REPL prints output in Hy syntax by default, with the function :hy:func:`hy.repr`::
 
   => [1 2 3]

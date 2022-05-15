@@ -164,12 +164,6 @@ def test_lex_integers():
     assert objs == [Integer(42)]
 
 
-def test_lex_fractions():
-    """Make sure that fractions are valid expressions"""
-    objs = tokenize("1/2")
-    assert objs == [Expression([Symbol("hy._Fraction"), Integer(1), Integer(2)])]
-
-
 def test_lex_expression_float():
     """Make sure expressions can produce floats"""
     objs = tokenize("(foo 2.)")
@@ -239,9 +233,6 @@ def test_lex_digit_separators():
 
     assert tokenize("1_2.3,4") == [Float(12.34)]
     assert tokenize("1_2e3,4") == [Float(12e34)]
-    assert tokenize("1,2/3_4") == [
-        Expression([Symbol("hy._Fraction"), Integer(12), Integer(34)])
-    ]
     assert tokenize("1,0_00j") == [Complex(1000j)]
 
     assert tokenize("1,,,,___,____,,__,,2__,,,__") == [Integer(12)]
@@ -281,10 +272,6 @@ def test_lex_bad_attrs():
     with lexe():
         tokenize("3.1+5.1j.foo")
     assert tokenize("j.foo")
-    with lexe():
-        tokenize("3/4.foo")
-    assert tokenize("a/1.foo")
-    assert tokenize("1/a.foo")
     with lexe():
         tokenize(":hello.foo")
 

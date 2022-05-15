@@ -5,7 +5,6 @@
         re
         operator [or_]
         itertools [repeat count islice]
-        fractions [Fraction]
         pickle
         typing [get-type-hints List Dict]
         asyncio
@@ -35,10 +34,6 @@
 
 (defn test-binary []
   (assert (= 0b1011101 93)))
-
-
-(defn test-fractions []
-  (assert (= 1/2 (Fraction 1 2))))
 
 
 (defn test-lists []
@@ -1027,7 +1022,6 @@
   (for [x [
       None False True
       5 5.1
-      1/2
       5j 5.1j 2+1j 1.2+3.4j
       "" b""
       "apple bloom" b"apple bloom" "⚘" b"\x00"

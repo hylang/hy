@@ -110,13 +110,6 @@
   (cond
     (and x (in (get x 0) syntax))
       (+ (get syntax (get x 0)) (hy-repr (get x 1)))
-    (and
-         (= (len x) 3)
-         (= (get x 0) 'hy._Fraction)
-         (all (gfor
-           i (cut x 1 None)
-           (isinstance i #(int hy.models.Integer)))))
-        (.join "/" (map hy-repr (cut x 1 None)))
     True
       (+ "(" (_cat x) ")"))))
 
@@ -147,8 +140,6 @@
 
 (hy-repr-register [hy.models.Complex complex] (fn [x]
   (.replace (.replace (.strip (_base-repr x) "()") "inf" "Inf") "nan" "NaN")))
-(hy-repr-register Fraction (fn [x]
-  (.format "{}/{}" (hy-repr x.numerator) (hy-repr x.denominator))))
 
 (hy-repr-register [range slice]
                   (fn [x]
@@ -253,6 +244,9 @@
   (.format "(defaultdict {} {})"
     (hy-repr x.default-factory)
     (hy-repr (dict x)))))
+(hy-repr-register
+  Fraction
+  (fn [x] f"(Fraction {x.numerator} {x.denominator})"))
 
 (for [[types fmt] [
     [[list hy.models.List] "[...]"]
