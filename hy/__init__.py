@@ -15,8 +15,6 @@ import hy.importer  # NOQA
 hy.importer._inject_builtins()
 # we import for side-effects.
 
-from fractions import Fraction as _Fraction  # For fraction literals
-
 # Import some names on demand so that the dependent modules don't have
 # to be loaded if they're not needed.
 

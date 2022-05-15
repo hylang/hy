@@ -56,11 +56,6 @@ def symbol_like(ident, reader=None):
     except ValueError:
         pass
     try:
-        num, denom = ident.split("/")
-        return mkexpr("hy._Fraction", Integer(num), Integer(denom))
-    except ValueError:
-        pass
-    try:
         return Float(ident)
     except ValueError:
         pass
