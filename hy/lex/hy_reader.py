@@ -342,7 +342,7 @@ class HyReader(Reader):
             )
 
         if self.peek_and_getc("^"):
-            return mkexpr("annotate", self.parse_one_form())
+            return mkexpr("annotate", self.parse_one_form(), self.parse_one_form())
 
         tag = None
         # try dispatching tagged ident

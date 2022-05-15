@@ -69,8 +69,9 @@ def pvalue(root, wanted):
     return pexpr(sym(root) + wanted) >> (lambda x: x[0])
 
 
-# Parse an annotation setting.
-OPTIONAL_ANNOTATION = maybe(pvalue("annotate", FORM))
+def maybe_annotated(target):
+    return pexpr(sym("annotate") + FORM + target) | target >> (lambda x: (None, x))
+
 
 # ------------------------------------------------
 # * Fundamentals
@@ -402,7 +403,7 @@ def compile_augassign_expression(compiler, expr, root, target, values):
 # ------------------------------------------------
 
 
-@pattern_macro("setv", [many(OPTIONAL_ANNOTATION + FORM + FORM)])
+@pattern_macro("setv", [many(maybe_annotated(FORM) + FORM)])
 @pattern_macro(((3, 8), "setx"), [times(1, 1, SYM + FORM)])
 def compile_def_expression(compiler, expr, root, decls):
     if not decls:
@@ -415,7 +416,7 @@ def compile_def_expression(compiler, expr, root, decls):
             ann = None
             name, value = decl
         else:
-            ann, name, value = decl
+            (ann, name), value = decl
 
         result += compile_assign(
             compiler, ann, name, value, is_assignment_expr=is_assignment_expr
@@ -1368,8 +1369,8 @@ def compile_catch_expression(compiler, expr, var, exceptions, body):
 # ------------------------------------------------
 
 NASYM = some(lambda x: isinstance(x, Symbol) and x not in (Symbol("/"), Symbol("*")))
-argument = OPTIONAL_ANNOTATION + (NASYM | brackets(NASYM, FORM))
-varargs = lambda unpack_type, wanted: OPTIONAL_ANNOTATION + pvalue(unpack_type, wanted)
+argument = maybe_annotated(NASYM | brackets(NASYM, FORM))
+varargs = lambda unpack_type, wanted: maybe_annotated(pvalue(unpack_type, wanted))
 kwonly_delim = some(lambda x: x == Symbol("*"))
 lambda_list = brackets(
     maybe(many(argument) + sym("/")),
@@ -1380,8 +1381,9 @@ lambda_list = brackets(
 )
 
 
-@pattern_macro(["fn", "fn/a"], [OPTIONAL_ANNOTATION, lambda_list, many(FORM)])
-def compile_function_lambda(compiler, expr, root, returns, params, body):
+@pattern_macro(["fn", "fn/a"], [maybe_annotated(lambda_list), many(FORM)])
+def compile_function_lambda(compiler, expr, root, params, body):
+    returns, params = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
         isinstance(param, tuple) and param[0] is not None
@@ -1406,9 +1408,10 @@ def compile_function_lambda(compiler, expr, root, returns, params, body):
 
 @pattern_macro(
     ["defn", "defn/a"],
-    [maybe(brackets(many(FORM))), OPTIONAL_ANNOTATION, SYM, lambda_list, many(FORM)],
+    [maybe(brackets(many(FORM))), maybe_annotated(SYM), lambda_list, many(FORM)],
 )
-def compile_function_def(compiler, expr, root, decorators, returns, name, params, body):
+def compile_function_def(compiler, expr, root, decorators, name, params, body):
+    returns, name = name
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
     args, ret2 = compile_lambda_list(compiler, params)
@@ -1852,13 +1855,13 @@ def compile_assert_expression(compiler, expr, root, test, msg):
     )
 
 
-@pattern_macro("let", [brackets(many(OPTIONAL_ANNOTATION + FORM + FORM)), many(FORM)])
+@pattern_macro("let", [brackets(many(maybe_annotated(FORM) + FORM)), many(FORM)])
 def compile_let(compiler, expr, root, bindings, body):
     res = Result()
     bindings = bindings[0]
     scope = compiler.scope.create(ScopeLet)
 
-    for ann, target, value in bindings:
+    for (ann, target), value in bindings:
         res += compile_assign(compiler, ann, target, value, let_scope=scope)
 
     with scope:
