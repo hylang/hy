@@ -1,6 +1,5 @@
 import operator
 from contextlib import contextmanager
-from fractions import Fraction
 from functools import reduce
 from itertools import groupby
 from math import isinf, isnan
@@ -628,9 +627,6 @@ class Expression(Sequence):
 
 
 _wrappers[Expression] = recwrap(Expression)
-_wrappers[Fraction] = lambda e: Expression(
-    [Symbol("hy._Fraction"), as_model(e.numerator), as_model(e.denominator)]
-)
 
 
 class Set(Sequence):

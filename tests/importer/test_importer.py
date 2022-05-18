@@ -2,7 +2,6 @@ import ast
 import importlib
 import runpy
 import sys
-from fractions import Fraction
 from importlib import reload
 from pathlib import Path
 
@@ -110,7 +109,6 @@ def test_eval():
     assert eval_str('{"dog" "bark" "cat" "meow"}') == {"dog": "bark", "cat": "meow"}
     assert eval_str("#(1 2 3)") == (1, 2, 3)
     assert eval_str("#{3 1 2}") == {1, 2, 3}
-    assert eval_str("1/2") == Fraction(1, 2)
     assert eval_str('(.strip " fooooo   ")') == "fooooo"
     assert (
         eval_str('(if True "this is if true" "this is if false")') == "this is if true"

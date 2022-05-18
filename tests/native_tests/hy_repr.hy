@@ -5,6 +5,7 @@
   ; Test that a variety of objects round-trip from strings.
   (import
     collections [deque ChainMap OrderedDict]
+    fractions [Fraction]
     re)
 
   (for [original-str (lfor

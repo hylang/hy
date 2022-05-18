@@ -148,7 +148,7 @@
     (assert (= foo 42))
     (try
       (do
-        1/0
+        (/ 1 0)
         (assert False))
       (except [foo Exception]
         ;; let bindings should work in except block
@@ -166,7 +166,7 @@
     (with [foo (pytest.raises ZeroDivisionError)]
       (do
         (assert (!= foo 42))
-        1/0
+        (/ 1 0)
         (assert False)))
     (assert (is (. foo type) ZeroDivisionError))))
 
