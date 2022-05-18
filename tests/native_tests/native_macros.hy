@@ -61,13 +61,14 @@
 (defn test-macro-kw []
   "An error is raised when * or #** is used in a macro"
 
-  (with [excifno (pytest.raises HySyntaxError)]
-    (hy.eval '(defmacro f [* a b]))
-    (assert (= (. excinfo value msg) "macros cannot use '*'")))
+  (with [(pytest.raises HySyntaxError)]
+    (hy.eval '(defmacro f [* a b])))
 
-  (with [excifno (pytest.raises HySyntaxError)]
-    (hy.eval '(defmacro f [#** kw]))
-    (assert (= (. excinfo value msg) "macros cannot use '#**'"))))
+  (with [(pytest.raises HySyntaxError)]
+    (hy.eval '(defmacro f [#** kw])))
+
+  (with [(pytest.raises HySyntaxError)]
+    (hy.eval '(defmacro f [a b #* body c]))))
 
 (defn test-macro-bad-name []
   (with [e (pytest.raises HySyntaxError)]
