@@ -3,6 +3,7 @@
   sys
   types
   contextlib [contextmanager]
+  hy.errors [HyMacroExpansionError]
 
   pytest)
 
@@ -42,6 +43,13 @@
                            ]reader]))
     (eval-isolated (next it) module)
     (assert (= (next it) '"hello, world!"))))
+
+(defn test-bad-reader-macro-name []
+  (with [(pytest.raises HyMacroExpansionError)]
+    (eval-module "(defreader :a-key '1)"))
+
+  (with [(pytest.raises HyMacroExpansionError)]
+    (eval-module "(defreader ^foo '1)")))
 
 (defn test-require-readers []
   (with [module (temp-module "<test>")]
