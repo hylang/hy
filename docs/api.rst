@@ -318,19 +318,19 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    in code, allowing the user to write code in infix notation, where operator is in
    between the operands.
 
-   Examples:
-     ::
+   :strong:`Examples`
+   ::
 
-        => (defmacro infix [code]
-        ...  (quasiquote (
-        ...    (unquote (get code 1))
-        ...    (unquote (get code 0))
-        ...    (unquote (get code 2)))))
+      => (defmacro infix [code]
+      ...  (quasiquote (
+      ...    (unquote (get code 1))
+      ...    (unquote (get code 0))
+      ...    (unquote (get code 2)))))
 
-     ::
+   ::
 
-        => (infix (1 + 1))
-        2
+      => (infix (1 + 1))
+      2
 
    .. note:: because all values are passed to macros unevaluated, ``defmacro``
              cannot use keyword arguments, or kwargs. All arguments are passed
