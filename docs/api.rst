@@ -8,9 +8,9 @@ Core Macros
 The following macros are auto imported into all Hy modules as their
 base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
-.. hy:data:: ^
+.. hy:data:: #^
 
-   The ``^`` symbol is used to denote annotations in three different contexts:
+   The ``#^`` symbol is used to denote annotations in three different contexts:
 
    - Standalone variable annotations.
    - Variable annotations in a setv call.
@@ -19,7 +19,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    They implement `PEP 526 <https://www.python.org/dev/peps/pep-0526/>`_ and
    `PEP 3107 <https://www.python.org/dev/peps/pep-3107/>`_.
 
-   Syntax sugar for :hy:func:`annotate`.
+   Syntax sugar for :hy:func:`annotate` where the type comes first.
 
    Here is some example syntax of all three usages:
 
@@ -28,50 +28,41 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    ::
 
       ; Annotate the variable x as an int (equivalent to `x: int`).
-      (^int x)
+      #^int x
       ; Can annotate with expressions if needed (equivalent to `y: f(x)`).
-      (^(f x) y)
+      #^(f x) y
 
       ; Annotations with an assignment: each annotation (int, str) covers the term that
       ; immediately follows.
       ; Equivalent to: x: int = 1; y = 2; z: str = 3
-      (setv ^int x 1 y 2 ^str z 3)
+      (setv #^int x 1 y 2 #^str z 3)
 
       ; Annotate a as an int, c as an int, and b as a str.
       ; Equivalent to: def func(a: int, b: str = None, c: int = 1): ...
-      (defn func [^int a ^str [b None] ^int [c 1]] ...)
+      (defn func [#^int a #^str [b None] #^int [c 1]] ...)
 
       ; Function return annotations come before the function name (if it exists)
-      (defn ^int add1 [^int x] (+ x 1))
-      (fn ^int [^int y] (+ y 2))
+      (defn #^int add1 [#^int x] (+ x 1))
+      (fn #^int [#^int y] (+ y 2))
 
    The rules are:
 
-   - The value to annotate with is the value that immediately follows the caret.
-   - There must be no space between the caret and the value to annotate, otherwise it will be
-     interpreted as a bitwise XOR like the Python operator.
+   - The type to annotate with is the form that immediately follows the caret.
    - The annotation always comes (and is evaluated) *before* the value being annotated. This is
      unlike Python, where it comes and is evaluated *after* the value being annotated.
 
    For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
    macro will likely be of use.
 
-   .. note::
+.. hy:function:: (annotate [value type])
 
-     Since the addition of type annotations, identifiers that start with ``^``
-     are considered invalid as hy would try to read them as types.
+   Expanded form of :hy:data:`#^`.  Syntactically equal to ``#^`` and usable wherever
+   you might use ``#^``::
 
-.. hy:function:: (annotate [value])
+      (setv (annotate x int) 1)
+      (setv #^int x 1)  ; the type comes first when using #^int
 
-   Expanded form of :hy:data:`^`.  Syntactically equal to ``^`` and usable wherever
-   you might use ``^``::
-
-      (= '^int '(annotate int))
-      True
-
-      (setv (annotate int) x 1)
-
-      (defn (annotate int) add1 [(annotate int) x] (+ x 1))
+      (defn (annotate add1 int) [(annotate x int)] (+ x 1))
 
 
 .. _dot:
@@ -327,19 +318,19 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    in code, allowing the user to write code in infix notation, where operator is in
    between the operands.
 
-   Examples:
-     ::
+   :strong:`Examples`
+   ::
 
-        => (defmacro infix [code]
-        ...  (quasiquote (
-        ...    (unquote (get code 1))
-        ...    (unquote (get code 0))
-        ...    (unquote (get code 2)))))
+      => (defmacro infix [code]
+      ...  (quasiquote (
+      ...    (unquote (get code 1))
+      ...    (unquote (get code 0))
+      ...    (unquote (get code 2)))))
 
-     ::
+   ::
 
-        => (infix (1 + 1))
-        2
+      => (infix (1 + 1))
+      2
 
    .. note:: because all values are passed to macros unevaluated, ``defmacro``
              cannot use keyword arguments, or kwargs. All arguments are passed
@@ -921,8 +912,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
       => (import  dataclasses [dataclass])
       => (defclass [dataclass] Point []
-      ...  (^int x)
-      ...  (^int y))
+      ...  #^int x
+      ...  #^int y)
       => (match (Point 1 2)
       ...  (Point 1 x) :if (= (% x 2) 0) x)
       2

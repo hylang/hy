@@ -308,17 +308,6 @@ class HyReader(Reader):
             self.parse_one_form(),
         )
 
-    @reader_for("^")
-    def annotate_or_xor(self, _):
-        next_char = self.peekc()
-        if not next_char or isnormalizedspace(next_char):
-            return sym("^")
-        elif next_char == "=":
-            self.getc()
-            return sym("^=")
-        else:
-            return mkexpr("annotate", self.parse_one_form())
-
     ###
     # Sequences
     ###
@@ -351,6 +340,11 @@ class HyReader(Reader):
             raise PrematureEndOfInput.from_reader(
                 "Premature end of input while attempting dispatch", self
             )
+
+        if self.peek_and_getc("^"):
+            typ = self.parse_one_form()
+            target = self.parse_one_form()
+            return mkexpr("annotate", target, typ)
 
         tag = None
         # try dispatching tagged ident
