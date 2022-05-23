@@ -189,9 +189,7 @@ def require_reader(source_module, target_module, assignments):
         if name in source_module.__reader_macros__:
             target_macros[name] = source_macros[name]
         else:
-            raise HyRequireError(
-                "Could not require name {} from {}".format(_name, source_module)
-            )
+            raise HyRequireError(f"Could not require name {name} from {source_module}")
 
     return True
 

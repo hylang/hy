@@ -80,4 +80,6 @@
   (with [(pytest.raises hy.errors.HySyntaxError)]
     (eval-module #[[(require tests.resources.tlib [taggart] [upper])]]))
   (with [(pytest.raises hy.errors.HySyntaxError)]
-    (eval-module #[[(require tests.resources.tlib :readers [taggart] :readers [upper])]])))
+    (eval-module #[[(require tests.resources.tlib :readers [taggart] :readers [upper])]]))
+  (with [(pytest.raises hy.errors.HyRequireError)]
+    (eval-module #[[(require tests.resources.tlib :readers [not-a-real-reader])]])))
