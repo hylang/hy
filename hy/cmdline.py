@@ -28,7 +28,7 @@ from hy.errors import (
     hy_exc_handler,
 )
 from hy.importer import HyLoader, runhy
-from hy.lex import mangle, read_module
+from hy.lex import mangle, read_many
 from hy.lex.exceptions import PrematureEndOfInput
 from hy.lex.hy_reader import HyReader
 from hy.macros import enable_readers, require, require_reader
@@ -170,7 +170,8 @@ class HyCompile(codeop.Compile):
             # we need to [re]set these.
             self.hy_compiler.filename = name
             self.hy_compiler.source = source
-            hy_ast = read_module(source, filename=name, reader=self.reader)
+            hy_ast = read_many(source, filename=name, reader=self.reader,
+                skip_shebang=True)
             exec_ast, eval_ast = hy_compile(
                 hy_ast,
                 self.module,
@@ -305,7 +306,7 @@ class HyREPL(code.InteractiveConsole):
 
         # Compile an empty statement to load the standard prelude
         exec_ast = hy_compile(
-            read_module(""), self.module, compiler=self.hy_compiler, import_stdlib=True
+            read_many(""), self.module, compiler=self.hy_compiler, import_stdlib=True
         )
         if self.ast_callback:
             self.ast_callback(exec_ast, None)
@@ -415,7 +416,7 @@ def run_command(source, filename=None):
     with filtered_hy_exceptions():
         try:
             hy_eval(
-                read_module(source, filename=filename),
+                read_many(source, filename=filename, skip_shebang=True),
                 __main__.__dict__,
                 __main__,
                 filename=filename,
@@ -803,7 +804,7 @@ def hy2py_main():
                 print(node)
             yield node
 
-    hst = hy.models.Lazy(printing_source(read_module(source, filename)))
+    hst = hy.models.Lazy(printing_source(read_many(source, filename, skip_shebang=True)))
     hst.source = source
     hst.filename = filename
 

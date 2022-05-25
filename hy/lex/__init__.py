@@ -10,12 +10,11 @@ __all__ = [
     "mangle",
     "unmangle",
     "read",
-    "read_many",
-    "read_module",
+    "read_many"
 ]
 
 
-def read_many(stream, filename="<string>", reader=None):
+def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     """Parse Hy source as a sequence of forms.
 
     Args:
@@ -29,6 +28,12 @@ def read_many(stream, filename="<string>", reader=None):
     if isinstance(stream, str):
         stream = StringIO(stream)
     pos = stream.tell()
+    if skip_shebang:
+        if stream.read(2) == "#!":
+            stream.readline()
+            pos = stream.tell()
+        else:
+            stream.seek(pos)
     source = stream.read()
     stream.seek(pos)
 
@@ -43,32 +48,3 @@ def read(stream, filename=None):
         return next(read_many(stream, filename))
     except StopIteration:
         raise EOFError()
-
-
-def read_module(stream, filename="<string>", reader=None):
-    """Parse a Hy source file's contents. Treats the input as a complete module.
-    Also removes any shebang line at the beginning of the source.
-
-    Args:
-      source (TextIOBase | str): Source code to parse.
-      filename (string, optional): File name corresponding to source. Defaults
-          to "<string>".
-      reader (HyReader, optional): Reader to use, if a new reader should not be
-          created.
-
-    Returns:
-      out : hy.models.Module
-    """
-    if isinstance(stream, str):
-        stream = StringIO(stream)
-
-    # skip shebang
-    if stream.read(2) == "#!":
-        stream.readline()
-    else:
-        stream.seek(0)
-
-    pos = stream.tell()
-    stream.seek(pos)
-
-    return read_many(stream, filename, reader)

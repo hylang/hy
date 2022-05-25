@@ -26,7 +26,7 @@
         (hy.eval tree :locals {} :module module))))
 
 (defn eval-module [s]
-  (eval-isolated (hy.read-module s)))
+  (eval-isolated (hy.read-many s)))
 
 (defn test-reader-macros []
   (assert (= (eval-module #[[(defreader foo '1) #foo]]) 1))

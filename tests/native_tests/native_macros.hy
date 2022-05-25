@@ -145,7 +145,7 @@
 (defn test-gensym-in-macros []
   (import ast)
   (import hy.compiler [hy-compile])
-  (import hy.lex [read-module])
+  (import hy.lex [read-many])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (hy.gensym))
       `(do
@@ -158,8 +158,8 @@
     ")
   ;; expand the macro twice, should use a different
   ;; gensym each time
-  (setv _ast1 (hy-compile (read-module macro1) __name__))
-  (setv _ast2 (hy-compile (read-module macro1) __name__))
+  (setv _ast1 (hy-compile (read-many macro1) __name__))
+  (setv _ast2 (hy-compile (read-many macro1) __name__))
   (setv s1 (ast.unparse _ast1))
   (setv s2 (ast.unparse _ast2))
   ;; and make sure there is something new that starts with _G\uffff
@@ -326,9 +326,9 @@ in expansions."
 
 (defn test-macro-errors []
   (import traceback
-          hy.importer [read-module])
+          hy.importer [read-many])
 
-  (setv test-expr (read-module "(defmacro blah [x] `(print ~@z)) (blah y)"))
+  (setv test-expr (read-many "(defmacro blah [x] `(print ~@z)) (blah y)"))
 
   (with [excinfo (pytest.raises HyMacroExpansionError)]
     (hy.eval test-expr))
