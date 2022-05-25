@@ -63,6 +63,7 @@ Bug Fixes
 * Literal newlines (of all three styles) are now recognized properly
   in string and bytes literals.
 * ``defmacro`` no longer allows arguments after ``#* args``
+* Tracebacks from code parsed with `hy.read` now show source positions.
 
 New Features
 ------------------------------
@@ -77,6 +78,7 @@ New Features
   collected by `(require module *)`
 * New macro `export`
 * `...` is now understood to refer to `Ellipsis`, as in Python.
+* New function `hy.read_many`.
 * new function `hy.model_patterns.parse_if`
 * Added a command-line option `-u` (or `--unbuffered`) per CPython.
 * new function `hy.model_patterns.in_tuple`
