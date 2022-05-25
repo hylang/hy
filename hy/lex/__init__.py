@@ -15,16 +15,23 @@ __all__ = [
 
 
 def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
-    """Parse Hy source as a sequence of forms.
+    """Parse all the Hy source code in ``stream``, which should be a textual file-like
+    object or a string. ``filename``, if provided, is used in error messages. If no
+    ``reader`` is provided, a new :class:`hy.lex.hy_reader.HyReader` object is created.
+    If ``skip_shebang`` is true and a :ref:`shebang line <shebang>` is present, it's
+    detected and discarded first.
 
-    Args:
-      source (TextIOBase | str): Source code to parse.
-      filename (str): File name corresponding to source.  Defaults to None.
-      reader (HyReader): Existing reader, if any, to use.  Defaults to None.
+    Return a value of type :class:`hy.models.Lazy`. If you want to evaluate this, be
+    careful to allow evaluating each model before reading the next, as in ``(hy.eval
+    (hy.read-many o))``. By contrast, forcing all the code to be read before evaluating
+    any of it, as in ``(hy.eval `(do [~@(hy.read-many o)]))``, will yield the wrong
+    result if one form defines a reader macro that's later used in the same stream to
+    produce new forms.
 
-    Returns:
-      hy.models.Lazy: an iterable of parsed models
-    """
+    .. warning::
+       Thanks to reader macros, reading can execute arbitrary code. Don't read untrusted
+       input."""
+
     if isinstance(stream, str):
         stream = StringIO(stream)
     pos = stream.tell()
@@ -44,6 +51,11 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
 
 
 def read(stream, filename=None, reader=None):
+    """Like :hy:func:`hy.read-many`, but only one form is read, and shebangs are
+    forbidden. The model corresponding to this specific form is returned, or, if there
+    are no forms left in the stream, :class:`EOFError` is raised. ``stream.pos`` is left
+    where it was immediately after the form."""
+
     it = read_many(stream, filename, reader)
     try:
         m = next(it)

@@ -658,7 +658,9 @@ _wrappers[tuple] = recwrap(Tuple)
 
 class Lazy(Object):
     """
-    Hy module. A sequence of top-level expressions.
+    The output of :hy:func:`hy.read-many`. It represents a sequence of forms, and can be
+    treated as an iterator. Reading each form lazily, only after evaluating the previous
+    form, is necessary to handle reader macros correctly; see :hy:func:`hy.read-many`.
     """
 
     def __init__(self, gen):

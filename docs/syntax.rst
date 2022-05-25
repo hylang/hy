@@ -66,9 +66,12 @@ can also color these Python representations with ``colorama`` by setting
 .. _hyobject:
 
 .. autoclass:: hy.models.Object
+.. autoclass:: hy.models.Lazy
 
 Non-form syntactic elements
 ---------------------------
+
+.. _shebang:
 
 Shebang
 ~~~~~~~
@@ -76,6 +79,9 @@ Shebang
 If a Hy program begins with ``#!``, Hy assumes the first line is a `shebang
 line <https://en.wikipedia.org/wiki/Shebang_(Unix)>`_ and ignores it. It's up
 to your OS to do something more interesting with it.
+
+Shebangs aren't real Hy syntax, so :hy:func:`hy.read-many` only allows them
+if its option ``skip_shebang`` is enabled.
 
 Whitespace
 ~~~~~~~~~~
