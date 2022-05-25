@@ -6,12 +6,7 @@ import hy.models
 from .hy_reader import HyReader
 from .mangling import mangle, unmangle
 
-__all__ = [
-    "mangle",
-    "unmangle",
-    "read",
-    "read_many"
-]
+__all__ = ["mangle", "unmangle", "read", "read_many"]
 
 
 def read_many(stream, filename="<string>", reader=None, skip_shebang=False):

@@ -170,8 +170,9 @@ class HyCompile(codeop.Compile):
             # we need to [re]set these.
             self.hy_compiler.filename = name
             self.hy_compiler.source = source
-            hy_ast = read_many(source, filename=name, reader=self.reader,
-                skip_shebang=True)
+            hy_ast = read_many(
+                source, filename=name, reader=self.reader, skip_shebang=True
+            )
             exec_ast, eval_ast = hy_compile(
                 hy_ast,
                 self.module,
@@ -804,7 +805,9 @@ def hy2py_main():
                 print(node)
             yield node
 
-    hst = hy.models.Lazy(printing_source(read_many(source, filename, skip_shebang=True)))
+    hst = hy.models.Lazy(
+        printing_source(read_many(source, filename, skip_shebang=True))
+    )
     hst.source = source
     hst.filename = filename
 
