@@ -656,16 +656,14 @@ _wrappers[Tuple] = recwrap(Tuple)
 _wrappers[tuple] = recwrap(Tuple)
 
 
-class Module(Object):
+class Lazy(Object):
     """
     Hy module. A sequence of top-level expressions.
     """
 
-    def __init__(self, gen, source, filename):
+    def __init__(self, gen):
         super().__init__()
         self._gen = gen
-        self.source = source
-        self.filename = filename
 
     def __iter__(self):
         yield from self._gen

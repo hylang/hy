@@ -23,8 +23,8 @@ from hy.models import (
     FString,
     Integer,
     Keyword,
+    Lazy,
     List,
-    Module,
     Object,
     Set,
     String,
@@ -444,7 +444,7 @@ class HyASTCompiler:
 
         return compiled_exprs, ret, keywords
 
-    @builds_model(Module)
+    @builds_model(Lazy)
     def _compile_branch(self, exprs):
         """Make a branch out of an iterable of Result objects
 

@@ -24,13 +24,18 @@ def read_many(stream, filename="<string>", reader=None):
       reader (HyReader): Existing reader, if any, to use.  Defaults to None.
 
     Returns:
-      typing.Iterable[Expression]: the sequence of parsed models, each wrapped
-          in a hy.models.Expression
+      hy.models.Lazy: an iterable of parsed models
     """
-    return (reader or HyReader()).parse(
-        StringIO(stream) if isinstance(stream, str) else stream,
-        filename,
-    )
+    if isinstance(stream, str):
+        stream = StringIO(stream)
+    pos = stream.tell()
+    source = stream.read()
+    stream.seek(pos)
+
+    m = hy.models.Lazy((reader or HyReader()).parse(stream, filename))
+    m.source = source
+    m.filename = filename
+    return m
 
 
 def read(stream, filename=None):
@@ -64,11 +69,6 @@ def read_module(stream, filename="<string>", reader=None):
         stream.seek(0)
 
     pos = stream.tell()
-    source = stream.read()
     stream.seek(pos)
 
-    return hy.models.Module(
-        read_many(stream, filename=filename, reader=reader),
-        source,
-        filename,
-    )
+    return read_many(stream, filename, reader)

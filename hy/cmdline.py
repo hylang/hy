@@ -803,9 +803,9 @@ def hy2py_main():
                 print(node)
             yield node
 
-    hst = hy.models.Module(
-        printing_source(read_module(source, filename=filename)), source, filename
-    )
+    hst = hy.models.Lazy(printing_source(read_module(source, filename)))
+    hst.source = source
+    hst.filename = filename
 
     with filtered_hy_exceptions():
         _ast = hy_compile(hst, "__main__", filename=filename, source=source)

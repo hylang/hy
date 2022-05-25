@@ -17,7 +17,6 @@ from hy.models import (
     Integer,
     Keyword,
     List,
-    Module,
     Set,
     String,
     Symbol,
@@ -25,7 +24,7 @@ from hy.models import (
 
 
 def tokenize(s):
-    return list(Module(read_many(s), s, None))
+    return list(read_many(s))
 
 
 def peoi():
