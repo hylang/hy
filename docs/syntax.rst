@@ -439,7 +439,6 @@ produced is the same whether you take your code with sugar or without.
 ========================== ================
 Macro                      Syntax
 ========================== ================
-:hy:func:`annotate`        ```^FORM``
 :hy:func:`quasiquote`      ```FORM``
 :hy:func:`quote`           ``'FORM``
 :hy:func:`unpack-iterable` ``#* FORM``
