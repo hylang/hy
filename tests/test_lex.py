@@ -601,3 +601,18 @@ def test_lex_exception_filtering(capsys):
             " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
         ],
     )
+
+
+def test_read_error():
+    """Compilation errors from code that was parsed with `hy.read` should have an arrow
+    pointing to the source position where the error arose."""
+
+    import traceback
+    from hy.compiler import hy_eval
+    from hy.errors import hy_exc_handler, HySyntaxError
+    from hy.lex import read
+
+    with pytest.raises(HySyntaxError) as e:
+        hy_eval(read('(do (defn))'))
+    assert ''.join(traceback.format_exception_only(e.type, e.value)).startswith(
+        '  File "<string>", line 1\n    (do (defn))\n         ^\n')

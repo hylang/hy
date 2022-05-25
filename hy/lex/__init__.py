@@ -43,8 +43,12 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     return m
 
 
-def read(stream, filename=None):
+def read(stream, filename=None, reader=None):
+    it = read_many(stream, filename, reader)
     try:
-        return next(read_many(stream, filename))
+        m = next(it)
     except StopIteration:
         raise EOFError()
+    else:
+        m.source, m.filename = it.source, it.filename
+        return m
