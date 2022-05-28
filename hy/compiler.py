@@ -8,6 +8,7 @@ import types
 
 from funcparserlib.parser import NoParseError, many
 
+import hy
 from hy._compat import PY3_8
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
 from hy.lex import mangle
@@ -345,6 +346,8 @@ class HyASTCompiler:
             self.module = importlib.import_module(module)
         else:
             self.module = module
+        self.module.hy = hy
+        # The `hy` module itself should always be in scope.
 
         self.module_name = self.module.__name__
 
@@ -863,12 +866,6 @@ def hy_compile(
 
     compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
 
-    if import_stdlib:
-        # Import hy for compile time, but save the compiled AST.
-        stdlib_ast = compiler.compile(
-            mkexpr("eval-and-compile", mkexpr("import", "hy"))
-        )
-
     with compiler.scope:
         result = compiler.compile(tree)
     expr = result.force_expr
@@ -899,7 +896,8 @@ def hy_compile(
 
         # Import hy for runtime.
         if import_stdlib:
-            body += stdlib_ast.stmts
+            body.append(ast.fix_missing_locations(
+                ast.Import([ast.alias("hy", "hy")])))
 
     body += result.stmts
     ret = root(body=body, type_ignores=[])
