@@ -294,7 +294,9 @@ class Keyword(Object):
 
     def __call__(self, data, default=_sentinel):
         """Get the element of ``data`` named ``(hy.mangle self.name)``. Thus, ``(:foo
-        bar)`` is equivalent to ``(get bar (hy.mangle "foo"))``.
+        bar)`` is equivalent to ``(get bar "foo")`` (which is different from
+        ``(get bar :foo)``; dictionary keys are typically strings, not
+        :class:`hy.models.Keyword` objects).
 
         The optional second parameter is a default value; if provided, any
         :class:`KeyError` from :hy:func:`get` will be caught, and the default returned

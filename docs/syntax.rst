@@ -10,6 +10,10 @@ turns text into, as when invoked with :hy:func:`hy.read`. The basic units of
 syntax at the textual level are called **forms**, and the basic objects
 representing forms are called **models**.
 
+Following Python, Hy is in general case-sensitive. For example, ``foo`` and
+``FOO`` are different symbols, and the Python-level variables they refer to are
+also different.
+
 .. _models:
 
 An introduction to models
@@ -435,7 +439,6 @@ produced is the same whether you take your code with sugar or without.
 ========================== ================
 Macro                      Syntax
 ========================== ================
-:hy:func:`annotate`        ```^FORM``
 :hy:func:`quasiquote`      ```FORM``
 :hy:func:`quote`           ``'FORM``
 :hy:func:`unpack-iterable` ``#* FORM``
