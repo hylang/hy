@@ -26,6 +26,7 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
    syntax
    macros
    repl
+   env_var
    cli
    interop
    model_patterns
