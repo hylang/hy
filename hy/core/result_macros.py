@@ -1829,6 +1829,8 @@ def compile_import(compiler, expr, root, entries):
 # ------------------------------------------------
 # * Miscellany
 # ------------------------------------------------
+
+
 @pattern_macro("assert", [FORM, maybe(FORM)])
 def compile_assert_expression(compiler, expr, root, test, msg):
     if msg is None or type(msg) is Symbol:
