@@ -364,3 +364,9 @@ sneak off to your Hydeaway to do unspeakable things.
 Refer to Python's documentation for the details of Python semantics, and the
 rest of this manual for Hy-specific features. Like Hy itself, the manual is
 incomplete, but :ref:`contributions <hacking>` are always welcome.
+
+Bear in mind that Hy is still unstable, and with each release along the
+way to Hy 1.0, there are new breaking changes. Refer to `the NEWS file
+<https://github.com/hylang/hy/blob/master/NEWS.rst>`_ for how to update your
+code when you upgrade Hy, and be sure you're reading the version of this manual
+(shown at the top of each page) that matches the version of Hy you're running.
