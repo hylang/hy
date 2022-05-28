@@ -193,9 +193,3 @@
     `(eval-and-compile
        (for [~sym ~(lfor name names (hy.mangle name))]
          (when (in ~sym __macros__) (del (get __macros__ ~sym)))))))
-
-
-;; Placeholder macros
-(for [s '[unquote unquote-splice unpack-mapping except finally else]]
-  (hy.compiler.hy-eval `(defmacro ~s [#* args]
-    (raise (ValueError ~f"`{(str s)}` is not allowed here")))))
