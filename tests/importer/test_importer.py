@@ -11,7 +11,7 @@ import hy
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, hy_exc_handler
 from hy.importer import HyLoader
-from hy.lex import read_module
+from hy.lex import read_many
 from hy.lex.exceptions import PrematureEndOfInput
 
 
@@ -45,7 +45,7 @@ def test_runpy():
 
 def test_stringer():
     _ast = hy_compile(
-        read_module("(defn square [x] (* x x))"), __name__, import_stdlib=False
+        read_many("(defn square [x] (* x x))"), __name__, import_stdlib=False
     )
 
     assert type(_ast.body[0]) == ast.FunctionDef
@@ -66,7 +66,7 @@ def test_import_error_reporting():
     "Make sure that (import) reports errors correctly."
 
     with pytest.raises(HyLanguageError):
-        hy_compile(read_module('(import "sys")'), __name__)
+        hy_compile(read_many('(import "sys")'), __name__)
 
 
 def test_import_error_cleanup():

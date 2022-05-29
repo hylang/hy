@@ -23,8 +23,8 @@ from hy.models import (
     FString,
     Integer,
     Keyword,
+    Lazy,
     List,
-    Module,
     Object,
     Set,
     String,
@@ -444,6 +444,7 @@ class HyASTCompiler:
 
         return compiled_exprs, ret, keywords
 
+    @builds_model(Lazy)
     def _compile_branch(self, exprs):
         """Make a branch out of an iterable of Result objects
 
@@ -452,13 +453,14 @@ class HyASTCompiler:
 
         We keep the expression context of the last argument for the returned Result
         """
-        ret = Result()
-        for x in map(self.compile, exprs[:-1]):
-            ret += x
-            ret += x.expr_as_stmt()
-        if exprs:
-            ret += self.compile(exprs[-1])
-        return ret
+        result = Result()
+        last = None
+        for node in exprs:
+            if last is not None:
+                result += last.expr_as_stmt()
+            last = self.compile(node)
+            result += last
+        return result
 
     def _storeize(self, expr, name, func=None):
         """Return a new `name` object with an ast.Store() context"""
@@ -507,17 +509,6 @@ class HyASTCompiler:
         if str(name) in ("None", "True", "False"):
             raise self._syntax_error(name, "Can't assign to constant")
         return name
-
-    @builds_model(Module)
-    def compile_module(self, module):
-        result = Result()
-        last = None
-        for node in module:
-            if last is not None:
-                result += last.expr_as_stmt()
-            last = self.compile(node)
-            result += last
-        return result
 
     @builds_model(Expression)
     def compile_expression(self, expr, *, allow_annotation_expression=False):

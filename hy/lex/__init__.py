@@ -6,69 +6,56 @@ import hy.models
 from .hy_reader import HyReader
 from .mangling import mangle, unmangle
 
-__all__ = [
-    "mangle",
-    "unmangle",
-    "read",
-    "read_many",
-    "read_module",
-]
+__all__ = ["mangle", "unmangle", "read", "read_many"]
 
 
-def read_many(stream, filename="<string>", reader=None):
-    """Parse Hy source as a sequence of forms.
+def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
+    """Parse all the Hy source code in ``stream``, which should be a textual file-like
+    object or a string. ``filename``, if provided, is used in error messages. If no
+    ``reader`` is provided, a new :class:`hy.lex.hy_reader.HyReader` object is created.
+    If ``skip_shebang`` is true and a :ref:`shebang line <shebang>` is present, it's
+    detected and discarded first.
 
-    Args:
-      source (TextIOBase | str): Source code to parse.
-      filename (str): File name corresponding to source.  Defaults to None.
-      reader (HyReader): Existing reader, if any, to use.  Defaults to None.
+    Return a value of type :class:`hy.models.Lazy`. If you want to evaluate this, be
+    careful to allow evaluating each model before reading the next, as in ``(hy.eval
+    (hy.read-many o))``. By contrast, forcing all the code to be read before evaluating
+    any of it, as in ``(hy.eval `(do [~@(hy.read-many o)]))``, will yield the wrong
+    result if one form defines a reader macro that's later used in the same stream to
+    produce new forms.
 
-    Returns:
-      typing.Iterable[Expression]: the sequence of parsed models, each wrapped
-          in a hy.models.Expression
-    """
-    return (reader or HyReader()).parse(
-        StringIO(stream) if isinstance(stream, str) else stream,
-        filename,
-    )
+    .. warning::
+       Thanks to reader macros, reading can execute arbitrary code. Don't read untrusted
+       input."""
 
-
-def read(stream, filename=None):
-    try:
-        return next(read_many(stream, filename))
-    except StopIteration:
-        raise EOFError()
-
-
-def read_module(stream, filename="<string>", reader=None):
-    """Parse a Hy source file's contents. Treats the input as a complete module.
-    Also removes any shebang line at the beginning of the source.
-
-    Args:
-      source (TextIOBase | str): Source code to parse.
-      filename (string, optional): File name corresponding to source. Defaults
-          to "<string>".
-      reader (HyReader, optional): Reader to use, if a new reader should not be
-          created.
-
-    Returns:
-      out : hy.models.Module
-    """
     if isinstance(stream, str):
         stream = StringIO(stream)
-
-    # skip shebang
-    if stream.read(2) == "#!":
-        stream.readline()
-    else:
-        stream.seek(0)
-
     pos = stream.tell()
+    if skip_shebang:
+        if stream.read(2) == "#!":
+            stream.readline()
+            pos = stream.tell()
+        else:
+            stream.seek(pos)
     source = stream.read()
     stream.seek(pos)
 
-    return hy.models.Module(
-        read_many(stream, filename=filename, reader=reader),
-        source,
-        filename,
-    )
+    m = hy.models.Lazy((reader or HyReader()).parse(stream, filename))
+    m.source = source
+    m.filename = filename
+    return m
+
+
+def read(stream, filename=None, reader=None):
+    """Like :hy:func:`hy.read-many`, but only one form is read, and shebangs are
+    forbidden. The model corresponding to this specific form is returned, or, if there
+    are no forms left in the stream, :class:`EOFError` is raised. ``stream.pos`` is left
+    where it was immediately after the form."""
+
+    it = read_many(stream, filename, reader)
+    try:
+        m = next(it)
+    except StopIteration:
+        raise EOFError()
+    else:
+        m.source, m.filename = it.source, it.filename
+        return m

@@ -167,9 +167,9 @@ def test_error_parts_length():
     expression."""
     prg_str = """
     (import hy.errors
-            hy.importer [read-module])
+            hy.importer [read-many])
 
-    (setv test-expr (read-module "(+ 1\n\n'a 2 3\n\n 1)"))
+    (setv test-expr (read-many "(+ 1\n\n'a 2 3\n\n 1)"))
     (setv test-expr.start-line {})
     (setv test-expr.end-line {})
     (setv test-expr.start-column {})

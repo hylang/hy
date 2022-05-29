@@ -17,7 +17,6 @@ from hy.models import (
     Integer,
     Keyword,
     List,
-    Module,
     Set,
     String,
     Symbol,
@@ -25,7 +24,7 @@ from hy.models import (
 
 
 def tokenize(s):
-    return list(Module(read_many(s), s, None))
+    return list(read_many(s))
 
 
 def peoi():
@@ -601,4 +600,21 @@ def test_lex_exception_filtering(capsys):
             " than a name (in order to get attributes of expressions,"
             " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
         ],
+    )
+
+
+def test_read_error():
+    """Compilation errors from code that was parsed with `hy.read` should have an arrow
+    pointing to the source position where the error arose."""
+
+    import traceback
+
+    from hy.compiler import hy_eval
+    from hy.errors import HySyntaxError, hy_exc_handler
+    from hy.lex import read
+
+    with pytest.raises(HySyntaxError) as e:
+        hy_eval(read("(do (defn))"))
+    assert "".join(traceback.format_exception_only(e.type, e.value)).startswith(
+        '  File "<string>", line 1\n    (do (defn))\n         ^\n'
     )
