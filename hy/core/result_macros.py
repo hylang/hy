@@ -1829,6 +1829,8 @@ def compile_import(compiler, expr, root, entries):
 # ------------------------------------------------
 # * Miscellany
 # ------------------------------------------------
+
+
 @pattern_macro("assert", [FORM, maybe(FORM)])
 def compile_assert_expression(compiler, expr, root, test, msg):
     if msg is None or type(msg) is Symbol:
@@ -1866,3 +1868,10 @@ def compile_let(compiler, expr, root, bindings, body):
 
     with scope:
         return res + compiler.compile(mkexpr("do", *body).replace(expr))
+
+
+@pattern_macro(
+    "unquote unquote-splice unpack-mapping except finally else".split(), [many(FORM)]
+)
+def compile_placeholder(compiler, expr, root, body):
+    raise ValueError(f"`{root}` is not allowed here")

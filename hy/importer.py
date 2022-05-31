@@ -116,6 +116,8 @@ def _could_be_hy_src(filename):
 
 def _hy_source_to_code(self, data, path, _optimize=-1):
     if _could_be_hy_src(path):
+        if os.environ.get("HY_MESSAGE_WHEN_COMPILING"):
+            print("Compiling", path, file=sys.stderr)
         source = data.decode("utf-8")
         hy_tree = read_many(source, filename=path, skip_shebang=True)
         with loader_module_obj(self) as module:
@@ -136,8 +138,13 @@ importlib.invalidate_caches()
 
 # These aren't truly cross-compliant.
 # They're useful for testing, though.
-HyImporter = importlib.machinery.FileFinder
-HyLoader = importlib.machinery.SourceFileLoader
+class HyImporter(importlib.machinery.FileFinder):
+    pass
+
+
+class HyLoader(importlib.machinery.SourceFileLoader):
+    pass
+
 
 # We create a separate version of runpy, "runhy", that prefers Hy source over
 # Python.

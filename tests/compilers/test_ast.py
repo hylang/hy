@@ -639,9 +639,9 @@ def test_module_prelude():
     hy_ast = can_compile("", import_stdlib=True)
     assert len(hy_ast.body) == 1
     assert isinstance(hy_ast.body[0], ast.Import)
-    assert hy_ast.body[0].module == "hy"
+    assert hy_ast.body[0].names[0].name == "hy"
 
     hy_ast = can_compile("(setv flag (- hy.models.Symbol 1))", import_stdlib=True)
     assert len(hy_ast.body) == 2
     assert isinstance(hy_ast.body[0], ast.Import)
-    assert hy_ast.body[0].module == "hy"
+    assert hy_ast.body[0].names[0].name == "hy"
