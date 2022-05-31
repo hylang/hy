@@ -138,8 +138,13 @@ importlib.invalidate_caches()
 
 # These aren't truly cross-compliant.
 # They're useful for testing, though.
-class HyImporter(importlib.machinery.FileFinder): pass
-class HyLoader(importlib.machinery.SourceFileLoader): pass
+class HyImporter(importlib.machinery.FileFinder):
+    pass
+
+
+class HyLoader(importlib.machinery.SourceFileLoader):
+    pass
+
 
 # We create a separate version of runpy, "runhy", that prefers Hy source over
 # Python.
