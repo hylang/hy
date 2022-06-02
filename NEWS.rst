@@ -64,6 +64,7 @@ Bug Fixes
   in string and bytes literals.
 * ``defmacro`` no longer allows arguments after ``#* args``
 * Tracebacks from code parsed with `hy.read` now show source positions.
+* Hy now pre-compiles .hy files during setup/installation.
 
 New Features
 ------------------------------
