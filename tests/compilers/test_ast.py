@@ -640,4 +640,6 @@ def test_module_prelude():
         x = can_compile(code, import_stdlib=True).body
         assert len(x) == n
         assert isinstance(x[0], ast.Import)
-        assert x[0].names[0].name == "hy"
+        x = x[0].names[0]
+        assert x.name == "hy"
+        assert x.asname is None
