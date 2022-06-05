@@ -394,7 +394,7 @@ remaining forms are understood as arguments. Use :hy:func:`unpack-iterable` or
 at runtime.
 
 The empty expression ``()`` is legal at the reader level, but has no inherent
-meaning. Trying to compile it is an error.
+meaning. Trying to compile it is an error. For the empty tuple, use ``#()``.
 
 .. autoclass:: hy.models.Expression
 
@@ -437,10 +437,10 @@ Additional sugar
 Syntactic sugar is available to construct two-item :ref:`expressions
 <expressions>` with certain macros. When the sugary characters are encountered
 by the reader, a new expression is created with the corresponding macro as the
-first element and the next parsed form as the second. Thus, since ``'`` is
-short for ``quote``, ``'FORM`` is read as ``(quote FORM)``. No parentheses are
-required. This is all resolved at the reader level, so the model that gets
-produced is the same whether you take your code with sugar or without.
+first element and the next parsed form as the second. No parentheses are
+required. Thus, since ``'`` is short for ``quote``, ``'FORM`` is read as
+``(quote FORM)``. This is all resolved at the reader level, so the model that
+gets produced is the same whether you take your code with sugar or without.
 
 ========================== ================
 Macro                      Syntax
