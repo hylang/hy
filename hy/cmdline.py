@@ -232,6 +232,8 @@ class HyCommandCompiler(codeop.CommandCompiler):
 
 
 class HyREPL(code.InteractiveConsole):
+    "A subclass of :class:`code.InteractiveConsole` for Hy."
+
     def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"):
 
         # Create a proper module for this REPL so that we can obtain it easily
@@ -400,6 +402,8 @@ class HyREPL(code.InteractiveConsole):
         return res
 
     def run(self):
+        "Start running the REPL. Return 0 when done."
+
         import platform
 
         import colorama
