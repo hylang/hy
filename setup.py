@@ -11,9 +11,10 @@ os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
 PKG = "hy"
 
-long_description = """Hy is a Python <--> Lisp layer. It helps
-make things work nicer, and lets Python and the Hy lisp variant play
-nice together. """
+long_description = """Hy is a Lisp dialect that's embedded in Python.
+Since Hy transforms its Lisp code into Python abstract syntax tree (AST)
+objects, you have the whole beautiful world of Python at your fingertips,
+in Lisp form."""
 
 
 class install(install):
@@ -62,7 +63,7 @@ setup(
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,
-    description="Lisp and Python love each other.",
+    description="A Lisp dialect embedded in Python",
     license="Expat",
     url="http://hylang.org/",
     platforms=["any"],
