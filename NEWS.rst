@@ -12,6 +12,7 @@ Removals
   strings, instead.
 * `with-decorator` and `#@` have been removed in favor of decorator
   lists (see below).
+* `hy.cmdline.run_repl` has been replaced with `hy.cmdline.HyREPL.run`.
 
 Breaking Changes
 ------------------------------

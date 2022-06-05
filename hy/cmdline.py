@@ -399,6 +399,37 @@ class HyREPL(code.InteractiveConsole):
 
         return res
 
+    def run(self):
+        import platform
+
+        import colorama
+
+        sys.ps1 = "=> "
+        sys.ps2 = "... "
+
+        builtins.quit = HyQuitter("quit")
+        builtins.exit = HyQuitter("exit")
+        builtins.help = HyHelper()
+
+        colorama.init()
+
+        namespace = self.locals
+        with filtered_hy_exceptions(), extend_linecache(self.cmdline_cache), completion(
+            Completer(namespace)
+        ):
+            self.interact(
+                "Hy {version} using "
+                "{py}({build}) {pyversion} on {os}".format(
+                    version=hy.__version__,
+                    py=platform.python_implementation(),
+                    build=platform.python_build()[0],
+                    pyversion=platform.python_version(),
+                    os=platform.system(),
+                )
+            )
+
+        return 0
+
 
 def set_path(filename):
     """Emulate Python cmdline behavior by setting `sys.path` relative
@@ -429,41 +460,6 @@ def run_command(source, filename=None):
     return 0
 
 
-def run_repl(hr=None, **kwargs):
-    import platform
-
-    import colorama
-
-    sys.ps1 = "=> "
-    sys.ps2 = "... "
-
-    builtins.quit = HyQuitter("quit")
-    builtins.exit = HyQuitter("exit")
-    builtins.help = HyHelper()
-
-    colorama.init()
-
-    if not hr:
-        hr = HyREPL(**kwargs)
-
-    namespace = hr.locals
-    with filtered_hy_exceptions(), extend_linecache(hr.cmdline_cache), completion(
-        Completer(namespace)
-    ):
-        hr.interact(
-            "Hy {version} using "
-            "{py}({build}) {pyversion} on {os}".format(
-                version=hy.__version__,
-                py=platform.python_implementation(),
-                build=platform.python_build()[0],
-                pyversion=platform.python_version(),
-                os=platform.system(),
-            )
-        )
-
-    return 0
-
-
 def run_icommand(source, **kwargs):
     if os.path.exists(source):
         filename = source
@@ -482,7 +478,7 @@ def run_icommand(source, **kwargs):
     if res:
         hy_exc_handler(sys.last_type, sys.last_value, sys.last_traceback)
 
-    return run_repl(hr)
+    return hr.run()
 
 
 USAGE = "hy [-h | -v | -i CMD | -c CMD | -m MODULE | FILE | -] [ARG]..."
@@ -701,7 +697,7 @@ def cmdline_handler(scriptname, argv):
                 hy_exc_handler(*sys.exc_info())
                 sys.exit(1)
 
-    return run_repl(spy=options.get("spy"), output_fn=options.get("repl_output_fn"))
+    return HyREPL(spy=options.get("spy"), output_fn=options.get("repl_output_fn")).run()
 
 
 # entry point for cmd line script "hy"
