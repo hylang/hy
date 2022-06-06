@@ -896,7 +896,7 @@ def hy_compile(
 
         # Import hy for runtime.
         if import_stdlib:
-            body.append(ast.fix_missing_locations(ast.Import([ast.alias("hy", "hy")])))
+            body.append(ast.fix_missing_locations(ast.Import([ast.alias("hy", None)])))
 
     body += result.stmts
     ret = root(body=body, type_ignores=[])

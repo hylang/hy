@@ -636,12 +636,10 @@ def test_models_accessible():
 
 def test_module_prelude():
     """Make sure the hy prelude appears at the top of a compiled module."""
-    hy_ast = can_compile("", import_stdlib=True)
-    assert len(hy_ast.body) == 1
-    assert isinstance(hy_ast.body[0], ast.Import)
-    assert hy_ast.body[0].names[0].name == "hy"
-
-    hy_ast = can_compile("(setv flag (- hy.models.Symbol 1))", import_stdlib=True)
-    assert len(hy_ast.body) == 2
-    assert isinstance(hy_ast.body[0], ast.Import)
-    assert hy_ast.body[0].names[0].name == "hy"
+    for code, n in ("", 1), ("(setv flag (- hy.models.Symbol 1))", 2):
+        x = can_compile(code, import_stdlib=True).body
+        assert len(x) == n
+        assert isinstance(x[0], ast.Import)
+        x = x[0].names[0]
+        assert x.name == "hy"
+        assert x.asname is None
