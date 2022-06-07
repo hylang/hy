@@ -5,6 +5,7 @@ import os
 import fastentrypoints  # Monkey-patches setuptools.
 from get_version import __version__
 from setuptools import find_packages, setup
+from setuptools.command.install import install
 
 os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
@@ -14,14 +15,34 @@ long_description = """Hy is a Python <--> Lisp layer. It helps
 make things work nicer, and lets Python and the Hy lisp variant play
 nice together. """
 
+
+class install(install):
+    def run(self):
+        super().run()
+        import py_compile
+        from glob import glob
+
+        import hy  # for compile hooks
+
+        for path in glob(os.path.join(self.install_lib, "**/*.hy"), recursive=True):
+            py_compile.compile(
+                path, invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH
+            )
+
+
+# both setup_requires and install_requires
+# since we need to compile .hy files during setup
+requires = [
+    "funcparserlib ~= 1.0",
+    "colorama",
+    'astor>=0.8 ; python_version < "3.9"',
+]
+
 setup(
     name=PKG,
     version=__version__,
-    install_requires=[
-        "funcparserlib ~= 1.0",
-        "colorama",
-        'astor>=0.8 ; python_version < "3.9"',
-    ],
+    setup_requires=requires,
+    install_requires=requires,
     python_requires=">= 3.7, < 3.11",
     entry_points={
         "console_scripts": [
@@ -35,10 +56,7 @@ setup(
     },
     packages=find_packages(exclude=["tests*"]),
     package_data={
-        "hy": ["*.hy", "__pycache__/*"],
-        "hy.contrib": ["*.hy", "__pycache__/*"],
-        "hy.core": ["*.hy", "__pycache__/*"],
-        "hy.extra": ["*.hy", "__pycache__/*"],
+        "": ["*.hy"],
     },
     data_files=[("get_version", ["get_version.py"])],
     author="Paul Tagliamonte",
@@ -68,5 +86,8 @@ setup(
     project_urls={
         "Documentation": "https://docs.hylang.org/",
         "Source": "https://github.com/hylang/hy",
+    },
+    cmdclass={
+        "install": install,
     },
 )
