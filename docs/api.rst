@@ -1593,8 +1593,6 @@ the following methods
 
 .. hy:autofunction:: hy.read_many
 
-.. hy:autofunction:: hy.read_module
-
 .. hy:autofunction:: hy.eval
 
 .. hy:autofunction:: hy.repr
