@@ -313,7 +313,7 @@ of using ````` and ``~`` to define a new control construct ``do-while``.
 Sometimes it's nice to be able to call a one-parameter macro without
 parentheses. Tag macros allow this. The name of a tag macro is often just one
 character long, but since Hy allows most Unicode characters in the name of a
-macro (or ordinary variable), you won't out of characters soon. ::
+macro (or ordinary variable), you won't run out of characters soon. ::
 
   => (deftag ↻ [code]
   ...  (setv op (last code) params (list (butlast code)))
