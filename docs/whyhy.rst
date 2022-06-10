@@ -21,7 +21,7 @@ The first thing a Python programmer will notice about Hy is that it has Lisp's
 traditional parenthesis-heavy prefix syntax in place of Python's C-like infix
 syntax. For example, ``print("The answer is", 2 + object.method(arg))`` could
 be written ``(print "The answer is" (+ 2 (.method object arg)))`` in Hy.
-Consequently, Hy is free-form: structure is indicated by parentheses rather
+Consequently, Hy is free-form: structure is indicated by punctuation rather
 than whitespace, making it convenient for command-line use.
 
 As in other Lisps, the value of a simplistic syntax is that it facilitates
@@ -60,8 +60,8 @@ to return values. They can only execute a set of statements:
        f2 = o.read()
     print(len(f1) + len(f2))
 
-In Hy, :ref:`with` returns the value of its last body form, so you can use it
-like an ordinary function call::
+In Hy, :hy:func:`with` returns the value of its last body form, so you can use
+it like an ordinary function call::
 
    (print (+
      (len (with [o (open "foo")] (.read o)))
@@ -126,7 +126,7 @@ benefit of error messages, and models can represent syntactic features that the
 corresponding primitive type can't, such as the order in which elements appear
 in a set literal. However, models can be concatenated and indexed just like
 plain lists, and you can return ordinary Python types from a macro or give them
-to ``hy.eval`` and Hy will automatically promote them to models.
+to :hy:func:`hy.eval` and Hy will automatically promote them to models.
 
 Hy takes much of its semantics from Python. For example, Hy is a Lisp-1 because
 Python functions use the same namespace as objects that aren't functions. In
