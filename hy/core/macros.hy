@@ -56,8 +56,8 @@
 
   Reader macros are expanded at read time and allow you to modify the behavior
   of the Hy reader. Access to the currently instantiated `HyReader` is available
-  in the ``body`` as ``&reader``. See :py:class:`HyReader <hy.lex.hy_reader.HyReader>`
-  and its base class :py:class:`Reader <hy.lex.reader.Reader>` for details
+  in the ``body`` as ``&reader``. See :py:class:`HyReader <hy.reader.hy_reader.HyReader>`
+  and its base class :py:class:`Reader <hy.reader.reader.Reader>` for details
   regarding the available processing methods.
 
   Reader macro names can be any symbol that does not start with a ``^`` and are

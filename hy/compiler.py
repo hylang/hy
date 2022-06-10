@@ -11,7 +11,7 @@ from funcparserlib.parser import NoParseError, many
 import hy
 from hy._compat import PY3_8
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
-from hy.lex import mangle
+from hy.reader import mangle
 from hy.macros import macroexpand
 from hy.model_patterns import FORM, KEYWORD, unpack
 from hy.models import (

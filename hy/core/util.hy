@@ -1,7 +1,7 @@
 (import itertools)
 (import collections.abc [Iterable])
 (import hy.models [Keyword Symbol]
-        hy.lex [mangle unmangle]
+        hy.reader [mangle unmangle]
         hy.compiler [HyASTCompiler calling-module])
 
 (defn disassemble [tree [codegen False]]

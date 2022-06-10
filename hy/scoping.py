@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 import hy._compat
 from hy.errors import HyInternalError
-from hy.lex import mangle
+from hy.reader import mangle
 from hy.models import Expression, List, Symbol, Tuple
 
 

@@ -5,8 +5,8 @@ from math import isnan
 import pytest
 
 from hy.errors import hy_exc_handler
-from hy.lex import read_many
-from hy.lex.exceptions import LexException, PrematureEndOfInput
+from hy.reader import read_many
+from hy.reader.exceptions import LexException, PrematureEndOfInput
 from hy.models import (
     Bytes,
     Complex,
@@ -86,7 +86,7 @@ def test_lex_single_quote_err():
             '  File "<string>", line 1',
             "    '",
             "    ^",
-            "hy.lex.exceptions.LexException: Could not identify the next token.",
+            "hy.reader.exceptions.LexException: Could not identify the next token.",
         ],
     )
 
@@ -139,7 +139,7 @@ def test_lex_strings_exception():
             '  File "<string>", line 1',
             '    "\\x8"',
             "        ^",
-            "hy.lex.exceptions.LexException: (unicode error)"
+            "hy.reader.exceptions.LexException: (unicode error)"
             " 'unicodeescape' codec can't decode bytes in position 0-2:"
             " truncated \\xXX escape (<string>, line 1)",
         ],
@@ -252,7 +252,7 @@ def test_lex_bad_attrs():
             '  File "<string>", line 1',
             "    1.foo",
             "        ^",
-            "hy.lex.exceptions.LexException: Cannot access attribute on anything other"
+            "hy.reader.exceptions.LexException: Cannot access attribute on anything other"
             " than a name (in order to get attributes of expressions,"
             " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
         ],
@@ -582,7 +582,7 @@ def test_lex_exception_filtering(capsys):
             '  File "<string>", line 2',
             "    (foo",
             "       ^",
-            "hy.lex.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form",
+            "hy.reader.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form",
         ],
     )
 
@@ -596,7 +596,7 @@ def test_lex_exception_filtering(capsys):
             '  File "<string>", line 3',
             "    1.foo",
             "        ^",
-            "hy.lex.exceptions.LexException: Cannot access attribute on anything other"
+            "hy.reader.exceptions.LexException: Cannot access attribute on anything other"
             " than a name (in order to get attributes of expressions,"
             " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
         ],
@@ -611,7 +611,7 @@ def test_read_error():
 
     from hy.compiler import hy_eval
     from hy.errors import HySyntaxError, hy_exc_handler
-    from hy.lex import read
+    from hy.reader import read
 
     with pytest.raises(HySyntaxError) as e:
         hy_eval(read("(do (defn))"))

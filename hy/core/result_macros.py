@@ -17,7 +17,7 @@ from funcparserlib.parser import forward_decl, many, maybe, oneplus, some
 
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
-from hy.lex import mangle, unmangle
+from hy.reader import mangle, unmangle
 from hy.macros import pattern_macro, require, require_reader
 from hy.model_patterns import (
     FORM,

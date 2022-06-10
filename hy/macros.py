@@ -18,7 +18,7 @@ from hy.errors import (
     HyRequireError,
     HyTypeError,
 )
-from hy.lex import mangle, unmangle
+from hy.reader import mangle, unmangle
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
 

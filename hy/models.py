@@ -227,7 +227,7 @@ class Symbol(Object, str):
         if not from_parser:
             # Check that the symbol is syntactically legal.
             # import here to prevent circular imports.
-            from hy.lex.hy_reader import symbol_like
+            from hy.reader.hy_reader import symbol_like
 
             sym = symbol_like(s)
             if not isinstance(sym, Symbol):
@@ -255,8 +255,8 @@ class Keyword(Object):
         if not from_parser:
             # Check that the keyword is syntactically legal.
             # import here to prevent circular imports.
-            from hy.lex.hy_reader import HyReader
-            from hy.lex.reader import isnormalizedspace
+            from hy.reader.hy_reader import HyReader
+            from hy.reader.reader import isnormalizedspace
 
             if value and (
                 "." in value
@@ -301,7 +301,7 @@ class Keyword(Object):
         :class:`KeyError` from :hy:func:`get` will be caught, and the default returned
         instead."""
 
-        from hy.lex import mangle
+        from hy.reader import mangle
 
         try:
             return data[mangle(self.name)]

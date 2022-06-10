@@ -10,7 +10,7 @@ from functools import partial
 
 import hy
 from hy.compiler import hy_compile
-from hy.lex import read_many
+from hy.reader import read_many
 
 
 @contextmanager

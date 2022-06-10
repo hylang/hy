@@ -11,8 +11,8 @@ import hy
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, hy_exc_handler
 from hy.importer import HyLoader
-from hy.lex import read_many
-from hy.lex.exceptions import PrematureEndOfInput
+from hy.reader import read_many
+from hy.reader.exceptions import PrematureEndOfInput
 
 
 def test_basics():

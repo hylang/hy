@@ -145,7 +145,7 @@
 (defn test-gensym-in-macros []
   (import ast)
   (import hy.compiler [hy-compile])
-  (import hy.lex [read-many])
+  (import hy.reader [read-many])
   (setv macro1 "(defmacro nif [expr pos zero neg]
       (setv g (hy.gensym))
       `(do

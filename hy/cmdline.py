@@ -28,9 +28,9 @@ from hy.errors import (
     hy_exc_handler,
 )
 from hy.importer import HyLoader, runhy
-from hy.lex import mangle, read_many
-from hy.lex.exceptions import PrematureEndOfInput
-from hy.lex.hy_reader import HyReader
+from hy.reader import mangle, read_many
+from hy.reader.exceptions import PrematureEndOfInput
+from hy.reader.hy_reader import HyReader
 from hy.macros import enable_readers, require, require_reader
 
 sys.last_type = None
