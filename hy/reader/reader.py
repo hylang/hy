@@ -48,7 +48,7 @@ class Reader(metaclass=ReaderMeta):
     """A reader base class for reading input character-by-character.
     Only for use as a base class; cannot be instantiated directly.
 
-    See class :py:class:`HyReader <hy.lex.hy_reader.HyReader>` for an example
+    See class :py:class:`HyReader <hy.reader.hy_reader.HyReader>` for an example
     of creating a reader class.
 
     Attributes:

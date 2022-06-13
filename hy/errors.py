@@ -235,9 +235,9 @@ _tb_hidden_modules = {
         _module_filter_name,
         [
             "hy.compiler",
-            "hy.lex",
+            "hy.reader",
             "hy.cmdline",
-            "hy.lex.parser",
+            "hy.reader.parser",
             "hy.importer",
             "hy._compat",
             "hy.macros",

@@ -116,13 +116,14 @@ Discard prefix
 ~~~~~~~~~~~~~~
 
 Like Clojure, Hy supports the Extensible Data Notation discard prefix ``#_``,
-which can be thought of as another kind of comment. When the reader encounters
+which is kind of like a structure-aware comment. When the reader encounters
 ``#_``, it reads and then discards the following form. Thus ``#_`` is similar
-to ``;`` except that normal parsing resumes after the next form ends rather
-than at the start of the next line: ``[dilly #_ and krunk]`` is equivalent to
-``[dilly krunk]``, whereas ``[dilly ; and krunk]`` is equivalent to just
-``[dilly``. Comments indicated by ``;`` can be nested within forms discarded by
-``#_``, but ``#_`` has no special meaning within a comment indicated by ``;``.
+to ``;`` except that reader macros still get executed, and normal parsing
+resumes after the next form ends rather than at the start of the next line:
+``[dilly #_ and krunk]`` is equivalent to ``[dilly krunk]``, whereas ``[dilly ;
+and krunk]`` is equivalent to just ``[dilly``. Comments indicated by ``;`` can
+be nested within forms discarded by ``#_``, but ``#_`` has no special meaning
+within a comment indicated by ``;``.
 
 Identifiers
 -----------
@@ -140,7 +141,7 @@ Numeric literals
 ~~~~~~~~~~~~~~~~
 
 All of :ref:`Python's syntax for numeric literals <py:numbers>` is supported in
-Hy, resulting in a :class:`Integer <hy.models.Integer>`, :class:`Float
+Hy, resulting in an :class:`Integer <hy.models.Integer>`, :class:`Float
 <hy.models.Float>`, or :class:`Complex <hy.models.Complex>`. Hy also provides a
 few extensions:
 

@@ -568,7 +568,7 @@ def test_tracebacks():
         r'  File "(?:<string>|string-[0-9a-f]+)", line 1\n'
         r'    \(print "\n'
         r"           \^\n"
-        r"hy.lex.exceptions.PrematureEndOfInput"
+        r"hy.reader.exceptions.PrematureEndOfInput"
     )
     assert re.search(peoi_re, error)
 

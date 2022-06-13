@@ -19,10 +19,10 @@ hy.importer._inject_builtins()
 # to be loaded if they're not needed.
 
 _jit_imports = dict(
-    read="hy.lex",
-    read_many="hy.lex",
-    mangle="hy.lex",
-    unmangle="hy.lex",
+    read="hy.reader",
+    read_many="hy.reader",
+    mangle="hy.reader",
+    unmangle="hy.reader",
     eval=["hy.compiler", "hy_eval"],
     repr=["hy.core.hy_repr", "hy_repr"],
     repr_register=["hy.core.hy_repr", "hy_repr_register"],

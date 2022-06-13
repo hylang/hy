@@ -12,7 +12,7 @@ __all__ = ["mangle", "unmangle", "read", "read_many"]
 def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     """Parse all the Hy source code in ``stream``, which should be a textual file-like
     object or a string. ``filename``, if provided, is used in error messages. If no
-    ``reader`` is provided, a new :class:`hy.lex.hy_reader.HyReader` object is created.
+    ``reader`` is provided, a new :class:`hy.reader.hy_reader.HyReader` object is created.
     If ``skip_shebang`` is true and a :ref:`shebang line <shebang>` is present, it's
     detected and discarded first.
 
