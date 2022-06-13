@@ -11,7 +11,6 @@ from funcparserlib.parser import NoParseError, many
 import hy
 from hy._compat import PY3_8
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
-from hy.reader import mangle
 from hy.macros import macroexpand
 from hy.model_patterns import FORM, KEYWORD, unpack
 from hy.models import (
@@ -34,6 +33,7 @@ from hy.models import (
     as_model,
     is_unpack,
 )
+from hy.reader import mangle
 from hy.scoping import ScopeGlobal
 
 hy_ast_compile_flags = 0

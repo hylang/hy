@@ -5,8 +5,6 @@ from math import isnan
 import pytest
 
 from hy.errors import hy_exc_handler
-from hy.reader import read_many
-from hy.reader.exceptions import LexException, PrematureEndOfInput
 from hy.models import (
     Bytes,
     Complex,
@@ -21,6 +19,8 @@ from hy.models import (
     String,
     Symbol,
 )
+from hy.reader import read_many
+from hy.reader.exceptions import LexException, PrematureEndOfInput
 
 
 def tokenize(s):

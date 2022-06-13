@@ -17,7 +17,6 @@ from funcparserlib.parser import forward_decl, many, maybe, oneplus, some
 
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
-from hy.reader import mangle, unmangle
 from hy.macros import pattern_macro, require, require_reader
 from hy.model_patterns import (
     FORM,
@@ -56,6 +55,7 @@ from hy.models import (
     Tuple,
     is_unpack,
 )
+from hy.reader import mangle, unmangle
 from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------

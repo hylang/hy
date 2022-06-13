@@ -2,9 +2,9 @@ import pytest
 
 from hy.compiler import HyASTCompiler
 from hy.errors import HyMacroExpansionError
-from hy.reader import read
 from hy.macros import macro, macroexpand, macroexpand_1
 from hy.models import Expression, Float, List, String, Symbol
+from hy.reader import read
 
 
 @macro("test")

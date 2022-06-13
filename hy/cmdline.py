@@ -28,10 +28,10 @@ from hy.errors import (
     hy_exc_handler,
 )
 from hy.importer import HyLoader, runhy
+from hy.macros import enable_readers, require, require_reader
 from hy.reader import mangle, read_many
 from hy.reader.exceptions import PrematureEndOfInput
 from hy.reader.hy_reader import HyReader
-from hy.macros import enable_readers, require, require_reader
 
 sys.last_type = None
 sys.last_value = None

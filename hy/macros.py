@@ -18,9 +18,9 @@ from hy.errors import (
     HyRequireError,
     HyTypeError,
 )
-from hy.reader import mangle, unmangle
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
+from hy.reader import mangle, unmangle
 
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
