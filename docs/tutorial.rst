@@ -225,6 +225,12 @@ Set a function parameter by name with a ``:keyword``::
 
     (test 1 2 :d "y")             ; => [1, 2, None, 'y', ()]
 
+Note that unlike Python, Hy doesn't always evaluate function arguments (or
+the items in a literal list, or the items in a literal dictionary, etc.) in
+the order they appear in the code. But you can always force a particular
+evaluation order with :hy:func:`do`, or with other macros that provide an
+implicit :hy:func:`do`, like :hy:func:`when` or :hy:func:`fn`.
+
 Define classes with :hy:func:`defclass`::
 
     (defclass FooBar []
