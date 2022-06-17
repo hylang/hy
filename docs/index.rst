@@ -24,6 +24,7 @@ the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
    whyhy
    tutorial
    syntax
+   semantics
    macros
    repl
    env_var
