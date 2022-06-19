@@ -21,14 +21,15 @@ class install(install):
     def run(self):
         super().run()
         import py_compile
-        from glob import glob
 
         import hy  # for compile hooks
 
-        for path in glob(os.path.join(self.install_lib, "**/*.hy"), recursive=True):
-            py_compile.compile(
-                path, invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH
-            )
+        for path in set(self.get_outputs()):
+            if path.endswith(".hy"):
+                py_compile.compile(
+                    path,
+                    invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH,
+                )
 
 
 # both setup_requires and install_requires
