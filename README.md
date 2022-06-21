@@ -11,13 +11,13 @@ Hy is a Lisp dialect that's embedded in Python. Since Hy transforms its Lisp
 code into Python abstract syntax tree (AST) objects, you have the whole
 beautiful world of Python at your fingertips, in Lisp form.
 
-To install the latest alpha of Hy, just use the command `pip3 install --pre
+To install the latest release of Hy, just use the command `pip3 install
 --user hy`. Then you can start an interactive read-eval-print loop (REPL) with
 the command `hy`, or run a Hy program with `hy myprogram.hy`.
 
 * [Try Hy with a web console](https://hylang.github.io/hy-interpreter)
-* [Why Hy?](http://docs.hylang.org/en/alpha/whyhy.html)
-* [Tutorial](http://docs.hylang.org/en/alpha/tutorial.html)
+* [Why Hy?](http://docs.hylang.org/en/stable/whyhy.html)
+* [Tutorial](http://docs.hylang.org/en/stable/tutorial.html)
 
 Project
 -------
@@ -25,8 +25,7 @@ Project
 * Code: https://github.com/hylang/hy
 * Documentation:
   * master, for use with the latest revision on GitHub: http://docs.hylang.org/en/master
-  * alpha, for use with the latest alpha release: http://hylang.org/en/alpha
-  * stable, for use with version 0.20.0: http://hylang.org/en/stable
+  * stable, for use with the latest release on PyPI: http://hylang.org/en/stable
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
 * [Hacking on Hy](http://docs.hylang.org/en/master/hacking.html)
