@@ -1,24 +1,40 @@
 .. default-role:: code
 
-Unreleased
+0.24.0 (released 2022-06-23)
 ==============================
+
+This release is a direct successor to 1.0a4. We've returned to 0.*
+version numbers to work around the inflexibility of PyPI and pip
+regarding the default version to install. (We skipped some version
+numbers because this release is several major releases since 0.20.0.)
+Sorry for the mess.
 
 Removals
 ------------------------------
 * Tag macros have been removed. Use reader macros instead, rewriting
   `(defmacro "#foo" [arg] …)` as
   `(defreader foo (setv arg (.parse-one-form &reader)) …)`.
-* `hy.read-str` has been removed. Use `hy.read`, which now accepts
-  strings, instead.
 * `with-decorator` and `#@` have been removed in favor of decorator
   lists (see below).
-* `hy.cmdline.run_repl` has been replaced with `hy.cmdline.HyREPL.run`.
+* Fraction literals have been removed. Use `fractions.Fraction`
+  instead.
+* Unrecognized backslash escapes in string and byte literals are
+  no longer allowed. (They've been `deprecated in Python since 3.6
+  <https://docs.python.org/3.6/reference/lexical_analysis.html#index-23>`_.)
+* A bare `#` is no longer a legal symbol.
+* `u` is no longer allowed as a string prefix. (It had no effect,
+  anyway.)
+* `hy.read-str` has been removed. Use `hy.read`, which now accepts
+  strings, instead.
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
-* `if` now requires all three arguments. For cases with less than
-  three arguments (i.e., with no else-clause), `when` is a drop-in
-  replacement.
+* Tuples are now indicated with `#( … )`, as in `#(1 2 3)`, instead of
+  `(, … )`, as in `(, 1 2 3)`.
+* Tuples have their own model type, `hy.models.Tuple`, instead of
+  being represented as `Expression`\s.
+* `if` now requires all three arguments. For the two-argument case
+  (i.e., with no else-clause), `when` is a drop-in replacement.
 * `cond` has a new unbracketed syntax::
 
      (cond [a b] [x y z])     ; Old
@@ -26,68 +42,61 @@ Breaking Changes
 
 * `defmacro` once again requires the macro name as a symbol, not
   a string literal.
-* The parser has been completely rewritten. It is mostly
-  backwards-compatible, with a few exceptions:
-
-  - Unescaped double quotes are now allowed inside replacement
-    fields of f-strings.
-  - Unrecognized backslash escapes in string and byte literals are
-    now syntax errors. (They've been `deprecated in Python since 3.6
-    <https://docs.python.org/3.6/reference/lexical_analysis.html#index-23>`_.)
-  - ``u`` is no longer allowed as a string prefix. (It had no effect,
-    anyway.)
-  - A bare `#` is no longer a legal symbol.
-
+* Annotations are now indicated by `#^` instead of `^`.
+* `annotate` (but not `#^`) now takes the target first and the type
+  second, as in `(annotate x int)`.
+* The way f-strings are parsed has changed, such that unescaped double
+  quotes are now allowed inside replacement fields.
+* Non-ASCII whitespace is no longer ignored during tokenization like
+  ASCII whitespace.
 * The mangling rules have been refined to account for Python's
   treatment of distinct names as referring to the same variable if
   they're NFKC-equivalent. Very little real code should be affected.
-* Non-ASCII whitespace is no longer ignored by the lexer like ASCII
-  whitespace.
-* Tuples are now defined by the form `#(1 2 3)` and compile to the model
-  `hy.models.Tuple`
-* Tuples now wrap to `hy.models.Tuple` during model promotion
-* Fraction literals have been removed
-* Annotations now use `#^` instead of `^`
-* ``annotate`` takes the target first and the type second. i.e. ``(annotate x int)``
+* `hy.cmdline.run_repl` has been replaced with
+  `hy.cmdline.HyREPL.run`.
 
 Bug Fixes
 ------------------------------
-* Readline is now imported only when necessary to avoid triggering a
-  CPython bug regarding the standard module `curses` (`bpo-2675`_).
-* Elements of `builtins` such as `help` are no longer overridden until
-  the Hy REPL actually starts.
-* Crash when using Keywords as `match` value.
+* Fixed a crash when using keyword objects in `match`.
 * Fixed a scoping bug in comprehensions in `let` bodies.
-* Tab completion in the Hy REPL now properly unmangles symbol names.
-* `!=` with model objects is now consistent with `=`.
-* Module names supplied to `hy -m` are now mangled.
 * Literal newlines (of all three styles) are now recognized properly
   in string and bytes literals.
-* ``defmacro`` no longer allows arguments after ``#* args``
-* Tracebacks from code parsed with `hy.read` now show source positions.
-* Hy now pre-compiles .hy files during setup/installation.
+* `defmacro` no longer allows further arguments after `#* args`.
+* `!=` with model objects is now consistent with `=`.
+* Tracebacks from code parsed with `hy.read` now show source
+  positions.
+* Elements of `builtins` such as `help` are no longer overridden until
+  the REPL actually starts.
+* Readline is now imported only when necessary, to avoid triggering a
+  CPython bug regarding the standard module `curses`
+  (`cpython#46927`_).
+* Module names supplied to `hy -m` are now mangled.
+* Hy now precompiles its own Hy code during installation.
 
 New Features
 ------------------------------
 * Added user-defined reader macros, defined with `defreader`.
+* `defn` and `defclass` now allow a decorator list as their first
+  argument.
+* `...` is now understood to refer to `Ellipsis`, as in Python.
 * Python reserved words are allowed once more as parameter names and
   keyword arguments. Hy includes a workaround for a CPython bug that
   prevents the generation of legal Python code for these cases
-  (`bpo-46520`_).
-* `defn` and `defclass` now allow a decorator list as their first
-  argument.
-* You can now set the variable `_hy_export_macros` to control what macros are
-  collected by `(require module *)`
-* New macro `export`
-* `...` is now understood to refer to `Ellipsis`, as in Python.
-* New function `hy.read_many`.
-* new function `hy.model_patterns.parse_if`
-* Added a command-line option `-u` (or `--unbuffered`) per CPython.
-* new function `hy.model_patterns.in_tuple`
-* new core macro `delmacro` to delete user defined or require'd macros.
+  (`cpython#90678`_).
+* New macro `export`.
 
-.. _bpo-2675: https://bugs.python.org/issue2675#msg265564
-.. _bpo-46520: https://bugs.python.org/issue46520
+  - Or you can set the variable `_hy_export_macros` to control what
+    macros are collected by `(require module *)`.
+
+* New macro `delmacro`.
+* New function `hy.read_many`.
+* New function `hy.model_patterns.parse_if`.
+* New function `hy.model_patterns.in_tuple`.
+* Added a command-line option `-u` (or `--unbuffered`) per CPython.
+* Tab-completion in the REPL now attempts to unmangle names.
+
+.. _cpython#46927: https://github.com/python/cpython/issues/46927#issuecomment-1093418916
+.. _cpython#90678: https://github.com/python/cpython/issues/90678
 
 1.0a4 (released 2022-01-09)
 ==============================
