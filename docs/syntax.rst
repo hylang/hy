@@ -387,7 +387,7 @@ Expressions
 
 Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
 parentheses: ``( … )``. The compiler evaluates expressions by checking the
-first element. If it's a symbol, and the symbol has the name of a currently
+first element. If it's a symbol, and the symbol is the name of a currently
 defined macro, the macro is called. Otherwise, the expression is compiled into
 a Python-level call, with the first element being the calling object. The
 remaining forms are understood as arguments. Use :hy:func:`unpack-iterable` or
