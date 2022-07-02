@@ -175,8 +175,7 @@ For branching on more than one case, try :hy:func:`cond <hy.core.macros.cond>`::
         (print "That variable is jussssst right!"))
 
 The macro ``(when CONDITION THEN-1 THEN-2 …)`` is shorthand for ``(if CONDITION
-(do THEN-1 THEN-2 …) None)``. ``unless`` works the same as ``when``, but inverts the
-condition with ``not``.
+(do THEN-1 THEN-2 …) None)``.
 
 Hy's basic loops are :hy:func:`while` and :hy:func:`for`::
 
