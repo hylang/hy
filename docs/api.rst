@@ -111,7 +111,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        ...              (dict :name "Dave" :age 5)])
 
        => (defn display-people [people filter]
-       ...  (for [person people] (if (filter person) (print (:name person)))))
+       ...  (for [person people] (when (filter person) (print (:name person)))))
 
        => (display-people people (fn [person] (< (:age person) 25)))
        Alice
@@ -714,7 +714,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      iteration clause before the ``:do``.
    - ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
      RVALUE)``.
-   - ``:if CONDITION``, which is equivalent to ``:do (if (not CONDITION)
+   - ``:if CONDITION``, which is equivalent to ``:do (when (not CONDITION)
      (continue))``.
 
    For ``lfor``, ``sfor``, ``gfor``, and ``dfor``,  variables defined by
@@ -1405,7 +1405,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        '(+ 1 2 3 4)
        => `(+ ~@nums)
        '(+ 1 2 3 4)
-       => `[1 2 ~@(if (< (get nums 0) 0) nums)]
+       => `[1 2 ~@(when (< (get nums 0) 0) nums)]
        '[1 2]
 
    Here, the last example evaluates to ``('+' 1 2)``, since the condition
