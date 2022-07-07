@@ -96,64 +96,35 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    unknown keys raises an :exc:`IndexError` (on lists and tuples) or a
    :exc:`KeyError` (on dictionaries).
 
-.. hy:function:: (fn [name #* arags])
+.. hy:function:: (fn [args])
 
-   ``fn``, like Python's ``lambda``, can be used to define an anonymous function.
-   Unlike Python's ``lambda``, the body of the function can comprise several
-   statements. The parameters are similar to ``defn``: the first parameter is
-   vector of parameters and the rest is the body of the function. ``fn`` returns a
-   new function. In the following example, an anonymous function is defined and
-   passed to another function for filtering output::
-
-       => (setv people [(dict :name "Alice" :age 20)
-       ...              (dict :name "Bob" :age 25)
-       ...              (dict :name "Charlie" :age 50)
-       ...              (dict :name "Dave" :age 5)])
-
-       => (defn display-people [people filter]
-       ...  (for [person people] (when (filter person) (print (:name person)))))
-
-       => (display-people people (fn [person] (< (:age person) 25)))
-       Alice
-       Dave
-
-   Just as in normal function definitions, if the first element of the
-   body is a string, it serves as a docstring. This is useful for giving
-   class methods docstrings::
-
-       => (setv times-three
-       ...   (fn [x]
-       ...    "Multiplies input by three and returns the result."
-       ...    (* x 3)))
-
-   This can be confirmed via Python's built-in ``help`` function::
-
-       => (help times-three)
-       Help on function times_three:
-
-       times_three(x)
-       Multiplies input by three and returns result
-       (END)
+   As :hy:func:`defn`, but no name for the new function is required (or
+   allowed), and the newly created function object is returned. Decorators
+   aren't allowed, either. However, the function body is understood identically
+   to that of :hy:func:`defn`, without any of the restrictions of Python's
+   :py:keyword:`lambda`. See :hy:func:`fn/a` for the asynchronous equivalent.
 
 .. hy:function:: (fn/a [name #* args])
 
-   ``fn/a`` is a variant of ``fn`` than defines an anonymous coroutine.
-   The parameters are similar to ``defn/a``: the first parameter is
-   vector of parameters and the rest is the body of the function. ``fn/a`` returns a
-   new coroutine.
+   As :hy:func:`fn`, but the created function object will be a :ref:`coroutine
+   <py:async def>`.
 
 .. hy:function:: (defn [name #* args])
 
-   Define `name` as a function with `args` as the signature, annotations, and body.
-
-   ``defn`` is used to define functions. It requires two arguments: a name (given
-   as a symbol) and a list of parameters (also given as symbols). Any remaining
-   arguments constitute the body of the function::
+   ``defn`` compiles to a :ref:`function definition <py:function>` (or possibly
+   to an assignment of a :ref:`lambda expression <py:lambda>`). It always
+   returns ``None``. It requires two arguments: a name (given as a symbol; see
+   :hy:func:`fn` for anonymous functions) and a "lambda list", or list of
+   parameters (also given as symbols). Any further arguments constitute the
+   body of the function::
 
        (defn name [params] bodyform1 bodyform2...)
 
-   If there at least two body forms, and the first of them is a string literal,
-   this string becomes the :term:`py:docstring` of the function.
+   An empty body is implicitly ``(return None)``. If there at least two body
+   forms, and the first of them is a string literal, this string becomes the
+   :term:`py:docstring` of the function. The final body form is implicitly
+   returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
+   5))``.
 
    ``defn`` accepts two additional, optional arguments: a bracketed list of
    :term:`decorators <py:decorator>` and an annotation (see :hy:data:`^`) for
@@ -162,152 +133,52 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (defn [decorator1 decorator2] ^annotation name [params] …)
 
-   Parameters may be prefixed with the following special symbols. If you use more
-   than one, they can only appear in the given order (so all positional only arguments
-   must precede ``/``, all positional or keyword arguments must precede a ``#*`` rest
-   parameter or ``*`` kwonly delimiter and ``#**`` must be the last argument).
-   This is the same order that Python requires.
+   To define asynchronous functions, see :hy:func:`defn/a` and :hy:func:`fn/a`.
 
-   /
-       The preceding parameters can only be supplied as positional arguments.
+   ``defn`` lambda lists support all the same features as Python parameter
+   lists and hence are complex in their full generality. The simplest case is a
+   (possibly empty) list of symbols, indicating that all parameters are
+   required, and can be set by position, as in ``(f value)``, or by name, as in
+   ``(f :argument value)``. To set a default value for a parameter, replace the
+   parameter with the bracketed list ``[pname value]``, where ``pname`` is the
+   parameter name as a symbol and ``value`` is an arbitrary form. Beware that,
+   per Python, ``value`` is evaluated when the function is defined, not when
+   it's called, and if the resulting object is mutated, all calls will see the
+   changes.
 
-   positional or keyword arguments:
-       All parameters until following ``/`` (if its supplied) but before ``*/#*/#**``
-       can be supplied positionally or by keyword. Optional arguments may be given as
-       two-argument lists, where the first element is the parameter name and the second
-       is the default value. When defining parameters, a positional argument cannot follow
-       a keyword argument.
+   Further special lambda-list syntax includes:
 
-       The following example defines a function with one required positional argument
-       as well as three optional arguments. The first optional argument defaults to ``None``
-       and the latter two default to ``\"(\"`` and ``\")\"``, respectively::
+   ``/``
+        If the symbol ``/`` is given in place of a parameter, it means that all
+        the preceding parameters can only be set positionally.
 
-         => (defn format-pair [left-val [right-val None] [open-text \"(\"] [close-text \")\"]]
-         ...  (+ open-text (str left-val) \", \" (str right-val) close-text))
+   ``*``
+        If the symbol ``*`` is given in place of a parameter, it means that all
+        the following parameters can only be set by name.
 
-         => (format-pair 3)
-         \"(3, None)\"
+   ``#* args``
+        If the parameter list contains ``#* args`` or ``(unpack-iterable
+        args)``, then ``args`` is set to a tuple containing all otherwise
+        unmatched positional arguments. The name ``args`` is merely cherished
+        Python tradition; you can use any symbol.
 
-         => (format-pair \"A\" \"B\")
-         \"(A, B)\"
+   ``#** kwargs``
+        ``#** kwargs`` (a.k.a. ``(unpack-mapping kwargs)``) is like ``#*
+        args``, but collects unmatched keyword arguments into a dictionary.
 
-         => (format-pair \"A\" \"B\" \"<\" \">\")
-         \"<A, B>\"
+   Each of these special constructs is allowed only once, and has the same
+   restrictions as in Python; e.g., ``#* args`` must precede ``#** kwargs`` if
+   both are present. Here's an example with a complex lambda list::
 
-         => (format-pair \"A\" :open-text \"<\" :close-text \">\")
-         \"<A, None>\"
-
-   #*
-       The following parameter will contain a list of 0 or more positional arguments.
-       No other positional parameters may be specified after this one. Parameters
-       defined after this but before ``#**`` are considered keyword only.
-
-       The following code example defines a function that can be given 0 to n
-       numerical parameters. It then sums every odd number and subtracts
-       every even number::
-
-           => (defn zig-zag-sum [#* numbers]
-                (setv odd-numbers (lfor x numbers :if (% x 2) x)
-                      even-numbers (lfor x numbers :if (= (% x 2) 0) x))
-                (- (sum odd-numbers) (sum even-numbers)))
-
-           => (zig-zag-sum)
-           0
-           => (zig-zag-sum 3 9 4)
-           8
-           => (zig-zag-sum 1 2 3 4 5 6)
-           -3
-
-   *
-
-       All following parmaeters can only be supplied as keywords.
-       Like keyword arguments, the parameter may be marked as optional by
-       declaring it as a two-element list containing the parameter name
-       following by the default value. Parameters without a default are
-       considered required::
-
-           => (defn compare [a b * keyfn [reverse False]]
-           ...  (setv result (keyfn a b))
-           ...  (if (not reverse)
-           ...    result
-           ...    (- result)))
-           => (compare \"lisp\" \"python\"
-           ...         :keyfn (fn [x y]
-           ...                  (reduce - (map (fn [s] (ord (get s 0))) [x y]))))
-           -4
-           => (compare \"lisp\" \"python\"
-           ...         :keyfn (fn [x y]
-           ...                   (reduce - (map (fn [s] (ord (get s 0))) [x y])))
-           ...         :reverse True)
-           4
-
-       .. code-block:: python
-
-           => (compare \"lisp\" \"python\")
-           Traceback (most recent call last):
-             File \"<input>\", line 1, in <module>
-           TypeError: compare() missing 1 required keyword-only argument: 'keyfn'
-
-   #**
-       Like ``#*``, but for keyword arguments.
-       The following parameter will contain 0 or more keyword arguments.
-
-       The following code examples defines a function that will print all keyword
-       arguments and their values::
-
-           => (defn print-parameters [#** kwargs]
-           ...    (for [#(k v) (.items kwargs)] (print k v)))
-
-           => (print-parameters :parameter-1 1 :parameter-2 2)
-           parameter_1 1
-           parameter_2 2
-
-           ; to avoid the mangling of '-' to '_', use unpacking:
-           => (print-parameters #** {\"parameter-1\" 1 \"parameter-2\" 2})
-           parameter-1 1
-           parameter-2 2
-
-   .. _reserved_param_names:
-
-   .. note::
-
-      Parameter names cannot be Python reserved words nor can a function
-      be called with keyword arguments that are Python reserved words. This means
-      that the following will raise a `SyntaxError` as they would in Python::
-
-         (defn afunc [a b if])
-         Traceback (most recent call last):
-           File "<stdin>", line 1
-             (defn afunc [a b if])
-                              ^
-         hy.errors.HySyntaxError: parameter name cannot be Python reserved word
-
-         (dict :a 1 :from 2)
-         Traceback (most recent call last):
-           File "<stdin>", line 1
-             (dict :a 1 :from 2)
-                        ^
-         hy.errors.HySyntaxError: keyword argument cannot be Python reserved word
-
-      This only applies to parameter names and a keyword argument name. The value of
-      the parameter or keyword argument can still be a keyword of a reserved word::
-
-         => (defn test [a] a)
-         => (test :a :from)
-         :from
+    (defn f [a / b [c 3] * d e #** kwargs]
+      [a b c d e kwargs])
+    (print (hy.repr (f 1 2 :d 4 :e 5 :f 6)))
+      ; => [1 2 3 4 5 {"f" 6}]
 
 .. hy:function:: (defn/a [name lambda-list #* body])
 
-   Define `name` as a function with `lambda-list` signature and body `body`.
-
-   ``defn/a`` macro is a variant of ``defn`` that instead defines
-   coroutines. It takes three parameters: the *name* of the function to
-   define, a vector of *parameters*, and the *body* of the function:
-
-   Examples:
-     ::
-
-        => (defn/a name [params] body)
+   As :hy:func:`defn`, but defines a :ref:`coroutine <py:async def>` like
+   Python's ``async def``.
 
 .. hy:function:: (defmacro [name lambda-list #* body])
 
