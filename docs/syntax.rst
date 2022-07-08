@@ -387,7 +387,7 @@ Expressions
 
 Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
 parentheses: ``( … )``. The compiler evaluates expressions by checking the
-first element. If it's a symbol, and the symbol has the name of a currently
+first element. If it's a symbol, and the symbol is the name of a currently
 defined macro, the macro is called. Otherwise, the expression is compiled into
 a Python-level call, with the first element being the calling object. The
 remaining forms are understood as arguments. Use :hy:func:`unpack-iterable` or
@@ -419,11 +419,11 @@ Dictionary literals
 ~~~~~~~~~~~~~~~~~~~
 
 Literal dictionaries (:class:`dict`, :class:`Dict <hy.models.Dict>`) are
-denoted by ``{ … }``. Odd-numbered child forms become the keys whereas
-even-numbered child forms become the values. For example, ``{"a" 1 "b" 2}``
-produces a dictionary mapping ``"a"`` to ``1`` and ``"b"`` to ``2``. Trying to
-compile a :class:`Dict <hy.models.Dict>` with an odd number of child models is
-an error.
+denoted by ``{ … }``. Even-numbered child forms (counting the first as 0)
+become the keys whereas odd-numbered child forms become the values. For
+example, ``{"a" 1 "b" 2}`` produces a dictionary mapping ``"a"`` to ``1`` and
+``"b"`` to ``2``. Trying to compile a :class:`Dict <hy.models.Dict>` with an
+odd number of child models is an error.
 
 As in Python, calling :class:`dict` with keyword arguments is often more
 convenient than using a literal dictionary.

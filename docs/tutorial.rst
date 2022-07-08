@@ -148,8 +148,7 @@ Conditional logic can be built with :hy:func:`if`::
 
 As in this example, ``if`` is called like ``(if CONDITION THEN ELSE)``. It
 executes and returns the form ``THEN`` if ``CONDITION`` is true (according to
-:class:`bool`) and ``ELSE`` otherwise. If ``ELSE`` is omitted, ``None`` is used
-in its place.
+:class:`bool`) and ``ELSE`` otherwise.
 
 What if you want to use more than form in place of the ``THEN`` or ``ELSE``
 clauses, or in place of ``CONDITION``, for that matter? Use the macro
@@ -176,8 +175,7 @@ For branching on more than one case, try :hy:func:`cond <hy.core.macros.cond>`::
         (print "That variable is jussssst right!"))
 
 The macro ``(when CONDITION THEN-1 THEN-2 …)`` is shorthand for ``(if CONDITION
-(do THEN-1 THEN-2 …))``. ``unless`` works the same as ``when``, but inverts the
-condition with ``not``.
+(do THEN-1 THEN-2 …) None)``.
 
 Hy's basic loops are :hy:func:`while` and :hy:func:`for`::
 
