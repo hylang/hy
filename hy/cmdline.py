@@ -15,6 +15,7 @@ import time
 import traceback
 import types
 from contextlib import contextmanager
+from pathlib import Path
 
 import hy
 from hy._compat import PY3_9
@@ -438,11 +439,9 @@ class HyREPL(code.InteractiveConsole):
 def set_path(filename):
     """Emulate Python cmdline behavior by setting `sys.path` relative
     to the executed file's location."""
-    path = os.path.realpath(os.path.dirname(filename))
     if sys.path[0] == "":
-        sys.path[0] = path
-    else:
-        sys.path.insert(0, path)
+        sys.path.pop(0)
+    sys.path.insert(0, str(Path(filename).parent.resolve()))
 
 
 def run_command(source, filename=None):
@@ -465,7 +464,7 @@ def run_command(source, filename=None):
 
 
 def run_icommand(source, **kwargs):
-    if os.path.exists(source):
+    if Path(source).exists():
         filename = source
         set_path(source)
         with open(source, "r", encoding="utf-8") as f:
