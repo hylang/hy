@@ -148,6 +148,10 @@ few extensions:
 - Commas (``,``) can be used like underscores (``_``) to separate digits
   without changing the result. Thus, ``10_000_000_000`` may also be written
   ``10,000,000,000``.
+- Integers can begin with leading zeroes, even without a radix prefix like
+  ``0x``. Leading zeroes don't automatically cause the literal to be
+  interpreted in octal like they do in C. For octal, use the prefix ``0o``, as
+  in Python.
 - ``NaN``, ``Inf``, and ``-Inf`` are understood as literals. Each produces a
   :class:`Float <hy.models.Float>`.
 - Hy allows complex literals as understood by the constructor for

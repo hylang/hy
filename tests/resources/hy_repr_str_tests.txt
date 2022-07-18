@@ -117,6 +117,7 @@
 !(slice 0 5 2)
 !(range 0 5 -2)
 !(slice 0 5 -2)
+!(slice [1 2 3] #(4 6) "hello")
 
 ;; * Regexen
 
