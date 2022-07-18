@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+==============================
+
+Bug Fixes
+------------------------------
+* Fixed `hy.repr` of `slice` objects with non-integer arguments.
+
 0.24.0 (released 2022-06-23)
 ==============================
 

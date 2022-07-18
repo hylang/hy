@@ -144,11 +144,12 @@
 (hy-repr-register [range slice]
                   (fn [x]
                     (setv op (. (type x) __name__))
+                    (defn r [attr] (hy.repr (getattr x attr)))
                     (if (= x.step (if (is (type x) range) 1 None))
                         (if (= x.start (if (is (type x) range) 0 None))
-                            f"({op} {x.stop})"
-                            f"({op} {x.start} {x.stop})")
-                        f"({op} {x.start} {x.stop} {x.step})")))
+                            f"({op} {(r "stop")})"
+                            f"({op} {(r "start")} {(r "stop")})")
+                        f"({op} {(r "start")} {(r "stop")} {(r "step")})")))
 
 (hy-repr-register
   hy.models.FComponent
