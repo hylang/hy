@@ -6,6 +6,7 @@ Unreleased
 Bug Fixes
 ------------------------------
 * Fixed `hy.repr` of `slice` objects with non-integer arguments.
+* `__file__` should now be set the same way as in Python.
 
 0.24.0 (released 2022-06-23)
 ==============================

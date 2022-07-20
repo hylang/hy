@@ -8,6 +8,7 @@ import importlib
 import io
 import linecache
 import os
+import platform
 import py_compile
 import runpy
 import sys
@@ -405,8 +406,6 @@ class HyREPL(code.InteractiveConsole):
     def run(self):
         "Start running the REPL. Return 0 when done."
 
-        import platform
-
         import colorama
 
         sys.ps1 = "=> "
@@ -680,13 +679,20 @@ def cmdline_handler(scriptname, argv):
 
         else:
             # User did "hy <filename>"
-            filename = argv[0]
+
+            filename = Path(argv[0])
             set_path(filename)
+            # Ensure __file__ is set correctly in the code we're about
+            # to run.
+            if PY3_9 and not filename.is_absolute():
+                filename = Path.cwd() / filename
+            if PY3_9 and platform.system() == "Windows":
+                filename = os.path.normpath(filename)
 
             try:
                 sys.argv = argv
                 with filtered_hy_exceptions():
-                    runhy.run_path(filename, run_name="__main__")
+                    runhy.run_path(str(filename), run_name="__main__")
                 return 0
             except FileNotFoundError as e:
                 print(
