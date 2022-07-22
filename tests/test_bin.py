@@ -3,12 +3,16 @@
 
 import builtins
 import os
+import platform
 import re
 import shlex
 import subprocess
 from importlib.util import cache_from_source
+from pathlib import Path
 
 import pytest
+
+from hy._compat import PY3_9
 
 
 def pyr(s=""):
@@ -654,3 +658,36 @@ def test_output_buffering(tmp_path):
             _, stderr = run_cmd(f"hy {flag} {pf}", stdout=o)
         assert stderr.strip() == expected
         assert tf.read_text().splitlines() == ["line 1", "line 2"]
+
+
+def test_uufileuu(tmp_path, monkeypatch):
+    # `__file__` should be set the same way as in Python.
+    # https://github.com/hylang/hy/issues/2318
+
+    (tmp_path / "realdir").mkdir()
+    (tmp_path / "realdir" / "hyex.hy").write_text('(print __file__)')
+    (tmp_path / "realdir" / "pyex.py").write_text('print(__file__)')
+
+    def file_is(arg, expected_py3_9):
+        expected = expected_py3_9 if PY3_9 else Path(arg)
+        output, _ = run_cmd("python3 " + shlex.quote(arg + "pyex.py"))
+        assert output.rstrip() == str(expected / "pyex.py")
+        output, _ = run_cmd("hy " + shlex.quote(arg + "hyex.hy"))
+        assert output.rstrip() == str(expected / "hyex.hy")
+
+    monkeypatch.chdir(tmp_path)
+    file_is("realdir/", tmp_path / "realdir")
+
+    monkeypatch.chdir(tmp_path / "realdir")
+    file_is("", tmp_path / "realdir")
+
+    (tmp_path / "symdir").symlink_to("realdir", target_is_directory = True)
+    monkeypatch.chdir(tmp_path)
+    file_is("symdir/", tmp_path / "symdir")
+
+    (tmp_path / "realdir" / "child").mkdir()
+    monkeypatch.chdir(tmp_path / "realdir" / "child")
+    file_is("../",
+        tmp_path / "realdir"
+        if platform.system() == "Windows" else
+        tmp_path / "realdir" / "child" / "..")
