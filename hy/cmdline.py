@@ -735,12 +735,16 @@ def hyc_main():
     for filename in options.files:
         set_path(filename)
         try:
-            print("Compiling %s" % filename)
+            print(
+                "Compiling {!r} --> {!r}".format(
+                    filename,
+                    importlib.util.cache_from_source(filename)),
+                file = sys.stderr)
             py_compile.compile(filename, doraise=True)
         except py_compile.PyCompileError as error:
             # return value to indicate at least one failure
             rv = 1
-            sys.stderr.write("%s\n" % error.msg)
+            print(error.msg, file = sys.stderr)
         sys.path.pop(0)
     return rv
 
