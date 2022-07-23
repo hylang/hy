@@ -1537,16 +1537,6 @@ cee"} dee" "ey bee\ncee dee"))
    (= (identify-keywords 1 "bloo" :foo)
       ["other" "other" "keyword"])))
 
-(defn test-assert-multistatements []
-  ; https://github.com/hylang/hy/issues/1390
-  (setv l [])
-  (defn f [x]
-    (.append l x)
-    False)
-  (with [(pytest.raises AssertionError)]
-    (assert (do (f 1) (f 2)) (do (f 3) (f 4))))
-  (assert (= l [1 2 3 4])))
-
 (defn test-underscore_variables []
   ; https://github.com/hylang/hy/issues/1340
   (defclass XYZ []

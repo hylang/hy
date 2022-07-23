@@ -691,3 +691,29 @@ def test_uufileuu(tmp_path, monkeypatch):
         tmp_path / "realdir"
         if platform.system() == "Windows" else
         tmp_path / "realdir" / "child" / "..")
+
+
+def test_assert(tmp_path, monkeypatch):
+    # Check when statements pulled out of `assert` are run.
+    # https://github.com/hylang/hy/issues/1390
+    # https://github.com/hylang/hy/issues/2319
+
+    monkeypatch.chdir(tmp_path)
+
+    for has_msg in False, True:
+
+        Path("ex.hy").write_text(
+            "(defn f [test] (assert {} {}))".format(
+               '(do (print "testing") test)',
+               '(do (print "msging") "bye")' if has_msg else ""))
+
+        for optim, test in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            out, err = run_cmd(
+                cmd = "python3 {} {}".format(
+                    ("-O" if optim else ""),
+                    f"-c 'import hy, ex; ex.f({test})'"),
+                expect = (1 if not optim and not test else 0))
+            assert ("testing" in out) == (not optim)
+            show_msg = has_msg and not optim and not test
+            assert ("msging" in out) == show_msg
+            assert ("bye" in err) == show_msg
