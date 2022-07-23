@@ -10,6 +10,10 @@ Bug Fixes
 * Fixed a bug with `python -O` where assertions were still partly
   evaluated.
 
+Misc. Improvements
+------------------------------
+* `hyc` now requires a command-line argument.
+
 0.24.0 (released 2022-06-23)
 ==============================
 

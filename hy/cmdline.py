@@ -724,41 +724,24 @@ def hyc_main():
     parser.add_argument(
         "files",
         metavar="FILE",
-        nargs="*",
-        help=("File(s) to compile (use STDIN if only" ' "-" or nothing is provided)'),
+        nargs="+",
+        help="File(s) to compile"
     )
     parser.add_argument("-v", action="version", version=VERSION)
 
     options = parser.parse_args(sys.argv[1:])
 
     rv = 0
-    if len(options.files) == 0 or (len(options.files) == 1 and options.files[0] == "-"):
-        while True:
-            filename = sys.stdin.readline()
-            if not filename:
-                break
-            filename = filename.rstrip("\n")
-            set_path(filename)
-            try:
-                py_compile.compile(filename, doraise=True)
-            except py_compile.PyCompileError as error:
-                rv = 1
-                sys.stderr.write("%s\n" % error.msg)
-            except OSError as error:
-                rv = 1
-                sys.stderr.write("%s\n" % error)
-            sys.path.pop(0)
-    else:
-        for filename in options.files:
-            set_path(filename)
-            try:
-                print("Compiling %s" % filename)
-                py_compile.compile(filename, doraise=True)
-            except py_compile.PyCompileError as error:
-                # return value to indicate at least one failure
-                rv = 1
-                sys.stderr.write("%s\n" % error.msg)
-            sys.path.pop(0)
+    for filename in options.files:
+        set_path(filename)
+        try:
+            print("Compiling %s" % filename)
+            py_compile.compile(filename, doraise=True)
+        except py_compile.PyCompileError as error:
+            # return value to indicate at least one failure
+            rv = 1
+            sys.stderr.write("%s\n" % error.msg)
+        sys.path.pop(0)
     return rv
 
 

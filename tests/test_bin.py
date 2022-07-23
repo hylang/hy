@@ -341,12 +341,6 @@ def test_file_with_args():
 
 
 def test_hyc():
-    _, err = run_cmd("hyc", expect=0)
-    assert err == ""
-
-    _, err = run_cmd("hyc -", expect=0)
-    assert err == ""
-
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
 
