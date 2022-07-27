@@ -1833,27 +1833,33 @@ def compile_import(compiler, expr, root, entries):
 
 @pattern_macro("assert", [FORM, maybe(FORM)])
 def compile_assert_expression(compiler, expr, root, test, msg):
-    if msg is None or type(msg) is Symbol:
-        ret = compiler.compile(test)
-        return ret + asty.Assert(
-            expr,
-            test=ret.force_expr,
-            msg=(None if msg is None else compiler.compile(msg).force_expr),
-        )
+    test = compiler.compile(test)
+    if msg:
+        msg = compiler.compile(msg)
 
-    # The `msg` part may involve statements, which we only
-    # want to be executed if the assertion fails. Rewrite the
-    # form to set `msg` to a variable.
-    msg_var = compiler.get_anon_var()
-    return compiler.compile(
-        mkexpr(
-            "if",
-            mkexpr("and", "__debug__", mkexpr("not", [test])),
-            mkexpr(
-                "do", mkexpr("setv", msg_var, [msg]), mkexpr("assert", "False", msg_var)
-            ),
-            Symbol("None"),
-        ).replace(expr)
+    if not (test.stmts or (msg and msg.stmts)):
+        return asty.Assert(expr, test=test.force_expr, msg=msg and msg.force_expr)
+
+    return asty.If(
+        expr,
+        test=asty.Name(expr, id="__debug__", ctx=ast.Load()),
+        orelse=[],
+        body=test.stmts
+        + [
+            asty.If(
+                test,
+                test=asty.UnaryOp(test, op=ast.Not(), operand=test.force_expr),
+                orelse=[],
+                body=(msg.stmts if msg else [])
+                + [
+                    asty.Assert(
+                        expr,
+                        test=asty.Constant(test, value=False),
+                        msg=msg and msg.force_expr,
+                    )
+                ],
+            )
+        ],
     )
 
 
