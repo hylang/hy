@@ -1838,19 +1838,29 @@ def compile_assert_expression(compiler, expr, root, test, msg):
         msg = compiler.compile(msg)
 
     if not (test.stmts or (msg and msg.stmts)):
-        return asty.Assert(expr,
-            test = test.force_expr,
-            msg = msg and msg.force_expr)
+        return asty.Assert(expr, test=test.force_expr, msg=msg and msg.force_expr)
 
-    return asty.If(expr,
-        test = asty.Name(expr, id = "__debug__", ctx = ast.Load()),
-        orelse = [],
-        body = test.stmts + [asty.If(test,
-            test = asty.UnaryOp(test, op = ast.Not(), operand = test.force_expr),
-            orelse = [],
-            body = (msg.stmts if msg else []) + [asty.Assert(expr,
-               test = asty.Constant(test, value = False),
-               msg = msg and msg.force_expr)])])
+    return asty.If(
+        expr,
+        test=asty.Name(expr, id="__debug__", ctx=ast.Load()),
+        orelse=[],
+        body=test.stmts
+        + [
+            asty.If(
+                test,
+                test=asty.UnaryOp(test, op=ast.Not(), operand=test.force_expr),
+                orelse=[],
+                body=(msg.stmts if msg else [])
+                + [
+                    asty.Assert(
+                        expr,
+                        test=asty.Constant(test, value=False),
+                        msg=msg and msg.force_expr,
+                    )
+                ],
+            )
+        ],
+    )
 
 
 @pattern_macro("let", [brackets(many(maybe_annotated(FORM) + FORM)), many(FORM)])
