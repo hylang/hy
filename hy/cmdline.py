@@ -721,12 +721,7 @@ def hy_main():
 
 def hyc_main():
     parser = argparse.ArgumentParser(prog="hyc")
-    parser.add_argument(
-        "files",
-        metavar="FILE",
-        nargs="+",
-        help="File(s) to compile"
-    )
+    parser.add_argument("files", metavar="FILE", nargs="+", help="File(s) to compile")
     parser.add_argument("-v", action="version", version=VERSION)
 
     options = parser.parse_args(sys.argv[1:])
@@ -737,14 +732,15 @@ def hyc_main():
         try:
             print(
                 "Compiling {!r} --> {!r}".format(
-                    filename,
-                    importlib.util.cache_from_source(filename)),
-                file = sys.stderr)
+                    filename, importlib.util.cache_from_source(filename)
+                ),
+                file=sys.stderr,
+            )
             py_compile.compile(filename, doraise=True)
         except py_compile.PyCompileError as error:
             # return value to indicate at least one failure
             rv = 1
-            print(error.msg, file = sys.stderr)
+            print(error.msg, file=sys.stderr)
         sys.path.pop(0)
     return rv
 
