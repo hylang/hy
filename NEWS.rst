@@ -10,6 +10,12 @@ Bug Fixes
 * Fixed a bug with `python -O` where assertions were still partly
   evaluated.
 
+Misc. Improvements
+------------------------------
+* `hyc` now requires a command-line argument.
+* `hyc` prints each path it writes bytecode to, and its messages now
+  go to standard error instead of standard output.
+
 0.24.0 (released 2022-06-23)
 ==============================
 

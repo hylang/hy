@@ -74,7 +74,7 @@ and return code to be executed at run-time.
 Comments start with a ``;`` character and continue till the end of the line. A
 comment is functionally equivalent to whitespace. ::
 
-    (print (** 2 64))   ; Max 64-bit unsigned integer value
+    (setv password "susan")   ; My daughter's name
 
 Although ``#`` isn't a comment character in Hy, a Hy program can begin with a
 `shebang line <https://en.wikipedia.org/wiki/Shebang_(Unix)>`_, which Hy itself

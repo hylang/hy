@@ -341,18 +341,12 @@ def test_file_with_args():
 
 
 def test_hyc():
-    _, err = run_cmd("hyc", expect=0)
-    assert err == ""
-
-    _, err = run_cmd("hyc -", expect=0)
-    assert err == ""
-
     output, _ = run_cmd("hyc -h")
     assert "usage" in output
 
     path = "tests/resources/argparse_ex.hy"
-    output, _ = run_cmd("hyc " + path)
-    assert "Compiling" in output
+    _, err = run_cmd("hyc " + path)
+    assert "Compiling" in err
     assert os.path.exists(cache_from_source(path))
     rm(cache_from_source(path))
 
