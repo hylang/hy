@@ -448,7 +448,7 @@ class HyReader(Reader):
                 s = s[:-n_closing_chars]
                 break
             # check if c is start of component
-            if is_fstring and c == "{":
+            if is_fstring and c == "{" and s[-3:] != ["\\", "N", "{"]:
                 # check and handle "{{"
                 if self.peek_and_getc("{"):
                     s.append("{")
