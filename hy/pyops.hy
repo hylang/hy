@@ -28,7 +28,7 @@ evaluate all arguments."
   (setv name (get doc 0))
   (setv d (dfor
     [k v] (zip (cut doc 1 None 2) (cut doc 2 None 2))
-    [k.name (if (= v 'None) None (str v))]))
+    k.name (if (= v 'None) None (str v))))
   (setv pyop (.get d "pyop" (.replace (str op) "-" " ")))
   `(defn ~op ~lambda-list
     ~(.format "The {} operator. {}\n\n{}"

@@ -8,13 +8,13 @@
   ; Forms that get compiled to real comprehensions
   (assert (is (type (lfor x "abc" x)) list))
   (assert (is (type (sfor x "abc" x)) set))
-  (assert (is (type (dfor x "abc" [x x])) dict))
+  (assert (is (type (dfor x "abc" x x)) dict))
   (assert (is (type (gfor x "abc" x)) types.GeneratorType))
 
   ; Forms that get compiled to loops
   (assert (is (type (lfor x "abc" :do (setv y 1) x)) list))
   (assert (is (type (sfor x "abc" :do (setv y 1) x)) set))
-  (assert (is (type (dfor x "abc" :do (setv y 1) [x x])) dict))
+  (assert (is (type (dfor x "abc" :do (setv y 1) x x)) dict))
   (assert (is (type (gfor x "abc" :do (setv y 1) x)) types.GeneratorType)))
 
 
@@ -88,7 +88,7 @@
     (setv expr (+ (hy.models.Expression
                     [(hy.models.Symbol specialop)]) (cut expr 1 None)))
     (when (= specialop "dfor")
-      (setv expr (+ (cut expr -1) `([~(get expr -1) 1]))))
+      (+= expr `(1)))
     (when (= specialop "for")
       (setv expr `(do
         (setv out [])
@@ -110,7 +110,7 @@
   (assert (= (lfor 1) []))
   (assert (= (sfor 1) #{}))
   (assert (= (list (gfor 1)) []))
-  (assert (= (dfor [1 2]) {})))
+  (assert (= (dfor 1 2) {})))
 
 
 (defn test-raise-in-comp []
