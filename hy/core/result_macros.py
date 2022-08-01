@@ -13,7 +13,7 @@ import textwrap
 from contextlib import nullcontext
 from itertools import dropwhile
 
-from funcparserlib.parser import forward_decl, many, maybe, oneplus, some
+from funcparserlib.parser import forward_decl, many, maybe, oneplus, some, finished
 
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
@@ -698,7 +698,9 @@ loopers = many(
     ["for"], [brackets(loopers), many(notpexpr("else")) + maybe(dolike("else"))]
 )
 @pattern_macro(["lfor", "sfor", "gfor"], [loopers, FORM])
-@pattern_macro(["dfor"], [loopers, brackets(FORM, FORM)])
+@pattern_macro(["dfor"], [loopers, finished])
+# Here `finished` is a hack replacement for FORM + FORM:
+# https://github.com/vlasovskikh/funcparserlib/issues/75
 def compile_comprehension(compiler, expr, root, parts, final):
     node_class = {
         "for": asty.For,
@@ -715,6 +717,12 @@ def compile_comprehension(compiler, expr, root, parts, final):
         # Compile the parts.
         if is_for:
             parts = parts[0]
+        if node_class is asty.DictComp:
+            if not (parts and parts[-1].tag == 'for'):
+                raise compiler._syntax_error(
+                    parts[-1] if parts else parts,
+                    "`dfor` must end with key and value forms")
+            final = parts.pop().value
         if not parts:
             return Result(
                 expr=asty.parse(
