@@ -538,7 +538,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print (m 3))     ; prints 5
        (print (add 3 6)) ; raises NameError: name 'add' is not defined
 
-.. hy:function:: (lfor [binding iterable #* body])
+.. hy:function:: (lfor [#* args])
 
    The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
@@ -595,7 +595,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    By contrast, iteration and ``:setv`` clauses for ``for`` share the
    caller's scope and are visible outside the form.
 
-.. hy:function:: (dfor [binding iterable #* body])
+.. hy:function:: (dfor [#* args])
 
     ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
     is the same as that of :hy:func:`lfor` except that it takes two trailing
@@ -606,7 +606,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         {0 0  1 10  2 20  3 30  4 40}
 
 
-.. hy:function:: (gfor [binding iterable #* body])
+.. hy:function:: (gfor [#* args])
 
    ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
    is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
@@ -625,7 +625,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        => accum
        [0 1 2 3 4 5]
 
-.. hy:function:: (sfor [binding iterable #* body])
+.. hy:function:: (sfor [#* args])
 
    ``sfor`` creates a set comprehension. ``(sfor CLAUSES VALUE)`` is
    equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
