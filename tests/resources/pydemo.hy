@@ -36,9 +36,9 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv emptyset #{})
 (setv emptydict {})
 
-(setv mylistcomp (lfor x (range 10) :if (% x 2) x))
-(setv mysetcomp (sfor x (range 5) :if (not (% x 2)) x))
-(setv mydictcomp (dfor k "abcde" :if (!= k "c") [k (.upper k)]))
+(setv mylistcomp (lfor  x (range 10)  :if (% x 2)  x))
+(setv mysetcomp (sfor  x (range 5)  :if (not (% x 2))  x))
+(setv mydictcomp (dfor  k "abcde"  :if (!= k "c")  [k (.upper k)]))
 
 (import itertools [cycle])
 (setv mygenexpr (gfor x (cycle [1 2 3]) :if (!= x 2) x))
