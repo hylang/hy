@@ -598,15 +598,11 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:function:: (dfor [binding iterable #* body])
 
     ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
-    is the same as that of `:hy:func:`lfor` except that the final value form must be
-    a literal list of two elements, the first of which becomes each key and
-    the second of which becomes each value.
+    is the same as that of :hy:func:`lfor` except that it takes two trailing
+    arguments. The first is a form producing the key of each dictionary
+    element, and the second produces the value. Thus::
 
-    :strong:`Examples`
-
-    ::
-
-        => (dfor x (range 5) [x (* x 10)])
+        => (dfor  x (range 5)  x (* x 10))
         {0 0  1 10  2 20  3 30  4 40}
 
 
