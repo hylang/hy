@@ -1109,6 +1109,11 @@ cee"} dee" "ey bee\ncee dee"))
       (+ "C[" format-spec "]")))
   (assert (= f"{(C) :  {(str (+ 1 1)) !r :x<5}}" "C[  '2'xx]"))
 
+  ; \N sequences
+  ; https://github.com/hylang/hy/issues/2321
+  (setv ampersand "wich")
+  (assert (= f"sand{ampersand} \N{ampersand} chips" "sandwich & chips"))
+
   ; Format bracket strings
   (assert (= #[f[a{p !r :9}]f] "a'xyzzy'  "))
   (assert (= #[f-string[result: {value :{width}.{precision}}]f-string]

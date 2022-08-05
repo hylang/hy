@@ -15,6 +15,7 @@ Bug Fixes
 * `__file__` should now be set the same way as in Python.
 * Fixed a bug with `python -O` where assertions were still partly
   evaluated.
+* `\N{…}` escape sequences are now recognized in f-strings.
 
 Misc. Improvements
 ------------------------------
