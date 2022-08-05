@@ -13,7 +13,7 @@ import textwrap
 from contextlib import nullcontext
 from itertools import dropwhile
 
-from funcparserlib.parser import forward_decl, many, maybe, oneplus, some, finished
+from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
@@ -718,10 +718,11 @@ def compile_comprehension(compiler, expr, root, parts, final):
         if is_for:
             parts = parts[0]
         if node_class is asty.DictComp:
-            if not (parts and parts[-1].tag == 'for'):
+            if not (parts and parts[-1].tag == "for"):
                 raise compiler._syntax_error(
                     parts[-1] if parts else parts,
-                    "`dfor` must end with key and value forms")
+                    "`dfor` must end with key and value forms",
+                )
             final = parts.pop().value
         if not parts:
             return Result(
