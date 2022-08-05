@@ -3,6 +3,12 @@
 Unreleased
 ==============================
 
+Other Breaking Changes
+------------------------------
+* `dfor` no longer requires brackets around its final arguments, so
+  `(dfor x (range 5) [x (* 2 x)])` is now `(dfor x (range 5) x (* 2
+  x))`.
+
 Bug Fixes
 ------------------------------
 * Fixed `hy.repr` of `slice` objects with non-integer arguments.
