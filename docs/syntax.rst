@@ -306,6 +306,9 @@ producing :class:`Bytes <hy.models.Bytes>` instead.
 Unlike Python, Hy only recognizes string prefixes (``r``, ``b``, and ``f``) in
 lowercase, and doesn't allow the no-op prefix ``u``.
 
+:ref:`F-strings <syntax-fstrings>` are a string-like compound construct
+documented further below.
+
 .. autoclass:: hy.models.String
 .. autoclass:: hy.models.Bytes
 
@@ -319,7 +322,7 @@ similar to Lua's long brackets. Bracket strings have customizable delimiters,
 like the here-documents of other languages. A bracket string begins with
 ``#[FOO[`` and ends with ``]FOO]``, where ``FOO`` is any string not containing
 ``[`` or ``]``, including the empty string. (If ``FOO`` is exactly ``f`` or
-begins with ``f-``, the bracket string is interpreted as a :ref:`format string
+begins with ``f-``, the bracket string is interpreted as an :ref:`f-string
 <syntax-fstrings>`.) For example::
 
    => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
@@ -334,45 +337,6 @@ A bracket string can contain newlines, but if it begins with one, the newline
 is removed, so you can begin the content of a bracket string on the line
 following the opening delimiter with no effect on the content. Any leading
 newlines past the first are preserved.
-
-.. _syntax-fstrings:
-
-Format strings
-~~~~~~~~~~~~~~
-
-A format string (or "f-string", or "formatted string literal") is a string
-literal with embedded code, possibly accompanied by formatting commands. The
-result is an :class:`FString <hy.models.FString>`, Hy f-strings work much like
-:ref:`Python f-strings <py:f-strings>` except that the embedded code is in Hy
-rather than Python.
-
-::
-
-    => (print f"The sum is {(+ 1 1)}.")
-    The sum is 2.
-
-Since ``=``, ``!``, and ``:`` are identifier characters in Hy, Hy decides where
-the code in a replacement field ends (and any debugging ``=``, conversion
-specifier, or format specifier begins) by parsing exactly one form. You can use
-``do`` to combine several forms into one, as usual. Whitespace may be necessary
-to terminate the form::
-
-    => (setv foo "a")
-    => (print f"{foo:x<5}")
-    …
-    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
-    => (print f"{foo :x<5}")
-    axxxx
-
-Unlike Python, whitespace is allowed between a conversion and a format
-specifier.
-
-Also unlike Python, comments and backslashes are allowed in replacement fields.
-The same reader is used for the form to be evaluated as for elsewhere in the
-language. Thus e.g. ``f"{"a"}"`` is legal, and equivalent to ``"a"``.
-
-.. autoclass:: hy.models.FString
-.. autoclass:: hy.models.FComponent
 
 .. _hysequence:
 
@@ -433,6 +397,45 @@ As in Python, calling :class:`dict` with keyword arguments is often more
 convenient than using a literal dictionary.
 
 .. autoclass:: hy.models.Dict
+
+.. _syntax-fstrings:
+
+Format strings
+~~~~~~~~~~~~~~
+
+A format string (or "f-string", or "formatted string literal") is a string
+literal with embedded code, possibly accompanied by formatting commands. The
+result is an :class:`FString <hy.models.FString>`, Hy f-strings work much like
+:ref:`Python f-strings <py:f-strings>` except that the embedded code is in Hy
+rather than Python.
+
+::
+
+    => (print f"The sum is {(+ 1 1)}.")
+    The sum is 2.
+
+Since ``=``, ``!``, and ``:`` are identifier characters in Hy, Hy decides where
+the code in a replacement field ends (and any debugging ``=``, conversion
+specifier, or format specifier begins) by parsing exactly one form. You can use
+``do`` to combine several forms into one, as usual. Whitespace may be necessary
+to terminate the form::
+
+    => (setv foo "a")
+    => (print f"{foo:x<5}")
+    …
+    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
+    => (print f"{foo :x<5}")
+    axxxx
+
+Unlike Python, whitespace is allowed between a conversion and a format
+specifier.
+
+Also unlike Python, comments and backslashes are allowed in replacement fields.
+The same reader is used for the form to be evaluated as for elsewhere in the
+language. Thus e.g. ``f"{"a"}"`` is legal, and equivalent to ``"a"``.
+
+.. autoclass:: hy.models.FString
+.. autoclass:: hy.models.FComponent
 
 .. _more-sugar:
 

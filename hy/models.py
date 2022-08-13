@@ -395,6 +395,11 @@ class Sequence(Object, tuple, _ColoredModel):
     but you can't add, remove, or replace elements. Appending a sequence to another
     iterable object reuses the class of the left-hand-side object, which is useful when
     e.g. you want to concatenate models in a macro.
+
+    When you're recursively descending through a tree of models, testing a model with
+    ``(isinstance x hy.models.Sequence)`` is useful for deciding whether to iterate over
+    ``x``. You can also use the Hyrule function :hy:func:`coll? <hyrule.iterables.coll?>`
+    for this purpose.
     """
 
     def replace(self, other, recursive=True):
