@@ -18,6 +18,7 @@ try:
             .replace("-", "+", 1)
             .replace("-", ".")
         )
+    __version__ = '0.24.0'
 
     with open(VERSIONFILE, "wt") as o:
         o.write("__version__ = {!r}\n".format(__version__))

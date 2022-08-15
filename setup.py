@@ -9,7 +9,7 @@ from setuptools.command.install import install
 
 os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
-PKG = "hy"
+PKG = "dasy-hy"
 
 long_description = """Hy is a Lisp dialect that's embedded in Python.
 Since Hy transforms its Lisp code into Python abstract syntax tree (AST)
@@ -42,7 +42,7 @@ requires = [
 
 setup(
     name=PKG,
-    version=__version__,
+    version="0.24.0",
     setup_requires=["wheel"] + requires,
     install_requires=requires,
     python_requires=">= 3.7, < 3.11",
@@ -66,7 +66,7 @@ setup(
     long_description=long_description,
     description="A Lisp dialect embedded in Python",
     license="Expat",
-    url="http://hylang.org/",
+    url="http://github.com/z80dev/hy",
     platforms=["any"],
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -86,8 +86,7 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     project_urls={
-        "Documentation": "https://docs.hylang.org/",
-        "Source": "https://github.com/hylang/hy",
+        "Source": "https://github.com/z80dev/hy",
     },
     cmdclass={
         "install": install,

@@ -329,7 +329,7 @@ class Integer(Object, int):
     def __new__(cls, number, *args, **kwargs):
         if isinstance(number, str):
             number = strip_digit_separators(number)
-            bases = {"0x": 16, "0o": 8, "0b": 2}
+            bases = {"0o": 8, "0b": 2}
             for leader, base in bases.items():
                 if number.startswith(leader):
                     # We've got a string, known leader, set base.
