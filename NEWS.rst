@@ -9,6 +9,10 @@ Other Breaking Changes
   `(dfor x (range 5) [x (* 2 x)])` is now `(dfor x (range 5) x (* 2
   x))`.
 
+New Features
+------------------------------
+* Python 3.11 is now supported.
+
 Bug Fixes
 ------------------------------
 * Fixed `hy.repr` of `slice` objects with non-integer arguments.
