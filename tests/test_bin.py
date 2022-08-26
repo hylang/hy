@@ -552,7 +552,6 @@ def test_tracebacks():
 
     output, error = run_cmd('hy -i "(require not-a-real-module)"')
     assert output.startswith("=> ")
-    print(error.splitlines())
     req_err(error.splitlines()[2])
 
     # Modeled after
