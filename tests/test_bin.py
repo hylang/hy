@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from hy._compat import PY3_9
+from hy._compat import PY3_9, PYPY
 
 
 def pyr(s=""):
@@ -663,7 +663,7 @@ def test_uufileuu(tmp_path, monkeypatch):
     (tmp_path / "realdir" / "pyex.py").write_text('print(__file__)')
 
     def file_is(arg, expected_py3_9):
-        expected = expected_py3_9 if PY3_9 else Path(arg)
+        expected = expected_py3_9 if PY3_9 and not PYPY else Path(arg)
         output, _ = run_cmd("python3 " + shlex.quote(arg + "pyex.py"))
         assert output.rstrip() == str(expected / "pyex.py")
         output, _ = run_cmd("hy " + shlex.quote(arg + "hyex.hy"))
