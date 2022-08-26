@@ -48,7 +48,9 @@ def check_trace_output(capsys, execinfo, expected):
     hy_exc_handler(execinfo.type, execinfo.value, execinfo.tb)
     captured_w_filtering = capsys.readouterr()[-1].strip("\n")
 
-    output = [x.rstrip() for x in captured_w_filtering.split("\n")]
+    output = [x.rstrip()
+        for x in captured_w_filtering.split("\n")
+        if "^^^" not in x]
 
     # Make sure the filtered frames aren't the same as the unfiltered ones.
     assert output != captured_wo_filtering.split("\n")
