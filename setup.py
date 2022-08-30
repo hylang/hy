@@ -45,7 +45,7 @@ setup(
     version=__version__,
     setup_requires=["wheel"] + requires,
     install_requires=requires,
-    python_requires=">= 3.7, < 3.11",
+    python_requires=">= 3.7, < 3.12",
     entry_points={
         "console_scripts": [
             "hy = hy.cmdline:hy_main",
@@ -81,6 +81,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",

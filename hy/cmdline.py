@@ -19,7 +19,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import hy
-from hy._compat import PY3_9
+from hy._compat import PY3_9, PYPY
 from hy.compiler import HyASTCompiler, hy_ast_compile_flags, hy_compile, hy_eval
 from hy.completer import Completer, completion
 from hy.errors import (
@@ -684,10 +684,11 @@ def cmdline_handler(scriptname, argv):
             set_path(filename)
             # Ensure __file__ is set correctly in the code we're about
             # to run.
-            if PY3_9 and not filename.is_absolute():
-                filename = Path.cwd() / filename
-            if PY3_9 and platform.system() == "Windows":
-                filename = os.path.normpath(filename)
+            if PY3_9 and not PYPY:
+                if not filename.is_absolute():
+                    filename = Path.cwd() / filename
+                if platform.system() == "Windows":
+                    filename = os.path.normpath(filename)
 
             try:
                 sys.argv = argv

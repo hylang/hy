@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from hy._compat import PY3_9
+from hy._compat import PY3_9, PYPY
 
 
 def pyr(s=""):
@@ -522,6 +522,7 @@ def test_macro_require():
     assert output.strip() == "abc"
 
 
+@pytest.mark.skipif(PYPY, reason = 'https://foss.heptapod.net/pypy/pypy/-/issues/3800')
 def test_tracebacks():
     """Make sure the printed tracebacks are correct."""
 
@@ -551,7 +552,6 @@ def test_tracebacks():
 
     output, error = run_cmd('hy -i "(require not-a-real-module)"')
     assert output.startswith("=> ")
-    print(error.splitlines())
     req_err(error.splitlines()[2])
 
     # Modeled after
@@ -587,7 +587,8 @@ def test_tracebacks():
     #     File "<string>", line 1, in <module>
     #   NameError: name 'a' is not defined
     output, error = run_cmd('hy -c "(print a)"', expect=1)
-    error_lines = error.splitlines()
+    # Filter out the underline added by Python 3.11.
+    error_lines = [x for x in error.splitlines() if set(x) != {" ", "^"}]
     assert error_lines[3] == '  File "<string>", line 1, in <module>'
     # PyPy will add "global" to this error message, so we work around that.
     assert error_lines[-1].strip().replace(" global", "") == (
@@ -663,7 +664,7 @@ def test_uufileuu(tmp_path, monkeypatch):
     (tmp_path / "realdir" / "pyex.py").write_text('print(__file__)')
 
     def file_is(arg, expected_py3_9):
-        expected = expected_py3_9 if PY3_9 else Path(arg)
+        expected = expected_py3_9 if PY3_9 and not PYPY else Path(arg)
         output, _ = run_cmd("python3 " + shlex.quote(arg + "pyex.py"))
         assert output.rstrip() == str(expected / "pyex.py")
         output, _ = run_cmd("hy " + shlex.quote(arg + "hyex.hy"))
