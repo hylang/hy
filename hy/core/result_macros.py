@@ -15,6 +15,7 @@ from itertools import dropwhile
 
 from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
+from hy._compat import PY3_11
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
 from hy.macros import pattern_macro, require, require_reader
@@ -1267,10 +1268,10 @@ def compile_raise_expression(compiler, expr, root, exc, cause):
 @pattern_macro(
     "try",
     [
-        many(notpexpr("except", "else", "finally")),
+        many(notpexpr("except", "except*", "else", "finally")),
         many(
             pexpr(
-                sym("except"),
+                keepsym("except") | keepsym("except*"),
                 brackets() | brackets(FORM) | brackets(SYM, FORM),
                 many(FORM),
             )
@@ -1286,6 +1287,7 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
 
     handler_results = Result()
     handlers = []
+    except_syms_seen = set()
     for catcher in catchers:
         # exceptions catch should be either:
         # [[list of exceptions]]
@@ -1297,7 +1299,13 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         # [exception]
         # or
         # []
-        exceptions, ebody = catcher
+        except_sym, exceptions, ebody = catcher
+        if not PY3_11 and except_sym == Symbol("except*"):
+            hy_compiler._syntax_error(except_sym,
+                "`{}` requires Python 3.11 or later")
+        except_syms_seen.add(str(except_sym))
+        if len(except_syms_seen) > 1:
+            raise compiler._syntax_error(except_sym, "cannot have both `except` and `except*` on the same `try`")
 
         name = None
         if len(exceptions) == 2:
@@ -1364,7 +1372,9 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
     )
     body = body.stmts or [asty.Pass(expr)]
 
-    x = asty.Try(expr, body=body, handlers=handlers, orelse=orelse, finalbody=finalbody)
+    x = (asty.TryStar if "except*" in except_syms_seen else asty.Try)(
+        expr, body=body, handlers=handlers, orelse=orelse, finalbody=finalbody
+    )
     return handler_results + x + returnable
 
 
