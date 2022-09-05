@@ -1287,8 +1287,45 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
     handler_results = Result()
     handlers = []
     for catcher in catchers:
-        handler_results += compile_catch_expression(
-            compiler, catcher, return_var, *catcher
+        # exceptions catch should be either:
+        # [[list of exceptions]]
+        # or
+        # [variable [list of exceptions]]
+        # or
+        # [variable exception]
+        # or
+        # [exception]
+        # or
+        # []
+        exceptions, ebody = catcher
+
+        name = None
+        if len(exceptions) == 2:
+            name = mangle(compiler._nonconst(exceptions[0]))
+
+        exceptions_list = exceptions[-1] if exceptions else List()
+        if isinstance(exceptions_list, List):
+            if len(exceptions_list):
+                # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
+                elts, types, _ = compiler._compile_collect(exceptions_list)
+                types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
+            else:
+                # [] → all exceptions caught
+                types = Result()
+        else:
+            types = compiler.compile(exceptions_list)
+
+        # Create a "fake" scope for the exception variable.
+        # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
+        with compiler.scope.create(ScopeLet) as scope:
+            if name:
+                scope.add(name, name)
+            ebody = compiler._compile_branch(ebody)
+        ebody += asty.Assign(catcher, targets=[return_var], value=ebody.force_expr)
+        ebody += ebody.expr_as_stmt()
+
+        handler_results += types + asty.ExceptHandler(
+            catcher, type=types.expr, name=name, body=ebody.stmts or [asty.Pass(catcher)]
         )
         handlers.append(handler_results.stmts.pop())
 
@@ -1329,48 +1366,6 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
 
     x = asty.Try(expr, body=body, handlers=handlers, orelse=orelse, finalbody=finalbody)
     return handler_results + x + returnable
-
-
-def compile_catch_expression(compiler, expr, var, exceptions, body):
-    # exceptions catch should be either:
-    # [[list of exceptions]]
-    # or
-    # [variable [list of exceptions]]
-    # or
-    # [variable exception]
-    # or
-    # [exception]
-    # or
-    # []
-
-    name = None
-    if len(exceptions) == 2:
-        name = mangle(compiler._nonconst(exceptions[0]))
-
-    exceptions_list = exceptions[-1] if exceptions else List()
-    if isinstance(exceptions_list, List):
-        if len(exceptions_list):
-            # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
-            elts, types, _ = compiler._compile_collect(exceptions_list)
-            types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
-        else:
-            # [] → all exceptions caught
-            types = Result()
-    else:
-        types = compiler.compile(exceptions_list)
-
-    # Create a "fake" scope for the exception variable.
-    # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
-    with compiler.scope.create(ScopeLet) as scope:
-        if name:
-            scope.add(name, name)
-        body = compiler._compile_branch(body)
-    body += asty.Assign(expr, targets=[var], value=body.force_expr)
-    body += body.expr_as_stmt()
-
-    return types + asty.ExceptHandler(
-        expr, type=types.expr, name=name, body=body.stmts or [asty.Pass(expr)]
-    )
 
 
 # ------------------------------------------------
