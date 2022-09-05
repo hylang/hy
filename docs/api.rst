@@ -1167,40 +1167,50 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (try [#* body])
 
-   The ``try`` form is used to catch exceptions (``except``) and run cleanup
-   actions (``finally``).
+   ``try`` compiles to a :py:keyword:`try` statement, which can catch
+   exceptions and run cleanup actions. It begins with any number of body forms.
+   Then follows any number of ``except`` or ``except*`` (:pep:`572`) forms,
+   which are expressions that begin with the symbol in question, followed by a
+   list of exception types, followed by more body forms. Finally there are an
+   optional ``else`` form and an optional ``finally`` form, which again are
+   expressions that begin with the symbol in question and then comprise body
+   forms. As in Python, at least one of ``except``, ``except*``, or ``finally``
+   is required; ``else`` is only allowed if at least one ``except`` or
+   ``except*`` is provided; ``except*`` requires Python 3.11; and ``except``
+   and ``except*`` may not both be used in the same ``try``.
 
-   :strong:`Examples`
+   Here's an example of several of the allowed kinds of child forms::
 
-   ::
+     (try
+       (error-prone-function)
+       (another-error-prone-function)
+       (except [ZeroDivisionError]
+         (print "Division by zero"))
+       (except [[IndexError KeyboardInterrupt]]
+         (print "Index error or Ctrl-C"))
+       (except [e ValueError]
+         (print "ValueError:" (repr e)))
+       (except [e [TabError PermissionError ReferenceError]]
+         (print "Some sort of error:" (repr e)))
+       (else
+         (print "No errors"))
+       (finally
+         (print "All done")))
 
-       (try
-         (error-prone-function)
-         (another-error-prone-function)
-         (except [ZeroDivisionError]
-           (print "Division by zero"))
-         (except [[IndexError KeyboardInterrupt]]
-           (print "Index error or Ctrl-C"))
-         (except [e ValueError]
-           (print "ValueError:" (repr e)))
-         (except [e [TabError PermissionError ReferenceError]]
-           (print "Some sort of error:" (repr e)))
-         (else
-           (print "No errors"))
-         (finally
-           (print "All done")))
+   Exception lists can be in any of several formats:
 
-   The first argument of ``try`` is its body, which can contain one or more forms.
-   Then comes any number of ``except`` clauses, then optionally an ``else``
-   clause, then optionally a ``finally`` clause. If an exception is raised with a
-   matching ``except`` clause during the execution of the body, that ``except``
-   clause will be executed. If no exceptions are raised, the ``else`` clause is
-   executed. The ``finally`` clause will be executed last regardless of whether an
-   exception was raised.
+   - ``[]`` to catch any subtype of ``Exception``, like Python's ``except:``
+   - ``[ETYPE]`` to catch only the single type ``ETYPE``, like Python's
+     ```except ETYPE:``
+   - ``[[ETYPE1 ETYPE2 …]]`` to catch any of the named types, like Python's
+     ``except ETYPE1, ETYPE2, …:``
+   - ``[VAR ETYPE]`` to catch ``ETYPE`` and bind it to ``VAR``, like Python's
+     ``except ETYPE as VAR:``
+   - ``[VAR [ETYPE1 ETYPE2 …]]`` to catch any of the named types and bind it to
+     ``VAR``, like Python's ``except ETYPE1, ETYPE2, … as VAR:``
 
-   The return value of ``try`` is the last form of the ``except`` clause that was
-   run, or the last form of ``else`` if no exception was raised, or the ``try``
-   body if there is no ``else`` clause.
+   The return value of ``try`` is the last form evaluated among the main body,
+   ``except`` forms, ``except*`` forms, and ``else``.
 
 .. hy:function:: (unpack-iterable)
 .. hy:function:: (unpack-mapping)
