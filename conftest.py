@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 import hy
-from hy._compat import PY3_8, PY3_10
+from hy._compat import PY3_8, PY3_10, PY3_11
 
 NATIVE_TESTS = os.path.join("", "tests", "native_tests", "")
 
@@ -21,6 +21,7 @@ def pytest_ignore_collect(path, config):
         (sys.version_info < (3, 8), "sub_py3_7_only"),
         (PY3_8, "py3_8_only"),
         (PY3_10, "py3_10_only"),
+        (PY3_11, "py3_11_only"),
     ]
 
     return (

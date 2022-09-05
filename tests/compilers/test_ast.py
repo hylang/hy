@@ -4,6 +4,7 @@ import ast
 
 import pytest
 
+from hy._compat import PY3_11
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyError, HyLanguageError
 from hy.reader import read_many
@@ -17,8 +18,10 @@ def _ast_spotcheck(arg, root, secondary):
     assert getattr(root, arg) == getattr(secondary, arg)
 
 
-def can_compile(expr, import_stdlib=False):
-    return hy_compile(read_many(expr), __name__, import_stdlib=import_stdlib)
+def can_compile(expr, import_stdlib=False, iff=True):
+    return (hy_compile(read_many(expr), __name__, import_stdlib=import_stdlib)
+        if iff
+        else cant_compile(expr))
 
 
 def can_eval(expr):
@@ -128,6 +131,8 @@ def test_ast_good_try():
     can_compile("(try 1 (except [x]) (except [y]) (finally 1))")
     can_compile("(try 1 (except []) (else 1) (finally 1))")
     can_compile("(try 1 (except [x]) (except [y]) (else 1) (finally 1))")
+    can_compile(iff = PY3_11, expr = "(try 1 (except* [x]))")
+    can_compile(iff = PY3_11, expr = "(try 1 (except* [x]) (else 1) (finally 1))")
 
 
 def test_ast_bad_try():
@@ -142,6 +147,8 @@ def test_ast_bad_try():
     cant_compile("(try 1 (else 1) (except []))")
     cant_compile("(try 1 (finally 1) (except []))")
     cant_compile("(try 1 (except []) (finally 1) (else 1))")
+    cant_compile("(try 1 (except* [x]) (except [x]))")
+    cant_compile("(try 1 (except [x]) (except* [x]))")
 
 
 def test_ast_good_except():
