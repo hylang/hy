@@ -1301,11 +1301,12 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         # []
         except_sym, exceptions, ebody = catcher
         if not PY3_11 and except_sym == Symbol("except*"):
-            hy_compiler._syntax_error(except_sym,
-                "`{}` requires Python 3.11 or later")
+            hy_compiler._syntax_error(except_sym, "`{}` requires Python 3.11 or later")
         except_syms_seen.add(str(except_sym))
         if len(except_syms_seen) > 1:
-            raise compiler._syntax_error(except_sym, "cannot have both `except` and `except*` on the same `try`")
+            raise compiler._syntax_error(
+                except_sym, "cannot have both `except` and `except*` on the same `try`"
+            )
 
         name = None
         if len(exceptions) == 2:
@@ -1333,7 +1334,10 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         ebody += ebody.expr_as_stmt()
 
         handler_results += types + asty.ExceptHandler(
-            catcher, type=types.expr, name=name, body=ebody.stmts or [asty.Pass(catcher)]
+            catcher,
+            type=types.expr,
+            name=name,
+            body=ebody.stmts or [asty.Pass(catcher)],
         )
         handlers.append(handler_results.stmts.pop())
 
