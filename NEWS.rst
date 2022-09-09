@@ -12,6 +12,7 @@ Other Breaking Changes
 New Features
 ------------------------------
 * Python 3.11 is now supported.
+* `except*` (PEP 654) is now recognized in `try`.
 
 Bug Fixes
 ------------------------------
