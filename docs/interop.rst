@@ -127,3 +127,19 @@ Then, use the ``hy.eval`` function to evaluate it:
 
     >>> hy.eval(expr)
     38.0
+
+
+Libraries that expect Python
+============================
+
+There are various means by which Hy may interact poorly with a Python library
+because the library doesn't account for the possibility of Hy. For example,
+when you run the command-line program ``hy``, ``sys.executable`` will be set to
+this program rather than the original Python binary. This is helpful more often
+than not, but will lead to trouble if e.g. the library tries to call
+:py:data:`sys.executable` with the ``-c`` option. In this case, you can try
+setting :py:data:`sys.executable` back to ``hy.sys-executable``, which is a
+saved copy of the original value. More generally, you can use ``hy2py``, or you
+can put a simple Python wrapper script like ``import hy, my_hy_program`` in
+front of your code; importing ``hy`` first is necessary here to install the
+hooks that allow Python to load your Hy module.
