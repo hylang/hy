@@ -1169,7 +1169,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    ``try`` compiles to a :py:keyword:`try` statement, which can catch
    exceptions and run cleanup actions. It begins with any number of body forms.
-   Then follows any number of ``except`` or ``except*`` (:pep:`572`) forms,
+   Then follows any number of ``except`` or ``except*`` (:pep:`654`) forms,
    which are expressions that begin with the symbol in question, followed by a
    list of exception types, followed by more body forms. Finally there are an
    optional ``else`` form and an optional ``finally`` form, which again are
