@@ -8,62 +8,51 @@ Core Macros
 The following macros are auto imported into all Hy modules as their
 base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
-.. hy:data:: #^
+.. hy:function:: (annotate [value type])
 
-   The ``#^`` symbol is used to denote annotations in three different contexts:
+   ``annotate`` and its shorthand form ``#^`` are used to denote annotations,
+   including type hints, in three different contexts:
 
-   - Standalone variable annotations.
-   - Variable annotations in a setv call.
-   - Function argument annotations.
+   - Standalone variable annotations (:pep:`526`)
+   - Variable annotations in a :hy:func:`setv` call
+   - Function-parameter annotations (:pep:`3107`)
 
-   They implement `PEP 526 <https://www.python.org/dev/peps/pep-0526/>`_ and
-   `PEP 3107 <https://www.python.org/dev/peps/pep-3107/>`_.
+   The difference between ``annotate`` and ``#^`` is that ``annotate`` requires
+   parentheses and takes the name to be annotated first (like Python), whereas
+   ``#^`` doesn't require parentheses (it only applies to the next two forms)
+   and takes the type second::
 
-   Syntax sugar for :hy:func:`annotate` where the type comes first.
+      (setv (annotate x int) 1)
+      (setv #^int x 1)
 
-   Here is some example syntax of all three usages:
+   The order difference is not merely visual: ``#^`` actually evaluates the
+   type first.
 
-   :strong:`Examples`
+   Here are examples with ``#^`` for all the places you can use annotations::
 
-   ::
-
-      ; Annotate the variable x as an int (equivalent to `x: int`).
+      ; Annotate the variable `x` as an `int` (equivalent to `x: int`).
       #^int x
-      ; Can annotate with expressions if needed (equivalent to `y: f(x)`).
+      ; You can annotate with expressions (equivalent to `y: f(x)`).
       #^(f x) y
 
-      ; Annotations with an assignment: each annotation (int, str) covers the term that
-      ; immediately follows.
-      ; Equivalent to: x: int = 1; y = 2; z: str = 3
-      (setv #^int x 1 y 2 #^str z 3)
+      ; Annotations with an assignment: each annotation `(int, str)`
+      ; covers the term that immediately follows.
+      ; Equivalent to `x: int = 1; y = 2; z: str = 3`
+      (setv  #^int x 1  y 2  #^str z 3)
 
-      ; Annotate a as an int, c as an int, and b as a str.
-      ; Equivalent to: def func(a: int, b: str = None, c: int = 1): ...
-      (defn func [#^int a #^str [b None] #^int [c 1]] ...)
+      ; Annotate `a` as an `int`, `c` as an `int`, and `b` as a `str`.
+      ; Equivalent to `def func(a: int, b: str = None, c: int = 1): ...`
+      (defn func [#^int a  #^str  [b None] #^int  [c 1]] ...)
 
-      ; Function return annotations come before the function name (if it exists)
+      ; Function return annotations come before the function name (if
+      ; it exists).
       (defn #^int add1 [#^int x] (+ x 1))
       (fn #^int [#^int y] (+ y 2))
-
-   The rules are:
-
-   - The type to annotate with is the form that immediately follows the caret.
-   - The annotation always comes (and is evaluated) *before* the value being annotated. This is
-     unlike Python, where it comes and is evaluated *after* the value being annotated.
 
    For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
    macro will likely be of use.
 
-.. hy:function:: (annotate [value type])
-
-   Expanded form of :hy:data:`#^`.  Syntactically equal to ``#^`` and usable wherever
-   you might use ``#^``::
-
-      (setv (annotate x int) 1)
-      (setv #^int x 1)  ; the type comes first when using #^int
-
-      (defn (annotate add1 int) [(annotate x int)] (+ x 1))
-
+   An issue with type annotations is that, as of this writing, we know of no Python type-checker that can work with :py:mod:`ast` objects or bytecode files. They all need Python source text. So you'll have to translate your Hy with ``hy2py`` in order to actually check the types.
 
 .. _dot:
 
