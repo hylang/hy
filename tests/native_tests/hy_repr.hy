@@ -41,8 +41,8 @@
 
 (defn test-hy-repr-no-roundtrip []
   ; Test one of the corner cases in which hy-repr doesn't
-  ; round-trip: when a Hy Object contains a non-Hy Object, we
-  ; promote the constituent to a Hy Object.
+  ; round-trip: when a Hy model contains a non-model, we
+  ; promote the constituent to a model.
 
   (setv orig `[a ~5.0])
   (setv reprd (hy.repr orig))
