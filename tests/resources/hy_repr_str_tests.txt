@@ -32,6 +32,10 @@ NaN+NaNj
 :mykeyword
 :my♥keyword?
 :
+'':mykeyword
+; A keyword with only one single quote gets represented without the
+; quote (which is equivalent), so it's tested in
+; `test-hy-repr-roundtrip-from-value`.
 
 ;; * Stringy thingies
 

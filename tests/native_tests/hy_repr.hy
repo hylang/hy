@@ -28,6 +28,7 @@
   ; hy-reprs from the input syntax.
 
   (setv values [
+    ':mykeyword
     {"a" 1  "b" 2  "a" 3}
     '{"a" 1  "b" 2  "a" 3}
     'f"the answer is {(+ 2 2) = }"
