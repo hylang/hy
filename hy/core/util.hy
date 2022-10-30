@@ -9,8 +9,6 @@
 
   If the second argument `codegen` is true, generate python code instead.
 
-  .. versionadded:: 0.10.0
-
   Dump the Python AST for given Hy *tree* to standard output. If *codegen*
   is ``True``, the function prints Python code instead.
 
@@ -45,8 +43,6 @@
   #[[Generate a symbol with a unique name. The argument will be included in the
   generated symbol, as an aid to debugging. Typically one calls ``hy.gensym``
   without an argument.
-
-  .. versionadded:: 0.9.12
 
   .. seealso::
 
@@ -89,8 +85,6 @@
 (defn macroexpand [form [result-ok False]]
   "Return the full macro expansion of `form`.
 
-  .. versionadded:: 0.10.0
-
   Examples:
     ::
 
@@ -106,8 +100,6 @@
 
 (defn macroexpand-1 [form]
   "Return the single step macro expansion of `form`.
-
-  .. versionadded:: 0.10.0
 
   Examples:
     ::

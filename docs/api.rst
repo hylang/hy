@@ -69,8 +69,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:data:: .
 
-   .. versionadded:: 0.10.0
-
    ``.`` is used to perform attribute access on objects. It uses a small DSL
    to allow quick access to attributes and items in a nested data structure.
 
@@ -822,8 +820,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (del [object])
 
-   .. versionadded:: 0.9.12
-
    ``del`` removes an object from the current namespace.
 
    :strong:`Examples`
@@ -855,8 +851,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      {}
 
 .. hy:function:: (nonlocal [object])
-
-   .. versionadded:: 0.11.1
 
    ``nonlocal`` can be used to mark a symbol as not local to the current scope.
    The parameters are the names of symbols to mark as nonlocal.  This is necessary
@@ -1426,8 +1420,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 
 .. hy:function:: (yield-from [object])
-
-   .. versionadded:: 0.9.13
 
    ``yield-from`` is used to call a subgenerator.  This is useful if you
    want your coroutine to be able to delegate its processes to another
