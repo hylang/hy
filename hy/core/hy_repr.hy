@@ -47,22 +47,29 @@
 (setv _quoting False)
 (setv _seen (set))
 (defn hy-repr [obj]
-  "This function is Hy's equivalent of Python's built-in ``repr``.
-  It returns a string representing the input object in Hy syntax.
+  #[[This function is Hy's equivalent of Python's :func:`repr`.
+  It returns a string representing the input object in Hy syntax. ::
+
+       => (hy.repr [1 2 3])
+       "[1 2 3]"
+       => (repr [1 2 3])
+       "[1, 2, 3]"
 
   Like ``repr`` in Python, ``hy.repr`` can round-trip many kinds of
   values. Round-tripping implies that given an object ``x``,
-  ``(hy.eval (hy.read-str (hy.repr x)))`` returns ``x``, or at least a value
-  that's equal to ``x``.
+  ``(hy.eval (hy.read (hy.repr x)))`` returns ``x``, or at least a
+  value that's equal to ``x``. A notable exception to round-tripping
+  is that if a :class:`hy.models.Object` contains a non-model, the
+  latter will be promoted to a model in the output::
 
-  Examples:
-    ::
+      (setv
+        x (hy.models.List [5])
+        output (hy.repr x)
+        y (hy.eval (hy.read output)))
+      (print output)            ; '[5]
+      (print (type (get x 0)))  ; <class 'int'>
+      (print (type (get y 0)))  ; <class 'hy.models.Integer'>]]
 
-       => (hy.repr [1 2 3])
-       \"[1 2 3]\"
-       => (repr [1 2 3])
-       \"[1, 2, 3]\"
-  "
   (setv [f placeholder] (.get _registry (type obj) [_base-repr None]))
 
   (global _quoting)
