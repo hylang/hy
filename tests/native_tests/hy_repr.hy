@@ -13,9 +13,9 @@
           (list o))
         :setv x (.rstrip x)
         :if (and x (not (.startswith x ";")))
-        x (if (.startswith x "!")
-          [(cut x 1 None) (+ "'" (cut x 1 None))]
-          [x])
+        x (if (in (get x 0) "':")
+          [x]
+          [x (+ "'" x)])
         x)]
 
     (setv rep (hy.repr (hy.eval (hy.read original-str))))
@@ -28,6 +28,7 @@
   ; hy-reprs from the input syntax.
 
   (setv values [
+    ':mykeyword
     {"a" 1  "b" 2  "a" 3}
     '{"a" 1  "b" 2  "a" 3}
     'f"the answer is {(+ 2 2) = }"
@@ -40,8 +41,8 @@
 
 (defn test-hy-repr-no-roundtrip []
   ; Test one of the corner cases in which hy-repr doesn't
-  ; round-trip: when a Hy Object contains a non-Hy Object, we
-  ; promote the constituent to a Hy Object.
+  ; round-trip: when a Hy model contains a non-model, we
+  ; promote the constituent to a model.
 
   (setv orig `[a ~5.0])
   (setv reprd (hy.repr orig))

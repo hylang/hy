@@ -31,8 +31,6 @@ Command Line Options
    all arguments after the *module* name are passed to the module in
    ``sys.argv``.
 
-   .. versionadded:: 0.11.0
-
 .. cmdoption:: --spy
 
    Print equivalent Python code before executing in REPL. For example::
@@ -46,13 +44,10 @@ Command Line Options
     =>
 
    `--spy` only works on REPL mode.
-   .. versionadded:: 0.9.11
 
 .. cmdoption:: --repl-output-fn
 
    Format REPL output using specific function (e.g., ``repr``)
-
-   .. versionadded:: 0.13.0
 
 .. cmdoption:: -v
 

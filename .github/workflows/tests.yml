@@ -10,13 +10,13 @@ jobs:
       matrix:
         name-prefix: ['']
         os: [ubuntu-latest]
-        python: [3.7, 3.8, 3.9, '3.10', '3.11-dev', pypy-3.9]
+        python: [3.7, 3.8, 3.9, '3.10', 3.11, pypy-3.9]
         include:
           # To keep the overall number of runs low, we test Windows
           # only on the latest CPython.
           - name-prefix: 'win-'
             os: windows-latest
-            python: '3.11-dev'
+            python: 3.11
 
     name: ${{ format('{0}{1}', matrix.name-prefix, matrix.python) }}
     runs-on: ${{ matrix.os }}
