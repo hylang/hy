@@ -120,9 +120,7 @@ There are two situations in which a PR is allowed to be merged:
    author. Changes to the documentation, or trivial changes to code, need only
    **one** approving member.
 2. When the PR is at least **three days** old and **no** member of the Hy core
-   team has expressed disapproval of the PR in its current state. (Exception: a
-   PR to create a new release is not eligible to be merged under this criterion,
-   only the first one.)
+   team has expressed disapproval of the PR in its current state.
 
 Anybody on the Hy core team may perform the merge. Merging should create a merge
 commit (don't squash unnecessarily, because that would remove separation between
