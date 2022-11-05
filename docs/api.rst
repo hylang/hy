@@ -1428,6 +1428,7 @@ expanded, is crash, regardless of their arguments:
 
 - ``else``
 - ``except``
+- ``except*``
 - ``finally``
 - ``unpack-mapping``
 - ``unquote``

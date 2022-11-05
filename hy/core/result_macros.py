@@ -1895,7 +1895,8 @@ def compile_let(compiler, expr, root, bindings, body):
 
 
 @pattern_macro(
-    "unquote unquote-splice unpack-mapping except finally else".split(), [many(FORM)]
+    "unquote unquote-splice unpack-mapping except except* finally else".split(),
+    [many(FORM)],
 )
 def compile_placeholder(compiler, expr, root, body):
     raise ValueError(f"`{root}` is not allowed here")
