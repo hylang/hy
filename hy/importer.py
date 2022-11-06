@@ -5,12 +5,14 @@ import os
 import pkgutil
 import sys
 import types
+import zipimport
 from contextlib import contextmanager
 from functools import partial
 
 import hy
 from hy.compiler import hy_compile
 from hy.reader import read_many
+from hy._compat import PY3_8
 
 
 @contextmanager
@@ -125,6 +127,21 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
 
 
 importlib.machinery.SourceFileLoader.source_to_code = _hy_source_to_code
+
+
+if PY3_8 and ('.hy', False, False) not in zipimport._zip_searchorder:
+    zipimport._zip_searchorder += (('.hy', False, False),)
+    _py_compile_source = zipimport._compile_source
+    def _hy_compile_source(pathname, source):
+        if not pathname.endswith('.hy'):
+            return _py_compile_source(pathname, source)
+        return compile(
+            hy_compile(
+                read_many(source.decode('UTF-8'), filename=pathname, skip_shebang=True),
+                f'<zip:{pathname}>'),
+            pathname, 'exec', dont_inherit=True)
+    zipimport._compile_source = _hy_compile_source
+
 
 #  This is actually needed; otherwise, pre-created finders assigned to the
 #  current dir (i.e. `''`) in `sys.path` will not catch absolute imports of
