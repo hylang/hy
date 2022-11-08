@@ -579,14 +579,22 @@ def test_setv_builtins():
     )
 
 
-def test_top_level_unquote():
+def placeholder_macro(x, ename=None):
     with pytest.raises(HyLanguageError) as e:
-        can_compile("(unquote)")
-    assert "`unquote` is not allowed here" in e.value.msg
+        can_compile(f"({x})")
+    assert f"`{ename or x}` is not allowed here" in e.value.msg
 
-    with pytest.raises(HyLanguageError) as e:
-        can_compile("(unquote-splice)")
-    assert "`unquote-splice` is not allowed here" in e.value.msg
+
+def test_top_level_unquote():
+    placeholder_macro("unquote")
+    placeholder_macro("unquote-splice")
+    placeholder_macro("unquote_splice", "unquote-splice")
+
+
+def test_bad_exception():
+    placeholder_macro("except")
+    placeholder_macro("except*")
+    placeholder_macro(hy.mangle("except*"), "except*")
 
 
 def test_lots_of_comment_lines():

@@ -1,26 +1,27 @@
 .. default-role:: code
 
-Unreleased
+0.25.0 (released 2022-11-08)
 ==============================
 
-Other Breaking Changes
+Breaking Changes
 ------------------------------
 * `dfor` no longer requires brackets around its final arguments, so
   `(dfor x (range 5) [x (* 2 x)])` is now `(dfor x (range 5) x (* 2
   x))`.
+* `except*` (PEP 654) is now recognized in `try`, and a placeholder
+  macro for `except*` has been added.
+
+Bug Fixes
+------------------------------
+* `__file__` should now be set the same way as in Python.
+* `\N{…}` escape sequences are now recognized in f-strings.
+* Fixed a bug with `python -O` where assertions were still partly
+  evaluated.
+* Fixed `hy.repr` of `slice` objects with non-integer arguments.
 
 New Features
 ------------------------------
 * Python 3.11 is now supported.
-* `except*` (PEP 654) is now recognized in `try`.
-
-Bug Fixes
-------------------------------
-* Fixed `hy.repr` of `slice` objects with non-integer arguments.
-* `__file__` should now be set the same way as in Python.
-* Fixed a bug with `python -O` where assertions were still partly
-  evaluated.
-* `\N{…}` escape sequences are now recognized in f-strings.
 
 Misc. Improvements
 ------------------------------
