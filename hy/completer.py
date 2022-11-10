@@ -8,7 +8,7 @@ import hy.macros
 from hy import mangle, unmangle
 
 # Lazily import `readline` to work around
-# https://bugs.python.org/issue2675#msg265564
+# https://github.com/python/cpython/issues/46927#issuecomment-1093418916
 readline = None
 
 
