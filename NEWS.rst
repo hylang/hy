@@ -1,5 +1,15 @@
 .. default-role:: code
 
+Unreleased
+=============================
+
+New Features
+------------------------------
+* On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
+  archives in the same way as Python modules, via `zipimport`_.
+
+.. _zipimport: https://docs.python.org/3.11/library/zipimport.html
+
 0.25.0 (released 2022-11-08)
 ==============================
 
