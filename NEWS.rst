@@ -3,11 +3,15 @@
 Unreleased
 =============================
 
+Breaking Changes
+------------------------------
+* `hy.cmdline.HyREPL` is now `hy.REPL`.
+
 Bug Fixes
 ------------------------------
-* `HyREPL` now restores the global values it changes (such as
-  `sys.ps1`) after `HyREPL.run` terminates.
-* `HyREPL` no longer mixes up Hy's and Python's Readline histories
+* `hy.REPL` now restores the global values it changes (such as
+  `sys.ps1`) after `hy.REPL.run` terminates.
+* `hy.REPL` no longer mixes up Hy's and Python's Readline histories
   when run inside Python's REPL.
 
 New Features

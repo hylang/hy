@@ -237,6 +237,7 @@ _tb_hidden_modules = {
             "hy.compiler",
             "hy.reader",
             "hy.cmdline",
+            "hy.repl",
             "hy.reader.parser",
             "hy.importer",
             "hy._compat",

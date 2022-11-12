@@ -31,6 +31,7 @@ _jit_imports = dict(
     macroexpand_1="hy.core.util",
     disassemble="hy.core.util",
     as_model="hy.models",
+    REPL="hy.repl"
 )
 
 

@@ -34,6 +34,7 @@ from hy.macros import enable_readers, require, require_reader
 from hy.reader import mangle, read_many
 from hy.reader.exceptions import PrematureEndOfInput
 from hy.reader.hy_reader import HyReader
+from hy.repl import REPL
 
 
 def set_path(filename):
@@ -72,7 +73,7 @@ def run_icommand(source, **kwargs):
     else:
         filename = "<string>"
 
-    hr = HyREPL(**kwargs)
+    hr = REPL(**kwargs)
     with filtered_hy_exceptions():
         res = hr.runsource(source, filename=filename)
 
@@ -308,7 +309,7 @@ def cmdline_handler(scriptname, argv):
                 hy_exc_handler(*sys.exc_info())
                 sys.exit(1)
 
-    return HyREPL(spy=options.get("spy"), output_fn=options.get("repl_output_fn")).run()
+    return REPL(spy=options.get("spy"), output_fn=options.get("repl_output_fn")).run()
 
 
 # entry point for cmd line script "hy"
