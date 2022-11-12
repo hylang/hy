@@ -408,29 +408,42 @@ class HyREPL(code.InteractiveConsole):
 
         import colorama
 
-        sys.ps1 = "=> "
-        sys.ps2 = "... "
+        sentinel = []
+        saved_values = (
+            getattr(sys, 'ps1', sentinel),
+            getattr(sys, 'ps2', sentinel),
+            builtins.quit,
+            builtins.exit,
+            builtins.help)
+        try:
+            sys.ps1 = "=> "
+            sys.ps2 = "... "
+            builtins.quit = HyQuitter("quit")
+            builtins.exit = HyQuitter("exit")
+            builtins.help = HyHelper()
 
-        builtins.quit = HyQuitter("quit")
-        builtins.exit = HyQuitter("exit")
-        builtins.help = HyHelper()
+            colorama.init()
 
-        colorama.init()
-
-        namespace = self.locals
-        with filtered_hy_exceptions(), extend_linecache(self.cmdline_cache), completion(
-            Completer(namespace)
-        ):
-            self.interact(
-                "Hy {version} using "
-                "{py}({build}) {pyversion} on {os}".format(
-                    version=hy.__version__,
-                    py=platform.python_implementation(),
-                    build=platform.python_build()[0],
-                    pyversion=platform.python_version(),
-                    os=platform.system(),
+            namespace = self.locals
+            with filtered_hy_exceptions(), extend_linecache(self.cmdline_cache), completion(
+                Completer(namespace)
+            ):
+                self.interact(
+                    "Hy {version} using "
+                    "{py}({build}) {pyversion} on {os}".format(
+                        version=hy.__version__,
+                        py=platform.python_implementation(),
+                        build=platform.python_build()[0],
+                        pyversion=platform.python_version(),
+                        os=platform.system(),
+                    )
                 )
-            )
+
+        finally:
+            sys.ps1, sys.ps2, builtins.quit, builtins.exit, builtins.help = saved_values
+            for a in 'ps1', 'ps2':
+                if getattr(sys, a) is sentinel:
+                    delattr(sys, a)
 
         return 0
 

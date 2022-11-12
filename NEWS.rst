@@ -3,6 +3,11 @@
 Unreleased
 =============================
 
+Bug Fixes
+------------------------------
+* `HyREPL` now restores the global values it changes (such as
+  `sys.ps1`) after `HyREPL.run` terminates.
+
 New Features
 ------------------------------
 * On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
