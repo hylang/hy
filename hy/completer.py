@@ -4,7 +4,6 @@ import os
 import re
 import sys
 
-import hy.macros
 from hy import mangle, unmangle
 
 # Lazily import `readline` to work around

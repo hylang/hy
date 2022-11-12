@@ -1,35 +1,28 @@
-import argparse
 import ast
 import builtins
 import code
 import codeop
 import hashlib
 import importlib
-import io
 import linecache
 import os
 import platform
-import py_compile
-import runpy
 import sys
 import time
 import traceback
 import types
 from contextlib import contextmanager
-from pathlib import Path
 
 import hy
-from hy._compat import PY3_9, PYPY
-from hy.compiler import HyASTCompiler, hy_ast_compile_flags, hy_compile, hy_eval
+from hy.compiler import HyASTCompiler, hy_ast_compile_flags, hy_compile
 from hy.completer import Completer, completion
 from hy.errors import (
     HyLanguageError,
     HyMacroExpansionError,
     HyRequireError,
     filtered_hy_exceptions,
-    hy_exc_handler,
 )
-from hy.importer import HyLoader, runhy
+from hy.importer import HyLoader
 from hy.macros import enable_readers, require, require_reader
 from hy.reader import mangle, read_many
 from hy.reader.exceptions import PrematureEndOfInput

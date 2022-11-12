@@ -4,9 +4,8 @@ import itertools
 import re
 from collections import deque
 from contextlib import contextmanager
-from io import StringIO
 
-from .exceptions import LexException, PrematureEndOfInput
+from .exceptions import PrematureEndOfInput
 
 _whitespace = re.compile(r"[ \t\n\r\f\v]+")
 
