@@ -234,7 +234,15 @@ class HyCommandCompiler(codeop.CommandCompiler):
 
 
 class HyREPL(code.InteractiveConsole):
-    "A subclass of :class:`code.InteractiveConsole` for Hy."
+    """A subclass of :class:`code.InteractiveConsole` for Hy.
+
+    A convenient way to use this class to interactively debug code is to insert the
+    following in the code you want to debug::
+
+        (.run (hy.cmdline.HyREPL :locals (locals)))
+
+    Note that as with :func:`code.interact`, changes to ``(locals)`` inside the REPL are
+    not propagated back to the original scope."""
 
     def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"):
 
