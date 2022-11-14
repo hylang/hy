@@ -1,4 +1,3 @@
-import keyword
 import re
 import unicodedata
 

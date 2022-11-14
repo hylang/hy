@@ -4,16 +4,16 @@ The Hy REPL
 
 Hy's `read-eval-print loop
 <https://en.wikipedia.org/wiki/Read-eval-print_loop>`_ (REPL) is implemented in
-the class :class:`hy.cmdline.HyREPL`. The REPL can be started interactively
+the class :class:`hy.REPL`. The REPL can be started interactively
 :doc:`from the command line <cli>` or programmatically with the instance method
-:meth:`hy.cmdline.HyREPL.run`.
+:meth:`hy.REPL.run`.
 
 Two :doc:`environment variables <env_var>` useful for the REPL are
 ``HY_HISTORY``, which specifies where the REPL input history is saved, and
 ``HYSTARTUP``, which specifies :ref:`a file to run when the REPL starts
 <startup-file>`.
 
-.. autoclass:: hy.cmdline.HyREPL
+.. autoclass:: hy.REPL
    :members: run
 
 .. _repl-output-function:

@@ -83,30 +83,15 @@ causes the import of ``name`` from ``hy.core.language``.
 Launching a Hy REPL from Python
 -------------------------------
 
-You can use the function ``run_repl()`` to launch the Hy REPL from Python:
+You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python:
 
-.. code-block:: python
+.. code-block:: text
 
-    >>> import hy.cmdline
-    >>> hy.cmdline.run_repl()
-    hy 0.12.1 using CPython(default) 3.6.0 on Linux
-    => (defn foo [] (print "bar"))
-    => (test)
-    bar
-
-If you want to print the Python code Hy generates for you, use the ``spy``
-argument:
-
-.. code-block:: python
-
-    >>> import hy.cmdline
-    >>> hy.cmdline.run_repl(spy=True)
-    hy 0.12.1 using CPython(default) 3.6.0 on Linux
+    >>> import hy
+    >>> hy.REPL(locals = locals()).run()
+    Hy x.y.z using CPython(default) x.y.z on Linux
     => (defn test [] (print "bar"))
-    def test():
-        return print('bar')
     => (test)
-    test()
     bar
 
 Evaluating strings of Hy code from Python

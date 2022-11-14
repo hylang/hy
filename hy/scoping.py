@@ -5,7 +5,6 @@ import itertools
 from abc import ABC, abstractmethod
 
 import hy._compat
-from hy.errors import HyInternalError
 from hy.models import Expression, List, Symbol, Tuple
 from hy.reader import mangle
 

@@ -4,11 +4,10 @@ import os
 import re
 import sys
 
-import hy.macros
 from hy import mangle, unmangle
 
 # Lazily import `readline` to work around
-# https://bugs.python.org/issue2675#msg265564
+# https://github.com/python/cpython/issues/46927#issuecomment-1093418916
 readline = None
 
 
@@ -123,6 +122,14 @@ def completion(completer=None):
     history = os.environ.get("HY_HISTORY", os.path.expanduser("~/.hy-history"))
     readline.parse_and_bind("set blink-matching-paren on")
 
+    # Save and clear any existing history.
+    history_was = []
+    for _ in range(readline.get_current_history_length()):
+        history_was.append(readline.get_history_item(1))
+        readline.remove_history_item(0)
+        # Yes, the first item is numbered 1 by one method and 0 by the
+        # other.
+
     try:
         readline.read_history_file(history)
     except OSError:
@@ -137,3 +144,7 @@ def completion(completer=None):
             readline.write_history_file(history)
         except OSError:
             pass
+        # Restore the previously saved history.
+        readline.clear_history()
+        for item in history_was:
+            readline.add_history(item)

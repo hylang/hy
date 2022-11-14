@@ -530,7 +530,7 @@ def test_tracebacks():
     os.environ["HY_DEBUG"] = ""
 
     def req_err(x):
-        assert x == "hy.errors.HyRequireError: No module named " "'not_a_real_module'"
+        assert x == "hy.errors.HyRequireError: No module named 'not_a_real_module'"
 
     # Modeled after
     #   > python -c 'import not_a_real_module'

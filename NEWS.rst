@@ -3,6 +3,17 @@
 Unreleased
 =============================
 
+Breaking Changes
+------------------------------
+* `hy.cmdline.HyREPL` is now `hy.REPL`.
+
+Bug Fixes
+------------------------------
+* `hy.REPL` now restores the global values it changes (such as
+  `sys.ps1`) after `hy.REPL.run` terminates.
+* `hy.REPL` no longer mixes up Hy's and Python's Readline histories
+  when run inside Python's REPL.
+
 New Features
 ------------------------------
 * On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
