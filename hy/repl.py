@@ -58,11 +58,10 @@ class HyHelper:
 
         return pydoc.help(*args, **kwds)
 
+
 sys.last_type = None
 sys.last_value = None
 sys.last_traceback = None
-
-
 
 
 @contextmanager
@@ -413,11 +412,12 @@ class REPL(code.InteractiveConsole):
 
         sentinel = []
         saved_values = (
-            getattr(sys, 'ps1', sentinel),
-            getattr(sys, 'ps2', sentinel),
+            getattr(sys, "ps1", sentinel),
+            getattr(sys, "ps2", sentinel),
             builtins.quit,
             builtins.exit,
-            builtins.help)
+            builtins.help,
+        )
         try:
             sys.ps1 = "=> "
             sys.ps2 = "... "
@@ -428,9 +428,9 @@ class REPL(code.InteractiveConsole):
             colorama.init()
 
             namespace = self.locals
-            with filtered_hy_exceptions(), extend_linecache(self.cmdline_cache), completion(
-                Completer(namespace)
-            ):
+            with filtered_hy_exceptions(), extend_linecache(
+                self.cmdline_cache
+            ), completion(Completer(namespace)):
                 self.interact(
                     "Hy {version} using "
                     "{py}({build}) {pyversion} on {os}".format(
@@ -444,7 +444,7 @@ class REPL(code.InteractiveConsole):
 
         finally:
             sys.ps1, sys.ps2, builtins.quit, builtins.exit, builtins.help = saved_values
-            for a in 'ps1', 'ps2':
+            for a in "ps1", "ps2":
                 if getattr(sys, a) is sentinel:
                     delattr(sys, a)
 

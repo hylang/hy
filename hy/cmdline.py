@@ -12,11 +12,7 @@ from pathlib import Path
 import hy
 from hy._compat import PY3_9, PYPY
 from hy.compiler import hy_compile, hy_eval
-from hy.errors import (
-    HyLanguageError,
-    filtered_hy_exceptions,
-    hy_exc_handler,
-)
+from hy.errors import HyLanguageError, filtered_hy_exceptions, hy_exc_handler
 from hy.importer import runhy
 from hy.macros import require
 from hy.reader import read_many
