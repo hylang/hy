@@ -13,7 +13,7 @@ macro instead of the function.
 
 The functions in ``hy.pyops`` have the same semantics as their macro
 equivalents, with one exception: functions can't short-circuit, so the
-functions for the logical operators, such as ``and``, unconditionally
+functions for operators such as ``and`` and ``!=`` unconditionally
 evaluate all arguments."
 
 ;;;; Hy shadow functions
