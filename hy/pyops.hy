@@ -66,7 +66,7 @@ evaluate all arguments."
 
 (defop * [#* args]
   ["multiplication"
-    :nullary "0"
+    :nullary "1"
     :unary "x"]
   (if (= (len args) 0)
       1
