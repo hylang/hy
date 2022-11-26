@@ -7,6 +7,6 @@ pre_commit==2.17.0
 
 # documentation
 Pygments >= 2
-Sphinx >= 5
+Sphinx == 5.0.2
 sphinx_rtd_theme >= 1
 git+https://github.com/hylang/sphinxcontrib-hydomain.git
