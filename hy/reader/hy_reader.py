@@ -97,7 +97,7 @@ class HyReader(Reader):
     # Components necessary for Reader implementation
     ###
 
-    NON_IDENT = set("()[]{};\"'")
+    NON_IDENT = set("()[]{};\"'`~")
 
     def fill_pos(self, model, start):
         """Attach line/col information to a model.

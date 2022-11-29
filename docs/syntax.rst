@@ -130,7 +130,7 @@ Identifiers
 
 Identifiers are a broad class of syntax in Hy, comprising not only variable
 names, but any nonempty sequence of characters that aren't ASCII whitespace nor
-one of the following: ``()[]{};"'``. The reader will attempt to read each
+one of the following: ``()[]{};"'`~``. The reader will attempt to read each
 identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
 it as a :ref:`keyword <keywords>` if that fails, then fall back on reading it
 as a :ref:`symbol <symbols>` if that fails.
