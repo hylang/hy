@@ -1275,6 +1275,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    leaving no effects on the list it is enclosed in, therefore resulting in
    ``('+' 1 2)``.
 
+   A symbol name can begin with ``@`` in Hy, but ``~@`` takes precedence in the
+   parser. So, if you want to unquote the symbol ``@foo`` with ``~``, you must
+   use whitespace to separate ``~`` and ``@``, as in ``~ @foo``.
+
 .. hy:function:: (while [condition #* body])
 
    ``while`` compiles to a :py:keyword:`while` statement. It is used to execute a
