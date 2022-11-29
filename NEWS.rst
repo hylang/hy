@@ -13,6 +13,8 @@ Bug Fixes
   `sys.ps1`) after `hy.REPL.run` terminates.
 * `hy.REPL` no longer mixes up Hy's and Python's Readline histories
   when run inside Python's REPL.
+* Fixed `hy.repr` of non-compilable uses of sugared macros, such as
+  `(quote)` and `(quote 1 2)`.
 
 New Features
 ------------------------------

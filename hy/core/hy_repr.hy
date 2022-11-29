@@ -115,7 +115,7 @@
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
   (cond
-    (and x (in (get x 0) syntax))
+    (and (= (len x) 2) (in (get x 0) syntax))
       (+ (get syntax (get x 0)) (hy-repr (get x 1)))
     True
       (+ "(" (_cat x) ")"))))

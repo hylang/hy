@@ -91,6 +91,7 @@ b"\"double \" quotes\""
 '(f a b)
 '(f #* args #** kwargs)
 [1 [2 3] #(4 #('mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
+'(quote)
 
 ;; * Quasiquoting
 
@@ -98,6 +99,8 @@ b"\"double \" quotes\""
 '[1 `[~foo ~@bar] 4]
 '[1 `[~(+ 1 2) ~@(+ [1] [2])] 4]
 '[1 `[~(do (print x 'y) 1)] 4]
+'(quasiquote 1 2 3)
+'[1 `[2 (unquote foo bar)]]
 
 ;; * F-strings
 
