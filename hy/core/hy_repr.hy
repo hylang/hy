@@ -116,7 +116,14 @@
     'unpack-mapping "#** "})
   (cond
     (and (= (len x) 2) (in (get x 0) syntax))
-      (+ (get syntax (get x 0)) (hy-repr (get x 1)))
+      (if (and
+          (= (get x 0) 'unquote)
+          (isinstance (get x 1) hy.models.Symbol)
+          (.startswith (get x 1) "@"))
+        ; This case is special because `~@b` would be wrongly
+        ; interpreted as `(unquote-splice b)` instead of `(unquote @b)`.
+        (+ "~ " (hy-repr (get x 1)))
+        (+ (get syntax (get x 0)) (hy-repr (get x 1))))
     True
       (+ "(" (_cat x) ")"))))
 

@@ -101,6 +101,8 @@ b"\"double \" quotes\""
 '[1 `[~(do (print x 'y) 1)] 4]
 '(quasiquote 1 2 3)
 '[1 `[2 (unquote foo bar)]]
+'[a ~@b]
+'[a ~ @b]
 
 ;; * F-strings
 
