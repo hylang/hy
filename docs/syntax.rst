@@ -453,12 +453,12 @@ gets produced is the same whether you take your code with sugar or without.
 ========================== ================
 Macro                      Syntax
 ========================== ================
-:hy:func:`quasiquote`      ```FORM``
 :hy:func:`quote`           ``'FORM``
-:hy:func:`unpack-iterable` ``#* FORM``
-:hy:func:`unpack-mapping`  ``#** FORM``
+:hy:func:`quasiquote`      ```FORM``
 :hy:func:`unquote`         ``~FORM``
 :hy:func:`unquote-splice`  ``~@FORM``
+:hy:func:`unpack-iterable` ``#* FORM``
+:hy:func:`unpack-mapping`  ``#** FORM``
 ========================== ================
 
 Reader macros
