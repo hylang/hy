@@ -132,12 +132,13 @@ evaluate all arguments."
     :n-ary None]
   (^ x y))
 
-(defop ~ [x]
+(defop bnot [x]
   ["bitwise NOT"
+    :pyop "~"
     :unary "~x"
     :binary None
     :n-ary None]
-  (~ x))
+  (bnot x))
 
 (defn comp-op [op a1 a-rest]
   "Helper for shadow comparison operators"
@@ -239,7 +240,7 @@ evaluate all arguments."
 (setv __all__
   (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
-    '<< '>> '& '| '^ '~
+    '<< '>> '& '| '^ 'bnot
     '< '> '<= '>= '= '!=
     'and 'or 'not
     'is 'is-not 'in 'not-in

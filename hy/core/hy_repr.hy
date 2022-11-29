@@ -201,7 +201,7 @@
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
 (hy-repr-register re.Pattern (fn [x]
-  (setv flags (& x.flags (~ re.UNICODE)))
+  (setv flags (& x.flags (bnot re.UNICODE)))
     ; We remove re.UNICODE since it's redundant with the type
     ; of the pattern, and Python's `repr` omits it, too.
   (.format "(re.compile {}{})"
