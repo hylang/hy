@@ -86,7 +86,7 @@ def test_lex_single_quote_err():
             '  File "<string>", line 1',
             "    '",
             "    ^",
-            "hy.reader.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form"
+            "hy.reader.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form",
         ],
     )
 
@@ -101,21 +101,20 @@ def test_symbol_and_sugar():
     # https://github.com/hylang/hy/issues/1798
 
     s = Symbol
-    def e(*x): return Expression(x)
+
+    def e(*x):
+        return Expression(x)
 
     for char, head in (
-            ("'", 'quote'),
-            ('`', 'quasiquote'),
-            ('~', 'unquote'),
-            ('~@', 'unquote-splice')):
-        for string in (
-                f'a{s1}{char}{s2}b'
-                for s1 in ('', ' ')
-                for s2 in ('', ' ')):
+        ("'", "quote"),
+        ("`", "quasiquote"),
+        ("~", "unquote"),
+        ("~@", "unquote-splice"),
+    ):
+        for string in (f"a{s1}{char}{s2}b" for s1 in ("", " ") for s2 in ("", " ")):
             assert tokenize(string) == [s("a"), e(s(head), s("b"))]
 
-    assert (tokenize("a~ @b") == tokenize("a ~ @b") ==
-        [s("a"), e(s("unquote"), s("@b"))])
+    assert tokenize("a~ @b") == tokenize("a ~ @b") == [s("a"), e(s("unquote"), s("@b"))]
 
 
 def test_lex_expression_strings():
