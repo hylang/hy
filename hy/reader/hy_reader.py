@@ -366,6 +366,15 @@ class HyReader(Reader):
             self.parse_one_form(),
         )
 
+    @reader_for("#'")
+    def escaped_identifier(self, _):
+        """Parses an escaped identifier"""
+        form = self.parse_one_form()
+        if isinstance(form, Symbol):
+            return mkexpr("py", str(form))
+        else:
+            raise LexException.from_reader("expected a symbol", self)
+
     ###
     # Strings
     # (these are more complicated because f-strings
