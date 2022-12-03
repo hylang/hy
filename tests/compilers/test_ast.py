@@ -643,3 +643,8 @@ def test_module_prelude():
         x = x[0].names[0]
         assert x.name == "hy"
         assert x.asname is None
+
+
+def test_pragma():
+    cant_compile("(pragma)")
+    cant_compile("(pragma :native-code :namespaced-symbols :give-user-a-pony)")

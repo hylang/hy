@@ -14,6 +14,8 @@ Breaking Changes
     the case for `'`.)
   * The bitwise NOT operator `~` has been renamed to `bnot`.
 
+* `pragma` is now reserved as a core macro name, although it doesn't
+  do anything useful (yet).
 * `hy.cmdline.HyREPL` is now `hy.REPL`.
 
 Bug Fixes
