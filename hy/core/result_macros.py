@@ -223,9 +223,9 @@ def render_quoted_form(compiler, form, level):
 # ------------------------------------------------
 
 
-@pattern_macro(["not", "~"], [FORM], shadow=True)
+@pattern_macro(["not", "bnot"], [FORM], shadow=True)
 def compile_unary_operator(compiler, expr, root, arg):
-    ops = {"not": ast.Not, "~": ast.Invert}
+    ops = {"not": ast.Not, "bnot": ast.Invert}
     operand = compiler.compile(arg)
     return operand + asty.UnaryOp(expr, op=ops[root](), operand=operand.force_expr)
 

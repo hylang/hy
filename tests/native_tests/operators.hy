@@ -158,7 +158,7 @@
     ; so we don't allow `^` with 3 arguments, either.
 
 
-(op-and-shadow-test ~
+(op-and-shadow-test bnot
   (forbid (f))
   (assert (= (& (f 0b00101111) 0xFF)
                    0b11010000))

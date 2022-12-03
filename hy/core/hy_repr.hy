@@ -115,8 +115,15 @@
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
   (cond
-    (and x (in (get x 0) syntax))
-      (+ (get syntax (get x 0)) (hy-repr (get x 1)))
+    (and (= (len x) 2) (in (get x 0) syntax))
+      (if (and
+          (= (get x 0) 'unquote)
+          (isinstance (get x 1) hy.models.Symbol)
+          (.startswith (get x 1) "@"))
+        ; This case is special because `~@b` would be wrongly
+        ; interpreted as `(unquote-splice b)` instead of `(unquote @b)`.
+        (+ "~ " (hy-repr (get x 1)))
+        (+ (get syntax (get x 0)) (hy-repr (get x 1))))
     True
       (+ "(" (_cat x) ")"))))
 
@@ -201,7 +208,7 @@
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
 (hy-repr-register re.Pattern (fn [x]
-  (setv flags (& x.flags (~ re.UNICODE)))
+  (setv flags (& x.flags (bnot re.UNICODE)))
     ; We remove re.UNICODE since it's redundant with the type
     ; of the pattern, and Python's `repr` omits it, too.
   (.format "(re.compile {}{})"

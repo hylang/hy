@@ -1,8 +1,11 @@
 "Python provides various :ref:`binary and unary operators
 <py:expressions>`. These are usually invoked in Hy using core macros of
 the same name: for example, ``(+ 1 2)`` calls the core macro named
-``+``, which uses Python's addition operator. An exception to the names
-being the same is that Python's ``==`` is called ``=`` in Hy.
+``+``, which uses Python's addition operator. There are two exceptions
+to the names being the same:
+
+- ``==`` in Python is ``=`` in Hy.
+- ``~`` in Python is ``bnot`` in Hy.
 
 By importing from the module ``hy.pyops`` (typically with a star import,
 as in ``(import hy.pyops *)``), you can also use these operators as
@@ -132,12 +135,13 @@ evaluate all arguments."
     :n-ary None]
   (^ x y))
 
-(defop ~ [x]
+(defop bnot [x]
   ["bitwise NOT"
+    :pyop "~"
     :unary "~x"
     :binary None
     :n-ary None]
-  (~ x))
+  (bnot x))
 
 (defn comp-op [op a1 a-rest]
   "Helper for shadow comparison operators"
@@ -239,7 +243,7 @@ evaluate all arguments."
 (setv __all__
   (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
-    '<< '>> '& '| '^ '~
+    '<< '>> '& '| '^ 'bnot
     '< '> '<= '>= '= '!=
     'and 'or 'not
     'is 'is-not 'in 'not-in

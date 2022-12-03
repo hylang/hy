@@ -97,7 +97,7 @@ class HyReader(Reader):
     # Components necessary for Reader implementation
     ###
 
-    NON_IDENT = set("()[]{};\"'")
+    NON_IDENT = set("()[]{};\"'`~")
 
     def fill_pos(self, model, start):
         """Attach line/col information to a model.
@@ -283,26 +283,10 @@ class HyReader(Reader):
     @reader_for("'", ("quote",))
     @reader_for("`", ("quasiquote",))
     def tag_as(root):
-        def _tag_as(self, _):
-            nc = self.peekc()
-            if (
-                not nc
-                or isnormalizedspace(nc)
-                or self.reader_table.get(nc) == self.INVALID
-            ):
-                raise LexException.from_reader(
-                    "Could not identify the next token.", self
-                )
-            model = self.parse_one_form()
-            return mkexpr(root, model)
-
-        return _tag_as
+        return lambda self, _: mkexpr(root, self.parse_one_form())
 
     @reader_for("~")
     def unquote(self, key):
-        nc = self.peekc()
-        if not nc or isnormalizedspace(nc) or self.reader_table.get(nc) == self.INVALID:
-            return sym(key)
         return mkexpr(
             "unquote" + ("-splice" if self.peek_and_getc("@") else ""),
             self.parse_one_form(),

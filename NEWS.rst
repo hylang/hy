@@ -5,6 +5,15 @@ Unreleased
 
 Breaking Changes
 ------------------------------
+* Various warts have been smoothed over in the syntax of `'`,
+  \`, `~`, and `~@`:
+
+  * Whitespace is now allowed after these syntactic elements. Thus one
+    can apply `~` to a symbol whose name begins with "@".
+  * \` and `~` are no longer allowed in identifiers. (This was already
+    the case for `'`.)
+  * The bitwise NOT operator `~` has been renamed to `bnot`.
+
 * `hy.cmdline.HyREPL` is now `hy.REPL`.
 
 Bug Fixes
@@ -13,6 +22,8 @@ Bug Fixes
   `sys.ps1`) after `hy.REPL.run` terminates.
 * `hy.REPL` no longer mixes up Hy's and Python's Readline histories
   when run inside Python's REPL.
+* Fixed `hy.repr` of non-compilable uses of sugared macros, such as
+  `(quote)` and `(quote 1 2)`.
 
 New Features
 ------------------------------

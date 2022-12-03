@@ -81,21 +81,6 @@ def test_ast_valid_if():
     can_compile("(if foo bar baz)")
 
 
-def test_ast_valid_unary_op():
-    "Make sure AST can compile valid unary operator"
-    can_compile("(not 2)")
-    can_compile("(~ 1)")
-
-
-def test_ast_invalid_unary_op():
-    "Make sure AST can't compile invalid unary operator"
-    cant_compile("(not 2 3 4)")
-    cant_compile("(not)")
-    cant_compile("(not 2 3 4)")
-    cant_compile("(~ 2 2 3 4)")
-    cant_compile("(~)")
-
-
 def test_ast_bad_while():
     "Make sure AST can't compile invalid while"
     cant_compile("(while)")

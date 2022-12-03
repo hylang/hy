@@ -130,7 +130,7 @@ Identifiers
 
 Identifiers are a broad class of syntax in Hy, comprising not only variable
 names, but any nonempty sequence of characters that aren't ASCII whitespace nor
-one of the following: ``()[]{};"'``. The reader will attempt to read each
+one of the following: ``()[]{};"'`~``. The reader will attempt to read each
 identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
 it as a :ref:`keyword <keywords>` if that fails, then fall back on reading it
 as a :ref:`symbol <symbols>` if that fails.
@@ -447,18 +447,19 @@ Syntactic sugar is available to construct two-item :ref:`expressions
 by the reader, a new expression is created with the corresponding macro as the
 first element and the next parsed form as the second. No parentheses are
 required. Thus, since ``'`` is short for ``quote``, ``'FORM`` is read as
-``(quote FORM)``. This is all resolved at the reader level, so the model that
-gets produced is the same whether you take your code with sugar or without.
+``(quote FORM)``. Whitespace is allowed, as in ``' FORM``. This is all resolved
+at the reader level, so the model that gets produced is the same whether you
+take your code with sugar or without.
 
 ========================== ================
 Macro                      Syntax
 ========================== ================
-:hy:func:`quasiquote`      ```FORM``
 :hy:func:`quote`           ``'FORM``
-:hy:func:`unpack-iterable` ``#* FORM``
-:hy:func:`unpack-mapping`  ``#** FORM``
+:hy:func:`quasiquote`      ```FORM``
 :hy:func:`unquote`         ``~FORM``
 :hy:func:`unquote-splice`  ``~@FORM``
+:hy:func:`unpack-iterable` ``#* FORM``
+:hy:func:`unpack-mapping`  ``#** FORM``
 ========================== ================
 
 Reader macros
