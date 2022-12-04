@@ -5,6 +5,8 @@ Semantics
 This chapter describes features of Hy semantics that differ from Python's and
 aren't better categorized elsewhere, such as in the chapter :doc:`macros`.
 
+.. _implicit-names:
+
 Implicit names
 --------------
 
