@@ -75,7 +75,7 @@ FILE
 -
   program read from stdin
 [ARG]...
-  arguments passed to program in sys.argv[1:]
+  arguments passed to program in (cut sys.argv 1)
 """
 
 

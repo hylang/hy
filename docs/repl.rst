@@ -1,3 +1,5 @@
+.. _repl:
+
 ===========
 The Hy REPL
 ===========
@@ -75,9 +77,9 @@ change the prompts. The following example shows a number of possibilities::
   (setv
     repl-spy True
     repl-output-fn pformat
-    ;; We can even add colors to the prompts.
-    ;; This will set `=>` to green and `...` to red.
+    ;; Make the REPL prompt `=>` green.
     sys.ps1 "\x01\x1b[0;32m\x02=> \x01\x1b[0m\x02"
+    ;; Make the REPL prompt `...` red.
     sys.ps2 "\x01\x1b[0;31m\x02... \x01\x1b[0m\x02")
 
   (defn slurp [path]

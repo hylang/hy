@@ -1,57 +1,41 @@
 ======================
-Command Line Interface
+Command-Line Interface
 ======================
 
-.. _hy:
+Hy provides a handful of command-line programs for working with Hy code.
+
+.. _hy-cli:
 
 hy
 --
 
-Command Line Options
-^^^^^^^^^^^^^^^^^^^^
-
-.. cmdoption:: -c <command>
-
-   Execute the Hy code in *command*.
-
-   .. code-block:: bash
-
-      $ hy -c "(print (+ 2 2))"
-      4
-
-.. cmdoption:: -i <command>
-
-   Execute the Hy code in *command*, then stay in REPL.
+``hy`` is a command-line interface for Hy that in general imitates the program
+``python`` provided by CPython. For example, ``hy`` without arguments launches
+the :ref:`REPL <repl>`, whereas ``hy foo.hy a b`` runs the Hy program
+``foo.hy`` with ``a`` and ``b`` as command-line arguments. See ``hy --help``
+for a complete list of options and :py:ref:`Python's documentation
+<using-on-cmdline>` for many details. Here are some Hy-specific details:
 
 .. cmdoption:: -m <module>
 
-   Execute the Hy code in *module*, including ``defmain`` if defined.
-
-   The :option:`-m` flag terminates the options list so that
-   all arguments after the *module* name are passed to the module in
-   ``sys.argv``.
+   Much like Python's ``-m``, but the input module name will be :ref:`mangled
+   <mangling>`.
 
 .. cmdoption:: --spy
 
-   Print equivalent Python code before executing in REPL. For example::
+   Print equivalent Python code before executing each piece of Hy code in the
+   REPL::
 
-    => (defn salutationsnm [name] (print (+ "Hy " name "!")))
-    def salutationsnm(name):
-        return print('Hy ' + name + '!')
-    => (salutationsnm "YourName")
-    salutationsnm('YourName')
-    Hy YourName!
-    =>
-
-   `--spy` only works on REPL mode.
+       => (+ 1 2)
+       1 + 2
+       3
 
 .. cmdoption:: --repl-output-fn
 
-   Format REPL output using specific function (e.g., ``repr``)
-
-.. cmdoption:: -v
-
-   Print the Hy version number and exit.
+   Set the :ref:`REPL output function <repl-output-function>`. This can be the
+   name of a Python builtin, mostly likely ``repr``, or a dotted name like
+   ``foo.bar.baz``. In the latter case, Hy will attempt to import the named
+   object with code like ``(import foo.bar [baz])``.
 
 
 .. _hy2py:
