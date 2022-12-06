@@ -1899,6 +1899,8 @@ def compile_let(compiler, expr, root, bindings, body):
     [many(FORM)],
 )
 def compile_placeholder(compiler, expr, root, body):
-    raise ValueError("`{}` is not allowed {}".format(
-       root,
-       "in this version of Hy" if root == "pragma" else "here"))
+    raise ValueError(
+        "`{}` is not allowed {}".format(
+            root, "in this version of Hy" if root == "pragma" else "here"
+        )
+    )
