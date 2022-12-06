@@ -1895,8 +1895,12 @@ def compile_let(compiler, expr, root, bindings, body):
 
 
 @pattern_macro(
-    "unquote unquote-splice unpack-mapping except except* finally else".split(),
+    "pragma unquote unquote-splice unpack-mapping except except* finally else".split(),
     [many(FORM)],
 )
 def compile_placeholder(compiler, expr, root, body):
-    raise ValueError(f"`{root}` is not allowed here")
+    raise ValueError(
+        "`{}` is not allowed {}".format(
+            root, "in this version of Hy" if root == "pragma" else "here"
+        )
+    )

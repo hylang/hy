@@ -1419,6 +1419,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    coroutine, say, if using something fancy like
    `asyncio <https://docs.python.org/3.4/library/asyncio.html>`_.
 
+.. hy:function:: (pragma)
+
+  ``pragma`` is reserved as a core macro name for future use, especially for
+  allowing backwards-compatible addition of new features after the release of Hy
+  1.0. Currently, trying to use ``pragma`` is an error.
+
 .. hy:automodule:: hy.core.macros
    :members:
    :macros:
