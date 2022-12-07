@@ -357,10 +357,11 @@ Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
 parentheses: ``( … )``. The compiler evaluates expressions by checking the
 first element. If it's a symbol, and the symbol is the name of a currently
 defined macro, the macro is called. Otherwise, the expression is compiled into
-a Python-level call, with the first element being the calling object. The
-remaining forms are understood as arguments. Use :hy:func:`unpack-iterable` or
-:hy:func:`unpack-mapping` to break up data structures into individual arguments
-at runtime.
+a Python-level call, with the first element being the calling object. (So, you
+can call a function that has the same name as a macro with an expression like
+``((do setv) …)``). The remaining forms are understood as arguments. Use
+:hy:func:`unpack-iterable` or :hy:func:`unpack-mapping` to break up data
+structures into individual arguments at runtime.
 
 The empty expression ``()`` is legal at the reader level, but has no inherent
 meaning. Trying to compile it is an error. For the empty tuple, use ``#()``.

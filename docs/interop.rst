@@ -1,8 +1,8 @@
 .. _interop:
 
-=====================
-Hy <-> Python interop
-=====================
+=======================
+Python Interoperability
+=======================
 
 Despite being a Lisp, Hy aims to be fully compatible with Python. That means
 every Python module or package can be imported in Hy code, and vice versa.
@@ -10,121 +10,57 @@ every Python module or package can be imported in Hy code, and vice versa.
 :ref:`Mangling <mangling>` allows variable names to be spelled differently in
 Hy and Python. For example, Python's ``str.format_map`` can be written
 ``str.format-map`` in Hy, and a Hy function named ``valid?`` would be called
-``is_valid`` in Python. In Python, you can import Hy's core functions
-``mangle`` and ``unmangle`` directly from the ``hy`` package.
+``is_valid`` in Python. You can call :hy:func:`hy.mangle` and
+:hy:func:`hy.unmangle` from either language.
 
 Using Python from Hy
 ====================
 
-You can embed Python code directly into a Hy program with the special operators
-:hy:func:`py <py>` and :hy:func:`pys <pys>`.
+To use a Python module from Hy, just :hy:func:`import` it. No additional
+ceremony is required.
 
-Using a Python module from Hy is nice and easy: you just have to :ref:`import`
-it. If you have the following in ``greetings.py`` in Python:
-
-.. code-block:: python
-
-    def greet(name):
-        print("hello," name)
-
-You can use it in Hy::
-
-    (import greetings)
-    (.greet greetings "foo") ; prints "hello, foo"
-
-You can also import ``.pyc`` bytecode files, of course.
+You can embed Python code directly into a Hy program with the macros
+:hy:func:`py <py>` and :hy:func:`pys <pys>`, and you can use standard Python
+tools like :func:`eval` or :func:`exec` to execute or manipulate Python code in
+strings.
 
 Using Hy from Python
 ====================
 
-Suppose you have written some useful utilities in Hy, and you want to use them in
-regular Python, or to share them with others as a package. Or suppose you work
-with somebody else, who doesn't like Hy (!), and only uses Python.
+To use a Hy module from Python, you can just :py:keyword:`import` it, provided
+that ``hy`` has already been imported first, whether in the current module or
+in some earlier module executed by the current Python process. The ``hy``
+import is necessary to create the hooks that allow importing Hy modules. Note
+that you can always have a wrapper Python file (such as a package's
+``__init__.py``) do the ``import hy`` for the user; this is a smart thing to do
+for a published package.
 
-In any case, you need to know how to use Hy from Python. Fear not, for it is
-easy.
+No way to import macros or reader macros into a Python module is implemented,
+since there's no way to call them in Python anyway.
 
-If you save the following in ``greetings.hy``::
+You can use :ref:`hy2py` to convert a Hy program to Python. The output will
+still import ``hy``, and thus require Hy to be installed in order to run; see
+:ref:`implicit-names` for details and workarounds.
 
-    (setv this-will-have-underscores "See?")
-    (defn greet [name] (print "Hello from Hy," name))
+To execute Hy code from a string, use :func:`hy.read` to convert it to
+:ref:`models <models>` and then :func:`hy.eval` to evaluate it. There is no Hy
+equivalent of :func:`exec` because :func:`hy.eval` works even when the input
+isn't equivalent to a single Python expression.
 
-Then you can use it directly from Python, by importing Hy before importing
-the module. In Python:
-
-.. code-block:: python
-
-    import hy
-    import greetings
-
-    greetings.greet("Foo") # prints "Hello from Hy, Foo"
-    print(greetings.this_will_have_underscores) # prints "See?"
-
-If you create a package with Hy code, and you do the ``import hy`` in
-``__init__.py``, you can then directly include the package. Of course, Hy still
-has to be installed.
-
-Compiled files
---------------
-
-You can also compile a module with ``hyc``, which gives you a ``.pyc`` file. You
-can import that file. Hy does not *really* need to be installed ; however, if in
-your code, you use any symbol from :doc:`/api`, a corresponding ``import``
-statement will be generated, and Hy will have to be installed.
-
-Even if you do not use a Hy builtin, but just another function or variable with
-the name of a Hy builtin, the ``import`` will be generated. For example, the previous code
-causes the import of ``name`` from ``hy.core.language``.
-
-**Bottom line: in most cases, Hy has to be installed.**
-
-.. _repl-from-py:
-
-Launching a Hy REPL from Python
--------------------------------
-
-You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python:
-
-.. code-block:: text
-
-    >>> import hy
-    >>> hy.REPL(locals = locals()).run()
-    Hy x.y.z using CPython(default) x.y.z on Linux
-    => (defn test [] (print "bar"))
-    => (test)
-    bar
-
-Evaluating strings of Hy code from Python
------------------------------------------
-
-Evaluating a string (or ``file`` object) containing a Hy expression requires
-two separate steps. First, use the ``read`` function to turn the expression
-into a Hy model:
-
-.. code-block:: python
-
-    >>> import hy
-    >>> expr = hy.read("(- (/ (+ 1 3 88) 2) 8)")
-
-Then, use the ``hy.eval`` function to evaluate it:
-
-.. code-block:: python
-
-    >>> hy.eval(expr)
-    38.0
-
+You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python, as in
+``hy.REPL(locals = locals()).run()``.
 
 Libraries that expect Python
 ============================
 
 There are various means by which Hy may interact poorly with a Python library
+
 because the library doesn't account for the possibility of Hy. For example,
-when you run the command-line program ``hy``, ``sys.executable`` will be set to
+when you run :ref:`hy-cli`, ``sys.executable`` will be set to
 this program rather than the original Python binary. This is helpful more often
 than not, but will lead to trouble if e.g. the library tries to call
 :py:data:`sys.executable` with the ``-c`` option. In this case, you can try
 setting :py:data:`sys.executable` back to ``hy.sys-executable``, which is a
-saved copy of the original value. More generally, you can use ``hy2py``, or you
+saved copy of the original value. More generally, you can use :ref:`hy2py`, or you
 can put a simple Python wrapper script like ``import hy, my_hy_program`` in
-front of your code; importing ``hy`` first is necessary here to install the
-hooks that allow Python to load your Hy module.
+front of your code.

@@ -5,7 +5,7 @@ API
 Core Macros
 -----------
 
-The following macros are auto imported into all Hy modules as their
+The following macros are automatically imported into all Hy modules as their
 base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (annotate [value type])
@@ -105,16 +105,16 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    parameters (also given as symbols). Any further arguments constitute the
    body of the function::
 
-       (defn name [params] bodyform1 bodyform2...)
+       (defn name [params] bodyform1 bodyform2…)
 
-   An empty body is implicitly ``(return None)``. If there at least two body
+   An empty body is implicitly ``(return None)``. If there are at least two body
    forms, and the first of them is a string literal, this string becomes the
    :term:`py:docstring` of the function. The final body form is implicitly
    returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
    5))``.
 
    ``defn`` accepts two additional, optional arguments: a bracketed list of
-   :term:`decorators <py:decorator>` and an annotation (see :hy:data:`^`) for
+   :term:`decorators <py:decorator>` and an annotation (see :hy:func:`annotate`) for
    the return value. These are placed before the function name (in that order,
    if both are present)::
 
@@ -222,21 +222,14 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:function:: (await [obj])
 
    ``await`` creates an :ref:`await expression <py:await>`. It takes exactly one
-   argument: the object to wait for.
+   argument: the object to wait for. ::
 
-
-   :strong:`Examples`
-
-   ::
-
-       => (import asyncio)
-       => (defn/a main []
-       ...    (print "hello")
-       ...    (await (asyncio.sleep 1))
-       ...    (print "world"))
-       => (asyncio.run (main))
-       hello
-       world
+       (import asyncio)
+       (defn/a main []
+         (print "hello")
+         (await (asyncio.sleep 1))
+         (print "world"))
+       (asyncio.run (main))
 
 .. hy:function:: break
 
@@ -252,8 +245,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
    ``break`` only breaks out of the innermost iteration, not the whole form. To
    jump out of the whole form, enclose it in a :hy:func:`block
-   <hyrule.control.block>` and use ``block-ret`` instead of ``break``, or
-   enclose it in a function and use :hy:func:`return`.
+   <hyrule.control.block>` and use ``block-ret`` instead of ``break``. In
+   the case of :hy:func:`for`, but not :hy:func:`lfor` and the other
+   comprehension forms, you may also enclose it in a function and use
+   :hy:func:`return`.
 
 .. hy:function:: (chainc [#* args])
 
@@ -312,20 +307,16 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    ``do`` (called ``progn`` in some Lisps) takes any number of forms,
    evaluates them, and returns the value of the last one, or ``None`` if no
-   forms were provided.
+   forms were provided. ::
 
-   :strong:`Examples`
-
-   ::
-
-       => (+ 1 (do (setv x (+ 1 1)) x))
-       3
+       (+ 1 (do (setv x (+ 1 1)) x))  ; => 3
 
 .. hy:function:: (for [#* args])
 
-   ``for`` is used to evaluate some forms for each element in an iterable
-   object, such as a list. The return values of the forms are discarded and
-   the ``for`` form returns ``None``.
+   ``for`` compiles to one or more :py:keyword:`for` statements, which
+   execute code repeatedly for each element of an iterable object.
+   The return values of the forms are discarded and the ``for`` form
+   returns ``None``.
 
    ::
 
@@ -339,10 +330,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        iterating
        3
 
-   In its square-bracketed first argument, ``for`` allows the same types of
-   clauses as :hy:func:`lfor`.
+   The first argument of ``for``, in square brackets, specifies how to loop. A simple and common case is ``[variable values]``, where ``values`` is a form that evaluates to an iterable object (such as a list) and ``variable`` is a symbol specifiying the name to assign each element to. Subsequent arguments to ``for`` are body forms to be evaluated for each iteration of the loop.
 
-   ::
+   More generally, the first argument of ``for`` allows the same types of
+   clauses as :hy:func:`lfor`::
 
      => (for [x [1 2 3]  :if (!= x 2)  y [7 8]]
      ...  (print x y))
@@ -351,7 +342,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      3 7
      3 8
 
-   Furthermore, the last argument of ``for`` can be an ``(else …)`` form.
+   The last argument of ``for`` can be an ``(else …)`` form.
    This form is executed after the last iteration of the ``for``\'s
    outermost iteration clause, but only if that outermost loop terminates
    normally. If it's jumped out of with e.g. ``break``, the ``else`` is
@@ -377,49 +368,32 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (assert [condition [label None]])
 
-   ``assert`` is used to verify conditions while the program is
-   running. If the condition is not met, an :exc:`AssertionError` is
-   raised. ``assert`` may take one or two parameters.  The first
-   parameter is the condition to check, and it should evaluate to either
-   ``True`` or ``False``. The second parameter, optional, is a label for
-   the assert, and is the string that will be raised with the
-   :exc:`AssertionError`. For example:
-
-   :strong:`Examples`
-
-   ::
-
-     (assert (= variable expected-value))
-
-     (assert False)
-     ; AssertionError
+   ``assert`` compiles to an :py:keyword:`assert` statement, which checks
+   whether a condition is true. The first argument, specifying the condition to
+   check, is mandatory, whereas the second, which will be passed to
+   :py:class:`AssertionError`, is optional. The whole form is only evaluated
+   when :py:data:`__debug__` is true, and the second argument is only evaluated
+   when :py:data:`__debug__` is true and the condition fails. ``assert`` always
+   returns ``None``. ::
 
      (assert (= 1 2) "one should equal two")
-     ; AssertionError: one should equal two
+       ; AssertionError: one should equal two
 
-.. hy:function:: (global [sym])
+.. hy:function:: (global [sym #* syms])
 
-   ``global`` can be used to mark a symbol as global. This allows the programmer to
-   assign a value to a global symbol. Reading a global symbol does not require the
-   ``global`` keyword -- only assigning it does.
+   ``global`` compiles to a :py:keyword:`global` statement, which declares one
+   or more names as referring to global (i.e., module-level) variables. The
+   arguments are symbols; at least one is required. The return value is always
+   ``None``. ::
 
-   The following example shows how the global symbol ``a`` is assigned a value in a
-   function and is later on printed in another function. Without the ``global``
-   keyword, the second function would have raised a ``NameError``.
-
-   :strong:`Examples`
-
-   ::
-
-       (defn set-a [value]
+       (setv  a 1  b 10)
+       (print a b)  ; => 1 10
+       (defn f []
          (global a)
-         (setv a value))
+         (setv  a 2  b 20))
+       (f)
+       (print a b)  ; => 2 10
 
-       (defn print-a []
-         (print a))
-
-       (set-a 5)
-       (print-a)
 
 .. hy:function:: (get [coll key1 #* keys])
 
@@ -839,29 +813,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      => dic
      {}
 
-.. hy:function:: (nonlocal [object])
+.. hy:function:: (nonlocal [sym #* syms])
 
-   ``nonlocal`` can be used to mark a symbol as not local to the current scope.
-   The parameters are the names of symbols to mark as nonlocal.  This is necessary
-   to modify variables through nested ``fn`` scopes:
-
-   :strong:`Examples`
-
-   ::
-
-       (defn some-function []
-         (setv x 0)
-         (register-some-callback
-           (fn [stuff]
-             (nonlocal x)
-             (setv x stuff))))
-
-   Without the call to ``(nonlocal x)``, the inner function would redefine ``x`` to
-   ``stuff`` inside its local scope instead of overwriting the ``x`` in the outer
-   function.
-
-   See `PEP3104 <https://www.python.org/dev/peps/pep-3104/>`_ for further
-   information.
+   As :hy:func:`global`, but the result is a :py:keyword:`nonlocal` statement.
 
 .. hy:function:: (py [string])
 
@@ -876,8 +830,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    The code must be given as a single string literal, but you can still use
    macros, :hy:func:`hy.eval <hy.eval>`, and related tools to construct the ``py`` form. If
    having to backslash-escape internal double quotes is getting you down, try a
-   :ref:`bracket string <syntax-bracket-strings>`. If you want to evaluate some
-   Python code that's only defined at run-time, try the standard Python function
+   :ref:`bracket string <bracket-strings>`. If you want to evaluate some Python
+   code that's only defined at run-time, try the standard Python function
    :func:`eval`.
 
    Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
