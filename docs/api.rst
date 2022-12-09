@@ -395,36 +395,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print a b)  ; => 2 10
 
 
-.. hy:function:: (get [coll key1 #* keys])
-
-   ``get`` is used to access single elements in collections. ``get`` takes at
-   least two parameters: the *data structure* and the *index* or *key* of the
-   item. It will then return the corresponding value from the collection. If
-   multiple *index* or *key* values are provided, they are used to access
-   successive elements in a nested structure. Example usage:
-
-   :strong:`Examples`
-
-   ::
-
-      => (do
-      ...  (setv animals {"dog" "bark" "cat" "meow"}
-      ...        numbers #("zero" "one" "two" "three")
-      ...        nested [0 1 ["a" "b" "c"] 3 4])
-      ...  (print (get animals "dog"))
-      ...  (print (get numbers 2))
-      ...  (print (get nested 2 1)))
-
-      bark
-      two
-      b
-
-   .. note:: ``get`` raises a KeyError if a dictionary is queried for a
-             non-existing key.
-
-   .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
-             index that is out of bounds.
-
 .. hy:function:: (import [#* forms])
 
    ``import`` compiles to an :py:keyword:`import` statement, which makes objects
