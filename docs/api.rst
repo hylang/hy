@@ -936,35 +936,26 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:function:: (return [object])
 
    ``return`` compiles to a :py:keyword:`return` statement. It exits the
-   current function, returning its argument if provided with one or
-   ``None`` if not.
+   current function, returning its argument if provided with one, or
+   ``None`` if not. ::
 
-   :strong:`Examples`
-
-   ::
-
-       => (defn f [x] (for [n (range 10)] (when (> n x) (return n))))
-       => (f 3.9)
-       4
+       (defn f [x]
+         (for [n (range 10)]
+           (when (> n x)
+             (return n))))
+       (f 3.9)  ; => 4
 
    Note that in Hy, ``return`` is necessary much less often than in Python,
    since the last form of a function is returned automatically. Hence, an
-   explicit ``return`` is only necessary to exit a function early.
+   explicit ``return`` is only necessary to exit a function early. To force
+   Python's behavior of returning ``None`` when execution reaches the end of a
+   function, you can put ``None`` there yourself::
 
-   ::
-
-       => (defn f [x] (setv y 10) (+ x y))
-       => (f 4)
-       14
-
-   To get Python's behavior of returning ``None`` when execution reaches
-   the end of a function, put ``None`` there yourself.
-
-   ::
-
-       => (defn f [x] (setv y 10) (+ x y) None)
-       => (print (f 4))
-       None
+       (defn f [x]
+         (setv y 10)
+         (print (+ x y))
+         None)
+       (print (f 4))  ; Prints "14" and then "None"
 
 .. hy:function:: (cut [coll [start None] [stop None] [step None])
 
