@@ -364,9 +364,14 @@ Next steps
 You now know enough to be dangerous with Hy. You may now smile villainously and
 sneak off to your Hydeaway to do unspeakable things.
 
-Refer to Python's documentation for the details of Python semantics, and the
-rest of this manual for Hy-specific features. Like Hy itself, the manual is
-incomplete, but :ref:`contributions <hacking>` are always welcome.
+Refer to Python's documentation for the details of Python semantics. In
+particular, :ref:`the Python tutorial <tutorial-index>` can be helpful even if
+you have no interest in writing your own Python code, because it will introduce
+you to the semantics, and you'll need a reading knowledge of Python syntax to
+understand example code for Python libraries.
+
+Refer to the rest of this manual for Hy-specific features. Like Hy itself, the
+manual is incomplete, but :ref:`contributions <hacking>` are always welcome.
 
 Bear in mind that Hy is still unstable, and with each release along the
 way to Hy 1.0, there are new breaking changes. Refer to `the NEWS file
