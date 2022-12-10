@@ -470,10 +470,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
    :ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
-   creates a list comprehension. A simple use of ``lfor`` is::
+   can create a list comprehension. A simple use of ``lfor`` is::
 
-       => (lfor x (range 5) (* 2 x))
-       [0 2 4 6 8]
+       (lfor  x (range 5)  (* 2 x))  ; => [0 2 4 6 8]
 
    ``x`` is the name of a new variable, which is bound to each element of
    ``(range 5)``. Each such element in turn is used to evaluate the value
@@ -481,13 +480,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    Here's a more complex example::
 
-       => (lfor
-       ...  x (range 3)
-       ...  y (range 3)
-       ...  :if (!= x y)
-       ...  :setv total (+ x y)
-       ...  [x y total])
-       [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
+       (lfor
+         x (range 3)
+         y (range 3)
+         :if (!= x y)
+         :setv total (+ x y)
+         [x y total])
+       ; => [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
 
    When there are several iteration clauses (here, the pairs of forms ``x
    (range 3)`` and ``y (range 3)``), the result works like a nested loop or
@@ -517,9 +516,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    For ``lfor``, ``sfor``, ``gfor``, and ``dfor``,  variables defined by
    an iteration clause or ``:setv`` are not visible outside the form.
-   However, variables defined within the body, such as via a ``setx``
+   However, variables defined within the body, as with a ``setx``
    expression, will be visible outside the form.
-   By contrast, iteration and ``:setv`` clauses for ``for`` share the
+   In ``for``, by contrast, iteration and ``:setv`` clauses share the
    caller's scope and are visible outside the form.
 
 .. hy:function:: (dfor [#* args])
@@ -537,11 +536,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
    is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
-   an iterator, which evaluates and yields values one at a time.
-
-   :strong:`Examples`
-
-   ::
+   an iterator, which evaluates and yields values one at a time::
 
        => (import itertools [count take-while])
        => (setv accum [])
@@ -554,7 +549,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (sfor [#* args])
 
-   ``sfor`` creates a set comprehension. ``(sfor CLAUSES VALUE)`` is
+   ``sfor`` creates a :ref:`set comprehension <py:set>`. ``(sfor CLAUSES VALUE)`` is
    equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
 
 .. hy:function:: (setv [#* args])
