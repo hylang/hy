@@ -722,37 +722,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         (defn method2 [self arg1 arg2]
           …))
 
-.. hy:function:: (del [object])
+.. hy:function:: (del [#* args])
 
-   ``del`` removes an object from the current namespace.
+   ``del`` compiles to a :py:keyword:`del` statement, which deletes variables
+   or other assignable expressions. It always returns ``None``. ::
 
-   :strong:`Examples`
-
-   ::
-
-     => (setv foo 42)
-     => (del foo)
-     => foo
-     Traceback (most recent call last):
-       File "<console>", line 1, in <module>
-     NameError: name 'foo' is not defined
-
-   ``del`` can also remove objects from mappings, lists, and more.
-
-   ::
-
-     => (setv test (list (range 10)))
-     => test
-     [0 1 2 3 4 5 6 7 8 9]
-     => (del (cut test 2 4)) ;; remove items from 2 to 4 excluded
-     => test
-     [0 1 4 5 6 7 8 9]
-     => (setv dic {"foo" "bar"})
-     => dic
-     {"foo" "bar"}
-     => (del (get dic "foo"))
-     => dic
-     {}
+     (del  foo  (get mydict "mykey")  myobj.myattr)
 
 .. hy:function:: (nonlocal [sym #* syms])
 
