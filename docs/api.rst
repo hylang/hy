@@ -398,8 +398,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:function:: (import [#* forms])
 
    ``import`` compiles to an :py:keyword:`import` statement, which makes objects
-   in a different module available in the current module. Hy's syntax for the
-   various kinds of import looks like this::
+   in a different module available in the current module. It always returns
+   ``None``. Hy's syntax for the various kinds of import looks like this::
 
        ;; Import each of these modules
        ;; Python: import sys, os.path
