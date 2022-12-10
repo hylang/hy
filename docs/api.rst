@@ -699,40 +699,28 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    :hy:func:`case <hyrule.control.case>`, or simply use :hy:func:`cond
    <hy.core.macros.cond>`.
 
-.. hy:function:: (defclass [class-name super-classes #* body])
+.. hy:function:: (defclass [arg1 #* args])
 
-   New classes are declared with ``defclass``. It can take optional parameters
-   in the following order: a list defining (a) possible super class(es) and a
-   string (:term:`py:docstring`). The class name may also be preceded by a list
-   of :term:`decorators <py:decorator>`, as in :hy:func:`defn`.
+   ``defclass`` compiles to a :py:keyword:`class` statement, which creates a
+   new class. It always returns ``None``. Only one argument, specifying the
+   name of the new class as a symbol, is required. A list of :term:`decorators
+   <py:decorator>` may be provided before the class name. After the name comes
+   a list of superclasses (use the empty list ``[]`` for the typical case of no
+   superclasses) and any number of body forms, the first of which may be a
+   :term:`py:docstring`. ::
 
-   :strong:`Examples`
+      (defclass [decorator1 decorator2] MyClass [SuperClass1 SuperClass2]
+        "A class that does things at times."
 
-   ::
+        (setv
+          attribute1 value1
+          attribute2 value2)
 
-       => (defclass class-name [super-class-1 super-class-2]
-       ...   "docstring"
-       ...
-       ...   (setv attribute1 value1)
-       ...   (setv attribute2 value2)
-       ...
-       ...   (defn method [self] (print "hello!")))
+        (defn method1 [self arg1 arg2]
+          …)
 
-   Both values and functions can be bound on the new class as shown by the example
-   below:
-
-   ::
-
-       => (defclass Cat []
-       ...  (setv age None)
-       ...  (setv colour "white")
-       ...
-       ...  (defn speak [self] (print "Meow")))
-
-       => (setv spot (Cat))
-       => (setv spot.colour "Black")
-       => (.speak spot)
-       Meow
+        (defn method2 [self arg1 arg2]
+          …))
 
 .. hy:function:: (del [object])
 
