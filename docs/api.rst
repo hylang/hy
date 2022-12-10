@@ -554,50 +554,35 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (setv [#* args])
 
-   ``setv`` is used to bind a value, object, or function to a symbol.
+   ``setv`` compiles to an :ref:`assignment statement <py:assignment>` (see :hy:func:`setx` for assignment expressions), which sets the value of a variable or some other assignable expression. It requires an even number of arguments, and always returns ``None``. The most common case is two arguments, where the first is a symbol::
 
-   :strong:`Examples`
+       (setv websites 103)
+       (print websites)  ; => 103
 
-   ::
+   Additional pairs of arguments are equivalent to several two-argument ``setv`` calls, in the given order. Thus, the semantics are like Common Lisp's ``setf`` rather than ``psetf``. ::
 
-       => (setv names ["Alice" "Bob" "Charlie"])
-       => (print names)
-       ['Alice', 'Bob', 'Charlie']
+       (setv  x 1  y x  x 2)
+       (print x y)  ; => 2 1
 
-       => (setv counter (fn [collection item] (.count collection item)))
-       => (counter [1 2 3 4 5 2 3] 2)
-       2
+   All the same kinds of complex assignment targets are allowed as in Python. So, you can use list assignment to assign in parallel. (As in Python, tuple and list syntax are equivalent for this purpose; Hy differs from Python merely in that its list syntax is shorter than its tuple syntax.) ::
 
-   You can provide more than one target–value pair, and the assignments will be made in order::
+       (setv [x y] [y x])  ; Swaps the values of `x` and `y`
 
-       => (setv  x 1  y x  x 2)
-       => (print x y)
-       2 1
+   Unpacking assignment looks like this (see :hy:func:`unpack-iterable`)::
 
-   You can perform parallel assignments or unpack the source value with square brackets and :hy:func:`unpack-iterable <unpack-iterable/unpack-mapping>`::
+       (setv [letter1 letter2 #* others] "abcdefg")
+       (print letter1 letter2 (hy.repr others))
+         ; => a b ["c" "d" "e" "f" "g"]
 
-       => (setv duo ["tim" "eric"])
-       => (setv [guy1 guy2] duo)
-       => (print guy1 guy2)
-       tim eric
+   See :hy:func:`let` to simulate more traditionally Lispy block-level scoping.
 
-       => (setv [letter1 letter2 #* others] "abcdefg")
-       => (print letter1 letter2 others)
-       a b ['c', 'd', 'e', 'f', 'g']
+.. hy:function:: (setx [target value])
 
+   ``setx`` compiles to an assignment expression. Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. Python 3.8 or later is required. ::
 
-.. hy:function:: (setx [#* args])
-
-   Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment expression (see :pep:`572`). It requires Python 3.8 or later. Only one target–value pair is allowed, and the target must be a bare symbol, but the ``setx`` form returns the assigned value instead of ``None``.
-
-   :strong:`Examples`
-
-   ::
-
-       => (when (> (setx x (+ 1 2)) 0)
-       ...  (print x "is greater than 0"))
-       3 is greater than 0
-
+     (when (> (setx x (+ 1 2)) 0)
+       (print x "is greater than 0"))
+         ; => 3 is greater than 0
 
 .. hy:function:: (let [bindings #* body])
 
