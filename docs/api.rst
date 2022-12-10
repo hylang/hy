@@ -656,13 +656,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    requires Python 3.10 or later. The first argument should be the subject,
    and any remaining arguments should be pairs of patterns and results. The
    ``match`` form returns the value of the corresponding result, or
-   ``None`` if no case matched. For example::
+   ``None`` if no case matched. ::
 
-       => (match (+ 1 1)
-       ...  1 "one"
-       ...  2 "two"
-       ...  3 "three")
-       "two"
+       (match (+ 1 1)
+         1 "one"
+         2 "two"
+         3 "three")
+       ; => "two"
 
    You can use :hy:func:`do` to build a complex result form. Patterns, as
    in Python match statements, are interpreted specially and can't be
@@ -671,26 +671,33 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    value, sequence, mapping, and class patterns. Guards are specified
    with ``:if FORM``. Here's a more complex example::
 
-       => (match #(100 200)
-       ...  [100 300]               "Case 1"
-       ...  [100 200] :if flag      "Case 2"
-       ...  [900   y]               f"Case 3, y: {y}"
-       ...  [100 (| 100 200) :as y] f"Case 4, y: {y}"
-       ...  _                       "Case 5, I match anything!")
+       (match #(100 200)
+         [100 300]               "Case 1"
+         [100 200] :if flag      "Case 2"
+         [900   y]               f"Case 3, y: {y}"
+         [100 (| 100 200) :as y] f"Case 4, y: {y}"
+         _                       "Case 5, I match anything!")
 
    This will match case 2 if ``flag`` is true and case 4 otherwise.
 
    ``match`` can also match against class instances by keyword (or
-   positionally if its ``__match_args__`` attribute is defined, see
-   `pep 636 <https://www.python.org/dev/peps/pep-0636/#appendix-a-quick-intro>`_)::
+   positionally if its ``__match_args__`` attribute is defined; see :pep:`636`)::
 
-      => (import  dataclasses [dataclass])
-      => (defclass [dataclass] Point []
-      ...  #^int x
-      ...  #^int y)
-      => (match (Point 1 2)
-      ...  (Point 1 x) :if (= (% x 2) 0) x)
-      2
+      (import  dataclasses [dataclass])
+      (defclass [dataclass] Point []
+        #^int x
+        #^int y)
+      (match (Point 1 2)
+        (Point 1 x) :if (= (% x 2) 0) x)  ; => 2
+
+   It's worth emphasizing that ``match`` is a pattern-matching construct
+   rather than a generic `switch
+   <https://en.wikipedia.org/wiki/Switch_statement>`_ construct, and
+   retains all of Python's limitations on match patterns. For example, you
+   can't match against the value of a variable. For more flexible branching
+   constructs, see Hyrule's :hy:func:`branch <hyrule.control.branch>` and
+   :hy:func:`case <hyrule.control.case>`, or simply use :hy:func:`cond
+   <hy.core.macros.cond>`.
 
 .. hy:function:: (defclass [class-name super-classes #* body])
 
