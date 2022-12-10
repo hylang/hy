@@ -760,13 +760,15 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    As :hy:func:`py <py>`, but the code can consist of zero or more statements,
    including compound statements such as ``for`` and ``def``. ``pys`` always
-   returns ``None``. Also, the code string is dedented with
-   :func:`textwrap.dedent` before parsing, which allows you to intend the code to
-   match the surrounding Hy code, but significant leading whitespace in embedded
-   string literals will be removed. ::
+   returns ``None``. ::
 
        (pys "myvar = 5")
        (print "myvar is" myvar)
+
+   The code string is dedented with :func:`textwrap.dedent` before parsing,
+   which allows you to indent the code to match the surrounding Hy code when
+   Python would otherwise forbid this, but beware that significant leading
+   whitespace in embedded string literals will be removed.
 
 .. hy:function:: (quasiquote [form])
 
