@@ -207,34 +207,27 @@ evaluate all arguments."
   (not x))
 
 (defn get [coll key1 #* keys]
-  "Access item in `coll` indexed by `key1`, with optional `keys` nested-access.
+  #[[``get`` compiles to one or more :ref:`subscription expressions <subscriptions>`,
+  which select an element of a data structure. The first two arguments are the
+  collection object and a key; for example, ``(get person name)`` compiles to
+  ``person[name]``. Subsequent arguments indicate chained subscripts, so ``(get person
+  name "surname" 0)`` becomes ``person[name]["surname"][0]``. You can assign to a
+  ``get`` form, as in ::
 
-  ``get`` is used to access single elements in collections. ``get`` takes at
-  least two parameters: the *data structure* and the *index* or *key* of the
-  item. It will then return the corresponding value from the collection. If
-  multiple *index* or *key* values are provided, they are used to access
-  successive elements in a nested structure.
+      (setv real-estate {"price" 1,500,000})
+      (setv (get real-estate "price") 0)
 
-  .. note:: ``get`` raises a KeyError if a dictionary is queried for a
-            non-existing key.
+  but this doesn't work with the function version of ``get`` from ``hy.pyops``, due to
+  Python limitations on lvalues.
 
-  .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
-            index that is out of bounds.
+  If you're looking for the Hy equivalent of Python list slicing, as in ``foo[1:3]``,
+  note that this is just Python's syntactic sugar for ``foo[slice(1, 3)]``, and Hy
+  provides its own syntactic sugar for this with a different macro, :hy:func:`cut`.
 
-  Examples:
-    ::
+  Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
+  :hy:func:`assoc <hyrule.collections.assoc>` to easily assign multiple elements of a
+  single collection.]]
 
-       => (do
-       ...   (setv animals {\"dog\" \"bark\" \"cat\" \"meow\"}
-       ...         numbers #(\"zero\" \"one\" \"two\" \"three\")
-       ...         nested [0 1 [\"a\" \"b\" \"c\"] 3 4])
-       ...   (print (get animals \"dog\"))
-       ...   (print (get numbers 2))
-       ...   (print (get nested 2 1))
-       bark
-       two
-       b
-  "
   (setv coll (get coll key1))
   (for [k keys]
     (setv coll (get coll k)))

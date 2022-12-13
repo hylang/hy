@@ -395,41 +395,11 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print a b)  ; => 2 10
 
 
-.. hy:function:: (get [coll key1 #* keys])
-
-   ``get`` is used to access single elements in collections. ``get`` takes at
-   least two parameters: the *data structure* and the *index* or *key* of the
-   item. It will then return the corresponding value from the collection. If
-   multiple *index* or *key* values are provided, they are used to access
-   successive elements in a nested structure. Example usage:
-
-   :strong:`Examples`
-
-   ::
-
-      => (do
-      ...  (setv animals {"dog" "bark" "cat" "meow"}
-      ...        numbers #("zero" "one" "two" "three")
-      ...        nested [0 1 ["a" "b" "c"] 3 4])
-      ...  (print (get animals "dog"))
-      ...  (print (get numbers 2))
-      ...  (print (get nested 2 1)))
-
-      bark
-      two
-      b
-
-   .. note:: ``get`` raises a KeyError if a dictionary is queried for a
-             non-existing key.
-
-   .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
-             index that is out of bounds.
-
 .. hy:function:: (import [#* forms])
 
    ``import`` compiles to an :py:keyword:`import` statement, which makes objects
-   in a different module available in the current module. Hy's syntax for the
-   various kinds of import looks like this::
+   in a different module available in the current module. It always returns
+   ``None``. Hy's syntax for the various kinds of import looks like this::
 
        ;; Import each of these modules
        ;; Python: import sys, os.path
@@ -465,7 +435,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (eval-and-compile [#* body])
 
-   ``eval-and-compile`` is a special form that takes any number of forms. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice.
+   ``eval-and-compile`` takes any number of forms as arguments. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice. The return value is the final argument, as in ``do``.
 
    One possible use of ``eval-and-compile`` is to make a function available both at compile-time (so a macro can call it while expanding) and run-time (so it can be called like any other function)::
 
@@ -483,11 +453,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (eval-when-compile [#* body])
 
-   ``eval-when-compile`` is like ``eval-and-compile``, but the code isn't executed at run-time. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function).
-
-   :strong:`Examples`
-
-   ::
+   As ``eval-and-compile``, but the code isn't executed at run-time, and ``None`` is returned. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function). ::
 
        (eval-when-compile
          (defn add [x y]
@@ -504,10 +470,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
    :ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
-   creates a list comprehension. A simple use of ``lfor`` is::
+   can create a list comprehension. A simple use of ``lfor`` is::
 
-       => (lfor x (range 5) (* 2 x))
-       [0 2 4 6 8]
+       (lfor  x (range 5)  (* 2 x))  ; => [0 2 4 6 8]
 
    ``x`` is the name of a new variable, which is bound to each element of
    ``(range 5)``. Each such element in turn is used to evaluate the value
@@ -515,13 +480,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    Here's a more complex example::
 
-       => (lfor
-       ...  x (range 3)
-       ...  y (range 3)
-       ...  :if (!= x y)
-       ...  :setv total (+ x y)
-       ...  [x y total])
-       [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
+       (lfor
+         x (range 3)
+         y (range 3)
+         :if (!= x y)
+         :setv total (+ x y)
+         [x y total])
+       ; => [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
 
    When there are several iteration clauses (here, the pairs of forms ``x
    (range 3)`` and ``y (range 3)``), the result works like a nested loop or
@@ -551,9 +516,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    For ``lfor``, ``sfor``, ``gfor``, and ``dfor``,  variables defined by
    an iteration clause or ``:setv`` are not visible outside the form.
-   However, variables defined within the body, such as via a ``setx``
+   However, variables defined within the body, as with a ``setx``
    expression, will be visible outside the form.
-   By contrast, iteration and ``:setv`` clauses for ``for`` share the
+   In ``for``, by contrast, iteration and ``:setv`` clauses share the
    caller's scope and are visible outside the form.
 
 .. hy:function:: (dfor [#* args])
@@ -571,11 +536,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
    is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
-   an iterator, which evaluates and yields values one at a time.
-
-   :strong:`Examples`
-
-   ::
+   an iterator, which evaluates and yields values one at a time::
 
        => (import itertools [count take-while])
        => (setv accum [])
@@ -588,55 +549,40 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (sfor [#* args])
 
-   ``sfor`` creates a set comprehension. ``(sfor CLAUSES VALUE)`` is
+   ``sfor`` creates a :ref:`set comprehension <py:set>`. ``(sfor CLAUSES VALUE)`` is
    equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
 
 .. hy:function:: (setv [#* args])
 
-   ``setv`` is used to bind a value, object, or function to a symbol.
+   ``setv`` compiles to an :ref:`assignment statement <py:assignment>` (see :hy:func:`setx` for assignment expressions), which sets the value of a variable or some other assignable expression. It requires an even number of arguments, and always returns ``None``. The most common case is two arguments, where the first is a symbol::
 
-   :strong:`Examples`
+       (setv websites 103)
+       (print websites)  ; => 103
 
-   ::
+   Additional pairs of arguments are equivalent to several two-argument ``setv`` calls, in the given order. Thus, the semantics are like Common Lisp's ``setf`` rather than ``psetf``. ::
 
-       => (setv names ["Alice" "Bob" "Charlie"])
-       => (print names)
-       ['Alice', 'Bob', 'Charlie']
+       (setv  x 1  y x  x 2)
+       (print x y)  ; => 2 1
 
-       => (setv counter (fn [collection item] (.count collection item)))
-       => (counter [1 2 3 4 5 2 3] 2)
-       2
+   All the same kinds of complex assignment targets are allowed as in Python. So, you can use list assignment to assign in parallel. (As in Python, tuple and list syntax are equivalent for this purpose; Hy differs from Python merely in that its list syntax is shorter than its tuple syntax.) ::
 
-   You can provide more than one target–value pair, and the assignments will be made in order::
+       (setv [x y] [y x])  ; Swaps the values of `x` and `y`
 
-       => (setv  x 1  y x  x 2)
-       => (print x y)
-       2 1
+   Unpacking assignment looks like this (see :hy:func:`unpack-iterable`)::
 
-   You can perform parallel assignments or unpack the source value with square brackets and :hy:func:`unpack-iterable <unpack-iterable/unpack-mapping>`::
+       (setv [letter1 letter2 #* others] "abcdefg")
+       (print letter1 letter2 (hy.repr others))
+         ; => a b ["c" "d" "e" "f" "g"]
 
-       => (setv duo ["tim" "eric"])
-       => (setv [guy1 guy2] duo)
-       => (print guy1 guy2)
-       tim eric
+   See :hy:func:`let` to simulate more traditionally Lispy block-level scoping.
 
-       => (setv [letter1 letter2 #* others] "abcdefg")
-       => (print letter1 letter2 others)
-       a b ['c', 'd', 'e', 'f', 'g']
+.. hy:function:: (setx [target value])
 
+   ``setx`` compiles to an assignment expression. Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. Python 3.8 or later is required. ::
 
-.. hy:function:: (setx [#* args])
-
-   Whereas ``setv`` creates an assignment statement, ``setx`` creates an assignment expression (see :pep:`572`). It requires Python 3.8 or later. Only one target–value pair is allowed, and the target must be a bare symbol, but the ``setx`` form returns the assigned value instead of ``None``.
-
-   :strong:`Examples`
-
-   ::
-
-       => (when (> (setx x (+ 1 2)) 0)
-       ...  (print x "is greater than 0"))
-       3 is greater than 0
-
+     (when (> (setx x (+ 1 2)) 0)
+       (print x "is greater than 0"))
+         ; => 3 is greater than 0
 
 .. hy:function:: (let [bindings #* body])
 
@@ -710,13 +656,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    requires Python 3.10 or later. The first argument should be the subject,
    and any remaining arguments should be pairs of patterns and results. The
    ``match`` form returns the value of the corresponding result, or
-   ``None`` if no case matched. For example::
+   ``None`` if no case matched. ::
 
-       => (match (+ 1 1)
-       ...  1 "one"
-       ...  2 "two"
-       ...  3 "three")
-       "two"
+       (match (+ 1 1)
+         1 "one"
+         2 "two"
+         3 "three")
+       ; => "two"
 
    You can use :hy:func:`do` to build a complex result form. Patterns, as
    in Python match statements, are interpreted specially and can't be
@@ -725,93 +671,63 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    value, sequence, mapping, and class patterns. Guards are specified
    with ``:if FORM``. Here's a more complex example::
 
-       => (match #(100 200)
-       ...  [100 300]               "Case 1"
-       ...  [100 200] :if flag      "Case 2"
-       ...  [900   y]               f"Case 3, y: {y}"
-       ...  [100 (| 100 200) :as y] f"Case 4, y: {y}"
-       ...  _                       "Case 5, I match anything!")
+       (match #(100 200)
+         [100 300]               "Case 1"
+         [100 200] :if flag      "Case 2"
+         [900   y]               f"Case 3, y: {y}"
+         [100 (| 100 200) :as y] f"Case 4, y: {y}"
+         _                       "Case 5, I match anything!")
 
    This will match case 2 if ``flag`` is true and case 4 otherwise.
 
    ``match`` can also match against class instances by keyword (or
-   positionally if its ``__match_args__`` attribute is defined, see
-   `pep 636 <https://www.python.org/dev/peps/pep-0636/#appendix-a-quick-intro>`_)::
+   positionally if its ``__match_args__`` attribute is defined; see :pep:`636`)::
 
-      => (import  dataclasses [dataclass])
-      => (defclass [dataclass] Point []
-      ...  #^int x
-      ...  #^int y)
-      => (match (Point 1 2)
-      ...  (Point 1 x) :if (= (% x 2) 0) x)
-      2
+      (import  dataclasses [dataclass])
+      (defclass [dataclass] Point []
+        #^int x
+        #^int y)
+      (match (Point 1 2)
+        (Point 1 x) :if (= (% x 2) 0) x)  ; => 2
 
-.. hy:function:: (defclass [class-name super-classes #* body])
+   It's worth emphasizing that ``match`` is a pattern-matching construct
+   rather than a generic `switch
+   <https://en.wikipedia.org/wiki/Switch_statement>`_ construct, and
+   retains all of Python's limitations on match patterns. For example, you
+   can't match against the value of a variable. For more flexible branching
+   constructs, see Hyrule's :hy:func:`branch <hyrule.control.branch>` and
+   :hy:func:`case <hyrule.control.case>`, or simply use :hy:func:`cond
+   <hy.core.macros.cond>`.
 
-   New classes are declared with ``defclass``. It can take optional parameters
-   in the following order: a list defining (a) possible super class(es) and a
-   string (:term:`py:docstring`). The class name may also be preceded by a list
-   of :term:`decorators <py:decorator>`, as in :hy:func:`defn`.
+.. hy:function:: (defclass [arg1 #* args])
 
-   :strong:`Examples`
+   ``defclass`` compiles to a :py:keyword:`class` statement, which creates a
+   new class. It always returns ``None``. Only one argument, specifying the
+   name of the new class as a symbol, is required. A list of :term:`decorators
+   <py:decorator>` may be provided before the class name. After the name comes
+   a list of superclasses (use the empty list ``[]`` for the typical case of no
+   superclasses) and any number of body forms, the first of which may be a
+   :term:`py:docstring`. ::
 
-   ::
+      (defclass [decorator1 decorator2] MyClass [SuperClass1 SuperClass2]
+        "A class that does things at times."
 
-       => (defclass class-name [super-class-1 super-class-2]
-       ...   "docstring"
-       ...
-       ...   (setv attribute1 value1)
-       ...   (setv attribute2 value2)
-       ...
-       ...   (defn method [self] (print "hello!")))
+        (setv
+          attribute1 value1
+          attribute2 value2)
 
-   Both values and functions can be bound on the new class as shown by the example
-   below:
+        (defn method1 [self arg1 arg2]
+          …)
 
-   ::
+        (defn method2 [self arg1 arg2]
+          …))
 
-       => (defclass Cat []
-       ...  (setv age None)
-       ...  (setv colour "white")
-       ...
-       ...  (defn speak [self] (print "Meow")))
+.. hy:function:: (del [#* args])
 
-       => (setv spot (Cat))
-       => (setv spot.colour "Black")
-       => (.speak spot)
-       Meow
+   ``del`` compiles to a :py:keyword:`del` statement, which deletes variables
+   or other assignable expressions. It always returns ``None``. ::
 
-.. hy:function:: (del [object])
-
-   ``del`` removes an object from the current namespace.
-
-   :strong:`Examples`
-
-   ::
-
-     => (setv foo 42)
-     => (del foo)
-     => foo
-     Traceback (most recent call last):
-       File "<console>", line 1, in <module>
-     NameError: name 'foo' is not defined
-
-   ``del`` can also remove objects from mappings, lists, and more.
-
-   ::
-
-     => (setv test (list (range 10)))
-     => test
-     [0 1 2 3 4 5 6 7 8 9]
-     => (del (cut test 2 4)) ;; remove items from 2 to 4 excluded
-     => test
-     [0 1 4 5 6 7 8 9]
-     => (setv dic {"foo" "bar"})
-     => dic
-     {"foo" "bar"}
-     => (del (get dic "foo"))
-     => dic
-     {}
+     (del  foo  (get mydict "mykey")  myobj.myattr)
 
 .. hy:function:: (nonlocal [sym #* syms])
 
@@ -844,13 +760,15 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    As :hy:func:`py <py>`, but the code can consist of zero or more statements,
    including compound statements such as ``for`` and ``def``. ``pys`` always
-   returns ``None``. Also, the code string is dedented with
-   :func:`textwrap.dedent` before parsing, which allows you to intend the code to
-   match the surrounding Hy code, but significant leading whitespace in embedded
-   string literals will be removed. ::
+   returns ``None``. ::
 
        (pys "myvar = 5")
        (print "myvar is" myvar)
+
+   The code string is dedented with :func:`textwrap.dedent` before parsing,
+   which allows you to indent the code to match the surrounding Hy code when
+   Python would otherwise forbid this, but beware that significant leading
+   whitespace in embedded string literals will be removed.
 
 .. hy:function:: (quasiquote [form])
 
@@ -1018,35 +936,26 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:function:: (return [object])
 
    ``return`` compiles to a :py:keyword:`return` statement. It exits the
-   current function, returning its argument if provided with one or
-   ``None`` if not.
+   current function, returning its argument if provided with one, or
+   ``None`` if not. ::
 
-   :strong:`Examples`
-
-   ::
-
-       => (defn f [x] (for [n (range 10)] (when (> n x) (return n))))
-       => (f 3.9)
-       4
+       (defn f [x]
+         (for [n (range 10)]
+           (when (> n x)
+             (return n))))
+       (f 3.9)  ; => 4
 
    Note that in Hy, ``return`` is necessary much less often than in Python,
    since the last form of a function is returned automatically. Hence, an
-   explicit ``return`` is only necessary to exit a function early.
+   explicit ``return`` is only necessary to exit a function early. To force
+   Python's behavior of returning ``None`` when execution reaches the end of a
+   function, you can put ``None`` there yourself::
 
-   ::
-
-       => (defn f [x] (setv y 10) (+ x y))
-       => (f 4)
-       14
-
-   To get Python's behavior of returning ``None`` when execution reaches
-   the end of a function, put ``None`` there yourself.
-
-   ::
-
-       => (defn f [x] (setv y 10) (+ x y) None)
-       => (print (f 4))
-       None
+       (defn f [x]
+         (setv y 10)
+         (print (+ x y))
+         None)
+       (print (f 4))  ; Prints "14" and then "None"
 
 .. hy:function:: (cut [coll [start None] [stop None] [step None])
 
