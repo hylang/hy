@@ -957,59 +957,33 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
          None)
        (print (f 4))  ; Prints "14" and then "None"
 
-.. hy:function:: (cut [coll [start None] [stop None] [step None])
+.. hy:function:: (cut [coll arg1 arg2 arg3])
 
-   ``cut`` can be used to take a subset of a list and create a new list from it.
-   The form takes at least one parameter specifying the list to cut. Two
-   optional parameters can be used to give the start and end position of the
-   subset. If only one is given, it is taken as the ``stop`` value.
-   The third optional parameter is used to control the step stride between the elements.
+   ``cut`` compiles to a :ref:`slicing expression <slicings>`, which selects multiple elements of a sequential data structure. The first argument is the object to be sliced. The remaining arguments are optional, and understood the same way as in a Python slicing expression. ::
 
-   ``cut`` follows the same rules as its Python counterpart. Negative indices are
-   counted starting from the end of the list. Some example usage:
+       (setv x "abcdef")
+       (cut x)           ; => "abcdef"
+       (cut x 3)         ; => "abc"
+       (cut x 3 5)       ; => "de"
+       (cut x -3 None)   ; => "def"
+       (cut x 0 None 2)  ; => "ace"
 
-   :strong:`Examples`
+   A ``cut`` form is a valid target for assignment (with :hy:func:`setv`, ``+=``, etc.) and for deletion (with :hy:func:`del`).
 
-   ::
+.. hy:function:: (raise [exception :from other])
 
-       => (setv collection (range 10))
-       => (cut collection)
-       [0 1 2 3 4 5 6 7 8 9]
+   ``raise`` compiles to a :py:keyword:`raise` statement, which throws an
+   exception. With no arguments, the current exception is reraised. With one
+   argument, an exception, that exception is raised. ::
 
-       => (cut collection 5)
-       [0 1 2 3 4]
+     (try
+       (raise KeyError)
+       (except [KeyError]
+         (print "gottem")))
 
-       => (cut collection 2 8)
-       [2 3 4 5 6 7]
-
-       => (cut collection 2 8 2)
-       [2 4 6]
-
-       => (cut collection -4 -2)
-       [6 7]
-
-.. hy:function:: (raise [[exception None]])
-
-   The ``raise`` form can be used to raise an ``Exception`` at
-   runtime. Example usage:
-
-   :strong:`Examples`
-
-   ::
-
-       (raise)
-       ; re-rase the last exception
-
-       (raise IOError)
-       ; raise an IOError
-
-       (raise (IOError "foobar"))
-       ; raise an IOError("foobar")
-
-
-   ``raise`` can accept a single argument (an ``Exception`` class or instance)
-   or no arguments to re-raise the last ``Exception``.
-
+   ``raise`` supports one other syntax, ``(raise EXCEPTION_1 :from
+   EXCEPTION_2)``, which compiles to a Python ``raise … from`` statement like
+   ``raise EXCEPTION_1 from EXCEPTION_2``.
 
 .. hy:function:: (try [#* body])
 
@@ -1047,7 +1021,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    - ``[]`` to catch any subtype of ``Exception``, like Python's ``except:``
    - ``[ETYPE]`` to catch only the single type ``ETYPE``, like Python's
-     ```except ETYPE:``
+     ``except ETYPE:``
    - ``[[ETYPE1 ETYPE2 …]]`` to catch any of the named types, like Python's
      ``except ETYPE1, ETYPE2, …:``
    - ``[VAR ETYPE]`` to catch ``ETYPE`` and bind it to ``VAR``, like Python's
@@ -1144,19 +1118,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:function:: (while [condition #* body])
 
-   ``while`` compiles to a :py:keyword:`while` statement. It is used to execute a
-   set of forms as long as a condition is met. The first argument to ``while`` is
-   the condition, and any remaining forms constitute the body. The following
-   example will output "Hello world!" to the screen indefinitely:
+   ``while`` compiles to a :py:keyword:`while` statement, which executes some
+   code as long as a condition is met. The first argument to ``while`` is the
+   condition, and any remaining forms constitute the body. It always returns
+   ``None``. ::
 
-   ::
+       (while True
+         (print "Hello world!"))
 
-       (while True (print "Hello world!"))
-
-   The last form of a ``while`` loop can be an ``else`` clause, which is executed
-   after the loop terminates, unless it exited abnormally (e.g., with ``break``). So,
-
-   ::
+   The last form of a ``while`` loop can be an ``else`` clause, which is
+   executed after the loop terminates, unless it exited abnormally (e.g., with
+   ``break``). So, ::
 
        (setv x 2)
        (while x
@@ -1165,9 +1137,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
           (else
             (print "In else")))
 
-   prints
-
-   ::
+   prints ::
 
        In body
        In body
@@ -1177,9 +1147,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    loop, it will apply to the very same loop rather than an outer loop, even if
    execution is yet to ever reach the loop body. (Hy compiles a ``while`` loop
    with statements in its condition by rewriting it so that the condition is
-   actually in the body.) So,
-
-   ::
+   actually in the body.) So, ::
 
        (for [x [1]]
           (print "In outer loop")
@@ -1192,95 +1160,81 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
             (print "This won't print, either."))
           (print "At end of outer loop"))
 
-   prints
-
-   ::
+   prints ::
 
        In outer loop
        In condition
        At end of outer loop
 
-.. hy:function:: (with [#* args])
+.. hy:function:: (with [managers #* body])
 
-  Wrap execution of `body` within a context manager given as bracket `args`.
-  ``with`` is used to wrap the execution of a block within a context manager. The
-  context manager can then set up the local system and tear it down in a controlled
-  manner. The archetypical example of using ``with`` is when processing files.
-  If only a single expression is supplied, or the argument is `_`, then no
-  variable is bound to the expression, as shown below.
+   ``with`` compiles to a :py:keyword:`with` statement, which wraps some code
+   with one or more :ref:`context managers <py:context-managers>`. The first
+   argument is a bracketed list of context managers, and the remaining
+   arguments are body forms.
 
-  Examples:
-    ::
+   The manager list can't be empty. If it has only one item, that item is
+   evaluated to obtain the context manager to use. If it has two, the first
+   argument (a symbol) is bound to the result of the second. Thus, ``(with
+   [(f)] …)`` compiles to ``with f(): …`` and ``(with [x (f)] …)`` compiles to
+   ``with f() as x: …``. ::
 
-       => (with [arg (expr)] block)
-       => (with [(expr)] block)
-       => (with [arg1 (expr1)  _ (expr2)  arg3 (expr3)] block)
+     (with [o (open "file.txt" "rt")]
+       (print (.read o)))
 
-  The following example will open the ``NEWS`` file and print its content to the
-  screen. The file is automatically closed after it has been processed::
+   If the manager list has more than two items, they're understood as
+   variable-manager pairs; thus ::
 
-       => (with [f (open \"NEWS\")] (print (.read f)))
+     (with [v1 e1  v2 e2  v3 e3] …)
 
-  ``with`` returns the value of its last form, unless it suppresses an exception
-  (because the context manager's ``__exit__`` method returned true), in which
-  case it returns ``None``. So, the previous example could also be written::
+   compiles to
 
-       => (print (with [f (open \"NEWS\")] (.read f)))
+   .. code-block:: python
 
-.. hy:function:: (with/a [#* args])
+      with e1 as v1, e2 as v2, e3 as v3: …
 
-  Wrap execution of `body` within a context manager given as bracket `args`.
-  ``with/a`` behaves like ``with``, but is used to wrap the execution of a block
-  within an asynchronous context manager. The context manager can then set up
-  the local system and tear it down in a controlled manner asynchronously.
-  Examples:
+   The symbol ``_`` is interpreted specially as a variable name in the manager
+   list: instead of binding the context manager to the variable ``_`` (as
+   Python's ``with e1 as _: …``), ``with`` will leave it anonymous (as Python's
+   ``with e1: …``).
 
-    ::
-       => (with/a [arg (expr)] block)
-       => (with/a [(expr)] block)
-       => (with/a [_ (expr)  arg (expr)  _ (expr)] block)
+   ``with`` returns the value of its last form, unless it suppresses an
+   exception (because the context manager's ``__exit__`` method returned true),
+   in which case it returns ``None``. So, the previous example could also be
+   written ::
 
-  .. note::
-    ``with/a`` returns the value of its last form, unless it suppresses an exception
-    (because the context manager's ``__aexit__`` method returned true), in which
-    case it returns ``None``.
+       (print (with [o (open "file.txt" "rt")] (.read o)))
 
-.. hy:function:: (yield [object])
+.. hy:function:: (with/a [managers #* body])
 
-   ``yield`` is used to create a generator object that returns one or more values.
-   The generator is iterable and therefore can be used in loops, list
-   comprehensions and other similar constructs.
+   As :hy:func:`with`, but compiles to an :py:keyword:`async with` statement.
 
-   The function ``random-numbers`` shows how generators can be used to generate
-   infinite series without consuming infinite amount of memory.
+.. hy:function:: (yield [value])
 
-   :strong:`Examples`
+   ``yield`` compiles to a :ref:`yield expression <py:yieldexpr>`, which
+   returns a value as a generator. As in Python, one argument, the value to
+   yield, is accepted, and it defaults to ``None``. ::
 
-   ::
+      (defn naysayer []
+        (while True
+          (yield "nope")))
+      (hy.repr (list (zip "abc" (naysayer))))
+        ; => [#("a" "nope") #("b" "nope") #("c" "nope")]
 
-       => (defn multiply [bases coefficients]
-       ...  (for [#(base coefficient) (zip bases coefficients)]
-       ...   (yield (* base coefficient))))
-
-       => (multiply (range 5) (range 5))
-       <generator object multiply at 0x978d8ec>
-
-       => (list (multiply (range 10) (range 10)))
-       [0 1 4 9 16 25 36 49 64 81]
-
-       => (import random)
-       => (defn random-numbers [low high]
-       ...  (while True (yield (.randint random low high))))
-       => (list (take 15 (random-numbers 1 50)))
-       [7 41 6 22 32 17 5 38 18 38 17 14 23 23 19]
-
+   For ``yield from``, see :hy:func:`yield-from`.
 
 .. hy:function:: (yield-from [object])
 
-   ``yield-from`` is used to call a subgenerator.  This is useful if you
-   want your coroutine to be able to delegate its processes to another
-   coroutine, say, if using something fancy like
-   `asyncio <https://docs.python.org/3.4/library/asyncio.html>`_.
+   ``yield-from`` compiles to a :ref:`yield-from expression <py:yieldexpr>`,
+   which returns a value from a subgenerator. The syntax is the same as that of
+   :hy:func:`yield`. ::
+
+      (defn myrange []
+        (setv r (range 10))
+        (while True
+          (yield-from r)))
+      (hy.repr (list (zip "abc" (myrange))))
+        ; => [#("a" 0) #("b" 1) #("c" 2)]
 
 .. hy:function:: (pragma)
 
