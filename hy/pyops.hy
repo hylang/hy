@@ -17,7 +17,17 @@ macro instead of the function.
 The functions in ``hy.pyops`` have the same semantics as their macro
 equivalents, with one exception: functions can't short-circuit, so the
 functions for operators such as ``and`` and ``!=`` unconditionally
-evaluate all arguments."
+evaluate all arguments.
+
+Hy also provides macros for :ref:`Python's augmented assignment
+operators <py:augassign>` (but no equivalent functions, because Python
+semantics don't allow for this). These macros require at least two
+arguments even if the parent operator doesn't; for example, ``(-= x)``
+is an error even though ``(- x)`` is legal. On the other hand,
+augmented-assignment macros extend to more than two arguments in an
+analogous way as the parent operator, following the pattern ``(OP= x a b
+c …)`` → ``(OP= x (OP a b c …))``. For example, ``(+= count n1 n2 n3)``
+is equivalent to ``(+= count (+ n1 n2 n3)).``"
 
 ;;;; Hy shadow functions
 
