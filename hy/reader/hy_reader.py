@@ -34,8 +34,8 @@ def mkexpr(root, *args):
     return Expression((sym(root) if isinstance(root, str) else root, *args))
 
 
-def symbol_like(ident, reader=None):
-    """Generate a Hy model from an identifier-like string.
+def as_identifier(ident, reader=None):
+    """Generate a Hy model from an identifier.
 
     Also verifies the syntax of dot notation and validity of symbol names.
 
@@ -67,7 +67,7 @@ def symbol_like(ident, reader=None):
 
     if "." in ident:
         for chunk in ident.split("."):
-            if chunk and not isinstance(symbol_like(chunk, reader=reader), Symbol):
+            if chunk and not isinstance(as_identifier(chunk, reader=reader), Symbol):
                 msg = (
                     "Cannot access attribute on anything other"
                     " than a name (in order to get attributes of expressions,"
@@ -116,14 +116,14 @@ class HyReader(Reader):
     def read_default(self, key):
         """Default reader handler when nothing in the table matches.
 
-        Try to read an identifier/symbol. If there's a double-quote immediately
-        following, then parse it as a string with the given prefix (e.g.,
-        `r"..."`). Otherwise, parse it as a symbol-like.
+        Try to read an identifier. If there's a double-quote immediately
+        following, then instead parse it as a string with the given prefix (e.g.,
+        `r"..."`).
         """
         ident = key + self.read_ident()
         if self.peek_and_getc('"'):
             return self.prefixed_string('"', ident)
-        return symbol_like(ident, reader=self)
+        return as_identifier(ident, reader=self)
 
     def parse(self, stream, filename=None):
         """Yields all `hy.models.Object`'s in `source`

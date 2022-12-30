@@ -227,9 +227,9 @@ class Symbol(Object, str):
         if not from_parser:
             # Check that the symbol is syntactically legal.
             # import here to prevent circular imports.
-            from hy.reader.hy_reader import symbol_like
+            from hy.reader.hy_reader import as_identifier
 
-            sym = symbol_like(s)
+            sym = as_identifier(s)
             if not isinstance(sym, Symbol):
                 raise ValueError(f"Syntactically illegal symbol: {s!r}")
             return sym
