@@ -522,7 +522,6 @@ def test_macro_require():
     assert output.strip() == "abc"
 
 
-@pytest.mark.skipif(PYPY, reason = 'https://foss.heptapod.net/pypy/pypy/-/issues/3800')
 def test_tracebacks():
     """Make sure the printed tracebacks are correct."""
 
