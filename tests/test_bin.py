@@ -654,6 +654,7 @@ def test_output_buffering(tmp_path):
         assert tf.read_text().splitlines() == ["line 1", "line 2"]
 
 
+@pytest.mark.skipif(PYPY, reason = 'https://foss.heptapod.net/pypy/pypy/-/issues/3881')
 def test_uufileuu(tmp_path, monkeypatch):
     # `__file__` should be set the same way as in Python.
     # https://github.com/hylang/hy/issues/2318
