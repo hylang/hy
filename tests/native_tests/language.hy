@@ -1214,8 +1214,11 @@ cee"} dee" "ey bee\ncee dee"))
 
 
 (defn test-relative-import []
-  (import ..resources [tlib])
-  (assert (= tlib.SECRET-MESSAGE "Hello World")))
+  (import ..resources [tlib in-init])
+  (assert (= tlib.SECRET-MESSAGE "Hello World"))
+  (assert (= in-init "chippy"))
+  (import .. [resources])
+  (assert (= resources.in-init "chippy")))
 
 
 (defn test-lambda-keyword-lists []

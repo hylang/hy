@@ -1,3 +1,6 @@
+in_init = "chippy"
+
+
 def kwtest(*args, **kwargs):
     return kwargs
 
