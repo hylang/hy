@@ -524,16 +524,14 @@ def test_attribute_access():
     cant_compile("(. foo bar :baz [0] quux [frob])")
     cant_compile("(. foo bar baz (0) quux [frob])")
     cant_compile("(. foo bar baz [0] quux {frob})")
-    cant_compile("(.. foo bar baz)")
 
 
-def test_attribute_empty():
-    """Ensure using dot notation with a non-expression is an error"""
-    cant_compile(".")
+def test_misplaced_dots():
     cant_compile("foo.")
-    cant_compile(".foo")
-    cant_compile('"bar".foo')
-    cant_compile("[2].foo")
+    cant_compile("foo..")
+    cant_compile("foo.bar.")
+    cant_compile("foo.bar..")
+    cant_compile("foo..bar")
 
 
 def test_bad_setv():
