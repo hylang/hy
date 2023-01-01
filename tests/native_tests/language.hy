@@ -438,6 +438,18 @@
   (assert (= (.__str__ :foo) ":foo")))
 
 
+(defn test-multidot []
+  (setv  a 1  b 2  c 3)
+
+  (defn .. [#* args]
+    (.join "~" (map str args)))
+  (assert (= ..a.b.c "None~1~2~3"))
+
+  (defmacro .... [#* args]
+    (.join "@" (map str args)))
+  (assert (= ....uno.dos.tres "None@uno@dos@tres")))
+
+
 (defn test-do []
   (do))
 
