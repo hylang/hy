@@ -1213,6 +1213,11 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= dn dirname)))
 
 
+(defn test-relative-import []
+  (import ..resources [tlib])
+  (assert (= tlib.SECRET-MESSAGE "Hello World")))
+
+
 (defn test-lambda-keyword-lists []
   (defn foo [x #* xs #** kw] [x xs kw])
   (assert (= (foo 10 20 30) [10 #(20 30) {}])))
@@ -1563,10 +1568,6 @@ cee"} dee" "ey bee\ncee dee"))
   (import tests.resources.module-docstring-example :as m)
   (assert (= m.__doc__ "This is the module docstring."))
   (assert (= m.foo 5)))
-
-(defn test-relative-import []
-  (import ..resources [tlib])
-  (assert (= tlib.SECRET-MESSAGE "Hello World")))
 
 
 (defn test-exception-cause []
