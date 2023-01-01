@@ -1746,13 +1746,16 @@ def compile_require(compiler, expr, root, entries):
         readers = readers and readers[0]
 
         prefix, assignments = assignment_shape(module, rest)
-        ast_module = mangle(module)
+        module_name = module_name_str(module)
+        if isinstance(module, Expression) and module[1][0] == Symbol("None"):
+            # Prepend leading dots to `module_name`.
+            module_name = str(module[0]) + module_name
 
         # we don't want to import all macros as prefixed if we're specifically
         # importing readers but not macros
         # (require a-module :readers ["!"])
         if (rest or not readers) and require(
-            ast_module, compiler.module, assignments=assignments, prefix=prefix
+            module_name, compiler.module, assignments=assignments, prefix=prefix
         ):
             # Actually calling `require` is necessary for macro expansions
             # occurring during compilation.
@@ -1761,8 +1764,8 @@ def compile_require(compiler, expr, root, entries):
             ret += compiler.compile(
                 Expression(
                     [
-                        Symbol("hy.macros.require"),
-                        String(ast_module),
+                        dotted("hy.macros.require"),
+                        String(module_name),
                         Symbol("None"),
                         Keyword("assignments"),
                         (
@@ -1783,22 +1786,22 @@ def compile_require(compiler, expr, root, entries):
                 if readers == Symbol("*")
                 else ["#" + reader for reader in readers[0]]
             )
-            if require_reader(ast_module, compiler.module, reader_assignments):
+            if require_reader(module_name, compiler.module, reader_assignments):
                 ret += compiler.compile(
                     mkexpr(
                         "do",
                         mkexpr(
-                            "hy.macros.require-reader",
-                            String(ast_module),
+                            dotted("hy.macros.require-reader"),
+                            String(module_name),
                             "None",
                             [reader_assignments],
                         ),
                         mkexpr(
                             "eval-when-compile",
                             mkexpr(
-                                "hy.macros.enable-readers",
+                                dotted("hy.macros.enable-readers"),
                                 "None",
-                                "hy.&reader",
+                                dotted("hy.&reader"),
                                 [reader_assignments],
                             ),
                         ),

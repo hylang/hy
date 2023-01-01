@@ -393,10 +393,13 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     while isinstance(tree, Expression) and tree:
 
         fn = tree[0]
-        if fn in ("quote", "quasiquote") or not isinstance(fn, Symbol):
+        if isinstance(fn, Expression) and fn and fn[0] == Symbol("."):
+            fn = ".".join(map(mangle, fn[1:]))
+        elif isinstance(fn, Symbol):
+            fn = mangle(fn)
+        else:
             break
 
-        fn = mangle(fn)
         expr_modules = ([] if not hasattr(tree, "module") else [tree.module]) + [module]
         expr_modules.append(builtins)
 
