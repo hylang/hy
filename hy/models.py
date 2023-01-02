@@ -327,21 +327,19 @@ class Integer(Object, int):
     """
 
     def __new__(cls, number, *args, **kwargs):
-        if isinstance(number, str):
-            number = strip_digit_separators(number)
-            bases = {"0x": 16, "0o": 8, "0b": 2}
-            for leader, base in bases.items():
-                if number.startswith(leader):
-                    # We've got a string, known leader, set base.
-                    number = int(number, base=base)
-                    break
-            else:
-                # We've got a string, no known leader; base 10.
-                number = int(number, base=10)
-        else:
-            # We've got a non-string; convert straight.
-            number = int(number)
-        return super().__new__(cls, number)
+        return super().__new__(
+            cls,
+            int(
+                strip_digit_separators(number),
+                **(
+                    {"base": 0}
+                    if isinstance(number, str) and not number.isdigit()
+                    # `not number.isdigit()` is necessary because `base = 0`
+                    # fails on decimal integers starting with a leading 0.
+                    else {}
+                ),
+            ),
+        )
 
 
 _wrappers[int] = Integer

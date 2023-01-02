@@ -263,6 +263,15 @@ def test_lex_digit_separators():
     ]
 
 
+def test_leading_zero():
+    assert tokenize("0") == [Integer(0)]
+    assert tokenize("0000") == [Integer(0)]
+    assert tokenize("010") == [Integer(10)]
+    assert tokenize("000010") == [Integer(10)]
+    assert tokenize("000010.00") == [Float(10)]
+    assert tokenize("010+000010j") == [Complex(10 + 10j)]
+
+
 def test_lex_bad_attrs():
     with lexe() as execinfo:
         tokenize("1.foo")
