@@ -327,13 +327,20 @@ class Integer(Object, int):
     """
 
     def __new__(cls, number, *args, **kwargs):
-        return super().__new__(cls, int(
-            strip_digit_separators(number),
-            **({'base': 0}
-                if isinstance(number, str) and not number.isdigit()
-                  # `not number.isdigit()` is necessary because `base = 0`
-                  # fails on decimal integers starting with a leading 0.
-                else {})))
+        return super().__new__(
+            cls,
+            int(
+                strip_digit_separators(number),
+                **(
+                    {"base": 0}
+                    if isinstance(number, str) and not number.isdigit()
+                    # `not number.isdigit()` is necessary because `base = 0`
+                    # fails on decimal integers starting with a leading 0.
+                    else {}
+                ),
+            ),
+        )
+
 
 _wrappers[int] = Integer
 
