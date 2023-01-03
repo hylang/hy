@@ -66,17 +66,26 @@ def as_identifier(ident, reader=None):
             pass
 
     if "." in ident:
-        for chunk in ident.split("."):
-            if chunk and not isinstance(as_identifier(chunk, reader=reader), Symbol):
-                msg = (
-                    "Cannot access attribute on anything other"
-                    " than a name (in order to get attributes of expressions,"
-                    " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)"
-                )
-                if reader is None:
-                    raise ValueError(msg)
-                else:
-                    raise LexException.from_reader(msg, reader)
+        if not ident.strip("."):
+            # It's all dots. Return it as a symbol.
+            return sym(ident)
+        def err(msg):
+            raise (ValueError(msg)
+                if reader is None
+                else LexException.from_reader(msg, reader))
+        if ident.lstrip(".").find("..") > 0:
+            err("In a dotted identifier, multiple dots in a row are only allowed at the start")
+        if ident.endswith("."):
+            err("A dotted identifier can't end with a dot")
+        head = "." * (len(ident) - len(ident.lstrip(".")))
+        args = [as_identifier(a, reader=reader)
+            for a in ident.lstrip(".").split(".")]
+        if any(not isinstance(a, Symbol) for a in args):
+            err("The parts of a dotted identifier must be symbols")
+        return (
+            mkexpr(sym("."), *args)
+            if head == ''
+            else mkexpr(head, Symbol("None"), *args))
 
     if reader is None:
         if (
