@@ -281,9 +281,7 @@ def test_lex_bad_attrs():
             '  File "<string>", line 1',
             "    1.foo",
             "        ^",
-            "hy.reader.exceptions.LexException: Cannot access attribute on anything other"
-            " than a name (in order to get attributes of expressions,"
-            " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
+            "hy.reader.exceptions.LexException: The parts of a dotted identifier must be symbols",
         ],
     )
 
@@ -625,9 +623,7 @@ def test_lex_exception_filtering(capsys):
             '  File "<string>", line 3',
             "    1.foo",
             "        ^",
-            "hy.reader.exceptions.LexException: Cannot access attribute on anything other"
-            " than a name (in order to get attributes of expressions,"
-            " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
+            "hy.reader.exceptions.LexException: The parts of a dotted identifier must be symbols",
         ],
     )
 
