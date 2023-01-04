@@ -241,7 +241,7 @@ Dots are only allowed in a symbol if every character in the symbol is a dot.
 Thus, ``a..b`` and ``a.`` are neither dotted identifiers nor symbols; they're
 simply illegal syntax.
 
-As a special case, the symbol ``...`` compiles to the :class:`Ellipsis` object,
+As a special case, the symbol ``...`` compiles to the :data:`Ellipsis` object,
 as in Python.
 
 .. autoclass:: hy.models.Symbol
