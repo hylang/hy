@@ -392,6 +392,15 @@ first element.
 
 - If it's a symbol, and the symbol is the name of a currently defined macro,
   the macro is called.
+
+  - Exception: if the symbol is also the name of a function in
+    :hy:mod:`hy.pyops`, and one of the arguments is an
+    :hy:func:`unpack-iterable` form, the ``pyops`` function is called instead
+    of the macro. This makes reasonable-looking expressions work that would
+    otherwise fail. For example, ``(+ #* summands)`` is understood as
+    ``(hy.pyops.+ #* summands)``, because Python provides no way to sum a list
+    of unknown length with a real addition expression.
+
 - If it is itself an expression of the form ``(. None …)`` (typically produced
   with a :ref:`dotted identifier <dotted-identifier>` like ``.add``), it's used
   to construct a method call with the element after ``None`` as the object:
