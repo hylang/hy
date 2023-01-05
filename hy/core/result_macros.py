@@ -74,6 +74,10 @@ def maybe_annotated(target):
     return pexpr(sym("annotate") + target + FORM) | target >> (lambda x: (x, None))
 
 
+def dotted(name):
+    return Expression(map(Symbol, [".", *name.split('.')]))
+
+
 # ------------------------------------------------
 # * Fundamentals
 # ------------------------------------------------
@@ -181,8 +185,7 @@ def render_quoted_form(compiler, form, level):
     elif op in ("unquote", "unquote-splice"):
         level -= 1
 
-    hytype = form.__class__
-    name = ".".join((hytype.__module__, hytype.__name__))
+    name = form.__class__.__name__
     body = [form]
 
     if isinstance(form, Sequence):
@@ -214,8 +217,9 @@ def render_quoted_form(compiler, form, level):
         if form.brackets is not None:
             body.extend([Keyword("brackets"), form.brackets])
 
-    ret = Expression([Symbol(name), *body]).replace(form)
-    return ret, False
+    return (
+        Expression([dotted("hy.models." + name), *body]).replace(form),
+        False)
 
 
 # ------------------------------------------------
@@ -447,7 +451,7 @@ def compile_assign(
 
     ld_name = compiler.compile(name)
 
-    if result.temp_variables and isinstance(name, Symbol) and "." not in name:
+    if result.temp_variables and isinstance(name, Symbol):
         result.rename(compiler, compiler._nonconst(name))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
@@ -1170,11 +1174,7 @@ def compile_pattern(compiler, pattern):
             value,
             value=compiler.compile(value).force_expr.value,
         )
-    elif (
-        isinstance(value, (String, Integer, Float, Complex, Bytes))
-        or isinstance(value, Symbol)
-        and "." in value
-    ):
+    elif isinstance(value, (String, Integer, Float, Complex, Bytes)):
         return asty.MatchValue(
             value,
             value=compiler.compile(value).expr,
@@ -1230,7 +1230,7 @@ def compile_pattern(compiler, pattern):
     elif isinstance(value, Keyword):
         return asty.MatchClass(
             value,
-            cls=compiler.compile(Symbol("hy.models.Keyword")).expr,
+            cls=compiler.compile(dotted("hy.models.Keyword")).expr,
             patterns=[
                 asty.MatchValue(value, value=asty.Constant(value, value=value.name))
             ],
@@ -1476,9 +1476,6 @@ def compile_function_node(compiler, expr, node, decorators, name, args, returns,
     ],
 )
 def compile_macro_def(compiler, expr, root, name, params, body):
-    if "." in name:
-        raise compiler._syntax_error(name, "periods are not allowed in macro names")
-
     ret = Result() + compiler.compile(
         Expression(
             [
@@ -1487,7 +1484,7 @@ def compile_macro_def(compiler, expr, root, name, params, body):
                     [
                         Expression(
                             [
-                                Symbol("hy.macros.macro"),
+                                dotted("hy.macros.macro"),
                                 str(name),
                             ]
                         ),
@@ -1680,14 +1677,23 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
 # * `import` and `require`
 # ------------------------------------------------
 
+module_name_pattern = SYM | pexpr(
+    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")) +
+    oneplus(SYM))
 
-def importlike(*name_types):
-    name = some(lambda x: isinstance(x, name_types) and "." not in x)
+def module_name_str(x):
     return (
-        keepsym("*")
-        | (keepsym(":as") + name)
-        | brackets(many(name + maybe(sym(":as") + name)))
-    )
+             '.'.join(map(mangle, x[1][x[1][0] == Symbol("None") :]))
+        if   isinstance(x, Expression)
+        else str(x)
+        if   isinstance(x, Symbol) and not x.strip(".")
+        else mangle(x))
+
+importlike = (
+    keepsym("*")
+    | (keepsym(":as") + SYM)
+    | brackets(many(SYM + maybe(sym(":as") + SYM)))
+)
 
 
 def assignment_shape(module, rest):
@@ -1695,13 +1701,13 @@ def assignment_shape(module, rest):
     assignments = "EXPORTS"
     if rest is None:
         # (import foo)
-        prefix = module
+        prefix = module_name_str(module)
     elif rest == Symbol("*"):
         # (import foo *)
         pass
     elif rest[0] == Keyword("as"):
         # (import foo :as bar)
-        prefix = rest[1]
+        prefix = mangle(rest[1])
     else:
         # (import foo [bar baz :as MyBaz bing])
         assignments = [(k, v or k) for k, v in rest[0]]
@@ -1712,11 +1718,11 @@ def assignment_shape(module, rest):
     "require",
     [
         many(
-            SYM
+            module_name_pattern
             + times(
                 0,
                 2,
-                (maybe(sym(":macros")) + importlike(Symbol))
+                (maybe(sym(":macros")) + importlike)
                 | (keepsym(":readers") + (keepsym("*") | brackets(many(SYM)))),
             )
         )
@@ -1802,31 +1808,25 @@ def compile_require(compiler, expr, root, entries):
     return ret
 
 
-@pattern_macro("import", [many(SYM + maybe(importlike(Symbol)))])
+@pattern_macro("import", [many(module_name_pattern + maybe(importlike))])
 def compile_import(compiler, expr, root, entries):
     ret = Result()
 
     for entry in entries:
-        assignments = "EXPORTS"
-        prefix = ""
-
         module, _ = entry
         prefix, assignments = assignment_shape(*entry)
-        ast_module = mangle(module)
-
-        module_name = ast_module.lstrip(".")
-        level = len(ast_module) - len(module_name)
+        module_name = module_name_str(module)
         if assignments == "EXPORTS" and prefix == "":
             node = asty.ImportFrom
             names = [asty.alias(module, name="*", asname=None)]
         elif assignments == "EXPORTS":
-            compiler.scope.define(mangle(prefix))
+            compiler.scope.define(prefix)
             node = asty.Import
             names = [
                 asty.alias(
                     module,
-                    name=ast_module,
-                    asname=mangle(prefix) if prefix != module else None,
+                    name=module_name,
+                    asname=prefix if prefix != module_name else None,
                 )
             ]
         else:
@@ -1839,7 +1839,17 @@ def compile_import(compiler, expr, root, entries):
                         module, name=mangle(k), asname=None if v == k else mangle(v)
                     )
                 )
-        ret += node(expr, module=module_name or None, names=names, level=level)
+        ret += node(expr,
+            module = module_name if module_name and module_name.strip(".") else None,
+            names = names,
+            level = (
+                len(module[0])
+                if isinstance(module, Expression) and
+                    module[1][0] == Symbol("None")
+                else len(module)
+                if isinstance(module, Symbol) and
+                    not module.strip(".")
+                else 0))
 
     return ret
 

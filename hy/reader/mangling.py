@@ -40,7 +40,7 @@ def mangle(s):
     assert s
     s = str(s)
 
-    if "." in s:
+    if "." in s and s.strip("."):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
     # Step 1: Remove and save leading underscores
