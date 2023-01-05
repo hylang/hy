@@ -69,23 +69,29 @@ def as_identifier(ident, reader=None):
         if not ident.strip("."):
             # It's all dots. Return it as a symbol.
             return sym(ident)
+
         def err(msg):
-            raise (ValueError(msg)
+            raise (
+                ValueError(msg)
                 if reader is None
-                else LexException.from_reader(msg, reader))
+                else LexException.from_reader(msg, reader)
+            )
+
         if ident.lstrip(".").find("..") > 0:
-            err("In a dotted identifier, multiple dots in a row are only allowed at the start")
+            err(
+                "In a dotted identifier, multiple dots in a row are only allowed at the start"
+            )
         if ident.endswith("."):
             err("A dotted identifier can't end with a dot")
         head = "." * (len(ident) - len(ident.lstrip(".")))
-        args = [as_identifier(a, reader=reader)
-            for a in ident.lstrip(".").split(".")]
+        args = [as_identifier(a, reader=reader) for a in ident.lstrip(".").split(".")]
         if any(not isinstance(a, Symbol) for a in args):
             err("The parts of a dotted identifier must be symbols")
         return (
             mkexpr(sym("."), *args)
-            if head == ''
-            else mkexpr(head, Symbol("None"), *args))
+            if head == ""
+            else mkexpr(head, Symbol("None"), *args)
+        )
 
     if reader is None:
         if (

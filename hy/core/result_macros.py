@@ -75,7 +75,7 @@ def maybe_annotated(target):
 
 
 def dotted(name):
-    return Expression(map(Symbol, [".", *name.split('.')]))
+    return Expression(map(Symbol, [".", *name.split(".")]))
 
 
 # ------------------------------------------------
@@ -217,9 +217,7 @@ def render_quoted_form(compiler, form, level):
         if form.brackets is not None:
             body.extend([Keyword("brackets"), form.brackets])
 
-    return (
-        Expression([dotted("hy.models." + name), *body]).replace(form),
-        False)
+    return (Expression([dotted("hy.models." + name), *body]).replace(form), False)
 
 
 # ------------------------------------------------
@@ -1678,16 +1676,19 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
 # ------------------------------------------------
 
 module_name_pattern = SYM | pexpr(
-    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")) +
-    oneplus(SYM))
+    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")) + oneplus(SYM)
+)
+
 
 def module_name_str(x):
     return (
-             '.'.join(map(mangle, x[1][x[1][0] == Symbol("None") :]))
-        if   isinstance(x, Expression)
+        ".".join(map(mangle, x[1][x[1][0] == Symbol("None") :]))
+        if isinstance(x, Expression)
         else str(x)
-        if   isinstance(x, Symbol) and not x.strip(".")
-        else mangle(x))
+        if isinstance(x, Symbol) and not x.strip(".")
+        else mangle(x)
+    )
+
 
 importlike = (
     keepsym("*")
@@ -1842,17 +1843,18 @@ def compile_import(compiler, expr, root, entries):
                         module, name=mangle(k), asname=None if v == k else mangle(v)
                     )
                 )
-        ret += node(expr,
-            module = module_name if module_name and module_name.strip(".") else None,
-            names = names,
-            level = (
+        ret += node(
+            expr,
+            module=module_name if module_name and module_name.strip(".") else None,
+            names=names,
+            level=(
                 len(module[0])
-                if isinstance(module, Expression) and
-                    module[1][0] == Symbol("None")
+                if isinstance(module, Expression) and module[1][0] == Symbol("None")
                 else len(module)
-                if isinstance(module, Symbol) and
-                    not module.strip(".")
-                else 0))
+                if isinstance(module, Symbol) and not module.strip(".")
+                else 0
+            ),
+        )
 
     return ret
 

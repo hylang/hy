@@ -533,11 +533,12 @@ class HyASTCompiler:
         func = None
 
         if (
-                isinstance(root, Expression) and
-                len(root) >= 2 and
-                isinstance(root[0], Symbol) and
-                not str(root[0]).strip(".") and
-                root[1] == Symbol("None")):
+            isinstance(root, Expression)
+            and len(root) >= 2
+            and isinstance(root[0], Symbol)
+            and not str(root[0]).strip(".")
+            and root[1] == Symbol("None")
+        ):
             # ((. None a1 a2) obj v1 v2) -> ((. obj a1 a2) v1 v2)
             # (The reader already parsed `.a1.a2` as `(. None a1 a2)`.)
 
@@ -549,7 +550,9 @@ class HyASTCompiler:
                         break
                     i += 2
                 elif is_unpack("iterable", args[i]):
-                    raise self._syntax_error(args[i], "can't call a method on an `unpack-iterable` form")
+                    raise self._syntax_error(
+                        args[i], "can't call a method on an `unpack-iterable` form"
+                    )
                 elif is_unpack("mapping", args[i]):
                     i += 1
                 else:
@@ -557,10 +560,9 @@ class HyASTCompiler:
             else:
                 raise self._syntax_error(expr, "attribute access requires object")
 
-            func = self.compile(Expression([
-                Symbol("."),
-                args.pop(i),
-                *root[2:]]).replace(root))
+            func = self.compile(
+                Expression([Symbol("."), args.pop(i), *root[2:]]).replace(root)
+            )
 
         if is_annotate_expression(root):
             # Flatten and compile the annotation expression.
