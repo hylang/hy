@@ -75,9 +75,8 @@
     (hy.eval '(defmacro :kw [])))
   (assert (in "got unexpected token: :kw" e.value.msg))
 
-  (with [e (pytest.raises HySyntaxError)]
-    (hy.eval '(defmacro foo.bar [])))
-  (assert (in "periods are not allowed in macro names" e.value.msg)))
+  (with [(pytest.raises HySyntaxError)]
+    (hy.eval '(defmacro foo.bar []))))
 
 (defn test-macro-calling-fn []
   (assert (= 3 (bar 1 2))))

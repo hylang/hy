@@ -48,9 +48,9 @@ def pattern_macro(names, pattern, shadow=None):
 
                 if shadow and any(is_unpack("iterable", x) for x in args):
                     # Try a shadow function call with this name instead.
-                    return Expression([Symbol("hy.pyops." + name), *args]).replace(
-                        hy_compiler.this
-                    )
+                    return Expression(
+                        [Expression(map(Symbol, [".", "hy", "pyops", name])), *args]
+                    ).replace(hy_compiler.this)
 
                 expr = hy_compiler.this
                 root = unmangle(expr[0])
@@ -393,10 +393,13 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     while isinstance(tree, Expression) and tree:
 
         fn = tree[0]
-        if fn in ("quote", "quasiquote") or not isinstance(fn, Symbol):
+        if isinstance(fn, Expression) and fn and fn[0] == Symbol("."):
+            fn = ".".join(map(mangle, fn[1:]))
+        elif isinstance(fn, Symbol):
+            fn = mangle(fn)
+        else:
             break
 
-        fn = mangle(fn)
         expr_modules = ([] if not hasattr(tree, "module") else [tree.module]) + [module]
         expr_modules.append(builtins)
 

@@ -58,30 +58,31 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:data:: .
 
-   ``.`` is used to perform attribute access on objects. It uses a small DSL
-   to allow quick access to attributes and items in a nested data structure.
+   The dot macro ``.`` compiles to one or more :ref:`attribute references
+   <py:attribute-references>`, which select an attribute of an object. The
+   first argument, which is required, can be an arbitrary form. With no further
+   arguments, ``.`` is a no-op. Additional symbol arguments are understood as a
+   chain of attributes, so ``(. foo bar)`` compiles to ``foo.bar``, and ``(. a b
+   c d)`` compiles to ``a.b.c.d``.
 
-   :strong:`Examples`
+   As a convenience, ``.`` supports two other kinds of arguments in place of a
+   plain attribute. A parenthesized expression is understood as a method call:
+   ``(. foo (bar a b))`` compiles to ``x.foo.bar(a, b)``. A bracketed form is
+   understood as a subscript: ``(. foo ["bar"])`` compiles to ``foo["bar"]``.
+   All these options can be mixed and matched in a single ``.`` call, so ::
 
-   ::
+     (. a (b 1 2) c [d] [(e)])
 
-       (. foo (bar "qux")  baz [(+ 1 2)] frob)
-
-   Compiles down to:
+   compiles to
 
    .. code-block:: python
 
-       foo.bar("qux").baz[1 + 2].frob
+     a.b(1, 2).c[d][e()]
 
-   ``.`` compiles its first argument (in the example, *foo*) as the object on
-   which to do the attribute dereference. It uses bare symbols as attributes
-   to access (in the example, *baz*, *frob*), Expressions as method calls (as in *bar*),
-   and compiles the contents of lists (in the example, ``[(+ 1 2)]``) for indexation.
-   Other arguments raise a compilation error.
-
-   Access to unknown attributes raises an :exc:`AttributeError`. Access to
-   unknown keys raises an :exc:`IndexError` (on lists and tuples) or a
-   :exc:`KeyError` (on dictionaries).
+   :ref:`Dotted identifiers <dotted-identifiers>` provide syntactic sugar for
+   common uses of this macro. In particular, syntax like ``foo.bar`` ends up
+   meaning the same thing in Hy as in Python. Also, :hy:func:`get
+   <hy.pyops.get>` is another way to subscript in Hy.
 
 .. hy:function:: (fn [args])
 

@@ -7,40 +7,32 @@ normalizes_to_underscore = "_︳︴﹍﹎﹏＿"
 
 
 def mangle(s):
-    """Stringify the argument and convert it to a valid Python identifier
-    according to :ref:`Hy's mangling rules <mangling>`.
+    """Stringify the argument (with :class:`str`, not :func:`repr` or
+    :hy:func:`hy.repr`) and convert it to a valid Python identifier according
+    to :ref:`Hy's mangling rules <mangling>`. ::
 
-    If the argument is already both legal as a Python identifier and normalized
-    according to Unicode normalization form KC (NFKC), it will be returned
-    unchanged. Thus, ``mangle`` is idempotent.
+        (hy.mangle 'foo-bar?)  ; => "is_foo_bar"
+        (hy.mangle "🦑")       ; => "hyx_squid"
 
-    Examples:
-      ::
+    If the stringified argument is already both legal as a Python identifier
+    and normalized according to Unicode normalization form KC (NFKC), it will
+    be returned unchanged. Thus, ``hy.mangle`` is idempotent. ::
 
-         => (hy.mangle 'foo-bar)
-         "foo_bar"
+        (setv x '♦-->♠)
+        (= (hy.mangle (hy.mangle x)) (hy.mangle x))  ; => True
 
-         => (hy.mangle 'foo-bar?)
-         "is_foo_bar"
+    Generally, the stringifed input is expected to be parsable as a symbol. As
+    a convenience, it can also have the syntax of a :ref:`dotted identifier
+    <dotted-identifiers>`, and ``hy.mangle`` will mangle the dot-delimited
+    parts separately. ::
 
-         => (hy.mangle '*)
-         "hyx_XasteriskX"
-
-         => (hy.mangle '_foo/a?)
-         "_hyx_is_fooXsolidusXa"
-
-         => (hy.mangle '-->)
-         "hyx_XhyphenHminusX_XgreaterHthan_signX"
-
-         => (hy.mangle '<--)
-         "hyx_XlessHthan_signX__"
-
+        (hy.mangle "a.b?.c!.d")  ; => "a.is_b.hyx_cXexclamation_markX.d"
     """
 
     assert s
     s = str(s)
 
-    if "." in s:
+    if "." in s and s.strip("."):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
     # Step 1: Remove and save leading underscores

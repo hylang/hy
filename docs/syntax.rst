@@ -132,8 +132,9 @@ Identifiers are a broad class of syntax in Hy, comprising not only variable
 names, but any nonempty sequence of characters that aren't ASCII whitespace nor
 one of the following: ``()[]{};"'`~``. The reader will attempt to read each
 identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
-it as a :ref:`keyword <keywords>` if that fails, then fall back on reading it
-as a :ref:`symbol <symbols>` if that fails.
+it as a :ref:`keyword <keywords>` if that fails, then attempt to read it as a
+:ref:`dotted identifier <dotted-identifier>` if that fails, then fall back on
+reading it as a :ref:`symbol <symbols>` if that fails.
 
 .. _numeric-literals:
 
@@ -195,6 +196,34 @@ function call with an empty keyword argument.
 .. autoclass:: hy.models.Keyword
    :members:  __bool__, __call__
 
+.. _dotted-identifiers:
+
+Dotted identifiers
+~~~~~~~~~~~~~~~~~~
+
+Dotted identifiers are named for their use of the dot character ``.``, also
+known as a period or full stop. They don't have their own model type because
+they're actually syntactic sugar for :ref:`expressions <expressions>`. Syntax
+like ``foo.bar.baz`` is equivalent to ``(. foo bar baz)``. The general rule is
+that a dotted identifier looks like two or more :ref:`symbols <symbols>`
+(themselves not containing any dots) separated by single dots. The result is an
+expression with the symbol ``.`` as its first element and the constituent
+symbols as the remaining elements.
+
+A dotted identifier may also begin with one or more dots, as in ``.foo.bar`` or
+``..foo.bar``, in which case the resulting expression has the appropriate head
+(``.`` or ``..`` or whatever) and the symbol ``None`` as the following element.
+Thus, ``..foo.bar`` is equivalent to ``(.. None foo bar)``. In the leading-dot
+case, you may also use only one constitutent symbol. Thus, ``.foo`` is a legal
+dotted identifier, and equivalent to ``(. None foo)``.
+
+See :ref:`the dot macro <dot>` for what these expressions typically compile to.
+See also the special behavior for :ref:`expressions <expressions>` that begin
+with a dotted identifier that itself begins with a dot. Note that Hy provides
+definitions of ``.`` and ``...`` by default, but not ``..``, ``....``,
+``.....``, etc., so ``..foo.bar`` won't do anything useful by default outside
+of macros that treat it specially, like :hy:func:`import`.
+
 .. _symbols:
 
 Symbols
@@ -208,7 +237,11 @@ the :class:`Symbol <hy.models.Symbol>` constructor (thus, :class:`Symbol
 Lisps). Some example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``,
 ``just✈wrong``, and ``🦑``.
 
-As a special case, the symbol ``...`` compiles to the :class:`Ellipsis` object,
+Dots are only allowed in a symbol if every character in the symbol is a dot.
+Thus, ``a..b`` and ``a.`` are neither dotted identifiers nor symbols; they're
+simply illegal syntax.
+
+As a special case, the symbol ``...`` compiles to the :data:`Ellipsis` object,
 as in Python.
 
 .. autoclass:: hy.models.Symbol
@@ -355,13 +388,30 @@ Expressions
 
 Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
 parentheses: ``( … )``. The compiler evaluates expressions by checking the
-first element. If it's a symbol, and the symbol is the name of a currently
-defined macro, the macro is called. Otherwise, the expression is compiled into
-a Python-level call, with the first element being the calling object. (So, you
-can call a function that has the same name as a macro with an expression like
-``((do setv) …)``). The remaining forms are understood as arguments. Use
-:hy:func:`unpack-iterable` or :hy:func:`unpack-mapping` to break up data
-structures into individual arguments at runtime.
+first element.
+
+- If it's a symbol, and the symbol is the name of a currently defined macro,
+  the macro is called.
+
+  - Exception: if the symbol is also the name of a function in
+    :hy:mod:`hy.pyops`, and one of the arguments is an
+    :hy:func:`unpack-iterable` form, the ``pyops`` function is called instead
+    of the macro. This makes reasonable-looking expressions work that would
+    otherwise fail. For example, ``(+ #* summands)`` is understood as
+    ``(hy.pyops.+ #* summands)``, because Python provides no way to sum a list
+    of unknown length with a real addition expression.
+
+- If it is itself an expression of the form ``(. None …)`` (typically produced
+  with a :ref:`dotted identifier <dotted-identifier>` like ``.add``), it's used
+  to construct a method call with the element after ``None`` as the object:
+  thus, ``(.add my-set 5)`` is equivalent to ``((. my-set add) 5)``, which
+  becomes ``my_set.add(5)`` in Python.
+- Otherwise, the expression is compiled into a Python-level call, with the
+  first element being the calling object. (So, you can call a function that has
+  the same name as a macro with an expression like ``((do setv) …)``.) The
+  remaining forms are understood as arguments. Use :hy:func:`unpack-iterable`
+  or :hy:func:`unpack-mapping` to break up data structures into individual
+  arguments at runtime.
 
 The empty expression ``()`` is legal at the reader level, but has no inherent
 meaning. Trying to compile it is an error. For the empty tuple, use ``#()``.

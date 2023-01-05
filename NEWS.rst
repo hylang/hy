@@ -14,6 +14,10 @@ Breaking Changes
     the case for `'`.)
   * The bitwise NOT operator `~` has been renamed to `bnot`.
 
+* Dotted identifiers like `foo.bar` and `.sqrt` now parse as
+  expressions (like `(. foo bar)` and `(. None sqrt)`) instead of
+  symbols. Some odd cases like `foo.` and `foo..bar` are now
+  syntactically illegal.
 * `pragma` is now reserved as a core macro name, although it doesn't
   do anything useful (yet).
 * `hy.cmdline.HyREPL` is now `hy.REPL`.
@@ -29,6 +33,8 @@ Bug Fixes
 
 New Features
 ------------------------------
+* `.`, `..`, etc. are now usable as ordinary symbols (with the
+  remaining special rule that `...` compiles to `Ellipsis`)
 * On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
   archives in the same way as Python modules, via `zipimport`_.
 

@@ -272,6 +272,17 @@ def test_leading_zero():
     assert tokenize("010+000010j") == [Complex(10 + 10j)]
 
 
+def test_dotted_identifiers():
+    t = tokenize
+
+    assert t("foo.bar") == t("(. foo bar)")
+    assert t("foo.bar.baz") == t("(. foo bar baz)")
+    assert t(".foo") == t("(. None foo)")
+    assert t(".foo.bar.baz") == t("(. None foo bar baz)")
+    assert t("..foo") == t("(.. None foo)")
+    assert t("..foo.bar.baz") == t("(.. None foo bar baz)")
+
+
 def test_lex_bad_attrs():
     with lexe() as execinfo:
         tokenize("1.foo")
@@ -281,9 +292,7 @@ def test_lex_bad_attrs():
             '  File "<string>", line 1',
             "    1.foo",
             "        ^",
-            "hy.reader.exceptions.LexException: Cannot access attribute on anything other"
-            " than a name (in order to get attributes of expressions,"
-            " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
+            "hy.reader.exceptions.LexException: The parts of a dotted identifier must be symbols",
         ],
     )
 
@@ -625,9 +634,7 @@ def test_lex_exception_filtering(capsys):
             '  File "<string>", line 3',
             "    1.foo",
             "        ^",
-            "hy.reader.exceptions.LexException: Cannot access attribute on anything other"
-            " than a name (in order to get attributes of expressions,"
-            " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)",
+            "hy.reader.exceptions.LexException: The parts of a dotted identifier must be symbols",
         ],
     )
 

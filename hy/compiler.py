@@ -532,39 +532,36 @@ class HyASTCompiler:
         root = args.pop(0)
         func = None
 
-        if isinstance(root, Symbol) and root.startswith("."):
-            # (.split "test test") -> "test test".split()
-            # (.a.b.c x v1 v2) -> (.c (. x a b) v1 v2) ->  x.a.b.c(v1, v2)
+        if (
+            isinstance(root, Expression)
+            and len(root) >= 2
+            and isinstance(root[0], Symbol)
+            and not str(root[0]).strip(".")
+            and root[1] == Symbol("None")
+        ):
+            # ((. None a1 a2) obj v1 v2) -> ((. obj a1 a2) v1 v2)
+            # (The reader already parsed `.a1.a2` as `(. None a1 a2)`.)
 
-            # Get the method name (the last named attribute
-            # in the chain of attributes)
-            attrs = [
-                Symbol(a).replace(root) if a else None for a in root.split(".")[1:]
-            ]
-            if not all(attrs):
-                raise self._syntax_error(expr, "cannot access empty attribute")
-            root = attrs.pop()
-
-            # Get the object we're calling the method on
-            # (extracted with the attribute access DSL)
-            # Skip past keywords and their arguments.
-            try:
-                kws, obj, rest = (
-                    many(KEYWORD + FORM | unpack("mapping")) + FORM + many(FORM)
-                ).parse(args)
-            except NoParseError:
+            # Find the object we're calling the method on.
+            i = 0
+            while i < len(args):
+                if isinstance(args[i], Keyword):
+                    if i == 0 and len(args) == 1:
+                        break
+                    i += 2
+                elif is_unpack("iterable", args[i]):
+                    raise self._syntax_error(
+                        args[i], "can't call a method on an `unpack-iterable` form"
+                    )
+                elif is_unpack("mapping", args[i]):
+                    i += 1
+                else:
+                    break
+            else:
                 raise self._syntax_error(expr, "attribute access requires object")
-            # Reconstruct `args` to exclude `obj`.
-            args = [x for p in kws for x in p] + list(rest)
-            if is_unpack("iterable", obj):
-                raise self._syntax_error(
-                    obj, "can't call a method on an unpacking form"
-                )
-            func = self.compile(Expression([Symbol(".").replace(root), obj] + attrs))
 
-            # And get the method
-            func += asty.Attribute(
-                root, value=func.force_expr, attr=mangle(root), ctx=ast.Load()
+            func = self.compile(
+                Expression([Symbol("."), args.pop(i), *root[2:]]).replace(root)
             )
 
         if is_annotate_expression(root):
@@ -595,24 +592,9 @@ class HyASTCompiler:
                 else asty.Ellipsis(symbol)
             )
 
-        if "." in symbol:
-            glob, local = symbol.rsplit(".", 1)
-
-            if not glob:
-                raise self._syntax_error(
-                    symbol,
-                    "cannot access attribute on anything other than a name (in order to get attributes of expressions, use `(. <expression> {attr})` or `(.{attr} <expression>)`)".format(
-                        attr=local
-                    ),
-                )
-
-            if not local:
-                raise self._syntax_error(symbol, "cannot access empty attribute")
-
-            glob = Symbol(glob).replace(symbol)
-            ret = self.compile_symbol(glob)
-
-            return asty.Attribute(symbol, value=ret, attr=mangle(local), ctx=ast.Load())
+        # By this point, `symbol` should be either all dots or
+        # dot-free.
+        assert not symbol.strip(".") or "." not in symbol
 
         if mangle(symbol) in ("None", "False", "True"):
             return asty.Constant(symbol, value=ast.literal_eval(mangle(symbol)))

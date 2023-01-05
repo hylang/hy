@@ -114,16 +114,34 @@
     'unquote-splice "~@"
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
+  (setv x0 (when x (get x 0)))
+  (setv x1 (when (> (len x) 1) (get x 1)))
+
   (cond
-    (and (= (len x) 2) (in (get x 0) syntax))
+
+    (and
+        (>= (len x) 3)
+        (all (gfor  e x  (is (type e) hy.models.Symbol)))
+        (or (= x0 '.) (and
+          (= x1 'None)
+          (not (.strip (str x0) ".")))))
+      (+
+        (if (= x1 'None) (str x0) "")
+        (.join "." (map hy-repr (cut
+          x
+          (if (= x1 'None) 2 1)
+          None))))
+
+    (and (= (len x) 2) (in x0 syntax))
       (if (and
-          (= (get x 0) 'unquote)
-          (isinstance (get x 1) hy.models.Symbol)
-          (.startswith (get x 1) "@"))
+          (= x0 'unquote)
+          (isinstance x1 hy.models.Symbol)
+          (.startswith x1 "@"))
         ; This case is special because `~@b` would be wrongly
         ; interpreted as `(unquote-splice b)` instead of `(unquote @b)`.
-        (+ "~ " (hy-repr (get x 1)))
-        (+ (get syntax (get x 0)) (hy-repr (get x 1))))
+        (+ "~ " (hy-repr x1))
+        (+ (get syntax x0) (hy-repr x1)))
+
     True
       (+ "(" (_cat x) ")"))))
 

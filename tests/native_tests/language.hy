@@ -438,6 +438,18 @@
   (assert (= (.__str__ :foo) ":foo")))
 
 
+(defn test-multidot []
+  (setv  a 1  b 2  c 3)
+
+  (defn .. [#* args]
+    (.join "~" (map str args)))
+  (assert (= ..a.b.c "None~1~2~3"))
+
+  (defmacro .... [#* args]
+    (.join "@" (map str args)))
+  (assert (= ....uno.dos.tres "None@uno@dos@tres")))
+
+
 (defn test-do []
   (do))
 
@@ -1213,6 +1225,14 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= dn dirname)))
 
 
+(defn test-relative-import []
+  (import ..resources [tlib in-init])
+  (assert (= tlib.SECRET-MESSAGE "Hello World"))
+  (assert (= in-init "chippy"))
+  (import .. [resources])
+  (assert (= resources.in-init "chippy")))
+
+
 (defn test-lambda-keyword-lists []
   (defn foo [x #* xs #** kw] [x xs kw])
   (assert (= (foo 10 20 30) [10 #(20 30) {}])))
@@ -1563,10 +1583,6 @@ cee"} dee" "ey bee\ncee dee"))
   (import tests.resources.module-docstring-example :as m)
   (assert (= m.__doc__ "This is the module docstring."))
   (assert (= m.foo 5)))
-
-(defn test-relative-import []
-  (import ..resources [tlib])
-  (assert (= tlib.SECRET-MESSAGE "Hello World")))
 
 
 (defn test-exception-cause []

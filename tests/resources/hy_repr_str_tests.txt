@@ -29,6 +29,10 @@ NaN+NaNj
 
 'mysymbol
 'my♥symbol?
+'.
+'..
+'...
+'....
 :mykeyword
 :my♥keyword?
 :
@@ -36,6 +40,14 @@ NaN+NaNj
 ; A keyword with only one single quote gets represented without the
 ; quote (which is equivalent), so it's tested in
 ; `test-hy-repr-roundtrip-from-value`.
+
+;; * Dotted identifiers
+
+'foo.bar
+'.foo.bar
+'..foo.bar
+'...foo.bar
+'....foo.bar
 
 ;; * Stringy thingies
 
@@ -90,6 +102,15 @@ b"\"double \" quotes\""
 '(+ 1 2)
 '(f a b)
 '(f #* args #** kwargs)
+'(.real 3)
+'(.a.b.c foo)
+'(math.sqrt 25)
+'(. a)
+'(. None)
+'(. 1 2)
+; `(. a b)` will render as `a.b`.
+'(.. 1 2)
+'(.. a b)
 [1 [2 3] #(4 #('mysymbol :mykeyword)) {"a" b"hello"} '(f #* a #** b)]
 '(quote)
 
