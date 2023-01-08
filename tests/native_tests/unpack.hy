@@ -1,5 +1,4 @@
 (defn test-star-unpacking []
-  ; Python 3-only forms of unpacking are in py3_only_tests.hy
   (setv l [1 2 3])
   (setv d {"a" "x" "b" "y"})
   (defn fun [[x1 None] [x2 None] [x3 None] [x4 None] [a None] [b None] [c None]]
