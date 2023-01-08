@@ -211,7 +211,7 @@
   (assert (= y 1)))
 
 
-(defn test-exception-cause []
+(defn test-raise-from []
   (assert (is NameError (type (.
     (try
       (raise ValueError :from NameError)

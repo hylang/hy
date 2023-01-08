@@ -2,7 +2,7 @@
   os)
 
 
-(defn dotted []
+(defn test-dotted-identifiers []
   (assert (= (.join " " ["one" "two"]) "one two"))
 
   (defclass X [object] [])
@@ -35,7 +35,7 @@
   (assert (= (.__str__ :foo) ":foo")))
 
 
-(defn test-attribute-access []
+(defn test-dot-macro []
   (defclass mycls [object])
 
   (setv foo [(mycls) (mycls) (mycls)])
