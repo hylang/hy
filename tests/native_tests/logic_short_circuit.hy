@@ -2,15 +2,6 @@
 
 
 (defn test-and []
-  (setv and123 (and 1 2 3)
-        and-false (and 1 False 3)
-        and-true (and)
-        and-single (and 1))
-  (assert (= and123 3))
-  (assert (= and-false False))
-  (assert (= and-true True))
-  (assert (= and-single 1))
-  ; short circuiting
   (setv a 1)
   (and 0 (setv a 2))
   (assert (= a 1)))
@@ -42,17 +33,6 @@
 
 
 (defn test-or []
-  (setv or-all-true (or 1 2 3 True "string")
-        or-some-true (or False "hello")
-        or-none-true (or False False)
-        or-false (or)
-        or-single (or 1))
-  (assert (= or-all-true 1))
-  (assert (= or-some-true "hello"))
-  (assert (= or-none-true False))
-  (assert (= or-false None))
-  (assert (= or-single 1))
-  ; short circuiting
   (setv a 1)
   (or 1 (setv a 2))
   (assert (= a 1)))
