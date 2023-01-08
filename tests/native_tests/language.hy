@@ -330,19 +330,6 @@
 (defn test-if []
   (assert (= 1 (if 0 -1 1))))
 
-(defn test-index []
-  (assert (= (get {"one" "two"} "one") "two"))
-  (assert (= (get [1 2 3 4 5] 1) 2))
-  (assert (= (get {"first" {"second" {"third" "level"}}}
-                  "first" "second" "third")
-             "level"))
-  (assert (= (get ((fn [] {"first" {"second" {"third" "level"}}}))
-                  "first" "second" "third")
-             "level"))
-  (assert (= (get {"first" {"second" {"third" "level"}}}
-                  ((fn [] "first")) "second" "third")
-             "level")))
-
 
 (defn test-fn []
   (setv square (fn [x] (* x x)))
