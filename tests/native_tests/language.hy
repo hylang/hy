@@ -19,11 +19,6 @@
   `(~@expr ~x))
 
 
-(defn test-sys-argv []
-  ;; BTW, this also tests inline comments. Which suck to implement.
-  (assert (isinstance sys.argv list)))
-
-
 (defn test-setv-get []
   (setv foo [0 1 2])
   (setv (get foo 0) 12)
