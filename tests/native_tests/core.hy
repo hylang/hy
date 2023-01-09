@@ -1,11 +1,6 @@
 (import
   pytest)
 
-(defn assert-requires-num [f]
-  (for [x ["foo" [] None]]
-    (try (f x)
-         (except [TypeError] True)
-         (else (assert False)))))
 
 (defn test-setv []
   (setv x 1)
