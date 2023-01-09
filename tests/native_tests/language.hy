@@ -24,33 +24,6 @@
   (assert (isinstance sys.argv list)))
 
 
-(defn test-hex []
-  (assert (= 0x80 128)))
-
-
-(defn test-octal []
-  (assert (= 0o1232 666)))
-
-
-(defn test-binary []
-  (assert (= 0b1011101 93)))
-
-
-(defn test-lists []
-  (assert (= [1 2 3 4] (+ [1 2] [3 4]))))
-
-
-(defn test-dicts []
-  (assert (= {1 2 3 4} {3 4 1 2}))
-  (assert (= {1 2 3 4} {1 (+ 1 1) 3 (+ 2 2)})))
-
-
-(defn test-sets []
-  (assert (= #{1 2 3 4} (| #{1 2} #{3 4})))
-  (assert (= (type #{1 2 3 4}) set))
-  (assert (= #{} (set))))
-
-
 (defn test-setv-get []
   (setv foo [0 1 2])
   (setv (get foo 0) 12)
@@ -1562,12 +1535,6 @@ cee"} dee" "ey bee\ncee dee"))
    (= (identify-keywords 1 "bloo" :foo)
       ["other" "other" "keyword"])))
 
-(defn test-underscore_variables []
-  ; https://github.com/hylang/hy/issues/1340
-  (defclass XYZ []
-    (setv _42 6))
-  (setv x (XYZ))
-  (assert (= (. x _42) 6)))
 
 (defn test-docstrings []
   (defn f [] "docstring" 5)
