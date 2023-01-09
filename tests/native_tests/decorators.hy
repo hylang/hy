@@ -1,3 +1,7 @@
+(import
+  asyncio)
+
+
 (defn test-decorated-1line-function []
   (defn foodec [func]
     (fn [] (+ (func) 1)))
@@ -46,3 +50,12 @@
     (.append l "bar body") arg)      ; Body
   (.append l (bar))
   (assert (= l ["dec" "arg" "foo" "foo fn" "bar body" 1])))
+
+
+(defn test-decorated-defn/a []
+  (defn decorator [func] (fn/a [] (/ (await (func)) 2)))
+
+  (defn/a [decorator] coro-test []
+    (await (asyncio.sleep 0))
+    42)
+  (assert (= (asyncio.run (coro-test)) 21)))

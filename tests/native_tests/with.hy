@@ -1,4 +1,16 @@
-(import pytest)
+(import
+  asyncio
+  pytest
+  tests.resources [AsyncWithTest])
+
+(defn test-context []
+  (with [fd (open "README.md" "r")] (assert fd))
+  (with [(open "README.md" "r")] (do)))
+
+(defn test-with-return []
+  (defn read-file [filename]
+    (with [fd (open filename "r")] (.read fd)))
+  (assert (!= 0 (len (read-file "README.md")))))
 
 (defclass WithTest [object]
   (defn __init__ [self val]
@@ -37,6 +49,41 @@
         (assert (= t1 1))
         (assert (= t2 2))
         (assert (= t3 3))))
+
+(defn test-single-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t (AsyncWithTest 1)]
+        (assert (= t 1)))))))
+
+(defn test-two-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)]
+        (assert (= t1 1))
+        (assert (= t2 2)))))))
+
+(defn test-thrice-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)
+               t3 (AsyncWithTest 3)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3)))))))
+
+(defn test-quince-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)
+               t3 (AsyncWithTest 3)
+               _ (AsyncWithTest 4)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3)))))))
 
 (defn test-unnamed-context-with []
   "`_` get compiled to unnamed context"
