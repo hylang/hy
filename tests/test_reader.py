@@ -178,9 +178,10 @@ def test_lex_bracket_strings():
 
 
 def test_lex_integers():
-    """Make sure that integers are valid expressions"""
-    objs = tokenize("42 ")
-    assert objs == [Integer(42)]
+    assert tokenize("42") == [Integer(42)]
+    assert tokenize("0x80") == [Integer(128)]
+    assert tokenize("0o1232") == [Integer(666)]
+    assert tokenize("0b1011101") == [Integer(93)]
 
 
 def test_lex_expression_float():
@@ -242,6 +243,8 @@ def test_lex_digit_separators():
     assert tokenize("1,000,000") == [Integer(1000000)]
     assert tokenize("1,000_000") == [Integer(1000000)]
     assert tokenize("1_000,000") == [Integer(1000000)]
+    # https://github.com/hylang/hy/issues/1340
+    assert tokenize("_42") == [Symbol("_42")]
 
     assert tokenize("0x_af") == [Integer(0xAF)]
     assert tokenize("0x,af") == [Integer(0xAF)]
@@ -311,6 +314,24 @@ def test_lex_bad_attrs():
     assert tokenize("j.foo")
     with lexe():
         tokenize(":hello.foo")
+
+
+def test_lists():
+    assert tokenize("[1 2 3 4]") == [List(map(Integer, (1, 2, 3, 4)))]
+
+
+def test_dicts():
+    assert tokenize("{1 2  3 4}") == [Dict(map(Integer, (1, 2, 3, 4)))]
+    assert tokenize("{1 (+ 1 1) 3 (+ 2 2)}") == [
+        Dict(
+            (
+                Integer(1),
+                Expression((Symbol("+"), Integer(1), Integer(1))),
+                Integer(3),
+                Expression((Symbol("+"), Integer(2), Integer(2))),
+            )
+        )
+    ]
 
 
 def test_lex_column_counting():

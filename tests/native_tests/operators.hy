@@ -315,6 +315,12 @@
   (assert (= (f {"x" {"y" {"z" 12}}} "x" "y" "z") 12)))
 
 
+(defn test-setv-get []
+  (setv foo [0 1 2])
+  (setv (get foo 0) 12)
+  (assert (= (get foo 0) 12)))
+
+
 (defn test-chained-comparison []
   (assert (chainc 2 = (+ 1 1) = (- 3 1)))
   (assert (not (chainc 2 = (+ 1 1) = (+ 3 1))))

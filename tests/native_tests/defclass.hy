@@ -112,3 +112,39 @@
     (set-sentinel))
 
   (assert set-sentinel.set))
+
+
+(defn test-pep-3115 []
+  (defclass member-table [dict]
+    (defn __init__ [self]
+      (setv self.member-names []))
+
+    (defn __setitem__ [self key value]
+      (when (not-in key self)
+          (.append self.member-names key))
+      (dict.__setitem__ self key value)))
+
+  (defclass OrderedClass [type]
+    (setv __prepare__ (classmethod (fn [metacls name bases]
+      (member-table))))
+
+    (defn __new__ [cls name bases classdict]
+      (setv result (type.__new__ cls name bases (dict classdict)))
+      (setv result.member-names classdict.member-names)
+      result))
+
+  (defclass MyClass [:metaclass OrderedClass]
+    (defn method1 [self] (pass))
+    (defn method2 [self] (pass)))
+
+  (assert (= (. (MyClass) member-names)
+             ["__module__" "__qualname__" "method1" "method2"])))
+
+
+(defn test-pep-487 []
+  (defclass QuestBase []
+    (defn __init-subclass__ [cls swallow #** kwargs]
+      (setv cls.swallow swallow)))
+
+  (defclass Quest [QuestBase :swallow "african"])
+  (assert (= (. (Quest) swallow) "african")))
