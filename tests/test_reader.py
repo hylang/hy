@@ -322,11 +322,16 @@ def test_lists():
 
 def test_dicts():
     assert tokenize("{1 2  3 4}") == [Dict(map(Integer, (1, 2, 3, 4)))]
-    assert tokenize("{1 (+ 1 1) 3 (+ 2 2)}") == [Dict((
-       Integer(1),
-       Expression((Symbol("+"), Integer(1), Integer(1))),
-       Integer(3),
-       Expression((Symbol("+"), Integer(2), Integer(2)))))]
+    assert tokenize("{1 (+ 1 1) 3 (+ 2 2)}") == [
+        Dict(
+            (
+                Integer(1),
+                Expression((Symbol("+"), Integer(1), Integer(1))),
+                Integer(3),
+                Expression((Symbol("+"), Integer(2), Integer(2))),
+            )
+        )
+    ]
 
 
 def test_lex_column_counting():
