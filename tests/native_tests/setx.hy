@@ -1,11 +1,13 @@
 (import pytest)
 
-(defn test-cant-setx []
+(defn
+    [(pytest.mark.skipif hy._compat.PY3_8 :reason "Python ≥ 3.8")]
+    test-cant-setx []
   (with [e (pytest.raises hy.errors.HySyntaxError)]
     (hy.eval '(setx x 1)))
   (assert (= "setx requires Python 3.8 or later")))
 
-(defn test-setx []
+(do-mac (when hy._compat.PY3_8 '(defn test-setx []
   (setx y (+ (setx x (+ "a" "b")) "c"))
   (assert (= x "ab"))
   (assert (= y "abc"))
@@ -24,9 +26,9 @@
   (assert (= filtered ["apple" "banana"]))
   (assert (= v "banana"))
   (with [(pytest.raises NameError)]
-    i))
+    i))))
 
-(defn test-setx-generator-scope []
+(do-mac (when hy._compat.PY3_8 '(defn test-setx-generator-scope []
   ;; https://github.com/hylang/hy/issues/1994
   (setv x 20)
   (lfor n (range 10) (setx x n))
@@ -49,11 +51,11 @@
 
   (lfor n (range 0) :do x (setx z n))
   (with [(pytest.raises UnboundLocalError)]
-    z))
+    z))))
 
-(defn test-let-setx []
+(do-mac (when hy._compat.PY3_8 '(defn test-let-setx []
   (let [x 40
         y 13]
     (setv y (setx x 2))
     (assert (= x 2))
-    (assert (= y 2))))
+    (assert (= y 2))))))
