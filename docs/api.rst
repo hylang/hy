@@ -312,6 +312,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (+ 1 (do (setv x (+ 1 1)) x))  ; => 3
 
+.. hy:function:: (do-mac [#* body])
+
+   ``do-mac`` evaluates its arguments (in order) at compile time, and leaves behind the value of the last argument (``None`` if no arguments were provided) as code to be run. The effect is similar to defining and then immediately calling a nullary macro, hence the name, which stands for "do macro". ::
+
+     (do-mac `(setv ~(hy.models.Symbol (* "x" 5)) "foo"))
+       ; Expands to:   (setv xxxxx "foo")
+     (print xxxxx)
+       ; => "foo"
+
+   Contrast with :hy:func:`eval-and-compile`, which evaluates the same code at compile-time and run-time, instead of using the result of the compile-time run as code for run-time. ``do-mac`` is also similar to Common Lisp's SHARPSIGN DOT syntax (``#.``), from which it differs by evaluating at compile-time rather than read-time.
+
 .. hy:function:: (for [#* args])
 
    ``for`` compiles to one or more :py:keyword:`for` statements, which

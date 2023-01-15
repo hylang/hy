@@ -54,6 +54,7 @@ from hy.models import (
     String,
     Symbol,
     Tuple,
+    as_model,
     is_unpack,
 )
 from hy.reader import mangle, unmangle
@@ -88,12 +89,12 @@ def compile_do(self, expr, root, body):
     return self._compile_branch(body)
 
 
-@pattern_macro(["eval-and-compile", "eval-when-compile"], [many(FORM)])
-def compile_eval_and_compile(compiler, expr, root, body):
+@pattern_macro(["eval-and-compile", "eval-when-compile", "do-mac"], [many(FORM)])
+def compile_eval_foo_compile(compiler, expr, root, body):
     new_expr = Expression([Symbol("do").replace(expr[0])]).replace(expr)
 
     try:
-        hy_eval(
+        value = hy_eval(
             new_expr + body,
             compiler.module.__dict__,
             compiler.module,
@@ -115,7 +116,9 @@ def compile_eval_and_compile(compiler, expr, root, body):
         raise HyEvalError(str(e), compiler.filename, body, compiler.source)
 
     return (
-        compiler._compile_branch(body)
+        compiler.compile(as_model(value))
+        if mangle(root) == "do_mac"
+        else compiler._compile_branch(body)
         if mangle(root) == "eval_and_compile"
         else Result()
     )

@@ -1,3 +1,6 @@
+(do-mac (when hy._compat.PY3_10 '(do
+
+
 (import pytest
         dataclasses [dataclass]
         hy.errors [HySyntaxError])
@@ -260,3 +263,6 @@
                (match y
                       {"b" b #**a} a)))
     (assert (= b 2))))
+
+
+)))

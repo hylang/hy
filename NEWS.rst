@@ -18,8 +18,8 @@ Breaking Changes
   expressions (like `(. foo bar)` and `(. None sqrt)`) instead of
   symbols. Some odd cases like `foo.` and `foo..bar` are now
   syntactically illegal.
-* `pragma` is now reserved as a core macro name, although it doesn't
-  do anything useful (yet).
+* New macro `do-mac`.
+* New macro `pragma` (although it doesn't do anything useful yet).
 * `hy.cmdline.HyREPL` is now `hy.REPL`.
 
 Bug Fixes
