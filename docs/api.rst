@@ -232,7 +232,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
          (print "world"))
        (asyncio.run (main))
 
-.. hy:macro:: break
+.. hy:macro:: (break)
 
    ``break`` compiles to a :py:keyword:`break` statement, which terminates the
    enclosing loop. The following example has an infinite ``while`` loop that
@@ -281,7 +281,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python.
 
 
-.. hy:macro:: continue
+.. hy:macro:: (continue)
 
    ``continue`` compiles to a :py:keyword:`continue` statement, which returns
    execution to the start of a loop. In the following example, ``(.append
@@ -1044,8 +1044,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    The return value of ``try`` is the last form evaluated among the main body,
    ``except`` forms, ``except*`` forms, and ``else``.
 
-.. hy:macro:: (unpack-iterable)
-.. hy:macro:: (unpack-mapping)
+.. hy:macro:: (unpack-iterable [form])
+.. hy:macro:: (unpack-mapping [form])
 
    (Also known as the splat operator, star operator, argument expansion, argument
    explosion, argument gathering, and varargs, among others...)
