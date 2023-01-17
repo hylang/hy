@@ -2,8 +2,12 @@ import asyncio
 import itertools
 import math
 import os
+import platform
+
+import pytest
 
 import hy.importer
+from hy._compat import PYODIDE
 from hy import mangle
 
 
@@ -13,6 +17,7 @@ def test_direct_import():
     assert_stuff(tests.resources.pydemo)
 
 
+@pytest.mark.skipif(PYODIDE, reason = "subprocess.check_call not implemented on Pyodide")
 def test_hy2py_import():
     import contextlib
     import os

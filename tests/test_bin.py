@@ -12,7 +12,13 @@ from pathlib import Path
 
 import pytest
 
-from hy._compat import PY3_9, PYPY
+from hy._compat import PY3_9, PYPY, PYODIDE
+
+
+if PYODIDE:
+    pytest.skip(
+        '`subprocess.Popen` not implemented on Pyodide',
+        allow_module_level = True)
 
 
 def pyr(s=""):

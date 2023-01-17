@@ -6,7 +6,8 @@
   os.path [exists isdir isfile]
   sys :as systest
   sys
-  pytest)
+  pytest
+  hy._compat [PYODIDE])
 
 
 (defn test-imported-bits []
@@ -202,7 +203,8 @@ in expansions."
 
   ;; Now that bytecode is present, reload the module, clear the `require`d
   ;; macros and tags, and rerun the tests.
-  (assert (os.path.isfile pyc-file))
+  (when (not PYODIDE)
+    (assert (os.path.isfile pyc-file)))
 
   ;; Reload the module and clear the local macro context.
   (.clear sys.path_importer_cache)
