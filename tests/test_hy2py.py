@@ -10,6 +10,8 @@ import hy.importer
 from hy._compat import PYODIDE
 from hy import mangle
 
+from tests.resources import can_test_async
+
 
 def test_direct_import():
     import tests.resources.pydemo
@@ -153,7 +155,8 @@ def assert_stuff(m):
     assert m.pys_accum == [0, 1, 2, 3, 4]
     assert m.py_accum == "01234"
 
-    assert asyncio.run(m.coro()) == list("abcdef")
+    if can_test_async:
+        assert asyncio.run(m.coro()) == list("abcdef")
 
     assert m.cheese == [1, 1]
     assert m.mac_results == ["x", "x"]

@@ -1,7 +1,8 @@
 (import
   types
   asyncio
-  pytest)
+  pytest
+  tests.resources [async-test])
 
 
 (defn test-comprehension-types []
@@ -385,7 +386,7 @@
   (assert (= x 3)))
 
 
-(defn test-for-async []
+(defn [async-test] test-for-async []
   (defn/a numbers []
     (for [i [1 2]]
       (yield i)))
@@ -398,7 +399,7 @@
       (assert (= x 3))))))
 
 
-(defn test-for-async-else []
+(defn [async-test] test-for-async-else []
   (defn/a numbers []
     (for [i [1 2]]
       (yield i)))

@@ -1,7 +1,7 @@
 (import
   asyncio
   pytest
-  tests.resources [AsyncWithTest])
+  tests.resources [async-test AsyncWithTest])
 
 (defn test-context []
   (with [fd (open "tests/resources/text.txt" "r")] (assert fd))
@@ -50,13 +50,13 @@
         (assert (= t2 2))
         (assert (= t3 3))))
 
-(defn test-single-with/a []
+(defn [async-test] test-single-with/a []
   (asyncio.run
     ((fn/a []
       (with/a [t (AsyncWithTest 1)]
         (assert (= t 1)))))))
 
-(defn test-two-with/a []
+(defn [async-test] test-two-with/a []
   (asyncio.run
     ((fn/a []
       (with/a [t1 (AsyncWithTest 1)
@@ -64,7 +64,7 @@
         (assert (= t1 1))
         (assert (= t2 2)))))))
 
-(defn test-thrice-with/a []
+(defn [async-test] test-thrice-with/a []
   (asyncio.run
     ((fn/a []
       (with/a [t1 (AsyncWithTest 1)
@@ -74,7 +74,7 @@
         (assert (= t2 2))
         (assert (= t3 3)))))))
 
-(defn test-quince-with/a []
+(defn [async-test] test-quince-with/a []
   (asyncio.run
     ((fn/a []
       (with/a [t1 (AsyncWithTest 1)
