@@ -4,13 +4,13 @@
   tests.resources [AsyncWithTest])
 
 (defn test-context []
-  (with [fd (open "README.md" "r")] (assert fd))
-  (with [(open "README.md" "r")] (do)))
+  (with [fd (open "tests/resources/text.txt" "r")] (assert fd))
+  (with [(open "tests/resources/text.txt" "r")] (do)))
 
 (defn test-with-return []
   (defn read-file [filename]
-    (with [fd (open filename "r")] (.read fd)))
-  (assert (!= 0 (len (read-file "README.md")))))
+    (with [fd (open filename "r" :encoding "UTF-8")] (.read fd)))
+  (assert (= (read-file "tests/resources/text.txt") "TAARGÜS TAARGÜS\n")))
 
 (defclass WithTest [object]
   (defn __init__ [self val]
