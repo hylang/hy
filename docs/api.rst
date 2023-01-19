@@ -8,7 +8,7 @@ Core Macros
 The following macros are automatically imported into all Hy modules as their
 base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
-.. hy:function:: (annotate [value type])
+.. hy:macro:: (annotate [value type])
 
    ``annotate`` and its shorthand form ``#^`` are used to denote annotations,
    including type hints, in three different contexts:
@@ -84,7 +84,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    meaning the same thing in Hy as in Python. Also, :hy:func:`get
    <hy.pyops.get>` is another way to subscript in Hy.
 
-.. hy:function:: (fn [args])
+.. hy:macro:: (fn [args])
 
    As :hy:func:`defn`, but no name for the new function is required (or
    allowed), and the newly created function object is returned. Decorators
@@ -92,12 +92,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    to that of :hy:func:`defn`, without any of the restrictions of Python's
    :py:keyword:`lambda`. See :hy:func:`fn/a` for the asynchronous equivalent.
 
-.. hy:function:: (fn/a [name #* args])
+.. hy:macro:: (fn/a [name #* args])
 
    As :hy:func:`fn`, but the created function object will be a :ref:`coroutine
    <py:async def>`.
 
-.. hy:function:: (defn [name #* args])
+.. hy:macro:: (defn [name #* args])
 
    ``defn`` compiles to a :ref:`function definition <py:function>` (or possibly
    to an assignment of a :ref:`lambda expression <py:lambda>`). It always
@@ -163,12 +163,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
     (print (hy.repr (f 1 2 :d 4 :e 5 :f 6)))
       ; => [1 2 3 4 5 {"f" 6}]
 
-.. hy:function:: (defn/a [name lambda-list #* body])
+.. hy:macro:: (defn/a [name lambda-list #* body])
 
    As :hy:func:`defn`, but defines a :ref:`coroutine <py:async def>` like
    Python's ``async def``.
 
-.. hy:function:: (defmacro [name lambda-list #* body])
+.. hy:macro:: (defmacro [name lambda-list #* body])
 
    ``defmacro`` is used to define macros. The general format is
    ``(defmacro name [parameters] expr)``.
@@ -205,7 +205,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
                 => (a-macro :b 3)
                 [:b 3]
 
-.. hy:function:: (if [test then else])
+.. hy:macro:: (if [test then else])
 
    ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.
    ::
@@ -220,7 +220,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    - :hy:func:`when <hy.core.macros.when>`, for shorthand for ``(if condition (do …) None)``.
    - :hy:func:`cond <hy.core.macros.cond>`, for shorthand for nested ``if`` forms.
 
-.. hy:function:: (await [obj])
+.. hy:macro:: (await [obj])
 
    ``await`` creates an :ref:`await expression <py:await>`. It takes exactly one
    argument: the object to wait for. ::
@@ -232,7 +232,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
          (print "world"))
        (asyncio.run (main))
 
-.. hy:function:: break
+.. hy:macro:: (break)
 
    ``break`` compiles to a :py:keyword:`break` statement, which terminates the
    enclosing loop. The following example has an infinite ``while`` loop that
@@ -251,7 +251,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    comprehension forms, you may also enclose it in a function and use
    :hy:func:`return`.
 
-.. hy:function:: (chainc [#* args])
+.. hy:macro:: (chainc [#* args])
 
    ``chainc`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
    required for unchained comparisons, which have only one comparison operator,
@@ -281,7 +281,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python.
 
 
-.. hy:function:: continue
+.. hy:macro:: (continue)
 
    ``continue`` compiles to a :py:keyword:`continue` statement, which returns
    execution to the start of a loop. In the following example, ``(.append
@@ -304,7 +304,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    in ``(for [x xs] (block (for [y ys] …)))``. You can then use ``block-ret``
    in place of ``continue``.
 
-.. hy:function:: (do [#* body])
+.. hy:macro:: (do [#* body])
 
    ``do`` (called ``progn`` in some Lisps) takes any number of forms,
    evaluates them, and returns the value of the last one, or ``None`` if no
@@ -312,7 +312,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (+ 1 (do (setv x (+ 1 1)) x))  ; => 3
 
-.. hy:function:: (do-mac [#* body])
+.. hy:macro:: (do-mac [#* body])
 
    ``do-mac`` evaluates its arguments (in order) at compile time, and leaves behind the value of the last argument (``None`` if no arguments were provided) as code to be run. The effect is similar to defining and then immediately calling a nullary macro, hence the name, which stands for "do macro". ::
 
@@ -323,7 +323,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    Contrast with :hy:func:`eval-and-compile`, which evaluates the same code at compile-time and run-time, instead of using the result of the compile-time run as code for run-time. ``do-mac`` is also similar to Common Lisp's SHARPSIGN DOT syntax (``#.``), from which it differs by evaluating at compile-time rather than read-time.
 
-.. hy:function:: (for [#* args])
+.. hy:macro:: (for [#* args])
 
    ``for`` compiles to one or more :py:keyword:`for` statements, which
    execute code repeatedly for each element of an iterable object.
@@ -378,7 +378,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        3
        loop finished
 
-.. hy:function:: (assert [condition [label None]])
+.. hy:macro:: (assert [condition [label None]])
 
    ``assert`` compiles to an :py:keyword:`assert` statement, which checks
    whether a condition is true. The first argument, specifying the condition to
@@ -391,7 +391,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      (assert (= 1 2) "one should equal two")
        ; AssertionError: one should equal two
 
-.. hy:function:: (global [sym #* syms])
+.. hy:macro:: (global [sym #* syms])
 
    ``global`` compiles to a :py:keyword:`global` statement, which declares one
    or more names as referring to global (i.e., module-level) variables. The
@@ -407,7 +407,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print a b)  ; => 2 10
 
 
-.. hy:function:: (import [#* forms])
+.. hy:macro:: (import [#* forms])
 
    ``import`` compiles to an :py:keyword:`import` statement, which makes objects
    in a different module available in the current module. It always returns
@@ -445,7 +445,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    <mangling>`. The macro :hy:func:`export <hy.core.macros.export>` is a handy
    way to set ``__all__`` in a Hy program.
 
-.. hy:function:: (eval-and-compile [#* body])
+.. hy:macro:: (eval-and-compile [#* body])
 
    ``eval-and-compile`` takes any number of forms as arguments. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice. The return value is the final argument, as in ``do``.
 
@@ -463,7 +463,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    Had the ``defn`` not been wrapped in ``eval-and-compile``, ``m`` wouldn't be able to call ``add``, because when the compiler was expanding ``(m 3)``, ``add`` wouldn't exist yet.
 
-.. hy:function:: (eval-when-compile [#* body])
+.. hy:macro:: (eval-when-compile [#* body])
 
    As ``eval-and-compile``, but the code isn't executed at run-time, and ``None`` is returned. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function). ::
 
@@ -477,7 +477,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print (m 3))     ; prints 5
        (print (add 3 6)) ; raises NameError: name 'add' is not defined
 
-.. hy:function:: (lfor [#* args])
+.. hy:macro:: (lfor [#* args])
 
    The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
    are used to produce various kinds of loops, including Python-style
@@ -533,7 +533,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    In ``for``, by contrast, iteration and ``:setv`` clauses share the
    caller's scope and are visible outside the form.
 
-.. hy:function:: (dfor [#* args])
+.. hy:macro:: (dfor [#* args])
 
     ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
     is the same as that of :hy:func:`lfor` except that it takes two trailing
@@ -544,7 +544,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         {0 0  1 10  2 20  3 30  4 40}
 
 
-.. hy:function:: (gfor [#* args])
+.. hy:macro:: (gfor [#* args])
 
    ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
    is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
@@ -559,12 +559,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        => accum
        [0 1 2 3 4 5]
 
-.. hy:function:: (sfor [#* args])
+.. hy:macro:: (sfor [#* args])
 
    ``sfor`` creates a :ref:`set comprehension <py:set>`. ``(sfor CLAUSES VALUE)`` is
    equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
 
-.. hy:function:: (setv [#* args])
+.. hy:macro:: (setv [#* args])
 
    ``setv`` compiles to an :ref:`assignment statement <py:assignment>` (see :hy:func:`setx` for assignment expressions), which sets the value of a variable or some other assignable expression. It requires an even number of arguments, and always returns ``None``. The most common case is two arguments, where the first is a symbol::
 
@@ -588,7 +588,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    See :hy:func:`let` to simulate more traditionally Lispy block-level scoping.
 
-.. hy:function:: (setx [target value])
+.. hy:macro:: (setx [target value])
 
    ``setx`` compiles to an assignment expression. Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. Python 3.8 or later is required. ::
 
@@ -596,7 +596,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print x "is greater than 0"))
          ; => 3 is greater than 0
 
-.. hy:function:: (let [bindings #* body])
+.. hy:macro:: (let [bindings #* body])
 
    ``let`` creates lexically-scoped names for local variables. This form takes a
    list of binding pairs followed by a *body* which gets executed. A let-bound
@@ -662,7 +662,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
 
 
-.. hy:function:: (match [subject #* cases])
+.. hy:macro:: (match [subject #* cases])
 
    The ``match`` form creates a :ref:`match statement <py3_10:match>`. It
    requires Python 3.10 or later. The first argument should be the subject,
@@ -711,7 +711,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    :hy:func:`case <hyrule.control.case>`, or simply use :hy:func:`cond
    <hy.core.macros.cond>`.
 
-.. hy:function:: (defclass [arg1 #* args])
+.. hy:macro:: (defclass [arg1 #* args])
 
    ``defclass`` compiles to a :py:keyword:`class` statement, which creates a
    new class. It always returns ``None``. Only one argument, specifying the
@@ -734,18 +734,18 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         (defn method2 [self arg1 arg2]
           …))
 
-.. hy:function:: (del [#* args])
+.. hy:macro:: (del [#* args])
 
    ``del`` compiles to a :py:keyword:`del` statement, which deletes variables
    or other assignable expressions. It always returns ``None``. ::
 
      (del  foo  (get mydict "mykey")  myobj.myattr)
 
-.. hy:function:: (nonlocal [sym #* syms])
+.. hy:macro:: (nonlocal [sym #* syms])
 
    As :hy:func:`global`, but the result is a :py:keyword:`nonlocal` statement.
 
-.. hy:function:: (py [string])
+.. hy:macro:: (py [string])
 
    ``py`` parses the given Python code at compile-time and inserts the result into
    the generated abstract syntax tree. Thus, you can mix Python code into a Hy
@@ -768,7 +768,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    .. _pys-specialform:
 
-.. hy:function:: (pys [string])
+.. hy:macro:: (pys [string])
 
    As :hy:func:`py <py>`, but the code can consist of zero or more statements,
    including compound statements such as ``for`` and ``def``. ``pys`` always
@@ -782,7 +782,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python would otherwise forbid this, but beware that significant leading
    whitespace in embedded string literals will be removed.
 
-.. hy:function:: (quasiquote [form])
+.. hy:macro:: (quasiquote [form])
 
    ``quasiquote`` allows you to quote a form, but also selectively evaluate
    expressions. Expressions inside a ``quasiquote`` can be selectively evaluated
@@ -801,7 +801,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        ; equivalent to '(foo bar baz)
 
 
-.. hy:function:: (quote [form])
+.. hy:macro:: (quote [form])
 
    ``quote`` returns the form passed to it without evaluating it. ``quote`` can
    alternatively be written using the apostrophe (``'``) symbol.
@@ -819,7 +819,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        Hello World
 
 
-.. hy:function:: (require [#* args])
+.. hy:macro:: (require [#* args])
 
    ``require`` is used to import macros and reader macros from one or more given
    modules. It allows parameters in all the same formats as ``import``.
@@ -945,7 +945,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       to do introspection of the current module's set of defined macros, which isn't
       really supported anyway.
 
-.. hy:function:: (return [object])
+.. hy:macro:: (return [object])
 
    ``return`` compiles to a :py:keyword:`return` statement. It exits the
    current function, returning its argument if provided with one, or
@@ -969,7 +969,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
          None)
        (print (f 4))  ; Prints "14" and then "None"
 
-.. hy:function:: (cut [coll arg1 arg2 arg3])
+.. hy:macro:: (cut [coll arg1 arg2 arg3])
 
    ``cut`` compiles to a :ref:`slicing expression <slicings>`, which selects multiple elements of a sequential data structure. The first argument is the object to be sliced. The remaining arguments are optional, and understood the same way as in a Python slicing expression. ::
 
@@ -982,7 +982,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    A ``cut`` form is a valid target for assignment (with :hy:func:`setv`, ``+=``, etc.) and for deletion (with :hy:func:`del`).
 
-.. hy:function:: (raise [exception :from other])
+.. hy:macro:: (raise [exception :from other])
 
    ``raise`` compiles to a :py:keyword:`raise` statement, which throws an
    exception. With no arguments, the current exception is reraised. With one
@@ -997,7 +997,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    EXCEPTION_2)``, which compiles to a Python ``raise … from`` statement like
    ``raise EXCEPTION_1 from EXCEPTION_2``.
 
-.. hy:function:: (try [#* body])
+.. hy:macro:: (try [#* body])
 
    ``try`` compiles to a :py:keyword:`try` statement, which can catch
    exceptions and run cleanup actions. It begins with any number of body forms.
@@ -1044,8 +1044,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    The return value of ``try`` is the last form evaluated among the main body,
    ``except`` forms, ``except*`` forms, and ``else``.
 
-.. hy:function:: (unpack-iterable)
-.. hy:function:: (unpack-mapping)
+.. hy:macro:: (unpack-iterable [form])
+.. hy:macro:: (unpack-mapping [form])
 
    (Also known as the splat operator, star operator, argument expansion, argument
    explosion, argument gathering, and varargs, among others...)
@@ -1083,7 +1083,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
        [1 2  3 4]
 
-.. hy:function:: (unquote [symbol])
+.. hy:macro:: (unquote [symbol])
 
    Within a quasiquoted form, ``unquote`` forces evaluation of a symbol. ``unquote``
    is aliased to the tilde (``~``) symbol.
@@ -1097,7 +1097,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        '(= nickname "Cuddles")
 
 
-.. hy:function:: (unquote-splice [symbol])
+.. hy:macro:: (unquote-splice [symbol])
 
    ``unquote-splice`` forces the evaluation of a symbol within a quasiquoted form,
    much like ``unquote``. ``unquote-splice`` can be used when the symbol
@@ -1128,7 +1128,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    parser. So, if you want to unquote the symbol ``@foo`` with ``~``, you must
    use whitespace to separate ``~`` and ``@``, as in ``~ @foo``.
 
-.. hy:function:: (while [condition #* body])
+.. hy:macro:: (while [condition #* body])
 
    ``while`` compiles to a :py:keyword:`while` statement, which executes some
    code as long as a condition is met. The first argument to ``while`` is the
@@ -1178,7 +1178,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        In condition
        At end of outer loop
 
-.. hy:function:: (with [managers #* body])
+.. hy:macro:: (with [managers #* body])
 
    ``with`` compiles to a :py:keyword:`with` statement, which wraps some code
    with one or more :ref:`context managers <py:context-managers>`. The first
@@ -1217,11 +1217,11 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (print (with [o (open "file.txt" "rt")] (.read o)))
 
-.. hy:function:: (with/a [managers #* body])
+.. hy:macro:: (with/a [managers #* body])
 
    As :hy:func:`with`, but compiles to an :py:keyword:`async with` statement.
 
-.. hy:function:: (yield [value])
+.. hy:macro:: (yield [value])
 
    ``yield`` compiles to a :ref:`yield expression <py:yieldexpr>`, which
    returns a value as a generator. As in Python, one argument, the value to
@@ -1235,7 +1235,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    For ``yield from``, see :hy:func:`yield-from`.
 
-.. hy:function:: (yield-from [object])
+.. hy:macro:: (yield-from [object])
 
    ``yield-from`` compiles to a :ref:`yield-from expression <py:yieldexpr>`,
    which returns a value from a subgenerator. The syntax is the same as that of
@@ -1248,7 +1248,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       (hy.repr (list (zip "abc" (myrange))))
         ; => [#("a" 0) #("b" 1) #("c" 2)]
 
-.. hy:function:: (pragma)
+.. hy:macro:: (pragma)
 
   ``pragma`` is reserved as a core macro name for future use, especially for
   allowing backwards-compatible addition of new features after the release of Hy
