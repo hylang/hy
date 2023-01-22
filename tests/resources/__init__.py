@@ -2,7 +2,6 @@ import pytest
 
 from hy._compat import PYODIDE
 
-
 in_init = "chippy"
 
 
@@ -16,8 +15,8 @@ def function_with_a_dash():
 
 can_test_async = not PYODIDE
 async_test = pytest.mark.skipif(
-    not can_test_async,
-    reason = "`asyncio.run` not implemented")
+    not can_test_async, reason="`asyncio.run` not implemented"
+)
 
 
 class AsyncWithTest:

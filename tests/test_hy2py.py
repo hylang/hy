@@ -7,9 +7,8 @@ import platform
 import pytest
 
 import hy.importer
-from hy._compat import PYODIDE
 from hy import mangle
-
+from hy._compat import PYODIDE
 from tests.resources import can_test_async
 
 
@@ -19,7 +18,7 @@ def test_direct_import():
     assert_stuff(tests.resources.pydemo)
 
 
-@pytest.mark.skipif(PYODIDE, reason = "subprocess.check_call not implemented on Pyodide")
+@pytest.mark.skipif(PYODIDE, reason="subprocess.check_call not implemented on Pyodide")
 def test_hy2py_import():
     import contextlib
     import os
