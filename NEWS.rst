@@ -33,6 +33,7 @@ Bug Fixes
 
 New Features
 ------------------------------
+* Pyodide is now officially supported.
 * `.`, `..`, etc. are now usable as ordinary symbols (with the
   remaining special rule that `...` compiles to `Ellipsis`)
 * On Pythons ≥ 3.7, Hy modules can now be imported from ZIP

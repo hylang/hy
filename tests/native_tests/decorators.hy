@@ -1,5 +1,6 @@
 (import
-  asyncio)
+  asyncio
+  tests.resources [async-test])
 
 
 (defn test-decorated-1line-function []
@@ -52,7 +53,7 @@
   (assert (= l ["dec" "arg" "foo" "foo fn" "bar body" 1])))
 
 
-(defn test-decorated-defn/a []
+(defn [async-test] test-decorated-defn/a []
   (defn decorator [func] (fn/a [] (/ (await (func)) 2)))
 
   (defn/a [decorator] coro-test []

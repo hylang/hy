@@ -10,7 +10,7 @@ jobs:
       matrix:
         name-prefix: ['']
         os: [ubuntu-latest]
-        python: [3.7, 3.8, 3.9, '3.10', 3.11, pypy-3.9]
+        python: [3.7, 3.8, 3.9, '3.10', 3.11, pypy-3.9, pyodide]
         include:
           # To keep the overall number of runs low, we test Windows
           # only on the latest CPython.
@@ -21,6 +21,7 @@ jobs:
     name: ${{ format('{0}{1}', matrix.name-prefix, matrix.python) }}
     runs-on: ${{ matrix.os }}
     env:
+      EMSCRIPTEN_VERSION: 3.1.27
       TERM: xterm-256color
         # This is needed to avoid a terminfo-related crash when
         # testing PyPy.
@@ -29,11 +30,37 @@ jobs:
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - if: ${{ matrix.python != 'pyodide' }}
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-    - run: pip install . && rm -r hy
-        # We want to be sure we're testing the installed version,
-        # instead of running from the source tree.
-    - run: pip install pytest
-    - run: pytest
+    - if: ${{ matrix.python == 'pyodide' }}
+      uses: actions/setup-node@v3
+    - if: ${{ matrix.python == 'pyodide' }}
+      uses: mymindstorm/setup-emsdk@v11
+      with:
+        version: ${{ env.EMSCRIPTEN_VERSION }}
+        actions-cache-folder: emsdk-cache
+    - name: Install
+      shell: bash
+      run: |
+        if [[ ${{ matrix.python }} = pyodide ]] ; then
+            npm install pyodide
+            pip install 'pip >= 22.3.1'
+              # Older pips may fail to install `pyodide-build`.
+            pip install pyodide-build
+            pyodide venv .venv-pyodide
+            source .venv-pyodide/bin/activate
+        fi
+        pip install .
+        rm -r hy
+          # We want to be sure we're testing the installed version,
+          # instead of running from the source tree.
+        pip install pytest
+    - name: Test
+      shell: bash
+      run: |
+        if [[ ${{ matrix.python }} = pyodide ]] ; then
+            source .venv-pyodide/bin/activate
+        fi
+        python -m pytest tests

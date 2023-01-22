@@ -3,7 +3,8 @@
 (import
   asyncio
   typing [List]
-  pytest)
+  pytest
+  tests.resources [async-test])
 
 
 (defn test-fn []
@@ -24,7 +25,7 @@
   (assert (= (fn-test) None)))
 
 
-(defn test-fn/a []
+(defn [async-test] test-fn/a []
   (assert (= (asyncio.run ((fn/a [] (await (asyncio.sleep 0)) [1 2 3])))
              [1 2 3])))
 
@@ -132,7 +133,7 @@
     (setv x [#* spam]  y 1)))
 
 
-(defn test-defn/a []
+(defn [async-test] test-defn/a []
   (defn/a coro-test []
     (await (asyncio.sleep 0))
     [1 2 3])
