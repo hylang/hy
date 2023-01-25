@@ -7,6 +7,7 @@ import platform
 import py_compile
 import runpy
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 
 import hy
@@ -330,6 +331,48 @@ def hyc_main():
     return rv
 
 
+def hy2py_worker(source, options, filename, output_filepath=None):
+    if isinstance(source, Path):
+        source = source.read_text(encoding="UTF-8")
+
+    if not output_filepath and options.output:
+        output_filepath = options.output
+
+    set_path(filename)
+    with (
+        open(output_filepath, "w", encoding="utf-8")
+        if output_filepath
+        else nullcontext()
+    ) as output_file:
+
+        def printing_source(hst):
+            for node in hst:
+                if options.with_source:
+                    print(node, file=output_file)
+                yield node
+
+        hst = hy.models.Lazy(
+            printing_source(read_many(source, filename, skip_shebang=True))
+        )
+        hst.source = source
+        hst.filename = filename
+
+        with filtered_hy_exceptions():
+            _ast = hy_compile(hst, "__main__", filename=filename, source=source)
+
+        if options.with_source:
+            print()
+            print()
+
+        if options.with_ast:
+            print(ast.dump(_ast, **(dict(indent=2) if PY3_9 else {})), file=output_file)
+            print()
+            print()
+
+        if not options.without_python:
+            print(ast.unparse(_ast), file=output_file)
+
+
 # entry point for cmd line script "hy2py"
 def hy2py_main():
     options = dict(
@@ -342,7 +385,8 @@ def hy2py_main():
         "FILE",
         type=str,
         nargs="?",
-        help='Input Hy code (use STDIN if "-" or ' "not provided)",
+        help='Input Hy code (can be file or directory) (use STDIN if "-" or '
+        "not provided)",
     )
     parser.add_argument(
         "--with-source",
@@ -359,46 +403,51 @@ def hy2py_main():
         action="store_true",
         help=("Do not show the Python code generated " "from the AST"),
     )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        nargs="?",
+        help="output file / directory",
+    )
 
     options = parser.parse_args(sys.argv[1:])
 
     if options.FILE is None or options.FILE == "-":
         sys.path.insert(0, "")
         filename = "<stdin>"
-        source = sys.stdin.read()
+        hy2py_worker(sys.stdin.read(), options, filename)
     else:
         filename = options.FILE
-        set_path(filename)
-        with open(options.FILE, "r", encoding="utf-8") as source_file:
-            source = source_file.read()
+        if os.path.isdir(filename):
+            # handle recursively if --output is specified
+            if not options.output:
+                raise ValueError(
+                    f"{filename} is a directory but the output directory is not specified. Use --output or -o in command line arguments to specify the output directory."
+                )
+            os.makedirs(options.output, exist_ok=True)
+            for path, subdirs, files in os.walk(filename):
+                for name in files:
+                    filename_raw, filename_ext = os.path.splitext(name)
+                    if filename_ext == ".hy":
+                        filepath = os.path.join(path, name)
+                        # make sure to follow original file structure
+                        subdirectory = os.path.relpath(path, filename)
+                        output_directory_path = os.path.join(
+                            options.output if options.output else path, subdirectory
+                        )
+                        os.makedirs(output_directory_path, exist_ok=True)
+                        hy2py_worker(
+                            Path(filepath),
+                            options,
+                            filename,
+                            output_filepath=os.path.join(
+                                output_directory_path, filename_raw + ".py"
+                            ),
+                        )
 
-    def printing_source(hst):
-        for node in hst:
-            if options.with_source:
-                print(node)
-            yield node
-
-    hst = hy.models.Lazy(
-        printing_source(read_many(source, filename, skip_shebang=True))
-    )
-    hst.source = source
-    hst.filename = filename
-
-    with filtered_hy_exceptions():
-        _ast = hy_compile(hst, "__main__", filename=filename, source=source)
-
-    if options.with_source:
-        print()
-        print()
-
-    if options.with_ast:
-        print(ast.dump(_ast, **(dict(indent=2) if PY3_9 else {})))
-        print()
-        print()
-
-    if not options.without_python:
-        print(ast.unparse(_ast))
-
+        else:
+            hy2py_worker(Path(options.FILE), options, filename)
     parser.exit(0)
 
 

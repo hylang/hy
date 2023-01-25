@@ -38,6 +38,7 @@ New Features
   remaining special rule that `...` compiles to `Ellipsis`)
 * On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
   archives in the same way as Python modules, via `zipimport`_.
+* `hy2py` now supports directory input, and will recursively convert hy source code into python source code.
 
 .. _zipimport: https://docs.python.org/3.11/library/zipimport.html
 

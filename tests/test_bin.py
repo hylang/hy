@@ -26,7 +26,7 @@ def pyr(s=""):
 
 def run_cmd(
         cmd, stdin_data=None, expect=0, dontwritebytecode=False,
-        stdout=subprocess.PIPE):
+        cwd=None, stdout=subprocess.PIPE):
     env = dict(os.environ)
     if dontwritebytecode:
         env["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -41,6 +41,7 @@ def run_cmd(
         universal_newlines=True,
         shell=False,
         env=env,
+        cwd=cwd,
     )
     output = p.communicate(input=stdin_data)
     assert p.wait() == expect
@@ -717,3 +718,28 @@ def test_assert(tmp_path, monkeypatch):
             show_msg = has_msg and not optim and not test
             assert ("msging" in out) == show_msg
             assert ("bye" in err) == show_msg
+
+
+def test_hy2py_recursive(tmp_path):
+    (tmp_path / 'hy').mkdir()
+    (tmp_path / "hy/first.hy").write_text("""
+        (import folder.second [a b])
+        (print a)
+        (print b)""")
+    (tmp_path / "hy/folder").mkdir()
+    (tmp_path / "hy/folder/second.hy").write_text("""
+        (setv a 1)
+        (setv b "hello world")""")
+
+    _, err = run_cmd(f"hy2py {(tmp_path / 'hy').as_posix()}", expect=1)
+    assert "ValueError" in err
+
+    run_cmd("hy2py " +
+        f"{(tmp_path / 'hy').as_posix()} " +
+        f"--output {(tmp_path / 'py').as_posix()}")
+    assert set((tmp_path / 'py').rglob('*')) == {
+        tmp_path / 'py' / p
+        for p in ('first.py', 'folder', 'folder/second.py')}
+
+    output, _ = run_cmd(f"python3 first.py", cwd = tmp_path / 'py')
+    assert output == "1\nhello world\n"
