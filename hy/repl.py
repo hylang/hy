@@ -431,16 +431,7 @@ class REPL(code.InteractiveConsole):
             with filtered_hy_exceptions(), extend_linecache(
                 self.cmdline_cache
             ), completion(Completer(namespace)):
-                self.interact(
-                    "Hy {version} using "
-                    "{py}({build}) {pyversion} on {os}".format(
-                        version=hy.__version__,
-                        py=platform.python_implementation(),
-                        build=platform.python_build()[0],
-                        pyversion=platform.python_version(),
-                        os=platform.system(),
-                    )
-                )
+                self.interact(self.banner())
 
         finally:
             sys.ps1, sys.ps2, builtins.quit, builtins.exit, builtins.help = saved_values
@@ -449,6 +440,15 @@ class REPL(code.InteractiveConsole):
                     delattr(sys, a)
 
         return 0
+
+    def banner(self):
+        return "Hy {version} using {py}({build}) {pyversion} on {os}".format(
+            version=hy.__version__,
+            py=platform.python_implementation(),
+            build=platform.python_build()[0],
+            pyversion=platform.python_version(),
+            os=platform.system(),
+        )
 
 
 REPL.__module__ = "hy"  # Print as `hy.REPL` instead of `hy.repl.REPL`.
