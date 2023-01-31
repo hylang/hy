@@ -6,7 +6,6 @@
 # out without executing the file.
 requires = [
     "funcparserlib ~= 1.0",
-    "colorama",
     'astor>=0.8 ; python_version < "3.9"',
 ]
 
