@@ -1311,11 +1311,6 @@ the following methods
 
 .. hy:autofunction:: hy.as-model
 
-.. hy:data:: hy.errors.COLORED
-
-   This variable is initially :py:data:`False`. If it's set to a true value, Hy
-   will color its error messages with ``colorama``.
-
 .. _reader-macros:
 
 Reader Macros
