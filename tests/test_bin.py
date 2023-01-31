@@ -340,6 +340,24 @@ def test_file_with_args():
     assert "foo" in run_cmd(f"{cmd} -i foo -c bar")[0]
 
 
+def test_hy_i(tmp_path):
+    output, _ = run_cmd(f"hy -i=\"(print 1)\"")
+    output = output.split("\n")
+    assert output[0] == "1"
+    assert output[1].startswith("=>")
+
+    # testing multiple input
+    output, _ = run_cmd(f"hy -i=\"(print 1)\" -i=\"(print 2)\"")
+    assert output.split("\n")[:2] == ["1", "2"]
+
+    (tmp_path / 'hy').mkdir()
+    (tmp_path / "hy/first.hy").write_text("""(print 1)""")
+    (tmp_path / "hy/second.hy").write_text("""(print 2)""")
+
+    output, _ = run_cmd(f"hy -i={(tmp_path / 'hy/first.hy').as_posix()} -i={(tmp_path / 'hy/second.hy').as_posix()}")
+    assert output.split("\n")[:2] == ["1", "2"]
+
+
 def test_hyc():
     output, _ = run_cmd("hyc -h")
     assert "usage" in output

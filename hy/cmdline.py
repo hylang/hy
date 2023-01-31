@@ -46,23 +46,24 @@ def run_command(source, filename=None):
     return 0
 
 
-def run_icommand(source, **kwargs):
-    if Path(source).exists():
-        filename = source
-        set_path(source)
-        with open(source, "r", encoding="utf-8") as f:
-            source = f.read()
-    else:
-        filename = "<string>"
+def run_icommand(source_list, **kwargs):
+    for source in source_list:
+        if Path(source).exists():
+            filename = source
+            set_path(source)
+            with open(source, "r", encoding="utf-8") as f:
+                source = f.read()
+        else:
+            filename = "<string>"
 
-    hr = REPL(**kwargs)
-    with filtered_hy_exceptions():
-        res = hr.runsource(source, filename=filename)
+        hr = REPL(**kwargs)
+        with filtered_hy_exceptions():
+            res = hr.runsource(source, filename=filename)
 
-    # If the command was prematurely ended, show an error (just like Python
-    # does).
-    if res:
-        hy_exc_handler(sys.last_type, sys.last_value, sys.last_traceback)
+        # If the command was prematurely ended, show an error (just like Python
+        # does).
+        if res:
+            hy_exc_handler(sys.last_type, sys.last_value, sys.last_traceback)
 
     return hr.run()
 
@@ -112,8 +113,8 @@ def cmdline_handler(scriptname, argv):
         dict(
             name=["-i"],
             dest="icommand",
-            terminate=True,
-            help="program passed in as string, then stay in REPL",
+            multiple=True,
+            help="program passed in as string, then stay in REPL. This option can be repeated, and files will be loaded sequentially.",
         ),
         dict(
             name=["-m"],
@@ -173,7 +174,12 @@ def cmdline_handler(scriptname, argv):
                 arg = argv.pop(0)
             else:
                 err("option {}: expected one argument", opt)
-            options[match["dest"]] = arg
+            if "multiple" in match and match["multiple"]:
+                if match["dest"] not in options:
+                    options[match["dest"]] = []
+                options[match["dest"]].append(arg)
+            else:
+                options[match["dest"]] = arg
         else:
             options[match["name"][-1].lstrip("-")] = True
         if "terminate" in match:
