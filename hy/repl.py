@@ -411,8 +411,6 @@ class REPL(code.InteractiveConsole):
     def run(self):
         "Start running the REPL. Return 0 when done."
 
-        import colorama
-
         sentinel = []
         saved_values = (
             getattr(sys, "ps1", sentinel),
@@ -427,8 +425,6 @@ class REPL(code.InteractiveConsole):
             builtins.quit = HyQuitter("quit")
             builtins.exit = HyQuitter("exit")
             builtins.help = HyHelper()
-
-            colorama.init()
 
             namespace = self.locals
             with filtered_hy_exceptions(), extend_linecache(

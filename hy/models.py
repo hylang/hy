@@ -4,13 +4,10 @@ from functools import reduce
 from itertools import groupby
 from math import isinf, isnan
 
-from colorama import Fore
-
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
 
 PRETTY = True
-COLORED = _initialize_env_var("HY_COLORED_AST_OBJECTS", False)
 
 
 @contextmanager
@@ -25,18 +22,6 @@ def pretty(pretty=True):
         yield
     finally:
         PRETTY = old
-
-
-class _ColoredModel:
-    """
-    Mixin that provides a helper function for models that have color.
-    """
-
-    def _colored(self, text):
-        if COLORED:
-            return self.color + text + Fore.RESET
-        else:
-            return text
 
 
 class Object:
@@ -386,7 +371,7 @@ class Complex(Object, complex):
 _wrappers[complex] = Complex
 
 
-class Sequence(Object, tuple, _ColoredModel):
+class Sequence(Object, tuple):
     """
     An abstract base class for sequence-like forms. Sequence models can be operated on
     like tuples: you can iterate over them, index into them, and append them with ``+``,
@@ -423,8 +408,6 @@ class Sequence(Object, tuple, _ColoredModel):
 
         return ret
 
-    color = None
-
     def __repr__(self):
         return self._pretty_str() if PRETTY else super().__repr__()
 
@@ -433,17 +416,12 @@ class Sequence(Object, tuple, _ColoredModel):
 
     def _pretty_str(self):
         with pretty():
-            if self:
-                return self._colored(
-                    "hy.models.{}{}\n  {}{}".format(
-                        self._colored(self.__class__.__name__),
-                        self._colored("(["),
-                        self._colored(",\n  ").join(map(repr_indent, self)),
-                        self._colored("])"),
-                    )
-                )
-            else:
-                return self._colored(f"hy.models.{self.__class__.__name__}()")
+            return "hy.models.{}({})".format(
+                self.__class__.__name__,
+                "[\n  {}]".format(",\n  ".join(map(repr_indent, self)))
+                    if self
+                    else ""
+            )
 
 
 class FComponent(Sequence):
@@ -532,7 +510,7 @@ class List(Sequence):
     clauses.
     """
 
-    color = Fore.CYAN
+    pass
 
 
 def recwrap(f):
@@ -554,15 +532,13 @@ _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
 
 
-class Dict(Sequence, _ColoredModel):
+class Dict(Sequence):
     """
     Represents a literal :class:`dict`. ``keys``, ``values``, and ``items`` methods are
     provided, each returning a list, although this model type does none of the
     normalization of a real :class:`dict`. In the case of an odd number of child models,
     ``keys`` returns the last child whereas ``values`` and ``items`` ignores it.
     """
-
-    color = Fore.GREEN
 
     def _pretty_str(self):
         with pretty():
@@ -571,21 +547,19 @@ class Dict(Sequence, _ColoredModel):
                 for k, v in zip(self[::2], self[1::2]):
                     k, v = repr_indent(k), repr_indent(v)
                     pairs.append(
-                        ("{0}{c}\n  {1}\n  " if "\n" in k + v else "{0}{c} {1}").format(
-                            k, v, c=self._colored(",")
+                        ("{0},\n  {1}\n  " if "\n" in k + v else "{0}, {1}").format(
+                            k, v
                         )
                     )
                 if len(self) % 2 == 1:
                     pairs.append(
-                        "{}  {}\n".format(repr_indent(self[-1]), self._colored("# odd"))
+                        "{}  # odd\n".format(repr_indent(self[-1]))
                     )
-                return "{}\n  {}{}".format(
-                    self._colored("hy.models.Dict(["),
-                    "{c}\n  ".format(c=self._colored(",")).join(pairs),
-                    self._colored("])"),
+                return "hy.models.Dict([\n  {}])".format(
+                    ",\n  ".join(pairs),
                 )
             else:
-                return self._colored("hy.models.Dict()")
+                return "hy.models.Dict()"
 
     def keys(self):
         return list(self[0::2])
@@ -614,7 +588,7 @@ class Expression(Sequence):
     Represents a parenthesized Hy expression.
     """
 
-    color = Fore.YELLOW
+    pass
 
 
 _wrappers[Expression] = recwrap(Expression)
@@ -626,7 +600,7 @@ class Set(Sequence):
     and the order of elements.
     """
 
-    color = Fore.RED
+    pass
 
 
 _wrappers[Set] = recwrap(Set)
@@ -638,7 +612,7 @@ class Tuple(Sequence):
     Represents a literal :class:`tuple`.
     """
 
-    color = Fore.BLUE
+    pass
 
 
 _wrappers[Tuple] = recwrap(Tuple)
