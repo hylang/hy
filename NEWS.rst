@@ -21,6 +21,7 @@ Breaking Changes
 * New macro `do-mac`.
 * New macro `pragma` (although it doesn't do anything useful yet).
 * `hy.cmdline.HyREPL` is now `hy.REPL`.
+* `hy` now accepts a repeated `-i` parameter, which will load files sequentially into the repl.
 
 Bug Fixes
 ------------------------------
