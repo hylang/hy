@@ -130,6 +130,12 @@
     (hy.eval '(match 1
                      1 :if True :as x x))))
 
+(defn test-dotted-constructor []
+  ; https://github.com/hylang/hy/issues/2404
+  (defclass C [Point]
+    (setv C Point))
+  (assert (= (match (Point 1 2) (C.C 1 2) "ok") "ok")))
+
 (defn test-matching-side-effects []
   (setv x 0)
   (defn foo []
