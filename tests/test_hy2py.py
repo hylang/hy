@@ -1,8 +1,6 @@
 import asyncio
 import itertools
 import math
-import os
-import platform
 
 import pytest
 
