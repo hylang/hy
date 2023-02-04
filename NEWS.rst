@@ -21,6 +21,8 @@ Breaking Changes
 * New macro `do-mac`.
 * New macro `pragma` (although it doesn't do anything useful yet).
 * `hy.cmdline.HyREPL` is now `hy.REPL`.
+* Redundant scripts named `hy3`, `hyc3`, and `hy2py3` are no longer
+  installed. Use `hy`, `hyc`, and `hy2py` instead.
 
 Bug Fixes
 ------------------------------
