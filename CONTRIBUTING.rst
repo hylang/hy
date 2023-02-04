@@ -67,14 +67,6 @@ The first line of a commit message should describe the overall change in 50
 characters or less. If you wish to add more information, separate it from the
 first line with a blank line.
 
-Code formatting
----------------
-
-All Python source code (``.py``) should be formatted with ``black`` and ``isort``.
-This can be accomplished by running ``black hy tests`` and ``isort hy tests`` from the root of this repository.
-Formatting of Python files is checked automatically via GitHub Actions for all pull requests.
-No PR may be merged if it fails that check.
-
 Testing
 -------
 
