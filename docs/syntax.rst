@@ -59,9 +59,7 @@ The default representation of models (via :hy:func:`hy.repr`) uses quoting for
 readability, so ``(hy.models.Integer 5)`` is represented as ``'5``. Python
 representations (via :func:`repr`) use the constructors, and by default are
 pretty-printed; you can disable this globally by setting ``hy.models.PRETTY``
-to ``False``, or temporarily with the context manager ``hy.models.pretty``. You
-can also color these Python representations with ``colorama`` by setting
-``hy.models.COLORED`` to ``True``.
+to ``False``, or temporarily with the context manager ``hy.models.pretty``.
 
 .. _hyobject:
 

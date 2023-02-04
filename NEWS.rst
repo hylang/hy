@@ -3,6 +3,11 @@
 Unreleased
 =============================
 
+Removals
+------------------------------
+* Coloring error messages and Python representations for models is no
+  longer supported. (Thus, Hy no longer depends on `colorama`.)
+
 Breaking Changes
 ------------------------------
 * Various warts have been smoothed over in the syntax of `'`,

@@ -6,13 +6,10 @@ import traceback
 from contextlib import contextmanager
 from functools import reduce
 
-from colorama import Fore
-
 from hy import _initialize_env_var
 from hy._compat import PYPY
 
 _hy_filter_internal_errors = _initialize_env_var("HY_FILTER_INTERNAL_ERRORS", True)
-COLORED = _initialize_env_var("HY_COLORED_ERRORS", False)
 
 
 class HyError(Exception):
@@ -135,20 +132,11 @@ class HyLanguageError(HyError):
                 output[arrow_idx].rstrip("\n"), "-" * (self.arrow_offset - 1)
             )
 
-        if COLORED:
-            output[msg_idx:] = [Fore.YELLOW + o + Fore.RESET for o in output[msg_idx:]]
-            if arrow_idx:
-                output[arrow_idx] = Fore.GREEN + output[arrow_idx] + Fore.RESET
-            for idx, line in enumerate(output[::msg_idx]):
-                if line.strip().startswith('File "{}", line'.format(self.filename)):
-                    output[idx] = Fore.RED + line + Fore.RESET
-
         # This resulting string will come after a "<class-name>:" prompt, so
         # put it down a line.
         output.insert(0, "\n")
 
-        # Avoid "...expected str instance, ColoredString found"
-        return reduce(lambda x, y: x + y, output)
+        return "".join(output)
 
 
 class HyCompileError(HyInternalError):

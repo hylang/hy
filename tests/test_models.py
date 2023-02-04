@@ -23,8 +23,6 @@ from hy.models import (
     replace_hy_obj,
 )
 
-hy.models.COLORED = False
-
 
 def test_symbol_or_keyword():
     for x in ("foo", "foo-bar", "foo_bar", "✈é😂⁂"):
