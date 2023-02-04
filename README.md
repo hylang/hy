@@ -29,7 +29,7 @@ Project
 * Code: https://github.com/hylang/hy
 * Documentation:
   * master, for use with the latest revision on GitHub: http://docs.hylang.org/en/master
-  * stable, for use with the latest release on PyPI: http://hylang.org/en/stable
+  * stable, for use with the latest release on PyPI: http://docs.hylang.org/en/stable
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
 * [Hacking on Hy](http://docs.hylang.org/en/master/hacking.html)
