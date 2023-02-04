@@ -212,8 +212,9 @@ class HyCompile(codeop.Compile):
 
 
 class HyCommandCompiler(codeop.CommandCompiler):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, allow_incomplete = True, **kwargs):
         self.compiler = HyCompile(*args, **kwargs)
+        self.allow_incomplete = allow_incomplete
 
     def __call__(self, *args, **kwargs):
         try:
@@ -224,7 +225,8 @@ class HyCommandCompiler(codeop.CommandCompiler):
             # this exception type is also a `SyntaxError`, so it will be caught
             # by `code.InteractiveConsole` base methods before it reaches our
             # `runsource`.
-            return None
+            if not self.allow_incomplete:
+                raise
 
 
 class REPL(code.InteractiveConsole):
@@ -238,7 +240,7 @@ class REPL(code.InteractiveConsole):
     Note that as with :func:`code.interact`, changes to ``(locals)`` inside the REPL are
     not propagated back to the original scope."""
 
-    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"):
+    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>", allow_incomplete=True):
 
         # Create a proper module for this REPL so that we can obtain it easily
         # (e.g. using `importlib.import_module`).
@@ -287,6 +289,7 @@ class REPL(code.InteractiveConsole):
             ast_callback=self.ast_callback,
             hy_compiler=self.hy_compiler,
             cmdline_cache=self.cmdline_cache,
+            allow_incomplete=allow_incomplete,
         )
 
         self.spy = spy
@@ -431,16 +434,7 @@ class REPL(code.InteractiveConsole):
             with filtered_hy_exceptions(), extend_linecache(
                 self.cmdline_cache
             ), completion(Completer(namespace)):
-                self.interact(
-                    "Hy {version} using "
-                    "{py}({build}) {pyversion} on {os}".format(
-                        version=hy.__version__,
-                        py=platform.python_implementation(),
-                        build=platform.python_build()[0],
-                        pyversion=platform.python_version(),
-                        os=platform.system(),
-                    )
-                )
+                self.interact(self.banner())
 
         finally:
             sys.ps1, sys.ps2, builtins.quit, builtins.exit, builtins.help = saved_values
@@ -449,6 +443,15 @@ class REPL(code.InteractiveConsole):
                     delattr(sys, a)
 
         return 0
+
+    def banner(self):
+        return "Hy {version} using {py}({build}) {pyversion} on {os}".format(
+            version=hy.__version__,
+            py=platform.python_implementation(),
+            build=platform.python_build()[0],
+            pyversion=platform.python_version(),
+            os=platform.system(),
+        )
 
 
 REPL.__module__ = "hy"  # Print as `hy.REPL` instead of `hy.repl.REPL`.

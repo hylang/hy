@@ -18,7 +18,8 @@ the command `hy`, or run a Hy program with `hy myprogram.hy`.
 Hy is tested on all released and currently maintained versions of CPython (on
 Linux and Windows), and on recent versions of PyPy and Pyodide.
 
-* [Try Hy with a web console](https://hylang.github.io/hy-interpreter)
+* [The Hy homepage](http://hylang.org)
+* [Try Hy with a web console](http://hylang.org/try-hy)
 * [Why Hy?](http://docs.hylang.org/en/stable/whyhy.html)
 * [Tutorial](http://docs.hylang.org/en/stable/tutorial.html)
 

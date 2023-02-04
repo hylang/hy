@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+# Set both `setup_requires` and `install_requires` with our
+# dependencies, since we need to compile Hy files during setup. And
+# put this as the first statement in the file so it's easy to parse
+# out without executing the file.
+requires = [
+    "funcparserlib ~= 1.0",
+    "colorama",
+    'astor>=0.8 ; python_version < "3.9"',
+]
+
 import os
 
 import fastentrypoints  # Monkey-patches setuptools.
@@ -30,15 +40,6 @@ class install(install):
                     path,
                     invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH,
                 )
-
-
-# both setup_requires and install_requires
-# since we need to compile .hy files during setup
-requires = [
-    "funcparserlib ~= 1.0",
-    "colorama",
-    'astor>=0.8 ; python_version < "3.9"',
-]
 
 setup(
     name=PKG,
