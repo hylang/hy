@@ -1084,7 +1084,8 @@ _pattern.define(
         | pexpr(keepsym("|"), many(_pattern))
         | braces(many(LITERAL + _pattern), maybe(pvalue("unpack-mapping", SYM)))
         | pexpr(
-            notsym(".", "|", "unpack-mapping", "unpack-iterable"),
+            pexpr(keepsym("."), oneplus(SYM))
+            | notsym(".", "|", "unpack-mapping", "unpack-iterable"),
             many(parse_if(lambda x: not isinstance(x, Keyword), _pattern)),
             many(KEYWORD + _pattern),
         )
@@ -1219,11 +1220,15 @@ def compile_pattern(compiler, pattern):
             )
         )
     elif isinstance(value, Expression):
-        root, args, kwargs = value
+        head, args, kwargs = value
         keywords, values = zip(*kwargs) if kwargs else ([], [])
         return asty.MatchClass(
             value,
-            cls=compiler.scope.access(asty.Name(root, id=mangle(root), ctx=ast.Load())),
+            cls=compiler.compile(
+              # `head` could be a symbol or a dotted form.
+                (head[:1] + head[1]).replace(head)
+                if type(head) is Expression
+                else head).expr,
             patterns=[compile_pattern(compiler, v) for v in args],
             kwd_attrs=[kwd.name for kwd in keywords],
             kwd_patterns=[compile_pattern(compiler, value) for value in values],

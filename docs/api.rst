@@ -1255,9 +1255,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
   1.0. Currently, trying to use ``pragma`` is an error.
 
 .. hy:automodule:: hy.core.macros
-   :members:
    :macros:
-   :tags:
 
 Placeholder macros
 ~~~~~~~~~~~~~~~~~~
