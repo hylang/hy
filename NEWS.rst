@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+0.26.0 (released 2023-02-08)
 =============================
 
 Removals
@@ -42,10 +42,11 @@ New Features
 ------------------------------
 * Pyodide is now officially supported.
 * `.`, `..`, etc. are now usable as ordinary symbols (with the
-  remaining special rule that `...` compiles to `Ellipsis`)
+  remaining special rule that `...` compiles to `Ellipsis`).
 * On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
   archives in the same way as Python modules, via `zipimport`_.
-* `hy2py` now supports directory input, and will recursively convert hy source code into python source code.
+* `hy2py` has a new command-line option `--output`.
+* `hy2py` can now operate recursively on a directory.
 
 .. _zipimport: https://docs.python.org/3.11/library/zipimport.html
 
