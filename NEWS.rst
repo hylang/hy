@@ -1,5 +1,13 @@
 .. default-role:: code
 
+Unreleased
+=============================
+
+Bug Fixes
+------------------------------
+* Fixed an installation failure in some situations when version lookup
+  fails.
+
 0.26.0 (released 2023-02-08)
 =============================
 
