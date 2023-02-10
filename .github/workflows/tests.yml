@@ -21,7 +21,6 @@ jobs:
     name: ${{ format('{0}{1}', matrix.name-prefix, matrix.python) }}
     runs-on: ${{ matrix.os }}
     env:
-      EMSCRIPTEN_VERSION: 3.1.27
       TERM: xterm-256color
         # This is needed to avoid a terminfo-related crash when
         # testing PyPy.
@@ -36,11 +35,6 @@ jobs:
         python-version: ${{ matrix.python }}
     - if: ${{ matrix.python == 'pyodide' }}
       uses: actions/setup-node@v3
-    - if: ${{ matrix.python == 'pyodide' }}
-      uses: mymindstorm/setup-emsdk@v11
-      with:
-        version: ${{ env.EMSCRIPTEN_VERSION }}
-        actions-cache-folder: emsdk-cache
     - name: Install
       shell: bash
       run: |
