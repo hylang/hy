@@ -42,7 +42,11 @@ class install(install):
 
 setup(
     name=PKG,
-    version=__version__,
+    version=(
+        None
+        if __version__ == "unknown"
+        else __version__
+    ),
     setup_requires=["wheel"] + requires,
     install_requires=requires,
     python_requires=">= 3.7, < 3.12",

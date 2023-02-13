@@ -42,9 +42,9 @@ for as long as the condition is true, but at least once.
 
     (defmacro do-while [condition #* body]
       `(do
-        ~body
+        ~@body
         (while ~condition
-          ~body)))
+          ~@body)))
 
     (setv x 0)
     (do-while x

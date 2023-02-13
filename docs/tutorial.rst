@@ -304,10 +304,11 @@ Our macro ``m`` has an especially simple return value, an integer, which at
 compile-time is converted to an integer literal. In general, macros can return
 arbitrary Hy forms to be executed as code. There are several helper macros that
 make it easy to construct forms programmatically, such as :hy:func:`quote`
-(``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``), and
-:hy:func:`defmacro! <hyrule.macrotools.defmacro!>`. The previous chapter has
-:ref:`a simple example <do-while>` of using ````` and ``~`` to define a new
-control construct ``do-while``.
+(``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``),
+:hy:func:`unquote-splice` (``~@``), and :hy:func:`defmacro!
+<hyrule.macrotools.defmacro!>`. The previous chapter has :ref:`a simple example
+<do-while>` of using ````` and ``~@`` to define a new control construct
+``do-while``.
 
 What if you want to use a macro that's defined in a different module?
 ``import`` won't help, because it merely translates to a Python ``import``
