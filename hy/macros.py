@@ -33,7 +33,7 @@ def macro(name):
 
 def reader_macro(name, fn):
     fn = rename_function(fn, name)
-    inspect.getmodule(fn).__dict__.setdefault("__reader_macros__", {})[name] = fn
+    inspect.getmodule(fn).__dict__.setdefault("_hy_reader_macros", {})[name] = fn
 
 
 def pattern_macro(names, pattern, shadow=None):
@@ -87,8 +87,8 @@ def install_macro(name, fn, module_of):
     name = mangle(name)
     fn = rename_function(fn, name)
     calling_module = inspect.getmodule(module_of)
-    macros_obj = calling_module.__dict__.setdefault("__macros__", {})
-    if name in getattr(builtins, "__macros__", {}):
+    macros_obj = calling_module.__dict__.setdefault("_hy_macros", {})
+    if name in getattr(builtins, "_hy_macros", {}):
         warnings.warn(
             (
                 f"{name} already refers to: `{name}` in module: `builtins`,"
@@ -179,15 +179,15 @@ def require_reader(source_module, target_module, assignments):
     if not inspect.ismodule(source_module):
         source_module = import_module_from_string(source_module, target_module)
 
-    source_macros = source_module.__dict__.setdefault("__reader_macros__", {})
-    target_macros = target_namespace.setdefault("__reader_macros__", {})
+    source_macros = source_module.__dict__.setdefault("_hy_reader_macros", {})
+    target_macros = target_namespace.setdefault("_hy_reader_macros", {})
 
     assignments = (
         source_macros.keys() if assignments == "ALL" else map(mangle, assignments)
     )
 
     for name in assignments:
-        if name in source_module.__reader_macros__:
+        if name in source_module._hy_reader_macros:
             target_macros[name] = source_macros[name]
         else:
             raise HyRequireError(f"Could not require name {name} from {source_module}")
@@ -198,12 +198,12 @@ def require_reader(source_module, target_module, assignments):
 def enable_readers(module, reader, names):
     _, namespace = derive_target_module(module, inspect.stack()[1][0])
     names = (
-        namespace["__reader_macros__"].keys() if names == "ALL" else map(mangle, names)
+        namespace["_hy_reader_macros"].keys() if names == "ALL" else map(mangle, names)
     )
     for name in names:
-        if name not in namespace["__reader_macros__"]:
+        if name not in namespace["_hy_reader_macros"]:
             raise NameError(f"reader {name} is not defined")
-        reader.reader_table[name] = namespace["__reader_macros__"][name]
+        reader.reader_table[name] = namespace["_hy_reader_macros"][name]
 
 
 def require(source_module, target_module, assignments, prefix=""):
@@ -241,14 +241,14 @@ def require(source_module, target_module, assignments, prefix=""):
     if not inspect.ismodule(source_module):
         source_module = import_module_from_string(source_module, target_module)
 
-    source_macros = source_module.__dict__.setdefault("__macros__", {})
+    source_macros = source_module.__dict__.setdefault("_hy_macros", {})
     source_exports = getattr(
         source_module,
         "_hy_export_macros",
         [k for k in source_macros.keys() if not k.startswith("_")],
     )
 
-    if not source_module.__macros__:
+    if not source_module._hy_macros:
         if assignments in ("ALL", "EXPORTS"):
             return False
         for name, alias in assignments:
@@ -267,7 +267,7 @@ def require(source_module, target_module, assignments, prefix=""):
                 )
         return True
 
-    target_macros = target_namespace.setdefault("__macros__", {})
+    target_macros = target_namespace.setdefault("_hy_macros", {})
 
     if prefix:
         prefix += "."
@@ -287,7 +287,7 @@ def require(source_module, target_module, assignments, prefix=""):
             if unmangle(alias).startswith("#")
             else prefix + alias
         )
-        if _name in source_module.__macros__:
+        if _name in source_module._hy_macros:
             target_macros[alias] = source_macros[_name]
         else:
             raise HyRequireError(
@@ -303,19 +303,19 @@ def load_macros(module):
     It is an error to call this on any module in `hy.core`.
     """
     builtin_macros = EXTRA_MACROS
-    module.__macros__ = {}
-    module.__reader_macros__ = {}
+    module._hy_macros = {}
+    module._hy_reader_macros = {}
 
     for builtin_mod_name in builtin_macros:
         builtin_mod = importlib.import_module(builtin_mod_name)
 
         # This may overwrite macros in the module.
-        if hasattr(builtin_mod, "__macros__"):
-            module.__macros__.update(getattr(builtin_mod, "__macros__", {}))
+        if hasattr(builtin_mod, "_hy_macros"):
+            module._hy_macros.update(getattr(builtin_mod, "_hy_macros", {}))
 
-        if hasattr(builtin_mod, "__reader_macros__"):
-            module.__reader_macros__.update(
-                getattr(builtin_mod, "__reader_macros__", {})
+        if hasattr(builtin_mod, "_hy_reader_macros"):
+            module._hy_reader_macros.update(
+                getattr(builtin_mod, "_hy_reader_macros", {})
             )
 
 
@@ -406,9 +406,9 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
         # Choose the first namespace with the macro.
         m = next(
             (
-                mod.__macros__[fn]
+                mod._hy_macros[fn]
                 for mod in expr_modules
-                if fn in getattr(mod, "__macros__", ())
+                if fn in getattr(mod, "_hy_macros", ())
             ),
             None,
         )

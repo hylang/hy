@@ -115,7 +115,7 @@
              ~@body)))
        (eval-when-compile
          (setv (get hy.&reader.reader-table ~dispatch-key)
-               (get __reader_macros__ ~dispatch-key)))))
+               (get _hy_reader_macros ~dispatch-key)))))
 
 
 (defmacro doc [symbol]
@@ -129,10 +129,10 @@
    (setv mangled (hy.mangle symbol))
    (setv builtins (hy.gensym "builtins"))
    `(do (import builtins :as ~builtins)
-        (help (or (.get __macros__ ~mangled)
-                  (.get __reader_macros__ ~mangled)
-                  (.get (. ~builtins __macros__) ~mangled)
-                  (.get (. ~builtins __reader_macros__) ~mangled)
+        (help (or (.get _hy_macros ~mangled)
+                  (.get _hy_reader_macros ~mangled)
+                  (.get (. ~builtins _hy_macros) ~mangled)
+                  (.get (. ~builtins _hy_reader_macros) ~mangled)
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 
@@ -192,4 +192,4 @@
   (let [sym (hy.gensym)]
     `(eval-and-compile
        (for [~sym ~(lfor name names (hy.mangle name))]
-         (when (in ~sym __macros__) (del (get __macros__ ~sym)))))))
+         (when (in ~sym _hy_macros) (del (get _hy_macros ~sym)))))))
