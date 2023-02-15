@@ -486,8 +486,11 @@ def compile_assign(
     return result
 
 
-@pattern_macro(["global", "nonlocal"], [oneplus(SYM)])
+@pattern_macro(["global", "nonlocal"], [many(SYM)])
 def compile_global_or_nonlocal(compiler, expr, root, syms):
+    if not syms:
+        return asty.Pass(expr)
+
     node = asty.Global if root == "global" else asty.Nonlocal
     ret = node(expr, names=[mangle(s) for s in syms])
 

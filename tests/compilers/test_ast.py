@@ -163,22 +163,22 @@ def test_ast_bad_assert():
 
 
 def test_ast_good_global():
+    can_compile("(global)")
     can_compile("(global a)")
     can_compile("(global foo bar)")
 
 
 def test_ast_bad_global():
-    cant_compile("(global)")
     cant_compile("(global (foo))")
 
 
 def test_ast_good_nonlocal():
+    can_compile("(nonlocal)")
     can_compile("(do (setv a 0) (nonlocal a))")
     can_compile("(do (setv foo 0 bar 0) (nonlocal foo bar))")
 
 
 def test_ast_bad_nonlocal():
-    cant_compile("(nonlocal)")
     cant_compile("(nonlocal (foo))")
 
 

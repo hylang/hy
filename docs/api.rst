@@ -391,12 +391,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      (assert (= 1 2) "one should equal two")
        ; AssertionError: one should equal two
 
-.. hy:macro:: (global [sym #* syms])
+.. hy:macro:: (global [#* syms])
 
    ``global`` compiles to a :py:keyword:`global` statement, which declares one
    or more names as referring to global (i.e., module-level) variables. The
-   arguments are symbols; at least one is required. The return value is always
-   ``None``. ::
+   arguments are symbols; with no arguments, ``global`` has no effect. The
+   return value is always ``None``. ::
 
        (setv  a 1  b 10)
        (print a b)  ; => 1 10
@@ -741,7 +741,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
      (del  foo  (get mydict "mykey")  myobj.myattr)
 
-.. hy:macro:: (nonlocal [sym #* syms])
+.. hy:macro:: (nonlocal [#* syms])
 
    As :hy:func:`global`, but the result is a :py:keyword:`nonlocal` statement.
 

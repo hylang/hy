@@ -12,6 +12,11 @@ Bug Fixes
 * Fixed an installation failure in some situations when version lookup
   fails.
 
+New Features
+------------------------------
+* `nonlocal` and `global` can now be called with no arguments, in which
+  case they're no-ops.
+
 0.26.0 (released 2023-02-08)
 =============================
 
