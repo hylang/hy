@@ -131,7 +131,7 @@ def compile_inline_python(compiler, expr, root, code):
     try:
         o = asty.parse(
             expr,
-            textwrap.dedent(code) if exec_mode else code,
+            textwrap.dedent(code),
             compiler.filename,
             "exec" if exec_mode else "eval",
         ).body

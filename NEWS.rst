@@ -3,6 +3,10 @@
 Unreleased
 =============================
 
+Breaking Changes
+------------------------------
+* The `py` macro now dedents the input like `pys`.
+
 Bug Fixes
 ------------------------------
 * Fixed an installation failure in some situations when version lookup
