@@ -770,9 +770,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
    program that uses ``py`` or ``pys``. For example, comments will be removed.
 
-
-   .. _pys-specialform:
-
 .. hy:macro:: (pys [string])
 
    As :hy:func:`py <py>`, but the code can consist of zero or more statements,
