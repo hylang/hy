@@ -1,6 +1,7 @@
 # fmt: off
 
 import ast
+from textwrap import dedent
 
 import pytest
 
@@ -618,11 +619,41 @@ def test_futures_imports():
     assert hy_ast.body[0].module == "__future__"
 
 
-def test_inline_python():
-    can_compile('(py "1 + 1")')
+def test_py():
+    def py(x): assert (
+        ast.dump(can_compile(f'(py "{x}")')) ==
+        ast.dump(ast.parse(dedent(x))))
+
+    py("1 + 1")
+    # https://github.com/hylang/hy/issues/2406
+    py("  1 + 1  ")
+
     cant_compile('(py "1 +")')
-    can_compile('(pys "if 1:\n  2")')
+    cant_compile('(py "if 1:\n  2")')
+
+
+def test_pys():
+    def pys(x): assert (
+        ast.dump(can_compile(f'(pys "{x}")')) ==
+        ast.dump(ast.parse(dedent(x))))
+
+    pys("")
+    pys("1 + 1")
+    pys("if 1:\n  2")
+    pys("if 1:  2")
+    pys("   if 1:  2   ")
+    pys('''
+        if 1:
+            2
+        elif 3:
+            4''')
+
     cant_compile('(pys "if 1\n  2")')
+    cant_compile('''(pys "
+        if 1:
+            2
+      elif 3:
+          4")''')
 
 
 def test_models_accessible():
