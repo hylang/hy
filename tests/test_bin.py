@@ -33,9 +33,9 @@ def run_cmd(
     else:
         env.pop("PYTHONDONTWRITEBYTECODE", None)
 
-    p = subprocess.Popen(
-        shlex.split(cmd),
-        stdin=subprocess.PIPE,
+    result = subprocess.run(
+        shlex.split(cmd) if isinstance(cmd, str) else cmd,
+        input=stdin_data,
         stdout=stdout,
         stderr=subprocess.PIPE,
         universal_newlines=True,
@@ -43,9 +43,8 @@ def run_cmd(
         env=env,
         cwd=cwd,
     )
-    output = p.communicate(input=stdin_data)
-    assert p.wait() == expect
-    return output
+    assert result.returncode == expect
+    return (result.stdout, result.stderr)
 
 def rm(fpath):
     try:
@@ -351,7 +350,7 @@ def test_hyc():
     assert "usage" in output
 
     path = "tests/resources/argparse_ex.hy"
-    _, err = run_cmd("hyc " + path)
+    _, err = run_cmd(["hyc", path])
     assert "Compiling" in err
     assert os.path.exists(cache_from_source(path))
     rm(cache_from_source(path))
@@ -472,7 +471,7 @@ def testc_file_sys_path():
         rm(cache_from_source(test_file))
         assert not os.path.exists(cache_from_source(file_relative_path))
 
-        output, _ = run_cmd(f"{binary} {test_file}")
+        output, _ = run_cmd([binary, test_file])
         assert repr(file_relative_path) in output
 
 
@@ -500,12 +499,12 @@ def test_circular_macro_require():
     test_file = "tests/resources/bin/circular_macro_require.hy"
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(["hy", test_file])
     assert output.strip() == "WOWIE"
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(["hy", test_file])
     assert output.strip() == "WOWIE"
 
 
@@ -519,12 +518,12 @@ def test_macro_require():
     test_file = "tests/resources/bin/require_and_eval.hy"
     rm(cache_from_source(test_file))
     assert not os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(["hy", test_file])
     assert output.strip() == "abc"
 
     # Now, with bytecode
     assert os.path.exists(cache_from_source(test_file))
-    output, _ = run_cmd("hy {}".format(test_file))
+    output, _ = run_cmd(["hy", test_file])
     assert output.strip() == "abc"
 
 
@@ -651,11 +650,10 @@ def test_output_buffering(tmp_path):
         (import  sys  pathlib [Path])
         (print :file sys.stderr (.strip (.read-text (Path #[=[{tf}]=]))))
         (print "line 2")''')
-    pf = shlex.quote(str(pf))
 
-    for flag, expected in ("", ""), ("--unbuffered", "line 1"):
+    for flags, expected in ([], ""), (["--unbuffered"], "line 1"):
         with open(tf, "wb") as o:
-            _, stderr = run_cmd(f"hy {flag} {pf}", stdout=o)
+            _, stderr = run_cmd(["hy", *flags, pf], stdout=o)
         assert stderr.strip() == expected
         assert tf.read_text().splitlines() == ["line 1", "line 2"]
 
@@ -671,9 +669,9 @@ def test_uufileuu(tmp_path, monkeypatch):
 
     def file_is(arg, expected_py3_9):
         expected = expected_py3_9 if PY3_9 and not PYPY else Path(arg)
-        output, _ = run_cmd("python3 " + shlex.quote(arg + "pyex.py"))
+        output, _ = run_cmd(["python3", arg + "pyex.py"])
         assert output.rstrip() == str(expected / "pyex.py")
-        output, _ = run_cmd("hy " + shlex.quote(arg + "hyex.hy"))
+        output, _ = run_cmd(["hy", arg + "hyex.hy"])
         assert output.rstrip() == str(expected / "hyex.hy")
 
     monkeypatch.chdir(tmp_path)
@@ -731,15 +729,15 @@ def test_hy2py_recursive(tmp_path):
         (setv a 1)
         (setv b "hello world")""")
 
-    _, err = run_cmd(f"hy2py {(tmp_path / 'hy').as_posix()}", expect=1)
+    _, err = run_cmd(["hy2py", (tmp_path / 'hy')], expect=1)
     assert "ValueError" in err
 
-    run_cmd("hy2py " +
-        f"{(tmp_path / 'hy').as_posix()} " +
-        f"--output {(tmp_path / 'py').as_posix()}")
+    run_cmd(["hy2py",
+        (tmp_path / 'hy'),
+        "--output", (tmp_path / 'py')])
     assert set((tmp_path / 'py').rglob('*')) == {
         tmp_path / 'py' / p
         for p in ('first.py', 'folder', 'folder/second.py')}
 
-    output, _ = run_cmd(f"python3 first.py", cwd = tmp_path / 'py')
+    output, _ = run_cmd("python3 first.py", cwd = tmp_path / 'py')
     assert output == "1\nhello world\n"
