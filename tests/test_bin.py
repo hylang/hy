@@ -610,6 +610,15 @@ def test_tracebacks():
     assert error_lines[-1].startswith("TypeError")
 
 
+def test_traceback_shebang(tmp_path):
+    # https://github.com/hylang/hy/issues/2405
+    (tmp_path / 'ex.hy').write_text('#!my cool shebang\n(/ 1 0)')
+    _, error = run_cmd(['hy', tmp_path / 'ex.hy'], expect = 1)
+    assert 'ZeroDivisionError'
+    assert 'my cool shebang' not in error
+    assert '(/ 1 0)' in error
+
+
 def test_hystartup():
     # spy == True and custom repl-output-fn
     os.environ["HYSTARTUP"] = "tests/resources/hystartup.hy"
