@@ -30,16 +30,11 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     if isinstance(stream, str):
         stream = StringIO(stream)
     pos = stream.tell()
-    if skip_shebang:
-        if stream.read(2) == "#!":
-            stream.readline()
-            pos = stream.tell()
-        else:
-            stream.seek(pos)
     source = stream.read()
     stream.seek(pos)
 
-    m = hy.models.Lazy((reader or HyReader()).parse(stream, filename))
+    m = hy.models.Lazy((reader or HyReader()).parse(
+        stream, filename, skip_shebang))
     m.source = source
     m.filename = filename
     return m
