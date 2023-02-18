@@ -11,6 +11,7 @@ Bug Fixes
 ------------------------------
 * Fixed an installation failure in some situations when version lookup
   fails.
+* Fixed traceback pointing in scripts with shebangs.
 
 New Features
 ------------------------------
