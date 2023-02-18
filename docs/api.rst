@@ -391,12 +391,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
      (assert (= 1 2) "one should equal two")
        ; AssertionError: one should equal two
 
-.. hy:macro:: (global [sym #* syms])
+.. hy:macro:: (global [#* syms])
 
    ``global`` compiles to a :py:keyword:`global` statement, which declares one
    or more names as referring to global (i.e., module-level) variables. The
-   arguments are symbols; at least one is required. The return value is always
-   ``None``. ::
+   arguments are symbols; with no arguments, ``global`` has no effect. The
+   return value is always ``None``. ::
 
        (setv  a 1  b 10)
        (print a b)  ; => 1 10
@@ -741,7 +741,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
      (del  foo  (get mydict "mykey")  myobj.myattr)
 
-.. hy:macro:: (nonlocal [sym #* syms])
+.. hy:macro:: (nonlocal [#* syms])
 
    As :hy:func:`global`, but the result is a :py:keyword:`nonlocal` statement.
 
@@ -762,11 +762,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    code that's only defined at run-time, try the standard Python function
    :func:`eval`.
 
+   The code string is dedented with :func:`textwrap.dedent` before parsing,
+   which allows you to indent the code to match the surrounding Hy code when
+   Python would otherwise forbid this, but beware that significant leading
+   whitespace in embedded string literals will be removed.
+
    Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
    program that uses ``py`` or ``pys``. For example, comments will be removed.
-
-
-   .. _pys-specialform:
 
 .. hy:macro:: (pys [string])
 
@@ -776,11 +778,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (pys "myvar = 5")
        (print "myvar is" myvar)
-
-   The code string is dedented with :func:`textwrap.dedent` before parsing,
-   which allows you to indent the code to match the surrounding Hy code when
-   Python would otherwise forbid this, but beware that significant leading
-   whitespace in embedded string literals will be removed.
 
 .. hy:macro:: (quasiquote [form])
 

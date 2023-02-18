@@ -7,8 +7,8 @@
 (defn macros []
   "Return a frozenset of Hy's core macro names."
   (frozenset (map hy.unmangle (+
-    (list (.keys hy.core.result_macros.__macros__))
-    (list (.keys hy.core.macros.__macros__))))))
+    (list (.keys hy.core.result_macros._hy_macros))
+    (list (.keys hy.core.macros._hy_macros))))))
 
 (defn names []
   "Return a frozenset of reserved symbol names.

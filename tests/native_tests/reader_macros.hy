@@ -31,7 +31,7 @@
 (defn test-reader-macros []
   (assert (= (eval-module #[[(defreader foo '1) #foo]]) 1))
   (assert (in (hy.mangle "#foo")
-    (eval-module #[[(defreader foo '1) __reader_macros__]])))
+    (eval-module #[[(defreader foo '1) _hy_reader_macros]])))
 
   ;; Assert reader macros operating exclusively at read time
   (with [module (temp-module "<test>")]

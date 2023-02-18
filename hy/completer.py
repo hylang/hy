@@ -45,10 +45,10 @@ class Completer:
         self.namespace = namespace
         self.path = [builtins.__dict__, namespace]
 
-        namespace.setdefault("__macros__", {})
-        namespace.setdefault("__reader_macros__", {})
+        namespace.setdefault("_hy_macros", {})
+        namespace.setdefault("_hy_reader_macros", {})
 
-        self.path.append(namespace["__macros__"])
+        self.path.append(namespace["_hy_macros"])
 
     def attr_matches(self, text):
         # Borrowed from IPython's completer

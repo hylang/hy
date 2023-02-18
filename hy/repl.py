@@ -121,9 +121,9 @@ class HyCompile(codeop.Compile):
 
         super().__init__()
 
-        if hasattr(self.module, "__reader_macros__"):
+        if hasattr(self.module, "_hy_reader_macros"):
             enable_readers(
-                self.module, self.reader, self.module.__reader_macros__.keys()
+                self.module, self.reader, self.module._hy_reader_macros.keys()
             )
 
         self.flags |= hy_ast_compile_flags

@@ -99,9 +99,9 @@
   (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
 
   (require tests.resources [tlib  macros :as m  exports-none])
-  (assert (in "tlib.qplah" __macros__))
-  (assert (in (hy.mangle "m.test-macro") __macros__))
-  (assert (in (hy.mangle "exports-none.cinco") __macros__))
+  (assert (in "tlib.qplah" _hy_macros))
+  (assert (in (hy.mangle "m.test-macro") _hy_macros))
+  (assert (in (hy.mangle "exports-none.cinco") _hy_macros))
   (require os [path])
   (with [(pytest.raises hy.errors.HyRequireError)]
     (hy.eval '(require tests.resources [does-not-exist])))
@@ -126,13 +126,13 @@
 
 (defn test-relative-require []
   (require ..resources.macros [test-macro])
-  (assert (in "test_macro" __macros__))
+  (assert (in "test_macro" _hy_macros))
 
   (require .beside [xyzzy])
-  (assert (in "xyzzy" __macros__))
+  (assert (in "xyzzy" _hy_macros))
 
   (require . [beside :as b])
-  (assert (in "b.xyzzy" __macros__)))
+  (assert (in "b.xyzzy" _hy_macros)))
 
 
 (defn test-macro-namespace-resolution []
@@ -148,9 +148,9 @@ in expansions."
     (print "this is the local version of `nonlocal-test-macro`!"))
 
   ;; Was the above macro created properly?
-  (assert (in "nonlocal_test_macro" __macros__))
+  (assert (in "nonlocal_test_macro" _hy_macros))
 
-  (setv nonlocal-test-macro (get __macros__ "nonlocal_test_macro"))
+  (setv nonlocal-test-macro (get _hy_macros "nonlocal_test_macro"))
 
   (require tests.resources.macro-with-require *)
 
@@ -171,7 +171,7 @@ in expansions."
 
 (defn test-requires-pollutes-core []
   ;; https://github.com/hylang/hy/issues/1978
-  ;; Macros loaded from an external module should not pollute `__macros__`
+  ;; Macros loaded from an external module should not pollute `_hy_macros`
   ;; with macros from core.
 
   (setv pyc-file (importlib.util.cache-from-source
@@ -186,7 +186,7 @@ in expansions."
     (.clear sys.path_importer_cache)
     (when (in  "tests.resources.macros" sys.modules)
       (del (get sys.modules "tests.resources.macros"))
-      (__macros__.clear)))
+      (_hy_macros.clear)))
 
   ;; Ensure that bytecode isn't present when we require this module.
   (assert (not (os.path.isfile pyc-file)))
@@ -194,8 +194,8 @@ in expansions."
   (defn require-macros []
     (require tests.resources.macros :as m)
 
-    (assert (in (hy.mangle "m.test-macro") __macros__))
-    (for [macro-name __macros__]
+    (assert (in (hy.mangle "m.test-macro") _hy_macros))
+    (for [macro-name _hy_macros]
       (assert (not (and (in "with" macro-name)
                         (!= "with" macro-name))))))
 
@@ -209,7 +209,7 @@ in expansions."
   ;; Reload the module and clear the local macro context.
   (.clear sys.path_importer_cache)
   (del (get sys.modules "tests.resources.macros"))
-  (.clear __macros__)
+  (.clear _hy_macros)
 
   (require-macros))
 
@@ -220,7 +220,7 @@ in expansions."
   work without having to `require` the module's macro dependencies (due to
   [minimal] macro namespace resolution).
 
-  In doing so we also confirm that a module's `__macros__` attribute is correctly
+  In doing so we also confirm that a module's `_hy_macros` attribute is correctly
   loaded and used.
 
   Additionally, we confirm that `require` statements are executed via loaded bytecode.
@@ -238,7 +238,7 @@ in expansions."
     (.clear sys.path_importer_cache)
     (when (in  "tests.resources.macro_with_require" sys.modules)
       (del (get sys.modules "tests.resources.macro_with_require"))
-      (__macros__.clear)))
+      (_hy_macros.clear)))
 
   ;; Ensure that bytecode isn't present when we require this module.
   (assert (not (os.path.isfile pyc-file)))
@@ -248,18 +248,18 @@ in expansions."
              [test-module-macro])
 
     ;; Make sure that `require` didn't add any of its `require`s
-    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
+    (assert (not (in (hy.mangle "nonlocal-test-macro") _hy_macros)))
     ;; and that it didn't add its tags.
-    (assert (not (in (hy.mangle "#test-module-tag") __macros__)))
+    (assert (not (in (hy.mangle "#test-module-tag") _hy_macros)))
 
     ;; Now, require everything.
     (require tests.resources.macro-with-require *)
 
     ;; Again, make sure it didn't add its required macros and/or tags.
-    (assert (not (in (hy.mangle "nonlocal-test-macro") __macros__)))
+    (assert (not (in (hy.mangle "nonlocal-test-macro") _hy_macros)))
 
     ;; Its tag(s) should be here now.
-    (assert (in (hy.mangle "#test-module-tag") __macros__))
+    (assert (in (hy.mangle "#test-module-tag") _hy_macros))
 
     ;; The test macro expands to include this symbol.
     (setv module-name-var "tests.native_tests.native_macros")
@@ -277,7 +277,7 @@ in expansions."
   ;; Reload the module and clear the local macro context.
   (.clear sys.path_importer_cache)
   (del (get sys.modules "tests.resources.macro_with_require"))
-  (.clear __macros__)
+  (.clear _hy_macros)
 
   ;; There doesn't seem to be a way--via standard import mechanisms--to
   ;; ensure that an imported module used the cached bytecode.  We'll simply have
