@@ -23,8 +23,8 @@ from hy.reader import read_many
 from hy.reader.exceptions import LexException, PrematureEndOfInput
 
 
-def tokenize(s):
-    return list(read_many(s))
+def tokenize(*args, **kwargs):
+    return list(read_many(*args, **kwargs))
 
 
 def peoi():
@@ -675,3 +675,13 @@ def test_read_error():
     assert "".join(traceback.format_exception_only(e.type, e.value)).startswith(
         '  File "<string>", line 1\n    (do (defn))\n         ^\n'
     )
+
+
+def test_shebang():
+    from hy.errors import HySyntaxError
+
+    with pytest.raises(HySyntaxError):
+        # By default, `read_many` doesn't allow a shebang.
+        assert tokenize('#!/usr/bin/env hy\n5')
+    assert (tokenize('#!/usr/bin/env hy\n5', skip_shebang = True) ==
+        [Integer(5)])

@@ -1,5 +1,7 @@
 "Character reader for parsing Hy source."
 
+from itertools import islice
+
 import hy
 from hy.models import (
     Bytes,
@@ -140,7 +142,7 @@ class HyReader(Reader):
             return self.prefixed_string('"', ident)
         return as_identifier(ident, reader=self)
 
-    def parse(self, stream, filename=None):
+    def parse(self, stream, filename=None, skip_shebang=False):
         """Yields all `hy.models.Object`'s in `source`
 
         Additionally exposes `self` as ``hy.&reader`` during read/compile time.
@@ -151,8 +153,16 @@ class HyReader(Reader):
             filename (str | None):
                 Filename to use for error messages. If `None` then previously
                 set filename is used.
+            skip_shebang:
+                Whether to detect a skip a shebang line at the start.
         """
         self._set_source(stream, filename)
+
+        if skip_shebang and "".join(islice(self.peeking(), len("#!"))) == "#!":
+            for c in self.chars():
+                if c == "\n":
+                    break
+
         rname = mangle("&reader")
         old_reader = getattr(hy, rname, None)
         setattr(hy, rname, self)
