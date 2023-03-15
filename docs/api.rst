@@ -762,10 +762,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    code that's only defined at run-time, try the standard Python function
    :func:`eval`.
 
-   The code string is dedented with :func:`textwrap.dedent` before parsing,
-   which allows you to indent the code to match the surrounding Hy code when
-   Python would otherwise forbid this, but beware that significant leading
-   whitespace in embedded string literals will be removed.
+   The code is implicitly wrapped in parentheses so Python won't give you grief
+   about indentation. After all, Python's indentation rules are only useful for
+   grouping statements, whereas ``py`` only allows an expression.
 
    Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
    program that uses ``py`` or ``pys``. For example, comments will be removed.
@@ -778,6 +777,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
        (pys "myvar = 5")
        (print "myvar is" myvar)
+
+   Unlike ``py``, no parentheses are added, because Python doesn't allow
+   statements to be parenthesized. Instead, the code string is dedented with
+   :func:`textwrap.dedent` before parsing. Thus you can indent the code to
+   match the surrounding Hy code when Python would otherwise forbid this, but
+   beware that significant leading whitespace in embedded string literals will
+   be removed.
 
 .. hy:macro:: (quasiquote [form])
 
