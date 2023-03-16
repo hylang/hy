@@ -437,7 +437,7 @@ class HyReader(Reader):
                     index = -1
             return 0
 
-        return self.read_string_until(delim_closing, None, is_fstring, brackets=delim)
+        return self.read_string_until(delim_closing, "fr" if is_fstring else None, is_fstring, brackets=delim)
 
     def read_string_until(self, closing, prefix, is_fstring, **kwargs):
         if is_fstring:

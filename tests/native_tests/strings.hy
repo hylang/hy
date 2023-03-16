@@ -97,6 +97,10 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (= #[f[a{p !r :9}]f] "a'xyzzy'  "))
   (assert (= #[f-string[result: {value :{width}.{precision}}]f-string]
     "result:      12.34"))
+  ; https://github.com/hylang/hy/issues/2419
+  (assert (=
+    #[f[{{escaped braces}} \n {"not escaped"}]f]
+    "{escaped braces} \\n not escaped"))
 
   ; Quoting shouldn't evaluate the f-string immediately
   ; https://github.com/hylang/hy/issues/1844
