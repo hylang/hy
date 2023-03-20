@@ -574,11 +574,18 @@ def test_futures_imports():
 def test_py():
     def py(x): assert (
         ast.dump(can_compile(f'(py "{x}")')) ==
-        ast.dump(ast.parse(dedent(x))))
+        ast.dump(ast.parse('(' + x + '\n)')))
 
     py("1 + 1")
     # https://github.com/hylang/hy/issues/2406
     py("  1 + 1  ")
+    py("""  1 +
+          1  """)
+    py("""  1 + 2 +
+              3
+  + 4 +
+                  5  + # hi!
+                  6    # bye """)
 
     cant_compile('(py "1 +")')
     cant_compile('(py "if 1:\n  2")')

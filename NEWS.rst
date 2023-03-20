@@ -3,10 +3,6 @@
 Unreleased
 =============================
 
-Breaking Changes
-------------------------------
-* The `py` macro now dedents the input like `pys`.
-
 Bug Fixes
 ------------------------------
 * Fixed an installation failure in some situations when version lookup
@@ -17,6 +13,8 @@ New Features
 ------------------------------
 * `nonlocal` and `global` can now be called with no arguments, in which
   case they're no-ops.
+* The `py` macro now implicitly parenthesizes the input code, so Python's
+  indentation restrictions don't apply.
 
 0.26.0 (released 2023-02-08)
 =============================
