@@ -410,6 +410,13 @@ def test_lex_line_counting_multi_inner():
     assert inner.start_column == 5
 
 
+def test_line_counting_dotted():
+    # https://github.com/hylang/hy/issues/2422
+    x, = tokenize(";;;;;\na.b")
+    for e in (x, *x):
+        assert e.start_line == 2
+
+
 def test_dicts():
     """Ensure that we can tokenize a dict."""
     objs = tokenize("{foo bar bar baz}")

@@ -7,7 +7,7 @@ Bug Fixes
 ------------------------------
 * Fixed an installation failure in some situations when version lookup
   fails.
-* Fixed traceback pointing in scripts with shebangs.
+* Fixed some bugs with traceback pointing.
 * Fixed some bugs with escaping in bracket f-strings
 
 New Features
