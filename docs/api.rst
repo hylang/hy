@@ -1312,6 +1312,8 @@ the following methods
 
 .. hy:autofunction:: hy.as-model
 
+.. hy:autoclass:: hy.M
+
 .. _reader-macros:
 
 Reader Macros
