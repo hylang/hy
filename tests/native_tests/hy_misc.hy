@@ -1,5 +1,5 @@
 ;; Tests of `hy.gensym`, `hy.macroexpand`, `hy.macroexpand-1`,
-;; `hy.disassemble`, and `hy.read`
+;; `hy.disassemble`, `hy.read`, and `hy.M`
 
 (import
   pytest)
@@ -86,3 +86,59 @@
   (assert (is (type (hy.read "[]")) (type '[])))
   (assert (= (hy.read "0") '0))
   (assert (is (type (hy.read "0")) (type '0))))
+
+
+(defn test-hyM []
+  (defmacro no-name [name]
+    `(with [(pytest.raises NameError)] ~name))
+
+  ; `hy.M` doesn't bring the imported stuff into scope.
+  (assert (= (hy.M.math.sqrt 4) 2))
+  (assert (= (.sqrt (hy.M "math") 4) 2))
+  (no-name math)
+  (no-name sqrt)
+
+  ; It's independent of bindings to such names.
+  (setv math (type "Dummy" #() {"sqrt" "hello"}))
+  (assert (= (hy.M.math.sqrt 4) 2))
+  (assert (= math.sqrt "hello"))
+
+  ; It still works in a macro expansion.
+  (defmacro frac [a b]
+    `(hy.M.fractions.Fraction ~a ~b))
+  (assert (= (* 6 (frac 1 3)) 2))
+  (no-name fractions)
+  (no-name Fraction)
+
+  ; You can use `/` for dotted module names.
+  (assert (= (hy.M.os/path.basename "foo/bar") "bar"))
+  (no-name os)
+  (no-name path)
+
+  ; `hy.M.__getattr__` attempts to cope with mangling.
+  (with [e (pytest.raises ModuleNotFoundError)]
+    (hy.M.a-b☘c-d/e.z))
+  (assert (= e.value.name (hy.mangle "a-b☘c-d")))
+  ; `hy.M.__call__` doesn't.
+  (with [e (pytest.raises ModuleNotFoundError)]
+    (hy.M "a-b☘c-d/e.z"))
+  (assert (= e.value.name "a-b☘c-d/e")))
+
+
+(defn test-hyM-mangle-chain [tmp-path monkeypatch]
+  ; We can get an object from a submodule with various kinds of
+  ; mangling in the name chain.
+
+  (setv p tmp-path)
+  (for [e ["foo" "foo?" "_foo" "☘foo☘"]]
+    (/= p (hy.mangle e))
+    (.mkdir p :exist-ok True)
+    (.write-text (/ p "__init__.py") ""))
+  (.write-text (/ p "foo.hy") "(setv foo 5)")
+  (monkeypatch.syspath-prepend (str tmp-path))
+
+  ; Python will reuse any `foo` imported in an earlier test if we
+  ; don't reload it explicitly.
+  (import foo) (import importlib) (importlib.reload foo)
+
+  (assert (= hy.M.foo/foo?/_foo/☘foo☘/foo.foo 5)))
