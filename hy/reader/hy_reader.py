@@ -128,9 +128,9 @@ class HyReader(Reader):
         """
         model.start_line, model.start_column = start
         model.end_line, model.end_column = self.pos
+        # `replace` will recurse into submodels and set any model
+        # positions that are still unset the same way.
         return model.replace(model)
-          # `replace` will recurse into submodels and set any model
-          # positions that are still unset the same way.
 
     def read_default(self, key):
         """Default reader handler when nothing in the table matches.
@@ -450,7 +450,9 @@ class HyReader(Reader):
                     index = -1
             return 0
 
-        return self.read_string_until(delim_closing, "fr" if is_fstring else None, is_fstring, brackets=delim)
+        return self.read_string_until(
+            delim_closing, "fr" if is_fstring else None, is_fstring, brackets=delim
+        )
 
     def read_string_until(self, closing, prefix, is_fstring, **kwargs):
         if is_fstring:
