@@ -19,6 +19,9 @@
 (defmacro mac [x expr]
   `(~@expr ~x))
 
+(defmacro no-name [name]
+  `(with [(pytest.raises NameError)] ~name))
+
 
 (defn test-macroexpand []
   (assert (= (hy.macroexpand '(mac (a b) (x y)))
@@ -89,9 +92,6 @@
 
 
 (defn test-hyM []
-  (defmacro no-name [name]
-    `(with [(pytest.raises NameError)] ~name))
-
   (assert (= (hy.M.math.sqrt 4) 2))
   (assert (= (.sqrt (hy.M "math") 4) 2))
   (no-name math)
@@ -107,13 +107,40 @@
   (no-name fractions)
   (no-name Fraction)
 
-  (assert (= (hy.M.os/path.basename "foo/bar") "bar"))
+  (assert (= (#/os/path.basename "foo/bar") "bar"))
   (no-name os)
   (no-name path)
 
   (with [e (pytest.raises ModuleNotFoundError)]
-    (hy.M.a-b☘c-d/e.z))
+    (#/a-b☘c-d/e.z))
   (assert (= e.value.name (hy.mangle "a-b☘c-d")))
   (with [e (pytest.raises ModuleNotFoundError)]
     (hy.M "a-b☘c-d/e.z"))
   (assert (= e.value.name "a-b☘c-d/e")))
+
+(defn test-slashimport []
+  (assert (= (#/math.sqrt 4) 2))
+  (assert (= (.sqrt #/math 4) 2))
+  (no-name math)
+  (no-name sqrt)
+
+  (setv math (type "Dummy" #() {"sqrt" "hello"}))
+  (assert (= (#/math.sqrt 4) 2))
+  (assert (= math.sqrt "hello"))
+
+  (defmacro frac [a b]
+    `(#/fractions.Fraction ~a ~b))
+  (assert (= (* 6 (frac 1 3)) 2))
+  (no-name fractions)
+  (no-name Fraction)
+
+  ;; bring `tests.resources` into scope so we can delete it from `tests` later
+  (import tests.resources)
+  (for [mod (.copy #/sys.modules)]
+    (when (.startswith mod "tests.resources.")
+      (del (get #/sys.modules mod))))
+  (del (get #/sys.modules "tests.resources"))
+  (del tests.resources)
+  ;; ensure the module is gone
+  (with [(pytest.raises AttributeError)] #/tests.resources)
+  (assert (= (type #/tests/resources) #/types.ModuleType)))

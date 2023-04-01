@@ -393,6 +393,17 @@ class HyReader(Reader):
             self.parse_one_form(),
         )
 
+    @reader_for("#/")
+    def hash_import_slash(self, _):
+        """Sugar for hy.M, to access modules without needing to explicitly import them first."""
+        modstring = self.read_ident()
+        mod, *ident = modstring.split(".")
+        mod = mangle(mod.replace("/", "."))
+        imp = mkexpr(as_identifier("hy.M"), mod)
+        if ident:
+            return mkexpr(as_identifier("."), imp, *map(as_identifier, ident))
+        return imp
+
     ###
     # Strings
     # (these are more complicated because f-strings
