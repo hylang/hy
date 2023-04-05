@@ -12,6 +12,7 @@ Bug Fixes
 
 New Features
 ------------------------------
+* Python 3.12 is now supported.
 * `nonlocal` and `global` can now be called with no arguments, in which
   case they're no-ops.
 * The `py` macro now implicitly parenthesizes the input code, so Python's
