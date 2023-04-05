@@ -3,6 +3,10 @@
 Unreleased
 =============================
 
+Removals
+------------------------------
+* Python 3.7 is no longer supported.
+
 Bug Fixes
 ------------------------------
 * Fixed an installation failure in some situations when version lookup

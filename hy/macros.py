@@ -12,7 +12,7 @@ from ast import AST
 from funcparserlib.parser import NoParseError
 
 import hy.compiler
-from hy._compat import PY3_11, code_replace
+from hy._compat import PY3_11
 from hy.errors import (
     HyLanguageError,
     HyMacroExpansionError,
@@ -443,8 +443,7 @@ def macroexpand_1(tree, module, compiler=None):
 def rename_function(f, new_name):
     """Create a copy of a function, but with a new name."""
     f = type(f)(
-        code_replace(
-            f.__code__,
+        f.__code__.replace(
             co_name=new_name,
             **(
                 {
