@@ -16,6 +16,7 @@ New Features
   case they're no-ops.
 * The `py` macro now implicitly parenthesizes the input code, so Python's
   indentation restrictions don't apply.
+* New built-in object `hy.M` for easy imports in macros.
 
 0.26.0 (released 2023-02-08)
 =============================

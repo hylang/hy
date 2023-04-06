@@ -70,6 +70,10 @@ intersphinx_mapping = dict(
     py3_10=("https://docs.python.org/3.10/", None),
     hyrule=("https://hyrule.readthedocs.io/en/master/", None),
 )
+
+import hy
+hy.M = type(hy.M)  # A trick to enable `hy:autoclass:: hy.M`
+
 # ** Generate Cheatsheet
 import json
 from itertools import zip_longest

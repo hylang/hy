@@ -39,10 +39,11 @@ jobs:
       shell: bash
       run: |
         if [[ ${{ matrix.python }} = pyodide ]] ; then
-            npm install pyodide
+            npm install pyodide@0.22.1
+              # 0.23.0 has a regression: https://github.com/pyodide/pyodide/issues/3730
             pip install 'pip >= 22.3.1'
               # Older pips may fail to install `pyodide-build`.
-            pip install pyodide-build
+            pip install 'pyodide-build == 0.22.1'
             pyodide venv .venv-pyodide
             source .venv-pyodide/bin/activate
         fi
