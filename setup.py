@@ -49,7 +49,7 @@ setup(
     ),
     setup_requires=["wheel"] + requires,
     install_requires=requires,
-    python_requires=">= 3.7, < 3.12",
+    python_requires=">= 3.8, < 3.13",
     entry_points={
         "console_scripts": [
             "hy = hy.cmdline:hy_main",
@@ -78,11 +78,11 @@ setup(
         "Programming Language :: Lisp",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Environment :: WebAssembly :: Emscripten",
         "Topic :: Software Development :: Code Generators",

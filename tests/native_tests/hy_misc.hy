@@ -44,12 +44,11 @@
   (import re)
   (defn nos [x] (re.sub r"\s" "" x))
   (assert (= (nos (hy.disassemble '(do (leaky) (leaky) (macros))))
-    (nos (.format
+    (nos
       "Module(
           body=[Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
               Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
-              Expr(value=Call(func=Name(id='macros', ctx=Load()), args=[], keywords=[]))]{})"
-      (if hy._compat.PY3_8 ",type_ignores=[]" "")))))
+              Expr(value=Call(func=Name(id='macros', ctx=Load()), args=[], keywords=[]))],type_ignores=[])")))
   (assert (= (nos (hy.disassemble '(do (leaky) (leaky) (macros)) True))
              "leaky()leaky()macros()"))
   (assert (= (re.sub r"[()\n ]" "" (hy.disassemble `(+ ~(+ 1 1) 40) True))

@@ -8,7 +8,6 @@ from pathlib import Path
 import pytest
 
 import hy
-from hy._compat import PY3_8
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, hy_exc_handler
 from hy.importer import HyLoader
@@ -276,10 +275,6 @@ def test_filtered_importlib_frames(capsys):
     assert "importlib._" not in captured_w_filtering
 
 
-@pytest.mark.skipif(
-    not PY3_8,
-    reason="Python 3.7's `zipimport` is written in C, it can't be monkey-patched",
-)
 def test_zipimport(tmp_path):
     from zipfile import ZipFile
 

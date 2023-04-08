@@ -10,7 +10,6 @@ from contextlib import contextmanager
 from functools import partial
 
 import hy
-from hy._compat import PY3_8
 from hy.compiler import hy_compile
 from hy.reader import read_many
 
@@ -129,7 +128,7 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
 importlib.machinery.SourceFileLoader.source_to_code = _hy_source_to_code
 
 
-if PY3_8 and (".hy", False, False) not in zipimport._zip_searchorder:
+if (".hy", False, False) not in zipimport._zip_searchorder:
     zipimport._zip_searchorder += ((".hy", False, False),)
     _py_compile_source = zipimport._compile_source
 
