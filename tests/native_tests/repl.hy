@@ -2,7 +2,8 @@
 
 (import
   io
-  sys)
+  sys
+  pytest)
 
 (defn test-preserve-ps1 [monkeypatch]
   ; https://github.com/hylang/hy/issues/1323#issuecomment-1310837340
@@ -17,3 +18,10 @@
   (monkeypatch.setattr "sys.stdin" (io.StringIO "1\n"))
   (.run (hy.REPL))
   (assert (= (. capsys (readouterr) out) "=> 1\n=> " )))
+
+(defn test-repl-no-shebangs [monkeypatch capsys]
+  (monkeypatch.setattr "sys.stdin" (io.StringIO "#!/usr/bin/env hy\n"))
+  (.run (hy.REPL))
+  (assert (in
+    "hy.reader.exceptions.LexException"
+    (. capsys (readouterr) err))))

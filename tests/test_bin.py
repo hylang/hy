@@ -303,6 +303,10 @@ def test_cmd():
     _, err = run_cmd("""hy -c '(print (.upper "hello")'""", expect=1)
     assert "Premature end of input" in err
 
+    # No shebang is allowed.
+    _, err = run_cmd("""hy -c '#!/usr/bin/env hy'""", expect = 1)
+    assert "LexException" in err
+
     # https://github.com/hylang/hy/issues/1879
     output, _ = run_cmd(
         """hy -c '(setv x "bing") (defn f [] (+ "fiz" x)) (print (f))'"""
