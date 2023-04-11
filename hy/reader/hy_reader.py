@@ -160,7 +160,8 @@ class HyReader(Reader):
         """
         self._set_source(stream, filename)
 
-        if skip_shebang and "".join(islice(self.peeking(), len("#!"))) == "#!":
+        if skip_shebang and "".join(
+                islice(self.peeking(eof_ok = True), len("#!"))) == "#!":
             for c in self.chars():
                 if c == "\n":
                     break

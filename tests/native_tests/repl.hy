@@ -11,3 +11,9 @@
   (assert (= sys.ps1 "chippy"))
   (.run (hy.REPL))
   (assert (= sys.ps1 "chippy")))
+
+(defn test-repl-input-1char [monkeypatch capsys]
+  ; https://github.com/hylang/hy/issues/2430
+  (monkeypatch.setattr "sys.stdin" (io.StringIO "1\n"))
+  (.run (hy.REPL))
+  (assert (= (. capsys (readouterr) out) "=> 1\n=> " )))

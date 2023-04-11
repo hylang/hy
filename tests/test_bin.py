@@ -332,6 +332,13 @@ def test_icmd_and_spy():
     assert "[] + []" in output
 
 
+def test_empty_file(tmp_path):
+    # https://github.com/hylang/hy/issues/2427
+    (tmp_path / 'foo.hy').write_text('')
+    run_cmd(['hy', (tmp_path / 'foo.hy')])
+      # This asserts that the return code is 0.
+
+
 def test_missing_file():
     _, err = run_cmd("hy foobarbaz", expect=2)
     assert "No such file" in err
