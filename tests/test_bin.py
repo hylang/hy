@@ -303,6 +303,10 @@ def test_cmd():
     _, err = run_cmd("""hy -c '(print (.upper "hello")'""", expect=1)
     assert "Premature end of input" in err
 
+    # No shebang is allowed.
+    _, err = run_cmd("""hy -c '#!/usr/bin/env hy'""", expect = 1)
+    assert "LexException" in err
+
     # https://github.com/hylang/hy/issues/1879
     output, _ = run_cmd(
         """hy -c '(setv x "bing") (defn f [] (+ "fiz" x)) (print (f))'"""
@@ -330,6 +334,13 @@ def test_icmd_file():
 def test_icmd_and_spy():
     output, _ = run_cmd('hy --spy -i "(+ [] [])"', "(+ 1 1)")
     assert "[] + []" in output
+
+
+def test_empty_file(tmp_path):
+    # https://github.com/hylang/hy/issues/2427
+    (tmp_path / 'foo.hy').write_text('')
+    run_cmd(['hy', (tmp_path / 'foo.hy')])
+      # This asserts that the return code is 0.
 
 
 def test_missing_file():

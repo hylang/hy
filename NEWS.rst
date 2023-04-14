@@ -13,6 +13,7 @@ Bug Fixes
   fails.
 * Fixed some bugs with traceback pointing.
 * Fixed some bugs with escaping in bracket f-strings
+* The parser no longer looks for shebangs in the REPL or `hy -c`.
 
 New Features
 ------------------------------

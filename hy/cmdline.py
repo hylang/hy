@@ -35,7 +35,7 @@ def run_command(source, filename=None):
     with filtered_hy_exceptions():
         try:
             hy_eval(
-                read_many(source, filename=filename, skip_shebang=True),
+                read_many(source, filename=filename),
                 __main__.__dict__,
                 __main__,
                 filename=filename,

@@ -167,7 +167,7 @@ class HyCompile(codeop.Compile):
             self.hy_compiler.filename = name
             self.hy_compiler.source = source
             hy_ast = read_many(
-                source, filename=name, reader=self.reader, skip_shebang=True
+                source, filename=name, reader=self.reader
             )
             exec_ast, eval_ast = hy_compile(
                 hy_ast,
