@@ -240,7 +240,7 @@ class REPL(code.InteractiveConsole):
     Note that as with :func:`code.interact`, changes to ``(locals)`` inside the REPL are
     not propagated back to the original scope."""
 
-    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>", allow_incomplete=True):
+    def __init__(self, spy=False, spy_delimiter=('-' * 30), output_fn=None, locals=None, filename="<stdin>", allow_incomplete=True):
 
         # Create a proper module for this REPL so that we can obtain it easily
         # (e.g. using `importlib.import_module`).
@@ -293,6 +293,7 @@ class REPL(code.InteractiveConsole):
         )
 
         self.spy = spy
+        self.spy_delimiter = spy_delimiter
         self.last_value = None
         self.print_last_value = True
 
@@ -332,6 +333,7 @@ class REPL(code.InteractiveConsole):
                     type_ignores=[],
                 )
                 print(ast.unparse(new_ast))
+                print(self.spy_delimiter)
             except Exception:
                 msg = "Exception in AST callback:\n{}\n".format(traceback.format_exc())
                 self.write(msg)

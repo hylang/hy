@@ -23,6 +23,8 @@ New Features
 * The `py` macro now implicitly parenthesizes the input code, so Python's
   indentation restrictions don't apply.
 * New built-in object `hy.M` for easy imports in macros.
+* `hy --spy` now prints a delimiter between the Python equivalent of
+  your code and the result of evaluating the code for easier reading.
 
 0.26.0 (released 2023-02-08)
 =============================

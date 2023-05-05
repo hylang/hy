@@ -28,6 +28,7 @@ for a complete list of options and :py:ref:`Python's documentation
 
        => (+ 1 2)
        1 + 2
+       ------------------------------
        3
 
 .. cmdoption:: --repl-output-fn
