@@ -133,6 +133,8 @@ def _same_modules(source_module, target_module):
     return (
         source_filename
         and target_filename
+        and os.path.exists(source_filename)
+        and os.path.exists(target_filename)
         and os.path.samefile(source_filename, target_filename)
     )
 
