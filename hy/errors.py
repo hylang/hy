@@ -261,6 +261,7 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
         if not (
             frame[0].replace(".pyc", ".py") in _tb_hidden_modules
             or os.path.dirname(frame[0]) in _tb_hidden_modules
+            or os.path.basename(os.path.dirname(frame[0])) == "hy.exe"
         ):
             new_tb += [frame]
 
