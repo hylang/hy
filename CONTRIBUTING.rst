@@ -81,6 +81,11 @@ No PR may be merged if it causes any tests to fail.
 The byte-compiled versions of the test files can be purged using ``git clean -dfx tests/``.
 If you want to run the tests while skipping the slow ones in ``test_bin.py``, use ``pytest --ignore=tests/test_bin.py``.
 
+Documentation
+-------------
+
+Generally, new features deserve coverage in the manual, either by editing the manual files directly or by changing docstrings that get included in the manual. To render the manual, install its dependencies with ``pip install -r requirements-dev.txt`` and then use the command ``cd docs; sphinx-build . _build -b html``.
+
 NEWS and AUTHORS
 ----------------
 
