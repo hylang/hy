@@ -1,7 +1,7 @@
 .. _hacking:
 
 ===============
- Hacking on Hy
+ Developing Hy
 ===============
 
 .. include:: ../CONTRIBUTING.rst
@@ -9,6 +9,6 @@
 Core Team
 =========
 
-The core development team of Hy consists of following developers:
+Hy's core development team consists of the following people:
 
 .. include:: coreteam.rst
