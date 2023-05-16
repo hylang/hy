@@ -8,7 +8,9 @@ helps in making Hy better. Potential contributions include:
 - Requesting features.
 - Adding features.
 - Writing tests for outstanding bugs or untested features.
+
   - You can mark tests that Hy can't pass yet as xfail_.
+
 - Cleaning up the code.
 - Improving the documentation.
 - Answering questions on `the Github Discussions page`_ or
@@ -70,7 +72,7 @@ first line with a blank line.
 Testing
 -------
 
-Tests can be run by executing `pytest` in the root of this repository.
+Tests can be run by executing ``pytest`` in the root of this repository.
 
 New features and bug fixes should be tested. If you've caused an
 xfail_ test to start passing, remove the xfail mark. If you're
