@@ -22,6 +22,7 @@ New Features
   case they're no-ops.
 * The `py` macro now implicitly parenthesizes the input code, so Python's
   indentation restrictions don't apply.
+* `cut` now has a function version in `hy.pyops`.
 * New built-in object `hy.M` for easy imports in macros.
 * `hy --spy` now prints a delimiter between the Python equivalent of
   your code and the result of evaluating the code for easier reading.
