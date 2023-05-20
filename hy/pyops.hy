@@ -1,11 +1,16 @@
 "Python provides various :ref:`binary and unary operators
 <py:expressions>`. These are usually invoked in Hy using core macros of
 the same name: for example, ``(+ 1 2)`` calls the core macro named
-``+``, which uses Python's addition operator. There are two exceptions
+``+``, which uses Python's addition operator. There are a few exceptions
 to the names being the same:
 
-- ``==`` in Python is ``=`` in Hy.
-- ``~`` in Python is ``bnot`` in Hy.
+- ``==`` in Python is :hy:func:`= <hy.pyops.=>` in Hy.
+- ``~`` in Python is :hy:func:`bnot <hy.pyops.bnot>` in Hy.
+- ``is not`` in Python is :hy:func:`is-not <hy.pyops.not?>` in Hy.
+- ``not in`` in Python is :hy:func:`not-in <hy.pyops.not-in>` in Hy.
+
+For Python's subscription expressions (like ``x[2]``), Hy has two named
+macros, :hy:func:`get <hy.pyops.get>` and :hy:func:`cut <hy.pyops.cut>`.
 
 By importing from the module ``hy.pyops`` (typically with a star import,
 as in ``(import hy.pyops *)``), you can also use these operators as
