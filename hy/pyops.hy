@@ -232,7 +232,7 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
 
   If you're looking for the Hy equivalent of Python list slicing, as in ``foo[1:3]``,
   note that this is just Python's syntactic sugar for ``foo[slice(1, 3)]``, and Hy
-  provides its own syntactic sugar for this with a different macro, :hy:func:`cut`.
+  provides its own syntactic sugar for this with a different macro, :hy:func:`cut <hy.pyops.cut>`.
 
   Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
   :hy:func:`assoc <hyrule.collections.assoc>` to easily assign multiple elements of a
@@ -243,6 +243,33 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
     (setv coll (get coll k)))
   coll)
 
+(defn cut [coll / [arg1 'sentinel] [arg2 'sentinel] [arg3 'sentinel]]
+  #[[``cut`` compiles to a :ref:`slicing expression <slicings>`, which selects multiple
+  elements of a sequential data structure. The first argument is the object to be
+  sliced. The remaining arguments are optional, and understood the same way as in a
+  Python slicing expression. ::
+
+      (setv x "abcdef")
+      (cut x)           ; => "abcdef"
+      (cut x 3)         ; => "abc"
+      (cut x 3 5)       ; => "de"
+      (cut x -3 None)   ; => "def"
+      (cut x 0 None 2)  ; => "ace"
+
+  A call to the ``cut`` macro (but not its function version in ``hy.pyops``) is a valid
+  target for assignment (with :hy:func:`setv`, ``+=``, etc.) and for deletion (with
+  :hy:func:`del`).]]
+
+  (cond
+    (= arg1 'sentinel)
+      (cut coll)
+    (= arg2 'sentinel)
+      (cut coll arg1)
+    (= arg3 'sentinel)
+      (cut coll arg1 arg2)
+    True
+      (cut coll arg1 arg2 arg3)))
+
 (setv __all__
   (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
@@ -250,4 +277,4 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
     '< '> '<= '>= '= '!=
     'and 'or 'not
     'is 'is-not 'in 'not-in
-    'get])))
+    'get 'cut])))
