@@ -25,6 +25,13 @@ def test_history_custom_location(tmp_path):
         readline.add_history(expected_entry)
 
     actual_entry = history_location.read_text()
+
+    # yes, this is recommended way to check GNU readline vs libedit
+    # see https://docs.python.org/3.11/library/readline.html
+    if "libedit" in readline.__doc__:
+        # libedit saves spaces as octal escapes, so convert them back
+        actual_entry = actual_entry.replace("\\040", " ")
+
     assert expected_entry in actual_entry
 
 
