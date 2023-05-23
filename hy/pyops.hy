@@ -1,11 +1,16 @@
 "Python provides various :ref:`binary and unary operators
 <py:expressions>`. These are usually invoked in Hy using core macros of
 the same name: for example, ``(+ 1 2)`` calls the core macro named
-``+``, which uses Python's addition operator. There are two exceptions
+``+``, which uses Python's addition operator. There are a few exceptions
 to the names being the same:
 
-- ``==`` in Python is ``=`` in Hy.
-- ``~`` in Python is ``bnot`` in Hy.
+- ``==`` in Python is :hy:func:`= <hy.pyops.=>` in Hy.
+- ``~`` in Python is :hy:func:`bnot <hy.pyops.bnot>` in Hy.
+- ``is not`` in Python is :hy:func:`is-not <hy.pyops.not?>` in Hy.
+- ``not in`` in Python is :hy:func:`not-in <hy.pyops.not-in>` in Hy.
+
+For Python's subscription expressions (like ``x[2]``), Hy has two named
+macros, :hy:func:`get <hy.pyops.get>` and :hy:func:`cut <hy.pyops.cut>`.
 
 By importing from the module ``hy.pyops`` (typically with a star import,
 as in ``(import hy.pyops *)``), you can also use these operators as
@@ -232,7 +237,7 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
 
   If you're looking for the Hy equivalent of Python list slicing, as in ``foo[1:3]``,
   note that this is just Python's syntactic sugar for ``foo[slice(1, 3)]``, and Hy
-  provides its own syntactic sugar for this with a different macro, :hy:func:`cut`.
+  provides its own syntactic sugar for this with a different macro, :hy:func:`cut <hy.pyops.cut>`.
 
   Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
   :hy:func:`assoc <hyrule.collections.assoc>` to easily assign multiple elements of a
@@ -243,6 +248,33 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
     (setv coll (get coll k)))
   coll)
 
+(defn cut [coll / [arg1 'sentinel] [arg2 'sentinel] [arg3 'sentinel]]
+  #[[``cut`` compiles to a :ref:`slicing expression <slicings>`, which selects multiple
+  elements of a sequential data structure. The first argument is the object to be
+  sliced. The remaining arguments are optional, and understood the same way as in a
+  Python slicing expression. ::
+
+      (setv x "abcdef")
+      (cut x)           ; => "abcdef"
+      (cut x 3)         ; => "abc"
+      (cut x 3 5)       ; => "de"
+      (cut x -3 None)   ; => "def"
+      (cut x 0 None 2)  ; => "ace"
+
+  A call to the ``cut`` macro (but not its function version in ``hy.pyops``) is a valid
+  target for assignment (with :hy:func:`setv`, ``+=``, etc.) and for deletion (with
+  :hy:func:`del`).]]
+
+  (cond
+    (= arg1 'sentinel)
+      (cut coll)
+    (= arg2 'sentinel)
+      (cut coll arg1)
+    (= arg3 'sentinel)
+      (cut coll arg1 arg2)
+    True
+      (cut coll arg1 arg2 arg3)))
+
 (setv __all__
   (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
@@ -250,4 +282,4 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
     '< '> '<= '>= '= '!=
     'and 'or 'not
     'is 'is-not 'in 'not-in
-    'get])))
+    'get 'cut])))

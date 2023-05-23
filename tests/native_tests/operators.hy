@@ -314,11 +314,30 @@
   (assert (= (f [[1 2 3] [4 5 6] [7 8 9]] 1 2) 6))
   (assert (= (f {"x" {"y" {"z" 12}}} "x" "y" "z") 12)))
 
-
 (defn test-setv-get []
   (setv foo [0 1 2])
   (setv (get foo 0) 12)
   (assert (= (get foo 0) 12)))
+
+
+(op-and-shadow-test [cut]
+  (forbid (f))
+  (setv x "abcdef")
+  (assert (= (f x) "abcdef"))
+  (assert (= (f x 3) "abc"))
+  (assert (= (f x -2) "abcd"))
+  (assert (= (f x 3 None) "def"))
+  (assert (= (f x -2 None) "ef"))
+  (assert (= (f x 3 5) "de"))
+  (assert (= (f x 0 None 2) "ace"))
+  (assert (= (list (f (range 100) 20 80 13)) [20 33 46 59 72])))
+
+(defn test-setv-cut []
+  (setv foo (list (range 20)))
+  (setv (cut foo 2 18 3) (* [0] 6))
+  (assert (=
+    foo
+    [0 1 0 3 4 0 6 7 0 9 10 0 12 13 0 15 16 0 18 19])))
 
 
 (defn test-chained-comparison []

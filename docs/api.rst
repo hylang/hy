@@ -972,19 +972,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
          None)
        (print (f 4))  ; Prints "14" and then "None"
 
-.. hy:macro:: (cut [coll arg1 arg2 arg3])
-
-   ``cut`` compiles to a :ref:`slicing expression <slicings>`, which selects multiple elements of a sequential data structure. The first argument is the object to be sliced. The remaining arguments are optional, and understood the same way as in a Python slicing expression. ::
-
-       (setv x "abcdef")
-       (cut x)           ; => "abcdef"
-       (cut x 3)         ; => "abc"
-       (cut x 3 5)       ; => "de"
-       (cut x -3 None)   ; => "def"
-       (cut x 0 None 2)  ; => "ace"
-
-   A ``cut`` form is a valid target for assignment (with :hy:func:`setv`, ``+=``, etc.) and for deletion (with :hy:func:`del`).
-
 .. hy:macro:: (raise [exception :from other])
 
    ``raise`` compiles to a :py:keyword:`raise` statement, which throws an
