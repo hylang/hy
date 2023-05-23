@@ -353,11 +353,6 @@ class HyReader(Reader):
                 "Premature end of input while attempting dispatch", self
             )
 
-        if self.peek_and_getc("^"):
-            typ = self.parse_one_form()
-            target = self.parse_one_form()
-            return mkexpr("annotate", target, typ)
-
         tag = None
         # try dispatching tagged ident
         ident = self.read_ident(just_peeking=True)
@@ -393,6 +388,13 @@ class HyReader(Reader):
             "unpack-" + ("iterable", "mapping")[num_stars - 1],
             self.parse_one_form(),
         )
+
+    @reader_for("#^")
+    def annotate(self, _):
+        """Annotate a symbol, usually with a type."""
+        typ = self.parse_one_form()
+        target = self.parse_one_form()
+        return mkexpr("annotate", target, typ)
 
     ###
     # Strings

@@ -60,9 +60,8 @@
   and its base class :py:class:`Reader <hy.reader.reader.Reader>` for details
   regarding the available processing methods.
 
-  Reader macro names can be any symbol that does not start with a ``^`` and are
-  callable by prefixing the name with a ``#``. i.e. ``(defreader upper ...)`` is
-  called with ``#upper``.
+  Reader macro names can be any valid identifier and are callable by prefixing
+  the name with a ``#``. i.e. ``(defreader upper ...)`` is called with ``#upper``.
 
   Examples:
 
@@ -98,9 +97,6 @@
 
   (when (not (isinstance key hy.models.Symbol))
     (raise (ValueError f"expected a name, but got {key}")))
-
-  (when (.startswith key "^")
-    (raise (ValueError "reader macro cannot start with a ^")))
 
   (if (and body (isinstance (get body 0) hy.models.String))
       (setv [docstr #* body] body)
