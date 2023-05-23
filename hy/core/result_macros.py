@@ -1800,7 +1800,7 @@ def compile_require(compiler, expr, root, entries):
             reader_assignments = (
                 "ALL"
                 if readers == Symbol("*")
-                else ["#" + reader for reader in readers[0]]
+                else [str(reader) for reader in readers[0]]
             )
             if require_reader(module_name, compiler.module, reader_assignments):
                 ret += compiler.compile(

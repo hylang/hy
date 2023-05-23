@@ -205,7 +205,7 @@ def enable_readers(module, reader, names):
     for name in names:
         if name not in namespace["_hy_reader_macros"]:
             raise NameError(f"reader {name} is not defined")
-        reader.reader_table[name] = namespace["_hy_reader_macros"][name]
+        reader.reader_macros[name] = namespace["_hy_reader_macros"][name]
 
 
 def require(source_module, target_module, assignments, prefix=""):

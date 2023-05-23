@@ -102,7 +102,7 @@
       (setv [docstr #* body] body)
       (setv docstr None))
 
-  (setv dispatch-key (hy.mangle (+ "#" (str key))))
+  (setv dispatch-key (hy.mangle (str key)))
   `(do (eval-and-compile
          (hy.macros.reader-macro
            ~dispatch-key
@@ -110,7 +110,7 @@
              ~@(if docstr [docstr] [])
              ~@body)))
        (eval-when-compile
-         (setv (get hy.&reader.reader-table ~dispatch-key)
+         (setv (get hy.&reader.reader-macros ~dispatch-key)
                (get _hy_reader_macros ~dispatch-key)))))
 
 
@@ -122,13 +122,16 @@
 
    Use ``(help foo)`` instead for help with runtime objects."
    (setv symbol (str symbol))
+   (setv namespace
+     (if (= (cut symbol 1) "#")
+       (do (setv symbol (cut symbol 1 None))
+         '_hy_reader_macros)
+       '_hy_macros))
    (setv mangled (hy.mangle symbol))
    (setv builtins (hy.gensym "builtins"))
    `(do (import builtins :as ~builtins)
-        (help (or (.get _hy_macros ~mangled)
-                  (.get _hy_reader_macros ~mangled)
-                  (.get (. ~builtins _hy_macros) ~mangled)
-                  (.get (. ~builtins _hy_reader_macros) ~mangled)
+        (help (or (.get ~namespace ~mangled)
+                  (.get (. ~builtins ~namespace) ~mangled)
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 
