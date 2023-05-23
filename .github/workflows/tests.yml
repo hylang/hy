@@ -12,10 +12,13 @@ jobs:
         os: [ubuntu-latest]
         python: [3.8, 3.9, '3.10', 3.11, 3.12-dev, pypy-3.9, pyodide]
         include:
-          # To keep the overall number of runs low, we test Windows
+          # To keep the overall number of runs low, we test Windows and MacOS
           # only on the latest CPython.
           - name-prefix: 'win-'
             os: windows-latest
+            python: 3.11
+          - name-prefix: 'macos-'
+            os: macos-latest
             python: 3.11
 
     name: ${{ format('{0}{1}', matrix.name-prefix, matrix.python) }}

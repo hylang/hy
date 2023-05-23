@@ -33,6 +33,10 @@ def run_cmd(
     else:
         env.pop("PYTHONDONTWRITEBYTECODE", None)
 
+    # ensure hy root dir is in Python's path,
+    # so that we can import/require modules within tests/
+    env["PYTHONPATH"] = str(Path().resolve()) + os.pathsep + env.get("PYTHONPATH", "")
+
     result = subprocess.run(
         shlex.split(cmd) if isinstance(cmd, str) else cmd,
         input=stdin_data,
