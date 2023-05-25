@@ -31,9 +31,14 @@
 
 (defn test-reader-macros []
   (assert (= (eval-module #[[(defreader foo '1) #foo]]) 1))
-  (assert (in (hy.mangle "#foo")
+  (assert (in "foo"
     (eval-module #[[(defreader foo '1) _hy_reader_macros]])))
   (assert (= (eval-module #[[(defreader ^foo '1) #^foo]]) 1))
+
+  (assert (not-in "rm___x"
+    (eval-module
+      #[[(defreader rm---x '1)
+         _hy_reader_macros]])))
 
   ;; Assert reader macros operating exclusively at read time
   (with [module (temp-module "<test>")]
@@ -54,33 +59,33 @@
 
 (defn test-require-readers []
   (with [module (temp-module "<test>")]
-    (setv it (hy.read-many #[[(require tests.resources.tlib :readers [upper])
-                             #upper hello]]))
+    (setv it (hy.read-many #[[(require tests.resources.tlib :readers [upper!])
+                             #upper! hello]]))
     (eval-isolated (next it) module)
     (assert (= (next it) 'HELLO)))
 
   ;; test require :readers & :macros is order independent
-  (for [s ["[qplah] :readers [upper]"
-           ":readers [upper] [qplah]"
-           ":macros [qplah] :readers [upper]"
-           ":readers [upper] :macros [qplah]"]]
+  (for [s ["[qplah] :readers [upper!]"
+           ":readers [upper!] [qplah]"
+           ":macros [qplah] :readers [upper!]"
+           ":readers [upper!] :macros [qplah]"]]
     (assert (=
       (eval-module #[f[
         (require tests.resources.tlib {s})
-        [(qplah 1) #upper "hello"]]f])
+        [(qplah 1) #upper! "hello"]]f])
       [[8 1] "HELLO"])))
 
   ;; test require :readers *
   (assert (=
       (eval-module #[=[
         (require tests.resources.tlib :readers *)
-        [#upper "eVeRy" #lower "ReAdEr"]]=])
+        [#upper! "eVeRy" #lower "ReAdEr"]]=])
       ["EVERY" "reader"]))
 
   ;; test can't redefine :macros or :readers assignment brackets
   (with [(pytest.raises hy.errors.HySyntaxError)]
-    (eval-module #[[(require tests.resources.tlib [taggart] [upper])]]))
+    (eval-module #[[(require tests.resources.tlib [taggart] [upper!])]]))
   (with [(pytest.raises hy.errors.HySyntaxError)]
-    (eval-module #[[(require tests.resources.tlib :readers [taggart] :readers [upper])]]))
+    (eval-module #[[(require tests.resources.tlib :readers [taggart] :readers [upper!])]]))
   (with [(pytest.raises hy.errors.HyRequireError)]
     (eval-module #[[(require tests.resources.tlib :readers [not-a-real-reader])]])))

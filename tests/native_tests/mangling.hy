@@ -109,14 +109,18 @@
   (assert (= x "aabb")))
 
 
-(defreader rm---x
+(defreader rm---
   (setv form (.parse-one-form &reader))
-  [form form])
+  `(do (+= ~form "a")
+       ~form))
+(defreader rm___
+  (setv form (.parse-one-form &reader))
+  `(do (+= ~form "b")
+       ~form))
 (defn test-reader-macro []
   (setv x "")
-  (assert (= #rm---x (do (+= x "a") 1) [1 1]))
-  (assert (= #rm___x (do (+= x "b") 2) [2 2]))
-  (assert (= x "aabb")))
+  (assert (= #rm--- x "a"))
+  (assert (= #rm___ x "ab")))
 
 
 (defn test-special-form []
