@@ -559,77 +559,77 @@ def test_discard():
     # empty
     assert tokenize("") == []
     # single
-    assert tokenize("#_1") == []
+    assert tokenize("#_ 1") == []
     # multiple
-    assert tokenize("#_1 #_2") == []
-    assert tokenize("#_1 #_2 #_3") == []
+    assert tokenize("#_ 1 #_ 2") == []
+    assert tokenize("#_ 1 #_ 2 #_ 3") == []
     # nested discard
-    assert tokenize("#_ #_1 2") == []
-    assert tokenize("#_ #_ #_1 2 3") == []
+    assert tokenize("#_ #_ 1 2") == []
+    assert tokenize("#_ #_ #_ 1 2 3") == []
     # trailing
     assert tokenize("0") == [Integer(0)]
-    assert tokenize("0 #_1") == [Integer(0)]
-    assert tokenize("0 #_1 #_2") == [Integer(0)]
+    assert tokenize("0 #_ 1") == [Integer(0)]
+    assert tokenize("0 #_ 1 #_ 2") == [Integer(0)]
     # leading
     assert tokenize("2") == [Integer(2)]
-    assert tokenize("#_1 2") == [Integer(2)]
-    assert tokenize("#_0 #_1 2") == [Integer(2)]
-    assert tokenize("#_ #_0 1 2") == [Integer(2)]
+    assert tokenize("#_ 1 2") == [Integer(2)]
+    assert tokenize("#_ 0 #_ 1 2") == [Integer(2)]
+    assert tokenize("#_ #_ 0 1 2") == [Integer(2)]
     # both
-    assert tokenize("#_1 2 #_3") == [Integer(2)]
-    assert tokenize("#_0 #_1 2 #_ #_3 4") == [Integer(2)]
+    assert tokenize("#_ 1 2 #_ 3") == [Integer(2)]
+    assert tokenize("#_ 0 #_ 1 2 #_ #_ 3 4") == [Integer(2)]
     # inside
-    assert tokenize("0 #_1 2") == [Integer(0), Integer(2)]
-    assert tokenize("0 #_1 #_2 3") == [Integer(0), Integer(3)]
-    assert tokenize("0 #_ #_1 2 3") == [Integer(0), Integer(3)]
+    assert tokenize("0 #_ 1 2") == [Integer(0), Integer(2)]
+    assert tokenize("0 #_ 1 #_ 2 3") == [Integer(0), Integer(3)]
+    assert tokenize("0 #_ #_ 1 2 3") == [Integer(0), Integer(3)]
     # in List
     assert tokenize("[]") == [List([])]
-    assert tokenize("[#_1]") == [List([])]
-    assert tokenize("[#_1 #_2]") == [List([])]
-    assert tokenize("[#_ #_1 2]") == [List([])]
+    assert tokenize("[#_ 1]") == [List([])]
+    assert tokenize("[#_ 1 #_ 2]") == [List([])]
+    assert tokenize("[#_ #_ 1 2]") == [List([])]
     assert tokenize("[0]") == [List([Integer(0)])]
-    assert tokenize("[0 #_1]") == [List([Integer(0)])]
-    assert tokenize("[0 #_1 #_2]") == [List([Integer(0)])]
+    assert tokenize("[0 #_ 1]") == [List([Integer(0)])]
+    assert tokenize("[0 #_ 1 #_ 2]") == [List([Integer(0)])]
     assert tokenize("[2]") == [List([Integer(2)])]
-    assert tokenize("[#_1 2]") == [List([Integer(2)])]
-    assert tokenize("[#_0 #_1 2]") == [List([Integer(2)])]
-    assert tokenize("[#_ #_0 1 2]") == [List([Integer(2)])]
+    assert tokenize("[#_ 1 2]") == [List([Integer(2)])]
+    assert tokenize("[#_ 0 #_ 1 2]") == [List([Integer(2)])]
+    assert tokenize("[#_ #_ 0 1 2]") == [List([Integer(2)])]
     # in Set
     assert tokenize("#{}") == [Set()]
-    assert tokenize("#{#_1}") == [Set()]
-    assert tokenize("#{0 #_1}") == [Set([Integer(0)])]
-    assert tokenize("#{#_1 0}") == [Set([Integer(0)])]
+    assert tokenize("#{#_ 1}") == [Set()]
+    assert tokenize("#{0 #_ 1}") == [Set([Integer(0)])]
+    assert tokenize("#{#_ 1 0}") == [Set([Integer(0)])]
     # in Dict
     assert tokenize("{}") == [Dict()]
-    assert tokenize("{#_1}") == [Dict()]
-    assert tokenize("{#_0 1 2}") == [Dict([Integer(1), Integer(2)])]
-    assert tokenize("{1 #_0 2}") == [Dict([Integer(1), Integer(2)])]
-    assert tokenize("{1 2 #_0}") == [Dict([Integer(1), Integer(2)])]
+    assert tokenize("{#_ 1}") == [Dict()]
+    assert tokenize("{#_ 0 1 2}") == [Dict([Integer(1), Integer(2)])]
+    assert tokenize("{1 #_ 0 2}") == [Dict([Integer(1), Integer(2)])]
+    assert tokenize("{1 2 #_ 0}") == [Dict([Integer(1), Integer(2)])]
     # in Expression
     assert tokenize("()") == [Expression()]
-    assert tokenize("(#_foo)") == [Expression()]
-    assert tokenize("(#_foo bar)") == [Expression([Symbol("bar")])]
-    assert tokenize("(foo #_bar)") == [Expression([Symbol("foo")])]
+    assert tokenize("(#_ foo)") == [Expression()]
+    assert tokenize("(#_ foo bar)") == [Expression([Symbol("bar")])]
+    assert tokenize("(foo #_ bar)") == [Expression([Symbol("foo")])]
     assert tokenize("(foo :bar 1)") == [
         Expression([Symbol("foo"), Keyword("bar"), Integer(1)])
     ]
-    assert tokenize("(foo #_:bar 1)") == [Expression([Symbol("foo"), Integer(1)])]
-    assert tokenize("(foo :bar #_1)") == [Expression([Symbol("foo"), Keyword("bar")])]
+    assert tokenize("(foo #_ :bar 1)") == [Expression([Symbol("foo"), Integer(1)])]
+    assert tokenize("(foo :bar #_ 1)") == [Expression([Symbol("foo"), Keyword("bar")])]
     # discard term with nesting
-    assert tokenize("[1 2 #_[a b c [d e [f g] h]] 3 4]") == [
+    assert tokenize("[1 2 #_ [a b c [d e [f g] h]] 3 4]") == [
         List([Integer(1), Integer(2), Integer(3), Integer(4)])
     ]
     # discard with other prefix syntax
-    assert tokenize("a #_'b c") == [Symbol("a"), Symbol("c")]
-    assert tokenize("a '#_b c") == [
+    assert tokenize("a #_ 'b c") == [Symbol("a"), Symbol("c")]
+    assert tokenize("a '#_ b c") == [
         Symbol("a"),
         Expression([Symbol("quote"), Symbol("c")]),
     ]
-    assert tokenize("a '#_b #_c d") == [
+    assert tokenize("a '#_ b #_ c d") == [
         Symbol("a"),
         Expression([Symbol("quote"), Symbol("d")]),
     ]
-    assert tokenize("a '#_ #_b c d") == [
+    assert tokenize("a '#_ #_ b c d") == [
         Symbol("a"),
         Expression([Symbol("quote"), Symbol("d")]),
     ]

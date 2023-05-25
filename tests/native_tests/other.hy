@@ -44,8 +44,8 @@
 
 (defn test-variable-annotations []
   (defclass AnnotationContainer []
-    (setv #^int x 1 y 2)
-    (#^bool z))
+    (setv #^ int x 1 y 2)
+    (#^ bool z))
 
   (setv annotations (get-type-hints AnnotationContainer))
   (assert (= (get annotations "x") int))

@@ -6,8 +6,8 @@
         hy.errors [HySyntaxError])
 
 (defclass [dataclass] Point []
-    (#^int x)
-    (#^int y))
+    (#^ int x)
+    (#^ int y))
 
 (defn test-pattern-matching []
   (assert (is (match 0
@@ -260,10 +260,10 @@
                     _ _)))
     (assert (= {"a" 1  "c" 3}
                (match y
-                      {"b" b #**e} e)))
+                      {"b" b #** e} e)))
     (assert (= {"a" 1  "c" 3}
                (match y
-                      {"b" b #**a} a)))
+                      {"b" b #** a} a)))
     (assert (= b 2))))
 
 
