@@ -22,7 +22,7 @@ from hy.models import (
 )
 
 from .exceptions import LexException, PrematureEndOfInput
-from .mangling import mangle, unmangle
+from .mangling import mangle
 from .reader import Reader, isnormalizedspace
 
 
@@ -355,17 +355,15 @@ class HyReader(Reader):
         (this allows, e.g., `#reads-multiple-forms foo bar baz`).
         """
 
-        if not self.peekc():
+        if not self.peekc().strip():
             raise PrematureEndOfInput.from_reader(
                 "Premature end of input while attempting dispatch", self
             )
 
-        tag = None
         # try dispatching tagged ident
         ident = self.read_ident() or self.getc()
-        if ident and mangle(ident) in self.reader_macros:
-            tag = mangle(ident)
-            tree = self.reader_macros[tag](self, tag)
+        if ident in self.reader_macros:
+            tree = self.reader_macros[ident](self, ident)
             return as_model(tree) if tree is not None else None
 
         raise LexException.from_reader(

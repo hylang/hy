@@ -102,7 +102,7 @@
       (setv [docstr #* body] body)
       (setv docstr None))
 
-  (setv dispatch-key (hy.mangle (str key)))
+  (setv dispatch-key (str key))
   `(do (eval-and-compile
          (hy.macros.reader-macro
            ~dispatch-key
@@ -126,12 +126,12 @@
      (if (= (cut symbol 1) "#")
        (do (setv symbol (cut symbol 1 None))
          '_hy_reader_macros)
-       '_hy_macros))
-   (setv mangled (hy.mangle symbol))
+       (do (setv symbol (hy.mangle symbol))
+           '_hy_macros)))
    (setv builtins (hy.gensym "builtins"))
    `(do (import builtins :as ~builtins)
-        (help (or (.get ~namespace ~mangled)
-                  (.get (. ~builtins ~namespace) ~mangled)
+        (help (or (.get ~namespace ~symbol)
+                  (.get (. ~builtins ~namespace) ~symbol)
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 
