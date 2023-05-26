@@ -5,6 +5,7 @@ import sys
 PY3_9 = sys.version_info >= (3, 9)
 PY3_10 = sys.version_info >= (3, 10)
 PY3_11 = sys.version_info >= (3, 11)
+PY3_12 = sys.version_info >= (3, 12)
 PYPY = platform.python_implementation() == "PyPy"
 PYODIDE = platform.system() == "Emscripten"
 
