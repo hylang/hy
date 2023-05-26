@@ -15,7 +15,7 @@ from itertools import dropwhile
 
 from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
-from hy._compat import PY3_11
+from hy._compat import PY3_11, PY3_12
 from hy.compiler import Result, asty, hy_eval, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
 from hy.macros import pattern_macro, require, require_reader
@@ -896,6 +896,7 @@ def compile_comprehension(compiler, expr, root, parts, final):
                 ),
                 body=stmts + f(parts).stmts,
                 decorator_list=[],
+                **({"type_params": []} if PY3_12 else {}),
             )
             # Immediately call the new function. Unless the user asked
             # for a generator, wrap the call in `[].__class__(...)` or
@@ -1134,6 +1135,7 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
                     ),
                     body=guard.stmts + [asty.Return(guard.expr, value=guard.expr)],
                     decorator_list=[],
+                    **({"type_params": []} if PY3_12 else {}),
                 )
                 lifted_if_defs.append(guardret)
                 guard = Result(expr=asty.parse(guard, f"{fname}()").body[0].value)
@@ -1466,6 +1468,7 @@ def compile_function_node(compiler, expr, node, decorators, name, args, returns,
         body=body.stmts or [asty.Pass(expr)],
         decorator_list=decorators,
         returns=compiler.compile(returns).force_expr if returns is not None else None,
+        **({"type_params": []} if PY3_12 else {}),
     )
 
     ast_name = asty.Name(expr, id=name, ctx=ast.Load())
@@ -1679,6 +1682,7 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
         kwargs=None,
         bases=bases_expr,
         body=bodyr.stmts or [asty.Pass(expr)],
+        **({"type_params": []} if PY3_12 else {}),
     )
 
 
