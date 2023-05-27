@@ -4,7 +4,6 @@ import sys
 import traceback
 import importlib.util
 from contextlib import contextmanager
-from functools import reduce
 
 from hy import _initialize_env_var
 from hy._compat import PYPY
