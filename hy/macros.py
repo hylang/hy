@@ -2,7 +2,6 @@ import builtins
 import importlib
 import inspect
 import os
-import pkgutil
 import re
 import sys
 import traceback
@@ -110,33 +109,23 @@ def _same_modules(source_module, target_module):
     if not (source_module or target_module):
         return False
 
-    if target_module == source_module:
+    if target_module is source_module:
         return True
 
-    def _get_filename(module):
-        filename = None
-        try:
-            if not inspect.ismodule(module):
-                loader = pkgutil.get_loader(module)
-                if isinstance(loader, importlib.machinery.SourceFileLoader):
-                    filename = loader.get_filename()
-            else:
-                filename = inspect.getfile(module)
-        except (TypeError, ImportError):
-            pass
+    def get_filename(module):
+        if inspect.ismodule(module):
+            return inspect.getfile(module)
+        elif (
+                (spec := importlib.util.find_spec(module)) and
+                isinstance(spec.loader, importlib.machinery.SourceFileLoader)):
+            return spec.loader.get_filename()
 
-        return filename
-
-    source_filename = _get_filename(source_module)
-    target_filename = _get_filename(target_module)
-
-    return (
-        source_filename
-        and target_filename
-        and os.path.exists(source_filename)
-        and os.path.exists(target_filename)
-        and os.path.samefile(source_filename, target_filename)
-    )
+    try:
+        return os.path.samefile(
+            get_filename(source_module),
+            get_filename(target_module))
+    except (ValueError, TypeError, ImportError, FileNotFoundError):
+        return False
 
 
 def derive_target_module(target_module, parent_frame):
