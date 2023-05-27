@@ -17,7 +17,7 @@ jobs:
           - name-prefix: 'win-'
             os: windows-latest
             python: 3.11
-          - name-prefix: 'macos-'
+          - name-prefix: 'mac-'
             os: macos-latest
             python: 3.11
 
