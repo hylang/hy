@@ -579,8 +579,8 @@ class HyASTCompiler:
 
     @builds_model(Integer, Float, Complex)
     def compile_numeric_literal(self, x):
-        f = {Integer: int, Float: float, Complex: complex}[type(x)]
-        return asty.Constant(x, value=f(x))
+        return asty.Constant(x, value =
+            {Integer: int, Float: float, Complex: complex}[type(x)](x))
 
     @builds_model(Symbol)
     def compile_symbol(self, symbol):
@@ -619,8 +619,8 @@ class HyASTCompiler:
 
     @builds_model(String, Bytes)
     def compile_string(self, string):
-        f = bytes if type(string) is Bytes else str
-        return asty.Constant(string, value=f(string))
+        return asty.Constant(string, value =
+            (bytes if type(string) is Bytes else str)(string))
 
     @builds_model(FComponent)
     def compile_fcomponent(self, fcomponent):
