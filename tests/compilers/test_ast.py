@@ -40,7 +40,7 @@ def cant_compile(expr):
 
 
 def s(x):
-    return can_compile('"module docstring" ' + x).body[-1].value.s
+    return can_compile('"module docstring" ' + x).body[-1].value.value
 
 
 def test_ast_bad_type():
@@ -374,7 +374,7 @@ def test_lambda_list_keywords_kwonly():
     for i, kwonlyarg_name in enumerate(("a", "b")):
         assert kwonlyarg_name == code.body[0].args.kwonlyargs[i].arg
     assert code.body[0].args.kw_defaults[0] is None
-    assert code.body[0].args.kw_defaults[1].n == 2
+    assert code.body[0].args.kw_defaults[1].value == 2
 
 
 def test_lambda_list_keywords_mixed():
@@ -399,8 +399,8 @@ def test_ast_unicode_strings():
         )
         # We put hy_s in a list so it isn't interpreted as a docstring.
 
-        # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Str(s=xxx)]))])
-        return code.body[0].value.elts[0].s
+        # code == ast.Module(body=[ast.Expr(value=ast.List(elts=[ast.Constant(value=xxx)]))])
+        return code.body[0].value.elts[0].value
 
     assert _compile_string("test") == "test"
     assert _compile_string("\u03b1\u03b2") == "\u03b1\u03b2"

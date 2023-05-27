@@ -354,7 +354,7 @@ m_ops = {
 def compile_maths_expression(compiler, expr, root, args):
     if len(args) == 0:
         # Return the identity element for this operator.
-        return asty.Num(expr, n=({"+": 0, "|": 0, "*": 1}[root]))
+        return asty.Constant(expr, value=({"+": 0, "|": 0, "*": 1}[root]))
 
     if len(args) == 1:
         if root == "/":
