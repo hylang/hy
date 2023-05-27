@@ -1,8 +1,8 @@
 import os
-import pkgutil
 import re
 import sys
 import traceback
+import importlib.util
 from contextlib import contextmanager
 from functools import reduce
 
@@ -197,7 +197,11 @@ class HyWrapperError(HyError, TypeError):
 
 def _module_filter_name(module_name):
     try:
-        compiler_loader = pkgutil.get_loader(module_name)
+        spec = importlib.util.find_spec(module_name)
+        if not spec:
+            return None
+
+        compiler_loader = spec.loader
         if not compiler_loader:
             return None
 
