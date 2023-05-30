@@ -505,7 +505,7 @@
                   #(10 20 30)))))
 
 
-(defmacro eval-isolated [#*body]
+(defmacro eval-isolated [#* body]
   `(hy.eval '(do ~@body) :module "<test>" :locals {}))
 
 

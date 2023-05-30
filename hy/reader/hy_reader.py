@@ -116,6 +116,17 @@ class HyReader(Reader):
 
     NON_IDENT = set("()[]{};\"'`~")
 
+    def __init__(self):
+        super().__init__()
+
+        # move any reader macros declared using
+        # `reader_for("#...")` to the macro table
+        self.reader_macros = {}
+        for tag in list(self.reader_table.keys()):
+            if tag[0] == '#' and tag[1:]:
+                self.reader_macros[tag[1:]] = self.reader_table.pop(tag)
+
+
     def fill_pos(self, model, start):
         """Attach line/col information to a model.
 
@@ -342,37 +353,21 @@ class HyReader(Reader):
 
         Reads a full identifier after the `#` and calls the corresponding handler
         (this allows, e.g., `#reads-multiple-forms foo bar baz`).
-
-        Failing that, reads a single character after the `#` and immediately
-        calls the corresponding handler (this allows, e.g., `#*args` to parse
-        as `#*` followed by `args`).
         """
 
-        if not self.peekc():
+        if not self.peekc().strip():
             raise PrematureEndOfInput.from_reader(
                 "Premature end of input while attempting dispatch", self
             )
 
-        if self.peek_and_getc("^"):
-            typ = self.parse_one_form()
-            target = self.parse_one_form()
-            return mkexpr("annotate", target, typ)
-
-        tag = None
         # try dispatching tagged ident
-        ident = self.read_ident(just_peeking=True)
-        if ident and mangle(key + ident) in self.reader_table:
-            self.getn(len(ident))
-            tag = mangle(key + ident)
-        # failing that, dispatch tag + single character
-        elif key + self.peekc() in self.reader_table:
-            tag = key + self.getc()
-        if tag:
-            tree = self.dispatch(tag)
+        ident = self.read_ident() or self.getc()
+        if ident in self.reader_macros:
+            tree = self.reader_macros[ident](self, ident)
             return as_model(tree) if tree is not None else None
 
         raise LexException.from_reader(
-            f"reader macro '{key + self.read_ident()}' is not defined", self
+            f"reader macro '{key + ident}' is not defined", self
         )
 
     @reader_for("#_")
@@ -382,17 +377,20 @@ class HyReader(Reader):
         return None
 
     @reader_for("#*")
-    def hash_star(self, _):
+    @reader_for("#**")
+    def hash_star(self, stars):
         """Unpacking forms `#*` and `#**`, corresponding to `*` and `**` in Python."""
-        num_stars = 1
-        while self.peek_and_getc("*"):
-            num_stars += 1
-        if num_stars > 2:
-            raise LexException.from_reader("too many stars", self)
         return mkexpr(
-            "unpack-" + ("iterable", "mapping")[num_stars - 1],
+            "unpack-" + {"*": "iterable", "**": "mapping"}[stars],
             self.parse_one_form(),
         )
+
+    @reader_for("#^")
+    def annotate(self, _):
+        """Annotate a symbol, usually with a type."""
+        typ = self.parse_one_form()
+        target = self.parse_one_form()
+        return mkexpr("annotate", target, typ)
 
     ###
     # Strings

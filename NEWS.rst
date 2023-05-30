@@ -7,6 +7,14 @@ Removals
 ------------------------------
 * Python 3.7 is no longer supported.
 
+Breaking Changes
+------------------------------
+* Reader macros now always read a full identifier after the initial `#`,
+  allowing for reader macros that start with characters such as `*`, `^`, `_`.
+  Forms like `#*word` will attempt to dispatch a macro named `*word`;
+  to unpack a symbol named `word`, write `#* word` (note the space).
+* Reader macro names are no longer mangled.
+
 Bug Fixes
 ------------------------------
 * Fixed an installation failure in some situations when version lookup

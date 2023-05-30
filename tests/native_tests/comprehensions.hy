@@ -263,7 +263,7 @@
   (assert (= out "x1-x2-y1y2-z1-z2-")))
 
 
-(defmacro eval-isolated [#*body]
+(defmacro eval-isolated [#* body]
   `(hy.eval '(do ~@body) :module "<test>" :locals {}))
 
 

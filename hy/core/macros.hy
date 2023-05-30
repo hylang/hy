@@ -60,9 +60,8 @@
   and its base class :py:class:`Reader <hy.reader.reader.Reader>` for details
   regarding the available processing methods.
 
-  Reader macro names can be any symbol that does not start with a ``^`` and are
-  callable by prefixing the name with a ``#``. i.e. ``(defreader upper ...)`` is
-  called with ``#upper``.
+  Reader macro names can be any valid identifier and are callable by prefixing
+  the name with a ``#``. i.e. ``(defreader upper ...)`` is called with ``#upper``.
 
   Examples:
 
@@ -99,14 +98,11 @@
   (when (not (isinstance key hy.models.Symbol))
     (raise (ValueError f"expected a name, but got {key}")))
 
-  (when (.startswith key "^")
-    (raise (ValueError "reader macro cannot start with a ^")))
-
   (if (and body (isinstance (get body 0) hy.models.String))
       (setv [docstr #* body] body)
       (setv docstr None))
 
-  (setv dispatch-key (hy.mangle (+ "#" (str key))))
+  (setv dispatch-key (str key))
   `(do (eval-and-compile
          (hy.macros.reader-macro
            ~dispatch-key
@@ -114,7 +110,7 @@
              ~@(if docstr [docstr] [])
              ~@body)))
        (eval-when-compile
-         (setv (get hy.&reader.reader-table ~dispatch-key)
+         (setv (get hy.&reader.reader-macros ~dispatch-key)
                (get _hy_reader_macros ~dispatch-key)))))
 
 
@@ -126,13 +122,16 @@
 
    Use ``(help foo)`` instead for help with runtime objects."
    (setv symbol (str symbol))
-   (setv mangled (hy.mangle symbol))
+   (setv namespace
+     (if (= (cut symbol 1) "#")
+       (do (setv symbol (cut symbol 1 None))
+         '_hy_reader_macros)
+       (do (setv symbol (hy.mangle symbol))
+           '_hy_macros)))
    (setv builtins (hy.gensym "builtins"))
    `(do (import builtins :as ~builtins)
-        (help (or (.get _hy_macros ~mangled)
-                  (.get _hy_reader_macros ~mangled)
-                  (.get (. ~builtins _hy_macros) ~mangled)
-                  (.get (. ~builtins _hy_reader_macros) ~mangled)
+        (help (or (.get ~namespace ~symbol)
+                  (.get (. ~builtins ~namespace) ~symbol)
                   (raise (NameError f"macro {~symbol !r} is not defined"))))))
 
 

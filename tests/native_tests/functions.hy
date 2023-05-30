@@ -86,8 +86,8 @@
 
 (defn test-defn-annotations []
 
-  (defn #^int f [#^(get List int) p1 p2 #^str p3 #^str [o1 None] #^int [o2 0]
-           #^str #* rest #^str k1 #^int [k2 0] #^bool #** kwargs])
+  (defn #^ int f [#^ (get List int) p1 p2 #^ str p3 #^ str [o1 None] #^ int [o2 0]
+           #^ str #* rest #^ str k1 #^ int [k2 0] #^ bool #** kwargs])
 
   (assert (is (. f __annotations__ ["return"]) int))
   (for [[k v] (.items (dict

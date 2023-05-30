@@ -185,7 +185,7 @@ def require_reader(source_module, target_module, assignments):
     target_macros = target_namespace.setdefault("_hy_reader_macros", {})
 
     assignments = (
-        source_macros.keys() if assignments == "ALL" else map(mangle, assignments)
+        source_macros.keys() if assignments == "ALL" else assignments
     )
 
     for name in assignments:
@@ -200,12 +200,12 @@ def require_reader(source_module, target_module, assignments):
 def enable_readers(module, reader, names):
     _, namespace = derive_target_module(module, inspect.stack()[1][0])
     names = (
-        namespace["_hy_reader_macros"].keys() if names == "ALL" else map(mangle, names)
+        namespace["_hy_reader_macros"].keys() if names == "ALL" else names
     )
     for name in names:
         if name not in namespace["_hy_reader_macros"]:
             raise NameError(f"reader {name} is not defined")
-        reader.reader_table[name] = namespace["_hy_reader_macros"][name]
+        reader.reader_macros[name] = namespace["_hy_reader_macros"][name]
 
 
 def require(source_module, target_module, assignments, prefix=""):
