@@ -27,7 +27,7 @@ if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
     def rewriting_unparse(ast_obj):
         ast_obj = copy.deepcopy(ast_obj)
         for node in ast.walk(ast_obj):
-            if type(node) in (ast.Constant, ast.Str):
+            if type(node) is ast.Constant:
                 # Don't touch string literals.
                 continue
             for field in node._fields:

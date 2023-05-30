@@ -579,8 +579,8 @@ class HyASTCompiler:
 
     @builds_model(Integer, Float, Complex)
     def compile_numeric_literal(self, x):
-        f = {Integer: int, Float: float, Complex: complex}[type(x)]
-        return asty.Num(x, n=f(x))
+        return asty.Constant(x, value =
+            {Integer: int, Float: float, Complex: complex}[type(x)](x))
 
     @builds_model(Symbol)
     def compile_symbol(self, symbol):
@@ -612,16 +612,15 @@ class HyASTCompiler:
                 attr="Keyword",
                 ctx=ast.Load(),
             ),
-            args=[asty.Str(obj, s=obj.name)],
+            args=[asty.Constant(obj, value=obj.name)],
             keywords=[],
         )
         return ret
 
     @builds_model(String, Bytes)
     def compile_string(self, string):
-        node = asty.Bytes if type(string) is Bytes else asty.Str
-        f = bytes if type(string) is Bytes else str
-        return node(string, s=f(string))
+        return asty.Constant(string, value =
+            (bytes if type(string) is Bytes else str)(string))
 
     @builds_model(FComponent)
     def compile_fcomponent(self, fcomponent):
@@ -856,7 +855,8 @@ def hy_compile(
         if (
             result.stmts
             and isinstance(result.stmts[0], ast.Expr)
-            and isinstance(result.stmts[0].value, ast.Str)
+            and isinstance(result.stmts[0].value, ast.Constant)
+            and isinstance(result.stmts[0].value.value, str)
         ):
 
             body += [result.stmts.pop(0)]
