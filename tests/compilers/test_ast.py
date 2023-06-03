@@ -1,5 +1,3 @@
-# fmt: off
-
 import ast
 from textwrap import dedent
 
