@@ -741,26 +741,53 @@ def test_assert(tmp_path, monkeypatch):
             assert ("bye" in err) == show_msg
 
 
-def test_hy2py_recursive(tmp_path):
-    (tmp_path / 'hy').mkdir()
-    (tmp_path / "hy/first.hy").write_text("""
-        (import folder.second [a b])
+def test_hy2py_recursive(monkeypatch, tmp_path):
+    (tmp_path / 'foo').mkdir()
+    (tmp_path / 'foo/__init__.py').touch()
+    (tmp_path / "foo/first.hy").write_text("""
+        (import foo.folder.second [a b])
         (print a)
         (print b)""")
-    (tmp_path / "hy/folder").mkdir()
-    (tmp_path / "hy/folder/second.hy").write_text("""
+    (tmp_path / "foo/folder").mkdir()
+    (tmp_path / "foo/folder/__init__.py").touch()
+    (tmp_path / "foo/folder/second.hy").write_text("""
         (setv a 1)
         (setv b "hello world")""")
 
-    _, err = run_cmd(["hy2py", (tmp_path / 'hy')], expect=1)
+    monkeypatch.chdir(tmp_path)
+
+    _, err = run_cmd("hy2py foo", expect=1)
     assert "ValueError" in err
 
-    run_cmd(["hy2py",
-        (tmp_path / 'hy'),
-        "--output", (tmp_path / 'py')])
-    assert set((tmp_path / 'py').rglob('*')) == {
-        tmp_path / 'py' / p
+    run_cmd("hy2py foo --output bar")
+    assert set((tmp_path / 'bar').rglob('*')) == {
+        tmp_path / 'bar' / p
         for p in ('first.py', 'folder', 'folder/second.py')}
 
-    output, _ = run_cmd("python3 first.py", cwd = tmp_path / 'py')
+    output, _ = run_cmd("python3 first.py", cwd = tmp_path / 'bar')
     assert output == "1\nhello world\n"
+
+
+@pytest.mark.parametrize('case', ['hy -m', 'hy2py'])
+def test_relative_require(case, monkeypatch, tmp_path):
+    # https://github.com/hylang/hy/issues/2204
+
+    (tmp_path / 'pkg').mkdir()
+    (tmp_path / 'pkg' / '__init__.py').touch()
+    (tmp_path / 'pkg' / 'a.hy').write_text('''
+        (defmacro m []
+          '(setv x (.upper "hello")))''')
+    (tmp_path / 'pkg' / 'b.hy').write_text('''
+        (require .a [m])
+        (m)
+        (print x)''')
+    monkeypatch.chdir(tmp_path)
+
+    if case == 'hy -m':
+        output, _ = run_cmd('hy -m pkg.b')
+    elif case == 'hy2py':
+        run_cmd('hy2py pkg -o out')
+        (tmp_path / 'out' / '__init__.py').touch()
+        output, _ = run_cmd('python3 -m out.b')
+
+    assert 'HELLO' in output

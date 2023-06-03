@@ -197,7 +197,7 @@ def enable_readers(module, reader, names):
         reader.reader_macros[name] = namespace["_hy_reader_macros"][name]
 
 
-def require(source_module, target_module, assignments, prefix=""):
+def require(source_module, target_module, assignments, prefix="", target_module_name=None):
     """Load macros from one module into the namespace of another.
 
     This function is called from the macro also named `require`.
@@ -213,6 +213,7 @@ def require(source_module, target_module, assignments, prefix=""):
         prefix (str): If nonempty, its value is prepended to the name of each imported macro.
             This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
             which looks like an attribute of a module. Defaults to ""
+        target_module_name: If true, overrides the apparent name of `target_module`.
 
     Returns:
         bool: Whether or not macros were actually transferred.
@@ -230,7 +231,8 @@ def require(source_module, target_module, assignments, prefix=""):
         return False
 
     if not inspect.ismodule(source_module):
-        source_module = import_module_from_string(source_module, target_module)
+        source_module = import_module_from_string(source_module,
+           target_module_name or target_module)
 
     source_macros = source_module.__dict__.setdefault("_hy_macros", {})
     source_exports = getattr(

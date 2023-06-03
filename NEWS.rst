@@ -14,6 +14,9 @@ Breaking Changes
   Forms like `#*word` will attempt to dispatch a macro named `*word`;
   to unpack a symbol named `word`, write `#* word` (note the space).
 * Reader macro names are no longer mangled.
+* `hy2py`'s recursive mode now expects a module name as input, not any
+  old directory. You must be in the parent directory of the module
+  directory.
 
 Bug Fixes
 ------------------------------
@@ -22,6 +25,8 @@ Bug Fixes
 * Fixed some bugs with traceback pointing.
 * Fixed some bugs with escaping in bracket f-strings
 * The parser no longer looks for shebangs in the REPL or `hy -c`.
+* `require` with relative module names should now work correctly with
+  `hy -m`, as well as `hy2py`'s recursive mode.
 
 New Features
 ------------------------------

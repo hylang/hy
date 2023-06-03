@@ -1783,6 +1783,8 @@ def compile_require(compiler, expr, root, entries):
                         dotted("hy.macros.require"),
                         String(module_name),
                         Symbol("None"),
+                        Keyword("target_module_name"),
+                        String(compiler.module.__name__),
                         Keyword("assignments"),
                         (
                             String("EXPORTS")
