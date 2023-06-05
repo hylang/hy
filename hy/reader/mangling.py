@@ -35,19 +35,15 @@ def mangle(s):
     if "." in s and s.strip("."):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
-    # Step 1: Remove and save leading underscores
+    # Remove and save leading underscores
     s2 = s.lstrip(normalizes_to_underscore)
     leading_underscores = "_" * (len(s) - len(s2))
     s = s2
 
-    # Step 2: Convert hyphens without introducing a new leading underscore
+    # Convert hyphens without introducing a new leading underscore
     s = s[0] + s[1:].replace("-", "_") if s else s
 
-    # Step 3: Convert trailing `?` to leading `is_`
-    if s.endswith("?"):
-        s = "is_" + s[:-1]
-
-    # Step 4: Convert invalid characters or reserved words
+    # Convert invalid characters or reserved words
     if not (leading_underscores + s).isidentifier():
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
@@ -126,8 +122,6 @@ def unmangle(s):
             ),
             s[len("hyx_") :],
         )
-    if s.startswith("is_"):
-        s = s[len("is_") :] + "?"
     s = s.replace("_", "-")
 
     return prefix + s + suffix
