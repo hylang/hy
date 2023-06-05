@@ -14,6 +14,8 @@ Breaking Changes
   Forms like `#*word` will attempt to dispatch a macro named `*word`;
   to unpack a symbol named `word`, write `#* word` (note the space).
 * Reader macro names are no longer mangled.
+* Question marks (`?`) are no longer mangled specially, so `foo?` now
+  mangles to `hyx_fooXquestion_markX` instead of `is_foo`.
 * `hy2py`'s recursive mode now expects a module name as input, not any
   old directory. You must be in the parent directory of the module
   directory.

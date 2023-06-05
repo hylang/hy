@@ -11,7 +11,7 @@ def mangle(s):
     :hy:func:`hy.repr`) and convert it to a valid Python identifier according
     to :ref:`Hy's mangling rules <mangling>`. ::
 
-        (hy.mangle 'foo-bar?)  ; => "is_foo_bar"
+        (hy.mangle 'foo-bar)   ; => "foo_bar"
         (hy.mangle "🦑")       ; => "hyx_squid"
 
     If the stringified argument is already both legal as a Python identifier
@@ -26,7 +26,7 @@ def mangle(s):
     <dotted-identifiers>`, and ``hy.mangle`` will mangle the dot-delimited
     parts separately. ::
 
-        (hy.mangle "a.b?.c!.d")  ; => "a.is_b.hyx_cXexclamation_markX.d"
+        (hy.mangle "a.c!.d")  ; => "a.hyx_cXexclamation_markX.d"
     """
 
     assert s
@@ -84,14 +84,8 @@ def unmangle(s):
          => (hy.unmangle 'foo_bar)
          "foo-bar"
 
-         => (hy.unmangle 'is_foo_bar)
-         "foo-bar?"
-
          => (hy.unmangle 'hyx_XasteriskX)
          "*"
-
-         => (hy.unmangle '_hyx_is_fooXsolidusXa)
-         "_foo/a?"
 
          => (hy.unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
          "-->"
