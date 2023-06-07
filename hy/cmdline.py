@@ -5,6 +5,7 @@ import io
 import os
 import platform
 import py_compile
+import re
 import runpy
 import sys
 from contextlib import nullcontext
@@ -332,7 +333,9 @@ def hyc_main():
 
 
 def hy2py_worker(source, options, filename, output_filepath=None):
+    source_path = None
     if isinstance(source, Path):
+        source_path = source
         source = source.read_text(encoding="UTF-8")
 
     if not output_filepath and options.output:
@@ -358,7 +361,13 @@ def hy2py_worker(source, options, filename, output_filepath=None):
         hst.filename = filename
 
         with filtered_hy_exceptions():
-            _ast = hy_compile(hst, "__main__", filename=filename, source=source)
+            _ast = hy_compile(
+                 hst,
+                 re.sub(r'\.hy$', '', '.'.join(source_path.parts))
+                     if source_path
+                     else '__main__',
+                 filename=filename,
+                 source=source)
 
         if options.with_source:
             print()
@@ -385,7 +394,7 @@ def hy2py_main():
         "FILE",
         type=str,
         nargs="?",
-        help='Input Hy code (can be file or directory) (use STDIN if "-" or '
+        help='Input Hy code (can be file or module) (use STDIN if "-" or '
         "not provided)",
     )
     parser.add_argument(

@@ -44,7 +44,7 @@ for a complete list of options and :py:ref:`Python's documentation
 hy2py
 -----
 
-``hy2py`` is a program to convert Hy source code into Python source code. Use ``hy2py --help`` for usage instructions. It can take its input from standard input, from a filename, or folder name provided as a command-line argument. If it is a folder, the output parameter (--output/-o) must be provided. When the output parameter is provided, the output will be written into the folder or file, otherwise the result is written to standard output.
+``hy2py`` is a program to convert Hy source code into Python source code. Use ``hy2py --help`` for usage instructions. It can take its input from standard input, or from a file or module name provided as a command-line argument. In the case of a module name, the current working directory should be the parent directory of that module, and the output parameter (``--output/-o``) is required. When the output parameter is provided, the output will be written into the folder or file. Otherwise, the result is written to standard output.
 
     .. warning::
        ``hy2py`` can execute arbitrary code. Don't give it untrusted input.
