@@ -6,7 +6,7 @@ to the names being the same:
 
 - ``==`` in Python is :hy:func:`= <hy.pyops.=>` in Hy.
 - ``~`` in Python is :hy:func:`bnot <hy.pyops.bnot>` in Hy.
-- ``is not`` in Python is :hy:func:`is-not <hy.pyops.not?>` in Hy.
+- ``is not`` in Python is :hy:func:`is-not <hy.pyops.is-not>` in Hy.
 - ``not in`` in Python is :hy:func:`not-in <hy.pyops.not-in>` in Hy.
 
 For Python's subscription expressions (like ``x[2]``), Hy has two named

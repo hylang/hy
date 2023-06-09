@@ -11,7 +11,7 @@ def mangle(s):
     :hy:func:`hy.repr`) and convert it to a valid Python identifier according
     to :ref:`Hy's mangling rules <mangling>`. ::
 
-        (hy.mangle 'foo-bar?)  ; => "is_foo_bar"
+        (hy.mangle 'foo-bar)   ; => "foo_bar"
         (hy.mangle "🦑")       ; => "hyx_squid"
 
     If the stringified argument is already both legal as a Python identifier
@@ -26,7 +26,7 @@ def mangle(s):
     <dotted-identifiers>`, and ``hy.mangle`` will mangle the dot-delimited
     parts separately. ::
 
-        (hy.mangle "a.b?.c!.d")  ; => "a.is_b.hyx_cXexclamation_markX.d"
+        (hy.mangle "a.c!.d")  ; => "a.hyx_cXexclamation_markX.d"
     """
 
     assert s
@@ -35,19 +35,15 @@ def mangle(s):
     if "." in s and s.strip("."):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
-    # Step 1: Remove and save leading underscores
+    # Remove and save leading underscores
     s2 = s.lstrip(normalizes_to_underscore)
     leading_underscores = "_" * (len(s) - len(s2))
     s = s2
 
-    # Step 2: Convert hyphens without introducing a new leading underscore
+    # Convert hyphens without introducing a new leading underscore
     s = s[0] + s[1:].replace("-", "_") if s else s
 
-    # Step 3: Convert trailing `?` to leading `is_`
-    if s.endswith("?"):
-        s = "is_" + s[:-1]
-
-    # Step 4: Convert invalid characters or reserved words
+    # Convert invalid characters or reserved words
     if not (leading_underscores + s).isidentifier():
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
@@ -88,14 +84,8 @@ def unmangle(s):
          => (hy.unmangle 'foo_bar)
          "foo-bar"
 
-         => (hy.unmangle 'is_foo_bar)
-         "foo-bar?"
-
          => (hy.unmangle 'hyx_XasteriskX)
          "*"
-
-         => (hy.unmangle '_hyx_is_fooXsolidusXa)
-         "_foo/a?"
 
          => (hy.unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
          "-->"
@@ -126,8 +116,6 @@ def unmangle(s):
             ),
             s[len("hyx_") :],
         )
-    if s.startswith("is_"):
-        s = s[len("is_") :] + "?"
     s = s.replace("_", "-")
 
     return prefix + s + suffix

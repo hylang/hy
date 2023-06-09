@@ -266,10 +266,6 @@ Python-legal names. The steps are as follows:
    underscore into the name. Thus ``--has-dashes?`` becomes ``-_has_dashes?``
    at this step.
 
-#. If the name ends with ASCII ``?``, remove it and prepend ``is_``. Thus,
-   ``tasty?`` becomes ``is_tasty`` and ``-_has_dashes?`` becomes
-   ``is_-_has_dashes``.
-
 #. If the name still isn't Python-legal, make the following changes. A name
    could be Python-illegal because it contains a character that's never legal
    in a Python name or it contains a character that's illegal in that position.
@@ -282,12 +278,11 @@ Python-legal names. The steps are as follows:
      code point in lowercase hexadecimal.
 
    Thus, ``green☘`` becomes ``hyx_greenXshamrockX`` and
-   ``is_-_has_dashes`` becomes ``hyx_is_XhyphenHminusX_has_dashes``.
+   ``-_has_dashes`` becomes ``hyx_XhyphenHminusX_has_dashes``.
 
 #. Take any leading underscores removed in the first step, transliterate them
-   to ASCII, and add them back to the mangled name. Thus, ``(hy.mangle
-   '_tasty?)`` is ``"_is_tasty"`` instead of ``"is__tasty"`` and ``(hy.mangle
-   '__-_has-dashes?)`` is ``"__hyx_is_XhyphenHminusX_has_dashes"``.
+   to ASCII, and add them back to the mangled name. Thus, ``__green☘`` becomes
+   ``__hyx_greenXshamrockX``.
 
 #. Finally, normalize any leftover non-ASCII characters. The result may still
    not be ASCII (e.g., ``α`` is already Python-legal and normalized, so it
@@ -300,11 +295,9 @@ You can invoke the mangler yourself with the function :hy:func:`hy.mangle`, and 
 Mangling isn't something you should have to think about often, but you may see
 mangled names in error messages, the output of ``hy2py``, etc. A catch to be
 aware of is that mangling, as well as the inverse "unmangling" operation
-offered by :hy:func:`hy.unmangle`, isn't one-to-one. Two different symbols
-can mangle to the same string and hence compile to the same Python variable.
-The chief practical consequence of this is that (non-initial) ``-`` and ``_`` are
-interchangeable under mangling, so you can't use e.g. ``foo-bar`` and
-``foo_bar`` as separate variables.
+offered by :hy:func:`hy.unmangle`, isn't one-to-one. Two different symbols,
+like ``foo-bar`` and ``foo_bar``, can mangle to the same string and hence
+compile to the same Python variable.
 
 .. _string-literals:
 
