@@ -98,7 +98,7 @@ def as_identifier(ident, reader=None):
     if reader is None:
         if (
             not ident
-            or ident[:1] == ":"
+            or ident[0] in ":#"
             or any(isnormalizedspace(c) for c in ident)
             or HyReader.NON_IDENT.intersection(ident)
         ):

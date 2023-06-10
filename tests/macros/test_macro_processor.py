@@ -55,7 +55,7 @@ def test_macroexpand_nan():
 
 def test_macroexpand_source_data():
     # https://github.com/hylang/hy/issues/1944
-    ast = Expression([Symbol("#@"), String("a")])
+    ast = Expression([Symbol("when"), String("a")])
     ast.start_line = 3
     ast.start_column = 5
     bad = macroexpand_1(ast, "hy.core.macros")

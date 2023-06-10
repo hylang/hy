@@ -29,6 +29,8 @@ Bug Fixes
 * The parser no longer looks for shebangs in the REPL or `hy -c`.
 * `require` with relative module names should now work correctly with
   `hy -m`, as well as `hy2py`'s recursive mode.
+* `hy.models.Symbol` no longer allows constructing a symbol beginning
+  with `#`.
 
 New Features
 ------------------------------
