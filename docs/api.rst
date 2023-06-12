@@ -23,7 +23,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    and takes the type second::
 
       (setv (annotate x int) 1)
-      (setv #^int x 1)
+      (setv #^ int x 1)
 
    The order difference is not merely visual: ``#^`` actually evaluates the
    type first.
@@ -31,23 +31,23 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Here are examples with ``#^`` for all the places you can use annotations::
 
       ; Annotate the variable `x` as an `int` (equivalent to `x: int`).
-      #^int x
+      #^ int x
       ; You can annotate with expressions (equivalent to `y: f(x)`).
       #^(f x) y
 
       ; Annotations with an assignment: each annotation `(int, str)`
       ; covers the term that immediately follows.
       ; Equivalent to `x: int = 1; y = 2; z: str = 3`
-      (setv  #^int x 1  y 2  #^str z 3)
+      (setv  #^ int x 1  y 2  #^ str z 3)
 
       ; Annotate `a` as an `int`, `c` as an `int`, and `b` as a `str`.
       ; Equivalent to `def func(a: int, b: str = None, c: int = 1): ...`
-      (defn func [#^int a  #^str  [b None] #^int  [c 1]] ...)
+      (defn func [#^ int a  #^ str  [b None] #^ int  [c 1]] ...)
 
       ; Function return annotations come before the function name (if
       ; it exists).
-      (defn #^int add1 [#^int x] (+ x 1))
-      (fn #^int [#^int y] (+ y 2))
+      (defn #^ int add1 [#^ int x] (+ x 1))
+      (fn #^ int [#^ int y] (+ y 2))
 
    For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
    macro will likely be of use.
@@ -697,8 +697,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
       (import  dataclasses [dataclass])
       (defclass [dataclass] Point []
-        #^int x
-        #^int y)
+        #^ int x
+        #^ int y)
       (match (Point 1 2)
         (Point 1 x) :if (= (% x 2) 0) x)  ; => 2
 
