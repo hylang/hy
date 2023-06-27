@@ -12,7 +12,7 @@ from contextlib import nullcontext
 from pathlib import Path
 
 import hy
-from hy._compat import PY3_9, PYPY
+from hy._compat import PY3_9
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, filtered_hy_exceptions, hy_exc_handler
 from hy.importer import runhy
@@ -270,7 +270,7 @@ def cmdline_handler(scriptname, argv):
             set_path(filename)
             # Ensure __file__ is set correctly in the code we're about
             # to run.
-            if PY3_9 and not PYPY:
+            if PY3_9:
                 if not filename.is_absolute():
                     filename = Path.cwd() / filename
                 if platform.system() == "Windows":
