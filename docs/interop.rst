@@ -42,10 +42,16 @@ You can use :ref:`hy2py` to convert a Hy program to Python. The output will
 still import ``hy``, and thus require Hy to be installed in order to run; see
 :ref:`implicit-names` for details and workarounds.
 
-To execute Hy code from a string, use :func:`hy.read` to convert it to
-:ref:`models <models>` and then :func:`hy.eval` to evaluate it. There is no Hy
-equivalent of :func:`exec` because :func:`hy.eval` works even when the input
-isn't equivalent to a single Python expression.
+To execute Hy code from a string, use :hy:func:`hy.read-many` to convert it to
+:ref:`models <models>` and then :hy:func:`hy.eval` to evaluate it:
+
+.. code-block:: python
+
+   >>> hy.eval(hy.read_many("(setv x 1) (+ x 1)"))
+   2
+
+There is no Hy equivalent of :func:`exec` because :hy:func:`hy.eval` works
+even when the input isn't equivalent to a single Python expression.
 
 You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python, as in
 ``hy.REPL(locals = locals()).run()``.
