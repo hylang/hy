@@ -1,25 +1,30 @@
 ;; Tests of `try` and `raise`
 
-(defn test-try []
 
+(defn test-try-trivial []
   (try (do) (except []))
+  (try (do) (except [IOError]) (except [])))
 
-  (try (do) (except [IOError]) (except []))
 
-  ; test that multiple statements in a try get evaluated
+(defn test-try-multiple-statements []
   (setv value 0)
   (try (+= value 1) (+= value 2)  (except [IOError]) (except []))
-  (assert (= value 3))
+  (assert (= value 3)))
 
-  ; test that multiple expressions in a try get evaluated
+
+(defn test-try-multiple-expressions []
   ; https://github.com/hylang/hy/issues/1584
+
   (setv l [])
   (defn f [] (.append l 1))
   (try (f) (f) (f) (except [IOError]))
   (assert (= l [1 1 1]))
   (setv l [])
   (try (f) (f) (f) (except [IOError]) (else (f)))
-  (assert (= l [1 1 1 1]))
+  (assert (= l [1 1 1 1])))
+
+
+(defn test-raise-nullary []
 
   ;; Test correct (raise)
   (setv passed False)
@@ -38,7 +43,10 @@
    (raise)
    (except [RuntimeError]
      (setv passed True)))
-  (assert passed)
+  (assert passed))
+
+
+(defn test-try []
 
   ;; Test (finally)
   (setv passed False)
@@ -151,10 +159,13 @@
       (setv x 45))
     (else (setv x 44)))
    (except []))
-  (assert (= x 0))
+  (assert (= x 0)))
 
-  ; test that [except ...] and ("except" ...) aren't treated like (except ...),
-  ; and that the code there is evaluated normally
+
+(defn test-nonsyntactical-except []
+  #[[Test that [except ...] and ("except" ...) aren't treated like (except ...),
+  and that the code there is evaluated normally.]]
+
   (setv x 0)
   (try
     (+= x 1)
@@ -186,26 +197,35 @@
   ; https://github.com/hylang/hy/issues/798
 
   (assert (= "ef" ((fn []
-    (try (+ "a" "b")
-      (except [NameError] (+ "c" "d"))
-      (else (+ "e" "f")))))))
+    (try
+      (+ "a" "b")
+      (except [NameError]
+        (+ "c" "d"))
+      (else
+        (+ "e" "f")))))))
 
   (setv foo
-    (try (+ "A" "B")
-      (except [NameError] (+ "C" "D"))
-      (else (+ "E" "F"))))
+    (try
+      (+ "A" "B")
+      (except [NameError]
+        (+ "C" "D"))
+      (else
+        (+ "E" "F"))))
   (assert (= foo "EF"))
 
-  ; Check that the lvalue isn't assigned in the main `try` body
-  ; there's an `else`.
+  ; Check that the lvalue isn't assigned by the main `try` body
+  ; when there's an `else`.
   (setv x 1)
   (setv y 0)
   (setv x
-    (try (+ "G" "H")
-      (except [NameError] (+ "I" "J"))
+    (try
+      (+ "G" "H")
+      (except [NameError]
+        (+ "I" "J"))
       (else
         (setv y 1)
         (assert (= x 1))
+          ; `x` still has its value from before the `try`.
         (+ "K" "L"))))
   (assert (= x "KL"))
   (assert (= y 1)))
