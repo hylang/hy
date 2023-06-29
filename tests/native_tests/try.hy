@@ -1,5 +1,8 @@
 ;; Tests of `try` and `raise`
 
+(import
+  pytest)
+
 
 (defn test-try-trivial []
   (try (do) (except []))
@@ -46,120 +49,51 @@
   (assert passed))
 
 
-(defn test-try []
+(defn test-try-clauses []
 
-  ;; Test (finally)
-  (setv passed False)
-  (try
-   (do)
-   (finally (setv passed True)))
-  (assert passed)
+  (defmacro try-it [body v1 v2]
+    `(assert (= (_try-it (fn [] ~body)) [~v1 ~v2])))
+  (defn _try-it [callback]
+    (setv did-finally-clause? False)
+    (try
+      (callback)
+      (except [ZeroDivisionError]
+        (setv out ["aaa" None]))
+      (except [[IndexError NameError]]
+        (setv out ["bbb" None]))
+      (except [e TypeError]
+        (setv out ["ccc" (type e)]))
+      (except [e [KeyError AttributeError]]
+        (setv out ["ddd" (type e)]))
+      (except []
+        (setv out ["eee" None]))
+      (else
+        (setv out ["zzz" None]))
+      (finally
+        (setv did-finally-clause? True)))
+    (assert did-finally-clause?)
+    out)
 
-  ;; Test (finally) + (raise)
-  (setv passed False)
-  (try
-   (raise Exception)
-   (except [])
-   (finally (setv passed True)))
-  (assert passed)
+  (try-it  (/ 1 0)             "aaa" None)
+  (try-it  (get "foo" 5)       "bbb" None)
+  (try-it  unbound             "bbb" None)
+  (try-it  (abs "hi")          "ccc" TypeError)
+  (try-it  (get {1 2} 3)       "ddd" KeyError)
+  (try-it  True.a              "ddd" AttributeError)
+  (try-it  (raise ValueError)  "eee" None)
+  (try-it  "hi"                "zzz" None))
 
 
-  ;; Test (finally) + (raise) + (else)
-  (setv passed False
-        not-elsed True)
-  (try
-   (raise Exception)
-   (except [])
-   (else (setv not-elsed False))
-   (finally (setv passed True)))
-  (assert passed)
-  (assert not-elsed)
-
-  (try
-   (raise (KeyError))
-   (except [[IOError]] (assert False))
-   (except [e [KeyError]] (assert e)))
-
-  (try
-   (raise (KeyError))
-   (except [[IOError]] (assert False))
-   (except [e [KeyError]] (assert e)))
-
-  (try
-   (get [1] 3)
-   (except [IndexError] (assert True))
-   (except [IndexError] (do)))
-
-  (try
-   (print foobar42ofthebaz)
-   (except [IndexError] (assert False))
-   (except [NameError] (do)))
-
-  (try
-   (get [1] 3)
-   (except [e IndexError] (assert (isinstance e IndexError))))
-
-  (try
-   (get [1] 3)
-   (except [e [IndexError NameError]] (assert (isinstance e IndexError))))
-
-  (try
-   (print foobar42ofthebaz)
-   (except [e [IndexError NameError]] (assert (isinstance e NameError))))
-
-  (try
-   (print foobar42)
-   (except [[IndexError NameError]] (do)))
-
-  (try
-   (get [1] 3)
-   (except [[IndexError NameError]] (do)))
-
-  (try
-   (print foobar42ofthebaz)
-   (except []))
-
-  (try
-   (print foobar42ofthebaz)
-   (except [] (do)))
-
-  (try
-   (print foobar42ofthebaz)
-   (except []
-     (setv foobar42ofthebaz 42)
-     (assert (= foobar42ofthebaz 42))))
-
-  (setv passed False)
-  (try
-   (try (do) (except []) (else (bla)))
-   (except [NameError] (setv passed True)))
-  (assert passed)
-
-  (setv x 0)
-  (try
-   (raise IOError)
-   (except [IOError]
-     (setv x 45))
-   (else (setv x 44)))
-  (assert (= x 45))
-
-  (setv x 0)
-  (try
-   (raise KeyError)
-   (except []
-     (setv x 45))
-   (else (setv x 44)))
-  (assert (= x 45))
-
-  (setv x 0)
-  (try
-   (try
-    (raise KeyError)
-    (except [IOError]
-      (setv x 45))
-    (else (setv x 44)))
-   (except []))
-  (assert (= x 0)))
+(defn test-finally-executes-for-uncaught-exception []
+  (setv x "")
+  (with [(pytest.raises ZeroDivisionError)]
+    (try
+      (+= x "a")
+      (/ 1 0)
+      (+= x "b")
+      (finally
+        (+= x "c"))))
+  (assert (= x "ac")))
 
 
 (defn test-nonsyntactical-except []
