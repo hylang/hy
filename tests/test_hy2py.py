@@ -23,13 +23,15 @@ def test_hy2py_import():
     import subprocess
 
     path = "tests/resources/pydemo_as_py.py"
+    env = dict(os.environ)
+    env["PYTHONIOENCODING"] = "UTF-8"
+    env["PYTHONPATH"] = "." + os.pathsep + env.get("PYTHONPATH", "")
     try:
         with open(path, "wb") as o:
             subprocess.check_call(
                 ["hy2py", "tests/resources/pydemo.hy"],
                 stdout=o,
-                env={**os.environ, "PYTHONIOENCODING": "UTF-8"},
-            )
+                env=env)
         import tests.resources.pydemo_as_py as m
     finally:
         with contextlib.suppress(FileNotFoundError):
