@@ -4,9 +4,14 @@
   pytest)
 
 
-(defn test-try-trivial []
-  (try (do) (except []))
-  (try (do) (except [IOError]) (except [])))
+(defn test-try-missing-parts []
+  (assert (is (try) None))
+  (assert (= (try 1) 1))
+  (assert (is (try (except [])) None))
+  (assert (is (try (finally)) None))
+  (assert (= (try 1 (finally 2)) 1))
+  (assert (is (try (else)) None))
+  (assert (= (try 1 (else 2)) 2)))
 
 
 (defn test-try-multiple-statements []

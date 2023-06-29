@@ -1292,7 +1292,16 @@ def compile_raise_expression(compiler, expr, root, exc, cause):
     ],
 )
 def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbody):
+    if orelse is not None and not catchers:
+        # Python forbids `else` when there are no `except` clauses.
+        # But we can get the same effect by appending the `else` forms
+        # to the body.
+        body += list(orelse)
+        orelse = None
     body = compiler._compile_branch(body)
+    if not (catchers or finalbody):
+        # Python forbids this, so just return the body, per `do`.
+        return body
 
     return_var = asty.Name(expr, id=mangle(compiler.get_anon_var()), ctx=ast.Store())
 
@@ -1366,15 +1375,6 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         finalbody = compiler._compile_branch(finalbody)
         finalbody += finalbody.expr_as_stmt()
         finalbody = finalbody.stmts
-
-    # Using (else) without (except) is verboten!
-    if orelse and not handlers:
-        raise compiler._syntax_error(expr, "`try' cannot have `else' without `except'")
-    # Likewise a bare (try) or (try BODY).
-    if not (handlers or finalbody):
-        raise compiler._syntax_error(
-            expr, "`try' must have an `except' or `finally' clause"
-        )
 
     returnable = Result(
         expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),

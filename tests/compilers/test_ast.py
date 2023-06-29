@@ -113,13 +113,7 @@ def test_ast_good_try():
 
 
 def test_ast_bad_try():
-    cant_compile("(try)")
-    cant_compile("(try 1)")
-    cant_compile("(try 1 bla)")
-    cant_compile("(try 1 bla bla)")
-    cant_compile("(try (do bla bla))")
     cant_compile("(try (do) (else 1) (else 2))")
-    cant_compile("(try 1 (else 1))")
     cant_compile("(try 1 (else 1) (except []))")
     cant_compile("(try 1 (finally 1) (except []))")
     cant_compile("(try 1 (except []) (finally 1) (else 1))")
