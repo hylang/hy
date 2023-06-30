@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hy._compat import PY3_9, PYODIDE, PYPY
+from hy._compat import PY3_9, PYODIDE
 
 if PYODIDE:
     pytest.skip(
@@ -681,7 +681,6 @@ def test_output_buffering(tmp_path):
         assert tf.read_text().splitlines() == ["line 1", "line 2"]
 
 
-@pytest.mark.skipif(PYPY, reason = 'https://foss.heptapod.net/pypy/pypy/-/issues/3881')
 def test_uufileuu(tmp_path, monkeypatch):
     # `__file__` should be set the same way as in Python.
     # https://github.com/hylang/hy/issues/2318
@@ -691,7 +690,7 @@ def test_uufileuu(tmp_path, monkeypatch):
     (tmp_path / "realdir" / "pyex.py").write_text('print(__file__)')
 
     def file_is(arg, expected_py3_9):
-        expected = expected_py3_9 if PY3_9 and not PYPY else Path(arg)
+        expected = expected_py3_9 if PY3_9 else Path(arg)
         output, _ = run_cmd(["python3", arg + "pyex.py"])
         assert output.rstrip() == str(expected / "pyex.py")
         output, _ = run_cmd(["hy", arg + "hyex.hy"])
