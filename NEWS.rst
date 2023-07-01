@@ -20,18 +20,6 @@ Breaking Changes
   old directory. You must be in the parent directory of the module
   directory.
 
-Bug Fixes
-------------------------------
-* Fixed an installation failure in some situations when version lookup
-  fails.
-* Fixed some bugs with traceback pointing.
-* Fixed some bugs with escaping in bracket f-strings
-* The parser no longer looks for shebangs in the REPL or `hy -c`.
-* `require` with relative module names should now work correctly with
-  `hy -m`, as well as `hy2py`'s recursive mode.
-* `hy.models.Symbol` no longer allows constructing a symbol beginning
-  with `#`.
-
 New Features
 ------------------------------
 * Python 3.12 is now supported.
@@ -45,6 +33,18 @@ New Features
 * New built-in object `hy.M` for easy imports in macros.
 * `hy --spy` now prints a delimiter between the Python equivalent of
   your code and the result of evaluating the code for easier reading.
+
+Bug Fixes
+------------------------------
+* Fixed an installation failure in some situations when version lookup
+  fails.
+* Fixed some bugs with traceback pointing.
+* Fixed some bugs with escaping in bracket f-strings
+* The parser no longer looks for shebangs in the REPL or `hy -c`.
+* `require` with relative module names should now work correctly with
+  `hy -m`, as well as `hy2py`'s recursive mode.
+* `hy.models.Symbol` no longer allows constructing a symbol beginning
+  with `#`.
 
 0.26.0 (released 2023-02-08)
 =============================
@@ -75,15 +75,6 @@ Breaking Changes
 * Redundant scripts named `hy3`, `hyc3`, and `hy2py3` are no longer
   installed. Use `hy`, `hyc`, and `hy2py` instead.
 
-Bug Fixes
-------------------------------
-* `hy.REPL` now restores the global values it changes (such as
-  `sys.ps1`) after `hy.REPL.run` terminates.
-* `hy.REPL` no longer mixes up Hy's and Python's Readline histories
-  when run inside Python's REPL.
-* Fixed `hy.repr` of non-compilable uses of sugared macros, such as
-  `(quote)` and `(quote 1 2)`.
-
 New Features
 ------------------------------
 * Pyodide is now officially supported.
@@ -93,6 +84,15 @@ New Features
   archives in the same way as Python modules, via `zipimport`_.
 * `hy2py` has a new command-line option `--output`.
 * `hy2py` can now operate recursively on a directory.
+
+Bug Fixes
+------------------------------
+* `hy.REPL` now restores the global values it changes (such as
+  `sys.ps1`) after `hy.REPL.run` terminates.
+* `hy.REPL` no longer mixes up Hy's and Python's Readline histories
+  when run inside Python's REPL.
+* Fixed `hy.repr` of non-compilable uses of sugared macros, such as
+  `(quote)` and `(quote 1 2)`.
 
 .. _zipimport: https://docs.python.org/3.11/library/zipimport.html
 
@@ -180,24 +180,6 @@ Other Breaking Changes
 * `hy.cmdline.run_repl` has been replaced with
   `hy.cmdline.HyREPL.run`.
 
-Bug Fixes
-------------------------------
-* Fixed a crash when using keyword objects in `match`.
-* Fixed a scoping bug in comprehensions in `let` bodies.
-* Literal newlines (of all three styles) are now recognized properly
-  in string and bytes literals.
-* `defmacro` no longer allows further arguments after `#* args`.
-* `!=` with model objects is now consistent with `=`.
-* Tracebacks from code parsed with `hy.read` now show source
-  positions.
-* Elements of `builtins` such as `help` are no longer overridden until
-  the REPL actually starts.
-* Readline is now imported only when necessary, to avoid triggering a
-  CPython bug regarding the standard module `curses`
-  (`cpython#46927`_).
-* Module names supplied to `hy -m` are now mangled.
-* Hy now precompiles its own Hy code during installation.
-
 New Features
 ------------------------------
 * Added user-defined reader macros, defined with `defreader`.
@@ -219,6 +201,24 @@ New Features
 * New function `hy.model_patterns.in_tuple`.
 * Added a command-line option `-u` (or `--unbuffered`) per CPython.
 * Tab-completion in the REPL now attempts to unmangle names.
+
+Bug Fixes
+------------------------------
+* Fixed a crash when using keyword objects in `match`.
+* Fixed a scoping bug in comprehensions in `let` bodies.
+* Literal newlines (of all three styles) are now recognized properly
+  in string and bytes literals.
+* `defmacro` no longer allows further arguments after `#* args`.
+* `!=` with model objects is now consistent with `=`.
+* Tracebacks from code parsed with `hy.read` now show source
+  positions.
+* Elements of `builtins` such as `help` are no longer overridden until
+  the REPL actually starts.
+* Readline is now imported only when necessary, to avoid triggering a
+  CPython bug regarding the standard module `curses`
+  (`cpython#46927`_).
+* Module names supplied to `hy -m` are now mangled.
+* Hy now precompiles its own Hy code during installation.
 
 .. _cpython#46927: https://github.com/python/cpython/issues/46927#issuecomment-1093418916
 .. _cpython#90678: https://github.com/python/cpython/issues/90678
@@ -258,6 +258,14 @@ Other Breaking Changes
   would be syntactically legal as a literal.
 * `hy.extra.reserved` has been renamed to `hy.reserved`.
 
+New Features
+------------------------------
+* `hy.repr` now supports several more standard types.
+* The attribute access macro `.` now allows method calls. For example,
+  `(. x (f a))` is equivalent to `(x.f a)`.
+* `hy.as-model` checks for self-references in its argument.
+* New function `hy.model_patterns.keepsym`.
+
 Bug Fixes
 ------------------------------
 * In comprehension forms other than `for`, assignments (other than
@@ -273,14 +281,6 @@ Bug Fixes
   instead of emitting incorrect Python code.
 * Fixed a bug with self-requiring files on Windows.
 * Improved error messages for illegal uses of `finally` and `else`.
-
-New Features
-------------------------------
-* `hy.repr` now supports several more standard types.
-* The attribute access macro `.` now allows method calls. For example,
-  `(. x (f a))` is equivalent to `(x.f a)`.
-* `hy.as-model` checks for self-references in its argument.
-* New function `hy.model_patterns.keepsym`.
 
 .. _Hyrule: https://github.com/hylang/hyrule
 
