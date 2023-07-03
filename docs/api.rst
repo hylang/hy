@@ -996,10 +996,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    list of exception types, followed by more body forms. Finally there are an
    optional ``else`` form and an optional ``finally`` form, which again are
    expressions that begin with the symbol in question and then comprise body
-   forms. As in Python, at least one of ``except``, ``except*``, or ``finally``
-   is required; ``else`` is only allowed if at least one ``except`` or
-   ``except*`` is provided; ``except*`` requires Python 3.11; and ``except``
-   and ``except*`` may not both be used in the same ``try``.
+   forms. Note that ``except*`` requires Python 3.11, and ``except*`` and
+   ``except`` may not both be used in the same ``try``.
 
    Here's an example of several of the allowed kinds of child forms::
 

@@ -37,6 +37,8 @@ New Features
 * Python 3.12 is now supported.
 * `nonlocal` and `global` can now be called with no arguments, in which
   case they're no-ops.
+* `try` no longer requires `except`, `except*`, or `finally`, and it
+  allows `else` even without `except` or `except*`.
 * The `py` macro now implicitly parenthesizes the input code, so Python's
   indentation restrictions don't apply.
 * `cut` now has a function version in `hy.pyops`.

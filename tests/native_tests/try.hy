@@ -1,25 +1,38 @@
 ;; Tests of `try` and `raise`
 
-(defn test-try []
+(import
+  pytest)
 
-  (try (do) (except []))
 
-  (try (do) (except [IOError]) (except []))
+(defn test-try-missing-parts []
+  (assert (is (try) None))
+  (assert (= (try 1) 1))
+  (assert (is (try (except [])) None))
+  (assert (is (try (finally)) None))
+  (assert (= (try 1 (finally 2)) 1))
+  (assert (is (try (else)) None))
+  (assert (= (try 1 (else 2)) 2)))
 
-  ; test that multiple statements in a try get evaluated
+
+(defn test-try-multiple-statements []
   (setv value 0)
   (try (+= value 1) (+= value 2)  (except [IOError]) (except []))
-  (assert (= value 3))
+  (assert (= value 3)))
 
-  ; test that multiple expressions in a try get evaluated
+
+(defn test-try-multiple-expressions []
   ; https://github.com/hylang/hy/issues/1584
+
   (setv l [])
   (defn f [] (.append l 1))
   (try (f) (f) (f) (except [IOError]))
   (assert (= l [1 1 1]))
   (setv l [])
   (try (f) (f) (f) (except [IOError]) (else (f)))
-  (assert (= l [1 1 1 1]))
+  (assert (= l [1 1 1 1])))
+
+
+(defn test-raise-nullary []
 
   ;; Test correct (raise)
   (setv passed False)
@@ -38,123 +51,60 @@
    (raise)
    (except [RuntimeError]
      (setv passed True)))
-  (assert passed)
-
-  ;; Test (finally)
-  (setv passed False)
-  (try
-   (do)
-   (finally (setv passed True)))
-  (assert passed)
-
-  ;; Test (finally) + (raise)
-  (setv passed False)
-  (try
-   (raise Exception)
-   (except [])
-   (finally (setv passed True)))
-  (assert passed)
+  (assert passed))
 
 
-  ;; Test (finally) + (raise) + (else)
-  (setv passed False
-        not-elsed True)
-  (try
-   (raise Exception)
-   (except [])
-   (else (setv not-elsed False))
-   (finally (setv passed True)))
-  (assert passed)
-  (assert not-elsed)
+(defn test-try-clauses []
 
-  (try
-   (raise (KeyError))
-   (except [[IOError]] (assert False))
-   (except [e [KeyError]] (assert e)))
+  (defmacro try-it [body v1 v2]
+    `(assert (= (_try-it (fn [] ~body)) [~v1 ~v2])))
+  (defn _try-it [callback]
+    (setv did-finally-clause? False)
+    (try
+      (callback)
+      (except [ZeroDivisionError]
+        (setv out ["aaa" None]))
+      (except [[IndexError NameError]]
+        (setv out ["bbb" None]))
+      (except [e TypeError]
+        (setv out ["ccc" (type e)]))
+      (except [e [KeyError AttributeError]]
+        (setv out ["ddd" (type e)]))
+      (except []
+        (setv out ["eee" None]))
+      (else
+        (setv out ["zzz" None]))
+      (finally
+        (setv did-finally-clause? True)))
+    (assert did-finally-clause?)
+    out)
 
-  (try
-   (raise (KeyError))
-   (except [[IOError]] (assert False))
-   (except [e [KeyError]] (assert e)))
+  (try-it  (/ 1 0)             "aaa" None)
+  (try-it  (get "foo" 5)       "bbb" None)
+  (try-it  unbound             "bbb" None)
+  (try-it  (abs "hi")          "ccc" TypeError)
+  (try-it  (get {1 2} 3)       "ddd" KeyError)
+  (try-it  True.a              "ddd" AttributeError)
+  (try-it  (raise ValueError)  "eee" None)
+  (try-it  "hi"                "zzz" None))
 
-  (try
-   (get [1] 3)
-   (except [IndexError] (assert True))
-   (except [IndexError] (do)))
 
-  (try
-   (print foobar42ofthebaz)
-   (except [IndexError] (assert False))
-   (except [NameError] (do)))
+(defn test-finally-executes-for-uncaught-exception []
+  (setv x "")
+  (with [(pytest.raises ZeroDivisionError)]
+    (try
+      (+= x "a")
+      (/ 1 0)
+      (+= x "b")
+      (finally
+        (+= x "c"))))
+  (assert (= x "ac")))
 
-  (try
-   (get [1] 3)
-   (except [e IndexError] (assert (isinstance e IndexError))))
 
-  (try
-   (get [1] 3)
-   (except [e [IndexError NameError]] (assert (isinstance e IndexError))))
+(defn test-nonsyntactical-except []
+  #[[Test that [except ...] and ("except" ...) aren't treated like (except ...),
+  and that the code there is evaluated normally.]]
 
-  (try
-   (print foobar42ofthebaz)
-   (except [e [IndexError NameError]] (assert (isinstance e NameError))))
-
-  (try
-   (print foobar42)
-   (except [[IndexError NameError]] (do)))
-
-  (try
-   (get [1] 3)
-   (except [[IndexError NameError]] (do)))
-
-  (try
-   (print foobar42ofthebaz)
-   (except []))
-
-  (try
-   (print foobar42ofthebaz)
-   (except [] (do)))
-
-  (try
-   (print foobar42ofthebaz)
-   (except []
-     (setv foobar42ofthebaz 42)
-     (assert (= foobar42ofthebaz 42))))
-
-  (setv passed False)
-  (try
-   (try (do) (except []) (else (bla)))
-   (except [NameError] (setv passed True)))
-  (assert passed)
-
-  (setv x 0)
-  (try
-   (raise IOError)
-   (except [IOError]
-     (setv x 45))
-   (else (setv x 44)))
-  (assert (= x 45))
-
-  (setv x 0)
-  (try
-   (raise KeyError)
-   (except []
-     (setv x 45))
-   (else (setv x 44)))
-  (assert (= x 45))
-
-  (setv x 0)
-  (try
-   (try
-    (raise KeyError)
-    (except [IOError]
-      (setv x 45))
-    (else (setv x 44)))
-   (except []))
-  (assert (= x 0))
-
-  ; test that [except ...] and ("except" ...) aren't treated like (except ...),
-  ; and that the code there is evaluated normally
   (setv x 0)
   (try
     (+= x 1)
@@ -186,26 +136,35 @@
   ; https://github.com/hylang/hy/issues/798
 
   (assert (= "ef" ((fn []
-    (try (+ "a" "b")
-      (except [NameError] (+ "c" "d"))
-      (else (+ "e" "f")))))))
+    (try
+      (+ "a" "b")
+      (except [NameError]
+        (+ "c" "d"))
+      (else
+        (+ "e" "f")))))))
 
   (setv foo
-    (try (+ "A" "B")
-      (except [NameError] (+ "C" "D"))
-      (else (+ "E" "F"))))
+    (try
+      (+ "A" "B")
+      (except [NameError]
+        (+ "C" "D"))
+      (else
+        (+ "E" "F"))))
   (assert (= foo "EF"))
 
-  ; Check that the lvalue isn't assigned in the main `try` body
-  ; there's an `else`.
+  ; Check that the lvalue isn't assigned by the main `try` body
+  ; when there's an `else`.
   (setv x 1)
   (setv y 0)
   (setv x
-    (try (+ "G" "H")
-      (except [NameError] (+ "I" "J"))
+    (try
+      (+ "G" "H")
+      (except [NameError]
+        (+ "I" "J"))
       (else
         (setv y 1)
         (assert (= x 1))
+          ; `x` still has its value from before the `try`.
         (+ "K" "L"))))
   (assert (= x "KL"))
   (assert (= y 1)))
