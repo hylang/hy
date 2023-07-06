@@ -38,6 +38,8 @@ Project
 * Community: Join us on [Github Discussions](https://github.com/hylang/hy/discussions)!
 * [Stack Overflow: The [hy] tag](https://stackoverflow.com/questions/tagged/hy)
 
+Hy's current maintainer is [Kodi Arfer](https://github.com/Kodiologist). He takes responsibility for answering user questions, which should primarily be asked on Stack Overflow or GitHub Discussions, but feel free to [poke him](http://arfer.net/elsewhere) if he's missed a question or you've found a serious security issue.
+
 ![Cuddles the Hacker](https://i.imgur.com/QbPMXTN.png)
 
 (fan art from the one and only [doctormo](http://doctormo.deviantart.com/art/Cuddles-the-Hacker-372184766))
