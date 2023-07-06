@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+0.27.0 (released 2023-07-06)
 =============================
 
 Removals
@@ -9,11 +9,10 @@ Removals
 
 Breaking Changes
 ------------------------------
-* Reader macros now always read a full identifier after the initial `#`,
-  allowing for reader macros that start with characters such as `*`, `^`, `_`.
-  Forms like `#*word` will attempt to dispatch a macro named `*word`;
-  to unpack a symbol named `word`, write `#* word` (note the space).
-* Reader macro names are no longer mangled.
+* Reader macros now always read a full identifier after the initial
+  `#`. Thus, `#*foo` is now parsed as a call to the reader macro named
+  `*foo`; to unpack a variable named `foo`, say `#* foo`.
+* The names of reader macros names are no longer mangled.
 * Question marks (`?`) are no longer mangled specially, so `foo?` now
   mangles to `hyx_fooXquestion_markX` instead of `is_foo`.
 * `hy2py`'s recursive mode now expects a module name as input, not any
@@ -23,16 +22,17 @@ Breaking Changes
 New Features
 ------------------------------
 * Python 3.12 is now supported.
-* `nonlocal` and `global` can now be called with no arguments, in which
-  case they're no-ops.
+* New built-in object `hy.M` for easy imports in macros.
+* `cut` now has a function version in `hy.pyops`.
+* The `py` macro now implicitly parenthesizes the input code, so
+  Python's indentation restrictions don't apply.
 * `try` no longer requires `except`, `except*`, or `finally`, and it
   allows `else` even without `except` or `except*`.
-* The `py` macro now implicitly parenthesizes the input code, so Python's
-  indentation restrictions don't apply.
-* `cut` now has a function version in `hy.pyops`.
-* New built-in object `hy.M` for easy imports in macros.
-* `hy --spy` now prints a delimiter between the Python equivalent of
-  your code and the result of evaluating the code for easier reading.
+* `nonlocal` and `global` can now be called with no arguments, in
+  which case they're no-ops.
+* For easier reading, `hy --spy` now prints a delimiter after the
+  Python equivalent of your code, before the result of evaluating the
+  code.
 
 Bug Fixes
 ------------------------------
