@@ -37,16 +37,19 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
     - if: ${{ matrix.python == 'pyodide' }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - if: ${{ matrix.python == 'pyodide' }}
       uses: actions/setup-node@v3
     - name: Install
       shell: bash
       run: |
         if [[ ${{ matrix.python }} = pyodide ]] ; then
-            npm install pyodide@0.22.1
-              # 0.23.0 has a regression: https://github.com/pyodide/pyodide/issues/3730
-            pip install 'pip >= 22.3.1'
-              # Older pips may fail to install `pyodide-build`.
-            pip install 'pyodide-build == 0.22.1'
+            pip install 'pydantic < 2'
+              # https://github.com/pyodide/pyodide/pull/3971
+            npm install pyodide
+            pip install pyodide-build
             pyodide venv .venv-pyodide
             source .venv-pyodide/bin/activate
         fi
