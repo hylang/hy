@@ -740,6 +740,20 @@ def test_assert(tmp_path, monkeypatch):
             assert ("bye" in err) == show_msg
 
 
+def test_hy2py_compile_only(monkeypatch):
+    def check(args):
+        output, _ = run_cmd(f"hy2py {args}")
+        assert not re.search(r"^hello world$", output, re.M)
+
+    monkeypatch.chdir('tests/resources')
+    check("hello_world.hy")
+    check("-m hello_world")
+
+    monkeypatch.chdir('..')
+    check("resources/hello_world.hy")
+    check("-m resources.hello_world")
+
+
 def test_hy2py_recursive(monkeypatch, tmp_path):
     (tmp_path / 'foo').mkdir()
     (tmp_path / 'foo/__init__.py').touch()
@@ -755,10 +769,10 @@ def test_hy2py_recursive(monkeypatch, tmp_path):
 
     monkeypatch.chdir(tmp_path)
 
-    _, err = run_cmd("hy2py foo", expect=1)
+    _, err = run_cmd("hy2py -m foo", expect=1)
     assert "ValueError" in err
 
-    run_cmd("hy2py foo --output bar")
+    run_cmd("hy2py -m foo --output bar")
     assert set((tmp_path / 'bar').rglob('*')) == {
         tmp_path / 'bar' / p
         for p in ('first.py', 'folder', 'folder/second.py')}
@@ -767,7 +781,7 @@ def test_hy2py_recursive(monkeypatch, tmp_path):
     assert output == "1\nhello world\n"
 
 
-@pytest.mark.parametrize('case', ['hy -m', 'hy2py'])
+@pytest.mark.parametrize('case', ['hy -m', 'hy2py -m'])
 def test_relative_require(case, monkeypatch, tmp_path):
     # https://github.com/hylang/hy/issues/2204
 
@@ -784,8 +798,8 @@ def test_relative_require(case, monkeypatch, tmp_path):
 
     if case == 'hy -m':
         output, _ = run_cmd('hy -m pkg.b')
-    elif case == 'hy2py':
-        run_cmd('hy2py pkg -o out')
+    elif case == 'hy2py -m':
+        run_cmd('hy2py -m pkg -o out')
         (tmp_path / 'out' / '__init__.py').touch()
         output, _ = run_cmd('python3 -m out.b')
 

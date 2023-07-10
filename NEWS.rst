@@ -1,5 +1,14 @@
 .. default-role:: code
 
+Unreleased
+=============================
+
+Breaking Changes
+------------------------------
+* `hy2py` now requires `-m` to specify modules, and uses
+  the same `sys.path` rules as Python when parsing a module
+  vs a standalone script.
+
 0.27.0 (released 2023-07-06)
 =============================
 
