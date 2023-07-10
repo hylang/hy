@@ -821,15 +821,6 @@ def hy_compile(
     """
     module = get_compiler_module(module, compiler, False)
 
-    if isinstance(module, str):
-        if module.startswith("<") and module.endswith(">"):
-            module = types.ModuleType(module)
-        else:
-            module = importlib.import_module(mangle(module))
-
-    if not inspect.ismodule(module):
-        raise TypeError("Invalid module type: {}".format(type(module)))
-
     filename = getattr(tree, "filename", filename)
     source = getattr(tree, "source", source)
 
