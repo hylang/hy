@@ -8,6 +8,7 @@ import py_compile
 import re
 import runpy
 import sys
+import types
 from contextlib import nullcontext
 from pathlib import Path
 
@@ -332,16 +333,18 @@ def hyc_main():
     return rv
 
 
-def hy2py_worker(source, options, filename, output_filepath=None):
+def hy2py_worker(source, options, filename=None, parent_module=None, output_filepath=None):
     source_path = None
     if isinstance(source, Path):
         source_path = source
         source = source.read_text(encoding="UTF-8")
+        if parent_module is None:
+            set_path(source_path)
 
     if not output_filepath and options.output:
         output_filepath = options.output
 
-    set_path(filename)
+
     with (
         open(output_filepath, "w", encoding="utf-8")
         if output_filepath
@@ -361,13 +364,19 @@ def hy2py_worker(source, options, filename, output_filepath=None):
         hst.filename = filename
 
         with filtered_hy_exceptions():
-            _ast = hy_compile(
-                 hst,
-                 re.sub(r'\.hy$', '', '.'.join(source_path.parts))
-                     if source_path
-                     else '__main__',
-                 filename=filename,
-                 source=source)
+            module_name = source_path.stem
+            if parent_module:
+                module_name = f"{parent_module}.{module_name}"
+            module = types.ModuleType(module_name)
+            sys.modules[module_name] = module
+            try:
+                _ast = hy_compile(
+                     hst,
+                     module,
+                     filename=filename,
+                     source=source)
+            finally:
+                del sys.modules[module_name]
 
         if options.with_source:
             print()
@@ -386,17 +395,19 @@ def hy2py_worker(source, options, filename, output_filepath=None):
 def hy2py_main():
     options = dict(
         prog="hy2py",
-        usage="%(prog)s [options] [FILE]",
+        usage="%(prog)s [options] [-m MODULE | FILE | -]",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser = argparse.ArgumentParser(**options)
-    parser.add_argument(
+    gp = parser.add_argument_group().add_mutually_exclusive_group()
+    gp.add_argument("-m", dest="module", help="convert Hy module (or all files in module)")
+    gp.add_argument(
         "FILE",
         type=str,
         nargs="?",
-        help='Input Hy code (can be file or module) (use STDIN if "-" or '
-        "not provided)",
+        help='convert Hy source file',
     )
+    gp.add_argument("-", dest="use_stdin", action="store_true", help="read Hy from stdin")
     parser.add_argument(
         "--with-source",
         "-s",
@@ -422,12 +433,17 @@ def hy2py_main():
 
     options = parser.parse_args(sys.argv[1:])
 
-    if options.FILE is None or options.FILE == "-":
+    if options.use_stdin or (options.FILE is None and options.module is None):
         sys.path.insert(0, "")
         filename = "<stdin>"
         hy2py_worker(sys.stdin.read(), options, filename)
-    else:
-        filename = options.FILE
+    elif options.module:
+        if options.module[:1] == ".":
+            raise ValueError(
+                "Relative module names not supported"
+            )
+        sys.path.insert(0, "")
+        filename = options.module.replace(".", os.sep)
         if os.path.isdir(filename):
             # handle recursively if --output is specified
             if not options.output:
@@ -443,20 +459,23 @@ def hy2py_main():
                         # make sure to follow original file structure
                         subdirectory = os.path.relpath(path, filename)
                         output_directory_path = os.path.join(
-                            options.output if options.output else path, subdirectory
+                            options.output, subdirectory
                         )
                         os.makedirs(output_directory_path, exist_ok=True)
                         hy2py_worker(
                             Path(filepath),
                             options,
-                            filename,
+                            parent_module=path.replace(os.sep, "."),
                             output_filepath=os.path.join(
                                 output_directory_path, filename_raw + ".py"
                             ),
                         )
-
         else:
-            hy2py_worker(Path(options.FILE), options, filename)
+            filename += ".hy"
+            parent_module = ".".join(options.module.split(".")[:-1])
+            hy2py_worker(Path(filename), options, parent_module=parent_module)
+    else:
+        hy2py_worker(Path(options.FILE), options, options.FILE)
     parser.exit(0)
 
 
