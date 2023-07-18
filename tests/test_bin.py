@@ -131,7 +131,6 @@ def test_stdin_error_underline_alignment():
     _, err = run_cmd("hy", "(defmacro mabcdefghi [x] x)\n(mabcdefghi)")
 
     msg_idx = err.rindex("    (mabcdefghi)")
-    assert msg_idx
     err_parts = err[msg_idx:].splitlines()
     assert err_parts[1].startswith("    ^----------^")
     assert err_parts[2].startswith("expanding macro mabcdefghi")
