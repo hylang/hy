@@ -5,23 +5,36 @@
   sys
   pytest)
 
-(defn test-preserve-ps1 [monkeypatch]
+(defn [pytest.fixture] rt [monkeypatch capsys]
+  "Do a test run of the REPL."
+  (fn [[inp ""] [to-return 'out]]
+    (monkeypatch.setattr "sys.stdin" (io.StringIO inp))
+    (.run (hy.REPL))
+    (setv result (capsys.readouterr))
+    (cond
+      (= to-return 'out) result.out
+      (= to-return 'err) result.err
+      (= to-return 'both) result)))
+
+(defmacro has [haystack needle]
+  "`in` backwards."
+  `(in ~needle ~haystack))
+
+
+(defn test-preserve-ps1 [rt]
   ; https://github.com/hylang/hy/issues/1323#issuecomment-1310837340
-  (monkeypatch.setattr "sys.stdin" (io.StringIO "(+ 1 1)"))
   (setv sys.ps1 "chippy")
   (assert (= sys.ps1 "chippy"))
-  (.run (hy.REPL))
+  (rt "(+ 1 1)")
   (assert (= sys.ps1 "chippy")))
 
-(defn test-repl-input-1char [monkeypatch capsys]
+(defn test-input-1char [rt]
   ; https://github.com/hylang/hy/issues/2430
-  (monkeypatch.setattr "sys.stdin" (io.StringIO "1\n"))
-  (.run (hy.REPL))
-  (assert (= (. capsys (readouterr) out) "=> 1\n=> " )))
+  (assert (=
+    (rt "1\n")
+    "=> 1\n=> ")))
 
-(defn test-repl-no-shebangs [monkeypatch capsys]
-  (monkeypatch.setattr "sys.stdin" (io.StringIO "#!/usr/bin/env hy\n"))
-  (.run (hy.REPL))
-  (assert (in
-    "hy.reader.exceptions.LexException"
-    (. capsys (readouterr) err))))
+(defn test-no-shebangs-allowed [rt]
+  (assert (has
+    (rt "#!/usr/bin/env hy\n" 'err)
+    "hy.reader.exceptions.LexException")))
