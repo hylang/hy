@@ -63,116 +63,6 @@ def test_simple():
     run_cmd("hy", "")
 
 
-def test_stdin():
-    output, _ = run_cmd("hy", '(.upper "hello")')
-    assert "HELLO" in output
-
-    output, _ = run_cmd("hy --spy", '(.upper "hello")')
-    assert ".upper()" in output
-    assert "HELLO" in output
-
-    # --spy should work even when an exception is thrown
-    output, _ = run_cmd("hy --spy", "(foof)")
-    assert "foof()" in output
-
-
-def test_stdin_multiline():
-    output, _ = run_cmd("hy", '(+ "a" "b"\n"c" "d")')
-    assert '"abcd"' in output
-
-
-def test_history():
-    output, _ = run_cmd("hy", '''(+ "a" "b")
-                                 (+ "c" "d")
-                                 (+ "e" "f")
-                                 (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)''')
-    assert '"*1: ef, *2: cd, *3: ab,"' in output
-
-    output, _ = run_cmd("hy", '''(raise (Exception "TEST ERROR"))
-                                 (+ "err: " (str *e))''')
-    assert '"err: TEST ERROR"' in output
-
-
-def test_stdin_comments():
-    _, err_empty = run_cmd("hy", "")
-
-    output, err = run_cmd("hy", '(+ "a" "b") ; "c"')
-    assert '"ab"' in output
-    assert err == err_empty
-
-    _, err = run_cmd("hy", "; 1")
-    assert err == err_empty
-
-
-def test_stdin_assignment():
-    # If the last form is an assignment, don't print the value.
-
-    output, _ = run_cmd("hy", '(setv x (+ "A" "Z"))')
-    assert "AZ" not in output
-
-    output, _ = run_cmd("hy", '(setv x (+ "A" "Z")) (+ "B" "Y")')
-    assert "AZ" not in output
-    assert "BY" in output
-
-    output, _ = run_cmd("hy", '(+ "B" "Y") (setv x (+ "A" "Z"))')
-    assert "AZ" not in output
-    assert "BY" not in output
-
-
-def test_multi_setv():
-    # https://github.com/hylang/hy/issues/1255
-    output, _ = run_cmd("hy", """(do
-      (setv  it 0  it (+ it 1)  it (+ it 1))
-      it)""".replace("\n", " "))
-    assert re.match(r"=>\s+2\s+=>", output)
-
-
-def test_stdin_error_underline_alignment():
-    _, err = run_cmd("hy", "(defmacro mabcdefghi [x] x)\n(mabcdefghi)")
-
-    msg_idx = err.rindex("    (mabcdefghi)")
-    err_parts = err[msg_idx:].splitlines()
-    assert err_parts[1].startswith("    ^----------^")
-    assert err_parts[2].startswith("expanding macro mabcdefghi")
-    assert (
-        err_parts[3].startswith("  TypeError: mabcdefghi")
-        or
-        # PyPy can use a function's `__name__` instead of
-        # `__code__.co_name`.
-        err_parts[3].startswith("  TypeError: (mabcdefghi)")
-    )
-
-
-def test_stdin_except_do():
-    # https://github.com/hylang/hy/issues/533
-
-    output, _ = run_cmd("hy",
-        '(try (/ 1 0) (except [ZeroDivisionError] "hello"))')
-    assert "hello" in output
-
-    output, _ = run_cmd("hy",
-        '(try (/ 1 0) (except [ZeroDivisionError] "aaa" "bbb" "ccc"))')
-    assert "aaa" not in output
-    assert "bbb" not in output
-    assert "ccc" in output
-
-    output, _ = run_cmd("hy",
-        '(when True "xxx" "yyy" "zzz")')
-    assert "xxx" not in output
-    assert "yyy" not in output
-    assert "zzz" in output
-
-
-def test_stdin_unlocatable_hytypeerror():
-    # https://github.com/hylang/hy/issues/1412
-    # The chief test of interest here is the returncode assertion
-    # inside run_cmd.
-    _, err = run_cmd("hy", """
-        (import hy.errors)
-        (raise (hy.errors.HyTypeError (+ "A" "Z") None '[] None))""")
-    assert "AZ" in err
-
-
 def test_error_parts_length():
     """Confirm that exception messages print arrows surrounding the affected
     expression."""
@@ -230,43 +120,6 @@ def test_error_parts_length():
     assert msg_idx
     err_parts = err[msg_idx:].splitlines()[1:]
     assert err_parts[2] == "    ^----^"
-
-
-def test_syntax_errors():
-    # https://github.com/hylang/hy/issues/2004
-    _, err = run_cmd("hy", "(defn foo [/])\n(defn bar [a a])")
-    assert "SyntaxError: duplicate argument" in err
-
-    # https://github.com/hylang/hy/issues/2014
-    _, err = run_cmd("hy", "(defn foo []\n(import re *))")
-    assert "SyntaxError: import * only allowed" in err
-    assert "PrematureEndOfInput" not in err
-
-
-def test_stdin_bad_repr():
-    # https://github.com/hylang/hy/issues/1389
-    output, err = run_cmd("hy", """
-         (defclass BadRepr [] (defn __repr__ [self] (/ 0)))
-         (BadRepr)
-         (+ "A" "Z")""")
-    assert "ZeroDivisionError" in err
-    assert "AZ" in output
-
-
-def test_stdin_py_repr():
-    output, _ = run_cmd("hy", "(+ [1] [2])")
-    assert "[1 2]" in output
-
-    output, _ = run_cmd(pyr(), "(+ [1] [2])")
-    assert "[1, 2]" in output
-
-    output, _ = run_cmd(pyr("--spy"), "(+ [1] [2])")
-    assert "[1]+[2]" in output.replace(" ", "")
-    assert "[1, 2]" in output
-
-    # --spy should work even when an exception is thrown
-    output, _ = run_cmd(pyr("--spy"), "(+ [1] [2] (foof))")
-    assert "[1]+[2]" in output.replace(" ", "")
 
 
 def test_mangle_m():
@@ -374,19 +227,8 @@ def test_hyc_missing_file():
     assert "[Errno 2]" in err
 
 
-def test_builtins():
-    # The REPL replaces `builtins.help` etc.
-
-    output, _ = run_cmd("hy", 'quit')
-    assert "Use (quit) or Ctrl-D (i.e. EOF) to exit" in output
-
-    output, _ = run_cmd("hy", 'exit')
-    assert "Use (exit) or Ctrl-D (i.e. EOF) to exit" in output
-
-    output, _ = run_cmd("hy", 'help')
-    assert "Use (help) for interactive help, or (help object) for help about object." in output
-
-    # Just importing `hy.cmdline` doesn't modify these objects.
+def test_repl_builtins():
+    "Just importing `hy.cmdline` doesn't modify `help` etc."
     import hy.cmdline
     assert "help(object)" in str(builtins.help)
 
