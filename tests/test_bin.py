@@ -63,6 +63,23 @@ def test_simple():
     run_cmd("hy", "")
 
 
+def test_stdin():
+    # https://github.com/hylang/hy/issues/2438
+    code = '(+ "P" "Q")\n(print (+ "R" "S"))\n(+ "T" "U")'
+
+    # Without `-i`, the standard input is run as a script.
+    out, _ = run_cmd("hy", code)
+    assert "PQ" not in out
+    assert "RS" in out
+    assert "TU" not in out
+
+    # With it, the standard input is fed to the REPL.
+    out, _ = run_cmd("hy -i", code)
+    assert "PQ" in out
+    assert "RS" in out
+    assert "TU" in out
+
+
 def test_error_parts_length():
     """Confirm that exception messages print arrows surrounding the affected
     expression."""
@@ -84,7 +101,7 @@ def test_error_parts_length():
     """
 
     # Up-arrows right next to each other.
-    _, err = run_cmd("hy", prg_str.format(3, 3, 1, 2))
+    _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 2))
 
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
@@ -104,7 +121,7 @@ def test_error_parts_length():
         assert obs.startswith(exp)
 
     # Make sure only one up-arrow is printed
-    _, err = run_cmd("hy", prg_str.format(3, 3, 1, 1))
+    _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 1))
 
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
@@ -113,7 +130,7 @@ def test_error_parts_length():
 
     # Make sure lines are printed in between arrows separated by more than one
     # character.
-    _, err = run_cmd("hy", prg_str.format(3, 3, 1, 6))
+    _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 6))
     print(err)
 
     msg_idx = err.rindex("HyLanguageError:")
@@ -390,13 +407,13 @@ def test_tracebacks():
     #   Traceback (most recent call last):
     #     File "<string>", line 1, in <module>
     #   ImportError: No module named not_a_real_module
-    _, error = run_cmd("hy", "(require not-a-real-module)")
+    _, error = run_cmd("hy", "(require not-a-real-module)", expect=1)
     error_lines = error.splitlines()
     if error_lines[-1] == "":
         del error_lines[-1]
     assert len(error_lines) <= 10
     # Rough check for the internal traceback filtering
-    req_err(error_lines[4])
+    req_err(error_lines[-1])
 
     _, error = run_cmd('hy -c "(require not-a-real-module)"', expect=1)
     error_lines = error.splitlines()
@@ -430,8 +447,8 @@ def test_tracebacks():
     #             ^
     #   SyntaxError: EOL while scanning string literal
     #   >>>
-    output, error = run_cmd(r'hy -i -c "(print \""')
-    assert output.startswith("=> ")
+    output, error = run_cmd(r'hy -c "(print \""', expect=1)
+    assert output == ''
     assert re.match(peoi_re, error)
 
     # Modeled after
@@ -471,28 +488,28 @@ def test_traceback_shebang(tmp_path):
 def test_hystartup():
     # spy == True and custom repl-output-fn
     os.environ["HYSTARTUP"] = "tests/resources/hystartup.hy"
-    output, _ = run_cmd("hy", "[1 2]")
+    output, _ = run_cmd("hy -i", "[1 2]")
     assert "[1, 2]" in output
     assert "[1,_2]" in output
 
-    output, _ = run_cmd("hy", "(hello-world)")
+    output, _ = run_cmd("hy -i", "(hello-world)")
     assert "(hello-world)" not in output
     assert "1 + 1" in output
     assert "2" in output
 
-    output, _ = run_cmd("hy", "#rad")
+    output, _ = run_cmd("hy -i", "#rad")
     assert "#rad" not in output
     assert "'totally' + 'rad'" in output
     assert "'totallyrad'" in output
 
-    output, _ = run_cmd("hy --repl-output-fn repr", "[1 2 3 4]")
+    output, _ = run_cmd("hy -i --repl-output-fn repr", "[1 2 3 4]")
     assert "[1, 2, 3, 4]" in output
     assert "[1 2 3 4]" not in output
     assert "[1,_2,_3,_4]" not in output
 
     # spy == False and custom repl-output-fn
     os.environ["HYSTARTUP"] = "tests/resources/spy_off_startup.hy"
-    output, _ = run_cmd("hy --spy", "[1 2]")  # overwrite spy with cmdline arg
+    output, _ = run_cmd("hy -i --spy", "[1 2]")  # overwrite spy with cmdline arg
     assert "[1, 2]" in output
     assert "[1,~2]" in output
 

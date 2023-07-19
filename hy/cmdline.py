@@ -229,7 +229,9 @@ def cmdline_handler(scriptname, argv):
             if argv and argv[0] == "-" else
         ["run_script_file", argv[0]]
             if argv else
-        ["just_repl", None])
+        ["just_repl", None]
+            if sys.stdin.isatty() else
+        ["run_script_stdin", None])
     repl = (
         REPL(
             spy = options.get("spy"),
@@ -253,7 +255,7 @@ def cmdline_handler(scriptname, argv):
         return 0
     elif action == "run_script_stdin":
         if repl:
-            source = sys.stdin.read()
+            source = sys.stdin
             filename = 'stdin'
         else:
             return run_command(sys.stdin.read(), filename="<stdin>")
@@ -291,8 +293,15 @@ def cmdline_handler(scriptname, argv):
 
     # If we didn't return earlier, we'll be using the REPL.
     if source:
+        res = None
+        filename = str(filename)
         with filtered_hy_exceptions():
-            res = repl.runsource(source, filename=str(filename))
+            accum = ''
+            for chunk in ([source] if isinstance(source, str) else source):
+                accum += chunk
+                res = repl.runsource(accum, filename=filename)
+                if not res:
+                    accum = ''
         # If the command was prematurely ended, show an error (just like Python
         # does).
         if res:
