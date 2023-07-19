@@ -804,3 +804,17 @@ def test_relative_require(case, monkeypatch, tmp_path):
         output, _ = run_cmd('python3 -m out.b')
 
     assert 'HELLO' in output
+
+
+def test_run_dir_or_zip(tmp_path):
+
+    (tmp_path / 'dir').mkdir()
+    (tmp_path / 'dir' / '__main__.hy').write_text('(print (+ "A" "Z"))')
+    out, _ = run_cmd(['hy', tmp_path / 'dir'])
+    assert 'AZ' in out
+
+    from zipfile import ZipFile
+    with ZipFile(tmp_path / 'zoom.zip', 'w') as o:
+        o.writestr('__main__.hy', '(print (+ "B" "Y"))')
+    out, _ = run_cmd(['hy', tmp_path / 'zoom.zip'])
+    assert 'BY' in out
