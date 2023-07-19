@@ -227,12 +227,6 @@ def test_hyc_missing_file():
     assert "[Errno 2]" in err
 
 
-def test_repl_builtins():
-    "Just importing `hy.cmdline` doesn't modify `help` etc."
-    import hy.cmdline
-    assert "help(object)" in str(builtins.help)
-
-
 def test_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output

@@ -161,7 +161,11 @@
     "Use (exit) or Ctrl-D (i.e. EOF) to exit"))
   (assert (has
     (rt "help")
-    "Use (help) for interactive help, or (help object) for help about object.")))
+    "Use (help) for interactive help, or (help object) for help about object."))
+  ; The old values of these objects come back after the REPL ends.
+  (assert (.startswith
+    (str quit)
+    "Use quit() or")))
 
 (defn test-preserve-ps1 [rt]
   ; https://github.com/hylang/hy/issues/1323#issuecomment-1310837340
