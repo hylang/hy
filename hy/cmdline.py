@@ -49,28 +49,7 @@ def run_command(source, filename=None):
     return 0
 
 
-def run_icommand(source, **kwargs):
-    if Path(source).exists():
-        filename = source
-        set_path(source)
-        with open(source, "r", encoding="utf-8") as f:
-            source = f.read()
-    else:
-        filename = "<string>"
-
-    hr = REPL(**kwargs)
-    with filtered_hy_exceptions():
-        res = hr.runsource(source, filename=filename)
-
-    # If the command was prematurely ended, show an error (just like Python
-    # does).
-    if res:
-        hy_exc_handler(sys.last_type, sys.last_value, sys.last_traceback)
-
-    return hr.run()
-
-
-USAGE = "hy [-h | -v | -i CMD | -c CMD | -m MODULE | FILE | -] [ARG]..."
+USAGE = "hy [-h | -v | -i | -c CMD | -m MODULE | FILE | -] [ARG]..."
 VERSION = "hy " + hy.__version__
 EPILOG = """
 FILE
@@ -114,9 +93,8 @@ def cmdline_handler(scriptname, argv):
         ),
         dict(
             name=["-i"],
-            dest="icommand",
-            terminate=True,
-            help="program passed in as string, then stay in REPL",
+            action="store_true",
+            help="launch REPL after running script; forces a prompt even if stdin does not appear to be a terminal",
         ),
         dict(
             name=["-m"],
@@ -242,41 +220,56 @@ def cmdline_handler(scriptname, argv):
         print(VERSION)
         return 0
 
-    if "command" in options:
-        sys.argv = ["-c"] + argv
-        return run_command(options["command"], filename="<string>")
+    action, action_arg = (
+        ["eval_string", options["command"]]
+            if "command" in options else
+        ["run_module", options["mod"]]
+            if "mod" in options else
+        ["run_script_stdin", None]
+            if argv and argv[0] == "-" else
+        ["run_script_file", argv[0]]
+            if argv else
+        ["just_repl", None])
+    repl = (
+        REPL(
+            spy = options.get("spy"),
+            output_fn = options.get("repl_output_fn"))
+        if "i" in options or action == "just_repl"
+        else None)
+    source = ''
 
-    if "mod" in options:
+    if action == "eval_string":
+        sys.argv = ["-c"] + argv
+        if repl:
+            source = action_arg
+            filename = '<string>'
+        else:
+            return run_command(action_arg, filename="<string>")
+    elif action == "run_module":
+        if repl: raise ValueError()
         set_path("")
         sys.argv = [program] + argv
-        runpy.run_module(hy.mangle(options["mod"]), run_name="__main__", alter_sys=True)
+        runpy.run_module(hy.mangle(action_arg), run_name="__main__", alter_sys=True)
         return 0
-
-    if "icommand" in options:
-        return run_icommand(
-            options["icommand"],
-            spy=options.get("spy"),
-            output_fn=options.get("repl_output_fn"),
-        )
-
-    if argv:
-        if argv[0] == "-":
-            # Read the program from stdin
-            return run_command(sys.stdin.read(), filename="<stdin>")
-
+    elif action == "run_script_stdin":
+        if repl:
+            source = sys.stdin.read()
+            filename = 'stdin'
         else:
-            # User did "hy <filename>"
-
-            filename = Path(argv[0])
-            set_path(filename)
-            # Ensure __file__ is set correctly in the code we're about
-            # to run.
-            if PY3_9:
-                if not filename.is_absolute():
-                    filename = Path.cwd() / filename
-                if platform.system() == "Windows":
-                    filename = os.path.normpath(filename)
-
+            return run_command(sys.stdin.read(), filename="<stdin>")
+    elif action == "run_script_file":
+        filename = Path(action_arg)
+        set_path(filename)
+        # Ensure __file__ is set correctly in the code we're about
+        # to run.
+        if PY3_9:
+            if not filename.is_absolute():
+                filename = Path.cwd() / filename
+            if platform.system() == "Windows":
+                filename = os.path.normpath(filename)
+        if repl:
+            source = Path(filename).read_text()
+        else:
             try:
                 sys.argv = argv
                 with filtered_hy_exceptions():
@@ -293,8 +286,18 @@ def cmdline_handler(scriptname, argv):
             except HyLanguageError:
                 hy_exc_handler(*sys.exc_info())
                 sys.exit(1)
+    else:
+        assert action == "just_repl"
 
-    return REPL(spy=options.get("spy"), output_fn=options.get("repl_output_fn")).run()
+    # If we didn't return earlier, we'll be using the REPL.
+    if source:
+        with filtered_hy_exceptions():
+            res = repl.runsource(source, filename=str(filename))
+        # If the command was prematurely ended, show an error (just like Python
+        # does).
+        if res:
+            hy_exc_handler(sys.last_type, sys.last_value, sys.last_traceback)
+    return repl.run()
 
 
 # entry point for cmd line script "hy"

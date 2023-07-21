@@ -175,8 +175,8 @@ def test_cmd():
     assert "<-c|AA|ZZ|-m>" in output
 
 
-def test_icmd():
-    output, _ = run_cmd("""hy -i '(.upper "hello")'""", '(.upper "bye")')
+def test_icmd_string():
+    output, _ = run_cmd("""hy -i -c '(.upper "hello")'""", '(.upper "bye")')
     assert "HELLO" in output
     assert "BYE" in output
 
@@ -187,7 +187,7 @@ def test_icmd_file():
 
 
 def test_icmd_and_spy():
-    output, _ = run_cmd('hy --spy -i "(+ [] [])"', "(+ 1 1)")
+    output, _ = run_cmd('hy --spy -i -c "(+ [] [])"', "(+ 1 1)")
     assert "[] + []" in output
 
 
@@ -403,7 +403,7 @@ def test_tracebacks():
     assert len(error_lines) <= 4
     req_err(error_lines[-1])
 
-    output, error = run_cmd('hy -i "(require not-a-real-module)"')
+    output, error = run_cmd('hy -i -c "(require not-a-real-module)"')
     assert output.startswith("=> ")
     req_err(error.splitlines()[2])
 
@@ -430,7 +430,7 @@ def test_tracebacks():
     #             ^
     #   SyntaxError: EOL while scanning string literal
     #   >>>
-    output, error = run_cmd(r'hy -i "(print \""')
+    output, error = run_cmd(r'hy -i -c "(print \""')
     assert output.startswith("=> ")
     assert re.match(peoi_re, error)
 
