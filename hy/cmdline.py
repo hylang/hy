@@ -221,14 +221,21 @@ def cmdline_handler(scriptname, argv):
         return 0
 
     action, action_arg = (
+        # If the `command` or `mod` options were provided, we'll run
+        # the corresponding code.
         ["eval_string", options["command"]]
             if "command" in options else
         ["run_module", options["mod"]]
             if "mod" in options else
+        # Otherwise, we'll run any provided filename as a script (or
+        # standard input, if the filename is "-").
         ["run_script_stdin", None]
             if argv and argv[0] == "-" else
         ["run_script_file", argv[0]]
             if argv else
+        # With none of those arguments, we'll launch the REPL (if
+        # standard input is a TTY) or run a script from standard input
+        # (otherwise).
         ["just_repl", None]
             if sys.stdin.isatty() else
         ["run_script_stdin", None])
@@ -293,6 +300,7 @@ def cmdline_handler(scriptname, argv):
 
     # If we didn't return earlier, we'll be using the REPL.
     if source:
+        # Execute `source` in the REPL before entering interactive mode.
         res = None
         filename = str(filename)
         with filtered_hy_exceptions():
