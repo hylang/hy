@@ -1244,6 +1244,16 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       (hy.repr (list (zip "abc" (myrange))))
         ; => [#("a" 0) #("b" 1) #("c" 2)]
 
+.. hy:macro:: (deftype [args])
+
+   ``deftype`` compiles to a :py3_12:keyword:`type` statement, which defines a
+   type alias. It requires Python 3.12. Its arguments optionally begin with
+   ``:tp`` and a list of type parameters (as in :hy:func:`defn`), then specify
+   the name for the new alias and its value. ::
+
+       (deftype IntOrStr (| int str))
+       (deftype :tp [T] ListOrSet (| (get list T) (get set T)))
+
 .. hy:macro:: (pragma)
 
   ``pragma`` is reserved as a core macro name for future use, especially for

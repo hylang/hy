@@ -1952,6 +1952,14 @@ def compile_let(compiler, expr, root, bindings, body):
         return res + compiler.compile(mkexpr("do", *body).replace(expr))
 
 
+@pattern_macro(((3, 12), "deftype"), [maybe(type_params), SYM, FORM])
+def compile_deftype(compiler, expr, root, tp, name, value):
+    return asty.TypeAlias(expr,
+       name = asty.Name(name, id = mangle(name), ctx = ast.Store()),
+       value = compiler.compile(value).force_expr,
+        **digest_type_params(compiler, tp))
+
+
 @pattern_macro(
     "pragma unquote unquote-splice unpack-mapping except except* finally else".split(),
     [many(FORM)],
