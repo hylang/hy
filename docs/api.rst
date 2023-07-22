@@ -87,10 +87,11 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:macro:: (fn [args])
 
    As :hy:func:`defn`, but no name for the new function is required (or
-   allowed), and the newly created function object is returned. Decorators
-   aren't allowed, either. However, the function body is understood identically
-   to that of :hy:func:`defn`, without any of the restrictions of Python's
-   :py:keyword:`lambda`. See :hy:func:`fn/a` for the asynchronous equivalent.
+   allowed), and the newly created function object is returned. Decorators and
+   type parameters aren't allowed, either. However, the function body is
+   understood identically to that of :hy:func:`defn`, without any of the
+   restrictions of Python's :py:keyword:`lambda`. See :hy:func:`fn/a` for the
+   asynchronous equivalent.
 
 .. hy:macro:: (fn/a [name #* args])
 
@@ -114,12 +115,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
    5))``.
 
-   ``defn`` accepts two additional, optional arguments: a bracketed list of
-   :term:`decorators <py:decorator>` and an annotation (see :hy:func:`annotate`) for
-   the return value. These are placed before the function name (in that order,
-   if both are present)::
+   ``defn`` accepts a few more optional arguments: a bracketed list of
+   :term:`decorators <py:decorator>`, a list of type parameters (see below),
+   and an annotation (see :hy:func:`annotate`) for the return value. These are
+   placed before the function name (in that order, if several are present)::
 
-       (defn [decorator1 decorator2] ^annotation name [params] …)
+       (defn [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
 
    To define asynchronous functions, see :hy:func:`defn/a` and :hy:func:`fn/a`.
 
@@ -162,6 +163,12 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       [a b c d e kwargs])
     (print (hy.repr (f 1 2 :d 4 :e 5 :f 6)))
       ; => [1 2 3 4 5 {"f" 6}]
+
+   Type parameters require Python 3.12, and have the semantics specified by
+   :pep:`695`. The keyword ``:tp`` introduces the list of type parameters. Each
+   item of the list is a symbol, an annotated symbol (such as ``#^ int T``), or
+   an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, unpacking
+   and annotation can't be used with the same parameter.
 
 .. hy:macro:: (defn/a [name lambda-list #* body])
 
@@ -716,12 +723,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    ``defclass`` compiles to a :py:keyword:`class` statement, which creates a
    new class. It always returns ``None``. Only one argument, specifying the
    name of the new class as a symbol, is required. A list of :term:`decorators
-   <py:decorator>` may be provided before the class name. After the name comes
+   <py:decorator>` (and type parameters, in the same way as for
+   :hy:func:`defn`) may be provided before the class name. After the name comes
    a list of superclasses (use the empty list ``[]`` for the typical case of no
    superclasses) and any number of body forms, the first of which may be a
    :term:`py:docstring`. ::
 
-      (defclass [decorator1 decorator2] MyClass [SuperClass1 SuperClass2]
+      (defclass [decorator1 decorator2] :tp [T1 T2] MyClass [SuperClass1 SuperClass2]
         "A class that does things at times."
 
         (setv

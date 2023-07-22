@@ -79,6 +79,30 @@ def dotted(name):
     return Expression(map(Symbol, [".", *name.split(".")]))
 
 
+type_params = sym(":tp") + brackets(many(
+    maybe_annotated(SYM) | unpack("either", Symbol)))
+
+def digest_type_params(compiler, tp):
+    "Return a `type_params` attribute for `FunctionDef` etc."
+
+    if tp:
+        if not PY3_12:
+            compiler._syntax_error(tp, "`:tp` requires Python 3.12 or later")
+        tp, = tp
+    elif not PY3_12:
+        return {}
+
+    return dict(type_params = [
+        asty.TypeVarTuple(x[1], name = mangle(x[1]))
+            if is_unpack("iterable", x) else
+        asty.ParamSpec(x[1], name = mangle(x[1]))
+            if is_unpack("mapping", x) else
+        asty.TypeVar(x[0],
+               name = mangle(x[0]),
+               bound = x[1] and compiler.compile(x[1]).force_expr)
+        for x in (tp or [])])
+
+
 # ------------------------------------------------
 # * Fundamentals
 # ------------------------------------------------
@@ -1410,8 +1434,9 @@ lambda_list = brackets(
 )
 
 
-@pattern_macro(["fn", "fn/a"], [maybe_annotated(lambda_list), many(FORM)])
-def compile_function_lambda(compiler, expr, root, params, body):
+@pattern_macro(["fn", "fn/a"],
+    [maybe(type_params), maybe_annotated(lambda_list), many(FORM)])
+def compile_function_lambda(compiler, expr, root, tp, params, body):
     params, returns = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
@@ -1423,13 +1448,13 @@ def compile_function_lambda(compiler, expr, root, params, body):
         body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
-    if not has_annotations and not body.stmts and root != "fn/a":
+    if not (has_annotations or tp or body.stmts or root == "fn/a"):
         return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
     # Otherwise create a standard function
     node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
     name = compiler.get_anon_var()
-    ret += compile_function_node(compiler, expr, node, [], name, args, returns, body)
+    ret += compile_function_node(compiler, expr, node, [], tp, name, args, returns, body)
 
     # return its name as the final expr
     return ret + Result(expr=ret.temp_variables[0])
@@ -1437,9 +1462,9 @@ def compile_function_lambda(compiler, expr, root, params, body):
 
 @pattern_macro(
     ["defn", "defn/a"],
-    [maybe(brackets(many(FORM))), maybe_annotated(SYM), lambda_list, many(FORM)],
+    [maybe(brackets(many(FORM))), maybe(type_params), maybe_annotated(SYM), lambda_list, many(FORM)],
 )
-def compile_function_def(compiler, expr, root, decorators, name, params, body):
+def compile_function_def(compiler, expr, root, decorators, tp, name, params, body):
     name, returns = name
     node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
@@ -1451,11 +1476,11 @@ def compile_function_def(compiler, expr, root, decorators, name, params, body):
         body = compiler._compile_branch(body)
 
     return ret + compile_function_node(
-        compiler, expr, node, decorators, name, args, returns, body
+        compiler, expr, node, decorators, tp, name, args, returns, body
     )
 
 
-def compile_function_node(compiler, expr, node, decorators, name, args, returns, body):
+def compile_function_node(compiler, expr, node, decorators, tp, name, args, returns, body):
     ret = Result()
 
     if body.expr:
@@ -1468,7 +1493,7 @@ def compile_function_node(compiler, expr, node, decorators, name, args, returns,
         body=body.stmts or [asty.Pass(expr)],
         decorator_list=decorators,
         returns=compiler.compile(returns).force_expr if returns is not None else None,
-        **({"type_params": []} if PY3_12 else {}),
+        **digest_type_params(compiler, tp),
     )
 
     ast_name = asty.Name(expr, id=name, ctx=ast.Load())
@@ -1648,11 +1673,12 @@ def compile_yield_from_or_await_expression(compiler, expr, root, arg):
     "defclass",
     [
         maybe(brackets(many(FORM))),
+        maybe(type_params),
         SYM,
         maybe(brackets(many(FORM)) + maybe(STR) + many(FORM)),
     ],
 )
-def compile_class_expression(compiler, expr, root, decorators, name, rest):
+def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
     base_list, docstring, body = rest or ([[]], None, [])
 
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
@@ -1682,7 +1708,7 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
         kwargs=None,
         bases=bases_expr,
         body=bodyr.stmts or [asty.Pass(expr)],
-        **({"type_params": []} if PY3_12 else {}),
+        **digest_type_params(compiler, tp)
     )
 
 
