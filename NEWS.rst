@@ -5,6 +5,8 @@ Unreleased
 
 Breaking Changes
 ------------------------------
+* `hy` now only implicitly launches a REPL if standard input is a TTY.
+* `hy -i` has been overhauled to work as a flag like `python3 -i`.
 * `hy2py` now requires `-m` to specify modules, and uses
   the same `sys.path` rules as Python when parsing a module
   vs a standalone script.

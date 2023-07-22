@@ -11,7 +11,8 @@ hy
 
 ``hy`` is a command-line interface for Hy that in general imitates the program
 ``python`` provided by CPython. For example, ``hy`` without arguments launches
-the :ref:`REPL <repl>`, whereas ``hy foo.hy a b`` runs the Hy program
+the :ref:`REPL <repl>` if standard input is a TTY and runs the standard input
+as a script otherwise, whereas ``hy foo.hy a b`` runs the Hy program
 ``foo.hy`` with ``a`` and ``b`` as command-line arguments. See ``hy --help``
 for a complete list of options and :py:ref:`Python's documentation
 <using-on-cmdline>` for many details. Here are some Hy-specific details:
