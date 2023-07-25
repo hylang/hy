@@ -592,6 +592,12 @@ def test_assert(tmp_path, monkeypatch):
             assert ("bye" in err) == show_msg
 
 
+def test_hy2py_stdin():
+    out, _ = run_cmd("hy2py", "(+ 482 223)")
+    assert "482 + 223" in out
+    assert "705" not in out
+
+
 def test_hy2py_compile_only(monkeypatch):
     def check(args):
         output, _ = run_cmd(f"hy2py {args}")
