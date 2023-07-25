@@ -96,6 +96,55 @@
     (assert (= (. f __annotations__ [k]) v))))
 
 
+(do-mac (when hy._compat.PY3_12 '(defn test-type-params []
+  (import tests.resources.tp :as ttp)
+
+  (defn foo [])
+  (assert (= (ttp.show foo) []))
+
+  ; `defn` with a type parameter
+  (defn :tp [T] #^ T foo [#^ T x]
+    (+ x 1))
+  (assert (= (foo 3) 4))
+  (assert (= (ttp.show foo) [[ttp.TypeVar "T" None #()]]))
+
+  ; `fn` with a type parameter
+  (setv foo (fn :tp [T] #^ T [#^ T x]
+    (+ x 2)))
+  (assert (= (foo 3) 5))
+  (assert (= (ttp.show foo) [[ttp.TypeVar "T" None #()]]))
+
+  ; Bounds and constraints
+  (defn :tp [#^ int T] foo [])
+  (assert (= (ttp.show foo) [[ttp.TypeVar "T" int #()]]))
+  (defn :tp [#^ #(int str) T] foo [])
+  (assert (= (ttp.show foo) [[ttp.TypeVar "T" None #(int str)]]))
+
+  ; `TypeVarTuple`s and `ParamSpec`s
+  (defn :tp [#* T] foo [])
+  (assert (= (ttp.show foo) [[ttp.TypeVarTuple "T" None #()]]))
+  (defn :tp [#** T] foo [])
+  (assert (= (ttp.show foo) [[ttp.ParamSpec "T" None #()]]))
+
+  ; A more complex case
+  (defn
+    :tp [A  #^ int B  #* C  #** D  #* E  #^ #(bool float) F]
+    foo [])
+  (assert (= (ttp.show foo) [
+    [ttp.TypeVar "A" None #()]
+    [ttp.TypeVar "B" int #()]
+    [ttp.TypeVarTuple "C" None #()]
+    [ttp.ParamSpec "D" None #()]
+    [ttp.TypeVarTuple "E" None #()]
+    [ttp.TypeVar "F" None #(bool float)]]))
+
+  ; Illegal attempts to annotate unpacking
+  (with [(pytest.raises hy.errors.HySyntaxError)]
+    (hy.eval '(defn :tp [#^ int #* T] foo [])))
+  (with [(pytest.raises hy.errors.HySyntaxError)]
+    (hy.eval '(defn :tp [#^ #(int str) #** T] foo []))))))
+
+
 (defn test-lambda-keyword-lists []
   (defn foo [x #* xs #** kw] [x xs kw])
   (assert (= (foo 10 20 30) [10 #(20 30) {}])))
