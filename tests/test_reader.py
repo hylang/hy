@@ -159,9 +159,9 @@ def test_lex_strings_exception():
             '  File "<string>", line 1',
             '    "\\x8"',
             "        ^",
-            "hy.reader.exceptions.LexException: (unicode error)"
+            "hy.reader.exceptions.LexException:"
             " 'unicodeescape' codec can't decode bytes in position 0-2:"
-            " truncated \\xXX escape (<string>, line 1)",
+            " truncated \\xXX escape",
         ],
     )
 
