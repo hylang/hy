@@ -628,3 +628,15 @@ def test_module_prelude():
 def test_pragma():
     cant_compile("(pragma)")
     cant_compile("(pragma :native-code :namespaced-symbols :give-user-a-pony)")
+
+
+def test_error_with_expectation():
+    def check(code, expected):
+        assert cant_compile(code).msg.endswith("expected: " + expected)
+
+    check("(defmacro)",    "Symbol")
+    check("(quote)",       "form")
+    check("(py)",          "String")
+    check("(py a)",        "String")
+    check('(py "foo" a)',  "end of macro call")
+    check('(for a)',       "square-bracketed loop clauses")
