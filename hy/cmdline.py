@@ -384,7 +384,7 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
         hst.filename = filename
 
         with filtered_hy_exceptions():
-            module_name = source_path.stem
+            module_name = source_path.stem if source_path else Path(filename).name
             if parent_module:
                 module_name = f"{parent_module}.{module_name}"
             module = types.ModuleType(module_name)
