@@ -16,6 +16,11 @@ New Features
 ------------------------------
 * `defn`, `defn/a`, and `defclass` now support type parameters.
 
+Misc. Improvements
+------------------------------
+* Some syntax errors raised by core macros now have more informative
+  messages.
+
 0.27.0 (released 2023-07-06)
 =============================
 

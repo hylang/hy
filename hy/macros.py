@@ -68,7 +68,7 @@ def pattern_macro(names, pattern, shadow=None):
                     raise hy_compiler._syntax_error(
                         expr[min(e.state.pos + 1, len(expr) - 1)],
                         "parse error for pattern macro '{}': {}".format(
-                            root, e.msg.replace("<EOF>", "end of form")
+                            root, e.msg.replace("end of input", "end of macro call")
                         ),
                     )
                 return fn(hy_compiler, expr, root, *parse_tree)

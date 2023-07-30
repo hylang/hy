@@ -72,7 +72,9 @@ def pvalue(root, wanted):
 
 
 def maybe_annotated(target):
-    return pexpr(sym("annotate") + target + FORM) | target >> (lambda x: (x, None))
+    return (
+       pexpr(sym("annotate") + target + FORM).named('`annotate` form') |
+       (target >> (lambda x: (x, None))))
 
 
 def dotted(name):
@@ -727,9 +729,9 @@ loopers = many(
 )
 
 
-@pattern_macro(
-    ["for"], [brackets(loopers), many(notpexpr("else")) + maybe(dolike("else"))]
-)
+@pattern_macro(["for"], [
+    brackets(loopers, name = 'square-bracketed loop clauses'),
+    many(notpexpr("else")) + maybe(dolike("else"))])
 @pattern_macro(["lfor", "sfor", "gfor"], [loopers, FORM])
 @pattern_macro(["dfor"], [loopers, finished])
 # Here `finished` is a hack replacement for FORM + FORM:
