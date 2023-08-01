@@ -1,5 +1,6 @@
 "Character reader for parsing Hy source."
 
+import codecs
 from itertools import islice
 
 import hy
@@ -438,7 +439,7 @@ class HyReader(Reader):
                     index = -1
             return 0
 
-        return self.read_string_until(delim_closing, "fr" if is_fstring else None, is_fstring, brackets=delim)
+        return self.read_string_until(delim_closing, "r", is_fstring, brackets=delim)
 
     def read_string_until(self, closing, prefix, is_fstring, **kwargs):
         if is_fstring:
@@ -449,6 +450,7 @@ class HyReader(Reader):
 
     def read_chars_until(self, closing, prefix, is_fstring):
         s = []
+        in_named_escape = False
         for c in self.chars():
             s.append(c)
             # check if c is closing
@@ -457,19 +459,39 @@ class HyReader(Reader):
                 # string has ended
                 s = s[:-n_closing_chars]
                 break
-            # check if c is start of component
-            if is_fstring and c == "{" and s[-3:] != ["\\", "N", "{"]:
-                # check and handle "{{"
-                if self.peek_and_getc("{"):
-                    s.append("{")
-                else:
-                    # remove "{" from end of string component
-                    s.pop()
-                    break
+            if is_fstring:
+                # handle braces in f-strings
+                if c == "{":
+                    if "r" not in prefix and s[-3:] == ["\\", "N", "{"]:
+                        # ignore "\N{...}"
+                        in_named_escape = True
+                    elif not self.peek_and_getc("{"):
+                        # start f-component if not "{{"
+                        s.pop()
+                        break
+                elif c == "}":
+                    if in_named_escape:
+                        in_named_escape = False
+                    elif not self.peek_and_getc("}"):
+                        raise SyntaxError("f-string: single '}' is not allowed")
         res = "".join(s).replace("\x0d\x0a", "\x0a").replace("\x0d", "\x0a")
 
-        if prefix is not None:
-            res = eval(f'{prefix}"""{res}"""')
+        if "b" in prefix:
+            try:
+                res = res.encode('ascii')
+            except UnicodeEncodeError:
+                raise SyntaxError("bytes can only contain ASCII literal characters")
+
+        if "r" not in prefix:
+            # perform string escapes
+            if "b" in prefix:
+                res = codecs.escape_decode(res)[0]
+            else:
+                # formula taken from https://stackoverflow.com/a/57192592
+                # encode first to ISO-8859-1 ("Latin 1") due to a Python bug,
+                # see https://github.com/python/cpython/issues/65530
+                res = res.encode('ISO-8859-1', errors='backslashreplace').decode('unicode_escape')
+
         if is_fstring:
             return res, n_closing_chars
         return res

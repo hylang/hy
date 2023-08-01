@@ -101,6 +101,8 @@ cee"} dee" "ey bee\ncee dee"))
   (assert (=
     #[f[{{escaped braces}} \n {"not escaped"}]f]
     "{escaped braces} \\n not escaped"))
+  ; https://github.com/hylang/hy/issues/2474
+  (assert (= #[f["{0}"]f] "\"0\""))
 
   ; Quoting shouldn't evaluate the f-string immediately
   ; https://github.com/hylang/hy/issues/1844
