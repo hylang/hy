@@ -21,6 +21,10 @@ Misc. Improvements
 * Some syntax errors raised by core macros now have more informative
   messages.
 
+Bug Fixes
+------------------------------
+* Double quotes inside of bracketed f-strings are now properly handled.
+
 0.27.0 (released 2023-07-06)
 =============================
 
