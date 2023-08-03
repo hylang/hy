@@ -24,6 +24,8 @@ Misc. Improvements
 Bug Fixes
 ------------------------------
 * Double quotes inside of bracketed f-strings are now properly handled.
+* Fixed incomplete recognition of macro calls with a unary dotted
+  head like `((. defn) f [])`.
 
 0.27.0 (released 2023-07-06)
 =============================

@@ -189,6 +189,15 @@
   (assert (= (asyncio.run (coro-test)) [1 2 3])))
 
 
+(defn test-root-set-correctly []
+  ; https://github.com/hylang/hy/issues/2475
+  ((. defn) not-async [] "ok")
+  (assert (= (not-async) "ok"))
+  (require builtins)
+  (builtins.defn also-not-async [] "ok")
+  (assert (= (also-not-async) "ok")))
+
+
 (defn test-return []
 
   ; `return` in main line
