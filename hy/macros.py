@@ -52,13 +52,12 @@ def pattern_macro(names, pattern, shadow=None):
                     ).replace(hy_compiler.this)
 
                 expr = hy_compiler.this
-                root = unmangle(expr[0])
 
                 if py_version_required and sys.version_info < py_version_required:
                     raise hy_compiler._syntax_error(
                         expr,
                         "`{}` requires Python {} or later".format(
-                            root, ".".join(map(str, py_version_required))
+                            name, ".".join(map(str, py_version_required))
                         ),
                     )
 
@@ -68,10 +67,10 @@ def pattern_macro(names, pattern, shadow=None):
                     raise hy_compiler._syntax_error(
                         expr[min(e.state.pos + 1, len(expr) - 1)],
                         "parse error for pattern macro '{}': {}".format(
-                            root, e.msg.replace("end of input", "end of macro call")
+                            name, e.msg.replace("end of input", "end of macro call")
                         ),
                     )
-                return fn(hy_compiler, expr, root, *parse_tree)
+                return fn(hy_compiler, expr, name, *parse_tree)
 
             return wrapper
 
