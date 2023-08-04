@@ -198,10 +198,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       => (infix (1 + 1))
       2
 
-   .. note:: because all values are passed to macros unevaluated, ``defmacro``
-             cannot use keyword arguments, or kwargs. All arguments are passed
-             in positionally. Parameters can still be given default values
-             however::
+   .. note:: ``defmacro`` cannot use keyword arguments, because all values
+             are passed to macros unevaluated. All arguments are passed
+             positionally, but they can have default values::
 
                 => (defmacro a-macro [a [b 1]]
                 ...  `[~a ~b])
