@@ -3,6 +3,5 @@ pytest >= 6
 # documentation
 Pygments == 2.15.1
 Sphinx == 5.0.2
-sphinx_rtd_theme == 1.2.2
-sphinx_book_them == 1.0.1
+sphinx_book_theme == 1.0.1
 git+https://github.com/hylang/sphinxcontrib-hydomain.git
