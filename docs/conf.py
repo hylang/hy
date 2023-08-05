@@ -47,10 +47,10 @@ add_module_names = True
 
 pygments_style = "sphinx"
 
-import sphinx_rtd_theme
+import sphinx_book_theme
 
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = "sphinx_book_theme"
+html_theme_path = [sphinx_book_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -60,8 +60,7 @@ html_static_path = ["_static"]
 html_use_smartypants = False
 html_show_sphinx = False
 
-html_context = dict(
-    hy_descriptive_version=hy_descriptive_version)
+html_context = dict(hy_descriptive_version=hy_descriptive_version)
 
 highlight_language = "clojure"
 
@@ -73,6 +72,7 @@ intersphinx_mapping = dict(
 )
 
 import hy
+
 hy.M = type(hy.M)  # A trick to enable `hy:autoclass:: hy.M`
 
 # ** Generate Cheatsheet
