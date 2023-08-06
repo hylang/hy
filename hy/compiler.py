@@ -688,7 +688,6 @@ def hy_eval(
     hytree,
     locals=None,
     module=None,
-    ast_callback=None,
     compiler=None,
     filename=None,
     source=None,
@@ -726,11 +725,6 @@ def hy_eval(
           The module associated with `compiler` takes priority over this value.
           When neither `module` nor `compiler` is specified, the calling frame's
           module is used.
-
-      ast_callback (Optional[Callable]):
-          A callback that is passed the Hy compiled tree and resulting
-          expression object, in that order, after compilation but before
-          evaluation.
 
       compiler (Optional[HyASTCompiler]):
           An existing Hy compiler to use for compilation.  Also serves as
@@ -775,9 +769,6 @@ def hy_eval(
         source=source,
         import_stdlib=import_stdlib,
     )
-
-    if ast_callback:
-        ast_callback(_ast, expr)
 
     # Two-step eval: eval() the body of the exec call
     eval(ast_compile(_ast, filename, "exec"), module.__dict__, locals)
