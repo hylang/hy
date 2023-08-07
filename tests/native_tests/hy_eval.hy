@@ -1,3 +1,6 @@
+"Tests of the user-facing function `hy.eval`."
+
+
 (import
   re
   pytest)
@@ -45,15 +48,6 @@
     (hy.eval (quote x) d2)))
 
 
-(defn test-eval-failure []
-  ; yo dawg
-  (with [(pytest.raises TypeError)] (hy.eval '(hy.eval)))
-  (defclass C)
-  (with [(pytest.raises TypeError)] (hy.eval (C)))
-  (with [(pytest.raises TypeError)] (hy.eval 'False []))
-  (with [(pytest.raises TypeError)] (hy.eval 'False {} 1)))
-
-
 (defn test-eval-quasiquote []
   ; https://github.com/hylang/hy/issues/1174
 
@@ -84,3 +78,12 @@
   (setv d {"a" 1 "b" 2})
   (setv k "b")
   (assert (= (hy.eval `(get ~d ~k)) 2)))
+
+
+(defn test-eval-failure []
+  ; yo dawg
+  (with [(pytest.raises TypeError)] (hy.eval '(hy.eval)))
+  (defclass C)
+  (with [(pytest.raises TypeError)] (hy.eval (C)))
+  (with [(pytest.raises TypeError)] (hy.eval 'False []))
+  (with [(pytest.raises TypeError)] (hy.eval 'False {} 1)))
