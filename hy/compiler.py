@@ -694,59 +694,6 @@ def hy_eval(
     import_stdlib=True,
     globals=None,
 ):
-    """Evaluates a quoted expression and returns the value.
-
-    If you're evaluating hand-crafted AST trees, make sure the line numbers
-    are set properly.  Try `fix_missing_locations` and related functions in the
-    Python `ast` library.
-
-    Examples:
-      ::
-
-         => (hy.eval '(print "Hello World"))
-         "Hello World"
-
-      If you want to evaluate a string, use ``read-str`` to convert it to a
-      form first::
-
-         => (hy.eval (hy.read-str "(+ 1 1)"))
-         2
-
-    Args:
-      hytree (Object):
-          The Hy AST object to evaluate.
-
-      locals (Optional[dict]):
-          Local environment in which to evaluate the Hy tree.  Defaults to the
-          calling frame.
-
-      module (Optional[Union[str, types.ModuleType]]):
-          Module, or name of the module, to which the Hy tree is assigned and
-          the global values are taken.
-          The module associated with `compiler` takes priority over this value.
-          When neither `module` nor `compiler` is specified, the calling frame's
-          module is used.
-
-      compiler (Optional[HyASTCompiler]):
-          An existing Hy compiler to use for compilation.  Also serves as
-          the `module` value when given.
-
-      filename (Optional[str]):
-          The filename corresponding to the source for `tree`.  This will be
-          overridden by the `filename` field of `tree`, if any; otherwise, it
-          defaults to "<string>".  When `compiler` is given, its `filename` field
-          value is always used.
-
-      source (Optional[str]):
-          A string containing the source code for `tree`.  This will be
-          overridden by the `source` field of `tree`, if any; otherwise,
-          if `None`, an attempt will be made to obtain it from the module given by
-          `module`.  When `compiler` is given, its `source` field value is always
-          used.
-
-    Returns:
-      Any: Result of evaluating the Hy compiled tree.
-    """
 
     module = get_compiler_module(module, compiler, True)
 
