@@ -120,31 +120,18 @@
 (assert initialized)
 (assert (test-initialized))
 
-(defn test-gensym-in-macros []
-  (import ast)
-  (import hy.compiler [hy-compile])
-  (import hy.reader [read-many])
-  (setv macro1 "(defmacro nif [expr pos zero neg]
-      (setv g (hy.gensym))
-      `(do
-         (setv ~g ~expr)
-         (cond (> ~g 0) ~pos
-               (= ~g 0) ~zero
-               (< ~g 0) ~neg)))
 
-    (print (nif (inc -1) 1 0 -1))
-    ")
-  ;; expand the macro twice, should use a different
-  ;; gensym each time
-  (setv _ast1 (hy-compile (read-many macro1) __name__))
-  (setv _ast2 (hy-compile (read-many macro1) __name__))
-  (setv s1 (ast.unparse _ast1))
-  (setv s2 (ast.unparse _ast2))
-  ;; and make sure there is something new that starts with _G\uffff
-  (assert (in (hy.mangle "_G\uffff") s1))
-  (assert (in (hy.mangle "_G\uffff") s2))
-  ;; but make sure the two don't match each other
-  (assert (not (= s1 s2))))
+(defmacro gensym-example []
+  `(setv ~(hy.gensym) 1))
+
+(defn test-gensym-in-macros []
+  ; Call `gensym-example` twice, getting a distinct gensym each time.
+  (defclass C []
+    (gensym-example)
+    (gensym-example))
+  (assert (=
+    (len (sfor  a (dir C)  :if (not (.startswith a "__"))  a))
+    2)))
 
 
 (defn test-macro-errors []
