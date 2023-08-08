@@ -19,4 +19,4 @@ jobs:
         with:
           publish: "false"
       - name: Upload artifact
-        run: cp -r ${{ steps.build.outputs.artifact }}/* ${{ steps.build.outputs.artifact }}/stable
+        run: mkdir ${{ steps.build.outputs.artifact }}/stable && cp -r ${{ steps.build.outputs.artifact }}/* ${{ steps.build.outputs.artifact }}/stable
