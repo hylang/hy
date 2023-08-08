@@ -222,6 +222,8 @@ def render_quoted_form(compiler, form, level):
         for x in form:
             f_contents, splice = render_quoted_form(compiler, x, level)
             if splice:
+                if is_unpack("iterable", f_contents):
+                    raise compiler._syntax_error(f_contents, "`unpack-iterable` is not allowed here")
                 f_contents = Expression(
                     [
                         Symbol("unpack-iterable"),

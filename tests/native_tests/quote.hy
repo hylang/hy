@@ -1,3 +1,7 @@
+(import
+  pytest)
+
+
 (defn test-quote []
   (setv q (quote (a b c)))
   (assert (= (len q) 3))
@@ -83,3 +87,9 @@
       [1 2 3]
       [4 5 6])
     [4 5 6])))
+
+
+(defn test-unquote-splice-unpack []
+  ; https://github.com/hylang/hy/issues/2336
+  (with [(pytest.raises hy.errors.HySyntaxError)]
+    (hy.eval '`[~@ #* [[1]]])))
