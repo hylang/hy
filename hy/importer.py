@@ -135,10 +135,12 @@ if (".hy", False, False) not in zipimport._zip_searchorder:
     def _hy_compile_source(pathname, source):
         if not pathname.endswith(".hy"):
             return _py_compile_source(pathname, source)
+        mname = f"<zip:{pathname}>"
+        sys.modules[mname] = types.ModuleType(mname)
         return compile(
             hy_compile(
                 read_many(source.decode("UTF-8"), filename=pathname, skip_shebang=True),
-                f"<zip:{pathname}>",
+                sys.modules[mname],
             ),
             pathname,
             "exec",

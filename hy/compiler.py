@@ -670,10 +670,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
     module = getattr(compiler, "module", None) or module
 
     if isinstance(module, str):
-        if module.startswith("<") and module.endswith(">"):
-            module = types.ModuleType(module)
-        else:
-            module = importlib.import_module(mangle(module))
+        module = importlib.import_module(mangle(module))
 
     if calling_frame and not module:
         module = calling_module(n=2)
