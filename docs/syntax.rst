@@ -189,7 +189,9 @@ equivalent to ``{"a" 1 "b" 2}``, which is different from ``{:a 1 :b 2}`` (see
 :ref:`dict-literals`).
 
 The empty keyword ``:`` is syntactically legal, but you can't compile a
-function call with an empty keyword argument.
+function call with an empty keyword argument due to Python limitations. Thus
+``(foo : 3)`` must be rewritten to use runtime unpacking, as in
+``(foo #** {"" 3})``.
 
 .. autoclass:: hy.models.Keyword
    :members:  __bool__, __call__
