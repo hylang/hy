@@ -672,13 +672,11 @@ def test_read_error():
     pointing to the source position where the error arose."""
 
     import traceback
-
-    from hy.compiler import hy_eval
+    import hy
     from hy.errors import HySyntaxError, hy_exc_handler
-    from hy.reader import read
 
     with pytest.raises(HySyntaxError) as e:
-        hy_eval(read("(do (defn))"))
+        hy.eval(hy.read("(do (defn))"))
     assert "".join(traceback.format_exception_only(e.type, e.value)).startswith(
         '  File "<string>", line 1\n    (do (defn))\n         ^\n'
     )

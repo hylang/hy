@@ -3,8 +3,9 @@ from textwrap import dedent
 
 import pytest
 
+import hy
 from hy._compat import PY3_11
-from hy.compiler import hy_compile, hy_eval
+from hy.compiler import hy_compile
 from hy.errors import HyError, HyLanguageError
 from hy.reader import read_many
 from hy.reader.exceptions import LexException, PrematureEndOfInput
@@ -24,7 +25,7 @@ def can_compile(expr, import_stdlib=False, iff=True):
 
 
 def can_eval(expr):
-    return hy_eval(read_many(expr))
+    return hy.eval(read_many(expr))
 
 
 def cant_compile(expr):

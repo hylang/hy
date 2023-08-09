@@ -39,15 +39,6 @@
   (assert (= (hy.eval '#{}) #{})))
 
 
-(defn test-eval-global-dict []
-  (assert (= 'bar (hy.eval (quote foo) {"foo" 'bar})))
-  (assert (= 1 (do (setv d {}) (hy.eval '(setv x 1) d) (hy.eval (quote x) d))))
-  (setv d1 {}  d2 {})
-  (hy.eval '(setv x 1) d1)
-  (with [e (pytest.raises NameError)]
-    (hy.eval (quote x) d2)))
-
-
 (defn test-eval-quasiquote []
   ; https://github.com/hylang/hy/issues/1174
 
@@ -78,6 +69,148 @@
   (setv d {"a" 1 "b" 2})
   (setv k "b")
   (assert (= (hy.eval `(get ~d ~k)) 2)))
+
+
+(setv outer "O")
+
+(defn test-globals []
+  (assert (= (hy.eval 'foo {"foo" 2}) 2))
+  (with [(pytest.raises NameError)]
+    (hy.eval 'foo {}))
+
+  (assert (= outer "O"))
+  (assert (= (hy.eval 'outer) "O"))
+  (with [(pytest.raises NameError)]
+    (hy.eval 'outer {}))
+
+  (hy.eval '(do
+    (global outer)
+    (setv outer "O2")))
+  (assert (= outer "O2"))
+
+  (hy.eval :globals {"outer" "I"} '(do
+    (global outer)
+    (setv outer "O3")))
+  (assert (= outer "O2"))
+
+  ; If `globals` is provided but not `locals`, then `globals`
+  ; substitutes in for `locals`.
+  (defn try-it [#** eval-args]
+    (setv d (dict :g1 1 :g2 2))
+    (hy.eval :globals d #** eval-args '(do
+      (global g2 g3)
+      (setv  g2 "newv"  g3 3  l 4)))
+    (del (get d "__builtins__"))
+    d)
+  (setv ls {})
+  (assert (= (try-it)            (dict :g1 1 :g2 "newv" :g3 3 :l 4)))
+  (assert (= (try-it :locals ls) (dict :g1 1 :g2 "newv" :g3 3)))
+  (assert (= ls {"l" 4}))
+
+  ; If `module` is provided but `globals` isn't, the dictionary of
+  ; `module` is used for globals. If `locals` also isn't provided,
+  ; the same dictionary is used for that, too.
+  (import string)
+  (assert (=
+    (hy.eval 'digits :module string)
+    "0123456789"))
+  (assert (=
+    (hy.eval 'digits :module "string")
+    "0123456789"))
+  (assert (=
+    (hy.eval 'digits :module string :globals {"digits" "boo"})
+    "boo"))
+  (with [(pytest.raises NameError)]
+    (hy.eval 'digits :module string :globals {}))
+  (hy.eval :module string '(do
+    (global hytest-string-g)
+    (setv hytest-string-g "hi")
+    (setv hytest-string-l "bye")))
+  (assert (= string.hytest-string-g "hi"))
+  (assert (= string.hytest-string-l "bye")))
+
+
+(defn test-locals []
+  (assert (= (hy.eval 'foo :locals {"foo" 2}) 2))
+  (with [(pytest.raises NameError)]
+    (hy.eval 'foo :locals {}))
+
+  (setv d (dict :l1 1 :l2 2 :hippopotamus "local_v"))
+  (hy.eval :locals d '(do
+    (global hippopotamus)
+    (setv  l2 "newv"  l3 3  hippopotamus "global_v")))
+  (assert (= d (dict :l1 1 :l2 "newv" :l3 3 :hippopotamus "local_v")))
+  (assert (= (get (globals) "hippopotamus") "global_v"))
+  (assert (= hippopotamus "global_v"))
+
+  ; `hy` is implicitly available even when `locals` and `globals` are
+  ; provided.
+  (assert (=
+    (hy.eval :locals {"foo" "A"} :globals {"bar" "B"}
+      '(hy.repr (+ foo bar)))
+    #[["AB"]]))
+  ; Even though `hy.eval` deletes the `hy` implicitly added to
+  ; `locals`, references in returned code still work.
+  (setv d {"a" 1})
+  (setv f (hy.eval '(fn [] (hy.repr "hello")) :locals d))
+  (assert (= d {"a" 1}))
+  (assert (= (f) #[["hello"]])))
+
+
+(defn test-globals-and-locals []
+  (setv gd (dict :g1 "apple" :g2 "banana"))
+  (setv ld (dict :l1 "Austin" :l2 "Boston"))
+  (hy.eval :globals gd :locals ld '(do
+    (global g2 g3)
+    (setv  g2 "newg-val"  g3 "newg-var"  l2 "newl-val"  l3 "newl-var")))
+  (del (get gd "__builtins__"))
+  (assert (= gd (dict :g1 "apple" :g2 "newg-val" :g3 "newg-var")))
+  (assert (= ld (dict :l1 "Austin" :l2 "newl-val" :l3 "newl-var"))))
+
+
+(defn test-no-extra-hy-removal []
+  "`hy.eval` shouldn't remove `hy` from a provided namespace if it
+  was already there."
+  (setv g {})
+  (exec "import hy" g)
+  (assert (= (hy.eval '(hy.repr [1 2]) g) "[1 2]"))
+  (assert (in "hy" g)))
+
+
+(defmacro test-macro []
+  '(setv blah "test from here"))
+(defmacro cheese []
+  "gorgonzola")
+
+(defn test-macros []
+  (setv M "tests.resources.macros")
+
+  ; Macros defined in `module` can be called.
+  (assert (= (hy.eval '(do (test-macro) blah)) "test from here"))
+  (assert (= (hy.eval '(do (test-macro) blah) :module M) 1))
+
+  ; `defmacro` creates a new macro in the module.
+  (hy.eval '(defmacro bilb-ono [] "creative consulting") :module M)
+  (assert (= (hy.eval '(bilb-ono) :module M) "creative consulting"))
+  (with [(pytest.raises NameError)]
+    (hy.eval '(bilb-ono)))
+
+  ; When `module` is provided, implicit access to macros in the
+  ; current scope is lost.
+  (assert (= (hy.eval '(cheese)) "gorgonzola"))
+  (with [(pytest.raises NameError)]
+    (hy.eval '(cheese) :module M))
+
+  ; You can still use `require` inside `hy.eval`.
+  (hy.eval '(require tests.resources.tlib [qplah]))
+  (assert (= (hy.eval '(qplah 1)) [8 1])))
+
+
+(defn test-filename []
+  (setv m (hy.read "(/ 1 0)" :filename "bad_math.hy"))
+  (with [e (pytest.raises ZeroDivisionError)]
+    (hy.eval m))
+  (assert (in "bad_math.hy" (get (hy.M.traceback.format-tb e.tb) -1))))
 
 
 (defn test-eval-failure []
