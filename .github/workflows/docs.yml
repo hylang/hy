@@ -14,9 +14,9 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - id: deployment
+      - id: build-sphinx
         uses: sphinx-notes/pages@v3
         with:
           publish: "false"
       - name: Upload artifact
-        run: mkdir ${{ steps.build.outputs.artifact }}/stable && cp -r ${{ steps.build.outputs.artifact }}/* ${{ steps.build.outputs.artifact }}/stable
+        run: mkdir ${{ steps.build-sphinx.outputs.artifact }}/stable && cp -r ${{ steps.build-sphinx.outputs.artifact }}/* ${{ steps.build-sphinx.outputs.artifact }}/stable
