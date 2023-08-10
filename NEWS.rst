@@ -5,6 +5,7 @@ Unreleased
 
 Breaking Changes
 ------------------------------
+* `hy.eval` has been overhauled to be more like Python's `eval`.
 * `hy` now only implicitly launches a REPL if standard input is a TTY.
 * `hy -i` has been overhauled to work as a flag like `python3 -i`.
 * `hy2py` now requires `-m` to specify modules, and uses

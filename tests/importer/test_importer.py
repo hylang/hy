@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 import hy
-from hy.compiler import hy_compile, hy_eval
+from hy.compiler import hy_compile
 from hy.errors import HyLanguageError, hy_exc_handler
 from hy.importer import HyLoader
 from hy.reader import read_many
@@ -103,7 +103,7 @@ def test_import_autocompiles(tmp_path):
 
 def test_eval():
     def eval_str(s):
-        return hy_eval(hy.read(s), filename="<string>", source=s)
+        return hy.eval(hy.read(s))
 
     assert eval_str("[1 2 3]") == [1, 2, 3]
     assert eval_str('{"dog" "bark" "cat" "meow"}') == {"dog": "bark", "cat": "meow"}

@@ -670,10 +670,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
     module = getattr(compiler, "module", None) or module
 
     if isinstance(module, str):
-        if module.startswith("<") and module.endswith(">"):
-            module = types.ModuleType(module)
-        else:
-            module = importlib.import_module(mangle(module))
+        module = importlib.import_module(mangle(module))
 
     if calling_frame and not module:
         module = calling_module(n=2)
@@ -686,81 +683,16 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
 def hy_eval(
     hytree,
-    locals=None,
+    locals,
     module=None,
-    ast_callback=None,
     compiler=None,
     filename=None,
     source=None,
     import_stdlib=True,
+    globals=None,
 ):
-    """Evaluates a quoted expression and returns the value.
-
-    If you're evaluating hand-crafted AST trees, make sure the line numbers
-    are set properly.  Try `fix_missing_locations` and related functions in the
-    Python `ast` library.
-
-    Examples:
-      ::
-
-         => (hy.eval '(print "Hello World"))
-         "Hello World"
-
-      If you want to evaluate a string, use ``read-str`` to convert it to a
-      form first::
-
-         => (hy.eval (hy.read-str "(+ 1 1)"))
-         2
-
-    Args:
-      hytree (Object):
-          The Hy AST object to evaluate.
-
-      locals (Optional[dict]):
-          Local environment in which to evaluate the Hy tree.  Defaults to the
-          calling frame.
-
-      module (Optional[Union[str, types.ModuleType]]):
-          Module, or name of the module, to which the Hy tree is assigned and
-          the global values are taken.
-          The module associated with `compiler` takes priority over this value.
-          When neither `module` nor `compiler` is specified, the calling frame's
-          module is used.
-
-      ast_callback (Optional[Callable]):
-          A callback that is passed the Hy compiled tree and resulting
-          expression object, in that order, after compilation but before
-          evaluation.
-
-      compiler (Optional[HyASTCompiler]):
-          An existing Hy compiler to use for compilation.  Also serves as
-          the `module` value when given.
-
-      filename (Optional[str]):
-          The filename corresponding to the source for `tree`.  This will be
-          overridden by the `filename` field of `tree`, if any; otherwise, it
-          defaults to "<string>".  When `compiler` is given, its `filename` field
-          value is always used.
-
-      source (Optional[str]):
-          A string containing the source code for `tree`.  This will be
-          overridden by the `source` field of `tree`, if any; otherwise,
-          if `None`, an attempt will be made to obtain it from the module given by
-          `module`.  When `compiler` is given, its `source` field value is always
-          used.
-
-    Returns:
-      Any: Result of evaluating the Hy compiled tree.
-    """
 
     module = get_compiler_module(module, compiler, True)
-
-    if locals is None:
-        frame = inspect.stack()[1][0]
-        locals = inspect.getargvalues(frame).locals
-
-    if not isinstance(locals, dict):
-        raise TypeError("Locals must be a dictionary")
 
     # Does the Hy AST object come with its own information?
     filename = getattr(hytree, "filename", filename) or "<string>"
@@ -776,14 +708,54 @@ def hy_eval(
         import_stdlib=import_stdlib,
     )
 
-    if ast_callback:
-        ast_callback(_ast, expr)
+    if globals is None:
+        globals = module.__dict__
 
     # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, filename, "exec"), module.__dict__, locals)
+    eval(ast_compile(_ast, filename, "exec"), globals, locals)
 
     # Then eval the expression context and return that
-    return eval(ast_compile(expr, filename, "eval"), module.__dict__, locals)
+    return eval(ast_compile(expr, filename, "eval"), globals, locals)
+
+
+def hy_eval_user(model, globals = None, locals = None, module = None):
+    # This function is advertised as `hy.eval`.
+    """An equivalent of Python's :func:`eval` for evaluating Hy code. The chief difference is that the first argument should be a :ref:`model <models>` rather than source text. If you have a string of source text you want to evaluate, convert it to a model first with :hy:func:`hy.read` or :hy:func:`hy.read-many`::
+
+        (hy.eval '(+ 1 1))             ; => 2
+        (hy.eval (hy.read "(+ 1 1)"))  ; => 2
+
+    The optional arguments ``globals`` and ``locals`` work as in the case of ``eval``. There's one more optional argument, ``module``, which can be a module object or a string naming a module. The module's ``__dict__`` attribute can fill in for ``globals`` (and hence also for ``locals``) if ``module`` is provided but ``globals`` isn't, but the primary purpose of ``module`` is to control where macro calls are looked up. Without this argument, the calling module of ``hy.eval`` is used instead. ::
+
+        (defmacro my-test-mac [] 3)
+        (hy.eval '(my-test-mac))                 ; => 3
+        (import hyrule)
+        (hy.eval '(my-test-mac) :module hyrule)  ; NameError
+        (hy.eval '(list-n 3 1) :module hyrule)   ; => [1 1 1]"""
+
+    if locals is None:
+        locals = globals
+    hy_was = None
+    if locals and 'hy' in locals:
+        hy_was = (locals['hy'],)
+    try:
+        value = hy_eval(
+            hytree = model,
+            globals = globals,
+            locals = (inspect.getargvalues(inspect.stack()[1][0]).locals
+                if locals is None and module is None
+                else locals),
+            module = get_compiler_module(module, None, True))
+    finally:
+        if locals is not None:
+            if hy_was:
+                # Restore the old value of `hy`.
+                locals['hy'], = hy_was
+            else:
+                # Remove the implicitly added `hy` (if execution
+                # reached far enough to add it).
+                locals.pop('hy', None)
+    return value
 
 
 def hy_compile(
