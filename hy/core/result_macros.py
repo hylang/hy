@@ -176,11 +176,9 @@ def compile_inline_python(compiler, expr, root, code):
 
 @pattern_macro(["quote", "quasiquote"], [FORM])
 def compile_quote(compiler, expr, root, arg):
-    level = Inf if root == "quote" else 0  # Only quasiquotes can unquote
-    stmts, _ = render_quoted_form(compiler, arg, level)
-    ret = compiler.compile(stmts)
-    return ret
-
+    return compiler.compile(render_quoted_form(compiler, arg,
+        level = Inf if root == "quote" else 0)[0])
+          # Only quasiquotes can unquote
 
 def render_quoted_form(compiler, form, level):
     """
