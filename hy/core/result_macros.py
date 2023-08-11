@@ -196,7 +196,7 @@ def render_quoted_form(compiler, form, level):
 
     op = None
     if isinstance(form, Expression) and form and isinstance(form[0], Symbol):
-        op = unmangle(mangle(form[0]))
+        op = mangle(form[0]).replace('_', '-')
     if level == 0 and op in ("unquote", "unquote-splice"):
         if len(form) != 2:
             raise HyTypeError(
