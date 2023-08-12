@@ -12,7 +12,7 @@ def mangle(s):
     to :ref:`Hy's mangling rules <mangling>`. ::
 
         (hy.mangle 'foo-bar)   ; => "foo_bar"
-        (hy.mangle "🦑")       ; => "hyx_squid"
+        (hy.mangle "🦑")       ; => "hyx_XsquidX"
 
     If the stringified argument is already both legal as a Python identifier
     and normalized according to Unicode normalization form KC (NFKC), it will
