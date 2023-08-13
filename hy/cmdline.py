@@ -372,16 +372,18 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
     ) as output_file:
 
         def printing_source(hst):
-            for node in hst:
-                if options.with_source:
-                    print(node, file=output_file)
-                yield node
+            def _printing_gen(hst):
+                for node in hst:
+                    if options.with_source:
+                        print(node, file=output_file)
+                    yield node
+            printing_hst = hy.models.Lazy(_printing_gen(hst))
+            printing_hst.source = hst.source
+            printing_hst.filename = hst.filename
+            printing_hst.reader = hst.reader
+            return printing_hst
 
-        hst = hy.models.Lazy(
-            printing_source(read_many(source, filename, skip_shebang=True))
-        )
-        hst.source = source
-        hst.filename = filename
+        hst = printing_source(read_many(source, filename, skip_shebang=True))
 
         with filtered_hy_exceptions():
             module_name = source_path.stem if source_path else Path(filename).name

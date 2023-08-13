@@ -31,7 +31,7 @@ from hy.models import (
     as_model,
     is_unpack,
 )
-from hy.reader import mangle
+from hy.reader import mangle, HyReader
 from hy.scoping import ScopeGlobal
 
 hy_ast_compile_flags = 0
@@ -795,6 +795,7 @@ def hy_compile(
 
     filename = getattr(tree, "filename", filename)
     source = getattr(tree, "source", source)
+    reader = getattr(tree, "reader", None)
 
     tree = as_model(tree)
     if not isinstance(tree, Object):
@@ -804,7 +805,7 @@ def hy_compile(
 
     compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
 
-    with compiler.scope:
+    with HyReader.using_reader(reader, create=False), compiler.scope:
         result = compiler.compile(tree)
     expr = result.force_expr
 

@@ -28,6 +28,8 @@ Bug Fixes
 * Fixed incomplete recognition of macro calls with a unary dotted
   head like `((. defn) f [])`.
 * `~@ #*` now produces a syntax error instead of a nonsensical result.
+* Fixed `hy.eval` failing on `defreader` or `require` forms that
+  install a new reader.
 
 0.27.0 (released 2023-07-06)
 =============================
