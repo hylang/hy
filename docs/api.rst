@@ -792,42 +792,60 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    beware that significant leading whitespace in embedded string literals will
    be removed.
 
-.. hy:macro:: (quasiquote [form])
+.. hy:macro:: (quasiquote [model])
+.. hy:macro:: (unquote [model])
+.. hy:macro:: (unquote-splice [model])
 
-   ``quasiquote`` allows you to quote a form, but also selectively evaluate
-   expressions. Expressions inside a ``quasiquote`` can be selectively evaluated
-   using ``unquote`` (``~``). The evaluated form can also be spliced using
-   ``unquote-splice`` (``~@``). Quasiquote can be also written using the backquote
-   (`````) symbol.
+   ``quasiquote`` is like :hy:func:`quote` except that it treats the model as a template, in which certain special :ref:`expressions <expressions>` indicate that some code should evaluated and its value substituted there. The idea is similar to C's ``sprintf`` or Python's various string-formatting constructs. For example::
 
-   :strong:`Examples`
+    (setv x 2)
+    (quasiquote (+ 1 (unquote x)))  ; => '(+ 1 2)
 
-   ::
+   ``unquote`` indicates code to be evaluated, so ``x`` becomes ``2`` and the ``2`` gets inserted in the parent model. ``quasiquote`` can be :ref:`abbreviated <more-sugar>` as a backtick (\`), with no parentheses, and likewise ``unquote`` can be abbreviated as a tilde (``~``), so one can instead write simply ::
 
-       ;; let `qux' be a variable with value (bar baz)
-       `(foo ~qux)
-       ; equivalent to '(foo (bar baz))
-       `(foo ~@qux)
-       ; equivalent to '(foo bar baz)
+    `(+ 1 ~x)
 
+   (In the bulk of Lisp tradition, unquotation is written ``,``. Hy goes with Clojure's choice of ``~``, which has the advantage of being more visible in most programming fonts.)
 
-.. hy:macro:: (quote [form])
+   Quasiquotation is convenient for writing macros::
 
-   ``quote`` returns the form passed to it without evaluating it. ``quote`` can
-   alternatively be written using the apostrophe (``'``) symbol.
+     (defmacro set-foo [value]
+       `(setv foo ~value))
+     (set-foo (+ 1 2 3))
+     (print foo)  ; => 6
 
-   :strong:`Examples`
+   Another kind of unquotation operator, ``unquote-splice``, abbreviated ``~@``, is analogous to ``unpack-iterable`` in that it splices an iterable object into the sequence of the parent :ref:`sequential model <hysequence>`. Compare the effects of ``unquote`` to ``unquote-splice``::
 
-   ::
+    (setv X [1 2 3])
+    (hy.repr `[a b ~X c d ~@X e f])
+      ; => '[a b [1 2 3] c d 1 2 3 e f]
 
-       => (setv x '(print "Hello World"))
-       => x  ; variable x is set to unevaluated expression
-       hy.models.Expression([
-         hy.models.Symbol('print'),
-         hy.models.String('Hello World')])
-       => (hy.eval x)
-       Hello World
+   If ``unquote-splice`` is given any sort of false value (such as ``None``), it's treated as an empty list. To be precise, ``~@x`` splices in the result of ``(or x [])``.
 
+   Note that while a symbol name can begin with ``@`` in Hy, ``~@`` takes precedence in the parser, so if you want to unquote the symbol ``@foo`` with ``~``, you must use whitespace to separate ``~`` and ``@``, as in ``~ @foo``.
+
+.. hy:macro:: (quote [model])
+
+   Return the given :ref:`model <models>` without evaluating it. Or to be more pedantic, ``quote`` complies to code that produces and returns the model it was originally called on. Thus ``quote`` serves as syntactic sugar for model constructors::
+
+     (quote a)
+       ; Equivalent to:  (hy.models.Symbol "a")
+     (quote (+ 1 1))
+       ; Equivalent to:  (hy.models.Expression [
+       ;   (hy.models.Symbol "+")
+       ;   (hy.models.Integer 1)
+       ;   (hy.models.Integer 1)])
+
+   ``quote`` itself is conveniently :ref:`abbreviated <more-sugar>` as the single-quote character ``'``, which needs no parentheses, allowing one to instead write::
+
+     'a
+     '(+ 1 1)
+
+   See also:
+
+     - :hy:func:`quasiquote` to substitute values into a quoted form
+     - :hy:func:`hy.eval` to evaluate models as code
+     - :hy:func:`hy.repr` to stringify models into Hy source text that uses ``'``
 
 .. hy:macro:: (require [#* args])
 
@@ -1077,51 +1095,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        {1 2  3 4}
        => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
        [1 2  3 4]
-
-.. hy:macro:: (unquote [symbol])
-
-   Within a quasiquoted form, ``unquote`` forces evaluation of a symbol. ``unquote``
-   is aliased to the tilde (``~``) symbol.
-
-   ::
-
-       => (setv nickname "Cuddles")
-       => (quasiquote (= nickname (unquote nickname)))
-       '(= nickname "Cuddles")
-       => `(= nickname ~nickname)
-       '(= nickname "Cuddles")
-
-
-.. hy:macro:: (unquote-splice [symbol])
-
-   ``unquote-splice`` forces the evaluation of a symbol within a quasiquoted form,
-   much like ``unquote``. ``unquote-splice`` can be used when the symbol
-   being unquoted contains an iterable value, as it "splices" that iterable into
-   the quasiquoted form. ``unquote-splice`` can also be used when the value
-   evaluates to a false value such as ``None``, ``False``, or ``0``, in which
-   case the value is treated as an empty list and thus does not splice anything
-   into the form. ``unquote-splice`` is aliased to the ``~@`` syntax.
-
-   ::
-
-       => (setv nums [1 2 3 4])
-       => (quasiquote (+ (unquote-splice nums)))
-       '(+ 1 2 3 4)
-       => `(+ ~@nums)
-       '(+ 1 2 3 4)
-       => `[1 2 ~@(when (< (get nums 0) 0) nums)]
-       '[1 2]
-
-   Here, the last example evaluates to ``('+' 1 2)``, since the condition
-   ``(< (nth nums 0) 0)`` is ``False``, which makes this ``if`` expression
-   evaluate to ``None``, because the ``if`` expression here does not have an
-   else clause. ``unquote-splice`` then evaluates this as an empty value,
-   leaving no effects on the list it is enclosed in, therefore resulting in
-   ``('+' 1 2)``.
-
-   A symbol name can begin with ``@`` in Hy, but ``~@`` takes precedence in the
-   parser. So, if you want to unquote the symbol ``@foo`` with ``~``, you must
-   use whitespace to separate ``~`` and ``@``, as in ``~ @foo``.
 
 .. hy:macro:: (while [condition #* body])
 
