@@ -8,12 +8,13 @@
 (defn test-gensym []
   (setv s1 (hy.gensym))
   (assert (isinstance s1 hy.models.Symbol))
-  (assert (= 0 (.find s1 "_G\uffff")))
+  (assert (.startswith s1 "_hy_gensym__"))
   (setv s2 (hy.gensym "xx"))
   (setv s3 (hy.gensym "xx"))
-  (assert (= 0 (.find s2 "_xx\uffff")))
-  (assert (not (= s2 s3)))
-  (assert (not (= (str s2) (str s3)))))
+  (assert (.startswith s2 "_hy_gensym_xx_"))
+  (assert (!= s2 s3))
+  (assert (!= (str s2) (str s3)))
+  (assert (.startswith (hy.gensym "•ab") "_hy_gensym_XbulletXab_")))
 
 
 (defmacro mac [x expr]

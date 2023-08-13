@@ -67,17 +67,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    As a convenience, ``.`` supports two other kinds of arguments in place of a
    plain attribute. A parenthesized expression is understood as a method call:
-   ``(. foo (bar a b))`` compiles to ``x.foo.bar(a, b)``. A bracketed form is
+   ``(. foo (bar a b))`` compiles to ``foo.bar(a, b)``. A bracketed form is
    understood as a subscript: ``(. foo ["bar"])`` compiles to ``foo["bar"]``.
    All these options can be mixed and matched in a single ``.`` call, so ::
 
-     (. a (b 1 2) c [d] [(e)])
+     (. a (b 1 2) c [d] [(e 3 4)])
 
    compiles to
 
    .. code-block:: python
 
-     a.b(1, 2).c[d][e()]
+     a.b(1, 2).c[d][e(3, 4)]
 
    :ref:`Dotted identifiers <dotted-identifiers>` provide syntactic sugar for
    common uses of this macro. In particular, syntax like ``foo.bar`` ends up

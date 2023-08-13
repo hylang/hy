@@ -39,7 +39,7 @@
 (setv _gensym_counter 0)
 (setv _gensym_lock (Lock))
 
-(defn gensym [[g "G"]]
+(defn gensym [[g ""]]
   #[[Generate a symbol with a unique name. The argument will be included in the
   generated symbol, as an aid to debugging. Typically one calls ``hy.gensym``
   without an argument.
@@ -65,14 +65,18 @@
         4)
 
       (print (selfadd (f)))]]
-  (setv new_symbol None)
-  (global _gensym_counter)
-  (global _gensym_lock)
   (.acquire _gensym_lock)
-  (try (do (setv _gensym_counter (+ _gensym_counter 1))
-           (setv new_symbol (Symbol (.format "_{}\uffff{}" g _gensym_counter))))
-       (finally (.release _gensym_lock)))
-  new_symbol)
+  (try
+    (global _gensym_counter)
+    (+= _gensym_counter 1)
+    (setv n _gensym_counter)
+    (finally (.release _gensym_lock)))
+  (setv g (hy.mangle (.format "_hy_gensym_{}_{}" g n)))
+  (Symbol (if (.startswith g "_hyx_")
+    ; Remove the mangle prefix, if it's there, so the result always
+    ; starts with our reserved prefix `_hy_`.
+    (+ "_" (cut g (len "_hyx_") None))
+    g)))
 
 (defn _calling-module-name [[n 1]]
   "Get the name of the module calling `n` levels up the stack from the

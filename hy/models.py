@@ -203,7 +203,7 @@ class Symbol(Object, str):
     """
     Represents a symbol.
 
-    Symbol objects behave like strings under operations like :hy:func:`get`,
+    Symbol objects behave like strings under operations like :hy:func:`get <hy.pyops.get>`,
     :func:`len`, and :class:`bool`; in particular, ``(bool (hy.models.Symbol "False"))`` is true. Use :hy:func:`hy.eval` to evaluate a symbol.
     """
 
@@ -283,8 +283,8 @@ class Keyword(Object):
         :class:`hy.models.Keyword` objects).
 
         The optional second parameter is a default value; if provided, any
-        :class:`KeyError` from :hy:func:`get` will be caught, and the default returned
-        instead."""
+        :class:`KeyError` from :hy:func:`get <hy.pyops.get>` will be caught,
+        and the default returned instead."""
 
         from hy.reader import mangle
 
