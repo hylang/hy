@@ -84,3 +84,80 @@
   (assert (= (len q) 3))
   (assert (= (get qq 1) '`~(+ 1 5)))
   (assert (= qq q)))
+
+
+(defn test-nested-quasiquote--nested-struct []
+  (assert (=
+    (hy.as-model `(try
+      ~@(lfor
+        i [1 2 3]
+        `(setv ~(S (+ "x" (str i))) (+ "x" (str ~i))))
+      (finally
+        (print "done"))))
+    '(try
+      (setv x1 (+ "x" (str 1)))
+      (setv x2 (+ "x" (str 2)))
+      (setv x3 (+ "x" (str 3)))
+      (finally
+        (print "done"))))))
+
+
+(defmacro macroify-programs [#* names]
+  `(do
+    ~@(lfor name names
+      `(defmacro ~name [#* args]
+        `(.append imaginary-syscalls #(~'~(str name) ~@(map str args)))))))
+
+(defn test-nested-quasiquote--macro-writing-macro-1 []
+  "A test of the construct ~'~ (to substitute in a variable from a
+  higher-level quasiquote) inspired by
+  https://github.com/hylang/hy/discussions/2251"
+
+  (setv imaginary-syscalls [])
+  (macroify-programs ls mkdir touch)
+  (mkdir mynewdir)
+  (touch mynewdir/file)
+  (ls -lA mynewdir)
+  (assert (= imaginary-syscalls [
+    #("mkdir" "mynewdir")
+    #("touch" "mynewdir/file")
+    #("ls" "-lA" "mynewdir")])))
+
+
+(defmacro def-caller [abbrev proc]
+  `(defmacro ~abbrev [var form]
+    `(~'~proc
+      (fn [~var] ~form))))
+(def-caller smoo-caller smoo)
+
+(defn test-nested-quasiquote--macro-writing-macro-2 []
+  "A similar test to the previous one, based on section 3.2 of
+  Bawden, A. (1999). Quasiquotation in Lisp. ACM SIGPLAN Workshop on Partial Evaluation and Program Manipulation. Retrieved from http://web.archive.org/web/20230105083805id_/https://3e8.org/pub/scheme/doc/Quasiquotation%20in%20Lisp%20(Bawden).pdf"
+
+  (setv accum [])
+  (defn smoo [f]
+    (.append accum "entered smoo")
+    (f "in smoo")
+    (.append accum "exiting smoo"))
+  (smoo-caller arg
+    (.append accum (+ "in the lambda: " arg)))
+  (assert (= accum [
+    "entered smoo"
+    "in the lambda: in smoo"
+    "exiting smoo"])))
+
+
+(defn test-nested-quasiquote--triple []
+  "N.B. You can get the same results with an analogous test in Emacs
+  Lisp or Common Lisp."
+
+  (setv
+    a 1  b 1  c 1
+    x ```[~a ~~b ~~~c]
+    ; `x` has been implicitly evaluated once. Let's explicitly
+    ; evaluate it twice more, so no backticks are left.
+    a 2  b 2  c 2
+    x (hy.eval x)
+    a 3  b 3  c 3
+    x (hy.eval x))
+  (assert (= (hy.as-model x) '[3 2 1])))
