@@ -104,8 +104,8 @@
       (with [(pytest.raises hy.errors.HySyntaxError)]
         (hy.read tag)))
     ;; but they should be installed in the module
-    (setv reader (HyReader))
-    (hy.macros.enable-readers module reader "ALL")
+    (hy.eval '(setv reader (hy.reader.HyReader :use-current-readers True)) :module module)
+    (setv reader module.reader)
     (for [[s val] [["#r" 5]
                    ["#test-read" 4]
                    ["#upper! \"hi there\"" "HI THERE"]]]

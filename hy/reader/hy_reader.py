@@ -1,6 +1,7 @@
 "Character reader for parsing Hy source."
 
 import codecs
+import inspect
 from contextlib import contextmanager, nullcontext
 from itertools import islice
 
@@ -110,7 +111,10 @@ def as_identifier(ident, reader=None):
 
 
 class HyReader(Reader):
-    """A modular reader for Hy source."""
+    """A modular reader for Hy source.
+
+    When ``use_current_readers`` is true, initialize this reader
+    with all reader macros from the calling module."""
 
     ###
     # Components necessary for Reader implementation
@@ -119,7 +123,7 @@ class HyReader(Reader):
     NON_IDENT = set("()[]{};\"'`~")
     _current_reader = None
 
-    def __init__(self):
+    def __init__(self, *, use_current_readers=False):
         super().__init__()
 
         # move any reader macros declared using
@@ -129,6 +133,10 @@ class HyReader(Reader):
             if tag[0] == '#' and tag[1:]:
                 self.reader_macros[tag[1:]] = self.reader_table.pop(tag)
 
+        if use_current_readers:
+            self.reader_macros.update(
+                inspect.stack()[1].frame.f_globals.get("_hy_reader_macros", {})
+            )
 
     @classmethod
     def current_reader(cls, override=None, create=True):

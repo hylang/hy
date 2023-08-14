@@ -16,6 +16,8 @@ Breaking Changes
 New Features
 ------------------------------
 * `defn`, `defn/a`, and `defclass` now support type parameters.
+* `HyReader` now has an optional parameter to install existing
+  reader macros from the calling module.
 
 Misc. Improvements
 ------------------------------
