@@ -87,7 +87,7 @@
         => #slice a:(+ 1 2):\"column\"
         (slice 42 3 column)
 
-     See the :ref:`reader macros docs <reader macros>` for more detailed
+     See the :ref:`reader macros docs <reader-macros>` for more detailed
      information on how reader macros work and are defined.
   "
   (when (not (isinstance &compiler.scope hy.scoping.ScopeGlobal))
