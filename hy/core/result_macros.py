@@ -235,10 +235,10 @@ def render_quoted_form(compiler, form, level):
             body.extend([Keyword("conversion"), String(form.conversion)])
 
     elif isinstance(form, Symbol):
-        body = [String(form)]
+        body = [String(form), Keyword("from_parser"), Symbol("True")]
 
     elif isinstance(form, Keyword):
-        body = [String(form.name)]
+        body = [String(form.name), Keyword("from_parser"), Symbol("True")]
 
     elif isinstance(form, String):
         if form.brackets is not None:
