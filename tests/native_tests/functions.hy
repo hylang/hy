@@ -299,12 +299,17 @@
 
 
 (defn test-yield-in-try []
+  (setv hit-finally False)
   (defn gen []
     (setv x 1)
-    (try (yield x)
-         (finally (print x))))
+    (try
+      (yield x)
+      (finally
+        (nonlocal hit-finally)
+        (setv hit-finally True))))
   (setv output (list (gen)))
-  (assert (= [1] output)))
+  (assert (= [1] output))
+  (assert hit-finally))
 
 
 (defn test-midtree-yield []

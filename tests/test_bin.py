@@ -131,7 +131,6 @@ def test_error_parts_length():
     # Make sure lines are printed in between arrows separated by more than one
     # character.
     _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 6))
-    print(err)
 
     msg_idx = err.rindex("HyLanguageError:")
     assert msg_idx
@@ -420,7 +419,7 @@ def test_tracebacks():
     assert len(error_lines) <= 4
     req_err(error_lines[-1])
 
-    output, error = run_cmd('hy -i -c "(require not-a-real-module)"')
+    output, error = run_cmd('hy -i -c "(require not-a-real-module)"', '')
     assert output.startswith("=> ")
     req_err(error.splitlines()[2])
 

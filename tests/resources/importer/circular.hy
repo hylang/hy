@@ -2,4 +2,3 @@
 (defn f []
   (import circular)
   circular.a)
-(print (f))

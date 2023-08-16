@@ -176,11 +176,9 @@ def compile_inline_python(compiler, expr, root, code):
 
 @pattern_macro(["quote", "quasiquote"], [FORM])
 def compile_quote(compiler, expr, root, arg):
-    level = Inf if root == "quote" else 0  # Only quasiquotes can unquote
-    stmts, _ = render_quoted_form(compiler, arg, level)
-    ret = compiler.compile(stmts)
-    return ret
-
+    return compiler.compile(render_quoted_form(compiler, arg,
+        level = Inf if root == "quote" else 0)[0])
+          # Only quasiquotes can unquote
 
 def render_quoted_form(compiler, form, level):
     """
@@ -198,21 +196,19 @@ def render_quoted_form(compiler, form, level):
 
     op = None
     if isinstance(form, Expression) and form and isinstance(form[0], Symbol):
-        op = unmangle(mangle(form[0]))
-    if level == 0 and op in ("unquote", "unquote-splice"):
-        if len(form) != 2:
-            raise HyTypeError(
-                "`%s' needs 1 argument, got %s" % op,
-                len(form) - 1,
-                compiler.filename,
-                form,
-                compiler.source,
-            )
-        return form[1], op == "unquote-splice"
-    elif op == "quasiquote":
-        level += 1
-    elif op in ("unquote", "unquote-splice"):
-        level -= 1
+        op = mangle(form[0]).replace('_', '-')
+        if op in ("unquote", "unquote-splice", "quasiquote"):
+            if level == 0 and op != "quasiquote":
+                if len(form) != 2:
+                    raise HyTypeError(
+                        "`%s' needs 1 argument, got %s" % op,
+                        len(form) - 1,
+                        compiler.filename,
+                        form,
+                        compiler.source,
+                    )
+                return form[1], op == "unquote-splice"
+            level += 1 if op == "quasiquote" else -1
 
     name = form.__class__.__name__
     body = [form]
