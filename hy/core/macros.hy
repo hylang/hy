@@ -110,7 +110,7 @@
              ~@(if docstr [docstr] [])
              ~@body)))
        (eval-when-compile
-         (setv (get hy.&reader.reader-macros ~dispatch-key)
+         (setv (get (. (hy.reader.HyReader.current-reader) reader-macros) ~dispatch-key)
                (get _hy_reader_macros ~dispatch-key)))))
 
 

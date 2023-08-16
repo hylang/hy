@@ -32,7 +32,7 @@ def macro(name):
 
 def reader_macro(name, fn):
     fn = rename_function(fn, name)
-    inspect.getmodule(fn).__dict__.setdefault("_hy_reader_macros", {})[name] = fn
+    fn.__globals__.setdefault("_hy_reader_macros", {})[name] = fn
 
 
 def pattern_macro(names, pattern, shadow=None):
@@ -84,13 +84,12 @@ def pattern_macro(names, pattern, shadow=None):
 def install_macro(name, fn, module_of):
     name = mangle(name)
     fn = rename_function(fn, name)
-    calling_module = inspect.getmodule(module_of)
-    macros_obj = calling_module.__dict__.setdefault("_hy_macros", {})
+    macros_obj = module_of.__globals__.setdefault("_hy_macros", {})
     if name in getattr(builtins, "_hy_macros", {}):
         warnings.warn(
             (
                 f"{name} already refers to: `{name}` in module: `builtins`,"
-                f" being replaced by: `{calling_module.__name__}.{name}`"
+                f" being replaced by: `{module_of.__globals__.get('__name__', '(globals)')}.{name}`"
             ),
             RuntimeWarning,
             stacklevel=3,

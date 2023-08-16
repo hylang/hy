@@ -1,6 +1,8 @@
 "Character reader for parsing Hy source."
 
 import codecs
+import inspect
+from contextlib import contextmanager, nullcontext
 from itertools import islice
 
 import hy
@@ -109,15 +111,19 @@ def as_identifier(ident, reader=None):
 
 
 class HyReader(Reader):
-    """A modular reader for Hy source."""
+    """A modular reader for Hy source.
+
+    When ``use_current_readers`` is true, initialize this reader
+    with all reader macros from the calling module."""
 
     ###
     # Components necessary for Reader implementation
     ###
 
     NON_IDENT = set("()[]{};\"'`~")
+    _current_reader = None
 
-    def __init__(self):
+    def __init__(self, *, use_current_readers=False):
         super().__init__()
 
         # move any reader macros declared using
@@ -126,6 +132,31 @@ class HyReader(Reader):
         for tag in list(self.reader_table.keys()):
             if tag[0] == '#' and tag[1:]:
                 self.reader_macros[tag[1:]] = self.reader_table.pop(tag)
+
+        if use_current_readers:
+            self.reader_macros.update(
+                inspect.stack()[1].frame.f_globals.get("_hy_reader_macros", {})
+            )
+
+    @classmethod
+    def current_reader(cls, override=None, create=True):
+        return override or HyReader._current_reader or (cls() if create else None)
+
+    @contextmanager
+    def as_current_reader(self):
+        old_reader = HyReader._current_reader
+        HyReader._current_reader = self
+        try:
+            yield
+        finally:
+            HyReader._current_reader = old_reader
+
+    @classmethod
+    @contextmanager
+    def using_reader(cls, override=None, create=True):
+        reader = cls.current_reader(override, create)
+        with reader.as_current_reader() if reader else nullcontext():
+            yield
 
 
     def fill_pos(self, model, start):
@@ -159,8 +190,6 @@ class HyReader(Reader):
     def parse(self, stream, filename=None, skip_shebang=False):
         """Yields all `hy.models.Object`'s in `source`
 
-        Additionally exposes `self` as ``hy.&reader`` during read/compile time.
-
         Args:
             source:
                 Hy source to be parsed.
@@ -178,17 +207,7 @@ class HyReader(Reader):
                 if c == "\n":
                     break
 
-        rname = mangle("&reader")
-        old_reader = getattr(hy, rname, None)
-        setattr(hy, rname, self)
-
-        try:
-            yield from self.parse_forms_until("")
-        finally:
-            if old_reader is None:
-                delattr(hy, rname)
-            else:
-                setattr(hy, rname, old_reader)
+        yield from self.parse_forms_until("")
 
     ###
     # Reading forms
@@ -210,23 +229,28 @@ class HyReader(Reader):
                 fully parsing a form.
             LexException: If there is an error during form parsing.
         """
-        try:
-            self.slurp_space()
-            c = self.getc()
-            start = self._pos
-            if not c:
-                raise PrematureEndOfInput.from_reader(
-                    "Premature end of input while attempting to parse one form", self
+        with self.as_current_reader():
+            try:
+                self.slurp_space()
+                c = self.getc()
+                start = self._pos
+                if not c:
+                    raise PrematureEndOfInput.from_reader(
+                        "Premature end of input while attempting to parse one form", self
+                    )
+                handler = self.reader_table.get(c)
+                model = handler(self, c) if handler else self.read_default(c)
+                if model is not None:
+                    model = self.fill_pos(model, start)
+                    model.reader = self
+                    return model
+                return None
+            except LexException:
+                raise
+            except Exception as e:
+                raise LexException.from_reader(
+                    str(e) or "Exception thrown attempting to parse one form", self
                 )
-            handler = self.reader_table.get(c)
-            model = handler(self, c) if handler else self.read_default(c)
-            return self.fill_pos(model, start) if model is not None else None
-        except LexException:
-            raise
-        except Exception as e:
-            raise LexException.from_reader(
-                str(e) or "Exception thrown attempting to parse one form", self
-            )
 
     def parse_one_form(self):
         """Read from the stream until a form is parsed.

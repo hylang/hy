@@ -33,10 +33,12 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     source = stream.read()
     stream.seek(pos)
 
-    m = hy.models.Lazy((reader or HyReader()).parse(
+    reader = reader or HyReader()
+    m = hy.models.Lazy(reader.parse(
         stream, filename, skip_shebang))
     m.source = source
     m.filename = filename
+    m.reader = reader
     return m
 
 
@@ -52,5 +54,5 @@ def read(stream, filename=None, reader=None):
     except StopIteration:
         raise EOFError()
     else:
-        m.source, m.filename = it.source, it.filename
+        m.source, m.filename, m.reader = it.source, it.filename, it.reader
         return m

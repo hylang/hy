@@ -1845,7 +1845,7 @@ def compile_require(compiler, expr, root, entries):
                             mkexpr(
                                 dotted("hy.macros.enable-readers"),
                                 "None",
-                                dotted("hy.&reader"),
+                                mkexpr(dotted("hy.reader.HyReader.current-reader")),
                                 [reader_assignments],
                             ),
                         ),

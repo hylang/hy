@@ -11,7 +11,7 @@ from functools import partial
 
 import hy
 from hy.compiler import hy_compile
-from hy.reader import read_many
+from hy.reader import read_many, HyReader
 
 
 @contextmanager
@@ -118,7 +118,7 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
         if os.environ.get("HY_MESSAGE_WHEN_COMPILING"):
             print("Compiling", path, file=sys.stderr)
         source = data.decode("utf-8")
-        hy_tree = read_many(source, filename=path, skip_shebang=True)
+        hy_tree = read_many(source, filename=path, skip_shebang=True, reader=HyReader())
         with loader_module_obj(self) as module:
             data = hy_compile(hy_tree, module)
 
@@ -139,7 +139,7 @@ if (".hy", False, False) not in zipimport._zip_searchorder:
         sys.modules[mname] = types.ModuleType(mname)
         return compile(
             hy_compile(
-                read_many(source.decode("UTF-8"), filename=pathname, skip_shebang=True),
+                read_many(source.decode("UTF-8"), filename=pathname, skip_shebang=True, reader=HyReader()),
                 sys.modules[mname],
             ),
             pathname,
