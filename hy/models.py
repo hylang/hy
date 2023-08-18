@@ -34,7 +34,7 @@ class Object:
     `end_column` 3.
     """
 
-    properties = ["module", "_start_line", "_end_line", "_start_column", "_end_column"]
+    properties = ["_start_line", "_end_line", "_start_column", "_end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, Object):
