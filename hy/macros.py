@@ -20,7 +20,7 @@ from hy.errors import (
 )
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
-from hy.reader import mangle, unmangle
+from hy.reader import mangle
 
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
@@ -273,11 +273,7 @@ def require(source_module, target_module, assignments, prefix="", target_module_
         )
     ):
         _name = mangle(name)
-        alias = mangle(
-            "#" + prefix + unmangle(alias)[1:]
-            if unmangle(alias).startswith("#")
-            else prefix + alias
-        )
+        alias = mangle(prefix + alias)
         if _name in source_module._hy_macros:
             target_macros[alias] = source_macros[_name]
         else:
