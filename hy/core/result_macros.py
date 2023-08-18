@@ -57,7 +57,7 @@ from hy.models import (
     as_model,
     is_unpack,
 )
-from hy.reader import mangle, unmangle
+from hy.reader import mangle
 from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------
