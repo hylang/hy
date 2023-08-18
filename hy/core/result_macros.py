@@ -111,8 +111,8 @@ def digest_type_params(compiler, tp):
 
 
 @pattern_macro("do", [many(FORM)])
-def compile_do(self, expr, root, body):
-    return self._compile_branch(body)
+def compile_do(compiler, expr, root, body):
+    return compiler._compile_branch(body)
 
 
 @pattern_macro(["eval-and-compile", "eval-when-compile", "do-mac"], [many(FORM)])
