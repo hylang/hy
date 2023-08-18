@@ -158,11 +158,6 @@ sys.path_importer_cache.clear()
 # Do this one just in case?
 importlib.invalidate_caches()
 
-# These aren't truly cross-compliant.
-# They're useful for testing, though.
-class HyImporter(importlib.machinery.FileFinder):
-    pass
-
 
 class HyLoader(importlib.machinery.SourceFileLoader):
     pass
@@ -180,14 +175,6 @@ runpy = importlib.import_module("runpy")
 
 _runpy_get_code_from_file = runpy._get_code_from_file
 runpy._get_code_from_file = _get_code_from_file
-
-
-def _import_from_path(name, path):
-    """A helper function that imports a module from the given path."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
 
 
 def _inject_builtins():

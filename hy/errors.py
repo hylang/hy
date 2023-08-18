@@ -146,10 +146,6 @@ class HyTypeError(HyLanguageError, TypeError):
     """TypeError occurring during the normal use of Hy."""
 
 
-class HyNameError(HyLanguageError, NameError):
-    """NameError occurring during the normal use of Hy."""
-
-
 class HyRequireError(HyLanguageError):
     """Errors arising during the use of `require`
 
@@ -172,12 +168,6 @@ class HyEvalError(HyLanguageError):
     the compiler (e.g. in `eval-and-compile`).
 
     This, and any errors inheriting from this, are user-facing.
-    """
-
-
-class HyIOError(HyInternalError, IOError):
-    """Subclass used to distinguish between IOErrors raised by Hy itself as
-    opposed to Hy programs.
     """
 
 

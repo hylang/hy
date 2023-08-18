@@ -65,7 +65,7 @@ class HyArgError(Exception):
     pass
 
 
-def cmdline_handler(scriptname, argv):
+def cmdline_handler(argv):
     # We need to terminate interpretation of options after certain
     # options, such as `-c`. So, we can't use `argparse`.
 
@@ -321,7 +321,7 @@ def cmdline_handler(scriptname, argv):
 def hy_main():
     sys.path.insert(0, "")
     try:
-        sys.exit(cmdline_handler("hy", sys.argv))
+        sys.exit(cmdline_handler(sys.argv))
     except HyArgError as e:
         print(e)
         exit(1)
@@ -473,7 +473,7 @@ def hy2py_main():
                     f"{filename} is a directory but the output directory is not specified. Use --output or -o in command line arguments to specify the output directory."
                 )
             os.makedirs(options.output, exist_ok=True)
-            for path, subdirs, files in os.walk(filename):
+            for path, _, files in os.walk(filename):
                 for name in files:
                     filename_raw, filename_ext = os.path.splitext(name)
                     if filename_ext == ".hy":
