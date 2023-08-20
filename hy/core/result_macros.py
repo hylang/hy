@@ -143,9 +143,9 @@ def compile_eval_foo_compile(compiler, expr, root, body):
 
     return (
         compiler.compile(as_model(value))
-        if mangle(root) == "do_mac"
+        if root == "do-mac"
         else compiler._compile_branch(body)
-        if mangle(root) == "eval_and_compile"
+        if root == "eval-and-compile"
         else Result()
     )
 
