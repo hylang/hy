@@ -323,7 +323,6 @@ class ScopeGen(ScopeFn):
         super().__init__(compiler)
         self.iterators = set()
         self.assignments = []
-        self.nonlocals = set()
         self.exposing_assignments = False
 
     def __enter__(self):

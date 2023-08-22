@@ -1,8 +1,6 @@
 (import itertools)
 (import collections.abc [Iterable])
-(import hy.models [Keyword Symbol]
-        hy.reader [mangle unmangle]
-        hy.compiler [HyASTCompiler calling-module])
+(import hy.compiler [HyASTCompiler calling-module])
 
 (defn disassemble [tree [codegen False]]
   "Return the python AST for a quoted Hy `tree` as a string.
@@ -72,7 +70,7 @@
     (setv n _gensym_counter)
     (finally (.release _gensym_lock)))
   (setv g (hy.mangle (.format "_hy_gensym_{}_{}" g n)))
-  (Symbol (if (.startswith g "_hyx_")
+  (hy.models.Symbol (if (.startswith g "_hyx_")
     ; Remove the mangle prefix, if it's there, so the result always
     ; starts with our reserved prefix `_hy_`.
     (+ "_" (cut g (len "_hyx_") None))

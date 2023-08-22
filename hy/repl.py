@@ -14,7 +14,7 @@ import types
 from contextlib import contextmanager
 
 import hy
-from hy.compiler import HyASTCompiler, hy_ast_compile_flags, hy_compile
+from hy.compiler import HyASTCompiler, hy_compile
 from hy.completer import Completer, completion
 from hy.errors import (
     HyLanguageError,
@@ -125,8 +125,6 @@ class HyCompile(codeop.Compile):
             enable_readers(
                 self.module, self.reader, self.module._hy_reader_macros.keys()
             )
-
-        self.flags |= hy_ast_compile_flags
 
         self.cmdline_cache = cmdline_cache
 
@@ -338,7 +336,7 @@ class REPL(code.InteractiveConsole):
                 msg = "Exception in AST callback:\n{}\n".format(traceback.format_exc())
                 self.write(msg)
 
-    def _error_wrap(self, error_fn, exc_info_override=False, *args, **kwargs):
+    def _error_wrap(self, exc_info_override=False, *args, **kwargs):
         sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
 
         if exc_info_override:
@@ -358,12 +356,10 @@ class REPL(code.InteractiveConsole):
             filename = self.filename
         self.print_last_value = False
 
-        self._error_wrap(
-            super().showsyntaxerror, exc_info_override=True, filename=filename
-        )
+        self._error_wrap(exc_info_override=True, filename=filename)
 
     def showtraceback(self):
-        self._error_wrap(super().showtraceback)
+        self._error_wrap()
 
     def runcode(self, code):
         try:

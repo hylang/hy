@@ -316,10 +316,6 @@ def mkexpr(*items, **kwargs):
     return make_hy_model(Expression, items, kwargs.get("rest"))
 
 
-def mklist(*items, **kwargs):
-    return make_hy_model(List, items, kwargs.get("rest"))
-
-
 def is_annotate_expression(model):
     return isinstance(model, Expression) and model and model[0] == Symbol("annotate")
 
@@ -512,7 +508,7 @@ class HyASTCompiler:
         return name
 
     @builds_model(Expression)
-    def compile_expression(self, expr, *, allow_annotation_expression=False):
+    def compile_expression(self, expr):
         # Perform macro expansions
         expr = macroexpand(expr, self.module, self)
         if isinstance(expr, (Result, ast.AST)):
@@ -566,7 +562,7 @@ class HyASTCompiler:
         if is_annotate_expression(root):
             # Flatten and compile the annotation expression.
             ann_expr = Expression(root + args).replace(root)
-            return self.compile_expression(ann_expr, allow_annotation_expression=True)
+            return self.compile_expression(ann_expr)
 
         if not func:
             func = self.compile(root)

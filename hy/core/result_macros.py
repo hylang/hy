@@ -57,7 +57,7 @@ from hy.models import (
     as_model,
     is_unpack,
 )
-from hy.reader import mangle, unmangle
+from hy.reader import mangle
 from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------
@@ -111,8 +111,8 @@ def digest_type_params(compiler, tp):
 
 
 @pattern_macro("do", [many(FORM)])
-def compile_do(self, expr, root, body):
-    return self._compile_branch(body)
+def compile_do(compiler, expr, root, body):
+    return compiler._compile_branch(body)
 
 
 @pattern_macro(["eval-and-compile", "eval-when-compile", "do-mac"], [many(FORM)])
@@ -143,9 +143,9 @@ def compile_eval_foo_compile(compiler, expr, root, body):
 
     return (
         compiler.compile(as_model(value))
-        if mangle(root) == "do_mac"
+        if root == "do-mac"
         else compiler._compile_branch(body)
-        if mangle(root) == "eval_and_compile"
+        if root == "eval-and-compile"
         else Result()
     )
 

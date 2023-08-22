@@ -222,7 +222,7 @@ class Symbol(Object, str):
 
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
-_wrappers[type(None)] = lambda foo: Symbol("None")
+_wrappers[type(None)] = lambda _: Symbol("None")
 
 
 class Keyword(Object):
