@@ -5,6 +5,9 @@ Unreleased
 
 Breaking Changes
 ------------------------------
+* When a macro is `require`\d from another module, that module is no
+  longer implicitly included when checking for further macros in
+  the expansion.
 * `hy.eval` has been overhauled to be more like Python's `eval`.
 * `hy` now only implicitly launches a REPL if standard input is a TTY.
 * `hy -i` has been overhauled to work as a flag like `python3 -i`.

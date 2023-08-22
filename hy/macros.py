@@ -391,14 +391,11 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
         else:
             break
 
-        expr_modules = ([] if not hasattr(tree, "module") else [tree.module]) + [module]
-        expr_modules.append(builtins)
-
         # Choose the first namespace with the macro.
         m = next(
             (
                 mod._hy_macros[fn]
-                for mod in expr_modules
+                for mod in (module, builtins)
                 if fn in getattr(mod, "_hy_macros", ())
             ),
             None,
@@ -412,9 +409,6 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
             obj = m(compiler, *tree[1:])
             if isinstance(obj, (hy.compiler.Result, AST)):
                 return obj if result_ok else tree
-
-            if isinstance(obj, Expression):
-                obj.module = inspect.getmodule(m)
 
             tree = replace_hy_obj(obj, tree)
 
