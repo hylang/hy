@@ -453,7 +453,24 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (eval-and-compile [#* body])
 
-   ``eval-and-compile`` takes any number of forms as arguments. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, instead of being deferred until run-time. The input forms are also left in the program so they can be executed at run-time as usual. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice. The return value is the final argument, as in ``do``.
+   ``eval-and-compile`` takes any number of forms as arguments. The input forms are evaluated as soon as the ``eval-and-compile`` form is compiled, then left in the program so they can be executed at run-time as usual; contrast with :hy:func:`eval-when-compile`. So, if you compile and immediately execute a program (as calling ``hy foo.hy`` does when ``foo.hy`` doesn't have an up-to-date byte-compiled version), ``eval-and-compile`` forms will be evaluated twice. For example, the following program ::
+
+       (eval-when-compile
+         (print "Compiling"))
+       (print "Running")
+       (eval-and-compile
+         (print "Hi"))
+
+   prints
+
+   .. code-block:: text
+
+      Compiling
+      Hi
+      Running
+      Hi
+
+   The return value of ``eval-and-compile`` is its final argument, as for :hy:func:`do`.
 
    One possible use of ``eval-and-compile`` is to make a function available both at compile-time (so a macro can call it while expanding) and run-time (so it can be called like any other function)::
 
@@ -469,9 +486,35 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    Had the ``defn`` not been wrapped in ``eval-and-compile``, ``m`` wouldn't be able to call ``add``, because when the compiler was expanding ``(m 3)``, ``add`` wouldn't exist yet.
 
+   While ``eval-and-compile`` executes the same code at both compile-time and run-time, bear in mind that the same code can have different meanings in the two contexts. Consider, for example, issues of scoping::
+
+       (eval-when-compile
+         (print "Compiling"))
+       (print "Running")
+       (eval-and-compile
+         (setv x 1))
+       (defn f []
+         (setv x 2)
+         (eval-and-compile
+           (setv x 3))
+         (print "local x =" x))
+       (f)
+       (eval-and-compile
+         (print "global x =" x))
+
+   The form ``(setv x 3)`` above refers to the global ``x`` at compile-time, but the local ``x`` at run-time, so the result is:
+
+   .. code-block:: text
+
+      Compiling
+      global x = 3
+      Running
+      local x = 3
+      global x = 1
+
 .. hy:macro:: (eval-when-compile [#* body])
 
-   As ``eval-and-compile``, but the code isn't executed at run-time, and ``None`` is returned. Hence, ``eval-when-compile`` doesn't directly contribute any code to the final program, although it can still change Hy's state while compiling (e.g., by defining a function). ::
+   ``eval-when-compile`` executes the given forms at compile-time, but discards them at run-time and simply returns :data:`None` instead; contrast :hy:func:`eval-and-compile`. Hence, while ``eval-when-compile`` doesn't directly contribute code to the final program, it can change Hy's state while compiling, as by defining a function::
 
        (eval-when-compile
          (defn add [x y]
