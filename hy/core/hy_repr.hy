@@ -8,39 +8,26 @@
 
 (setv _registry {})
 (defn hy-repr-register [types f [placeholder None]]
-  "``hy.repr-register`` lets you set the function that ``hy.repr`` calls to
-  represent a type.
+  #[[``hy.repr-register`` lets you set the function that :hy:func:`hy.repr` calls to
+  represent a type::
 
-  Examples:
-    ::
+      (defclass C)
+      (hy.repr-register C (fn [x] "cuddles"))
+      (hy.repr [1 (C) 2])  ; => "[1 cuddles 2]"
 
-       => (hy.repr-register the-type fun)
+  Registered functions often call ``hy.repr`` themselves. ``hy.repr`` will
+  automatically detect self-references, even deeply nested ones, and
+  output ``"..."`` for them instead of calling the usual registered
+  function. To use a placeholder other than ``"..."``, pass a string of
+  your choice as the ``placeholder`` argument::
 
-       => (defclass C)
-       => (hy.repr-register C (fn [x] \"cuddles\"))
-       => (hy.repr [1 (C) 2])
-       \"[1 cuddles 2]\"
+      (defclass Container)
+      (hy.repr-register Container :placeholder "HY THERE"
+        (fn [x] f"(Container {(hy.repr x.value)})"))
+      (setv container (Container))
+      (setv container.value container)
+      (hy.repr container)   ; => "(Container HY THERE)"]]
 
-       If the type of an object passed to ``hy.repr`` doesn't have a registered
-       function, ``hy.repr`` falls back on ``repr``.
-
-       Registered functions often call ``hy.repr`` themselves. ``hy.repr`` will
-       automatically detect self-references, even deeply nested ones, and
-       output ``\"...\"`` for them instead of calling the usual registered
-       function. To use a placeholder other than ``\"...\"``, pass a string of
-       your choice to the keyword argument ``:placeholder`` of
-       ``hy.repr-register``.
-
-      => (defclass Container [object]
-      ...   (defn __init__ (fn [self value]
-      ...     (setv self.value value))))
-      =>    (hy.repr-register Container :placeholder \"HY THERE\" (fn [x]
-      ...      (+ \"(Container \" (hy.repr x.value) \")\")))
-      => (setv container (Container 5))
-      => (setv container.value container)
-      => (print (hy.repr container))
-      '(Container HY THERE)'
-  "
   (for [typ (if (isinstance types list) types [types])]
     (setv (get _registry typ) #(f placeholder))))
 
@@ -50,16 +37,14 @@
   #[[This function is Hy's equivalent of Python's :func:`repr`.
   It returns a string representing the input object in Hy syntax. ::
 
-       => (hy.repr [1 2 3])
-       "[1 2 3]"
-       => (repr [1 2 3])
-       "[1, 2, 3]"
+       (hy.repr [1 2 3])  ; => "[1 2 3]"
+       (repr [1 2 3])     ; => "[1, 2, 3]"
 
   Like ``repr`` in Python, ``hy.repr`` can round-trip many kinds of
   values. Round-tripping implies that given an object ``x``,
   ``(hy.eval (hy.read (hy.repr x)))`` returns ``x``, or at least a
   value that's equal to ``x``. A notable exception to round-tripping
-  is that if a :class:`hy.models.Object` contains a non-model, the
+  is that if a model contains a non-model, the
   latter will be promoted to a model in the output::
 
       (setv
@@ -68,7 +53,11 @@
         y (hy.eval (hy.read output)))
       (print output)            ; '[5]
       (print (type (get x 0)))  ; <class 'int'>
-      (print (type (get y 0)))  ; <class 'hy.models.Integer'>]]
+      (print (type (get y 0)))  ; <class 'hy.models.Integer'>
+
+  When ``hy.repr`` doesn't know how to represent an object, it falls
+  back on :func:`repr`. Use :hy:func:`hy.repr-register` to add your
+  own conversion function for a type instead.]]
 
   (setv [f placeholder] (.get _registry (type obj) [_base-repr None]))
 
