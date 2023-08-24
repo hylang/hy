@@ -839,7 +839,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 .. hy:macro:: (unquote [model])
 .. hy:macro:: (unquote-splice [model])
 
-   ``quasiquote`` is like :hy:func:`quote` except that it treats the model as a template, in which certain special :ref:`expressions <expressions>` indicate that some code should evaluated and its value substituted there. The idea is similar to C's ``sprintf`` or Python's various string-formatting constructs. For example::
+   ``quasiquote`` is like :hy:func:`quote` except that it treats the model as a template, in which certain special :ref:`expressions <expressions>` indicate that some code should be evaluated and its value substituted there. The idea is similar to C's ``sprintf`` or Python's various string-formatting constructs. For example::
 
     (setv x 2)
     (quasiquote (+ 1 (unquote x)))  ; => '(+ 1 2)
