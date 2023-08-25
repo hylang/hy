@@ -663,6 +663,29 @@ def test_relative_require(case, monkeypatch, tmp_path):
     assert 'HELLO' in output
 
 
+def test_require_doesnt_pollute_core(monkeypatch, tmp_path):
+    # https://github.com/hylang/hy/issues/1978
+    """Macros loaded from an external module should not pollute
+    `_hy_macros` with macros from core."""
+
+    (tmp_path / 'aaa.hy').write_text('''
+        (defmacro foo []
+          '(setv x (.upper "argelfraster")))''')
+    (tmp_path / 'bbb.hy').write_text('''
+        (require aaa :as A)
+        (A.foo)
+        (print
+          x
+          (not-in "if" _hy_macros)
+          (not-in "cond" _hy_macros))''')
+            # `if` is a result macro; `cond` is a regular macro.
+    monkeypatch.chdir(tmp_path)
+
+    # Try it without and then with bytecode.
+    for _ in (1, 2):
+        assert 'ARGELFRASTER True True' in run_cmd('hy bbb.hy')[0]
+
+
 def test_run_dir_or_zip(tmp_path):
 
     (tmp_path / 'dir').mkdir()

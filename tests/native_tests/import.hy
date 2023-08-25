@@ -166,51 +166,6 @@ in expansions."
              (test-module-macro-2 3))))
 
 
-(defn test-requires-pollutes-core []
-  ;; https://github.com/hylang/hy/issues/1978
-  ;; Macros loaded from an external module should not pollute `_hy_macros`
-  ;; with macros from core.
-
-  (setv pyc-file (importlib.util.cache-from-source
-                   (os.path.realpath
-                     (os.path.join
-                       "tests" "resources" "macros.hy"))))
-
-  ;; Remove any cached byte-code, so that this runs from source and
-  ;; gets evaluated in this module.
-  (when (os.path.isfile pyc-file)
-    (os.unlink pyc-file)
-    (.clear sys.path_importer_cache)
-    (when (in  "tests.resources.macros" sys.modules)
-      (del (get sys.modules "tests.resources.macros"))
-      (_hy_macros.clear)))
-
-  ;; Ensure that bytecode isn't present when we require this module.
-  (assert (not (os.path.isfile pyc-file)))
-
-  (defn require-macros []
-    (require tests.resources.macros :as m)
-
-    (assert (in (hy.mangle "m.test-macro") _hy_macros))
-    (for [macro-name _hy_macros]
-      (assert (not (and (in "with" macro-name)
-                        (!= "with" macro-name))))))
-
-  (require-macros)
-
-  ;; Now that bytecode is present, reload the module, clear the `require`d
-  ;; macros and tags, and rerun the tests.
-  (when (not PYODIDE)
-    (assert (os.path.isfile pyc-file)))
-
-  ;; Reload the module and clear the local macro context.
-  (.clear sys.path_importer_cache)
-  (del (get sys.modules "tests.resources.macros"))
-  (.clear _hy_macros)
-
-  (require-macros))
-
-
 (defn test-no-surprise-shadow [tmp-path monkeypatch]
   "Check that an out-of-module macro doesn't shadow a function."
   ; https://github.com/hylang/hy/issues/2451
