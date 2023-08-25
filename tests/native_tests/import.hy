@@ -59,54 +59,52 @@
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
 
 
-(defn test-require []
-  (with [(pytest.raises NameError)]
-    (qplah 1 2 3 4))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
-  (with [(pytest.raises NameError)]
-    (✈ 1 2 3 4))
-  (with [(pytest.raises NameError)]
-    (hyx_XairplaneX 1 2 3 4))
+(require
+  tests.resources.tlib
+  tests.resources.tlib :as TL
+  tests.resources.tlib [qplah]
+  tests.resources.tlib [parald :as parald-alias]
+  tests.resources [tlib  macros :as TM  exports-none]
+  os [path])
+    ; The last one is a no-op, since the module `os.path` exists but
+    ; contains no macros.
 
-  (require tests.resources.tlib [qplah])
-  (assert (= (qplah 1 2 3) [8 1 2 3]))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
-
-  (require tests.resources.tlib)
+(defn test-require-global []
   (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
   (assert (= (tests.resources.tlib.✈ "silly") "plane silly"))
   (assert (= (tests.resources.tlib.hyx_XairplaneX "foolish") "plane foolish"))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
 
-  (require tests.resources.tlib :as T)
-  (assert (= (T.parald 1 2 3) [9 1 2 3]))
-  (assert (= (T.✈ "silly") "plane silly"))
-  (assert (= (T.hyx_XairplaneX "foolish") "plane foolish"))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
+  (assert (= (TL.parald 1 2 3) [9 1 2 3]))
+  (assert (= (TL.✈ "silly") "plane silly"))
+  (assert (= (TL.hyx_XairplaneX "foolish") "plane foolish"))
 
-  (require tests.resources.tlib [parald :as p])
-  (assert (= (p 1 2 3) [9 1 2 3]))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
+  (assert (= (qplah 1 2 3) [8 1 2 3]))
 
-  (require tests.resources.tlib *)
-  (assert (= (parald 1 2 3) [9 1 2 3]))
-  (assert (= (✈ "silly") "plane silly"))
-  (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
+  (assert (= (parald-alias 1 2 3) [9 1 2 3]))
 
-  (require tests.resources [tlib  macros :as m  exports-none])
   (assert (in "tlib.qplah" _hy_macros))
-  (assert (in (hy.mangle "m.test-macro") _hy_macros))
+  (assert (in (hy.mangle "TM.test-macro") _hy_macros))
   (assert (in (hy.mangle "exports-none.cinco") _hy_macros))
-  (require os [path])
-  (with [(pytest.raises hy.errors.HyRequireError)]
-    (hy.eval '(require tests.resources [does-not-exist])))
 
-  (require tests.resources.exports *)
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
+
+  (with [(pytest.raises hy.errors.HyRequireError)]
+    (hy.eval '(require tests.resources [does-not-exist]))))
+
+
+(require tests.resources.more-test-macros *)
+
+(defn test-require-global-star-without-exports []
+  (assert (= (bairn 1 2 3) [14 1 2 3]))
+  (assert (= (cairn 1 2 3) [15 1 2 3]))
+  (with [(pytest.raises NameError)]
+    (_dairn 1 2 3 4)))
+
+
+(require tests.resources.exports *)
+
+(defn test-require-global-star-with-exports []
   (assert (= (casey 1 2 3) [11 1 2 3]))
   (assert (= (☘ 1 2 3) [13 1 2 3]))
   (with [(pytest.raises NameError)]
