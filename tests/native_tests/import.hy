@@ -111,15 +111,15 @@
     (brother 1 2 3 4)))
 
 
-(defn test-relative-require []
-  (require ..resources.macros [test-macro])
-  (assert (in "test_macro" _hy_macros))
+(require
+  ..resources.macros [test-macro-2]
+  .beside [xyzzy]
+  . [beside :as BS])
 
-  (require .beside [xyzzy])
+(defn test-require-global-relative []
+  (assert (in "test_macro_2" _hy_macros))
   (assert (in "xyzzy" _hy_macros))
-
-  (require . [beside :as b])
-  (assert (in "b.xyzzy" _hy_macros)))
+  (assert (in "BS.xyzzy" _hy_macros)))
 
 
 ;; `remote-test-macro` is a macro used within
