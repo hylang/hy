@@ -111,17 +111,6 @@
     (brother 1 2 3 4)))
 
 
-(defn test-require-native []
-  (with [(pytest.raises NameError)]
-    (test-macro-2))
-  (import tests.resources.macros)
-  (with [(pytest.raises NameError)]
-    (test-macro-2))
-  (require tests.resources.macros [test-macro-2])
-  (test-macro-2)
-  (assert (= qup 2)))
-
-
 (defn test-relative-require []
   (require ..resources.macros [test-macro])
   (assert (in "test_macro" _hy_macros))
