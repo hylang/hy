@@ -338,7 +338,7 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     """Expand the toplevel macros for the given Hy AST tree.
 
     Load the macros from the given `module`, then expand the (top-level) macros
-    in `tree` until we no longer can.
+    in `tree` until we no longer can. This doesn't work on local macros.
 
     `Expression` resulting from macro expansions are assigned the module in
     which the macro function is defined (determined using `inspect.getmodule`).

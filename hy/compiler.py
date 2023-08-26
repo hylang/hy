@@ -751,7 +751,9 @@ def hy_eval_user(model, globals = None, locals = None, module = None):
         (hy.eval '(my-test-mac))                 ; => 3
         (import hyrule)
         (hy.eval '(my-test-mac) :module hyrule)  ; NameError
-        (hy.eval '(list-n 3 1) :module hyrule)   ; => [1 1 1]"""
+        (hy.eval '(list-n 3 1) :module hyrule)   ; => [1 1 1]
+
+    N.B. Local macros are invisible to ``hy.eval``."""
 
     if locals is None:
         locals = globals
