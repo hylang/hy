@@ -4,6 +4,7 @@ import importlib
 import inspect
 import traceback
 import types
+from contextlib import contextmanager
 
 from funcparserlib.parser import NoParseError, many
 
@@ -335,6 +336,10 @@ class HyASTCompiler:
         """
         self.anon_var_count = 0
         self.temp_if = None
+        self.local_macro_stack = []
+          # A list of dictionaries that map mangled names to local
+          # macros. The last element is considered the top of the
+          # stack.
 
         if not inspect.ismodule(module):
             self.module = importlib.import_module(module)
@@ -506,6 +511,25 @@ class HyASTCompiler:
         if str(name) in ("None", "True", "False"):
             raise self._syntax_error(name, "Can't assign to constant")
         return name
+
+    def eval(self, model):
+        return hy_eval(
+            model,
+            locals = self.module.__dict__,
+            module = self.module,
+            filename = self.filename,
+            source = self.source,
+            import_stdlib = False)
+
+    @contextmanager
+    def local_macros(self):
+        """Make `defmacro` and `require` assign to a new element of
+        `self.local_macro_stack` instead of a module."""
+        self.local_macro_stack.append({})
+        try:
+            yield
+        finally:
+            self.local_macro_stack.pop()
 
     @builds_model(Expression)
     def compile_expression(self, expr):

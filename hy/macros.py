@@ -388,14 +388,16 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
             break
 
         # Choose the first namespace with the macro.
-        m = next(
-            (
-                mod._hy_macros[fn]
-                for mod in (module, builtins)
-                if fn in getattr(mod, "_hy_macros", ())
-            ),
-            None,
-        )
+        m = ((compiler and next(
+                (d[fn]
+                    for d in reversed(compiler.local_macro_stack)
+                    if fn in d),
+                None)) or
+            next(
+                (mod._hy_macros[fn]
+                    for mod in (module, builtins)
+                    if fn in getattr(mod, "_hy_macros", ())),
+                None))
         if not m:
             break
 

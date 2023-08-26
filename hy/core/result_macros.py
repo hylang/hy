@@ -16,7 +16,7 @@ from itertools import dropwhile
 from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
 from hy._compat import PY3_11, PY3_12
-from hy.compiler import Result, asty, hy_eval, mkexpr
+from hy.compiler import Result, asty, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
 from hy.macros import pattern_macro, require, require_reader
 from hy.model_patterns import (
@@ -120,14 +120,7 @@ def compile_eval_foo_compile(compiler, expr, root, body):
     new_expr = Expression([Symbol("do").replace(expr[0])]).replace(expr)
 
     try:
-        value = hy_eval(
-            new_expr + body,
-            compiler.module.__dict__,
-            compiler.module,
-            filename=compiler.filename,
-            source=compiler.source,
-            import_stdlib=False,
-        )
+        value = compiler.eval(new_expr + body)
     except HyInternalError:
         # Unexpected "meta" compilation errors need to be treated
         # like normal (unexpected) compilation errors at this level
@@ -745,7 +738,8 @@ def compile_comprehension(compiler, expr, root, parts, final):
     is_for = root == "for"
 
     ctx = nullcontext() if is_for else compiler.scope.create(ScopeGen)
-    with ctx as scope:
+    mac_con = nullcontext() if is_for else compiler.local_macros()
+    with mac_con, ctx as scope:
 
         # Compile the parts.
         if is_for:
@@ -1444,7 +1438,7 @@ def compile_function_lambda(compiler, expr, root, tp, params, body):
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
     args, ret = compile_lambda_list(compiler, params)
-    with compiler.scope.create(ScopeFn, args):
+    with compiler.local_macros(), compiler.scope.create(ScopeFn, args):
         body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
@@ -1472,7 +1466,7 @@ def compile_function_def(compiler, expr, root, decorators, tp, name, params, bod
     ret += ret2
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
-    with compiler.scope.create(ScopeFn, args):
+    with compiler.local_macros(), compiler.scope.create(ScopeFn, args):
         body = compiler._compile_branch(body)
 
     return ret + compile_function_node(
@@ -1513,31 +1507,25 @@ def compile_function_node(compiler, expr, node, decorators, tp, name, args, retu
     ],
 )
 def compile_macro_def(compiler, expr, root, name, params, body):
-    ret = Result() + compiler.compile(
-        Expression(
-            [
-                Symbol("eval-and-compile"),
-                Expression(
-                    [
-                        Expression(
-                            [
-                                dotted("hy.macros.macro"),
-                                str(name),
-                            ]
-                        ),
-                        Expression(
-                            [
-                                Symbol("fn"),
-                                List([Symbol("&compiler")] + list(expr[2])),
-                                *body,
-                            ]
-                        ),
-                    ]
-                ),
-            ]
-        ).replace(expr)
-    )
+    def E(*x): return Expression(x)
+    S = Symbol
 
+    ret = []
+    fn_def = E(
+        S("fn"),
+        List([S("&compiler"), *expr[2]]),
+        *body)
+    if compiler.local_macro_stack:
+        # We're in a local macro scope, so define the new macro
+        # locally.
+        compiler.local_macro_stack[-1][mangle(name)] = (
+            compiler.eval(fn_def.replace(expr)))
+        return Result()
+    # Otherwise, define the macro module-wide.
+    ret.append(E(
+        E(dotted("hy.macros.macro"), str(name)),
+        fn_def))
+    ret = compiler.compile(E(S("eval-and-compile"), *ret).replace(expr))
     return ret + ret.expr_as_stmt()
 
 
@@ -1695,7 +1683,7 @@ def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
 
-    with compiler.scope.create(ScopeFn):
+    with compiler.local_macros(), compiler.scope.create(ScopeFn):
         e = compiler._compile_branch(body)
         bodyr += e + e.expr_as_stmt()
 
