@@ -6,6 +6,10 @@
   "Some tag macro"
   '1)
 
+(defmacro <-mangle-> []
+  "a fancy docstring"
+  '(+ 2 2))
+
 (defn test-doc [capsys]
   ;; https://github.com/hylang/hy/issues/1970
   ;; Let's first make sure we can doc the builtin macros
@@ -18,9 +22,6 @@
   (setv [out err] (.readouterr capsys))
   (assert (in "Some tag macro" out))
 
-  (defmacro <-mangle-> []
-    "a fancy docstring"
-    '(+ 2 2))
   (doc <-mangle->)
   (setv [out err] (.readouterr capsys))
   ;; https://github.com/hylang/hy/issues/1946

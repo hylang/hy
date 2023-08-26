@@ -135,24 +135,26 @@
   (assert (in "b.xyzzy" _hy_macros)))
 
 
+;; `remote-test-macro` is a macro used within
+;; `tests.resources.macro-with-require.test-module-macro`.
+;; Here, we introduce an equivalently named version that, when
+;; used, will expand to a different output string.
+(defmacro remote-test-macro [x]
+  "this is the home version of `remote-test-macro`!")
+
+(require tests.resources.macro-with-require *)
+(defmacro home-test-macro [x]
+  (.format "This is the home version of `remote-test-macro` returning {}!" (int x)))
+
 (defn test-macro-namespace-resolution []
-  "Confirm that local versions of macro-macro dependencies do not shadow the
+  "Confirm that new versions of macro-macro dependencies do not shadow the
 versions from the macro's own module, but do resolve unbound macro references
 in expansions."
 
-  ;; `nonlocal-test-macro` is a macro used within
-  ;; `tests.resources.macro-with-require.test-module-macro`.
-  ;; Here, we introduce an equivalently named version in local scope that, when
-  ;; used, will expand to a different output string.
-  (defmacro nonlocal-test-macro [x]
-    (print "this is the local version of `nonlocal-test-macro`!"))
-
   ;; Was the above macro created properly?
-  (assert (in "nonlocal_test_macro" _hy_macros))
+  (assert (in "remote_test_macro" _hy_macros))
 
-  (setv nonlocal-test-macro (get _hy_macros "nonlocal_test_macro"))
-
-  (require tests.resources.macro-with-require *)
+  (setv remote-test-macro (get _hy_macros "remote_test_macro"))
 
   (setv module-name-var "tests.native_tests.native_macros.test-macro-namespace-resolution")
   (assert (= (+ "This macro was created in tests.resources.macros, "
@@ -162,10 +164,7 @@ in expansions."
 
   ;; Now, let's use a `require`d macro that depends on another macro defined only
   ;; in this scope.
-  (defmacro local-test-macro [x]
-    (.format "This is the local version of `nonlocal-test-macro` returning {}!" (int x)))
-
-  (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
+  (assert (= "This is the home version of `remote-test-macro` returning 3!"
              (test-module-macro-2 3))))
 
 

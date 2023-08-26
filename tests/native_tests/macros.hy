@@ -167,10 +167,12 @@
                (wrap-error-test))))
   (assert (in "HyWrapperError" (str excinfo.value))))
 
+
+(defmacro delete-me [] "world")
+
 (defn test-delmacro
   []
   ;; test deletion of user defined macro
-  (defmacro delete-me [] "world")
   (delmacro delete-me)
   (with [exc (pytest.raises NameError)]
     (delete-me))
