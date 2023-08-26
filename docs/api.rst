@@ -198,6 +198,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       => (infix (1 + 1))
       2
 
+   If ``defmacro`` appears in a function definition, a class definition, or a
+   comprehension other than :hy:func:`for` (such as :hy:func:`lfor`), the new
+   macro is defined locally rather than module-wide.
+
    .. note:: ``defmacro`` cannot use keyword arguments, because all values
              are passed to macros unevaluated. All arguments are passed
              positionally, but they can have default values::
@@ -895,7 +899,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    ``require`` is used to import macros and reader macros from one or more given
    modules. It allows parameters in all the same formats as ``import``.
    ``require`` imports each named module and then makes each requested macro
-   available in the current module.
+   available in the current module, or in the current local scope if called
+   locally (using the same notion of locality as :hy:func:`defmacro`).
 
    The following are all equivalent ways to call a macro named ``foo`` in the
    module ``mymodule``.
@@ -939,8 +944,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        NameError: name 'mymodule' is not defined
 
    Unlike requiring regular macros, reader macros cannot be renamed
-   with ``:as``, and are not made available under their absolute paths
-   to their source module::
+   with ``:as``, are not made available under their absolute paths
+   to their source module, and can't be required locally::
 
       => (require mymodule :readers [!])
       HySyntaxError: ...
