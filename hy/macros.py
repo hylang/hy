@@ -195,42 +195,32 @@ def enable_readers(module, reader, names):
         reader.reader_macros[name] = namespace["_hy_reader_macros"][name]
 
 
-def require(source_module, target_module, assignments, prefix="", target_module_name=None):
-    """Load macros from one module into the namespace of another.
+def require(source_module, target, assignments, prefix="", target_module_name=None):
+    """Load macros from a module. Return a `bool` indicating whether
+    macros were actually transferred.
 
-    This function is called from the macro also named `require`.
+    - `target` can be a a string (naming a module), a module object,
+      a dictionary, or `None` (meaning the calling module).
+    - `assignments` can be "ALL", "EXPORTS", or a list of (macro
+      name, alias) pairs."""
 
-    Args:
-        source_module (Union[str, ModuleType]): The module from which macros are
-            to be imported.
-        target_module (Optional[Union[str, ModuleType]]): The module into which the
-            macros will be loaded.  If `None`, then the caller's namespace.
-            The latter is useful during evaluation of generated AST/bytecode.
-        assignments (Union[str, typing.Sequence[str]]): The string "ALL", the string
-            "EXPORTS", or a list of macro name and alias pairs.
-        prefix (str): If nonempty, its value is prepended to the name of each imported macro.
-            This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
-            which looks like an attribute of a module. Defaults to ""
-        target_module_name: If true, overrides the apparent name of `target_module`.
-
-    Returns:
-        bool: Whether or not macros were actually transferred.
-    """
-    target_module, target_namespace = derive_target_module(
-        target_module, inspect.stack()[1][0]
-    )
-
-    # Let's do a quick check to make sure the source module isn't actually
-    # the module being compiled (e.g. when `runpy` executes a module's code
-    # in `__main__`).
-    # We use the module's underlying filename for this (when they exist), since
-    # it's the most "fixed" attribute.
-    if _same_modules(source_module, target_module):
-        return False
+    if type(target) is dict:
+        target_module = None
+    else:
+        target_module, target_namespace = derive_target_module(
+            target, inspect.stack()[1][0]
+        )
+        # Let's do a quick check to make sure the source module isn't actually
+        # the module being compiled (e.g. when `runpy` executes a module's code
+        # in `__main__`).
+        # We use the module's underlying filename for this (when they exist), since
+        # it's the most "fixed" attribute.
+        if _same_modules(source_module, target_module):
+            return False
 
     if not inspect.ismodule(source_module):
         source_module = import_module_from_string(source_module,
-           target_module_name or target_module)
+           target_module_name or target_module or '')
 
     source_macros = source_module.__dict__.setdefault("_hy_macros", {})
     source_exports = getattr(
@@ -246,7 +236,7 @@ def require(source_module, target_module, assignments, prefix="", target_module_
             try:
                 require(
                     f"{source_module.__name__}.{mangle(name)}",
-                    target_module,
+                    target_module or target,
                     "ALL",
                     prefix=alias,
                 )
@@ -258,7 +248,7 @@ def require(source_module, target_module, assignments, prefix="", target_module_
                 )
         return True
 
-    target_macros = target_namespace.setdefault("_hy_macros", {})
+    target_macros = target_namespace.setdefault("_hy_macros", {}) if target_module else target
 
     if prefix:
         prefix += "."

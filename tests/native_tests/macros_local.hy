@@ -1,4 +1,4 @@
-"Tests of local macro definitions."
+"Tests of local `defmacro` and `require`."
 
 
 (defn test-nonleaking []
@@ -52,3 +52,24 @@
   (print (inner1))
   (assert (= (inner1) ["local version 2" "local version 1"]))
   (assert (= (shadowable) "global version")))
+
+
+(defmacro local-require-test [arg] `(do
+  (defmacro wiz []
+    "local wiz")
+
+  (defn fun []
+    (require tests.resources.local-req-example ~arg)
+    [(get-wiz) (helper)])
+  (defn helper []
+    "local helper function")
+
+  (assert (= [(wiz) (helper)] ["local wiz" "local helper function"]))
+  (assert (= (fun) ["remote wiz" "remote helper macro"]))
+  (assert (= [(wiz) (helper)] ["local wiz" "local helper function"]))))
+
+(defn test-require []
+  (local-require-test [get-wiz helper]))
+
+(defn test-require-star []
+  (local-require-test *))

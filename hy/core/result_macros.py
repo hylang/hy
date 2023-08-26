@@ -1784,7 +1784,9 @@ def compile_require(compiler, expr, root, entries):
         # we don't want to import all macros as prefixed if we're specifically
         # importing readers but not macros
         # (require a-module :readers ["!"])
-        if (rest or not readers) and require(
+        if (rest or not readers) and compiler.local_macro_stack:
+            require(module_name, compiler.local_macro_stack[-1], assignments=assignments, prefix=prefix)
+        elif (rest or not readers) and require(
             module_name, compiler.module, assignments=assignments, prefix=prefix
         ):
             # Actually calling `require` is necessary for macro expansions
