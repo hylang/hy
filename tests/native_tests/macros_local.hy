@@ -54,6 +54,19 @@
   (assert (= (shadowable) "global version")))
 
 
+(defmacro one-plus-two []
+  '(+ 1 2))
+
+(defn test-local-macro-in-expansion-of-nonlocal []
+  (defn f []
+    (defmacro + [a b]
+      "Shadow the core macro `+`. #yolo"
+      `f"zomg! {~a} {~b}")
+    (one-plus-two))
+  (assert (= (f) "zomg! 1 2"))
+  (assert (= (one-plus-two) 3)))
+
+
 (defmacro local-require-test [arg] `(do
   (defmacro wiz []
     "local wiz")
