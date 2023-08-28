@@ -71,32 +71,19 @@ def mangle(s):
 
 def unmangle(s):
     """Stringify the argument and try to convert it to a pretty unmangled
-    form. See :ref:`Hy's mangling rules <mangling>`.
+    form. See :ref:`Hy's mangling rules <mangling>`. ::
+
+        (hy.unmangle "hyx_XsquidX")  ; => "🦑"
 
     Unmangling may not round-trip, because different Hy symbol names can mangle
     to the same Python identifier. In particular, Python itself already
     considers distinct strings that have the same normalized form (according to
     NFKC), such as ``hello`` and ``𝔥𝔢𝔩𝔩𝔬``, to be the same identifier.
 
-    Examples:
-      ::
-
-         => (hy.unmangle 'foo_bar)
-         "foo-bar"
-
-         => (hy.unmangle 'hyx_XasteriskX)
-         "*"
-
-         => (hy.unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
-         "-->"
-
-         => (hy.unmangle 'hyx_XlessHthan_signX__)
-         "<--"
-
-         => (hy.unmangle '__dunder_name__)
-         "__dunder-name__"
-
-    """
+    It's an error to call ``hy.unmangle`` on something that looks like a
+    properly mangled name but isn't. For example, ``(hy.unmangle
+    "hyx_XpizzazzX")`` is erroneous, because there is no Unicode character
+    named "PIZZAZZ" (yet)."""
 
     s = str(s)
 
