@@ -4,11 +4,11 @@
 
 (defmacro test-module-macro [a]
   "The variable `macro-level-var' here should not bind to the same-named symbol
-in the expansion of `nonlocal-test-macro'."
+in the expansion of `remote-test-macro'."
   (setv macro-level-var "tests.resources.macros.macro-with-require")
-  `(nonlocal-test-macro ~a))
+  `(remote-test-macro ~a))
 
 (defmacro test-module-macro-2 [a]
-  "The macro `local-test-macro` isn't in this module's namespace, so it better
+  "The macro `home-test-macro` isn't in this module's namespace, so it better
  be in the expansion's!"
-  `(local-test-macro ~a))
+  `(home-test-macro ~a))

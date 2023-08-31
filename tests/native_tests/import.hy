@@ -59,100 +59,89 @@
   (assert (in "_null_fn_for_import_test" (dir tests.resources.bin))))
 
 
-(defn test-require []
-  (with [(pytest.raises NameError)]
-    (qplah 1 2 3 4))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
-  (with [(pytest.raises NameError)]
-    (✈ 1 2 3 4))
-  (with [(pytest.raises NameError)]
-    (hyx_XairplaneX 1 2 3 4))
+(require
+  tests.resources.tlib
+  tests.resources.tlib :as TL
+  tests.resources.tlib [qplah]
+  tests.resources.tlib [parald :as parald-alias]
+  tests.resources [tlib  macros :as TM  exports-none]
+  os [path])
+    ; The last one is a no-op, since the module `os.path` exists but
+    ; contains no macros.
 
-  (require tests.resources.tlib [qplah])
-  (assert (= (qplah 1 2 3) [8 1 2 3]))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
-
-  (require tests.resources.tlib)
+(defn test-require-global []
   (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
   (assert (= (tests.resources.tlib.✈ "silly") "plane silly"))
   (assert (= (tests.resources.tlib.hyx_XairplaneX "foolish") "plane foolish"))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
 
-  (require tests.resources.tlib :as T)
-  (assert (= (T.parald 1 2 3) [9 1 2 3]))
-  (assert (= (T.✈ "silly") "plane silly"))
-  (assert (= (T.hyx_XairplaneX "foolish") "plane foolish"))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
+  (assert (= (TL.parald 1 2 3) [9 1 2 3]))
+  (assert (= (TL.✈ "silly") "plane silly"))
+  (assert (= (TL.hyx_XairplaneX "foolish") "plane foolish"))
 
-  (require tests.resources.tlib [parald :as p])
-  (assert (= (p 1 2 3) [9 1 2 3]))
-  (with [(pytest.raises NameError)]
-    (parald 1 2 3 4))
+  (assert (= (qplah 1 2 3) [8 1 2 3]))
 
-  (require tests.resources.tlib *)
-  (assert (= (parald 1 2 3) [9 1 2 3]))
-  (assert (= (✈ "silly") "plane silly"))
-  (assert (= (hyx_XairplaneX "foolish") "plane foolish"))
+  (assert (= (parald-alias 1 2 3) [9 1 2 3]))
 
-  (require tests.resources [tlib  macros :as m  exports-none])
   (assert (in "tlib.qplah" _hy_macros))
-  (assert (in (hy.mangle "m.test-macro") _hy_macros))
+  (assert (in (hy.mangle "TM.test-macro") _hy_macros))
   (assert (in (hy.mangle "exports-none.cinco") _hy_macros))
-  (require os [path])
-  (with [(pytest.raises hy.errors.HyRequireError)]
-    (hy.eval '(require tests.resources [does-not-exist])))
 
-  (require tests.resources.exports *)
+  (with [(pytest.raises NameError)]
+    (parald 1 2 3 4))
+
+  (with [(pytest.raises hy.errors.HyRequireError)]
+    (hy.eval '(require tests.resources [does-not-exist]))))
+
+
+(require tests.resources.more-test-macros *)
+
+(defn test-require-global-star-without-exports []
+  (assert (= (bairn 1 2 3) [14 1 2 3]))
+  (assert (= (cairn 1 2 3) [15 1 2 3]))
+  (with [(pytest.raises NameError)]
+    (_dairn 1 2 3 4)))
+
+
+(require tests.resources.exports *)
+
+(defn test-require-global-star-with-exports []
   (assert (= (casey 1 2 3) [11 1 2 3]))
   (assert (= (☘ 1 2 3) [13 1 2 3]))
   (with [(pytest.raises NameError)]
     (brother 1 2 3 4)))
 
 
-(defn test-require-native []
-  (with [(pytest.raises NameError)]
-    (test-macro-2))
-  (import tests.resources.macros)
-  (with [(pytest.raises NameError)]
-    (test-macro-2))
-  (require tests.resources.macros [test-macro-2])
-  (test-macro-2)
-  (assert (= qup 2)))
+(require
+  ..resources.macros [test-macro-2]
+  .beside [xyzzy]
+  . [beside :as BS])
 
-
-(defn test-relative-require []
-  (require ..resources.macros [test-macro])
-  (assert (in "test_macro" _hy_macros))
-
-  (require .beside [xyzzy])
+(defn test-require-global-relative []
+  (assert (in "test_macro_2" _hy_macros))
   (assert (in "xyzzy" _hy_macros))
+  (assert (in "BS.xyzzy" _hy_macros)))
 
-  (require . [beside :as b])
-  (assert (in "b.xyzzy" _hy_macros)))
 
+;; `remote-test-macro` is a macro used within
+;; `tests.resources.macro-with-require.test-module-macro`.
+;; Here, we introduce an equivalently named version that, when
+;; used, will expand to a different output string.
+(defmacro remote-test-macro [x]
+  "this is the home version of `remote-test-macro`!")
+
+(require tests.resources.macro-with-require *)
+(defmacro home-test-macro [x]
+  (.format "This is the home version of `remote-test-macro` returning {}!" (int x)))
 
 (defn test-macro-namespace-resolution []
-  "Confirm that local versions of macro-macro dependencies do not shadow the
+  "Confirm that new versions of macro-macro dependencies do not shadow the
 versions from the macro's own module, but do resolve unbound macro references
 in expansions."
 
-  ;; `nonlocal-test-macro` is a macro used within
-  ;; `tests.resources.macro-with-require.test-module-macro`.
-  ;; Here, we introduce an equivalently named version in local scope that, when
-  ;; used, will expand to a different output string.
-  (defmacro nonlocal-test-macro [x]
-    (print "this is the local version of `nonlocal-test-macro`!"))
-
   ;; Was the above macro created properly?
-  (assert (in "nonlocal_test_macro" _hy_macros))
+  (assert (in "remote_test_macro" _hy_macros))
 
-  (setv nonlocal-test-macro (get _hy_macros "nonlocal_test_macro"))
-
-  (require tests.resources.macro-with-require *)
+  (setv remote-test-macro (get _hy_macros "remote_test_macro"))
 
   (setv module-name-var "tests.native_tests.native_macros.test-macro-namespace-resolution")
   (assert (= (+ "This macro was created in tests.resources.macros, "
@@ -162,56 +151,8 @@ in expansions."
 
   ;; Now, let's use a `require`d macro that depends on another macro defined only
   ;; in this scope.
-  (defmacro local-test-macro [x]
-    (.format "This is the local version of `nonlocal-test-macro` returning {}!" (int x)))
-
-  (assert (= "This is the local version of `nonlocal-test-macro` returning 3!"
+  (assert (= "This is the home version of `remote-test-macro` returning 3!"
              (test-module-macro-2 3))))
-
-
-(defn test-requires-pollutes-core []
-  ;; https://github.com/hylang/hy/issues/1978
-  ;; Macros loaded from an external module should not pollute `_hy_macros`
-  ;; with macros from core.
-
-  (setv pyc-file (importlib.util.cache-from-source
-                   (os.path.realpath
-                     (os.path.join
-                       "tests" "resources" "macros.hy"))))
-
-  ;; Remove any cached byte-code, so that this runs from source and
-  ;; gets evaluated in this module.
-  (when (os.path.isfile pyc-file)
-    (os.unlink pyc-file)
-    (.clear sys.path_importer_cache)
-    (when (in  "tests.resources.macros" sys.modules)
-      (del (get sys.modules "tests.resources.macros"))
-      (_hy_macros.clear)))
-
-  ;; Ensure that bytecode isn't present when we require this module.
-  (assert (not (os.path.isfile pyc-file)))
-
-  (defn require-macros []
-    (require tests.resources.macros :as m)
-
-    (assert (in (hy.mangle "m.test-macro") _hy_macros))
-    (for [macro-name _hy_macros]
-      (assert (not (and (in "with" macro-name)
-                        (!= "with" macro-name))))))
-
-  (require-macros)
-
-  ;; Now that bytecode is present, reload the module, clear the `require`d
-  ;; macros and tags, and rerun the tests.
-  (when (not PYODIDE)
-    (assert (os.path.isfile pyc-file)))
-
-  ;; Reload the module and clear the local macro context.
-  (.clear sys.path_importer_cache)
-  (del (get sys.modules "tests.resources.macros"))
-  (.clear _hy_macros)
-
-  (require-macros))
 
 
 (defn test-no-surprise-shadow [tmp-path monkeypatch]

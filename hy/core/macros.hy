@@ -117,7 +117,8 @@
 (defmacro doc [symbol]
   "macro documentation
 
-   Gets help for a macro function available in this module.
+   Gets help for a macro function available in this module (not a local
+   macro).
    Use ``require`` to make other macros available.
 
    Use ``(help foo)`` instead for help with runtime objects."
@@ -168,7 +169,8 @@
 
 (defmacro delmacro
   [#* names]
-  #[[Delete a macro(s) from the current module
+  #[[Delete a macro(s) from the current module. This doesn't work on a
+  local macro.
   ::
 
      => (require a-module [some-macro])

@@ -28,11 +28,12 @@
              '(a b 5))))
 
 
+(defmacro m-with-named-import []
+  (import math [pow])
+  (pow 2 3))
+
 (defn test-macroexpand-with-named-import []
   ; https://github.com/hylang/hy/issues/1207
-  (defmacro m-with-named-import []
-    (import math [pow])
-    (pow 2 3))
   (assert (= (hy.macroexpand '(m-with-named-import)) (hy.models.Float (** 2 3)))))
 
 
