@@ -28,6 +28,7 @@ New Features
 * `defn`, `defn/a`, and `defclass` now support type parameters.
 * `HyReader` now has an optional parameter to install existing
   reader macros from the calling module.
+* New pragma `warn-on-core-shadow`.
 
 Misc. Improvements
 ------------------------------
@@ -42,6 +43,8 @@ Bug Fixes
 * `~@ #*` now produces a syntax error instead of a nonsensical result.
 * Fixed `hy.eval` failing on `defreader` or `require` forms that
   install a new reader.
+* `require` now warns when you shadow a core macro, like `defmacro`
+  already did.
 
 0.27.0 (released 2023-07-06)
 =============================
