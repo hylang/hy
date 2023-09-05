@@ -1,9 +1,11 @@
 import ast
+import builtins
 import copy
 import importlib
 import inspect
 import traceback
 import types
+import warnings
 from contextlib import contextmanager
 
 from funcparserlib.parser import NoParseError, many
@@ -336,10 +338,12 @@ class HyASTCompiler:
         """
         self.anon_var_count = 0
         self.temp_if = None
-        self.local_macro_stack = []
-          # A list of dictionaries that map mangled names to local
-          # macros. The last element is considered the top of the
-          # stack.
+
+        # Make a list of dictionaries with local compiler settings,
+        # such as the definitions of local macros. The last element is
+        # considered the top of the stack.
+        self.local_state_stack = []
+        self.new_local_state()
 
         if not inspect.ismodule(module):
             self.module = importlib.import_module(module)
@@ -363,6 +367,30 @@ class HyASTCompiler:
         self.module.__dict__.setdefault("_hy_reader_macros", {})
 
         self.scope = ScopeGlobal(self)
+
+    def new_local_state(self):
+        'Add a new local state to the top of the stack.'
+        self.local_state_stack.append(dict(macros = {}))
+
+    def is_in_local_state(self):
+        return len(self.local_state_stack) > 1
+
+    def get_local_option(self, key, default):
+        'Get the topmost available value of a local-state setting.'
+        return next(
+            (s[key]
+                for s in reversed(self.local_state_stack)
+                if key in s),
+            default)
+
+    def warn_on_core_shadow(self, name):
+        if (
+                mangle(name) in getattr(builtins, "_hy_macros", {}) and
+                self.get_local_option('warn_on_core_shadow', True)):
+            warnings.warn(
+                f"New macro `{name}` will shadow the core macro of the same name",
+                RuntimeWarning
+            )
 
     def get_anon_var(self, base="_hy_anon_var"):
         self.anon_var_count += 1
@@ -522,14 +550,12 @@ class HyASTCompiler:
             import_stdlib = False)
 
     @contextmanager
-    def local_macros(self):
-        """Make `defmacro` and `require` assign to a new element of
-        `self.local_macro_stack` instead of a module."""
-        self.local_macro_stack.append({})
+    def local_state(self):
+        self.new_local_state()
         try:
             yield
         finally:
-            self.local_macro_stack.pop()
+            self.local_state_stack.pop()
 
     @builds_model(Expression)
     def compile_expression(self, expr):

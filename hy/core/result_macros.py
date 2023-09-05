@@ -738,7 +738,7 @@ def compile_comprehension(compiler, expr, root, parts, final):
     is_for = root == "for"
 
     ctx = nullcontext() if is_for else compiler.scope.create(ScopeGen)
-    mac_con = nullcontext() if is_for else compiler.local_macros()
+    mac_con = nullcontext() if is_for else compiler.local_state()
     with mac_con, ctx as scope:
 
         # Compile the parts.
@@ -1438,7 +1438,7 @@ def compile_function_lambda(compiler, expr, root, tp, params, body):
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
     args, ret = compile_lambda_list(compiler, params)
-    with compiler.local_macros(), compiler.scope.create(ScopeFn, args):
+    with compiler.local_state(), compiler.scope.create(ScopeFn, args):
         body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
@@ -1466,7 +1466,7 @@ def compile_function_def(compiler, expr, root, decorators, tp, name, params, bod
     ret += ret2
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
-    with compiler.local_macros(), compiler.scope.create(ScopeFn, args):
+    with compiler.local_state(), compiler.scope.create(ScopeFn, args):
         body = compiler._compile_branch(body)
 
     return ret + compile_function_node(
@@ -1510,15 +1510,15 @@ def compile_macro_def(compiler, expr, root, name, params, body):
     def E(*x): return Expression(x)
     S = Symbol
 
+    compiler.warn_on_core_shadow(name)
     ret = []
     fn_def = E(
         S("fn"),
         List([S("&compiler"), *expr[2]]),
         *body)
-    if compiler.local_macro_stack:
-        # We're in a local macro scope, so define the new macro
-        # locally.
-        compiler.local_macro_stack[-1][mangle(name)] = (
+    if compiler.is_in_local_state():
+        # We're in a local scope, so define the new macro locally.
+        compiler.local_state_stack[-1]['macros'][mangle(name)] = (
             compiler.eval(fn_def.replace(expr)))
         return Result()
     # Otherwise, define the macro module-wide.
@@ -1683,7 +1683,7 @@ def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
 
-    with compiler.local_macros(), compiler.scope.create(ScopeFn):
+    with compiler.local_state(), compiler.scope.create(ScopeFn):
         e = compiler._compile_branch(body)
         bodyr += e + e.expr_as_stmt()
 
@@ -1784,11 +1784,19 @@ def compile_require(compiler, expr, root, entries):
         # we don't want to import all macros as prefixed if we're specifically
         # importing readers but not macros
         # (require a-module :readers ["!"])
-        if (rest or not readers) and compiler.local_macro_stack:
-            require(module_name, compiler.local_macro_stack[-1], assignments=assignments, prefix=prefix)
+        if (rest or not readers) and compiler.is_in_local_state():
+            require(
+                module_name,
+                compiler.local_state_stack[-1]['macros'],
+                assignments = assignments,
+                prefix = prefix,
+                compiler = compiler)
         elif (rest or not readers) and require(
-            module_name, compiler.module, assignments=assignments, prefix=prefix
-        ):
+                module_name,
+                compiler.module,
+                assignments = assignments,
+                prefix = prefix,
+                compiler = compiler):
             # Actually calling `require` is necessary for macro expansions
             # occurring during compilation.
             # The `require` we're creating in AST is the same as above, but used at
@@ -1950,13 +1958,20 @@ def compile_deftype(compiler, expr, root, tp, name, value):
         **digest_type_params(compiler, tp))
 
 
+@pattern_macro("pragma", [many(KEYWORD + FORM)])
+def compile_pragma(compiler, expr, root, kwargs):
+    for kw, value in kwargs:
+        if kw == Keyword("warn-on-core-shadow"):
+            compiler.local_state_stack[-1]['warn_on_core_shadow'] = (
+                bool(compiler.eval(value)))
+        else:
+            raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
+    return Result()
+
+
 @pattern_macro(
-    "pragma unquote unquote-splice unpack-mapping except except* finally else".split(),
+    "unquote unquote-splice unpack-mapping except except* finally else".split(),
     [many(FORM)],
 )
 def compile_placeholder(compiler, expr, root, body):
-    raise ValueError(
-        "`{}` is not allowed {}".format(
-            root, "in this version of Hy" if root == "pragma" else "here"
-        )
-    )
+    raise ValueError(f"`{root}` is not allowed here")

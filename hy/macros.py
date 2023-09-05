@@ -5,7 +5,6 @@ import os
 import re
 import sys
 import traceback
-import warnings
 from ast import AST
 
 from funcparserlib.parser import NoParseError
@@ -84,18 +83,7 @@ def pattern_macro(names, pattern, shadow=None):
 def install_macro(name, fn, module_of):
     name = mangle(name)
     fn = rename_function(fn, name)
-    macros_obj = module_of.__globals__.setdefault("_hy_macros", {})
-    if name in getattr(builtins, "_hy_macros", {}):
-        warnings.warn(
-            (
-                f"{name} already refers to: `{name}` in module: `builtins`,"
-                f" being replaced by: `{module_of.__globals__.get('__name__', '(globals)')}.{name}`"
-            ),
-            RuntimeWarning,
-            stacklevel=3,
-        )
-
-    macros_obj[name] = fn
+    module_of.__globals__.setdefault("_hy_macros", {})[name] = fn
     return fn
 
 
@@ -195,7 +183,7 @@ def enable_readers(module, reader, names):
         reader.reader_macros[name] = namespace["_hy_reader_macros"][name]
 
 
-def require(source_module, target, assignments, prefix="", target_module_name=None):
+def require(source_module, target, assignments, prefix="", target_module_name=None, compiler=None):
     """Load macros from a module. Return a `bool` indicating whether
     macros were actually transferred.
 
@@ -263,6 +251,8 @@ def require(source_module, target, assignments, prefix="", target_module_name=No
         )
     ):
         _name = mangle(name)
+        if compiler:
+            compiler.warn_on_core_shadow(prefix + alias)
         alias = mangle(prefix + alias)
         if _name in source_module._hy_macros:
             target_macros[alias] = source_macros[_name]
@@ -379,9 +369,9 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
 
         # Choose the first namespace with the macro.
         m = ((compiler and next(
-                (d[fn]
-                    for d in reversed(compiler.local_macro_stack)
-                    if fn in d),
+                (d['macros'][fn]
+                    for d in reversed(compiler.local_state_stack)
+                    if fn in d['macros']),
                 None)) or
             next(
                 (mod._hy_macros[fn]
