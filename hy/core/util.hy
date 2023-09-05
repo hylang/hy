@@ -39,7 +39,7 @@
 
 (defn gensym [[g ""]]
   #[[Generate a symbol with a unique name. The argument will be included in the
-  generated symbol, as an aid to debugging. Typically one calls ``hy.gensym``
+  generated symbol name, as an aid to debugging. Typically one calls ``hy.gensym``
   without an argument.
 
   .. seealso::
