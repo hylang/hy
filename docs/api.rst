@@ -1033,17 +1033,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
              (return n))))
        (f 3.9)  ; => 4
 
-   Note that in Hy, ``return`` is necessary much less often than in Python,
-   since the last form of a function is returned automatically. Hence, an
+   Note that in Hy, ``return`` is necessary much less often than in Python.
+   The last form of a function is returned automatically, so an
    explicit ``return`` is only necessary to exit a function early. To force
    Python's behavior of returning ``None`` when execution reaches the end of a
-   function, you can put ``None`` there yourself::
+   function, just put ``None`` there yourself::
 
-       (defn f [x]
-         (setv y 10)
-         (print (+ x y))
+       (defn f []
+         (setv d (dict :a 1 :b 2))
+         (.pop d "b")
          None)
-       (print (f 4))  ; Prints "14" and then "None"
+       (print (f))  ; Prints "None", not "2"
 
 .. hy:macro:: (raise [exception :from other])
 
