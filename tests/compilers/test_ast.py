@@ -627,8 +627,9 @@ def test_module_prelude():
 
 
 def test_pragma():
-    cant_compile("(pragma)")
-    cant_compile("(pragma :native-code :namespaced-symbols :give-user-a-pony)")
+    can_compile("(pragma)")
+    can_compile("(pragma :warn-on-core-shadow True)")
+    cant_compile("(pragma :native-code True)")
 
 
 def test_error_with_expectation():

@@ -1033,17 +1033,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
              (return n))))
        (f 3.9)  ; => 4
 
-   Note that in Hy, ``return`` is necessary much less often than in Python,
-   since the last form of a function is returned automatically. Hence, an
+   Note that in Hy, ``return`` is necessary much less often than in Python.
+   The last form of a function is returned automatically, so an
    explicit ``return`` is only necessary to exit a function early. To force
    Python's behavior of returning ``None`` when execution reaches the end of a
-   function, you can put ``None`` there yourself::
+   function, just put ``None`` there yourself::
 
-       (defn f [x]
-         (setv y 10)
-         (print (+ x y))
+       (defn f []
+         (setv d (dict :a 1 :b 2))
+         (.pop d "b")
          None)
-       (print (f 4))  ; Prints "14" and then "None"
+       (print (f))  ; Prints "None", not "2"
 
 .. hy:macro:: (raise [exception :from other])
 
@@ -1274,11 +1274,27 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (deftype IntOrStr (| int str))
        (deftype :tp [T] ListOrSet (| (get list T) (get set T)))
 
-.. hy:macro:: (pragma)
+.. hy:macro:: (pragma [#* args])
 
-  ``pragma`` is reserved as a core macro name for future use, especially for
-  allowing backwards-compatible addition of new features after the release of Hy
-  1.0. Currently, trying to use ``pragma`` is an error.
+  ``pragma`` is used to adjust the state of the compiler. It's called for its
+  side-effects, and returns ``None``. The arguments are key-value pairs, like a
+  function call with keyword arguments::
+
+    (pragma :prag1 value1 :prag2 (get-value2))
+
+  Each key is a literal keyword giving the name of a pragma. Each value is an
+  arbitrary form, which is evaluated as ordinary Hy code but at compile-time.
+
+  The effect of each pragma is locally scoped to its containing function,
+  class, or comprehension form (other than ``for``), if there is one.
+
+  Only one pragma is currently implemented:
+
+  - ``:warn-on-core-shadow``: If true (the default), :hy:func:`defmacro` and
+    :hy:func:`require` will raise a warning at compile-time if you define a macro
+    with the same name as a core macro. Shadowing a core macro in this fashion is
+    dangerous, because other macros may call your new macro when they meant to
+    refer to the core macro.
 
 .. hy:automodule:: hy.core.macros
    :macros:

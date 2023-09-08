@@ -1,4 +1,4 @@
-(import os sys
+(import os sys warnings
         pytest
         hy.errors [HySyntaxError HyTypeError HyMacroExpansionError])
 
@@ -186,7 +186,21 @@
   (with [exc (pytest.raises NameError)]
     (hy.eval '(parald))))
 
-(defn test-macro-redefinition-warning
-  []
-  (with [(pytest.warns RuntimeWarning :match "require already refers to")]
-    (hy.eval '(defmacro require [] 1))))
+
+(defn macro-redefinition-warning-tester [local]
+  (for  [should-warn? [True False]  head ["defmacro" "require"]]
+    (with [(if should-warn?
+        (pytest.warns RuntimeWarning :match "will shadow the core macro")
+        (warnings.catch-warnings))]
+      (when (not should-warn?)
+        ; Elevate any warning to an error.
+        (warnings.simplefilter "error"))
+      (hy.eval `(
+        ~@(if local '[defn f []] '[do])
+        ~(if should-warn? None '(pragma :warn-on-core-shadow False))
+        ~(if (= head "defmacro")
+          '(defmacro when [] 1)
+          '(require tests.resources.tlib [qplah :as when])))))))
+
+(defn test-macro-redefinition-warning []
+  (macro-redefinition-warning-tester :local False))

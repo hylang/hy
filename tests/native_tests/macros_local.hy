@@ -1,5 +1,9 @@
 "Tests of local `defmacro` and `require`."
 
+(import
+  tests.native-tests.macros [macro-redefinition-warning-tester]
+  pytest)
+
 
 (defn test-nonleaking []
   (defn fun []
@@ -59,6 +63,7 @@
 
 (defn test-local-macro-in-expansion-of-nonlocal []
   (defn f []
+    (pragma :warn-on-core-shadow False)
     (defmacro + [a b]
       "Shadow the core macro `+`. #yolo"
       `f"zomg! {~a} {~b}")
@@ -86,3 +91,7 @@
 
 (defn test-require-star []
   (local-require-test *))
+
+
+(defn test-redefinition-warning []
+  (macro-redefinition-warning-tester :local True))
