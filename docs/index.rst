@@ -14,8 +14,8 @@ Hy is a Lisp dialect that's embedded in Python. Since Hy transforms its Lisp
 code into Python abstract syntax tree (AST) objects, you have the whole
 beautiful world of Python at your fingertips, in Lisp form.
 
-..
-   Changes to this paragraph should be mirrored on Hy's homepage.
+.. Changes to this paragraph should be mirrored on Hy's homepage.
+
 To install the latest release of Hy, just use the command ``pip3 install
 --user hy``. Then you can start an interactive read-eval-print loop (REPL) with
 the command ``hy``, or run a Hy program with ``hy myprogram.hy``.

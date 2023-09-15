@@ -2,8 +2,8 @@
 Why Hy?
 =======
 
-..
-   Changes to this paragraph should be mirrored on Hy's homepage.
+.. Changes to this paragraph should be mirrored on Hy's homepage.
+
 Hy (or "Hylang" for long; named after the insect order Hymenoptera,
 since Paul Tagliamonte was studying swarm behavior when he created the
 language) is a multi-paradigm general-purpose programming language in
