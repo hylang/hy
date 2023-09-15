@@ -131,7 +131,7 @@ names, but any nonempty sequence of characters that aren't ASCII whitespace nor
 one of the following: ``()[]{};"'`~``. The reader will attempt to read each
 identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
 it as a :ref:`keyword <keywords>` if that fails, then attempt to read it as a
-:ref:`dotted identifier <dotted-identifier>` if that fails, then fall back on
+:ref:`dotted identifier <dotted-identifiers>` if that fails, then fall back on
 reading it as a :ref:`symbol <symbols>` if that fails.
 
 .. _numeric-literals:
@@ -395,7 +395,7 @@ first element.
     of unknown length with a real addition expression.
 
 - If it is itself an expression of the form ``(. None …)`` (typically produced
-  with a :ref:`dotted identifier <dotted-identifier>` like ``.add``), it's used
+  with a :ref:`dotted identifier <dotted-identifiers>` like ``.add``), it's used
   to construct a method call with the element after ``None`` as the object:
   thus, ``(.add my-set 5)`` is equivalent to ``((. my-set add) 5)``, which
   becomes ``my_set.add(5)`` in Python.
