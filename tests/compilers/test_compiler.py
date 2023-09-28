@@ -3,6 +3,8 @@ import types
 
 from hy import compiler
 from hy.models import Expression, Integer, List, Symbol
+from hy.reader import read_many
+from hy.compiler import hy_compile
 
 
 def make_expression(*args):
@@ -12,6 +14,10 @@ def make_expression(*args):
     h.start_column = 1
     h.end_column = 1
     return h.replace(h)
+
+
+def hy2py(s):
+    return ast.unparse(hy_compile(read_many(s), "test", import_stdlib=False))
 
 
 def test_compiler_bare_names():
@@ -58,3 +64,15 @@ def test_compiler_yield_return():
     assert isinstance(body[0].value, ast.Yield)
     assert isinstance(body[1], ast.Return)
     assert isinstance(body[1].value, ast.BinOp)
+
+
+# https://github.com/hylang/hy/issues/854
+def test_compact_logic():
+    """
+    Check that we don't generate multiple unnecessary if-statements
+    when compiling the short-circuiting operators.
+    """
+    py = hy2py("(and 1 2 3 (do (setv x 4) x) 5 6)")
+    assert py.count("if") == 1
+    py = hy2py("(or 1 2 3 (do (setv x 4) x) 5 6 (do (setv y 7)))")
+    assert py.count("if") == 2

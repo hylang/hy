@@ -259,45 +259,57 @@ def compile_logical_or_and_and_operator(compiler, expr, operator, args):
     osym = expr[0]
     if len(args) == 0:
         return asty.Constant(osym, value=default)
-    elif len(args) == 1:
-        return compiler.compile(args[0])
+
     ret = Result()
     values = list(map(compiler.compile, args))
-    if any(value.stmts for value in values):
-        # Compile it to an if...else sequence
-        var = compiler.get_anon_var()
-        name = asty.Name(osym, id=var, ctx=ast.Store())
-        expr_name = asty.Name(osym, id=var, ctx=ast.Load())
-        temp_variables = [name, expr_name]
 
-        def make_assign(value, node=None):
-            positioned_name = asty.Name(node or osym, id=var, ctx=ast.Store())
-            temp_variables.append(positioned_name)
-            return asty.Assign(node or osym, targets=[positioned_name], value=value)
 
-        current = root = []
-        for i, value in enumerate(values):
-            if value.stmts:
-                node = value.stmts[0]
-                current.extend(value.stmts)
+    # first
+    ret += values[0]
+    cur = ret.stmts
+    boolop = None
+
+    var = None
+    def put(node, value):
+        nonlocal var
+        if var is None:
+            var = compiler.get_anon_var()
+        name = asty.Name(node, id=var, ctx=ast.Store())
+        ret.temp_variables.append(name)
+        return asty.Assign(node, targets=[name], value=value)
+
+    def get(node):
+        if var is None:
+            cur.append(put(node, ret.force_expr))
+        name = asty.Name(node, id=var, ctx=ast.Load())
+        ret.temp_variables.append(name)
+        return name
+
+    # rest
+    for value in values[1:]:
+        if value.stmts:
+            node = value.stmts[0]
+            cond = get(node)
+            if operator == "or":
+                cond = asty.UnaryOp(node, op=ast.Not(), operand=cond)
+            branch = asty.If(node, test=cond, body=value.stmts, orelse=[])
+            cur.append(branch)
+            cur = branch.body
+            cur.append(boolop := put(node, value.force_expr))
+        else:
+            val = value.force_expr
+            def enbool(expr, val):
+                if isinstance(expr, ast.BoolOp):
+                    expr.values.append(val)
+                else:
+                    expr = asty.BoolOp(expr, op=opnode(), values=[expr, val])
+                return expr
+            if boolop is not None:
+                boolop.value = enbool(boolop.value, val)
             else:
-                node = value.expr
-            current.append(make_assign(value.force_expr, value.force_expr))
-            if i == len(values) - 1:
-                # Skip a redundant 'if'.
-                break
-            if operator == "and":
-                cond = expr_name
-            elif operator == "or":
-                cond = asty.UnaryOp(node, op=ast.Not(), operand=expr_name)
-            current.append(asty.If(node, test=cond, body=[], orelse=[]))
-            current = current[-1].body
-        ret = sum(root, ret)
-        ret += Result(expr=expr_name, temp_variables=temp_variables)
-    else:
-        ret += asty.BoolOp(
-            osym, op=opnode(), values=[value.force_expr for value in values]
-        )
+                ret.expr = enbool(ret.expr or osym, val)
+    if var is not None:
+        ret.expr = get(osym)
     return ret
 
 
