@@ -290,6 +290,20 @@
     (assert (= fox 42))))
 
 
+(defn test-top-level-let-nonlocal []
+  (hy.eval '(do
+              (let [my-fuel 50]
+                (defn propulse-me [distance]
+                  (nonlocal my-fuel)
+                  (-= my-fuel distance))
+                (defn check-fuel []
+                  my-fuel))
+              (assert (= (check-fuel) 50))
+              (propulse-me 3)
+              (assert (= (check-fuel) 47)))
+           :globals {}))
+
+
 (defn test-let-nested-nonlocal []
   (let [fox 42]
     (defn bar []
