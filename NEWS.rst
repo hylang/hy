@@ -36,6 +36,7 @@ New Features
 * `HyReader` now has an optional parameter to install existing
   reader macros from the calling module.
 * New pragma `warn-on-core-shadow`.
+* `nonlocal` now also works for globally defined names.
 
 Misc. Improvements
 ------------------------------
@@ -53,6 +54,7 @@ Bug Fixes
   install a new reader.
 * `require` now warns when you shadow a core macro, like `defmacro`
   already did.
+* `nonlocal` now works for top-level `let`-bound names.
 
 0.27.0 (released 2023-07-06)
 =============================

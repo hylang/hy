@@ -797,7 +797,22 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (nonlocal [#* syms])
 
-   As :hy:func:`global`, but the result is a :py:keyword:`nonlocal` statement.
+   Similar to :hy:func:`global`, but names can be declared in any enclosing
+   scope. ``nonlocal`` compiles to a :py:keyword:`global` statement for any
+   names originally defined in the global scope, and a :py:keyword:`nonlocal`
+   statement for all other names. ::
+
+       (setv  a 1  b 1)
+       (defn f []
+         (setv  c 10  d 10)
+         (defn g []
+           (nonlocal a c)
+           (setv  a 2  b 2
+                  c 20 d 20))
+         (print a b c d)  ; => 1 1 10 10
+         (g)
+         (print a b c d)) ; => 2 1 20 10
+       (f)
 
 .. hy:macro:: (py [string])
 
