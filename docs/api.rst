@@ -1405,9 +1405,3 @@ Python Operators
 
 .. hy:automodule:: hy.pyops
    :members:
-
-Reserved
---------
-
-.. hy:automodule:: hy.reserved
-   :members:

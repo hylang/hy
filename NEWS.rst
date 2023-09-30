@@ -7,6 +7,8 @@ Removals
 ------------------------------
 * `delmacro` has been removed. Use `(del (get _hy_macros (hy.mangle
   …)))` instead.
+* `hy.reserved` has been removed. Use `(.keys (builtins._hy_macros))`
+  or Python's built-in `keyword` module instead.
 
 Breaking Changes
 ------------------------------
