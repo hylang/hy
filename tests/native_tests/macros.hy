@@ -168,25 +168,6 @@
   (assert (in "HyWrapperError" (str excinfo.value))))
 
 
-(defmacro delete-me [] "world")
-
-(defn test-delmacro
-  []
-  ;; test deletion of user defined macro
-  (delmacro delete-me)
-  (with [exc (pytest.raises NameError)]
-    (delete-me))
-  ;; test deletion of required macros
-  (require tests.resources.tlib [qplah parald])
-  (assert (and (qplah 1) (parald 1)))
-
-  (delmacro qplah parald)
-  (with [exc (pytest.raises NameError)]
-    (hy.eval '(qplah)))
-  (with [exc (pytest.raises NameError)]
-    (hy.eval '(parald))))
-
-
 (defn macro-redefinition-warning-tester [local]
   (for  [should-warn? [True False]  head ["defmacro" "require"]]
     (with [(if should-warn?
