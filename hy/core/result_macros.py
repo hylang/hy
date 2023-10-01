@@ -256,60 +256,66 @@ def compile_unary_operator(compiler, expr, root, arg):
 def compile_logical_or_and_and_operator(compiler, expr, operator, args):
     ops = {"and": (ast.And, True), "or": (ast.Or, None)}
     opnode, default = ops[operator]
-    osym = expr[0]
     if len(args) == 0:
-        return asty.Constant(osym, value=default)
+        return asty.Constant(expr[0], value=default)
 
-    ret = Result()
-    values = list(map(compiler.compile, args))
+    ret = None
+    var = None         # A temporary variable for assigning results to
+    assignment = None  # The current assignment to `var`
+    stmts = None       # The current statement list
 
-
-    # first
-    ret += values[0]
-    cur = ret.stmts
-    boolop = None
-
-    var = None
     def put(node, value):
-        nonlocal var
+        # Save the result of the operation so far to `var`.
+        nonlocal var, assignment
         if var is None:
             var = compiler.get_anon_var()
         name = asty.Name(node, id=var, ctx=ast.Store())
         ret.temp_variables.append(name)
-        return asty.Assign(node, targets=[name], value=value)
+        return (assignment := asty.Assign(node, targets=[name], value=value))
 
     def get(node):
+        # Get the value of `var`, creating it if necessary.
         if var is None:
-            cur.append(put(node, ret.force_expr))
+            stmts.append(put(node, ret.force_expr))
         name = asty.Name(node, id=var, ctx=ast.Load())
         ret.temp_variables.append(name)
         return name
 
-    # rest
-    for value in values[1:]:
-        if value.stmts:
+    for value in map(compiler.compile, args):
+        if ret is None:
+            # This is the first iteration. Don't actually introduce a
+            # `BoolOp` yet; the unary case doesn't need it.
+            ret = value
+            stmts = ret.stmts
+        elif value.stmts:
+            # Save the result of the statements to the temporary
+            # variable. Use an `if` statement to implement
+            # short-circuiting from this point.
             node = value.stmts[0]
             cond = get(node)
             if operator == "or":
+                # Negate the conditional.
                 cond = asty.UnaryOp(node, op=ast.Not(), operand=cond)
             branch = asty.If(node, test=cond, body=value.stmts, orelse=[])
-            cur.append(branch)
-            cur = branch.body
-            cur.append(boolop := put(node, value.force_expr))
+            stmts.append(branch)
+            stmts = branch.body
+            stmts.append(put(node, value.force_expr))
         else:
-            val = value.force_expr
-            def enbool(expr, val):
+            # Add this value to the current `BoolOp`, or create a new
+            # one if we don't have one.
+            value = value.force_expr
+            def enbool(expr):
                 if isinstance(expr, ast.BoolOp):
-                    expr.values.append(val)
-                else:
-                    expr = asty.BoolOp(expr, op=opnode(), values=[expr, val])
-                return expr
-            if boolop is not None:
-                boolop.value = enbool(boolop.value, val)
+                    expr.values.append(value)
+                    return expr
+                return asty.BoolOp(expr, op=opnode(), values=[expr, value])
+            if assignment:
+                assignment.value = enbool(assignment.value)
             else:
-                ret.expr = enbool(ret.expr or osym, val)
-    if var is not None:
-        ret.expr = get(osym)
+                ret.expr = enbool(ret.expr)
+
+    if var:
+        ret.expr = get(expr)
     return ret
 
 
