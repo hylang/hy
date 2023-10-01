@@ -449,6 +449,15 @@ def test_literal_newlines():
     assert s("#[[\rhello\rworld]]") == "hello\nworld"
 
 
+def test_linear_boolop():
+   """Operations like `(and 1 2 3)` should use only one `BoolOp`,
+   instead of an equivalent nested sequence of `BoolOp`s."""
+   for op in ("and", "or"):
+       node = can_compile(f'({op} 1 2.0 True "hi" 5)').body[0].value
+       assert len(node.values) == 5
+       assert all(isinstance(v, ast.Constant) for v in node.values)
+
+
 def test_compile_error():
     """Ensure we get compile error in tricky cases"""
     with pytest.raises(HyLanguageError) as excinfo:
