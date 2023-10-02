@@ -4,20 +4,17 @@
 Python Interoperability
 =======================
 
-Despite being a Lisp, Hy aims to be fully compatible with Python. That means
-every Python module or package can be imported in Hy code, and vice versa.
-
 :ref:`Mangling <mangling>` allows variable names to be spelled differently in
 Hy and Python. For example, Python's ``str.format_map`` can be written
 ``str.format-map`` in Hy, and a Hy function named ``valid?`` would be called
-``is_valid`` in Python. You can call :hy:func:`hy.mangle` and
+``hyx_valid_Xquestion_markX`` in Python. You can call :hy:func:`hy.mangle` and
 :hy:func:`hy.unmangle` from either language.
 
 Using Python from Hy
 ====================
 
-To use a Python module from Hy, just :hy:func:`import` it. No additional
-ceremony is required.
+To use a Python module from Hy, just :hy:func:`import` it. In most cases, no
+additional ceremony is required.
 
 You can embed Python code directly into a Hy program with the macros
 :hy:func:`py <py>` and :hy:func:`pys <pys>`, and you can use standard Python
@@ -43,7 +40,7 @@ still import ``hy``, and thus require Hy to be installed in order to run; see
 :ref:`implicit-names` for details and workarounds.
 
 To execute Hy code from a string, use :hy:func:`hy.read-many` to convert it to
-:ref:`models <models>` and then :hy:func:`hy.eval` to evaluate it:
+:ref:`models <models>` and :hy:func:`hy.eval` to evaluate it:
 
 .. code-block:: python
 
@@ -59,9 +56,7 @@ You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python, as in
 Libraries that expect Python
 ============================
 
-There are various means by which Hy may interact poorly with a Python library
-
-because the library doesn't account for the possibility of Hy. For example,
+There are various means by which Hy may interact poorly with a Python library because the library doesn't account for the possibility of Hy. For example,
 when you run :ref:`hy-cli`, ``sys.executable`` will be set to
 this program rather than the original Python binary. This is helpful more often
 than not, but will lead to trouble if e.g. the library tries to call

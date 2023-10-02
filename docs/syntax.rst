@@ -26,12 +26,12 @@ somewhat different (such as :class:`Set <hy.models.Set>`, which is ordered,
 unlike actual :class:`set`\s). All models inherit from :class:`Object
 <hy.models.Object>`, which stores textual position information, so tracebacks
 can point to the right place in the code. The compiler takes whatever models
-are left over after parsing and macro expansion and translates them into Python
+are left over after parsing and macro-expansion and translates them into Python
 :mod:`ast` nodes (e.g., :class:`Integer <hy.models.Integer>` becomes
 :class:`ast.Constant`), which can then be evaluated or rendered as Python code.
 Macros (that is, regular macros, as opposed to reader macros) operate on the
 model level, taking some models as arguments and returning more models for
-compilation or further macro expansion; they're free to do quite different
+compilation or further macro-expansion; they're free to do quite different
 things with a given model than the compiler does, if it pleases them to, like
 using an :class:`Integer <hy.models.Integer>` to construct a :class:`Symbol
 <hy.models.Symbol>`.
@@ -177,8 +177,8 @@ Literal keywords are most often used for their special treatment in
 as values. For example, ``(f :foo 3)`` calls the function ``f`` with the
 parameter ``foo`` set to ``3``. The keyword is also :ref:`mangled <mangling>`
 at compile-time. To prevent a literal keyword from being treated specially in
-an expression, you can :hy:func:`quote` the keyword, or you can use it itself
-as a keyword argument, as in ``(f :foo :bar)``.
+an expression, you can :hy:func:`quote` the keyword, or you can use it as the
+value for another keyword argument, as in ``(f :foo :bar)``.
 
 Otherwise, keywords are simple model objects that evaluate to themselves. Users
 of other Lisps should note that it's often a better idea to use a string than a
@@ -312,7 +312,7 @@ Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
 strings like Python. The single-quote character ``'`` is reserved for
 preventing the evaluation of a form, (e.g., ``'(+ 1 1)``), as in most Lisps
 (see :ref:`more-sugar`). Python's so-called triple-quoted strings (e.g.,
-``'''hello'''`` and ``"""hello"""``) aren't supported. However, in Hy, unlike
+``'''hello'''`` and ``"""hello"""``) aren't supported, either. However, in Hy, unlike
 Python, any string literal can contain newlines; furthermore, Hy has
 :ref:`bracket strings <bracket-strings>`. For consistency with Python's
 triple-quoted strings, all literal newlines in literal strings are read as in
@@ -324,8 +324,8 @@ Unrecognized escape sequences are a syntax error. To create a "raw string" that
 interprets all backslashes literally, prefix the string with ``r``, as in
 ``r"slash\not"``.
 
-Like Python, Hy treats all string literals as sequences of Unicode characters
-by default. The result is the model type :class:`String <hy.models.String>`.
+By default, all string literals are regarded as sequences of Unicode characters.
+The result is the model type :class:`String <hy.models.String>`.
 You may prefix a string literal with ``b`` to treat it as a sequence of bytes,
 producing :class:`Bytes <hy.models.Bytes>` instead.
 
@@ -351,10 +351,10 @@ like the here-documents of other languages. A bracket string begins with
 begins with ``f-``, the bracket string is interpreted as an :ref:`f-string
 <syntax-fstrings>`.) For example::
 
-   => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
-   "That's very kind of yuo [sic]" Tom wrote back.
-   => (print #[==[1 + 1 = 2]==])
-   1 + 1 = 2
+   (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
+     ; "That's very kind of yuo [sic]" Tom wrote back.
+   (print #[==[1 + 1 = 2]==])
+     ; 1 + 1 = 2
 
 Bracket strings are always raw Unicode strings, and don't allow the ``r`` or
 ``b`` prefixes.
@@ -451,12 +451,9 @@ A format string (or "f-string", or "formatted string literal") is a string
 literal with embedded code, possibly accompanied by formatting commands. The
 result is an :class:`FString <hy.models.FString>`, Hy f-strings work much like
 :ref:`Python f-strings <py:f-strings>` except that the embedded code is in Hy
-rather than Python.
+rather than Python. ::
 
-::
-
-    => (print f"The sum is {(+ 1 1)}.")
-    The sum is 2.
+    (print f"The sum is {(+ 1 1)}.")  ; => The sum is 2.
 
 Since ``=``, ``!``, and ``:`` are identifier characters in Hy, Hy decides where
 the code in a replacement field ends (and any debugging ``=``, conversion
@@ -464,12 +461,9 @@ specifier, or format specifier begins) by parsing exactly one form. You can use
 ``do`` to combine several forms into one, as usual. Whitespace may be necessary
 to terminate the form::
 
-    => (setv foo "a")
-    => (print f"{foo:x<5}")
-    …
-    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
-    => (print f"{foo :x<5}")
-    axxxx
+    (setv foo "a")
+    (print f"{foo:x<5}")   ; => NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
+    (print f"{foo :x<5}")  ; => axxxx
 
 Unlike Python, whitespace is allowed between a conversion and a format
 specifier.

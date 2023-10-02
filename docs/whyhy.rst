@@ -2,7 +2,7 @@
 Why Hy?
 =======
 
-.. Changes to this paragraph should be mirrored on Hy's homepage.
+.. Changes to the below paragraph should be mirrored on Hy's homepage.
 
 Hy (or "Hylang" for long; named after the insect order Hymenoptera,
 since Paul Tagliamonte was studying swarm behavior when he created the
@@ -22,19 +22,27 @@ Hy versus Python
 
 The first thing a Python programmer will notice about Hy is that it has Lisp's
 traditional parenthesis-heavy prefix syntax in place of Python's C-like infix
-syntax. For example, ``print("The answer is", 2 + object.method(arg))`` could
-be written ``(print "The answer is" (+ 2 (.method object arg)))`` in Hy.
-Consequently, Hy is free-form: structure is indicated by punctuation rather
+syntax. For example,
+
+.. code-block:: python
+
+    print("The answer is", 2 + object.method(arg))
+
+could be written ::
+
+    (print "The answer is" (+ 2 (.method object arg)))
+
+in Hy. Consequently, Hy is free-form: structure is indicated by punctuation rather
 than whitespace, making it convenient for command-line use.
 
 As in other Lisps, the value of a simplistic syntax is that it facilitates
 Lisp's signature feature: `metaprogramming
-<https://en.wikipedia.org/wiki/Metaprogramming>`_ through macros, which are
-functions that manipulate code objects at compile time to produce new code
-objects, which are then executed as if they had been part of the original code.
-In fact, Hy allows arbitrary computation at compile-time. For example, here's a
-simple macro that implements a C-style do-while loop, which executes its body
-for as long as the condition is true, but at least once.
+<https://en.wikipedia.org/wiki/Metaprogramming>`_ through :doc:`macros
+<macros>`, which are functions that manipulate code objects at compile time to
+produce new code objects, which are then executed as if they had been part of
+the original code. In fact, Hy allows arbitrary computation at compile-time. For
+example, here's a simple macro that implements a C-style do-while loop, which
+executes its body for as long as the condition is true, but at least once.
 
 .. _do-while:
 
@@ -52,7 +60,7 @@ for as long as the condition is true, but at least once.
 
 Hy also removes Python's restrictions on mixing expressions and statements,
 allowing for more direct and functional code. For example, Python doesn't allow
-:ref:`with <py:with>` blocks, which close a resource once you're done using it,
+:keyword:`with` blocks, which close a resource once you're done using it,
 to return values. They can only execute a set of statements:
 
 .. code-block:: python
@@ -70,7 +78,7 @@ it like an ordinary function call::
      (len (with [o (open "foo")] (.read o)))
      (len (with [o (open "bar")] (.read o)))))
 
-To be even more concise, you can put a ``with`` form in a :hy:func:`gfor <gfor>`::
+To be even more concise, you can put a ``with`` form in a :hy:func:`gfor`::
 
    (print (sum (gfor
      filename ["foo" "bar"]
@@ -81,9 +89,9 @@ Operators can be given more than two arguments (e.g., ``(+ 1 2 3)``), including
 augmented assignment operators (e.g., ``(+= x 1 2 3)``). They are also provided
 as ordinary first-class functions of the same name, allowing them to be passed
 to higher-order functions: ``(sum xs)`` could be written ``(reduce + xs)``,
-after importing the function ``+`` from the module ``hy.pyops``.
+after importing the function ``+`` from the module :hy:mod:`hy.pyops`.
 
-The Hy compiler works by reading Hy source code into Hy model objects and
+The Hy compiler works by reading Hy source code into Hy :ref:`model objects <models>` and
 compiling the Hy model objects into Python abstract syntax tree (:py:mod:`ast`)
 objects. Python AST objects can then be compiled and run by Python itself,
 byte-compiled for faster execution later, or rendered into Python source code.
@@ -131,8 +139,9 @@ in a set literal. However, models can be concatenated and indexed just like
 plain lists, and you can return ordinary Python types from a macro or give them
 to :hy:func:`hy.eval` and Hy will automatically promote them to models.
 
-Hy takes much of its semantics from Python. For example, Hy is a Lisp-1 because
-Python functions use the same namespace as objects that aren't functions. In
+Hy takes much of its semantics from Python. For example, functions use the same
+namespace as objects that aren't functions, so a variable named ``globals``
+can shadow the Python built-in function :py:func:`globals`. In
 general, any Python code should be possible to literally translate to Hy. At
 the same time, Hy goes to some lengths to allow you to do typical Lisp things
 that aren't straightforward in Python. For example, Hy provides the
