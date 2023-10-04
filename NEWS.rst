@@ -34,6 +34,7 @@ Misc. Improvements
 ------------------------------
 * Some syntax errors raised by core macros now have more informative
   messages.
+* Logical operators now compile to simpler Python code in some cases.
 
 Bug Fixes
 ------------------------------
