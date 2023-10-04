@@ -29,16 +29,15 @@
 
   With no arguments, ``cond`` returns ``None``. With an odd number of
   arguments, ``cond`` raises an error."
+  (defn _cond [args]
+    (if args
+      `(if ~(get args 0)
+        ~(get args 1)
+        ~(_cond (cut args 2 None)))
+      'None))
   (if (% (len args) 2)
     (raise (TypeError "`cond` needs an even number of arguments"))
     (_cond args)))
-
-(defn _cond [args]
-  (if args
-    `(if ~(get args 0)
-      ~(get args 1)
-      ~(_cond (cut args 2 None)))
-    'None))
 
 
 (defmacro when [test #* body]
