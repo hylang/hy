@@ -26,7 +26,7 @@ Output functions
 By default, the return value of each REPL input is printed with
 :hy:func:`hy.repr`. To change this, you can set the REPL output function with
 e.g. the command-line argument ``--repl-output-fn``. Use :func:`repr` to get
-Python representations like Python's own REPL.
+Python representations, like Python's own REPL.
 
 Regardless of the output function, no output is produced when the value is
 ``None``, as in Python.

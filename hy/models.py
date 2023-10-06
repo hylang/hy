@@ -537,7 +537,7 @@ class Dict(Sequence):
     Represents a literal :class:`dict`. ``keys``, ``values``, and ``items`` methods are
     provided, each returning a list, although this model type does none of the
     normalization of a real :class:`dict`. In the case of an odd number of child models,
-    ``keys`` returns the last child whereas ``values`` and ``items`` ignores it.
+    ``keys`` returns the last child whereas ``values`` and ``items`` ignore it.
     """
 
     def _pretty_str(self):
