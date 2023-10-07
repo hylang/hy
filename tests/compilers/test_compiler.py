@@ -76,3 +76,15 @@ def test_compact_logic():
     assert py.count("if") == 1
     py = hy2py("(or 1 2 3 (do (setv x 4) x) 5 6 (do (setv y 7)))")
     assert py.count("if") == 2
+
+def test_correct_logic():
+    """
+    Check that we're not overzealous when compacting boolean operators.
+    """
+    py = hy2py("(or (and 1 2) (and 3 4))")
+    assert py.count("and") == 2
+    assert py.count("or") == 1
+    py = hy2py("(and (do (setv x 4) (or x 3)) 5 6)")
+    assert py.count("x = 4") == 1
+    assert py.count("x or 3") == 1
+    assert py.count("and") == 2

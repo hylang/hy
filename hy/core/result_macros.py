@@ -260,17 +260,19 @@ def compile_logical_or_and_and_operator(compiler, expr, operator, args):
         return asty.Constant(expr[0], value=default)
 
     ret = None
-    var = None         # A temporary variable for assigning results to
-    assignment = None  # The current assignment to `var`
-    stmts = None       # The current statement list
+    var = None          # A temporary variable for assigning results to
+    assignment = None   # The current assignment to `var`
+    stmts = None        # The current statement list
+    can_append = False  # Whether the current expression is the compiled boolop
 
     def put(node, value):
         # Save the result of the operation so far to `var`.
-        nonlocal var, assignment
+        nonlocal var, assignment, can_append
         if var is None:
             var = compiler.get_anon_var()
         name = asty.Name(node, id=var, ctx=ast.Store())
         ret.temp_variables.append(name)
+        can_append = False
         return (assignment := asty.Assign(node, targets=[name], value=value))
 
     def get(node):
@@ -287,6 +289,7 @@ def compile_logical_or_and_and_operator(compiler, expr, operator, args):
             # `BoolOp` yet; the unary case doesn't need it.
             ret = value
             stmts = ret.stmts
+            can_append = False
         elif value.stmts:
             # Save the result of the statements to the temporary
             # variable. Use an `if` statement to implement
@@ -305,9 +308,11 @@ def compile_logical_or_and_and_operator(compiler, expr, operator, args):
             # one if we don't have one.
             value = value.force_expr
             def enbool(expr):
-                if isinstance(expr, ast.BoolOp):
+                nonlocal can_append
+                if can_append:
                     expr.values.append(value)
                     return expr
+                can_append = True
                 return asty.BoolOp(expr, op=opnode(), values=[expr, value])
             if assignment:
                 assignment.value = enbool(assignment.value)
