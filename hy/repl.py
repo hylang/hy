@@ -118,6 +118,7 @@ class HyCompile(codeop.Compile):
         self.ast_callback = ast_callback
         self.hy_compiler = hy_compiler
         self.reader = HyReader()
+        self.skip_next_shebang = False
 
         super().__init__()
 
@@ -165,8 +166,10 @@ class HyCompile(codeop.Compile):
             self.hy_compiler.filename = name
             self.hy_compiler.source = source
             hy_ast = read_many(
-                source, filename=name, reader=self.reader
+                source, filename=name, reader=self.reader,
+                skip_shebang=self.skip_next_shebang,
             )
+            self.skip_next_shebang = False
             exec_ast, eval_ast = hy_compile(
                 hy_ast,
                 self.module,

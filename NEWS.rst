@@ -55,6 +55,7 @@ Bug Fixes
 * `require` now warns when you shadow a core macro, like `defmacro`
   already did.
 * `nonlocal` now works for top-level `let`-bound names.
+* `hy -i` with a filename now skips shebang lines.
 
 0.27.0 (released 2023-07-06)
 =============================

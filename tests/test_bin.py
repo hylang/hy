@@ -202,6 +202,13 @@ def test_icmd_file():
     assert "CUTTLEFISH" in output
 
 
+def test_icmd_shebang(tmp_path):
+    (tmp_file := tmp_path / 'icmd_with_shebang.hy').write_text('#!/usr/bin/env hy\n(setv order "Sepiida")')
+    output, error = run_cmd(["hy", "-i", tmp_file], '(.upper order)')
+    assert "#!/usr/bin/env" not in error
+    assert "SEPIIDA" in output
+
+
 def test_icmd_and_spy():
     output, _ = run_cmd('hy --spy -i -c "(+ [] [])"', "(+ 1 1)")
     assert "[] + []" in output
@@ -221,6 +228,14 @@ def test_missing_file():
 
 def test_file_with_args():
     cmd = "hy tests/resources/argparse_ex.hy"
+    assert "usage" in run_cmd(f"{cmd} -h")[0]
+    assert "got c" in run_cmd(f"{cmd} -c bar")[0]
+    assert "foo" in run_cmd(f"{cmd} -i foo")[0]
+    assert "foo" in run_cmd(f"{cmd} -i foo -c bar")[0]
+
+
+def test_ifile_with_args():
+    cmd = "hy -i tests/resources/argparse_ex.hy"
     assert "usage" in run_cmd(f"{cmd} -h")[0]
     assert "got c" in run_cmd(f"{cmd} -c bar")[0]
     assert "foo" in run_cmd(f"{cmd} -i foo")[0]

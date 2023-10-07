@@ -261,12 +261,14 @@ def cmdline_handler(argv):
         runpy.run_module(hy.mangle(action_arg), run_name="__main__", alter_sys=True)
         return 0
     elif action == "run_script_stdin":
+        sys.argv = argv
         if repl:
             source = sys.stdin
             filename = 'stdin'
         else:
             return run_command(sys.stdin.read(), filename="<stdin>")
     elif action == "run_script_file":
+        sys.argv = argv
         filename = Path(action_arg)
         set_path(filename)
         # Ensure __file__ is set correctly in the code we're about
@@ -278,9 +280,9 @@ def cmdline_handler(argv):
                 filename = os.path.normpath(filename)
         if repl:
             source = Path(filename).read_text()
+            repl.compile.compiler.skip_next_shebang = True
         else:
             try:
-                sys.argv = argv
                 with filtered_hy_exceptions():
                     runhy.run_path(str(filename), run_name="__main__")
                 return 0
