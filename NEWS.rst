@@ -3,13 +3,20 @@
 Unreleased
 =============================
 
+Removals
+------------------------------
+* `delmacro` has been removed. Use `(del (get _hy_macros (hy.mangle
+  …)))` instead.
+* `hy.reserved` has been removed. Use `(.keys (builtins._hy_macros))`
+  or Python's built-in `keyword` module instead.
+
 Breaking Changes
 ------------------------------
 
 * `defmacro` and `require` can now define macros locally instead of
   only module-wide.
 
-  * `hy.eval`, `hy.macroexpand`, `doc`, and `delmacro` don't work with
+  * `hy.eval`, `hy.macroexpand`, and `doc` don't work with
     local macros (yet).
 
 * When a macro is `require`\d from another module, that module is no

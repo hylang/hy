@@ -29,16 +29,15 @@
 
   With no arguments, ``cond`` returns ``None``. With an odd number of
   arguments, ``cond`` raises an error."
+  (defn _cond [args]
+    (if args
+      `(if ~(get args 0)
+        ~(get args 1)
+        ~(_cond (cut args 2 None)))
+      'None))
   (if (% (len args) 2)
     (raise (TypeError "`cond` needs an even number of arguments"))
     (_cond args)))
-
-(defn _cond [args]
-  (if args
-    `(if ~(get args 0)
-      ~(get args 1)
-      ~(_cond (cut args 2 None)))
-    'None))
 
 
 (defmacro when [test #* body]
@@ -166,31 +165,3 @@
       (if (isinstance a hy.models.List)
         (lfor  x a  (hy.models.String x))
         (raise (TypeError "arguments must be keywords or lists of symbols"))))))))
-
-(defmacro delmacro
-  [#* names]
-  #[[Delete a macro(s) from the current module. This doesn't work on a
-  local macro.
-  ::
-
-     => (require a-module [some-macro])
-     => (some-macro)
-     1
-
-     => (delmacro some-macro)
-     => (some-macro)
-     Traceback (most recent call last):
-       File "<string>", line 1, in <module>
-         (some-macro)
-     NameError: name 'some_macro' is not defined
-
-     => (delmacro some-macro)
-     Traceback (most recent call last):
-       File "<string>", line 1, in <module>
-         (delmacro some-macro)
-     NameError: macro 'some-macro' is not defined
-  ]]
-  (let [sym (hy.gensym)]
-    `(eval-and-compile
-       (for [~sym ~(lfor name names (hy.mangle name))]
-         (when (in ~sym _hy_macros) (del (get _hy_macros ~sym)))))))
