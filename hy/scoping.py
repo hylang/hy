@@ -31,6 +31,45 @@ def nearest_python_scope(scope):
     return cur
 
 
+class OuterVar(ast.stmt):
+    "Custom AST node that can compile to either Nonlocal or Global."
+    def __init__(self, expr, scope, names):
+        from hy.compiler import asty
+        super().__init__()
+        self.__dict__.update(asty._get_pos(expr))
+        self._scope = scope
+        self.names = names
+
+
+class ResolveOuterVars(ast.NodeTransformer):
+    "Find all OuterVar nodes and replace with Nonlocal or Global as necessary."
+    def visit_OuterVar(self, node):
+        from hy.compiler import asty
+        scope = node._scope
+        defined = set()
+        undefined = list(node.names)  # keep order, so can't use set
+        while undefined and scope.parent:
+            scope = scope.parent
+            has = set()
+            if isinstance(scope, ScopeFn):
+                has = scope.defined
+            elif isinstance(scope, ScopeLet):
+                has = set(scope.bindings.keys())
+            elif isinstance(scope, ScopeGlobal):
+                res = []
+                if not scope.defined.issuperset(undefined):
+                    # emit nonlocal, let python raise the error
+                    break
+                if undefined:
+                    res.append(asty.Global(node, names=list(undefined)))
+                if defined:
+                    res.append(asty.Nonlocal(node, names=list(defined)))
+                return res
+            defined.update(has.intersection(undefined))
+            undefined = [name for name in undefined if name not in has]
+        return [asty.Nonlocal(node, names=node.names)] if node.names else []
+
+
 class NodeRef:
     """
     Wrapper for AST nodes that have symbol names, so that we can rename them if
@@ -44,6 +83,7 @@ class NodeRef:
         ast.Name: "id",
         ast.Global: "names",
         ast.Nonlocal: "names",
+        OuterVar: "names",
     }
     if hy._compat.PY3_10:
         ACCESSOR.update(
@@ -96,19 +136,23 @@ class ScopeBase(ABC):
     def __init__(self, compiler):
         self.parent = None
         self.compiler = compiler
+        self.children = []
 
     def create(self, scope_type, *args):
         "Create new scope from this one."
         return scope_type(self.compiler, *args)
 
     def __enter__(self):
-        self.parent = self.compiler.scope
+        if self.compiler.scope is not self:
+            self.parent = self.compiler.scope
+            if self not in self.parent.children:
+                self.parent.children.append(self)
         self.compiler.scope = self
         return self
 
     def __exit__(self, *args):
-        self.compiler.scope = self.parent
-        self.parent = None
+        if self.parent:
+            self.compiler.scope = self.parent
         return False
 
     # Scope interface
@@ -254,7 +298,7 @@ class ScopeFn(ScopeBase):
         "set: of all vars defined in this scope"
         self.seen = []
         "list: of all vars accessedto in this scope"
-        self.nonlocal_vars = set()
+        self.nonlocal_vars = {}
         "set: of all `nonlocal`'s defined in this scope"
         self.is_fn = args is not None
         """
@@ -270,8 +314,9 @@ class ScopeFn(ScopeBase):
                     self.define(arg.arg)
 
     def __exit__(self, *args):
+        self.defined.difference_update(self.nonlocal_vars.keys())
         for node in self.seen:
-            if node.name not in self.defined or node.name in self.nonlocal_vars:
+            if node.name not in self.defined:
                 # pass unbound/nonlocal names up to parent scope
                 self.parent.access(node)
         return super().__exit__(*args)
@@ -291,11 +336,11 @@ class ScopeFn(ScopeBase):
         self.defined.add(name)
 
     def define_nonlocal(self, node, root):
-        (
-            (self.nonlocal_vars if root == "nonlocal" else self.defined).update(
-                node.names
-            )
-        )
+        if root == "nonlocal":
+            self.nonlocal_vars.update({name: node for name in node.names})
+        else:
+            self.defined.update(node.names)
+
         for n in self.seen:
             if n.name in node.names:
                 raise SyntaxError(

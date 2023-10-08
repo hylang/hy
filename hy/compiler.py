@@ -35,7 +35,7 @@ from hy.models import (
     is_unpack,
 )
 from hy.reader import mangle, HyReader
-from hy.scoping import ScopeGlobal
+from hy.scoping import ResolveOuterVars, ScopeGlobal
 
 hy_ast_compile_flags = 0
 
@@ -859,6 +859,8 @@ def hy_compile(
 
     if not get_expr:
         result += result.expr_as_stmt()
+
+    result.stmts = list(map(ResolveOuterVars().visit, result.stmts))
 
     body = []
 

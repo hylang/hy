@@ -58,7 +58,7 @@ from hy.models import (
     is_unpack,
 )
 from hy.reader import mangle
-from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
+from hy.scoping import OuterVar, ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
 
 # ------------------------------------------------
 # * Helpers
@@ -526,15 +526,18 @@ def compile_global_or_nonlocal(compiler, expr, root, syms):
     if not syms:
         return asty.Pass(expr)
 
-    node = asty.Global if root == "global" else asty.Nonlocal
-    ret = node(expr, names=[mangle(s) for s in syms])
+    names = [mangle(s) for s in syms]
+    if root == "global":
+        ret = asty.Global(expr, names=names)
+    else:
+        ret = OuterVar(expr, compiler.scope, names)
 
     try:
         compiler.scope.define_nonlocal(ret, root)
     except SyntaxError as e:
         raise compiler._syntax_error(expr, e.msg)
 
-    return ret if ret.names else Result()
+    return ret if syms else Result()
 
 
 @pattern_macro("del", [many(FORM)])
