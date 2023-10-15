@@ -73,6 +73,9 @@
   (assert (= (tests.resources.tlib.parald 1 2 3) [9 1 2 3]))
   (assert (= (tests.resources.tlib.✈ "silly") "plane silly"))
   (assert (= (tests.resources.tlib.hyx_XairplaneX "foolish") "plane foolish"))
+  (assert (is
+    (get-macro tests.resources.tlib.✈)
+    (get _hy_macros (hy.mangle "tests.resources.tlib.✈"))))
 
   (assert (= (TL.parald 1 2 3) [9 1 2 3]))
   (assert (= (TL.✈ "silly") "plane silly"))

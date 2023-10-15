@@ -58,6 +58,16 @@
   (with [(pytest.raises PrematureEndOfInput)]
       (eval-module "# _ 3")))
 
+(defn test-get-macro []
+  (assert (eval-module #[[
+    (defreader rm1
+      11)
+    (defreader rm☘
+      22)
+    (and
+      (is (get-macro :reader rm1) (get _hy_reader_macros "rm1"))
+      (is (get-macro :reader rm☘) (get _hy_reader_macros "rm☘")))]])))
+
 (defn test-require-readers []
   (with [module (temp-module "<test>")]
     (setv it (hy.read-many #[[(require tests.resources.tlib :readers [upper!])
