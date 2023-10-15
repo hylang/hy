@@ -113,28 +113,6 @@
                (get _hy_reader_macros ~dispatch-key)))))
 
 
-(defmacro doc [symbol]
-  "macro documentation
-
-   Gets help for a macro function available in this module (not a local
-   macro).
-   Use ``require`` to make other macros available.
-
-   Use ``(help foo)`` instead for help with runtime objects."
-   (setv symbol (str symbol))
-   (setv namespace
-     (if (= (cut symbol 1) "#")
-       (do (setv symbol (cut symbol 1 None))
-         '_hy_reader_macros)
-       (do (setv symbol (hy.mangle symbol))
-           '_hy_macros)))
-   (setv builtins (hy.gensym "builtins"))
-   `(do (import builtins :as ~builtins)
-        (help (or (.get ~namespace ~symbol)
-                  (.get (. ~builtins ~namespace) ~symbol)
-                  (raise (NameError f"macro {~symbol !r} is not defined"))))))
-
-
 (defmacro get-macro [arg1 [arg2 None]]
   "Get the function object used to implement a macro. This works for core macros, global (i.e., module-level) macros, and reader macros, but not local macros (yet). For regular macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
 

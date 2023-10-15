@@ -68,6 +68,15 @@
       (is (get-macro :reader rm1) (get _hy_reader_macros "rm1"))
       (is (get-macro :reader rm☘) (get _hy_reader_macros "rm☘")))]])))
 
+(defn test-docstring []
+  (assert (=
+    (eval-module #[[
+      (defreader foo
+        "docstring of foo"
+        15)
+      #(#foo (. (get-macro :reader foo) __doc__))]])
+    #(15 "docstring of foo"))))
+
 (defn test-require-readers []
   (with [module (temp-module "<test>")]
     (setv it (hy.read-many #[[(require tests.resources.tlib :readers [upper!])
