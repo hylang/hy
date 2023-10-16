@@ -225,9 +225,13 @@ def test_lex_expression_complex():
     def f(x):
         return [Expression([Symbol("foo"), x])]
 
+    assert t("2j") == f(Complex(2.0j))
+    assert t("2J") == f(Complex(2.0j))
     assert t("2.j") == f(Complex(2.0j))
+    assert t("2.J") == f(Complex(2.0j))
     assert t("-0.5j") == f(Complex(-0.5j))
     assert t("1.e7j") == f(Complex(1e7j))
+    assert t("1.e7J") == f(Complex(1e7j))
     assert t("j") == f(Symbol("j"))
     assert t("J") == f(Symbol("J"))
     assert isnan(t("NaNj")[0][1].imag)
@@ -235,6 +239,13 @@ def test_lex_expression_complex():
     assert t("Inf+Infj") == f(Complex(complex(float("inf"), float("inf"))))
     assert t("Inf-Infj") == f(Complex(complex(float("inf"), float("-inf"))))
     assert t("Inf-INFj") == f(Symbol("Inf-INFj"))
+
+    # https://github.com/hylang/hy/issues/2521
+    assert isnan(t("NaNJ")[0][1].imag)
+    assert t("nanJ") == f(Symbol("nanJ"))
+    assert t("InfJ") == f(Complex(complex(0, float("inf"))))
+    assert t("iNfJ") == f(Symbol("iNfJ"))
+    assert t("Inf-INFJ") == f(Symbol("Inf-INFJ"))
 
 
 def test_lex_digit_separators():
