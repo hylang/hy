@@ -152,7 +152,8 @@ few extensions:
   interpreted in octal like they do in C. For octal, use the prefix ``0o``, as
   in Python.
 - ``NaN``, ``Inf``, and ``-Inf`` are understood as literals. Each produces a
-  :class:`Float <hy.models.Float>`.
+  :class:`Float <hy.models.Float>`. These are case-sensitive, unlike other uses
+  of letters in numeric literals (``1E2``, ``0XFF``, ``5J``, etc.).
 - Hy allows complex literals as understood by the constructor for
   :class:`complex`, such as ``5+4j``. (This is also legal Python, but Hy reads
   it as a single :class:`Complex <hy.models.Complex>`, and doesn't otherwise

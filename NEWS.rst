@@ -50,6 +50,8 @@ Bug Fixes
 * Fixed incomplete recognition of macro calls with a unary dotted
   head like `((. defn) f [])`.
 * `~@ #*` now produces a syntax error instead of a nonsensical result.
+* Fixed parsing of infinite and NaN imaginary literals with an
+  uppercase "J".
 * Fixed `hy.eval` failing on `defreader` or `require` forms that
   install a new reader.
 * `require` now warns when you shadow a core macro, like `defmacro`

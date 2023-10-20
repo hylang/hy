@@ -361,7 +361,7 @@ class Complex(Object, complex):
         if isinstance(real, str):
             value = super().__new__(cls, strip_digit_separators(real))
             p1, _, p2 = real.lstrip("+-").replace("-", "+").partition("+")
-            check_inf_nan_cap(p1, value.imag if "j" in p1 else value.real)
+            check_inf_nan_cap(p1, value.imag if "j" in p1.lower() else value.real)
             if p2:
                 check_inf_nan_cap(p2, value.imag)
             return value
