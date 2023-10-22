@@ -9,6 +9,8 @@ Removals
   …)))` instead.
 * `hy.reserved` has been removed. Use `(.keys (builtins._hy_macros))`
   or Python's built-in `keyword` module instead.
+* `doc` has been removed. Use `(help (get-macro foo))` or `(help
+  (get-macro :reader foo))` instead.
 
 Breaking Changes
 ------------------------------
@@ -16,7 +18,7 @@ Breaking Changes
 * `defmacro` and `require` can now define macros locally instead of
   only module-wide.
 
-  * `hy.eval`, `hy.macroexpand`, and `doc` don't work with
+  * `hy.eval` and `hy.macroexpand` don't work with
     local macros (yet).
 
 * When a macro is `require`\d from another module, that module is no

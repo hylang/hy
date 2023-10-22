@@ -5,13 +5,13 @@ Macros
 Operations on macros
 --------------------
 
-The currently defined global macros can be accessed as a dictionary ``_hy_macros`` in each module. (Use ``bulitins._hy_macros``, attached to Python's usual :py:mod:`builtins` module, to see core macros.) The keys are mangled macro names and the values are the function objects that implement the macros. You can operate on this dictionary to list, add, delete, or get help on macros, but be sure to use :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile` when you need the effect to happen at compile-time. ::
+The currently defined global macros can be accessed as a dictionary ``_hy_macros`` in each module. (Use ``bulitins._hy_macros``, attached to Python's usual :py:mod:`builtins` module, to see core macros.) The keys are mangled macro names and the values are the function objects that implement the macros. You can operate on this dictionary to list, add, delete, or get help on macros, but be sure to use :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile` when you need the effect to happen at compile-time. The core macro :hy:func:`get-macro <hy.core.macros.get-macro>` provides some syntactic sugar. ::
 
     (defmacro m []
       "This is a docstring."
       `(print "Hello, world."))
     (print (in "m" _hy_macros))   ; => True
-    (help (get _hy_macros "m"))
+    (help (get-macro m))
     (m)                           ; => "Hello, world."
     (eval-and-compile
       (del (get _hy_macros "m")))

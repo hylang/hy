@@ -113,26 +113,31 @@
                (get _hy_reader_macros ~dispatch-key)))))
 
 
-(defmacro doc [symbol]
-  "macro documentation
+(defmacro get-macro [arg1 [arg2 None]]
+  "Get the function object used to implement a macro. This works for core macros, global (i.e., module-level) macros, and reader macros, but not local macros (yet). For regular macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
 
-   Gets help for a macro function available in this module (not a local
-   macro).
-   Use ``require`` to make other macros available.
+    (get-macro my-macro)
+    (get-macro :reader my-reader-macro)
 
-   Use ``(help foo)`` instead for help with runtime objects."
-   (setv symbol (str symbol))
-   (setv namespace
-     (if (= (cut symbol 1) "#")
-       (do (setv symbol (cut symbol 1 None))
-         '_hy_reader_macros)
-       (do (setv symbol (hy.mangle symbol))
-           '_hy_macros)))
-   (setv builtins (hy.gensym "builtins"))
-   `(do (import builtins :as ~builtins)
-        (help (or (.get ~namespace ~symbol)
-                  (.get (. ~builtins ~namespace) ~symbol)
-                  (raise (NameError f"macro {~symbol !r} is not defined"))))))
+  ``get-macro`` expands to a :hy:func:`get <hy.pyops.get>` form on the appropriate object, such as ``_hy_macros``, selected at the time of expanding ``get-macro``. This means you can say ``(del (get-macro …))``, perhaps wrapped in :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile`, to delete a macro, but it's easy to get confused by the order of evaluation and number of evaluations. For more predictable results in complex situations, use ``(del (get …))`` directly instead of ``(del (get-macro …))``."
+
+  (import builtins)
+  (setv [name namespace] (cond
+    (= arg1 ':reader)
+      [(str arg2) "_hy_reader_macros"]
+    (isinstance arg1 hy.models.Expression)
+      [(hy.mangle (.join "." (cut arg1 1 None))) "_hy_macros"]
+    True
+      [(hy.mangle arg1) "_hy_macros"]))
+  (cond
+    (in name (getattr &compiler.module namespace {}))
+      `(get ~(hy.models.Symbol namespace) ~name)
+    (in name (getattr builtins namespace {}))
+      `(get (. hy.M.builtins ~(hy.models.Symbol namespace)) ~name)
+    True
+      (raise (NameError (.format "no such {}macro: {!r}"
+        (if (= namespace "_hy_reader_macros") "reader " "")
+        name)))))
 
 
 (defmacro export [#* args]
