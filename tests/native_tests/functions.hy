@@ -189,6 +189,19 @@
   (assert (= (asyncio.run (coro-test)) [1 2 3])))
 
 
+(defn [async-test] test-no-async-gen-return []
+  ; https://github.com/hylang/hy/issues/2523
+  (defn/a runner [gen]
+    (setv vals [])
+    (for [:async val (gen)]
+      (.append vals val))
+    vals)
+  (defn/a naysayer []
+    (yield "nope"))
+  (assert (= (asyncio.run (runner naysayer)) ["nope"]))
+  (assert (= (asyncio.run (runner (fn/a [] (yield "dope!")) ["dope!"])))))
+
+
 (defn test-root-set-correctly []
   ; https://github.com/hylang/hy/issues/2475
   ((. defn) not-async [] "ok")
