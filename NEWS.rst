@@ -60,7 +60,7 @@ Bug Fixes
   already did.
 * `nonlocal` now works for top-level `let`-bound names.
 * `hy -i` with a filename now skips shebang lines.
-* Async generators no longer try to return final expressions.
+* Implicit returns are now disabled in async generators.
 
 0.27.0 (released 2023-07-06)
 =============================
