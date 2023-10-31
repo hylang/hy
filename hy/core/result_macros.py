@@ -58,7 +58,7 @@ from hy.models import (
     is_unpack,
 )
 from hy.reader import mangle
-from hy.scoping import OuterVar, ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
+from hy.scoping import OuterVar, ScopeFn, ScopeGen, ScopeLet, is_function_scope, is_inside_function_scope, nearest_python_scope
 
 # ------------------------------------------------
 # * Helpers
@@ -1457,6 +1457,7 @@ lambda_list = brackets(
 @pattern_macro(["fn", "fn/a"],
     [maybe(type_params), maybe_annotated(lambda_list), many(FORM)])
 def compile_function_lambda(compiler, expr, root, tp, params, body):
+    is_async = root == "fn/a"
     params, returns = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
@@ -1464,17 +1465,19 @@ def compile_function_lambda(compiler, expr, root, tp, params, body):
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
     args, ret = compile_lambda_list(compiler, params)
-    with compiler.local_state(), compiler.scope.create(ScopeFn, args):
+    with compiler.local_state(), compiler.scope.create(ScopeFn, args, is_async) as scope:
         body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
-    if not (has_annotations or tp or body.stmts or root == "fn/a"):
+    if not (has_annotations or tp or body.stmts or is_async):
         return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
     # Otherwise create a standard function
-    node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
+    node = asty.AsyncFunctionDef if is_async else asty.FunctionDef
     name = compiler.get_anon_var()
-    ret += compile_function_node(compiler, expr, node, [], tp, name, args, returns, body)
+    ret += compile_function_node(
+        compiler, expr, node, [], tp, name, args, returns, body, scope
+    )
 
     # return its name as the final expr
     return ret + Result(expr=ret.temp_variables[0])
@@ -1485,26 +1488,30 @@ def compile_function_lambda(compiler, expr, root, tp, params, body):
     [maybe(brackets(many(FORM))), maybe(type_params), maybe_annotated(SYM), lambda_list, many(FORM)],
 )
 def compile_function_def(compiler, expr, root, decorators, tp, name, params, body):
+    is_async = root == "defn/a"
     name, returns = name
-    node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
+    node = asty.AsyncFunctionDef if is_async else asty.FunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
     args, ret2 = compile_lambda_list(compiler, params)
     ret += ret2
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
-    with compiler.local_state(), compiler.scope.create(ScopeFn, args):
+    with compiler.local_state(), compiler.scope.create(ScopeFn, args, is_async) as scope:
         body = compiler._compile_branch(body)
 
     return ret + compile_function_node(
-        compiler, expr, node, decorators, tp, name, args, returns, body
+        compiler, expr, node, decorators, tp, name, args, returns, body, scope
     )
 
 
-def compile_function_node(compiler, expr, node, decorators, tp, name, args, returns, body):
+def compile_function_node(compiler, expr, node, decorators, tp, name, args, returns, body, scope):
     ret = Result()
 
     if body.expr:
-        body += asty.Return(body.expr, value=body.expr)
+        # implicitly return final expression,
+        # except for async generators
+        enode = asty.Expr if scope.is_async and scope.has_yield else asty.Return
+        body += enode(body.expr, value=body.expr)
 
     ret += node(
         expr,
@@ -1665,6 +1672,8 @@ def compile_return(compiler, expr, root, arg):
 
 @pattern_macro("yield", [maybe(FORM)])
 def compile_yield_expression(compiler, expr, root, arg):
+    if is_inside_function_scope(compiler.scope):
+        nearest_python_scope(compiler.scope).has_yield = True
     ret = Result()
     if arg is not None:
         ret += compiler.compile(arg)
@@ -1673,6 +1682,8 @@ def compile_yield_expression(compiler, expr, root, arg):
 
 @pattern_macro(["yield-from", "await"], [FORM])
 def compile_yield_from_or_await_expression(compiler, expr, root, arg):
+    if root == "yield-from" and is_inside_function_scope(compiler.scope):
+        nearest_python_scope(compiler.scope).has_yield = True
     ret = Result() + compiler.compile(arg)
     node = asty.YieldFrom if root == "yield-from" else asty.Await
     return ret + node(expr, value=ret.force_expr)

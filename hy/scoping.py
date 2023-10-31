@@ -292,7 +292,7 @@ class ScopeLet(ScopeBase):
 class ScopeFn(ScopeBase):
     """Scope that corresponds to Python's own function or class scopes."""
 
-    def __init__(self, compiler, args=None):
+    def __init__(self, compiler, args=None, is_async=False):
         super().__init__(compiler)
         self.defined = set()
         "set: of all vars defined in this scope"
@@ -305,6 +305,12 @@ class ScopeFn(ScopeBase):
         bool: `True` if this scope is being used to track a python
         function `False` for classes
         """
+        self.is_async = is_async
+        """bool: `True` if this scope is for an async function,
+        which may need special handling during compilation"""
+        self.has_yield = False
+        """bool: `True` if this scope is tracking a function that has `yield`
+        statements, as generator functions may need special handling"""
 
         if args:
             for arg in itertools.chain(

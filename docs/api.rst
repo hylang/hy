@@ -113,7 +113,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    forms, and the first of them is a string literal, this string becomes the
    :term:`py:docstring` of the function. The final body form is implicitly
    returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
-   5))``.
+   5))``. There is one exception: due to Python limitations, no implicit return
+   is added if the function is an asynchronous generator (i.e., defined with
+   :hy:func:`defn/a` or :hy:func:`fn/a` and containing at least one
+   :hy:func:`yield` or :hy:func:`yield-from`).
 
    ``defn`` accepts a few more optional arguments: a bracketed list of
    :term:`decorators <py:decorator>`, a list of type parameters (see below),
