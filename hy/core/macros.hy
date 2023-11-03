@@ -140,6 +140,31 @@
         name)))))
 
 
+(defmacro local-macros []
+  #[[Expands to a dictionary mapping the mangled names of local macros to the function objects used to implement those macros. Thus, ``local-macros`` provides a rough local equivalent of ``_hy_macros``. ::
+
+      (defn f []
+        (defmacro m []
+          "This is the docstring for the macro `m`."
+          1)
+        (help (get (local-macros) "m")))
+      (f)
+
+  The equivalency is rough in the sense that ``local-macros`` returns a literal dictionary, not a preexisting object that Hy uses for resolving macro names. So, modifying the dictionary will have no effect.
+
+  See also :hy:func:`get-macro <hy.core.macros.get-macro>`.]]
+  (_local-macros &compiler))
+
+(defn _local_macros [&compiler]
+  (setv seen #{})
+  (dfor
+    state &compiler.local_state_stack
+    m (get state "macros")
+    :if (not-in m seen)
+    :do (.add seen m)
+    m (hy.models.Symbol (hy.macros.local-macro-name m))))
+
+
 (defmacro export [#* args]
   "A convenience macro for defining ``__all__`` and ``_hy_export_macros``, which
   control which Python objects and macros (respectively) are collected by ``*``

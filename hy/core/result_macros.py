@@ -18,7 +18,7 @@ from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, s
 from hy._compat import PY3_11, PY3_12
 from hy.compiler import Result, asty, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
-from hy.macros import pattern_macro, require, require_reader
+from hy.macros import pattern_macro, require, require_reader, local_macro_name
 from hy.model_patterns import (
     FORM,
     KEYWORD,
@@ -1544,21 +1544,26 @@ def compile_macro_def(compiler, expr, root, name, params, body):
     S = Symbol
 
     compiler.warn_on_core_shadow(name)
-    ret = []
     fn_def = E(
         S("fn"),
         List([S("&compiler"), *expr[2]]),
-        *body)
+        *body).replace(expr)
     if compiler.is_in_local_state():
         # We're in a local scope, so define the new macro locally.
-        compiler.local_state_stack[-1]['macros'][mangle(name)] = (
-            compiler.eval(fn_def.replace(expr)))
-        return Result()
+        state = compiler.local_state_stack[-1]
+        # Produce code that will set the macro to a local variable.
+        ret = compiler.compile(E(
+            S("setv"),
+            S(local_macro_name(name)),
+            fn_def).replace(expr))
+        # Also evaluate the macro definition now, and put it in
+        # state['macros'].
+        state['macros'][mangle(name)] = compiler.eval(fn_def)
+        return ret + ret.expr_as_stmt()
     # Otherwise, define the macro module-wide.
-    ret.append(E(
+    ret = compiler.compile(E(S("eval-and-compile"), E(
         E(dotted("hy.macros.macro"), str(name)),
-        fn_def))
-    ret = compiler.compile(E(S("eval-and-compile"), *ret).replace(expr))
+        fn_def)).replace(expr))
     return ret + ret.expr_as_stmt()
 
 
@@ -1822,12 +1827,22 @@ def compile_require(compiler, expr, root, entries):
         # importing readers but not macros
         # (require a-module :readers ["!"])
         if (rest or not readers) and compiler.is_in_local_state():
-            require(
+            reqs = require(
                 module_name,
                 compiler.local_state_stack[-1]['macros'],
                 assignments = assignments,
                 prefix = prefix,
                 compiler = compiler)
+            ret += compiler.compile(Expression([
+                Symbol("setv"),
+                List([Symbol(local_macro_name(m)) for m, _, _ in reqs]),
+                Expression([
+                    dotted("hy.macros.require_vals"),
+                    String(module_name),
+                    Dict(),
+                    Keyword("assignments"),
+                    List([(String(m), String(m)) for _, m, _ in reqs])])]).replace(expr))
+            ret += ret.expr_as_stmt()
         elif (rest or not readers) and require(
                 module_name,
                 compiler.module,

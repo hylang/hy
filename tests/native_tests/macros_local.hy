@@ -95,3 +95,29 @@
 
 (defn test-redefinition-warning []
   (macro-redefinition-warning-tester :local True))
+
+
+(defn test-get-local-macros []
+  "Test the core macro `local-macros`."
+
+  (defn check [ms inner?]
+    (assert (= (set (.keys ms))
+      #{"m1" "m2" "rwiz" #* (if inner? ["m3" "rhelp"] [])}))
+    (assert (= (. ms ["m1"] __doc__) "m1 doc"))
+    (assert (= (. ms ["m2"] __doc__) (if inner? "m2, inner" "m2, outer")))
+    (assert (= (. ms ["rwiz"] __doc__) "remote wiz doc"))
+    (when inner?
+      (assert (= (. ms ["m3"] __doc__) "m3 doc"))
+      (assert (= (. ms ["rhelp"] __doc__) "remote helper doc"))))
+
+  (defmacro m1 [] "m1 doc" 1)
+  (defmacro m2 [] "m2, outer" 2)
+  (require tests.resources.local-req-example [wiz :as rwiz])
+  (check (local-macros) False)
+  (defn inner-f []
+    (defmacro m2 [] "m2, inner" 2)
+    (defmacro m3 [] "m3 doc" 3)
+    (require tests.resources.local-req-example [helper :as rhelp])
+    (check (local-macros) True))
+  (inner-f)
+  (check (local-macros) False))

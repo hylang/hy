@@ -32,6 +32,7 @@ Breaking Changes
   vs a standalone script.
 * New macro `deftype`.
 * New macro `get-macro`.
+* New macro `local-macros`.
 
 New Features
 ------------------------------

@@ -5,7 +5,7 @@ Macros
 Operations on macros
 --------------------
 
-The currently defined global macros can be accessed as a dictionary ``_hy_macros`` in each module. (Use ``bulitins._hy_macros``, attached to Python's usual :py:mod:`builtins` module, to see core macros.) The keys are mangled macro names and the values are the function objects that implement the macros. You can operate on this dictionary to list, add, delete, or get help on macros, but be sure to use :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile` when you need the effect to happen at compile-time. The core macro :hy:func:`get-macro <hy.core.macros.get-macro>` provides some syntactic sugar. ::
+The currently defined global macros can be accessed as a dictionary ``_hy_macros`` in each module. (Use ``bulitins._hy_macros``, attached to Python's usual :py:mod:`builtins` module, to see core macros.) The keys are mangled macro names and the values are the function objects that implement the macros. You can operate on this dictionary to list, add, delete, or get help on macros, but be sure to use :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile` when you need the effect to happen at compile-time. You can call :hy:func:`local-macros <hy.core.macros.local-macros>` to list local macros, but adding or deleting elements in this case is ineffective. The core macro :hy:func:`get-macro <hy.core.macros.get-macro>` provides some syntactic sugar. ::
 
     (defmacro m []
       "This is a docstring."
@@ -17,7 +17,7 @@ The currently defined global macros can be accessed as a dictionary ``_hy_macros
       (del (get _hy_macros "m")))
     (m)                           ; => NameError
 
-``_hy_reader_macros`` is a similar dictionary for reader macros, but here, the keys aren't mangled.
+``_hy_reader_macros`` is a dictionary like ``_hy_macros`` for reader macros, but here, the keys aren't mangled.
 
 .. _using-gensym:
 

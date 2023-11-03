@@ -184,8 +184,9 @@ def enable_readers(module, reader, names):
 
 
 def require(source_module, target, assignments, prefix="", target_module_name=None, compiler=None):
-    """Load macros from a module. Return a `bool` indicating whether
-    macros were actually transferred.
+    """Load macros from a module. Return a list of (new name, source
+    name, macro object) tuples, including only macros that were
+    actually transferred.
 
     - `target` can be a a string (naming a module), a module object,
       a dictionary, or `None` (meaning the calling module).
@@ -204,7 +205,7 @@ def require(source_module, target, assignments, prefix="", target_module_name=No
         # We use the module's underlying filename for this (when they exist), since
         # it's the most "fixed" attribute.
         if _same_modules(source_module, target_module):
-            return False
+            return []
 
     if not inspect.ismodule(source_module):
         source_module = import_module_from_string(source_module,
@@ -219,27 +220,29 @@ def require(source_module, target, assignments, prefix="", target_module_name=No
 
     if not source_module._hy_macros:
         if assignments in ("ALL", "EXPORTS"):
-            return False
+            return []
+        out = []
         for name, alias in assignments:
             try:
-                require(
+                out.extend(require(
                     f"{source_module.__name__}.{mangle(name)}",
                     target_module or target,
                     "ALL",
                     prefix=alias,
-                )
+                ))
             except HyRequireError as e:
                 raise HyRequireError(
                     f"Cannot import name '{name}'"
                     f" from '{source_module.__name__}'"
                     f" ({source_module.__file__})"
                 )
-        return True
+        return out
 
     target_macros = target_namespace.setdefault("_hy_macros", {}) if target_module else target
 
     if prefix:
         prefix += "."
+    out = []
 
     for name, alias in (
         assignments
@@ -256,12 +259,25 @@ def require(source_module, target, assignments, prefix="", target_module_name=No
         alias = mangle(prefix + alias)
         if _name in source_module._hy_macros:
             target_macros[alias] = source_macros[_name]
+            out.append((alias, _name, source_macros[_name]))
         else:
             raise HyRequireError(
                 "Could not require name {} from {}".format(_name, source_module)
             )
 
-    return True
+    return out
+
+
+def require_vals(*args, **kwargs):
+    return [value for _, _, value in require(*args, **kwargs)]
+
+
+def local_macro_name(original):
+    return '_hy_local_macro__' + (mangle(original)
+      # We have to do a bit of extra mangling beyond `mangle` itself to
+      # handle names with periods.
+        .replace('D', 'DN')
+        .replace('.', 'DD'))
 
 
 def load_macros(module):
