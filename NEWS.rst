@@ -18,13 +18,13 @@ Breaking Changes
 * `defmacro` and `require` can now define macros locally instead of
   only module-wide.
 
-  * `hy.eval` and `hy.macroexpand` don't work with
-    local macros (yet).
+  * `hy.macroexpand` doesn't work with local macros (yet).
 
 * When a macro is `require`\d from another module, that module is no
   longer implicitly included when checking for further macros in
   the expansion.
-* `hy.eval` has been overhauled to be more like Python's `eval`.
+* `hy.eval` has been overhauled to be more like Python's `eval`. It
+  also has a new parameter `macros`.
 * `hy` now only implicitly launches a REPL if standard input is a TTY.
 * `hy -i` has been overhauled to work as a flag like `python3 -i`.
 * `hy2py` now requires `-m` to specify modules, and uses

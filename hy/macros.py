@@ -385,9 +385,11 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
 
         # Choose the first namespace with the macro.
         m = ((compiler and next(
-                (d['macros'][fn]
-                    for d in reversed(compiler.local_state_stack)
-                    if fn in d['macros']),
+                (d[fn]
+                    for d in [
+                        compiler.extra_macros,
+                        *(s['macros'] for s in reversed(compiler.local_state_stack))]
+                    if fn in d),
                 None)) or
             next(
                 (mod._hy_macros[fn]

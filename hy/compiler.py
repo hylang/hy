@@ -326,7 +326,7 @@ def is_annotate_expression(model):
 class HyASTCompiler:
     """A Hy-to-Python AST compiler"""
 
-    def __init__(self, module, filename=None, source=None):
+    def __init__(self, module, filename=None, source=None, extra_macros=None):
         """
         Args:
             module (Union[str, types.ModuleType]): Module name or object in which the Hy tree is evaluated.
@@ -335,9 +335,12 @@ class HyASTCompiler:
                 debugging.
             source (Optional[str]): The source for the file, if any, being compiled.  This is optional
                 information for informative error messages and debugging.
+            extra_macros (Optional[dict]): More macros to use during lookup. They take precedence
+                over macros in `module`.
         """
         self.anon_var_count = 0
         self.temp_if = None
+        self.extra_macros = extra_macros or {}
 
         # Make a list of dictionaries with local compiler settings,
         # such as the definitions of local macros. The last element is
@@ -736,6 +739,7 @@ def hy_eval(
     source=None,
     import_stdlib=True,
     globals=None,
+    extra_macros=None,
 ):
 
     module = get_compiler_module(module, compiler, True)
@@ -752,6 +756,7 @@ def hy_eval(
         filename=filename,
         source=source,
         import_stdlib=import_stdlib,
+        extra_macros=extra_macros,
     )
 
     if globals is None:
@@ -764,14 +769,16 @@ def hy_eval(
     return eval(ast_compile(expr, filename, "eval"), globals, locals)
 
 
-def hy_eval_user(model, globals = None, locals = None, module = None):
+def hy_eval_user(model, globals = None, locals = None, module = None, macros = None):
     # This function is advertised as `hy.eval`.
     """An equivalent of Python's :func:`eval` for evaluating Hy code. The chief difference is that the first argument should be a :ref:`model <models>` rather than source text. If you have a string of source text you want to evaluate, convert it to a model first with :hy:func:`hy.read` or :hy:func:`hy.read-many`::
 
         (hy.eval '(+ 1 1))             ; => 2
         (hy.eval (hy.read "(+ 1 1)"))  ; => 2
 
-    The optional arguments ``globals`` and ``locals`` work as in the case of ``eval``. There's one more optional argument, ``module``, which can be a module object or a string naming a module. The module's ``__dict__`` attribute can fill in for ``globals`` (and hence also for ``locals``) if ``module`` is provided but ``globals`` isn't, but the primary purpose of ``module`` is to control where macro calls are looked up. Without this argument, the calling module of ``hy.eval`` is used instead. ::
+    The optional arguments ``globals`` and ``locals`` work as in the case of :func:`eval`.
+
+    Another optional argument, ``module``, can be a module object or a string naming a module. The module's ``__dict__`` attribute can fill in for ``globals`` (and hence also for ``locals``) if ``module`` is provided but ``globals`` isn't, but the primary purpose of ``module`` is to control where macro calls are looked up. Without this argument, the calling module of ``hy.eval`` is used instead. ::
 
         (defmacro my-test-mac [] 3)
         (hy.eval '(my-test-mac))                 ; => 3
@@ -779,7 +786,15 @@ def hy_eval_user(model, globals = None, locals = None, module = None):
         (hy.eval '(my-test-mac) :module hyrule)  ; NameError
         (hy.eval '(list-n 3 1) :module hyrule)   ; => [1 1 1]
 
-    N.B. Local macros are invisible to ``hy.eval``."""
+    Finally, finer control of macro lookup can be achieved by passing in a dictionary of macros as the ``macros`` argument. The keys of this dictionary should be mangled macro names, and the values should be function objects to implement those macros. This is the same structure as is produced by :hy:func:`local-macros`, and in fact, ``(hy.eval … :macros (local-macros))`` is useful to make local macros visible to ``hy.eval``, which otherwise doesn't see them. ::
+
+        (defn f []
+          (defmacro lmac [] 1)
+          (hy.eval '(lmac))     ; NameError
+          (print (hy.eval '(lmac) :macros (local-macros)))) ; => 1
+        (f)
+
+    In any case, macros provided in this dictionary will shadow macros of the same name that are associated with the provided or implicit module. You can shadow a core macro, too, so be careful: there's no warning for this as there is in the case of :hy:func:`defmacro`."""
 
     if locals is None:
         locals = globals
@@ -793,7 +808,8 @@ def hy_eval_user(model, globals = None, locals = None, module = None):
             locals = (inspect.getargvalues(inspect.stack()[1][0]).locals
                 if locals is None and module is None
                 else locals),
-            module = get_compiler_module(module, None, True))
+            module = get_compiler_module(module, None, True),
+            extra_macros = macros)
     finally:
         if locals is not None:
             if hy_was:
@@ -815,6 +831,7 @@ def hy_compile(
     filename=None,
     source=None,
     import_stdlib=True,
+    extra_macros=None,
 ):
     """Compile a hy.models.Object tree into a Python AST Module.
 
@@ -835,6 +852,7 @@ def hy_compile(
             if `None`, an attempt will be made to obtain it from the module given by
             `module`.  When `compiler` is given, its `source` field value is always
             used.
+        extra_macros (Optional[dict]): Passed through to `HyASTCompiler`, if it's called.
 
     Returns:
         ast.AST: A Python AST tree
@@ -851,7 +869,11 @@ def hy_compile(
             "`tree` must be a hy.models.Object or capable of " "being promoted to one"
         )
 
-    compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
+    compiler = compiler or HyASTCompiler(
+        module,
+        filename = filename,
+        source = source,
+        extra_macros = extra_macros)
 
     with HyReader.using_reader(reader, create=False), compiler.scope:
         result = compiler.compile(tree)
