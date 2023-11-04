@@ -31,6 +31,7 @@ Breaking Changes
   the same `sys.path` rules as Python when parsing a module
   vs a standalone script.
 * New macro `deftype`.
+* New macro `get-macro`.
 
 New Features
 ------------------------------
