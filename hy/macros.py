@@ -415,12 +415,6 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     return tree
 
 
-def macroexpand_1(tree, module, compiler=None):
-    """Expand the toplevel macro from `tree` once, in the context of
-    `compiler`."""
-    return macroexpand(tree, module, compiler, once=True)
-
-
 def rename_function(f, new_name):
     """Create a copy of a function, but with a new name."""
     f = type(f)(

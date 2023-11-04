@@ -84,34 +84,42 @@
   (setv f (get (.stack inspect) (+ n 1) 0))
   (get f.f_globals "__name__"))
 
-(defn macroexpand [form [result-ok False]]
-  "Return the full macro expansion of `form`.
+(defn _macroexpand [model module macros #** kwargs]
+  (if (and (isinstance model hy.models.Expression) model)
+    (hy.macros.macroexpand
+      :tree model
+      :module module
+      :compiler (HyASTCompiler module :extra-macros macros)
+      :result-ok False
+      #** kwargs)
+    model))
 
-  Examples:
-    ::
+(defn macroexpand [model [module None] [macros None]]
+  "As :hy:func:`hy.macroexpand-1`, but the expansion process is repeated until it has no effect. ::
 
-       => (require hyrule [->])
-       => (hy.macroexpand '(-> (a b) (x y)))
-       '(x (a b) y)
-       => (hy.macroexpand '(-> (a b) (-> (c d) (e f))))
-       '(e (c (a b) d) f)
-  "
-  (import hy.macros)
-  (setv module (calling-module))
-  (hy.macros.macroexpand form module (HyASTCompiler module) :result-ok result-ok))
+      (defmacro m [x]
+        (and (int x) `(m ~(- x 1))))
+      (print (hy.repr (hy.macroexpand-1 '(m 5))))
+        ; => '(m 4)
+      (print (hy.repr (hy.macroexpand '(m 5))))
+        ; => '0
 
-(defn macroexpand-1 [form]
-  "Return the single step macro expansion of `form`.
+  Note that in general, macro calls in the arguments of the expression still won't expanded. To expand these, too, try Hyrule's :hy:func:`macroexpand-all <hyrule.macrotools.macroexpand-all>`."
+  (_macroexpand model (or module (calling-module)) macros))
 
-  Examples:
-    ::
+(defn macroexpand-1 [model [module None] [macros None]]
+  "Check if ``model`` is an :class:`Expression <hy.models.Expression>` specifying a macro call. If so, expand the macro and return the expansion; otherwise, return ``model`` unchanged. ::
 
-       => (require hyrule [->])
-       => (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
-       '(-> (a b) (c d) (e f))
-  "
-  (import hy.macros)
-  (setv module (calling-module))
-  (hy.macros.macroexpand-1 form module (HyASTCompiler module)))
+      (defmacro m [x]
+       `(do ~x ~x ~x))
+      (print (hy.repr (hy.macroexpand-1 '(m (+= n 1)))))
+        ; => '(do (+= n 1) (+= n 1) (+= n 1))
+
+  An exceptional case is if the macro is a core macro that returns one of Hy's internal compiler result objects instead of a real model. Then, you just get the original back, as if the macro hadn't been expanded.
+
+  The optional arguments ``module`` and ``macros`` can be provided to control where macros are looked up, as with :hy:func:`hy.eval`.
+
+  See also :hy:func:`hy.macroexpand`."
+  (_macroexpand model (or module (calling-module)) macros :once True))
 
 (setv __all__ [])
