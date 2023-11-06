@@ -206,6 +206,44 @@
   (assert (= (hy.eval '(qplah 1)) [8 1])))
 
 
+(defn test-extra-macros []
+  (setv ab 15)
+
+  (assert (=
+    (hy.eval '(chippy a b) :macros (dict
+      :chippy (fn [&compiler arg1 arg2]
+        (hy.models.Symbol (+ (str arg1) (str arg2))))))
+    15))
+
+  ; By default, `hy.eval` can't see local macros.
+  (defmacro oh-hungee [arg1 arg2]
+    (hy.models.Symbol (+ (str arg1) (str arg2))))
+  (with [(pytest.raises NameError)]
+    (hy.eval '(oh-hungee a b)))
+  ; But you can pass them in with the `macros` argument.
+  (assert (=
+    (hy.eval '(oh-hungee a b) :macros (local-macros))
+    15))
+  (assert (=
+    (hy.eval '(oh-hungee a b) :macros {"oh_hungee" (get-macro oh-hungee)}
+    15)))
+
+  ; You can shadow a global macro.
+  (assert (=
+    (hy.eval '(cheese))
+    "gorgonzola"))
+  (assert (=
+    (hy.eval '(cheese) :macros {"cheese" (fn [&compiler] "cheddar")})
+    "cheddar"))
+
+  ; Or even a core macro, and with no warning.
+  (assert (=
+    (hy.eval '(+ 1 1) :macros
+      {(hy.mangle "+") (fn [&compiler #* args]
+        (.join "" (gfor  x args  (str (int x)))))})
+    "11")))
+
+
 (defn test-filename []
   (setv m (hy.read "(/ 1 0)" :filename "bad_math.hy"))
   (with [e (pytest.raises ZeroDivisionError)]

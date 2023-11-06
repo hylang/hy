@@ -17,20 +17,21 @@ Breaking Changes
 
 * `defmacro` and `require` can now define macros locally instead of
   only module-wide.
-
-  * `hy.eval` and `hy.macroexpand` don't work with
-    local macros (yet).
-
 * When a macro is `require`\d from another module, that module is no
   longer implicitly included when checking for further macros in
   the expansion.
-* `hy.eval` has been overhauled to be more like Python's `eval`.
+* `hy.eval` has been overhauled to be more like Python's `eval`. It
+  also has a new parameter `macros`.
+* `hy.macroexpand` and `hy.macroexpand-1` have been overhauled and
+  generalized to include more of the features of `hy.eval`.
 * `hy` now only implicitly launches a REPL if standard input is a TTY.
 * `hy -i` has been overhauled to work as a flag like `python3 -i`.
 * `hy2py` now requires `-m` to specify modules, and uses
   the same `sys.path` rules as Python when parsing a module
   vs a standalone script.
 * New macro `deftype`.
+* New macro `get-macro`.
+* New macro `local-macros`.
 
 New Features
 ------------------------------
@@ -61,6 +62,8 @@ Bug Fixes
 * `nonlocal` now works for top-level `let`-bound names.
 * `hy -i` with a filename now skips shebang lines.
 * Implicit returns are now disabled in async generators.
+* The parameter `result-ok` that was mistakenly included in the
+  signature of `hy.macroexpand` is now gone.
 
 0.27.0 (released 2023-07-06)
 =============================

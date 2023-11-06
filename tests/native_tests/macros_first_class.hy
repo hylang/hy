@@ -81,3 +81,23 @@ deleting them, and retrieving their docstrings. We also test `get-macro`
 (defn test-global-shadowing-builtin []
   (assert (= div1 "1/2"))
   (assert (= div2 0.5)))
+
+;; * Local macros
+
+(defn test-local-get []
+  (defmacro local1 [] "local1 doc" 1)
+  (defmacro local2 [] "local2 outer" 2)
+  (require tests.resources.local-req-example :as LRE)
+
+  (assert (= (. (get-macro local1) __doc__) "local1 doc"))
+  (assert (= (. (get-macro local2) __doc__) "local2 outer"))
+  (assert (= (. (get-macro LRE.wiz) __doc__) "remote wiz doc"))
+
+  (defn inner []
+    (defmacro local2 [] "local2 inner" 2)
+    (defmacro local3 [] "local3 doc" 2)
+    (assert (= (. (get-macro local2) __doc__) "local2 inner"))
+    (assert (= (. (get-macro local3) __doc__) "local3 doc"))
+    (assert (= (. (get-macro LRE.wiz) __doc__) "remote wiz doc")))
+
+  (inner))

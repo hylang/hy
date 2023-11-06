@@ -114,30 +114,58 @@
 
 
 (defmacro get-macro [arg1 [arg2 None]]
-  "Get the function object used to implement a macro. This works for core macros, global (i.e., module-level) macros, and reader macros, but not local macros (yet). For regular macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
+  "Get the function object used to implement a macro. This works for all sorts of macros: core macros, global (i.e., module-level) macros, local macros, and reader macros. For regular (non-reader) macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
 
     (get-macro my-macro)
     (get-macro :reader my-reader-macro)
 
-  ``get-macro`` expands to a :hy:func:`get <hy.pyops.get>` form on the appropriate object, such as ``_hy_macros``, selected at the time of expanding ``get-macro``. This means you can say ``(del (get-macro …))``, perhaps wrapped in :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile`, to delete a macro, but it's easy to get confused by the order of evaluation and number of evaluations. For more predictable results in complex situations, use ``(del (get …))`` directly instead of ``(del (get-macro …))``."
+  Except when retrieving a local macro, ``get-macro`` expands to a :hy:func:`get <hy.pyops.get>` form on the appropriate object, such as ``_hy_macros``, selected at the time of expanding ``get-macro``. This means you can say ``(del (get-macro …))``, perhaps wrapped in :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile`, to delete a macro, but it's easy to get confused by the order of evaluation and number of evaluations. For more predictable results in complex situations, use ``(del (get …))`` directly instead of ``(del (get-macro …))``."
 
   (import builtins)
-  (setv [name namespace] (cond
+  (setv [name reader?] (cond
     (= arg1 ':reader)
-      [(str arg2) "_hy_reader_macros"]
+      [(str arg2) True]
     (isinstance arg1 hy.models.Expression)
-      [(hy.mangle (.join "." (cut arg1 1 None))) "_hy_macros"]
+      [(hy.mangle (.join "." (cut arg1 1 None))) False]
     True
-      [(hy.mangle arg1) "_hy_macros"]))
+      [(hy.mangle arg1) False]))
+  (setv namespace (if reader? "_hy_reader_macros" "_hy_macros"))
   (cond
+    (and (not reader?) (setx local (.get (_local-macros &compiler) name)))
+      local
     (in name (getattr &compiler.module namespace {}))
       `(get ~(hy.models.Symbol namespace) ~name)
     (in name (getattr builtins namespace {}))
       `(get (. hy.M.builtins ~(hy.models.Symbol namespace)) ~name)
     True
       (raise (NameError (.format "no such {}macro: {!r}"
-        (if (= namespace "_hy_reader_macros") "reader " "")
+        (if reader? "reader " "")
         name)))))
+
+
+(defmacro local-macros []
+  #[[Expands to a dictionary mapping the mangled names of local macros to the function objects used to implement those macros. Thus, ``local-macros`` provides a rough local equivalent of ``_hy_macros``. ::
+
+      (defn f []
+        (defmacro m []
+          "This is the docstring for the macro `m`."
+          1)
+        (help (get (local-macros) "m")))
+      (f)
+
+  The equivalency is rough in the sense that ``local-macros`` returns a literal dictionary, not a preexisting object that Hy uses for resolving macro names. So, modifying the dictionary will have no effect.
+
+  See also :hy:func:`get-macro <hy.core.macros.get-macro>`.]]
+  (_local-macros &compiler))
+
+(defn _local_macros [&compiler]
+  (setv seen #{})
+  (dfor
+    state &compiler.local_state_stack
+    m (get state "macros")
+    :if (not-in m seen)
+    :do (.add seen m)
+    m (hy.models.Symbol (hy.macros.local-macro-name m))))
 
 
 (defmacro export [#* args]

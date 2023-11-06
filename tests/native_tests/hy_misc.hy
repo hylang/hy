@@ -22,10 +22,30 @@
 
 
 (defn test-macroexpand []
-  (assert (= (hy.macroexpand '(mac (a b) (x y)))
-             '(x y (a b))))
-  (assert (= (hy.macroexpand '(mac (a b) (mac 5)))
-             '(a b 5))))
+  (assert (=
+    (hy.macroexpand '(mac (a b) (x y)))
+    '(x y (a b))))
+  (assert (=
+    (hy.macroexpand '(mac (a b) (mac 5)))
+    '(a b 5)))
+  (assert (=
+    (hy.macroexpand '(qplah "phooey") :module hy.M.tests.resources.tlib)
+    '[8 "phooey"]))
+  (assert (=
+    (hy.macroexpand '(chippy 1) :macros
+      {"chippy" (fn [&compiler x] `[~x ~x])})
+    '[1 1]))
+  ; Non-Expressions just get returned as-is.
+  (defn f [])
+  (assert (is
+    (hy.macroexpand f)
+    f))
+  ; If the macro expands to a `Result`, the user gets the original
+  ; back instead of the `Result`.
+  (setv model '(+ 1 1))
+  (assert (is
+    (hy.macroexpand model)
+    model)))
 
 
 (defmacro m-with-named-import []
