@@ -20,6 +20,7 @@ Breaking Changes
 * When a macro is `require`\d from another module, that module is no
   longer implicitly included when checking for further macros in
   the expansion.
+* `hy.M` has been renamed to `hy.I`.
 * `hy.eval` has been overhauled to be more like Python's `eval`. It
   also has a new parameter `macros`.
 * `hy.macroexpand` and `hy.macroexpand-1` have been overhauled and
