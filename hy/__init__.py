@@ -24,11 +24,8 @@ class I:
         import importlib
         return importlib.import_module(module_name)
     def __getattr__(self, s):
-        import re
-        return self(hy.mangle(re.sub(
-            r'/(-*)',
-            lambda m: '.' + '_' * len(m.group(1)),
-            hy.unmangle(s))))
+        from hy.reader.mangling import slashes2dots
+        return self(slashes2dots(s))
 I = I()
 
 
