@@ -1,5 +1,5 @@
 ;; Tests of `hy.gensym`, `hy.macroexpand`, `hy.macroexpand-1`,
-;; `hy.disassemble`, `hy.read`, and `hy.M`
+;; `hy.disassemble`, `hy.read`, and `hy.I`
 
 (import
   pytest)
@@ -29,7 +29,7 @@
     (hy.macroexpand '(mac (a b) (mac 5)))
     '(a b 5)))
   (assert (=
-    (hy.macroexpand '(qplah "phooey") :module hy.M.tests.resources.tlib)
+    (hy.macroexpand '(qplah "phooey") :module hy.I.tests.resources.tlib)
     '[8 "phooey"]))
   (assert (=
     (hy.macroexpand '(chippy 1) :macros
@@ -109,44 +109,44 @@
   (assert (is (type (hy.read "0")) (type '0))))
 
 
-(defn test-hyM []
+(defn test-hyI []
   (defmacro no-name [name]
     `(with [(pytest.raises NameError)] ~name))
 
-  ; `hy.M` doesn't bring the imported stuff into scope.
-  (assert (= (hy.M.math.sqrt 4) 2))
-  (assert (= (.sqrt (hy.M "math") 4) 2))
+  ; `hy.I` doesn't bring the imported stuff into scope.
+  (assert (= (hy.I.math.sqrt 4) 2))
+  (assert (= (.sqrt (hy.I "math") 4) 2))
   (no-name math)
   (no-name sqrt)
 
   ; It's independent of bindings to such names.
   (setv math (type "Dummy" #() {"sqrt" "hello"}))
-  (assert (= (hy.M.math.sqrt 4) 2))
+  (assert (= (hy.I.math.sqrt 4) 2))
   (assert (= math.sqrt "hello"))
 
   ; It still works in a macro expansion.
   (defmacro frac [a b]
-    `(hy.M.fractions.Fraction ~a ~b))
+    `(hy.I.fractions.Fraction ~a ~b))
   (assert (= (* 6 (frac 1 3)) 2))
   (no-name fractions)
   (no-name Fraction)
 
   ; You can use `/` for dotted module names.
-  (assert (= (hy.M.os/path.basename "foo/bar") "bar"))
+  (assert (= (hy.I.os/path.basename "foo/bar") "bar"))
   (no-name os)
   (no-name path)
 
-  ; `hy.M.__getattr__` attempts to cope with mangling.
+  ; `hy.I.__getattr__` attempts to cope with mangling.
   (with [e (pytest.raises ModuleNotFoundError)]
-    (hy.M.a-b☘c-d/e.z))
+    (hy.I.a-b☘c-d/e.z))
   (assert (= e.value.name (hy.mangle "a-b☘c-d")))
-  ; `hy.M.__call__` doesn't.
+  ; `hy.I.__call__` doesn't.
   (with [e (pytest.raises ModuleNotFoundError)]
-    (hy.M "a-b☘c-d/e.z"))
+    (hy.I "a-b☘c-d/e.z"))
   (assert (= e.value.name "a-b☘c-d/e")))
 
 
-(defn test-hyM-mangle-chain [tmp-path monkeypatch]
+(defn test-hyI-mangle-chain [tmp-path monkeypatch]
   ; We can get an object from a submodule with various kinds of
   ; mangling in the name chain.
 
@@ -162,4 +162,4 @@
   ; don't reload it explicitly.
   (import foo) (import importlib) (importlib.reload foo)
 
-  (assert (= hy.M.foo/foo?/_foo/☘foo☘/foo.foo 5)))
+  (assert (= hy.I.foo/foo?/_foo/☘foo☘/foo.foo 5)))

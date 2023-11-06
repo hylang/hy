@@ -520,7 +520,7 @@
 
 
 (defmacro eval-isolated [#* body]
-  `(hy.eval '(do ~@body) :module (hy.M.types.ModuleType "<test>") :locals {}))
+  `(hy.eval '(do ~@body) :module (hy.I.types.ModuleType "<test>") :locals {}))
 
 
 (defn test-let-bound-nonlocal []

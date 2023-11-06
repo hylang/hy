@@ -1369,7 +1369,7 @@ the following methods
 
 .. hy:autofunction:: hy.as-model
 
-.. hy:autoclass:: hy.M
+.. hy:autoclass:: hy.I
 
 .. _reader-macros:
 

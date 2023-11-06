@@ -136,7 +136,7 @@
     (in name (getattr &compiler.module namespace {}))
       `(get ~(hy.models.Symbol namespace) ~name)
     (in name (getattr builtins namespace {}))
-      `(get (. hy.M.builtins ~(hy.models.Symbol namespace)) ~name)
+      `(get (. hy.I.builtins ~(hy.models.Symbol namespace)) ~name)
     True
       (raise (NameError (.format "no such {}macro: {!r}"
         (if reader? "reader " "")

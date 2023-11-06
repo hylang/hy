@@ -73,7 +73,7 @@ intersphinx_mapping = dict(
 )
 
 import hy
-hy.M = type(hy.M)  # A trick to enable `hy:autoclass:: hy.M`
+hy.I = type(hy.I)  # A trick to enable `hy:autoclass:: hy.I`
 
 # ** Generate Cheatsheet
 import json
