@@ -1,8 +1,7 @@
-import importlib
 import os
 from pathlib import Path
 
-import pytest
+import hy, pytest
 
 NATIVE_TESTS = Path.cwd() / "tests/native_tests"
 
