@@ -1,19 +1,18 @@
-import importlib
 import os
 from pathlib import Path
 
-import pytest
+import hy, pytest
 
-NATIVE_TESTS = os.path.join("", "tests", "native_tests", "")
+NATIVE_TESTS = Path.cwd() / "tests/native_tests"
 
 # https://github.com/hylang/hy/issues/2029
 os.environ.pop("HYSTARTUP", None)
 
 
-def pytest_collect_file(parent, path):
+def pytest_collect_file(file_path, parent):
     if (
-        path.ext == ".hy"
-        and NATIVE_TESTS in path.dirname + os.sep
-        and path.basename != "__init__.hy"
+        file_path.suffix == ".hy"
+        and NATIVE_TESTS in file_path.parents
+        and file_path.name != "__init__.hy"
     ):
-        return pytest.Module.from_parent(parent, path=Path(path))
+        return pytest.Module.from_parent(parent, path=file_path)

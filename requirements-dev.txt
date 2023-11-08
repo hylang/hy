@@ -1,4 +1,4 @@
-pytest >= 6
+pytest >= 7
 
 # documentation
 Pygments == 2.15.1
