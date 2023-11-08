@@ -1,5 +1,5 @@
 ;; Tests of `hy.gensym`, `hy.macroexpand`, `hy.macroexpand-1`,
-;; `hy.disassemble`, `hy.read`, and `hy.I`
+;; `hy.disassemble`, `hy.read`, `hy.I`, and `hy.R`
 
 (import
   pytest)
@@ -163,3 +163,16 @@
   (import foo) (import importlib) (importlib.reload foo)
 
   (assert (= hy.I.foo/foo?/_foo/☘foo☘/foo.foo 5)))
+
+
+(defn test-hyR []
+  (assert (= (hy.R.tests/resources/tlib.qplah "x") [8 "x"]))
+  (assert (= (hy.R.tests/resources/tlib.✈ "x") "plane x"))
+  (with [(pytest.raises NameError)]
+    (hy.eval '(tests.resources.tlib.qplah "x")))
+  (with [(pytest.raises NameError)]
+    (hy.eval '(qplah "x")))
+  (with [(pytest.raises hy.errors.HyRequireError)]
+    (hy.eval '(hy.R.tests/resources/tlib.nonexistent-macro "x")))
+  (with [(pytest.raises hy.errors.HyRequireError)]
+    (hy.eval '(hy.R.nonexistent-module.qplah "x"))))

@@ -20,6 +20,7 @@ from hy.errors import (
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
 from hy.reader import mangle
+from hy.reader.mangling import slashes2dots
 
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
@@ -383,21 +384,32 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
         else:
             break
 
-        # Choose the first namespace with the macro.
-        m = ((compiler and next(
-                (d[fn]
-                    for d in [
-                        compiler.extra_macros,
-                        *(s['macros'] for s in reversed(compiler.local_state_stack))]
-                    if fn in d),
-                None)) or
-            next(
-                (mod._hy_macros[fn]
-                    for mod in (module, builtins)
-                    if fn in getattr(mod, "_hy_macros", ())),
-                None))
-        if not m:
-            break
+        if fn.startswith('hy.R.'):
+            # Special syntax for a one-shot `require`.
+            req_from, _, fn = fn[len('hy.R.'):].partition('.')
+            req_from = slashes2dots(req_from)
+            try:
+                m = importlib.import_module(req_from)._hy_macros[fn]
+            except ImportError as e:
+                raise HyRequireError(e.args[0]).with_traceback(None)
+            except (AttributeError, KeyError):
+                raise HyRequireError(f'Could not require name {fn} from {req_from}')
+        else:
+            # Choose the first namespace with the macro.
+            m = ((compiler and next(
+                    (d[fn]
+                        for d in [
+                            compiler.extra_macros,
+                            *(s['macros'] for s in reversed(compiler.local_state_stack))]
+                        if fn in d),
+                    None)) or
+                next(
+                    (mod._hy_macros[fn]
+                        for mod in (module, builtins)
+                        if fn in getattr(mod, "_hy_macros", ())),
+                    None))
+            if not m:
+                break
 
         with MacroExceptions(module, tree, compiler):
             if compiler:

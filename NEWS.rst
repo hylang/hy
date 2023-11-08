@@ -39,6 +39,8 @@ New Features
 * `defn`, `defn/a`, and `defclass` now support type parameters.
 * `HyReader` now has an optional parameter to install existing
   reader macros from the calling module.
+* New syntax `(hy.R.aaa/bbb.m …)` for calling the macro `m` from the
+  module `aaa.bbb` without bringing `m` or `aaa.bbb` into scope.
 * New pragma `warn-on-core-shadow`.
 * `nonlocal` now also works for globally defined names.
 

@@ -400,6 +400,11 @@ first element.
   to construct a method call with the element after ``None`` as the object:
   thus, ``(.add my-set 5)`` is equivalent to ``((. my-set add) 5)``, which
   becomes ``my_set.add(5)`` in Python.
+
+  .. _hy.R:
+
+  - Exception: expressions like ``((. hy R module-name macro-name) …)``, or equivalently ``(hy.R.module-name.macro-name …)``, get special treatment. They import the module ``module-name`` and call its macro ``macro-name``, so ``(hy.R.foo.bar 1)`` is equivalent to ``(require foo) (foo.bar 1)``, but without bringing ``foo`` or ``foo.bar`` into scope. Thus ``hy.R`` is convenient syntactic sugar for macros you'll only call once in a file, or for macros that you want to appear in the expansion of other macros without having to call :hy:func:`require` in the expansion. As with :hy:class:`hy.I`, dots in the module name must be replaced with slashes.
+
 - Otherwise, the expression is compiled into a Python-level call, with the
   first element being the calling object. (So, you can call a function that has
   the same name as a macro with an expression like ``((do setv) …)``.) The
