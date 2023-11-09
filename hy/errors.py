@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from hy import _initialize_env_var
 from hy._compat import PYPY
 
-_hy_filter_internal_errors = _initialize_env_var("HY_FILTER_INTERNAL_ERRORS", True)
+_hy_show_internal_errors = _initialize_env_var("HY_SHOW_INTERNAL_ERRORS", False)
 
 
 class HyError(Exception):
@@ -270,11 +270,11 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
 
 def hy_exc_handler(exc_type, exc_value, exc_traceback):
     """A `sys.excepthook` handler that uses `hy_exc_filter` to
-    remove internal Hy frames from a traceback print-out.
+    remove internal Hy frames from a traceback print-out, so long
+    as `_hy_show_internal_errors` is false.
     """
-    if os.environ.get("HY_DEBUG", False):
+    if _hy_show_internal_errors:
         return sys.__excepthook__(exc_type, exc_value, exc_traceback)
-
     try:
         output = hy_exc_filter(exc_type, exc_value, exc_traceback)
         sys.stderr.write(output)
@@ -289,14 +289,10 @@ def filtered_hy_exceptions():
     from tracebacks.
 
     Filtering can be controlled by the variable
-    `hy.errors._hy_filter_internal_errors` and environment variable
-    `HY_FILTER_INTERNAL_ERRORS`.
+    `hy.errors._hy_show_internal_errors` and environment variable
+    `HY_SHOW_INTERNAL_ERRORS`.
     """
-    global _hy_filter_internal_errors
-    if _hy_filter_internal_errors:
-        current_hook = sys.excepthook
-        sys.excepthook = hy_exc_handler
-        yield
-        sys.excepthook = current_hook
-    else:
-        yield
+    current_hook = sys.excepthook
+    sys.excepthook = hy_exc_handler
+    yield
+    sys.excepthook = current_hook

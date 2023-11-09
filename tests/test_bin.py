@@ -410,9 +410,6 @@ def test_macro_require():
 def test_tracebacks():
     """Make sure the printed tracebacks are correct."""
 
-    # We want the filtered tracebacks.
-    os.environ["HY_DEBUG"] = ""
-
     def req_err(x):
         assert x == "hy.errors.HyRequireError: No module named 'not_a_real_module'"
 
