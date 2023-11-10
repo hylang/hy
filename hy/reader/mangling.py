@@ -106,3 +106,11 @@ def unmangle(s):
     s = s.replace("_", "-")
 
     return prefix + s + suffix
+
+
+def slashes2dots(s):
+    'Interpret forward slashes as a substitute for periods.'
+    return mangle(re.sub(
+        r'/(-*)',
+        lambda m: '.' + '_' * len(m.group(1)),
+        unmangle(s)))

@@ -20,6 +20,7 @@ Breaking Changes
 * When a macro is `require`\d from another module, that module is no
   longer implicitly included when checking for further macros in
   the expansion.
+* `hy.M` has been renamed to `hy.I`.
 * `hy.eval` has been overhauled to be more like Python's `eval`. It
   also has a new parameter `macros`.
 * `hy.macroexpand` and `hy.macroexpand-1` have been overhauled and
@@ -38,6 +39,8 @@ New Features
 * `defn`, `defn/a`, and `defclass` now support type parameters.
 * `HyReader` now has an optional parameter to install existing
   reader macros from the calling module.
+* New syntax `(hy.R.aaa/bbb.m …)` for calling the macro `m` from the
+  module `aaa.bbb` without bringing `m` or `aaa.bbb` into scope.
 * New pragma `warn-on-core-shadow`.
 * `nonlocal` now also works for globally defined names.
 

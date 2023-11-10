@@ -10,7 +10,7 @@
   (assert (= Foo.__value__) int)
 
   (deftype Foo (| int bool))
-  (assert (is (type Foo.__value__ hy.M.types.UnionType)))
+  (assert (is (type Foo.__value__ hy.I.types.UnionType)))
 
   (deftype :tp [#^ int A  #** B] Foo int)
   (assert (= (ttp.show Foo) [

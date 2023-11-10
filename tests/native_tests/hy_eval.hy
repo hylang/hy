@@ -248,7 +248,7 @@
   (setv m (hy.read "(/ 1 0)" :filename "bad_math.hy"))
   (with [e (pytest.raises ZeroDivisionError)]
     (hy.eval m))
-  (assert (in "bad_math.hy" (get (hy.M.traceback.format-tb e.tb) -1))))
+  (assert (in "bad_math.hy" (get (hy.I.traceback.format-tb e.tb) -1))))
 
 
 (defn test-eval-failure []
