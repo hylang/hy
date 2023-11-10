@@ -414,7 +414,13 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
         with MacroExceptions(module, tree, compiler):
             if compiler:
                 compiler.this = tree
-            obj = m(compiler, *tree[1:])
+            obj = m(
+                *([compiler]
+                    if m.__code__.co_varnames and m.__code__.co_varnames[0] in (
+                         'compiler', 'hy_compiler', 'hyx_XampersandXcompiler',
+                         'ETname')
+                    else []),
+                *tree[1:])
             if isinstance(obj, (hy.compiler.Result, AST)):
                 return obj if result_ok else tree
 
