@@ -33,7 +33,7 @@
     '[8 "phooey"]))
   (assert (=
     (hy.macroexpand '(chippy 1) :macros
-      {"chippy" (fn [&compiler x] `[~x ~x])})
+      {"chippy" (fn [x] `[~x ~x])})
     '[1 1]))
   ; Non-Expressions just get returned as-is.
   (defn f [])

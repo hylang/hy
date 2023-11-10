@@ -211,7 +211,7 @@
 
   (assert (=
     (hy.eval '(chippy a b) :macros (dict
-      :chippy (fn [&compiler arg1 arg2]
+      :chippy (fn [arg1 arg2]
         (hy.models.Symbol (+ (str arg1) (str arg2))))))
     15))
 
@@ -233,13 +233,13 @@
     (hy.eval '(cheese))
     "gorgonzola"))
   (assert (=
-    (hy.eval '(cheese) :macros {"cheese" (fn [&compiler] "cheddar")})
+    (hy.eval '(cheese) :macros {"cheese" (fn [] "cheddar")})
     "cheddar"))
 
   ; Or even a core macro, and with no warning.
   (assert (=
     (hy.eval '(+ 1 1) :macros
-      {(hy.mangle "+") (fn [&compiler #* args]
+      {(hy.mangle "+") (fn [#* args]
         (.join "" (gfor  x args  (str (int x)))))})
     "11")))
 

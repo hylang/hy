@@ -33,9 +33,9 @@ deleting them, and retrieving their docstrings. We also test `get-macro`
 ; 2. `require` in global scope
 (require tests.resources.tlib [qplah :as global2])
 ; 3. Manually updating `_hy_macros`
-(eval-and-compile (setv (get _hy_macros "global3") (fn [&compiler]
+(eval-and-compile (setv (get _hy_macros "global3") (fn []
   "from global3")))
-(eval-and-compile (setv (get _hy_macros (hy.mangle "global☘")) (fn [&compiler]
+(eval-and-compile (setv (get _hy_macros (hy.mangle "global☘")) (fn []
   "global☘ docstring"
   "from global☘")))
 
