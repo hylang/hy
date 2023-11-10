@@ -50,7 +50,7 @@
         (return panic))]]
   `(if ~test (do ~@body) None))
 
-(defmacro defreader [key #* body]
+(defmacro defreader [&compiler key #* body]
   "Define a new reader macro.
 
   Reader macros are expanded at read time and allow you to modify the behavior
@@ -113,7 +113,7 @@
                (get _hy_reader_macros ~dispatch-key)))))
 
 
-(defmacro get-macro [arg1 [arg2 None]]
+(defmacro get-macro [&compiler arg1 [arg2 None]]
   "Get the function object used to implement a macro. This works for all sorts of macros: core macros, global (i.e., module-level) macros, local macros, and reader macros. For regular (non-reader) macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
 
     (get-macro my-macro)
@@ -143,7 +143,7 @@
         name)))))
 
 
-(defmacro local-macros []
+(defmacro local-macros [&compiler]
   #[[Expands to a dictionary mapping the mangled names of local macros to the function objects used to implement those macros. Thus, ``local-macros`` provides a rough local equivalent of ``_hy_macros``. ::
 
       (defn f []

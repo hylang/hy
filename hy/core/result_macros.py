@@ -1544,10 +1544,7 @@ def compile_macro_def(compiler, expr, root, name, params, body):
     S = Symbol
 
     compiler.warn_on_core_shadow(name)
-    fn_def = E(
-        S("fn"),
-        List([S("&compiler"), *expr[2]]),
-        *body).replace(expr)
+    fn_def = E(S("fn"), List(expr[2]), *body).replace(expr)
     if compiler.is_in_local_state():
         # We're in a local scope, so define the new macro locally.
         state = compiler.local_state_stack[-1]
