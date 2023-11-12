@@ -11,6 +11,8 @@ Removals
   or Python's built-in `keyword` module instead.
 * `doc` has been removed. Use `(help (get-macro foo))` or `(help
   (get-macro :reader foo))` instead.
+* The environment variables `HY_DEBUG` and `HY_FILTER_INTERNAL_ERRORS`
+  have been replaced with `HY_SHOW_INTERNAL_ERRORS`.
 
 Breaking Changes
 ------------------------------

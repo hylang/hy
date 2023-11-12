@@ -11,14 +11,9 @@ set to anything else.
    (Default: nothing) Path to a file containing Hy source code to execute when
    starting the REPL.
 
-.. envvar:: HY_DEBUG
+.. envvar:: HY_SHOW_INTERNAL_ERRORS
 
-   (Default: false) Does something mysterious that's probably similar to
-   ``HY_FILTER_INTERNAL_ERRORS``.
-
-.. envvar:: HY_FILTER_INTERNAL_ERRORS
-
-   (Default: true) Whether to hide some parts of tracebacks that point to
+   (Default: false) Whether to show some parts of tracebacks that point to
    internal Hy code and won't be helpful to the typical Hy user.
 
 .. envvar:: HY_HISTORY
