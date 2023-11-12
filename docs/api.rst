@@ -1,6 +1,7 @@
 API
 ===
 
+.. _core-macros:
 
 Core Macros
 -----------
@@ -1308,6 +1309,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
   Only one pragma is currently implemented:
 
+.. _warn-on-core-shadow:
+
   - ``:warn-on-core-shadow``: If true (the default), :hy:func:`defmacro` and
     :hy:func:`require` will raise a warning at compile-time if you define a macro
     with the same name as a core macro. Shadowing a core macro in this fashion is
@@ -1371,46 +1374,8 @@ the following methods
 
 .. hy:autoclass:: hy.I
 
-.. _reader-macros:
-
 Reader Macros
 -------------
-
-Reader macros allow one to hook directly into Hy's reader to customize how
-different forms are parsed. Reader macros can be imported from other libraries
-using :hy:func:`require`, and can be defined directly using
-:hy:func:`defreader`.
-
-Like regular macros, reader macros should return a Hy form that will then be
-passed to the compiler for execution. Reader macros access the Hy reader using
-the ``&reader`` name. It gives access to all of the text- and form-parsing logic
-that Hy uses to parse itself. See :py:class:`HyReader <hy.reader.hy_reader.HyReader>` and
-its base class :py:class:`Reader <hy.reader.reader.Reader>` for details regarding
-the available processing methods.
-
-Note that Hy reads and parses each top-level form completely before it is executed,
-so the following code will throw an exception:
-
-.. code-block:: hylang
-
-   => (do
-   ...  (defreader up
-   ...    (.slurp-space &reader)
-   ...    (.upper (.read-one-form &reader)))
-   ...  (print #up "hello?"))
-   ;; !! ERROR reader macro '#up' is not defined
-
-Since the entire ``do`` block is read at once, the ``defreader`` will not have
-yet been evaluated when the parser encounters the call to ``#up``. However, if
-the reader macro isn't used until a later top-level form, then it will work:
-
-.. code-block:: hylang
-
-   => (defreader up
-   ...  (.slurp-space &reader)
-   ...  (.upper (.read-one-form &reader)))
-   => (print #up "hy there!")
-   HY THERE!
 
 .. autoclass:: hy.reader.hy_reader.HyReader
    :members: parse, parse_one_form, parse_forms_until, read_default, fill_pos
