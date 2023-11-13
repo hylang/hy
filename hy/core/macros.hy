@@ -50,7 +50,7 @@
         (return panic))]]
   `(if ~test (do ~@body) None))
 
-(defmacro defreader [key #* body]
+(defmacro defreader [_hy_compiler key #* body]
   "Define a new reader macro.
 
   Reader macros are expanded at read time and allow you to modify the behavior
@@ -89,9 +89,9 @@
      See the :ref:`reader macros docs <reader-macros>` for more detailed
      information on how reader macros work and are defined.
   "
-  (when (not (isinstance &compiler.scope hy.scoping.ScopeGlobal))
-    (raise (&compiler._syntax-error
-             &compiler.this
+  (when (not (isinstance _hy_compiler.scope hy.scoping.ScopeGlobal))
+    (raise (_hy_compiler._syntax-error
+             _hy_compiler.this
              f"Cannot define reader macro outside of global scope.")))
 
   (when (not (isinstance key hy.models.Symbol))
@@ -113,7 +113,7 @@
                (get _hy_reader_macros ~dispatch-key)))))
 
 
-(defmacro get-macro [arg1 [arg2 None]]
+(defmacro get-macro [_hy_compiler arg1 [arg2 None]]
   "Get the function object used to implement a macro. This works for all sorts of macros: core macros, global (i.e., module-level) macros, local macros, and reader macros. For regular (non-reader) macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
 
     (get-macro my-macro)
@@ -131,9 +131,9 @@
       [(hy.mangle arg1) False]))
   (setv namespace (if reader? "_hy_reader_macros" "_hy_macros"))
   (cond
-    (and (not reader?) (setx local (.get (_local-macros &compiler) name)))
+    (and (not reader?) (setx local (.get (_local-macros _hy_compiler) name)))
       local
-    (in name (getattr &compiler.module namespace {}))
+    (in name (getattr _hy_compiler.module namespace {}))
       `(get ~(hy.models.Symbol namespace) ~name)
     (in name (getattr builtins namespace {}))
       `(get (. hy.I.builtins ~(hy.models.Symbol namespace)) ~name)
@@ -143,7 +143,7 @@
         name)))))
 
 
-(defmacro local-macros []
+(defmacro local-macros [_hy_compiler]
   #[[Expands to a dictionary mapping the mangled names of local macros to the function objects used to implement those macros. Thus, ``local-macros`` provides a rough local equivalent of ``_hy_macros``. ::
 
       (defn f []
@@ -156,12 +156,12 @@
   The equivalency is rough in the sense that ``local-macros`` returns a literal dictionary, not a preexisting object that Hy uses for resolving macro names. So, modifying the dictionary will have no effect.
 
   See also :hy:func:`get-macro <hy.core.macros.get-macro>`.]]
-  (_local-macros &compiler))
+  (_local-macros _hy_compiler))
 
-(defn _local_macros [&compiler]
+(defn _local_macros [_hy_compiler]
   (setv seen #{})
   (dfor
-    state &compiler.local_state_stack
+    state _hy_compiler.local_state_stack
     m (get state "macros")
     :if (not-in m seen)
     :do (.add seen m)

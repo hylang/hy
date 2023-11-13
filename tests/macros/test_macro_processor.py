@@ -8,7 +8,7 @@ from hy.reader import read
 
 
 @macro("test")
-def tmac(ETname, *tree):
+def tmac(*tree):
     """Turn an expression into a list"""
     return List(tree)
 

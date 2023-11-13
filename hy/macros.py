@@ -43,18 +43,18 @@ def pattern_macro(names, pattern, shadow=None):
 
     def dec(fn):
         def wrapper_maker(name):
-            def wrapper(hy_compiler, *args):
+            def wrapper(_hy_compiler, *args):
 
                 if shadow and any(is_unpack("iterable", x) for x in args):
                     # Try a shadow function call with this name instead.
                     return Expression(
                         [Expression(map(Symbol, [".", "hy", "pyops", name])), *args]
-                    ).replace(hy_compiler.this)
+                    ).replace(_hy_compiler.this)
 
-                expr = hy_compiler.this
+                expr = _hy_compiler.this
 
                 if py_version_required and sys.version_info < py_version_required:
-                    raise hy_compiler._syntax_error(
+                    raise _hy_compiler._syntax_error(
                         expr,
                         "`{}` requires Python {} or later".format(
                             name, ".".join(map(str, py_version_required))
@@ -64,13 +64,13 @@ def pattern_macro(names, pattern, shadow=None):
                 try:
                     parse_tree = pattern.parse(args)
                 except NoParseError as e:
-                    raise hy_compiler._syntax_error(
+                    raise _hy_compiler._syntax_error(
                         expr[min(e.state.pos + 1, len(expr) - 1)],
                         "parse error for pattern macro '{}': {}".format(
                             name, e.msg.replace("end of input", "end of macro call")
                         ),
                     )
-                return fn(hy_compiler, expr, name, *parse_tree)
+                return fn(_hy_compiler, expr, name, *parse_tree)
 
             return wrapper
 
@@ -414,7 +414,14 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
         with MacroExceptions(module, tree, compiler):
             if compiler:
                 compiler.this = tree
-            obj = m(compiler, *tree[1:])
+            obj = m(
+                # If the macro's first parameter is named
+                # `_hy_compiler`, pass in the current compiler object
+                # in its place.
+                *([compiler]
+                    if m.__code__.co_varnames[:1] == ('_hy_compiler',)
+                    else []),
+                *tree[1:])
             if isinstance(obj, (hy.compiler.Result, AST)):
                 return obj if result_ok else tree
 
