@@ -342,33 +342,13 @@ class MacroExceptions:
 
 
 def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
-    """Expand the toplevel macros for the given Hy AST tree.
+    '''If `tree` isn't an `Expression` that might be a macro call,
+    return it unchanged. Otherwise, try to expand it. Do this
+    repeatedly unless `once` is true. Call `as_model` after each
+    expansion. If the return value is a compiler `Result` object, and
+    `result_ok` is false, return the previous value. Otherwise, return
+    the final expansion.'''
 
-    Load the macros from the given `module`, then expand the (top-level) macros
-    in `tree` until we no longer can. This doesn't work on local macros.
-
-    `Expression` resulting from macro expansions are assigned the module in
-    which the macro function is defined (determined using `inspect.getmodule`).
-    If the resulting `Expression` is itself macro expanded, then the namespace
-    of the assigned module is checked first for a macro corresponding to the
-    expression's head/car symbol.  If the head/car symbol of such a `Expression`
-    is not found among the macros of its assigned module's namespace, the
-    outer-most namespace--e.g.  the one given by the `module` parameter--is used
-    as a fallback.
-
-    Args:
-        tree (Union[Object, list]): Hy AST tree.
-        module (Union[str, ModuleType]): Module used to determine the local
-            namespace for macros.
-        compiler (Optional[HyASTCompiler] ): The compiler object passed to
-            expanded macros. Defaults to None
-        once (bool): Only expand the first macro in `tree`. Defaults to False
-        result_ok (bool): Whether or not it's okay to return a compiler `Result` instance.
-            Defaults to True.
-
-    Returns:
-        Union[Object, Result]: A mutated tree with macros expanded.
-    """
     if not inspect.ismodule(module):
         module = importlib.import_module(module)
 
@@ -421,7 +401,7 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
                 *([compiler]
                     if m.__code__.co_varnames[:1] == ('_hy_compiler',)
                     else []),
-                *tree[1:])
+                *map(as_model, tree[1:]))
             if isinstance(obj, (hy.compiler.Result, AST)):
                 return obj if result_ok else tree
 
@@ -430,7 +410,6 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
         if once:
             break
 
-    tree = as_model(tree)
     return tree
 
 

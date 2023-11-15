@@ -223,7 +223,7 @@ def render_quoted_form(compiler, form, level):
         body = [List(contents)]
 
         if isinstance(form, FString) and form.brackets is not None:
-            body.extend([Keyword("brackets"), form.brackets])
+            body.extend([Keyword("brackets"), String(form.brackets)])
         elif isinstance(form, FComponent) and form.conversion is not None:
             body.extend([Keyword("conversion"), String(form.conversion)])
 
@@ -235,7 +235,7 @@ def render_quoted_form(compiler, form, level):
 
     elif isinstance(form, String):
         if form.brackets is not None:
-            body.extend([Keyword("brackets"), form.brackets])
+            body.extend([Keyword("brackets"), String(form.brackets)])
 
     return (Expression([dotted("hy.models." + name), *body]).replace(form), False)
 
@@ -1862,7 +1862,7 @@ def compile_require(compiler, expr, root, entries):
                         (
                             String("EXPORTS")
                             if assignments == "EXPORTS"
-                            else [[String(k), String(v)] for k, v in assignments]
+                            else List([List([String(k), String(v)]) for k, v in assignments])
                         ),
                         Keyword("prefix"),
                         String(prefix),
