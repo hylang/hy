@@ -40,6 +40,11 @@
   (assert (is
     (hy.macroexpand f)
     f))
+  ; Likewise Expressions that aren't macro calls.
+  (setv model '(wmbatt 1 2))
+  (assert (is
+    (hy.macroexpand model)
+    model))
   ; If the macro expands to a `Result`, the user gets the original
   ; back instead of the `Result`.
   (setv model '(+ 1 1))
