@@ -150,8 +150,20 @@ aforementioned mixing of statements and expressions, :ref:`name mangling
 Python-legal identifiers, and a :hy:func:`let` macro to provide block-level scoping
 in place of Python's usual function-level scoping.
 
-Overall, Hy, like Common Lisp, is intended to be an unopinionated big-tent
-language that lets you do what you want. If you're interested in a more
-small-and-beautiful approach to Lisp, in the style of Scheme, check out
-`Hissp <https://github.com/gilch/hissp>`_, another Lisp embedded in Python
-that was created by a Hy developer.
+
+What Hy is not
+--------------
+
+Hy isn't minimal or elegant. Hy is big and ugly and proud of it; it's an
+unopinionated big-tent language that lets you do what you want. It has all
+of Python's least-motivated semantic features, plus more features, plus
+various kinds of syntactic sugar. (The syntax isn't as complex as
+Python's, but there are a lot of details beyond plain old S-expressions.)
+If you're interested in a more small-and-beautiful approach to Lisp, in
+the style of Scheme, check out `Hissp <https://github.com/gilch/hissp>`_,
+another Lisp embedded in Python that was created by a Hy developer.
+
+Also, Hy isn't a reimplementation of an older Lisp. It is its own
+language. It looks kind of like Clojure and kind of like Common Lisp, but
+nontrivial programs that run in one of these langauges can't be expected
+to run on another unaltered.
