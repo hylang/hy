@@ -494,15 +494,16 @@ class HyASTCompiler:
         elif isinstance(name, ast.Starred):
             new_name = ast.Starred(value=self._storeize(expr, name.value, func))
         else:
-            raise self._syntax_error(
-                expr,
-                "Can't assign or delete a "
-                + (
-                    "constant"
-                    if isinstance(name, ast.Constant)
-                    else type(expr).__name__
-                ),
-            )
+            new_name = ast.Name(id="Macro Target")
+            # raise self._syntax_error(
+            #     expr,
+            #     "Can't assign or delete a "
+            #     + (
+            #         "constant"
+            #         if isinstance(name, ast.Constant)
+            #         else type(expr).__name__
+            #     ) + " idiot",
+            # )
 
         new_name.ctx = func()
         ast.copy_location(new_name, name)

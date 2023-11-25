@@ -42,7 +42,7 @@ requires = [
 
 setup(
     name=PKG,
-    version="0.24.0",
+    version="0.24.1",
     setup_requires=["wheel"] + requires,
     install_requires=requires,
     python_requires=">= 3.7, < 3.11",
