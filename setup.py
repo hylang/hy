@@ -42,10 +42,10 @@ requires = [
 
 setup(
     name=PKG,
-    version="0.24.1",
+    version="0.24.2",
     setup_requires=["wheel"] + requires,
     install_requires=requires,
-    python_requires=">= 3.7, < 3.11",
+    python_requires=">= 3.7, < 3.12",
     entry_points={
         "console_scripts": [
             "hy = hy.cmdline:hy_main",
