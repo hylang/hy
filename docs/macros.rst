@@ -156,22 +156,32 @@ Ultimately it's wisest to use only four kinds of names in macro expansions: gens
 Reader macros
 -------------
 
-Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`HyReader <hy.reader.hy_reader.HyReader>` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`HyReader <hy.reader.hy_reader.HyReader>` and its base class :py:class:`Reader <hy.reader.reader.Reader>` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model. ::
+Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`HyReader <hy.reader.hy_reader.HyReader>` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`HyReader <hy.reader.hy_reader.HyReader>` and its base class :py:class:`Reader <hy.reader.reader.Reader>` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
+
+Here's a moderately complex example of a reader macro that couldn't be implemented as a regular macro. It reads in a list of lists in which the inner lists are newline-separated, but newlines are allowed inside elements. ::
 
     (defreader matrix
       (.slurp-space &reader)
       (setv start (.getc &reader))
       (assert (= start "["))
+      (.slurp-space &reader)
       (setv out [[]])
-      (while (not (do (.slurp-space &reader) (.peek-and-getc &reader "]")))
-        (setv x (.parse-one-form &reader))
-        (if (= x '|)
-          (.append out [])
-          (.append (get out -1) x)))
-      (if (= out [[]]) [] out))
+      (while (not (.peek-and-getc &reader "]"))
+        (cond
+          (any (gfor  c " \t"  (.peek-and-getc &reader c)))
+            None
+          (.peek-and-getc &reader "\n")
+            (.append out [])
+          True
+            (.append (get out -1) (.parse-one-form &reader))))
+      (lfor  line out  :if line  line))
 
-    (print (hy.repr #matrix [1 2 3 | 4 5 6 | 7 8 9]))
-      ; => [[1 2 3] [4 5 6] [7 8 9]]
+    (print (hy.repr #matrix [
+        1 (+ 1 1) 3
+        4 ["element" "containing"
+              "a" "newline"]        6
+        7 8 9]))
+      ; => [[1 2 3] [4 ["element" "containing" "a" "newline"] 6] [7 8 9]]
 
 Note that because reader macros are evaluated at parse-time, and top-level forms are completely parsed before any further compile-time execution occurs, you can't use a reader macro in the same top-level form that defines it::
 
