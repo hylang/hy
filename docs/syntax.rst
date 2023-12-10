@@ -146,7 +146,11 @@ few extensions:
 
 - Commas (``,``) can be used like underscores (``_``) to separate digits
   without changing the result. Thus, ``10_000_000_000`` may also be written
-  ``10,000,000,000``.
+  ``10,000,000,000``. Hy is also more permissive about the placement of
+  separators than Python: several may be in a row, and they may be after all
+  digits, after ``.``, ``e``, or ``j``, or even inside a radix prefix. Separators
+  before the first digit are still forbidden because e.g. ``_1`` is a legal
+  Python variable name, so it's a symbol in Hy rather than an integer.
 - Integers can begin with leading zeroes, even without a radix prefix like
   ``0x``. Leading zeroes don't automatically cause the literal to be
   interpreted in octal like they do in C. For octal, use the prefix ``0o``, as

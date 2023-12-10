@@ -259,14 +259,15 @@ def test_lex_digit_separators():
 
     assert tokenize("0x_af") == [Integer(0xAF)]
     assert tokenize("0x,af") == [Integer(0xAF)]
+    assert tokenize("0_xaf") == [Integer(0xAF)]
     assert tokenize("0b_010") == [Integer(0b010)]
     assert tokenize("0b,010") == [Integer(0b010)]
     assert tokenize("0o_373") == [Integer(0o373)]
     assert tokenize("0o,373") == [Integer(0o373)]
 
-    assert tokenize("1_2.3,4") == [Float(12.34)]
-    assert tokenize("1_2e3,4") == [Float(12e34)]
-    assert tokenize("1,0_00j") == [Complex(1000j)]
+    assert tokenize("1_2._3,4") == [Float(12.34)]
+    assert tokenize("1_2e_3,4") == [Float(12e34)]
+    assert tokenize("1,0_00j,") == [Complex(1000j)]
 
     assert tokenize("1,,,,___,____,,__,,2__,,,__") == [Integer(12)]
     assert tokenize("_1,,,,___,____,,__,,2__,,,__") == [
