@@ -1,19 +1,21 @@
+.. _repl:
+
 ===========
 The Hy REPL
 ===========
 
 Hy's `read-eval-print loop
 <https://en.wikipedia.org/wiki/Read-eval-print_loop>`_ (REPL) is implemented in
-the class :class:`hy.cmdline.HyREPL`. The REPL can be started interactively
+the class :class:`hy.REPL`. The REPL can be started interactively
 :doc:`from the command line <cli>` or programmatically with the instance method
-:meth:`hy.cmdline.HyREPL.run`.
+:meth:`hy.REPL.run`.
 
 Two :doc:`environment variables <env_var>` useful for the REPL are
 ``HY_HISTORY``, which specifies where the REPL input history is saved, and
 ``HYSTARTUP``, which specifies :ref:`a file to run when the REPL starts
 <startup-file>`.
 
-.. autoclass:: hy.cmdline.HyREPL
+.. autoclass:: hy.REPL
    :members: run
 
 .. _repl-output-function:
@@ -24,7 +26,7 @@ Output functions
 By default, the return value of each REPL input is printed with
 :hy:func:`hy.repr`. To change this, you can set the REPL output function with
 e.g. the command-line argument ``--repl-output-fn``. Use :func:`repr` to get
-Python representations like Python's own REPL.
+Python representations, like Python's own REPL.
 
 Regardless of the output function, no output is produced when the value is
 ``None``, as in Python.
@@ -75,9 +77,9 @@ change the prompts. The following example shows a number of possibilities::
   (setv
     repl-spy True
     repl-output-fn pformat
-    ;; We can even add colors to the prompts.
-    ;; This will set `=>` to green and `...` to red.
+    ;; Make the REPL prompt `=>` green.
     sys.ps1 "\x01\x1b[0;32m\x02=> \x01\x1b[0m\x02"
+    ;; Make the REPL prompt `...` red.
     sys.ps2 "\x01\x1b[0;31m\x02... \x01\x1b[0m\x02")
 
   (defn slurp [path]

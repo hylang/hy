@@ -1,4 +1,16 @@
-(import pytest)
+(import
+  asyncio
+  pytest
+  tests.resources [async-test AsyncWithTest])
+
+(defn test-context []
+  (with [fd (open "tests/resources/text.txt" "r")] (assert fd))
+  (with [(open "tests/resources/text.txt" "r")] (do)))
+
+(defn test-with-return []
+  (defn read-file [filename]
+    (with [fd (open filename "r" :encoding "UTF-8")] (.read fd)))
+  (assert (= (read-file "tests/resources/text.txt") "TAARGÜS TAARGÜS\n")))
 
 (defclass WithTest [object]
   (defn __init__ [self val]
@@ -37,6 +49,41 @@
         (assert (= t1 1))
         (assert (= t2 2))
         (assert (= t3 3))))
+
+(defn [async-test] test-single-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t (AsyncWithTest 1)]
+        (assert (= t 1)))))))
+
+(defn [async-test] test-two-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)]
+        (assert (= t1 1))
+        (assert (= t2 2)))))))
+
+(defn [async-test] test-thrice-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)
+               t3 (AsyncWithTest 3)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3)))))))
+
+(defn [async-test] test-quince-with/a []
+  (asyncio.run
+    ((fn/a []
+      (with/a [t1 (AsyncWithTest 1)
+               t2 (AsyncWithTest 2)
+               t3 (AsyncWithTest 3)
+               _ (AsyncWithTest 4)]
+        (assert (= t1 1))
+        (assert (= t2 2))
+        (assert (= t3 3)))))))
 
 (defn test-unnamed-context-with []
   "`_` get compiled to unnamed context"

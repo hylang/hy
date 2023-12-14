@@ -8,7 +8,9 @@ helps in making Hy better. Potential contributions include:
 - Requesting features.
 - Adding features.
 - Writing tests for outstanding bugs or untested features.
+
   - You can mark tests that Hy can't pass yet as xfail_.
+
 - Cleaning up the code.
 - Improving the documentation.
 - Answering questions on `the Github Discussions page`_ or
@@ -67,18 +69,10 @@ The first line of a commit message should describe the overall change in 50
 characters or less. If you wish to add more information, separate it from the
 first line with a blank line.
 
-Code formatting
----------------
-
-All Python source code (``.py``) should be formatted with ``black`` and ``isort``.
-This can be accomplished by running ``black hy tests`` and ``isort hy tests`` from the root of this repository.
-Formatting of Python files is checked automatically via GitHub Actions for all pull requests.
-No PR may be merged if it fails that check.
-
 Testing
 -------
 
-Tests can be run by executing `pytest` in the root of this repository.
+Tests can be run by executing ``pytest`` in the root of this repository.
 
 New features and bug fixes should be tested. If you've caused an
 xfail_ test to start passing, remove the xfail mark. If you're
@@ -88,6 +82,11 @@ of the issue.
 No PR may be merged if it causes any tests to fail.
 The byte-compiled versions of the test files can be purged using ``git clean -dfx tests/``.
 If you want to run the tests while skipping the slow ones in ``test_bin.py``, use ``pytest --ignore=tests/test_bin.py``.
+
+Documentation
+-------------
+
+Generally, new features deserve coverage in the manual, either by editing the manual files directly or by changing docstrings that get included in the manual. To render the manual, install its dependencies with ``pip install -r requirements-dev.txt`` and then use the command ``cd docs; sphinx-build . _build -b html``.
 
 NEWS and AUTHORS
 ----------------
@@ -120,9 +119,7 @@ There are two situations in which a PR is allowed to be merged:
    author. Changes to the documentation, or trivial changes to code, need only
    **one** approving member.
 2. When the PR is at least **three days** old and **no** member of the Hy core
-   team has expressed disapproval of the PR in its current state. (Exception: a
-   PR to create a new release is not eligible to be merged under this criterion,
-   only the first one.)
+   team has expressed disapproval of the PR in its current state.
 
 Anybody on the Hy core team may perform the merge. Merging should create a merge
 commit (don't squash unnecessarily, because that would remove separation between

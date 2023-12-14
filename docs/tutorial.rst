@@ -65,11 +65,13 @@ the **form**. ``92``, ``*``, and ``(* 92 2)`` are all forms. A Lisp program
 consists of a sequence of forms nested within forms. Forms are typically
 separated from each other by whitespace, but some forms, such as string
 literals (``"Hy, world!"``), can contain whitespace themselves. An
-**expression** is a form enclosed in parentheses; its first child form, called
-the **head**, determines what the expression does, and should generally be a
-function or macro. Functions are the most ordinary sort of head, whereas macros
-(described in more detail below) are functions executed at compile-time instead
-and return code to be executed at run-time.
+:ref:`expression <expressions>` is a form enclosed in parentheses; its first
+child form, called the **head**, determines what the expression does, and
+should generally be a function or macro. :py:term:`Functions <function>`, the
+most ordinary sort of head, constitute reusable pieces of code that can take in
+arguments and return a value. Macros (described in more detail :ref:`below
+<tutorial-macros>`) are a special kind of function that's executed at
+compile-time and returns code to be executed at run-time.
 
 Comments start with a ``;`` character and continue till the end of the line. A
 comment is functionally equivalent to whitespace. ::
@@ -77,8 +79,7 @@ comment is functionally equivalent to whitespace. ::
     (setv password "susan")   ; My daughter's name
 
 Although ``#`` isn't a comment character in Hy, a Hy program can begin with a
-`shebang line <https://en.wikipedia.org/wiki/Shebang_(Unix)>`_, which Hy itself
-will ignore::
+:ref:`shebang line <shebang>`, which Hy itself will ignore::
 
    #!/usr/bin/env hy
    (print "Make me executable, and run me!")
@@ -261,6 +262,8 @@ Python can import a Hy module like any other module so long as Hy itself has
 been imported first, which, of course, must have already happened if you're
 running a Hy program.
 
+.. _tutorial-macros:
+
 Macros
 ======
 
@@ -278,7 +281,9 @@ program. Here's a simple example::
     (print "Value:" (m))
     (print "Done executing")
 
-If you run this program twice in a row, you'll see this::
+If you run this program twice in a row, you'll see this:
+
+.. code-block:: text
 
     $ hy example.hy
     Now for a slow computation
@@ -301,14 +306,15 @@ simply::
     (print "Value:" 1)
     (print "Done executing")
 
-Our macro ``m`` has an especially simple return value, an integer, which at
-compile-time is converted to an integer literal. In general, macros can return
-arbitrary Hy forms to be executed as code. There are several special operators
-and macros that make it easy to construct forms programmatically, such as
-:hy:func:`quote` (``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote`
-(``~``), and :hy:func:`defmacro! <hyrule.macrotools.defmacro!>`. The previous
-chapter has :ref:`a simple example <do-while>` of using ````` and ``~`` to
-define a new control construct ``do-while``.
+Our macro ``m`` has an especially simple return value, an integer (:py:class:`int`), which at
+compile-time is converted to an integer model (:class:`hy.models.Integer`). In general, macros can return
+arbitrary Hy forms to be executed as code. There are several helper macros that
+make it easy to construct forms programmatically, such as :hy:func:`quote`
+(``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``),
+:hy:func:`unquote-splice` (``~@``), and :hy:func:`defmacro!
+<hyrule.macrotools.defmacro!>`. The previous chapter has :ref:`a simple example
+<do-while>` of using ````` and ``~@`` to define a new control construct
+``do-while``.
 
 What if you want to use a macro that's defined in a different module?
 ``import`` won't help, because it merely translates to a Python ``import``
@@ -365,9 +371,14 @@ Next steps
 You now know enough to be dangerous with Hy. You may now smile villainously and
 sneak off to your Hydeaway to do unspeakable things.
 
-Refer to Python's documentation for the details of Python semantics, and the
-rest of this manual for Hy-specific features. Like Hy itself, the manual is
-incomplete, but :ref:`contributions <hacking>` are always welcome.
+Refer to Python's documentation for the details of Python semantics. In
+particular, :ref:`the Python tutorial <tutorial-index>` can be helpful even if
+you have no interest in writing your own Python code, because it will introduce
+you to the semantics, and you'll need a reading knowledge of Python syntax to
+understand example code for Python libraries.
+
+Refer to the rest of this manual for Hy-specific features. Like Hy itself, the
+manual is incomplete, but :ref:`contributions <hacking>` are always welcome.
 
 Bear in mind that Hy is still unstable, and with each release along the
 way to Hy 1.0, there are new breaking changes. Refer to `the NEWS file

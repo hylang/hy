@@ -68,8 +68,13 @@ highlight_language = "clojure"
 intersphinx_mapping = dict(
     py=("https://docs.python.org/3/", None),
     py3_10=("https://docs.python.org/3.10/", None),
+    py3_12=("https://docs.python.org/3.12/", None),
     hyrule=("https://hyrule.readthedocs.io/en/master/", None),
 )
+
+import hy
+hy.I = type(hy.I)  # A trick to enable `hy:autoclass:: hy.I`
+
 # ** Generate Cheatsheet
 import json
 from itertools import zip_longest

@@ -1,8 +1,16 @@
 "Python provides various :ref:`binary and unary operators
 <py:expressions>`. These are usually invoked in Hy using core macros of
 the same name: for example, ``(+ 1 2)`` calls the core macro named
-``+``, which uses Python's addition operator. An exception to the names
-being the same is that Python's ``==`` is called ``=`` in Hy.
+``+``, which uses Python's addition operator. There are a few exceptions
+to the names being the same:
+
+- ``==`` in Python is :hy:func:`= <hy.pyops.=>` in Hy.
+- ``~`` in Python is :hy:func:`bnot <hy.pyops.bnot>` in Hy.
+- ``is not`` in Python is :hy:func:`is-not <hy.pyops.is-not>` in Hy.
+- ``not in`` in Python is :hy:func:`not-in <hy.pyops.not-in>` in Hy.
+
+For Python's subscription expressions (like ``x[2]``), Hy has two named
+macros, :hy:func:`get <hy.pyops.get>` and :hy:func:`cut <hy.pyops.cut>`.
 
 By importing from the module ``hy.pyops`` (typically with a star import,
 as in ``(import hy.pyops *)``), you can also use these operators as
@@ -13,8 +21,18 @@ macro instead of the function.
 
 The functions in ``hy.pyops`` have the same semantics as their macro
 equivalents, with one exception: functions can't short-circuit, so the
-functions for the logical operators, such as ``and``, unconditionally
-evaluate all arguments."
+functions for operators such as ``and`` and ``!=`` unconditionally
+evaluate all arguments.
+
+Hy also provides macros for :ref:`Python's augmented assignment
+operators <py:augassign>` (but no equivalent functions, because Python
+semantics don't allow for this). These macros require at least two
+arguments even if the parent operator doesn't; for example, ``(-= x)``
+is an error even though ``(- x)`` is legal. On the other hand,
+augmented-assignment macros extend to more than two arguments in an
+analogous way as the parent operator, following the pattern ``(OP= x a b
+c …)`` → ``(OP= x (OP a b c …))``. For example, ``(+= count n1 n2 n3)``
+is equivalent to ``(+= count (+ n1 n2 n3)).``"
 
 ;;;; Hy shadow functions
 
@@ -66,7 +84,7 @@ evaluate all arguments."
 
 (defop * [#* args]
   ["multiplication"
-    :nullary "0"
+    :nullary "1"
     :unary "x"]
   (if (= (len args) 0)
       1
@@ -132,12 +150,13 @@ evaluate all arguments."
     :n-ary None]
   (^ x y))
 
-(defop ~ [x]
+(defop bnot [x]
   ["bitwise NOT"
+    :pyop "~"
     :unary "~x"
     :binary None
     :n-ary None]
-  (~ x))
+  (bnot x))
 
 (defn comp-op [op a1 a-rest]
   "Helper for shadow comparison operators"
@@ -203,44 +222,64 @@ evaluate all arguments."
   (not x))
 
 (defn get [coll key1 #* keys]
-  "Access item in `coll` indexed by `key1`, with optional `keys` nested-access.
+  #[[``get`` compiles to one or more :ref:`subscription expressions <subscriptions>`,
+  which select an element of a data structure. The first two arguments are the
+  collection object and a key; for example, ``(get person name)`` compiles to
+  ``person[name]``. Subsequent arguments indicate chained subscripts, so ``(get person
+  name "surname" 0)`` becomes ``person[name]["surname"][0]``. You can assign to a
+  ``get`` form, as in ::
 
-  ``get`` is used to access single elements in collections. ``get`` takes at
-  least two parameters: the *data structure* and the *index* or *key* of the
-  item. It will then return the corresponding value from the collection. If
-  multiple *index* or *key* values are provided, they are used to access
-  successive elements in a nested structure.
+      (setv real-estate {"price" 1,500,000})
+      (setv (get real-estate "price") 0)
 
-  .. note:: ``get`` raises a KeyError if a dictionary is queried for a
-            non-existing key.
+  but this doesn't work with the function version of ``get`` from ``hy.pyops``, due to
+  Python limitations on lvalues.
 
-  .. note:: ``get`` raises an IndexError if a list or a tuple is queried for an
-            index that is out of bounds.
+  If you're looking for the Hy equivalent of Python list slicing, as in ``foo[1:3]``,
+  note that this is just Python's syntactic sugar for ``foo[slice(1, 3)]``, and Hy
+  provides its own syntactic sugar for this with a different macro, :hy:func:`cut <hy.pyops.cut>`.
 
-  Examples:
-    ::
+  Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
+  :hy:func:`assoc <hyrule.collections.assoc>` to easily assign multiple elements of a
+  single collection.]]
 
-       => (do
-       ...   (setv animals {\"dog\" \"bark\" \"cat\" \"meow\"}
-       ...         numbers #(\"zero\" \"one\" \"two\" \"three\")
-       ...         nested [0 1 [\"a\" \"b\" \"c\"] 3 4])
-       ...   (print (get animals \"dog\"))
-       ...   (print (get numbers 2))
-       ...   (print (get nested 2 1))
-       bark
-       two
-       b
-  "
   (setv coll (get coll key1))
   (for [k keys]
     (setv coll (get coll k)))
   coll)
 
+(defn cut [coll / [arg1 'sentinel] [arg2 'sentinel] [arg3 'sentinel]]
+  #[[``cut`` compiles to a :ref:`slicing expression <slicings>`, which selects multiple
+  elements of a sequential data structure. The first argument is the object to be
+  sliced. The remaining arguments are optional, and understood the same way as in a
+  Python slicing expression. ::
+
+      (setv x "abcdef")
+      (cut x)           ; => "abcdef"
+      (cut x 3)         ; => "abc"
+      (cut x 3 5)       ; => "de"
+      (cut x -3 None)   ; => "def"
+      (cut x 0 None 2)  ; => "ace"
+
+  A call to the ``cut`` macro (but not its function version in ``hy.pyops``) is a valid
+  target for assignment (with :hy:func:`setv`, ``+=``, etc.) and for deletion (with
+  :hy:func:`del`).]]
+
+  (cond
+    (= arg1 'sentinel)
+      (cut coll)
+    (= arg2 'sentinel)
+      (cut coll arg1)
+    (= arg3 'sentinel)
+      (cut coll arg1 arg2)
+    True
+      (cut coll arg1 arg2 arg3)))
+
 (setv __all__
   (list (map hy.mangle [
     '+ '- '* '** '/ '// '% '@
-    '<< '>> '& '| '^ '~
+    '<< '>> '& '| '^ 'bnot
     '< '> '<= '>= '= '!=
     'and 'or 'not
     'is 'is-not 'in 'not-in
-    'get])))
+    'get 'cut])))

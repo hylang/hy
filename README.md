@@ -15,7 +15,11 @@ To install the latest release of Hy, just use the command `pip3 install
 --user hy`. Then you can start an interactive read-eval-print loop (REPL) with
 the command `hy`, or run a Hy program with `hy myprogram.hy`.
 
-* [Try Hy with a web console](https://hylang.github.io/hy-interpreter)
+Hy is tested on all released and currently maintained versions of CPython (on
+Linux and Windows), and on recent versions of PyPy and Pyodide.
+
+* [The Hy homepage](http://hylang.org)
+* [Try Hy with a web console](http://hylang.org/try-hy)
 * [Why Hy?](http://docs.hylang.org/en/stable/whyhy.html)
 * [Tutorial](http://docs.hylang.org/en/stable/tutorial.html)
 
@@ -25,7 +29,7 @@ Project
 * Code: https://github.com/hylang/hy
 * Documentation:
   * master, for use with the latest revision on GitHub: http://docs.hylang.org/en/master
-  * stable, for use with the latest release on PyPI: http://hylang.org/en/stable
+  * stable, for use with the latest release on PyPI: http://docs.hylang.org/en/stable
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
 * [Hacking on Hy](http://docs.hylang.org/en/master/hacking.html)
@@ -33,6 +37,8 @@ Project
   * [Code of Conduct](http://docs.hylang.org/en/master/hacking.html#contributor-code-of-conduct)
 * Community: Join us on [Github Discussions](https://github.com/hylang/hy/discussions)!
 * [Stack Overflow: The [hy] tag](https://stackoverflow.com/questions/tagged/hy)
+
+Hy's current maintainer is [Kodi Arfer](https://github.com/Kodiologist). He takes responsibility for answering user questions, which should primarily be asked on Stack Overflow or GitHub Discussions, but feel free to [poke him](http://arfer.net/elsewhere) if he's missed a question or you've found a serious security issue.
 
 ![Cuddles the Hacker](https://i.imgur.com/QbPMXTN.png)
 

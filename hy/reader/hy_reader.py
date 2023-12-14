@@ -1,5 +1,10 @@
 "Character reader for parsing Hy source."
 
+import codecs
+import inspect
+from contextlib import contextmanager, nullcontext
+from itertools import islice
+
 import hy
 from hy.models import (
     Bytes,
@@ -34,8 +39,8 @@ def mkexpr(root, *args):
     return Expression((sym(root) if isinstance(root, str) else root, *args))
 
 
-def symbol_like(ident, reader=None):
-    """Generate a Hy model from an identifier-like string.
+def as_identifier(ident, reader=None):
+    """Generate a Hy model from an identifier.
 
     Also verifies the syntax of dot notation and validity of symbol names.
 
@@ -66,22 +71,37 @@ def symbol_like(ident, reader=None):
             pass
 
     if "." in ident:
-        for chunk in ident.split("."):
-            if chunk and not isinstance(symbol_like(chunk, reader=reader), Symbol):
-                msg = (
-                    "Cannot access attribute on anything other"
-                    " than a name (in order to get attributes of expressions,"
-                    " use `(. <expression> <attr>)` or `(.<attr> <expression>)`)"
-                )
-                if reader is None:
-                    raise ValueError(msg)
-                else:
-                    raise LexException.from_reader(msg, reader)
+        if not ident.strip("."):
+            # It's all dots. Return it as a symbol.
+            return sym(ident)
+
+        def err(msg):
+            raise (
+                ValueError(msg)
+                if reader is None
+                else LexException.from_reader(msg, reader)
+            )
+
+        if ident.lstrip(".").find("..") > 0:
+            err(
+                "In a dotted identifier, multiple dots in a row are only allowed at the start"
+            )
+        if ident.endswith("."):
+            err("A dotted identifier can't end with a dot")
+        head = "." * (len(ident) - len(ident.lstrip(".")))
+        args = [as_identifier(a, reader=reader) for a in ident.lstrip(".").split(".")]
+        if any(not isinstance(a, Symbol) for a in args):
+            err("The parts of a dotted identifier must be symbols")
+        return (
+            mkexpr(sym("."), *args)
+            if head == ""
+            else mkexpr(head, Symbol("None"), *args)
+        )
 
     if reader is None:
         if (
             not ident
-            or ident[:1] == ":"
+            or ident[0] in ":#"
             or any(isnormalizedspace(c) for c in ident)
             or HyReader.NON_IDENT.intersection(ident)
         ):
@@ -91,13 +111,53 @@ def symbol_like(ident, reader=None):
 
 
 class HyReader(Reader):
-    """A modular reader for Hy source."""
+    """A modular reader for Hy source.
+
+    When ``use_current_readers`` is true, initialize this reader
+    with all reader macros from the calling module."""
 
     ###
     # Components necessary for Reader implementation
     ###
 
-    NON_IDENT = set("()[]{};\"'")
+    NON_IDENT = set("()[]{};\"'`~")
+    _current_reader = None
+
+    def __init__(self, *, use_current_readers=False):
+        super().__init__()
+
+        # move any reader macros declared using
+        # `reader_for("#...")` to the macro table
+        self.reader_macros = {}
+        for tag in list(self.reader_table.keys()):
+            if tag[0] == '#' and tag[1:]:
+                self.reader_macros[tag[1:]] = self.reader_table.pop(tag)
+
+        if use_current_readers:
+            self.reader_macros.update(
+                inspect.stack()[1].frame.f_globals.get("_hy_reader_macros", {})
+            )
+
+    @classmethod
+    def current_reader(cls, override=None, create=True):
+        return override or HyReader._current_reader or (cls() if create else None)
+
+    @contextmanager
+    def as_current_reader(self):
+        old_reader = HyReader._current_reader
+        HyReader._current_reader = self
+        try:
+            yield
+        finally:
+            HyReader._current_reader = old_reader
+
+    @classmethod
+    @contextmanager
+    def using_reader(cls, override=None, create=True):
+        reader = cls.current_reader(override, create)
+        with reader.as_current_reader() if reader else nullcontext():
+            yield
+
 
     def fill_pos(self, model, start):
         """Attach line/col information to a model.
@@ -111,24 +171,24 @@ class HyReader(Reader):
         """
         model.start_line, model.start_column = start
         model.end_line, model.end_column = self.pos
-        return model
+        return model.replace(model)
+          # `replace` will recurse into submodels and set any model
+          # positions that are still unset the same way.
 
     def read_default(self, key):
         """Default reader handler when nothing in the table matches.
 
-        Try to read an identifier/symbol. If there's a double-quote immediately
-        following, then parse it as a string with the given prefix (e.g.,
-        `r"..."`). Otherwise, parse it as a symbol-like.
+        Try to read an identifier. If there's a double-quote immediately
+        following, then instead parse it as a string with the given prefix (e.g.,
+        `r"..."`).
         """
         ident = key + self.read_ident()
         if self.peek_and_getc('"'):
             return self.prefixed_string('"', ident)
-        return symbol_like(ident, reader=self)
+        return as_identifier(ident, reader=self)
 
-    def parse(self, stream, filename=None):
+    def parse(self, stream, filename=None, skip_shebang=False):
         """Yields all `hy.models.Object`'s in `source`
-
-        Additionally exposes `self` as ``hy.&reader`` during read/compile time.
 
         Args:
             source:
@@ -136,19 +196,18 @@ class HyReader(Reader):
             filename (str | None):
                 Filename to use for error messages. If `None` then previously
                 set filename is used.
+            skip_shebang:
+                Whether to detect a skip a shebang line at the start.
         """
         self._set_source(stream, filename)
-        rname = mangle("&reader")
-        old_reader = getattr(hy, rname, None)
-        setattr(hy, rname, self)
 
-        try:
-            yield from self.parse_forms_until("")
-        finally:
-            if old_reader is None:
-                delattr(hy, rname)
-            else:
-                setattr(hy, rname, old_reader)
+        if skip_shebang and "".join(
+                islice(self.peeking(eof_ok = True), len("#!"))) == "#!":
+            for c in self.chars():
+                if c == "\n":
+                    break
+
+        yield from self.parse_forms_until("")
 
     ###
     # Reading forms
@@ -170,23 +229,28 @@ class HyReader(Reader):
                 fully parsing a form.
             LexException: If there is an error during form parsing.
         """
-        try:
-            self.slurp_space()
-            c = self.getc()
-            start = self._pos
-            if not c:
-                raise PrematureEndOfInput.from_reader(
-                    "Premature end of input while attempting to parse one form", self
+        with self.as_current_reader():
+            try:
+                self.slurp_space()
+                c = self.getc()
+                start = self._pos
+                if not c:
+                    raise PrematureEndOfInput.from_reader(
+                        "Premature end of input while attempting to parse one form", self
+                    )
+                handler = self.reader_table.get(c)
+                model = handler(self, c) if handler else self.read_default(c)
+                if model is not None:
+                    model = self.fill_pos(model, start)
+                    model.reader = self
+                    return model
+                return None
+            except LexException:
+                raise
+            except Exception as e:
+                raise LexException.from_reader(
+                    str(e) or "Exception thrown attempting to parse one form", self
                 )
-            handler = self.reader_table.get(c)
-            model = handler(self, c) if handler else self.read_default(c)
-            return self.fill_pos(model, start) if model is not None else None
-        except LexException:
-            raise
-        except Exception as e:
-            raise LexException.from_reader(
-                str(e) or "Exception thrown attempting to parse one form", self
-            )
 
     def parse_one_form(self):
         """Read from the stream until a form is parsed.
@@ -283,26 +347,10 @@ class HyReader(Reader):
     @reader_for("'", ("quote",))
     @reader_for("`", ("quasiquote",))
     def tag_as(root):
-        def _tag_as(self, _):
-            nc = self.peekc()
-            if (
-                not nc
-                or isnormalizedspace(nc)
-                or self.reader_table.get(nc) == self.INVALID
-            ):
-                raise LexException.from_reader(
-                    "Could not identify the next token.", self
-                )
-            model = self.parse_one_form()
-            return mkexpr(root, model)
-
-        return _tag_as
+        return lambda self, _: mkexpr(root, self.parse_one_form())
 
     @reader_for("~")
     def unquote(self, key):
-        nc = self.peekc()
-        if not nc or isnormalizedspace(nc) or self.reader_table.get(nc) == self.INVALID:
-            return sym(key)
         return mkexpr(
             "unquote" + ("-splice" if self.peek_and_getc("@") else ""),
             self.parse_one_form(),
@@ -330,37 +378,21 @@ class HyReader(Reader):
 
         Reads a full identifier after the `#` and calls the corresponding handler
         (this allows, e.g., `#reads-multiple-forms foo bar baz`).
-
-        Failing that, reads a single character after the `#` and immediately
-        calls the corresponding handler (this allows, e.g., `#*args` to parse
-        as `#*` followed by `args`).
         """
 
-        if not self.peekc():
+        if not self.peekc().strip():
             raise PrematureEndOfInput.from_reader(
                 "Premature end of input while attempting dispatch", self
             )
 
-        if self.peek_and_getc("^"):
-            typ = self.parse_one_form()
-            target = self.parse_one_form()
-            return mkexpr("annotate", target, typ)
-
-        tag = None
         # try dispatching tagged ident
-        ident = self.read_ident(just_peeking=True)
-        if ident and mangle(key + ident) in self.reader_table:
-            self.getn(len(ident))
-            tag = mangle(key + ident)
-        # failing that, dispatch tag + single character
-        elif key + self.peekc() in self.reader_table:
-            tag = key + self.getc()
-        if tag:
-            tree = self.dispatch(tag)
+        ident = self.read_ident() or self.getc()
+        if ident in self.reader_macros:
+            tree = self.reader_macros[ident](self, ident)
             return as_model(tree) if tree is not None else None
 
         raise LexException.from_reader(
-            f"reader macro '{key + self.read_ident()}' is not defined", self
+            f"reader macro '{key + ident}' is not defined", self
         )
 
     @reader_for("#_")
@@ -370,17 +402,20 @@ class HyReader(Reader):
         return None
 
     @reader_for("#*")
-    def hash_star(self, _):
+    @reader_for("#**")
+    def hash_star(self, stars):
         """Unpacking forms `#*` and `#**`, corresponding to `*` and `**` in Python."""
-        num_stars = 1
-        while self.peek_and_getc("*"):
-            num_stars += 1
-        if num_stars > 2:
-            raise LexException.from_reader("too many stars", self)
         return mkexpr(
-            "unpack-" + ("iterable", "mapping")[num_stars - 1],
+            "unpack-" + {"*": "iterable", "**": "mapping"}[stars],
             self.parse_one_form(),
         )
+
+    @reader_for("#^")
+    def annotate(self, _):
+        """Annotate a symbol, usually with a type."""
+        typ = self.parse_one_form()
+        target = self.parse_one_form()
+        return mkexpr("annotate", target, typ)
 
     ###
     # Strings
@@ -428,7 +463,7 @@ class HyReader(Reader):
                     index = -1
             return 0
 
-        return self.read_string_until(delim_closing, None, is_fstring, brackets=delim)
+        return self.read_string_until(delim_closing, "r", is_fstring, brackets=delim)
 
     def read_string_until(self, closing, prefix, is_fstring, **kwargs):
         if is_fstring:
@@ -439,6 +474,7 @@ class HyReader(Reader):
 
     def read_chars_until(self, closing, prefix, is_fstring):
         s = []
+        in_named_escape = False
         for c in self.chars():
             s.append(c)
             # check if c is closing
@@ -447,19 +483,39 @@ class HyReader(Reader):
                 # string has ended
                 s = s[:-n_closing_chars]
                 break
-            # check if c is start of component
-            if is_fstring and c == "{" and s[-3:] != ["\\", "N", "{"]:
-                # check and handle "{{"
-                if self.peek_and_getc("{"):
-                    s.append("{")
-                else:
-                    # remove "{" from end of string component
-                    s.pop()
-                    break
+            if is_fstring:
+                # handle braces in f-strings
+                if c == "{":
+                    if "r" not in prefix and s[-3:] == ["\\", "N", "{"]:
+                        # ignore "\N{...}"
+                        in_named_escape = True
+                    elif not self.peek_and_getc("{"):
+                        # start f-component if not "{{"
+                        s.pop()
+                        break
+                elif c == "}":
+                    if in_named_escape:
+                        in_named_escape = False
+                    elif not self.peek_and_getc("}"):
+                        raise SyntaxError("f-string: single '}' is not allowed")
         res = "".join(s).replace("\x0d\x0a", "\x0a").replace("\x0d", "\x0a")
 
-        if prefix is not None:
-            res = eval(f'{prefix}"""{res}"""')
+        if "b" in prefix:
+            try:
+                res = res.encode('ascii')
+            except UnicodeEncodeError:
+                raise SyntaxError("bytes can only contain ASCII literal characters")
+
+        if "r" not in prefix:
+            # perform string escapes
+            if "b" in prefix:
+                res = codecs.escape_decode(res)[0]
+            else:
+                # formula taken from https://stackoverflow.com/a/57192592
+                # encode first to ISO-8859-1 ("Latin 1") due to a Python bug,
+                # see https://github.com/python/cpython/issues/65530
+                res = res.encode('ISO-8859-1', errors='backslashreplace').decode('unicode_escape')
+
         if is_fstring:
             return res, n_closing_chars
         return res

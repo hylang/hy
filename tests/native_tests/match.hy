@@ -1,6 +1,13 @@
+(do-mac (when hy._compat.PY3_10 '(do
+
+
 (import pytest
         dataclasses [dataclass]
         hy.errors [HySyntaxError])
+
+(defclass [dataclass] Point []
+    (#^ int x)
+    (#^ int y))
 
 (defn test-pattern-matching []
   (assert (is (match 0
@@ -75,10 +82,6 @@
        0)
     0))
 
-  (defclass [dataclass] Point []
-    (#^int x)
-    (#^int y))
-
   (assert (= 0 (match (Point 1 0) (Point 1 :y var) var)))
   (assert (is None (match (Point 0 0) (Point 1 :y var) var)))
 
@@ -127,6 +130,12 @@
     (hy.eval '(match 1
                      1 :if True :as x x))))
 
+(defn test-dotted-constructor []
+  ; https://github.com/hylang/hy/issues/2404
+  (defclass C [Point]
+    (setv C Point))
+  (assert (= (match (Point 1 2) (C.C 1 2) "ok") "ok")))
+
 (defn test-matching-side-effects []
   (setv x 0)
   (defn foo []
@@ -161,10 +170,6 @@
            _ (assert False))
     (assert (= [x y] [5 6])))
   (assert (= [x y] [3 4])))
-
-(defclass [dataclass] Point []
-  (#^int x)
-  (#^int y))
 
 (defn test-let-match-pattern []
   (setv [x y] [1 2]
@@ -255,8 +260,11 @@
                     _ _)))
     (assert (= {"a" 1  "c" 3}
                (match y
-                      {"b" b #**e} e)))
+                      {"b" b #** e} e)))
     (assert (= {"a" 1  "c" 3}
                (match y
-                      {"b" b #**a} a)))
+                      {"b" b #** a} a)))
     (assert (= b 2))))
+
+
+)))

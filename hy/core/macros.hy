@@ -29,16 +29,15 @@
 
   With no arguments, ``cond`` returns ``None``. With an odd number of
   arguments, ``cond`` raises an error."
+  (defn _cond [args]
+    (if args
+      `(if ~(get args 0)
+        ~(get args 1)
+        ~(_cond (cut args 2 None)))
+      'None))
   (if (% (len args) 2)
     (raise (TypeError "`cond` needs an even number of arguments"))
     (_cond args)))
-
-(defn _cond [args]
-  (if args
-    `(if ~(get args 0)
-      ~(get args 1)
-      ~(_cond (cut args 2 None)))
-    'None))
 
 
 (defmacro when [test #* body]
@@ -51,7 +50,7 @@
         (return panic))]]
   `(if ~test (do ~@body) None))
 
-(defmacro defreader [key #* body]
+(defmacro defreader [_hy_compiler key #* body]
   "Define a new reader macro.
 
   Reader macros are expanded at read time and allow you to modify the behavior
@@ -60,9 +59,8 @@
   and its base class :py:class:`Reader <hy.reader.reader.Reader>` for details
   regarding the available processing methods.
 
-  Reader macro names can be any symbol that does not start with a ``^`` and are
-  callable by prefixing the name with a ``#``. i.e. ``(defreader upper ...)`` is
-  called with ``#upper``.
+  Reader macro names can be any valid identifier and are callable by prefixing
+  the name with a ``#``. i.e. ``(defreader upper ...)`` is called with ``#upper``.
 
   Examples:
 
@@ -88,25 +86,22 @@
         => #slice a:(+ 1 2):\"column\"
         (slice 42 3 column)
 
-     See the :ref:`reader macros docs <reader macros>` for more detailed
+     See the :ref:`reader macros docs <reader-macros>` for more detailed
      information on how reader macros work and are defined.
   "
-  (when (not (isinstance &compiler.scope hy.scoping.ScopeGlobal))
-    (raise (&compiler._syntax-error
-             &compiler.this
+  (when (not (isinstance _hy_compiler.scope hy.scoping.ScopeGlobal))
+    (raise (_hy_compiler._syntax-error
+             _hy_compiler.this
              f"Cannot define reader macro outside of global scope.")))
 
   (when (not (isinstance key hy.models.Symbol))
     (raise (ValueError f"expected a name, but got {key}")))
 
-  (when (.startswith key "^")
-    (raise (ValueError "reader macro cannot start with a ^")))
-
   (if (and body (isinstance (get body 0) hy.models.String))
       (setv [docstr #* body] body)
       (setv docstr None))
 
-  (setv dispatch-key (hy.mangle (+ "#" (str key))))
+  (setv dispatch-key (str key))
   `(do (eval-and-compile
          (hy.macros.reader-macro
            ~dispatch-key
@@ -114,26 +109,63 @@
              ~@(if docstr [docstr] [])
              ~@body)))
        (eval-when-compile
-         (setv (get hy.&reader.reader-table ~dispatch-key)
-               (get __reader_macros__ ~dispatch-key)))))
+         (setv (get (. (hy.reader.HyReader.current-reader) reader-macros) ~dispatch-key)
+               (get _hy_reader_macros ~dispatch-key)))))
 
 
-(defmacro doc [symbol]
-  "macro documentation
+(defmacro get-macro [_hy_compiler arg1 [arg2 None]]
+  "Get the function object used to implement a macro. This works for all sorts of macros: core macros, global (i.e., module-level) macros, local macros, and reader macros. For regular (non-reader) macros, ``get-macro`` is called with one argument, a symbol or string literal, which can be premangled or not according to taste. For reader macros, this argument must be preceded by the literal keyword ``:reader`` (and note that the hash mark, ``#``, is not included in the name of the reader macro). ::
 
-   Gets help for a macro function available in this module.
-   Use ``require`` to make other macros available.
+    (get-macro my-macro)
+    (get-macro :reader my-reader-macro)
 
-   Use ``(help foo)`` instead for help with runtime objects."
-   (setv symbol (str symbol))
-   (setv mangled (hy.mangle symbol))
-   (setv builtins (hy.gensym "builtins"))
-   `(do (import builtins :as ~builtins)
-        (help (or (.get __macros__ ~mangled)
-                  (.get __reader_macros__ ~mangled)
-                  (.get (. ~builtins __macros__) ~mangled)
-                  (.get (. ~builtins __reader_macros__) ~mangled)
-                  (raise (NameError f"macro {~symbol !r} is not defined"))))))
+  Except when retrieving a local macro, ``get-macro`` expands to a :hy:func:`get <hy.pyops.get>` form on the appropriate object, such as ``_hy_macros``, selected at the time of expanding ``get-macro``. This means you can say ``(del (get-macro …))``, perhaps wrapped in :hy:func:`eval-and-compile` or :hy:func:`eval-when-compile`, to delete a macro, but it's easy to get confused by the order of evaluation and number of evaluations. For more predictable results in complex situations, use ``(del (get …))`` directly instead of ``(del (get-macro …))``."
+
+  (import builtins)
+  (setv [name reader?] (cond
+    (= arg1 ':reader)
+      [(str arg2) True]
+    (isinstance arg1 hy.models.Expression)
+      [(hy.mangle (.join "." (cut arg1 1 None))) False]
+    True
+      [(hy.mangle arg1) False]))
+  (setv namespace (if reader? "_hy_reader_macros" "_hy_macros"))
+  (cond
+    (and (not reader?) (setx local (.get (_local-macros _hy_compiler) name)))
+      local
+    (in name (getattr _hy_compiler.module namespace {}))
+      `(get ~(hy.models.Symbol namespace) ~name)
+    (in name (getattr builtins namespace {}))
+      `(get (. hy.I.builtins ~(hy.models.Symbol namespace)) ~name)
+    True
+      (raise (NameError (.format "no such {}macro: {!r}"
+        (if reader? "reader " "")
+        name)))))
+
+
+(defmacro local-macros [_hy_compiler]
+  #[[Expands to a dictionary mapping the mangled names of local macros to the function objects used to implement those macros. Thus, ``local-macros`` provides a rough local equivalent of ``_hy_macros``. ::
+
+      (defn f []
+        (defmacro m []
+          "This is the docstring for the macro `m`."
+          1)
+        (help (get (local-macros) "m")))
+      (f)
+
+  The equivalency is rough in the sense that ``local-macros`` returns a literal dictionary, not a preexisting object that Hy uses for resolving macro names. So, modifying the dictionary will have no effect.
+
+  See also :hy:func:`get-macro <hy.core.macros.get-macro>`.]]
+  (_local-macros _hy_compiler))
+
+(defn _local_macros [_hy_compiler]
+  (setv seen #{})
+  (dfor
+    state _hy_compiler.local_state_stack
+    m (get state "macros")
+    :if (not-in m seen)
+    :do (.add seen m)
+    m (hy.models.Symbol (hy.macros.local-macro-name m))))
 
 
 (defmacro export [#* args]
@@ -166,30 +198,3 @@
       (if (isinstance a hy.models.List)
         (lfor  x a  (hy.models.String x))
         (raise (TypeError "arguments must be keywords or lists of symbols"))))))))
-
-(defmacro delmacro
-  [#* names]
-  #[[Delete a macro(s) from the current module
-  ::
-
-     => (require a-module [some-macro])
-     => (some-macro)
-     1
-
-     => (delmacro some-macro)
-     => (some-macro)
-     Traceback (most recent call last):
-       File "<string>", line 1, in <module>
-         (some-macro)
-     NameError: name 'some_macro' is not defined
-
-     => (delmacro some-macro)
-     Traceback (most recent call last):
-       File "<string>", line 1, in <module>
-         (delmacro some-macro)
-     NameError: macro 'some-macro' is not defined
-  ]]
-  (let [sym (hy.gensym)]
-    `(eval-and-compile
-       (for [~sym ~(lfor name names (hy.mangle name))]
-         (when (in ~sym __macros__) (del (get __macros__ ~sym)))))))

@@ -8,61 +8,57 @@
 
 (setv _registry {})
 (defn hy-repr-register [types f [placeholder None]]
-  "``hy.repr-register`` lets you set the function that ``hy.repr`` calls to
-  represent a type.
+  #[[``hy.repr-register`` lets you set the function that :hy:func:`hy.repr` calls to
+  represent a type::
 
-  Examples:
-    ::
+      (defclass C)
+      (hy.repr-register C (fn [x] "cuddles"))
+      (hy.repr [1 (C) 2])  ; => "[1 cuddles 2]"
 
-       => (hy.repr-register the-type fun)
+  Registered functions often call ``hy.repr`` themselves. ``hy.repr`` will
+  automatically detect self-references, even deeply nested ones, and
+  output ``"..."`` for them instead of calling the usual registered
+  function. To use a placeholder other than ``"..."``, pass a string of
+  your choice as the ``placeholder`` argument::
 
-       => (defclass C)
-       => (hy.repr-register C (fn [x] \"cuddles\"))
-       => (hy.repr [1 (C) 2])
-       \"[1 cuddles 2]\"
+      (defclass Container)
+      (hy.repr-register Container :placeholder "HY THERE"
+        (fn [x] f"(Container {(hy.repr x.value)})"))
+      (setv container (Container))
+      (setv container.value container)
+      (hy.repr container)   ; => "(Container HY THERE)"]]
 
-       If the type of an object passed to ``hy.repr`` doesn't have a registered
-       function, ``hy.repr`` falls back on ``repr``.
-
-       Registered functions often call ``hy.repr`` themselves. ``hy.repr`` will
-       automatically detect self-references, even deeply nested ones, and
-       output ``\"...\"`` for them instead of calling the usual registered
-       function. To use a placeholder other than ``\"...\"``, pass a string of
-       your choice to the keyword argument ``:placeholder`` of
-       ``hy.repr-register``.
-
-      => (defclass Container [object]
-      ...   (defn __init__ (fn [self value]
-      ...     (setv self.value value))))
-      =>    (hy.repr-register Container :placeholder \"HY THERE\" (fn [x]
-      ...      (+ \"(Container \" (hy.repr x.value) \")\")))
-      => (setv container (Container 5))
-      => (setv container.value container)
-      => (print (hy.repr container))
-      '(Container HY THERE)'
-  "
   (for [typ (if (isinstance types list) types [types])]
     (setv (get _registry typ) #(f placeholder))))
 
 (setv _quoting False)
 (setv _seen (set))
 (defn hy-repr [obj]
-  "This function is Hy's equivalent of Python's built-in ``repr``.
-  It returns a string representing the input object in Hy syntax.
+  #[[This function is Hy's equivalent of Python's :func:`repr`.
+  It returns a string representing the input object in Hy syntax. ::
+
+       (hy.repr [1 2 3])  ; => "[1 2 3]"
+       (repr [1 2 3])     ; => "[1, 2, 3]"
 
   Like ``repr`` in Python, ``hy.repr`` can round-trip many kinds of
   values. Round-tripping implies that given an object ``x``,
-  ``(hy.eval (hy.read-str (hy.repr x)))`` returns ``x``, or at least a value
-  that's equal to ``x``.
+  ``(hy.eval (hy.read (hy.repr x)))`` returns ``x``, or at least a
+  value that's equal to ``x``. A notable exception to round-tripping
+  is that if a model contains a non-model, the
+  latter will be promoted to a model in the output::
 
-  Examples:
-    ::
+      (setv
+        x (hy.models.List [5])
+        output (hy.repr x)
+        y (hy.eval (hy.read output)))
+      (print output)            ; '[5]
+      (print (type (get x 0)))  ; <class 'int'>
+      (print (type (get y 0)))  ; <class 'hy.models.Integer'>
 
-       => (hy.repr [1 2 3])
-       \"[1 2 3]\"
-       => (repr [1 2 3])
-       \"[1, 2, 3]\"
-  "
+  When ``hy.repr`` doesn't know how to represent an object, it falls
+  back on :func:`repr`. Use :hy:func:`hy.repr-register` to add your
+  own conversion function for a type instead.]]
+
   (setv [f placeholder] (.get _registry (type obj) [_base-repr None]))
 
   (global _quoting)
@@ -107,9 +103,34 @@
     'unquote-splice "~@"
     'unpack-iterable "#* "
     'unpack-mapping "#** "})
+  (setv x0 (when x (get x 0)))
+  (setv x1 (when (> (len x) 1) (get x 1)))
+
   (cond
-    (and x (in (get x 0) syntax))
-      (+ (get syntax (get x 0)) (hy-repr (get x 1)))
+
+    (and
+        (>= (len x) 3)
+        (all (gfor  e x  (is (type e) hy.models.Symbol)))
+        (or (= x0 '.) (and
+          (= x1 'None)
+          (not (.strip (str x0) ".")))))
+      (+
+        (if (= x1 'None) (str x0) "")
+        (.join "." (map hy-repr (cut
+          x
+          (if (= x1 'None) 2 1)
+          None))))
+
+    (and (= (len x) 2) (in x0 syntax))
+      (if (and
+          (= x0 'unquote)
+          (isinstance x1 hy.models.Symbol)
+          (.startswith x1 "@"))
+        ; This case is special because `~@b` would be wrongly
+        ; interpreted as `(unquote-splice b)` instead of `(unquote @b)`.
+        (+ "~ " (hy-repr x1))
+        (+ (get syntax x0) (hy-repr x1)))
+
     True
       (+ "(" (_cat x) ")"))))
 
@@ -194,7 +215,7 @@
     (hy-repr (.span x))
     (hy-repr (.group x 0)))))
 (hy-repr-register re.Pattern (fn [x]
-  (setv flags (& x.flags (~ re.UNICODE)))
+  (setv flags (& x.flags (bnot re.UNICODE)))
     ; We remove re.UNICODE since it's redundant with the type
     ; of the pattern, and Python's `repr` omits it, too.
   (.format "(re.compile {}{})"

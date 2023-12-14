@@ -1,15 +1,16 @@
 import ast
+import builtins
 import copy
 import importlib
 import inspect
-import keyword
 import traceback
 import types
+import warnings
+from contextlib import contextmanager
 
 from funcparserlib.parser import NoParseError, many
 
 import hy
-from hy._compat import PY3_8
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
 from hy.macros import macroexpand
 from hy.model_patterns import FORM, KEYWORD, unpack
@@ -33,8 +34,8 @@ from hy.models import (
     as_model,
     is_unpack,
 )
-from hy.reader import mangle
-from hy.scoping import ScopeGlobal
+from hy.reader import mangle, HyReader
+from hy.scoping import ResolveOuterVars, ScopeGlobal
 
 hy_ast_compile_flags = 0
 
@@ -318,10 +319,6 @@ def mkexpr(*items, **kwargs):
     return make_hy_model(Expression, items, kwargs.get("rest"))
 
 
-def mklist(*items, **kwargs):
-    return make_hy_model(List, items, kwargs.get("rest"))
-
-
 def is_annotate_expression(model):
     return isinstance(model, Expression) and model and model[0] == Symbol("annotate")
 
@@ -329,7 +326,7 @@ def is_annotate_expression(model):
 class HyASTCompiler:
     """A Hy-to-Python AST compiler"""
 
-    def __init__(self, module, filename=None, source=None):
+    def __init__(self, module, filename=None, source=None, extra_macros=None):
         """
         Args:
             module (Union[str, types.ModuleType]): Module name or object in which the Hy tree is evaluated.
@@ -338,9 +335,18 @@ class HyASTCompiler:
                 debugging.
             source (Optional[str]): The source for the file, if any, being compiled.  This is optional
                 information for informative error messages and debugging.
+            extra_macros (Optional[dict]): More macros to use during lookup. They take precedence
+                over macros in `module`.
         """
         self.anon_var_count = 0
         self.temp_if = None
+        self.extra_macros = extra_macros or {}
+
+        # Make a list of dictionaries with local compiler settings,
+        # such as the definitions of local macros. The last element is
+        # considered the top of the stack.
+        self.local_state_stack = []
+        self.new_local_state()
 
         if not inspect.ismodule(module):
             self.module = importlib.import_module(module)
@@ -360,10 +366,34 @@ class HyASTCompiler:
 
         # Hy expects this to be present, so we prep the module for Hy
         # compilation.
-        self.module.__dict__.setdefault("__macros__", {})
-        self.module.__dict__.setdefault("__reader_macros__", {})
+        self.module.__dict__.setdefault("_hy_macros", {})
+        self.module.__dict__.setdefault("_hy_reader_macros", {})
 
         self.scope = ScopeGlobal(self)
+
+    def new_local_state(self):
+        'Add a new local state to the top of the stack.'
+        self.local_state_stack.append(dict(macros = {}))
+
+    def is_in_local_state(self):
+        return len(self.local_state_stack) > 1
+
+    def get_local_option(self, key, default):
+        'Get the topmost available value of a local-state setting.'
+        return next(
+            (s[key]
+                for s in reversed(self.local_state_stack)
+                if key in s),
+            default)
+
+    def warn_on_core_shadow(self, name):
+        if (
+                mangle(name) in getattr(builtins, "_hy_macros", {}) and
+                self.get_local_option('warn_on_core_shadow', True)):
+            warnings.warn(
+                f"New macro `{name}` will shadow the core macro of the same name",
+                RuntimeWarning
+            )
 
     def get_anon_var(self, base="_hy_anon_var"):
         self.anon_var_count += 1
@@ -514,8 +544,25 @@ class HyASTCompiler:
             raise self._syntax_error(name, "Can't assign to constant")
         return name
 
+    def eval(self, model):
+        return hy_eval(
+            model,
+            locals = self.module.__dict__,
+            module = self.module,
+            filename = self.filename,
+            source = self.source,
+            import_stdlib = False)
+
+    @contextmanager
+    def local_state(self):
+        self.new_local_state()
+        try:
+            yield
+        finally:
+            self.local_state_stack.pop()
+
     @builds_model(Expression)
-    def compile_expression(self, expr, *, allow_annotation_expression=False):
+    def compile_expression(self, expr):
         # Perform macro expansions
         expr = macroexpand(expr, self.module, self)
         if isinstance(expr, (Result, ast.AST)):
@@ -534,45 +581,42 @@ class HyASTCompiler:
         root = args.pop(0)
         func = None
 
-        if isinstance(root, Symbol) and root.startswith("."):
-            # (.split "test test") -> "test test".split()
-            # (.a.b.c x v1 v2) -> (.c (. x a b) v1 v2) ->  x.a.b.c(v1, v2)
+        if (
+            isinstance(root, Expression)
+            and len(root) >= 2
+            and isinstance(root[0], Symbol)
+            and not str(root[0]).strip(".")
+            and root[1] == Symbol("None")
+        ):
+            # ((. None a1 a2) obj v1 v2) -> ((. obj a1 a2) v1 v2)
+            # (The reader already parsed `.a1.a2` as `(. None a1 a2)`.)
 
-            # Get the method name (the last named attribute
-            # in the chain of attributes)
-            attrs = [
-                Symbol(a).replace(root) if a else None for a in root.split(".")[1:]
-            ]
-            if not all(attrs):
-                raise self._syntax_error(expr, "cannot access empty attribute")
-            root = attrs.pop()
-
-            # Get the object we're calling the method on
-            # (extracted with the attribute access DSL)
-            # Skip past keywords and their arguments.
-            try:
-                kws, obj, rest = (
-                    many(KEYWORD + FORM | unpack("mapping")) + FORM + many(FORM)
-                ).parse(args)
-            except NoParseError:
+            # Find the object we're calling the method on.
+            i = 0
+            while i < len(args):
+                if isinstance(args[i], Keyword):
+                    if i == 0 and len(args) == 1:
+                        break
+                    i += 2
+                elif is_unpack("iterable", args[i]):
+                    raise self._syntax_error(
+                        args[i], "can't call a method on an `unpack-iterable` form"
+                    )
+                elif is_unpack("mapping", args[i]):
+                    i += 1
+                else:
+                    break
+            else:
                 raise self._syntax_error(expr, "attribute access requires object")
-            # Reconstruct `args` to exclude `obj`.
-            args = [x for p in kws for x in p] + list(rest)
-            if is_unpack("iterable", obj):
-                raise self._syntax_error(
-                    obj, "can't call a method on an unpacking form"
-                )
-            func = self.compile(Expression([Symbol(".").replace(root), obj] + attrs))
 
-            # And get the method
-            func += asty.Attribute(
-                root, value=func.force_expr, attr=mangle(root), ctx=ast.Load()
+            func = self.compile(
+                Expression([Symbol("."), args.pop(i), *root[2:]]).replace(root)
             )
 
         if is_annotate_expression(root):
             # Flatten and compile the annotation expression.
             ann_expr = Expression(root + args).replace(root)
-            return self.compile_expression(ann_expr, allow_annotation_expression=True)
+            return self.compile_expression(ann_expr)
 
         if not func:
             func = self.compile(root)
@@ -585,36 +629,17 @@ class HyASTCompiler:
 
     @builds_model(Integer, Float, Complex)
     def compile_numeric_literal(self, x):
-        f = {Integer: int, Float: float, Complex: complex}[type(x)]
-        return asty.Num(x, n=f(x))
+        return asty.Constant(x, value =
+            {Integer: int, Float: float, Complex: complex}[type(x)](x))
 
     @builds_model(Symbol)
     def compile_symbol(self, symbol):
         if symbol == Symbol("..."):
-            return (
-                asty.Constant(symbol, value=Ellipsis)
-                if PY3_8
-                else asty.Ellipsis(symbol)
-            )
+            return asty.Constant(symbol, value=Ellipsis)
 
-        if "." in symbol:
-            glob, local = symbol.rsplit(".", 1)
-
-            if not glob:
-                raise self._syntax_error(
-                    symbol,
-                    "cannot access attribute on anything other than a name (in order to get attributes of expressions, use `(. <expression> {attr})` or `(.{attr} <expression>)`)".format(
-                        attr=local
-                    ),
-                )
-
-            if not local:
-                raise self._syntax_error(symbol, "cannot access empty attribute")
-
-            glob = Symbol(glob).replace(symbol)
-            ret = self.compile_symbol(glob)
-
-            return asty.Attribute(symbol, value=ret, attr=mangle(local), ctx=ast.Load())
+        # By this point, `symbol` should be either all dots or
+        # dot-free.
+        assert not symbol.strip(".") or "." not in symbol
 
         if mangle(symbol) in ("None", "False", "True"):
             return asty.Constant(symbol, value=ast.literal_eval(mangle(symbol)))
@@ -637,16 +662,15 @@ class HyASTCompiler:
                 attr="Keyword",
                 ctx=ast.Load(),
             ),
-            args=[asty.Str(obj, s=obj.name)],
+            args=[asty.Constant(obj, value=obj.name)],
             keywords=[],
         )
         return ret
 
     @builds_model(String, Bytes)
     def compile_string(self, string):
-        node = asty.Bytes if type(string) is Bytes else asty.Str
-        f = bytes if type(string) is Bytes else str
-        return node(string, s=f(string))
+        return asty.Constant(string, value =
+            (bytes if type(string) is Bytes else str)(string))
 
     @builds_model(FComponent)
     def compile_fcomponent(self, fcomponent):
@@ -696,10 +720,7 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
     module = getattr(compiler, "module", None) or module
 
     if isinstance(module, str):
-        if module.startswith("<") and module.endswith(">"):
-            module = types.ModuleType(module)
-        else:
-            module = importlib.import_module(mangle(module))
+        module = importlib.import_module(mangle(module))
 
     if calling_frame and not module:
         module = calling_module(n=2)
@@ -712,81 +733,17 @@ def get_compiler_module(module=None, compiler=None, calling_frame=False):
 
 def hy_eval(
     hytree,
-    locals=None,
+    locals,
     module=None,
-    ast_callback=None,
     compiler=None,
     filename=None,
     source=None,
     import_stdlib=True,
+    globals=None,
+    extra_macros=None,
 ):
-    """Evaluates a quoted expression and returns the value.
-
-    If you're evaluating hand-crafted AST trees, make sure the line numbers
-    are set properly.  Try `fix_missing_locations` and related functions in the
-    Python `ast` library.
-
-    Examples:
-      ::
-
-         => (hy.eval '(print "Hello World"))
-         "Hello World"
-
-      If you want to evaluate a string, use ``read-str`` to convert it to a
-      form first::
-
-         => (hy.eval (hy.read-str "(+ 1 1)"))
-         2
-
-    Args:
-      hytree (Object):
-          The Hy AST object to evaluate.
-
-      locals (Optional[dict]):
-          Local environment in which to evaluate the Hy tree.  Defaults to the
-          calling frame.
-
-      module (Optional[Union[str, types.ModuleType]]):
-          Module, or name of the module, to which the Hy tree is assigned and
-          the global values are taken.
-          The module associated with `compiler` takes priority over this value.
-          When neither `module` nor `compiler` is specified, the calling frame's
-          module is used.
-
-      ast_callback (Optional[Callable]):
-          A callback that is passed the Hy compiled tree and resulting
-          expression object, in that order, after compilation but before
-          evaluation.
-
-      compiler (Optional[HyASTCompiler]):
-          An existing Hy compiler to use for compilation.  Also serves as
-          the `module` value when given.
-
-      filename (Optional[str]):
-          The filename corresponding to the source for `tree`.  This will be
-          overridden by the `filename` field of `tree`, if any; otherwise, it
-          defaults to "<string>".  When `compiler` is given, its `filename` field
-          value is always used.
-
-      source (Optional[str]):
-          A string containing the source code for `tree`.  This will be
-          overridden by the `source` field of `tree`, if any; otherwise,
-          if `None`, an attempt will be made to obtain it from the module given by
-          `module`.  When `compiler` is given, its `source` field value is always
-          used.
-
-    Returns:
-      Any: Result of evaluating the Hy compiled tree.
-    """
 
     module = get_compiler_module(module, compiler, True)
-
-    if locals is None:
-        frame = inspect.stack()[1][0]
-        locals = inspect.getargvalues(frame).locals
-
-    if not isinstance(locals, dict):
-        raise TypeError("Locals must be a dictionary")
 
     # Does the Hy AST object come with its own information?
     filename = getattr(hytree, "filename", filename) or "<string>"
@@ -800,16 +757,70 @@ def hy_eval(
         filename=filename,
         source=source,
         import_stdlib=import_stdlib,
+        extra_macros=extra_macros,
     )
 
-    if ast_callback:
-        ast_callback(_ast, expr)
+    if globals is None:
+        globals = module.__dict__
 
     # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, filename, "exec"), module.__dict__, locals)
+    eval(ast_compile(_ast, filename, "exec"), globals, locals)
 
     # Then eval the expression context and return that
-    return eval(ast_compile(expr, filename, "eval"), module.__dict__, locals)
+    return eval(ast_compile(expr, filename, "eval"), globals, locals)
+
+
+def hy_eval_user(model, globals = None, locals = None, module = None, macros = None):
+    # This function is advertised as `hy.eval`.
+    """An equivalent of Python's :func:`eval` for evaluating Hy code. The chief difference is that the first argument should be a :ref:`model <models>` rather than source text. If you have a string of source text you want to evaluate, convert it to a model first with :hy:func:`hy.read` or :hy:func:`hy.read-many`::
+
+        (hy.eval '(+ 1 1))             ; => 2
+        (hy.eval (hy.read "(+ 1 1)"))  ; => 2
+
+    The optional arguments ``globals`` and ``locals`` work as in the case of :func:`eval`.
+
+    Another optional argument, ``module``, can be a module object or a string naming a module. The module's ``__dict__`` attribute can fill in for ``globals`` (and hence also for ``locals``) if ``module`` is provided but ``globals`` isn't, but the primary purpose of ``module`` is to control where macro calls are looked up. Without this argument, the calling module of ``hy.eval`` is used instead. ::
+
+        (defmacro my-test-mac [] 3)
+        (hy.eval '(my-test-mac))                 ; => 3
+        (import hyrule)
+        (hy.eval '(my-test-mac) :module hyrule)  ; NameError
+        (hy.eval '(list-n 3 1) :module hyrule)   ; => [1 1 1]
+
+    Finally, finer control of macro lookup can be achieved by passing in a dictionary of macros as the ``macros`` argument. The keys of this dictionary should be mangled macro names, and the values should be function objects to implement those macros. This is the same structure as is produced by :hy:func:`local-macros`, and in fact, ``(hy.eval … :macros (local-macros))`` is useful to make local macros visible to ``hy.eval``, which otherwise doesn't see them. ::
+
+        (defn f []
+          (defmacro lmac [] 1)
+          (hy.eval '(lmac))     ; NameError
+          (print (hy.eval '(lmac) :macros (local-macros)))) ; => 1
+        (f)
+
+    In any case, macros provided in this dictionary will shadow macros of the same name that are associated with the provided or implicit module. You can shadow a core macro, too, so be careful: there's no warning for this as there is in the case of :hy:func:`defmacro`."""
+
+    if locals is None:
+        locals = globals
+    hy_was = None
+    if locals and 'hy' in locals:
+        hy_was = (locals['hy'],)
+    try:
+        value = hy_eval(
+            hytree = model,
+            globals = globals,
+            locals = (inspect.getargvalues(inspect.stack()[1][0]).locals
+                if locals is None and module is None
+                else locals),
+            module = get_compiler_module(module, None, True),
+            extra_macros = macros)
+    finally:
+        if locals is not None:
+            if hy_was:
+                # Restore the old value of `hy`.
+                locals['hy'], = hy_was
+            else:
+                # Remove the implicitly added `hy` (if execution
+                # reached far enough to add it).
+                locals.pop('hy', None)
+    return value
 
 
 def hy_compile(
@@ -821,6 +832,7 @@ def hy_compile(
     filename=None,
     source=None,
     import_stdlib=True,
+    extra_macros=None,
 ):
     """Compile a hy.models.Object tree into a Python AST Module.
 
@@ -841,23 +853,16 @@ def hy_compile(
             if `None`, an attempt will be made to obtain it from the module given by
             `module`.  When `compiler` is given, its `source` field value is always
             used.
+        extra_macros (Optional[dict]): Passed through to `HyASTCompiler`, if it's called.
 
     Returns:
         ast.AST: A Python AST tree
     """
     module = get_compiler_module(module, compiler, False)
 
-    if isinstance(module, str):
-        if module.startswith("<") and module.endswith(">"):
-            module = types.ModuleType(module)
-        else:
-            module = importlib.import_module(mangle(module))
-
-    if not inspect.ismodule(module):
-        raise TypeError("Invalid module type: {}".format(type(module)))
-
     filename = getattr(tree, "filename", filename)
     source = getattr(tree, "source", source)
+    reader = getattr(tree, "reader", None)
 
     tree = as_model(tree)
     if not isinstance(tree, Object):
@@ -865,14 +870,20 @@ def hy_compile(
             "`tree` must be a hy.models.Object or capable of " "being promoted to one"
         )
 
-    compiler = compiler or HyASTCompiler(module, filename=filename, source=source)
+    compiler = compiler or HyASTCompiler(
+        module,
+        filename = filename,
+        source = source,
+        extra_macros = extra_macros)
 
-    with compiler.scope:
+    with HyReader.using_reader(reader, create=False), compiler.scope:
         result = compiler.compile(tree)
     expr = result.force_expr
 
     if not get_expr:
         result += result.expr_as_stmt()
+
+    result.stmts = list(map(ResolveOuterVars().visit, result.stmts))
 
     body = []
 
@@ -881,7 +892,8 @@ def hy_compile(
         if (
             result.stmts
             and isinstance(result.stmts[0], ast.Expr)
-            and isinstance(result.stmts[0].value, ast.Str)
+            and isinstance(result.stmts[0].value, ast.Constant)
+            and isinstance(result.stmts[0].value.value, str)
         ):
 
             body += [result.stmts.pop(0)]

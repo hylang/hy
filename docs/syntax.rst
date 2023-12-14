@@ -26,12 +26,12 @@ somewhat different (such as :class:`Set <hy.models.Set>`, which is ordered,
 unlike actual :class:`set`\s). All models inherit from :class:`Object
 <hy.models.Object>`, which stores textual position information, so tracebacks
 can point to the right place in the code. The compiler takes whatever models
-are left over after parsing and macro expansion and translates them into Python
+are left over after parsing and macro-expansion and translates them into Python
 :mod:`ast` nodes (e.g., :class:`Integer <hy.models.Integer>` becomes
 :class:`ast.Constant`), which can then be evaluated or rendered as Python code.
 Macros (that is, regular macros, as opposed to reader macros) operate on the
 model level, taking some models as arguments and returning more models for
-compilation or further macro expansion; they're free to do quite different
+compilation or further macro-expansion; they're free to do quite different
 things with a given model than the compiler does, if it pleases them to, like
 using an :class:`Integer <hy.models.Integer>` to construct a :class:`Symbol
 <hy.models.Symbol>`.
@@ -59,9 +59,7 @@ The default representation of models (via :hy:func:`hy.repr`) uses quoting for
 readability, so ``(hy.models.Integer 5)`` is represented as ``'5``. Python
 representations (via :func:`repr`) use the constructors, and by default are
 pretty-printed; you can disable this globally by setting ``hy.models.PRETTY``
-to ``False``, or temporarily with the context manager ``hy.models.pretty``. You
-can also color these Python representations with ``colorama`` by setting
-``hy.models.COLORED`` to ``True``.
+to ``False``, or temporarily with the context manager ``hy.models.pretty``.
 
 .. _hyobject:
 
@@ -130,10 +128,11 @@ Identifiers
 
 Identifiers are a broad class of syntax in Hy, comprising not only variable
 names, but any nonempty sequence of characters that aren't ASCII whitespace nor
-one of the following: ``()[]{};"'``. The reader will attempt to read each
+one of the following: ``()[]{};"'`~``. The reader will attempt to read each
 identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
-it as a :ref:`keyword <keywords>` if that fails, then fall back on reading it
-as a :ref:`symbol <symbols>` if that fails.
+it as a :ref:`keyword <keywords>` if that fails, then attempt to read it as a
+:ref:`dotted identifier <dotted-identifiers>` if that fails, then fall back on
+reading it as a :ref:`symbol <symbols>` if that fails.
 
 .. _numeric-literals:
 
@@ -147,13 +146,18 @@ few extensions:
 
 - Commas (``,``) can be used like underscores (``_``) to separate digits
   without changing the result. Thus, ``10_000_000_000`` may also be written
-  ``10,000,000,000``.
+  ``10,000,000,000``. Hy is also more permissive about the placement of
+  separators than Python: several may be in a row, and they may be after all
+  digits, after ``.``, ``e``, or ``j``, or even inside a radix prefix. Separators
+  before the first digit are still forbidden because e.g. ``_1`` is a legal
+  Python variable name, so it's a symbol in Hy rather than an integer.
 - Integers can begin with leading zeroes, even without a radix prefix like
   ``0x``. Leading zeroes don't automatically cause the literal to be
   interpreted in octal like they do in C. For octal, use the prefix ``0o``, as
   in Python.
 - ``NaN``, ``Inf``, and ``-Inf`` are understood as literals. Each produces a
-  :class:`Float <hy.models.Float>`.
+  :class:`Float <hy.models.Float>`. These are case-sensitive, unlike other uses
+  of letters in numeric literals (``1E2``, ``0XFF``, ``5J``, etc.).
 - Hy allows complex literals as understood by the constructor for
   :class:`complex`, such as ``5+4j``. (This is also legal Python, but Hy reads
   it as a single :class:`Complex <hy.models.Complex>`, and doesn't otherwise
@@ -178,8 +182,8 @@ Literal keywords are most often used for their special treatment in
 as values. For example, ``(f :foo 3)`` calls the function ``f`` with the
 parameter ``foo`` set to ``3``. The keyword is also :ref:`mangled <mangling>`
 at compile-time. To prevent a literal keyword from being treated specially in
-an expression, you can :hy:func:`quote` the keyword, or you can use it itself
-as a keyword argument, as in ``(f :foo :bar)``.
+an expression, you can :hy:func:`quote` the keyword, or you can use it as the
+value for another keyword argument, as in ``(f :foo :bar)``.
 
 Otherwise, keywords are simple model objects that evaluate to themselves. Users
 of other Lisps should note that it's often a better idea to use a string than a
@@ -190,10 +194,40 @@ equivalent to ``{"a" 1 "b" 2}``, which is different from ``{:a 1 :b 2}`` (see
 :ref:`dict-literals`).
 
 The empty keyword ``:`` is syntactically legal, but you can't compile a
-function call with an empty keyword argument.
+function call with an empty keyword argument due to Python limitations. Thus
+``(foo : 3)`` must be rewritten to use runtime unpacking, as in
+``(foo #** {"" 3})``.
 
 .. autoclass:: hy.models.Keyword
    :members:  __bool__, __call__
+
+.. _dotted-identifiers:
+
+Dotted identifiers
+~~~~~~~~~~~~~~~~~~
+
+Dotted identifiers are named for their use of the dot character ``.``, also
+known as a period or full stop. They don't have their own model type because
+they're actually syntactic sugar for :ref:`expressions <expressions>`. Syntax
+like ``foo.bar.baz`` is equivalent to ``(. foo bar baz)``. The general rule is
+that a dotted identifier looks like two or more :ref:`symbols <symbols>`
+(themselves not containing any dots) separated by single dots. The result is an
+expression with the symbol ``.`` as its first element and the constituent
+symbols as the remaining elements.
+
+A dotted identifier may also begin with one or more dots, as in ``.foo.bar`` or
+``..foo.bar``, in which case the resulting expression has the appropriate head
+(``.`` or ``..`` or whatever) and the symbol ``None`` as the following element.
+Thus, ``..foo.bar`` is equivalent to ``(.. None foo bar)``. In the leading-dot
+case, you may also use only one constitutent symbol. Thus, ``.foo`` is a legal
+dotted identifier, and equivalent to ``(. None foo)``.
+
+See :ref:`the dot macro <dot>` for what these expressions typically compile to.
+See also the special behavior for :ref:`expressions <expressions>` that begin
+with a dotted identifier that itself begins with a dot. Note that Hy provides
+definitions of ``.`` and ``...`` by default, but not ``..``, ``....``,
+``.....``, etc., so ``..foo.bar`` won't do anything useful by default outside
+of macros that treat it specially, like :hy:func:`import`.
 
 .. _symbols:
 
@@ -208,7 +242,11 @@ the :class:`Symbol <hy.models.Symbol>` constructor (thus, :class:`Symbol
 Lisps). Some example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``,
 ``just✈wrong``, and ``🦑``.
 
-As a special case, the symbol ``...`` compiles to the :class:`Ellipsis` object,
+Dots are only allowed in a symbol if every character in the symbol is a dot.
+Thus, ``a..b`` and ``a.`` are neither dotted identifiers nor symbols; they're
+simply illegal syntax.
+
+As a special case, the symbol ``...`` compiles to the :data:`Ellipsis` object,
 as in Python.
 
 .. autoclass:: hy.models.Symbol
@@ -235,10 +273,6 @@ Python-legal names. The steps are as follows:
    underscore into the name. Thus ``--has-dashes?`` becomes ``-_has_dashes?``
    at this step.
 
-#. If the name ends with ASCII ``?``, remove it and prepend ``is_``. Thus,
-   ``tasty?`` becomes ``is_tasty`` and ``-_has_dashes?`` becomes
-   ``is_-_has_dashes``.
-
 #. If the name still isn't Python-legal, make the following changes. A name
    could be Python-illegal because it contains a character that's never legal
    in a Python name or it contains a character that's illegal in that position.
@@ -251,12 +285,11 @@ Python-legal names. The steps are as follows:
      code point in lowercase hexadecimal.
 
    Thus, ``green☘`` becomes ``hyx_greenXshamrockX`` and
-   ``is_-_has_dashes`` becomes ``hyx_is_XhyphenHminusX_has_dashes``.
+   ``-_has_dashes`` becomes ``hyx_XhyphenHminusX_has_dashes``.
 
 #. Take any leading underscores removed in the first step, transliterate them
-   to ASCII, and add them back to the mangled name. Thus, ``(hy.mangle
-   '_tasty?)`` is ``"_is_tasty"`` instead of ``"is__tasty"`` and ``(hy.mangle
-   '__-_has-dashes?)`` is ``"__hyx_is_XhyphenHminusX_has_dashes"``.
+   to ASCII, and add them back to the mangled name. Thus, ``__green☘`` becomes
+   ``__hyx_greenXshamrockX``.
 
 #. Finally, normalize any leftover non-ASCII characters. The result may still
    not be ASCII (e.g., ``α`` is already Python-legal and normalized, so it
@@ -269,11 +302,9 @@ You can invoke the mangler yourself with the function :hy:func:`hy.mangle`, and 
 Mangling isn't something you should have to think about often, but you may see
 mangled names in error messages, the output of ``hy2py``, etc. A catch to be
 aware of is that mangling, as well as the inverse "unmangling" operation
-offered by :hy:func:`hy.unmangle`, isn't one-to-one. Two different symbols
-can mangle to the same string and hence compile to the same Python variable.
-The chief practical consequence of this is that (non-initial) ``-`` and ``_`` are
-interchangeable under mangling, so you can't use e.g. ``foo-bar`` and
-``foo_bar`` as separate variables.
+offered by :hy:func:`hy.unmangle`, isn't one-to-one. Two different symbols,
+like ``foo-bar`` and ``foo_bar``, can mangle to the same string and hence
+compile to the same Python variable.
 
 .. _string-literals:
 
@@ -286,7 +317,7 @@ Hy allows double-quoted strings (e.g., ``"hello"``), but not single-quoted
 strings like Python. The single-quote character ``'`` is reserved for
 preventing the evaluation of a form, (e.g., ``'(+ 1 1)``), as in most Lisps
 (see :ref:`more-sugar`). Python's so-called triple-quoted strings (e.g.,
-``'''hello'''`` and ``"""hello"""``) aren't supported. However, in Hy, unlike
+``'''hello'''`` and ``"""hello"""``) aren't supported, either. However, in Hy, unlike
 Python, any string literal can contain newlines; furthermore, Hy has
 :ref:`bracket strings <bracket-strings>`. For consistency with Python's
 triple-quoted strings, all literal newlines in literal strings are read as in
@@ -298,8 +329,8 @@ Unrecognized escape sequences are a syntax error. To create a "raw string" that
 interprets all backslashes literally, prefix the string with ``r``, as in
 ``r"slash\not"``.
 
-Like Python, Hy treats all string literals as sequences of Unicode characters
-by default. The result is the model type :class:`String <hy.models.String>`.
+By default, all string literals are regarded as sequences of Unicode characters.
+The result is the model type :class:`String <hy.models.String>`.
 You may prefix a string literal with ``b`` to treat it as a sequence of bytes,
 producing :class:`Bytes <hy.models.Bytes>` instead.
 
@@ -325,10 +356,10 @@ like the here-documents of other languages. A bracket string begins with
 begins with ``f-``, the bracket string is interpreted as an :ref:`f-string
 <syntax-fstrings>`.) For example::
 
-   => (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
-   "That's very kind of yuo [sic]" Tom wrote back.
-   => (print #[==[1 + 1 = 2]==])
-   1 + 1 = 2
+   (print #[["That's very kind of yuo [sic]" Tom wrote back.]])
+     ; "That's very kind of yuo [sic]" Tom wrote back.
+   (print #[==[1 + 1 = 2]==])
+     ; 1 + 1 = 2
 
 Bracket strings are always raw Unicode strings, and don't allow the ``r`` or
 ``b`` prefixes.
@@ -355,12 +386,35 @@ Expressions
 
 Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
 parentheses: ``( … )``. The compiler evaluates expressions by checking the
-first element. If it's a symbol, and the symbol is the name of a currently
-defined macro, the macro is called. Otherwise, the expression is compiled into
-a Python-level call, with the first element being the calling object. The
-remaining forms are understood as arguments. Use :hy:func:`unpack-iterable` or
-:hy:func:`unpack-mapping` to break up data structures into individual arguments
-at runtime.
+first element.
+
+- If it's a symbol, and the symbol is the name of a currently defined macro,
+  the macro is called.
+
+  - Exception: if the symbol is also the name of a function in
+    :hy:mod:`hy.pyops`, and one of the arguments is an
+    :hy:func:`unpack-iterable` form, the ``pyops`` function is called instead
+    of the macro. This makes reasonable-looking expressions work that would
+    otherwise fail. For example, ``(+ #* summands)`` is understood as
+    ``(hy.pyops.+ #* summands)``, because Python provides no way to sum a list
+    of unknown length with a real addition expression.
+
+- If it is itself an expression of the form ``(. None …)`` (typically produced
+  with a :ref:`dotted identifier <dotted-identifiers>` like ``.add``), it's used
+  to construct a method call with the element after ``None`` as the object:
+  thus, ``(.add my-set 5)`` is equivalent to ``((. my-set add) 5)``, which
+  becomes ``my_set.add(5)`` in Python.
+
+  .. _hy.R:
+
+  - Exception: expressions like ``((. hy R module-name macro-name) …)``, or equivalently ``(hy.R.module-name.macro-name …)``, get special treatment. They import the module ``module-name`` and call its macro ``macro-name``, so ``(hy.R.foo.bar 1)`` is equivalent to ``(require foo) (foo.bar 1)``, but without bringing ``foo`` or ``foo.bar`` into scope. Thus ``hy.R`` is convenient syntactic sugar for macros you'll only call once in a file, or for macros that you want to appear in the expansion of other macros without having to call :hy:func:`require` in the expansion. As with :hy:class:`hy.I`, dots in the module name must be replaced with slashes.
+
+- Otherwise, the expression is compiled into a Python-level call, with the
+  first element being the calling object. (So, you can call a function that has
+  the same name as a macro with an expression like ``((do setv) …)``.) The
+  remaining forms are understood as arguments. Use :hy:func:`unpack-iterable`
+  or :hy:func:`unpack-mapping` to break up data structures into individual
+  arguments at runtime.
 
 The empty expression ``()`` is legal at the reader level, but has no inherent
 meaning. Trying to compile it is an error. For the empty tuple, use ``#()``.
@@ -407,12 +461,9 @@ A format string (or "f-string", or "formatted string literal") is a string
 literal with embedded code, possibly accompanied by formatting commands. The
 result is an :class:`FString <hy.models.FString>`, Hy f-strings work much like
 :ref:`Python f-strings <py:f-strings>` except that the embedded code is in Hy
-rather than Python.
+rather than Python. ::
 
-::
-
-    => (print f"The sum is {(+ 1 1)}.")
-    The sum is 2.
+    (print f"The sum is {(+ 1 1)}.")  ; => The sum is 2.
 
 Since ``=``, ``!``, and ``:`` are identifier characters in Hy, Hy decides where
 the code in a replacement field ends (and any debugging ``=``, conversion
@@ -420,12 +471,9 @@ specifier, or format specifier begins) by parsing exactly one form. You can use
 ``do`` to combine several forms into one, as usual. Whitespace may be necessary
 to terminate the form::
 
-    => (setv foo "a")
-    => (print f"{foo:x<5}")
-    …
-    NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
-    => (print f"{foo :x<5}")
-    axxxx
+    (setv foo "a")
+    (print f"{foo:x<5}")   ; => NameError: name 'hyx_fooXcolonXxXlessHthan_signX5' is not defined
+    (print f"{foo :x<5}")  ; => axxxx
 
 Unlike Python, whitespace is allowed between a conversion and a format
 specifier.
@@ -447,18 +495,19 @@ Syntactic sugar is available to construct two-item :ref:`expressions
 by the reader, a new expression is created with the corresponding macro as the
 first element and the next parsed form as the second. No parentheses are
 required. Thus, since ``'`` is short for ``quote``, ``'FORM`` is read as
-``(quote FORM)``. This is all resolved at the reader level, so the model that
-gets produced is the same whether you take your code with sugar or without.
+``(quote FORM)``. Whitespace is allowed, as in ``' FORM``. This is all resolved
+at the reader level, so the model that gets produced is the same whether you
+take your code with sugar or without.
 
 ========================== ================
 Macro                      Syntax
 ========================== ================
-:hy:func:`quasiquote`      ```FORM``
 :hy:func:`quote`           ``'FORM``
-:hy:func:`unpack-iterable` ``#* FORM``
-:hy:func:`unpack-mapping`  ``#** FORM``
+:hy:func:`quasiquote`      ```FORM``
 :hy:func:`unquote`         ``~FORM``
 :hy:func:`unquote-splice`  ``~@FORM``
+:hy:func:`unpack-iterable` ``#* FORM``
+:hy:func:`unpack-mapping`  ``#** FORM``
 ========================== ================
 
 Reader macros

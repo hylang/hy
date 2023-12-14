@@ -2,16 +2,15 @@ import builtins
 import importlib
 import inspect
 import os
-import pkgutil
+import re
 import sys
 import traceback
-import warnings
 from ast import AST
 
 from funcparserlib.parser import NoParseError
 
 import hy.compiler
-from hy._compat import code_replace
+from hy._compat import PY3_11
 from hy.errors import (
     HyLanguageError,
     HyMacroExpansionError,
@@ -20,7 +19,8 @@ from hy.errors import (
 )
 from hy.model_patterns import whole
 from hy.models import Expression, Symbol, as_model, is_unpack, replace_hy_obj
-from hy.reader import mangle, unmangle
+from hy.reader import mangle
+from hy.reader.mangling import slashes2dots
 
 EXTRA_MACROS = ["hy.core.result_macros", "hy.core.macros"]
 
@@ -32,7 +32,7 @@ def macro(name):
 
 def reader_macro(name, fn):
     fn = rename_function(fn, name)
-    inspect.getmodule(fn).__dict__.setdefault("__reader_macros__", {})[name] = fn
+    fn.__globals__.setdefault("_hy_reader_macros", {})[name] = fn
 
 
 def pattern_macro(names, pattern, shadow=None):
@@ -43,35 +43,34 @@ def pattern_macro(names, pattern, shadow=None):
 
     def dec(fn):
         def wrapper_maker(name):
-            def wrapper(hy_compiler, *args):
+            def wrapper(_hy_compiler, *args):
 
                 if shadow and any(is_unpack("iterable", x) for x in args):
                     # Try a shadow function call with this name instead.
-                    return Expression([Symbol("hy.pyops." + name), *args]).replace(
-                        hy_compiler.this
-                    )
+                    return Expression(
+                        [Expression(map(Symbol, [".", "hy", "pyops", name])), *args]
+                    ).replace(_hy_compiler.this)
 
-                expr = hy_compiler.this
-                root = unmangle(expr[0])
+                expr = _hy_compiler.this
 
                 if py_version_required and sys.version_info < py_version_required:
-                    raise hy_compiler._syntax_error(
+                    raise _hy_compiler._syntax_error(
                         expr,
                         "`{}` requires Python {} or later".format(
-                            root, ".".join(map(str, py_version_required))
+                            name, ".".join(map(str, py_version_required))
                         ),
                     )
 
                 try:
                     parse_tree = pattern.parse(args)
                 except NoParseError as e:
-                    raise hy_compiler._syntax_error(
+                    raise _hy_compiler._syntax_error(
                         expr[min(e.state.pos + 1, len(expr) - 1)],
                         "parse error for pattern macro '{}': {}".format(
-                            root, e.msg.replace("<EOF>", "end of form")
+                            name, e.msg.replace("end of input", "end of macro call")
                         ),
                     )
-                return fn(hy_compiler, expr, root, *parse_tree)
+                return fn(_hy_compiler, expr, name, *parse_tree)
 
             return wrapper
 
@@ -85,19 +84,7 @@ def pattern_macro(names, pattern, shadow=None):
 def install_macro(name, fn, module_of):
     name = mangle(name)
     fn = rename_function(fn, name)
-    calling_module = inspect.getmodule(module_of)
-    macros_obj = calling_module.__dict__.setdefault("__macros__", {})
-    if name in getattr(builtins, "__macros__", {}):
-        warnings.warn(
-            (
-                f"{name} already refers to: `{name}` in module: `builtins`,"
-                f" being replaced by: `{calling_module.__name__}.{name}`"
-            ),
-            RuntimeWarning,
-            stacklevel=3,
-        )
-
-    macros_obj[name] = fn
+    module_of.__globals__.setdefault("_hy_macros", {})[name] = fn
     return fn
 
 
@@ -109,31 +96,23 @@ def _same_modules(source_module, target_module):
     if not (source_module or target_module):
         return False
 
-    if target_module == source_module:
+    if target_module is source_module:
         return True
 
-    def _get_filename(module):
-        filename = None
-        try:
-            if not inspect.ismodule(module):
-                loader = pkgutil.get_loader(module)
-                if isinstance(loader, importlib.machinery.SourceFileLoader):
-                    filename = loader.get_filename()
-            else:
-                filename = inspect.getfile(module)
-        except (TypeError, ImportError):
-            pass
+    def get_filename(module):
+        if inspect.ismodule(module):
+            return inspect.getfile(module)
+        elif (
+                (spec := importlib.util.find_spec(module)) and
+                isinstance(spec.loader, importlib.machinery.SourceFileLoader)):
+            return spec.loader.get_filename()
 
-        return filename
-
-    source_filename = _get_filename(source_module)
-    target_filename = _get_filename(target_module)
-
-    return (
-        source_filename
-        and target_filename
-        and os.path.samefile(source_filename, target_filename)
-    )
+    try:
+        return os.path.samefile(
+            get_filename(source_module),
+            get_filename(target_module))
+    except (ValueError, TypeError, ImportError, FileNotFoundError):
+        return False
 
 
 def derive_target_module(target_module, parent_frame):
@@ -178,15 +157,15 @@ def require_reader(source_module, target_module, assignments):
     if not inspect.ismodule(source_module):
         source_module = import_module_from_string(source_module, target_module)
 
-    source_macros = source_module.__dict__.setdefault("__reader_macros__", {})
-    target_macros = target_namespace.setdefault("__reader_macros__", {})
+    source_macros = source_module.__dict__.setdefault("_hy_reader_macros", {})
+    target_macros = target_namespace.setdefault("_hy_reader_macros", {})
 
     assignments = (
-        source_macros.keys() if assignments == "ALL" else map(mangle, assignments)
+        source_macros.keys() if assignments == "ALL" else assignments
     )
 
     for name in assignments:
-        if name in source_module.__reader_macros__:
+        if name in source_module._hy_reader_macros:
             target_macros[name] = source_macros[name]
         else:
             raise HyRequireError(f"Could not require name {name} from {source_module}")
@@ -197,79 +176,74 @@ def require_reader(source_module, target_module, assignments):
 def enable_readers(module, reader, names):
     _, namespace = derive_target_module(module, inspect.stack()[1][0])
     names = (
-        namespace["__reader_macros__"].keys() if names == "ALL" else map(mangle, names)
+        namespace["_hy_reader_macros"].keys() if names == "ALL" else names
     )
     for name in names:
-        if name not in namespace["__reader_macros__"]:
+        if name not in namespace["_hy_reader_macros"]:
             raise NameError(f"reader {name} is not defined")
-        reader.reader_table[name] = namespace["__reader_macros__"][name]
+        reader.reader_macros[name] = namespace["_hy_reader_macros"][name]
 
 
-def require(source_module, target_module, assignments, prefix=""):
-    """Load macros from one module into the namespace of another.
+def require(source_module, target, assignments, prefix="", target_module_name=None, compiler=None):
+    """Load macros from a module. Return a list of (new name, source
+    name, macro object) tuples, including only macros that were
+    actually transferred.
 
-    This function is called from the macro also named `require`.
+    - `target` can be a a string (naming a module), a module object,
+      a dictionary, or `None` (meaning the calling module).
+    - `assignments` can be "ALL", "EXPORTS", or a list of (macro
+      name, alias) pairs."""
 
-    Args:
-        source_module (Union[str, ModuleType]): The module from which macros are
-            to be imported.
-        target_module (Optional[Union[str, ModuleType]]): The module into which the
-            macros will be loaded.  If `None`, then the caller's namespace.
-            The latter is useful during evaluation of generated AST/bytecode.
-        assignments (Union[str, typing.Sequence[str]]): The string "ALL", the string
-            "EXPORTS", or a list of macro name and alias pairs.
-        prefix (str): If nonempty, its value is prepended to the name of each imported macro.
-            This allows one to emulate namespaced macros, like "mymacromodule.mymacro",
-            which looks like an attribute of a module. Defaults to ""
-
-    Returns:
-        bool: Whether or not macros were actually transferred.
-    """
-    target_module, target_namespace = derive_target_module(
-        target_module, inspect.stack()[1][0]
-    )
-
-    # Let's do a quick check to make sure the source module isn't actually
-    # the module being compiled (e.g. when `runpy` executes a module's code
-    # in `__main__`).
-    # We use the module's underlying filename for this (when they exist), since
-    # it's the most "fixed" attribute.
-    if _same_modules(source_module, target_module):
-        return False
+    if type(target) is dict:
+        target_module = None
+    else:
+        target_module, target_namespace = derive_target_module(
+            target, inspect.stack()[1][0]
+        )
+        # Let's do a quick check to make sure the source module isn't actually
+        # the module being compiled (e.g. when `runpy` executes a module's code
+        # in `__main__`).
+        # We use the module's underlying filename for this (when they exist), since
+        # it's the most "fixed" attribute.
+        if _same_modules(source_module, target_module):
+            return []
 
     if not inspect.ismodule(source_module):
-        source_module = import_module_from_string(source_module, target_module)
+        source_module = import_module_from_string(source_module,
+           target_module_name or target_module or '')
 
-    source_macros = source_module.__dict__.setdefault("__macros__", {})
+    source_macros = source_module.__dict__.setdefault("_hy_macros", {})
     source_exports = getattr(
         source_module,
         "_hy_export_macros",
         [k for k in source_macros.keys() if not k.startswith("_")],
     )
 
-    if not source_module.__macros__:
+    if not source_module._hy_macros:
         if assignments in ("ALL", "EXPORTS"):
-            return False
+            return []
+        out = []
         for name, alias in assignments:
             try:
-                require(
+                out.extend(require(
                     f"{source_module.__name__}.{mangle(name)}",
-                    target_module,
+                    target_module or target,
                     "ALL",
                     prefix=alias,
-                )
+                ))
             except HyRequireError as e:
                 raise HyRequireError(
                     f"Cannot import name '{name}'"
                     f" from '{source_module.__name__}'"
                     f" ({source_module.__file__})"
                 )
-        return True
+        return out
 
-    target_macros = target_namespace.setdefault("__macros__", {})
+    target_macros = target_namespace.setdefault("_hy_macros", {}) if target_module else target
 
     if prefix:
         prefix += "."
+    out = []
 
     for name, alias in (
         assignments
@@ -281,19 +255,30 @@ def require(source_module, target_module, assignments, prefix=""):
         )
     ):
         _name = mangle(name)
-        alias = mangle(
-            "#" + prefix + unmangle(alias)[1:]
-            if unmangle(alias).startswith("#")
-            else prefix + alias
-        )
-        if _name in source_module.__macros__:
+        if compiler:
+            compiler.warn_on_core_shadow(prefix + alias)
+        alias = mangle(prefix + alias)
+        if _name in source_module._hy_macros:
             target_macros[alias] = source_macros[_name]
+            out.append((alias, _name, source_macros[_name]))
         else:
             raise HyRequireError(
                 "Could not require name {} from {}".format(_name, source_module)
             )
 
-    return True
+    return out
+
+
+def require_vals(*args, **kwargs):
+    return [value for _, _, value in require(*args, **kwargs)]
+
+
+def local_macro_name(original):
+    return '_hy_local_macro__' + (mangle(original)
+      # We have to do a bit of extra mangling beyond `mangle` itself to
+      # handle names with periods.
+        .replace('D', 'DN')
+        .replace('.', 'DD'))
 
 
 def load_macros(module):
@@ -302,19 +287,19 @@ def load_macros(module):
     It is an error to call this on any module in `hy.core`.
     """
     builtin_macros = EXTRA_MACROS
-    module.__macros__ = {}
-    module.__reader_macros__ = {}
+    module._hy_macros = {}
+    module._hy_reader_macros = {}
 
     for builtin_mod_name in builtin_macros:
         builtin_mod = importlib.import_module(builtin_mod_name)
 
         # This may overwrite macros in the module.
-        if hasattr(builtin_mod, "__macros__"):
-            module.__macros__.update(getattr(builtin_mod, "__macros__", {}))
+        if hasattr(builtin_mod, "_hy_macros"):
+            module._hy_macros.update(getattr(builtin_mod, "_hy_macros", {}))
 
-        if hasattr(builtin_mod, "__reader_macros__"):
-            module.__reader_macros__.update(
-                getattr(builtin_mod, "__reader_macros__", {})
+        if hasattr(builtin_mod, "_hy_reader_macros"):
+            module._hy_reader_macros.update(
+                getattr(builtin_mod, "_hy_reader_macros", {})
             )
 
 
@@ -357,33 +342,13 @@ class MacroExceptions:
 
 
 def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
-    """Expand the toplevel macros for the given Hy AST tree.
+    '''If `tree` isn't an `Expression` that might be a macro call,
+    return it unchanged. Otherwise, try to expand it. Do this
+    repeatedly unless `once` is true. Call `as_model` after each
+    expansion. If the return value is a compiler `Result` object, and
+    `result_ok` is false, return the previous value. Otherwise, return
+    the final expansion.'''
 
-    Load the macros from the given `module`, then expand the (top-level) macros
-    in `tree` until we no longer can.
-
-    `Expression` resulting from macro expansions are assigned the module in
-    which the macro function is defined (determined using `inspect.getmodule`).
-    If the resulting `Expression` is itself macro expanded, then the namespace
-    of the assigned module is checked first for a macro corresponding to the
-    expression's head/car symbol.  If the head/car symbol of such a `Expression`
-    is not found among the macros of its assigned module's namespace, the
-    outer-most namespace--e.g.  the one given by the `module` parameter--is used
-    as a fallback.
-
-    Args:
-        tree (Union[Object, list]): Hy AST tree.
-        module (Union[str, ModuleType]): Module used to determine the local
-            namespace for macros.
-        compiler (Optional[HyASTCompiler] ): The compiler object passed to
-            expanded macros. Defaults to None
-        once (bool): Only expand the first macro in `tree`. Defaults to False
-        result_ok (bool): Whether or not it's okay to return a compiler `Result` instance.
-            Defaults to True.
-
-    Returns:
-        Union[Object, Result]: A mutated tree with macros expanded.
-    """
     if not inspect.ismodule(module):
         module = importlib.import_module(module)
 
@@ -392,54 +357,79 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     while isinstance(tree, Expression) and tree:
 
         fn = tree[0]
-        if fn in ("quote", "quasiquote") or not isinstance(fn, Symbol):
+        if isinstance(fn, Expression) and fn and fn[0] == Symbol("."):
+            fn = ".".join(map(mangle, fn[1:]))
+        elif isinstance(fn, Symbol):
+            fn = mangle(fn)
+        else:
             break
 
-        fn = mangle(fn)
-        expr_modules = ([] if not hasattr(tree, "module") else [tree.module]) + [module]
-        expr_modules.append(builtins)
-
-        # Choose the first namespace with the macro.
-        m = next(
-            (
-                mod.__macros__[fn]
-                for mod in expr_modules
-                if fn in getattr(mod, "__macros__", ())
-            ),
-            None,
-        )
-        if not m:
-            break
+        if fn.startswith('hy.R.'):
+            # Special syntax for a one-shot `require`.
+            req_from, _, fn = fn[len('hy.R.'):].partition('.')
+            req_from = slashes2dots(req_from)
+            try:
+                m = importlib.import_module(req_from)._hy_macros[fn]
+            except ImportError as e:
+                raise HyRequireError(e.args[0]).with_traceback(None)
+            except (AttributeError, KeyError):
+                raise HyRequireError(f'Could not require name {fn} from {req_from}')
+        else:
+            # Choose the first namespace with the macro.
+            m = ((compiler and next(
+                    (d[fn]
+                        for d in [
+                            compiler.extra_macros,
+                            *(s['macros'] for s in reversed(compiler.local_state_stack))]
+                        if fn in d),
+                    None)) or
+                next(
+                    (mod._hy_macros[fn]
+                        for mod in (module, builtins)
+                        if fn in getattr(mod, "_hy_macros", ())),
+                    None))
+            if not m:
+                break
 
         with MacroExceptions(module, tree, compiler):
             if compiler:
                 compiler.this = tree
-            obj = m(compiler, *tree[1:])
+            obj = m(
+                # If the macro's first parameter is named
+                # `_hy_compiler`, pass in the current compiler object
+                # in its place.
+                *([compiler]
+                    if m.__code__.co_varnames[:1] == ('_hy_compiler',)
+                    else []),
+                *map(as_model, tree[1:]))
             if isinstance(obj, (hy.compiler.Result, AST)):
                 return obj if result_ok else tree
-
-            if isinstance(obj, Expression):
-                obj.module = inspect.getmodule(m)
 
             tree = replace_hy_obj(obj, tree)
 
         if once:
             break
 
-    tree = as_model(tree)
     return tree
-
-
-def macroexpand_1(tree, module, compiler=None):
-    """Expand the toplevel macro from `tree` once, in the context of
-    `compiler`."""
-    return macroexpand(tree, module, compiler, once=True)
 
 
 def rename_function(f, new_name):
     """Create a copy of a function, but with a new name."""
     f = type(f)(
-        code_replace(f.__code__, co_name=new_name),
+        f.__code__.replace(
+            co_name=new_name,
+            **(
+                {
+                    "co_qualname": re.sub(
+                        r"\.[^.+]\Z", "." + new_name, f.__code__.co_qualname
+                    )
+                    if "." in f.__code__.co_qualname
+                    else new_name
+                }
+                if PY3_11
+                else {}
+            ),
+        ),
         f.__globals__,
         str(new_name),
         f.__defaults__,

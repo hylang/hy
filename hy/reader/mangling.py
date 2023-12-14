@@ -1,4 +1,3 @@
-import keyword
 import re
 import unicodedata
 
@@ -8,55 +7,43 @@ normalizes_to_underscore = "_︳︴﹍﹎﹏＿"
 
 
 def mangle(s):
-    """Stringify the argument and convert it to a valid Python identifier
-    according to :ref:`Hy's mangling rules <mangling>`.
+    """Stringify the argument (with :class:`str`, not :func:`repr` or
+    :hy:func:`hy.repr`) and convert it to a valid Python identifier according
+    to :ref:`Hy's mangling rules <mangling>`. ::
 
-    If the argument is already both legal as a Python identifier and normalized
-    according to Unicode normalization form KC (NFKC), it will be returned
-    unchanged. Thus, ``mangle`` is idempotent.
+        (hy.mangle 'foo-bar)   ; => "foo_bar"
+        (hy.mangle "🦑")       ; => "hyx_XsquidX"
 
-    Examples:
-      ::
+    If the stringified argument is already both legal as a Python identifier
+    and normalized according to Unicode normalization form KC (NFKC), it will
+    be returned unchanged. Thus, ``hy.mangle`` is idempotent. ::
 
-         => (hy.mangle 'foo-bar)
-         "foo_bar"
+        (setv x '♦-->♠)
+        (= (hy.mangle (hy.mangle x)) (hy.mangle x))  ; => True
 
-         => (hy.mangle 'foo-bar?)
-         "is_foo_bar"
+    Generally, the stringifed input is expected to be parsable as a symbol. As
+    a convenience, it can also have the syntax of a :ref:`dotted identifier
+    <dotted-identifiers>`, and ``hy.mangle`` will mangle the dot-delimited
+    parts separately. ::
 
-         => (hy.mangle '*)
-         "hyx_XasteriskX"
-
-         => (hy.mangle '_foo/a?)
-         "_hyx_is_fooXsolidusXa"
-
-         => (hy.mangle '-->)
-         "hyx_XhyphenHminusX_XgreaterHthan_signX"
-
-         => (hy.mangle '<--)
-         "hyx_XlessHthan_signX__"
-
+        (hy.mangle "a.c!.d")  ; => "a.hyx_cXexclamation_markX.d"
     """
 
     assert s
     s = str(s)
 
-    if "." in s:
+    if "." in s and s.strip("."):
         return ".".join(mangle(x) if x else "" for x in s.split("."))
 
-    # Step 1: Remove and save leading underscores
+    # Remove and save leading underscores
     s2 = s.lstrip(normalizes_to_underscore)
     leading_underscores = "_" * (len(s) - len(s2))
     s = s2
 
-    # Step 2: Convert hyphens without introducing a new leading underscore
+    # Convert hyphens without introducing a new leading underscore
     s = s[0] + s[1:].replace("-", "_") if s else s
 
-    # Step 3: Convert trailing `?` to leading `is_`
-    if s.endswith("?"):
-        s = "is_" + s[:-1]
-
-    # Step 4: Convert invalid characters or reserved words
+    # Convert invalid characters or reserved words
     if not (leading_underscores + s).isidentifier():
         # Replace illegal characters with their Unicode character
         # names, or hexadecimal if they don't have one.
@@ -84,38 +71,19 @@ def mangle(s):
 
 def unmangle(s):
     """Stringify the argument and try to convert it to a pretty unmangled
-    form. See :ref:`Hy's mangling rules <mangling>`.
+    form. See :ref:`Hy's mangling rules <mangling>`. ::
+
+        (hy.unmangle "hyx_XsquidX")  ; => "🦑"
 
     Unmangling may not round-trip, because different Hy symbol names can mangle
     to the same Python identifier. In particular, Python itself already
     considers distinct strings that have the same normalized form (according to
     NFKC), such as ``hello`` and ``𝔥𝔢𝔩𝔩𝔬``, to be the same identifier.
 
-    Examples:
-      ::
-
-         => (hy.unmangle 'foo_bar)
-         "foo-bar"
-
-         => (hy.unmangle 'is_foo_bar)
-         "foo-bar?"
-
-         => (hy.unmangle 'hyx_XasteriskX)
-         "*"
-
-         => (hy.unmangle '_hyx_is_fooXsolidusXa)
-         "_foo/a?"
-
-         => (hy.unmangle 'hyx_XhyphenHminusX_XgreaterHthan_signX)
-         "-->"
-
-         => (hy.unmangle 'hyx_XlessHthan_signX__)
-         "<--"
-
-         => (hy.unmangle '__dunder_name__)
-         "__dunder-name__"
-
-    """
+    It's an error to call ``hy.unmangle`` on something that looks like a
+    properly mangled name but isn't. For example, ``(hy.unmangle
+    "hyx_XpizzazzX")`` is erroneous, because there is no Unicode character
+    named "PIZZAZZ" (yet)."""
 
     s = str(s)
 
@@ -135,8 +103,14 @@ def unmangle(s):
             ),
             s[len("hyx_") :],
         )
-    if s.startswith("is_"):
-        s = s[len("is_") :] + "?"
     s = s.replace("_", "-")
 
     return prefix + s + suffix
+
+
+def slashes2dots(s):
+    'Interpret forward slashes as a substitute for periods.'
+    return mangle(re.sub(
+        r'/(-*)',
+        lambda m: '.' + '_' * len(m.group(1)),
+        unmangle(s)))

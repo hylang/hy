@@ -15,9 +15,10 @@ from itertools import dropwhile
 
 from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
-from hy.compiler import Result, asty, hy_eval, mkexpr
+from hy._compat import PY3_11, PY3_12
+from hy.compiler import Result, asty, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
-from hy.macros import pattern_macro, require, require_reader
+from hy.macros import pattern_macro, require, require_reader, local_macro_name
 from hy.model_patterns import (
     FORM,
     KEYWORD,
@@ -53,10 +54,11 @@ from hy.models import (
     String,
     Symbol,
     Tuple,
+    as_model,
     is_unpack,
 )
-from hy.reader import mangle, unmangle
-from hy.scoping import ScopeFn, ScopeGen, ScopeLet, is_inside_function_scope
+from hy.reader import mangle
+from hy.scoping import OuterVar, ScopeFn, ScopeGen, ScopeLet, is_function_scope, is_inside_function_scope, nearest_python_scope
 
 # ------------------------------------------------
 # * Helpers
@@ -70,7 +72,37 @@ def pvalue(root, wanted):
 
 
 def maybe_annotated(target):
-    return pexpr(sym("annotate") + target + FORM) | target >> (lambda x: (x, None))
+    return (
+       pexpr(sym("annotate") + target + FORM).named('`annotate` form') |
+       (target >> (lambda x: (x, None))))
+
+
+def dotted(name):
+    return Expression(map(Symbol, [".", *name.split(".")]))
+
+
+type_params = sym(":tp") + brackets(many(
+    maybe_annotated(SYM) | unpack("either", Symbol)))
+
+def digest_type_params(compiler, tp):
+    "Return a `type_params` attribute for `FunctionDef` etc."
+
+    if tp:
+        if not PY3_12:
+            compiler._syntax_error(tp, "`:tp` requires Python 3.12 or later")
+        tp, = tp
+    elif not PY3_12:
+        return {}
+
+    return dict(type_params = [
+        asty.TypeVarTuple(x[1], name = mangle(x[1]))
+            if is_unpack("iterable", x) else
+        asty.ParamSpec(x[1], name = mangle(x[1]))
+            if is_unpack("mapping", x) else
+        asty.TypeVar(x[0],
+               name = mangle(x[0]),
+               bound = x[1] and compiler.compile(x[1]).force_expr)
+        for x in (tp or [])])
 
 
 # ------------------------------------------------
@@ -79,23 +111,16 @@ def maybe_annotated(target):
 
 
 @pattern_macro("do", [many(FORM)])
-def compile_do(self, expr, root, body):
-    return self._compile_branch(body)
+def compile_do(compiler, expr, root, body):
+    return compiler._compile_branch(body)
 
 
-@pattern_macro(["eval-and-compile", "eval-when-compile"], [many(FORM)])
-def compile_eval_and_compile(compiler, expr, root, body):
+@pattern_macro(["eval-and-compile", "eval-when-compile", "do-mac"], [many(FORM)])
+def compile_eval_foo_compile(compiler, expr, root, body):
     new_expr = Expression([Symbol("do").replace(expr[0])]).replace(expr)
 
     try:
-        hy_eval(
-            new_expr + body,
-            compiler.module.__dict__,
-            compiler.module,
-            filename=compiler.filename,
-            source=compiler.source,
-            import_stdlib=False,
-        )
+        value = compiler.eval(new_expr + body)
     except HyInternalError:
         # Unexpected "meta" compilation errors need to be treated
         # like normal (unexpected) compilation errors at this level
@@ -110,8 +135,10 @@ def compile_eval_and_compile(compiler, expr, root, body):
         raise HyEvalError(str(e), compiler.filename, body, compiler.source)
 
     return (
-        compiler._compile_branch(body)
-        if mangle(root) == "eval_and_compile"
+        compiler.compile(as_model(value))
+        if root == "do-mac"
+        else compiler._compile_branch(body)
+        if root == "eval-and-compile"
         else Result()
     )
 
@@ -123,7 +150,7 @@ def compile_inline_python(compiler, expr, root, code):
     try:
         o = asty.parse(
             expr,
-            textwrap.dedent(code) if exec_mode else code,
+            textwrap.dedent(code) if exec_mode else "(" + code + "\n)",
             compiler.filename,
             "exec" if exec_mode else "eval",
         ).body
@@ -142,11 +169,9 @@ def compile_inline_python(compiler, expr, root, code):
 
 @pattern_macro(["quote", "quasiquote"], [FORM])
 def compile_quote(compiler, expr, root, arg):
-    level = Inf if root == "quote" else 0  # Only quasiquotes can unquote
-    stmts, _ = render_quoted_form(compiler, arg, level)
-    ret = compiler.compile(stmts)
-    return ret
-
+    return compiler.compile(render_quoted_form(compiler, arg,
+        level = Inf if root == "quote" else 0)[0])
+          # Only quasiquotes can unquote
 
 def render_quoted_form(compiler, form, level):
     """
@@ -164,24 +189,21 @@ def render_quoted_form(compiler, form, level):
 
     op = None
     if isinstance(form, Expression) and form and isinstance(form[0], Symbol):
-        op = unmangle(mangle(form[0]))
-    if level == 0 and op in ("unquote", "unquote-splice"):
-        if len(form) != 2:
-            raise HyTypeError(
-                "`%s' needs 1 argument, got %s" % op,
-                len(form) - 1,
-                compiler.filename,
-                form,
-                compiler.source,
-            )
-        return form[1], op == "unquote-splice"
-    elif op == "quasiquote":
-        level += 1
-    elif op in ("unquote", "unquote-splice"):
-        level -= 1
+        op = mangle(form[0]).replace('_', '-')
+        if op in ("unquote", "unquote-splice", "quasiquote"):
+            if level == 0 and op != "quasiquote":
+                if len(form) != 2:
+                    raise HyTypeError(
+                        "`%s' needs 1 argument, got %s" % op,
+                        len(form) - 1,
+                        compiler.filename,
+                        form,
+                        compiler.source,
+                    )
+                return form[1], op == "unquote-splice"
+            level += 1 if op == "quasiquote" else -1
 
-    hytype = form.__class__
-    name = ".".join((hytype.__module__, hytype.__name__))
+    name = form.__class__.__name__
     body = [form]
 
     if isinstance(form, Sequence):
@@ -189,6 +211,8 @@ def render_quoted_form(compiler, form, level):
         for x in form:
             f_contents, splice = render_quoted_form(compiler, x, level)
             if splice:
+                if is_unpack("iterable", f_contents):
+                    raise compiler._syntax_error(f_contents, "`unpack-iterable` is not allowed here")
                 f_contents = Expression(
                     [
                         Symbol("unpack-iterable"),
@@ -199,22 +223,21 @@ def render_quoted_form(compiler, form, level):
         body = [List(contents)]
 
         if isinstance(form, FString) and form.brackets is not None:
-            body.extend([Keyword("brackets"), form.brackets])
+            body.extend([Keyword("brackets"), String(form.brackets)])
         elif isinstance(form, FComponent) and form.conversion is not None:
             body.extend([Keyword("conversion"), String(form.conversion)])
 
     elif isinstance(form, Symbol):
-        body = [String(form)]
+        body = [String(form), Keyword("from_parser"), Symbol("True")]
 
     elif isinstance(form, Keyword):
-        body = [String(form.name)]
+        body = [String(form.name), Keyword("from_parser"), Symbol("True")]
 
     elif isinstance(form, String):
         if form.brackets is not None:
-            body.extend([Keyword("brackets"), form.brackets])
+            body.extend([Keyword("brackets"), String(form.brackets)])
 
-    ret = Expression([Symbol(name), *body]).replace(form)
-    return ret, False
+    return (Expression([dotted("hy.models." + name), *body]).replace(form), False)
 
 
 # ------------------------------------------------
@@ -222,9 +245,9 @@ def render_quoted_form(compiler, form, level):
 # ------------------------------------------------
 
 
-@pattern_macro(["not", "~"], [FORM], shadow=True)
+@pattern_macro(["not", "bnot"], [FORM], shadow=True)
 def compile_unary_operator(compiler, expr, root, arg):
-    ops = {"not": ast.Not, "~": ast.Invert}
+    ops = {"not": ast.Not, "bnot": ast.Invert}
     operand = compiler.compile(arg)
     return operand + asty.UnaryOp(expr, op=ops[root](), operand=operand.force_expr)
 
@@ -233,48 +256,71 @@ def compile_unary_operator(compiler, expr, root, arg):
 def compile_logical_or_and_and_operator(compiler, expr, operator, args):
     ops = {"and": (ast.And, True), "or": (ast.Or, None)}
     opnode, default = ops[operator]
-    osym = expr[0]
     if len(args) == 0:
-        return asty.Constant(osym, value=default)
-    elif len(args) == 1:
-        return compiler.compile(args[0])
-    ret = Result()
-    values = list(map(compiler.compile, args))
-    if any(value.stmts for value in values):
-        # Compile it to an if...else sequence
-        var = compiler.get_anon_var()
-        name = asty.Name(osym, id=var, ctx=ast.Store())
-        expr_name = asty.Name(osym, id=var, ctx=ast.Load())
-        temp_variables = [name, expr_name]
+        return asty.Constant(expr[0], value=default)
 
-        def make_assign(value, node=None):
-            positioned_name = asty.Name(node or osym, id=var, ctx=ast.Store())
-            temp_variables.append(positioned_name)
-            return asty.Assign(node or osym, targets=[positioned_name], value=value)
+    ret = None
+    var = None          # A temporary variable for assigning results to
+    assignment = None   # The current assignment to `var`
+    stmts = None        # The current statement list
+    can_append = False  # Whether the current expression is the compiled boolop
 
-        current = root = []
-        for i, value in enumerate(values):
-            if value.stmts:
-                node = value.stmts[0]
-                current.extend(value.stmts)
+    def put(node, value):
+        # Save the result of the operation so far to `var`.
+        nonlocal var, assignment, can_append
+        if var is None:
+            var = compiler.get_anon_var()
+        name = asty.Name(node, id=var, ctx=ast.Store())
+        ret.temp_variables.append(name)
+        can_append = False
+        return (assignment := asty.Assign(node, targets=[name], value=value))
+
+    def get(node):
+        # Get the value of `var`, creating it if necessary.
+        if var is None:
+            stmts.append(put(node, ret.force_expr))
+        name = asty.Name(node, id=var, ctx=ast.Load())
+        ret.temp_variables.append(name)
+        return name
+
+    for value in map(compiler.compile, args):
+        if ret is None:
+            # This is the first iteration. Don't actually introduce a
+            # `BoolOp` yet; the unary case doesn't need it.
+            ret = value
+            stmts = ret.stmts
+            can_append = False
+        elif value.stmts:
+            # Save the result of the statements to the temporary
+            # variable. Use an `if` statement to implement
+            # short-circuiting from this point.
+            node = value.stmts[0]
+            cond = get(node)
+            if operator == "or":
+                # Negate the conditional.
+                cond = asty.UnaryOp(node, op=ast.Not(), operand=cond)
+            branch = asty.If(node, test=cond, body=value.stmts, orelse=[])
+            stmts.append(branch)
+            stmts = branch.body
+            stmts.append(put(node, value.force_expr))
+        else:
+            # Add this value to the current `BoolOp`, or create a new
+            # one if we don't have one.
+            value = value.force_expr
+            def enbool(expr):
+                nonlocal can_append
+                if can_append:
+                    expr.values.append(value)
+                    return expr
+                can_append = True
+                return asty.BoolOp(expr, op=opnode(), values=[expr, value])
+            if assignment:
+                assignment.value = enbool(assignment.value)
             else:
-                node = value.expr
-            current.append(make_assign(value.force_expr, value.force_expr))
-            if i == len(values) - 1:
-                # Skip a redundant 'if'.
-                break
-            if operator == "and":
-                cond = expr_name
-            elif operator == "or":
-                cond = asty.UnaryOp(node, op=ast.Not(), operand=expr_name)
-            current.append(asty.If(node, test=cond, body=[], orelse=[]))
-            current = current[-1].body
-        ret = sum(root, ret)
-        ret += Result(expr=expr_name, temp_variables=temp_variables)
-    else:
-        ret += asty.BoolOp(
-            osym, op=opnode(), values=[value.force_expr for value in values]
-        )
+                ret.expr = enbool(ret.expr)
+
+    if var:
+        ret.expr = get(expr)
     return ret
 
 
@@ -348,7 +394,7 @@ m_ops = {
 def compile_maths_expression(compiler, expr, root, args):
     if len(args) == 0:
         # Return the identity element for this operator.
-        return asty.Num(expr, n=({"+": 0, "|": 0, "*": 1}[root]))
+        return asty.Constant(expr, value=({"+": 0, "|": 0, "*": 1}[root]))
 
     if len(args) == 1:
         if root == "/":
@@ -446,7 +492,7 @@ def compile_assign(
 
     ld_name = compiler.compile(name)
 
-    if result.temp_variables and isinstance(name, Symbol) and "." not in name:
+    if result.temp_variables and isinstance(name, Symbol):
         result.rename(compiler, compiler._nonconst(name))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
@@ -480,17 +526,23 @@ def compile_assign(
     return result
 
 
-@pattern_macro(["global", "nonlocal"], [oneplus(SYM)])
+@pattern_macro(["global", "nonlocal"], [many(SYM)])
 def compile_global_or_nonlocal(compiler, expr, root, syms):
-    node = asty.Global if root == "global" else asty.Nonlocal
-    ret = node(expr, names=[mangle(s) for s in syms])
+    if not syms:
+        return asty.Pass(expr)
+
+    names = [mangle(s) for s in syms]
+    if root == "global":
+        ret = asty.Global(expr, names=names)
+    else:
+        ret = OuterVar(expr, compiler.scope, names)
 
     try:
         compiler.scope.define_nonlocal(ret, root)
     except SyntaxError as e:
         raise compiler._syntax_error(expr, e.msg)
 
-    return ret if ret.names else Result()
+    return ret if syms else Result()
 
 
 @pattern_macro("del", [many(FORM)])
@@ -694,9 +746,9 @@ loopers = many(
 )
 
 
-@pattern_macro(
-    ["for"], [brackets(loopers), many(notpexpr("else")) + maybe(dolike("else"))]
-)
+@pattern_macro(["for"], [
+    brackets(loopers, name = 'square-bracketed loop clauses'),
+    many(notpexpr("else")) + maybe(dolike("else"))])
 @pattern_macro(["lfor", "sfor", "gfor"], [loopers, FORM])
 @pattern_macro(["dfor"], [loopers, finished])
 # Here `finished` is a hack replacement for FORM + FORM:
@@ -712,7 +764,8 @@ def compile_comprehension(compiler, expr, root, parts, final):
     is_for = root == "for"
 
     ctx = nullcontext() if is_for else compiler.scope.create(ScopeGen)
-    with ctx as scope:
+    mac_con = nullcontext() if is_for else compiler.local_state()
+    with mac_con, ctx as scope:
 
         # Compile the parts.
         if is_for:
@@ -887,6 +940,7 @@ def compile_comprehension(compiler, expr, root, parts, final):
                 ),
                 body=stmts + f(parts).stmts,
                 decorator_list=[],
+                **({"type_params": []} if PY3_12 else {}),
             )
             # Immediately call the new function. Unless the user asked
             # for a generator, wrap the call in `[].__class__(...)` or
@@ -1078,7 +1132,8 @@ _pattern.define(
         | pexpr(keepsym("|"), many(_pattern))
         | braces(many(LITERAL + _pattern), maybe(pvalue("unpack-mapping", SYM)))
         | pexpr(
-            notsym(".", "|", "unpack-mapping", "unpack-iterable"),
+            pexpr(keepsym("."), oneplus(SYM))
+            | notsym(".", "|", "unpack-mapping", "unpack-iterable"),
             many(parse_if(lambda x: not isinstance(x, Keyword), _pattern)),
             many(KEYWORD + _pattern),
         )
@@ -1124,6 +1179,7 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
                     ),
                     body=guard.stmts + [asty.Return(guard.expr, value=guard.expr)],
                     decorator_list=[],
+                    **({"type_params": []} if PY3_12 else {}),
                 )
                 lifted_if_defs.append(guardret)
                 guard = Result(expr=asty.parse(guard, f"{fname}()").body[0].value)
@@ -1169,11 +1225,7 @@ def compile_pattern(compiler, pattern):
             value,
             value=compiler.compile(value).force_expr.value,
         )
-    elif (
-        isinstance(value, (String, Integer, Float, Complex, Bytes))
-        or isinstance(value, Symbol)
-        and "." in value
-    ):
+    elif isinstance(value, (String, Integer, Float, Complex, Bytes)):
         return asty.MatchValue(
             value,
             value=compiler.compile(value).expr,
@@ -1217,11 +1269,15 @@ def compile_pattern(compiler, pattern):
             )
         )
     elif isinstance(value, Expression):
-        root, args, kwargs = value
+        head, args, kwargs = value
         keywords, values = zip(*kwargs) if kwargs else ([], [])
         return asty.MatchClass(
             value,
-            cls=compiler.scope.access(asty.Name(root, id=mangle(root), ctx=ast.Load())),
+            cls=compiler.compile(
+              # `head` could be a symbol or a dotted form.
+                (head[:1] + head[1]).replace(head)
+                if type(head) is Expression
+                else head).expr,
             patterns=[compile_pattern(compiler, v) for v in args],
             kwd_attrs=[kwd.name for kwd in keywords],
             kwd_patterns=[compile_pattern(compiler, value) for value in values],
@@ -1229,7 +1285,7 @@ def compile_pattern(compiler, pattern):
     elif isinstance(value, Keyword):
         return asty.MatchClass(
             value,
-            cls=compiler.compile(Symbol("hy.models.Keyword")).expr,
+            cls=compiler.compile(dotted("hy.models.Keyword")).expr,
             patterns=[
                 asty.MatchValue(value, value=asty.Constant(value, value=value.name))
             ],
@@ -1267,10 +1323,10 @@ def compile_raise_expression(compiler, expr, root, exc, cause):
 @pattern_macro(
     "try",
     [
-        many(notpexpr("except", "else", "finally")),
+        many(notpexpr("except", "except*", "else", "finally")),
         many(
             pexpr(
-                sym("except"),
+                keepsym("except") | keepsym("except*"),
                 brackets() | brackets(FORM) | brackets(SYM, FORM),
                 many(FORM),
             )
@@ -1280,15 +1336,72 @@ def compile_raise_expression(compiler, expr, root, exc, cause):
     ],
 )
 def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbody):
+    if orelse is not None and not catchers:
+        # Python forbids `else` when there are no `except` clauses.
+        # But we can get the same effect by appending the `else` forms
+        # to the body.
+        body += list(orelse)
+        orelse = None
     body = compiler._compile_branch(body)
+    if not (catchers or finalbody):
+        # Python forbids this, so just return the body, per `do`.
+        return body
 
     return_var = asty.Name(expr, id=mangle(compiler.get_anon_var()), ctx=ast.Store())
 
     handler_results = Result()
     handlers = []
+    except_syms_seen = set()
     for catcher in catchers:
-        handler_results += compile_catch_expression(
-            compiler, catcher, return_var, *catcher
+        # exceptions catch should be either:
+        # [[list of exceptions]]
+        # or
+        # [variable [list of exceptions]]
+        # or
+        # [variable exception]
+        # or
+        # [exception]
+        # or
+        # []
+        except_sym, exceptions, ebody = catcher
+        if not PY3_11 and except_sym == Symbol("except*"):
+            hy_compiler._syntax_error(except_sym, "`{}` requires Python 3.11 or later")
+        except_syms_seen.add(str(except_sym))
+        if len(except_syms_seen) > 1:
+            raise compiler._syntax_error(
+                except_sym, "cannot have both `except` and `except*` on the same `try`"
+            )
+
+        name = None
+        if len(exceptions) == 2:
+            name = mangle(compiler._nonconst(exceptions[0]))
+
+        exceptions_list = exceptions[-1] if exceptions else List()
+        if isinstance(exceptions_list, List):
+            if len(exceptions_list):
+                # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
+                elts, types, _ = compiler._compile_collect(exceptions_list)
+                types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
+            else:
+                # [] → all exceptions caught
+                types = Result()
+        else:
+            types = compiler.compile(exceptions_list)
+
+        # Create a "fake" scope for the exception variable.
+        # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
+        with compiler.scope.create(ScopeLet) as scope:
+            if name:
+                scope.add(name, name)
+            ebody = compiler._compile_branch(ebody)
+        ebody += asty.Assign(catcher, targets=[return_var], value=ebody.force_expr)
+        ebody += ebody.expr_as_stmt()
+
+        handler_results += types + asty.ExceptHandler(
+            catcher,
+            type=types.expr,
+            name=name,
+            body=ebody.stmts or [asty.Pass(catcher)],
         )
         handlers.append(handler_results.stmts.pop())
 
@@ -1307,15 +1420,6 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         finalbody += finalbody.expr_as_stmt()
         finalbody = finalbody.stmts
 
-    # Using (else) without (except) is verboten!
-    if orelse and not handlers:
-        raise compiler._syntax_error(expr, "`try' cannot have `else' without `except'")
-    # Likewise a bare (try) or (try BODY).
-    if not (handlers or finalbody):
-        raise compiler._syntax_error(
-            expr, "`try' must have an `except' or `finally' clause"
-        )
-
     returnable = Result(
         expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),
         temp_variables=[return_var],
@@ -1327,50 +1431,10 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
     )
     body = body.stmts or [asty.Pass(expr)]
 
-    x = asty.Try(expr, body=body, handlers=handlers, orelse=orelse, finalbody=finalbody)
-    return handler_results + x + returnable
-
-
-def compile_catch_expression(compiler, expr, var, exceptions, body):
-    # exceptions catch should be either:
-    # [[list of exceptions]]
-    # or
-    # [variable [list of exceptions]]
-    # or
-    # [variable exception]
-    # or
-    # [exception]
-    # or
-    # []
-
-    name = None
-    if len(exceptions) == 2:
-        name = mangle(compiler._nonconst(exceptions[0]))
-
-    exceptions_list = exceptions[-1] if exceptions else List()
-    if isinstance(exceptions_list, List):
-        if len(exceptions_list):
-            # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
-            elts, types, _ = compiler._compile_collect(exceptions_list)
-            types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
-        else:
-            # [] → all exceptions caught
-            types = Result()
-    else:
-        types = compiler.compile(exceptions_list)
-
-    # Create a "fake" scope for the exception variable.
-    # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
-    with compiler.scope.create(ScopeLet) as scope:
-        if name:
-            scope.add(name, name)
-        body = compiler._compile_branch(body)
-    body += asty.Assign(expr, targets=[var], value=body.force_expr)
-    body += body.expr_as_stmt()
-
-    return types + asty.ExceptHandler(
-        expr, type=types.expr, name=name, body=body.stmts or [asty.Pass(expr)]
+    x = (asty.TryStar if "except*" in except_syms_seen else asty.Try)(
+        expr, body=body, handlers=handlers, orelse=orelse, finalbody=finalbody
     )
+    return handler_results + x + returnable
 
 
 # ------------------------------------------------
@@ -1390,8 +1454,10 @@ lambda_list = brackets(
 )
 
 
-@pattern_macro(["fn", "fn/a"], [maybe_annotated(lambda_list), many(FORM)])
-def compile_function_lambda(compiler, expr, root, params, body):
+@pattern_macro(["fn", "fn/a"],
+    [maybe(type_params), maybe_annotated(lambda_list), many(FORM)])
+def compile_function_lambda(compiler, expr, root, tp, params, body):
+    is_async = root == "fn/a"
     params, returns = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
@@ -1399,17 +1465,19 @@ def compile_function_lambda(compiler, expr, root, params, body):
         for param in (posonly or []) + args + kwonly + [rest, kwargs]
     )
     args, ret = compile_lambda_list(compiler, params)
-    with compiler.scope.create(ScopeFn, args):
+    with compiler.local_state(), compiler.scope.create(ScopeFn, args, is_async) as scope:
         body = compiler._compile_branch(body)
 
     # Compile to lambda if we can
-    if not has_annotations and not body.stmts and root != "fn/a":
+    if not (has_annotations or tp or body.stmts or is_async):
         return ret + asty.Lambda(expr, args=args, body=body.force_expr)
 
     # Otherwise create a standard function
-    node = asty.AsyncFunctionDef if root == "fn/a" else asty.FunctionDef
+    node = asty.AsyncFunctionDef if is_async else asty.FunctionDef
     name = compiler.get_anon_var()
-    ret += compile_function_node(compiler, expr, node, [], name, args, returns, body)
+    ret += compile_function_node(
+        compiler, expr, node, [], tp, name, args, returns, body, scope
+    )
 
     # return its name as the final expr
     return ret + Result(expr=ret.temp_variables[0])
@@ -1417,29 +1485,33 @@ def compile_function_lambda(compiler, expr, root, params, body):
 
 @pattern_macro(
     ["defn", "defn/a"],
-    [maybe(brackets(many(FORM))), maybe_annotated(SYM), lambda_list, many(FORM)],
+    [maybe(brackets(many(FORM))), maybe(type_params), maybe_annotated(SYM), lambda_list, many(FORM)],
 )
-def compile_function_def(compiler, expr, root, decorators, name, params, body):
+def compile_function_def(compiler, expr, root, decorators, tp, name, params, body):
+    is_async = root == "defn/a"
     name, returns = name
-    node = asty.FunctionDef if root == "defn" else asty.AsyncFunctionDef
+    node = asty.AsyncFunctionDef if is_async else asty.FunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
     args, ret2 = compile_lambda_list(compiler, params)
     ret += ret2
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
-    with compiler.scope.create(ScopeFn, args):
+    with compiler.local_state(), compiler.scope.create(ScopeFn, args, is_async) as scope:
         body = compiler._compile_branch(body)
 
     return ret + compile_function_node(
-        compiler, expr, node, decorators, name, args, returns, body
+        compiler, expr, node, decorators, tp, name, args, returns, body, scope
     )
 
 
-def compile_function_node(compiler, expr, node, decorators, name, args, returns, body):
+def compile_function_node(compiler, expr, node, decorators, tp, name, args, returns, body, scope):
     ret = Result()
 
     if body.expr:
-        body += asty.Return(body.expr, value=body.expr)
+        # implicitly return final expression,
+        # except for async generators
+        enode = asty.Expr if scope.is_async and scope.has_yield else asty.Return
+        body += enode(body.expr, value=body.expr)
 
     ret += node(
         expr,
@@ -1448,6 +1520,7 @@ def compile_function_node(compiler, expr, node, decorators, name, args, returns,
         body=body.stmts or [asty.Pass(expr)],
         decorator_list=decorators,
         returns=compiler.compile(returns).force_expr if returns is not None else None,
+        **digest_type_params(compiler, tp),
     )
 
     ast_name = asty.Name(expr, id=name, ctx=ast.Load())
@@ -1467,34 +1540,27 @@ def compile_function_node(compiler, expr, node, decorators, name, args, returns,
     ],
 )
 def compile_macro_def(compiler, expr, root, name, params, body):
-    if "." in name:
-        raise compiler._syntax_error(name, "periods are not allowed in macro names")
+    def E(*x): return Expression(x)
+    S = Symbol
 
-    ret = Result() + compiler.compile(
-        Expression(
-            [
-                Symbol("eval-and-compile"),
-                Expression(
-                    [
-                        Expression(
-                            [
-                                Symbol("hy.macros.macro"),
-                                str(name),
-                            ]
-                        ),
-                        Expression(
-                            [
-                                Symbol("fn"),
-                                List([Symbol("&compiler")] + list(expr[2])),
-                                *body,
-                            ]
-                        ),
-                    ]
-                ),
-            ]
-        ).replace(expr)
-    )
-
+    compiler.warn_on_core_shadow(name)
+    fn_def = E(S("fn"), List(expr[2]), *body).replace(expr)
+    if compiler.is_in_local_state():
+        # We're in a local scope, so define the new macro locally.
+        state = compiler.local_state_stack[-1]
+        # Produce code that will set the macro to a local variable.
+        ret = compiler.compile(E(
+            S("setv"),
+            S(local_macro_name(name)),
+            fn_def).replace(expr))
+        # Also evaluate the macro definition now, and put it in
+        # state['macros'].
+        state['macros'][mangle(name)] = compiler.eval(fn_def)
+        return ret + ret.expr_as_stmt()
+    # Otherwise, define the macro module-wide.
+    ret = compiler.compile(E(S("eval-and-compile"), E(
+        E(dotted("hy.macros.macro"), str(name)),
+        fn_def)).replace(expr))
     return ret + ret.expr_as_stmt()
 
 
@@ -1608,6 +1674,8 @@ def compile_return(compiler, expr, root, arg):
 
 @pattern_macro("yield", [maybe(FORM)])
 def compile_yield_expression(compiler, expr, root, arg):
+    if is_inside_function_scope(compiler.scope):
+        nearest_python_scope(compiler.scope).has_yield = True
     ret = Result()
     if arg is not None:
         ret += compiler.compile(arg)
@@ -1616,6 +1684,8 @@ def compile_yield_expression(compiler, expr, root, arg):
 
 @pattern_macro(["yield-from", "await"], [FORM])
 def compile_yield_from_or_await_expression(compiler, expr, root, arg):
+    if root == "yield-from" and is_inside_function_scope(compiler.scope):
+        nearest_python_scope(compiler.scope).has_yield = True
     ret = Result() + compiler.compile(arg)
     node = asty.YieldFrom if root == "yield-from" else asty.Await
     return ret + node(expr, value=ret.force_expr)
@@ -1630,11 +1700,12 @@ def compile_yield_from_or_await_expression(compiler, expr, root, arg):
     "defclass",
     [
         maybe(brackets(many(FORM))),
+        maybe(type_params),
         SYM,
         maybe(brackets(many(FORM)) + maybe(STR) + many(FORM)),
     ],
 )
-def compile_class_expression(compiler, expr, root, decorators, name, rest):
+def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
     base_list, docstring, body = rest or ([[]], None, [])
 
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
@@ -1651,7 +1722,7 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
     name = mangle(compiler._nonconst(name))
     compiler.scope.define(name)
 
-    with compiler.scope.create(ScopeFn):
+    with compiler.local_state(), compiler.scope.create(ScopeFn):
         e = compiler._compile_branch(body)
         bodyr += e + e.expr_as_stmt()
 
@@ -1664,6 +1735,7 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
         kwargs=None,
         bases=bases_expr,
         body=bodyr.stmts or [asty.Pass(expr)],
+        **digest_type_params(compiler, tp)
     )
 
 
@@ -1671,14 +1743,26 @@ def compile_class_expression(compiler, expr, root, decorators, name, rest):
 # * `import` and `require`
 # ------------------------------------------------
 
+module_name_pattern = SYM | pexpr(
+    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")) + oneplus(SYM)
+)
 
-def importlike(*name_types):
-    name = some(lambda x: isinstance(x, name_types) and "." not in x)
+
+def module_name_str(x):
     return (
-        keepsym("*")
-        | (keepsym(":as") + name)
-        | brackets(many(name + maybe(sym(":as") + name)))
+        ".".join(map(mangle, x[1][x[1][0] == Symbol("None") :]))
+        if isinstance(x, Expression)
+        else str(x)
+        if isinstance(x, Symbol) and not x.strip(".")
+        else mangle(x)
     )
+
+
+importlike = (
+    keepsym("*")
+    | (keepsym(":as") + SYM)
+    | brackets(many(SYM + maybe(sym(":as") + SYM)))
+)
 
 
 def assignment_shape(module, rest):
@@ -1686,13 +1770,13 @@ def assignment_shape(module, rest):
     assignments = "EXPORTS"
     if rest is None:
         # (import foo)
-        prefix = module
+        prefix = module_name_str(module)
     elif rest == Symbol("*"):
         # (import foo *)
         pass
     elif rest[0] == Keyword("as"):
         # (import foo :as bar)
-        prefix = rest[1]
+        prefix = mangle(rest[1])
     else:
         # (import foo [bar baz :as MyBaz bing])
         assignments = [(k, v or k) for k, v in rest[0]]
@@ -1703,11 +1787,11 @@ def assignment_shape(module, rest):
     "require",
     [
         many(
-            SYM
+            module_name_pattern
             + times(
                 0,
                 2,
-                (maybe(sym(":macros")) + importlike(Symbol))
+                (maybe(sym(":macros")) + importlike)
                 | (keepsym(":readers") + (keepsym("*") | brackets(many(SYM)))),
             )
         )
@@ -1731,14 +1815,37 @@ def compile_require(compiler, expr, root, entries):
         readers = readers and readers[0]
 
         prefix, assignments = assignment_shape(module, rest)
-        ast_module = mangle(module)
+        module_name = module_name_str(module)
+        if isinstance(module, Expression) and module[1][0] == Symbol("None"):
+            # Prepend leading dots to `module_name`.
+            module_name = str(module[0]) + module_name
 
         # we don't want to import all macros as prefixed if we're specifically
         # importing readers but not macros
         # (require a-module :readers ["!"])
-        if (rest or not readers) and require(
-            ast_module, compiler.module, assignments=assignments, prefix=prefix
-        ):
+        if (rest or not readers) and compiler.is_in_local_state():
+            reqs = require(
+                module_name,
+                compiler.local_state_stack[-1]['macros'],
+                assignments = assignments,
+                prefix = prefix,
+                compiler = compiler)
+            ret += compiler.compile(Expression([
+                Symbol("setv"),
+                List([Symbol(local_macro_name(m)) for m, _, _ in reqs]),
+                Expression([
+                    dotted("hy.macros.require_vals"),
+                    String(module_name),
+                    Dict(),
+                    Keyword("assignments"),
+                    List([(String(m), String(m)) for _, m, _ in reqs])])]).replace(expr))
+            ret += ret.expr_as_stmt()
+        elif (rest or not readers) and require(
+                module_name,
+                compiler.module,
+                assignments = assignments,
+                prefix = prefix,
+                compiler = compiler):
             # Actually calling `require` is necessary for macro expansions
             # occurring during compilation.
             # The `require` we're creating in AST is the same as above, but used at
@@ -1746,14 +1853,16 @@ def compile_require(compiler, expr, root, entries):
             ret += compiler.compile(
                 Expression(
                     [
-                        Symbol("hy.macros.require"),
-                        String(ast_module),
+                        dotted("hy.macros.require"),
+                        String(module_name),
                         Symbol("None"),
+                        Keyword("target_module_name"),
+                        String(compiler.module.__name__),
                         Keyword("assignments"),
                         (
                             String("EXPORTS")
                             if assignments == "EXPORTS"
-                            else [[String(k), String(v)] for k, v in assignments]
+                            else List([List([String(k), String(v)]) for k, v in assignments])
                         ),
                         Keyword("prefix"),
                         String(prefix),
@@ -1766,24 +1875,24 @@ def compile_require(compiler, expr, root, entries):
             reader_assignments = (
                 "ALL"
                 if readers == Symbol("*")
-                else ["#" + reader for reader in readers[0]]
+                else [str(reader) for reader in readers[0]]
             )
-            if require_reader(ast_module, compiler.module, reader_assignments):
+            if require_reader(module_name, compiler.module, reader_assignments):
                 ret += compiler.compile(
                     mkexpr(
                         "do",
                         mkexpr(
-                            "hy.macros.require-reader",
-                            String(ast_module),
+                            dotted("hy.macros.require-reader"),
+                            String(module_name),
                             "None",
                             [reader_assignments],
                         ),
                         mkexpr(
                             "eval-when-compile",
                             mkexpr(
-                                "hy.macros.enable-readers",
+                                dotted("hy.macros.enable-readers"),
                                 "None",
-                                "hy.&reader",
+                                mkexpr(dotted("hy.reader.HyReader.current-reader")),
                                 [reader_assignments],
                             ),
                         ),
@@ -1793,31 +1902,25 @@ def compile_require(compiler, expr, root, entries):
     return ret
 
 
-@pattern_macro("import", [many(SYM + maybe(importlike(Symbol)))])
+@pattern_macro("import", [many(module_name_pattern + maybe(importlike))])
 def compile_import(compiler, expr, root, entries):
     ret = Result()
 
     for entry in entries:
-        assignments = "EXPORTS"
-        prefix = ""
-
         module, _ = entry
         prefix, assignments = assignment_shape(*entry)
-        ast_module = mangle(module)
-
-        module_name = ast_module.lstrip(".")
-        level = len(ast_module) - len(module_name)
+        module_name = module_name_str(module)
         if assignments == "EXPORTS" and prefix == "":
             node = asty.ImportFrom
             names = [asty.alias(module, name="*", asname=None)]
         elif assignments == "EXPORTS":
-            compiler.scope.define(mangle(prefix))
+            compiler.scope.define(prefix)
             node = asty.Import
             names = [
                 asty.alias(
                     module,
-                    name=ast_module,
-                    asname=mangle(prefix) if prefix != module else None,
+                    name=module_name,
+                    asname=prefix if prefix != module_name else None,
                 )
             ]
         else:
@@ -1830,7 +1933,18 @@ def compile_import(compiler, expr, root, entries):
                         module, name=mangle(k), asname=None if v == k else mangle(v)
                     )
                 )
-        ret += node(expr, module=module_name or None, names=names, level=level)
+        ret += node(
+            expr,
+            module=module_name if module_name and module_name.strip(".") else None,
+            names=names,
+            level=(
+                len(module[0])
+                if isinstance(module, Expression) and module[1][0] == Symbol("None")
+                else len(module)
+                if isinstance(module, Symbol) and not module.strip(".")
+                else 0
+            ),
+        )
 
     return ret
 
@@ -1885,8 +1999,28 @@ def compile_let(compiler, expr, root, bindings, body):
         return res + compiler.compile(mkexpr("do", *body).replace(expr))
 
 
+@pattern_macro(((3, 12), "deftype"), [maybe(type_params), SYM, FORM])
+def compile_deftype(compiler, expr, root, tp, name, value):
+    return asty.TypeAlias(expr,
+       name = asty.Name(name, id = mangle(name), ctx = ast.Store()),
+       value = compiler.compile(value).force_expr,
+        **digest_type_params(compiler, tp))
+
+
+@pattern_macro("pragma", [many(KEYWORD + FORM)])
+def compile_pragma(compiler, expr, root, kwargs):
+    for kw, value in kwargs:
+        if kw == Keyword("warn-on-core-shadow"):
+            compiler.local_state_stack[-1]['warn_on_core_shadow'] = (
+                bool(compiler.eval(value)))
+        else:
+            raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
+    return Result()
+
+
 @pattern_macro(
-    "unquote unquote-splice unpack-mapping except finally else".split(), [many(FORM)]
+    "unquote unquote-splice unpack-mapping except except* finally else".split(),
+    [many(FORM)],
 )
 def compile_placeholder(compiler, expr, root, body):
     raise ValueError(f"`{root}` is not allowed here")

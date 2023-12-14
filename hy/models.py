@@ -4,13 +4,10 @@ from functools import reduce
 from itertools import groupby
 from math import isinf, isnan
 
-from colorama import Fore
-
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
 
 PRETTY = True
-COLORED = _initialize_env_var("HY_COLORED_AST_OBJECTS", False)
 
 
 @contextmanager
@@ -27,18 +24,6 @@ def pretty(pretty=True):
         PRETTY = old
 
 
-class _ColoredModel:
-    """
-    Mixin that provides a helper function for models that have color.
-    """
-
-    def _colored(self, text):
-        if COLORED:
-            return self.color + text + Fore.RESET
-        else:
-            return text
-
-
 class Object:
     "An abstract base class for Hy models, which represent forms."
 
@@ -49,7 +34,7 @@ class Object:
     `end_column` 3.
     """
 
-    properties = ["module", "_start_line", "_end_line", "_start_column", "_end_column"]
+    properties = ["_start_line", "_end_line", "_start_column", "_end_column"]
 
     def replace(self, other, recursive=False):
         if isinstance(other, Object):
@@ -218,7 +203,7 @@ class Symbol(Object, str):
     """
     Represents a symbol.
 
-    Symbol objects behave like strings under operations like :hy:func:`get`,
+    Symbol objects behave like strings under operations like :hy:func:`get <hy.pyops.get>`,
     :func:`len`, and :class:`bool`; in particular, ``(bool (hy.models.Symbol "False"))`` is true. Use :hy:func:`hy.eval` to evaluate a symbol.
     """
 
@@ -227,9 +212,9 @@ class Symbol(Object, str):
         if not from_parser:
             # Check that the symbol is syntactically legal.
             # import here to prevent circular imports.
-            from hy.reader.hy_reader import symbol_like
+            from hy.reader.hy_reader import as_identifier
 
-            sym = symbol_like(s)
+            sym = as_identifier(s)
             if not isinstance(sym, Symbol):
                 raise ValueError(f"Syntactically illegal symbol: {s!r}")
             return sym
@@ -237,7 +222,7 @@ class Symbol(Object, str):
 
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
-_wrappers[type(None)] = lambda foo: Symbol("None")
+_wrappers[type(None)] = lambda _: Symbol("None")
 
 
 class Keyword(Object):
@@ -298,8 +283,8 @@ class Keyword(Object):
         :class:`hy.models.Keyword` objects).
 
         The optional second parameter is a default value; if provided, any
-        :class:`KeyError` from :hy:func:`get` will be caught, and the default returned
-        instead."""
+        :class:`KeyError` from :hy:func:`get <hy.pyops.get>` will be caught,
+        and the default returned instead."""
 
         from hy.reader import mangle
 
@@ -327,21 +312,19 @@ class Integer(Object, int):
     """
 
     def __new__(cls, number, *args, **kwargs):
-        if isinstance(number, str):
-            number = strip_digit_separators(number)
-            bases = {"0o": 8, "0b": 2}
-            for leader, base in bases.items():
-                if number.startswith(leader):
-                    # We've got a string, known leader, set base.
-                    number = int(number, base=base)
-                    break
-            else:
-                # We've got a string, no known leader; base 10.
-                number = int(number, base=10)
-        else:
-            # We've got a non-string; convert straight.
-            number = int(number)
-        return super().__new__(cls, number)
+        return super().__new__(
+            cls,
+            int(
+                strip_digit_separators(number),
+                **(
+                    {"base": 0}
+                    if isinstance(number, str) and not number.isdigit()
+                    # `not number.isdigit()` is necessary because `base = 0`
+                    # fails on decimal integers starting with a leading 0.
+                    else {}
+                ),
+            ),
+        )
 
 
 _wrappers[int] = Integer
@@ -378,7 +361,7 @@ class Complex(Object, complex):
         if isinstance(real, str):
             value = super().__new__(cls, strip_digit_separators(real))
             p1, _, p2 = real.lstrip("+-").replace("-", "+").partition("+")
-            check_inf_nan_cap(p1, value.imag if "j" in p1 else value.real)
+            check_inf_nan_cap(p1, value.imag if "j" in p1.lower() else value.real)
             if p2:
                 check_inf_nan_cap(p2, value.imag)
             return value
@@ -388,7 +371,7 @@ class Complex(Object, complex):
 _wrappers[complex] = Complex
 
 
-class Sequence(Object, tuple, _ColoredModel):
+class Sequence(Object, tuple):
     """
     An abstract base class for sequence-like forms. Sequence models can be operated on
     like tuples: you can iterate over them, index into them, and append them with ``+``,
@@ -425,8 +408,6 @@ class Sequence(Object, tuple, _ColoredModel):
 
         return ret
 
-    color = None
-
     def __repr__(self):
         return self._pretty_str() if PRETTY else super().__repr__()
 
@@ -435,17 +416,12 @@ class Sequence(Object, tuple, _ColoredModel):
 
     def _pretty_str(self):
         with pretty():
-            if self:
-                return self._colored(
-                    "hy.models.{}{}\n  {}{}".format(
-                        self._colored(self.__class__.__name__),
-                        self._colored("(["),
-                        self._colored(",\n  ").join(map(repr_indent, self)),
-                        self._colored("])"),
-                    )
-                )
-            else:
-                return self._colored(f"hy.models.{self.__class__.__name__}()")
+            return "hy.models.{}({})".format(
+                self.__class__.__name__,
+                "[\n  {}]".format(",\n  ".join(map(repr_indent, self)))
+                    if self
+                    else ""
+            )
 
 
 class FComponent(Sequence):
@@ -534,7 +510,7 @@ class List(Sequence):
     clauses.
     """
 
-    color = Fore.CYAN
+    pass
 
 
 def recwrap(f):
@@ -556,15 +532,13 @@ _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
 
 
-class Dict(Sequence, _ColoredModel):
+class Dict(Sequence):
     """
     Represents a literal :class:`dict`. ``keys``, ``values``, and ``items`` methods are
     provided, each returning a list, although this model type does none of the
     normalization of a real :class:`dict`. In the case of an odd number of child models,
-    ``keys`` returns the last child whereas ``values`` and ``items`` ignores it.
+    ``keys`` returns the last child whereas ``values`` and ``items`` ignore it.
     """
-
-    color = Fore.GREEN
 
     def _pretty_str(self):
         with pretty():
@@ -573,21 +547,19 @@ class Dict(Sequence, _ColoredModel):
                 for k, v in zip(self[::2], self[1::2]):
                     k, v = repr_indent(k), repr_indent(v)
                     pairs.append(
-                        ("{0}{c}\n  {1}\n  " if "\n" in k + v else "{0}{c} {1}").format(
-                            k, v, c=self._colored(",")
+                        ("{0},\n  {1}\n  " if "\n" in k + v else "{0}, {1}").format(
+                            k, v
                         )
                     )
                 if len(self) % 2 == 1:
                     pairs.append(
-                        "{}  {}\n".format(repr_indent(self[-1]), self._colored("# odd"))
+                        "{}  # odd\n".format(repr_indent(self[-1]))
                     )
-                return "{}\n  {}{}".format(
-                    self._colored("hy.models.Dict(["),
-                    "{c}\n  ".format(c=self._colored(",")).join(pairs),
-                    self._colored("])"),
+                return "hy.models.Dict([\n  {}])".format(
+                    ",\n  ".join(pairs),
                 )
             else:
-                return self._colored("hy.models.Dict()")
+                return "hy.models.Dict()"
 
     def keys(self):
         return list(self[0::2])
@@ -616,7 +588,7 @@ class Expression(Sequence):
     Represents a parenthesized Hy expression.
     """
 
-    color = Fore.YELLOW
+    pass
 
 
 _wrappers[Expression] = recwrap(Expression)
@@ -628,7 +600,7 @@ class Set(Sequence):
     and the order of elements.
     """
 
-    color = Fore.RED
+    pass
 
 
 _wrappers[Set] = recwrap(Set)
@@ -640,7 +612,7 @@ class Tuple(Sequence):
     Represents a literal :class:`tuple`.
     """
 
-    color = Fore.BLUE
+    pass
 
 
 _wrappers[Tuple] = recwrap(Tuple)

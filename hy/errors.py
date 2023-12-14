@@ -1,18 +1,14 @@
 import os
-import pkgutil
 import re
 import sys
 import traceback
+import importlib.util
 from contextlib import contextmanager
-from functools import reduce
-
-from colorama import Fore
 
 from hy import _initialize_env_var
 from hy._compat import PYPY
 
-_hy_filter_internal_errors = _initialize_env_var("HY_FILTER_INTERNAL_ERRORS", True)
-COLORED = _initialize_env_var("HY_COLORED_ERRORS", False)
+_hy_show_internal_errors = _initialize_env_var("HY_SHOW_INTERNAL_ERRORS", False)
 
 
 class HyError(Exception):
@@ -135,20 +131,11 @@ class HyLanguageError(HyError):
                 output[arrow_idx].rstrip("\n"), "-" * (self.arrow_offset - 1)
             )
 
-        if COLORED:
-            output[msg_idx:] = [Fore.YELLOW + o + Fore.RESET for o in output[msg_idx:]]
-            if arrow_idx:
-                output[arrow_idx] = Fore.GREEN + output[arrow_idx] + Fore.RESET
-            for idx, line in enumerate(output[::msg_idx]):
-                if line.strip().startswith('File "{}", line'.format(self.filename)):
-                    output[idx] = Fore.RED + line + Fore.RESET
-
         # This resulting string will come after a "<class-name>:" prompt, so
         # put it down a line.
         output.insert(0, "\n")
 
-        # Avoid "...expected str instance, ColoredString found"
-        return reduce(lambda x, y: x + y, output)
+        return "".join(output)
 
 
 class HyCompileError(HyInternalError):
@@ -157,10 +144,6 @@ class HyCompileError(HyInternalError):
 
 class HyTypeError(HyLanguageError, TypeError):
     """TypeError occurring during the normal use of Hy."""
-
-
-class HyNameError(HyLanguageError, NameError):
-    """NameError occurring during the normal use of Hy."""
 
 
 class HyRequireError(HyLanguageError):
@@ -188,12 +171,6 @@ class HyEvalError(HyLanguageError):
     """
 
 
-class HyIOError(HyInternalError, IOError):
-    """Subclass used to distinguish between IOErrors raised by Hy itself as
-    opposed to Hy programs.
-    """
-
-
 class HySyntaxError(HyLanguageError, SyntaxError):
     """Error during the Lexing of a Hython expression."""
 
@@ -209,7 +186,11 @@ class HyWrapperError(HyError, TypeError):
 
 def _module_filter_name(module_name):
     try:
-        compiler_loader = pkgutil.get_loader(module_name)
+        spec = importlib.util.find_spec(module_name)
+        if not spec:
+            return None
+
+        compiler_loader = spec.loader
         if not compiler_loader:
             return None
 
@@ -237,6 +218,7 @@ _tb_hidden_modules = {
             "hy.compiler",
             "hy.reader",
             "hy.cmdline",
+            "hy.repl",
             "hy.reader.parser",
             "hy.importer",
             "hy._compat",
@@ -272,6 +254,7 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
         if not (
             frame[0].replace(".pyc", ".py") in _tb_hidden_modules
             or os.path.dirname(frame[0]) in _tb_hidden_modules
+            or os.path.basename(os.path.dirname(frame[0])) == "hy.exe"
         ):
             new_tb += [frame]
 
@@ -287,11 +270,11 @@ def hy_exc_filter(exc_type, exc_value, exc_traceback):
 
 def hy_exc_handler(exc_type, exc_value, exc_traceback):
     """A `sys.excepthook` handler that uses `hy_exc_filter` to
-    remove internal Hy frames from a traceback print-out.
+    remove internal Hy frames from a traceback print-out, so long
+    as `_hy_show_internal_errors` is false.
     """
-    if os.environ.get("HY_DEBUG", False):
+    if _hy_show_internal_errors:
         return sys.__excepthook__(exc_type, exc_value, exc_traceback)
-
     try:
         output = hy_exc_filter(exc_type, exc_value, exc_traceback)
         sys.stderr.write(output)
@@ -306,14 +289,10 @@ def filtered_hy_exceptions():
     from tracebacks.
 
     Filtering can be controlled by the variable
-    `hy.errors._hy_filter_internal_errors` and environment variable
-    `HY_FILTER_INTERNAL_ERRORS`.
+    `hy.errors._hy_show_internal_errors` and environment variable
+    `HY_SHOW_INTERNAL_ERRORS`.
     """
-    global _hy_filter_internal_errors
-    if _hy_filter_internal_errors:
-        current_hook = sys.excepthook
-        sys.excepthook = hy_exc_handler
-        yield
-        sys.excepthook = current_hook
-    else:
-        yield
+    current_hook = sys.excepthook
+    sys.excepthook = hy_exc_handler
+    yield
+    sys.excepthook = current_hook

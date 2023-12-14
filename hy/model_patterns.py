@@ -31,11 +31,11 @@ from hy.models import (
     Tuple,
 )
 
-FORM = some(lambda _: True)
-SYM = some(lambda x: isinstance(x, Symbol))
-KEYWORD = some(lambda x: isinstance(x, Keyword))
-STR = some(lambda x: isinstance(x, String))  # matches literal strings only!
-LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes)))
+FORM = some(lambda _: True).named('form')
+SYM = some(lambda x: isinstance(x, Symbol)).named('Symbol')
+KEYWORD = some(lambda x: isinstance(x, Keyword)).named('Keyword')
+STR = some(lambda x: isinstance(x, String)).named('String')  # matches literal strings only!
+LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes))).named('literal')
 
 
 def sym(wanted):
@@ -49,9 +49,10 @@ def keepsym(wanted):
 
 
 def _sym(wanted, f=lambda x: x):
+    name = '`' + wanted + '`'
     if wanted.startswith(":"):
-        return f(a(Keyword(wanted[1:])))
-    return f(some(lambda x: x == Symbol(wanted)))
+        return f(a(Keyword(wanted[1:]))).named(name)
+    return f(some(lambda x: x == Symbol(wanted))).named(name)
 
 
 def whole(parsers):
@@ -64,29 +65,23 @@ def whole(parsers):
     return reduce(add, parsers) + skip(finished)
 
 
-def _grouped(group_type, parsers):
-    return some(lambda x: isinstance(x, group_type)) >> (
-        lambda x: group_type(whole(parsers).parse(x)).replace(x, recursive=False)
+def _grouped(group_type, syntax_example, name, parsers):
+    return (
+        some(lambda x: isinstance(x, group_type)).named(name or
+            f'{group_type.__name__} (i.e., `{syntax_example}`)') >>
+        (lambda x: group_type(whole(parsers).parse(x)).replace(x, recursive=False))
     )
-
-
-def brackets(*parsers):
+def brackets(*parsers, name = None):
     "Parse the given parsers inside square brackets."
-    return _grouped(List, parsers)
-
-
-def in_tuple(*parsers):
-    return _grouped(Tuple, parsers)
-
-
-def braces(*parsers):
+    return _grouped(List, '[ … ]', name, parsers)
+def in_tuple(*parsers, name = None):
+    return _grouped(Tuple, '#( … )', name, parsers)
+def braces(*parsers, name = None):
     "Parse the given parsers inside curly braces"
-    return _grouped(Dict, parsers)
-
-
-def pexpr(*parsers):
+    return _grouped(Dict, '{ … }', name, parsers)
+def pexpr(*parsers, name = None):
     "Parse the given parsers inside a parenthesized expression."
-    return _grouped(Expression, parsers)
+    return _grouped(Expression, '( … )', name, parsers)
 
 
 def dolike(head):
@@ -103,13 +98,15 @@ def notpexpr(*disallowed_heads):
     )
 
 
-def unpack(kind):
+def unpack(kind, content_type = None):
     "Parse an unpacking form, returning it unchanged."
-    return some(
-        lambda x: isinstance(x, Expression)
-        and len(x) > 0
-        and x[0] == Symbol("unpack-" + kind)
-    )
+    return some(lambda x:
+        isinstance(x, Expression) and
+        len(x) > 0 and
+        x[0] in [Symbol("unpack-" + tail) for tail in
+            (["iterable", "mapping"] if kind == "either" else [kind])] and
+        (content_type is None or
+            (len(x) == 2 and isinstance(x[1], content_type))))
 
 
 def times(lo, hi, parser):

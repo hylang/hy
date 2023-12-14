@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 
+# Set both `setup_requires` and `install_requires` with our
+# dependencies, since we need to compile Hy files during setup. And
+# put this as the first statement in the file so it's easy to parse
+# out without executing the file.
+requires = [
+    "funcparserlib ~= 1.0",
+    'astor>=0.8 ; python_version < "3.9"',
+]
+
 import os
 
 import fastentrypoints  # Monkey-patches setuptools.
@@ -31,29 +40,17 @@ class install(install):
                     invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH,
                 )
 
-
-# both setup_requires and install_requires
-# since we need to compile .hy files during setup
-requires = [
-    "funcparserlib ~= 1.0",
-    "colorama",
-    'astor>=0.8 ; python_version < "3.9"',
-]
-
 setup(
     name=PKG,
     version="0.24.2",
     setup_requires=["wheel"] + requires,
     install_requires=requires,
-    python_requires=">= 3.7, < 3.12",
+    python_requires=">= 3.8, < 3.13",
     entry_points={
         "console_scripts": [
             "hy = hy.cmdline:hy_main",
-            "hy3 = hy.cmdline:hy_main",
             "hyc = hy.cmdline:hyc_main",
-            "hyc3 = hy.cmdline:hyc_main",
-            "hy2py = hy.cmdline:hy2py_main",
-            "hy2py3 = hy.cmdline:hy2py_main",
+            "hy2py = hy.cmdline:hy2py_main"
         ]
     },
     packages=find_packages(exclude=["tests*"]),
@@ -77,10 +74,13 @@ setup(
         "Programming Language :: Lisp",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Environment :: WebAssembly :: Emscripten",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
         "Topic :: Software Development :: Libraries",

@@ -1,12 +1,7 @@
-pytest >= 6
-
-# autoformatting
-black==22.3.0
-isort==5.10.1
-pre_commit==2.17.0
+pytest >= 7
 
 # documentation
-Pygments >= 2
-Sphinx >= 5
-sphinx_rtd_theme >= 1
+Pygments == 2.15.1
+Sphinx == 5.0.2
+sphinx_rtd_theme == 1.2.2
 git+https://github.com/hylang/sphinxcontrib-hydomain.git

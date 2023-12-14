@@ -23,14 +23,13 @@ from hy.models import (
     replace_hy_obj,
 )
 
-hy.models.COLORED = False
-
 
 def test_symbol_or_keyword():
     for x in ("foo", "foo-bar", "foo_bar", "✈é😂⁂"):
         assert str(Symbol(x)) == x
         assert Keyword(x).name == x
-    for x in ("", ":foo", "5"):
+    for x in ("", ":foo", "5", "#foo"):
+        # https://github.com/hylang/hy/issues/2383
         with pytest.raises(ValueError):
             Symbol(x)
         assert Keyword(x).name == x

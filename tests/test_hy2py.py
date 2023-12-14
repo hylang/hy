@@ -1,10 +1,13 @@
 import asyncio
 import itertools
 import math
-import os
+
+import pytest
 
 import hy.importer
 from hy import mangle
+from hy._compat import PYODIDE
+from tests.resources import can_test_async
 
 
 def test_direct_import():
@@ -13,19 +16,22 @@ def test_direct_import():
     assert_stuff(tests.resources.pydemo)
 
 
+@pytest.mark.skipif(PYODIDE, reason="subprocess.check_call not implemented on Pyodide")
 def test_hy2py_import():
     import contextlib
     import os
     import subprocess
 
     path = "tests/resources/pydemo_as_py.py"
+    env = dict(os.environ)
+    env["PYTHONIOENCODING"] = "UTF-8"
+    env["PYTHONPATH"] = "." + os.pathsep + env.get("PYTHONPATH", "")
     try:
         with open(path, "wb") as o:
             subprocess.check_call(
                 ["hy2py", "tests/resources/pydemo.hy"],
                 stdout=o,
-                env={**os.environ, "PYTHONIOENCODING": "UTF-8"},
-            )
+                env=env)
         import tests.resources.pydemo_as_py as m
     finally:
         with contextlib.suppress(FileNotFoundError):
@@ -148,7 +154,8 @@ def assert_stuff(m):
     assert m.pys_accum == [0, 1, 2, 3, 4]
     assert m.py_accum == "01234"
 
-    assert asyncio.run(m.coro()) == list("abcdef")
+    if can_test_async:
+        assert asyncio.run(m.coro()) == list("abcdef")
 
     assert m.cheese == [1, 1]
     assert m.mac_results == ["x", "x"]

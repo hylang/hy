@@ -39,7 +39,6 @@
   (defn f [loopers]
     (setv head (if loopers (get loopers 0) None))
     (setv tail (cut loopers 1 None))
-    (print head)
     (cond
        (is head None)
         `(do ~@body)
@@ -66,5 +65,4 @@
      for n from 1 to 3
      for p in [k n (* 10 n)]
      do (.append l p) (-= k 1))
-  (print l)
   (assert (= l [2 1 10  -1 2 20  -4 3 30])))

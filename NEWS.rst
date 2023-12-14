@@ -1,21 +1,193 @@
 .. default-role:: code
 
 Unreleased
+=============================
+
+Removals
+------------------------------
+* `delmacro` has been removed. Use `(del (get _hy_macros (hy.mangle
+  …)))` instead.
+* `hy.reserved` has been removed. Use `(.keys (builtins._hy_macros))`
+  or Python's built-in `keyword` module instead.
+* `doc` has been removed. Use `(help (get-macro foo))` or `(help
+  (get-macro :reader foo))` instead.
+* The environment variables `HY_DEBUG` and `HY_FILTER_INTERNAL_ERRORS`
+  have been replaced with `HY_SHOW_INTERNAL_ERRORS`.
+
+Breaking Changes
+------------------------------
+
+* `defmacro` and `require` can now define macros locally instead of
+  only module-wide.
+* When a macro is `require`\d from another module, that module is no
+  longer implicitly included when checking for further macros in
+  the expansion.
+* `hy.M` has been renamed to `hy.I`.
+* `hy.eval` has been overhauled to be more like Python's `eval`. It
+  also has a new parameter `macros`.
+* `hy.macroexpand` and `hy.macroexpand-1` have been overhauled and
+  generalized to include more of the features of `hy.eval`.
+* `hy` now only implicitly launches a REPL if standard input is a TTY.
+* `hy -i` has been overhauled to work as a flag like `python3 -i`.
+* `hy2py` now requires `-m` to specify modules, and uses
+  the same `sys.path` rules as Python when parsing a module
+  vs a standalone script.
+* New macro `deftype`.
+* New macro `get-macro`.
+* New macro `local-macros`.
+
+New Features
+------------------------------
+* `defn`, `defn/a`, and `defclass` now support type parameters.
+* `HyReader` now has an optional parameter to install existing
+  reader macros from the calling module.
+* New syntax `(hy.R.aaa/bbb.m …)` for calling the macro `m` from the
+  module `aaa.bbb` without bringing `m` or `aaa.bbb` into scope.
+* New pragma `warn-on-core-shadow`.
+* `nonlocal` now also works for globally defined names.
+
+Misc. Improvements
+------------------------------
+* Some syntax errors raised by core macros now have more informative
+  messages.
+* Logical operators now compile to simpler Python code in some cases.
+
+Bug Fixes
+------------------------------
+* Double quotes inside of bracketed f-strings are now properly handled.
+* Fixed incomplete recognition of macro calls with a unary dotted
+  head like `((. defn) f [])`.
+* `~@ #*` now produces a syntax error instead of a nonsensical result.
+* Fixed parsing of infinite and NaN imaginary literals with an
+  uppercase "J".
+* Fixed `hy.eval` failing on `defreader` or `require` forms that
+  install a new reader.
+* `require` now warns when you shadow a core macro, like `defmacro`
+  already did.
+* `nonlocal` now works for top-level `let`-bound names.
+* `hy -i` with a filename now skips shebang lines.
+* Implicit returns are now disabled in async generators.
+* The parameter `result-ok` that was mistakenly included in the
+  signature of `hy.macroexpand` is now gone.
+
+0.27.0 (released 2023-07-06)
+=============================
+
+Removals
+------------------------------
+* Python 3.7 is no longer supported.
+
+Breaking Changes
+------------------------------
+* Reader macros now always read a full identifier after the initial
+  `#`. Thus, `#*foo` is now parsed as a call to the reader macro named
+  `*foo`; to unpack a variable named `foo`, say `#* foo`.
+* The names of reader macros names are no longer mangled.
+* Question marks (`?`) are no longer mangled specially, so `foo?` now
+  mangles to `hyx_fooXquestion_markX` instead of `is_foo`.
+* `hy2py`'s recursive mode now expects a module name as input, not any
+  old directory. You must be in the parent directory of the module
+  directory.
+
+New Features
+------------------------------
+* Python 3.12 is now supported.
+* New built-in object `hy.M` for easy imports in macros.
+* `cut` now has a function version in `hy.pyops`.
+* The `py` macro now implicitly parenthesizes the input code, so
+  Python's indentation restrictions don't apply.
+* `try` no longer requires `except`, `except*`, or `finally`, and it
+  allows `else` even without `except` or `except*`.
+* `nonlocal` and `global` can now be called with no arguments, in
+  which case they're no-ops.
+* For easier reading, `hy --spy` now prints a delimiter after the
+  Python equivalent of your code, before the result of evaluating the
+  code.
+
+Bug Fixes
+------------------------------
+* Fixed an installation failure in some situations when version lookup
+  fails.
+* Fixed some bugs with traceback pointing.
+* Fixed some bugs with escaping in bracket f-strings
+* The parser no longer looks for shebangs in the REPL or `hy -c`.
+* `require` with relative module names should now work correctly with
+  `hy -m`, as well as `hy2py`'s recursive mode.
+* `hy.models.Symbol` no longer allows constructing a symbol beginning
+  with `#`.
+
+0.26.0 (released 2023-02-08)
+=============================
+
+Removals
+------------------------------
+* Coloring error messages and Python representations for models is no
+  longer supported. (Thus, Hy no longer depends on `colorama`.)
+
+Breaking Changes
+------------------------------
+* Various warts have been smoothed over in the syntax of `'`,
+  \`, `~`, and `~@`:
+
+  * Whitespace is now allowed after these syntactic elements. Thus one
+    can apply `~` to a symbol whose name begins with "@".
+  * \` and `~` are no longer allowed in identifiers. (This was already
+    the case for `'`.)
+  * The bitwise NOT operator `~` has been renamed to `bnot`.
+
+* Dotted identifiers like `foo.bar` and `.sqrt` now parse as
+  expressions (like `(. foo bar)` and `(. None sqrt)`) instead of
+  symbols. Some odd cases like `foo.` and `foo..bar` are now
+  syntactically illegal.
+* New macro `do-mac`.
+* New macro `pragma` (although it doesn't do anything useful yet).
+* `hy.cmdline.HyREPL` is now `hy.REPL`.
+* Redundant scripts named `hy3`, `hyc3`, and `hy2py3` are no longer
+  installed. Use `hy`, `hyc`, and `hy2py` instead.
+
+New Features
+------------------------------
+* Pyodide is now officially supported.
+* `.`, `..`, etc. are now usable as ordinary symbols (with the
+  remaining special rule that `...` compiles to `Ellipsis`).
+* On Pythons ≥ 3.7, Hy modules can now be imported from ZIP
+  archives in the same way as Python modules, via `zipimport`_.
+* `hy2py` has a new command-line option `--output`.
+* `hy2py` can now operate recursively on a directory.
+
+Bug Fixes
+------------------------------
+* `hy.REPL` now restores the global values it changes (such as
+  `sys.ps1`) after `hy.REPL.run` terminates.
+* `hy.REPL` no longer mixes up Hy's and Python's Readline histories
+  when run inside Python's REPL.
+* Fixed `hy.repr` of non-compilable uses of sugared macros, such as
+  `(quote)` and `(quote 1 2)`.
+
+.. _zipimport: https://docs.python.org/3.11/library/zipimport.html
+
+0.25.0 (released 2022-11-08)
 ==============================
 
-Other Breaking Changes
+Breaking Changes
 ------------------------------
 * `dfor` no longer requires brackets around its final arguments, so
   `(dfor x (range 5) [x (* 2 x)])` is now `(dfor x (range 5) x (* 2
   x))`.
+* `except*` (PEP 654) is now recognized in `try`, and a placeholder
+  macro for `except*` has been added.
 
 Bug Fixes
 ------------------------------
-* Fixed `hy.repr` of `slice` objects with non-integer arguments.
 * `__file__` should now be set the same way as in Python.
+* `\N{…}` escape sequences are now recognized in f-strings.
 * Fixed a bug with `python -O` where assertions were still partly
   evaluated.
-* `\N{…}` escape sequences are now recognized in f-strings.
+* Fixed `hy.repr` of `slice` objects with non-integer arguments.
+
+New Features
+------------------------------
+* Python 3.11 is now supported.
 
 Misc. Improvements
 ------------------------------
@@ -78,24 +250,6 @@ Other Breaking Changes
 * `hy.cmdline.run_repl` has been replaced with
   `hy.cmdline.HyREPL.run`.
 
-Bug Fixes
-------------------------------
-* Fixed a crash when using keyword objects in `match`.
-* Fixed a scoping bug in comprehensions in `let` bodies.
-* Literal newlines (of all three styles) are now recognized properly
-  in string and bytes literals.
-* `defmacro` no longer allows further arguments after `#* args`.
-* `!=` with model objects is now consistent with `=`.
-* Tracebacks from code parsed with `hy.read` now show source
-  positions.
-* Elements of `builtins` such as `help` are no longer overridden until
-  the REPL actually starts.
-* Readline is now imported only when necessary, to avoid triggering a
-  CPython bug regarding the standard module `curses`
-  (`cpython#46927`_).
-* Module names supplied to `hy -m` are now mangled.
-* Hy now precompiles its own Hy code during installation.
-
 New Features
 ------------------------------
 * Added user-defined reader macros, defined with `defreader`.
@@ -117,6 +271,24 @@ New Features
 * New function `hy.model_patterns.in_tuple`.
 * Added a command-line option `-u` (or `--unbuffered`) per CPython.
 * Tab-completion in the REPL now attempts to unmangle names.
+
+Bug Fixes
+------------------------------
+* Fixed a crash when using keyword objects in `match`.
+* Fixed a scoping bug in comprehensions in `let` bodies.
+* Literal newlines (of all three styles) are now recognized properly
+  in string and bytes literals.
+* `defmacro` no longer allows further arguments after `#* args`.
+* `!=` with model objects is now consistent with `=`.
+* Tracebacks from code parsed with `hy.read` now show source
+  positions.
+* Elements of `builtins` such as `help` are no longer overridden until
+  the REPL actually starts.
+* Readline is now imported only when necessary, to avoid triggering a
+  CPython bug regarding the standard module `curses`
+  (`cpython#46927`_).
+* Module names supplied to `hy -m` are now mangled.
+* Hy now precompiles its own Hy code during installation.
 
 .. _cpython#46927: https://github.com/python/cpython/issues/46927#issuecomment-1093418916
 .. _cpython#90678: https://github.com/python/cpython/issues/90678
@@ -156,6 +328,14 @@ Other Breaking Changes
   would be syntactically legal as a literal.
 * `hy.extra.reserved` has been renamed to `hy.reserved`.
 
+New Features
+------------------------------
+* `hy.repr` now supports several more standard types.
+* The attribute access macro `.` now allows method calls. For example,
+  `(. x (f a))` is equivalent to `(x.f a)`.
+* `hy.as-model` checks for self-references in its argument.
+* New function `hy.model_patterns.keepsym`.
+
 Bug Fixes
 ------------------------------
 * In comprehension forms other than `for`, assignments (other than
@@ -171,14 +351,6 @@ Bug Fixes
   instead of emitting incorrect Python code.
 * Fixed a bug with self-requiring files on Windows.
 * Improved error messages for illegal uses of `finally` and `else`.
-
-New Features
-------------------------------
-* `hy.repr` now supports several more standard types.
-* The attribute access macro `.` now allows method calls. For example,
-  `(. x (f a))` is equivalent to `(x.f a)`.
-* `hy.as-model` checks for self-references in its argument.
-* New function `hy.model_patterns.keepsym`.
 
 .. _Hyrule: https://github.com/hylang/hyrule
 

@@ -5,12 +5,13 @@ import os
 import pkgutil
 import sys
 import types
+import zipimport
 from contextlib import contextmanager
 from functools import partial
 
 import hy
 from hy.compiler import hy_compile
-from hy.reader import read_many
+from hy.reader import read_many, HyReader
 
 
 @contextmanager
@@ -107,10 +108,8 @@ _py_source_to_code = importlib.machinery.SourceFileLoader.source_to_code
 
 def _could_be_hy_src(filename):
     return os.path.isfile(filename) and (
-        filename.endswith(".hy")
-        or not any(
-            filename.endswith(ext) for ext in importlib.machinery.SOURCE_SUFFIXES[1:]
-        )
+        os.path.splitext(filename)[1]
+        not in set(importlib.machinery.SOURCE_SUFFIXES) - {".hy"}
     )
 
 
@@ -119,7 +118,7 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
         if os.environ.get("HY_MESSAGE_WHEN_COMPILING"):
             print("Compiling", path, file=sys.stderr)
         source = data.decode("utf-8")
-        hy_tree = read_many(source, filename=path, skip_shebang=True)
+        hy_tree = read_many(source, filename=path, skip_shebang=True, reader=HyReader())
         with loader_module_obj(self) as module:
             data = hy_compile(hy_tree, module)
 
@@ -128,6 +127,29 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
 
 importlib.machinery.SourceFileLoader.source_to_code = _hy_source_to_code
 
+
+if (".hy", False, False) not in zipimport._zip_searchorder:
+    zipimport._zip_searchorder += ((".hy", False, False),)
+    _py_compile_source = zipimport._compile_source
+
+    def _hy_compile_source(pathname, source):
+        if not pathname.endswith(".hy"):
+            return _py_compile_source(pathname, source)
+        mname = f"<zip:{pathname}>"
+        sys.modules[mname] = types.ModuleType(mname)
+        return compile(
+            hy_compile(
+                read_many(source.decode("UTF-8"), filename=pathname, skip_shebang=True, reader=HyReader()),
+                sys.modules[mname],
+            ),
+            pathname,
+            "exec",
+            dont_inherit=True,
+        )
+
+    zipimport._compile_source = _hy_compile_source
+
+
 #  This is actually needed; otherwise, pre-created finders assigned to the
 #  current dir (i.e. `''`) in `sys.path` will not catch absolute imports of
 #  directory-local modules!
@@ -135,11 +157,6 @@ sys.path_importer_cache.clear()
 
 # Do this one just in case?
 importlib.invalidate_caches()
-
-# These aren't truly cross-compliant.
-# They're useful for testing, though.
-class HyImporter(importlib.machinery.FileFinder):
-    pass
 
 
 class HyLoader(importlib.machinery.SourceFileLoader):
@@ -158,14 +175,6 @@ runpy = importlib.import_module("runpy")
 
 _runpy_get_code_from_file = runpy._get_code_from_file
 runpy._get_code_from_file = _get_code_from_file
-
-
-def _import_from_path(name, path):
-    """A helper function that imports a module from the given path."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
 
 
 def _inject_builtins():

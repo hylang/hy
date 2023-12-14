@@ -28,8 +28,6 @@
   (assert (= (hy.mangle "--__")   "hyx_XhyphenHminusX___"))
   (assert (= (hy.mangle "__--")   "__hyx_XhyphenHminusX_"))
   (assert (= (hy.mangle "__--__") "__hyx_XhyphenHminusX___"))
-  (assert (= (hy.mangle "--?")    "hyx_is_XhyphenHminusX_"))
-  (assert (= (hy.mangle "__--?")  "__hyx_is_XhyphenHminusX_"))
 
   ;; test unmangling choices
   (assert (= (hy.unmangle "hyx_XhyphenHminusX")        "-"))
@@ -49,12 +47,10 @@
 
 
 (defn test-question-mark []
+  ; Once treated specially, but no more.
   (setv foo? "nachos")
   (assert (= foo? "nachos"))
-  (assert (= is_foo "nachos"))
-  (setv ___ab_cd? "tacos")
-  (assert (= ___ab_cd? "tacos"))
-  (assert (= ___is_ab_cd "tacos")))
+  (assert (= hyx_fooXquestion_markX "nachos")))
 
 
 (defn test-py-forbidden-ascii []
@@ -71,10 +67,7 @@
   (assert (= (+ hyx_XflowerXab hyx_Xblack_heart_suitX) "flowerlove"))
   (setv ⚘-⚘ "doubleflower")
   (assert (= ⚘-⚘ "doubleflower"))
-  (assert (= hyx_XflowerX_XflowerX "doubleflower"))
-  (setv ⚘? "mystery")
-  (assert (= ⚘? "mystery"))
-  (assert (= hyx_is_XflowerX "mystery")))
+  (assert (= hyx_XflowerX_XflowerX "doubleflower")))
 
 
 (defn test-higher-unicode []
@@ -109,14 +102,18 @@
   (assert (= x "aabb")))
 
 
-(defreader rm---x
+(defreader rm---
   (setv form (.parse-one-form &reader))
-  [form form])
+  `(do (+= ~form "a")
+       ~form))
+(defreader rm___
+  (setv form (.parse-one-form &reader))
+  `(do (+= ~form "b")
+       ~form))
 (defn test-reader-macro []
   (setv x "")
-  (assert (= #rm---x (do (+= x "a") 1) [1 1]))
-  (assert (= #rm___x (do (+= x "b") 2) [2 2]))
-  (assert (= x "aabb")))
+  (assert (= #rm--- x "a"))
+  (assert (= #rm___ x "ab")))
 
 
 (defn test-special-form []
@@ -152,34 +149,33 @@
 
 (defn test-keyword-args []
 
-  (defn f [a a-b foo? ☘]
-    [a a-b foo? ☘])
-  (assert (= (f :foo? 3 :☘ 4 :a 1 :a-b 2) [1 2 3 4]))
-  (assert (= (f :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2) [1 2 3 4]))
+  (defn f [a a-b ☘]
+    [a a-b ☘])
+  (assert (= (f :☘ 3 :a 1 :a-b 2) [1 2 3]))
+  (assert (= (f :hyx_XshamrockX 3 :a 1 :a_b 2) [1 2 3]))
 
   (defn g [#** x]
     x)
-  (assert (= (g :foo? 3 :☘ 4 :a 1 :a-b 2)
-             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4}))
-  (assert (= (g :is_foo 3 :hyx_XshamrockX 4 :a 1 :a_b 2)
-             {"a" 1  "a_b" 2  "is_foo" 3  "hyx_XshamrockX" 4})))
+  (assert (= (g :☘ 3 :a 1 :a-b 2)
+             {"a" 1  "a_b" 2  "hyx_XshamrockX" 3}))
+  (assert (= (g :hyx_XshamrockX 3 :a 1 :a_b 2)
+             {"a" 1  "a_b" 2  "hyx_XshamrockX" 3})))
 
 
 (defn test-late-mangling []
   ; Mangling should only happen during compilation.
-  (assert (!= 'foo? 'is_foo))
-  (setv sym 'foo?)
-  (assert (= sym (hy.models.Symbol "foo?")))
-  (assert (!= sym (hy.models.Symbol "is_foo")))
+  (assert (!= 'foo-bar 'foo_bar))
+  (setv sym 'foo-bar)
+  (assert (= sym (hy.models.Symbol "foo-bar")))
+  (assert (!= sym (hy.models.Symbol "foo_bar")))
   (setv out (hy.eval `(do
                      (setv ~sym 10)
-                     [foo? is_foo])))
+                     [foo-bar foo_bar])))
   (assert (= out [10 10])))
 
 
 (defn test-functions []
-  (for [[a b] [["___ab-cd?" "___is_ab_cd"]
-               ["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
+  (for [[a b] [["⚘-⚘" "hyx_XflowerX_XflowerX"]]]
     (assert (= (hy.mangle a) b))
     (assert (= (hy.unmangle b) a))))
 

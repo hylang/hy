@@ -1,15 +1,11 @@
 (import itertools)
 (import collections.abc [Iterable])
-(import hy.models [Keyword Symbol]
-        hy.reader [mangle unmangle]
-        hy.compiler [HyASTCompiler calling-module])
+(import hy.compiler [HyASTCompiler calling-module])
 
 (defn disassemble [tree [codegen False]]
   "Return the python AST for a quoted Hy `tree` as a string.
 
   If the second argument `codegen` is true, generate python code instead.
-
-  .. versionadded:: 0.10.0
 
   Dump the Python AST for given Hy *tree* to standard output. If *codegen*
   is ``True``, the function prints Python code instead.
@@ -41,12 +37,10 @@
 (setv _gensym_counter 0)
 (setv _gensym_lock (Lock))
 
-(defn gensym [[g "G"]]
+(defn gensym [[g ""]]
   #[[Generate a symbol with a unique name. The argument will be included in the
-  generated symbol, as an aid to debugging. Typically one calls ``hy.gensym``
+  generated symbol name, as an aid to debugging. Typically one calls ``hy.gensym``
   without an argument.
-
-  .. versionadded:: 0.9.12
 
   .. seealso::
 
@@ -69,14 +63,18 @@
         4)
 
       (print (selfadd (f)))]]
-  (setv new_symbol None)
-  (global _gensym_counter)
-  (global _gensym_lock)
   (.acquire _gensym_lock)
-  (try (do (setv _gensym_counter (+ _gensym_counter 1))
-           (setv new_symbol (Symbol (.format "_{}\uffff{}" g _gensym_counter))))
-       (finally (.release _gensym_lock)))
-  new_symbol)
+  (try
+    (global _gensym_counter)
+    (+= _gensym_counter 1)
+    (setv n _gensym_counter)
+    (finally (.release _gensym_lock)))
+  (setv g (hy.mangle (.format "_hy_gensym_{}_{}" g n)))
+  (hy.models.Symbol (if (.startswith g "_hyx_")
+    ; Remove the mangle prefix, if it's there, so the result always
+    ; starts with our reserved prefix `_hy_`.
+    (+ "_" (cut g (len "_hyx_") None))
+    g)))
 
 (defn _calling-module-name [[n 1]]
   "Get the name of the module calling `n` levels up the stack from the
@@ -86,38 +84,42 @@
   (setv f (get (.stack inspect) (+ n 1) 0))
   (get f.f_globals "__name__"))
 
-(defn macroexpand [form [result-ok False]]
-  "Return the full macro expansion of `form`.
+(defn _macroexpand [model module macros #** kwargs]
+  (if (and (isinstance model hy.models.Expression) model)
+    (hy.macros.macroexpand
+      :tree model
+      :module module
+      :compiler (HyASTCompiler module :extra-macros macros)
+      :result-ok False
+      #** kwargs)
+    model))
 
-  .. versionadded:: 0.10.0
+(defn macroexpand [model [module None] [macros None]]
+  "As :hy:func:`hy.macroexpand-1`, but the expansion process is repeated until it has no effect. ::
 
-  Examples:
-    ::
+      (defmacro m [x]
+        (and (int x) `(m ~(- x 1))))
+      (print (hy.repr (hy.macroexpand-1 '(m 5))))
+        ; => '(m 4)
+      (print (hy.repr (hy.macroexpand '(m 5))))
+        ; => '0
 
-       => (require hyrule [->])
-       => (hy.macroexpand '(-> (a b) (x y)))
-       '(x (a b) y)
-       => (hy.macroexpand '(-> (a b) (-> (c d) (e f))))
-       '(e (c (a b) d) f)
-  "
-  (import hy.macros)
-  (setv module (calling-module))
-  (hy.macros.macroexpand form module (HyASTCompiler module) :result-ok result-ok))
+  Note that in general, macro calls in the arguments of the expression still won't expanded. To expand these, too, try Hyrule's :hy:func:`macroexpand-all <hyrule.macrotools.macroexpand-all>`."
+  (_macroexpand model (or module (calling-module)) macros))
 
-(defn macroexpand-1 [form]
-  "Return the single step macro expansion of `form`.
+(defn macroexpand-1 [model [module None] [macros None]]
+  "Check if ``model`` is an :class:`Expression <hy.models.Expression>` specifying a macro call. If so, expand the macro and return the expansion; otherwise, return ``model`` unchanged. ::
 
-  .. versionadded:: 0.10.0
+      (defmacro m [x]
+       `(do ~x ~x ~x))
+      (print (hy.repr (hy.macroexpand-1 '(m (+= n 1)))))
+        ; => '(do (+= n 1) (+= n 1) (+= n 1))
 
-  Examples:
-    ::
+  An exceptional case is if the macro is a core macro that returns one of Hy's internal compiler result objects instead of a real model. Then, you just get the original back, as if the macro hadn't been expanded.
 
-       => (require hyrule [->])
-       => (hy.macroexpand-1 '(-> (a b) (-> (c d) (e f))))
-       '(-> (a b) (c d) (e f))
-  "
-  (import hy.macros)
-  (setv module (calling-module))
-  (hy.macros.macroexpand-1 form module (HyASTCompiler module)))
+  The optional arguments ``module`` and ``macros`` can be provided to control where macros are looked up, as with :hy:func:`hy.eval`.
+
+  See also :hy:func:`hy.macroexpand`."
+  (_macroexpand model (or module (calling-module)) macros :once True))
 
 (setv __all__ [])

@@ -1,6 +1,8 @@
 (import
   types
-  pytest)
+  asyncio
+  pytest
+  tests.resources [async-test])
 
 
 (defn test-comprehension-types []
@@ -261,8 +263,8 @@
   (assert (= out "x1-x2-y1y2-z1-z2-")))
 
 
-(defmacro eval-isolated [#*body]
-  `(hy.eval '(do ~@body) :module "<test>" :locals {}))
+(defmacro eval-isolated [#* body]
+  `(hy.eval '(do ~@body) :module (hy.I.types.ModuleType "<test>") :locals {}))
 
 
 (defn test-lfor-nonlocal []
@@ -359,3 +361,53 @@
       (assert (= x 2)))
     (bar)
     (assert (= x 19))))
+
+
+(defn test-for-do []
+  (do (do (do (do (do (do (do (do (do (setv #(x y) #(0 0)))))))))))
+  (for [- [1 2]]
+    (do
+     (setv x (+ x 1))
+     (setv y (+ y 1))))
+  (assert (= y x 2)))
+
+
+(defn test-for-else []
+  (setv x 0)
+  (for [a [1 2]]
+    (setv x (+ x a))
+    (else (setv x (+ x 50))))
+  (assert (= x 53))
+
+  (setv x 0)
+  (for [a [1 2]]
+    (setv x (+ x a))
+    (else))
+  (assert (= x 3)))
+
+
+(defn [async-test] test-for-async []
+  (defn/a numbers []
+    (for [i [1 2]]
+      (yield i)))
+
+  (asyncio.run
+    ((fn/a []
+      (setv x 0)
+      (for [:async a (numbers)]
+        (setv x (+ x a)))
+      (assert (= x 3))))))
+
+
+(defn [async-test] test-for-async-else []
+  (defn/a numbers []
+    (for [i [1 2]]
+      (yield i)))
+
+  (asyncio.run
+    ((fn/a []
+      (setv x 0)
+      (for [:async a (numbers)]
+        (setv x (+ x a))
+        (else (setv x (+ x 50))))
+      (assert (= x 53))))))

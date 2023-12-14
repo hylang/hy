@@ -5,6 +5,8 @@ Semantics
 This chapter describes features of Hy semantics that differ from Python's and
 aren't better categorized elsewhere, such as in the chapter :doc:`macros`.
 
+.. _implicit-names:
+
 Implicit names
 --------------
 
@@ -47,10 +49,10 @@ called first, call it before ``f``.
 When bytecode is regenerated
 ----------------------------
 
-The first time Hy is asked to execute a file, it will produce a bytecode file
+The first time Hy is asked to execute a file, whether directly or indirectly (as in the case of an import), it will produce a bytecode file
 (unless :std:envvar:`PYTHONDONTWRITEBYTECODE` is set). Subsequently, if the
 source file hasn't changed, Hy will load the bytecode instead of recompiling
-the source. Python behaves similarly, but the difference between recompilation
+the source. Python also makes bytecode files, but the difference between recompilation
 and loading bytecode is more consequential in Hy because of how Hy lets you run
 and generate code at compile-time with things like macros, reader macros, and
 :hy:func:`eval-and-compile`. You may be surprised by behavior like the
