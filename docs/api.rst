@@ -573,10 +573,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    - Iteration clauses, which look like ``LVALUE ITERABLE``. The ``LVALUE``
      is usually just a symbol, but could be something more complicated,
      like ``[x y]``.
-   - ``:async LVALUE ITERABLE``, which is an
-     :ref:`asynchronous <py:async for>` form of iteration clause.
+   - ``:async LVALUE ITERABLE``, which is an asynchronous form of
+     iteration clause per Python's :py:keyword:`async for`.
    - ``:do FORM``, which simply evaluates the ``FORM``. If you use
-     ``(continue)`` or ``(break)`` here, they will apply to the innermost
+     ``(continue)`` or ``(break)`` here, it will apply to the innermost
      iteration clause before the ``:do``.
    - ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
      RVALUE)``.
