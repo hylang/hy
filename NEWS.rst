@@ -77,7 +77,7 @@ Removals
 ------------------------------
 * Python 3.7 is no longer supported.
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
 * Reader macros now always read a full identifier after the initial
   `#`. Thus, `#*foo` is now parsed as a call to the reader macro named
@@ -124,7 +124,7 @@ Removals
 * Coloring error messages and Python representations for models is no
   longer supported. (Thus, Hy no longer depends on `colorama`.)
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
 * Various warts have been smoothed over in the syntax of `'`,
   \`, `~`, and `~@`:
