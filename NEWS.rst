@@ -1,22 +1,21 @@
 .. default-role:: code
 
-Unreleased
+0.28.0 (released 2024-01-05)
 =============================
 
 Removals
 ------------------------------
-* `delmacro` has been removed. Use `(del (get _hy_macros (hy.mangle
-  …)))` instead.
-* `hy.reserved` has been removed. Use `(.keys (builtins._hy_macros))`
-  or Python's built-in `keyword` module instead.
 * `doc` has been removed. Use `(help (get-macro foo))` or `(help
   (get-macro :reader foo))` instead.
+* `delmacro` has been removed. Use `(eval-when-compile (del (get
+  _hy_macros (hy.mangle "foo"))))` instead.
+* `hy.reserved` has been removed. Use `(.keys (builtins._hy_macros))`
+  or Python's built-in `keyword` module instead.
 * The environment variables `HY_DEBUG` and `HY_FILTER_INTERNAL_ERRORS`
   have been replaced with `HY_SHOW_INTERNAL_ERRORS`.
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
-
 * `defmacro` and `require` can now define macros locally instead of
   only module-wide.
 * When a macro is `require`\d from another module, that module is no
@@ -38,13 +37,13 @@ Breaking Changes
 
 New Features
 ------------------------------
+* New syntax `(hy.R.aaa/bbb.m …)` for calling the macro `m` from the
+  module `aaa.bbb` without bringing `m` or `aaa.bbb` into scope.
+* `nonlocal` now also works for globally defined names.
 * `defn`, `defn/a`, and `defclass` now support type parameters.
 * `HyReader` now has an optional parameter to install existing
   reader macros from the calling module.
-* New syntax `(hy.R.aaa/bbb.m …)` for calling the macro `m` from the
-  module `aaa.bbb` without bringing `m` or `aaa.bbb` into scope.
 * New pragma `warn-on-core-shadow`.
-* `nonlocal` now also works for globally defined names.
 
 Misc. Improvements
 ------------------------------
@@ -54,21 +53,21 @@ Misc. Improvements
 
 Bug Fixes
 ------------------------------
+* Implicit returns are now disabled in async generators.
+* Fixed parsing of infinite and NaN imaginary literals with an
+  uppercase "J".
 * Double quotes inside of bracketed f-strings are now properly handled.
 * Fixed incomplete recognition of macro calls with a unary dotted
   head like `((. defn) f [])`.
 * `~@ #*` now produces a syntax error instead of a nonsensical result.
-* Fixed parsing of infinite and NaN imaginary literals with an
-  uppercase "J".
-* Fixed `hy.eval` failing on `defreader` or `require` forms that
-  install a new reader.
+* `nonlocal` now works for top-level `let`-bound names.
 * `require` now warns when you shadow a core macro, like `defmacro`
   already did.
-* `nonlocal` now works for top-level `let`-bound names.
-* `hy -i` with a filename now skips shebang lines.
-* Implicit returns are now disabled in async generators.
+* Fixed `hy.eval` failing on `defreader` or `require` forms that
+  install a new reader.
 * The parameter `result-ok` that was mistakenly included in the
   signature of `hy.macroexpand` is now gone.
+* `hy -i` with a filename now skips shebang lines.
 
 0.27.0 (released 2023-07-06)
 =============================
@@ -77,7 +76,7 @@ Removals
 ------------------------------
 * Python 3.7 is no longer supported.
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
 * Reader macros now always read a full identifier after the initial
   `#`. Thus, `#*foo` is now parsed as a call to the reader macro named
@@ -124,7 +123,7 @@ Removals
 * Coloring error messages and Python representations for models is no
   longer supported. (Thus, Hy no longer depends on `colorama`.)
 
-Breaking Changes
+Other Breaking Changes
 ------------------------------
 * Various warts have been smoothed over in the syntax of `'`,
   \`, `~`, and `~@`:
