@@ -339,58 +339,49 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (for [#* args])
 
-   ``for`` compiles to one or more :py:keyword:`for` statements, which
-   execute code repeatedly for each element of an iterable object.
-   The return values of the forms are discarded and the ``for`` form
-   returns ``None``.
+   ``for`` compiles to one or more :py:keyword:`for` statements, which execute
+   code repeatedly for each element of an iterable object. The return values of
+   the forms are discarded and the ``for`` form returns ``None``. ::
 
-   ::
+     (for [x [1 2 3]]
+       (print "iterating")
+       (print x))
+     ; Output: iterating 1 iterating 2 iterating 3
 
-       => (for [x [1 2 3]]
-       ...  (print "iterating")
-       ...  (print x))
-       iterating
-       1
-       iterating
-       2
-       iterating
-       3
-
-   The first argument of ``for``, in square brackets, specifies how to loop. A simple and common case is ``[variable values]``, where ``values`` is a form that evaluates to an iterable object (such as a list) and ``variable`` is a symbol specifiying the name to assign each element to. Subsequent arguments to ``for`` are body forms to be evaluated for each iteration of the loop.
+   The first argument of ``for``, in square brackets, specifies how to loop. A
+   simple and common case is ``[variable values]``, where ``values`` is a form
+   that evaluates to an iterable object (such as a list) and ``variable`` is a
+   symbol specifiying the name for each element. Subsequent arguments to ``for``
+   are body forms to be evaluated for each iteration of the loop.
 
    More generally, the first argument of ``for`` allows the same types of
    clauses as :hy:func:`lfor`::
 
-     => (for [x [1 2 3]  :if (!= x 2)  y [7 8]]
-     ...  (print x y))
-     1 7
-     1 8
-     3 7
-     3 8
+     (for [x [1 2 3]  :if (!= x 2)  y [7 8]]
+       (print x y))
+     ; Output:  1 7  1 8  3 7  3 8
 
-   The last argument of ``for`` can be an ``(else …)`` form.
-   This form is executed after the last iteration of the ``for``\'s
-   outermost iteration clause, but only if that outermost loop terminates
-   normally. If it's jumped out of with e.g. ``break``, the ``else`` is
-   ignored.
+   In particular, you can use an ``:async`` clause to get the equivalent of
+   Python's :py:keyword:`async for`::
 
-   ::
+     (import asyncio)
+     (defn/a numbers []
+       (yield 1)
+       (yield 2))
+     (asyncio.run ((fn/a []
+       (for [:async x (numbers)]
+         (print x)))))
 
-       => (for [element [1 2 3]] (if (< element 3)
-       ...                             (print element)
-       ...                             (break))
-       ...    (else (print "loop finished")))
-       1
-       2
+   The last argument of ``for`` can be an ``(else …)`` form. This form is
+   executed after the last iteration of the ``for``\'s outermost iteration
+   clause, but only if that outermost loop terminates normally. If it's jumped
+   out of with e.g. ``break``, the ``else`` is ignored. ::
 
-       => (for [element [1 2 3]] (if (< element 4)
-       ...                             (print element)
-       ...                             (break))
-       ...    (else (print "loop finished")))
-       1
-       2
-       3
-       loop finished
+     (for [x [1 2 3]]
+       (print x)
+       (when (= x 2)
+         (break))
+       (else (print "loop finished")))
 
 .. hy:macro:: (assert [condition [label None]])
 
@@ -573,10 +564,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    - Iteration clauses, which look like ``LVALUE ITERABLE``. The ``LVALUE``
      is usually just a symbol, but could be something more complicated,
      like ``[x y]``.
-   - ``:async LVALUE ITERABLE``, which is an
-     :ref:`asynchronous <py:async for>` form of iteration clause.
+   - ``:async LVALUE ITERABLE``, which is an asynchronous form of
+     iteration clause per Python's :py:keyword:`async for`.
    - ``:do FORM``, which simply evaluates the ``FORM``. If you use
-     ``(continue)`` or ``(break)`` here, they will apply to the innermost
+     ``(continue)`` or ``(break)`` here, it will apply to the innermost
      iteration clause before the ``:do``.
    - ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
      RVALUE)``.

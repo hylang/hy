@@ -1570,7 +1570,7 @@ def compile_lambda_list(compiler, params):
 
     if not (posonly_parms or posonly_parms is None):
         raise compiler._syntax_error(
-            params, "positional only delimiter '/' must have an argument"
+            params, "at least one argument must precede /"
         )
 
     posonly_parms = posonly_parms or []
