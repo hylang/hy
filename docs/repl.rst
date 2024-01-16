@@ -68,7 +68,7 @@ change the prompts. The following example shows a number of possibilities::
     re
     json
     pathlib [Path]
-    hy.pypos *
+    hy.pyops *
     hyrule [pp pformat])
 
   (require
