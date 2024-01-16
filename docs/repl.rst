@@ -15,6 +15,10 @@ Two :doc:`environment variables <env_var>` useful for the REPL are
 ``HYSTARTUP``, which specifies :ref:`a file to run when the REPL starts
 <startup-file>`.
 
+Due to Python limitations, a Python :class:`code.InteractiveConsole`
+launched inside the Hy REPL, or a Hy REPL inside another Hy REPL, may
+malfunction.
+
 .. autoclass:: hy.REPL
    :members: run
 
@@ -47,13 +51,16 @@ Startup files
 -------------
 
 Any macros or Python objects defined in the REPL startup file will be brought
-into the REPL's namespace. Two variables are special in the startup file:
+into the REPL's namespace. A few variables are special in the startup file:
 
 ``repl-spy``
   If true, print equivalent Python code before executing each piece of Hy code.
 ``repl-output-fn``
   The :ref:`output function <repl-output-function>`, as a unary callable
   object.
+``repl-ps1``, ``repl-ps2``
+  Strings to use as the prompt strings :data:`sys.ps1` and
+  :data:`sys.ps2` for the Hy REPL.
 
 Hy startup files can do a number of other things like set banner messages or
 change the prompts. The following example shows a number of possibilities::
@@ -78,9 +85,9 @@ change the prompts. The following example shows a number of possibilities::
     repl-spy True
     repl-output-fn pformat
     ;; Make the REPL prompt `=>` green.
-    sys.ps1 "\x01\x1b[0;32m\x02=> \x01\x1b[0m\x02"
+    repl-ps1 "\x01\x1b[0;32m\x02=> \x01\x1b[0m\x02"
     ;; Make the REPL prompt `...` red.
-    sys.ps2 "\x01\x1b[0;31m\x02... \x01\x1b[0m\x02")
+    repl-ps2 "\x01\x1b[0;31m\x02... \x01\x1b[0m\x02")
 
   (defn slurp [path]
     (setv path (Path path))

@@ -499,6 +499,7 @@ def test_hystartup():
     # spy == True and custom repl-output-fn
     env = dict(HYSTARTUP = "tests/resources/hystartup.hy")
     output, _ = run_cmd("hy -i", "[1 2]", env = env)
+    assert "p1? " in output
     assert "[1, 2]" in output
     assert "[1,_2]" in output
 

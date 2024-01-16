@@ -257,6 +257,9 @@ class REPL(code.InteractiveConsole):
         self.module.__dict__.update(self.locals)
         self.locals = self.module.__dict__
 
+        self.ps1 = "=> "
+        self.ps2 = "... "
+
         if os.environ.get("HYSTARTUP"):
             try:
                 loader = HyLoader("__hystartup__", os.environ.get("HYSTARTUP"))
@@ -271,6 +274,8 @@ class REPL(code.InteractiveConsole):
                 imports = {name: mod.__dict__[name] for name in imports}
                 spy = spy or imports.get("repl_spy")
                 output_fn = output_fn or imports.get("repl_output_fn")
+                self.ps1 = imports.get("repl_ps1", self.ps1)
+                self.ps2 = imports.get("repl_ps2", self.ps2)
 
                 # Load imports and defs
                 self.locals.update(imports)
@@ -421,8 +426,8 @@ class REPL(code.InteractiveConsole):
             builtins.help,
         )
         try:
-            sys.ps1 = "=> "
-            sys.ps2 = "... "
+            sys.ps1 = self.ps1
+            sys.ps2 = self.ps2
             builtins.quit = HyQuitter("quit")
             builtins.exit = HyQuitter("exit")
             builtins.help = HyHelper()
