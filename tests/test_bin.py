@@ -25,8 +25,8 @@ def pyr(s=""):
 
 def run_cmd(
         cmd, stdin_data=None, expect=0, dontwritebytecode=False,
-        cwd=None, stdout=subprocess.PIPE):
-    env = dict(os.environ)
+        cwd=None, stdout=subprocess.PIPE, env=None):
+    env = {**dict(os.environ), **(env or {})}
     if dontwritebytecode:
         env["PYTHONDONTWRITEBYTECODE"] = "1"
     else:
@@ -149,21 +149,20 @@ def test_mangle_m():
 
 
 def test_ignore_python_env():
-    os.environ.update({"PYTHONTEST": "0"})
-    output, _ = run_cmd("hy -c '(print (do (import os) (. os environ)))'")
+    e = dict(PYTHONTEST = "0")
+
+    output, _ = run_cmd("hy -c '(print (do (import os) (. os environ)))'", env = e)
     assert "PYTHONTEST" in output
-    output, _ = run_cmd("hy -m tests.resources.bin.printenv")
+    output, _ = run_cmd("hy -m tests.resources.bin.printenv", env = e)
     assert "PYTHONTEST" in output
-    output, _ = run_cmd("hy tests/resources/bin/printenv.hy")
+    output, _ = run_cmd("hy tests/resources/bin/printenv.hy", env = e)
     assert "PYTHONTEST" in output
 
-    output, _ = run_cmd("hy -E -c '(print (do (import os) (. os environ)))'")
+    output, _ = run_cmd("hy -E -c '(print (do (import os) (. os environ)))'", env = e)
     assert "PYTHONTEST" not in output
-    os.environ.update({"PYTHONTEST": "0"})
-    output, _ = run_cmd("hy -E -m tests.resources.bin.printenv")
+    output, _ = run_cmd("hy -E -m tests.resources.bin.printenv", env = e)
     assert "PYTHONTEST" not in output
-    os.environ.update({"PYTHONTEST": "0"})
-    output, _ = run_cmd("hy -E tests/resources/bin/printenv.hy")
+    output, _ = run_cmd("hy -E tests/resources/bin/printenv.hy", env = e)
     assert "PYTHONTEST" not in output
 
 
@@ -498,33 +497,32 @@ def test_traceback_shebang(tmp_path):
 
 def test_hystartup():
     # spy == True and custom repl-output-fn
-    os.environ["HYSTARTUP"] = "tests/resources/hystartup.hy"
-    output, _ = run_cmd("hy -i", "[1 2]")
+    env = dict(HYSTARTUP = "tests/resources/hystartup.hy")
+    output, _ = run_cmd("hy -i", "[1 2]", env = env)
     assert "[1, 2]" in output
     assert "[1,_2]" in output
 
-    output, _ = run_cmd("hy -i", "(hello-world)")
+    output, _ = run_cmd("hy -i", "(hello-world)", env = env)
     assert "(hello-world)" not in output
     assert "1 + 1" in output
     assert "2" in output
 
-    output, _ = run_cmd("hy -i", "#rad")
+    output, _ = run_cmd("hy -i", "#rad", env = env)
     assert "#rad" not in output
     assert "'totally' + 'rad'" in output
     assert "'totallyrad'" in output
 
-    output, _ = run_cmd("hy -i --repl-output-fn repr", "[1 2 3 4]")
+    output, _ = run_cmd("hy -i --repl-output-fn repr", "[1 2 3 4]", env = env)
     assert "[1, 2, 3, 4]" in output
     assert "[1 2 3 4]" not in output
     assert "[1,_2,_3,_4]" not in output
 
     # spy == False and custom repl-output-fn
-    os.environ["HYSTARTUP"] = "tests/resources/spy_off_startup.hy"
-    output, _ = run_cmd("hy -i --spy", "[1 2]")  # overwrite spy with cmdline arg
+    # Then overwrite spy with cmdline arg
+    output, _ = run_cmd("hy -i --spy", "[1 2]",
+         env = dict(HYSTARTUP = "tests/resources/spy_off_startup.hy"))
     assert "[1, 2]" in output
     assert "[1,~2]" in output
-
-    del os.environ["HYSTARTUP"]
 
 
 def test_output_buffering(tmp_path):
