@@ -1672,23 +1672,27 @@ def compile_return(compiler, expr, root, arg):
     return ret + asty.Return(expr, value=ret.force_expr)
 
 
-@pattern_macro("yield", [maybe(FORM)])
-def compile_yield_expression(compiler, expr, root, arg):
+@pattern_macro("yield", [times(0, 2, FORM)])
+def compile_yield_expression(compiler, expr, root, args):
     if is_inside_function_scope(compiler.scope):
         nearest_python_scope(compiler.scope).has_yield = True
+    yield_from = False
+    if len(args) == 2:
+        from_kw, x = args
+        if from_kw != Keyword("from"):
+            raise compiler._syntax_error(from_kw, "two-argument `yield` requires `:from`")
+        yield_from = True
+        args = [x]
     ret = Result()
-    if arg is not None:
-        ret += compiler.compile(arg)
-    return ret + asty.Yield(expr, value=ret.force_expr)
+    if args:
+        ret += compiler.compile(args[0])
+    return ret + (asty.YieldFrom if yield_from else asty.Yield)(expr, value=ret.force_expr)
 
 
-@pattern_macro(["yield-from", "await"], [FORM])
+@pattern_macro("await", [FORM])
 def compile_yield_from_or_await_expression(compiler, expr, root, arg):
-    if root == "yield-from" and is_inside_function_scope(compiler.scope):
-        nearest_python_scope(compiler.scope).has_yield = True
     ret = Result() + compiler.compile(arg)
-    node = asty.YieldFrom if root == "yield-from" else asty.Await
-    return ret + node(expr, value=ret.force_expr)
+    return ret + asty.Await(expr, value=ret.force_expr)
 
 
 # ------------------------------------------------

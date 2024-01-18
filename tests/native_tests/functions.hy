@@ -337,7 +337,7 @@
   (defn yield-from-test []
     (for [i (range 3)]
       (yield i))
-    (yield-from [1 2 3]))
+    (yield :from [1 2 3]))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
 
 
@@ -351,7 +351,14 @@
     (for [i (range 3)]
       (yield i))
     (try
-      (yield-from (yield-from-subgenerator-test))
+      (yield :from (yield-from-subgenerator-test))
       (except [e ZeroDivisionError]
         (yield 4))))
   (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
+
+
+(defn test-yield-from-notreally []
+  (defn f []
+    (yield :from)
+    (yield :from))
+  (assert (= (list (f)) [:from :from])))

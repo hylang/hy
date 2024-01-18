@@ -3,6 +3,10 @@
 Unreleased
 =============================
 
+Removals
+------------------------------
+* `(yield-from …)` is now `(yield :from …)`.
+
 New Features
 ------------------------------
 * You can now set `repl-ps1` and `repl-ps2` in your `HYSTARTUP` to customize

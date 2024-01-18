@@ -117,7 +117,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    5))``. There is one exception: due to Python limitations, no implicit return
    is added if the function is an asynchronous generator (i.e., defined with
    :hy:func:`defn/a` or :hy:func:`fn/a` and containing at least one
-   :hy:func:`yield` or :hy:func:`yield-from`).
+   :hy:func:`yield`).
 
    ``defn`` accepts a few more optional arguments: a bracketed list of
    :term:`decorators <py:decorator>`, a list of type parameters (see below),
@@ -1247,11 +1247,11 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    As :hy:func:`with`, but compiles to an :py:keyword:`async with` statement.
 
-.. hy:macro:: (yield [value])
+.. hy:macro:: (yield [arg1 arg2])
 
    ``yield`` compiles to a :ref:`yield expression <py:yieldexpr>`, which
-   returns a value as a generator. As in Python, one argument, the value to
-   yield, is accepted, and it defaults to ``None``. ::
+   returns a value as a generator. For a plain yield, provide one argument,
+   the value to yield, or omit it to yield ``None``. ::
 
       (defn naysayer []
         (while True
@@ -1259,18 +1259,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       (hy.repr (list (zip "abc" (naysayer))))
         ; => [#("a" "nope") #("b" "nope") #("c" "nope")]
 
-   For ``yield from``, see :hy:func:`yield-from`.
-
-.. hy:macro:: (yield-from [object])
-
-   ``yield-from`` compiles to a :ref:`yield-from expression <py:yieldexpr>`,
-   which returns a value from a subgenerator. The syntax is the same as that of
-   :hy:func:`yield`. ::
+   For a yield-from expression, provide two arguments, where the first is the
+   literal keyword ``:from`` and the second is the subgenerator. ::
 
       (defn myrange []
         (setv r (range 10))
         (while True
-          (yield-from r)))
+          (yield :from r)))
       (hy.repr (list (zip "abc" (myrange))))
         ; => [#("a" 0) #("b" 1) #("c" 2)]
 
