@@ -33,23 +33,34 @@
     (setv out [t1 t2 t3]))
   (assert (= out [1 2 3])))
 
-(defn [async-test] test-single-with/a []
+(defn [async-test] test-single-with-async []
   (setv out [])
   (asyncio.run
     ((fn :async []
-      (with/a [t (AsyncWithTest 1)]
+      (with [:async t (AsyncWithTest 1)]
         (.append out t)))))
   (assert (= out [1])))
 
-(defn [async-test] test-quince-with/a []
+(defn [async-test] test-quince-with-async []
   (setv out [])
   (asyncio.run
     ((fn :async []
-      (with/a [
-          t1 (AsyncWithTest 1)
-          t2 (AsyncWithTest 2)
-          t3 (AsyncWithTest 3)
-          _ (AsyncWithTest 4)]
+      (with [
+          :async t1 (AsyncWithTest 1)
+          :async t2 (AsyncWithTest 2)
+          :async t3 (AsyncWithTest 3)
+          :async _ (AsyncWithTest 4)]
+        (.extend out [t1 t2 t3])))))
+  (assert (= out [1 2 3])))
+
+(defn [async-test] test-with-mixed-async []
+  (setv out [])
+  (asyncio.run
+    ((fn :async []
+      (with [:async t1 (AsyncWithTest 1)
+             t2 (WithTest 2)
+             :async t3 (AsyncWithTest 3)
+             _ (WithTest 4)]
         (.extend out [t1 t2 t3])))))
   (assert (= out [1 2 3])))
 

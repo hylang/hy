@@ -1195,10 +1195,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (with [managers #* body])
 
-   ``with`` compiles to a :py:keyword:`with` statement, which wraps some code
-   with one or more :ref:`context managers <py:context-managers>`. The first
-   argument is a bracketed list of context managers, and the remaining
-   arguments are body forms.
+   ``with`` compiles to a :py:keyword:`with` or an :py:keyword:`async with`
+   statement, which wraps some code with one or more :ref:`context managers
+   <py:context-managers>`. The first argument is a bracketed list of context
+   managers, and the remaining arguments are body forms.
 
    The manager list can't be empty. If it has only one item, that item is
    evaluated to obtain the context manager to use. If it has two, the first
@@ -1225,16 +1225,17 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python's ``with e1 as _: …``), ``with`` will leave it anonymous (as Python's
    ``with e1: …``).
 
+   Finally, any variable-manager pair may be preceded with the keyword
+   ``:async`` to use an asynchronous context manager::
+
+     (with [:async v1 e1] …)
+
    ``with`` returns the value of its last form, unless it suppresses an
    exception (because the context manager's ``__exit__`` method returned true),
-   in which case it returns ``None``. So, the previous example could also be
+   in which case it returns ``None``. So, the first example could also be
    written ::
 
        (print (with [o (open "file.txt" "rt")] (.read o)))
-
-.. hy:macro:: (with/a [managers #* body])
-
-   As :hy:func:`with`, but compiles to an :py:keyword:`async with` statement.
 
 .. hy:macro:: (yield [arg1 arg2])
 

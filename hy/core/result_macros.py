@@ -1068,21 +1068,15 @@ def compile_break_or_continue_expression(compiler, expr, root):
 # ------------------------------------------------
 
 
-@pattern_macro(
-    ["with", "with/a"],
-    [
-        brackets(oneplus(FORM + FORM))
-        | brackets(FORM >> (lambda x: [(Symbol("_"), x)])),
-        many(FORM),
-    ],
-)
+@pattern_macro("with", [
+    brackets(oneplus(maybe(keepsym(":async")) + FORM + FORM)) |
+        brackets((maybe(keepsym(":async")) + FORM) >> (lambda x: [(x[0], Symbol("_"), x[1])])),
+    many(FORM)])
 def compile_with_expression(compiler, expr, root, args, body):
-    body = compiler._compile_branch(body)
 
-    # Store the result of the body in a tempvar
+    # We'll store the result of the body in a tempvar
     temp_var = compiler.get_anon_var()
     name = asty.Name(expr, id=mangle(temp_var), ctx=ast.Store())
-    body += asty.Assign(expr, targets=[name], value=body.force_expr)
     # Initialize the tempvar to None in case the `with` exits
     # early with an exception.
     initial_assign = asty.Assign(
@@ -1091,7 +1085,18 @@ def compile_with_expression(compiler, expr, root, args, body):
 
     ret = Result(stmts=[initial_assign])
     items = []
-    for variable, ctx in args[0]:
+    was_async = None
+    cbody = None
+    for i, (is_async, variable, ctx) in enumerate(args[0]):
+        is_async = bool(is_async)
+        if was_async is None:
+            was_async = is_async
+        elif is_async != was_async:
+            # We're compiling a `with` that mixes synchronous and
+            # asynchronous context managers. Python doesn't support
+            # this directly, so start a new `with` inside the body.
+            cbody = compile_with_expression(compiler, expr, root, [args[0][i:]], body)
+            break
         ctx = compiler.compile(ctx)
         ret += ctx
         variable = (
@@ -1103,8 +1108,12 @@ def compile_with_expression(compiler, expr, root, args, body):
             asty.withitem(expr, context_expr=ctx.force_expr, optional_vars=variable)
         )
 
-    node = asty.With if root == "with" else asty.AsyncWith
-    ret += node(expr, body=body.stmts, items=items)
+    if not cbody:
+        cbody = compiler._compile_branch(body)
+        cbody += asty.Assign(expr, targets=[name], value=cbody.force_expr)
+
+    node = asty.AsyncWith if was_async else asty.With
+    ret += node(expr, body=cbody.stmts, items=items)
 
     # And make our expression context our temp variable
     expr_name = asty.Name(expr, id=mangle(temp_var), ctx=ast.Load())
