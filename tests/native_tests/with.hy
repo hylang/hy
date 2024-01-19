@@ -25,65 +25,33 @@
 
 (defn test-single-with []
   (with [t (WithTest 1)]
-        (assert (= t 1))))
-
-(defn test-twice-with []
-  (with [t1 (WithTest 1)
-         t2 (WithTest 2)]
-        (assert (= t1 1))
-        (assert (= t2 2))))
-
-(defn test-thrice-with []
-  (with [t1 (WithTest 1)
-         t2 (WithTest 2)
-         t3 (WithTest 3)]
-        (assert (= t1 1))
-        (assert (= t2 2))
-        (assert (= t3 3))))
+    (setv out t))
+  (assert (= out 1)))
 
 (defn test-quince-with []
-  (with [t1 (WithTest 1)
-         t2 (WithTest 2)
-         t3 (WithTest 3)
-         _ (WithTest 4)]
-        (assert (= t1 1))
-        (assert (= t2 2))
-        (assert (= t3 3))))
+  (with [t1 (WithTest 1)  t2 (WithTest 2)  t3 (WithTest 3)  _ (WithTest 4)]
+    (setv out [t1 t2 t3]))
+  (assert (= out [1 2 3])))
 
 (defn [async-test] test-single-with/a []
+  (setv out [])
   (asyncio.run
     ((fn/a []
       (with/a [t (AsyncWithTest 1)]
-        (assert (= t 1)))))))
-
-(defn [async-test] test-two-with/a []
-  (asyncio.run
-    ((fn/a []
-      (with/a [t1 (AsyncWithTest 1)
-               t2 (AsyncWithTest 2)]
-        (assert (= t1 1))
-        (assert (= t2 2)))))))
-
-(defn [async-test] test-thrice-with/a []
-  (asyncio.run
-    ((fn/a []
-      (with/a [t1 (AsyncWithTest 1)
-               t2 (AsyncWithTest 2)
-               t3 (AsyncWithTest 3)]
-        (assert (= t1 1))
-        (assert (= t2 2))
-        (assert (= t3 3)))))))
+        (.append out t)))))
+  (assert (= out [1])))
 
 (defn [async-test] test-quince-with/a []
+  (setv out [])
   (asyncio.run
     ((fn/a []
-      (with/a [t1 (AsyncWithTest 1)
-               t2 (AsyncWithTest 2)
-               t3 (AsyncWithTest 3)
-               _ (AsyncWithTest 4)]
-        (assert (= t1 1))
-        (assert (= t2 2))
-        (assert (= t3 3)))))))
+      (with/a [
+          t1 (AsyncWithTest 1)
+          t2 (AsyncWithTest 2)
+          t3 (AsyncWithTest 3)
+          _ (AsyncWithTest 4)]
+        (.extend out [t1 t2 t3])))))
+  (assert (= out [1 2 3])))
 
 (defn test-unnamed-context-with []
   "`_` get compiled to unnamed context"
