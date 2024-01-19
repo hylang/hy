@@ -1454,10 +1454,12 @@ lambda_list = brackets(
 )
 
 
-@pattern_macro(["fn", "fn/a"],
-    [maybe(type_params), maybe_annotated(lambda_list), many(FORM)])
-def compile_function_lambda(compiler, expr, root, tp, params, body):
-    is_async = root == "fn/a"
+@pattern_macro("fn", [
+    maybe(keepsym(":async")),
+    maybe(type_params),
+    maybe_annotated(lambda_list),
+    many(FORM)])
+def compile_function_lambda(compiler, expr, root, is_async, tp, params, body):
     params, returns = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
@@ -1483,12 +1485,14 @@ def compile_function_lambda(compiler, expr, root, tp, params, body):
     return ret + Result(expr=ret.temp_variables[0])
 
 
-@pattern_macro(
-    ["defn", "defn/a"],
-    [maybe(brackets(many(FORM))), maybe(type_params), maybe_annotated(SYM), lambda_list, many(FORM)],
-)
-def compile_function_def(compiler, expr, root, decorators, tp, name, params, body):
-    is_async = root == "defn/a"
+@pattern_macro("defn", [
+    maybe(keepsym(":async")),
+    maybe(brackets(many(FORM))),
+    maybe(type_params),
+    maybe_annotated(SYM),
+    lambda_list,
+    many(FORM)])
+def compile_function_def(compiler, expr, root, is_async, decorators, tp, name, params, body):
     name, returns = name
     node = asty.AsyncFunctionDef if is_async else asty.FunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])

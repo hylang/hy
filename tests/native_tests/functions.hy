@@ -25,8 +25,8 @@
   (assert (= (fn-test) None)))
 
 
-(defn [async-test] test-fn/a []
-  (assert (= (asyncio.run ((fn/a [] (await (asyncio.sleep 0)) [1 2 3])))
+(defn [async-test] test-fn-async []
+  (assert (= (asyncio.run ((fn :async [] (await (asyncio.sleep 0)) [1 2 3])))
              [1 2 3])))
 
 
@@ -182,8 +182,8 @@
     (setv x [#* spam]  y 1)))
 
 
-(defn [async-test] test-defn/a []
-  (defn/a coro-test []
+(defn [async-test] test-defn-async []
+  (defn :async coro-test []
     (await (asyncio.sleep 0))
     [1 2 3])
   (assert (= (asyncio.run (coro-test)) [1 2 3])))
@@ -191,15 +191,15 @@
 
 (defn [async-test] test-no-async-gen-return []
   ; https://github.com/hylang/hy/issues/2523
-  (defn/a runner [gen]
+  (defn :async runner [gen]
     (setv vals [])
     (for [:async val (gen)]
       (.append vals val))
     vals)
-  (defn/a naysayer []
+  (defn :async naysayer []
     (yield "nope"))
   (assert (= (asyncio.run (runner naysayer)) ["nope"]))
-  (assert (= (asyncio.run (runner (fn/a [] (yield "dope!")) ["dope!"])))))
+  (assert (= (asyncio.run (runner (fn :async [] (yield "dope!")) ["dope!"])))))
 
 
 (defn test-root-set-correctly []

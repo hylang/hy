@@ -387,12 +387,12 @@
 
 
 (defn [async-test] test-for-async []
-  (defn/a numbers []
+  (defn :async numbers []
     (for [i [1 2]]
       (yield i)))
 
   (asyncio.run
-    ((fn/a []
+    ((fn :async []
       (setv x 0)
       (for [:async a (numbers)]
         (setv x (+ x a)))
@@ -400,12 +400,12 @@
 
 
 (defn [async-test] test-for-async-else []
-  (defn/a numbers []
+  (defn :async numbers []
     (for [i [1 2]]
       (yield i)))
 
   (asyncio.run
-    ((fn/a []
+    ((fn :async []
       (setv x 0)
       (for [:async a (numbers)]
         (setv x (+ x a))

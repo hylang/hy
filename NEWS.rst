@@ -5,6 +5,8 @@ Unreleased
 
 Removals
 ------------------------------
+* `(defn/a …)` is now `(defn :async …)`.
+* `(fn/a …)` is now `(fn :async …)`.
 * `(yield-from …)` is now `(yield :from …)`.
 
 New Features

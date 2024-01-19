@@ -36,7 +36,7 @@
 (defn [async-test] test-single-with/a []
   (setv out [])
   (asyncio.run
-    ((fn/a []
+    ((fn :async []
       (with/a [t (AsyncWithTest 1)]
         (.append out t)))))
   (assert (= out [1])))
@@ -44,7 +44,7 @@
 (defn [async-test] test-quince-with/a []
   (setv out [])
   (asyncio.run
-    ((fn/a []
+    ((fn :async []
       (with/a [
           t1 (AsyncWithTest 1)
           t2 (AsyncWithTest 2)

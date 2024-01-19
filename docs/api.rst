@@ -91,13 +91,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    allowed), and the newly created function object is returned. Decorators and
    type parameters aren't allowed, either. However, the function body is
    understood identically to that of :hy:func:`defn`, without any of the
-   restrictions of Python's :py:keyword:`lambda`. See :hy:func:`fn/a` for the
-   asynchronous equivalent.
-
-.. hy:macro:: (fn/a [name #* args])
-
-   As :hy:func:`fn`, but the created function object will be a :ref:`coroutine
-   <py:async def>`.
+   restrictions of Python's :py:keyword:`lambda`. ``:async`` is also allowed.
 
 .. hy:macro:: (defn [name #* args])
 
@@ -119,14 +113,14 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    :hy:func:`defn/a` or :hy:func:`fn/a` and containing at least one
    :hy:func:`yield`).
 
-   ``defn`` accepts a few more optional arguments: a bracketed list of
-   :term:`decorators <py:decorator>`, a list of type parameters (see below),
-   and an annotation (see :hy:func:`annotate`) for the return value. These are
-   placed before the function name (in that order, if several are present)::
+   ``defn`` accepts a few more optional arguments: a literal keyword ``:async``
+   (to create a :ref:`coroutine <py:async def>` like Python's ``async def``), a
+   bracketed list of :term:`decorators <py:decorator>`, a list of type
+   parameters (see below), and an annotation (see :hy:func:`annotate`) for the
+   return value. These are placed before the function name (in that order, if
+   several are present)::
 
-       (defn [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
-
-   To define asynchronous functions, see :hy:func:`defn/a` and :hy:func:`fn/a`.
+       (defn :async [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
 
    ``defn`` lambda lists support all the same features as Python parameter
    lists and hence are complex in their full generality. The simplest case is a
@@ -173,11 +167,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    item of the list is a symbol, an annotated symbol (such as ``#^ int T``), or
    an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, unpacking
    and annotation can't be used with the same parameter.
-
-.. hy:macro:: (defn/a [name lambda-list #* body])
-
-   As :hy:func:`defn`, but defines a :ref:`coroutine <py:async def>` like
-   Python's ``async def``.
 
 .. hy:macro:: (defmacro [name lambda-list #* body])
 
