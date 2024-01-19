@@ -1,5 +1,13 @@
 .. default-role:: code
 
+Unreleased
+=============================
+
+New Features
+------------------------------
+* You can now set `repl-ps1` and `repl-ps2` in your `HYSTARTUP` to customize
+  `sys.ps1` and `sys.ps2` for the Hy REPL.
+
 0.28.0 (released 2024-01-05)
 =============================
 
