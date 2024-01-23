@@ -550,11 +550,12 @@ def test_compiler_macro_tag_try():
 
 
 def test_ast_good_yield_from():
-    can_compile("(yield-from [1 2])")
+    can_compile("(yield :from [1 2])")
+    can_compile("(yield :from)")
 
 
 def test_ast_bad_yield_from():
-    cant_compile("(yield-from)")
+    cant_compile("(yield :ploopy [1 2])")
 
 
 def test_eval_generator_with_return():

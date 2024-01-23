@@ -25,8 +25,8 @@
   (assert (= (fn-test) None)))
 
 
-(defn [async-test] test-fn/a []
-  (assert (= (asyncio.run ((fn/a [] (await (asyncio.sleep 0)) [1 2 3])))
+(defn [async-test] test-fn-async []
+  (assert (= (asyncio.run ((fn :async [] (await (asyncio.sleep 0)) [1 2 3])))
              [1 2 3])))
 
 
@@ -182,8 +182,8 @@
     (setv x [#* spam]  y 1)))
 
 
-(defn [async-test] test-defn/a []
-  (defn/a coro-test []
+(defn [async-test] test-defn-async []
+  (defn :async coro-test []
     (await (asyncio.sleep 0))
     [1 2 3])
   (assert (= (asyncio.run (coro-test)) [1 2 3])))
@@ -191,15 +191,15 @@
 
 (defn [async-test] test-no-async-gen-return []
   ; https://github.com/hylang/hy/issues/2523
-  (defn/a runner [gen]
+  (defn :async runner [gen]
     (setv vals [])
     (for [:async val (gen)]
       (.append vals val))
     vals)
-  (defn/a naysayer []
+  (defn :async naysayer []
     (yield "nope"))
   (assert (= (asyncio.run (runner naysayer)) ["nope"]))
-  (assert (= (asyncio.run (runner (fn/a [] (yield "dope!")) ["dope!"])))))
+  (assert (= (asyncio.run (runner (fn :async [] (yield "dope!")) ["dope!"])))))
 
 
 (defn test-root-set-correctly []
@@ -271,30 +271,6 @@
   (assert (= accum [2])))
 
 
-(defn test-yield-from []
-  (defn yield-from-test []
-    (for [i (range 3)]
-      (yield i))
-    (yield-from [1 2 3]))
-  (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
-
-
-(defn test-yield-from-exception-handling []
-  (defn yield-from-subgenerator-test []
-    (yield 1)
-    (yield 2)
-    (yield 3)
-    (/ 1 0))
-  (defn yield-from-test []
-    (for [i (range 3)]
-      (yield i))
-    (try
-      (yield-from (yield-from-subgenerator-test))
-      (except [e ZeroDivisionError]
-        (yield 4))))
-  (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
-
-
 (defn test-yield []
   (defn gen [] (for [x [1 2 3 4]] (yield x)))
   (setv ret 0)
@@ -355,3 +331,34 @@
     (yield "a")
     (yield "end"))
   (assert (= (list (multi-yield)) [0 1 2 "a" "end"])))
+
+
+(defn test-yield-from []
+  (defn yield-from-test []
+    (for [i (range 3)]
+      (yield i))
+    (yield :from [1 2 3]))
+  (assert (= (list (yield-from-test)) [0 1 2 1 2 3])))
+
+
+(defn test-yield-from-exception-handling []
+  (defn yield-from-subgenerator-test []
+    (yield 1)
+    (yield 2)
+    (yield 3)
+    (/ 1 0))
+  (defn yield-from-test []
+    (for [i (range 3)]
+      (yield i))
+    (try
+      (yield :from (yield-from-subgenerator-test))
+      (except [e ZeroDivisionError]
+        (yield 4))))
+  (assert (= (list (yield-from-test)) [0 1 2 1 2 3 4])))
+
+
+(defn test-yield-from-notreally []
+  (defn f []
+    (yield :from)
+    (yield :from))
+  (assert (= (list (f)) [:from :from])))

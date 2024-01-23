@@ -1068,21 +1068,15 @@ def compile_break_or_continue_expression(compiler, expr, root):
 # ------------------------------------------------
 
 
-@pattern_macro(
-    ["with", "with/a"],
-    [
-        brackets(oneplus(FORM + FORM))
-        | brackets(FORM >> (lambda x: [(Symbol("_"), x)])),
-        many(FORM),
-    ],
-)
+@pattern_macro("with", [
+    brackets(oneplus(maybe(keepsym(":async")) + FORM + FORM)) |
+        brackets((maybe(keepsym(":async")) + FORM) >> (lambda x: [(x[0], Symbol("_"), x[1])])),
+    many(FORM)])
 def compile_with_expression(compiler, expr, root, args, body):
-    body = compiler._compile_branch(body)
 
-    # Store the result of the body in a tempvar
+    # We'll store the result of the body in a tempvar
     temp_var = compiler.get_anon_var()
     name = asty.Name(expr, id=mangle(temp_var), ctx=ast.Store())
-    body += asty.Assign(expr, targets=[name], value=body.force_expr)
     # Initialize the tempvar to None in case the `with` exits
     # early with an exception.
     initial_assign = asty.Assign(
@@ -1091,7 +1085,18 @@ def compile_with_expression(compiler, expr, root, args, body):
 
     ret = Result(stmts=[initial_assign])
     items = []
-    for variable, ctx in args[0]:
+    was_async = None
+    cbody = None
+    for i, (is_async, variable, ctx) in enumerate(args[0]):
+        is_async = bool(is_async)
+        if was_async is None:
+            was_async = is_async
+        elif is_async != was_async:
+            # We're compiling a `with` that mixes synchronous and
+            # asynchronous context managers. Python doesn't support
+            # this directly, so start a new `with` inside the body.
+            cbody = compile_with_expression(compiler, expr, root, [args[0][i:]], body)
+            break
         ctx = compiler.compile(ctx)
         ret += ctx
         variable = (
@@ -1103,8 +1108,12 @@ def compile_with_expression(compiler, expr, root, args, body):
             asty.withitem(expr, context_expr=ctx.force_expr, optional_vars=variable)
         )
 
-    node = asty.With if root == "with" else asty.AsyncWith
-    ret += node(expr, body=body.stmts, items=items)
+    if not cbody:
+        cbody = compiler._compile_branch(body)
+        cbody += asty.Assign(expr, targets=[name], value=cbody.force_expr)
+
+    node = asty.AsyncWith if was_async else asty.With
+    ret += node(expr, body=cbody.stmts, items=items)
 
     # And make our expression context our temp variable
     expr_name = asty.Name(expr, id=mangle(temp_var), ctx=ast.Load())
@@ -1454,10 +1463,12 @@ lambda_list = brackets(
 )
 
 
-@pattern_macro(["fn", "fn/a"],
-    [maybe(type_params), maybe_annotated(lambda_list), many(FORM)])
-def compile_function_lambda(compiler, expr, root, tp, params, body):
-    is_async = root == "fn/a"
+@pattern_macro("fn", [
+    maybe(keepsym(":async")),
+    maybe(type_params),
+    maybe_annotated(lambda_list),
+    many(FORM)])
+def compile_function_lambda(compiler, expr, root, is_async, tp, params, body):
     params, returns = params
     posonly, args, rest, kwonly, kwargs = params
     has_annotations = returns is not None or any(
@@ -1483,12 +1494,14 @@ def compile_function_lambda(compiler, expr, root, tp, params, body):
     return ret + Result(expr=ret.temp_variables[0])
 
 
-@pattern_macro(
-    ["defn", "defn/a"],
-    [maybe(brackets(many(FORM))), maybe(type_params), maybe_annotated(SYM), lambda_list, many(FORM)],
-)
-def compile_function_def(compiler, expr, root, decorators, tp, name, params, body):
-    is_async = root == "defn/a"
+@pattern_macro("defn", [
+    maybe(keepsym(":async")),
+    maybe(brackets(many(FORM))),
+    maybe(type_params),
+    maybe_annotated(SYM),
+    lambda_list,
+    many(FORM)])
+def compile_function_def(compiler, expr, root, is_async, decorators, tp, name, params, body):
     name, returns = name
     node = asty.AsyncFunctionDef if is_async else asty.FunctionDef
     decorators, ret, _ = compiler._compile_collect(decorators[0] if decorators else [])
@@ -1672,23 +1685,27 @@ def compile_return(compiler, expr, root, arg):
     return ret + asty.Return(expr, value=ret.force_expr)
 
 
-@pattern_macro("yield", [maybe(FORM)])
-def compile_yield_expression(compiler, expr, root, arg):
+@pattern_macro("yield", [times(0, 2, FORM)])
+def compile_yield_expression(compiler, expr, root, args):
     if is_inside_function_scope(compiler.scope):
         nearest_python_scope(compiler.scope).has_yield = True
+    yield_from = False
+    if len(args) == 2:
+        from_kw, x = args
+        if from_kw != Keyword("from"):
+            raise compiler._syntax_error(from_kw, "two-argument `yield` requires `:from`")
+        yield_from = True
+        args = [x]
     ret = Result()
-    if arg is not None:
-        ret += compiler.compile(arg)
-    return ret + asty.Yield(expr, value=ret.force_expr)
+    if args:
+        ret += compiler.compile(args[0])
+    return ret + (asty.YieldFrom if yield_from else asty.Yield)(expr, value=ret.force_expr)
 
 
-@pattern_macro(["yield-from", "await"], [FORM])
+@pattern_macro("await", [FORM])
 def compile_yield_from_or_await_expression(compiler, expr, root, arg):
-    if root == "yield-from" and is_inside_function_scope(compiler.scope):
-        nearest_python_scope(compiler.scope).has_yield = True
     ret = Result() + compiler.compile(arg)
-    node = asty.YieldFrom if root == "yield-from" else asty.Await
-    return ret + node(expr, value=ret.force_expr)
+    return ret + asty.Await(expr, value=ret.force_expr)
 
 
 # ------------------------------------------------

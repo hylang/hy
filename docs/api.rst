@@ -91,13 +91,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    allowed), and the newly created function object is returned. Decorators and
    type parameters aren't allowed, either. However, the function body is
    understood identically to that of :hy:func:`defn`, without any of the
-   restrictions of Python's :py:keyword:`lambda`. See :hy:func:`fn/a` for the
-   asynchronous equivalent.
-
-.. hy:macro:: (fn/a [name #* args])
-
-   As :hy:func:`fn`, but the created function object will be a :ref:`coroutine
-   <py:async def>`.
+   restrictions of Python's :py:keyword:`lambda`. ``:async`` is also allowed.
 
 .. hy:macro:: (defn [name #* args])
 
@@ -117,16 +111,16 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    5))``. There is one exception: due to Python limitations, no implicit return
    is added if the function is an asynchronous generator (i.e., defined with
    :hy:func:`defn/a` or :hy:func:`fn/a` and containing at least one
-   :hy:func:`yield` or :hy:func:`yield-from`).
+   :hy:func:`yield`).
 
-   ``defn`` accepts a few more optional arguments: a bracketed list of
-   :term:`decorators <py:decorator>`, a list of type parameters (see below),
-   and an annotation (see :hy:func:`annotate`) for the return value. These are
-   placed before the function name (in that order, if several are present)::
+   ``defn`` accepts a few more optional arguments: a literal keyword ``:async``
+   (to create a :ref:`coroutine <py:async def>` like Python's ``async def``), a
+   bracketed list of :term:`decorators <py:decorator>`, a list of type
+   parameters (see below), and an annotation (see :hy:func:`annotate`) for the
+   return value. These are placed before the function name (in that order, if
+   several are present)::
 
-       (defn [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
-
-   To define asynchronous functions, see :hy:func:`defn/a` and :hy:func:`fn/a`.
+       (defn :async [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
 
    ``defn`` lambda lists support all the same features as Python parameter
    lists and hence are complex in their full generality. The simplest case is a
@@ -173,11 +167,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    item of the list is a symbol, an annotated symbol (such as ``#^ int T``), or
    an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, unpacking
    and annotation can't be used with the same parameter.
-
-.. hy:macro:: (defn/a [name lambda-list #* body])
-
-   As :hy:func:`defn`, but defines a :ref:`coroutine <py:async def>` like
-   Python's ``async def``.
 
 .. hy:macro:: (defmacro [name lambda-list #* body])
 
@@ -1206,10 +1195,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (with [managers #* body])
 
-   ``with`` compiles to a :py:keyword:`with` statement, which wraps some code
-   with one or more :ref:`context managers <py:context-managers>`. The first
-   argument is a bracketed list of context managers, and the remaining
-   arguments are body forms.
+   ``with`` compiles to a :py:keyword:`with` or an :py:keyword:`async with`
+   statement, which wraps some code with one or more :ref:`context managers
+   <py:context-managers>`. The first argument is a bracketed list of context
+   managers, and the remaining arguments are body forms.
 
    The manager list can't be empty. If it has only one item, that item is
    evaluated to obtain the context manager to use. If it has two, the first
@@ -1236,22 +1225,23 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python's ``with e1 as _: …``), ``with`` will leave it anonymous (as Python's
    ``with e1: …``).
 
+   Finally, any variable-manager pair may be preceded with the keyword
+   ``:async`` to use an asynchronous context manager::
+
+     (with [:async v1 e1] …)
+
    ``with`` returns the value of its last form, unless it suppresses an
    exception (because the context manager's ``__exit__`` method returned true),
-   in which case it returns ``None``. So, the previous example could also be
+   in which case it returns ``None``. So, the first example could also be
    written ::
 
        (print (with [o (open "file.txt" "rt")] (.read o)))
 
-.. hy:macro:: (with/a [managers #* body])
-
-   As :hy:func:`with`, but compiles to an :py:keyword:`async with` statement.
-
-.. hy:macro:: (yield [value])
+.. hy:macro:: (yield [arg1 arg2])
 
    ``yield`` compiles to a :ref:`yield expression <py:yieldexpr>`, which
-   returns a value as a generator. As in Python, one argument, the value to
-   yield, is accepted, and it defaults to ``None``. ::
+   returns a value as a generator. For a plain yield, provide one argument,
+   the value to yield, or omit it to yield ``None``. ::
 
       (defn naysayer []
         (while True
@@ -1259,18 +1249,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       (hy.repr (list (zip "abc" (naysayer))))
         ; => [#("a" "nope") #("b" "nope") #("c" "nope")]
 
-   For ``yield from``, see :hy:func:`yield-from`.
-
-.. hy:macro:: (yield-from [object])
-
-   ``yield-from`` compiles to a :ref:`yield-from expression <py:yieldexpr>`,
-   which returns a value from a subgenerator. The syntax is the same as that of
-   :hy:func:`yield`. ::
+   For a yield-from expression, provide two arguments, where the first is the
+   literal keyword ``:from`` and the second is the subgenerator. ::
 
       (defn myrange []
         (setv r (range 10))
         (while True
-          (yield-from r)))
+          (yield :from r)))
       (hy.repr (list (zip "abc" (myrange))))
         ; => [#("a" 0) #("b" 1) #("c" 2)]
 

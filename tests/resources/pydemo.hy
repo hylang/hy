@@ -173,12 +173,12 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
       pys_accum.append(i)")
 (setv py-accum (py "''.join(map(str, pys_accum))"))
 
-(defn/a coro []
+(defn :async coro []
   (import asyncio
           tests.resources [AsyncWithTest async-loop])
   (await (asyncio.sleep 0))
   (setv values ["a"])
-  (with/a [t (AsyncWithTest "b")]
+  (with [:async t (AsyncWithTest "b")]
     (.append values t))
   (for [:async item (async-loop ["c" "d"])]
     (.append values item))
