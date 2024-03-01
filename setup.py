@@ -75,6 +75,7 @@ setup(
         "License :: DFSG approved",
         "License :: OSI Approved :: MIT License",  # Really "Expat". Ugh.
         "Operating System :: OS Independent",
+        "Programming Language :: Hy",
         "Programming Language :: Lisp",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
