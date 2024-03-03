@@ -135,7 +135,7 @@ def compile_eval_foo_compile(compiler, expr, root, body):
         raise HyEvalError(str(e), compiler.filename, body, compiler.source)
 
     return (
-        compiler.compile(as_model(value))
+        compiler.compile(as_model(value).replace(expr))
         if root == "do-mac"
         else compiler._compile_branch(body)
         if root == "eval-and-compile"
