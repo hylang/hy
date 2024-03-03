@@ -422,7 +422,7 @@ class HyASTCompiler:
             # These are unexpected errors that will--hopefully--never be seen
             # by the user.
             f_exc = traceback.format_exc()
-            exc_msg = "Internal Compiler Bug 😱\n⤷ {}".format(f_exc)
+            exc_msg = "Internal Compiler Bug\n {}".format(f_exc)
             raise HyCompileError(exc_msg)
 
     def _syntax_error(self, expr, message):
