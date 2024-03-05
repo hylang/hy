@@ -379,6 +379,8 @@ understand example code for Python libraries.
 
 Refer to the rest of this manual for Hy-specific features. Like Hy itself, the
 manual is incomplete, but :ref:`contributions <hacking>` are always welcome.
+For an official full-blown example Hy program, see `Infinitesimal Quest 2 + ε
+<http://hylang.org/simalq>`_.
 
 Bear in mind that Hy is still unstable, and with each release along the
 way to Hy 1.0, there are new breaking changes. Refer to `the NEWS file
