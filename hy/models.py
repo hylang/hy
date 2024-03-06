@@ -385,12 +385,19 @@ class Sequence(Object, tuple):
     for this purpose.
     """
 
+    _extra_kwargs = ()
+
     def replace(self, other, recursive=True):
-        if recursive:
-            for x in self:
-                replace_hy_obj(x, other)
-        Object.replace(self, other)
-        return self
+        return (
+            Object.replace(
+                Object.replace(
+                    type(self)(
+                        (replace_hy_obj(x, other) for x in self),
+                        **{k: getattr(self, k) for k in self._extra_kwargs}),
+                    self),
+                other)
+            if recursive
+            else Object.replace(self, other))
 
     def __add__(self, other):
         return self.__class__(
@@ -431,6 +438,8 @@ class FComponent(Sequence):
     format spec (if any).
     """
 
+    _extra_kwargs = ("conversion",)
+
     def __new__(cls, s=None, conversion=None):
         value = super().__new__(cls, s)
         value.conversion = conversion
@@ -464,6 +473,8 @@ class FString(Sequence):
 
     :ivar brackets: As in :class:`hy.models.String`.
     """
+
+    _extra_kwargs = ("brackets",)
 
     def __new__(cls, s=None, brackets=None):
         value = super().__new__(

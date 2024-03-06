@@ -18,3 +18,10 @@ def test_do_mac():
     x = cpl("(do-mac '9)")
     assert isinstance(x, ast.Expr)
     assert x.lineno == 2
+
+
+def test_defmacro_raise():
+    # https://github.com/hylang/hy/issues/2424
+    x = cpl("(defmacro m [] '(do (raise)))\n(m)")
+    assert isinstance(x, ast.Raise)
+    assert x.lineno == 3
