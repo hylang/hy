@@ -79,6 +79,10 @@ def test_stdin():
     assert "RS" in out
     assert "TU" in out
 
+    # With it, the REPL variable must exists, like ps1
+    out, _ = run_cmd("hy -i", '(import sys) (bool (getattr sys "ps1" sys.flags.interactive))')
+    assert "True" in out
+
 
 def test_error_parts_length():
     """Confirm that exception messages print arrows surrounding the affected
