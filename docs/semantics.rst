@@ -3,7 +3,8 @@ Semantics
 ==============
 
 This chapter describes features of Hy semantics that differ from Python's and
-aren't better categorized elsewhere, such as in the chapter :doc:`macros`.
+aren't better categorized elsewhere, such as in the chapter :doc:`macros`. Each
+is a potential trap for the unwary.
 
 .. _implicit-names:
 
@@ -71,3 +72,28 @@ following:
 Why didn't the second run of ``b.hy`` print ``2``? Because ``b.hy`` was
 unchanged, so it didn't get recompiled, so its bytecode still had the old
 expansion of the macro ``m``.
+
+Traceback positioning
+---------------------
+
+When an exception results in a traceback, Python uses line and column numbers
+associated with AST nodes to point to the source code associated with the
+exception:
+
+.. code-block:: text
+
+    Traceback (most recent call last):
+      File "cinco.py", line 4, in <module>
+        find()
+      File "cinco.py", line 2, in find
+        print(chippy)
+              ^^^^^^
+    NameError: name 'chippy' is not defined
+
+This position information is stored as attributes of the AST nodes. Hy tries to
+set these attributes appropriately so that it can also produce correctly
+targeted tracebacks, but there are cases where it can't, such as when
+evaluating code that was built at runtime out of explicit calls to :ref:`model
+constructors <models>`. Python still requires line and column numbers, so Hy
+sets these to 1 as a fallback; consequently, tracebacks can point to the
+beginning of a file even though the relevant code isn't there.
