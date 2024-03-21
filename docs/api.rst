@@ -50,7 +50,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       (defn #^ int add1 [#^ int x] (+ x 1))
       (fn #^ int [#^ int y] (+ y 2))
 
-   For annotating items with generic types, the :hy:func:`of <hyrule.misc.of>`
+   For annotating items with generic types, the :hy:func:`of <hyrule.of>`
    macro will likely be of use.
 
    An issue with type annotations is that, as of this writing, we know of no Python type-checker that can work with :py:mod:`ast` objects or bytecode files. They all need Python source text. So you'll have to translate your Hy with ``hy2py`` in order to actually check the types.
@@ -249,7 +249,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
    ``break`` only breaks out of the innermost iteration, not the whole form. To
    jump out of the whole form, enclose it in a :hy:func:`block
-   <hyrule.control.block>` and use ``block-ret`` instead of ``break``. In
+   <hyrule.block>` and use ``block-ret`` instead of ``break``. In
    the case of :hy:func:`for`, but not :hy:func:`lfor` and the other
    comprehension forms, you may also enclose it in a function and use
    :hy:func:`return`.
@@ -303,9 +303,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
    ``continue`` applies to the innermost iteration, not the whole form. To jump
    to the next step of an outer iteration, try rewriting your loop as multiple
-   nested loops and interposing a :hy:func:`block <hyrule.control.block>`, as
-   in ``(for [x xs] (block (for [y ys] …)))``. You can then use ``block-ret``
-   in place of ``continue``.
+   nested loops and interposing a :hy:func:`block <hyrule.block>`, as in
+   ``(for [x xs] (block (for [y ys] …)))``. You can then use ``block-ret`` in
+   place of ``continue``.
 
 .. hy:macro:: (do [#* body])
 
@@ -744,8 +744,8 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    <https://en.wikipedia.org/wiki/Switch_statement>`_ construct, and
    retains all of Python's limitations on match patterns. For example, you
    can't match against the value of a variable. For more flexible branching
-   constructs, see Hyrule's :hy:func:`branch <hyrule.control.branch>` and
-   :hy:func:`case <hyrule.control.case>`, or simply use :hy:func:`cond
+   constructs, see Hyrule's :hy:func:`branch <hyrule.branch>` and
+   :hy:func:`case <hyrule.case>`, or simply use :hy:func:`cond
    <hy.core.macros.cond>`.
 
 .. hy:macro:: (defclass [arg1 #* args])

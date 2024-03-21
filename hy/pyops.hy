@@ -240,8 +240,8 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
   provides its own syntactic sugar for this with a different macro, :hy:func:`cut <hy.pyops.cut>`.
 
   Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
-  :hy:func:`assoc <hyrule.collections.assoc>` to easily assign multiple elements of a
-  single collection.]]
+  :hy:func:`assoc <hyrule.assoc>` to easily assign multiple elements of a single
+  collection.]]
 
   (setv coll (get coll key1))
   (for [k keys]

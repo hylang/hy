@@ -104,7 +104,7 @@
       (print (hy.repr (hy.macroexpand '(m 5))))
         ; => '0
 
-  Note that in general, macro calls in the arguments of the expression still won't expanded. To expand these, too, try Hyrule's :hy:func:`macroexpand-all <hyrule.macrotools.macroexpand-all>`."
+  Note that in general, macro calls in the arguments of the expression still won't expanded. To expand these, too, try Hyrule's :hy:func:`macroexpand-all <hyrule.macroexpand-all>`."
   (_macroexpand model (or module (calling-module)) macros))
 
 (defn macroexpand-1 [model [module None] [macros None]]

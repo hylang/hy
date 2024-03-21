@@ -312,7 +312,7 @@ arbitrary Hy forms to be executed as code. There are several helper macros that
 make it easy to construct forms programmatically, such as :hy:func:`quote`
 (``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``),
 :hy:func:`unquote-splice` (``~@``), and :hy:func:`defmacro!
-<hyrule.macrotools.defmacro!>`. The previous chapter has :ref:`a simple example
+<hyrule.defmacro!>`. The previous chapter has :ref:`a simple example
 <do-while>` of using ````` and ``~@`` to define a new control construct
 ``do-while``.
 
