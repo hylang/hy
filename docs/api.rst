@@ -1350,6 +1350,10 @@ the following methods
 
 .. hy:autoclass:: hy.I
 
+.. hy:class:: (hy.R)
+
+   There is no actual object named ``hy.R``. Rather, this syntax is :ref:`recognized specially by the compiler <hy.R>` as a shorthand for requiring and calling a macro.
+
 Reader Macros
 -------------
 
