@@ -114,7 +114,7 @@ A better approach is to use :hy:func:`hy.gensym` to choose your variable name::
         (setv ~g (.upper ~arg))
         (+ ~g ~g)))
 
-Hyrule provides some macros that make using gensyms more convenient, like :hy:func:`defmacro! <hyrule.macrotools.defmacro!>` and :hy:func:`with-gensyms <hyrule.macrotools.with-gensyms>`.
+Hyrule provides some macros that make using gensyms more convenient, like :hy:func:`defmacro! <hyrule.defmacro!>` and :hy:func:`with-gensyms <hyrule.with-gensyms>`.
 
 Macro subroutines
 ~~~~~~~~~~~~~~~~~

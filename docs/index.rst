@@ -37,6 +37,5 @@ Linux and Windows), and on recent versions of PyPy and Pyodide.
    cli
    interop
    model_patterns
-   cheatsheet
    api
    hacking

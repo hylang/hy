@@ -236,10 +236,16 @@ class REPL(code.InteractiveConsole):
     A convenient way to use this class to interactively debug code is to insert the
     following in the code you want to debug::
 
-        (.run (hy.REPL :locals (locals)))
+        (.run (hy.REPL :locals {#** (globals) #** (locals)}))
 
-    Note that as with :func:`code.interact`, changes to ``(locals)`` inside the REPL are
-    not propagated back to the original scope."""
+    Or in Python:
+
+    .. code-block:: python
+
+       import hy; hy.REPL(locals = {**globals(), **locals()}).run()
+
+    Note that as with :func:`code.interact`, changes to local variables inside the
+    REPL are not propagated back to the original scope."""
 
     def __init__(self, spy=False, spy_delimiter=('-' * 30), output_fn=None, locals=None, filename="<stdin>", allow_incomplete=True):
 
