@@ -262,10 +262,7 @@ def cmdline_handler(argv):
         return 0
     elif action == "run_script_stdin":
         sys.argv = argv
-        if repl:
-            source = sys.stdin
-            filename = 'stdin'
-        else:
+        if not repl:
             return run_command(sys.stdin.read(), filename="<stdin>")
     elif action == "run_script_file":
         sys.argv = argv
