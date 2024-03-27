@@ -42,10 +42,6 @@
   generated symbol name, as an aid to debugging. Typically one calls ``hy.gensym``
   without an argument.
 
-  .. seealso::
-
-     Section :ref:`using-gensym`
-
   The below example uses the return value of ``f`` twice but calls it only
   once, and uses ``hy.gensym`` for the temporary variable to avoid collisions
   with any other variable names.

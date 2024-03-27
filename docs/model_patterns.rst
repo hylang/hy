@@ -10,9 +10,7 @@ A motivating example
 --------------------
 
 The kind of problem that model patterns are suited for is the following.
-Suppose you want to validate and extract the components of a form like:
-
-.. code-block:: clj
+Suppose you want to validate and extract the components of a form like::
 
     (setv form '(try
       (foo1)
@@ -31,9 +29,7 @@ Suppose you want to validate and extract the components of a form like:
 You could do this with loops and indexing, but it would take a lot of code and
 be error-prone. Model patterns concisely express the general form of an
 expression to be matched, like what a regular expression does for text. Here's
-a pattern for a ``try`` form of the above kind:
-
-.. code-block:: clj
+a pattern for a ``try`` form of the above kind::
 
     (import
       funcparserlib.parser [maybe many]
@@ -48,9 +44,7 @@ a pattern for a ``try`` form of the above kind:
       (maybe (dolike "else"))
       (maybe (dolike "finally"))]))
 
-You can run the parser with ``(.parse parser form)``. The result is:
-
-.. code-block:: clj
+You can run the parser with ``(.parse parser form)``. The result is::
 
     #(
       ['(foo1) '(foo2)]
@@ -94,9 +88,7 @@ hy.model-patterns)``), but again, here are some of the more important ones:
 - ``(brackets ...)`` matches the arguments in square brackets.
 - ``(pexpr ...)`` matches the arguments in parentheses.
 
-Here's how you could write a simple macro using model patterns:
-
-.. code-block:: clj
+Here's how you could write a simple macro using model patterns::
 
     (defmacro pairs [#* args]
       (import

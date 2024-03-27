@@ -16,6 +16,10 @@ extensions = [
     "sphinxcontrib.hydomain",
 ]
 
+import warnings; import sphinx.deprecation as SD
+for c in (SD.RemovedInSphinx60Warning, SD.RemovedInSphinx70Warning):
+    warnings.filterwarnings('ignore', category = c)
+
 from get_version import __version__ as hy_version
 
 # Read the Docs might dirty its checkout, so strip the dirty flag.
@@ -63,12 +67,10 @@ html_show_sphinx = False
 html_context = dict(
     hy_descriptive_version=hy_descriptive_version)
 
-highlight_language = "clojure"
+highlight_language = "hylang"
 
 intersphinx_mapping = dict(
     py=("https://docs.python.org/3/", None),
-    py3_10=("https://docs.python.org/3.10/", None),
-    py3_12=("https://docs.python.org/3.12/", None),
     hyrule=("https://hyrule.readthedocs.io/en/master/", None),
 )
 

@@ -208,9 +208,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
                 => (a-macro :b 3)
                 [:b 3]
 
-.. hy:macro:: (if [test then else])
+.. hy:macro:: (if [test true-value false-value])
 
-   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.
+   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``true-value`` is evaluated and returned. Othewise, ``false-value`` is evaluated and returned.
    ::
 
      (if (has-money-left account)
@@ -701,7 +701,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (match [subject #* cases])
 
-   The ``match`` form creates a :ref:`match statement <py3_10:match>`. It
+   The ``match`` form creates a :ref:`match statement <py:match>`. It
    requires Python 3.10 or later. The first argument should be the subject,
    and any remaining arguments should be pairs of patterns and results. The
    ``match`` form returns the value of the corresponding result, or
@@ -1212,13 +1212,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    If the manager list has more than two items, they're understood as
    variable-manager pairs; thus ::
 
-     (with [v1 e1  v2 e2  v3 e3] …)
+     (with [v1 e1  v2 e2  v3 e3] ...)
 
    compiles to
 
    .. code-block:: python
 
-      with e1 as v1, e2 as v2, e3 as v3: …
+      with e1 as v1, e2 as v2, e3 as v3: ...
 
    The symbol ``_`` is interpreted specially as a variable name in the manager
    list: instead of binding the context manager to the variable ``_`` (as
@@ -1261,7 +1261,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (deftype [args])
 
-   ``deftype`` compiles to a :py3_12:keyword:`type` statement, which defines a
+   ``deftype`` compiles to a :py:keyword:`type` statement, which defines a
    type alias. It requires Python 3.12. Its arguments optionally begin with
    ``:tp`` and a list of type parameters (as in :hy:func:`defn`), then specify
    the name for the new alias and its value. ::
