@@ -16,10 +16,10 @@ jobs:
           # only on the latest CPython.
           - name-prefix: 'win-'
             os: windows-latest
-            python: 3.11
+            python: 3.12
           - name-prefix: 'mac-'
             os: macos-latest
-            python: 3.11
+            python: 3.12
 
     name: ${{ format('{0}{1}', matrix.name-prefix, matrix.python) }}
     runs-on: ${{ matrix.os }}
