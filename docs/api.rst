@@ -208,9 +208,9 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
                 => (a-macro :b 3)
                 [:b 3]
 
-.. hy:macro:: (if [test then else])
+.. hy:macro:: (if [test true-value false-value])
 
-   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``then`` is evaluated and returned. Othewise, ``else`` is evaluated and returned.
+   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``true-value`` is evaluated and returned. Othewise, ``false-value`` is evaluated and returned.
    ::
 
      (if (has-money-left account)
