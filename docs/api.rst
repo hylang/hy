@@ -701,7 +701,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (match [subject #* cases])
 
-   The ``match`` form creates a :ref:`match statement <py3_10:match>`. It
+   The ``match`` form creates a :ref:`match statement <py:match>`. It
    requires Python 3.10 or later. The first argument should be the subject,
    and any remaining arguments should be pairs of patterns and results. The
    ``match`` form returns the value of the corresponding result, or
@@ -1261,7 +1261,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
 .. hy:macro:: (deftype [args])
 
-   ``deftype`` compiles to a :py3_12:keyword:`type` statement, which defines a
+   ``deftype`` compiles to a :py:keyword:`type` statement, which defines a
    type alias. It requires Python 3.12. Its arguments optionally begin with
    ``:tp`` and a list of type parameters (as in :hy:func:`defn`), then specify
    the name for the new alias and its value. ::
