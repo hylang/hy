@@ -1212,13 +1212,13 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    If the manager list has more than two items, they're understood as
    variable-manager pairs; thus ::
 
-     (with [v1 e1  v2 e2  v3 e3] …)
+     (with [v1 e1  v2 e2  v3 e3] ...)
 
    compiles to
 
    .. code-block:: python
 
-      with e1 as v1, e2 as v2, e3 as v3: …
+      with e1 as v1, e2 as v2, e3 as v3: ...
 
    The symbol ``_`` is interpreted specially as a variable name in the manager
    list: instead of binding the context manager to the variable ``_`` (as
