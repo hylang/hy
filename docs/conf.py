@@ -16,6 +16,10 @@ extensions = [
     "sphinxcontrib.hydomain",
 ]
 
+import warnings; import sphinx.deprecation as SD
+for c in (SD.RemovedInSphinx60Warning, SD.RemovedInSphinx70Warning):
+    warnings.filterwarnings('ignore', category = c)
+
 from get_version import __version__ as hy_version
 
 # Read the Docs might dirty its checkout, so strip the dirty flag.
