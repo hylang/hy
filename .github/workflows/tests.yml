@@ -3,7 +3,9 @@ name: Run tests
 on: [pull_request, push]
 
 jobs:
-  test:
+
+  pytest:
+    # Run the test suite.
 
     strategy:
       fail-fast: false
@@ -65,3 +67,17 @@ jobs:
             source .venv-pyodide/bin/activate
         fi
         python -m pytest tests
+
+  docs:
+    # Try building the manual, ensuring that Sphinx doesn't produce
+    # any warnings.
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install
+      run: |
+        pip install .
+        pip install -r requirements-dev.txt
+    - run: sphinx-build -W -b html docs/ docs/_build/
