@@ -67,7 +67,7 @@ html_show_sphinx = False
 html_context = dict(
     hy_descriptive_version=hy_descriptive_version)
 
-highlight_language = "clojure"
+highlight_language = "hylang"
 
 intersphinx_mapping = dict(
     py=("https://docs.python.org/3/", None),
