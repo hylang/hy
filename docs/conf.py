@@ -61,6 +61,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_static_path = ["_static"]
 
 html_use_smartypants = False
+html_copy_source = False
 html_show_sphinx = False
 
 html_context = dict(
