@@ -12,7 +12,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
-    "sphinx.ext.viewcode",
     "sphinxcontrib.hydomain",
 ]
 
