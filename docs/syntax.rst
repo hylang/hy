@@ -14,6 +14,9 @@ Following Python, Hy is in general case-sensitive. For example, ``foo`` and
 ``FOO`` are different symbols, and the Python-level variables they refer to are
 also different.
 
+.. contents:: Contents
+   :local:
+
 .. _models:
 
 An introduction to models

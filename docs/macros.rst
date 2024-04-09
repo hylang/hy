@@ -4,6 +4,9 @@ Macros
 
 Macros, and the metaprogramming they enable, are one of the characteristic features of Lisp, and one of the main advantages Hy offers over vanilla Python. Much of the material covered in this chapter will be familiar to veterans of other Lisps, but there are also a lot of Hyly specific details.
 
+.. contents:: Contents
+   :local:
+
 What are macros for?
 --------------------
 

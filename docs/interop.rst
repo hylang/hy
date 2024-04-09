@@ -10,6 +10,9 @@ Hy and Python. For example, Python's ``str.format_map`` can be written
 ``hyx_valid_Xquestion_markX`` in Python. You can call :hy:func:`hy.mangle` and
 :hy:func:`hy.unmangle` from either language.
 
+.. contents:: Contents
+   :local:
+
 Using Python from Hy
 ====================
 
