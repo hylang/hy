@@ -3,5 +3,4 @@ pytest >= 7
 # documentation
 Pygments @ git+https://github.com/Kodiologist/pygments@hylex
 Sphinx == 5.0.2
-sphinx_rtd_theme == 1.2.2
 git+https://github.com/hylang/sphinxcontrib-hydomain.git

@@ -1,0 +1,15 @@
+div.body, div.footer, code, div.code-block-caption,
+div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6,
+a.toc-backref
+   {color: black}
+
+div.body p, div.body dd, div.body li, div.body blockquote
+   {hyphens: manual}
+
+a
+   {color: navy}
+a:visited
+   {color: purple}
+
+code
+   {background-color: #dfd}

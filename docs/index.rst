@@ -1,5 +1,5 @@
-The Hy Manual
-=============
+Contents
+========
 
 .. image:: _static/hy-logo-small.png
    :alt: Hy

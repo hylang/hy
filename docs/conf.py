@@ -24,13 +24,13 @@ from get_version import __version__ as hy_version
 # Read the Docs might dirty its checkout, so strip the dirty flag.
 hy_version = re.sub(r"[+.]dirty\Z", "", hy_version)
 
-templates_path = ["_templates"]
 source_suffix = ".rst"
 
 master_doc = "index"
+html_title = f'Hy {hy_version} manual'
 
 # General information about the project.
-project = "hy"
+project = "Hy"
 copyright = "%s the authors" % time.strftime("%Y")
 
 # The version info for the project you're documenting, acts as replacement for
@@ -48,12 +48,12 @@ if "+" in hy_version:
 exclude_patterns = ["_build", "coreteam.rst"]
 add_module_names = True
 
-pygments_style = "sphinx"
-
-import sphinx_rtd_theme
-
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = "nature"
+html_theme_options = dict(
+    nosidebar = True,
+    body_min_width = 0,
+    body_max_width = 'none')
+html_css_files = ['custom.css']
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -76,10 +76,3 @@ intersphinx_mapping = dict(
 
 import hy
 hy.I = type(hy.I)  # A trick to enable `hy:autoclass:: hy.I`
-
-
-# ** Sphinx App Setup
-
-
-def setup(app):
-    app.add_css_file("overrides.css")
