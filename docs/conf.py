@@ -21,9 +21,6 @@ for c in (SD.RemovedInSphinx60Warning, SD.RemovedInSphinx70Warning):
 
 from get_version import __version__ as hy_version
 
-# Read the Docs might dirty its checkout, so strip the dirty flag.
-hy_version = re.sub(r"[+.]dirty\Z", "", hy_version)
-
 source_suffix = ".rst"
 
 master_doc = "index"
@@ -41,9 +38,6 @@ copyright = "%s the authors" % time.strftime("%Y")
 version = ".".join(hy_version.split(".")[:-1])
 # The full version, including alpha/beta/rc tags.
 release = hy_version
-hy_descriptive_version = html.escape(hy_version)
-if "+" in hy_version:
-    hy_descriptive_version += " <strong style='color: red;'>(unstable)</strong>"
 
 exclude_patterns = ["_build", "coreteam.rst"]
 add_module_names = True
@@ -63,9 +57,6 @@ html_static_path = ["_static"]
 html_use_smartypants = False
 html_copy_source = False
 html_show_sphinx = False
-
-html_context = dict(
-    hy_descriptive_version=hy_descriptive_version)
 
 highlight_language = "hylang"
 
