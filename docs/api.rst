@@ -1,6 +1,9 @@
 API
 ===
 
+.. contents:: Contents
+   :local:
+
 .. _core-macros:
 
 Core Macros

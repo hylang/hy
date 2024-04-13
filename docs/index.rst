@@ -1,5 +1,5 @@
-The Hy Manual
-=============
+Contents
+========
 
 .. image:: _static/hy-logo-small.png
    :alt: Hy
@@ -22,7 +22,7 @@ To install the latest release of Hy, just use the command ``pip3 install
 the command ``hy``, or run a Hy program with ``hy myprogram.hy``.
 
 Hy is tested on all released and currently maintained versions of CPython (on
-Linux and Windows), and on recent versions of PyPy and Pyodide.
+Linux, Windows, and Mac OS), and on recent versions of PyPy and Pyodide.
 
 .. toctree::
    :maxdepth: 3

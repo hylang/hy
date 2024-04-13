@@ -6,6 +6,9 @@ This chapter describes features of Hy semantics that differ from Python's and
 aren't better categorized elsewhere, such as in the chapter :doc:`macros`. Each
 is a potential trap for the unwary.
 
+.. contents:: Contents
+   :local:
+
 .. _implicit-names:
 
 Implicit names

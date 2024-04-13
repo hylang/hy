@@ -4,6 +4,9 @@ Command-Line Interface
 
 Hy provides a handful of command-line programs for working with Hy code.
 
+.. contents:: Contents
+   :local:
+
 .. _hy-cli:
 
 hy

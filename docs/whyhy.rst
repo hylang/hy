@@ -16,6 +16,8 @@ other Lisps, Hy provides direct access to Python's built-ins and
 third-party Python libraries, while allowing you to freely mix
 imperative, functional, and object-oriented styles of programming.
 
+.. contents:: Contents
+   :local:
 
 Hy versus Python
 ----------------

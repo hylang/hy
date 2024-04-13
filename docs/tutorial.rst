@@ -10,6 +10,9 @@ Tutorial
 This chapter provides a quick introduction to Hy. It assumes a basic background
 in programming, but no specific prior knowledge of Python or Lisp.
 
+.. contents:: Contents
+   :local:
+
 Lisp-stick on a Python
 ======================
 

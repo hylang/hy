@@ -4,6 +4,9 @@
  Developing Hy
 ===============
 
+.. contents:: Contents
+   :local:
+
 .. include:: ../CONTRIBUTING.rst
 
 Core Team
