@@ -91,7 +91,7 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     project_urls={
-        "Documentation": "https://docs.hylang.org/",
+        "Documentation": "http://hylang.org/hy/doc",
         "Source": "https://github.com/hylang/hy",
     },
     cmdclass={

@@ -13,3 +13,10 @@ a:visited
 
 code
    {background-color: #dfd}
+
+.highlight .s
+   {color: #060}
+.highlight .ss
+   {color: #040}
+.highlight .c1
+   {color: #630}

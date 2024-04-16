@@ -16,25 +16,18 @@ To install the latest release of Hy, just use the command `pip3 install
 the command `hy`, or run a Hy program with `hy myprogram.hy`.
 
 Hy is tested on all released and currently maintained versions of CPython (on
-Linux and Windows), and on recent versions of PyPy and Pyodide.
+Linux, Windows, and Mac OS), and on recent versions of PyPy and Pyodide.
 
 * [The Hy homepage](http://hylang.org)
 * [Try Hy with a web console](http://hylang.org/try-hy)
-* [Why Hy?](http://docs.hylang.org/en/stable/whyhy.html)
-* [Tutorial](http://docs.hylang.org/en/stable/tutorial.html)
 
 Project
 -------
 
 * Code: https://github.com/hylang/hy
-* Documentation:
-  * master, for use with the latest revision on GitHub: http://docs.hylang.org/en/master
-  * stable, for use with the latest release on PyPI: http://docs.hylang.org/en/stable
+* Documentation: http://hylang.org/hy/doc
 * Bug reports: We have no bugs! Your bugs are your own! (https://github.com/hylang/hy/issues)
 * License: MIT (Expat)
-* [Hacking on Hy](http://docs.hylang.org/en/master/hacking.html)
-  * [Contributor Guidelines](http://docs.hylang.org/en/master/hacking.html#contributor-guidelines)
-  * [Code of Conduct](http://docs.hylang.org/en/master/hacking.html#contributor-code-of-conduct)
 * Community: Join us on [Github Discussions](https://github.com/hylang/hy/discussions)!
 * [Stack Overflow: The [hy] tag](https://stackoverflow.com/questions/tagged/hy)
 
