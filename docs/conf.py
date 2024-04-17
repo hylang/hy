@@ -35,11 +35,11 @@ html_theme_options = dict(
     body_max_width = 'none')
 html_css_files = ['custom.css']
 html_static_path = ['_static']
-html_use_smartypants = False
 html_copy_source = False
 html_show_sphinx = False
 
 add_module_names = True
+smartquotes = False
 
 highlight_language = 'hylang'
 
