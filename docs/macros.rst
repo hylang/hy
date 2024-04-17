@@ -20,7 +20,7 @@ Hy offers two types of macros: regular macros and reader macros.
 
 **Regular macros**, typically defined with :hy:func:`defmacro`, are the kind Lispers usually mean when they talk about "macros". Regular macros are called like a function, with an :ref:`expression <expressions>` whose head is the macro name: for example, ``(foo a b)`` could call a macro named ``foo``. A regular macro is called at compile-time, after the entire top-level form in which it appears is parsed, and receives parsed :ref:`models <models>` as arguments. Regular macros come in :ref:`three varieties, which vary in scope <macro-namespaces>`.
 
-**Reader macros**, typically defined with :hy:func:`defreader`, are lower-level than regular macros. They're called with the hash sign ``#``; for example, ``#foo`` calls a reader macro named ``foo``. A reader macro is called at parse-time. It doesn't receive conventional arguments. Instead, it uses an implicitly available parser object to parse the subsequent source text. When it returns, the standard Hy parser picks up where it left off.
+**Reader macros**, typically defined with :hy:func:`defreader <hy.core.macros.defreader>`, are lower-level than regular macros. They're called with the hash sign ``#``; for example, ``#foo`` calls a reader macro named ``foo``. A reader macro is called at parse-time. It doesn't receive conventional arguments. Instead, it uses an implicitly available parser object to parse the subsequent source text. When it returns, the standard Hy parser picks up where it left off.
 
 Related constructs
 ~~~~~~~~~~~~~~~~~~
@@ -159,7 +159,7 @@ Ultimately it's wisest to use only four kinds of names in macro expansions: gens
 Reader macros
 -------------
 
-Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`HyReader <hy.reader.hy_reader.HyReader>` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`HyReader <hy.reader.hy_reader.HyReader>` and its base class :py:class:`Reader <hy.reader.reader.Reader>` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
+Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader <hy.core.macros.defreader>`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`HyReader <hy.reader.hy_reader.HyReader>` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`HyReader <hy.reader.hy_reader.HyReader>` and its base class :py:class:`Reader <hy.reader.reader.Reader>` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
 
 Here's a moderately complex example of a reader macro that couldn't be implemented as a regular macro. It reads in a list of lists in which the inner lists are newline-separated, but newlines are allowed inside elements. ::
 

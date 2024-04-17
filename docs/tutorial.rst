@@ -140,7 +140,8 @@ Access the elements of a list, dictionary, or other data structure with
     (setv (get fruit 1) "durian")
     (print (get fruit 1))  ; => durian
 
-Access a range of elements in an ordered structure with :hy:func:`cut`::
+Access a range of elements in an ordered structure with
+:hy:func:`cut <hy.pyops.cut>`::
 
     (print (cut "abcdef" 1 4))  ; => bcd
 
@@ -231,7 +232,8 @@ Note that unlike Python, Hy doesn't always evaluate function arguments (or
 the items in a literal list, or the items in a literal dictionary, etc.) in
 the order they appear in the code. But you can always force a particular
 evaluation order with :hy:func:`do`, or with other macros that provide an
-implicit :hy:func:`do`, like :hy:func:`when` or :hy:func:`fn`.
+implicit :hy:func:`do`, like :hy:func:`when <hy.core.macros.when>` or
+:hy:func:`fn`.
 
 Define classes with :hy:func:`defclass`::
 
