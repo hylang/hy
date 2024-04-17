@@ -40,6 +40,7 @@ html_show_sphinx = False
 
 add_module_names = True
 smartquotes = False
+nitpicky = True
 
 highlight_language = 'hylang'
 
