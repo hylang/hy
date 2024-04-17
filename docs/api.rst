@@ -1366,6 +1366,8 @@ Reader Macros
 .. autoclass:: hy.reader.reader.Reader
    :members:
 
+.. autoexception:: hy.reader.exceptions.PrematureEndOfInput
+
 Python Operators
 ----------------
 
