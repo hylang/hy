@@ -113,7 +113,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
    5))``. There is one exception: due to Python limitations, no implicit return
    is added if the function is an asynchronous generator (i.e., defined with
-   :hy:func:`defn/a` or :hy:func:`fn/a` and containing at least one
+   ``(defn :async …)`` or ``(fn :async …)`` and containing at least one
    :hy:func:`yield`).
 
    ``defn`` accepts a few more optional arguments: a literal keyword ``:async``
@@ -232,7 +232,7 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    argument: the object to wait for. ::
 
        (import asyncio)
-       (defn/a main []
+       (defn :async main []
          (print "hello")
          (await (asyncio.sleep 1))
          (print "world"))
@@ -357,10 +357,10 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    Python's :py:keyword:`async for`::
 
      (import asyncio)
-     (defn/a numbers []
+     (defn :async numbers []
        (yield 1)
        (yield 2))
-     (asyncio.run ((fn/a []
+     (asyncio.run ((fn :async []
        (for [:async x (numbers)]
          (print x)))))
 
