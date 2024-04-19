@@ -162,6 +162,17 @@ def compile_inline_python(compiler, expr, root, code):
     return Result(stmts=o) if exec_mode else o
 
 
+@pattern_macro("pragma", [many(KEYWORD + FORM)])
+def compile_pragma(compiler, expr, root, kwargs):
+    for kw, value in kwargs:
+        if kw == Keyword("warn-on-core-shadow"):
+            compiler.local_state_stack[-1]['warn_on_core_shadow'] = (
+                bool(compiler.eval(value)))
+        else:
+            raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
+    return Result()
+
+
 # ------------------------------------------------
 # * Quoting
 # ------------------------------------------------
@@ -470,6 +481,19 @@ def compile_def_expression(compiler, expr, root, decls):
     return result
 
 
+@pattern_macro("let", [brackets(many(maybe_annotated(FORM) + FORM)), many(FORM)])
+def compile_let(compiler, expr, root, bindings, body):
+    res = Result()
+    bindings = bindings[0]
+    scope = compiler.scope.create(ScopeLet)
+
+    for (target, ann), value in bindings:
+        res += compile_assign(compiler, ann, target, value, let_scope=scope)
+
+    with scope:
+        return res + compiler.compile(mkexpr("do", *body).replace(expr))
+
+
 @pattern_macro(["annotate"], [FORM, FORM])
 def compile_basic_annotation(compiler, expr, root, target, ann):
     return compile_assign(compiler, ann, target, None)
@@ -524,6 +548,14 @@ def compile_assign(
         )
 
     return result
+
+
+@pattern_macro(((3, 12), "deftype"), [maybe(type_params), SYM, FORM])
+def compile_deftype(compiler, expr, root, tp, name, value):
+    return asty.TypeAlias(expr,
+       name = asty.Name(name, id = mangle(name), ctx = ast.Store()),
+       value = compiler.compile(value).force_expr,
+        **digest_type_params(compiler, tp))
 
 
 @pattern_macro(["global", "nonlocal"], [many(SYM)])
@@ -2001,38 +2033,6 @@ def compile_assert_expression(compiler, expr, root, test, msg):
             )
         ],
     )
-
-
-@pattern_macro("let", [brackets(many(maybe_annotated(FORM) + FORM)), many(FORM)])
-def compile_let(compiler, expr, root, bindings, body):
-    res = Result()
-    bindings = bindings[0]
-    scope = compiler.scope.create(ScopeLet)
-
-    for (target, ann), value in bindings:
-        res += compile_assign(compiler, ann, target, value, let_scope=scope)
-
-    with scope:
-        return res + compiler.compile(mkexpr("do", *body).replace(expr))
-
-
-@pattern_macro(((3, 12), "deftype"), [maybe(type_params), SYM, FORM])
-def compile_deftype(compiler, expr, root, tp, name, value):
-    return asty.TypeAlias(expr,
-       name = asty.Name(name, id = mangle(name), ctx = ast.Store()),
-       value = compiler.compile(value).force_expr,
-        **digest_type_params(compiler, tp))
-
-
-@pattern_macro("pragma", [many(KEYWORD + FORM)])
-def compile_pragma(compiler, expr, root, kwargs):
-    for kw, value in kwargs:
-        if kw == Keyword("warn-on-core-shadow"):
-            compiler.local_state_stack[-1]['warn_on_core_shadow'] = (
-                bool(compiler.eval(value)))
-        else:
-            raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
-    return Result()
 
 
 @pattern_macro(
