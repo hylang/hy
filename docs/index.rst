@@ -32,10 +32,10 @@ Linux, Windows, and Mac OS), and on recent versions of PyPy and Pyodide.
    syntax
    semantics
    macros
+   model_patterns
    repl
    env_var
    cli
    interop
-   model_patterns
    api
    hacking
