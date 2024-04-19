@@ -1,6 +1,10 @@
 API
 ===
 
+This chapter describes most of Hy's public-facing macros, functions, and
+classes. It refers to Python's own documentation when appropriate
+rather than recapitulating the details of Python semantics.
+
 .. contents:: Contents
    :local:
 
@@ -11,6 +15,8 @@ Core macros
 
 The following macros are automatically imported into all Hy modules as their
 base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
+Macros that are also available as functions are described as functions
+under :ref:`pyop`.
 
 .. hy:macro:: (annotate [value type])
 
@@ -1367,6 +1373,8 @@ Reader macros
    :members:
 
 .. autoexception:: hy.reader.exceptions.PrematureEndOfInput
+
+.. _pyop:
 
 Python operators
 ----------------
