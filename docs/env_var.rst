@@ -1,5 +1,5 @@
 =====================
-Environment Variables
+Environment variables
 =====================
 
 Hy treats the following environment variables specially. Boolean environment

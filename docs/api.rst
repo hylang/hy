@@ -6,7 +6,7 @@ API
 
 .. _core-macros:
 
-Core Macros
+Core macros
 -----------
 
 The following macros are automatically imported into all Hy modules as their
@@ -1357,7 +1357,7 @@ the following methods
 
    There is no actual object named ``hy.R``. Rather, this syntax is :ref:`recognized specially by the compiler <hy.R>` as a shorthand for requiring and calling a macro.
 
-Reader Macros
+Reader macros
 -------------
 
 .. autoclass:: hy.reader.hy_reader.HyReader
@@ -1368,7 +1368,7 @@ Reader Macros
 
 .. autoexception:: hy.reader.exceptions.PrematureEndOfInput
 
-Python Operators
+Python operators
 ----------------
 
 .. hy:automodule:: hy.pyops

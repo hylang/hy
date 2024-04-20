@@ -9,7 +9,7 @@
 
 .. include:: ../CONTRIBUTING.rst
 
-Core Team
+Core team
 =========
 
 Hy's core development team consists of the following people:

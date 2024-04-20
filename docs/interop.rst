@@ -1,7 +1,7 @@
 .. _interop:
 
 =======================
-Python Interoperability
+Python interoperability
 =======================
 
 :ref:`Mangling <mangling>` allows variable names to be spelled differently in
