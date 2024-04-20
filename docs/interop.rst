@@ -29,6 +29,21 @@ saved copy of the original value. More generally, you can use :ref:`hy2py`, or y
 can put a simple Python wrapper script like ``import hy, my_hy_program`` in
 front of your code.
 
+Packaging a Hy library
+======================
+
+Generally, the same infrastructure used for Python packages, such as
+``setup.py`` files and the `Python Package Index (PyPI) <https://pypi.org/>`__,
+is applicable to Hy. Don't write the setup file itself in Hy, since you'll be
+declaring your package's dependence on Hy there, likely in the
+``install_requires`` argument of ``setup``. See :ref:`using-hy-from-python`
+below for some related issues to keep in mind.
+
+If you want to compile your Hy code into Python bytecode at installation-time
+(in case e.g. the code is being installed to a directory where the bytecode be
+able to be automatically written later, due to permissions issues), see Hy's
+own ``setup.py`` for an example.
+
 Using Python from Hy
 ====================
 
@@ -39,6 +54,8 @@ You can embed Python code directly into a Hy program with the macros
 :hy:func:`py <py>` and :hy:func:`pys <pys>`, and you can use standard Python
 tools like :func:`eval` or :func:`exec` to execute or manipulate Python code in
 strings.
+
+.. _using-hy-from-python:
 
 Using Hy from Python
 ====================
