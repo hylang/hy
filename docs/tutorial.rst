@@ -364,11 +364,10 @@ programs. ::
     => (import hyrule [inc])
     => (list (map inc [1 2 3]))
     [2 3 4]
-    => (require hyrule [assoc])
-    => (setv d {})
-    => (assoc d  "a" 1  "b" 2)
-    => d
-    {"a" 1  "b" 2}
+    => (require hyrule [case])
+    => (setv x 2)
+    => (case x  1 "a"  2 "b"  3 "c")
+    "b"
 
 Next steps
 ==========
