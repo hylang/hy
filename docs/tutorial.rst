@@ -354,8 +354,8 @@ like so::
 ``require`` can pull in a reader macro defined in a different module with
 syntax like ``(require mymodule :readers [d])``.
 
-Hyrule
-======
+Recommended libraries
+=====================
 
 `Hyrule <https://pypi.org/project/hyrule>`_ is Hy's standard utility library.
 It provides a variety of functions and macros that are useful for writing Hy
@@ -368,6 +368,27 @@ programs. ::
     => (setv x 2)
     => (case x  1 "a"  2 "b"  3 "c")
     "b"
+
+`toolz <https://pypi.org/project/toolz/>`_ and its Cython variant `cytoolz
+<https://pypi.org/project/cytoolz/>`_ provide lots of utilities for functional
+programming and working with iterables. ::
+
+    => (import toolz [partition])
+    => (list (partition 2 [1 2 3 4 5 6]))
+    [#(1 2) #(3 4) #(5 6)]
+
+`metadict <https://pypi.org/project/metadict/>`_ allows you to refer to the
+elements of a dictionary as attributes. This is handy when frequently referring
+to elements with constant strings as keys, since plain indexing is a bit
+verbose in Hy. ::
+
+    => (import metadict [MetaDict])
+    => (setv d (MetaDict))
+    => (setv d.foo 1)       ; i.e., (setv (get d "foo") 1)
+    => d.foo                ; i.e., (get d "foo")
+    1
+    => (list (.keys d))
+    ["foo"]
 
 Next steps
 ==========
