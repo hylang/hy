@@ -70,4 +70,4 @@ There is no Hy equivalent of :func:`exec` because :hy:func:`hy.eval` works
 even when the input isn't equivalent to a single Python expression.
 
 You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python, as in
-``hy.REPL(locals = locals()).run()``.
+``hy.REPL(locals = {**globals(), **locals()}).run()``.
