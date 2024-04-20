@@ -4,14 +4,30 @@
 Python interoperability
 =======================
 
+.. contents:: Contents
+   :local:
+
+Mangling
+========
+
 :ref:`Mangling <mangling>` allows variable names to be spelled differently in
 Hy and Python. For example, Python's ``str.format_map`` can be written
 ``str.format-map`` in Hy, and a Hy function named ``valid?`` would be called
 ``hyx_valid_Xquestion_markX`` in Python. You can call :hy:func:`hy.mangle` and
 :hy:func:`hy.unmangle` from either language.
 
-.. contents:: Contents
-   :local:
+Libraries that expect Python
+============================
+
+There are various means by which Hy may interact poorly with a Python library because the library doesn't account for the possibility of Hy. For example,
+when you run :ref:`hy-cli`, ``sys.executable`` will be set to
+this program rather than the original Python binary. This is helpful more often
+than not, but will lead to trouble if e.g. the library tries to call
+:py:data:`sys.executable` with the ``-c`` option. In this case, you can try
+setting :py:data:`sys.executable` back to ``hy.sys-executable``, which is a
+saved copy of the original value. More generally, you can use :ref:`hy2py`, or you
+can put a simple Python wrapper script like ``import hy, my_hy_program`` in
+front of your code.
 
 Using Python from Hy
 ====================
@@ -55,16 +71,3 @@ even when the input isn't equivalent to a single Python expression.
 
 You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python, as in
 ``hy.REPL(locals = locals()).run()``.
-
-Libraries that expect Python
-============================
-
-There are various means by which Hy may interact poorly with a Python library because the library doesn't account for the possibility of Hy. For example,
-when you run :ref:`hy-cli`, ``sys.executable`` will be set to
-this program rather than the original Python binary. This is helpful more often
-than not, but will lead to trouble if e.g. the library tries to call
-:py:data:`sys.executable` with the ``-c`` option. In this case, you can try
-setting :py:data:`sys.executable` back to ``hy.sys-executable``, which is a
-saved copy of the original value. More generally, you can use :ref:`hy2py`, or you
-can put a simple Python wrapper script like ``import hy, my_hy_program`` in
-front of your code.
