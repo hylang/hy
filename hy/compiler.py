@@ -786,7 +786,7 @@ def hy_eval_user(model, globals = None, locals = None, module = None, macros = N
         (hy.eval '(my-test-mac) :module hyrule)  ; NameError
         (hy.eval '(list-n 3 1) :module hyrule)   ; => [1 1 1]
 
-    Finally, finer control of macro lookup can be achieved by passing in a dictionary of macros as the ``macros`` argument. The keys of this dictionary should be mangled macro names, and the values should be function objects to implement those macros. This is the same structure as is produced by :hy:func:`local-macros`, and in fact, ``(hy.eval … :macros (local-macros))`` is useful to make local macros visible to ``hy.eval``, which otherwise doesn't see them. ::
+    Finally, finer control of macro lookup can be achieved by passing in a dictionary of macros as the ``macros`` argument. The keys of this dictionary should be mangled macro names, and the values should be function objects to implement those macros. This is the same structure as is produced by :hy:func:`local-macros <hy.core.macros.local-macros>`, and in fact, ``(hy.eval … :macros (local-macros))`` is useful to make local macros visible to ``hy.eval``, which otherwise doesn't see them. ::
 
         (defn f []
           (defmacro lmac [] 1)
