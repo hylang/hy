@@ -10,7 +10,7 @@ language) is a multi-paradigm general-purpose programming language in
 the `Lisp family
 <https://en.wikipedia.org/wiki/Lisp_(programming_language)>`_. It's
 implemented as a kind of alternative syntax for Python. Compared to
-Python, Hy offers a variety of extra features, generalizations, and
+Python, Hy offers a variety of new features, generalizations, and
 syntactic simplifications, as would be expected of a Lisp. Compared to
 other Lisps, Hy provides direct access to Python's built-ins and
 third-party Python libraries, while allowing you to freely mix
@@ -93,11 +93,11 @@ as ordinary first-class functions of the same name, allowing them to be passed
 to higher-order functions: ``(sum xs)`` could be written ``(reduce + xs)``,
 after importing the function ``+`` from the module :hy:mod:`hy.pyops`.
 
-The Hy compiler works by reading Hy source code into Hy :ref:`model objects <models>` and
-compiling the Hy model objects into Python abstract syntax tree (:py:mod:`ast`)
+The Hy compiler works by reading Hy source code into Hy :ref:`model objects
+<models>` and compiling them into Python abstract syntax tree (:py:mod:`ast`)
 objects. Python AST objects can then be compiled and run by Python itself,
 byte-compiled for faster execution later, or rendered into Python source code.
-You can even :ref:`mix Python and Hy code in the same project, or even the same
+You can :ref:`mix Python and Hy code in the same project, or even the same
 file,<interop>` which can be a good way to get your feet wet in Hy.
 
 
@@ -107,7 +107,7 @@ Hy versus other Lisps
 At run-time, Hy is essentially Python code. Thus, while Hy's design owes a lot
 to `Clojure <https://clojure.org>`_, it is more tightly coupled to Python than
 Clojure is to Java; a better analogy is `CoffeeScript's
-<https://coffeescript.org>`_ relationship to JavaScript. Python's built-in
+<https://coffeescript.org>`_ relationship with JavaScript. Python's built-in
 :ref:`functions <py:built-in-funcs>` and :ref:`data structures
 <py:bltin-types>` are directly available::
 
