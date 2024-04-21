@@ -48,7 +48,7 @@ or :py:class:`int`, or you can evaluate a model as Hy code with
 
 Models can be created with the constructors, with the :hy:func:`quote` or
 :hy:func:`quasiquote` macros, or with :hy:func:`hy.as-model`. Explicit creation
-is often not necessary, because the compiler will autopromote (via
+is often not necessary, because the compiler will automatically promote (via
 :hy:func:`hy.as-model`) any object it's trying to evaluate.
 
 Note that when you want plain old data structures and don't intend to produce
@@ -118,12 +118,12 @@ Discard prefix
 
 Like Clojure, Hy supports the Extensible Data Notation discard prefix ``#_``,
 which is kind of like a structure-aware comment. When the reader encounters
-``#_``, it reads and then discards the following form. Thus ``#_`` is similar
-to ``;`` except that reader macros still get executed, and normal parsing
-resumes after the next form ends rather than at the start of the next line:
-``[dilly #_ and krunk]`` is equivalent to ``[dilly krunk]``, whereas ``[dilly ;
-and krunk]`` is equivalent to just ``[dilly``. Comments indicated by ``;`` can
-be nested within forms discarded by ``#_``, but ``#_`` has no special meaning
+``#_``, it reads and then discards the following form. Thus ``#_`` is like
+``;`` except that reader macros still get executed, and normal parsing resumes
+after the next form ends rather than at the start of the next line: ``[dilly #_
+and krunk]`` is equivalent to ``[dilly krunk]``, whereas ``[dilly ; and
+krunk]`` is equivalent to just ``[dilly``. Comments indicated by ``;`` can be
+nested within forms discarded by ``#_``, but ``#_`` has no special meaning
 within a comment indicated by ``;``.
 
 Identifiers
@@ -131,11 +131,13 @@ Identifiers
 
 Identifiers are a broad class of syntax in Hy, comprising not only variable
 names, but any nonempty sequence of characters that aren't ASCII whitespace nor
-one of the following: ``()[]{};"'`~``. The reader will attempt to read each
-identifier as a :ref:`numeric literal <numeric-literals>`, then attempt to read
-it as a :ref:`keyword <keywords>` if that fails, then attempt to read it as a
-:ref:`dotted identifier <dotted-identifiers>` if that fails, then fall back on
-reading it as a :ref:`symbol <symbols>` if that fails.
+one of the following: ``()[]{};"'`~``. The reader will attempt to read an
+identifier as each of the following types, in the given order:
+
+1. a :ref:`numeric literal <numeric-literals>`
+2. a :ref:`keyword <keywords>`
+3. a :ref:`dotted identifier <dotted-identifiers>`
+4. a :ref:`symbol <symbols>`
 
 .. _numeric-literals:
 
@@ -197,9 +199,9 @@ equivalent to ``{"a" 1 "b" 2}``, which is different from ``{:a 1 :b 2}`` (see
 :ref:`dict-literals`).
 
 The empty keyword ``:`` is syntactically legal, but you can't compile a
-function call with an empty keyword argument due to Python limitations. Thus
-``(foo : 3)`` must be rewritten to use runtime unpacking, as in
-``(foo #** {"" 3})``.
+function call with an empty keyword argument because of Python limitations.
+Thus ``(foo : 3)`` must be rewritten to use runtime unpacking, as in ``(foo #**
+{"" 3})``.
 
 .. autoclass:: hy.models.Keyword
    :members:  __bool__, __call__
@@ -247,7 +249,7 @@ Lisps). Some example symbols are ``hello``, ``+++``, ``3fiddy``, ``$40``,
 
 Dots are only allowed in a symbol if every character in the symbol is a dot.
 Thus, ``a..b`` and ``a.`` are neither dotted identifiers nor symbols; they're
-simply illegal syntax.
+syntax errors.
 
 As a special case, the symbol ``...`` compiles to the :data:`Ellipsis` object,
 as in Python.
@@ -389,10 +391,10 @@ Expressions
 
 Expressions (:class:`Expression <hy.models.Expression>`) are denoted by
 parentheses: ``( … )``. The compiler evaluates expressions by checking the
-first element.
+first element, called the head.
 
-- If it's a symbol, and the symbol is the name of a currently defined macro,
-  the macro is called.
+- If the head is a symbol, and the symbol is the name of a currently defined
+  macro, the macro is called.
 
   - Exception: if the symbol is also the name of a function in
     :hy:mod:`hy.pyops`, and one of the arguments is an
@@ -402,18 +404,18 @@ first element.
     ``(hy.pyops.+ #* summands)``, because Python provides no way to sum a list
     of unknown length with a real addition expression.
 
-- If it is itself an expression of the form ``(. None …)`` (typically produced
-  with a :ref:`dotted identifier <dotted-identifiers>` like ``.add``), it's used
-  to construct a method call with the element after ``None`` as the object:
-  thus, ``(.add my-set 5)`` is equivalent to ``((. my-set add) 5)``, which
-  becomes ``my_set.add(5)`` in Python.
+- If the head is itself an expression of the form ``(. None …)`` (typically
+  produced with a :ref:`dotted identifier <dotted-identifiers>` like ``.add``),
+  it's used to construct a method call with the element after ``None`` as the
+  object: thus, ``(.add my-set 5)`` is equivalent to ``((. my-set add) 5)``,
+  which becomes ``my_set.add(5)`` in Python.
 
   .. _hy.R:
 
   - Exception: expressions like ``((. hy R module-name macro-name) …)``, or equivalently ``(hy.R.module-name.macro-name …)``, get special treatment. They :hy:func:`require` the module ``module-name`` and call its macro ``macro-name``, so ``(hy.R.foo.bar 1)`` is equivalent to ``(require foo) (foo.bar 1)``, but without bringing ``foo`` or ``foo.bar`` into scope. Thus ``hy.R`` is convenient syntactic sugar for macros you'll only call once in a file, or for macros that you want to appear in the expansion of other macros without having to call :hy:func:`require` in the expansion. As with :hy:class:`hy.I`, dots in the module name must be replaced with slashes.
 
 - Otherwise, the expression is compiled into a Python-level call, with the
-  first element being the calling object. (So, you can call a function that has
+  head being the calling object. (So, you can call a function that has
   the same name as a macro with an expression like ``((do setv) …)``.) The
   remaining forms are understood as arguments. Use :hy:func:`unpack-iterable`
   or :hy:func:`unpack-mapping` to break up data structures into individual
@@ -429,10 +431,12 @@ meaning. Trying to compile it is an error. For the empty tuple, use ``#()``.
 List, tuple, and set literals
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Literal :class:`list`\s (:class:`List <hy.models.List>`), :class:`tuple`\s
-(:class:`Tuple <hy.models.Tuple>`), and :class:`set`\s (:class:`Set
-<hy.models.Set>`) are denoted respectively by ``[ … ]``, ``#( … )``, and ``#{ …
-}``.
+- Literal :class:`list`\s (:class:`List <hy.models.List>`) are denoted by ``[ …
+  ]``.
+- Literal :class:`tuple`\s (:class:`Tuple <hy.models.Tuple>`) are denoted by
+  ``#( … )``.
+- Literal :class:`set`\s (:class:`Set <hy.models.Set>`) are denoted by ``#{ …
+  }``.
 
 .. autoclass:: hy.models.List
 .. autoclass:: hy.models.Tuple
@@ -494,9 +498,9 @@ Additional sugar
 ----------------
 
 Syntactic sugar is available to construct two-item :ref:`expressions
-<expressions>` with certain macros. When the sugary characters are encountered
-by the reader, a new expression is created with the corresponding macro as the
-first element and the next parsed form as the second. No parentheses are
+<expressions>` with certain heads. When the sugary characters are encountered
+by the reader, a new expression is created with the corresponding macro name as
+the first element and the next parsed form as the second. No parentheses are
 required. Thus, since ``'`` is short for ``quote``, ``'FORM`` is read as
 ``(quote FORM)``. Whitespace is allowed, as in ``' FORM``. This is all resolved
 at the reader level, so the model that gets produced is the same whether you
