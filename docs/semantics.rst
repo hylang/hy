@@ -39,6 +39,8 @@ variables are, and they aren't explicitly cleaned up, so theoretically, they
 can waste memory and lead to :py:meth:`object.__del__` being called later than
 you expect. When in doubt, check the ``hy2py`` output.
 
+.. _order-of-eval:
+
 Order of evaluation
 -------------------
 

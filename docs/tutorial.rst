@@ -44,11 +44,12 @@ Here's a more complex example::
 
     (- (* (+ 1 3 88) 2) 8)
 
-This code returns ``176``. Why? We can see the infix equivalent with the
+This code returns ``176``. Why? You can see the infix equivalent with the
 command ``echo "(- (* (+ 1 3 88) 2) 8)" | hy2py``, which returns the Python
-code corresponding to the given Hy code, or by passing the ``--spy`` option to
-Hy when starting the REPL, which shows the Python equivalent of each input line
-before the result. The infix equivalent in this case is:
+code corresponding to the given Hy code. Or you can pass the ``--spy`` option to
+Hy when starting the interactive read-eval-print loop (REPL), which shows the
+Python equivalent of each input line before the result. The infix equivalent in
+this case is:
 
 .. code-block:: python
 
@@ -119,7 +120,7 @@ But if you start Hy like this::
 
   $ hy --repl-output-fn=repr
 
-the REPL will use Python's native ``repr`` function instead, so you'll see values in Python syntax::
+the REPL will use Python's native :py:func:`repr` function instead, so you'll see values in Python syntax::
 
   => [1 2 3]
   [1, 2, 3]
@@ -228,12 +229,12 @@ Set a function parameter by name with a ``:keyword``::
 
     (test 1 2 :d "y")             ; => [1, 2, None, 'y', ()]
 
-Note that unlike Python, Hy doesn't always evaluate function arguments (or
-the items in a literal list, or the items in a literal dictionary, etc.) in
-the order they appear in the code. But you can always force a particular
-evaluation order with :hy:func:`do`, or with other macros that provide an
-implicit :hy:func:`do`, like :hy:func:`when <hy.core.macros.when>` or
-:hy:func:`fn`.
+Note that unlike Python, Hy doesn't always evaluate function arguments (or the
+items in a literal list, or the items in a literal dictionary, etc.) :ref:`in
+the order they appear in the code <order-of-eval>`. But you can always force a
+particular evaluation order with :hy:func:`do`, or with other macros that
+provide an implicit :hy:func:`do`, like :hy:func:`when <hy.core.macros.when>`
+or :hy:func:`fn`.
 
 Define classes with :hy:func:`defclass`::
 
@@ -255,7 +256,7 @@ various means::
 Note that syntax like ``fb.x`` and ``fb.get-x`` only works when the object
 being invoked (``fb``, in this case) is a simple variable name. To get an
 attribute or call a method of an arbitrary form ``FORM``, you must use the
-syntax ``(. FORM x)`` or ``(.get-x FORM)``.
+syntax ``(. FORM x)`` or ``(.get-x FORM)``, or call :py:func:`getattr`.
 
 Access an external module, whether written in Python or Hy, with
 :hy:func:`import`::
@@ -317,7 +318,7 @@ simply::
 
 Our macro ``m`` has an especially simple return value, an integer (:py:class:`int`), which at
 compile-time is converted to an integer model (:class:`hy.models.Integer`). In general, macros can return
-arbitrary Hy forms to be executed as code. There are several helper macros that
+arbitrary Hy models to be executed as code. There are several helper macros that
 make it easy to construct forms programmatically, such as :hy:func:`quote`
 (``'``), :hy:func:`quasiquote` (`````), :hy:func:`unquote` (``~``),
 :hy:func:`unquote-splice` (``~@``), and :hy:func:`defmacro!
@@ -332,9 +333,8 @@ that is, during the translation from Hy to Python. Instead, use :hy:func:`requir
 which imports the module and makes macros available at compile-time.
 ``require`` uses the same syntax as ``import``. ::
 
-   => (require tutorial.macros)
-   => (tutorial.macros.rev (1 2 3 +))
-   6
+   (require some-module.macros)
+   (some-module.macros.rev (1 2 3 +))  ; => 6
 
 Hy also supports reader macros, which are similar to ordinary macros, but
 operate on raw source text rather than pre-parsed Hy forms. They can choose how
@@ -343,17 +343,14 @@ any code. Thus, reader macros can add entirely new syntax to Hy. For example,
 you could add a literal notation for Python's :class:`decimal.Decimal` class
 like so::
 
-    => (defreader d
-    ...   (.slurp-space &reader)
-    ...   `(hy.I.decimal.Decimal ~(.read-ident &reader)))
-    => (print (repr #d .1))
-    Decimal('0.1')
-    => (import fractions [Fraction])
-    => (print (Fraction #d .1))
-    1/10
-    => ;; Contrast with the normal floating-point .1:
-    => (print (Fraction .1))
-    3602879701896397/36028797018963968
+    (defreader d
+       (.slurp-space &reader)
+       `(hy.I.decimal.Decimal ~(.read-ident &reader)))
+    (print (repr #d .1))          ; => Decimal('0.1')
+    (import fractions [Fraction])
+    (print (Fraction #d .1))      ; => 1/10
+    ;; Contrast with the normal floating-point .1:
+    (print (Fraction .1))         ; => 3602879701896397/36028797018963968
 
 ``require`` can pull in a reader macro defined in a different module with
 syntax like ``(require mymodule :readers [d])``.
@@ -365,34 +362,32 @@ Recommended libraries
 It provides a variety of functions and macros that are useful for writing Hy
 programs. ::
 
-    => (import hyrule [inc])
-    => (list (map inc [1 2 3]))
-    [2 3 4]
-    => (require hyrule [case])
-    => (setv x 2)
-    => (case x  1 "a"  2 "b"  3 "c")
-    "b"
+    (import hyrule [inc])
+    (list (map inc [1 2 3]))       ; => [2 3 4]
+    (require hyrule [case])
+    (setv x 2)
+    (case x  1 "a"  2 "b"  3 "c")  ; => "b"
 
 `toolz <https://pypi.org/project/toolz/>`_ and its Cython variant `cytoolz
 <https://pypi.org/project/cytoolz/>`_ provide lots of utilities for functional
 programming and working with iterables. ::
 
-    => (import toolz [partition])
-    => (list (partition 2 [1 2 3 4 5 6]))
-    [#(1 2) #(3 4) #(5 6)]
+    (import toolz [partition])
+    (list (partition 2 [1 2 3 4 5 6]))
+      ; => [#(1 2) #(3 4) #(5 6)]
 
 `metadict <https://pypi.org/project/metadict/>`_ allows you to refer to the
 elements of a dictionary as attributes. This is handy when frequently referring
 to elements with constant strings as keys, since plain indexing is a bit
 verbose in Hy. ::
 
-    => (import metadict [MetaDict])
-    => (setv d (MetaDict))
-    => (setv d.foo 1)       ; i.e., (setv (get d "foo") 1)
-    => d.foo                ; i.e., (get d "foo")
-    1
-    => (list (.keys d))
-    ["foo"]
+    (import metadict [MetaDict])
+    (setv d (MetaDict))
+    (setv d.foo 1)       ; i.e., (setv (get d "foo") 1)
+    d.foo                ; i.e., (get d "foo")
+      ; => 1
+    (list (.keys d))
+      ; => ["foo"]
 
 Next steps
 ==========
