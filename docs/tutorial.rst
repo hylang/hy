@@ -263,6 +263,10 @@ Access an external module, whether written in Python or Hy, with
     (import math)
     (print (math.sqrt 2))  ; => 1.4142135623730951
 
+Or use the one-shot import syntax :hy:class:`hy.I`::
+
+    (print (hy.I.math.sqrt 2))
+
 Python can import a Hy module like any other module so long as Hy itself has
 been imported first, which, of course, must have already happened if you're
 running a Hy program.
@@ -339,12 +343,12 @@ any code. Thus, reader macros can add entirely new syntax to Hy. For example,
 you could add a literal notation for Python's :class:`decimal.Decimal` class
 like so::
 
-    => (import  decimal [Decimal]  fractions [Fraction])
     => (defreader d
     ...   (.slurp-space &reader)
-    ...   `(Decimal ~(.read-ident &reader)))
+    ...   `(hy.I.decimal.Decimal ~(.read-ident &reader)))
     => (print (repr #d .1))
     Decimal('0.1')
+    => (import fractions [Fraction])
     => (print (Fraction #d .1))
     1/10
     => ;; Contrast with the normal floating-point .1:
