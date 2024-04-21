@@ -29,6 +29,10 @@ saved copy of the original value. More generally, you can use :ref:`hy2py`, or y
 can put a simple Python wrapper script like ``import hy, my_hy_program`` in
 front of your code.
 
+See `the wiki
+<https://github.com/hylang/hy/wiki/Compatibility-tips>`_ for tips
+on using specific packages.
+
 Packaging a Hy library
 ======================
 
