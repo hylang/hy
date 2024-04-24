@@ -1,314 +1,25 @@
 API
 ===
 
+This chapter describes most of Hy's public-facing macros, functions, and
+classes. It refers to Python's own documentation when appropriate
+rather than recapitulating the details of Python semantics.
+
 .. contents:: Contents
    :local:
 
 .. _core-macros:
 
-Core Macros
+Core macros
 -----------
 
 The following macros are automatically imported into all Hy modules as their
 base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
-
-.. hy:macro:: (annotate [value type])
-
-   ``annotate`` and its shorthand form ``#^`` are used to denote annotations,
-   including type hints, in three different contexts:
-
-   - Standalone variable annotations (:pep:`526`)
-   - Variable annotations in a :hy:func:`setv` call
-   - Function-parameter annotations (:pep:`3107`)
-
-   The difference between ``annotate`` and ``#^`` is that ``annotate`` requires
-   parentheses and takes the name to be annotated first (like Python), whereas
-   ``#^`` doesn't require parentheses (it only applies to the next two forms)
-   and takes the type second::
-
-      (setv (annotate x int) 1)
-      (setv #^ int x 1)
-
-   The order difference is not merely visual: ``#^`` actually evaluates the
-   type first.
-
-   Here are examples with ``#^`` for all the places you can use annotations::
-
-      ; Annotate the variable `x` as an `int` (equivalent to `x: int`).
-      #^ int x
-      ; You can annotate with expressions (equivalent to `y: f(x)`).
-      #^(f x) y
-
-      ; Annotations with an assignment: each annotation `(int, str)`
-      ; covers the term that immediately follows.
-      ; Equivalent to `x: int = 1; y = 2; z: str = 3`
-      (setv  #^ int x 1  y 2  #^ str z 3)
-
-      ; Annotate `a` as an `int`, `c` as an `int`, and `b` as a `str`.
-      ; Equivalent to `def func(a: int, b: str = None, c: int = 1): ...`
-      (defn func [#^ int a  #^ str  [b None] #^ int  [c 1]] ...)
-
-      ; Function return annotations come before the function name (if
-      ; it exists).
-      (defn #^ int add1 [#^ int x] (+ x 1))
-      (fn #^ int [#^ int y] (+ y 2))
-
-   For annotating items with generic types, the :hy:func:`of <hyrule.of>`
-   macro will likely be of use.
-
-   An issue with type annotations is that, as of this writing, we know of no Python type-checker that can work with :py:mod:`ast` objects or bytecode files. They all need Python source text. So you'll have to translate your Hy with ``hy2py`` in order to actually check the types.
-
-.. _dot:
-
-.. hy:data:: .
-
-   The dot macro ``.`` compiles to one or more :ref:`attribute references
-   <py:attribute-references>`, which select an attribute of an object. The
-   first argument, which is required, can be an arbitrary form. With no further
-   arguments, ``.`` is a no-op. Additional symbol arguments are understood as a
-   chain of attributes, so ``(. foo bar)`` compiles to ``foo.bar``, and ``(. a b
-   c d)`` compiles to ``a.b.c.d``.
-
-   As a convenience, ``.`` supports two other kinds of arguments in place of a
-   plain attribute. A parenthesized expression is understood as a method call:
-   ``(. foo (bar a b))`` compiles to ``foo.bar(a, b)``. A bracketed form is
-   understood as a subscript: ``(. foo ["bar"])`` compiles to ``foo["bar"]``.
-   All these options can be mixed and matched in a single ``.`` call, so ::
-
-     (. a (b 1 2) c [d] [(e 3 4)])
-
-   compiles to
-
-   .. code-block:: python
-
-     a.b(1, 2).c[d][e(3, 4)]
-
-   :ref:`Dotted identifiers <dotted-identifiers>` provide syntactic sugar for
-   common uses of this macro. In particular, syntax like ``foo.bar`` ends up
-   meaning the same thing in Hy as in Python. Also, :hy:func:`get
-   <hy.pyops.get>` is another way to subscript in Hy.
-
-.. hy:macro:: (fn [args])
-
-   As :hy:func:`defn`, but no name for the new function is required (or
-   allowed), and the newly created function object is returned. Decorators and
-   type parameters aren't allowed, either. However, the function body is
-   understood identically to that of :hy:func:`defn`, without any of the
-   restrictions of Python's :py:keyword:`lambda`. ``:async`` is also allowed.
-
-.. hy:macro:: (defn [name #* args])
-
-   ``defn`` compiles to a :ref:`function definition <py:function>` (or possibly
-   to an assignment of a :ref:`lambda expression <py:lambda>`). It always
-   returns ``None``. It requires two arguments: a name (given as a symbol; see
-   :hy:func:`fn` for anonymous functions) and a "lambda list", or list of
-   parameters (also given as symbols). Any further arguments constitute the
-   body of the function::
-
-       (defn name [params] bodyform1 bodyform2…)
-
-   An empty body is implicitly ``(return None)``. If there are at least two body
-   forms, and the first of them is a string literal, this string becomes the
-   :term:`py:docstring` of the function. The final body form is implicitly
-   returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
-   5))``. There is one exception: due to Python limitations, no implicit return
-   is added if the function is an asynchronous generator (i.e., defined with
-   ``(defn :async …)`` or ``(fn :async …)`` and containing at least one
-   :hy:func:`yield`).
-
-   ``defn`` accepts a few more optional arguments: a literal keyword ``:async``
-   (to create a :ref:`coroutine <py:async def>` like Python's ``async def``), a
-   bracketed list of :term:`decorators <py:decorator>`, a list of type
-   parameters (see below), and an annotation (see :hy:func:`annotate`) for the
-   return value. These are placed before the function name (in that order, if
-   several are present)::
-
-       (defn :async [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
-
-   ``defn`` lambda lists support all the same features as Python parameter
-   lists and hence are complex in their full generality. The simplest case is a
-   (possibly empty) list of symbols, indicating that all parameters are
-   required, and can be set by position, as in ``(f value)``, or by name, as in
-   ``(f :argument value)``. To set a default value for a parameter, replace the
-   parameter with the bracketed list ``[pname value]``, where ``pname`` is the
-   parameter name as a symbol and ``value`` is an arbitrary form. Beware that,
-   per Python, ``value`` is evaluated when the function is defined, not when
-   it's called, and if the resulting object is mutated, all calls will see the
-   changes.
-
-   Further special lambda-list syntax includes:
-
-   ``/``
-        If the symbol ``/`` is given in place of a parameter, it means that all
-        the preceding parameters can only be set positionally.
-
-   ``*``
-        If the symbol ``*`` is given in place of a parameter, it means that all
-        the following parameters can only be set by name.
-
-   ``#* args``
-        If the parameter list contains ``#* args`` or ``(unpack-iterable
-        args)``, then ``args`` is set to a tuple containing all otherwise
-        unmatched positional arguments. The name ``args`` is merely cherished
-        Python tradition; you can use any symbol.
-
-   ``#** kwargs``
-        ``#** kwargs`` (a.k.a. ``(unpack-mapping kwargs)``) is like ``#*
-        args``, but collects unmatched keyword arguments into a dictionary.
-
-   Each of these special constructs is allowed only once, and has the same
-   restrictions as in Python; e.g., ``#* args`` must precede ``#** kwargs`` if
-   both are present. Here's an example with a complex lambda list::
-
-    (defn f [a / b [c 3] * d e #** kwargs]
-      [a b c d e kwargs])
-    (print (hy.repr (f 1 2 :d 4 :e 5 :f 6)))
-      ; => [1 2 3 4 5 {"f" 6}]
-
-   Type parameters require Python 3.12, and have the semantics specified by
-   :pep:`695`. The keyword ``:tp`` introduces the list of type parameters. Each
-   item of the list is a symbol, an annotated symbol (such as ``#^ int T``), or
-   an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, unpacking
-   and annotation can't be used with the same parameter.
-
-.. hy:macro:: (defmacro [name lambda-list #* body])
-
-   ``defmacro`` is used to define macros. The general format is
-   ``(defmacro name [parameters] expr)``.
-
-   The following example defines a macro that can be used to swap order of elements
-   in code, allowing the user to write code in infix notation, where operator is in
-   between the operands.
-
-   :strong:`Examples`
-   ::
-
-      => (defmacro infix [code]
-      ...  (quasiquote (
-      ...    (unquote (get code 1))
-      ...    (unquote (get code 0))
-      ...    (unquote (get code 2)))))
-
-   ::
-
-      => (infix (1 + 1))
-      2
-
-   If ``defmacro`` appears in a function definition, a class definition, or a
-   comprehension other than :hy:func:`for` (such as :hy:func:`lfor`), the new
-   macro is defined locally rather than module-wide.
-
-   .. note:: ``defmacro`` cannot use keyword arguments, because all values
-             are passed to macros unevaluated. All arguments are passed
-             positionally, but they can have default values::
-
-                => (defmacro a-macro [a [b 1]]
-                ...  `[~a ~b])
-                => (a-macro 2)
-                [2 1]
-                => (a-macro 2 3)
-                [2 3]
-                => (a-macro :b 3)
-                [:b 3]
-
-.. hy:macro:: (if [test true-value false-value])
-
-   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``true-value`` is evaluated and returned. Othewise, ``false-value`` is evaluated and returned.
-   ::
-
-     (if (has-money-left account)
-       (print "Let's go shopping!")
-       (print "Back to work."))
-
-   See also:
-
-   - :hy:func:`do`, to execute several forms as part of any of ``if``'s three arguments.
-   - :hy:func:`when <hy.core.macros.when>`, for shorthand for ``(if condition (do …) None)``.
-   - :hy:func:`cond <hy.core.macros.cond>`, for shorthand for nested ``if`` forms.
-
-.. hy:macro:: (await [obj])
-
-   ``await`` creates an :ref:`await expression <py:await>`. It takes exactly one
-   argument: the object to wait for. ::
-
-       (import asyncio)
-       (defn :async main []
-         (print "hello")
-         (await (asyncio.sleep 1))
-         (print "world"))
-       (asyncio.run (main))
-
-.. hy:macro:: (break)
-
-   ``break`` compiles to a :py:keyword:`break` statement, which terminates the
-   enclosing loop. The following example has an infinite ``while`` loop that
-   ends when the user enters "k"::
-
-       (while True
-         (if (= (input "> ") "k")
-           (break)
-           (print "Try again")))
-
-   In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
-   ``break`` only breaks out of the innermost iteration, not the whole form. To
-   jump out of the whole form, enclose it in a :hy:func:`block
-   <hyrule.block>` and use ``block-ret`` instead of ``break``. In
-   the case of :hy:func:`for`, but not :hy:func:`lfor` and the other
-   comprehension forms, you may also enclose it in a function and use
-   :hy:func:`return`.
-
-.. hy:macro:: (chainc [#* args])
-
-   ``chainc`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
-   required for unchained comparisons, which have only one comparison operator,
-   nor for chains of the same operator. For those cases, you can use the
-   comparison operators directly with Hy's usual prefix syntax, as in ``(= x 1)``
-   or ``(< 1 2 3)``. The use of ``chainc`` is to construct chains of
-   heterogeneous operators, such as ``x <= y < z``. It uses an infix syntax with
-   the general form
-
-   ::
-
-       (chainc ARG OP ARG OP ARG…)
-
-   Hence, ``(chainc x <= y < z)`` is equivalent to ``(and (<= x y) (< y z))``,
-   including short-circuiting, except that ``y`` is only evaluated once.
-
-   Each ``ARG`` is an arbitrary form, which does not itself use infix syntax. Use
-   :hy:func:`py <py>` if you want fully Python-style operator syntax. You can
-   also nest ``chainc`` forms, although this is rarely useful. Each ``OP`` is a
-   literal comparison operator; other forms that resolve to a comparison operator
-   are not allowed.
-
-   At least two ``ARG``\ s and one ``OP`` are required, and every ``OP`` must be
-   followed by an ``ARG``.
-
-   As elsewhere in Hy, the equality operator is spelled ``=``, not ``==`` as in
-   Python.
-
-
-.. hy:macro:: (continue)
-
-   ``continue`` compiles to a :py:keyword:`continue` statement, which returns
-   execution to the start of a loop. In the following example, ``(.append
-   output x)`` is executed on each iteration, whereas ``(.append evens x)`` is
-   only executed for even numbers.
-
-   ::
-
-       (setv  output []  evens [])
-       (for [x (range 10)]
-         (.append output x)
-         (when (% x 2)
-           (continue))
-         (.append evens x))
-
-   In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
-   ``continue`` applies to the innermost iteration, not the whole form. To jump
-   to the next step of an outer iteration, try rewriting your loop as multiple
-   nested loops and interposing a :hy:func:`block <hyrule.block>`, as in
-   ``(for [x xs] (block (for [y ys] …)))``. You can then use ``block-ret`` in
-   place of ``continue``.
+Macros that are also available as functions are described as functions
+under :ref:`pyop`.
+
+Fundamentals
+~~~~~~~~~~~~
 
 .. hy:macro:: (do [#* body])
 
@@ -328,119 +39,6 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        ; => "foo"
 
    Contrast with :hy:func:`eval-and-compile`, which evaluates the same code at compile-time and run-time, instead of using the result of the compile-time run as code for run-time. ``do-mac`` is also similar to Common Lisp's SHARPSIGN DOT syntax (``#.``), from which it differs by evaluating at compile-time rather than read-time.
-
-.. hy:macro:: (for [#* args])
-
-   ``for`` compiles to one or more :py:keyword:`for` statements, which execute
-   code repeatedly for each element of an iterable object. The return values of
-   the forms are discarded and the ``for`` form returns ``None``. ::
-
-     (for [x [1 2 3]]
-       (print "iterating")
-       (print x))
-     ; Output: iterating 1 iterating 2 iterating 3
-
-   The first argument of ``for``, in square brackets, specifies how to loop. A
-   simple and common case is ``[variable values]``, where ``values`` is a form
-   that evaluates to an iterable object (such as a list) and ``variable`` is a
-   symbol specifiying the name for each element. Subsequent arguments to ``for``
-   are body forms to be evaluated for each iteration of the loop.
-
-   More generally, the first argument of ``for`` allows the same types of
-   clauses as :hy:func:`lfor`::
-
-     (for [x [1 2 3]  :if (!= x 2)  y [7 8]]
-       (print x y))
-     ; Output:  1 7  1 8  3 7  3 8
-
-   In particular, you can use an ``:async`` clause to get the equivalent of
-   Python's :py:keyword:`async for`::
-
-     (import asyncio)
-     (defn :async numbers []
-       (yield 1)
-       (yield 2))
-     (asyncio.run ((fn :async []
-       (for [:async x (numbers)]
-         (print x)))))
-
-   The last argument of ``for`` can be an ``(else …)`` form. This form is
-   executed after the last iteration of the ``for``\'s outermost iteration
-   clause, but only if that outermost loop terminates normally. If it's jumped
-   out of with e.g. ``break``, the ``else`` is ignored. ::
-
-     (for [x [1 2 3]]
-       (print x)
-       (when (= x 2)
-         (break))
-       (else (print "loop finished")))
-
-.. hy:macro:: (assert [condition [label None]])
-
-   ``assert`` compiles to an :py:keyword:`assert` statement, which checks
-   whether a condition is true. The first argument, specifying the condition to
-   check, is mandatory, whereas the second, which will be passed to
-   :py:class:`AssertionError`, is optional. The whole form is only evaluated
-   when :py:data:`__debug__` is true, and the second argument is only evaluated
-   when :py:data:`__debug__` is true and the condition fails. ``assert`` always
-   returns ``None``. ::
-
-     (assert (= 1 2) "one should equal two")
-       ; AssertionError: one should equal two
-
-.. hy:macro:: (global [#* syms])
-
-   ``global`` compiles to a :py:keyword:`global` statement, which declares one
-   or more names as referring to global (i.e., module-level) variables. The
-   arguments are symbols; with no arguments, ``global`` has no effect. The
-   return value is always ``None``. ::
-
-       (setv  a 1  b 10)
-       (print a b)  ; => 1 10
-       (defn f []
-         (global a)
-         (setv  a 2  b 20))
-       (f)
-       (print a b)  ; => 2 10
-
-
-.. hy:macro:: (import [#* forms])
-
-   ``import`` compiles to an :py:keyword:`import` statement, which makes objects
-   in a different module available in the current module. It always returns
-   ``None``. Hy's syntax for the various kinds of import looks like this::
-
-       ;; Import each of these modules
-       ;; Python: import sys, os.path
-       (import sys os.path)
-
-       ;; Import several names from a single module
-       ;; Python: from os.path import exists, isdir as is_dir, isfile
-       (import os.path [exists  isdir :as dir?  isfile])
-
-       ;; Import with an alias
-       ;; Python: import sys as systest
-       (import sys :as systest)
-
-       ;; You can list as many imports as you like of different types.
-       ;; Python:
-       ;;     from tests.resources import kwtest, function_with_a_dash
-       ;;     from os.path import exists, isdir as is_dir, isfile as is_file
-       ;;     import sys as systest
-       (import tests.resources [kwtest function-with-a-dash]
-               os.path [exists
-                        isdir :as dir?
-                        isfile :as file?]
-               sys :as systest)
-
-       ;; Import all module functions into current namespace
-       ;; Python: from sys import *
-       (import sys *)
-
-   ``__all__`` can be set to control what's imported by ``import *``, as in
-   Python, but beware that all names in ``__all__`` must be :ref:`mangled
-   <mangling>`. The macro :hy:func:`export <hy.core.macros.export>` is a handy
-   way to set ``__all__`` in a Hy program.
 
 .. hy:macro:: (eval-and-compile [#* body])
 
@@ -517,92 +115,130 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
        (print (m 3))     ; prints 5
        (print (add 3 6)) ; raises NameError: name 'add' is not defined
 
-.. hy:macro:: (lfor [#* args])
+.. hy:macro:: (py [string])
 
-   The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
-   are used to produce various kinds of loops, including Python-style
-   :ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
-   can create a list comprehension. A simple use of ``lfor`` is::
+   ``py`` parses the given Python code at compile-time and inserts the result into
+   the generated abstract syntax tree. Thus, you can mix Python code into a Hy
+   program. Only a Python expression is allowed, not statements; use
+   :hy:func:`pys <pys>` if you want to use Python statements. The value of the
+   expression is returned from the ``py`` form. ::
 
-       (lfor  x (range 5)  (* 2 x))  ; => [0 2 4 6 8]
+       (print "A result from Python:" (py "'hello' + 'world'"))
 
-   ``x`` is the name of a new variable, which is bound to each element of
-   ``(range 5)``. Each such element in turn is used to evaluate the value
-   form ``(* 2 x)``, and the results are accumulated into a list.
+   The code must be given as a single string literal, but you can still use
+   macros, :hy:func:`hy.eval <hy.eval>`, and related tools to construct the ``py`` form. If
+   having to backslash-escape internal double quotes is getting you down, try a
+   :ref:`bracket string <bracket-strings>`. If you want to evaluate some Python
+   code that's only defined at run-time, try the standard Python function
+   :func:`eval`.
 
-   Here's a more complex example::
+   The code is implicitly wrapped in parentheses so Python won't give you grief
+   about indentation. After all, Python's indentation rules are only useful for
+   grouping statements, whereas ``py`` only allows an expression.
 
-       (lfor
-         x (range 3)
-         y (range 3)
-         :if (!= x y)
-         :setv total (+ x y)
-         [x y total])
-       ; => [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
+   Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
+   program that uses ``py`` or ``pys``. For example, comments will be removed.
 
-   When there are several iteration clauses (here, the pairs of forms ``x
-   (range 3)`` and ``y (range 3)``), the result works like a nested loop or
-   Cartesian product: all combinations are considered in lexicographic
-   order.
+.. hy:macro:: (pys [string])
 
-   The general form of ``lfor`` is::
+   As :hy:func:`py <py>`, but the code can consist of zero or more statements,
+   including compound statements such as ``for`` and ``def``. ``pys`` always
+   returns ``None``. ::
 
-       (lfor CLAUSES VALUE)
+       (pys "myvar = 5")
+       (print "myvar is" myvar)
 
-   where the ``VALUE`` is an arbitrary form that is evaluated to produce
-   each element of the result list, and ``CLAUSES`` is any number of
-   clauses. There are several types of clauses:
+   Unlike ``py``, no parentheses are added, because Python doesn't allow
+   statements to be parenthesized. Instead, the code string is dedented with
+   :func:`textwrap.dedent` before parsing. Thus you can indent the code to
+   match the surrounding Hy code when Python would otherwise forbid this, but
+   beware that significant leading whitespace in embedded string literals will
+   be removed.
 
-   - Iteration clauses, which look like ``LVALUE ITERABLE``. The ``LVALUE``
-     is usually just a symbol, but could be something more complicated,
-     like ``[x y]``.
-   - ``:async LVALUE ITERABLE``, which is an asynchronous form of
-     iteration clause per Python's :py:keyword:`async for`.
-   - ``:do FORM``, which simply evaluates the ``FORM``. If you use
-     ``(continue)`` or ``(break)`` here, it will apply to the innermost
-     iteration clause before the ``:do``.
-   - ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
-     RVALUE)``.
-   - ``:if CONDITION``, which is equivalent to ``:do (when (not CONDITION)
-     (continue))``.
+.. hy:macro:: (pragma [#* args])
 
-   For ``lfor``, ``sfor``, ``gfor``, and ``dfor``,  variables defined by
-   an iteration clause or ``:setv`` are not visible outside the form.
-   However, variables defined within the body, as with a ``setx``
-   expression, will be visible outside the form.
-   In ``for``, by contrast, iteration and ``:setv`` clauses share the
-   caller's scope and are visible outside the form.
+  ``pragma`` is used to adjust the state of the compiler. It's called for its
+  side-effects, and returns ``None``. The arguments are key-value pairs, like a
+  function call with keyword arguments::
 
-.. hy:macro:: (dfor [#* args])
+    (pragma :prag1 value1 :prag2 (get-value2))
 
-    ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
-    is the same as that of :hy:func:`lfor` except that it takes two trailing
-    arguments. The first is a form producing the key of each dictionary
-    element, and the second produces the value. Thus::
+  Each key is a literal keyword giving the name of a pragma. Each value is an
+  arbitrary form, which is evaluated as ordinary Hy code but at compile-time.
 
-        => (dfor  x (range 5)  x (* x 10))
-        {0 0  1 10  2 20  3 30  4 40}
+  The effect of each pragma is locally scoped to its containing function,
+  class, or comprehension form (other than ``for``), if there is one.
 
+  Only one pragma is currently implemented:
 
-.. hy:macro:: (gfor [#* args])
+.. _warn-on-core-shadow:
 
-   ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
-   is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
-   an iterator, which evaluates and yields values one at a time::
+  - ``:warn-on-core-shadow``: If true (the default), :hy:func:`defmacro` and
+    :hy:func:`require` will raise a warning at compile-time if you define a macro
+    with the same name as a core macro. Shadowing a core macro in this fashion is
+    dangerous, because other macros may call your new macro when they meant to
+    refer to the core macro.
 
-       => (import itertools [count take-while])
-       => (setv accum [])
-       => (list (take-while
-       ...  (fn [x] (< x 5))
-       ...  (gfor x (count) :do (.append accum x) x)))
-       [0 1 2 3 4]
-       => accum
-       [0 1 2 3 4 5]
+Quoting
+~~~~~~~~~~~~
 
-.. hy:macro:: (sfor [#* args])
+.. hy:macro:: (quote [model])
 
-   ``sfor`` creates a :ref:`set comprehension <py:set>`. ``(sfor CLAUSES VALUE)`` is
-   equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
+   Return the given :ref:`model <models>` without evaluating it. Or to be more pedantic, ``quote`` complies to code that produces and returns the model it was originally called on. Thus ``quote`` serves as syntactic sugar for model constructors::
+
+     (quote a)
+       ; Equivalent to:  (hy.models.Symbol "a")
+     (quote (+ 1 1))
+       ; Equivalent to:  (hy.models.Expression [
+       ;   (hy.models.Symbol "+")
+       ;   (hy.models.Integer 1)
+       ;   (hy.models.Integer 1)])
+
+   ``quote`` itself is conveniently :ref:`abbreviated <more-sugar>` as the single-quote character ``'``, which needs no parentheses, allowing one to instead write::
+
+     'a
+     '(+ 1 1)
+
+   See also:
+
+     - :hy:func:`quasiquote` to substitute values into a quoted form
+     - :hy:func:`hy.eval` to evaluate models as code
+     - :hy:func:`hy.repr` to stringify models into Hy source text that uses ``'``
+
+.. hy:macro:: (quasiquote [model])
+.. hy:macro:: (unquote [model])
+.. hy:macro:: (unquote-splice [model])
+
+   ``quasiquote`` is like :hy:func:`quote` except that it treats the model as a template, in which certain special :ref:`expressions <expressions>` indicate that some code should be evaluated and its value substituted there. The idea is similar to C's ``sprintf`` or Python's various string-formatting constructs. For example::
+
+    (setv x 2)
+    (quasiquote (+ 1 (unquote x)))  ; => '(+ 1 2)
+
+   ``unquote`` indicates code to be evaluated, so ``x`` becomes ``2`` and the ``2`` gets inserted in the parent model. ``quasiquote`` can be :ref:`abbreviated <more-sugar>` as a backtick (\`), with no parentheses, and likewise ``unquote`` can be abbreviated as a tilde (``~``), so one can instead write simply ::
+
+    `(+ 1 ~x)
+
+   (In the bulk of Lisp tradition, unquotation is written ``,``. Hy goes with Clojure's choice of ``~``, which has the advantage of being more visible in most programming fonts.)
+
+   Quasiquotation is convenient for writing macros::
+
+     (defmacro set-foo [value]
+       `(setv foo ~value))
+     (set-foo (+ 1 2 3))
+     (print foo)  ; => 6
+
+   Another kind of unquotation operator, ``unquote-splice``, abbreviated ``~@``, is analogous to ``unpack-iterable`` in that it splices an iterable object into the sequence of the parent :ref:`sequential model <hysequence>`. Compare the effects of ``unquote`` to ``unquote-splice``::
+
+    (setv X [1 2 3])
+    (hy.repr `[a b ~X c d ~@X e f])
+      ; => '[a b [1 2 3] c d 1 2 3 e f]
+
+   If ``unquote-splice`` is given any sort of false value (such as ``None``), it's treated as an empty list. To be precise, ``~@x`` splices in the result of ``(or x [])``.
+
+   Note that while a symbol name can begin with ``@`` in Hy, ``~@`` takes precedence in the parser, so if you want to unquote the symbol ``@foo`` with ``~``, you must use whitespace to separate ``~`` and ``@``, as in ``~ @foo``.
+
+Assignment, mutation, and annotation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. hy:macro:: (setv [#* args])
 
@@ -701,6 +337,471 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
 
    .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
 
+.. hy:macro:: (global [#* syms])
+
+   ``global`` compiles to a :py:keyword:`global` statement, which declares one
+   or more names as referring to global (i.e., module-level) variables. The
+   arguments are symbols; with no arguments, ``global`` has no effect. The
+   return value is always ``None``. ::
+
+       (setv  a 1  b 10)
+       (print a b)  ; => 1 10
+       (defn f []
+         (global a)
+         (setv  a 2  b 20))
+       (f)
+       (print a b)  ; => 2 10
+
+.. hy:macro:: (nonlocal [#* syms])
+
+   Similar to :hy:func:`global`, but names can be declared in any enclosing
+   scope. ``nonlocal`` compiles to a :py:keyword:`global` statement for any
+   names originally defined in the global scope, and a :py:keyword:`nonlocal`
+   statement for all other names. ::
+
+       (setv  a 1  b 1)
+       (defn f []
+         (setv  c 10  d 10)
+         (defn g []
+           (nonlocal a c)
+           (setv  a 2  b 2
+                  c 20 d 20))
+         (print a b c d)  ; => 1 1 10 10
+         (g)
+         (print a b c d)) ; => 2 1 20 10
+       (f)
+
+.. hy:macro:: (del [#* args])
+
+   ``del`` compiles to a :py:keyword:`del` statement, which deletes variables
+   or other assignable expressions. It always returns ``None``. ::
+
+     (del  foo  (get mydict "mykey")  myobj.myattr)
+
+.. hy:macro:: (annotate [value type])
+
+   ``annotate`` and its shorthand form ``#^`` are used to denote annotations,
+   including type hints, in three different contexts:
+
+   - Standalone variable annotations (:pep:`526`)
+   - Variable annotations in a :hy:func:`setv` call
+   - Function-parameter annotations (:pep:`3107`)
+
+   The difference between ``annotate`` and ``#^`` is that ``annotate`` requires
+   parentheses and takes the name to be annotated first (like Python), whereas
+   ``#^`` doesn't require parentheses (it only applies to the next two forms)
+   and takes the type second::
+
+      (setv (annotate x int) 1)
+      (setv #^ int x 1)
+
+   The order difference is not merely visual: ``#^`` actually evaluates the
+   type first.
+
+   Here are examples with ``#^`` for all the places you can use annotations::
+
+      ; Annotate the variable `x` as an `int` (equivalent to `x: int`).
+      #^ int x
+      ; You can annotate with expressions (equivalent to `y: f(x)`).
+      #^(f x) y
+
+      ; Annotations with an assignment: each annotation `(int, str)`
+      ; covers the term that immediately follows.
+      ; Equivalent to `x: int = 1; y = 2; z: str = 3`
+      (setv  #^ int x 1  y 2  #^ str z 3)
+
+      ; Annotate `a` as an `int`, `c` as an `int`, and `b` as a `str`.
+      ; Equivalent to `def func(a: int, b: str = None, c: int = 1): ...`
+      (defn func [#^ int a  #^ str  [b None] #^ int  [c 1]] ...)
+
+      ; Function return annotations come before the function name (if
+      ; it exists).
+      (defn #^ int add1 [#^ int x] (+ x 1))
+      (fn #^ int [#^ int y] (+ y 2))
+
+   For annotating items with generic types, the :hy:func:`of <hyrule.of>`
+   macro will likely be of use.
+
+   An issue with type annotations is that, as of this writing, we know of no Python type-checker that can work with :py:mod:`ast` objects or bytecode files. They all need Python source text. So you'll have to translate your Hy with ``hy2py`` in order to actually check the types.
+
+.. hy:macro:: (deftype [args])
+
+   ``deftype`` compiles to a :py:keyword:`type` statement, which defines a
+   type alias. It requires Python 3.12. Its arguments optionally begin with
+   ``:tp`` and a list of type parameters (as in :hy:func:`defn`), then specify
+   the name for the new alias and its value. ::
+
+       (deftype IntOrStr (| int str))
+       (deftype :tp [T] ListOrSet (| (get list T) (get set T)))
+
+Subsetting
+~~~~~~~~~~~~
+
+.. _dot:
+
+.. hy:data:: .
+
+   The dot macro ``.`` compiles to one or more :ref:`attribute references
+   <py:attribute-references>`, which select an attribute of an object. The
+   first argument, which is required, can be an arbitrary form. With no further
+   arguments, ``.`` is a no-op. Additional symbol arguments are understood as a
+   chain of attributes, so ``(. foo bar)`` compiles to ``foo.bar``, and ``(. a b
+   c d)`` compiles to ``a.b.c.d``.
+
+   As a convenience, ``.`` supports two other kinds of arguments in place of a
+   plain attribute. A parenthesized expression is understood as a method call:
+   ``(. foo (bar a b))`` compiles to ``foo.bar(a, b)``. A bracketed form is
+   understood as a subscript: ``(. foo ["bar"])`` compiles to ``foo["bar"]``.
+   All these options can be mixed and matched in a single ``.`` call, so ::
+
+     (. a (b 1 2) c [d] [(e 3 4)])
+
+   compiles to
+
+   .. code-block:: python
+
+     a.b(1, 2).c[d][e(3, 4)]
+
+   :ref:`Dotted identifiers <dotted-identifiers>` provide syntactic sugar for
+   common uses of this macro. In particular, syntax like ``foo.bar`` ends up
+   meaning the same thing in Hy as in Python. Also, :hy:func:`get
+   <hy.pyops.get>` is another way to subscript in Hy.
+
+.. hy:macro:: (unpack-iterable [form])
+.. hy:macro:: (unpack-mapping [form])
+
+   (Also known as the splat operator, star operator, argument expansion, argument
+   explosion, argument gathering, and varargs, among others...)
+
+   ``unpack-iterable`` and ``unpack-mapping`` allow an iterable or mapping
+   object (respectively) to provide positional or keywords arguments
+   (respectively) to a function.
+
+   ::
+
+       => (defn f [a b c d] [a b c d])
+       => (f (unpack-iterable [1 2]) (unpack-mapping {"c" 3 "d" 4}))
+       [1 2 3 4]
+
+   ``unpack-iterable`` is usually written with the shorthand ``#*``, and
+   ``unpack-mapping`` with ``#**``.
+
+   ::
+
+       => (f #* [1 2] #** {"c" 3 "d" 4})
+       [1 2 3 4]
+
+   Unpacking is allowed in a variety of contexts, and you can unpack
+   more than once in one expression (:pep:`3132`, :pep:`448`).
+
+   ::
+
+       => (setv [a #* b c] [1 2 3 4 5])
+       => [a b c]
+       [1 [2 3 4] 5]
+       => [#* [1 2] #* [3 4]]
+       [1 2 3 4]
+       => {#** {1 2} #** {3 4}}
+       {1 2  3 4}
+       => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
+       [1 2  3 4]
+
+Conditionals and basic loops
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. hy:macro:: (if [test true-value false-value])
+
+   ``if`` compiles to an :py:keyword:`if` expression (or compound ``if`` statement). The form ``test`` is evaluated and categorized as true or false according to :py:class:`bool`. If the result is true, ``true-value`` is evaluated and returned. Othewise, ``false-value`` is evaluated and returned.
+   ::
+
+     (if (has-money-left account)
+       (print "Let's go shopping!")
+       (print "Back to work."))
+
+   See also:
+
+   - :hy:func:`do`, to execute several forms as part of any of ``if``'s three arguments.
+   - :hy:func:`when <hy.core.macros.when>`, for shorthand for ``(if condition (do …) None)``.
+   - :hy:func:`cond <hy.core.macros.cond>`, for shorthand for nested ``if`` forms.
+
+.. hy:automacro:: hy.core.macros.when
+
+.. hy:automacro:: hy.core.macros.cond
+
+.. hy:macro:: (while [condition #* body])
+
+   ``while`` compiles to a :py:keyword:`while` statement, which executes some
+   code as long as a condition is met. The first argument to ``while`` is the
+   condition, and any remaining forms constitute the body. It always returns
+   ``None``. ::
+
+       (while True
+         (print "Hello world!"))
+
+   The last form of a ``while`` loop can be an ``else`` clause, which is
+   executed after the loop terminates, unless it exited abnormally (e.g., with
+   ``break``). So, ::
+
+       (setv x 2)
+       (while x
+          (print "In body")
+          (-= x 1)
+          (else
+            (print "In else")))
+
+   prints ::
+
+       In body
+       In body
+       In else
+
+   If you put a ``break`` or ``continue`` form in the condition of a ``while``
+   loop, it will apply to the very same loop rather than an outer loop, even if
+   execution is yet to ever reach the loop body. (Hy compiles a ``while`` loop
+   with statements in its condition by rewriting it so that the condition is
+   actually in the body.) So, ::
+
+       (for [x [1]]
+          (print "In outer loop")
+          (while
+            (do
+              (print "In condition")
+              (break)
+              (print "This won't print.")
+              True)
+            (print "This won't print, either."))
+          (print "At end of outer loop"))
+
+   prints ::
+
+       In outer loop
+       In condition
+       At end of outer loop
+
+.. hy:macro:: (break)
+
+   ``break`` compiles to a :py:keyword:`break` statement, which terminates the
+   enclosing loop. The following example has an infinite ``while`` loop that
+   ends when the user enters "k"::
+
+       (while True
+         (if (= (input "> ") "k")
+           (break)
+           (print "Try again")))
+
+   In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
+   ``break`` only breaks out of the innermost iteration, not the whole form. To
+   jump out of the whole form, enclose it in a :hy:func:`block
+   <hyrule.block>` and use ``block-ret`` instead of ``break``. In
+   the case of :hy:func:`for`, but not :hy:func:`lfor` and the other
+   comprehension forms, you may also enclose it in a function and use
+   :hy:func:`return`.
+
+.. hy:macro:: (continue)
+
+   ``continue`` compiles to a :py:keyword:`continue` statement, which returns
+   execution to the start of a loop. In the following example, ``(.append
+   output x)`` is executed on each iteration, whereas ``(.append evens x)`` is
+   only executed for even numbers.
+
+   ::
+
+       (setv  output []  evens [])
+       (for [x (range 10)]
+         (.append output x)
+         (when (% x 2)
+           (continue))
+         (.append evens x))
+
+   In a loop with multiple iteration clauses, such as ``(for [x xs y ys] …)``,
+   ``continue`` applies to the innermost iteration, not the whole form. To jump
+   to the next step of an outer iteration, try rewriting your loop as multiple
+   nested loops and interposing a :hy:func:`block <hyrule.block>`, as in
+   ``(for [x xs] (block (for [y ys] …)))``. You can then use ``block-ret`` in
+   place of ``continue``.
+
+Comprehensions
+~~~~~~~~~~~~~~
+
+.. hy:macro:: (for [#* args])
+
+   ``for`` compiles to one or more :py:keyword:`for` statements, which execute
+   code repeatedly for each element of an iterable object. The return values of
+   the forms are discarded and the ``for`` form returns ``None``. ::
+
+     (for [x [1 2 3]]
+       (print "iterating")
+       (print x))
+     ; Output: iterating 1 iterating 2 iterating 3
+
+   The first argument of ``for``, in square brackets, specifies how to loop. A
+   simple and common case is ``[variable values]``, where ``values`` is a form
+   that evaluates to an iterable object (such as a list) and ``variable`` is a
+   symbol specifiying the name for each element. Subsequent arguments to ``for``
+   are body forms to be evaluated for each iteration of the loop.
+
+   More generally, the first argument of ``for`` allows the same types of
+   clauses as :hy:func:`lfor`::
+
+     (for [x [1 2 3]  :if (!= x 2)  y [7 8]]
+       (print x y))
+     ; Output:  1 7  1 8  3 7  3 8
+
+   In particular, you can use an ``:async`` clause to get the equivalent of
+   Python's :py:keyword:`async for`::
+
+     (import asyncio)
+     (defn :async numbers []
+       (yield 1)
+       (yield 2))
+     (asyncio.run ((fn :async []
+       (for [:async x (numbers)]
+         (print x)))))
+
+   The last argument of ``for`` can be an ``(else …)`` form. This form is
+   executed after the last iteration of the ``for``\'s outermost iteration
+   clause, but only if that outermost loop terminates normally. If it's jumped
+   out of with e.g. ``break``, the ``else`` is ignored. ::
+
+     (for [x [1 2 3]]
+       (print x)
+       (when (= x 2)
+         (break))
+       (else (print "loop finished")))
+
+.. hy:macro:: (lfor [#* args])
+
+   The comprehension forms ``lfor``, :hy:func:`sfor`, :hy:func:`dfor`, :hy:func:`gfor`, and :hy:func:`for`
+   are used to produce various kinds of loops, including Python-style
+   :ref:`comprehensions <py:comprehensions>`. ``lfor`` in particular
+   can create a list comprehension. A simple use of ``lfor`` is::
+
+       (lfor  x (range 5)  (* 2 x))  ; => [0 2 4 6 8]
+
+   ``x`` is the name of a new variable, which is bound to each element of
+   ``(range 5)``. Each such element in turn is used to evaluate the value
+   form ``(* 2 x)``, and the results are accumulated into a list.
+
+   Here's a more complex example::
+
+       (lfor
+         x (range 3)
+         y (range 3)
+         :if (!= x y)
+         :setv total (+ x y)
+         [x y total])
+       ; => [[0 1 1] [0 2 2] [1 0 1] [1 2 3] [2 0 2] [2 1 3]]
+
+   When there are several iteration clauses (here, the pairs of forms ``x
+   (range 3)`` and ``y (range 3)``), the result works like a nested loop or
+   Cartesian product: all combinations are considered in lexicographic
+   order.
+
+   The general form of ``lfor`` is::
+
+       (lfor CLAUSES VALUE)
+
+   where the ``VALUE`` is an arbitrary form that is evaluated to produce
+   each element of the result list, and ``CLAUSES`` is any number of
+   clauses. There are several types of clauses:
+
+   - Iteration clauses, which look like ``LVALUE ITERABLE``. The ``LVALUE``
+     is usually just a symbol, but could be something more complicated,
+     like ``[x y]``.
+   - ``:async LVALUE ITERABLE``, which is an asynchronous form of
+     iteration clause per Python's :py:keyword:`async for`.
+   - ``:do FORM``, which simply evaluates the ``FORM``. If you use
+     ``(continue)`` or ``(break)`` here, it will apply to the innermost
+     iteration clause before the ``:do``.
+   - ``:setv LVALUE RVALUE``, which is equivalent to ``:do (setv LVALUE
+     RVALUE)``.
+   - ``:if CONDITION``, which is equivalent to ``:do (when (not CONDITION)
+     (continue))``.
+
+   For ``lfor``, ``sfor``, ``gfor``, and ``dfor``,  variables defined by
+   an iteration clause or ``:setv`` are not visible outside the form.
+   However, variables defined within the body, as with a ``setx``
+   expression, will be visible outside the form.
+   In ``for``, by contrast, iteration and ``:setv`` clauses share the
+   caller's scope and are visible outside the form.
+
+.. hy:macro:: (dfor [#* args])
+
+    ``dfor`` creates a :ref:`dictionary comprehension <py:dict>`. Its syntax
+    is the same as that of :hy:func:`lfor` except that it takes two trailing
+    arguments. The first is a form producing the key of each dictionary
+    element, and the second produces the value. Thus::
+
+        => (dfor  x (range 5)  x (* x 10))
+        {0 0  1 10  2 20  3 30  4 40}
+
+
+.. hy:macro:: (gfor [#* args])
+
+   ``gfor`` creates a :ref:`generator expression <py:genexpr>`. Its syntax
+   is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
+   an iterator, which evaluates and yields values one at a time::
+
+       => (import itertools [count take-while])
+       => (setv accum [])
+       => (list (take-while
+       ...  (fn [x] (< x 5))
+       ...  (gfor x (count) :do (.append accum x) x)))
+       [0 1 2 3 4]
+       => accum
+       [0 1 2 3 4 5]
+
+.. hy:macro:: (sfor [#* args])
+
+   ``sfor`` creates a :ref:`set comprehension <py:set>`. ``(sfor CLAUSES VALUE)`` is
+   equivalent to ``(set (lfor CLAUSES VALUE))``. See :hy:func:`lfor`.
+
+Context managers and pattern-matching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. hy:macro:: (with [managers #* body])
+
+   ``with`` compiles to a :py:keyword:`with` or an :py:keyword:`async with`
+   statement, which wraps some code with one or more :ref:`context managers
+   <py:context-managers>`. The first argument is a bracketed list of context
+   managers, and the remaining arguments are body forms.
+
+   The manager list can't be empty. If it has only one item, that item is
+   evaluated to obtain the context manager to use. If it has two, the first
+   argument (a symbol) is bound to the result of the second. Thus, ``(with
+   [(f)] …)`` compiles to ``with f(): …`` and ``(with [x (f)] …)`` compiles to
+   ``with f() as x: …``. ::
+
+     (with [o (open "file.txt" "rt")]
+       (print (.read o)))
+
+   If the manager list has more than two items, they're understood as
+   variable-manager pairs; thus ::
+
+     (with [v1 e1  v2 e2  v3 e3] ...)
+
+   compiles to
+
+   .. code-block:: python
+
+      with e1 as v1, e2 as v2, e3 as v3: ...
+
+   The symbol ``_`` is interpreted specially as a variable name in the manager
+   list: instead of binding the context manager to the variable ``_`` (as
+   Python's ``with e1 as _: …``), ``with`` will leave it anonymous (as Python's
+   ``with e1: …``).
+
+   Finally, any variable-manager pair may be preceded with the keyword
+   ``:async`` to use an asynchronous context manager::
+
+     (with [:async v1 e1] …)
+
+   ``with`` returns the value of its last form, unless it suppresses an
+   exception (because the context manager's ``__exit__`` method returned true),
+   in which case it returns ``None``. So, the first example could also be
+   written ::
+
+       (print (with [o (open "file.txt" "rt")] (.read o)))
 
 .. hy:macro:: (match [subject #* cases])
 
@@ -751,6 +852,265 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
    :hy:func:`case <hyrule.case>`, or simply use :hy:func:`cond
    <hy.core.macros.cond>`.
 
+Exception-handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. hy:macro:: (raise [exception :from other])
+
+   ``raise`` compiles to a :py:keyword:`raise` statement, which throws an
+   exception. With no arguments, the current exception is reraised. With one
+   argument, an exception, that exception is raised. ::
+
+     (try
+       (raise KeyError)
+       (except [KeyError]
+         (print "gottem")))
+
+   ``raise`` supports one other syntax, ``(raise EXCEPTION_1 :from
+   EXCEPTION_2)``, which compiles to a Python ``raise … from`` statement like
+   ``raise EXCEPTION_1 from EXCEPTION_2``.
+
+.. hy:macro:: (try [#* body])
+
+   ``try`` compiles to a :py:keyword:`try` statement, which can catch
+   exceptions and run cleanup actions. It begins with any number of body forms.
+   Then follows any number of ``except`` or ``except*`` (:pep:`654`) forms,
+   which are expressions that begin with the symbol in question, followed by a
+   list of exception types, followed by more body forms. Finally there are an
+   optional ``else`` form and an optional ``finally`` form, which again are
+   expressions that begin with the symbol in question and then comprise body
+   forms. Note that ``except*`` requires Python 3.11, and ``except*`` and
+   ``except`` may not both be used in the same ``try``.
+
+   Here's an example of several of the allowed kinds of child forms::
+
+     (try
+       (error-prone-function)
+       (another-error-prone-function)
+       (except [ZeroDivisionError]
+         (print "Division by zero"))
+       (except [[IndexError KeyboardInterrupt]]
+         (print "Index error or Ctrl-C"))
+       (except [e ValueError]
+         (print "ValueError:" (repr e)))
+       (except [e [TabError PermissionError ReferenceError]]
+         (print "Some sort of error:" (repr e)))
+       (else
+         (print "No errors"))
+       (finally
+         (print "All done")))
+
+   Exception lists can be in any of several formats:
+
+   - ``[]`` to catch any subtype of ``Exception``, like Python's ``except:``
+   - ``[ETYPE]`` to catch only the single type ``ETYPE``, like Python's
+     ``except ETYPE:``
+   - ``[[ETYPE1 ETYPE2 …]]`` to catch any of the named types, like Python's
+     ``except ETYPE1, ETYPE2, …:``
+   - ``[VAR ETYPE]`` to catch ``ETYPE`` and bind it to ``VAR``, like Python's
+     ``except ETYPE as VAR:``
+   - ``[VAR [ETYPE1 ETYPE2 …]]`` to catch any of the named types and bind it to
+     ``VAR``, like Python's ``except ETYPE1, ETYPE2, … as VAR:``
+
+   The return value of ``try`` is the last form evaluated among the main body,
+   ``except`` forms, ``except*`` forms, and ``else``.
+
+Functions
+~~~~~~~~~
+
+.. hy:macro:: (defn [name #* args])
+
+   ``defn`` compiles to a :ref:`function definition <py:function>` (or possibly
+   to an assignment of a :ref:`lambda expression <py:lambda>`). It always
+   returns ``None``. It requires two arguments: a name (given as a symbol; see
+   :hy:func:`fn` for anonymous functions) and a "lambda list", or list of
+   parameters (also given as symbols). Any further arguments constitute the
+   body of the function::
+
+       (defn name [params] bodyform1 bodyform2…)
+
+   An empty body is implicitly ``(return None)``. If there are at least two body
+   forms, and the first of them is a string literal, this string becomes the
+   :term:`py:docstring` of the function. The final body form is implicitly
+   returned; thus, ``(defn f [] 5)`` is equivalent to ``(defn f [] (return
+   5))``. There is one exception: due to Python limitations, no implicit return
+   is added if the function is an asynchronous generator (i.e., defined with
+   ``(defn :async …)`` or ``(fn :async …)`` and containing at least one
+   :hy:func:`yield`).
+
+   ``defn`` accepts a few more optional arguments: a literal keyword ``:async``
+   (to create a :ref:`coroutine <py:async def>` like Python's ``async def``), a
+   bracketed list of :term:`decorators <py:decorator>`, a list of type
+   parameters (see below), and an annotation (see :hy:func:`annotate`) for the
+   return value. These are placed before the function name (in that order, if
+   several are present)::
+
+       (defn :async [decorator1 decorator2] :tp [T1 T2] #^ annotation name [params] …)
+
+   ``defn`` lambda lists support all the same features as Python parameter
+   lists and hence are complex in their full generality. The simplest case is a
+   (possibly empty) list of symbols, indicating that all parameters are
+   required, and can be set by position, as in ``(f value)``, or by name, as in
+   ``(f :argument value)``. To set a default value for a parameter, replace the
+   parameter with the bracketed list ``[pname value]``, where ``pname`` is the
+   parameter name as a symbol and ``value`` is an arbitrary form. Beware that,
+   per Python, ``value`` is evaluated when the function is defined, not when
+   it's called, and if the resulting object is mutated, all calls will see the
+   changes.
+
+   Further special lambda-list syntax includes:
+
+   ``/``
+        If the symbol ``/`` is given in place of a parameter, it means that all
+        the preceding parameters can only be set positionally.
+
+   ``*``
+        If the symbol ``*`` is given in place of a parameter, it means that all
+        the following parameters can only be set by name.
+
+   ``#* args``
+        If the parameter list contains ``#* args`` or ``(unpack-iterable
+        args)``, then ``args`` is set to a tuple containing all otherwise
+        unmatched positional arguments. The name ``args`` is merely cherished
+        Python tradition; you can use any symbol.
+
+   ``#** kwargs``
+        ``#** kwargs`` (a.k.a. ``(unpack-mapping kwargs)``) is like ``#*
+        args``, but collects unmatched keyword arguments into a dictionary.
+
+   Each of these special constructs is allowed only once, and has the same
+   restrictions as in Python; e.g., ``#* args`` must precede ``#** kwargs`` if
+   both are present. Here's an example with a complex lambda list::
+
+    (defn f [a / b [c 3] * d e #** kwargs]
+      [a b c d e kwargs])
+    (print (hy.repr (f 1 2 :d 4 :e 5 :f 6)))
+      ; => [1 2 3 4 5 {"f" 6}]
+
+   Type parameters require Python 3.12, and have the semantics specified by
+   :pep:`695`. The keyword ``:tp`` introduces the list of type parameters. Each
+   item of the list is a symbol, an annotated symbol (such as ``#^ int T``), or
+   an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, unpacking
+   and annotation can't be used with the same parameter.
+
+.. hy:macro:: (fn [args])
+
+   As :hy:func:`defn`, but no name for the new function is required (or
+   allowed), and the newly created function object is returned. Decorators and
+   type parameters aren't allowed, either. However, the function body is
+   understood identically to that of :hy:func:`defn`, without any of the
+   restrictions of Python's :py:keyword:`lambda`. ``:async`` is also allowed.
+
+.. hy:macro:: (return [object])
+
+   ``return`` compiles to a :py:keyword:`return` statement. It exits the
+   current function, returning its argument if provided with one, or
+   ``None`` if not. ::
+
+       (defn f [x]
+         (for [n (range 10)]
+           (when (> n x)
+             (return n))))
+       (f 3.9)  ; => 4
+
+   Note that in Hy, ``return`` is necessary much less often than in Python.
+   The last form of a function is returned automatically, so an
+   explicit ``return`` is only necessary to exit a function early. To force
+   Python's behavior of returning ``None`` when execution reaches the end of a
+   function, just put ``None`` there yourself::
+
+       (defn f []
+         (setv d (dict :a 1 :b 2))
+         (.pop d "b")
+         None)
+       (print (f))  ; Prints "None", not "2"
+
+.. hy:macro:: (yield [arg1 arg2])
+
+   ``yield`` compiles to a :ref:`yield expression <py:yieldexpr>`, which
+   returns a value as a generator. For a plain yield, provide one argument,
+   the value to yield, or omit it to yield ``None``. ::
+
+      (defn naysayer []
+        (while True
+          (yield "nope")))
+      (hy.repr (list (zip "abc" (naysayer))))
+        ; => [#("a" "nope") #("b" "nope") #("c" "nope")]
+
+   For a yield-from expression, provide two arguments, where the first is the
+   literal keyword ``:from`` and the second is the subgenerator. ::
+
+      (defn myrange []
+        (setv r (range 10))
+        (while True
+          (yield :from r)))
+      (hy.repr (list (zip "abc" (myrange))))
+        ; => [#("a" 0) #("b" 1) #("c" 2)]
+
+.. hy:macro:: (await [obj])
+
+   ``await`` creates an :ref:`await expression <py:await>`. It takes exactly one
+   argument: the object to wait for. ::
+
+       (import asyncio)
+       (defn :async main []
+         (print "hello")
+         (await (asyncio.sleep 1))
+         (print "world"))
+       (asyncio.run (main))
+
+Macros
+~~~~~~~~~~~~
+
+.. hy:macro:: (defmacro [name lambda-list #* body])
+
+   ``defmacro`` is used to define macros. The general format is
+   ``(defmacro name [parameters] expr)``.
+
+   The following example defines a macro that can be used to swap order of elements
+   in code, allowing the user to write code in infix notation, where operator is in
+   between the operands.
+
+   :strong:`Examples`
+   ::
+
+      => (defmacro infix [code]
+      ...  (quasiquote (
+      ...    (unquote (get code 1))
+      ...    (unquote (get code 0))
+      ...    (unquote (get code 2)))))
+
+   ::
+
+      => (infix (1 + 1))
+      2
+
+   If ``defmacro`` appears in a function definition, a class definition, or a
+   comprehension other than :hy:func:`for` (such as :hy:func:`lfor`), the new
+   macro is defined locally rather than module-wide.
+
+   .. note:: ``defmacro`` cannot use keyword arguments, because all values
+             are passed to macros unevaluated. All arguments are passed
+             positionally, but they can have default values::
+
+                => (defmacro a-macro [a [b 1]]
+                ...  `[~a ~b])
+                => (a-macro 2)
+                [2 1]
+                => (a-macro 2 3)
+                [2 3]
+                => (a-macro :b 3)
+                [:b 3]
+
+.. hy:automacro:: hy.core.macros.defreader
+
+.. hy:automacro:: hy.core.macros.get-macro
+
+.. hy:automacro:: hy.core.macros.local-macros
+
+Classes
+~~~~~~~~~~~~
+
 .. hy:macro:: (defclass [arg1 #* args])
 
    ``defclass`` compiles to a :py:keyword:`class` statement, which creates a
@@ -775,126 +1135,46 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
         (defn method2 [self arg1 arg2]
           …))
 
-.. hy:macro:: (del [#* args])
+Modules
+~~~~~~~~~~~~
 
-   ``del`` compiles to a :py:keyword:`del` statement, which deletes variables
-   or other assignable expressions. It always returns ``None``. ::
+.. hy:macro:: (import [#* forms])
 
-     (del  foo  (get mydict "mykey")  myobj.myattr)
+   ``import`` compiles to an :py:keyword:`import` statement, which makes objects
+   in a different module available in the current module. It always returns
+   ``None``. Hy's syntax for the various kinds of import looks like this::
 
-.. hy:macro:: (nonlocal [#* syms])
+       ;; Import each of these modules
+       ;; Python: import sys, os.path
+       (import sys os.path)
 
-   Similar to :hy:func:`global`, but names can be declared in any enclosing
-   scope. ``nonlocal`` compiles to a :py:keyword:`global` statement for any
-   names originally defined in the global scope, and a :py:keyword:`nonlocal`
-   statement for all other names. ::
+       ;; Import several names from a single module
+       ;; Python: from os.path import exists, isdir as is_dir, isfile
+       (import os.path [exists  isdir :as dir?  isfile])
 
-       (setv  a 1  b 1)
-       (defn f []
-         (setv  c 10  d 10)
-         (defn g []
-           (nonlocal a c)
-           (setv  a 2  b 2
-                  c 20 d 20))
-         (print a b c d)  ; => 1 1 10 10
-         (g)
-         (print a b c d)) ; => 2 1 20 10
-       (f)
+       ;; Import with an alias
+       ;; Python: import sys as systest
+       (import sys :as systest)
 
-.. hy:macro:: (py [string])
+       ;; You can list as many imports as you like of different types.
+       ;; Python:
+       ;;     from tests.resources import kwtest, function_with_a_dash
+       ;;     from os.path import exists, isdir as is_dir, isfile as is_file
+       ;;     import sys as systest
+       (import tests.resources [kwtest function-with-a-dash]
+               os.path [exists
+                        isdir :as dir?
+                        isfile :as file?]
+               sys :as systest)
 
-   ``py`` parses the given Python code at compile-time and inserts the result into
-   the generated abstract syntax tree. Thus, you can mix Python code into a Hy
-   program. Only a Python expression is allowed, not statements; use
-   :hy:func:`pys <pys>` if you want to use Python statements. The value of the
-   expression is returned from the ``py`` form. ::
+       ;; Import all module functions into current namespace
+       ;; Python: from sys import *
+       (import sys *)
 
-       (print "A result from Python:" (py "'hello' + 'world'"))
-
-   The code must be given as a single string literal, but you can still use
-   macros, :hy:func:`hy.eval <hy.eval>`, and related tools to construct the ``py`` form. If
-   having to backslash-escape internal double quotes is getting you down, try a
-   :ref:`bracket string <bracket-strings>`. If you want to evaluate some Python
-   code that's only defined at run-time, try the standard Python function
-   :func:`eval`.
-
-   The code is implicitly wrapped in parentheses so Python won't give you grief
-   about indentation. After all, Python's indentation rules are only useful for
-   grouping statements, whereas ``py`` only allows an expression.
-
-   Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
-   program that uses ``py`` or ``pys``. For example, comments will be removed.
-
-.. hy:macro:: (pys [string])
-
-   As :hy:func:`py <py>`, but the code can consist of zero or more statements,
-   including compound statements such as ``for`` and ``def``. ``pys`` always
-   returns ``None``. ::
-
-       (pys "myvar = 5")
-       (print "myvar is" myvar)
-
-   Unlike ``py``, no parentheses are added, because Python doesn't allow
-   statements to be parenthesized. Instead, the code string is dedented with
-   :func:`textwrap.dedent` before parsing. Thus you can indent the code to
-   match the surrounding Hy code when Python would otherwise forbid this, but
-   beware that significant leading whitespace in embedded string literals will
-   be removed.
-
-.. hy:macro:: (quasiquote [model])
-.. hy:macro:: (unquote [model])
-.. hy:macro:: (unquote-splice [model])
-
-   ``quasiquote`` is like :hy:func:`quote` except that it treats the model as a template, in which certain special :ref:`expressions <expressions>` indicate that some code should be evaluated and its value substituted there. The idea is similar to C's ``sprintf`` or Python's various string-formatting constructs. For example::
-
-    (setv x 2)
-    (quasiquote (+ 1 (unquote x)))  ; => '(+ 1 2)
-
-   ``unquote`` indicates code to be evaluated, so ``x`` becomes ``2`` and the ``2`` gets inserted in the parent model. ``quasiquote`` can be :ref:`abbreviated <more-sugar>` as a backtick (\`), with no parentheses, and likewise ``unquote`` can be abbreviated as a tilde (``~``), so one can instead write simply ::
-
-    `(+ 1 ~x)
-
-   (In the bulk of Lisp tradition, unquotation is written ``,``. Hy goes with Clojure's choice of ``~``, which has the advantage of being more visible in most programming fonts.)
-
-   Quasiquotation is convenient for writing macros::
-
-     (defmacro set-foo [value]
-       `(setv foo ~value))
-     (set-foo (+ 1 2 3))
-     (print foo)  ; => 6
-
-   Another kind of unquotation operator, ``unquote-splice``, abbreviated ``~@``, is analogous to ``unpack-iterable`` in that it splices an iterable object into the sequence of the parent :ref:`sequential model <hysequence>`. Compare the effects of ``unquote`` to ``unquote-splice``::
-
-    (setv X [1 2 3])
-    (hy.repr `[a b ~X c d ~@X e f])
-      ; => '[a b [1 2 3] c d 1 2 3 e f]
-
-   If ``unquote-splice`` is given any sort of false value (such as ``None``), it's treated as an empty list. To be precise, ``~@x`` splices in the result of ``(or x [])``.
-
-   Note that while a symbol name can begin with ``@`` in Hy, ``~@`` takes precedence in the parser, so if you want to unquote the symbol ``@foo`` with ``~``, you must use whitespace to separate ``~`` and ``@``, as in ``~ @foo``.
-
-.. hy:macro:: (quote [model])
-
-   Return the given :ref:`model <models>` without evaluating it. Or to be more pedantic, ``quote`` complies to code that produces and returns the model it was originally called on. Thus ``quote`` serves as syntactic sugar for model constructors::
-
-     (quote a)
-       ; Equivalent to:  (hy.models.Symbol "a")
-     (quote (+ 1 1))
-       ; Equivalent to:  (hy.models.Expression [
-       ;   (hy.models.Symbol "+")
-       ;   (hy.models.Integer 1)
-       ;   (hy.models.Integer 1)])
-
-   ``quote`` itself is conveniently :ref:`abbreviated <more-sugar>` as the single-quote character ``'``, which needs no parentheses, allowing one to instead write::
-
-     'a
-     '(+ 1 1)
-
-   See also:
-
-     - :hy:func:`quasiquote` to substitute values into a quoted form
-     - :hy:func:`hy.eval` to evaluate models as code
-     - :hy:func:`hy.repr` to stringify models into Hy source text that uses ``'``
+   ``__all__`` can be set to control what's imported by ``import *``, as in
+   Python, but beware that all names in ``__all__`` must be :ref:`mangled
+   <mangling>`. The macro :hy:func:`export <hy.core.macros.export>` is a handy
+   way to set ``__all__`` in a Hy program.
 
 .. hy:macro:: (require [#* args])
 
@@ -1023,281 +1303,52 @@ base names, such that ``hy.core.macros.foo`` can be called as just ``foo``.
       to do introspection of the current module's set of defined macros, which isn't
       really supported anyway.
 
-.. hy:macro:: (return [object])
+.. hy:automacro:: hy.core.macros.export
 
-   ``return`` compiles to a :py:keyword:`return` statement. It exits the
-   current function, returning its argument if provided with one, or
-   ``None`` if not. ::
+Miscellany
+~~~~~~~~~~~~
 
-       (defn f [x]
-         (for [n (range 10)]
-           (when (> n x)
-             (return n))))
-       (f 3.9)  ; => 4
+.. hy:macro:: (chainc [#* args])
 
-   Note that in Hy, ``return`` is necessary much less often than in Python.
-   The last form of a function is returned automatically, so an
-   explicit ``return`` is only necessary to exit a function early. To force
-   Python's behavior of returning ``None`` when execution reaches the end of a
-   function, just put ``None`` there yourself::
-
-       (defn f []
-         (setv d (dict :a 1 :b 2))
-         (.pop d "b")
-         None)
-       (print (f))  ; Prints "None", not "2"
-
-.. hy:macro:: (raise [exception :from other])
-
-   ``raise`` compiles to a :py:keyword:`raise` statement, which throws an
-   exception. With no arguments, the current exception is reraised. With one
-   argument, an exception, that exception is raised. ::
-
-     (try
-       (raise KeyError)
-       (except [KeyError]
-         (print "gottem")))
-
-   ``raise`` supports one other syntax, ``(raise EXCEPTION_1 :from
-   EXCEPTION_2)``, which compiles to a Python ``raise … from`` statement like
-   ``raise EXCEPTION_1 from EXCEPTION_2``.
-
-.. hy:macro:: (try [#* body])
-
-   ``try`` compiles to a :py:keyword:`try` statement, which can catch
-   exceptions and run cleanup actions. It begins with any number of body forms.
-   Then follows any number of ``except`` or ``except*`` (:pep:`654`) forms,
-   which are expressions that begin with the symbol in question, followed by a
-   list of exception types, followed by more body forms. Finally there are an
-   optional ``else`` form and an optional ``finally`` form, which again are
-   expressions that begin with the symbol in question and then comprise body
-   forms. Note that ``except*`` requires Python 3.11, and ``except*`` and
-   ``except`` may not both be used in the same ``try``.
-
-   Here's an example of several of the allowed kinds of child forms::
-
-     (try
-       (error-prone-function)
-       (another-error-prone-function)
-       (except [ZeroDivisionError]
-         (print "Division by zero"))
-       (except [[IndexError KeyboardInterrupt]]
-         (print "Index error or Ctrl-C"))
-       (except [e ValueError]
-         (print "ValueError:" (repr e)))
-       (except [e [TabError PermissionError ReferenceError]]
-         (print "Some sort of error:" (repr e)))
-       (else
-         (print "No errors"))
-       (finally
-         (print "All done")))
-
-   Exception lists can be in any of several formats:
-
-   - ``[]`` to catch any subtype of ``Exception``, like Python's ``except:``
-   - ``[ETYPE]`` to catch only the single type ``ETYPE``, like Python's
-     ``except ETYPE:``
-   - ``[[ETYPE1 ETYPE2 …]]`` to catch any of the named types, like Python's
-     ``except ETYPE1, ETYPE2, …:``
-   - ``[VAR ETYPE]`` to catch ``ETYPE`` and bind it to ``VAR``, like Python's
-     ``except ETYPE as VAR:``
-   - ``[VAR [ETYPE1 ETYPE2 …]]`` to catch any of the named types and bind it to
-     ``VAR``, like Python's ``except ETYPE1, ETYPE2, … as VAR:``
-
-   The return value of ``try`` is the last form evaluated among the main body,
-   ``except`` forms, ``except*`` forms, and ``else``.
-
-.. hy:macro:: (unpack-iterable [form])
-.. hy:macro:: (unpack-mapping [form])
-
-   (Also known as the splat operator, star operator, argument expansion, argument
-   explosion, argument gathering, and varargs, among others...)
-
-   ``unpack-iterable`` and ``unpack-mapping`` allow an iterable or mapping
-   object (respectively) to provide positional or keywords arguments
-   (respectively) to a function.
+   ``chainc`` creates a :ref:`comparison expression <py:comparisons>`. It isn't
+   required for unchained comparisons, which have only one comparison operator,
+   nor for chains of the same operator. For those cases, you can use the
+   comparison operators directly with Hy's usual prefix syntax, as in ``(= x 1)``
+   or ``(< 1 2 3)``. The use of ``chainc`` is to construct chains of
+   heterogeneous operators, such as ``x <= y < z``. It uses an infix syntax with
+   the general form
 
    ::
 
-       => (defn f [a b c d] [a b c d])
-       => (f (unpack-iterable [1 2]) (unpack-mapping {"c" 3 "d" 4}))
-       [1 2 3 4]
+       (chainc ARG OP ARG OP ARG…)
 
-   ``unpack-iterable`` is usually written with the shorthand ``#*``, and
-   ``unpack-mapping`` with ``#**``.
+   Hence, ``(chainc x <= y < z)`` is equivalent to ``(and (<= x y) (< y z))``,
+   including short-circuiting, except that ``y`` is only evaluated once.
 
-   ::
+   Each ``ARG`` is an arbitrary form, which does not itself use infix syntax. Use
+   :hy:func:`py <py>` if you want fully Python-style operator syntax. You can
+   also nest ``chainc`` forms, although this is rarely useful. Each ``OP`` is a
+   literal comparison operator; other forms that resolve to a comparison operator
+   are not allowed.
 
-       => (f #* [1 2] #** {"c" 3 "d" 4})
-       [1 2 3 4]
+   At least two ``ARG``\ s and one ``OP`` are required, and every ``OP`` must be
+   followed by an ``ARG``.
 
-   Unpacking is allowed in a variety of contexts, and you can unpack
-   more than once in one expression (:pep:`3132`, :pep:`448`).
+   As elsewhere in Hy, the equality operator is spelled ``=``, not ``==`` as in
+   Python.
 
-   ::
+.. hy:macro:: (assert [condition [label None]])
 
-       => (setv [a #* b c] [1 2 3 4 5])
-       => [a b c]
-       [1 [2 3 4] 5]
-       => [#* [1 2] #* [3 4]]
-       [1 2 3 4]
-       => {#** {1 2} #** {3 4}}
-       {1 2  3 4}
-       => (f #* [1] #* [2] #** {"c" 3} #** {"d" 4})
-       [1 2  3 4]
+   ``assert`` compiles to an :py:keyword:`assert` statement, which checks
+   whether a condition is true. The first argument, specifying the condition to
+   check, is mandatory, whereas the second, which will be passed to
+   :py:class:`AssertionError`, is optional. The whole form is only evaluated
+   when :py:data:`__debug__` is true, and the second argument is only evaluated
+   when :py:data:`__debug__` is true and the condition fails. ``assert`` always
+   returns ``None``. ::
 
-.. hy:macro:: (while [condition #* body])
-
-   ``while`` compiles to a :py:keyword:`while` statement, which executes some
-   code as long as a condition is met. The first argument to ``while`` is the
-   condition, and any remaining forms constitute the body. It always returns
-   ``None``. ::
-
-       (while True
-         (print "Hello world!"))
-
-   The last form of a ``while`` loop can be an ``else`` clause, which is
-   executed after the loop terminates, unless it exited abnormally (e.g., with
-   ``break``). So, ::
-
-       (setv x 2)
-       (while x
-          (print "In body")
-          (-= x 1)
-          (else
-            (print "In else")))
-
-   prints ::
-
-       In body
-       In body
-       In else
-
-   If you put a ``break`` or ``continue`` form in the condition of a ``while``
-   loop, it will apply to the very same loop rather than an outer loop, even if
-   execution is yet to ever reach the loop body. (Hy compiles a ``while`` loop
-   with statements in its condition by rewriting it so that the condition is
-   actually in the body.) So, ::
-
-       (for [x [1]]
-          (print "In outer loop")
-          (while
-            (do
-              (print "In condition")
-              (break)
-              (print "This won't print.")
-              True)
-            (print "This won't print, either."))
-          (print "At end of outer loop"))
-
-   prints ::
-
-       In outer loop
-       In condition
-       At end of outer loop
-
-.. hy:macro:: (with [managers #* body])
-
-   ``with`` compiles to a :py:keyword:`with` or an :py:keyword:`async with`
-   statement, which wraps some code with one or more :ref:`context managers
-   <py:context-managers>`. The first argument is a bracketed list of context
-   managers, and the remaining arguments are body forms.
-
-   The manager list can't be empty. If it has only one item, that item is
-   evaluated to obtain the context manager to use. If it has two, the first
-   argument (a symbol) is bound to the result of the second. Thus, ``(with
-   [(f)] …)`` compiles to ``with f(): …`` and ``(with [x (f)] …)`` compiles to
-   ``with f() as x: …``. ::
-
-     (with [o (open "file.txt" "rt")]
-       (print (.read o)))
-
-   If the manager list has more than two items, they're understood as
-   variable-manager pairs; thus ::
-
-     (with [v1 e1  v2 e2  v3 e3] ...)
-
-   compiles to
-
-   .. code-block:: python
-
-      with e1 as v1, e2 as v2, e3 as v3: ...
-
-   The symbol ``_`` is interpreted specially as a variable name in the manager
-   list: instead of binding the context manager to the variable ``_`` (as
-   Python's ``with e1 as _: …``), ``with`` will leave it anonymous (as Python's
-   ``with e1: …``).
-
-   Finally, any variable-manager pair may be preceded with the keyword
-   ``:async`` to use an asynchronous context manager::
-
-     (with [:async v1 e1] …)
-
-   ``with`` returns the value of its last form, unless it suppresses an
-   exception (because the context manager's ``__exit__`` method returned true),
-   in which case it returns ``None``. So, the first example could also be
-   written ::
-
-       (print (with [o (open "file.txt" "rt")] (.read o)))
-
-.. hy:macro:: (yield [arg1 arg2])
-
-   ``yield`` compiles to a :ref:`yield expression <py:yieldexpr>`, which
-   returns a value as a generator. For a plain yield, provide one argument,
-   the value to yield, or omit it to yield ``None``. ::
-
-      (defn naysayer []
-        (while True
-          (yield "nope")))
-      (hy.repr (list (zip "abc" (naysayer))))
-        ; => [#("a" "nope") #("b" "nope") #("c" "nope")]
-
-   For a yield-from expression, provide two arguments, where the first is the
-   literal keyword ``:from`` and the second is the subgenerator. ::
-
-      (defn myrange []
-        (setv r (range 10))
-        (while True
-          (yield :from r)))
-      (hy.repr (list (zip "abc" (myrange))))
-        ; => [#("a" 0) #("b" 1) #("c" 2)]
-
-.. hy:macro:: (deftype [args])
-
-   ``deftype`` compiles to a :py:keyword:`type` statement, which defines a
-   type alias. It requires Python 3.12. Its arguments optionally begin with
-   ``:tp`` and a list of type parameters (as in :hy:func:`defn`), then specify
-   the name for the new alias and its value. ::
-
-       (deftype IntOrStr (| int str))
-       (deftype :tp [T] ListOrSet (| (get list T) (get set T)))
-
-.. hy:macro:: (pragma [#* args])
-
-  ``pragma`` is used to adjust the state of the compiler. It's called for its
-  side-effects, and returns ``None``. The arguments are key-value pairs, like a
-  function call with keyword arguments::
-
-    (pragma :prag1 value1 :prag2 (get-value2))
-
-  Each key is a literal keyword giving the name of a pragma. Each value is an
-  arbitrary form, which is evaluated as ordinary Hy code but at compile-time.
-
-  The effect of each pragma is locally scoped to its containing function,
-  class, or comprehension form (other than ``for``), if there is one.
-
-  Only one pragma is currently implemented:
-
-.. _warn-on-core-shadow:
-
-  - ``:warn-on-core-shadow``: If true (the default), :hy:func:`defmacro` and
-    :hy:func:`require` will raise a warning at compile-time if you define a macro
-    with the same name as a core macro. Shadowing a core macro in this fashion is
-    dangerous, because other macros may call your new macro when they meant to
-    refer to the core macro.
-
-.. hy:automodule:: hy.core.macros
-   :macros:
+     (assert (= 1 2) "one should equal two")
+       ; AssertionError: one should equal two
 
 Placeholder macros
 ~~~~~~~~~~~~~~~~~~
@@ -1357,7 +1408,7 @@ the following methods
 
    There is no actual object named ``hy.R``. Rather, this syntax is :ref:`recognized specially by the compiler <hy.R>` as a shorthand for requiring and calling a macro.
 
-Reader Macros
+Reader macros
 -------------
 
 .. autoclass:: hy.reader.hy_reader.HyReader
@@ -1368,7 +1419,9 @@ Reader Macros
 
 .. autoexception:: hy.reader.exceptions.PrematureEndOfInput
 
-Python Operators
+.. _pyop:
+
+Python operators
 ----------------
 
 .. hy:automodule:: hy.pyops

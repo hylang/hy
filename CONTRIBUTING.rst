@@ -1,4 +1,4 @@
-Contributor Guidelines
+Contributor guidelines
 ======================
 
 Contributions are welcome and greatly appreciated. Every little bit

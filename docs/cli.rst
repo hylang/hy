@@ -1,5 +1,5 @@
 ======================
-Command-Line Interface
+Command-line interface
 ======================
 
 Hy provides a handful of command-line programs for working with Hy code.

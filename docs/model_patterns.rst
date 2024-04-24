@@ -1,5 +1,5 @@
 ==============
-Model Patterns
+Model patterns
 ==============
 
 The module ``hy.model-patterns`` provides a library of parser combinators for

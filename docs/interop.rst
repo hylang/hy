@@ -1,8 +1,14 @@
 .. _interop:
 
 =======================
-Python Interoperability
+Python interoperability
 =======================
+
+.. contents:: Contents
+   :local:
+
+Mangling
+========
 
 :ref:`Mangling <mangling>` allows variable names to be spelled differently in
 Hy and Python. For example, Python's ``str.format_map`` can be written
@@ -10,8 +16,37 @@ Hy and Python. For example, Python's ``str.format_map`` can be written
 ``hyx_valid_Xquestion_markX`` in Python. You can call :hy:func:`hy.mangle` and
 :hy:func:`hy.unmangle` from either language.
 
-.. contents:: Contents
-   :local:
+Libraries that expect Python
+============================
+
+There are various means by which Hy may interact poorly with a Python library because the library doesn't account for the possibility of Hy. For example,
+when you run :ref:`hy-cli`, ``sys.executable`` will be set to
+this program rather than the original Python binary. This is helpful more often
+than not, but will lead to trouble if e.g. the library tries to call
+:py:data:`sys.executable` with the ``-c`` option. In this case, you can try
+setting :py:data:`sys.executable` back to ``hy.sys-executable``, which is a
+saved copy of the original value. More generally, you can use :ref:`hy2py`, or you
+can put a simple Python wrapper script like ``import hy, my_hy_program`` in
+front of your code.
+
+See `the wiki
+<https://github.com/hylang/hy/wiki/Compatibility-tips>`_ for tips
+on using specific packages.
+
+Packaging a Hy library
+======================
+
+Generally, the same infrastructure used for Python packages, such as
+``setup.py`` files and the `Python Package Index (PyPI) <https://pypi.org/>`__,
+is applicable to Hy. Don't write the setup file itself in Hy, since you'll be
+declaring your package's dependence on Hy there, likely in the
+``install_requires`` argument of ``setup``. See :ref:`using-hy-from-python`
+below for some related issues to keep in mind.
+
+If you want to compile your Hy code into Python bytecode at installation-time
+(in case e.g. the code is being installed to a directory where the bytecode be
+able to be automatically written later, due to permissions issues), see Hy's
+own ``setup.py`` for an example.
 
 Using Python from Hy
 ====================
@@ -23,6 +58,8 @@ You can embed Python code directly into a Hy program with the macros
 :hy:func:`py <py>` and :hy:func:`pys <pys>`, and you can use standard Python
 tools like :func:`eval` or :func:`exec` to execute or manipulate Python code in
 strings.
+
+.. _using-hy-from-python:
 
 Using Hy from Python
 ====================
@@ -54,17 +91,4 @@ There is no Hy equivalent of :func:`exec` because :hy:func:`hy.eval` works
 even when the input isn't equivalent to a single Python expression.
 
 You can use :meth:`hy.REPL.run` to launch the Hy REPL from Python, as in
-``hy.REPL(locals = locals()).run()``.
-
-Libraries that expect Python
-============================
-
-There are various means by which Hy may interact poorly with a Python library because the library doesn't account for the possibility of Hy. For example,
-when you run :ref:`hy-cli`, ``sys.executable`` will be set to
-this program rather than the original Python binary. This is helpful more often
-than not, but will lead to trouble if e.g. the library tries to call
-:py:data:`sys.executable` with the ``-c`` option. In this case, you can try
-setting :py:data:`sys.executable` back to ``hy.sys-executable``, which is a
-saved copy of the original value. More generally, you can use :ref:`hy2py`, or you
-can put a simple Python wrapper script like ``import hy, my_hy_program`` in
-front of your code.
+``hy.REPL(locals = {**globals(), **locals()}).run()``.
