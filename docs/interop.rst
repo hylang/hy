@@ -4,6 +4,9 @@
 Python interoperability
 =======================
 
+This chapter describes how to interact with Python code from Hy code and vice
+versa.
+
 .. contents:: Contents
    :local:
 
@@ -37,7 +40,7 @@ Libraries that expect Python
 ============================
 
 There are various means by which Hy may interact poorly with a Python library because the library doesn't account for the possibility of Hy. For example,
-when you run :ref:`hy-cli`, ``sys.executable`` will be set to
+when you run the program :ref:`hy-cli`, ``sys.executable`` will be set to
 this program rather than the original Python binary. This is helpful more often
 than not, but will lead to trouble if e.g. the library tries to call
 :py:data:`sys.executable` with the ``-c`` option. In this case, you can try
@@ -61,9 +64,15 @@ declaring your package's dependence on Hy there, likely in the
 below for some related issues to keep in mind.
 
 If you want to compile your Hy code into Python bytecode at installation-time
-(in case e.g. the code is being installed to a directory where the bytecode be
-able to be automatically written later, due to permissions issues), see Hy's
-own ``setup.py`` for an example.
+(in case e.g. the code is being installed to a directory where the bytecode
+can't be automatically written later, due to permissions issues), see Hy's own
+``setup.py`` for an example.
+
+For PyPI packages, use the trove classifier ``Programming Language :: Hy`` for
+libraries meant to be useful for Hy specifically (e.g., a library that provides
+Hy macros) or other projects that are about Hy somehow (e.g., an instructive
+example Hy program). Don't use it for a package that just happens to be written
+in Hy.
 
 Using Python from Hy
 ====================
@@ -84,10 +93,10 @@ Using Hy from Python
 To use a Hy module from Python, you can just :py:keyword:`import` it, provided
 that ``hy`` has already been imported first, whether in the current module or
 in some earlier module executed by the current Python process. The ``hy``
-import is necessary to create the hooks that allow importing Hy modules. Note
-that you can always have a wrapper Python file (such as a package's
-``__init__.py``) do the ``import hy`` for the user; this is a smart thing to do
-for a published package.
+import is necessary to create the hooks that allow importing Hy modules. you
+can have a wrapper Python file (such as a package's ``__init__.py``) do the
+``import hy`` for the user; this is a smart thing to do for a published
+package.
 
 No way to import macros or reader macros into a Python module is implemented,
 since there's no way to call them in Python anyway.
