@@ -16,6 +16,23 @@ Hy and Python. For example, Python's ``str.format_map`` can be written
 ``hyx_valid_Xquestion_markX`` in Python. You can call :hy:func:`hy.mangle` and
 :hy:func:`hy.unmangle` from either language.
 
+Keyword mincing
+---------------
+
+Another kind of mangling may be necessary in Python to refer to variables with
+the same name as reserved words. For example, while ``(setv break 13)`` is
+legal Hy, ``import hy, my_hy_module; print(my_hy_module.break)`` is
+syntactically invalid Python. String literals work, as in
+``getattr(my_hy_module, "break")``, but to use what is syntactically a Python
+identifier, you'll have to take advantage of Python's Unicode normalization
+(via NFKC) and write something like ``my_hy_module.𝐛reak``. Here are all the
+MATHEMATICAL BOLD SMALL letters (U+1D41A through U+1D433) for convenient
+copying:
+
+.. code-block:: text
+
+   𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳
+
 Libraries that expect Python
 ============================
 
