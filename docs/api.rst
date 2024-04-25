@@ -266,7 +266,7 @@ Assignment, mutation, and annotation
 
 .. hy:macro:: (setx [target value])
 
-   ``setx`` compiles to an assignment expression. Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. Python 3.8 or later is required. ::
+   ``setx`` compiles to an assignment expression. Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. ::
 
      (when (> (setx x (+ 1 2)) 0)
        (print x "is greater than 0"))
