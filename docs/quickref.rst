@@ -48,7 +48,7 @@ The equivalent ``Python`` is:
 Set Variables
 =============
 
-Use :hy:func:`setv`::
+Use ``setv``::
 
     => (setv var-name value)
     => (setv x 3 y 4)
@@ -66,7 +66,7 @@ Use Conditionals
 
 ``if``, ``when``, ``cond``
 
-For basic ``if...else`` statements, use :hy:func:`if`:
+For basic ``if...else`` statements, use ``if``:
 
 .. code-block:: hy
 
@@ -74,7 +74,7 @@ For basic ``if...else`` statements, use :hy:func:`if`:
         (foo)
         (bar))  ; second clause is the else statement
 
-If you have a branch of form ``if...else pass``, you can use :hy:func:`when`
+If you have a branch of form ``if...else pass``, you can use ``when``
 
 .. code-block:: hy
 
@@ -83,7 +83,7 @@ If you have a branch of form ``if...else pass``, you can use :hy:func:`when`
 
 ``if...elif...elif...else`` chains can be written directly using nested ``if``
 expressions, but the nested leveling becomes untenable in terms of
-organization. Instead, use the :hy:func:`cond` macro:
+organization. Instead, use the ``cond`` macro:
 
 .. code-block:: hy
 
@@ -102,7 +102,7 @@ organization. Instead, use the :hy:func:`cond` macro:
 
 Coming from Python, you may be familiar with the ``pass`` keyword. This is not
 a thing in ``Hy``, so use ``None`` instead. Also, should you want to execute
-multiple statements in a single body, use the :hy:func:`do` macro::
+multiple statements in a single body, use the ``do`` macro::
 
     (setv x 10)
     (cond 
