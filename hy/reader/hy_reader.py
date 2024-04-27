@@ -111,7 +111,8 @@ def as_identifier(ident, reader=None):
 
 
 class HyReader(Reader):
-    """A modular reader for Hy source.
+    """A modular reader for Hy source. It inherits from
+    :py:class:`hy.reader.reader.Reader`.
 
     When ``use_current_readers`` is true, initialize this reader
     with all reader macros from the calling module."""
@@ -160,15 +161,10 @@ class HyReader(Reader):
 
 
     def fill_pos(self, model, start):
-        """Attach line/col information to a model.
+        """Set position information for ``model``. ``start`` should be a (line
+        number, column number) tuple for the start position, whereas the end
+        position is set to the current cursor position."""
 
-        Sets the end location of `model` to the current cursor position.
-
-        Args:
-            model (hy.models.Object): model to set line/col info for.
-            start (tuple[int, int]): (line, column) tuple indicating the start
-                location to assign to `model`.
-        """
         model.start_line, model.start_column = start
         model.end_line, model.end_column = self.pos
         return model.replace(model)
@@ -176,29 +172,22 @@ class HyReader(Reader):
           # positions that are still unset the same way.
 
     def read_default(self, key):
-        """Default reader handler when nothing in the table matches.
+        """Try to read an identifier. If the next character after that is
+        ``"``, then instead parse it as a string with the given prefix (e.g.,
+        ``r"..."``).
 
-        Try to read an identifier. If there's a double-quote immediately
-        following, then instead parse it as a string with the given prefix (e.g.,
-        `r"..."`).
-        """
+        (This method is the default reader handler, for when nothing in the
+        read table matches.)"""
+
         ident = key + self.read_ident()
         if self.peek_and_getc('"'):
             return self.prefixed_string('"', ident)
         return as_identifier(ident, reader=self)
 
     def parse(self, stream, filename=None, skip_shebang=False):
-        """Yields all `hy.models.Object`'s in `source`
+        """Yield all models in ``stream``. The parameters are understood as in
+        :hy:func:`hy.read-many`."""
 
-        Args:
-            source:
-                Hy source to be parsed.
-            filename (str | None):
-                Filename to use for error messages. If `None` then previously
-                set filename is used.
-            skip_shebang:
-                Whether to detect a skip a shebang line at the start.
-        """
         self._set_source(stream, filename)
 
         if skip_shebang and "".join(
@@ -253,23 +242,16 @@ class HyReader(Reader):
                 )
 
     def parse_one_form(self):
-        """Read from the stream until a form is parsed.
-
-        Guaranteed to return a model (i.e., skips over comments).
-
-        Returns:
-            hy.models.Object
-        """
+        """Parse the next form in the stream and return its model. Any
+        preceding whitespace and comments are skipped over."""
         model = None
         while model is None:
             model = self.try_parse_one_form()
         return model
 
     def parse_forms_until(self, closer):
-        """Yields `hy.models.Object`'s until character `closer` is seen.
-
-        Useful for reading a sequence such as s-exprs or lists.
-        """
+        """Yield models until the character ``closer`` is seen. This method is
+        useful for reading sequential constructs such as lists."""
         while True:
             self.slurp_space()
             if self.peek_and_getc(closer):
