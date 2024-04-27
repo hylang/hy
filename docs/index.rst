@@ -29,6 +29,7 @@ Linux, Windows, and Mac OS), and on recent versions of PyPy and Pyodide.
 
    whyhy
    tutorial
+   quickref
    syntax
    semantics
    macros
