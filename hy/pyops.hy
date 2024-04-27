@@ -17,12 +17,10 @@ as in ``(import hy.pyops *)``), you can also use these operators as
 functions. Functions are first-class objects, so you can say things like
 ``(map - xs)`` to negate all the numbers in the list ``xs``. Since
 macros shadow functions, forms like ``(- 1 2)`` will still call the
-macro instead of the function.
-
-The functions in ``hy.pyops`` have the same semantics as their macro
-equivalents, with one exception: functions can't short-circuit, so the
-functions for operators such as ``and`` and ``!=`` unconditionally
-evaluate all arguments.
+macro instead of the function. The functions in ``hy.pyops`` have the
+same semantics as their macro equivalents, with one exception: functions
+can't short-circuit, so the functions for operators such as ``and`` and
+``!=`` unconditionally evaluate all arguments.
 
 Hy also provides macros for :ref:`Python's augmented assignment
 operators <py:augassign>` (but no equivalent functions, because Python
@@ -250,9 +248,11 @@ Exceptions (such as ``-=``, which uses the aggregator :hy:func:`+
   note that this is just Python's syntactic sugar for ``foo[slice(1, 3)]``, and Hy
   provides its own syntactic sugar for this with a different macro, :hy:func:`cut <hy.pyops.cut>`.
 
-  Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
-  :hy:func:`assoc <hyrule.assoc>` to easily assign multiple elements of a single
-  collection.]]
+  See also:
+
+    - The :ref:`dot macro <dot>` ``.``, which can also subscript
+    - Hyrule's :hy:func:`assoc <hyrule.assoc>`, to easily assign multiple elements of a single
+      collection]]
 
   (setv coll (get coll key1))
   (for [k keys]
@@ -267,7 +267,8 @@ Exceptions (such as ``-=``, which uses the aggregator :hy:func:`+
 
       (setv x "abcdef")
       (cut x)           ; => "abcdef"
-      (cut x 3)         ; => "abc"
+      (cut x 2)         ; => "ab"
+      (cut x 2 None)    ; => "cdef"
       (cut x 3 5)       ; => "de"
       (cut x -3 None)   ; => "def"
       (cut x 0 None 2)  ; => "ace"
