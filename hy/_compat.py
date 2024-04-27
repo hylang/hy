@@ -37,6 +37,8 @@ if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
                     and keyword.iskeyword(v)
                     and v not in ("True", "False", "None")
                 ):
+                    # We refer to this transformation as "keyword mincing"
+                    # in documentation.
                     setattr(node, field, chr(ord(v[0]) - ord("a") + ord("𝐚")) + v[1:])
         return true_unparse(ast_obj)
 

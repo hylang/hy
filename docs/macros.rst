@@ -48,7 +48,7 @@ A regular macro can be defined with :hy:func:`defmacro` using a syntax similar t
 
     (print (seventeen))
 
-To see that ``seventeen`` is expanded at compile-time, run ``hy2py`` on this script and notice that it ends with ``print(17)`` rather than ``print(seventeen())``. If you insert a ``print`` call inside the macro definition, you'll also see that the print happens when the file is compiled, but not when it's rerun (provided an up-to-date bytecode file exists).
+To see that ``seventeen`` is expanded at compile-time, run ``hy2py`` on this script and notice that it ends with ``print(17)`` rather than ``print(seventeen())``. If you insert a ``print`` call inside the macro definition, you'll also see that the print happens when the file is compiled, but not when it's rerun (so long as an up-to-date bytecode file exists).
 
 A more useful macro returns code. You can construct a model the long way, like this::
 
@@ -72,7 +72,7 @@ Arguments are always passed in as models. You can use quasiquotation (see :hy:fu
     (set-to-2 foobar)
     (print foobar)
 
-Macros don't understand keyword arguments like functions do. Rather, the :ref:`keyword objects <keywords>` themselves are passed in literally. This gives you flexibility in how to handle them. Thus, ``#** kwargs`` and ``*`` aren't allowed in the parameter list of a macro, although ``#* args`` and ``/`` are.
+Macros don't understand keyword arguments like functions do. Rather, the :ref:`keyword objects <keywords>` themselves are passed in literally. This gives you flexibility in how to handle them. Thus, ``#** kwargs`` and ``*`` aren't allowed in the parameter list of a macro, although ``#* args`` and ``/`` are. See :hy:func:`hyrule.defmacro-kwargs` if you want to handle keyword arguments like a function.
 
 On the inside, macros are functions, and obey the usual Python semantics for functions. For example, :hy:func:`setv` inside a macro will define or modify a variable local to the current macro call, and :hy:func:`return` ends macro execution and uses its argument as the expansion.
 
@@ -134,7 +134,7 @@ The form ``(import math)`` here appears in the wrong context, in the macro call 
 
     (defmacro hypotenuse [a b]
       `(hy.I.math.sqrt (+ (** ~a 2) (** ~b 2))))
-    (hypotenuse 3 4)
+    (print (hypotenuse 3 4))
 
 A related but distinct issue is when you want to use a function (or other ordinary Python object) in a macro's code, but it isn't available soon enough::
 
@@ -194,6 +194,8 @@ Note that because reader macros are evaluated at parse-time, and top-level forms
        (.upper (.read-one-form &reader)))
      (print #up "hello?"))
        ; LexException: reader macro '#up' is not defined
+
+Of the potential problems discussed above that apply to regular macros, such as surprise shadowing, most also apply to reader macros.
 
 .. _macro-namespaces:
 
