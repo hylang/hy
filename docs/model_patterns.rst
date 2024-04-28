@@ -27,13 +27,14 @@ Suppose you want to validate and extract the components of a form like::
         (foo8))))
 
 You could do this with loops and indexing, but it would take a lot of code and
-be error-prone. Model patterns concisely express the general form of an
-expression to be matched, like what a regular expression does for text. Here's
-a pattern for a ``try`` form of the above kind::
+be error-prone. Model patterns concisely express the general form of a model
+tree to be matched, like what a regular expression does for text. Here's a
+pattern for a ``try`` form of the above kind::
 
     (import
       funcparserlib.parser [maybe many]
       hy.model-patterns *)
+
     (setv parser (whole [
       (sym "try")
       (many (notpexpr "except" "else" "finally"))
@@ -78,15 +79,15 @@ built-in parsers:
 - ``(some function)`` takes a predicate ``function`` and matches a form if it
   satisfies the predicate.
 
-The best reference for Hy's parsers is the docstrings (use ``(help
-hy.model-patterns)``), but again, here are some of the more important ones:
+Some of the more important of Hy's own parsers are:
 
-- ``FORM`` matches anything.
-- ``SYM`` matches any symbol.
-- ``(sym "foo")`` or ``(sym ":foo")`` matches and discards (per ``skip``) the
+- :data:`FORM <hy.model_patterns.FORM>` matches anything.
+- :data:`SYM <hy.model_patterns.SYM>` matches any symbol.
+- :func:`sym <hy.model_patterns.sym>` matches and discards (per ``skip``) the
   named symbol or keyword.
-- ``(brackets ...)`` matches the arguments in square brackets.
-- ``(pexpr ...)`` matches the arguments in parentheses.
+- :func:`brackets <hy.model_patterns.brackets>` matches the arguments in square
+  brackets.
+- :func:`pexpr <hy.model_patterns.pexpr>` matches the arguments in parentheses.
 
 Here's how you could write a simple macro using model patterns::
 
@@ -105,3 +106,9 @@ Here's how you could write a simple macro using model patterns::
 A failed parse will raise ``funcparserlib.parser.NoParseError``.
 
 .. _funcparserlib: https://github.com/vlasovskikh/funcparserlib
+
+Reference
+---------
+
+.. automodule:: hy.model_patterns
+   :members:

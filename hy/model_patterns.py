@@ -31,20 +31,28 @@ from hy.models import (
     Tuple,
 )
 
+
+#: Match any token.
 FORM = some(lambda _: True).named('form')
+#: Match a :class:`Symbol <hy.models.Symbol>`.
 SYM = some(lambda x: isinstance(x, Symbol)).named('Symbol')
+#: Match a :class:`Keyword <hy.models.Keyword>`.
 KEYWORD = some(lambda x: isinstance(x, Keyword)).named('Keyword')
-STR = some(lambda x: isinstance(x, String)).named('String')  # matches literal strings only!
+#: Match a :class:`String <hy.models.String>`.
+STR = some(lambda x: isinstance(x, String)).named('String')
+#: Match any model type denoting a literal.
 LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes))).named('literal')
 
 
 def sym(wanted):
-    "Parse and skip the given symbol or keyword."
+    """Match and skip a symbol with a name equal to the string ``wanted``.
+    You can begin the string with ``":"`` to check for a keyword instead."""
     return _sym(wanted, skip)
 
 
 def keepsym(wanted):
-    "Parse the given symbol or keyword."
+    """As :func:`sym`, but the object is kept instead of
+    skipped."""
     return _sym(wanted)
 
 
@@ -56,7 +64,7 @@ def _sym(wanted, f=lambda x: x):
 
 
 def whole(parsers):
-    """Parse the parsers in the given list one after another, then
+    """Match the parsers in the given list one after another, then
     expect the end of the input."""
     if len(parsers) == 0:
         return finished >> (lambda x: [])
@@ -72,26 +80,31 @@ def _grouped(group_type, syntax_example, name, parsers):
         (lambda x: group_type(whole(parsers).parse(x)).replace(x, recursive=False))
     )
 def brackets(*parsers, name = None):
-    "Parse the given parsers inside square brackets."
+    """Match the given parsers inside square brackets (a :class:`List
+    <hy.models.List>`)."""
     return _grouped(List, '[ … ]', name, parsers)
 def in_tuple(*parsers, name = None):
+    "Match the given parsers inside a :class:`Tuple <hy.models.Tuple>`."
     return _grouped(Tuple, '#( … )', name, parsers)
 def braces(*parsers, name = None):
-    "Parse the given parsers inside curly braces"
+    """Match the given parsers inside curly braces (a :class:`Dict
+    <hy.models.Dict>`)."""
     return _grouped(Dict, '{ … }', name, parsers)
 def pexpr(*parsers, name = None):
-    "Parse the given parsers inside a parenthesized expression."
+    """Match the given parsers inside a parenthesized :class:`Expression
+    <hy.models.Expression>`."""
     return _grouped(Expression, '( … )', name, parsers)
 
 
 def dolike(head):
-    "Parse a `do`-like form."
+    """Parse a :hy:func:`do`-like expression. ``head`` is a string used to
+    construct a symbol for the head."""
     return pexpr(sym(head), many(FORM))
 
 
 def notpexpr(*disallowed_heads):
-    """Parse any object other than a hy.models.Expression beginning with a
-    hy.models.Symbol equal to one of the disallowed_heads."""
+    """Parse any object other than an expression headed by a symbol whose name
+    is equal to one of the given strings."""
     disallowed_heads = list(map(Symbol, disallowed_heads))
     return some(
         lambda x: not (isinstance(x, Expression) and x and x[0] in disallowed_heads)
@@ -99,7 +112,11 @@ def notpexpr(*disallowed_heads):
 
 
 def unpack(kind, content_type = None):
-    "Parse an unpacking form, returning it unchanged."
+    """Parse an unpacking form, returning it unchanged. ``kind`` should be
+    ``"iterable"``, ``"mapping"``, or ``"either"``. If ``content_type`` is
+    provided, the parser also checks that the unpacking form has exactly one
+    argument and that argument inherits from ``content_type``."""
+
     return some(lambda x:
         isinstance(x, Expression) and
         len(x) > 0 and
@@ -110,8 +127,9 @@ def unpack(kind, content_type = None):
 
 
 def times(lo, hi, parser):
-    """Parse `parser` several times (`lo` to `hi`) in a row. `hi` can be
-    float('inf'). The result is a list no matter the number of instances."""
+    """Parse ``parser`` several times (from ``lo`` to ``hi``, inclusive) in a
+    row. ``hi`` can be ``float('inf')``. The result is a list no matter the
+    number of instances."""
 
     @Parser
     def f(tokens, s):
@@ -132,20 +150,19 @@ def times(lo, hi, parser):
 
 
 Tag = namedtuple("Tag", ["tag", "value"])
+Tag.__doc__ = 'A named tuple; see :func:`collections.namedtuple` and :func:`tag`.'
 
 
 def tag(tag_name, parser):
-    """Matches the given parser and produces a named tuple `(Tag tag value)`
-    with `tag` set to the given tag name and `value` set to the parser's
-    value."""
+    """Match on ``parser`` and produce an instance of :class:`Tag`
+    with ``tag`` set to ``tag_name`` and ``value`` set to result of matching
+    ``parser``."""
     return parser >> (lambda x: Tag(tag_name, x))
 
 
 def parse_if(pred, parser):
-    """
-    Return a parser that parses a token with `parser` if it satisfies the
-    predicate `pred`.
-    """
+    """Return a parser that parses a token with ``parser`` if it satisfies the
+    predicate ``pred``."""
 
     @Parser
     def _parse_if(tokens, s):
@@ -153,3 +170,13 @@ def parse_if(pred, parser):
         return parser.run(tokens, s)
 
     return _parse_if
+
+
+__all__ = [
+   'FORM', 'SYM', 'KEYWORD', 'STR', 'LITERAL',
+   'sym', 'keepsym',
+   'whole',
+   'brackets', 'in_tuple', 'braces', 'pexpr',
+   'dolike', 'notpexpr',
+   'unpack', 'times',
+   'Tag', 'tag', 'parse_if']
