@@ -1,4 +1,5 @@
 (import
+  unittest.mock [Mock]
   pytest)
 
 
@@ -40,6 +41,21 @@
   (assert (= y 1))
   (with [(pytest.raises hy.errors.HyLanguageError)]
     (hy.eval '(setv a 1 b))))
+
+
+(defn test-setv-pairs-eval-order []
+  "Each assignment pair should fully resolve before anything in the next is
+  evaluated, even when statements need to be pulled out."
+
+  (setv m (Mock))
+  (setv l (* [None] 5))
+  (setv
+    (get l 0) m.call-count
+    (get l 1) (do (m) m.call-count)
+    (get l 2) m.call-count
+    (get l 3) (do (m) m.call-count)
+    (get l 4) m.call-count)
+  (assert (= l [0 1 1 2 2])))
 
 
 (defn test-setv-returns-none []
