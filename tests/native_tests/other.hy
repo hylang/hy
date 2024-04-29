@@ -1,6 +1,7 @@
 ;; Tests miscellaneous features of the language not covered elsewhere
 
 (import
+  inspect
   typing [get-type-hints]
   pytest
   hy.errors [HyLanguageError])
@@ -50,3 +51,11 @@
   (setv annotations (get-type-hints AnnotationContainer))
   (assert (= (get annotations "x") int))
   (assert (= (get annotations "z") bool)))
+
+
+(defn test-inspect-module-with-missing-docstring [tmp-path monkeypatch]
+  ; https://github.com/hylang/hy/issues/2578
+  (monkeypatch.syspath-prepend tmp-path)
+  (.write-text (/ tmp-path "ex_no_ds.hy") "; hello world\n(defclass C)")
+  (import ex-no-ds)
+  (assert (is (inspect.getcomments ex-no-ds.C) None)))

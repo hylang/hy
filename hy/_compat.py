@@ -43,3 +43,16 @@ if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
         return true_unparse(ast_obj)
 
     ast.unparse = rewriting_unparse
+
+
+if True:
+    import inspect
+    true_getsourcefile = inspect.getsourcefile
+    def getsourcefile_check_for_hy(object):
+        """A monkey-patched `inspect.getsourcefile` that first checks whether
+        the object was defined in Hy source, and, in that case, returns None
+        rather than trying to parse the Hy as Python."""
+        if inspect.getfile(object).endswith('.hy'):
+            return None
+        return true_getsourcefile(object)
+    inspect.getsourcefile = getsourcefile_check_for_hy
