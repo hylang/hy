@@ -1,5 +1,5 @@
-API
-===
+API reference
+=============
 
 This chapter describes most of Hy's public-facing macros, functions, and
 classes. It refers to Python's own documentation when appropriate
@@ -136,7 +136,7 @@ Fundamentals
    about indentation. After all, Python's indentation rules are only useful for
    grouping statements, whereas ``py`` only allows an expression.
 
-   Python code need not syntactically round-trip if you use ``hy2py`` on a Hy
+   Python code need not syntactically round-trip if you use :ref:`hy2py` on a Hy
    program that uses ``py`` or ``pys``. For example, comments will be removed.
 
 .. hy:macro:: (pys [string])
@@ -266,7 +266,7 @@ Assignment, mutation, and annotation
 
 .. hy:macro:: (setx [target value])
 
-   ``setx`` compiles to an assignment expression. Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. Python 3.8 or later is required. ::
+   ``setx`` compiles to an assignment expression (:pep:`572`). Thus, unlike :hy:func:`setv`, it returns the assigned value. It takes exactly two arguments, and the target must be a bare symbol. ::
 
      (when (> (setx x (+ 1 2)) 0)
        (print x "is greater than 0"))
@@ -274,43 +274,32 @@ Assignment, mutation, and annotation
 
 .. hy:macro:: (let [bindings #* body])
 
-   ``let`` creates lexically-scoped names for local variables. This form takes a
-   list of binding pairs followed by a *body* which gets executed. A let-bound
+   ``let`` creates local variables with lexically scoped names. This form takes a
+   list of binding pairs followed by a ``body`` which gets executed. A let-bound
    name ceases to refer to that local outside the ``let`` form, but arguments in
-   nested functions and bindings in nested ``let`` forms can shadow these names.
+   nested functions, and bindings in nested ``let`` forms, can shadow these names. ::
 
+     (let [x 5  y 6]   ; Create `x` and `y`
+       (print x y)     ; => 5 6
+       (let [x 7]      ; Create a variable that shadows the earlier `x`
+         (print x y))  ; => 7 6
+       (print x y))    ; => 5 6
 
-   :strong:`Examples`
+   The left-hand item of a binding pair is typically a plain symbol, but it can also use extended iterable unpacking (:pep:`3132`)::
 
-   ::
+       (let [[head #* tail] #(0 1 2)]
+         [head tail])  ; => [0 [1 2]]
 
-       => (let [x 5   ; creates new local bound names 'x and 'y
-                y 6]
-       ...  (print x y)
-       ...  (let [x 7]  ; new local and name binding that shadows 'x
-       ...    (print x y))
-       ...  (print x y))  ; 'x refers to the first local again
-       5 6
-       7 6
-       5 6
-
-   ``let`` can also bind names using
-   Python's `extended iterable unpacking`_ syntax to destructure iterables::
-
-       => (let [[head #* tail] #(0 1 2)]
-       ...   [head tail])
-       [0 [1 2]]
-
-   Basic assignments (e.g. ``setv``, ``+=``) will update the local
+   Basic assignments, as with :hy:func:`setv` or ``+=``, will update the local
    variable named by a let binding when they assign to a let-bound name.
-   But assignments via ``import`` are always hoisted to normal Python
-   scope, and likewise, ``defn`` or ``defclass`` will assign the
+   But assignments via :hy:func:`import` are always hoisted to normal Python
+   scope, and likewise, :hy:func:`defn` or :hy:func:`defclass` will assign the
    function or class in the Python scope, even if it shares the name of
    a let binding. To avoid this hoisting, use
-   ``importlib.import_module``, ``fn``, or ``type`` (or whatever
+   :func:`importlib.import_module`, :hy:func:`fn`, or :class:`type` (or whatever
    metaclass) instead.
 
-   If ``lfor``, ``sfor``, ``dfor``, or ``gfor`` (but not ``for``) is in
+   If :hy:func:`lfor`, :hy:func:`sfor`, :hy:func:`dfor`, or :hy:func:`gfor` (but not :hy:func:`for`) is in
    the body of a ``let``, assignments in iteration clauses and ``:setv``
    clauses will create a new variable in the comprehenion form's own
    scope, without touching any outer let-bound variable of the same
@@ -319,23 +308,19 @@ Assignment, mutation, and annotation
    Like the ``let*`` of many other Lisps, ``let`` executes the variable
    assignments one-by-one, in the order written::
 
-       => (let [x 5
-       ...       y (+ x 1)]
-       ...   (print x y))
-       5 6
+       (let [x 5
+             y (+ x 1)]
+          (print x y)) ; => 5 6
 
-       => (let [x 1
-       ...      x (fn [] x)]
-       ...   (x))
-       1
+       (let [x 1
+             x (fn [] x)]
+          (x)) ; => 1
 
    Note that let-bound variables continue to exist in the surrounding
-   Python scope. As such, ``let``-bound objects may not be eligible for
+   Python scope. As such, let-bound objects may not be eligible for
    garbage collection as soon as the ``let`` ends. To ensure there are
-   no references to ``let``-bound objects as soon as possible, use
+   no references to let-bound objects as soon as possible, use
    ``del`` at the end of the ``let``, or wrap the ``let`` in a function.
-
-   .. _extended iterable unpacking: https://www.python.org/dev/peps/pep-3132/#specification
 
 .. hy:macro:: (global [#* syms])
 
@@ -390,7 +375,7 @@ Assignment, mutation, and annotation
    The difference between ``annotate`` and ``#^`` is that ``annotate`` requires
    parentheses and takes the name to be annotated first (like Python), whereas
    ``#^`` doesn't require parentheses (it only applies to the next two forms)
-   and takes the type second::
+   and takes the name second::
 
       (setv (annotate x int) 1)
       (setv #^ int x 1)
@@ -422,7 +407,7 @@ Assignment, mutation, and annotation
    For annotating items with generic types, the :hy:func:`of <hyrule.of>`
    macro will likely be of use.
 
-   An issue with type annotations is that, as of this writing, we know of no Python type-checker that can work with :py:mod:`ast` objects or bytecode files. They all need Python source text. So you'll have to translate your Hy with ``hy2py`` in order to actually check the types.
+   An issue with type annotations is that, as of this writing, we know of no Python type-checker that can work with :py:mod:`ast` objects or bytecode files. They all need Python source text. So you'll have to translate your Hy with :ref:`hy2py` in order to actually check the types.
 
 .. hy:macro:: (deftype [args])
 
@@ -635,10 +620,10 @@ Comprehensions
      ; Output: iterating 1 iterating 2 iterating 3
 
    The first argument of ``for``, in square brackets, specifies how to loop. A
-   simple and common case is ``[variable values]``, where ``values`` is a form
-   that evaluates to an iterable object (such as a list) and ``variable`` is a
-   symbol specifiying the name for each element. Subsequent arguments to ``for``
-   are body forms to be evaluated for each iteration of the loop.
+   simple and common case is ``[variable values]``, where ``values`` is an
+   iterable object (such as a list) and ``variable`` is a symbol specifiying
+   the name for each element. Subsequent arguments to ``for`` are body forms to
+   be evaluated for each iteration of the loop.
 
    More generally, the first argument of ``for`` allows the same types of
    clauses as :hy:func:`lfor`::
@@ -732,8 +717,8 @@ Comprehensions
     arguments. The first is a form producing the key of each dictionary
     element, and the second produces the value. Thus::
 
-        => (dfor  x (range 5)  x (* x 10))
-        {0 0  1 10  2 20  3 30  4 40}
+        (dfor  x (range 5)  x (* x 10))
+          ; => {0 0  1 10  2 20  3 30  4 40}
 
 
 .. hy:macro:: (gfor [#* args])
@@ -742,14 +727,14 @@ Comprehensions
    is the same as that of :hy:func:`lfor`. The difference is that ``gfor`` returns
    an iterator, which evaluates and yields values one at a time::
 
-       => (import itertools [count take-while])
-       => (setv accum [])
-       => (list (take-while
-       ...  (fn [x] (< x 5))
-       ...  (gfor x (count) :do (.append accum x) x)))
-       [0 1 2 3 4]
-       => accum
-       [0 1 2 3 4 5]
+       (import itertools [count take-while])
+       (setv accum [])
+       (list (take-while
+         (fn [x] (< x 5))
+         (gfor x (count) :do (.append accum x) x)))
+           ; => [0 1 2 3 4]
+       accum
+           ; => [0 1 2 3 4 5]
 
 .. hy:macro:: (sfor [#* args])
 
@@ -805,7 +790,7 @@ Context managers and pattern-matching
 
 .. hy:macro:: (match [subject #* cases])
 
-   The ``match`` form creates a :ref:`match statement <py:match>`. It
+   ``match`` compiles to a :ref:`match statement <py:match>`. It
    requires Python 3.10 or later. The first argument should be the subject,
    and any remaining arguments should be pairs of patterns and results. The
    ``match`` form returns the value of the corresponding result, or
@@ -867,8 +852,7 @@ Exception-handling
          (print "gottem")))
 
    ``raise`` supports one other syntax, ``(raise EXCEPTION_1 :from
-   EXCEPTION_2)``, which compiles to a Python ``raise … from`` statement like
-   ``raise EXCEPTION_1 from EXCEPTION_2``.
+   EXCEPTION_2)``, which compiles to ``raise EXCEPTION_1 from EXCEPTION_2``.
 
 .. hy:macro:: (try [#* body])
 
@@ -939,7 +923,7 @@ Functions
    :hy:func:`yield`).
 
    ``defn`` accepts a few more optional arguments: a literal keyword ``:async``
-   (to create a :ref:`coroutine <py:async def>` like Python's ``async def``), a
+   (to create a coroutine like Python's :keyword:`async def`), a
    bracketed list of :term:`decorators <py:decorator>`, a list of type
    parameters (see below), and an annotation (see :hy:func:`annotate`) for the
    return value. These are placed before the function name (in that order, if
@@ -1015,7 +999,7 @@ Functions
 
    Note that in Hy, ``return`` is necessary much less often than in Python.
    The last form of a function is returned automatically, so an
-   explicit ``return`` is only necessary to exit a function early. To force
+   explicit ``return`` is only necessary to exit a function early. To get
    Python's behavior of returning ``None`` when execution reaches the end of a
    function, just put ``None`` there yourself::
 
@@ -1034,7 +1018,7 @@ Functions
       (defn naysayer []
         (while True
           (yield "nope")))
-      (hy.repr (list (zip "abc" (naysayer))))
+      (list (zip "abc" (naysayer)))
         ; => [#("a" "nope") #("b" "nope") #("c" "nope")]
 
    For a yield-from expression, provide two arguments, where the first is the
@@ -1044,7 +1028,7 @@ Functions
         (setv r (range 10))
         (while True
           (yield :from r)))
-      (hy.repr (list (zip "abc" (myrange))))
+      (list (zip "abc" (myrange)))
         ; => [#("a" 0) #("b" 1) #("c" 2)]
 
 .. hy:macro:: (await [obj])
@@ -1064,43 +1048,11 @@ Macros
 
 .. hy:macro:: (defmacro [name lambda-list #* body])
 
-   ``defmacro`` is used to define macros. The general format is
-   ``(defmacro name [parameters] expr)``.
-
-   The following example defines a macro that can be used to swap order of elements
-   in code, allowing the user to write code in infix notation, where operator is in
-   between the operands.
-
-   :strong:`Examples`
-   ::
-
-      => (defmacro infix [code]
-      ...  (quasiquote (
-      ...    (unquote (get code 1))
-      ...    (unquote (get code 0))
-      ...    (unquote (get code 2)))))
-
-   ::
-
-      => (infix (1 + 1))
-      2
-
-   If ``defmacro`` appears in a function definition, a class definition, or a
-   comprehension other than :hy:func:`for` (such as :hy:func:`lfor`), the new
-   macro is defined locally rather than module-wide.
-
-   .. note:: ``defmacro`` cannot use keyword arguments, because all values
-             are passed to macros unevaluated. All arguments are passed
-             positionally, but they can have default values::
-
-                => (defmacro a-macro [a [b 1]]
-                ...  `[~a ~b])
-                => (a-macro 2)
-                [2 1]
-                => (a-macro 2 3)
-                [2 3]
-                => (a-macro :b 3)
-                [:b 3]
+   Define a macro, at both compile-time and run-time. The syntax is a subset
+   allowed of that by :hy:func:`defn`: no decorator or return-type annotations
+   are allowed, and the only types of parameter allowed are ``symbol``,
+   ``[symbol default-value]``, ``/``, and ``#* args``. See :ref:`macros` for
+   details and examples.
 
 .. hy:automacro:: hy.core.macros.defreader
 
@@ -1118,9 +1070,25 @@ Classes
    name of the new class as a symbol, is required. A list of :term:`decorators
    <py:decorator>` (and type parameters, in the same way as for
    :hy:func:`defn`) may be provided before the class name. After the name comes
-   a list of superclasses (use the empty list ``[]`` for the typical case of no
+   a list of superclasses (use the empty list ``[]`` for the common case of no
    superclasses) and any number of body forms, the first of which may be a
-   :term:`py:docstring`. ::
+   :term:`py:docstring`.
+
+   A simple class declaration and its uses might look like this::
+
+     (defclass MyClass []
+       "A simple example class."
+
+       (setv i 12345)
+
+       (defn f [self]
+         "hello world"))
+
+     (setv instance (MyClass))
+     (print instance.i)        ; => 12345
+     (print (.f instance))     ; => hello world
+
+   A more complex declaration might look like this::
 
       (defclass [decorator1 decorator2] :tp [T1 T2] MyClass [SuperClass1 SuperClass2]
         "A class that does things at times."
@@ -1144,52 +1112,46 @@ Modules
    in a different module available in the current module. It always returns
    ``None``. Hy's syntax for the various kinds of import looks like this::
 
-       ;; Import each of these modules
+       ;; Import each of these modules.
        ;; Python: import sys, os.path
        (import sys os.path)
 
-       ;; Import several names from a single module
+       ;; Import several names from a single module.
        ;; Python: from os.path import exists, isdir as is_dir, isfile
        (import os.path [exists  isdir :as dir?  isfile])
 
-       ;; Import with an alias
+       ;; Import a module with an alias for the whole module.
        ;; Python: import sys as systest
        (import sys :as systest)
+
+       ;; Import all objects from a module into the current namespace.
+       ;; Python: from sys import *
+       (import sys *)
 
        ;; You can list as many imports as you like of different types.
        ;; Python:
        ;;     from tests.resources import kwtest, function_with_a_dash
        ;;     from os.path import exists, isdir as is_dir, isfile as is_file
        ;;     import sys as systest
+       ;;     from math import *
        (import tests.resources [kwtest function-with-a-dash]
                os.path [exists
                         isdir :as dir?
                         isfile :as file?]
-               sys :as systest)
+               sys :as systest
+               math *)
 
-       ;; Import all module functions into current namespace
-       ;; Python: from sys import *
-       (import sys *)
-
-   ``__all__`` can be set to control what's imported by ``import *``, as in
-   Python, but beware that all names in ``__all__`` must be :ref:`mangled
-   <mangling>`. The macro :hy:func:`export <hy.core.macros.export>` is a handy
-   way to set ``__all__`` in a Hy program.
+   ``__all__`` can be set to control what's imported by ``(import module-name
+   *)``, as in Python, but beware that all names in ``__all__`` must be
+   :ref:`mangled <mangling>`. The macro :hy:func:`export
+   <hy.core.macros.export>` is a handy way to set ``__all__`` in a Hy program.
 
 .. hy:macro:: (require [#* args])
 
-   ``require`` is used to import macros and reader macros from one or more given
-   modules. It allows parameters in all the same formats as ``import``.
-   ``require`` imports each named module and then makes each requested macro
-   available in the current module, or in the current local scope if called
-   locally (using the same notion of locality as :hy:func:`defmacro`).
-
-   The following are all equivalent ways to call a macro named ``foo`` in the
-   module ``mymodule``.
-
-   :strong:`Examples`
-
-   ::
+   ``require`` is a version of :hy:func:`import` for macros. It allows all the
+   same syntax as :hy:func:`import`, and brings the requested macros into the
+   current scope at compile-time as well as run-time. The following are all
+   equivalent ways to call a macro named ``foo`` in the module ``mymodule``::
 
        (require mymodule)
        (mymodule.foo 1)
@@ -1206,102 +1168,37 @@ Modules
        (require mymodule [foo :as bar])
        (bar 1)
 
-   Reader macros are required using ``:readers [...]``.
-   The ``:macros`` kwarg can be optionally added for readability::
+   There's a bit of a trick involved in syntax such as ``mymodule.foo``.
+   Namely, there is no object named ``mymodule``. Instead, ``(require
+   mymodule)`` assigns every macro ``foo`` in ``mymodule`` to the name
+   ``(hy.mangle "mymodule.foo")`` in ``_hy_macros``.
 
-       => (require mymodule :readers *)
-       => (require mymodule :readers [!])
-       => (require mymodule [foo] :readers [!])
-       => (require mymodule :readers [!] [foo])
-       => (require mymodule :macros [foo] :readers [!])
+   Reader macros have a different namespace from regular macros, so they need
+   to be specified with the added syntax ``:readers […]``. You could require a
+   reader macro named ``spiff`` with the call ``(require mymodule :readers
+   [spiff])``, or star-require reader macros with ``(require mymodule :readers
+   *)``. For legibility, a regular-macros specification may analogously be
+   prefixed ``:macros``::
 
-   Do note however, that requiring ``:readers``, but not specifying any regular
-   macros, will not bring that module's macros in under their absolute paths::
+       (require mymodule :macros [foo] :readers [spiff])
 
-       => (require mymodule :readers [!])
-       => (mymodule.foo)
-       Traceback (most recent call last):
-         File "stdin-cd49eaaabebc174c87ebe6bf15f2f8a28660feba", line 1, in <module>
-           (mymodule.foo)
-       NameError: name 'mymodule' is not defined
+   ``require`` with reader macros is more limited than with regular macros. You
+   can't access reader macros with dotted names, and you can't rename them with
+   ``:as``.
 
-   Unlike requiring regular macros, reader macros cannot be renamed
-   with ``:as``, are not made available under their absolute paths
-   to their source module, and can't be required locally::
+   Note that ``(require mymodule :readers [spiff])`` doesn't imply ``(require
+   mymodule)``; that is, ``mymodule.foo`` won't be made available. If you want
+   that, use something like ::
 
-      => (require mymodule :readers [!])
-      HySyntaxError: ...
-
-      => (require mymodule :readers [! :as &])
-      HySyntaxError: ...
-
-      => (require mymodule)
-      => mymodule.! x
-      NameError: name 'mymodule' is not defined
+     (require mymodule
+              mymodule :readers [spiff])
 
    To define which macros are collected by ``(require mymodule *)``, set the
    variable ``_hy_export_macros`` (analogous to Python's ``__all__``) to a list
    of :ref:`mangled <mangling>` macro names, which is accomplished most
    conveniently with :hy:func:`export <hy.core.macros.export>`. The default
-   behavior is to collect all macros other than those whose mangled names begin
-   with an ASCII underscore (``_``).
-
-   When requiring reader macros, ``(require mymodule :readers *)`` will collect
-   all reader macros both defined and required within ``mymodule``.
-
-   :strong:`Macros that call macros`
-
-   One aspect of ``require`` that may be surprising is what happens when one
-   macro's expansion calls another macro. Suppose ``mymodule.hy`` looks like this:
-
-   ::
-
-       (defmacro repexpr [n expr]
-         ; Evaluate the expression n times
-         ; and collect the results in a list.
-         `(list (map (fn [_] ~expr) (range ~n))))
-
-       (defmacro foo [n]
-         `(repexpr ~n (input "Gimme some input: ")))
-
-   And then, in your main program, you write:
-
-   ::
-
-       (require mymodule [foo])
-
-       (print (mymodule.foo 3))
-
-   Running this raises ``NameError: name 'repexpr' is not defined``, even though
-   writing ``(print (foo 3))`` in ``mymodule`` works fine. The trouble is that your
-   main program doesn't have the macro ``repexpr`` available, since it wasn't
-   imported (and imported under exactly that name, as opposed to a qualified name).
-   You could do ``(require mymodule *)`` or ``(require mymodule [foo repexpr])``,
-   but a less error-prone approach is to change the definition of
-   ``foo`` to require whatever sub-macros it needs:
-
-   ::
-
-       (defmacro foo [n]
-         `(do
-           (require mymodule)
-           (mymodule.repexpr ~n (input "Gimme some input: "))))
-
-   It's wise to use ``(require mymodule)`` here rather than ``(require mymodule
-   [repexpr])`` to avoid accidentally shadowing a function named ``repexpr`` in
-   the main program.
-
-   .. note::
-
-      :strong:`Qualified macro names`
-
-      Note that in the current implementation, there's a trick in qualified macro
-      names, like ``mymodule.foo`` and ``M.foo`` in the above example. These names
-      aren't actually attributes of module objects; they're just identifiers with
-      periods in them. In fact, ``mymodule`` and ``M`` aren't defined by these
-      ``require`` forms, even at compile-time. None of this will hurt you unless try
-      to do introspection of the current module's set of defined macros, which isn't
-      really supported anyway.
+   behavior is analogous to ``(import mymodule *)``: all macros are collected
+   other than those whose mangled names begin with an underscore (``_``),
 
 .. hy:automacro:: hy.core.macros.export
 
@@ -1316,9 +1213,7 @@ Miscellany
    comparison operators directly with Hy's usual prefix syntax, as in ``(= x 1)``
    or ``(< 1 2 3)``. The use of ``chainc`` is to construct chains of
    heterogeneous operators, such as ``x <= y < z``. It uses an infix syntax with
-   the general form
-
-   ::
+   the general form ::
 
        (chainc ARG OP ARG OP ARG…)
 
@@ -1375,12 +1270,12 @@ beware that, for example, trying to call your new ``else`` inside
 Hy
 ---
 
-The ``hy`` module is auto imported into every Hy module and provides convient access to
-the following methods
+A few core functions, mostly related to the manipulation of Hy code, are
+available through the module ``hy``.
 
 .. hy:autofunction:: hy.read
 
-.. hy:autofunction:: hy.read_many
+.. hy:autofunction:: hy.read-many
 
 .. hy:autofunction:: hy.eval
 
@@ -1408,8 +1303,11 @@ the following methods
 
    There is no actual object named ``hy.R``. Rather, this syntax is :ref:`recognized specially by the compiler <hy.R>` as a shorthand for requiring and calling a macro.
 
-Reader macros
--------------
+Readers
+-------
+
+Hy's reader (i.e., parser) classes are most interesting to the user in the
+context of :ref:`reader macros <reader-macros>`.
 
 .. autoclass:: hy.reader.hy_reader.HyReader
    :members: parse, parse_one_form, parse_forms_until, read_default, fill_pos

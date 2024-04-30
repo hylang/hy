@@ -51,44 +51,12 @@
   `(if ~test (do ~@body) None))
 
 (defmacro defreader [_hy_compiler key #* body]
-  "Define a new reader macro.
+  "Define a reader macro, at both compile-time and run-time. After the name,
+  all arguments are body forms: there is no parameter list as for ``defmacro``,
+  since it's up to the reader macro to decide how to parse the source text
+  following its call position. See :ref:`reader-macros` for details and
+  examples."
 
-  Reader macros are expanded at read time and allow you to modify the behavior
-  of the Hy reader. Access to the currently instantiated `HyReader` is available
-  in the ``body`` as ``&reader``. See :py:class:`HyReader <hy.reader.hy_reader.HyReader>`
-  and its base class :py:class:`Reader <hy.reader.reader.Reader>` for details
-  regarding the available processing methods.
-
-  Reader macro names can be any valid identifier and are callable by prefixing
-  the name with a ``#``. i.e. ``(defreader upper ...)`` is called with ``#upper``.
-
-  Examples:
-
-     The following is a primitive example of a reader macro that adds Python's
-     colon ``:`` slice sugar into Hy::
-
-        => (defreader slice
-        ...   (defn parse-node []
-        ...     (let [node (when (!= \":\" (.peekc &reader))
-        ...                  (.parse-one-form &reader))]
-        ...       (if (= node '...) 'Ellipse node)))
-        ...
-        ...   (with [(&reader.end-identifier \":\")]
-        ...     (let [nodes []]
-        ...       (&reader.slurp-space)
-        ...       (nodes.append (parse-node))
-        ...       (while (&reader.peek-and-getc \":\")
-        ...         (nodes.append (parse-node)))
-        ...
-        ...       `(slice ~@nodes))))
-
-        => (setv an-index 42)
-        => #slice a:(+ 1 2):\"column\"
-        (slice 42 3 column)
-
-     See the :ref:`reader macros docs <reader-macros>` for more detailed
-     information on how reader macros work and are defined.
-  "
   (when (not (isinstance _hy_compiler.scope hy.scoping.ScopeGlobal))
     (raise (_hy_compiler._syntax-error
              _hy_compiler.this

@@ -92,7 +92,7 @@ NEWS and AUTHORS
 ----------------
 
 If you're making user-visible changes to the code, add one or more
-items describing it to the NEWS file.
+items describing them to the NEWS file.
 
 Finally, add yourself to the AUTHORS file (as a separate commit): you
 deserve it. :)

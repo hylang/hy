@@ -38,15 +38,14 @@
 (setv _gensym_lock (Lock))
 
 (defn gensym [[g ""]]
-  #[[Generate a symbol with a unique name. The argument will be included in the
-  generated symbol name, as an aid to debugging. Typically one calls ``hy.gensym``
-  without an argument.
+
+  #[[Generate a symbol with a unique name. The argument, if provided,
+  will be included in the generated symbol name, as an aid to
+  debugging.
 
   The below example uses the return value of ``f`` twice but calls it only
   once, and uses ``hy.gensym`` for the temporary variable to avoid collisions
-  with any other variable names.
-
-  ::
+  with any other variable names. ::
 
       (defmacro selfadd [x]
         (setv g (hy.gensym))
@@ -59,6 +58,7 @@
         4)
 
       (print (selfadd (f)))]]
+
   (.acquire _gensym_lock)
   (try
     (global _gensym_counter)

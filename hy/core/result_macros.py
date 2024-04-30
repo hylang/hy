@@ -461,7 +461,7 @@ def compile_augassign_expression(compiler, expr, root, target, values):
 
 
 @pattern_macro("setv", [many(maybe_annotated(FORM) + FORM)])
-@pattern_macro(((3, 8), "setx"), [times(1, 1, SYM + FORM)])
+@pattern_macro("setx", [times(1, 1, SYM + FORM)])
 def compile_def_expression(compiler, expr, root, decls):
     if not decls:
         return asty.Constant(expr, value=None)

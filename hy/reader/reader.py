@@ -44,21 +44,19 @@ class ReaderMeta(type):
 
 
 class Reader(metaclass=ReaderMeta):
-    """A reader base class for reading input character-by-character.
-    Only for use as a base class; cannot be instantiated directly.
+    """An abstract base class for reading input character-by-character.
 
-    See class :py:class:`HyReader <hy.reader.hy_reader.HyReader>` for an example
+    See :py:class:`HyReader <hy.reader.hy_reader.HyReader>` for an example
     of creating a reader class.
 
     Attributes:
         ends_ident (set[str]):
-            Set of characters that indicate the end of an identifier
+            The set of characters that indicate the end of an identifier
         reader_table (dict[str, Callable]):
-            A dictionary mapping a reader macro key to its dispatch func
+            A dictionary mapping a reader-macro key to its dispatch function
         pos (tuple[int, int]):
-            Read-only `(line, column)` tuple indicating the current cursor
-            position of the source being read.
-    """
+            A read-only (line, column) tuple indicating the current cursor
+            position of the source being read"""
 
     def __init__(self):
         self._source = None
@@ -87,7 +85,9 @@ class Reader(metaclass=ReaderMeta):
 
     @contextmanager
     def end_identifier(self, character):
-        "Temporarily add a new `character` to the :py:attr:`ends_ident` set."
+        """A context manager to temporarily add a new character to the
+        :py:attr:`ends_ident` set."""
+
         prev_ends_ident = self.ends_ident.copy()
         self.ends_ident.add(character)
         try:
@@ -101,13 +101,9 @@ class Reader(metaclass=ReaderMeta):
 
     @contextmanager
     def saving_chars(self):
-        """Save all the characters read while in this block.
+        """A context manager to save all read characters. The value is a list
+        of characters, rather than a single string."""
 
-        Useful for `'='` mode in f-strings.
-
-        Returns:
-            list[str]
-        """
         self._saved_chars.append([])
         yield self._saved_chars[-1]
         saved = self._saved_chars.pop()
@@ -118,11 +114,7 @@ class Reader(metaclass=ReaderMeta):
             self._saved_chars[-1].extend(saved)
 
     def peekc(self):
-        """Peek at a character from the stream without consuming it.
-
-        Returns:
-            str: character at :py:attr:`pos`
-        """
+        "Peek at the next character, returning it but not consuming it."
         if self._peek_chars:
             return self._peek_chars[-1]
         nc = self._stream.read(1)
@@ -130,21 +122,10 @@ class Reader(metaclass=ReaderMeta):
         return nc
 
     def peeking(self, eof_ok=False):
-        """Iterate over character stream without consuming any characters.
+        """As :func:`chars`, but without consuming any of the returned
+        characters. This method is useful for looking several characters
+        ahead."""
 
-        Useful for looking multiple characters ahead.
-
-        Args:
-            eof_ok (bool): Whether or not it is okay to hit the end of the file while
-                peeking. Defaults to `False`
-
-        Yields:
-            str: The next character in `source`.
-
-        Raises:
-            PrematureEndOfInput: if `eof_ok` is `False` and the iterator hits
-                the end of `source`
-        """
         for nc in reversed(self._peek_chars):
             yield nc
         while True:
@@ -159,14 +140,10 @@ class Reader(metaclass=ReaderMeta):
             )
 
     def getc(self):
-        """Get one character from the stream, consuming it.
+        """Consume one character from the stream and return it. This method
+        does the bookkeeping for position data, so all character consumption
+        should go through it."""
 
-        This function does the bookkeeping for position data, so it's important
-        that any character consumption go through this function.
-
-        Returns:
-            str: The character under the cursor at :py:attr:`pos`.
-        """
         c = self.peekc()
         self._peek_chars.pop()
 
@@ -187,13 +164,9 @@ class Reader(metaclass=ReaderMeta):
         return c
 
     def peek_and_getc(self, target):
-        """Peek one character and check if it's equal to `target`.
+        """Peek at the next character and check if it's equal to ``target``,
+        only consuming it if it's equal. A :py:class:`bool` is returned."""
 
-        Only consumes the peeked character if it is equal to `target`
-
-        Returns:
-            bool: Whether or not the next character in the stream is equal to `target`.
-        """
         nc = self.peekc()
         if nc == target:
             self.getc()
@@ -201,21 +174,10 @@ class Reader(metaclass=ReaderMeta):
         return False
 
     def chars(self, eof_ok=False):
-        """Iterator for the character stream.
+        """Consume and yield characters of the stream. If ``eof_ok``
+        is false (the default) and the end of the stream is reached,
+        raise :exc:`hy.reader.exceptions.PrematureEndOfInput`."""
 
-        Consumes characters as they are produced.
-
-        Args:
-            eof_ok (bool): Whether or not it's okay to hit the end of the file while
-                consuming the iterator. Defaults to `False`
-
-        Yields:
-            str: The next character in `source`.
-
-        Raises:
-            PrematureEndOfInput: if `eof_ok` is `False` and the iterator hits
-                the end of `source`
-        """
         while True:
             c = self.getc()
             if not c:
@@ -231,11 +193,11 @@ class Reader(metaclass=ReaderMeta):
     ###
 
     def getn(self, n):
-        "Returns `n` characters."
+        "Consume and return ``n`` characters."
         return "".join(itertools.islice(self.chars(), n))
 
     def slurp_space(self):
-        "Returns and consumes 0 or more whitespace characters."
+        "Consume and return zero or more whitespace characters."
         n = 0
         for c in self.peeking(eof_ok=True):
             if not isnormalizedspace(c):
@@ -244,15 +206,9 @@ class Reader(metaclass=ReaderMeta):
         return self.getn(n)
 
     def read_ident(self, just_peeking=False):
-        """Read characters until we hit something in :py:attr:`ends_ident`.
+        """Read characters until we hit something in :py:attr:`ends_ident`. The
+        characters are consumed unless ``just_peeking`` is true."""
 
-        Args:
-            just_peeking:
-               Whether or not to consume characters while peeking. Defaults to `False`.
-
-        Returns:
-            str: The identifier read.
-        """
         ident = []
         for nc in self.peeking(eof_ok=True):
             if not nc or nc in self.ends_ident or isnormalizedspace(nc):
@@ -268,14 +224,7 @@ class Reader(metaclass=ReaderMeta):
     ###
 
     def dispatch(self, tag):
-        """Call the handler for the `tag`.
+        """Call the handler for the reader macro with key ``tag`` (a
+        string). Return the model it produces, if any."""
 
-        Args:
-            tag (str):
-                Reader macro dispatch key.
-
-        Returns:
-            hy.models.Object | None:
-                Model returned by the reader macro defined for `tag`.
-        """
         return self.reader_table[tag](self, tag)

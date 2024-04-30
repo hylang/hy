@@ -104,36 +104,17 @@ _seen = set()
 
 
 def as_model(x):
-    """Recursively promote an object ``x`` into its canonical model form.
+    """Convert ``x`` and any elements thereof into :ref:`models <models>`
+    recursively. This function is called implicitly by Hy in many situations,
+    such as when inserting the expansion of a macro into the surrounding code,
+    so you don't often need to call it. One use is to ensure that models are
+    used on both sides of a comparison::
 
-    When creating macros its possible to return non-Hy model objects or
-    even create an expression with non-Hy model elements::
+      (= 7 '7)                ; => False
+      (= (hy.as-model 7) '7)  ; => True
 
-       => (defmacro hello []
-       ...  "world!")
-
-       => (defmacro print-inc [a]
-       ...  `(print ~(+ a 1)))
-       => (print-inc 1)
-       2  ; in this case the unquote form (+ 1 1) would splice the literal
-          ; integer ``2`` into the print statement, *not* the model representation
-          ; ``(hy.model.Integer 2)``
-
-    This is perfectly fine, because Hy autoboxes these literal values into their
-    respective model forms at compilation time.
-
-    The one case where this distinction between the spliced composit form and
-    the canonical model tree representation matters, is when comparing some
-    spliced model tree with another known tree::
-
-       => (= `(print ~(+ 1 1)) '(print 2))
-       False  ; False because the literal int ``2`` in the spliced form is not
-              ; equal to the ``(hy.model.Integer 2)`` value in the known form.
-
-       => (= (hy.as-model `(print ~(+ 1 1)) '(print 2)))
-       True  ; True because ``as-model`` has walked the expression and promoted
-             ; the literal int ``2`` to its model for ``(hy.model.Integer 2)``
-    """
+    It's an error to call ``hy.as-model`` on an object that contains itself, or
+    an object that isn't representable as a Hy literal, such as a function."""
 
     if id(x) in _seen:
         raise HyWrapperError("Self-referential structure detected in {!r}".format(x))

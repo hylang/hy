@@ -17,22 +17,25 @@ as in ``(import hy.pyops *)``), you can also use these operators as
 functions. Functions are first-class objects, so you can say things like
 ``(map - xs)`` to negate all the numbers in the list ``xs``. Since
 macros shadow functions, forms like ``(- 1 2)`` will still call the
-macro instead of the function.
-
-The functions in ``hy.pyops`` have the same semantics as their macro
-equivalents, with one exception: functions can't short-circuit, so the
-functions for operators such as ``and`` and ``!=`` unconditionally
-evaluate all arguments.
+macro instead of the function. The functions in ``hy.pyops`` have the
+same semantics as their macro equivalents, with one exception: functions
+can't short-circuit, so the functions for operators such as ``and`` and
+``!=`` unconditionally evaluate all arguments.
 
 Hy also provides macros for :ref:`Python's augmented assignment
 operators <py:augassign>` (but no equivalent functions, because Python
 semantics don't allow for this). These macros require at least two
 arguments even if the parent operator doesn't; for example, ``(-= x)``
-is an error even though ``(- x)`` is legal. On the other hand,
-augmented-assignment macros extend to more than two arguments in an
-analogous way as the parent operator, following the pattern ``(OP= x a b
-c …)`` → ``(OP= x (OP a b c …))``. For example, ``(+= count n1 n2 n3)``
-is equivalent to ``(+= count (+ n1 n2 n3)).``"
+is an error even though ``(- x)`` is legal. If the parent operator
+supports more than two arguments, though, so does the
+augmented-assignment version, using an aggregation operator to bind up
+all arguments past the first into a single rvalue. Typically, the
+aggregator is the same as the original operator: for example, ``(+=
+count n1 n2 n3)`` is equivalent to ``(+= count (+ n1 n2 n3))``.
+Exceptions (such as ``-=``, which uses the aggregator :hy:func:`+
+<hy.pyops.+>`, so ``(-= count n1 n2 n3)`` is equivalent to ``(-= count
+(+ n1 n2 n3))``) are noted in the documentation for the parent operator
+(such as :hy:func:`- <hy.pyops.->` for ``-=``)."
 
 ;;;; Hy shadow functions
 
@@ -49,7 +52,7 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
     k.name (if (= v 'None) None (str v))))
   (setv pyop (.get d "pyop" (.replace (str op) "-" " ")))
   `(defn ~op ~lambda-list
-    ~(.format "The {} operator. {}\n\n{}"
+    ~(.format "The {} operator. {}\n\n{}{}"
       name
       "Its effect can be defined by the equivalent Python:"
       (.join "\n" (filter (fn [x] x) [
@@ -60,7 +63,9 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
         (when (.get d "binary" True)
           f"- ``({op} x y)`` → ``x {pyop} y``")
         (when (.get d "n-ary" True)
-          f"- ``({op} a1 a2 … an)`` → ``a1 {pyop} a2 {pyop} … {pyop} an``")])))
+          f"- ``({op} a1 a2 … an)`` → ``a1 {pyop} a2 {pyop} … {pyop} an``")]))
+      (if (not-in "agg" d) ""
+        f"\n\nAggregator for augmented assignment: :hy:func:`{(:agg d)} <hy.pyops.{(:agg d)}>`"))
     ~@body))
 
 
@@ -77,7 +82,8 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
 (defop - [a1 #* a-rest]
   ["subtraction"
     :pyop "-"
-    :unary "-x"]
+    :unary "-x"
+    :agg "+"]
   (if a-rest
     (reduce operator.sub a-rest a1)
     (- a1)))
@@ -102,7 +108,8 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
 
 (defop / [a1 #* a-rest]
   ["division"
-    :unary "1 / x"]
+    :unary "1 / x"
+    :agg "*"]
   (if a-rest
     (reduce operator.truediv a-rest a1)
     (/ 1 a1)))
@@ -121,11 +128,13 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
   (reduce operator.matmul a-rest a1))
 
 (defop << [a1 a2 #* a-rest]
-  ["left shift"]
+  ["left shift"
+    :agg "+"]
   (reduce operator.lshift (+ #(a2) a-rest) a1))
 
 (defop >> [a1 a2 #* a-rest]
-  ["right shift"]
+  ["right shift"
+    :agg "+"]
   (reduce operator.rshift (+ #(a2) a-rest) a1))
 
 (defop & [a1 #* a-rest]
@@ -239,9 +248,11 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
   note that this is just Python's syntactic sugar for ``foo[slice(1, 3)]``, and Hy
   provides its own syntactic sugar for this with a different macro, :hy:func:`cut <hy.pyops.cut>`.
 
-  Note that ``.`` (:ref:`dot <dot>`) forms can also subscript. See also Hyrule's
-  :hy:func:`assoc <hyrule.assoc>` to easily assign multiple elements of a single
-  collection.]]
+  See also:
+
+    - The :ref:`dot macro <dot>` ``.``, which can also subscript
+    - Hyrule's :hy:func:`assoc <hyrule.assoc>`, to easily assign multiple elements of a single
+      collection]]
 
   (setv coll (get coll key1))
   (for [k keys]
@@ -256,7 +267,8 @@ is equivalent to ``(+= count (+ n1 n2 n3)).``"
 
       (setv x "abcdef")
       (cut x)           ; => "abcdef"
-      (cut x 3)         ; => "abc"
+      (cut x 2)         ; => "ab"
+      (cut x 2 None)    ; => "cdef"
       (cut x 3 5)       ; => "de"
       (cut x -3 None)   ; => "def"
       (cut x 0 None 2)  ; => "ace"
