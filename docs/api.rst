@@ -1307,13 +1307,13 @@ Readers
 Hy's reader (i.e., parser) classes are most interesting to the user in the
 context of :ref:`reader macros <reader-macros>`.
 
-.. autoclass:: hy.reader.hy_reader.HyReader
+.. autoclass:: hy.HyReader
    :members: parse, parse_one_form, parse_forms_until, read_default, fill_pos
 
-.. autoclass:: hy.reader.reader.Reader
+.. autoclass:: hy.Reader
    :members:
 
-.. autoexception:: hy.reader.exceptions.PrematureEndOfInput
+.. autoexception:: hy.PrematureEndOfInput
 
 .. _pyop:
 

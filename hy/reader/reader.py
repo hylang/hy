@@ -46,7 +46,7 @@ class ReaderMeta(type):
 class Reader(metaclass=ReaderMeta):
     """An abstract base class for reading input character-by-character.
 
-    See :py:class:`HyReader <hy.reader.hy_reader.HyReader>` for an example
+    See :py:class:`hy.HyReader` for an example
     of creating a reader class.
 
     Attributes:
@@ -176,7 +176,7 @@ class Reader(metaclass=ReaderMeta):
     def chars(self, eof_ok=False):
         """Consume and yield characters of the stream. If ``eof_ok``
         is false (the default) and the end of the stream is reached,
-        raise :exc:`hy.reader.exceptions.PrematureEndOfInput`."""
+        raise :exc:`hy.PrematureEndOfInput`."""
 
         while True:
             c = self.getc()

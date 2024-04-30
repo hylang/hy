@@ -46,6 +46,9 @@ _jit_imports = dict(
     disassemble="hy.core.util",
     as_model="hy.models",
     REPL="hy.repl",
+    Reader="hy.reader.reader",
+    HyReader="hy.reader.hy_reader",
+    PrematureEndOfInput="hy.reader.exceptions"
 )
 
 
