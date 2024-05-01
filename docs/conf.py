@@ -14,14 +14,12 @@ import warnings; import sphinx.deprecation as SD
 for c in (SD.RemovedInSphinx60Warning, SD.RemovedInSphinx70Warning):
     warnings.filterwarnings('ignore', category = c)
 
-from get_version import __version__ as hy_version
-
 project = 'Hy'
 copyright = '%s the authors' % time.strftime('%Y')
-html_title = f'Hy {hy_version} manual'
-version = '.'.join(hy_version.split('.')[:-1])
+html_title = f'Hy {hy.__version__} manual'
+version = '.'.join(hy.__version__.split('.')[:-1])
   # The short dotted version identifier
-release = hy_version
+release = hy.__version__
   # The full version identifier, including alpha, beta, and RC tags
 
 hyrule_version = 'doc-testing'

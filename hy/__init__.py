@@ -1,7 +1,4 @@
-try:
-    from hy.version import __version__
-except ImportError:
-    __version__ = "unknown"
+__version__ = 'unreleased'
 
 
 def _initialize_env_var(env_var, default_val):
