@@ -4,7 +4,7 @@ import ast
 import itertools
 from abc import ABC, abstractmethod
 
-import hy._compat
+import hy.compat
 from hy.models import Expression, List, Symbol, Tuple
 from hy.reader import mangle
 
@@ -85,7 +85,7 @@ class NodeRef:
         ast.Nonlocal: "names",
         OuterVar: "names",
     }
-    if hy._compat.PY3_10:
+    if hy.compat.PY3_10:
         ACCESSOR.update(
             {
                 ast.MatchAs: "name",

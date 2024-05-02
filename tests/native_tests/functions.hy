@@ -96,7 +96,7 @@
     (assert (= (. f __annotations__ [k]) v))))
 
 
-(do-mac (when hy._compat.PY3_12 '(defn test-type-params []
+(do-mac (when hy.compat.PY3_12 '(defn test-type-params []
   (import tests.resources.tp :as ttp)
 
   (defn foo [])

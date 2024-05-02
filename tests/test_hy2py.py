@@ -6,7 +6,7 @@ import pytest
 
 import hy.importer
 from hy import mangle
-from hy._compat import PYODIDE
+from hy.compat import PYODIDE
 from tests.resources import can_test_async
 
 
