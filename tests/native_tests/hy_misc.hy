@@ -1,5 +1,5 @@
 ;; Tests of `hy.gensym`, `hy.macroexpand`, `hy.macroexpand-1`,
-;; `hy.disassemble`, `hy.read`, `hy.I`, and `hy.R`
+;; `hy.read`, `hy.I`, and `hy.R`
 
 (import
   pytest)
@@ -65,21 +65,6 @@
 (defn test-macroexpand-1 []
   (assert (= (hy.macroexpand-1 '(mac (a b) (mac 5)))
              '(mac 5 (a b)))))
-
-
-(defn test-disassemble []
-  (import re)
-  (defn nos [x] (re.sub r"\s" "" x))
-  (assert (= (nos (hy.disassemble '(do (leaky) (leaky) (macros))))
-    (nos
-      "Module(
-          body=[Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
-              Expr(value=Call(func=Name(id='leaky', ctx=Load()), args=[], keywords=[])),
-              Expr(value=Call(func=Name(id='macros', ctx=Load()), args=[], keywords=[]))],type_ignores=[])")))
-  (assert (= (nos (hy.disassemble '(do (leaky) (leaky) (macros)) True))
-             "leaky()leaky()macros()"))
-  (assert (= (re.sub r"[()\n ]" "" (hy.disassemble `(+ ~(+ 1 1) 40) True))
-             "2+40")))
 
 
 (defn test-read-file-object []

@@ -1287,8 +1287,6 @@ available through the module ``hy``.
 
 .. hy:autofunction:: hy.unmangle
 
-.. hy:autofunction:: hy.disassemble
-
 .. hy:autofunction:: hy.macroexpand
 
 .. hy:autofunction:: hy.macroexpand-1

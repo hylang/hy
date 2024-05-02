@@ -5,6 +5,7 @@ Unreleased
 
 Removals
 ------------------------------
+* `hy.disassemble` has been removed.
 * `(defn/a …)` is now `(defn :async …)`.
 * `(fn/a …)` is now `(fn :async …)`.
 * `(with/a […] …)` is now `(with [:async …] …)`.

@@ -2,37 +2,6 @@
 (import collections.abc [Iterable])
 (import hy.compiler [HyASTCompiler calling-module])
 
-(defn disassemble [tree [codegen False]]
-  "Return the python AST for a quoted Hy `tree` as a string.
-
-  If the second argument `codegen` is true, generate python code instead.
-
-  Dump the Python AST for given Hy *tree* to standard output. If *codegen*
-  is ``True``, the function prints Python code instead.
-
-  Examples:
-    ::
-
-       => (hy.disassemble '(print \"Hello World!\"))
-       Module(
-        body=[
-            Expr(value=Call(func=Name(id='print'), args=[Str(s='Hello World!')], keywords=[], starargs=None, kwargs=None))])
-
-    ::
-
-       => (hy.disassemble '(print \"Hello World!\") True)
-       print('Hello World!')
-  "
-  (import ast hy.compiler)
-
-  (setv compiled (hy.compiler.hy-compile tree (_calling-module-name) :import-stdlib False))
-  (if
-    codegen
-      (ast.unparse compiled)
-      (if hy._compat.PY3_9
-          (ast.dump compiled :indent 1)
-          (ast.dump compiled))))
-
 (import threading [Lock])
 (setv _gensym_counter 0)
 (setv _gensym_lock (Lock))
