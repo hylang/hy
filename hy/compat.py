@@ -43,3 +43,21 @@ if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
         return true_unparse(ast_obj)
 
     ast.unparse = rewriting_unparse
+
+
+if True:
+    import pydoc, inspect, re
+    true_getdoc = pydoc.getdoc
+    if not PY3_9:
+        pydoc._getdoc = inspect.getdoc
+    def getdoc(object):
+        """A monkey-patched `pydoc.getdoc` that tries to avoid calling
+        `inspect.getcomments` for an object defined in Hy code, which would try
+        to parse the Hy as Python. The implementation is based on Python
+        3.12.3's `getdoc`."""
+        result = pydoc._getdoc(object) or (
+            None
+            if inspect.getfile(object).endswith('.hy')
+            else inspect.getcomments(object))
+        return result and re.sub('^ *\n', '', result.rstrip()) or ''
+    pydoc.getdoc = getdoc

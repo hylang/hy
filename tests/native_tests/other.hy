@@ -1,7 +1,10 @@
 ;; Tests miscellaneous features of the language not covered elsewhere
 
 (import
+  textwrap [dedent]
   typing [get-type-hints]
+  importlib
+  pydoc
   pytest
   hy.errors [HyLanguageError])
 
@@ -50,3 +53,32 @@
   (setv annotations (get-type-hints AnnotationContainer))
   (assert (= (get annotations "x") int))
   (assert (= (get annotations "z") bool)))
+
+
+(defn test-pydoc [tmp-path monkeypatch]
+  ; https://github.com/hylang/hy/issues/2578
+
+  (monkeypatch.syspath-prepend tmp-path)
+
+  (.write-text (/ tmp-path "pydoc_py.py") (dedent #[[
+      class C1:
+          'C1 docstring'
+      # a comment
+      class C2:
+          pass]]))
+  (importlib.invalidate-caches)
+  (import pydoc-py)
+  (assert (= (pydoc.getdoc pydoc-py.C1) "C1 docstring"))
+  (assert (= (pydoc.getdoc pydoc-py.C2) "# a comment"))
+
+  (.write-text (/ tmp-path "pydoc_hy.hy") (dedent #[[
+    (defclass C1 []
+      "C1 docstring")
+    ; a comment
+    (defclass C2)]]))
+  (importlib.invalidate-caches)
+  (import pydoc-hy)
+  (assert (= (pydoc.getdoc pydoc-hy.C1) "C1 docstring"))
+  (assert (= (pydoc.getdoc pydoc-hy.C2) "")))
+    ; `pydoc` shouldn't try to get a comment from Hy code, since it
+    ; doesn't know how to parse Hy.
