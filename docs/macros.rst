@@ -161,7 +161,7 @@ Ultimately it's wisest to use only four kinds of names in macro expansions: gens
 Reader macros
 -------------
 
-Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader <hy.core.macros.defreader>`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`HyReader <hy.reader.hy_reader.HyReader>` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`HyReader <hy.reader.hy_reader.HyReader>` and its base class :py:class:`Reader <hy.reader.reader.Reader>` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
+Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader <hy.core.macros.defreader>`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`hy.HyReader` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`hy.HyReader` and its base class :py:class:`hy.Reader` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
 
 The simplest kind of reader macro doesn't read anything::
 
@@ -170,7 +170,7 @@ The simplest kind of reader macro doesn't read anything::
 
     #hi #hi #hi
 
-A less trivial, and more common, usage of reader macros is to call :func:`HyReader.parse-one-form <hy.reader.hy_reader.HyReader.parse_one_form>` to get a single form from the following source text. Such a reader macro is like a unary regular macro that's called with ``#`` instead of parentheses. ::
+A less trivial, and more common, usage of reader macros is to call :func:`hy.HyReader.parse_one_form` to get a single form from the following source text. Such a reader macro is like a unary regular macro that's called with ``#`` instead of parentheses. ::
 
     (defreader do-twice
       (setv x (.parse-one-form &reader))

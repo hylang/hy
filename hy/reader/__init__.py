@@ -12,8 +12,8 @@ __all__ = ["mangle", "unmangle", "read", "read_many"]
 def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     """Parse all the Hy source code in ``stream``, which should be a textual file-like
     object or a string. ``filename``, if provided, is used in error messages. If no
-    ``reader`` is provided, a new :class:`hy.reader.hy_reader.HyReader` object is created.
-    If ``skip_shebang`` is true and a :ref:`shebang line <shebang>` is present, it's
+    ``reader`` is provided, a new :class:`hy.HyReader` object is created. If
+    ``skip_shebang`` is true and a :ref:`shebang line <shebang>` is present, it's
     detected and discarded first.
 
     Return a value of type :class:`hy.models.Lazy`. If you want to evaluate this, be
@@ -25,7 +25,9 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
 
     .. warning::
        Thanks to reader macros, reading can execute arbitrary code. Don't read untrusted
-       input."""
+       input.
+
+    """
 
     if isinstance(stream, str):
         stream = StringIO(stream)

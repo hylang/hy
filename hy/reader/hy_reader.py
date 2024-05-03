@@ -112,7 +112,7 @@ def as_identifier(ident, reader=None):
 
 class HyReader(Reader):
     """A modular reader for Hy source. It inherits from
-    :py:class:`hy.reader.reader.Reader`.
+    :py:class:`hy.Reader`.
 
     When ``use_current_readers`` is true, initialize this reader
     with all reader macros from the calling module."""
