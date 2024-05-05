@@ -12,7 +12,6 @@ requires = [
 import os
 
 import fastentrypoints  # Monkey-patches setuptools.
-from get_version import __version__
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
@@ -42,11 +41,7 @@ class install(install):
 
 setup(
     name=PKG,
-    version=(
-        None
-        if __version__ == "unknown"
-        else __version__
-    ),
+    version='0.0.0',
     setup_requires=["wheel"] + requires,
     install_requires=requires,
     python_requires=">= 3.8, < 3.13",
@@ -61,7 +56,6 @@ setup(
     package_data={
         "": ["*.hy"],
     },
-    data_files=[("get_version", ["get_version.py"])],
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
     long_description=long_description,
