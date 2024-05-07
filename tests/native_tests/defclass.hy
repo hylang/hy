@@ -150,7 +150,7 @@
   (assert (= (. (Quest) swallow) "african")))
 
 
-(do-mac (when hy._compat.PY3_12 '(defn test-type-params []
+(do-mac (when hy.compat.PY3_12 '(defn test-type-params []
   (import tests.resources.tp :as ttp)
   (defclass :tp [#^ int A  #** B] C)
   (assert (= (ttp.show C) [

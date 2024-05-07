@@ -1,6 +1,6 @@
 import pytest
 
-from hy._compat import PYODIDE
+from hy.compat import PYODIDE
 
 in_init = "chippy"
 

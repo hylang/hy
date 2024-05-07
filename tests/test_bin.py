@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hy._compat import PY3_9, PYODIDE
+from hy.compat import PY3_9, PYODIDE
 
 if PYODIDE:
     pytest.skip(

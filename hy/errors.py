@@ -6,7 +6,7 @@ import importlib.util
 from contextlib import contextmanager
 
 from hy import _initialize_env_var
-from hy._compat import PYPY
+from hy.compat import PYPY
 
 _hy_show_internal_errors = _initialize_env_var("HY_SHOW_INTERNAL_ERRORS", False)
 
@@ -221,7 +221,7 @@ _tb_hidden_modules = {
             "hy.repl",
             "hy.reader.parser",
             "hy.importer",
-            "hy._compat",
+            "hy.compat",
             "hy.macros",
             "hy.models",
             "hy.core.result_macros",

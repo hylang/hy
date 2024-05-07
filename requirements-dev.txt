@@ -1,6 +1,6 @@
 pytest >= 7
 
 # documentation
-Pygments @ git+https://github.com/Kodiologist/pygments@hylex
+Pygments >= 2.18.0
 Sphinx == 5.0.2
 git+https://github.com/hylang/sphinxcontrib-hydomain.git

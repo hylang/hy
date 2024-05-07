@@ -15,7 +15,7 @@ from itertools import dropwhile
 
 from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
-from hy._compat import PY3_11, PY3_12
+from hy.compat import PY3_11, PY3_12
 from hy.compiler import Result, asty, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
 from hy.macros import pattern_macro, require, require_reader, local_macro_name

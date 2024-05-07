@@ -13,7 +13,7 @@ from contextlib import nullcontext
 from pathlib import Path
 
 import hy
-from hy._compat import PY3_9
+from hy.compat import PY3_9
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, filtered_hy_exceptions, hy_exc_handler
 from hy.importer import runhy

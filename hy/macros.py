@@ -10,7 +10,7 @@ from ast import AST
 from funcparserlib.parser import NoParseError
 
 import hy.compiler
-from hy._compat import PY3_11
+from hy.compat import PY3_11
 from hy.errors import (
     HyLanguageError,
     HyMacroExpansionError,

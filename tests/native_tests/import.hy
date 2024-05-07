@@ -7,7 +7,7 @@
   sys :as systest
   sys
   pytest
-  hy._compat [PYODIDE])
+  hy.compat [PYODIDE])
 
 
 (defn test-imported-bits []

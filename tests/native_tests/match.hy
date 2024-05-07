@@ -1,4 +1,4 @@
-(do-mac (when hy._compat.PY3_10 '(do
+(do-mac (when hy.compat.PY3_10 '(do
 
 
 (import pytest

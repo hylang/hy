@@ -24,6 +24,7 @@ New Features
 Bug Fixes
 ------------------------------
 * Tracebacks now point to the correct code in more cases.
+* `help` should no longer crash when objects are missing docstrings.
 
 0.28.0 (released 2024-01-05)
 =============================

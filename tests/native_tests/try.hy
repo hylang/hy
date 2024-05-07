@@ -170,7 +170,7 @@
   (assert (= y 1)))
 
 
-(do-mac (when hy._compat.PY3_11 '(defn test-except* []
+(do-mac (when hy.compat.PY3_11 '(defn test-except* []
   (setv got "")
 
   (setv return-value (try
