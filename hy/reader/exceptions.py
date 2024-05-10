@@ -11,4 +11,4 @@ class LexException(HySyntaxError):
 
 class PrematureEndOfInput(LexException):
     "Raised when input ends unexpectedly during parsing."
-    pass
+    __module__ = 'hy'

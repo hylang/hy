@@ -4,8 +4,6 @@
   types
   contextlib [contextmanager]
   hy.errors [HyMacroExpansionError]
-  hy.reader [HyReader]
-  hy.reader.exceptions [PrematureEndOfInput]
 
   pytest)
 
@@ -55,7 +53,7 @@
 (defn test-bad-reader-macro-name []
   (with [(pytest.raises HyMacroExpansionError)]
     (eval-module "(defreader :a-key '1)"))
-  (with [(pytest.raises PrematureEndOfInput)]
+  (with [(pytest.raises hy.PrematureEndOfInput)]
       (eval-module "# _ 3")))
 
 (defn test-get-macro []
@@ -123,7 +121,7 @@
       (with [(pytest.raises hy.errors.HySyntaxError)]
         (hy.read tag)))
     ;; but they should be installed in the module
-    (hy.eval '(setv reader (hy.reader.HyReader :use-current-readers True)) :module module)
+    (hy.eval '(setv reader (hy.HyReader :use-current-readers True)) :module module)
     (setv reader module.reader)
     (for [[s val] [["#r" 5]
                    ["#test-read" 4]
@@ -132,7 +130,7 @@
 
   ;; passing a reader explicitly should work as expected
   (with [module (temp-module "<test>")]
-    (setv reader (HyReader))
+    (setv reader (hy.HyReader))
     (defn eval1 [s]
       (hy.eval (hy.read s :reader reader) :module module))
     (eval1 "(defreader fbaz 32)")

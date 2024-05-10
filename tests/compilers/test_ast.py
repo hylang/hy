@@ -8,7 +8,7 @@ from hy.compat import PY3_11
 from hy.compiler import hy_compile
 from hy.errors import HyError, HyLanguageError
 from hy.reader import read_many
-from hy.reader.exceptions import LexException, PrematureEndOfInput
+from hy.reader.exceptions import LexException
 
 
 def _ast_spotcheck(arg, root, secondary):
@@ -466,7 +466,7 @@ def test_compile_error():
 
 def test_for_compile_error():
     """Ensure we get compile error in tricky 'for' cases"""
-    with pytest.raises(PrematureEndOfInput) as excinfo:
+    with pytest.raises(hy.PrematureEndOfInput) as excinfo:
         can_compile("(fn [] (for)")
     assert excinfo.value.msg.startswith("Premature end of input")
 

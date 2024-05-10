@@ -58,6 +58,8 @@ class Reader(metaclass=ReaderMeta):
             A read-only (line, column) tuple indicating the current cursor
             position of the source being read"""
 
+    __module__ = 'hy'
+
     def __init__(self):
         self._source = None
         self._filename = None

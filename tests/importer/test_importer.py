@@ -12,7 +12,6 @@ from hy.compiler import hy_compile
 from hy.errors import HyLanguageError, hy_exc_handler
 from hy.importer import HyLoader
 from hy.reader import read_many
-from hy.reader.exceptions import PrematureEndOfInput
 
 
 def test_basics():
@@ -183,7 +182,7 @@ def test_reload(tmp_path, monkeypatch):
 
         source.write_text("(setv a 11  (setv b (// 20 1))")
 
-        with pytest.raises(PrematureEndOfInput):
+        with pytest.raises(hy.PrematureEndOfInput):
             reload(mod)
 
         mod = sys.modules.get(TESTFN)
@@ -266,7 +265,7 @@ def test_filtered_importlib_frames(capsys):
     spec = importlib.util.spec_from_loader(testLoader.name, testLoader)
     mod = importlib.util.module_from_spec(spec)
 
-    with pytest.raises(PrematureEndOfInput) as execinfo:
+    with pytest.raises(hy.PrematureEndOfInput) as execinfo:
         testLoader.exec_module(mod)
 
     hy_exc_handler(execinfo.type, execinfo.value, execinfo.tb)
