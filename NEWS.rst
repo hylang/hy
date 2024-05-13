@@ -25,6 +25,8 @@ Bug Fixes
 ------------------------------
 * Tracebacks now point to the correct code in more cases.
 * `help` should no longer crash when objects are missing docstrings.
+* `hy -i < script.hy` now executes `script.hy` inside the REPL environment,
+  like Python.
 
 0.28.0 (released 2024-01-05)
 =============================

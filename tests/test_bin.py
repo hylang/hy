@@ -80,6 +80,18 @@ def test_stdin():
     assert "TU" in out
 
 
+def test_i_flag_repl_env():
+    # If a program is passed in through standard input, it's evaluated
+    # in the REPL environment.
+    code = '(import sys) (if (hasattr sys "ps1") "Yeppers" "Nopers")'
+    out, _ = run_cmd("hy -i", code)
+    assert "Yeppers" in out
+    # With `-c`, on the other hand, the code is run before the REPL is
+    # launched.
+    out, _ = run_cmd(['hy', '-i', '-c', code])
+    assert "Nopers" in out
+
+
 def test_error_parts_length():
     """Confirm that exception messages print arrows surrounding the affected
     expression."""
