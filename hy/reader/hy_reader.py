@@ -117,6 +117,8 @@ class HyReader(Reader):
     When ``use_current_readers`` is true, initialize this reader
     with all reader macros from the calling module."""
 
+    __module__ = 'hy'
+
     ###
     # Components necessary for Reader implementation
     ###

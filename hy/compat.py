@@ -55,9 +55,16 @@ if True:
         `inspect.getcomments` for an object defined in Hy code, which would try
         to parse the Hy as Python. The implementation is based on Python
         3.12.3's `getdoc`."""
-        result = pydoc._getdoc(object) or (
-            None
-            if inspect.getfile(object).endswith('.hy')
-            else inspect.getcomments(object))
+        result = pydoc._getdoc(object)
+        if not result:
+            can_get_comments = True
+            try:
+                file_path = inspect.getfile(object)
+            except TypeError:
+                None
+            else:
+                can_get_comments = not file_path.endswith('.hy')
+            if can_get_comments:
+                result = inspect.getcomments(object)
         return result and re.sub('^ *\n', '', result.rstrip()) or ''
     pydoc.getdoc = getdoc

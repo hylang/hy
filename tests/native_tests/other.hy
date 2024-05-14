@@ -82,3 +82,11 @@
   (assert (= (pydoc.getdoc pydoc-hy.C2) "")))
     ; `pydoc` shouldn't try to get a comment from Hy code, since it
     ; doesn't know how to parse Hy.
+
+
+(defn test-help-class-attr []
+  "Our tampering with `pydoc` shouldn't cause `help` to raise
+  `TypeError` on classes with non-method attributes."
+  (defclass C []
+    (setv attribute 1))
+  (help C))

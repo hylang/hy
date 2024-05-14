@@ -30,6 +30,7 @@ I = I()
 # to be loaded if they're not needed.
 
 _jit_imports = dict(
+    pyops=["hy.pyops", None],
     read="hy.reader",
     read_many="hy.reader",
     mangle="hy.reader",
@@ -50,18 +51,13 @@ _jit_imports = dict(
 
 
 def __getattr__(k):
-    if k == "pyops":
-        global pyops
-        import hy.pyops
-
-        pyops = hy.pyops
-        return pyops
-
     if k not in _jit_imports:
         raise AttributeError(f"module {__name__!r} has no attribute {k!r}")
+
     v = _jit_imports[k]
     module, original_name = v if isinstance(v, list) else (v, k)
     import importlib
+    module = importlib.import_module(module)
 
-    globals()[k] = getattr(importlib.import_module(module), original_name)
+    globals()[k] = getattr(module, original_name) if original_name else module
     return globals()[k]

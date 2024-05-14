@@ -247,6 +247,8 @@ class REPL(code.InteractiveConsole):
     Note that as with :func:`code.interact`, changes to local variables inside the
     REPL are not propagated back to the original scope."""
 
+    __module__ = 'hy'
+
     def __init__(self, spy=False, spy_delimiter=('-' * 30), output_fn=None, locals=None, filename="<stdin>", allow_incomplete=True):
 
         # Create a proper module for this REPL so that we can obtain it easily
@@ -460,6 +462,3 @@ class REPL(code.InteractiveConsole):
             pyversion=platform.python_version(),
             os=platform.system(),
         )
-
-
-REPL.__module__ = "hy"  # Print as `hy.REPL` instead of `hy.repl.REPL`.

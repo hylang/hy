@@ -25,9 +25,7 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
 
     .. warning::
        Thanks to reader macros, reading can execute arbitrary code. Don't read untrusted
-       input.
-
-    """
+       input."""
 
     if isinstance(stream, str):
         stream = StringIO(stream)

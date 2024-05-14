@@ -4,6 +4,7 @@ from math import isnan
 
 import pytest
 
+from hy import PrematureEndOfInput
 from hy.errors import hy_exc_handler
 from hy.models import (
     Bytes,
@@ -20,7 +21,7 @@ from hy.models import (
     Symbol,
 )
 from hy.reader import read_many
-from hy.reader.exceptions import LexException, PrematureEndOfInput
+from hy.reader.exceptions import LexException
 
 
 def tokenize(*args, **kwargs):
@@ -86,7 +87,7 @@ def test_lex_single_quote_err():
             '  File "<string>", line 1',
             "    '",
             "    ^",
-            "hy.reader.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form",
+            "hy.PrematureEndOfInput: Premature end of input while attempting to parse one form",
         ],
     )
 
@@ -660,7 +661,7 @@ def test_lex_exception_filtering(capsys):
             '  File "<string>", line 2',
             "    (foo",
             "       ^",
-            "hy.reader.exceptions.PrematureEndOfInput: Premature end of input while attempting to parse one form",
+            "hy.PrematureEndOfInput: Premature end of input while attempting to parse one form",
         ],
     )
 
@@ -702,3 +703,9 @@ def test_shebang():
         assert tokenize('#!/usr/bin/env hy\n5')
     assert (tokenize('#!/usr/bin/env hy\n5', skip_shebang = True) ==
         [Integer(5)])
+
+
+def test_reader_class_reprs():
+    "Don't show internal modules in which these classes are defined."
+    assert repr(hy.Reader) == "<class 'hy.Reader'>"
+    assert repr(hy.HyReader) == "<class 'hy.HyReader'>"
