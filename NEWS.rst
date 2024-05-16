@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+0.29.0 (released 2024-05-20)
 =============================
 
 Removals
