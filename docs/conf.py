@@ -22,7 +22,7 @@ version = '.'.join(hy.__version__.split('.')[:-1])
 release = hy.__version__
   # The full version identifier, including alpha, beta, and RC tags
 
-hyrule_version = 'doc-testing'
+hyrule_version = 'v0.6.0'
 
 source_suffix = '.rst'
 master_doc = 'index'
