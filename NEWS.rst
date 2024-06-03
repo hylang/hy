@@ -10,9 +10,9 @@ Removals
 * `(fn/a …)` is now `(fn :async …)`.
 * `(with/a […] …)` is now `(with [:async …] …)`.
 
-   * As with `for`, `:async` must precede each name to be bound
-     asynchronously, because you can mix synchronous and asynchronous
-     types.
+  * As with `for`, `:async` must precede each name to be bound
+    asynchronously, because you can mix synchronous and asynchronous
+    types.
 
 * `(yield-from …)` is now `(yield :from …)`.
 

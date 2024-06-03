@@ -274,10 +274,19 @@ Assignment, mutation, and annotation
 
 .. hy:macro:: (let [bindings #* body])
 
-   ``let`` creates local variables with lexically scoped names. This form takes a
-   list of binding pairs followed by a ``body`` which gets executed. A let-bound
-   name ceases to refer to that local outside the ``let`` form, but arguments in
-   nested functions, and bindings in nested ``let`` forms, can shadow these names. ::
+   ``let`` is a macro for simulating traditional block scoping as seen in other
+   Lisps. Since it coexists with ordinary Python scoping, its consequences can
+   be complex, so it's wise to get a solid understanding of Python scoping
+   before you use it. Beginners to Python should note particularly that
+   :hy:func:`setv` inside a function or class typically creates a local
+   variable, so ``let`` isn't required for local variables or closures as it is
+   in many other Lisps.
+
+   That disclaimer aside, ``let`` creates local variables with lexically scoped
+   names. The macro takes a list of binding pairs followed by a ``body`` which
+   gets executed. A let-bound name ceases to refer to that local outside the
+   ``let`` form, but arguments in nested functions, and bindings in nested
+   ``let`` forms, can shadow these names. ::
 
      (let [x 5  y 6]   ; Create `x` and `y`
        (print x y)     ; => 5 6
