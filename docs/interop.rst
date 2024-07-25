@@ -60,8 +60,16 @@ Generally, the same infrastructure used for Python packages, such as
 ``setup.py`` files and the `Python Package Index (PyPI) <https://pypi.org/>`__,
 is applicable to Hy. Don't write the setup file itself in Hy, since you'll be
 declaring your package's dependence on Hy there, likely in the
-``install_requires`` argument of ``setup``. See :ref:`using-hy-from-python`
-below for some related issues to keep in mind.
+``install_requires`` argument of ``setup``. Similarly, at the top level of the
+package, use ``__init__.py`` rather than ``__init__.hy``, and begin it with
+``import hy`` to set up the import hooks for Hy. You can still import a Hy file
+from there in order to write the real logic in Hy. If you want allow users to import or require from the top level of your module, as in ``from my_module import my_function`` or ``(require my-module [my-macro])``, use an ``__init__.py`` such as
+
+.. code-block:: python
+
+   import hy
+   from my_module.hy_init import *
+   hy.eval(hy.read('(require my-module.hy-init :macros * :readers *)'))
 
 If you want to compile your Hy code into Python bytecode at installation-time
 (in case e.g. the code is being installed to a directory where the bytecode
@@ -92,14 +100,9 @@ Using Hy from Python
 
 To use a Hy module from Python, you can just :py:keyword:`import` it, provided
 that ``hy`` has already been imported first, whether in the current module or
-in some earlier module executed by the current Python process. The ``hy``
-import is necessary to create the hooks that allow importing Hy modules. you
-can have a wrapper Python file (such as a package's ``__init__.py``) do the
-``import hy`` for the user; this is a smart thing to do for a published
-package.
-
-No way to import macros or reader macros into a Python module is implemented,
-since there's no way to call them in Python anyway.
+in some earlier module executed by the current Python process. As mentioned
+previously, you can put ``import hy`` in a package's ``__init__.py`` to make
+this happen automatically.
 
 You can use :ref:`hy2py` to convert a Hy program to Python. The output will
 still import ``hy``, and thus require Hy to be installed in order to run; see
