@@ -1,4 +1,4 @@
-div.body, div.footer, code, div.code-block-caption,
+div.body, div.related, div.footer, code, div.code-block-caption,
 div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6,
 a.toc-backref
    {color: black}
@@ -6,9 +6,16 @@ a.toc-backref
 div.body p, div.body dd, div.body li, div.body blockquote
    {hyphens: manual}
 
-a
+div.related
+   {background: none;
+    text-shadow: none;
+    line-height: normal;
+    padding-bottom: .25em;
+    border-bottom: thin solid black;}
+
+a, div.related a
    {color: navy}
-a:visited
+a:visited, div.related a:visited
    {color: purple}
 
 code
