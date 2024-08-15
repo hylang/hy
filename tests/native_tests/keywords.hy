@@ -6,9 +6,11 @@
 
 (defn test-keyword []
   (assert (= :foo :foo))
+  (assert (not (!= :foo :foo)))
+  (assert (!= :foo :bar))
   (assert (= :foo ':foo))
   (setv x :foo)
-  (assert (is (type x) (type ':foo)))
+  (assert (is (type x) (type ':foo) hy.models.Keyword))
   (assert (= (get {:foo "bar"} :foo) "bar"))
   (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
 
