@@ -29,6 +29,16 @@
   (assert (= (. ': name) "")))
 
 
+(defn test-order []
+  ; https://github.com/hylang/hy/issues/2594
+  (assert (< :a :b))
+  (assert (<= :a :b))
+  (assert (> :b :a))
+  (assert (= (sorted [:b :a :c]) [:a :b :c]))
+  (with [(pytest.raises TypeError)]
+    (< :a "b")))
+
+
 (defn test-pickling-keyword []
   ; https://github.com/hylang/hy/issues/1754
   (setv x :test-keyword)

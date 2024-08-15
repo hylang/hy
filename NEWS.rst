@@ -1,5 +1,12 @@
 .. default-role:: code
 
+Unreleased
+=============================
+
+Bug Fixes
+------------------------------
+* Keyword objects can now be compared to each other with `<` etc.
+
 0.29.0 (released 2024-05-20)
 =============================
 

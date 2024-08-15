@@ -1,6 +1,6 @@
 import operator
 from contextlib import contextmanager
-from functools import reduce
+from functools import reduce, total_ordering
 from itertools import groupby
 from math import isinf, isnan
 
@@ -206,6 +206,7 @@ _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
 _wrappers[type(None)] = lambda _: Symbol("None")
 
 
+@total_ordering
 class Keyword(Object):
     """
     Represents a keyword, such as ``:foo``.
@@ -250,6 +251,13 @@ class Keyword(Object):
         if not isinstance(other, Keyword):
             return NotImplemented
         return self.name != other.name
+
+    def __lt__(self, other):
+        """Keywords behave like strings under comparison operators, but are incomparable
+        to actual ``str`` objects."""
+        if not isinstance(other, Keyword):
+            return NotImplemented
+        return self.name < other.name
 
     def __bool__(self):
         """The empty keyword ``:`` is false. All others are true."""

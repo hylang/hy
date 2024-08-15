@@ -204,7 +204,7 @@ Thus ``(foo : 3)`` must be rewritten to use runtime unpacking, as in ``(foo #**
 {"" 3})``.
 
 .. autoclass:: hy.models.Keyword
-   :members:  __bool__, __call__
+   :members:  __bool__, __lt__, __call__
 
 .. _dotted-identifiers:
 
