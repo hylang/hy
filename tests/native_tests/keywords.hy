@@ -6,9 +6,11 @@
 
 (defn test-keyword []
   (assert (= :foo :foo))
+  (assert (not (!= :foo :foo)))
+  (assert (!= :foo :bar))
   (assert (= :foo ':foo))
   (setv x :foo)
-  (assert (is (type x) (type ':foo)))
+  (assert (is (type x) (type ':foo) hy.models.Keyword))
   (assert (= (get {:foo "bar"} :foo) "bar"))
   (assert (= (get {:bar "quux"} (get {:foo :bar} :foo)) "quux")))
 
@@ -25,6 +27,16 @@
   (assert (isinstance ': hy.models.Keyword))
   (assert (!= : ":"))
   (assert (= (. ': name) "")))
+
+
+(defn test-order []
+  ; https://github.com/hylang/hy/issues/2594
+  (assert (< :a :b))
+  (assert (<= :a :b))
+  (assert (> :b :a))
+  (assert (= (sorted [:b :a :c]) [:a :b :c]))
+  (with [(pytest.raises TypeError)]
+    (< :a "b")))
 
 
 (defn test-pickling-keyword []
