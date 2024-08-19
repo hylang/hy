@@ -239,6 +239,23 @@ There are three scoped varieties of regular macro. First are **core macros**, wh
         '(print "Goodbye, world."))))
     (new-mac)                     ; => "Goodbye, world."
 
-**Local macros** are associated with function, class, or comprehension scopes, like Python local variables. They come about when you call ``defmacro`` or ``require`` in an appropriate scope. You can call :hy:func:`local-macros <hy.core.macros.local-macros>` to view local macros, but adding or deleting elements is ineffective.
+**Local macros** are associated with function, class, or comprehension scopes, like Python local variables. They come about when you call ``defmacro`` or ``require`` in an appropriate scope. You can call :hy:func:`local-macros <hy.core.macros.local-macros>` to view local macros, but adding or deleting elements is ineffective. Beware that local macro definitions apply to the results of expanding other macros in the given context, and hence may not be as local as you expect::
+
+    (defmacro number []
+      1)
+
+    (defmacro uses-number []
+      '(number))
+
+    (defn f []
+      (defmacro number []
+        2)
+      (uses-number))
+
+    (print (uses-number))  ; => 1
+    (print (f))            ; => 2
+    (print (uses-number))  ; => 1
+
+For this reason, shadowing a core macro is risky even with a local macro.
 
 Finally, ``_hy_reader_macros`` is a per-module dictionary like ``_hy_macros`` for reader macros, but here, the keys aren't mangled. There are no local reader macros, and there's no official way to introspect on Hy's handful of core reader macros. So, of the three scoped varieties of regular macro, reader macros most resemble global macros.
