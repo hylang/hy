@@ -528,6 +528,7 @@ def compile_assign(
             ann_result = compiler.compile(ann)
             result = ann_result + result
 
+        target = dict(target = st_name)
         if is_assignment_expr:
             node = asty.NamedExpr
         elif ann is not None:
@@ -539,12 +540,12 @@ def compile_assign(
             )
         else:
             node = asty.Assign
+            target = dict(targets = [st_name])
 
         result += node(
             name if hasattr(name, "start_line") else result,
             value=result.force_expr if not annotate_only else None,
-            target=st_name,
-            targets=[st_name],
+            **target
         )
 
     return result
@@ -1137,7 +1138,7 @@ def compile_with_expression(compiler, expr, root, args, body):
             else compiler._storeize(variable, compiler.compile(variable))
         )
         items.append(
-            asty.withitem(expr, context_expr=ctx.force_expr, optional_vars=variable)
+            ast.withitem(context_expr=ctx.force_expr, optional_vars=variable)
         )
 
     if not cbody:
@@ -1211,7 +1212,6 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
                     name=fname,
                     args=ast.arguments(
                         args=[],
-                        varargs=None,
                         kwarg=None,
                         posonlyargs=[],
                         kwonlyargs=[],
@@ -1356,9 +1356,7 @@ def compile_raise_expression(compiler, expr, root, exc, cause):
         ret += cause
         cause = cause.force_expr
 
-    return ret + asty.Raise(
-        expr, type=ret.expr, exc=exc, inst=None, tback=None, cause=cause
-    )
+    return ret + asty.Raise(expr, exc=exc, cause=cause)
 
 
 @pattern_macro(
@@ -1780,8 +1778,6 @@ def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
         decorator_list=decorators,
         name=name,
         keywords=keywords,
-        starargs=None,
-        kwargs=None,
         bases=bases_expr,
         body=bodyr.stmts or [asty.Pass(expr)],
         **digest_type_params(compiler, tp)
@@ -1980,16 +1976,19 @@ def compile_import(compiler, expr, root, entries):
                     asname = None if v == k else mangle(v)))
         ret += node(
             expr,
-            module=module_name if module_name and module_name.strip(".") else None,
-            names=names,
-            level=(
-                len(module[0])
-                if isinstance(module, Expression) and module[1][0] == Symbol("None")
-                else len(module)
-                if isinstance(module, Symbol) and not module.strip(".")
-                else 0
-            ),
-        )
+            names = names,
+            **({} if node is asty.Import else dict(
+                module = module_name
+                    if module_name and module_name.strip(".")
+                    else None,
+                level =
+                    len(module[0])
+                    if isinstance(module, Expression)
+                        and module[1][0] == Symbol("None")
+                    else len(module)
+                    if isinstance(module, Symbol)
+                        and not module.strip(".")
+                    else 0)))
 
     return ret
 
