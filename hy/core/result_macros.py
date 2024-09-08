@@ -1965,23 +1965,19 @@ def compile_import(compiler, expr, root, entries):
         elif assignments == "EXPORTS":
             compiler.scope.define(prefix)
             node = asty.Import
-            names = [
-                asty.alias(
-                    module,
-                    name=module_name,
-                    asname=prefix if prefix != module_name else None,
-                )
-            ]
+            names = [asty.alias(
+                module,
+                name = module_name,
+                asname = prefix if prefix != module_name else None)]
         else:
             node = asty.ImportFrom
             names = []
             for k, v in assignments:
                 compiler.scope.define(mangle(v))
-                names.append(
-                    asty.alias(
-                        module, name=mangle(k), asname=None if v == k else mangle(v)
-                    )
-                )
+                names.append(asty.alias(
+                    module,
+                    name = mangle(k),
+                    asname = None if v == k else mangle(v)))
         ret += node(
             expr,
             module=module_name if module_name and module_name.strip(".") else None,
