@@ -149,7 +149,7 @@
 
   (setv expected ["  File \"<string>\", line 1"
                   "    (defmacro blah [x] `(print ~@z)) (blah y)"
-                  "                                     ^------^"
+   (hy.compat.reu "                                     ^------^")
                   "expanding macro blah"
                   "  NameError: global name 'z' is not defined"])
 

@@ -422,7 +422,9 @@ def test_tracebacks():
     #   NameError: name 'a' is not defined
     output, error = run_cmd('hy -c "(print a)"', expect=1)
     # Filter out the underline added by Python 3.11.
-    error_lines = [x for x in error.splitlines() if set(x) != {" ", "^"}]
+    error_lines = [x
+        for x in error.splitlines()
+        if not (set(x) <= {" ", "^", "~"})]
     assert error_lines[3] == '  File "<string>", line 1, in <module>'
     # PyPy will add "global" to this error message, so we work around that.
     assert error_lines[-1].strip().replace(" global", "") == (

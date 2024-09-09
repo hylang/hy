@@ -83,7 +83,7 @@
   (setv err (rt "(defmacro mabcdefghi [x] x)\n(mabcdefghi)" 'err))
   (setv msg-idx (.rindex err "    (mabcdefghi)"))
   (setv [_ e1 e2 e3 #* _] (.splitlines (cut err msg_idx None)))
-  (assert (.startswith e1 "    ^----------^"))
+  (assert (.startswith e1 (hy.compat.reu "    ^----------^")))
   (assert (.startswith e2 "expanding macro mabcdefghi"))
   (assert (or
     ; PyPy can use a function's `__name__` instead of

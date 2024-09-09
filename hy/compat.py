@@ -70,3 +70,8 @@ if True:
                 result = inspect.getcomments(object)
         return result and re.sub('^ *\n', '', result.rstrip()) or ''
     pydoc.getdoc = getdoc
+
+
+def reu(x):
+    '(R)eplace an (e)rror (u)nderline. This is only used for testing Hy.'
+    return x.replace('-', '^') if PY3_13 else x
