@@ -343,7 +343,7 @@ class REPL(code.InteractiveConsole):
 
         self.locals[mangle("*e")] = sys.last_value
 
-    def showsyntaxerror(self, filename=None):
+    def showsyntaxerror(self, filename=None, source=None):
         if filename is None:
             filename = self.filename
         self.print_last_value = False
