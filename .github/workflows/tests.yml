@@ -12,7 +12,7 @@ jobs:
       matrix:
         name-prefix: ['']
         os: [ubuntu-latest]
-        python: [3.8, 3.9, '3.10', 3.11, 3.12, pypy-3.10, pyodide]
+        python: [3.8, 3.9, '3.10', 3.11, 3.12, 3.13-dev, pypy-3.10, pyodide]
         include:
           # To keep the overall number of runs low, we test Windows and MacOS
           # only on the latest CPython.

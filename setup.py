@@ -44,7 +44,7 @@ setup(
     version='0.0.0',
     setup_requires=["wheel"] + requires,
     install_requires=requires,
-    python_requires=">= 3.8, < 3.13",
+    python_requires=">= 3.8, < 3.14",
     entry_points={
         "console_scripts": [
             "hy = hy.cmdline:hy_main",
