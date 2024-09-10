@@ -6,7 +6,7 @@ import importlib.util
 from contextlib import contextmanager
 
 from hy import _initialize_env_var
-from hy.compat import PYPY
+from hy.compat import PYPY, PY3_13
 
 _hy_show_internal_errors = _initialize_env_var("HY_SHOW_INTERNAL_ERRORS", False)
 
@@ -113,7 +113,7 @@ class HyLanguageError(HyError):
         )
 
         arrow_idx, _ = next(
-            ((i, x) for i, x in enumerate(output) if x.strip() == "^"), (None, None)
+            ((i, x) for i, x in enumerate(output) if set(x.strip()) == {"^"}), (None, None)
         )
         if arrow_idx:
             msg_idx = arrow_idx + 1
@@ -125,8 +125,10 @@ class HyLanguageError(HyError):
         # Get rid of erroneous error-type label.
         output[msg_idx] = re.sub("^SyntaxError: ", "", output[msg_idx])
 
-        # Extend the text arrow, when given enough source info.
-        if arrow_idx and self.arrow_offset:
+        # Extend the text arrow, when given enough source info. We
+        # don't do this on newer Pythons because they make their own
+        # underlines.
+        if arrow_idx and self.arrow_offset and not PY3_13:
             output[arrow_idx] = "{}{}^\n".format(
                 output[arrow_idx].rstrip("\n"), "-" * (self.arrow_offset - 1)
             )
