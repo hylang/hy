@@ -121,6 +121,12 @@ A better approach is to use :hy:func:`hy.gensym` to choose your variable name::
 
 Hyrule provides some macros that make using gensyms more convenient, like :hy:func:`defmacro! <hyrule.defmacro!>` and :hy:func:`with-gensyms <hyrule.with-gensyms>`.
 
+On the other hand, you can write a macro that advertises a specific name (or set of names) as part of its interface. For example, Hyrule's `anaphoric macro <https://en.wikipedia.org/wiki/Anaphoric_macro>`_ :hy:func:`ap-if <hyrule.ap-if>` assigns the result of a test form to ``it``, and allows the caller to include forms that refer to ``it``::
+
+   (import os)
+   (ap-if (.get os.environ "PYTHONPATH")
+      (print "Your PYTHONPATH is" it))
+
 Macro subroutines
 ~~~~~~~~~~~~~~~~~
 
@@ -154,7 +160,7 @@ By the way, despite the need for ``eval-and-compile``, extracting a lot of compl
 The important take-home big fat WARNING
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Ultimately it's wisest to use only four kinds of names in macro expansions: gensyms, core macros, objects that Python puts in scope by default (like its built-in functions), and ``hy`` and its attributes. It's possible to rebind nearly all these names, so surprise shadowing is still theoretically possible. Unfortunately, the only way to prevent these pathological rebindings from coming about is… don't do that. Don't make a new macro named ``setv`` or name a function argument ``type`` unless you're ready for every macro you call to break, the same way you wouldn't monkey-patch a built-in Python module without thinking carefully. This kind of thing is the responsibility of the macro caller; the macro writer can't do much to defend against it. There is at least a pragma :ref:`warn-on-core-shadow <warn-on-core-shadow>`, enabled by default, that causes ``defmacro`` and ``require`` to warn you if you give your new macro the same name as a core macro.
+A typical macro should use only four kinds of names in its expansion: gensyms, core macros, objects that Python puts in scope by default (like its built-in functions), and ``hy`` and its attributes. It's possible to rebind nearly all these names, so surprise shadowing is still theoretically possible. Unfortunately, the only way to prevent these pathological rebindings from coming about is… don't do that. Don't make a new macro named ``setv`` or name a function argument ``type`` unless you're ready for every macro you call to break, the same way you wouldn't monkey-patch a built-in Python module without thinking carefully. This kind of thing is the responsibility of the macro caller; the macro writer can't do much to defend against it. There is at least a pragma :ref:`warn-on-core-shadow <warn-on-core-shadow>`, enabled by default, that causes ``defmacro`` and ``require`` to warn you if you give your new macro the same name as a core macro.
 
 .. _reader-macros:
 
