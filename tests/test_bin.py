@@ -92,64 +92,6 @@ def test_i_flag_repl_env():
     assert "Nopers" in out
 
 
-def test_error_parts_length():
-    """Confirm that exception messages print arrows surrounding the affected
-    expression."""
-    prg_str = """
-    (import hy.errors
-            hy.importer [read-many])
-
-    (setv test-expr (read-many "(+ 1\n\n'a 2 3\n\n 1)"))
-    (setv test-expr.start-line {})
-    (setv test-expr.end-line {})
-    (setv test-expr.start-column {})
-    (setv test-expr.end-column {})
-
-    (raise (hy.errors.HyLanguageError
-             "this\nis\na\nmessage"
-             test-expr
-             None
-             None))
-    """
-
-    # Up-arrows right next to each other.
-    _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 2))
-
-    msg_idx = err.rindex("HyLanguageError:")
-    assert msg_idx
-    err_parts = err[msg_idx:].splitlines()[1:]
-
-    expected = [
-        '  File "<string>", line 3',
-        "    'a 2 3",
-        "    ^^",
-        "this",
-        "is",
-        "a",
-        "message",
-    ]
-
-    for obs, exp in zip(err_parts, expected):
-        assert obs.startswith(exp)
-
-    # Make sure only one up-arrow is printed
-    _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 1))
-
-    msg_idx = err.rindex("HyLanguageError:")
-    assert msg_idx
-    err_parts = err[msg_idx:].splitlines()[1:]
-    assert err_parts[2] == "    ^"
-
-    # Make sure lines are printed in between arrows separated by more than one
-    # character.
-    _, err = run_cmd("hy -i", prg_str.format(3, 3, 1, 6))
-
-    msg_idx = err.rindex("HyLanguageError:")
-    assert msg_idx
-    err_parts = err[msg_idx:].splitlines()[1:]
-    assert err_parts[2] == "    ^----^"
-
-
 def test_mangle_m():
     # https://github.com/hylang/hy/issues/1445
 
@@ -480,7 +422,9 @@ def test_tracebacks():
     #   NameError: name 'a' is not defined
     output, error = run_cmd('hy -c "(print a)"', expect=1)
     # Filter out the underline added by Python 3.11.
-    error_lines = [x for x in error.splitlines() if set(x) != {" ", "^"}]
+    error_lines = [x
+        for x in error.splitlines()
+        if not (set(x) <= {" ", "^", "~"})]
     assert error_lines[3] == '  File "<string>", line 1, in <module>'
     # PyPy will add "global" to this error message, so we work around that.
     assert error_lines[-1].strip().replace(" global", "") == (

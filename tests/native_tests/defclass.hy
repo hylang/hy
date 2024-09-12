@@ -115,30 +115,18 @@
 
 
 (defn test-pep-3115 []
-  (defclass member-table [dict]
-    (defn __init__ [self]
-      (setv self.member-names []))
+  "Test setting a metaclass with `:metaclass`, and using `__prepare__`."
 
+  (defclass MyDict [dict]
     (defn __setitem__ [self key value]
-      (when (not-in key self)
-          (.append self.member-names key))
-      (dict.__setitem__ self key value)))
+      (dict.__setitem__ self (+ "prefixed_" key) value)))
+  (defclass MyMetaclass [type]
+    (defn [classmethod] __prepare__ [metacls name bases]
+      (MyDict)))
+  (defclass MyClass [:metaclass MyMetaclass]
+    (defn [classmethod] method [self] 1))
 
-  (defclass OrderedClass [type]
-    (setv __prepare__ (classmethod (fn [metacls name bases]
-      (member-table))))
-
-    (defn __new__ [cls name bases classdict]
-      (setv result (type.__new__ cls name bases (dict classdict)))
-      (setv result.member-names classdict.member-names)
-      result))
-
-  (defclass MyClass [:metaclass OrderedClass]
-    (defn method1 [self] (pass))
-    (defn method2 [self] (pass)))
-
-  (assert (= (. (MyClass) member-names)
-             ["__module__" "__qualname__" "method1" "method2"])))
+  (assert (= (MyClass.prefixed-method) 1)))
 
 
 (defn test-pep-487 []

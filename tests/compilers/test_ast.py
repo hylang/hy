@@ -316,8 +316,6 @@ def test_ast_expression_basics():
             ),
             args=[ast.Name(id="bar", ctx=ast.Load())],
             keywords=[],
-            starargs=None,
-            kwargs=None,
         )
     )
 

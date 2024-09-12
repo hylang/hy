@@ -3,6 +3,10 @@
 Unreleased
 =============================
 
+New Features
+------------------------------
+* Python 3.13 is now supported.
+
 Bug Fixes
 ------------------------------
 * Fixed a crash on Python 3.12.6.

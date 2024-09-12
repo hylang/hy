@@ -698,7 +698,10 @@ class HyASTCompiler:
     def compile_list(self, expression):
         elts, ret, _ = self._compile_collect(expression)
         node = {List: asty.List, Set: asty.Set}[type(expression)]
-        return ret + node(expression, elts=elts, ctx=ast.Load())
+        return ret + node(
+            expression,
+            elts = elts,
+            **({} if node is asty.Set else dict(ctx = ast.Load())))
 
     @builds_model(Dict)
     def compile_dict(self, m):
@@ -911,7 +914,9 @@ def hy_compile(
             body.append(ast.fix_missing_locations(ast.Import([ast.alias("hy", None)])))
 
     body += result.stmts
-    ret = root(body=body, type_ignores=[])
+    ret = root(
+        body = body,
+        **({} if root is ast.Interactive else dict(type_ignores = [])))
 
     if get_expr:
         expr = ast.Expression(body=expr)

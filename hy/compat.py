@@ -7,6 +7,7 @@ PY3_10 = sys.version_info >= (3, 10)
 PY3_11 = sys.version_info >= (3, 11)
 PY3_12 = sys.version_info >= (3, 12)
 PY3_12_6 = sys.version_info >= (3, 12, 6)
+PY3_13 = sys.version_info >= (3, 13)
 PYPY = platform.python_implementation() == "PyPy"
 PYODIDE = platform.system() == "Emscripten"
 
@@ -69,3 +70,8 @@ if True:
                 result = inspect.getcomments(object)
         return result and re.sub('^ *\n', '', result.rstrip()) or ''
     pydoc.getdoc = getdoc
+
+
+def reu(x):
+    '(R)eplace an (e)rror (u)nderline. This is only used for testing Hy.'
+    return x.replace('-', '^') if PY3_13 else x

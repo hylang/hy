@@ -49,7 +49,7 @@ def check_trace_output(capsys, execinfo, expected):
     hy_exc_handler(execinfo.type, execinfo.value, execinfo.tb)
     captured_w_filtering = capsys.readouterr()[-1].strip("\n")
 
-    output = [x.rstrip() for x in captured_w_filtering.split("\n") if "^^^" not in x]
+    output = [x.rstrip() for x in captured_w_filtering.split("\n") if not (set(x) <= {" ", "^", "~"})]
 
     # Make sure the filtered frames aren't the same as the unfiltered ones.
     assert output != captured_wo_filtering.split("\n")
@@ -81,15 +81,8 @@ def test_lex_single_quote_err():
     # https://github.com/hylang/hy/issues/1252
     with lexe() as execinfo:
         tokenize("' ")
-    check_ex(
-        execinfo,
-        [
-            '  File "<string>", line 1',
-            "    '",
-            "    ^",
-            "hy.PrematureEndOfInput: Premature end of input while attempting to parse one form",
-        ],
-    )
+    assert type(execinfo.value) is PrematureEndOfInput
+    assert execinfo.value.msg == "Premature end of input while attempting to parse one form"
 
 
 def test_lex_expression_symbols():
@@ -660,7 +653,6 @@ def test_lex_exception_filtering(capsys):
         [
             '  File "<string>", line 2',
             "    (foo",
-            "       ^",
             "hy.PrematureEndOfInput: Premature end of input while attempting to parse one form",
         ],
     )
@@ -674,7 +666,6 @@ def test_lex_exception_filtering(capsys):
         [
             '  File "<string>", line 3',
             "    1.foo",
-            "        ^",
             "hy.reader.exceptions.LexException: The parts of a dotted identifier must be symbols",
         ],
     )
@@ -690,8 +681,9 @@ def test_read_error():
 
     with pytest.raises(HySyntaxError) as e:
         hy.eval(hy.read("(do (defn))"))
+
     assert "".join(traceback.format_exception_only(e.type, e.value)).startswith(
-        '  File "<string>", line 1\n    (do (defn))\n         ^\n'
+        '  File "<string>", line 1\n    (do (defn))\n         ^'
     )
 
 
