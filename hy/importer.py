@@ -99,7 +99,7 @@ def _get_code_from_file(run_name, fname=None, hy_src_check=lambda x: x.endswith(
                 source = f.read().decode("utf-8")
             code = compile(source, fname, "exec")
 
-    return (code, fname)
+    return code if hy.compat.PY3_12_6 else (code, fname)
 
 
 importlib.machinery.SOURCE_SUFFIXES.insert(0, ".hy")
