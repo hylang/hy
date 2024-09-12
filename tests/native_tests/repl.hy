@@ -184,3 +184,9 @@
   (assert (has
     (rt "#!/usr/bin/env hy\n" 'err)
     "hy.reader.exceptions.LexException")))
+
+(defn test-pass [rt]
+  ; https://github.com/hylang/hy/issues/2601
+  (assert (has
+    (rt "pass\n" 'err)
+    "NameError")))
