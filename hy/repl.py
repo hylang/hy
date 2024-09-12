@@ -78,31 +78,10 @@ def extend_linecache(add_cmdline_cache):
 
 
 _codeop_maybe_compile = codeop._maybe_compile
-
-
-def _hy_maybe_compile(compiler, source, filename, symbol):
-    """The `codeop` version of this will compile the same source multiple
-    times, and, since we have macros and things like `eval-and-compile`, we
-    can't allow that.
-    """
-    if not isinstance(compiler, HyCompile):
-        return _codeop_maybe_compile(compiler, source, filename, symbol)
-
-    for line in source.split("\n"):
-        line = line.strip()
-        if line and line[0] != ";":
-            # Leave it alone (could do more with Hy syntax)
-            break
-    else:
-        if symbol != "eval":
-            # Replace it with a 'pass' statement (i.e. tell the compiler to do
-            # nothing)
-            source = "pass"
-
-    return compiler(source, filename, symbol)
-
-
-codeop._maybe_compile = _hy_maybe_compile
+codeop._maybe_compile = (lambda compiler, source, filename, symbol:
+    compiler(source, filename, symbol)
+    if isinstance(compiler, HyCompile) else
+    _codeop_maybe_compile(compiler, source, filename, symbol))
 
 
 class HyCompile(codeop.Compile):
@@ -148,10 +127,6 @@ class HyCompile(codeop.Compile):
         self.locals["_hy_last_traceback"] = sys.last_traceback
 
     def __call__(self, source, filename="<input>", symbol="single"):
-
-        if source == "pass":
-            # We need to return a no-op to signal that no more input is needed.
-            return (compile(source, filename, symbol),) * 2
 
         hash_digest = hashlib.sha1(source.encode("utf-8").strip()).hexdigest()
         name = "{}-{}".format(filename.strip("<>"), hash_digest)
