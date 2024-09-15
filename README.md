@@ -15,9 +15,6 @@ To install the latest release of Hy, just use the command `pip3 install
 --user hy`. Then you can start an interactive read-eval-print loop (REPL) with
 the command `hy`, or run a Hy program with `hy myprogram.hy`.
 
-Hy is tested on all released and currently maintained versions of CPython (on
-Linux, Windows, and Mac OS), and on recent versions of PyPy and Pyodide.
-
 * [The Hy homepage](http://hylang.org)
 * [Try Hy with a web console](http://hylang.org/try-hy)
 
