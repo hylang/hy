@@ -1,11 +1,11 @@
 .. default-role:: code
 
-Unreleased
-=============================
+1.0.0 ("Afternoon Review", released 2024-09-22)
+======================================================================
 
-New Features
-------------------------------
-* Python 3.13 is now supported.
+Supports Python 3.8 – Python 3.13
+
+See also the announcement post for this release (to be linked).
 
 Bug Fixes
 ------------------------------
