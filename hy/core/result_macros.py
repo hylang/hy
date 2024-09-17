@@ -1116,11 +1116,12 @@ def compile_with_expression(compiler, expr, root, args, body):
         expr, targets=[name], value=asty.Constant(expr, value=None)
     )
 
+    [args] = args
     ret = Result(stmts=[initial_assign])
     items = []
     was_async = None
     cbody = None
-    for i, (is_async, variable, ctx) in enumerate(args[0]):
+    for i, (is_async, variable, ctx) in enumerate(args):
         is_async = bool(is_async)
         if was_async is None:
             was_async = is_async
@@ -1128,10 +1129,26 @@ def compile_with_expression(compiler, expr, root, args, body):
             # We're compiling a `with` that mixes synchronous and
             # asynchronous context managers. Python doesn't support
             # this directly, so start a new `with` inside the body.
-            cbody = compile_with_expression(compiler, expr, root, [args[0][i:]], body)
+            cbody = compile_with_expression(compiler, expr, root, [args[i:]], body)
             break
-        ctx = compiler.compile(ctx)
-        ret += ctx
+        if not isinstance(ctx, Result):
+            # In a non-recursive call, `ctx` has not yet been compiled,
+            # and thus is not yet a `Result`.
+            ctx = compiler.compile(ctx)
+            if i == 0:
+                ret += ctx
+            elif ctx.stmts:
+                # We need to include some statements as part of this
+                # context manager, but this `with` already has at
+                # least one prior context manager. So, put our
+                # statements in the body and then start a new `with`.
+                cbody = ctx + compile_with_expression(
+                    compiler,
+                    expr,
+                    root,
+                    [((is_async, variable, ctx), *args[i + 1:])],
+                    body)
+                break
         variable = (
             None
             if variable == Symbol("_")

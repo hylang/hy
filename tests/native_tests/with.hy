@@ -1,5 +1,6 @@
 (import
   asyncio
+  unittest.mock [Mock]
   pytest
   tests.resources [async-test AsyncWithTest async-exits])
 
@@ -106,3 +107,17 @@
   (setv w (with [(SuppressZDE)] (.append l w) (/ 1 0) 5))
   (assert (is w None))
   (assert (= l [7])))
+
+(defn test-statements []
+
+  (setv m (Mock))
+  (with [t (do (m) (WithTest 2))]
+    (setv out t))
+  (assert (= m.call-count 1))
+  (assert (= out 2))
+
+  ; https://github.com/hylang/hy/issues/2605
+  (with [t1 (WithTest 1)  t2 (do (setv foo t1) (WithTest 2))]
+    (setv out [t1 t2]))
+  (assert (= out [1 2]))
+  (assert (= foo 1)))

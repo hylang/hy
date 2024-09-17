@@ -11,6 +11,8 @@ Bug Fixes
 ------------------------------
 * Fixed a crash on Python 3.12.6.
 * Keyword objects can now be compared to each other with `<` etc.
+* The order of evaluation in multi-item `with`\s now matches that of
+  nested one-item `with`\s.
 * Fixed a bug in which the REPL misinterpreted the symbol `pass`.
 
 0.29.0 (released 2024-05-20)
