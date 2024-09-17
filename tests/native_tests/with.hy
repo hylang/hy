@@ -15,8 +15,7 @@
 (setv exits [])
 (defclass WithTest [object]
   (defn __init__ [self val]
-    (setv self.val val)
-    None)
+    (setv self.val val))
 
   (defn __enter__ [self]
     self.val)
