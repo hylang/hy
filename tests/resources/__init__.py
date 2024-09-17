@@ -19,6 +19,7 @@ async_test = pytest.mark.skipif(
 )
 
 
+async_exits = []
 class AsyncWithTest:
     def __init__(self, val):
         self.val = val
@@ -27,7 +28,7 @@ class AsyncWithTest:
         return self.val
 
     async def __aexit__(self, exc_type, exc, traceback):
-        self.val = None
+        async_exits.append(self.val)
 
 
 async def async_loop(items):
