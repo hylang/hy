@@ -64,7 +64,7 @@ setup(
     url="http://hylang.org/",
     platforms=["any"],
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: DFSG approved",
         "License :: OSI Approved :: MIT License",  # Really "Expat". Ugh.
@@ -72,12 +72,6 @@ setup(
         "Programming Language :: Hy",
         "Programming Language :: Lisp",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Environment :: WebAssembly :: Emscripten",
         "Topic :: Software Development :: Code Generators",

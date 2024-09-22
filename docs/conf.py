@@ -16,13 +16,15 @@ for c in (SD.RemovedInSphinx60Warning, SD.RemovedInSphinx70Warning):
 
 project = 'Hy'
 copyright = '%s the authors' % time.strftime('%Y')
-html_title = f'Hy {hy.__version__} manual'
 version = '.'.join(hy.__version__.split('.')[:-1])
   # The short dotted version identifier
-release = hy.__version__
+release = hy.__version__ + ('' if hy.nickname is None else f' ({hy.nickname})')
   # The full version identifier, including alpha, beta, and RC tags
+html_title = f'Hy {release} manual'
+  # Ultimately this will only appear on the page itself. The actual HTML title
+  # will be simplified in post-processing.
 
-hyrule_version = 'v0.6.0'
+hyrule_version = 'v0.7.0'
 
 source_suffix = '.rst'
 master_doc = 'index'

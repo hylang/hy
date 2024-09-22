@@ -48,8 +48,6 @@ jobs:
       shell: bash
       run: |
         if [[ ${{ matrix.python }} = pyodide ]] ; then
-            pip install 'pydantic < 2'
-              # https://github.com/pyodide/pyodide/pull/3971
             npm install pyodide
             pip install pyodide-build
             pyodide venv .venv-pyodide

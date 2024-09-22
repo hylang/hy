@@ -1,4 +1,5 @@
 __version__ = 'unreleased'
+nickname = None
 
 
 def _initialize_env_var(env_var, default_val):
