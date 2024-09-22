@@ -1,5 +1,5 @@
-__version__ = '1.0.0'
-nickname = 'Afternoon Review'
+__version__ = 'unreleased'
+nickname = None
 
 
 def _initialize_env_var(env_var, default_val):
