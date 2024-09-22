@@ -5,7 +5,8 @@
 
 Supports Python 3.8 – Python 3.13
 
-See also the announcement post for this release (to be linked).
+See also `the announcement post for this release
+<https://github.com/hylang/hy/discussions/2608>`_.
 
 Bug Fixes
 ------------------------------
