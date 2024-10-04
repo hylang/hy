@@ -23,7 +23,7 @@ jobs:
             os: macos-latest
             python: 3.12
 
-    name: ${{ format('{0}{1}', matrix.name-prefix, matrix.python) }}
+    name: ${{ matrix.name-prefix }}${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     env:
       TERM: xterm-256color
@@ -34,15 +34,14 @@ jobs:
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v4
-    - if: ${{ matrix.python != 'pyodide' }}
+    - if: matrix.python != 'pyodide'
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python }}
-    - if: ${{ matrix.python == 'pyodide' }}
+          python-version: ${{ matrix.python }}
+    - if: matrix.python == 'pyodide'
       uses: actions/setup-python@v5
-      with:
-        python-version: 3
-    - if: ${{ matrix.python == 'pyodide' }}
+      with: {python-version: 3}
+    - if: matrix.python == 'pyodide'
       uses: actions/setup-node@v4
     - name: Install
       shell: bash
