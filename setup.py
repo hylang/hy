@@ -6,7 +6,6 @@
 # out without executing the file.
 requires = [
     "funcparserlib ~= 1.0",
-    'astor>=0.8 ; python_version < "3.9"',
 ]
 
 import os
@@ -44,7 +43,7 @@ setup(
     version='0.0.0',
     setup_requires=["wheel"] + requires,
     install_requires=requires,
-    python_requires=">= 3.8, < 3.14",
+    python_requires=">= 3.9, < 3.14",
     entry_points={
         "console_scripts": [
             "hy = hy.cmdline:hy_main",

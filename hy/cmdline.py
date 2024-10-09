@@ -13,7 +13,6 @@ from contextlib import nullcontext
 from pathlib import Path
 
 import hy
-from hy.compat import PY3_9
 from hy.compiler import hy_compile, hy_eval
 from hy.errors import HyLanguageError, filtered_hy_exceptions, hy_exc_handler
 from hy.importer import runhy
@@ -270,11 +269,10 @@ def cmdline_handler(argv):
         set_path(filename)
         # Ensure __file__ is set correctly in the code we're about
         # to run.
-        if PY3_9:
-            if not filename.is_absolute():
-                filename = Path.cwd() / filename
-            if platform.system() == "Windows":
-                filename = os.path.normpath(filename)
+        if not filename.is_absolute():
+            filename = Path.cwd() / filename
+        if platform.system() == "Windows":
+            filename = os.path.normpath(filename)
         if repl:
             source = Path(filename).read_text()
             repl.compile.compiler.skip_next_shebang = True
@@ -404,7 +402,7 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
             print()
 
         if options.with_ast:
-            print(ast.dump(_ast, **(dict(indent=2) if PY3_9 else {})), file=output_file)
+            print(ast.dump(_ast, indent = 2), file=output_file)
             print()
             print()
 
