@@ -2,7 +2,6 @@ import ast
 import platform
 import sys
 
-PY3_9 = sys.version_info >= (3, 9)
 PY3_10 = sys.version_info >= (3, 10)
 PY3_11 = sys.version_info >= (3, 11)
 PY3_12 = sys.version_info >= (3, 12)
@@ -10,13 +9,6 @@ PY3_12_6 = sys.version_info >= (3, 12, 6)
 PY3_13 = sys.version_info >= (3, 13)
 PYPY = platform.python_implementation() == "PyPy"
 PYODIDE = platform.system() == "Emscripten"
-
-
-if not PY3_9:
-    # Shim `ast.unparse`.
-    import astor.code_gen
-
-    ast.unparse = astor.code_gen.to_source
 
 
 if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
@@ -50,8 +42,6 @@ if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
 if True:
     import pydoc, inspect, re
     true_getdoc = pydoc.getdoc
-    if not PY3_9:
-        pydoc._getdoc = inspect.getdoc
     def getdoc(object):
         """A monkey-patched `pydoc.getdoc` that tries to avoid calling
         `inspect.getcomments` for an object defined in Hy code, which would try

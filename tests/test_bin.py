@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hy.compat import PY3_9, PYODIDE
+from hy.compat import PYODIDE
 
 if PYODIDE:
     pytest.skip(
@@ -507,8 +507,7 @@ def test_uufileuu(tmp_path, monkeypatch):
     (tmp_path / "realdir" / "hyex.hy").write_text('(print __file__)')
     (tmp_path / "realdir" / "pyex.py").write_text('print(__file__)')
 
-    def file_is(arg, expected_py3_9):
-        expected = expected_py3_9 if PY3_9 else Path(arg)
+    def file_is(arg, expected):
         output, _ = run_cmd(["python3", arg + "pyex.py"])
         assert output.rstrip() == str(expected / "pyex.py")
         output, _ = run_cmd(["hy", arg + "hyex.hy"])
