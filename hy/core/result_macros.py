@@ -565,17 +565,16 @@ def compile_global_or_nonlocal(compiler, expr, root, syms):
         return asty.Pass(expr)
 
     names = [mangle(s) for s in syms]
-    if root == "global":
-        ret = asty.Global(expr, names=names)
-    else:
-        ret = OuterVar(expr, compiler.scope, names)
+    ret = (asty.Global(expr, names = names)
+        if root == "global" else
+        OuterVar(expr, compiler.scope, names))
 
     try:
         compiler.scope.define_nonlocal(ret, root)
     except SyntaxError as e:
         raise compiler._syntax_error(expr, e.msg)
 
-    return ret if syms else Result()
+    return ret
 
 
 @pattern_macro("del", [many(FORM)])
