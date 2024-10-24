@@ -5,6 +5,10 @@ Unreleased
 
 Supports Python 3.9 – Python 3.x
 
+New Features
+------------------------------
+* New pragma `hy`.
+
 1.0.0 ("Afternoon Review", released 2024-09-22)
 ======================================================================
 
