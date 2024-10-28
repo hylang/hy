@@ -169,9 +169,17 @@ Fundamentals
   The effect of each pragma is locally scoped to its containing function,
   class, or comprehension form (other than ``for``), if there is one.
 
-  Only one pragma is currently implemented:
+  These pragmata are currently implemented:
 
-.. _warn-on-core-shadow:
+  - ``:hy``: Set this to a string giving a Hy version number or prefix thereof,
+    such as "1.1.0" or "1", to raise a compile-time error if the currently
+    executing version of Hy isn't at least this new. If you're writing a
+    package, you should still declare the required version of Hy in ``setup.py``
+    or ``pyproject.toml`` or whatever, because ``pip`` won't look for ``(pragma
+    :hy …)`` calls. In the future, this pragma may also switch on features of Hy
+    that were introduced in or before the given version.
+
+    .. _warn-on-core-shadow:
 
   - ``:warn-on-core-shadow``: If true (the default), :hy:func:`defmacro` and
     :hy:func:`require` will raise a warning at compile-time if you define a macro

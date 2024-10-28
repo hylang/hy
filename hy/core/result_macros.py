@@ -11,10 +11,11 @@ these, or to one of the model builders in hy.compiler."""
 import ast
 import textwrap
 from contextlib import nullcontext
-from itertools import dropwhile
+from itertools import dropwhile, zip_longest
 
 from funcparserlib.parser import finished, forward_decl, many, maybe, oneplus, some
 
+from hy import last_version
 from hy.compat import PY3_11, PY3_12
 from hy.compiler import Result, asty, mkexpr
 from hy.errors import HyEvalError, HyInternalError, HyTypeError
@@ -165,11 +166,31 @@ def compile_inline_python(compiler, expr, root, code):
 @pattern_macro("pragma", [many(KEYWORD + FORM)])
 def compile_pragma(compiler, expr, root, kwargs):
     for kw, value in kwargs:
-        if kw == Keyword("warn-on-core-shadow"):
+
+        if kw == Keyword("hy"):
+            min_version = compiler.eval(value)
+            if not isinstance(min_version, str):
+                raise compiler._syntax_error(value, "The version given to the pragma `:hy` must be a string")
+            parts = min_version.split('.')
+            if not all(p.isdigit() for p in parts):
+                raise compiler._syntax_error(value, "The string given to the pragma `:hy` must be a dot-separated sequence of integers")
+            for have, need in zip_longest(
+                    map(int, last_version.split('.')),
+                    map(int, parts)):
+                if need is None:
+                    break
+                if have is None or have < need:
+                    raise compiler._syntax_error(kw, f"Hy version {min_version} or later required")
+                if have > need:
+                    break
+
+        elif kw == Keyword("warn-on-core-shadow"):
             compiler.local_state_stack[-1]['warn_on_core_shadow'] = (
                 bool(compiler.eval(value)))
+
         else:
             raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
+
     return Result()
 
 
@@ -565,17 +586,16 @@ def compile_global_or_nonlocal(compiler, expr, root, syms):
         return asty.Pass(expr)
 
     names = [mangle(s) for s in syms]
-    if root == "global":
-        ret = asty.Global(expr, names=names)
-    else:
-        ret = OuterVar(expr, compiler.scope, names)
+    ret = (asty.Global(expr, names = names)
+        if root == "global" else
+        OuterVar(expr, compiler.scope, names))
 
     try:
         compiler.scope.define_nonlocal(ret, root)
     except SyntaxError as e:
         raise compiler._syntax_error(expr, e.msg)
 
-    return ret if syms else Result()
+    return ret
 
 
 @pattern_macro("del", [many(FORM)])

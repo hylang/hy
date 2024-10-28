@@ -6,7 +6,27 @@
   importlib
   pydoc
   pytest
-  hy.errors [HyLanguageError])
+  hy.errors [HyLanguageError HySyntaxError])
+
+
+(defn test-pragma-hy []
+
+  (pragma :hy "1")
+  (pragma :hy "1.0")
+  (pragma :hy "1.0.0")
+  (pragma :hy "0.28.0")
+
+  (eval-when-compile (setv a-version "1.0"))
+  (pragma :hy a-version)
+
+  (defn bad [v msg]
+    (with [e (pytest.raises HySyntaxError)]
+      (hy.eval `(pragma :hy ~v)))
+    (assert (in msg e.value.msg)))
+  (bad "5" "version 5 or later required")
+  (bad "1.99.1" "version 1.99.1 or later required")
+  (bad 5 "must be a string")
+  (bad "Afternoon Review" "must be a dot-separated sequence of integers"))
 
 
 (defn test-illegal-assignments []
