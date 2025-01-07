@@ -35,6 +35,14 @@
   (assert (= (.__str__ :foo) ":foo")))
 
 
+(defn test-dot-empty-string []
+  ; https://github.com/hylang/hy/issues/2625
+  (assert (=
+    ((. "" join) ["aa" "bb" "cc"])
+    (.join "" ["aa" "bb" "cc"])
+    "aabbcc")))
+
+
 (defn test-dot-macro []
   (defclass mycls [object])
 
