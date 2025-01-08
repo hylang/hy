@@ -244,19 +244,22 @@ Define classes with :hy:func:`defclass`::
       (defn get-x [self]
         self.x))
 
-Here we create a new instance ``fb`` of ``FooBar`` and access its attributes by
-various means::
+Here we create a new instance ``fb`` of ``FooBar`` and access its attributes
+with a :ref:`dotted identifier <dotted-identifiers>` or :ref:`the dot macro
+<dot>`::
 
     (setv fb (FooBar 15))
-    (print fb.x)         ; => 15
-    (print (. fb x))     ; => 15
-    (print (.get-x fb))  ; => 15
-    (print (fb.get-x))   ; => 15
+    (print fb.x)          ; => 15
+    (print (. fb x))      ; => 15
+    (print (. fb (get-x)) ; => 15
+    (print (.get-x fb))   ; => 15
+    (print (fb.get-x))    ; => 15
 
 Note that syntax like ``fb.x`` and ``fb.get-x`` only works when the object
 being invoked (``fb``, in this case) is a simple variable name. To get an
-attribute or call a method of an arbitrary form ``FORM``, you must use the
-syntax ``(. FORM x)`` or ``(.get-x FORM)``, or call :py:func:`getattr`.
+attribute or call a method of an arbitrary form ``FORM``, you must use one of
+the other options, such as ``(. FORM x)`` or ``(.get-x FORM)``, or call
+:py:func:`getattr`.
 
 Access an external module, whether written in Python or Hy, with
 :hy:func:`import`::
