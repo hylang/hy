@@ -357,7 +357,11 @@ def macroexpand(tree, module, compiler=None, once=False, result_ok=True):
     while isinstance(tree, Expression) and tree:
 
         fn = tree[0]
-        if isinstance(fn, Expression) and fn and fn[0] == Symbol("."):
+        if (
+                isinstance(fn, Expression) and
+                fn and
+                fn[0] == Symbol(".") and
+                all(isinstance(x, Symbol) for x in fn)):
             fn = ".".join(map(mangle, fn[1:]))
         elif isinstance(fn, Symbol):
             fn = mangle(fn)

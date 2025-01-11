@@ -9,6 +9,10 @@ New Features
 ------------------------------
 * New pragma `hy`.
 
+Bug Fixes
+------------------------------
+* Fixed a crash from using an empty string in a `(. …)` expression.
+
 1.0.0 ("Afternoon Review", released 2024-09-22)
 ======================================================================
 
