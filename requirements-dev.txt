@@ -3,4 +3,6 @@ pytest >= 7
 # documentation
 Pygments >= 2.18.0
 Sphinx == 5.0.2
+standard-imghdr
+  # This is needed for old Sphinges on new Pythons.
 git+https://github.com/hylang/sphinxcontrib-hydomain.git
