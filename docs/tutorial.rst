@@ -229,6 +229,11 @@ Set a function parameter by name with a ``:keyword``::
 
     (test 1 2 :d "y")             ; => [1, 2, None, 'y', ()]
 
+Keyword arguments may be placed before or among positional arguments, with the
+same effect as putting all the positional arguments first::
+
+    (test 1 :d "y" 2)             ; => [1, 2, None, 'y', ()]
+
 Note that unlike Python, Hy doesn't always evaluate function arguments (or the
 items in a literal list, or the items in a literal dictionary, etc.) :ref:`in
 the order they appear in the code <order-of-eval>`. But you can always force a

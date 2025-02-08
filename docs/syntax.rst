@@ -190,6 +190,12 @@ at compile-time. To prevent a literal keyword from being treated specially in
 an expression, you can :hy:func:`quote` the keyword, or you can use it as the
 value for another keyword argument, as in ``(f :foo :bar)``.
 
+Whereas Python requires all positional arguments in a call to precede all
+keyword arguments, Hy allows them to mingled, as in ``(f 1 :foo 2 3)``. This is
+implemented by simply moving the keyword arguments back, as in ``(f 1 3 :foo
+2)``, with the attendant consequences for order of evaluation (:ref:`which
+shouldn't generally be relied upon in Hy <order-of-eval>`).
+
 Otherwise, keywords are simple model objects that evaluate to themselves. Users
 of other Lisps should note that it's often a better idea to use a string than a
 keyword, because the rest of Python uses strings for cases in which other Lisps
