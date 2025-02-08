@@ -234,6 +234,12 @@ same effect as putting all the positional arguments first::
 
     (test 1 :d "y" 2)             ; => [1, 2, None, 'y', ()]
 
+You can unpack iterable objects into positional arguments with ``#*`` (:hy:func:`unpack-iterable`), or dictionary-like objects into keyword arguments with ``#**`` (:hy:func:`unpack-mapping`)::
+
+    (setv x [1 2 3])
+    (setv y {"d" 4})
+    (test #* x #** y)             ; => [1, 2, 3, 4, ()]
+
 Note that unlike Python, Hy doesn't always evaluate function arguments (or the
 items in a literal list, or the items in a literal dictionary, etc.) :ref:`in
 the order they appear in the code <order-of-eval>`. But you can always force a
