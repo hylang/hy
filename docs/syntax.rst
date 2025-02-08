@@ -454,8 +454,12 @@ example, ``{"a" 1 "b" 2}`` produces a dictionary mapping ``"a"`` to ``1`` and
 ``"b"`` to ``2``. Trying to compile a :class:`Dict <hy.models.Dict>` with an
 odd number of child models is an error.
 
-As in Python, calling :class:`dict` with keyword arguments is often more
-convenient than using a literal dictionary.
+As in Python, calling :class:`dict` with keyword arguments may be more
+convenient than using a literal dictionary when all the keys are
+strings. Compare the following alternatives::
+
+    (dict :a 1 :b 2 :c 3 :d 4 :e 5)
+    {"a" 1  "b" 2  "c" 3  "d" 4  "e" 5}
 
 .. autoclass:: hy.models.Dict
 

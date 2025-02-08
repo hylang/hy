@@ -793,7 +793,7 @@ Context managers and pattern-matching
    Python's ``with e1 as _: …``), ``with`` will leave it anonymous (as Python's
    ``with e1: …``).
 
-   Finally, any variable-manager pair may be preceded with the keyword
+   Finally, any variable-manager pair may be preceded by the keyword
    ``:async`` to use an asynchronous context manager::
 
      (with [:async v1 e1] …)
@@ -991,8 +991,8 @@ Functions
    Type parameters require Python 3.12, and have the semantics specified by
    :pep:`695`. The keyword ``:tp`` introduces the list of type parameters. Each
    item of the list is a symbol, an annotated symbol (such as ``#^ int T``), or
-   an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, unpacking
-   and annotation can't be used with the same parameter.
+   an unpacked symbol (such as ``#* T`` or ``#** T``). As in Python, a single
+   parameter can't be both annotated and unpacked.
 
 .. hy:macro:: (fn [args])
 
