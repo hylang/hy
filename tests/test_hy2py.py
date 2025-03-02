@@ -123,10 +123,6 @@ def assert_stuff(m, can_test_async):
     assert m.while_block == "xxxxe"
     assert m.cont_and_break == "xyzxyzxxyzxy"
     assert m.for_block == "fufifo"
-    assert m.caught_assertion is True
-    assert m.ran_finally is True
-    assert m.myraise == "payload"
-    assert m.ran_try_else is True
 
     assert type(m.fun) is type(lambda x: x)
     assert m.fun.__doc__ == "function docstring"
@@ -138,6 +134,13 @@ def assert_stuff(m, can_test_async):
     assert m.myyield == ["a", "b", "c"]
     assert m.mydecorated.newattr == "hello"
     assert m.myglobal == 103
+
+    assert m.mytry(ZeroDivisionError) == "zero-div"
+    assert m.mytry(ValueError) == ["vt", ValueError, ("payload",)]
+    assert m.mytry(TypeError) == ["vt", TypeError, ("payload",)]
+    assert m.mytry(OSError) == "other"
+    assert m.mytry(None) == "else"
+    assert len(m.finally_values) == 5
 
     class C:
         pass

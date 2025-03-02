@@ -102,25 +102,6 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (for [x ["fo" "fi" "fu"]]
   (setv for-block (+ x for-block)))
 
-(try
-  (assert (= 1 0))
-  (except [_ AssertionError]
-    (setv caught-assertion True))
-  (finally
-    (setv ran-finally True)))
-
-(try
-  (raise (ValueError "payload"))
-  (except [e ValueError]
-    (setv myraise (str e))))
-
-(try
-  1
-  (except [e ValueError]
-    (raise))
-  (else
-    (setv ran-try-else True)))
-
 (defn fun [a b [c 9] [from 10] #* args #** kwargs]
   "function docstring"
   [a b c from args (sorted (.items kwargs))])
@@ -146,6 +127,22 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (global myglobal)
   (+= myglobal 1))
 (set-global)
+
+(setv finally-values [])
+(defn mytry [error-type]
+  (try
+    (when error-type
+      (raise (error-type "payload")))
+    (except [ZeroDivisionError]
+      "zero-div")
+    (except [e [ValueError TypeError]]
+      ["vt" (type e) e.args])
+    (except []
+      "other")
+    (else
+      "else")
+    (finally
+      (.append finally-values 1))))
 
 (defclass C1 [])   ; Force the creation of a `pass` statement.
 
