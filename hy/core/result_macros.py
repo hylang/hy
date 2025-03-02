@@ -1449,20 +1449,24 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
             )
 
         name = None
-        if len(exceptions) == 2:
-            name = mangle(compiler._nonconst(exceptions[0]))
-
-        exceptions_list = exceptions[-1] if exceptions else List()
-        if isinstance(exceptions_list, List):
-            if len(exceptions_list):
-                # [FooBar BarFoo] → catch Foobar and BarFoo exceptions
-                elts, types, _ = compiler._compile_collect(exceptions_list)
-                types += asty.Tuple(exceptions_list, elts=elts, ctx=ast.Load())
-            else:
-                # [] → all exceptions caught
-                types = Result()
+        if len(exceptions) == 0:
+            exceptions = "ALL"
+        elif len(exceptions) == 1:
+            [exceptions] = exceptions
         else:
-            types = compiler.compile(exceptions_list)
+            [name, exceptions] = exceptions
+            name = mangle(compiler._nonconst(name))
+
+        if exceptions == "ALL":
+            # Catch all exceptions.
+            types = Result()
+        elif isinstance(exceptions, List):
+            # [FooBar BarFoo] → Catch Foobar and BarFoo exceptions.
+            elts, types, _ = compiler._compile_collect(exceptions)
+            types += asty.Tuple(exceptions, elts=elts, ctx=ast.Load())
+        else:
+            # A single exception type.
+            types = compiler.compile(exceptions)
 
         # Create a "fake" scope for the exception variable.
         # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement

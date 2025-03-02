@@ -70,6 +70,10 @@
         (setv out ["ccc" (type e)]))
       (except [e [KeyError AttributeError]]
         (setv out ["ddd" (type e)]))
+      (except [[]]
+        (assert False))
+      (except [e []]
+        (assert False))
       (except []
         (setv out ["eee" None]))
       (else

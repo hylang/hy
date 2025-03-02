@@ -12,6 +12,9 @@ New Features
 Bug Fixes
 ------------------------------
 * Fixed a crash from using an empty string in a `(. …)` expression.
+* `(except [[]] …)` now catches no exceptions, rather than being treated like
+  `(except [] …)`, which catches all exceptions.
+* `(except [e []] …)` is now translated to Python correctly by `hy2py`.
 
 1.0.0 ("Afternoon Review", released 2024-09-22)
 ======================================================================

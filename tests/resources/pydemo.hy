@@ -137,6 +137,10 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
       "zero-div")
     (except [e [ValueError TypeError]]
       ["vt" (type e) e.args])
+    (except [[]]
+      "never")
+    (except [e []]
+      "never2")
     (except []
       "other")
     (else
