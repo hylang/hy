@@ -78,6 +78,14 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
     (+= if-block "c")
     (+= if-block "d")))
 
+(if (setx mysetx "mx")
+  (do
+    (+= mysetx "a")
+    (+= mysetx "b"))
+  (do
+    (+= mysetx "c")
+    (+= mysetx "d")))
+
 (setv counter 4)
 (setv while-block "")
 (while counter

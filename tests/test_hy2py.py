@@ -120,6 +120,7 @@ def assert_stuff(m, can_test_async):
     assert m.timedelta is datetime.timedelta
 
     assert m.if_block == "cd"
+    assert m.mysetx == "mxab"
     assert m.while_block == "xxxxe"
     assert m.cont_and_break == "xyzxyzxxyzxy"
     assert m.for_block == "fufifo"
