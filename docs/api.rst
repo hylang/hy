@@ -912,6 +912,8 @@ Exception-handling
      ``except ETYPE as VAR:``
    - ``[VAR [ETYPE1 ETYPE2 …]]`` to catch any of the named types and bind it to
      ``VAR``, like Python's ``except ETYPE1, ETYPE2, … as VAR:``
+   - ``[[]]`` or ``[VAR []]`` to catch no exceptions, like Python's
+     ``except ():``.
 
    The return value of ``try`` is the last form evaluated among the main body,
    ``except`` forms, ``except*`` forms, and ``else``.
