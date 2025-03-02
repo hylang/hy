@@ -152,7 +152,8 @@ def assert_stuff(m, can_test_async):
     assert issubclass(m.C2, m.C1)
     assert (m.C2.attr1, m.C2.attr2) == (5, 6)
 
-    assert m.closed1 == ["v2", "v1"]
+    assert m.closed1 == [None, "v2", "v1", "a2", "v3", "a1"]
+    assert not hasattr(m, "_")
 
     assert len(m.closed) == 5
     for a, b in itertools.combinations(m.closed, 2):

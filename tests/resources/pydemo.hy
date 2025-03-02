@@ -167,10 +167,19 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (import contextlib [closing])
 (setv closed [])
 (defclass Closeable []
-  (defn close [self] (.append closed self.x)))
+  (defn __init__ [self [x None]]
+    (setv self.x x))
+  (defn close [self]
+    (.append closed self.x)))
+(with [(closing (Closeable))])
 (with [c1 (closing (Closeable)) c2 (closing (Closeable))]
   (setv c1.x "v1")
   (setv c2.x "v2"))
+(with [
+    _ (closing (Closeable "a1"))
+    c3 (closing (Closeable))
+    _ (closing (Closeable "a2"))]
+  (setv c3.x "v3"))
 (setv closed1 (.copy closed))
 
 (pys "
