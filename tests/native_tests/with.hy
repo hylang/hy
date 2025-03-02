@@ -2,7 +2,8 @@
   asyncio
   unittest.mock [Mock]
   pytest
-  tests.resources [async-test AsyncWithTest async-exits])
+  tests.resources [async-test]
+  tests.resources.pydemo [AsyncWithTest async-exits])
 
 (defn test-context []
   (with [fd (open "tests/resources/text.txt" "r")] (assert fd))
@@ -39,7 +40,7 @@
   (assert (= exits [4 3 2 1])))
 
 (defn [async-test] test-single-with-async []
-  (setv (cut async-exits) [])
+  (.clear async-exits)
   (setv out [])
   (asyncio.run
     ((fn :async []
@@ -49,7 +50,7 @@
   (assert (= async-exits [1])))
 
 (defn [async-test] test-quince-with-async []
-  (setv (cut async-exits) [])
+  (.clear async-exits)
   (setv out [])
   (asyncio.run
     ((fn :async []

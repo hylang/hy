@@ -157,7 +157,9 @@ def assert_stuff(m, can_test_async):
     assert m.py_accum == "01234"
 
     if can_test_async:
+        m.async_exits.clear()
         assert asyncio.run(m.coro()) == list("abcdef")
+        assert m.async_exits == ["b"]
 
     assert m.cheese == [1, 1]
     assert m.mac_results == ["x", "x"]

@@ -174,8 +174,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv py-accum (py "''.join(map(str, pys_accum))"))
 
 (defn :async coro []
-  (import asyncio
-          tests.resources [AsyncWithTest async-loop])
+  (import asyncio)
   (await (asyncio.sleep 0))
   (setv values ["a"])
   (with [:async t (AsyncWithTest "b")]
@@ -186,6 +185,19 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
     :async item (async-loop ["e" "f"])
     item))
   values)
+(defclass AsyncWithTest []
+  (defn __init__ [self val]
+    (setv self.val val))
+  (defn :async __aenter__ [self]
+    self.val)
+  (defn :async __aexit__ [self exc-type exc traceback]
+    (.append async-exits self.val)))
+(setv async-exits [])
+(defn :async async-loop [items]
+  (import asyncio)
+  (for [x items]
+    (yield x)
+    (await (asyncio.sleep 0))))
 
 (defmacro macaroni [expr]
   `[~expr ~expr])
