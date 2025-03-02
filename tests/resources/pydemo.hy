@@ -1,7 +1,7 @@
 ;; This Hy module is intended to concisely demonstrate all of
 ;; Python's major syntactic features for the purpose of testing hy2py.
 ;; It also tries out macros and reader macros to ensure they work with
-;; hy2py.
+;; hy2py. It's used as part of Hy's test suite as well as py2hy's.
 "This is a module docstring."
 
 (setv mystring (* "foo" 3))

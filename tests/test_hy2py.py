@@ -1,3 +1,5 @@
+# This file is also used by py2hy.
+
 import asyncio
 import itertools
 import math
