@@ -53,6 +53,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv mylambda (fn [x] (+ x "z")))
 (setv annotated-lambda-ret (fn #^ int [] 1))
 (setv annotated-lambda-params (fn [#^ int a * #^ str [b "hello world!"]] #(a b)))
+(setv #^ list annotated-assignment [3])
+#^ tuple bare-annotation
 
 (setv fstring1 f"hello {(+ 1 1)} world")
 (setv p "xyzzy")

@@ -103,7 +103,13 @@ def assert_stuff(m, can_test_async):
     assert type(m.mylambda) is type(lambda x: x + "z")
     assert m.mylambda("a") == "az"
     assert m.annotated_lambda_ret() == 1
+    assert m.annotated_lambda_ret.__annotations__ == {"return": int}
     assert m.annotated_lambda_params(1) == (1, "hello world!")
+    assert m.annotated_lambda_params.__annotations__ == {"a": int, "b": str}
+    assert m.annotated_assignment == [3]
+    assert m.__annotations__ == {
+       "annotated_assignment": list,
+       "bare_annotation": tuple}
 
     assert m.fstring1 == "hello 2 world"
     assert m.fstring2 == "a'xyzzy'  "
