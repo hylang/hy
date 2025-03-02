@@ -129,6 +129,14 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (+= myglobal 1))
 (set-global)
 
+(defn nonlocal-outer []
+  (setv mynonlocal 400)
+  (defn f []
+    (nonlocal mynonlocal)
+    (+= mynonlocal 1))
+  (f)
+  mynonlocal)
+
 (setv finally-values [])
 (defn mytry [error-type]
   (try

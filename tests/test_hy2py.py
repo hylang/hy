@@ -134,6 +134,7 @@ def assert_stuff(m, can_test_async):
     assert m.myyield == list("abcxyz")
     assert m.mydecorated.newattr == "hello"
     assert m.myglobal == 103
+    assert m.nonlocal_outer() == 401
 
     assert m.mytry(ZeroDivisionError) == "zero-div"
     assert m.mytry(ValueError) == ["vt", ValueError, ("payload",)]
