@@ -117,7 +117,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 
 (defn generator []
   (for [x "abc"]
-    (yield x)))
+    (yield x))
+  (yield :from "xyz"))
 (setv myyield (list (generator)))
 
 (defn [(fn [f] (setv f.newattr "hello") f)] mydecorated [])

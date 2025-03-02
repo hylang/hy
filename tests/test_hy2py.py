@@ -131,7 +131,7 @@ def assert_stuff(m, can_test_async):
     assert m.funcall3 == ["x", "y", 9, "spain", (), []]
 
     assert m.myret == 1
-    assert m.myyield == ["a", "b", "c"]
+    assert m.myyield == list("abcxyz")
     assert m.mydecorated.newattr == "hello"
     assert m.myglobal == 103
 
