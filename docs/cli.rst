@@ -53,7 +53,7 @@ hy2py
     .. warning::
        ``hy2py`` can execute arbitrary code (via macros, :hy:func:`eval-when-compile`, etc.). Don't give it untrusted input.
 
-
+Hy has no built-in capacity to translate Python to Hy, but see `py2hy <https://github.com/hylang/py2hy>`__.
 
 .. _hyc:
 

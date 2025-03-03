@@ -48,8 +48,9 @@ This code returns ``176``. Why? You can see the infix equivalent with the
 command ``echo "(- (* (+ 1 3 88) 2) 8)" | hy2py``, which returns the Python
 code corresponding to the given Hy code. Or you can pass the ``--spy`` option to
 Hy when starting the interactive read-eval-print loop (REPL), which shows the
-Python equivalent of each input line before the result. The infix equivalent in
-this case is:
+Python equivalent of each input line before the result. (To translate in the
+other direction, from Python to Hy, try the external program `py2hy
+<https://github.com/hylang/py2hy>`__.) The infix equivalent in this case is:
 
 .. code-block:: python
 

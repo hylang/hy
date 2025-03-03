@@ -93,6 +93,8 @@ You can embed Python code directly into a Hy program with the macros
 tools like :func:`eval` or :func:`exec` to execute or manipulate Python code in
 strings.
 
+To translate Python code to Hy, see `py2hy <https://github.com/hylang/py2hy>`__.
+
 .. _using-hy-from-python:
 
 Using Hy from Python
