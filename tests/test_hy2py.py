@@ -1,3 +1,5 @@
+# This file is also used by py2hy.
+
 import asyncio
 import itertools
 import math
@@ -7,13 +9,12 @@ import pytest
 import hy.importer
 from hy import mangle
 from hy.compat import PYODIDE
-from tests.resources import can_test_async
 
 
 def test_direct_import():
     import tests.resources.pydemo
-
-    assert_stuff(tests.resources.pydemo)
+    from tests.resources import can_test_async
+    assert_stuff(tests.resources.pydemo, can_test_async)
 
 
 @pytest.mark.skipif(PYODIDE, reason="subprocess.check_call not implemented on Pyodide")
@@ -21,6 +22,7 @@ def test_hy2py_import():
     import contextlib
     import os
     import subprocess
+    from tests.resources import can_test_async
 
     path = "tests/resources/pydemo_as_py.py"
     env = dict(os.environ)
@@ -36,10 +38,10 @@ def test_hy2py_import():
     finally:
         with contextlib.suppress(FileNotFoundError):
             os.remove(path)
-    assert_stuff(m)
+    assert_stuff(m, can_test_async)
 
 
-def assert_stuff(m):
+def assert_stuff(m, can_test_async):
 
     # This makes sure that automatically imported builtins go after docstrings.
     assert m.__doc__ == "This is a module docstring."
@@ -121,10 +123,6 @@ def assert_stuff(m):
     assert m.while_block == "xxxxe"
     assert m.cont_and_break == "xyzxyzxxyzxy"
     assert m.for_block == "fufifo"
-    assert m.caught_assertion is True
-    assert m.ran_finally is True
-    assert m.myraise == "payload"
-    assert m.ran_try_else is True
 
     assert type(m.fun) is type(lambda x: x)
     assert m.fun.__doc__ == "function docstring"
@@ -136,6 +134,13 @@ def assert_stuff(m):
     assert m.myyield == ["a", "b", "c"]
     assert m.mydecorated.newattr == "hello"
     assert m.myglobal == 103
+
+    assert m.mytry(ZeroDivisionError) == "zero-div"
+    assert m.mytry(ValueError) == ["vt", ValueError, ("payload",)]
+    assert m.mytry(TypeError) == ["vt", TypeError, ("payload",)]
+    assert m.mytry(OSError) == "other"
+    assert m.mytry(None) == "else"
+    assert len(m.finally_values) == 5
 
     class C:
         pass
@@ -155,7 +160,9 @@ def assert_stuff(m):
     assert m.py_accum == "01234"
 
     if can_test_async:
+        m.async_exits.clear()
         assert asyncio.run(m.coro()) == list("abcdef")
+        assert m.async_exits == ["b"]
 
     assert m.cheese == [1, 1]
     assert m.mac_results == ["x", "x"]
