@@ -1,7 +1,10 @@
 (import
   pickle
-  pytest
-  tests.resources [kwtest])
+  pytest)
+
+
+(defn kwtest [#** kwargs]
+  kwargs)
 
 
 (defn test-keyword []
