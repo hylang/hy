@@ -53,6 +53,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (setv mylambda (fn [x] (+ x "z")))
 (setv annotated-lambda-ret (fn #^ int [] 1))
 (setv annotated-lambda-params (fn [#^ int a * #^ str [b "hello world!"]] #(a b)))
+(setv #^ list annotated-assignment [3])
+#^ tuple bare-annotation
 
 (setv fstring1 f"hello {(+ 1 1)} world")
 (setv p "xyzzy")
@@ -77,6 +79,14 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (do
     (+= if-block "c")
     (+= if-block "d")))
+
+(if (setx mysetx "mx")
+  (do
+    (+= mysetx "a")
+    (+= mysetx "b"))
+  (do
+    (+= mysetx "c")
+    (+= mysetx "d")))
 
 (setv counter 4)
 (setv while-block "")
@@ -117,7 +127,8 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 
 (defn generator []
   (for [x "abc"]
-    (yield x)))
+    (yield x))
+  (yield :from "xyz"))
 (setv myyield (list (generator)))
 
 (defn [(fn [f] (setv f.newattr "hello") f)] mydecorated [])
@@ -127,6 +138,14 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
   (global myglobal)
   (+= myglobal 1))
 (set-global)
+
+(defn nonlocal-outer []
+  (setv mynonlocal 400)
+  (defn f []
+    (nonlocal mynonlocal)
+    (+= mynonlocal 1))
+  (f)
+  mynonlocal)
 
 (setv finally-values [])
 (defn mytry [error-type]
@@ -158,10 +177,19 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (import contextlib [closing])
 (setv closed [])
 (defclass Closeable []
-  (defn close [self] (.append closed self.x)))
+  (defn __init__ [self [x None]]
+    (setv self.x x))
+  (defn close [self]
+    (.append closed self.x)))
+(with [(closing (Closeable))])
 (with [c1 (closing (Closeable)) c2 (closing (Closeable))]
   (setv c1.x "v1")
   (setv c2.x "v2"))
+(with [
+    _ (closing (Closeable "a1"))
+    c3 (closing (Closeable))
+    _ (closing (Closeable "a2"))]
+  (setv c3.x "v3"))
 (setv closed1 (.copy closed))
 
 (pys "

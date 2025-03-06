@@ -103,7 +103,13 @@ def assert_stuff(m, can_test_async):
     assert type(m.mylambda) is type(lambda x: x + "z")
     assert m.mylambda("a") == "az"
     assert m.annotated_lambda_ret() == 1
+    assert m.annotated_lambda_ret.__annotations__ == {"return": int}
     assert m.annotated_lambda_params(1) == (1, "hello world!")
+    assert m.annotated_lambda_params.__annotations__ == {"a": int, "b": str}
+    assert m.annotated_assignment == [3]
+    assert m.__annotations__ == {
+       "annotated_assignment": list,
+       "bare_annotation": tuple}
 
     assert m.fstring1 == "hello 2 world"
     assert m.fstring2 == "a'xyzzy'  "
@@ -120,6 +126,7 @@ def assert_stuff(m, can_test_async):
     assert m.timedelta is datetime.timedelta
 
     assert m.if_block == "cd"
+    assert m.mysetx == "mxab"
     assert m.while_block == "xxxxe"
     assert m.cont_and_break == "xyzxyzxxyzxy"
     assert m.for_block == "fufifo"
@@ -131,9 +138,10 @@ def assert_stuff(m, can_test_async):
     assert m.funcall3 == ["x", "y", 9, "spain", (), []]
 
     assert m.myret == 1
-    assert m.myyield == ["a", "b", "c"]
+    assert m.myyield == list("abcxyz")
     assert m.mydecorated.newattr == "hello"
     assert m.myglobal == 103
+    assert m.nonlocal_outer() == 401
 
     assert m.mytry(ZeroDivisionError) == "zero-div"
     assert m.mytry(ValueError) == ["vt", ValueError, ("payload",)]
@@ -151,7 +159,8 @@ def assert_stuff(m, can_test_async):
     assert issubclass(m.C2, m.C1)
     assert (m.C2.attr1, m.C2.attr2) == (5, 6)
 
-    assert m.closed1 == ["v2", "v1"]
+    assert m.closed1 == [None, "v2", "v1", "a2", "v3", "a1"]
+    assert not hasattr(m, "_")
 
     assert len(m.closed) == 5
     for a, b in itertools.combinations(m.closed, 2):
