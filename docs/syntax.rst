@@ -131,13 +131,14 @@ Identifiers
 
 Identifiers are a broad class of syntax in Hy, comprising not only variable
 names, but any nonempty sequence of characters that aren't ASCII whitespace nor
-one of the following: ``()[]{};"'`~``. The reader will attempt to read an
-identifier as each of the following types, in the given order:
+one of the following: ``()[]{};"'`~``. Identifiers also aren't recognized if
+they parse as something else, like a :ref:`keyword <keywords>`. The reader will
+attempt to read an identifier as each of the following types, in the given
+order:
 
 1. a :ref:`numeric literal <numeric-literals>`
-2. a :ref:`keyword <keywords>`
-3. a :ref:`dotted identifier <dotted-identifiers>`
-4. a :ref:`symbol <symbols>`
+2. a :ref:`dotted identifier <dotted-identifiers>`
+3. a :ref:`symbol <symbols>`
 
 .. _numeric-literals:
 
@@ -172,45 +173,6 @@ few extensions:
 .. autoclass:: hy.models.Integer
 .. autoclass:: hy.models.Float
 .. autoclass:: hy.models.Complex
-
-.. _keywords:
-
-Keywords
-~~~~~~~~
-
-An identifier starting with a colon (``:``), such as ``:foo``, is a
-:class:`Keyword <hy.models.Keyword>`.
-
-Literal keywords are most often used for their special treatment in
-:ref:`expressions <expressions>` that aren't macro calls: they set
-:std:term:`keyword arguments <keyword argument>`, rather than being passed in
-as values. For example, ``(f :foo 3)`` calls the function ``f`` with the
-parameter ``foo`` set to ``3``. The keyword is also :ref:`mangled <mangling>`
-at compile-time. To prevent a literal keyword from being treated specially in
-an expression, you can :hy:func:`quote` the keyword, or you can use it as the
-value for another keyword argument, as in ``(f :foo :bar)``.
-
-Whereas Python requires all positional arguments in a call to precede all
-keyword arguments, Hy allows them to mingled, as in ``(f 1 :foo 2 3)``. This is
-implemented by simply moving the keyword arguments back, as in ``(f 1 3 :foo
-2)``, with the attendant consequences for order of evaluation (:ref:`which
-shouldn't generally be relied upon in Hy <order-of-eval>`).
-
-Otherwise, keywords are simple model objects that evaluate to themselves. Users
-of other Lisps should note that it's often a better idea to use a string than a
-keyword, because the rest of Python uses strings for cases in which other Lisps
-would use keywords. In particular, strings are typically more appropriate than
-keywords as the keys of a dictionary. Notice that ``(dict :a 1 :b 2)`` is
-equivalent to ``{"a" 1 "b" 2}``, which is different from ``{:a 1 :b 2}`` (see
-:ref:`dict-literals`).
-
-The empty keyword ``:`` is syntactically legal, but you can't compile a
-function call with an empty keyword argument because of Python limitations.
-Thus ``(foo : 3)`` must be rewritten to use runtime unpacking, as in ``(foo #**
-{"" 3})``.
-
-.. autoclass:: hy.models.Keyword
-   :members:  __bool__, __lt__, __call__
 
 .. _dotted-identifiers:
 
@@ -316,6 +278,46 @@ aware of is that mangling, as well as the inverse "unmangling" operation
 offered by :hy:func:`hy.unmangle`, isn't one-to-one. Two different symbols,
 like ``foo-bar`` and ``foo_bar``, can mangle to the same string and hence
 compile to the same Python variable.
+
+.. _keywords:
+
+Keywords
+--------
+
+A string of identifier characters starting with a colon (``:``) and not
+containing a dot (``.``), such as ``:foo``, is a :class:`Keyword
+<hy.models.Keyword>`.
+
+Literal keywords are most often used for their special treatment in
+:ref:`expressions <expressions>` that aren't macro calls: they set
+:std:term:`keyword arguments <keyword argument>`, rather than being passed in
+as values. For example, ``(f :foo 3)`` calls the function ``f`` with the
+parameter ``foo`` set to ``3``. The keyword is also :ref:`mangled <mangling>`
+at compile-time. To prevent a literal keyword from being treated specially in
+an expression, you can :hy:func:`quote` the keyword, or you can use it as the
+value for another keyword argument, as in ``(f :foo :bar)``.
+
+Whereas Python requires all positional arguments in a call to precede all
+keyword arguments, Hy allows them to mingled, as in ``(f 1 :foo 2 3)``. This is
+implemented by simply moving the keyword arguments back, as in ``(f 1 3 :foo
+2)``, with the attendant consequences for order of evaluation (:ref:`which
+shouldn't generally be relied upon in Hy <order-of-eval>`).
+
+Otherwise, keywords are simple model objects that evaluate to themselves. Users
+of other Lisps should note that it's often a better idea to use a string than a
+keyword, because the rest of Python uses strings for cases in which other Lisps
+would use keywords. In particular, strings are typically more appropriate than
+keywords as the keys of a dictionary. Notice that ``(dict :a 1 :b 2)`` is
+equivalent to ``{"a" 1 "b" 2}``, which is different from ``{:a 1 :b 2}`` (see
+:ref:`dict-literals`).
+
+The empty keyword ``:`` is syntactically legal, but you can't compile a
+function call with an empty keyword argument because of Python limitations.
+Thus ``(foo : 3)`` must be rewritten to use runtime unpacking, as in ``(foo #**
+{"" 3})``.
+
+.. autoclass:: hy.models.Keyword
+   :members:  __bool__, __lt__, __call__
 
 .. _string-literals:
 

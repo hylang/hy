@@ -18,7 +18,7 @@ def test_basics():
     "Make sure the basics of the importer work"
 
     resources_mod = importlib.import_module("tests.resources")
-    assert hasattr(resources_mod, "kwtest")
+    assert hasattr(resources_mod, "can_test_async")
 
     bin_mod = importlib.import_module("tests.resources.bin")
     assert hasattr(bin_mod, "_null_fn_for_import_test")

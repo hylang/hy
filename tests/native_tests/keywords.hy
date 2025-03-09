@@ -1,7 +1,10 @@
 (import
   pickle
-  pytest
-  tests.resources [kwtest])
+  pytest)
+
+
+(defn kwtest [#** kwargs]
+  kwargs)
 
 
 (defn test-keyword []
@@ -98,14 +101,12 @@
   (assert (= (kwtest #** ((fn [] {"one" "two"}))) {"one" "two"})))
 
 
-(defmacro identify-keywords [#* elts]
-  `(list
-    (map
-     (fn [x] (if (isinstance x hy.models.Keyword) "keyword" "other"))
-     ~elts)))
-
 (defn test-keywords-and-macros []
   "Macros should still be able to handle keywords as they best see fit."
+  (defmacro identify-keywords [#* elts]
+    `(lfor
+      x ~elts
+      (if (isinstance x hy.models.Keyword) "keyword" "other")))
   (assert
    (= (identify-keywords 1 "bloo" :foo)
       ["other" "other" "keyword"])))
