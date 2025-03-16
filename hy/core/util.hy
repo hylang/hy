@@ -82,7 +82,7 @@
 
   An exceptional case is if the macro is a core macro that returns one of Hy's internal compiler result objects instead of a real model. Then, you just get the original back, as if the macro hadn't been expanded.
 
-  The optional arguments ``module`` and ``macros`` can be provided to control where macros are looked up, as with :hy:func:`hy.eval`.
+  As with :hy:func:`hy.eval`, the optional arguments ``module`` and ``macros`` can be provided to control where macros are looked up, and local macros are invisible unless provided via e.g. ``:macros (local-macros)``.
 
   See also :hy:func:`hy.macroexpand`."
   (_macroexpand model (or module (calling-module)) macros :once True))
