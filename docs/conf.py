@@ -24,7 +24,7 @@ html_title = f'Hy {release} manual'
   # Ultimately this will only appear on the page itself. The actual HTML title
   # will be simplified in post-processing.
 
-hyrule_version = 'v0.8.0'
+hyrule_version = 'v1.0.0'
 
 source_suffix = '.rst'
 master_doc = 'index'
