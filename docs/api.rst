@@ -663,7 +663,7 @@ Comprehensions
    The last argument of ``for`` can be an ``(else …)`` form. This form is
    executed after the last iteration of the ``for``\'s outermost iteration
    clause, but only if that outermost loop terminates normally. If it's jumped
-   out of with e.g. ``break``, the ``else`` is ignored. ::
+   out of with e.g. :hy:func:`break`, the ``else`` is ignored. ::
 
      (for [x [1 2 3]]
        (print x)
