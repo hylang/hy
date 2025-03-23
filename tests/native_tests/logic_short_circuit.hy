@@ -61,3 +61,8 @@
   (assert (= l ["a" "b"]))
   (setv x (or 0 (del (get l 1))))
   (assert (= l ["a"])))
+
+; https://github.com/hylang/hy/issues/2640
+(defn test-#2640-setv []
+  (assert (is (and (setv x 1) 2) None))
+  (assert (=  (or  (setv x 3) 4) 4)))

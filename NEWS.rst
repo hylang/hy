@@ -15,6 +15,7 @@ Bug Fixes
 * `(except [[]] …)` now catches no exceptions, rather than being treated like
   `(except [] …)`, which catches all exceptions.
 * `(except [e []] …)` is now translated to Python correctly by `hy2py`.
+* Fixed a bug where logical ops starting with a `(setv …)` expression failed to compile.
 
 1.0.0 ("Afternoon Review", released 2024-09-22)
 ======================================================================
