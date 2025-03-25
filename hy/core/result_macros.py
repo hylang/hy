@@ -349,7 +349,7 @@ def compile_logical_or_and_and_operator(compiler, expr, operator, args):
             if assignment:
                 assignment.value = enbool(assignment.value)
             else:
-                ret.expr = enbool(ret.expr)
+                ret.expr = enbool(ret.force_expr)
 
     if var:
         ret.expr = get(expr)
