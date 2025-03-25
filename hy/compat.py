@@ -8,7 +8,6 @@ PY3_12 = sys.version_info >= (3, 12)
 PY3_12_6 = sys.version_info >= (3, 12, 6)
 PY3_13 = sys.version_info >= (3, 13)
 PYPY = platform.python_implementation() == "PyPy"
-PYODIDE = platform.system() == "Emscripten"
 
 
 if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):

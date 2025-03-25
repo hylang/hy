@@ -11,13 +11,6 @@ from pathlib import Path
 
 import pytest
 
-from hy.compat import PYODIDE
-
-if PYODIDE:
-    pytest.skip(
-        '`subprocess.Popen` not implemented on Pyodide',
-        allow_module_level = True)
-
 
 def pyr(s=""):
     return "hy --repl-output-fn=repr " + s
