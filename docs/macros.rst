@@ -119,7 +119,7 @@ A better approach is to use :hy:func:`hy.gensym` to choose your variable name::
         (setv ~g (.upper ~arg))
         (+ ~g ~g)))
 
-Hyrule provides some macros that make using gensyms more convenient, like :hy:func:`defmacro! <hyrule.defmacro!>` and :hy:func:`with-gensyms <hyrule.with-gensyms>`.
+Hyrule provides some macros that make using gensyms more convenient, like :hy:func:`defmacro! <hyrule.defmacro!>` and :hy:func:`def-gensyms <hyrule.def-gensyms>`.
 
 On the other hand, you can write a macro that advertises a specific name (or set of names) as part of its interface. For example, Hyrule's `anaphoric macro <https://en.wikipedia.org/wiki/Anaphoric_macro>`_ :hy:func:`ap-if <hyrule.ap-if>` assigns the result of a test form to ``it``, and allows the caller to include forms that refer to ``it``::
 
