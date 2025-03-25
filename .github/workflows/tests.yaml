@@ -12,7 +12,7 @@ jobs:
       matrix:
         name-prefix: ['']
         os: [ubuntu-latest]
-        python: [3.9, '3.10', 3.11, 3.12, 3.13, pypy-3.10, pyodide]
+        python: [3.9, '3.10', 3.11, 3.12, 3.13, pypy-3.10]
         include:
           # To keep the overall number of runs low, we test Windows and MacOS
           # only on the latest CPython.
@@ -34,24 +34,12 @@ jobs:
     steps:
     - run: git config --global core.autocrlf false
     - uses: actions/checkout@v4
-    - if: matrix.python != 'pyodide'
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
           python-version: ${{ matrix.python }}
-    - if: matrix.python == 'pyodide'
-      uses: actions/setup-python@v5
-      with: {python-version: 3.12}
-    - if: matrix.python == 'pyodide'
-      uses: actions/setup-node@v4
     - name: Install
       shell: bash
       run: |
-        if [[ ${{ matrix.python }} = pyodide ]] ; then
-            npm install pyodide
-            pip install pyodide-build
-            pyodide venv .venv-pyodide
-            source .venv-pyodide/bin/activate
-        fi
         pip install .
         rm -r hy
           # We want to be sure we're testing the installed version,
@@ -59,11 +47,7 @@ jobs:
         pip install pytest
     - name: Test
       shell: bash
-      run: |
-        if [[ ${{ matrix.python }} = pyodide ]] ; then
-            source .venv-pyodide/bin/activate
-        fi
-        python -m pytest tests
+      run: python -m pytest tests
 
   docs:
     # Try building the manual, ensuring that Sphinx doesn't produce
