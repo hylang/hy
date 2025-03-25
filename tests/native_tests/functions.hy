@@ -3,8 +3,7 @@
 (import
   asyncio
   typing [List]
-  pytest
-  tests.resources [async-test])
+  pytest)
 
 
 (defn test-fn []
@@ -25,7 +24,7 @@
   (assert (= (fn-test) None)))
 
 
-(defn [async-test] test-fn-async []
+(defn test-fn-async []
   (assert (= (asyncio.run ((fn :async [] (await (asyncio.sleep 0)) [1 2 3])))
              [1 2 3])))
 
@@ -182,14 +181,14 @@
     (setv x [#* spam]  y 1)))
 
 
-(defn [async-test] test-defn-async []
+(defn test-defn-async []
   (defn :async coro-test []
     (await (asyncio.sleep 0))
     [1 2 3])
   (assert (= (asyncio.run (coro-test)) [1 2 3])))
 
 
-(defn [async-test] test-no-async-gen-return []
+(defn test-no-async-gen-return []
   ; https://github.com/hylang/hy/issues/2523
   (defn :async runner [gen]
     (setv vals [])
