@@ -6,8 +6,7 @@
   os.path [exists isdir isfile]
   sys :as systest
   sys
-  pytest
-  hy.compat [PYODIDE])
+  pytest)
 
 
 (defn test-imported-bits []

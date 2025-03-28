@@ -8,21 +8,17 @@ import pytest
 
 import hy.importer
 from hy import mangle
-from hy.compat import PYODIDE
 
 
 def test_direct_import():
     import tests.resources.pydemo
-    from tests.resources import can_test_async
-    assert_stuff(tests.resources.pydemo, can_test_async)
+    assert_stuff(tests.resources.pydemo)
 
 
-@pytest.mark.skipif(PYODIDE, reason="subprocess.check_call not implemented on Pyodide")
 def test_hy2py_import():
     import contextlib
     import os
     import subprocess
-    from tests.resources import can_test_async
 
     path = "tests/resources/pydemo_as_py.py"
     env = dict(os.environ)
@@ -38,10 +34,10 @@ def test_hy2py_import():
     finally:
         with contextlib.suppress(FileNotFoundError):
             os.remove(path)
-    assert_stuff(m, can_test_async)
+    assert_stuff(m)
 
 
-def assert_stuff(m, can_test_async):
+def assert_stuff(m):
 
     # This makes sure that automatically imported builtins go after docstrings.
     assert m.__doc__ == "This is a module docstring."
@@ -168,10 +164,9 @@ def assert_stuff(m, can_test_async):
     assert m.pys_accum == [0, 1, 2, 3, 4]
     assert m.py_accum == "01234"
 
-    if can_test_async:
-        m.async_exits.clear()
-        assert asyncio.run(m.coro()) == list("abcdef")
-        assert m.async_exits == ["b"]
+    m.async_exits.clear()
+    assert asyncio.run(m.coro()) == list("abcdef")
+    assert m.async_exits == ["b"]
 
     assert m.cheese == [1, 1]
     assert m.mac_results == ["x", "x"]
