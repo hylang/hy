@@ -70,7 +70,7 @@ You don't need to always return a model because the compiler calls :hy:func:`hy.
 Arguments are always passed in as models. You can use quasiquotation (see :hy:func:`quasiquote`) to concisely define a model with partly literal and partly evaluated components::
 
     (defmacro set-to-2 [variable]
-     `(setv ~variable 2))
+      `(setv ~variable 2))
     (set-to-2 foobar)
     (print foobar)
 
@@ -160,19 +160,26 @@ By the way, despite the need for ``eval-and-compile``, extracting a lot of compl
 The important take-home big fat WARNING
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A typical macro should use only four kinds of names in its expansion: gensyms, core macros, objects that Python puts in scope by default (like its built-in functions), and ``hy`` and its attributes. It's possible to rebind nearly all these names, so surprise shadowing is still theoretically possible. Unfortunately, the only way to prevent these pathological rebindings from coming about is… don't do that. Don't make a new macro named ``setv`` or name a function argument ``type`` unless you're ready for every macro you call to break, the same way you wouldn't monkey-patch a built-in Python module without thinking carefully. This kind of thing is the responsibility of the macro caller; the macro writer can't do much to defend against it. There is at least a pragma :ref:`warn-on-core-shadow <warn-on-core-shadow>`, enabled by default, that causes ``defmacro`` and ``require`` to warn you if you give your new macro the same name as a core macro.
+A typical macro should use only names of these four kinds in its expansion:
+
+- gensyms
+- core macros
+- objects that Python puts in scope by default (like its built-in functions)
+- ``hy`` and its attributes
+
+It's possible to rebind nearly all these names, so surprise shadowing is still theoretically possible. Unfortunately, the only way to prevent these pathological rebindings from coming about is… don't do that. Don't make a new macro named ``setv`` or name a function parameter ``type`` unless you're ready for every macro you call to break, the same way you wouldn't monkey-patch a built-in Python module without thinking carefully. This kind of thing is the responsibility of the macro caller; the macro writer can't do much to defend against it. There is at least a pragma :ref:`warn-on-core-shadow <warn-on-core-shadow>`, enabled by default, that causes ``defmacro`` and ``require`` to warn you if you give your new macro the same name as a core macro.
 
 .. _reader-macros:
 
 Reader macros
 -------------
 
-Reader macros allow you to hook directly into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader <hy.core.macros.defreader>`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`hy.HyReader` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`hy.HyReader` and its base class :py:class:`hy.Reader` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
+Reader macros allow you to hook into Hy's parser to customize how text is parsed into models. They're defined with :hy:func:`defreader <hy.core.macros.defreader>`, or, like regular macros, brought in from other modules with :hy:func:`require`. Rather than receiving function arguments, a reader macro has access to a :py:class:`hy.HyReader` object named ``&reader``, which provides all the text-parsing logic that Hy uses to parse itself (see :py:class:`hy.HyReader` and its base class :py:class:`hy.Reader` for the available methods). A reader macro is called with the hash sign ``#``, and like a regular macro, it should return a model or something convertible to a model.
 
 The simplest kind of reader macro doesn't read anything::
 
     (defreader hi
-      `(print "Hello."))
+      '(print "Hello."))
 
     #hi #hi #hi
 
@@ -233,7 +240,7 @@ There are three scoped varieties of regular macro. First are **core macros**, wh
 
     (defmacro m []
       "This is a docstring."
-      `(print "Hello, world."))
+      '(print "Hello, world."))
     (print (in "m" _hy_macros))   ; => True
     (help (get-macro m))
     (m)                           ; => "Hello, world."

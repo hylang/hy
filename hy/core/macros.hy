@@ -121,7 +121,7 @@
         (help (get (local-macros) "m")))
       (f)
 
-  The equivalency is rough in the sense that ``local-macros`` returns a literal dictionary, not a preexisting object that Hy uses for resolving macro names. So, modifying the dictionary will have no effect.
+  The equivalency is rough in the sense that ``local-macros`` expands to a literal dictionary, not a preexisting object that Hy uses for resolving macro names. So, modifying the dictionary will have no effect.
 
   See also :hy:func:`get-macro <hy.core.macros.get-macro>`.]]
   (_local-macros _hy_compiler))
