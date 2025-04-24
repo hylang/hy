@@ -343,7 +343,10 @@ _wrappers[float] = Float
 
 class Complex(Object, complex):
     """
-    Represents a literal floating-point complex number (:class:`complex`).
+    Represents a literal floating-point complex number (:class:`complex`). If
+    ``real`` is itself a :class:`complex` object, its imaginary part is extracted and
+    added to the imaginary part of the new model, but ``imag``, if provided, must be
+    real.
     """
 
     def __new__(cls, real, imag=0, *args, **kwargs):
@@ -354,6 +357,12 @@ class Complex(Object, complex):
             if p2:
                 check_inf_nan_cap(p2, value.imag)
             return value
+        if isinstance(imag, complex):
+            raise TypeError("`imag` must be real")
+        if isinstance(real, complex):
+            # This is deprecated by Python 3.14's `complex`, so
+            # extract the imaginary part before passing through.
+            real, imag = real.real, imag + real.imag
         return super().__new__(cls, real, imag)
 
 
