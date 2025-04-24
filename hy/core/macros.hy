@@ -1,7 +1,5 @@
-;;; Hy core macros
+"This file has the few core macros that are implemented in Hy instead of Python."
 
-;;; These macros form the hy language
-;;; They are automatically required in every module, except inside hy.core
 
 (defmacro cond [#* args]
   "Shorthand for a nested sequence of :hy:func:`if` forms, like an
