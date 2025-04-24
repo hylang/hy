@@ -3,7 +3,7 @@
 Unreleased
 ======================================================================
 
-Supports Python 3.9 – Python 3.x
+Supports Python 3.9 – Python 3.14
 
 New Features
 ------------------------------
