@@ -3,7 +3,7 @@
 Unreleased
 ======================================================================
 
-Supports Python 3.9 – Python 3.x
+Supports Python 3.9 – Python 3.14
 
 New Features
 ------------------------------
@@ -16,6 +16,7 @@ Bug Fixes
   `(except [] …)`, which catches all exceptions.
 * `(except [e []] …)` is now translated to Python correctly by `hy2py`.
 * Fixed a bug where logical ops starting with a `(setv …)` expression failed to compile.
+* A complex `imag` argument to `hy.models.Complex` is no longer allowed.
 
 1.0.0 ("Afternoon Review", released 2024-09-22)
 ======================================================================

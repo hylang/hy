@@ -1137,7 +1137,7 @@ Modules
 
        ;; Import several names from a single module.
        ;; Python: from os.path import exists, isdir as is_dir, isfile
-       (import os.path [exists  isdir :as dir?  isfile])
+       (import os.path [exists  isdir :as is-dir  isfile])
 
        ;; Import a module with an alias for the whole module.
        ;; Python: import sys as systest
@@ -1155,8 +1155,8 @@ Modules
        ;;     from math import *
        (import tests.resources [kwtest function-with-a-dash]
                os.path [exists
-                        isdir :as dir?
-                        isfile :as file?]
+                        isdir :as is-dir
+                        isfile :as is-file]
                sys :as systest
                math *)
 
