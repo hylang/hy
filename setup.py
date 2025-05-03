@@ -8,13 +8,16 @@ requires = [
     "funcparserlib ~= 1.0",
 ]
 
-import os
+import os.path
+import sys
+
+DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(DIR)
+os.chdir(DIR)
 
 import fastentrypoints  # Monkey-patches setuptools.
 from setuptools import find_packages, setup
 from setuptools.command.install import install
-
-os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
 PKG = "hy"
 
