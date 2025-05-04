@@ -9,6 +9,10 @@ New Features
 ------------------------------
 * New pragma `hy`.
 
+Misc. Improvements
+------------------------------
+* Added compatibility with setuptools 80.3.0.
+
 Bug Fixes
 ------------------------------
 * Fixed a crash from using an empty string in a `(. …)` expression.
