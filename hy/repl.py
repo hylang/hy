@@ -78,10 +78,12 @@ def extend_linecache(add_cmdline_cache):
 
 
 _codeop_maybe_compile = codeop._maybe_compile
-codeop._maybe_compile = (lambda compiler, source, filename, symbol:
+codeop._maybe_compile = (lambda compiler, source, filename, symbol, *args, **kwargs:
+    # Python 3.14 adds a mandatory parameter `flags`, which is
+    # sometimes specified by position and sometimes by name.
     compiler(source, filename, symbol)
     if isinstance(compiler, HyCompile) else
-    _codeop_maybe_compile(compiler, source, filename, symbol))
+    _codeop_maybe_compile(compiler, source, filename, symbol, *args, **kwargs))
 
 
 class HyCompile(codeop.Compile):
