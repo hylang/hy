@@ -1,6 +1,6 @@
 .. default-role:: code
 
-Unreleased
+1.1.0 ("Business Hugs", released 2025-05-08)
 ======================================================================
 
 Supports Python 3.9 – Python 3.14
