@@ -2,4 +2,3 @@ include AUTHORS
 include LICENSE
 include NEWS.rst
 include README.md
-include fastentrypoints.py

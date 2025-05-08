@@ -10,7 +10,6 @@ requires = [
 
 import os
 
-import fastentrypoints  # Monkey-patches setuptools.
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
