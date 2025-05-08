@@ -1,6 +1,6 @@
-__version__ = 'unreleased'
-nickname = None
-last_version = '1.0.0'
+__version__ = '1.1.0'
+nickname = 'Business Hugs'
+last_version = __version__
   # This is used by `(pragma :hy …)` to guess whether an unreleased
   # version of Hy is new enough. In a released version, it's simply
   # equal to `__version__`.
