@@ -492,12 +492,12 @@ def compile_def_expression(compiler, expr, root, decls):
     for decl in decls:
         if is_assignment_expr:
             ann = None
-            name, value = decl
+            target, value = decl
         else:
-            (name, ann), value = decl
+            (target, ann), value = decl
 
         result += compile_assign(
-            compiler, ann, name, value, is_assignment_expr=is_assignment_expr
+            compiler, ann, target, value, is_assignment_expr=is_assignment_expr
         )
     return result
 
@@ -521,7 +521,7 @@ def compile_basic_annotation(compiler, expr, root, target, ann):
 
 
 def compile_assign(
-    compiler, ann, name, value, *, is_assignment_expr=False, let_scope=None
+    compiler, ann, target, value, *, is_assignment_expr=False, let_scope=None
 ):
     # Ensure that assignment expressions have a result and no annotation.
     assert not is_assignment_expr or (value is not None and ann is None)
@@ -533,40 +533,40 @@ def compile_assign(
         with let_scope or nullcontext():
             result = compiler.compile(value)
         if let_scope:
-            name = let_scope.add(name)
+            target = let_scope.add(target)
 
-    ld_name = compiler.compile(name)
+    ld_target = compiler.compile(target)
 
-    if result.temp_variables and isinstance(name, Symbol):
-        result.rename(compiler, compiler._nonconst(name))
+    if result.temp_variables and isinstance(target, Symbol):
+        result.rename(compiler, compiler._nonconst(target))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
             result.expr = None
     else:
-        st_name = compiler._storeize(name, ld_name)
+        st_target = compiler._storeize(target, ld_target)
 
         if ann is not None:
             ann_result = compiler.compile(ann)
             result = ann_result + result
 
-        target = dict(target = st_name)
+        target_kwarg = dict(target = st_target)
         if is_assignment_expr:
             node = asty.NamedExpr
         elif ann is not None:
             node = lambda x, **kw: asty.AnnAssign(
                 x,
                 annotation=ann_result.force_expr,
-                simple=int(isinstance(name, Symbol)),
+                simple=int(isinstance(target, Symbol)),
                 **kw,
             )
         else:
             node = asty.Assign
-            target = dict(targets = [st_name])
+            target_kwarg = dict(targets = [st_target])
 
         result += node(
-            name if hasattr(name, "start_line") else result,
+            target if hasattr(target, "start_line") else result,
             value=result.force_expr if not annotate_only else None,
-            **target
+            **target_kwarg
         )
 
     return result
