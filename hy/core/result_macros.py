@@ -535,15 +535,13 @@ def compile_assign(
         if let_scope:
             target = let_scope.add(target)
 
-    ld_target = compiler.compile(target)
-
     if result.temp_variables and isinstance(target, Symbol):
         result.rename(compiler, compiler._nonconst(target))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
             result.expr = None
     else:
-        st_target = compiler._storeize(target, ld_target)
+        st_target = compiler._storeize(target, compiler.compile(target))
 
         if ann is not None:
             ann_result = compiler.compile(ann)
