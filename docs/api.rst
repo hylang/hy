@@ -270,6 +270,12 @@ Assignment, mutation, and annotation
        (print letter1 letter2 (hy.repr others))
          ; => a b ["c" "d" "e" "f" "g"]
 
+   Finally, as of Hy 1.2, you can precede an assignment pair with the keyword ``:chain`` to assign the same value multiple times to each of several targets. This construct compiles to a chained assignment in Python. ::
+
+       (setv :chain [x y z] 0)
+       (print x y z)
+         ; => 0 0 0
+
    See :hy:func:`let` to simulate more traditionally Lispy block-level scoping.
 
 .. hy:macro:: (setx [target value])
