@@ -112,11 +112,15 @@
   (setv :chain [a b c] 3)
   (assert (= a b c 3))
 
-  (setv  v1 1  :chain [v2 v3] 2  v4 4)
+  (setv x [])
+  (setv :chain [a b c] x)
+  (assert (is a b c x))
+
+  (setv  v1 1  :chain [v2 v3] 2  v4 4  :chain [v5 v6 v7] 5)
   (assert (= v1 1))
-  (assert (= v2 2))
-  (assert (= v3 2))
+  (assert (= v2 v3 2))
   (assert (= v4 4))
+  (assert (= v5 v6 v7 5))
 
   (setv :chain [[y #* z w] x [a b c d]] "abcd")
   (assert (= [y z w] ["a" ["b" "c"] "d"]))
