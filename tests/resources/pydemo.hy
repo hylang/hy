@@ -43,6 +43,9 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 (import itertools [cycle])
 (setv mygenexpr (gfor x (cycle [1 2 3]) :if (!= x 2) x))
 
+(setv [unpacked1 #* repacked unpacked2] "WXYZ")
+(setv :chain [chained1 chained2 chained3] 77)
+
 (setv attr-ref str.upper)
 (setv subscript (get "hello" 2))
 (setv myslice (cut "hello" 1 None 2))

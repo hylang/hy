@@ -89,6 +89,9 @@ def assert_stuff(m):
     assert type(m.mygenexpr) is type(x for x in [1, 2, 3])
     assert list(itertools.islice(m.mygenexpr, 5)) == [1, 3, 1, 3, 1]
 
+    assert (m.unpacked1, m.repacked, m.unpacked2) == ("W", ["X", "Y"], "Z")
+    assert m.chained1 == m.chained2 == m.chained3 == 77
+
     assert m.attr_ref is str.upper
     assert m.subscript == "l"
     assert m.myslice == "el"

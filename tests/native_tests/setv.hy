@@ -105,3 +105,39 @@
   (an (setv x.eggs "ham"))
   (assert (not (hasattr x "eggs")))
   (assert (= l [["eggs" "ham"]])))
+
+
+(defn test-setv-chain []
+
+  (setv :chain [a b c] 3)
+  (assert (= a b c 3))
+
+  (setv x [])
+  (setv :chain [a b c] x)
+  (assert (is a b c x))
+
+  (setv  v1 1  :chain [v2 v3] 2  v4 4  :chain [v5 v6 v7] 5)
+  (assert (= v1 1))
+  (assert (= v2 v3 2))
+  (assert (= v4 4))
+  (assert (= v5 v6 v7 5))
+
+  (setv :chain [[y #* z w] x [a b c d]] "abcd")
+  (assert (= [y z w] ["a" ["b" "c"] "d"]))
+  (assert (= x "abcd"))
+  (assert (= [a b c d] ["a" "b" "c" "d"]))
+
+  (setv l (* [0] 5))
+  (setv calls [])
+  (defn f [i]
+    (.append calls [i (list l)])
+    i)
+  (setv :chain
+    [(get l (f 1)) (get l (f 2)) (get l (f 3))]
+    (f 9))
+  (assert (= calls [
+    [9 [0 0 0 0 0]]
+    [1 [0 0 0 0 0]]
+    [2 [0 9 0 0 0]]
+    [3 [0 9 9 0 0]]]))
+  (assert (= l [0 9 9 9 0])))

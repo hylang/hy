@@ -481,23 +481,27 @@ def compile_augassign_expression(compiler, expr, root, target, values):
 # ------------------------------------------------
 
 
-@pattern_macro("setv", [many(maybe_annotated(FORM) + FORM)])
-@pattern_macro("setx", [times(1, 1, SYM + FORM)])
+@pattern_macro("setv", [many(
+    (tag("chained", sym(":chain") + brackets(oneplus(FORM))) |
+        tag("maybe_annotated", maybe_annotated(FORM))) +
+    FORM)])
+@pattern_macro("setx", [times(1, 1, tag("setx", SYM) + FORM)])
 def compile_def_expression(compiler, expr, root, decls):
     if not decls:
         return asty.Constant(expr, value=None)
 
     result = Result()
-    is_assignment_expr = root == "setx"
-    for decl in decls:
-        if is_assignment_expr:
-            ann = None
-            name, value = decl
-        else:
-            (name, ann), value = decl
 
+    for (ttag, target), value in decls:
+        ann = None
+        if ttag == "chained":
+            [target] = target
+        if ttag == "maybe_annotated":
+            target, ann = target
         result += compile_assign(
-            compiler, ann, name, value, is_assignment_expr=is_assignment_expr
+            compiler, ann, target, value,
+            is_assignment_expr = ttag == "setx",
+            chained = ttag == "chained"
         )
     return result
 
@@ -521,7 +525,7 @@ def compile_basic_annotation(compiler, expr, root, target, ann):
 
 
 def compile_assign(
-    compiler, ann, name, value, *, is_assignment_expr=False, let_scope=None
+    compiler, ann, target, value, *, is_assignment_expr=False, chained=False, let_scope=None
 ):
     # Ensure that assignment expressions have a result and no annotation.
     assert not is_assignment_expr or (value is not None and ann is None)
@@ -533,40 +537,40 @@ def compile_assign(
         with let_scope or nullcontext():
             result = compiler.compile(value)
         if let_scope:
-            name = let_scope.add(name)
+            target = let_scope.add(target)
 
-    ld_name = compiler.compile(name)
-
-    if result.temp_variables and isinstance(name, Symbol):
-        result.rename(compiler, compiler._nonconst(name))
+    if result.temp_variables and isinstance(target, Symbol):
+        result.rename(compiler, compiler._nonconst(target))
         if not is_assignment_expr:
             # Throw away .expr to ensure that (setv ...) returns None.
             result.expr = None
     else:
-        st_name = compiler._storeize(name, ld_name)
+        st_targets = [
+           compiler._storeize(t, compiler.compile(t))
+           for t in (target if chained else [target])]
 
         if ann is not None:
             ann_result = compiler.compile(ann)
             result = ann_result + result
 
-        target = dict(target = st_name)
+        target_kwarg = dict(target = st_targets[0])
         if is_assignment_expr:
             node = asty.NamedExpr
         elif ann is not None:
             node = lambda x, **kw: asty.AnnAssign(
                 x,
                 annotation=ann_result.force_expr,
-                simple=int(isinstance(name, Symbol)),
+                simple=int(isinstance(target, Symbol)),
                 **kw,
             )
         else:
             node = asty.Assign
-            target = dict(targets = [st_name])
+            target_kwarg = dict(targets = st_targets)
 
         result += node(
-            name if hasattr(name, "start_line") else result,
+            target if hasattr(target, "start_line") else result,
             value=result.force_expr if not annotate_only else None,
-            **target
+            **target_kwarg
         )
 
     return result
