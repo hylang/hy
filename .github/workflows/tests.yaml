@@ -44,7 +44,7 @@ jobs:
         rm -r hy
           # We want to be sure we're testing the installed version,
           # instead of running from the source tree.
-        pip install 'pytest >= 7'
+        pip install 'pytest >= 8.4.1'
     - name: Test
       shell: bash
       run: python -m pytest tests
