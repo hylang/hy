@@ -86,7 +86,7 @@ If you want to run the tests while skipping the slow ones in ``test_bin.py``, us
 Documentation
 -------------
 
-Generally, new features deserve coverage in the manual, either by editing the manual files directly or by changing docstrings that get included in the manual. To render the manual, install its dependencies with ``pip install -r requirements-dev.txt`` and then use the command ``cd docs; sphinx-build . _build -b html``.
+Generally, new features deserve coverage in the manual, either by editing the manual files directly or by changing docstrings that get included in the manual. To render the manual, install its dependencies with ``pip install -r docs/requirements.txt`` and then use the command ``cd docs; sphinx-build . _build -b html``.
 
 NEWS and AUTHORS
 ----------------

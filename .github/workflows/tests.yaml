@@ -44,7 +44,7 @@ jobs:
         rm -r hy
           # We want to be sure we're testing the installed version,
           # instead of running from the source tree.
-        pip install pytest
+        pip install 'pytest >= 7'
     - name: Test
       shell: bash
       run: python -m pytest tests
@@ -62,5 +62,5 @@ jobs:
     - name: Install
       run: |
         pip install .
-        pip install -r requirements-dev.txt
+        pip install -r docs/requirements.txt
     - run: sphinx-build -W -b html docs/ docs/_build/
