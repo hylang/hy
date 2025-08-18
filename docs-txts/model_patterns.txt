@@ -1,0 +1,219 @@
+Model patterns
+**************
+
+The module "hy.model-patterns" provides a library of parser
+combinators for parsing complex trees of Hy models. Model patterns
+exist mostly to help implement the compiler, but they can also be
+useful for writing macros.
+
+
+A motivating example
+====================
+
+The kind of problem that model patterns are suited for is the
+following. Suppose you want to validate and extract the components of
+a form like:
+
+   (setv form '(try
+     (foo1)
+     (foo2)
+     (except [EType1]
+       (foo3))
+     (except [e EType2]
+       (foo4)
+       (foo5))
+     (except []
+       (foo6))
+     (finally
+       (foo7)
+       (foo8))))
+
+You could do this with loops and indexing, but it would take a lot of
+code and be error-prone. Model patterns concisely express the general
+form of a model tree to be matched, like what a regular expression
+does for text. Here's a pattern for a "try" form of the above kind:
+
+   (import
+     funcparserlib.parser [maybe many]
+     hy.model-patterns *)
+
+   (setv parser (whole [
+     (sym "try")
+     (many (notpexpr "except" "else" "finally"))
+     (many (pexpr
+       (sym "except")
+       (| (brackets) (brackets FORM) (brackets SYM FORM))
+       (many FORM)))
+     (maybe (dolike "else"))
+     (maybe (dolike "finally"))]))
+
+You can run the parser with "(.parse parser form)". The result is:
+
+   #(
+     ['(foo1) '(foo2)]
+     [
+       '([EType1] [(foo3)])
+       '([e EType2] [(foo4) (foo5)])
+       '([] [(foo6)])]
+     None
+     '((foo7) (foo8)))
+
+which is conveniently utilized with an assignment such as "(setv [body
+except-clauses else-part finally-part] result)". Notice that "else-
+part" will be set to "None" because there is no "else" clause in the
+original form.
+
+
+Usage
+=====
+
+Model patterns are implemented as funcparserlib parser combinators. We
+won't reproduce funcparserlib's own documentation, but here are some
+important built-in parsers:
+
+* "(+ ...)" matches its arguments in sequence.
+
+* "(| ...)" matches any one of its arguments.
+
+* "(>> parser function)" matches "parser", then feeds the result
+  through "function" to change the value that's produced on a
+  successful parse.
+
+* "(skip parser)" matches "parser", but doesn't add it to the produced
+  value.
+
+* "(maybe parser)" matches "parser" if possible. Otherwise, it
+  produces the value "None".
+
+* "(some function)" takes a predicate "function" and matches a form if
+  it satisfies the predicate.
+
+Some of the more important of Hy's own parsers are:
+
+* "FORM" matches anything.
+
+* "SYM" matches any symbol.
+
+* "sym" matches and discards (per "skip") the named symbol or keyword.
+
+* "brackets" matches the arguments in square brackets.
+
+* "pexpr" matches the arguments in parentheses.
+
+Here's how you could write a simple macro using model patterns:
+
+   (defmacro pairs [#* args]
+     (import
+       funcparserlib.parser [many]
+       hy.model-patterns [whole SYM FORM])
+     (setv [args] (.parse
+       (whole [(many (+ SYM FORM))])
+       args))
+     `[~@(gfor  [a1 a2] args  #((str a1) a2))])
+
+   (print (hy.repr (pairs  a 1  b 2  c 3)))
+   ; => [#("a" 1) #("b" 2) #("c" 3)]
+
+A failed parse will raise "funcparserlib.parser.NoParseError".
+
+
+Reference
+=========
+
+Parser combinators for pattern-matching Hy model trees.
+
+hy.model_patterns.FORM = <funcparserlib.parser.Parser object>
+
+   Match any token.
+
+hy.model_patterns.KEYWORD = <funcparserlib.parser.Parser object>
+
+   Match a "Keyword".
+
+hy.model_patterns.LITERAL = <funcparserlib.parser.Parser object>
+
+   Match any model type denoting a literal.
+
+hy.model_patterns.STR = <funcparserlib.parser.Parser object>
+
+   Match a "String".
+
+hy.model_patterns.SYM = <funcparserlib.parser.Parser object>
+
+   Match a "Symbol".
+
+class hy.model_patterns.Tag(tag, value)
+
+   A named tuple; see "collections.namedtuple()" and "tag()".
+
+   tag
+
+      Alias for field number 0
+
+   value
+
+      Alias for field number 1
+
+hy.model_patterns.braces(*parsers, name=None)
+
+   Match the given parsers inside curly braces (a "Dict").
+
+hy.model_patterns.brackets(*parsers, name=None)
+
+   Match the given parsers inside square brackets (a "List").
+
+hy.model_patterns.dolike(head)
+
+   Parse a "do"-like expression. "head" is a string used to construct
+   a symbol for the head.
+
+hy.model_patterns.in_tuple(*parsers, name=None)
+
+   Match the given parsers inside a "Tuple".
+
+hy.model_patterns.keepsym(wanted)
+
+   As "sym()", but the object is kept instead of skipped.
+
+hy.model_patterns.notpexpr(*disallowed_heads)
+
+   Parse any object other than an expression headed by a symbol whose
+   name is equal to one of the given strings.
+
+hy.model_patterns.parse_if(pred, parser)
+
+   Return a parser that parses a token with "parser" if it satisfies
+   the predicate "pred".
+
+hy.model_patterns.pexpr(*parsers, name=None)
+
+   Match the given parsers inside a parenthesized "Expression".
+
+hy.model_patterns.sym(wanted)
+
+   Match and skip a symbol with a name equal to the string "wanted".
+   You can begin the string with "":"" to check for a keyword instead.
+
+hy.model_patterns.tag(tag_name, parser)
+
+   Match on "parser" and produce an instance of "Tag" with "tag" set
+   to "tag_name" and "value" set to result of matching "parser".
+
+hy.model_patterns.times(lo, hi, parser)
+
+   Parse "parser" several times (from "lo" to "hi", inclusive) in a
+   row. "hi" can be "float('inf')". The result is a list no matter the
+   number of instances.
+
+hy.model_patterns.unpack(kind, content_type=None)
+
+   Parse an unpacking form, returning it unchanged. "kind" should be
+   ""iterable"", ""mapping"", or ""either"". If "content_type" is
+   provided, the parser also checks that the unpacking form has
+   exactly one argument and that argument inherits from
+   "content_type".
+
+hy.model_patterns.whole(parsers)
+
+   Match the parsers in the given list one after another, then expect
+   the end of the input.

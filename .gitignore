@@ -10,3 +10,5 @@ build/
 /.cache
 /.pytest_cache
 /.eggs
+
+.doctrees

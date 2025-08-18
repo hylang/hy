@@ -1,0 +1,16 @@
+[project]
+name = "hy-llms-txt"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "funcparserlib~=1.0",
+    "pygments>=2.18.0",
+    "sphinx==5.0.2",
+    "sphinxcontrib-hydomain",
+    "standard-imghdr>=3.13.0",
+]
+
+[tool.uv.sources]
+sphinxcontrib-hydomain = { git = "https://github.com/hylang/sphinxcontrib-hydomain.git" }

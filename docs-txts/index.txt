@@ -1,0 +1,219 @@
+Contents
+********
+
+[image: Hy][image]
+
+PyPI:
+   https://pypi.python.org/pypi/hy
+
+Source:
+   https://github.com/hylang/hy
+
+Discussions:
+   https://github.com/hylang/hy/discussions
+
+Stack Overflow:
+   The [hy] tag
+
+Hy is a Lisp dialect that's embedded in Python. Since Hy transforms
+its Lisp code into Python abstract syntax tree (AST) objects, you have
+the whole beautiful world of Python at your fingertips, in Lisp form.
+
+To install the latest release of Hy, just use the command "pip3
+install --user hy". Then you can start an interactive read-eval-print
+loop (REPL) with the command "hy", or run a Hy program with "hy
+myprogram.hy".
+
+* Why Hy?
+
+  * Hy versus Python
+
+  * Hy versus other Lisps
+
+  * What Hy is not
+
+* Versioning and compatibility
+
+* Tutorial
+
+  * Lisp-stick on a Python
+
+  * Literals
+
+  * Basic operations
+
+  * Functions, classes, and modules
+
+  * Macros
+
+  * Recommended libraries
+
+  * Next steps
+
+* Syntax
+
+  * An introduction to models
+
+  * Non-form syntactic elements
+
+    * Shebang
+
+    * Whitespace
+
+    * Comments
+
+    * Discard prefix
+
+  * Identifiers
+
+    * Numeric literals
+
+    * Dotted identifiers
+
+    * Symbols
+
+    * Mangling
+
+  * Keywords
+
+  * String literals
+
+    * Bracket strings
+
+  * Sequential forms
+
+    * Expressions
+
+    * List, tuple, and set literals
+
+    * Dictionary literals
+
+    * Format strings
+
+  * Additional sugar
+
+  * Reader macros
+
+* Semantics
+
+  * Implicit names
+
+  * Order of evaluation
+
+  * When bytecode is regenerated
+
+  * Traceback positioning
+
+* Macros
+
+  * What are macros for?
+
+  * Types of macros
+
+    * Related constructs
+
+    * When to use what
+
+  * The basics
+
+  * Pitfalls
+
+    * Name games
+
+    * Macro subroutines
+
+    * The important take-home big fat WARNING
+
+  * Reader macros
+
+  * Macro namespaces and operations on macros
+
+* Model patterns
+
+  * A motivating example
+
+  * Usage
+
+  * Reference
+
+* The Hy REPL
+
+  * Output functions
+
+  * Special variables
+
+  * Startup files
+
+* Environment variables
+
+* Command-line interface
+
+  * hy
+
+  * hy2py
+
+  * hyc
+
+* Python interoperability
+
+  * Mangling
+
+    * Keyword mincing
+
+  * Libraries that expect Python
+
+  * Packaging a Hy library
+
+  * Using Python from Hy
+
+  * Using Hy from Python
+
+* API reference
+
+  * Core macros
+
+    * Fundamentals
+
+    * Quoting
+
+    * Assignment, mutation, and annotation
+
+    * Subsetting
+
+    * Conditionals and basic loops
+
+    * Comprehensions
+
+    * Context managers and pattern-matching
+
+    * Exception-handling
+
+    * Functions
+
+    * Macros
+
+    * Classes
+
+    * Modules
+
+    * Miscellany
+
+    * Placeholder macros
+
+  * Hy
+
+  * Readers
+
+  * Python operators
+
+* Developing Hy
+
+  * Contributor guidelines
+
+    * Issues
+
+    * Pull requests
+
+  * Contributor Code of Conduct
+
+  * Core team
