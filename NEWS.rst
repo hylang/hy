@@ -1,5 +1,7 @@
 .. default-role:: code
 
+Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
+
 Unreleased
 ======================================================================
 
