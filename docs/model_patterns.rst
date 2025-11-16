@@ -112,3 +112,26 @@ Reference
 
 .. automodule:: hy.model_patterns
    :members:
+
+   .. The below must be documented in this file rather than using
+      autodoc, due to a regression in Python 3.14.
+
+   .. data:: FORM
+
+      Match any token.
+
+   .. data:: SYM
+
+      Match a :class:`Symbol <hy.models.Symbol>`.
+
+   .. data:: KEYWORD
+
+      Match a :class:`Keyword <hy.models.Keyword>`.
+
+   .. data:: STR
+
+      Match a :class:`String <hy.models.String>`.
+
+   .. data:: LITERAL
+
+      Match any model type denoting a literal.

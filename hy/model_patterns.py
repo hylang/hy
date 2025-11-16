@@ -32,15 +32,10 @@ from hy.models import (
 )
 
 
-#: Match any token.
 FORM = some(lambda _: True).named('form')
-#: Match a :class:`Symbol <hy.models.Symbol>`.
 SYM = some(lambda x: isinstance(x, Symbol)).named('Symbol')
-#: Match a :class:`Keyword <hy.models.Keyword>`.
 KEYWORD = some(lambda x: isinstance(x, Keyword)).named('Keyword')
-#: Match a :class:`String <hy.models.String>`.
 STR = some(lambda x: isinstance(x, String)).named('String')
-#: Match any model type denoting a literal.
 LITERAL = some(lambda x: isinstance(x, (String, Integer, Float, Complex, Bytes))).named('literal')
 
 
