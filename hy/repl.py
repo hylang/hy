@@ -14,6 +14,7 @@ import types
 from contextlib import contextmanager
 
 import hy
+from hy.compat import PY3_12
 from hy.compiler import HyASTCompiler, hy_compile
 from hy.completer import Completer, completion
 from hy.errors import (
@@ -57,11 +58,6 @@ class HyHelper:
         import pydoc
 
         return pydoc.help(*args, **kwds)
-
-
-sys.last_type = None
-sys.last_value = None
-sys.last_traceback = None
 
 
 @contextmanager
@@ -122,11 +118,9 @@ class HyCompile(codeop.Compile):
         self.cmdline_cache[name] = entry
 
     def _update_exc_info(self):
-        self.locals["_hy_last_type"] = sys.last_type
-        self.locals["_hy_last_value"] = sys.last_value
+        t, v, tb = set_last_exc()
         # Skip our frame.
-        sys.last_traceback = getattr(sys.last_traceback, "tb_next", sys.last_traceback)
-        self.locals["_hy_last_traceback"] = sys.last_traceback
+        self.locals["_hy_exc_info"] = (t, v, getattr(tb, "tb_next", tb))
 
     def __call__(self, source, filename="<input>", symbol=None):
         symbol = "exec"
@@ -166,11 +160,7 @@ class HyCompile(codeop.Compile):
             eval_code = super().__call__(eval_ast, name, "eval")
 
         except Exception as e:
-            # Capture and save the error before we handle further
-
-            sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
             self._update_exc_info()
-
             if isinstance(e, (PrematureEndOfInput, SyntaxError)):
                 raise
             else:
@@ -181,7 +171,7 @@ class HyCompile(codeop.Compile):
                 # the places where Python code expects them.
                 # Capture a traceback without the compiler/REPL frames.
                 exec_code = super(HyCompile, self).__call__(
-                    "raise _hy_last_value.with_traceback(_hy_last_traceback)",
+                    "raise _hy_exc_info[1].with_traceback(_hy_exc_info[2])",
                     name,
                     symbol,
                 )
@@ -331,19 +321,12 @@ class REPL(code.InteractiveConsole):
                 self.write(msg)
 
     def _error_wrap(self, exc_info_override=False, *args, **kwargs):
-        sys.last_type, sys.last_value, sys.last_traceback = sys.exc_info()
-
-        if exc_info_override:
-            # Use a traceback that doesn't have the REPL frames.
-            sys.last_type = self.locals.get("_hy_last_type", sys.last_type)
-            sys.last_value = self.locals.get("_hy_last_value", sys.last_value)
-            sys.last_traceback = self.locals.get(
-                "_hy_last_traceback", sys.last_traceback
-            )
-
-        sys.excepthook(sys.last_type, sys.last_value, sys.last_traceback)
-
-        self.locals[mangle("*e")] = sys.last_value
+        # When `exc_info_override` is true, use a traceback that
+        # doesn't have the REPL frames.
+        t, v, tb = set_last_exc(
+            exc_info_override and self.locals.get("_hy_exc_info"))
+        sys.excepthook(t, v, tb)
+        self.locals[mangle("*e")] = v
 
     def showsyntaxerror(self, filename=None, source=None):
         if filename is None:
@@ -441,3 +424,14 @@ class REPL(code.InteractiveConsole):
             pyversion=platform.python_version(),
             os=platform.system(),
         )
+
+
+def set_last_exc(exc_info = None):
+    """Setting `sys.last_exc`, or `sys.last_type` on earlier Pythons,
+    makes it easier for the user to call the debugger."""
+    t, v, tb = exc_info or sys.exc_info()
+    if PY3_12:
+          sys.last_exc = v
+    else:
+          sys.last_type, sys.last_value, sys.last_traceback = t, v, tb
+    return t, v, tb

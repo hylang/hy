@@ -310,7 +310,7 @@ def cmdline_handler(argv):
         # If the command was prematurely ended, show an error (just like Python
         # does).
         if res:
-            hy_exc_handler(sys.last_type, sys.last_value, sys.last_traceback)
+            hy_exc_handler(*sys.exc_info())
     return repl.run()
 
 
