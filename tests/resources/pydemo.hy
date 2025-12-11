@@ -172,7 +172,7 @@ Call me Ishmael. Some years ago—never mind how long precisely—having little 
 
 (defclass C1 [])   ; Force the creation of a `pass` statement.
 
-(defclass C2 [C1]
+(defclass [(fn [c] (setv c.newattr "class decorator") c)] C2 [C1]
   "class docstring"
   (setv attr1 5)
   (setv attr2 6))
