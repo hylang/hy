@@ -154,6 +154,7 @@ def assert_stuff(m):
 
     assert type(m.C1) is type(C)
 
+    assert m.C2.newattr == "class decorator"
     assert m.C2.__doc__ == "class docstring"
     assert issubclass(m.C2, m.C1)
     assert (m.C2.attr1, m.C2.attr2) == (5, 6)
