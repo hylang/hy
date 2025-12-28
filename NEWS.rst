@@ -10,6 +10,12 @@ Supports Python 3.x – Python 3.y
 New Features
 ------------------------------
 * `setv` now supports chained assignment with `:chain`.
+* Several functions in the standard `inspect` module have been
+  monkey-patched to work better with Hy code: `findsource`,
+  `getcomments`, `getfile`, `getsource`, `getsourcelines`.
+
+  * As a result, the `ll` command in `pdb` should now show a more
+    useful result in more cases.
 
 1.1.0 ("Business Hugs", released 2025-05-08)
 ======================================================================

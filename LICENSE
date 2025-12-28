@@ -19,5 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
-Portions of hy/contrib/pprint.hy copyright 2020 Python Software Foundation,
-licensed under the Python Software Foundation License Version 2.
+Portions of `tests/resources/hy_inspect/fodder_1.hy` are copyright 2001
+Python Software Foundation, licensed under the Python Software Foundation
+License Version 2.

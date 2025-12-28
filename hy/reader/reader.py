@@ -36,6 +36,9 @@ class ReaderMeta(type):
     def __new__(cls, name, bases, namespace):
         del namespace["reader_for"]
         default_table = {}
+        for base in bases:
+            if hasattr(base, "DEFAULT_TABLE"):
+                default_table |= base.DEFAULT_TABLE
         for method in namespace.values():
             if callable(method) and hasattr(method, "_readers"):
                 default_table.update(method._readers)
