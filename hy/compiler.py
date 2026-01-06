@@ -37,22 +37,6 @@ from hy.models import (
 from hy.reader import mangle, HyReader
 from hy.scoping import ResolveOuterVars, ScopeGlobal
 
-hy_ast_compile_flags = 0
-
-
-def ast_compile(a, filename, mode):
-    """Compile AST.
-
-    Args:
-        a (ast.AST): instance of `ast.AST`
-        filename (str): Filename used for run-time error messages
-        mode (str): `compile` mode parameter
-
-    Returns:
-        types.CodeType: instance of `types.CodeType`
-    """
-    return compile(a, filename, mode, hy_ast_compile_flags)
-
 
 def calling_module(n=1):
     """Get the module calling, if available.
@@ -766,10 +750,10 @@ def hy_eval(
         globals = module.__dict__
 
     # Two-step eval: eval() the body of the exec call
-    eval(ast_compile(_ast, filename, "exec"), globals, locals)
+    eval(compile(_ast, filename, "exec"), globals, locals)
 
     # Then eval the expression context and return that
-    return eval(ast_compile(expr, filename, "eval"), globals, locals)
+    return eval(compile(expr, filename, "eval"), globals, locals)
 
 
 def hy_eval_user(model, globals = None, locals = None, module = None, macros = None):
