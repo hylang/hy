@@ -38,29 +38,6 @@ if "def" in ast.unparse(ast.parse("𝕕𝕖𝕗 = 1")):
     ast.unparse = rewriting_unparse
 
 
-if True:
-    import pydoc, inspect, re
-    true_getdoc = pydoc.getdoc
-    def getdoc(object):
-        """A monkey-patched `pydoc.getdoc` that tries to avoid calling
-        `inspect.getcomments` for an object defined in Hy code, which would try
-        to parse the Hy as Python. The implementation is based on Python
-        3.12.3's `getdoc`."""
-        result = pydoc._getdoc(object)
-        if not result:
-            can_get_comments = True
-            try:
-                file_path = inspect.getfile(object)
-            except TypeError:
-                None
-            else:
-                can_get_comments = not file_path.endswith('.hy')
-            if can_get_comments:
-                result = inspect.getcomments(object)
-        return result and re.sub('^ *\n', '', result.rstrip()) or ''
-    pydoc.getdoc = getdoc
-
-
 def reu(x):
     '(R)eplace an (e)rror (u)nderline. This is only used for testing Hy.'
     return x.replace('-', '^') if PY3_13 else x

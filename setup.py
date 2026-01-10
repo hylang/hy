@@ -10,6 +10,7 @@ requires = [
 
 import os
 
+from pathlib import Path
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
@@ -56,7 +57,8 @@ setup(
     },
     author="Paul Tagliamonte",
     author_email="tag@pault.ag",
-    long_description=long_description,
+    long_description=Path('README.rst').read_text(),
+    long_description_content_type='text/x-rst',
     description="A Lisp dialect embedded in Python",
     license="Expat",
     url="http://hylang.org/",

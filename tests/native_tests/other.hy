@@ -6,7 +6,8 @@
   importlib
   pydoc
   pytest
-  hy.errors [HyLanguageError HySyntaxError])
+  hy.errors [HyLanguageError HySyntaxError]
+  hy.compat [PY3_13])
 
 
 (defn test-pragma-hy []
@@ -99,14 +100,15 @@
   (importlib.invalidate-caches)
   (import pydoc-hy)
   (assert (= (pydoc.getdoc pydoc-hy.C1) "C1 docstring"))
-  (assert (= (pydoc.getdoc pydoc-hy.C2) "")))
-    ; `pydoc` shouldn't try to get a comment from Hy code, since it
-    ; doesn't know how to parse Hy.
+  (assert (= (pydoc.getdoc pydoc-hy.C2) (if PY3_13
+    ; Class location via Hy isn't implemented on earlier Pythons.
+    "; a comment"
+    ""))))
 
 
 (defn test-help-class-attr []
-  "Our tampering with `pydoc` shouldn't cause `help` to raise
-  `TypeError` on classes with non-method attributes."
+  "Our tampering with `pydoc` or `inspect` shouldn't cause `help` to
+  raise `TypeError` on classes with non-method attributes."
   (defclass C []
     (setv attribute 1))
   (help C))
