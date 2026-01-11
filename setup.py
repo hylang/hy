@@ -18,12 +18,6 @@ os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
 PKG = "hy"
 
-long_description = """Hy is a Lisp dialect that's embedded in Python.
-Since Hy transforms its Lisp code into Python abstract syntax tree (AST)
-objects, you have the whole beautiful world of Python at your fingertips,
-in Lisp form."""
-
-
 class install(install):
     def run(self):
         super().run()
