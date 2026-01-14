@@ -2,10 +2,10 @@
 
 Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 
-Unreleased
+1.2.0 ("Crackers and Snacks", released 2026-01-14)
 ======================================================================
 
-Supports Python 3.x – Python 3.y
+Supports Python 3.9 – Python 3.14
 
 New Features
 ------------------------------
