@@ -252,10 +252,18 @@ def render_quoted_form(compiler, form, level):
             contents.append(f_contents)
         body = [List(contents)]
 
-        if isinstance(form, FString) and form.brackets is not None:
-            body.extend([Keyword("brackets"), String(form.brackets)])
-        elif isinstance(form, FComponent) and form.conversion is not None:
-            body.extend([Keyword("conversion"), String(form.conversion)])
+        if isinstance(form, FString):
+            if form.brackets is not None:
+                body.extend([Keyword("brackets"), String(form.brackets)])
+            if form.is_tstring:
+                body.extend([Keyword("is_tstring"), Symbol("True")])
+        elif isinstance(form, FComponent):
+            if form.conversion is not None:
+                body.extend([Keyword("conversion"), String(form.conversion)])
+            if form.expression is not None:
+                body.extend([Keyword("expression"), String(form.expression)])
+            if form.is_tstring:
+                body.extend([Keyword("is_tstring"), Symbol("True")])
 
     elif isinstance(form, Symbol):
         body = [String(form), Keyword("from_parser"), Symbol("True")]
