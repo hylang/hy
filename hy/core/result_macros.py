@@ -58,7 +58,7 @@ from hy.models import (
     as_model,
     is_unpack,
 )
-from hy.reader import mangle
+from hy.reader import mangle, HyReader
 from hy.scoping import OuterVar, ScopeFn, ScopeGen, ScopeLet, is_function_scope, is_inside_function_scope, nearest_python_scope
 
 # ------------------------------------------------
@@ -185,6 +185,11 @@ def compile_pragma(compiler, expr, root, kwargs):
         elif kw == Keyword("warn-on-core-shadow"):
             compiler.local_state_stack[-1]['warn_on_core_shadow'] = (
                 bool(compiler.eval(value)))
+
+        elif kw == Keyword("bracketed-templates"):
+            reader = HyReader.current_reader(create=False)
+            if reader:
+                reader.bracketed_templates = bool(compiler.eval(value))
 
         else:
             raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
