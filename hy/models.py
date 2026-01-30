@@ -4,7 +4,11 @@ from functools import reduce, total_ordering
 from itertools import groupby
 from math import isinf, isnan
 
+from hy.compat import PY3_14
 from hy.errors import HyWrapperError
+
+if PY3_14:
+    from string.templatelib import Interpolation, Template
 
 PRETTY = True
 
@@ -435,22 +439,28 @@ class FComponent(Sequence):
     format spec (if any).
     """
 
-    _extra_kwargs = ("conversion",)
+    _extra_kwargs = ("conversion", "expression", "is_tstring")
 
-    def __new__(cls, s=None, conversion=None):
+    def __new__(cls, s=None, conversion=None, expression=None, is_tstring=False):
         value = super().__new__(cls, s)
         value.conversion = conversion
+        value.expression = expression
+        value.is_tstring = is_tstring
         return value
 
     def replace(self, other, recursive=True):
         super().replace(other, recursive)
-        if hasattr(other, "conversion"):
-            self.conversion = other.conversion
+        for attr in self._extra_kwargs:
+            if hasattr(other, attr):
+                setattr(self, attr, getattr(other, attr))
         return self
 
     def __repr__(self):
         return "hy.models.FComponent({})".format(
-            super(Object, self).__repr__() + ", conversion=" + repr(self.conversion)
+            (super(Object, self).__repr__()
+             + ", conversion=" + repr(self.conversion)
+             + ", expression=" + repr(self.expression)
+             + ", is_tstring=" + repr(self.is_tstring))
         )
 
 
@@ -469,11 +479,12 @@ class FString(Sequence):
     and :class:`hy.models.FComponent`. The design mimics :class:`ast.JoinedStr`.
 
     :ivar brackets: As in :class:`hy.models.String`.
+    :ivar is_tstring: Whether this represents a template string rather than a format string.
     """
 
-    _extra_kwargs = ("brackets",)
+    _extra_kwargs = ("brackets", "is_tstring")
 
-    def __new__(cls, s=None, brackets=None):
+    def __new__(cls, s=None, brackets=None, is_tstring=False):
         value = super().__new__(
             cls,
             # Join adjacent string nodes for the sake of equality
@@ -490,6 +501,7 @@ class FString(Sequence):
         if brackets is not None and _string_in_node(f"]{brackets}]", value):
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
         value.brackets = brackets
+        value.is_tstring = is_tstring
         return value
 
     def __repr__(self):
@@ -499,13 +511,19 @@ class FString(Sequence):
         return self._suffixize(super().__str__())
 
     def _suffixize(self, x):
-        if self.brackets is None:
+        if self.brackets is None and not self.is_tstring:
             return x
-        return "{}{}brackets={!r})".format(
-            x[:-1],  # Clip off the final close paren
-            "" if x[-2] == "(" else ", ",
-            self.brackets,
-        )
+        args = []
+        if self.brackets is not None:
+            args.append(f"brackets={self.brackets!r}")
+        if PY3_14 and self.is_tstring:
+            args.append(f"is_tstring={self.is_tstring!r}")
+        s = x[:-1]  # Clip off the final close paren
+        if s[-1] != "(":
+            s += ", "
+        s += ", ".join(args)
+        s += ")"
+        return s
 
 
 class List(Sequence):
@@ -533,9 +551,19 @@ def recwrap(f):
 
 
 _wrappers[FComponent] = recwrap(FComponent)
+if PY3_14:
+    _wrappers[Interpolation] = lambda interp: FComponent(
+            [as_model(interp.value), as_model(interp.format_spec)],
+            conversion=interp.conversion,
+            expression=interp.expression,
+            is_tstring=True)
 _wrappers[FString] = lambda fstr: FString(
-    (as_model(x) for x in fstr), brackets=fstr.brackets
+    (as_model(x) for x in fstr),
+    brackets=fstr.brackets,
+    is_tstring=fstr.is_tstring,
 )
+if PY3_14:
+    _wrappers[Template] = recwrap(lambda els: FString(els, is_tstring=True))
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
 
