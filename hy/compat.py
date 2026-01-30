@@ -7,6 +7,7 @@ PY3_11 = sys.version_info >= (3, 11)
 PY3_12 = sys.version_info >= (3, 12)
 PY3_12_6 = sys.version_info >= (3, 12, 6)
 PY3_13 = sys.version_info >= (3, 13)
+PY3_14 = sys.version_info >= (3, 14)
 PYPY = platform.python_implementation() == "PyPy"
 
 
