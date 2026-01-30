@@ -25,7 +25,6 @@ from hy.models import (
 )
 
 from .exceptions import LexException, PrematureEndOfInput
-from .mangling import mangle
 from .reader import Reader, isnormalizedspace
 
 

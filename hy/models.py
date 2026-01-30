@@ -4,7 +4,6 @@ from functools import reduce, total_ordering
 from itertools import groupby
 from math import isinf, isnan
 
-from hy import _initialize_env_var
 from hy.errors import HyWrapperError
 
 PRETTY = True
