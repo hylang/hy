@@ -658,6 +658,10 @@ class HyASTCompiler:
 
     @builds_model(FComponent)
     def compile_fcomponent(self, fcomponent):
+        if fcomponent.conversion not in (None, 's', 'r', 'a'):
+            raise self._syntax_error(
+                fcomponent, f"Invalid conversion character {fcomponent.conversion!r}"
+            )
         conversion = ord(fcomponent.conversion) if fcomponent.conversion else -1
         root, *rest = fcomponent
         value = self.compile(root)

@@ -417,6 +417,13 @@ def test_format_string():
     assert can_compile(r'f"hello {"\\n"} world"')
 
 
+def test_fstring_conversions():
+    assert can_compile('f"hello {(+ 1 1) !r} world"')
+    assert can_compile('f"hello {(+ 1 1) !s} world"')
+    assert can_compile('f"hello {(+ 1 1) !a} world"')
+    assert cant_compile('f"hello {(+ 1 1) !q} world"')
+
+
 def test_ast_bracket_string():
     assert s(r"#[[empty delims]]") == "empty delims"
     assert s(r"#[my delim[fizzle]my delim]") == "fizzle"
