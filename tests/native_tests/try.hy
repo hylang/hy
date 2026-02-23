@@ -205,3 +205,12 @@
       (raise ValueError :from NameError)
       (except [e [ValueError]] e))
     __cause__)))))
+
+
+(defn test-except-scope []
+  ; https://github.com/hylang/hy/issues/2684
+  (setv e (try
+    (/ 1 0)
+    (except [e ZeroDivisionError]
+      e)))
+  (assert (isinstance e ZeroDivisionError)))

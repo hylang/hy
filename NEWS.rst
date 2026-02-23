@@ -2,6 +2,16 @@
 
 Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 
+Unreleased
+======================================================================
+
+Supports Python 3.x – Python 3.y
+
+Bug Fixes
+------------------------------
+
+* Captured exception variables are now properly scoped.
+
 1.2.0 ("Crackers and Snacks", released 2026-01-14)
 ======================================================================
 

@@ -1476,7 +1476,7 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         # See: https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
         with compiler.scope.create(ScopeLet) as scope:
             if name:
-                scope.add(name, name)
+                name = scope.add(name, compiler.get_anon_var("exc", name))
             ebody = compiler._compile_branch(ebody)
         ebody += asty.Assign(catcher, targets=[return_var], value=ebody.force_expr)
         ebody += ebody.expr_as_stmt()
