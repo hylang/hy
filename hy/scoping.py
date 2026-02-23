@@ -271,7 +271,7 @@ class ScopeLet(ScopeBase):
                 raise ValueError("binding target may not contain a dot")
             name = mangle(target)
             if new_name is None:
-                new_name = self.compiler.get_anon_var(f"_hy_let_{name}")
+                new_name = self.compiler.get_anon_var("let", name)
             self.bindings[name] = new_name
             if isinstance(target, Symbol):
                 return Symbol(new_name).replace(target)
