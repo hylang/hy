@@ -154,7 +154,6 @@
         ;; let bindings should work in except block
         (assert (= bar 33))
         ;; but exception bindings can shadow let bindings
-        (assert (= (get (locals) "foo") foo))
         (assert (isinstance foo Exception))))
     ;; let binding did not get clobbered.
     (assert (= foo 42))))

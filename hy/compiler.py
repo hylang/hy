@@ -379,9 +379,10 @@ class HyASTCompiler:
                 RuntimeWarning
             )
 
-    def get_anon_var(self, base="_hy_anon_var"):
+    def get_anon_var(self, base="anon", name=""):
         self.anon_var_count += 1
-        return f"{base}_{self.anon_var_count}"
+        name = name and "_" + name
+        return f"_hy_{base}{name}_{self.anon_var_count}"
 
     def compile_atom(self, atom):
         # Compilation methods may mutate the atom, so copy it first.
