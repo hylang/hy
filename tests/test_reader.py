@@ -641,6 +641,94 @@ def test_discard():
     ]
 
 
+def test_double_discard():
+    """Check that double-discarded terms are removed properly."""
+    # empty
+    assert tokenize("") == []
+    # double
+    assert tokenize("#__ 1 2") == []
+    # 3+
+    assert tokenize("#__ 1 2 3") == [Integer(3)]
+    # multiple
+    assert tokenize("#__ 1 2 #__ 3 4") == []
+    assert tokenize("#__ 1 2 #__ 3 4 #__ 5 6") == []
+    # nested discard
+    assert tokenize("#__ #__ 1 2 3 4") == []
+    assert tokenize("#__ #__ #__ 1 2 3 4 5 6") == []
+    # trailing
+    assert tokenize("0") == [Integer(0)]
+    assert tokenize("0 #__ 1 2") == [Integer(0)]
+    assert tokenize("0 #__ 1 2 #__ 3 4") == [Integer(0)]
+    # leading
+    assert tokenize("2") == [Integer(2)]
+    assert tokenize("#__ 0 1 2") == [Integer(2)]
+    assert tokenize("#__ 0 1 #__ 1 2 3") == [Integer(3)]
+    assert tokenize("#__ #__ 0 1 2 3 4") == [Integer(4)]
+    # both
+    assert tokenize("#__ 1 2 3 #__ 4 5") == [Integer(3)]
+    assert tokenize("#__ 0 1 #__ 2 3 4 #__ #__ 5 6 7 8") == [Integer(4)]
+    # inside
+    assert tokenize("0 #__ 1 2 3") == [Integer(0), Integer(3)]
+    assert tokenize("0 #__ 1 2 #__ 3 4 5") == [Integer(0), Integer(5)]
+    assert tokenize("0 #__ #__ 1 2 3 4 5") == [Integer(0), Integer(5)]
+    # in List
+    assert tokenize("[]") == [List([])]
+    assert tokenize("[#__ 1 2]") == [List([])]
+    assert tokenize("[#__ 1 2 #__ 3 4]") == [List([])]
+    assert tokenize("[#__ #__ 1 2 3 4]") == [List([])]
+    assert tokenize("[0]") == [List([Integer(0)])]
+    assert tokenize("[0 #__ 1 2]") == [List([Integer(0)])]
+    assert tokenize("[0 #__ 1 2 #__ 3 4]") == [List([Integer(0)])]
+    assert tokenize("[2]") == [List([Integer(2)])]
+    assert tokenize("[#__ 1 2 3]") == [List([Integer(3)])]
+    assert tokenize("[#__ 0 1 #__ 2 3 4]") == [List([Integer(4)])]
+    assert tokenize("[#__ #__ 0 1 2 3 4]") == [List([Integer(4)])]
+    # in Set
+    assert tokenize("#{}") == [Set()]
+    assert tokenize("#{#__ 1 2}") == [Set()]
+    assert tokenize("#{0 #__ 1 2}") == [Set([Integer(0)])]
+    assert tokenize("#{#__ 1 2 0}") == [Set([Integer(0)])]
+    # in Dict
+    assert tokenize("{}") == [Dict()]
+    assert tokenize("{#__ 1 2}") == [Dict()]
+    assert tokenize("{#__ 0 1 2 3}") == [Dict([Integer(2), Integer(3)])]
+    assert tokenize("{1 #__ 0 2 3}") == [Dict([Integer(1), Integer(3)])]
+    assert tokenize("{1 2 #__ 0 4}") == [Dict([Integer(1), Integer(2)])]
+    # in Expression
+    assert tokenize("()") == [Expression()]
+    assert tokenize("(#__ foo bar)") == [Expression()]
+    assert tokenize("(#__ foo bar baz)") == [Expression([Symbol("baz")])]
+    assert tokenize("(foo #__ bar baz)") == [Expression([Symbol("foo")])]
+    assert tokenize("(foo :bar 1)") == [
+        Expression([Symbol("foo"), Keyword("bar"), Integer(1)])
+    ]
+    assert tokenize("(foo #__ :bar 1)") == [Expression([Symbol("foo")])]
+    assert tokenize("(foo #__ :bar 1 :baz 2)") == [
+        Expression([Symbol("foo"), Keyword("baz"), Integer(2)])
+    ]
+    assert tokenize("(foo :bar #__ 1 2)") == [
+        Expression([Symbol("foo"), Keyword("bar")])
+    ]
+    # discard term with nesting
+    assert tokenize("[1 2 #__ [a b c [d e [f g] h]] 3 4]") == [
+        List([Integer(1), Integer(2), Integer(4)])
+    ]
+    # discard with other prefix syntax
+    assert tokenize("a #__ 'b 'c d") == [Symbol("a"), Symbol("d")]
+    assert tokenize("a '#__ b c d") == [
+        Symbol("a"),
+        Expression([Symbol("quote"), Symbol("d")]),
+    ]
+    assert tokenize("a '#__ b c #__ d e f") == [
+        Symbol("a"),
+        Expression([Symbol("quote"), Symbol("f")]),
+    ]
+    assert tokenize("a '#__ #__ b c d e f") == [
+        Symbol("a"),
+        Expression([Symbol("quote"), Symbol("f")]),
+    ]
+
+
 def test_lex_exception_filtering(capsys):
     """Confirm that the exception filtering works for lexer errors."""
 
@@ -692,9 +780,8 @@ def test_shebang():
 
     with pytest.raises(HySyntaxError):
         # By default, `read_many` doesn't allow a shebang.
-        assert tokenize('#!/usr/bin/env hy\n5')
-    assert (tokenize('#!/usr/bin/env hy\n5', skip_shebang = True) ==
-        [Integer(5)])
+        assert tokenize("#!/usr/bin/env hy\n5")
+    assert tokenize("#!/usr/bin/env hy\n5", skip_shebang=True) == [Integer(5)]
 
 
 def test_reader_class_reprs():

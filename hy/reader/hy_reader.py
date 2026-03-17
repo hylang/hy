@@ -385,6 +385,13 @@ class HyReader(Reader):
         self.parse_one_form()
         return None
 
+    @reader_for("#__")
+    def double_discard(self, _):
+        """Discards the next two parsed forms."""
+        self.parse_one_form()
+        self.parse_one_form()
+        return None
+
     @reader_for("#*")
     @reader_for("#**")
     def hash_star(self, stars):

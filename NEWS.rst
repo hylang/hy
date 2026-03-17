@@ -7,6 +7,10 @@ Unreleased
 
 Supports Python 3.x – Python 3.y
 
+New Features
+------------------------------
+* Added ``#__``. Similar to ``#_``, but discards the next *two* forms.
+
 Bug Fixes
 ------------------------------
 

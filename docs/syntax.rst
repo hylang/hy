@@ -126,6 +126,11 @@ krunk]`` is equivalent to just ``[dilly``. Comments indicated by ``;`` can be
 nested within forms discarded by ``#_``, but ``#_`` has no special meaning
 within a comment indicated by ``;``.
 
+``#__`` will discard two forms, which is useful for commenting out keyword
+arguments or dictionary entries.  Thus ``(f :kw1 1 #__ :kw2 2)`` is equivalent
+to ``(f :kw1 1)``, and ``{ #__ "one" 1 "two" 2}`` is equivalent to ``{"two" 2}``.
+
+
 Identifiers
 -----------
 
