@@ -66,3 +66,26 @@
      for p in [k n (* 10 n)]
      do (.append l p) (-= k 1))
   (assert (= l [2 1 10  -1 2 20  -4 3 30])))
+
+(defn test-whole-with-skip []
+  ; https://github.com/hylang/hy/issues/2691
+
+  (import
+    hy.model-patterns [whole  FORM :as X]
+    funcparserlib.parser [skip])
+
+  (assert (= (.parse (whole []) []) #()))
+
+  (assert (= (.parse (whole [X])        ['1]) #('1)))
+  (assert (= (.parse (whole [(skip X)]) ['1]) #()))
+
+  (defn f [#* parsers]
+    (.parse
+       (whole parsers)
+       ['1 '2 '3]))
+
+  (assert (= (f X        X         X)       #('1 '2 '3)))
+  (assert (= (f (skip X) X         X)       #('2 '3)))
+  (assert (= (f (skip X) (skip X)  X)       #('3)))
+  (assert (= (f (skip X) X        (skip X)) #('2)))
+  (assert (= (f (skip X) (skip X) (skip X)) #())))

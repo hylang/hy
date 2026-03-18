@@ -74,7 +74,7 @@ def pvalue(root, wanted):
 
 def maybe_annotated(target):
     return (
-       pexpr(sym("annotate") + target + FORM).named('`annotate` form') |
+       pexpr(sym("annotate"), target, FORM).named('`annotate` form') |
        (target >> (lambda x: (x, None))))
 
 
@@ -1832,7 +1832,7 @@ def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
 # ------------------------------------------------
 
 module_name_pattern = SYM | pexpr(
-    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")) + oneplus(SYM)
+    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")), oneplus(SYM)
 )
 
 
