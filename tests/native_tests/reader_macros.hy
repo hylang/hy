@@ -50,6 +50,14 @@
     (eval-isolated (next it) module)
     (assert (= (next it) '"hello, world!"))))
 
+(defn test-returning-none []
+  (assert (=
+    (eval-module #[[(defreader foo None) #(1 #foo 2)]])
+    #(1 2)))
+  (assert (=
+    (eval-module #[[(defreader foo 'None) #(1 #foo 2)]])
+    #(1 None 2))))
+
 (defn test-bad-reader-macro-name []
   (with [(pytest.raises HyMacroExpansionError)]
     (eval-module "(defreader :a-key '1)"))

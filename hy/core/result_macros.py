@@ -74,7 +74,7 @@ def pvalue(root, wanted):
 
 def maybe_annotated(target):
     return (
-       pexpr(sym("annotate") + target + FORM).named('`annotate` form') |
+       pexpr(sym("annotate"), target, FORM).named('`annotate` form') |
        (target >> (lambda x: (x, None))))
 
 
@@ -88,12 +88,10 @@ type_params = sym(":tp") + brackets(many(
 def digest_type_params(compiler, tp):
     "Return a `type_params` attribute for `FunctionDef` etc."
 
-    if tp:
-        if not PY3_12:
-            compiler._syntax_error(tp, "`:tp` requires Python 3.12 or later")
-        tp, = tp
-    elif not PY3_12:
+    if not tp:
         return {}
+    if not PY3_12:
+       compiler._syntax_error(tp, "`:tp` requires Python 3.12 or later")
 
     return dict(type_params = [
         asty.TypeVarTuple(x[1], name = mangle(x[1]))
@@ -103,7 +101,7 @@ def digest_type_params(compiler, tp):
         asty.TypeVar(x[0],
                name = mangle(x[0]),
                bound = x[1] and compiler.compile(x[1]).force_expr)
-        for x in (tp or [])])
+        for x in tp[0]])
 
 
 # ------------------------------------------------
@@ -1834,7 +1832,7 @@ def compile_class_expression(compiler, expr, root, decorators, tp, name, rest):
 # ------------------------------------------------
 
 module_name_pattern = SYM | pexpr(
-    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")) + oneplus(SYM)
+    some(lambda x: isinstance(x, Symbol) and not str(x[0]).strip(".")), oneplus(SYM)
 )
 
 

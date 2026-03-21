@@ -191,6 +191,14 @@ A less trivial, and more common, usage of reader macros is to call :func:`hy.HyR
 
     #do-twice (print "This line prints twice.")
 
+A special feature of reader macros, compared to regular macros, is that if they return ``None`` (not to be confused with ``'None``, a symbol that evaluates to ``None``), no model is produced, as if the reader-macro call wasn't there. ::
+
+    (defmacro regular-macro [])
+    (defreader reader-macro)
+
+    (print [1 (regular-macro) 2])  ; => [1, None, 2]
+    (print [1 #reader-macro 2])    ; => [1, 2]
+
 Here's a moderately complex example of a reader macro that couldn't be implemented as a regular macro. It reads in a list of lists in which the inner lists are newline-separated, but newlines are allowed inside elements. ::
 
     (defreader matrix

@@ -15,6 +15,7 @@ from funcparserlib.parser import (
     many,
     skip,
     some,
+    _IgnoredParser
 )
 
 from hy.models import (
@@ -60,12 +61,21 @@ def _sym(wanted, f=lambda x: x):
 
 def whole(parsers):
     """Match the parsers in the given list one after another, then
-    expect the end of the input."""
+    expect the end of the input. The result is always a tuple."""
     if len(parsers) == 0:
-        return finished >> (lambda x: [])
+        return finished >> (lambda _: ())
+    non_ignored_parsers = sum(
+        not isinstance(p, _IgnoredParser)
+        for p in parsers)
     if len(parsers) == 1:
-        return parsers[0] + finished >> (lambda x: x[:-1])
-    return reduce(add, parsers) + skip(finished)
+        return ((parsers[0] >> (lambda r: (r,) if non_ignored_parsers else ())) +
+            skip(finished))
+    return ((
+        reduce(add, parsers) >> (lambda r:
+            () if non_ignored_parsers == 0 else
+            (r,) if non_ignored_parsers == 1 else
+            r)) +
+        skip(finished))
 
 
 def _grouped(group_type, syntax_example, name, parsers):
@@ -94,7 +104,7 @@ def pexpr(*parsers, name = None):
 def dolike(head):
     """Parse a :hy:func:`do`-like expression. ``head`` is a string used to
     construct a symbol for the head."""
-    return pexpr(sym(head), many(FORM))
+    return pexpr(sym(head), many(FORM)) >> (lambda r: r[0])
 
 
 def notpexpr(*disallowed_heads):
