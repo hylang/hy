@@ -7,12 +7,18 @@ Unreleased
 
 Supports Python 3.x – Python 3.y
 
+New Features
+------------------------------
+* Added support for t-strings from Python 3.14.
+* Added new pragma `bracketed-templates` to allow parsing `#[t[...]t]` and `#[t-<ident>[...]t-<ident>]` as template strings (analogous to bracketed f-strings).
+
 Bug Fixes
 ------------------------------
 
 * Captured exception variables are now properly scoped.
 * Fixed bugs in `hy.model-patterns.whole` (and other combinators that
   use it, like `brackets`) in which tuples were not always produced.
+* Invalid conversion chars in f-strings now properly raise a syntax error.
 
 1.2.0 ("Crackers and Snacks", released 2026-01-14)
 ======================================================================
