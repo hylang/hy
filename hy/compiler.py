@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from funcparserlib.parser import NoParseError, many
 
 import hy
+from hy.compat import PY3_14
 from hy.errors import HyCompileError, HyLanguageError, HySyntaxError
 from hy.macros import macroexpand
 from hy.model_patterns import FORM, KEYWORD, unpack
@@ -658,6 +659,12 @@ class HyASTCompiler:
 
     @builds_model(FComponent)
     def compile_fcomponent(self, fcomponent):
+        if not PY3_14 and fcomponent.is_tstring:
+            raise self._syntax_error(fcomponent, "Template string literals require Python 3.14 or later")
+        if fcomponent.conversion not in (None, 's', 'r', 'a'):
+            raise self._syntax_error(
+                fcomponent, f"Invalid conversion character {fcomponent.conversion!r}"
+            )
         conversion = ord(fcomponent.conversion) if fcomponent.conversion else -1
         root, *rest = fcomponent
         value = self.compile(root)
@@ -669,15 +676,18 @@ class HyASTCompiler:
         return (
             value
             + ret
-            + asty.FormattedValue(
-                fcomponent, value=value.expr, conversion=conversion, format_spec=spec
+            + (asty.Interpolation if fcomponent.is_tstring else asty.FormattedValue)(
+                fcomponent, value=value.expr, conversion=conversion, format_spec=spec,
+                **(dict(str=fcomponent.expression) if fcomponent.is_tstring else {}),
             )
         )
 
     @builds_model(FString)
     def compile_fstring(self, fstring):
+        if not PY3_14 and fstring.is_tstring:
+            raise self._syntax_error(fstring, "Template string literals require Python 3.14 or later")
         elts, ret, _ = self._compile_collect(fstring)
-        return ret + asty.JoinedStr(fstring, values=elts)
+        return ret + (asty.TemplateStr if fstring.is_tstring else asty.JoinedStr)(fstring, values=elts)
 
     @builds_model(List, Set)
     def compile_list(self, expression):

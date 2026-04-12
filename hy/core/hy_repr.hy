@@ -197,7 +197,7 @@
                         "}" "}}")
                       (hy-repr component)))
          "]" fstring.brackets "]")
-      (+ "f\""
+      (+ (if fstring.is-tstring "t" "f") "\""
          #* (lfor component fstring
                   :setv s (hy-repr component)
                   (if (isinstance component hy.models.String)

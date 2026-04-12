@@ -11,14 +11,13 @@ The class finder in `findsource` relies on python 3.13 or later.
 
 import inspect
 import linecache
-import sys
 from contextlib import suppress
 
 from hy.compat import PY3_13
 from hy.errors import HySyntaxError
-from hy.models import as_model, Expression, Lazy, Object
+from hy.models import Expression, Lazy
 from hy.reader import HyReader, read
-from hy.reader.exceptions import LexException, PrematureEndOfInput
+from hy.reader.exceptions import LexException
 
 
 class HySafeReader(HyReader):

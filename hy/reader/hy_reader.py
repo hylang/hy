@@ -6,6 +6,7 @@ from contextlib import contextmanager, nullcontext
 from itertools import islice
 
 import hy
+from hy.compat import PY3_14
 from hy.models import (
     Bytes,
     Complex,
@@ -25,7 +26,6 @@ from hy.models import (
 )
 
 from .exceptions import LexException, PrematureEndOfInput
-from .mangling import mangle
 from .reader import Reader, isnormalizedspace
 
 
@@ -126,8 +126,10 @@ class HyReader(Reader):
     NON_IDENT = set("()[]{};\"'`~")
     _current_reader = None
 
-    def __init__(self, *, use_current_readers=False):
+    def __init__(self, *, use_current_readers=False, bracketed_templates=False):
         super().__init__()
+
+        self.bracketed_templates = bracketed_templates
 
         # move any reader macros declared using
         # `reader_for("#...")` to the macro table
@@ -296,10 +298,12 @@ class HyReader(Reader):
         prefix_chars = set(prefix)
         if (
             len(prefix_chars) != len(prefix)
-            or prefix_chars - set("bfr")
-            or set("bf") <= prefix_chars
+            or not prefix_chars < set("bfrt")
+            or len(prefix_chars - set("r")) > 1
         ):
             raise LexException.from_reader(f"invalid string prefix {prefix!r}", self)
+        if not PY3_14 and "t" in prefix_chars:
+            raise LexException.from_reader("Template string literals require Python 3.14 or later", self)
 
         escaping = False
 
@@ -322,7 +326,12 @@ class HyReader(Reader):
             escaping = False
             return 0
 
-        return self.read_string_until(quote_closing, prefix, "f" in prefix.lower())
+        fstring_mode = (
+            "f" if "f" in prefix_chars
+            else "t" if "t" in prefix_chars
+            else ""
+        )
+        return self.read_string_until(quote_closing, prefix, fstring_mode)
 
     ###
     # Special annotations
@@ -420,7 +429,13 @@ class HyReader(Reader):
                 )
             delim.append(c)
         delim = "".join(delim)
-        is_fstring = delim == "f" or delim.startswith("f-")
+        fstring_mode = (
+            "f" if delim == "f" or delim.startswith("f-")
+            else "t" if self.bracketed_templates and (delim == "t" or delim.startswith("t-"))
+            else ""
+        )
+        if not PY3_14 and fstring_mode == "t":
+            raise LexException.from_reader("Template string literals require Python 3.14 or later", self)
 
         # discard single initial newline, if any, accounting for all
         # three styles of newline
@@ -447,16 +462,16 @@ class HyReader(Reader):
                     index = -1
             return 0
 
-        return self.read_string_until(delim_closing, "r", is_fstring, brackets=delim)
+        return self.read_string_until(delim_closing, "r", fstring_mode, brackets=delim)
 
-    def read_string_until(self, closing, prefix, is_fstring, **kwargs):
-        if is_fstring:
-            components = self.read_fcomponents_until(closing, prefix)
-            return FString(components, **kwargs)
-        s = self.read_chars_until(closing, prefix, is_fstring=False)
+    def read_string_until(self, closing, prefix, fstring_mode, **kwargs):
+        if fstring_mode:
+            components = self.read_fcomponents_until(closing, prefix, fstring_mode)
+            return FString(components, is_tstring=fstring_mode == 't', **kwargs)
+        s = self.read_chars_until(closing, prefix, fstring_mode="")
         return (Bytes if isinstance(s, bytes) else String)(s, **kwargs)
 
-    def read_chars_until(self, closing, prefix, is_fstring):
+    def read_chars_until(self, closing, prefix, fstring_mode):
         s = []
         in_named_escape = False
         for c in self.chars():
@@ -467,7 +482,7 @@ class HyReader(Reader):
                 # string has ended
                 s = s[:-n_closing_chars]
                 break
-            if is_fstring:
+            if fstring_mode:
                 # handle braces in f-strings
                 if c == "{":
                     if "r" not in prefix and s[-3:] == ["\\", "N", "{"]:
@@ -481,7 +496,7 @@ class HyReader(Reader):
                     if in_named_escape:
                         in_named_escape = False
                     elif not self.peek_and_getc("}"):
-                        raise SyntaxError("f-string: single '}' is not allowed")
+                        raise SyntaxError(f"{fstring_mode}-string: single '}}' is not allowed")
         res = "".join(s).replace("\x0d\x0a", "\x0a").replace("\x0d", "\x0a")
 
         if "b" in prefix:
@@ -500,23 +515,23 @@ class HyReader(Reader):
                 # see https://github.com/python/cpython/issues/65530
                 res = res.encode('ISO-8859-1', errors='backslashreplace').decode('unicode_escape')
 
-        if is_fstring:
+        if fstring_mode:
             return res, n_closing_chars
         return res
 
-    def read_fcomponents_until(self, closing, prefix):
+    def read_fcomponents_until(self, closing, prefix, fstring_mode):
         components = []
         start = self.pos
         while True:
-            s, closed = self.read_chars_until(closing, prefix, is_fstring=True)
+            s, closed = self.read_chars_until(closing, prefix, fstring_mode=fstring_mode)
             if s:
                 components.append(self.fill_pos(String(s), start))
             if closed:
                 break
-            components.extend(self.read_fcomponent(prefix))
+            components.extend(self.read_fcomponent(prefix, fstring_mode))
         return components
 
-    def read_fcomponent(self, prefix):
+    def read_fcomponent(self, prefix, fstring_mode):
         """May return one or two components, since the `=` debugging syntax
         will create a String component."""
         start = self.pos
@@ -530,6 +545,7 @@ class HyReader(Reader):
         with self.saving_chars() as form_text:
             model = self.parse_one_form()
         space_between = self.slurp_space()
+        form_text = "".join(form_text)
 
         # check for and handle debug syntax:
         # we emt the verbatim text before we emit the value
@@ -537,7 +553,7 @@ class HyReader(Reader):
             has_debug = True
             space_after = self.slurp_space()
             dbg_prefix = (
-                space_before + "".join(form_text) + space_between + "=" + space_after
+                space_before + form_text + space_between + "=" + space_after
             )
             values.append(self.fill_pos(String(dbg_prefix), start))
 
@@ -554,12 +570,12 @@ class HyReader(Reader):
         # handle formatting options
         format_components = []
         if self.peek_and_getc(":"):
-            format_components = self.read_fcomponents_until(component_closing, prefix)
+            format_components = self.read_fcomponents_until(component_closing, prefix, "f")
         else:
             if has_debug and conversion is None:
                 conversion = "r"
             if not self.getc() == "}":
-                raise LexException.from_reader("f-string: trailing junk in field", self)
+                raise LexException.from_reader(f"{fstring_mode}-string: trailing junk in field", self)
         return values + [
-            self.fill_pos(FComponent((model, *format_components), conversion), start)
+            self.fill_pos(FComponent((model, *format_components), conversion=conversion, expression=form_text, is_tstring=fstring_mode == "t"), start)
         ]
