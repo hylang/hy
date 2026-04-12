@@ -4,7 +4,7 @@ from textwrap import dedent
 import pytest
 
 import hy
-from hy.compat import PY3_11
+from hy.compat import PY3_11, PY3_14
 from hy.compiler import hy_compile
 from hy.errors import HyError, HyLanguageError
 from hy.reader import read_many
@@ -422,6 +422,12 @@ def test_fstring_conversions():
     assert can_compile('f"hello {(+ 1 1) !s} world"')
     assert can_compile('f"hello {(+ 1 1) !a} world"')
     assert cant_compile('f"hello {(+ 1 1) !q} world"')
+
+
+def test_template_string():
+    assert can_compile('t"hello world"', iff=PY3_14)
+    assert can_compile('t"hello {(+ 1 1)} world"', iff=PY3_14)
+    assert cant_compile('t"hello {(+ 1 1) world"')
 
 
 def test_ast_bracket_string():
