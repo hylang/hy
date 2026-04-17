@@ -13,6 +13,8 @@ Bug Fixes
 * Captured exception variables are now properly scoped.
 * Fixed bugs in `hy.model-patterns.whole` (and other combinators that
   use it, like `brackets`) in which tuples were not always produced.
+* Added pattern matching support to String, Bytes, Symbol, Integer, Float,
+  and Complex models.
 
 1.2.0 ("Crackers and Snacks", released 2026-01-14)
 ======================================================================

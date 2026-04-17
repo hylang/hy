@@ -128,7 +128,19 @@
   ;; :as clause cannot come after :if guard
   (with [(pytest.raises HySyntaxError)]
     (hy.eval '(match 1
-                     1 :if True :as x x))))
+                     1 :if True :as x x)))
+
+  (defmacro assert-model-match [subject pattern]
+     `(assert (match (quote ~subject) ~pattern True _ False)))
+
+  (assert-model-match "foo" (hy.models.String "foo"))
+  (assert-model-match b"1" (hy.models.Bytes b"1"))
+  (assert-model-match foo (hy.models.Symbol "foo"))
+  (assert-model-match :foo (hy.models.Keyword "foo"))
+  (assert-model-match 1 (hy.models.Integer 1))
+  (assert-model-match 1.0 (hy.models.Float 1.0))
+  (assert-model-match 1+2j (hy.models.Complex 1 2)))
+
 
 (defn test-dotted-constructor []
   ; https://github.com/hylang/hy/issues/2404
