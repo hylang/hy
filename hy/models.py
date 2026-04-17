@@ -149,6 +149,8 @@ class String(Object, str):
       ``#[[hello]]`` is the empty string.
     """
 
+    __match_args__ = ("_as_str",)
+
     def __new__(cls, s=None, brackets=None):
         value = super().__new__(cls, s)
         if brackets is not None and f"]{brackets}]" in value:
@@ -165,6 +167,10 @@ class String(Object, str):
     def __add__(self, other):
         return self.__class__(super().__add__(other))
 
+    @property
+    def _as_str(self):
+        return str(self)
+
 
 _wrappers[str] = String
 
@@ -174,7 +180,11 @@ class Bytes(Object, bytes):
     Represents a literal bytestring (:class:`bytes`).
     """
 
-    pass
+    __match_args__ = ("_as_bytes",)
+
+    @property
+    def _as_bytes(self):
+        return bytes(self)
 
 
 _wrappers[bytes] = Bytes
@@ -188,6 +198,8 @@ class Symbol(Object, str):
     :func:`len`, and :class:`bool`; in particular, ``(bool (hy.models.Symbol "False"))`` is true. Use :hy:func:`hy.eval` to evaluate a symbol.
     """
 
+    __match_args__ = ("_as_str",)
+
     def __new__(cls, s, from_parser=False):
         s = str(s)
         if not from_parser:
@@ -200,6 +212,10 @@ class Symbol(Object, str):
                 raise ValueError(f"Syntactically illegal symbol: {s!r}")
             return sym
         return super().__new__(cls, s)
+
+    @property
+    def _as_str(self):
+        return str(self)
 
 
 _wrappers[bool] = lambda x: Symbol("True") if x else Symbol("False")
@@ -300,6 +316,8 @@ class Integer(Object, int):
     Represents a literal integer (:class:`int`).
     """
 
+    __match_args__ = ("_as_int",)
+
     def __new__(cls, number, *args, **kwargs):
         return super().__new__(
             cls,
@@ -314,6 +332,10 @@ class Integer(Object, int):
                 ),
             ),
         )
+
+    @property
+    def _as_int(self):
+        return int(self)
 
 
 _wrappers[int] = Integer
@@ -331,11 +353,16 @@ class Float(Object, float):
     """
     Represents a literal floating-point real number (:class:`float`).
     """
+    __match_args__ = ("_as_float",)
 
     def __new__(cls, num, *args, **kwargs):
         value = super().__new__(cls, strip_digit_separators(num))
         check_inf_nan_cap(num, value)
         return value
+
+    @property
+    def _as_float(self):
+        return float(self)
 
 
 _wrappers[float] = Float
@@ -348,6 +375,7 @@ class Complex(Object, complex):
     added to the imaginary part of the new model, but ``imag``, if provided, must be
     real.
     """
+    __match_args__ = ("real", "imag")
 
     def __new__(cls, real, imag=0, *args, **kwargs):
         if isinstance(real, str):
