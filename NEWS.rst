@@ -5,9 +5,11 @@ Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 Unreleased
 ======================================================================
 
-* ``hyc`` now supports ``-q``/``--quiet`` (suppress progress messages).
-
 Supports Python 3.x – Python 3.y
+
+New Features
+------------------------------
+* ``hyc`` now supports ``-q``/``--quiet`` to suppress progress messages.
 
 Bug Fixes
 ------------------------------
