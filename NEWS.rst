@@ -6,7 +6,6 @@ Unreleased
 ======================================================================
 
 * ``hyc`` now supports ``-o``/``--output`` (custom .pyc output path),
-  ``-O``/``--optimize`` (bytecode optimisation level 0–2), and
   ``-q``/``--quiet`` (suppress progress messages).
 
 Supports Python 3.x – Python 3.y

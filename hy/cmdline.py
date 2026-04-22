@@ -5,7 +5,6 @@ import io
 import os
 import platform
 import py_compile
-import re
 import runpy
 import sys
 import types
@@ -223,38 +222,49 @@ def cmdline_handler(argv):
         # If the `command` or `mod` options were provided, we'll run
         # the corresponding code.
         ["eval_string", options["command"]]
-            if "command" in options else
-        ["run_module", options["mod"]]
-            if "mod" in options else
-        # Otherwise, we'll run any provided filename as a script (or
-        # standard input, if the filename is "-").
-        ["run_script_stdin", None]
-            if argv and argv[0] == "-" else
-        ["run_script_file", argv[0]]
-            if argv else
-        # With none of those arguments, we'll launch the REPL (if
-        # standard input is a TTY) or run a script from standard input
-        # (otherwise).
-        ["just_repl", None]
-            if sys.stdin.isatty() else
-        ["run_script_stdin", None])
+        if "command" in options
+        else (
+            ["run_module", options["mod"]]
+            if "mod" in options
+            else
+            # Otherwise, we'll run any provided filename as a script (or
+            # standard input, if the filename is "-").
+            (
+                ["run_script_stdin", None]
+                if argv and argv[0] == "-"
+                else (
+                    ["run_script_file", argv[0]]
+                    if argv
+                    else
+                    # With none of those arguments, we'll launch the REPL (if
+                    # standard input is a TTY) or run a script from standard input
+                    # (otherwise).
+                    (
+                        ["just_repl", None]
+                        if sys.stdin.isatty()
+                        else ["run_script_stdin", None]
+                    )
+                )
+            )
+        )
+    )
     repl = (
-        REPL(
-            spy = options.get("spy"),
-            output_fn = options.get("repl_output_fn"))
+        REPL(spy=options.get("spy"), output_fn=options.get("repl_output_fn"))
         if "i" in options or action == "just_repl"
-        else None)
-    source = ''
+        else None
+    )
+    source = ""
 
     if action == "eval_string":
         sys.argv = ["-c"] + argv
         if repl:
             source = action_arg
-            filename = '<string>'
+            filename = "<string>"
         else:
             return run_command(action_arg, filename="<string>")
     elif action == "run_module":
-        if repl: raise ValueError()
+        if repl:
+            raise ValueError()
         set_path("")
         sys.argv = [program] + argv
         runpy.run_module(hy.mangle(action_arg), run_name="__main__", alter_sys=True)
@@ -301,12 +311,12 @@ def cmdline_handler(argv):
         res = None
         filename = str(filename)
         with filtered_hy_exceptions():
-            accum = ''
+            accum = ""
             for chunk in ([source] if isinstance(source, str) else source):
                 accum += chunk
                 res = repl.runsource(accum, filename=filename)
                 if not res:
-                    accum = ''
+                    accum = ""
         # If the command was prematurely ended, show an error (just like Python
         # does).
         if res:
@@ -332,33 +342,6 @@ def hyc_main():
     parser.add_argument("files", metavar="FILE", nargs="+", help="File(s) to compile")
     parser.add_argument("-v", action="version", version=VERSION)
     parser.add_argument(
-        "-o",
-        "--output",
-        metavar="OUTPUT",
-        default=None,
-        help=(
-            "Path for the compiled .pyc file. "
-            "Only valid when a single FILE is given; "
-            "defaults to the standard __pycache__ location."
-        ),
-    )
-    parser.add_argument(
-        "-O",
-        "--optimize",
-        metavar="LEVEL",
-        type=int,
-        choices=[0, 1, 2],
-        default=-1,
-        help=(
-            "Bytecode optimization level: "
-            "0 = no optimization, "
-            "1 = remove assert statements, "
-            "2 = remove assert statements and docstrings. "
-            "Mirrors Python's -O / -OO flags. Defaults to -1 (inherit "
-            "the current interpreter level)."
-        ),
-    )
-    parser.add_argument(
         "-q",
         "--quiet",
         action="store_true",
@@ -368,42 +351,28 @@ def hyc_main():
 
     options = parser.parse_args(sys.argv[1:])
 
-    if options.output is not None and len(options.files) > 1:
-        print(
-            "hyc: error: -o/--output can only be used with a single input file",
-            file=sys.stderr,
-        )
-        return 1
-
     rv = 0
     for filename in options.files:
         set_path(filename)
-
-        cfile = options.output
-
-        if not options.quiet:
-            dest = cfile if cfile is not None else importlib.util.cache_from_source(filename)
-            print(
-                "Compiling {!r} --> {!r}".format(filename, dest),
-                file=sys.stderr,
-            )
-
         try:
-            py_compile.compile(
-                filename,
-                cfile=cfile,
-                doraise=True,
-                optimize=options.optimize,
-            )
+            if not options.quiet:
+                print(
+                    "Compiling {!r} --> {!r}".format(
+                        filename, importlib.util.cache_from_source(filename)
+                    ),
+                    file=sys.stderr,
+                )
+            py_compile.compile(filename, doraise=True)
         except py_compile.PyCompileError as error:
             rv = 1
             print(error.msg, file=sys.stderr)
-
         sys.path.pop(0)
-
     return rv
 
-def hy2py_worker(source, options, filename=None, parent_module=None, output_filepath=None):
+
+def hy2py_worker(
+    source, options, filename=None, parent_module=None, output_filepath=None
+):
     source_path = None
     if isinstance(source, Path):
         source_path = source
@@ -413,7 +382,6 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
 
     if not output_filepath and options.output:
         output_filepath = options.output
-
 
     with (
         open(output_filepath, "w", encoding="utf-8")
@@ -427,6 +395,7 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
                     if options.with_source:
                         print(node, file=output_file)
                     yield node
+
             printing_hst = hy.models.Lazy(_printing_gen(hst))
             printing_hst.source = hst.source
             printing_hst.filename = hst.filename
@@ -442,11 +411,7 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
             module = types.ModuleType(module_name)
             sys.modules[module_name] = module
             try:
-                _ast = hy_compile(
-                     hst,
-                     module,
-                     filename=filename,
-                     source=source)
+                _ast = hy_compile(hst, module, filename=filename, source=source)
             finally:
                 del sys.modules[module_name]
 
@@ -455,7 +420,7 @@ def hy2py_worker(source, options, filename=None, parent_module=None, output_file
             print()
 
         if options.with_ast:
-            print(ast.dump(_ast, indent = 2), file=output_file)
+            print(ast.dump(_ast, indent=2), file=output_file)
             print()
             print()
 
@@ -472,14 +437,18 @@ def hy2py_main():
     )
     parser = argparse.ArgumentParser(**options)
     gp = parser.add_argument_group().add_mutually_exclusive_group()
-    gp.add_argument("-m", dest="module", help="convert Hy module (or all files in module)")
+    gp.add_argument(
+        "-m", dest="module", help="convert Hy module (or all files in module)"
+    )
     gp.add_argument(
         "FILE",
         type=str,
         nargs="?",
-        help='convert Hy source file',
+        help="convert Hy source file",
     )
-    gp.add_argument("-", dest="use_stdin", action="store_true", help="read Hy from stdin")
+    gp.add_argument(
+        "-", dest="use_stdin", action="store_true", help="read Hy from stdin"
+    )
     parser.add_argument(
         "--with-source",
         "-s",
@@ -511,9 +480,7 @@ def hy2py_main():
         hy2py_worker(sys.stdin.read(), options, filename)
     elif options.module:
         if options.module[:1] == ".":
-            raise ValueError(
-                "Relative module names not supported"
-            )
+            raise ValueError("Relative module names not supported")
         sys.path.insert(0, "")
         filename = options.module.replace(".", os.sep)
         if os.path.isdir(filename):

@@ -207,6 +207,13 @@ def test_hyc_missing_file():
     assert "[Errno 2]" in err
 
 
+def test_hyc_quiet(tmp_path):
+    p = tmp_path / "hello.hy"
+    p.write_text('(defn greet [name] (print f"Hello, {name}!"))')
+    result = subprocess.run(["hyc", "-q", str(p)], capture_output=True, text=True)
+    assert result.returncode == 0 and result.stderr == ""
+
+
 def test_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
