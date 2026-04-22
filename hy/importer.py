@@ -89,7 +89,7 @@ def _get_code_from_file(run_name, fname=None, hy_src_check=lambda x: x.endswith(
         code = pkgutil.read_code(f)
 
     if code is None:
-        if hy_src_check(fname):
+        if os.path.isfile(fname) and hy_src_check(fname):
             code = _hy_code_from_file(fname, loader_type=HyLoader)
         else:
             # Try normal source
@@ -107,7 +107,7 @@ _py_source_to_code = importlib.machinery.SourceFileLoader.source_to_code
 
 
 def _could_be_hy_src(filename):
-    return os.path.isfile(filename) and (
+    return (
         os.path.splitext(filename)[1]
         not in set(importlib.machinery.SOURCE_SUFFIXES) - {".hy"}
     )
