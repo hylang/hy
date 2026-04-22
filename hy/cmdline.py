@@ -325,30 +325,83 @@ def hy_main():
 
 
 def hyc_main():
-    parser = argparse.ArgumentParser(prog="hyc")
+    parser = argparse.ArgumentParser(
+        prog="hyc",
+        description="Compile Hy source files to Python bytecode (.pyc).",
+    )
     parser.add_argument("files", metavar="FILE", nargs="+", help="File(s) to compile")
     parser.add_argument("-v", action="version", version=VERSION)
+    parser.add_argument(
+        "-o",
+        "--output",
+        metavar="OUTPUT",
+        default=None,
+        help=(
+            "Path for the compiled .pyc file. "
+            "Only valid when a single FILE is given; "
+            "defaults to the standard __pycache__ location."
+        ),
+    )
+    parser.add_argument(
+        "-O",
+        "--optimize",
+        metavar="LEVEL",
+        type=int,
+        choices=[0, 1, 2],
+        default=-1,
+        help=(
+            "Bytecode optimization level: "
+            "0 = no optimization, "
+            "1 = remove assert statements, "
+            "2 = remove assert statements and docstrings. "
+            "Mirrors Python's -O / -OO flags. Defaults to -1 (inherit "
+            "the current interpreter level)."
+        ),
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        default=False,
+        help="Suppress the 'Compiling … --> …' progress messages.",
+    )
 
     options = parser.parse_args(sys.argv[1:])
+
+    if options.output is not None and len(options.files) > 1:
+        print(
+            "hyc: error: -o/--output can only be used with a single input file",
+            file=sys.stderr,
+        )
+        return 1
 
     rv = 0
     for filename in options.files:
         set_path(filename)
-        try:
+
+        cfile = options.output
+
+        if not options.quiet:
+            dest = cfile if cfile is not None else importlib.util.cache_from_source(filename)
             print(
-                "Compiling {!r} --> {!r}".format(
-                    filename, importlib.util.cache_from_source(filename)
-                ),
+                "Compiling {!r} --> {!r}".format(filename, dest),
                 file=sys.stderr,
             )
-            py_compile.compile(filename, doraise=True)
+
+        try:
+            py_compile.compile(
+                filename,
+                cfile=cfile,
+                doraise=True,
+                optimize=options.optimize,
+            )
         except py_compile.PyCompileError as error:
-            # return value to indicate at least one failure
             rv = 1
             print(error.msg, file=sys.stderr)
-        sys.path.pop(0)
-    return rv
 
+        sys.path.pop(0)
+
+    return rv
 
 def hy2py_worker(source, options, filename=None, parent_module=None, output_filepath=None):
     source_path = None

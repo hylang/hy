@@ -5,6 +5,10 @@ Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 Unreleased
 ======================================================================
 
+* ``hyc`` now supports ``-o``/``--output`` (custom .pyc output path),
+  ``-O``/``--optimize`` (bytecode optimisation level 0–2), and
+  ``-q``/``--quiet`` (suppress progress messages).
+
 Supports Python 3.x – Python 3.y
 
 Bug Fixes
