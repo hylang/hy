@@ -7,6 +7,10 @@ Unreleased
 
 Supports Python 3.x – Python 3.y
 
+New Features
+------------------------------
+* ``hyc`` now supports ``-q``/``--quiet`` to suppress progress messages.
+
 Bug Fixes
 ------------------------------
 
