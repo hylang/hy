@@ -700,3 +700,16 @@ def test_run_dir_or_zip(tmp_path):
         o.writestr('__main__.hy', '(print (+ "B" "Y"))')
     out, _ = run_cmd(['hy', tmp_path / 'zoom.zip'])
     assert 'BY' in out
+
+
+def test_hyc_dfile_nonexistent_path(tmp_path):
+    # https://github.com/hylang/hy/issues/2701
+    import py_compile
+    out = tmp_path / "hello.pyc"
+    py_compile.compile(
+        "tests/resources/hello_world.hy",
+        cfile=str(out),
+        dfile="/nonexistent/override/path.hy",
+        doraise=True,
+    )
+    assert out.exists()

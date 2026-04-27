@@ -107,7 +107,7 @@ _py_source_to_code = importlib.machinery.SourceFileLoader.source_to_code
 
 
 def _could_be_hy_src(filename):
-    return os.path.isfile(filename) and (
+    return (
         os.path.splitext(filename)[1]
         not in set(importlib.machinery.SOURCE_SUFFIXES) - {".hy"}
     )
