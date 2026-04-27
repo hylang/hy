@@ -325,9 +325,19 @@ def hy_main():
 
 
 def hyc_main():
-    parser = argparse.ArgumentParser(prog="hyc")
+    parser = argparse.ArgumentParser(
+        prog="hyc",
+        description="Compile Hy source files to Python bytecode (.pyc).",
+    )
     parser.add_argument("files", metavar="FILE", nargs="+", help="File(s) to compile")
     parser.add_argument("-v", action="version", version=VERSION)
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        default=False,
+        help="Suppress the 'Compiling … --> …' progress messages.",
+    )
 
     options = parser.parse_args(sys.argv[1:])
 
@@ -335,15 +345,15 @@ def hyc_main():
     for filename in options.files:
         set_path(filename)
         try:
-            print(
-                "Compiling {!r} --> {!r}".format(
-                    filename, importlib.util.cache_from_source(filename)
-                ),
-                file=sys.stderr,
-            )
+            if not options.quiet:
+                print(
+                    "Compiling {!r} --> {!r}".format(
+                        filename, importlib.util.cache_from_source(filename)
+                    ),
+                    file=sys.stderr,
+                )
             py_compile.compile(filename, doraise=True)
         except py_compile.PyCompileError as error:
-            # return value to indicate at least one failure
             rv = 1
             print(error.msg, file=sys.stderr)
         sys.path.pop(0)

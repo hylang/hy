@@ -207,6 +207,11 @@ def test_hyc_missing_file():
     assert "[Errno 2]" in err
 
 
+def test_hyc_quiet():
+    _, err = run_cmd("hyc -q tests/resources/hello_world.hy")
+    assert err == ""
+
+
 def test_no_main():
     output, _ = run_cmd("hy tests/resources/bin/nomain.hy")
     assert "This Should Still Work" in output
