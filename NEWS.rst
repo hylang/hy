@@ -14,6 +14,9 @@ New Features
 Bug Fixes
 ------------------------------
 
+* Fixed `_could_be_hy_src` in `importer.py` incorrectly returning
+  `False` for valid Hy source paths that do not exist on disk, such
+  as ``dfile`` override paths passed to `py_compile.compile`; Closes #2701.
 * Captured exception variables are now properly scoped.
 * Fixed bugs in `hy.model-patterns.whole` (and other combinators that
   use it, like `brackets`) in which tuples were not always produced.
