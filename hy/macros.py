@@ -100,6 +100,8 @@ def _same_modules(source_module, target_module):
         return True
 
     def get_filename(module):
+        if module is None:
+            return None
         if inspect.ismodule(module):
             return inspect.getfile(module)
         elif (
