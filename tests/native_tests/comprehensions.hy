@@ -183,6 +183,22 @@
     (assert (= (next g) "last"))))))
 
 
+(defn test-async-lfor []
+  ; https://github.com/hylang/hy/issues/2712
+  (do-mac (lfor  statementize [False True]  `(do
+    (defn :async top []
+      (defn :async numbers []
+        (for [i [0 1 2]]
+          (yield i)))
+      (setv g (lfor
+        :async i (numbers)
+        ~@(when statementize '[:do (print "hi")])
+        (+ i 10)))
+      (print g)
+      g)
+    (assert (= (asyncio.run (top)) [10 11 12]))))))
+
+
 (defn test-raise-in-comp []
   (defclass E [Exception] [])
   (setv l [])

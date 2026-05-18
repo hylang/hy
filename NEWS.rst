@@ -19,7 +19,8 @@ New Features
 
 Bug Fixes
 ------------------------------
-
+* Fixed a bug in which some asynchronous comprehension forms failed
+  to compile.
 * Fixed `_could_be_hy_src` in `importer.py` incorrectly returning
   `False` for valid Hy source paths that do not exist on disk, such
   as ``dfile`` override paths passed to `py_compile.compile`; Closes #2701.

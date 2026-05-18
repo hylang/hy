@@ -916,10 +916,11 @@ def compile_comprehension(compiler, expr, root, parts, final):
             # The desired comprehension can't be expressed as a
             # real Python comprehension. We'll write it as a nested
             # loop in a function instead.
+            any_async = False
             def f(parts):
                 # This function is called recursively to construct
                 # the nested loop.
-                nonlocal elt, ends_with_unpack
+                nonlocal elt, ends_with_unpack, any_async
                 if not parts:
                     if is_for:
                         if body:
@@ -958,6 +959,7 @@ def compile_comprehension(compiler, expr, root, parts, final):
                 if tagname in ("for", "afor"):
                     orelse = orel and orel.pop().stmts
                     node = asty.AsyncFor if tagname == "afor" else asty.For
+                    any_async = any_async or tagname == "afor"
                     return v[1] + node(
                         v[1],
                         target=v[0],
@@ -1022,7 +1024,10 @@ def compile_comprehension(compiler, expr, root, parts, final):
                     expr, test=asty.Constant(expr, value=False), body=if_body, orelse=[]
                 )
 
-            ret += asty.FunctionDef(
+            body = f(parts).stmts
+              # `f` needs to be called before the next line so
+              # `any_async` is set early enough.
+            ret += (asty.AsyncFunctionDef if any_async else asty.FunctionDef)(
                 expr,
                 name=fname,
                 args=ast.arguments(
@@ -1034,31 +1039,33 @@ def compile_comprehension(compiler, expr, root, parts, final):
                     kw_defaults=[],
                     defaults=[],
                 ),
-                body=stmts + f(parts).stmts,
+                body=stmts + body,
                 decorator_list=[],
                 **({"type_params": []} if PY3_12 else {}),
             )
             # Immediately call the new function. Unless the user asked
-            # for a generator, wrap the call in `[].__class__(...)` or
-            # `{}.__class__(...)` or `{1}.__class__(...)` to get the
-            # right type. We don't want to just use e.g. `list(...)`
-            # because the name `list` might be rebound.
-            return ret + Result(
-                expr=asty.parse(
-                    expr,
-                    "{}({}())".format(
-                        {
-                            asty.ListComp: "[].__class__",
-                            asty.DictComp: "{}.__class__",
-                            asty.SetComp: "{1}.__class__",
-                            asty.GeneratorExp: "",
-                        }[node_class],
+            # for a generator, wrap the call in another comprehension
+            # to get the right type. We don't want to just use e.g.
+            # `list(...)` because the name `list` might be rebound, and it
+            # doesn't work with async generators.
+            brackets = "[]" if node_class is asty.ListComp else "{}"
+            if node_class is asty.DictComp:
+                v1, v2 = compiler.get_anon_var(), compiler.get_anon_var()
+                v1, v2 = f"{v1}: {v2}", f"{v1}, {v2}"
+            else:
+                v1 = v2 = compiler.get_anon_var()
+            return ret + Result(expr =
+                asty.parse(expr,
+                    f"{fname}()"
+                    if node_class is asty.GeneratorExp else
+                    "{}{} {} for {} in {}(){}".format(
+                        brackets[0],
+                        v1,
+                        "async" if any_async else "",
+                        v2,
                         fname,
-                    ),
-                )
-                .body[0]
-                .value
-            )
+                        brackets[1]))
+                .body[0].value)
 
         # We can produce a real comprehension.
         generators = []
