@@ -49,18 +49,4 @@
   (assert (. tstr [1] is-tstring))
   (assert (. tstr [1] expression) "3"))
 
-(defn test-tstring-repr []
-  (setv tstrings (.strip #[[
-t"hello world"
-t"hello{3}world"
-t"hello{(+ 2 1)}world"
-t"hello{3 !r}world"
-t"hello{3 :#x}world"
-#[t[this is {1} template]t]
-#[t-algo[so {(+ 1 1)} is this {(- 5 4)}]t-algo]
-]]))
-  (setv forms (hy.read-many tstrings :reader (hy.HyReader :bracketed-templates True)))
-  (for [[literal form] (zip (.split tstrings "\n") forms)]
-    (assert (= (+ "'" literal) (hy.repr form)))))
-
 )))

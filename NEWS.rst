@@ -15,6 +15,7 @@ New Features
 * ``hyc`` now supports ``-q``/``--quiet`` to suppress progress messages.
 * Added support for t-strings from Python 3.14.
 * Added new pragma `bracketed-templates` to allow parsing `#[t[...]t]` and `#[t-<ident>[...]t-<ident>]` as template strings (analogous to bracketed f-strings).
+* Added ``hy-repr``\s for ``Template`` and ``Interpolation``.
 
 Bug Fixes
 ------------------------------

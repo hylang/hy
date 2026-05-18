@@ -5,7 +5,6 @@ from math import isnan
 import pytest
 
 from hy import PrematureEndOfInput
-from hy.compat import PY3_14
 from hy.errors import hy_exc_handler
 from hy.models import (
     Bytes,
@@ -504,8 +503,7 @@ def test_string_prefixes():
     assert s(r'b"hello"') == Bytes(b"hello")
     assert s(r'rb"hello"') == Bytes(b"hello")
     assert s(r'fr"hello"') == FString([String("hello")])
-    if PY3_14:
-        assert s(r'tr"hello"') == FString([String("hello")], is_tstring=True)
+    assert s(r'tr"hello"') == FString([String("hello")], is_tstring=True)
 
     for bad in list("zRBFu") + ["bf", "rr", "rbr"]:
         with lexe():

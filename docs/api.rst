@@ -166,8 +166,12 @@ Fundamentals
   Each key is a literal keyword giving the name of a pragma. Each value is an
   arbitrary form, which is evaluated as ordinary Hy code but at compile-time.
 
-  The effect of each pragma is locally scoped to its containing function,
-  class, or comprehension form (other than ``for``), if there is one.
+  Generally, the effect of each pragma is locally scoped to its containing
+  function, class, or comprehension form (other than ``for``), if there is one.
+  The exception is pragmata that affect the reader (marked "(reader)" below),
+  in which case the current reader is affected, so as with a reader macro, you
+  generally need to put the pragma *before* the top-level form in which you
+  want to use it.
 
   These pragmata are currently implemented:
 
@@ -189,9 +193,10 @@ Fundamentals
 
     .. _bracketed-templates:
 
-  - ``:bracketed-templates``: If set, then :ref:`bracket strings
-    <bracket-strings>` using the delimiter "t" or any delimiter starting with
-    "t-" are parsed as :ref:`template strings <syntax-tstrings>`.
+  - ``:bracketed-templates`` (reader; requires Hy 1.3): If true (default:
+    false), :ref:`bracket strings <bracket-strings>` using the delimiter "t" or
+    any delimiter starting with "t-" are parsed as :ref:`template strings
+    <syntax-tstrings>`.
 
 Quoting
 ~~~~~~~~~~~~

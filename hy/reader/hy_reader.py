@@ -323,12 +323,11 @@ class HyReader(Reader):
             escaping = False
             return 0
 
-        fstring_mode = (
+        return self.read_string_until(quote_closing, prefix, fstring_mode = (
             "f" if "f" in prefix_chars
             else "t" if "t" in prefix_chars
             else ""
-        )
-        return self.read_string_until(quote_closing, prefix, fstring_mode)
+        ))
 
     ###
     # Special annotations

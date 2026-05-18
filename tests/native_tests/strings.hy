@@ -170,3 +170,11 @@ cee"} dee" "ey bee\ncee dee"))
       "hy.models.FString([hy.models.String('foo')], brackets='f-x')"))
     (assert (= (f '#[f-x[]f-x])
       "hy.models.FString(brackets='f-x')"))))
+
+
+(pragma :bracketed-templates True)
+(defn test-tstring-repr []
+  (with [(hy.models.pretty False)]
+    (assert (=
+      (.replace (repr '#[t[hello]t]) " " "")
+      "hy.models.FString((hy.models.String('hello'),),brackets='t',is_tstring=True)"))))

@@ -503,11 +503,12 @@ def _string_in_node(string, node):
 
 class FString(Sequence):
     """
-    Represents a format string as an iterable collection of :class:`hy.models.String`
-    and :class:`hy.models.FComponent`. The design mimics :class:`ast.JoinedStr`.
+    Represents a format string or template string as an iterable collection of
+    :class:`hy.models.String` and :class:`hy.models.FComponent`. The design
+    mimics :class:`ast.JoinedStr`.
 
     :ivar brackets: As in :class:`hy.models.String`.
-    :ivar is_tstring: Whether this represents a template string rather than a format string.
+    :ivar is_tstring: Whether this represents a template string, rather than a format string.
     """
 
     _extra_kwargs = ("brackets", "is_tstring")
@@ -544,14 +545,10 @@ class FString(Sequence):
         args = []
         if self.brackets is not None:
             args.append(f"brackets={self.brackets!r}")
-        if PY3_14 and self.is_tstring:
+        if self.is_tstring:
             args.append(f"is_tstring={self.is_tstring!r}")
-        s = x[:-1]  # Clip off the final close paren
-        if s[-1] != "(":
-            s += ", "
-        s += ", ".join(args)
-        s += ")"
-        return s
+        x = x[:-1]  # Clip off the final close paren
+        return x + ("" if x[-1] == "(" else ", ") + ", ".join(args) + ")"
 
 
 class List(Sequence):
