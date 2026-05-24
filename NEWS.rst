@@ -2,35 +2,32 @@
 
 Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 
-Unreleased
+1.3.0 ("Dogs Should Be Raw", released 2026-05-24)
 ======================================================================
 
-Supports Python 3.x – Python 3.y
+Supports Python 3.9 – Python 3.15
 
 New Features
 ------------------------------
+* Added t-strings, and a pragma `bracketed-templates`.
 * Unpacking is now supported in comprehensions (PEP 798), even on
   Pythons < 3.15.
-* ``(import :lazy …)`` is allowed on Pythons ≥ 3.15 (PEP 810).
-* ``hyc`` now supports ``-q``/``--quiet`` to suppress progress messages.
-* Added support for t-strings from Python 3.14.
-* Added new pragma `bracketed-templates` to allow parsing `#[t[...]t]` and `#[t-<ident>[...]t-<ident>]` as template strings (analogous to bracketed f-strings).
-* Added ``hy-repr``\s for ``Template`` and ``Interpolation``.
+* `(import :lazy …)` is allowed on Pythons ≥ 3.15 (PEP 810).
+* Added `hy-repr`\s for `Template`, `Interpolation`, and `frozendict`.
+* `hyc` has a new command-line option `--quiet`.
 
 Bug Fixes
 ------------------------------
-
-* Fixed `_could_be_hy_src` in `importer.py` incorrectly returning
-  `False` for valid Hy source paths that do not exist on disk, such
-  as ``dfile`` override paths passed to `py_compile.compile`; Closes #2701.
-* Captured exception variables are now properly scoped.
+* Invalid conversion characters in f-strings now properly raise a
+  syntax error.
+* Variables set by `(except …)` are now properly scoped.
+* Fixed a crash when using `require` in `hy.eval`.
+* Fixed some compilation failures for asynchronous comprehension forms.
+* More model types (`String`, `Bytes`, `Symbol`, `Integer`, `Float`,
+  `Complex`) now work properly with `match`.
+* Fixed a bug that could cause `py_compile.compile` to read Hy as Python.
 * Fixed bugs in `hy.model-patterns.whole` (and other combinators that
   use it, like `brackets`) in which tuples were not always produced.
-* Added pattern matching support to String, Bytes, Symbol, Integer, Float,
-  and Complex models.
-* Fixed an importlib exception when using `hy.eval` on code that
-  required other modules.
-* Invalid conversion chars in f-strings now properly raise a syntax error.
 
 1.2.0 ("Crackers and Snacks", released 2026-01-14)
 ======================================================================
