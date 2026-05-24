@@ -2,6 +2,16 @@
 
 Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 
+Unreleased
+======================================================================
+
+Supports Python 3.x – Python 3.y
+
+Bug Fixes
+------------------------------
+* Fixed a regression in Hy 1.3.0 that could prevent imports of Python
+  code in ZIP archives.
+
 1.3.0 ("Dogs Should Be Raw", released 2026-05-24)
 ======================================================================
 

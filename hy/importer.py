@@ -146,7 +146,10 @@ if (".hy", False, False) not in zipimport._zip_searchorder:
 
     def _hy_compile_source(pathname, source, module=None):
         if not pathname.endswith(".hy"):
-            return _py_compile_source(pathname, source, module)
+            return _py_compile_source(
+                pathname,
+                source,
+                *([module] if hy.compat.PY3_15 else []))
         mname = f"<zip:{pathname}>"
         sys.modules[mname] = types.ModuleType(mname)
         return compile(
