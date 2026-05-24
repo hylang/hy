@@ -1491,7 +1491,7 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         # []
         except_sym, exceptions, ebody = catcher
         if not PY3_11 and except_sym == Symbol("except*"):
-            hy_compiler._syntax_error(except_sym, "`{}` requires Python 3.11 or later")
+            compiler._syntax_error(except_sym, "`{}` requires Python 3.11 or later")
         except_syms_seen.add(str(except_sym))
         if len(except_syms_seen) > 1:
             raise compiler._syntax_error(
@@ -2042,7 +2042,7 @@ def compile_require(compiler, expr, root, entries):
 def compile_import(compiler, expr, root, is_lazy, entries):
 
     if not PY3_15 and is_lazy:
-        hy_compiler._syntax_error(is_lazy, "Lazy imports require Python 3.15 or later")
+        compiler._syntax_error(is_lazy, "Lazy imports require Python 3.15 or later")
     is_lazy = dict(is_lazy = True) if is_lazy else {}
 
     ret = Result()
