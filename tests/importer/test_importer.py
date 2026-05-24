@@ -274,18 +274,15 @@ def test_filtered_importlib_frames(capsys):
     assert "importlib._" not in captured_w_filtering
 
 
-def test_zipimport(tmp_path):
+def test_zipimport(tmp_path, monkeypatch):
     from zipfile import ZipFile
 
     zpath = tmp_path / "archive.zip"
     with ZipFile(zpath, "w") as o:
         o.writestr("example.hy", '(setv x "Hy from ZIP")')
 
-    try:
-        sys.path.insert(0, str(zpath))
-        import example
-    finally:
-        sys.path = [p for p in sys.path if p != str(zpath)]
+    monkeypatch.syspath_prepend(zpath)
+    import example
     assert example.x == "Hy from ZIP"
     assert example.__file__ == str(zpath / "example.hy")
 
