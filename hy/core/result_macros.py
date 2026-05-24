@@ -154,7 +154,7 @@ def compile_inline_python(compiler, expr, root, code):
             "exec" if exec_mode else "eval",
         ).body
     except (SyntaxError, ValueError) as e:
-        raise compiler._syntax_error(
+        compiler._syntax_error(
             expr, "Python parse error in '{}': {}".format(root, e)
         )
 
@@ -168,17 +168,17 @@ def compile_pragma(compiler, expr, root, kwargs):
         if kw == Keyword("hy"):
             min_version = compiler.eval(value)
             if not isinstance(min_version, str):
-                raise compiler._syntax_error(value, "The version given to the pragma `:hy` must be a string")
+                compiler._syntax_error(value, "The version given to the pragma `:hy` must be a string")
             parts = min_version.split('.')
             if not all(p.isdigit() for p in parts):
-                raise compiler._syntax_error(value, "The string given to the pragma `:hy` must be a dot-separated sequence of integers")
+                compiler._syntax_error(value, "The string given to the pragma `:hy` must be a dot-separated sequence of integers")
             for have, need in zip_longest(
                     map(int, last_version.split('.')),
                     map(int, parts)):
                 if need is None:
                     break
                 if have is None or have < need:
-                    raise compiler._syntax_error(kw, f"Hy version {min_version} or later required")
+                    compiler._syntax_error(kw, f"Hy version {min_version} or later required")
                 if have > need:
                     break
 
@@ -192,7 +192,7 @@ def compile_pragma(compiler, expr, root, kwargs):
                 reader.bracketed_templates = bool(compiler.eval(value))
 
         else:
-            raise compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
+            compiler._syntax_error(kw, f"Unknown pragma `{kw}`. Perhaps it's implemented by a newer version of Hy.")
 
     return Result()
 
@@ -247,7 +247,7 @@ def render_quoted_form(compiler, form, level):
             f_contents, splice = render_quoted_form(compiler, x, level)
             if splice:
                 if is_unpack("iterable", f_contents):
-                    raise compiler._syntax_error(f_contents, "`unpack-iterable` is not allowed here")
+                    compiler._syntax_error(f_contents, "`unpack-iterable` is not allowed here")
                 f_contents = Expression(
                     [
                         Symbol("unpack-iterable"),
@@ -385,7 +385,7 @@ c_ops = {mangle(k): v for k, v in c_ops.items()}
 def get_c_op(compiler, sym):
     k = mangle(sym)
     if k not in c_ops:
-        raise compiler._syntax_error(sym, "Illegal comparison operator: " + str(sym))
+        compiler._syntax_error(sym, "Illegal comparison operator: " + str(sym))
     return c_ops[k]()
 
 
@@ -608,7 +608,7 @@ def compile_global_or_nonlocal(compiler, expr, root, syms):
     try:
         compiler.scope.define_nonlocal(ret, root)
     except SyntaxError as e:
-        raise compiler._syntax_error(expr, e.msg)
+        compiler._syntax_error(expr, e.msg)
 
     return ret
 
@@ -842,7 +842,7 @@ def compile_comprehension(compiler, expr, root, parts, final):
         if node_class is asty.DictComp:
             dict_unpack = bool(final)
             if not (dict_unpack or (parts and parts[-1].tag == "for")):
-                raise compiler._syntax_error(
+                compiler._syntax_error(
                     parts[-1] if parts else parts,
                     "`dfor` must end with key and value forms, or `#** FORM`",
                 )
@@ -1281,7 +1281,7 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
     match_cases = []
     for *pattern, guard, body in clauses:
         if guard and body == Keyword("as"):
-            raise compiler._syntax_error(body, ":as clause cannot come after :if guard")
+            compiler._syntax_error(body, ":as clause cannot come after :if guard")
 
         body = compiler._compile_branch([body])
         body += asty.Assign(pattern[0], targets=[return_var], value=body.force_expr)
@@ -1421,7 +1421,7 @@ def compile_pattern(compiler, pattern):
             kwd_patterns=[],
         )
     else:
-        raise compiler._syntax_error(value, "unsupported")
+        compiler._syntax_error(value, "unsupported")
 
 
 # ------------------------------------------------
@@ -1494,7 +1494,7 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
             compiler._syntax_error(except_sym, "`{}` requires Python 3.11 or later")
         except_syms_seen.add(str(except_sym))
         if len(except_syms_seen) > 1:
-            raise compiler._syntax_error(
+            compiler._syntax_error(
                 except_sym, "cannot have both `except` and `except*` on the same `try`"
             )
 
@@ -1703,7 +1703,7 @@ def compile_lambda_list(compiler, params):
     posonly_parms, args_parms, rest_parms, kwonly_parms, kwargs_parms = params
 
     if not (posonly_parms or posonly_parms is None):
-        raise compiler._syntax_error(
+        compiler._syntax_error(
             params, "at least one argument must precede /"
         )
 
@@ -1719,7 +1719,7 @@ def compile_lambda_list(compiler, params):
         None,
     )
     if invalid_non_default:
-        raise compiler._syntax_error(
+        compiler._syntax_error(
             invalid_non_default[0], "non-default argument follows default argument"
         )
 
@@ -1734,7 +1734,7 @@ def compile_lambda_list(compiler, params):
 
     if rest_parms == Symbol("*"):  # rest is a positional only marker
         if not kwonly_parms:
-            raise compiler._syntax_error(
+            compiler._syntax_error(
                 rest_parms, "named arguments must follow bare *"
             )
         rest_ast = None
@@ -1814,7 +1814,7 @@ def compile_yield_expression(compiler, expr, root, args):
     if len(args) == 2:
         from_kw, x = args
         if from_kw != Keyword("from"):
-            raise compiler._syntax_error(from_kw, "two-argument `yield` requires `:from`")
+            compiler._syntax_error(from_kw, "two-argument `yield` requires `:from`")
         yield_from = True
         args = [x]
     ret = Result()
@@ -1942,7 +1942,7 @@ def compile_require(compiler, expr, root, entries):
             for flag in (True, False)
         )
         if len(rest) > 1 or len(readers) > 1:
-            raise compiler._syntax_error(
+            compiler._syntax_error(
                 entry,
                 f"redefinition of ':{'macros' if len(rest) > 1 else 'readers'}' brackets.",
             )

@@ -50,8 +50,13 @@
   (assert (= resources.in-init "chippy")))
 
 
-(defn [(pytest.mark.skipif (not hy.compat.PY3_15) :reason "Lazy imports require Python 3.15")]
-test-lazy []
+(defn test-lazy []
+
+  (when (not hy.compat.PY3_15)
+    (with [e (pytest.raises hy.errors.HySyntaxError)]
+      (hy.eval '(import :lazy math)))
+    (assert (= e.value.msg "Lazy imports require Python 3.15 or later"))
+    (return))
 
   ; The code is wrapped in `hy.eval` because otherwise, pytest may
   ; resolve lazy imports too early.

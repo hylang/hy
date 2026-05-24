@@ -412,7 +412,7 @@ class HyASTCompiler:
             raise HyCompileError(exc_msg)
 
     def _syntax_error(self, expr, message):
-        return HySyntaxError(message, expr, self.filename, self.source)
+        raise HySyntaxError(message, expr, self.filename, self.source)
 
     def _compile_collect(self, exprs, with_kwargs=False, dict_display=False):
         """Collect the expression contexts from a list of compiled expression.

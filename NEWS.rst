@@ -23,6 +23,7 @@ Bug Fixes
 * Variables set by `(except …)` are now properly scoped.
 * Fixed a crash when using `require` in `hy.eval`.
 * Fixed some compilation failures for asynchronous comprehension forms.
+* Fixed the error message for using `except*` on Pythons < 3.11.
 * More model types (`String`, `Bytes`, `Symbol`, `Integer`, `Float`,
   `Complex`) now work properly with `match`.
 * Fixed a bug that could cause `py_compile.compile` to read Hy as Python.
