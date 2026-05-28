@@ -274,20 +274,22 @@ def test_filtered_importlib_frames(capsys):
     assert "importlib._" not in captured_w_filtering
 
 
-def test_zipimport(tmp_path):
+def test_zipimport(tmp_path, monkeypatch):
     from zipfile import ZipFile
 
     zpath = tmp_path / "archive.zip"
     with ZipFile(zpath, "w") as o:
-        o.writestr("example.hy", '(setv x "Hy from ZIP")')
+        # Test a Python module as well as a Hy module to ensure that
+        # Hy's edits to ZIP imports can still get Python files.
+        o.writestr("zip_py.py", 'x = "Py from ZIP"')
+        o.writestr("zip_hy.hy", '(setv x "Hy from ZIP")')
 
-    try:
-        sys.path.insert(0, str(zpath))
-        import example
-    finally:
-        sys.path = [p for p in sys.path if p != str(zpath)]
-    assert example.x == "Hy from ZIP"
-    assert example.__file__ == str(zpath / "example.hy")
+    monkeypatch.syspath_prepend(zpath)
+    import zip_py, zip_hy
+    assert zip_py.x == "Py from ZIP"
+    assert zip_py.__file__ == str(zpath / "zip_py.py")
+    assert zip_hy.x == "Hy from ZIP"
+    assert zip_hy.__file__ == str(zpath / "zip_hy.hy")
 
 
 def test_eval_requiring_macro():
