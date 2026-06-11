@@ -487,6 +487,60 @@ def test_pdb_ll(tmp_path):
         in clean(o))
 
 
+def test_hy_pdb_commands(tmp_path):
+    # Test Hy-specific pdb commands.
+
+    p = tmp_path / 'ex.hy'
+    p.write_text(str.strip(dedent('''
+        (defmacro my-add [a b] `(+ ~a ~b))
+        (defn f []
+          (breakpoint)
+          (my-add 1 2))
+        (f)''')))
+
+    # Test macroexpand (me) command
+    o, _ = run_cmd(['hy', p], 'me (my-add 3 4)\nquit\n', expect=1)
+    assert "'(+ 3 4)" in o
+
+    # Test macroexpand_1 (me1) command
+    o, _ = run_cmd(['hy', p], 'me1 (when True (print "hi"))\nquit\n', expect=1)
+    assert "'(if True (do (print \"hi\")) None)" in o
+
+    # Test macros (m) command
+    o, _ = run_cmd(['hy', p], 'm\nquit\n', expect=1)
+    assert "my-add" in o
+
+    # Test hy_repr (hy) command
+    o, _ = run_cmd(['hy', p], 'n\nhy result\nquit\n', expect=1)
+    assert "3" in o  # result of (+ 1 2)
+
+
+def test_hy_pdb_local_macros(tmp_path):
+    # Test that `m` command also shows local macros (defmacro and
+    # require inside function bodies).
+
+    p = tmp_path / 'ex.hy'
+    p.write_text(str.strip(dedent('''
+        (defmacro my-add [a b] `(+ ~a ~b))
+        (defn f []
+          (defmacro helper []
+            "local helper")
+          (require tests.resources.local-req-example [wiz])
+          (breakpoint)
+          (my-add 1 2))
+        (f)''')))
+
+    o, _ = run_cmd(['hy', p], 'm\nquit\n', expect=1)
+    # module-level
+    assert "my-add" in o
+    # local defmacro
+    assert "helper" in o
+    # local require
+    assert "wiz" in o
+    assert "Local macros" in o
+    assert "Macros" in o
+
+
 def test_hystartup():
     # spy == True and custom repl-output-fn
     env = dict(HYSTARTUP = "tests/resources/hystartup.hy")

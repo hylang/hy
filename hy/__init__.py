@@ -13,7 +13,7 @@ def _initialize_env_var(env_var, default_val):
 
 
 # Import for side-effects.
-import hy.importer, hy.hy_inspect
+import hy.importer, hy.hy_inspect, hy.hy_pdb
 hy.importer._inject_builtins()
 
 
