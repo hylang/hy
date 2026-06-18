@@ -14,6 +14,10 @@ Bug Fixes
 * Calls to ``None`` such as ``((setv x 1) 2)`` are now correctly
   compiled (they're still a runtime error, as they ought to be).
 
+Misc. Improvements
+------------------------------
+* Fake filenames shown for errors in the REPL are now shorter.
+
 1.3.0 ("Dogs Should Be Raw", released 2026-05-24)
 ======================================================================
 

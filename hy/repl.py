@@ -2,7 +2,6 @@ import ast
 import builtins
 import code
 import codeop
-import hashlib
 import importlib
 import linecache
 import os
@@ -127,8 +126,7 @@ class HyCompile(codeop.Compile):
           # This parameter is required by `codeop.Compile`, but we
           # ignore it in favor of always using "exec".
 
-        hash_digest = hashlib.sha1(source.encode("utf-8").strip()).hexdigest()
-        name = "{}-{}".format(filename.strip("<>"), hash_digest)
+        name = f'{filename}-{len(self.cmdline_cache)}'
 
         self._cache(source, name)
 

@@ -79,6 +79,12 @@
         it)"
       "\n" " ")))))
 
+(defn test-fake-filename [rt]
+  ; https://github.com/hylang/hy/issues/2724
+  (assert (has
+    (rt "(/ 1 0)" 'err)
+    "<stdin>-0")))
+
 (defn test-error-underline-alignment [rt]
   (setv err (rt "(defmacro mabcdefghi [x] x)\n(mabcdefghi)" 'err))
   (setv msg-idx (.rindex err "    (mabcdefghi)"))
