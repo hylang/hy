@@ -11,6 +11,8 @@ Bug Fixes
 ------------------------------
 * Fixed a regression in Hy 1.3.0 that could prevent imports of Python
   code in ZIP archives.
+* Calls to ``None`` such as ``((setv x 1) 2)`` are now correctly
+  compiled (they're still a runtime error, as they ought to be).
 
 1.3.0 ("Dogs Should Be Raw", released 2026-05-24)
 ======================================================================

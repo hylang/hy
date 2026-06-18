@@ -609,8 +609,12 @@ class HyASTCompiler:
         args, ret, keywords = self._compile_collect(args, with_kwargs=True)
 
         return (
-            func + ret + asty.Call(expr, func=func.expr, args=args, keywords=keywords)
-        )
+            func +
+            ret +
+            asty.Call(expr,
+               func = func.expr or asty.Constant(root, value = None),
+               args = args,
+               keywords = keywords))
 
     @builds_model(Integer, Float, Complex)
     def compile_numeric_literal(self, x):
