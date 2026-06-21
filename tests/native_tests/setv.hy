@@ -107,6 +107,13 @@
   (assert (= l [["eggs" "ham"]])))
 
 
+(defn test-call-setv []
+  ; https://github.com/hylang/hy/issues/2723
+  (with [e (pytest.raises TypeError)]
+    ((setv x 1) 2))
+  (assert (= e.value.args #("'NoneType' object is not callable"))))
+
+
 (defn test-setv-chain []
 
   (setv :chain [a b c] 3)

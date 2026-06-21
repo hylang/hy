@@ -44,8 +44,8 @@
       (+ "a" "b")
       (+ "c" "d")
       (+ "e" "f")
-      (.format "*1: {}, *2: {}, *3: {}," *1 *2 *3)]])
-    #[["*1: ef, *2: cd, *3: ab,"]]))
+      f"{*1 = }  {*2 = }  {*3 = }"]])
+    #[["*1 = 'ef'  *2 = 'cd'  *3 = 'ab'"]]))
   (assert (has
     (rt #[[
       (raise (Exception "TEST ERROR"))
@@ -78,6 +78,12 @@
         (setv  it 0  it (+ it 1)  it (+ it 1))
         it)"
       "\n" " ")))))
+
+(defn test-fake-filename [rt]
+  ; https://github.com/hylang/hy/issues/2724
+  (assert (has
+    (rt "(/ 1 0)" 'err)
+    "<stdin>-0")))
 
 (defn test-error-underline-alignment [rt]
   (setv err (rt "(defmacro mabcdefghi [x] x)\n(mabcdefghi)" 'err))
