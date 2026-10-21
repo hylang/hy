@@ -12,8 +12,11 @@ jobs:
       matrix:
         name-prefix: ['']
         os: [ubuntu-latest]
-        python: [3.9, '3.10', 3.11, 3.12, 3.13, 3.14, 3.15, pypy-3.12]
+        python: ['3.10', 3.11, 3.12, 3.13, 3.14, 3.15, pypy-3.12]
         include:
+          # Python 3.9 is unsupported on `ubuntu-latest`.
+          - os: ubuntu-24.04
+            python: 3.9
           # To keep the overall number of runs low, we test Windows and MacOS
           # only on the latest CPython.
           - name-prefix: 'win-'
