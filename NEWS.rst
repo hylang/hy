@@ -2,6 +2,14 @@
 
 Hy is `semantically versioned <https://semver.org/>`__ since 1.0.0.
 
+Unreleased
+======================================================================
+
+Bug Fixes
+------------------------------
+- `multiprocessing` should now work properly with the start methods
+  `spawn` and `forkserver`.
+
 1.3.1 ("Eyes in the Sky", released 2026-07-31)
 ======================================================================
 
