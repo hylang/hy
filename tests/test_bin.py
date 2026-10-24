@@ -713,3 +713,28 @@ def test_hyc_dfile_nonexistent_path(tmp_path):
         doraise=True,
     )
     assert out.exists()
+
+
+@pytest.mark.parametrize('start_method', ['fork', 'forkserver', 'spawn'])
+
+def test_multiprocessing(tmp_path, start_method):
+    # https://github.com/hylang/hy/issues/2727
+
+    if platform.system() == 'Windows' and start_method != 'spawn':
+        pytest.skip(f"Python doesn't support {start_method !r} on Windows")
+
+    (tmp_path / 'mp.hy').write_text(f'''
+        (import multiprocessing)
+
+        (defn f [x]
+          (* x 10))
+
+        (defn main []
+          (with [p (.Pool (multiprocessing.get-context "{start_method}") 2)]
+            (print (p.map f [1 2 3]))))
+
+        (when (= __name__ "__main__")
+          (main))''')
+
+    out, _ = run_cmd(["hy", tmp_path / 'mp.hy'])
+    assert '[10, 20, 30]' in out
