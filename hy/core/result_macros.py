@@ -1328,12 +1328,10 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
     ret += asty.Assign(
         expr, targets=[return_var], value=asty.Constant(expr, value=None)
     )
-    if not match_cases:
-        return ret + returnable
-
-    for lifted_if in lifted_if_defs:
-        ret += lifted_if
-    ret += asty.Match(expr, subject=subject.force_expr, cases=match_cases)
+    if match_cases:
+        for lifted_if in lifted_if_defs:
+            ret += lifted_if
+        ret += asty.Match(expr, subject=subject.force_expr, cases=match_cases)
     return ret + returnable
 
 
