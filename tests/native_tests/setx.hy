@@ -52,3 +52,18 @@
     (setv y (setx x 2))
     (assert (= x 2))
     (assert (= y 2))))
+
+(defn test-try []
+  ; https://github.com/hylang/hy/issues/2732
+
+  (assert (= (setx x (try 1 (finally 2))) 1))
+  (assert (= x 1))
+
+  (defn div [a b]
+    (setv r (setx v (try
+      (/ a b)
+      (except [ZeroDivisionError]
+        -1))))
+    [r v])
+  (assert (= (div 10 2) [5 5]))
+  (assert (= (div 1 0) [-1 -1])))

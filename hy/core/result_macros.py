@@ -1550,9 +1550,10 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         finalbody += finalbody.expr_as_stmt()
         finalbody = finalbody.stmts
 
+    returnable = asty.Name(expr, id=return_var.id, ctx=ast.Load())
     returnable = Result(
-        expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),
-        temp_variables=[return_var],
+        expr=returnable,
+        temp_variables=[return_var, returnable],
     )
     body += (
         body.expr_as_stmt()
