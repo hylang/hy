@@ -1328,12 +1328,10 @@ def compile_match_expression(compiler, expr, root, subject, clauses):
     ret += asty.Assign(
         expr, targets=[return_var], value=asty.Constant(expr, value=None)
     )
-    if not match_cases:
-        return ret + returnable
-
-    for lifted_if in lifted_if_defs:
-        ret += lifted_if
-    ret += asty.Match(expr, subject=subject.force_expr, cases=match_cases)
+    if match_cases:
+        for lifted_if in lifted_if_defs:
+            ret += lifted_if
+        ret += asty.Match(expr, subject=subject.force_expr, cases=match_cases)
     return ret + returnable
 
 
@@ -1550,9 +1548,10 @@ def compile_try_expression(compiler, expr, root, body, catchers, orelse, finalbo
         finalbody += finalbody.expr_as_stmt()
         finalbody = finalbody.stmts
 
+    returnable = asty.Name(expr, id=return_var.id, ctx=ast.Load())
     returnable = Result(
-        expr=asty.Name(expr, id=return_var.id, ctx=ast.Load()),
-        temp_variables=[return_var],
+        expr=returnable,
+        temp_variables=[return_var, returnable],
     )
     body += (
         body.expr_as_stmt()
