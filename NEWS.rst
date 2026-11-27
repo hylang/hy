@@ -10,6 +10,7 @@ Bug Fixes
 - `multiprocessing` should now work properly with the start methods
   `spawn` and `forkserver`.
 - Fixed compilation of `(setx foo (try …))`.
+- Fixed command-line file loading for Python 3.12 versions below 3.12.6.
 
 1.3.1 ("Eyes in the Sky", released 2026-07-31)
 ======================================================================
