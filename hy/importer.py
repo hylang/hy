@@ -84,7 +84,7 @@ def _get_code_from_file(*args, hy_src_check=lambda x: x.endswith(".hy")):
 
     if hy.compat.PY3_15:
         fname, module = args
-    elif hy.compat.PY3_12:
+    elif hy.compat.PY3_12_6:
         fname, = args
     else:
         run_name, fname = args
